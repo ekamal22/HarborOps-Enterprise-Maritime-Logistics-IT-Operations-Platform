@@ -59,7 +59,7 @@ The mandatory [Local Storage Policy](LOCAL_STORAGE_POLICY.md) establishes E: for
 
 ## M0 implementation notes
 
-- The API uses .NET 8 and an EF Core 8 PostgreSQL provider. The framework baseline should be upgraded before the end of its support lifecycle.
+- The M0 baseline was previously verified using .NET 8 and EF Core 8. The separate hardening branch now targets .NET 10, EF Core 10, Npgsql EF provider 10 and a non-root PostgreSQL image. Compatibility and security must be verified before this design change is accepted.
 - Database migration and deterministic bootstrap seeding run as a one-shot Compose service before the API starts.
 - The only M0 API resource is public, read-only synthetic platform metadata; authentication starts in M1 after D-001; organization-scoped authorization begins in M2.
 - The worker project is deliberately idle. No tracking event behavior is represented as delivered.

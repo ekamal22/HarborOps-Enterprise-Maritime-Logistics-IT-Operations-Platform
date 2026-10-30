@@ -38,7 +38,7 @@ Week estimates are indicative relative to actual available development time, not
 
 **Deliver:** .NET solution and API, React/Vite frontend, PostgreSQL EF Core migration, deterministic bootstrap seed, JSON logging, correlation IDs, liveness/readiness, one-shot migrator, Docker Compose, test projects, local setup/validation scripts.
 
-**Gate G0 requires:** Clean .NET restore/build/unit/contract/integration execution; React tests and build; PostgreSQL migration and repeatable seed; Compose validation and clean startup; browser -> API -> database observation; liveness versus readiness under a controlled database outage; secret and dependency review; documented exact commands and environment. Reference [M0 Verification](M0_VERIFICATION.md) for existing feature-branch evidence.
+**Gate G0 requires:** Clean .NET restore/build/unit/contract/integration execution; React tests and build; PostgreSQL migration and repeatable seed; Compose validation and clean startup; browser -> API -> database observation; liveness versus readiness under a controlled database outage; secret and dependency review; documented exact commands and environment. Reference [M0 Verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) for existing feature-branch evidence.
 
 **Current evidence:** Source exists on `feat/m0-engineering-baseline`; full runtime validation has not occurred. G0 is open. Nothing in M1 should be marked implemented by this fact.
 

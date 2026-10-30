@@ -60,7 +60,7 @@ A change is done only when:
 ## Planning document authority
 
 - Update [PRD](PRD.md) for product scope and priorities, [Requirements](REQUIREMENTS.md) for atomic FR/NFR changes, [Roadmap](ROADMAP.md) for milestone delivery and gate changes, and [execution-graph.json](execution-graph.json) for work-package dependency changes.
-- Never hand-edit [Execution Graph](EXECUTION_GRAPH.md). Regenerate with `node scripts/render-execution-graph.mjs` and check with `node scripts/render-execution-graph.mjs --check`.
+- Never hand-edit [Execution Graph](EXECUTION_GRAPH.md). Regenerate with `node scripts/render-execution-graph.mjs`, then check with `node scripts/render-execution-graph.mjs --check` and `node scripts/check-planning-docs.mjs`.
 - Treat [Status](STATUS.md) and milestone evidence registers as the only source for achieved results and acceptance state.
 - When changing a node ID or requirement mapping, update affected code tasks, test evidence, gates, and references in the same change.
 

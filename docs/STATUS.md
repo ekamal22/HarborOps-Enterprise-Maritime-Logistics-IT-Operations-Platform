@@ -6,15 +6,13 @@
 
 ## Delivery ledger
 
+This implementation branch follows the proposed granular M0-M24 roadmap available on the [planning branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md). The older M1-M6 labels in the table below are legacy categories, not valid v2 milestone IDs. M1-M24 remain planned. G0 remains open.
+
+
 | Milestone | State | Evidence |
 | --- | --- | --- |
-| M0 Engineering baseline | In progress | .NET solution, EF Core baseline migration/seed, status API, React UI, Compose, tests, and scripts committed; full execution not verified |
-| M1 Shipment Operations | Planned | Requirements defined; no business implementation |
-| M2 Event Tracking | Planned | Worker shell exists but no event ingestion or processing |
-| M3 Analytics and UX | Planned | No operational dashboard, map, or KPI functionality |
-| M4 Security and Service Operations | Planned | M0 health/logging only; identity, permissions, telemetry, audit, and incidents outstanding |
-| M5 Cloud and Reliability | Planned | No hosted deployment, restore test, or performance evidence |
-| M6 Demo Release | Planned | Scenarios specified; no release evidence |
+| **M0 Engineering baseline verification** | In progress | Source exists and six isolated Node utility tests passed; .NET, PostgreSQL, Compose and real browser verification outstanding; G0 open |
+| **M1-M24** | Planned | No accepted business, operational, or release milestone implementation |
 
 ## M0 source inventory
 
@@ -32,17 +30,17 @@ This is **source implementation**, not proof of working runtime behavior. See [M
 
 - Repository baseline read: main at `754da6c66b4037303806e3ea825ace86f687a766`; 17 planning Markdown files; no previously implemented code.
 - M0 code commits: available on `feat/m0-engineering-baseline`.
-- Three pure Node configuration tests passed in an isolated local source copy using Node.js 22.16.0. This is limited evidence only.
+- Six Node utility tests passed in an isolated local source copy using Node.js 22.16.0. Frontend dependency install, full build and browser behavior were not tested.
 - .NET restore/build/tests: **not run** because the SDK is unavailable in the current environment.
 - PostgreSQL migration, API HTTP endpoints, Docker Compose, browser UX, failure injection: **not run** because required runtime infrastructure is unavailable.
-- Static repository review: 72 tracked files reviewed; no broken relative Markdown links, prohibited attribution terms, or em dashes found. Commit messages and identities reviewed. No full secret scanner or application build has run.
+- Previous source baseline static review checked 72 files. A repeat full-branch audit, dependency scan and application build remain outstanding after the latest changes.
 - No production deployment, complete E2E demonstration, or accepted milestone.
 
 ## M0 verification blockers
 
 1. Execute clean `.NET` restore and build and resolve any compiler or dependency failures.
 2. Execute unit, contract, and real PostgreSQL integration tests.
-3. Execute full frontend installation, test, and production build.
+3. Generate and commit a real frontend dependency lockfile, then execute clean frontend installation, tests and production build.
 4. Verify clean Compose startup, database migration, health endpoints, and real browser-to-database request path.
 5. Confirm expected degraded-dependency responses and recovery.
 6. Run dependency/security scanning and repeat hygiene checks after clean build; basic static repository hygiene audit has passed.
@@ -54,7 +52,7 @@ All baseline specification documents remain authoritative for their planned doma
 
 ## Next milestone
 
-Close the M0 verification gate before beginning M1. M1 will introduce authentication, organization membership, authorization rules, and core maritime operations.
+Close G0 before beginning M1. The granular roadmap places authentication/session lifecycle in M1, organization roles in M2, and maritime reference and shipment workflows in M3-M6.
 
 ## Acceptance convention
 

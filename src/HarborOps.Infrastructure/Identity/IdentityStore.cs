@@ -10,6 +10,8 @@ public sealed record CurrentSession(Guid UserId, Guid SessionId, string Email, s
 
 public sealed class IdentityStore(HarborOpsDbContext db, PasswordHasher passwords, TimeProvider clock)
 {
+    private static readonly Lazy<Task<string>> DecoyHash = new(() =>
+        new PasswordHasher().HashAsync("missing-account-decoy-password"));
     private static readonly TimeSpan Idle = TimeSpan.FromMinutes(30);
     private static readonly TimeSpan Absolute = TimeSpan.FromHours(12);
 
@@ -47,7 +49,7 @@ public sealed class IdentityStore(HarborOpsDbContext db, PasswordHasher password
         var credential = user is null ? null :
             await db.UserCredentials.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == user.Id, ct);
         // Unknown and disabled accounts still perform one expensive derivation.
-        var hash = credential?.PasswordHash ?? await passwords.HashAsync("missing-account-decoy-password", ct);
+        var hash = credential?.PasswordHash ?? await DecoyHash.Value.WaitAsync(ct);
         var verified = await passwords.VerifyAsync(password, hash, ct);
         if (!verified || user is null || user.Status != "Active" || credential?.HashAlgorithm != "argon2id")
         {

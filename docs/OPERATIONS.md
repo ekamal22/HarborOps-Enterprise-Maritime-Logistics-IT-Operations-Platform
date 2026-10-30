@@ -6,7 +6,7 @@
 - Demonstration: disposable cloud environment activated only when required.
 - Production: not in scope for initial milestone acceptance.
 
-M0 local Compose infrastructure is defined but no container startup has been executed or verified. The configured stack contains PostgreSQL, one-shot database migration/seed, HTTP API, and static frontend. The worker shell is intentionally not part of the running stack until tracking processing is implemented.
+M0 local Compose infrastructure was started on a clean volume and verified on Windows 11 at code revision `4fb34eb`. The stack was stopped after testing, and no hosted service is running. The configured stack contains PostgreSQL, one-shot database migration/seed, HTTP API, and static frontend. The worker shell is intentionally not part of the running stack until tracking processing is implemented.
 
 ## Observability requirements
 
@@ -82,7 +82,7 @@ Only run failure injections against isolated local or authorized demonstration i
 
 ### Recovery readiness
 
-A backup is not considered viable until a clean restore test passes. Create a runbook before M5 and include a reproducible restore verification record in the acceptance evidence.
+A backup is not considered viable until a clean restore test passes. Create a runbook before M19 and include a reproducible restore verification record in the acceptance evidence. Restarting PostgreSQL in M0 is not an isolated backup/restore demonstration.
 
 ## Deployment guardrails
 
@@ -93,7 +93,7 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 - Set a budget or usage cap, disable optional paid services, and document shutdown steps.
 - Record exact deployment version and whether sample data is synthetic.
 
-## Required runbooks by M5
+## Required runbooks by M19
 
 - Start and stop local stack.
 - Seed and reset demonstration dataset.
@@ -102,6 +102,10 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 - Restore database from backup.
 - Rotate and revoke integration credentials.
 - Deactivate hosted demonstration resources.
+
+## Storage and evidence handling
+
+Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Keep the repository, caches, PostgreSQL/Docker/WSL data, logs, screenshots and build outputs on E:. The verified local setup used `E:\\APP IDEAS\\harborops-m0-cache` for dependency caches and evidence. Do not introduce persistent C-drive project storage; system temporary writes are permitted only when unavoidable. No global disk relocation, pruning or data deletion is authorized by this runbook.
 
 ## M0 local runbook
 

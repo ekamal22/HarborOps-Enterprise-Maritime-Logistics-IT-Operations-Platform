@@ -13,7 +13,8 @@ public sealed class MigrationSnapshotTests
     public void ModelSnapshot_MatchesCurrentEntityModel()
     {
         using var db = SnapshotOnlyContext();
-        var snapshot = db.GetService<IMigrationsAssembly>().ModelSnapshot!.Model;
+        var snapshot = db.GetService<IModelRuntimeInitializer>()
+            .Initialize(db.GetService<IMigrationsAssembly>().ModelSnapshot!.Model, designTime: true);
         var current = db.GetService<IDesignTimeModel>().Model;
         var changes = db.GetService<IMigrationsModelDiffer>()
             .GetDifferences(snapshot.GetRelationalModel(), current.GetRelationalModel());

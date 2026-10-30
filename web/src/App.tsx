@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { parseBaselineStatus } from "./lib/baseline.mjs";
 import type { BaselineStatus } from "./lib/baseline.mjs";
-import { normalizeApiOrigin } from "./lib/config.mjs";
+import AuthPanel from "./auth/AuthPanel";
 
 type ViewState =
   | { status: "loading" }
   | { status: "ready"; data: BaselineStatus }
   | { status: "error"; message: string };
 
-const apiOrigin = normalizeApiOrigin(import.meta.env.VITE_API_BASE_URL);
+const apiOrigin = "";
 const REQUEST_TIMEOUT_MS = 10_000;
 
 export default function App() {
@@ -82,6 +82,7 @@ export default function App() {
             <div><dt className="text-xs uppercase tracking-widest text-slate-400">Seed reference (UTC)</dt><dd className="mt-2 font-mono text-sm">{new Date(view.data.seededAtUtc).toISOString()}</dd></div>
           </dl>}
         </section>
+        <AuthPanel />
         <p className="mt-8 text-xs text-slate-400">Demo data only. No live vessel information or shipping integrations.</p>
       </main>
     </div>

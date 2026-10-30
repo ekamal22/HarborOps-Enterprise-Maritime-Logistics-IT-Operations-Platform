@@ -14,6 +14,7 @@ ARG SOURCE_REVISION=unverified
 LABEL org.opencontainers.image.revision=$SOURCE_REVISION
 WORKDIR /app
 COPY --from=build /app/publish ./
+RUN mkdir -p /keys && chown "$APP_UID:$APP_UID" /keys
 EXPOSE 8080
 USER $APP_UID
 ENTRYPOINT ["dotnet", "HarborOps.Api.dll"]

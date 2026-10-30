@@ -23,7 +23,6 @@ The worker is an idle shell, not a tracking processor. The baseline database row
 | Node origin utility tests, isolated source copy | Debian 13, Node.js 22.16.0 | `node --test tests/*.test.mjs` | 3 passed, 0 failed | Source copied into an isolated local review directory, not run against a connected repository checkout |
 | GitHub repository assessment | Connected repository | Read `main` commit/tree and all 17 planning Markdown files | 17 baseline files, no prior application code | Repository inventory only |
 | GitHub branch source creation | Connected repository | Created feature branch and committed M0 files | GitHub accepted changes | Commits do not demonstrate runtime correctness |
-
 | M0 Node origin and baseline-payload utility tests, isolated source copy | Debian 13, Node.js 22.16.0 | `node --test tests/*.test.mjs` | **6 passed, 0 failed** | Both current test files and their two utility modules were reproduced in an isolated local review directory; not a full checked-out frontend, dependency installation, TypeScript build, or browser test |
 
 ## Required checks still outstanding
@@ -72,7 +71,7 @@ Do not interpret any unchecked item as passed.
 3. `/health/ready` returns HTTP 503 for unavailable database or missing bootstrap row.
 4. The baseline endpoint uses a real query against PostgreSQL; the UI displays data marked `synthetic`.
 5. If the database is inaccessible, the status UI presents a visible error, not a false ready state.
-6. Stopping the worker shell does not affect M0 API behavior because event processing is not implemented or enabled.
+6. The idle worker shell does not affect M0 API behavior because event processing is not implemented or enabled in Compose.
 
 These are expected outcomes derived from source code, not observed results.
 
@@ -105,7 +104,7 @@ No paid cloud accounts or feeds are necessary. `.env` is local and untracked. Gi
 - `global.json`, package versions, container image tags, and frontend dependencies need a successful clean restore and security review before M0 verification. There is no committed `web/package-lock.json`, so frontend transitive dependencies are not yet locked; M0 must not be marked reproducible until a real npm install produces and verifies a lockfile and build. Use `npm ci` for subsequent clean verification.
 - .NET 8 support ends on 2026-11-10; schedule a deliberate .NET 10 migration with dependency and compatibility tests rather than treating the existing framework as a long-lived supported base.
 - M0 tests do not yet exercise a real browser or the degraded-dependency path. A script and guarded controls exist, but have not been run.
-- An operational backup/restore rehearsal is planned for M5.
+- The full operational backup/restore rehearsal is planned for M19 under the v2 execution graph.
 
 ## Status rule
 

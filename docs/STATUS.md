@@ -15,7 +15,7 @@ This branch follows the granular M0-M24 roadmap on the [planning branch](https:/
 
 ## Hardening changes pending verification
 
-This branch proposes an upgrade from .NET 8/EF Core 8 to .NET 10/EF Core 10, a derived PostgreSQL 16 image running as UID 70 with the upstream `gosu` binary removed, a refreshed test toolchain and a cross-browser suite (Chromium, Firefox, WebKit). A manual screen-reader procedure and an E-drive-only image scan runner have also been added.
+This branch proposes an upgrade from .NET 8/EF Core 8 to .NET 10/EF Core 10, a derived PostgreSQL 16 image running as UID 70 with the upstream `gosu` binary removed, a refreshed test toolchain and a cross-browser suite (Chromium, Firefox, WebKit). An E-drive-only image scan runner and automated browser accessibility checks have also been added. Manual screen-reader evaluation is deferred to M23.
 
 **Corrected branch gate: re-verification pending.** The initial independent hardening audit passed build, database container startup, security scans and 12 browser checks but found a fresh-database integration failure (4/5) and a footer contrast failure. Both have source fixes; the corrected revision must be retested. Do not carry forward old G0 test counts to the new code SHA. The evidence and exact required checks are in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The original `4fb34eb` test result remains historical evidence, but the later cold-database failure prevents relying on it as a complete G0 pass.
 
@@ -48,7 +48,7 @@ All results are recorded with commands, versions and revisions in [M0 Verificati
 2. Rerun the previously failing fresh-database integration test and the full .NET 10 suite on the corrected revision.
 3. Rebuild source-labeled images, repeat isolated Compose startup and recovery, and rescan the exact running image IDs with the updated scanner.
 4. Run clean `npm ci` from the committed browser lockfile and execute the expanded three-browser suite and contrast checks.
-5. Complete manual screen-reader and real browser-zoom testing or explicitly record the remaining coverage limitations.
+5. Review automated WCAG contrast, keyboard/focus, accessible-name, status/error and responsive-layout results. Manual screen-reader and real-device zoom testing belong to M23, not the M0 acceptance gate.
 
 ## Mandatory storage boundary
 

@@ -4,10 +4,14 @@
 **Branch:** `feat/m0-engineering-baseline`
 **Starting revision:** `16523bc1f865f19ef8a86bf1b6604c8c84207003`
 **Final code revision verified:** `4fb34eb` (the commit that records this register follows it and changes documentation only)
-**Gate G0:** verified, acceptance pending
+**Gate G0:** historical verification claim reopened after a later fresh-database regression; acceptance pending
 **Planning source:** [ROADMAP](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md), [ACCEPTANCE_CRITERIA](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ACCEPTANCE_CRITERIA.md) and [execution-graph.json](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/execution-graph.json) on `docs/product-delivery-source-of-truth`. The branches were not merged.
 
 This register separates three states: source implemented, runtime verified, and accepted. Everything marked verified below was executed on the machine described in the next section. Raw logs were kept outside the repository because they contain local paths.
+
+## Subsequent fresh-database finding
+
+A later independent audit reproduced an integration-test failure on an empty `harborops_integration` database against both the upgraded code and the previously recorded .NET 8 baseline. The test reused a `DbContext` after raw SQL deleted a tracked row, so its second seed raised a duplicate tracked-key exception. Earlier successful runs on a pre-seeded database did not establish fresh-state repeatability. Consequently the previously reported fully verified G0 conclusion must be **reopened pending complete cold-database verification**. The fix lives on the hardening branch, where recovery now uses a new context. This register preserves the exact historical observations without treating them as sufficient acceptance evidence.
 
 ## Post-baseline hardening revision
 

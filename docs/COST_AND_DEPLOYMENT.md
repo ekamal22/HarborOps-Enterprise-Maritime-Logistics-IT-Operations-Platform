@@ -27,6 +27,10 @@ HarborOps must remain fully usable for essential development, testing, and produ
 
 Credits, free limits, verification requirements, and student entitlements change. Do not encode a fixed credit amount as a permanent architectural assumption.
 
+## Mandatory local storage and capacity guardrail
+
+The project working tree resides at `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`, with project caches and M0 test evidence under `E:\\APP IDEAS\\harborops-m0-cache`. Docker Desktop/WSL persistent data is E-backed in the verified setup. All controlled persistent project storage must remain on E:, including database volumes, browser test output and future tools. C: may be used only for unavoidable, short-lived Windows temporary writes. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md) and verify actual paths before introducing a new tool or service. Do not move installed tools or delete existing files without approval.
+
 ## Deployment profiles
 
 ### Profile L: Local complete system
@@ -63,4 +67,4 @@ OpenStreetMap data and map tile services have different rights and operational l
 
 ## M0 local infrastructure
 
-`compose.yaml` uses self-hosted PostgreSQL 16, .NET 8 API/migrator containers, and a locally hosted React static frontend. No cloud account, map feed, or paid license is required for the intended baseline workflow. Docker and dependencies must be installed separately. The GitHub validation workflow is manual-only to avoid unrequested CI usage. No hosted resources have been provisioned, and no cloud spending has been authorized. Verify any development tooling license terms independently.
+`compose.yaml` uses self-hosted PostgreSQL 16, .NET 8 API/migrator containers, and a locally hosted React static frontend. No cloud account, map feed, or paid license is required for the intended baseline workflow. M0 Docker and dependencies were already installed and used locally for full G0 verification; no new tool installation was necessary. The GitHub validation workflow is manual-only to avoid unrequested CI usage. No hosted resources have been provisioned, and no cloud spending has been authorized. Verify any development tooling license terms independently.

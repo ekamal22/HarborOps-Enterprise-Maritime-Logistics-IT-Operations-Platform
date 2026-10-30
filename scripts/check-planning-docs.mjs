@@ -45,7 +45,7 @@ const docsDir = join(root, "docs");
 const documents = ["README.md", ...readdirSync(docsDir).filter(s=>s.endsWith(".md")).map(s=>"docs/"+s)];
 for (const path of documents) {
   const body = get(path);
-  assert(!body.includes("—"), "Em dash in " + path);
+  assert(!body.includes("\u2014"), "Em dash in " + path);
   for (const match of body.matchAll(/\]\(([^)]+)\)/g)) {
     const target = match[1].split("#")[0].split("?")[0];
     if (!target || /^(?:https?:|mailto:)/.test(target)) continue;

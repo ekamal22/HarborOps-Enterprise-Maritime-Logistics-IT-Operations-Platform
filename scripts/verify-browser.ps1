@@ -47,7 +47,7 @@ try {
 
     $manifest = Get-Content -LiteralPath (Join-Path $Tests 'package.json') -Raw | ConvertFrom-Json
     $locked = Get-Content -LiteralPath $lockfile -Raw | ConvertFrom-Json
-    if ($locked.lockfileVersion -lt 3 -or $locked.packages.''.devDependencies.'@playwright/test' -ne $manifest.devDependencies.'@playwright/test') {
+    if ($locked.lockfileVersion -lt 3 -or $locked.packages.PSObject.Properties[''].Value.devDependencies.PSObject.Properties['@playwright/test'].Value -ne $manifest.devDependencies.'@playwright/test') {
         throw 'Browser dependency lockfile does not match the manifest'
     }
 

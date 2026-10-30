@@ -1,140 +1,303 @@
 # HarborOps Delivery Roadmap
 
-**Version:** 1.1 confirmed product direction  
+**Version:** 2.0 granular delivery baseline  
 **Date:** 2026-10-30  
-**State:** Product direction confirmed; milestone acceptance remains pending
+**State:** Confirmed product direction; revised milestone boundaries proposed, acceptance pending.
 
-## Purpose and authority
+## Authority and rationale
 
-This roadmap owns the approved planning sequence, milestone scopes, prerequisites, and exit-gate definitions for M0-M6. [PRD](PRD.md) owns product intent and release scope; [Requirements](REQUIREMENTS.md) owns FR/NFR IDs; [execution-graph.json](execution-graph.json) owns the executable work-package dependency data, rendered in [Execution Graph](EXECUTION_GRAPH.md); [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) owns detailed release checks; [Status](STATUS.md) alone owns actual implementation, verification, and acceptance state. [Implementation Plan](IMPLEMENTATION_PLAN.md) is supporting historical implementation guidance, not an independent schedule or authority.
+The [PRD](PRD.md) defines confirmed product outcomes and release boundaries. This roadmap owns delivery scope, milestone prerequisites and gate conditions. [execution-graph.json](execution-graph.json) owns individual work-package IDs and dependency edges and generates [Execution Graph](EXECUTION_GRAPH.md). [Requirements](REQUIREMENTS.md) owns FR/NFR IDs and [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) owns detailed checks. [Status](STATUS.md) alone records actual implementation and acceptance evidence.
 
-Week estimates are indicative relative to actual available development time, not calendar commitments. Milestone ordering is mandatory at gate transitions, but independent work packages inside a milestone may run in parallel when graph prerequisites permit.
+The previous seven milestones grouped too many unrelated deliverables together. Version 2.0 decomposes the same planned M0-M6 release into **25 narrower milestones (M0-M24), 101 scoped work packages, and 25 independent evidence gates**. This is a sequencing refinement, not approval to expand the initial product scope. No fixed calendar deadlines are imposed by this document.
 
-## Confirmed delivery posture
+## Confirmed product strategy
 
-The [PRD](PRD.md#confirmed-product-decisions-2026-10-30) records the confirmed product decisions PD-01 through PD-07:
+- Deliver a credible, cohesive enterprise demonstration that can evolve toward real deployment after separate requirements and security reviews.
+- Complete maritime shipment, tracking, analytics and operations depth before expanding into bookings, customs, commercial logistics and terminal/fleet modules.
+- Deliver the initial technical monitoring and incident workflow, with broader service/asset/change management treated as a future extension.
+- Require polished premium-enterprise UX, with configurable personalized workspaces deferred.
+- Require real multi-user and multi-organization boundaries from the first business-data milestone.
+- Require fully functional zero-cost local deployment. Public hosting remains optional if no mandatory charges are necessary.
+- No newly nominated non-negotiable features; existing requirements, negative tests and product acceptance criteria remain in force.
 
-- **Release strategy:** Deliver a portfolio-quality, functioning and verifiable enterprise platform that can evolve toward real organizational adoption. Do not claim operational production readiness from simulated demonstrations.
-- **Maritime scope:** Complete the planned shipment, tracking, analytics, exception, and recovery journeys before expanding to additional logistics domains.
-- **IT operations:** Implement the M4 observability, auditing, security and incident/recovery foundation fully. Expand toward broader service and infrastructure management in later product increments.
-- **UX:** Target polished premium-enterprise interfaces, with particularly strong dashboards, maps, and user workflows. Advanced personalization and custom dashboard builders are not required for G6.
-- **Tenancy:** Multiple users, organizations, memberships and server-enforced isolation begin in M1, not as a later extension.
-- **Deployment:** A verified, complete, zero-cost local system is required. A publicly reachable full-stack demonstration is an optional additional profile only if verified free or budget-approved resources allow it without mandatory charges.
-- **Priorities:** No further uniquely non-negotiable feature has been nominated. Existing Must/Should scope and gates are unchanged except where this roadmap explicitly clarifies them.
+## Milestone contract and gate policy
 
-These decisions set direction, not additional unscheduled milestones.
+Each milestone has one small, externally testable outcome, typically four work packages, and a single gate **G0 through G24**. A work package is not complete merely when its code is committed. The gate requires actual executed tests and a recorded revision, environment, fixtures, output, failures, security impact, and any outstanding work. A verified gate is **acceptance pending** until explicitly accepted. Dependent implementation must not proceed until the preceding gate is verified, except read-only research and separately documented sequencing changes.
 
-## Delivery principles
+Security, tenant authorization, data integrity, cost control, migration hygiene and documentation are applied when their related functionality first appears. M16/M20 harden and systematically reverify earlier security measures; they do not postpone basic security from M1 onward.
 
-1. Each milestone ends with reproducible, recorded verification and a review gate. Code existence does not satisfy a gate.
-2. Core security starts in M1; M4 expands hardening, telemetry, and incident management.
-3. Avoid mandatory paid infrastructure, proprietary tracking feeds, and unnecessary distributed services.
-4. Preserve organization boundaries and event integrity in all subsequently introduced features.
-5. No milestone is accepted by implication. A passing gate becomes **acceptance pending** until acceptance is explicitly confirmed.
-6. An unmet gate blocks promotion of dependent milestone implementation, except explicit read-only discovery or a separately documented change in dependency policy.
-7. Maintain requirement -> work-package -> acceptance-check -> evidence traceability, using stable IDs.
+## Milestone register
 
-## Milestone overview
-
-| Milestone | Indicative phase | Delivery outcome | Gate |
+| Milestone | Bounded delivery outcome | Prerequisite | Exit gate |
 | --- | --- | --- | --- |
-| M0 Engineering Baseline | Week 1 | Repeatable frontend/API/PostgreSQL foundation, migration, seed, health, baseline verification | G0 |
-| M1 Core Shipment Operations | Weeks 1-2 | Scoped identity, reference data, shipments, assignments, working browser flow | G1 |
-| M2 Tracking Integrity | Weeks 3-4 | Versioned durable event processing, worker recovery, timelines, exceptions | G2 |
-| M3 Operational Analytics | Weeks 5-6 | Scoped search/export, reconciled dashboards, maps, exception experience | G3 |
-| M4 Security and IT Operations | Weeks 7-8 | Auditing, hardening, observability, incident lifecycle and fault diagnosis | G4 |
-| M5 Reliability and Deployment | Weeks 9-10 | Migration and restore rehearsal, benchmarks, security review, optional guarded hosting | G5 |
-| M6 Release Demonstration | Weeks 11-12 | Accessible UX, deterministic D01-D06 demos, evidence, documentation and release assessment | G6 |
+| **M0 Engineering baseline verification** | Verify the existing source-only foundation against real runtime evidence | Existing source assessment | G0 |
+| **M1 Authentication and session lifecycle** | Secure login, session expiry, logout and account disablement | G0 verified; D-001 closed | G1 |
+| **M2 Organizations and role isolation** | Explicit memberships, roles and organization-scoped access | G1 verified | G2 |
+| **M3 Ports and vessels reference data** | Validated, queryable and scoped port/vessel reference records | G2 verified | G3 |
+| **M4 Voyages and containers reference data** | Validated voyage schedules and container identity models | G3 verified; D-003 closed | G4 |
+| **M5 Shipment lifecycle and concurrency** | Create, edit, search and archive organizational shipments | G4 verified | G5 |
+| **M6 Container and voyage assignments** | Temporal and organization-safe shipment assignments | G5 verified | G6 |
+| **M7 Tracking contracts and source authentication** | Versioned and authenticated event interface | G6 verified; D-002 closed | G7 |
+| **M8 Durable event inbox and immutable history** | Transactional receipt persistence and accepted event provenance | G7 verified; D-006 closed | G8 |
+| **M9 Idempotent worker and reconciliation** | At-least-once processing with effect-once business outcomes | G8 verified | G9 |
+| **M10 Event timeline and projection rebuild** | Ordered history, current status and explicit correction handling | G9 verified | G10 |
+| **M11 Delay rules and shipment exceptions** | Explainable at-risk, delay and conflict detection | G10 verified | G11 |
+| **M12 Shipment search and authorized export** | Scoped filtering, detail navigation and CSV output | G11 verified | G12 |
+| **M13 Operational KPI definitions and dashboards** | Reconciled, drillable throughput and delay metrics | G12 verified; D-005 closed | G13 |
+| **M14 Route mapping and geographic context** | Licensed, simulated and accessible route visualization | G13 verified; D-004 closed | G14 |
+| **M15 Scoped in-app notifications** | Authorized event and incident exception messaging | G14 verified | G15 |
+| **M16 Audit logging and access hardening** | Append-only evidence and strengthened authorization | G15 verified | G16 |
+| **M17 Observability and service health** | Structured metrics, traces and meaningful operational alerts | G16 verified | G17 |
+| **M18 IT incident lifecycle and remediation** | Actionable incident triage, notes, and closure evidence | G17 verified | G18 |
+| **M19 Database recovery and migration rehearsal** | Verified fresh/historical upgrades and isolated restore | G18 verified; D-008 closed | G19 |
+| **M20 Security assurance and dependency review** | Adversarial regression and high-severity issue closure | G19 verified | G20 |
+| **M21 Performance and capacity benchmarks** | Measured latency and bounded resource behavior | G20 verified | G21 |
+| **M22 Deployment portability and cost controls** | Complete local profile and optional guarded public demo | G21 verified; D-007 closed | G22 |
+| **M23 Interface polish and accessibility** | Premium, consistent and accessible enterprise user experience | G22 verified | G23 |
+| **M24 Release scenarios and evidence closure** | D01-D06 repeatability, documentation and release decision | G23 verified | G24 |
 
-## M0: Engineering baseline
+## Staged delivery plan
 
-**Entry:** Existing documentation decisions ADR-001 through ADR-006; no prior runtime assumed.
+### P0: Foundation and maritime records
 
-**Deliver:** .NET solution and API, React/Vite frontend, PostgreSQL EF Core migration, deterministic bootstrap seed, JSON logging, correlation IDs, liveness/readiness, one-shot migrator, Docker Compose, test projects, local setup/validation scripts.
+#### M0: Engineering baseline verification
 
-**Gate G0 requires:** Clean .NET restore/build/unit/contract/integration execution; React tests and build; PostgreSQL migration and repeatable seed; Compose validation and clean startup; browser -> API -> database observation; liveness versus readiness under a controlled database outage; secret and dependency review; documented exact commands and environment. Reference [M0 Verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) for existing feature-branch evidence.
+**Scope:** Verify the existing source-only foundation against real runtime evidence.
+**Entry:** Existing implementation reviewed without assuming runtime correctness.
+**Required work packages:** M0-01 Assess existing M0 branch; M0-02 Build and test foundations; M0-03 Verify migration and seed; M0-04 Verify local stack and browser; M0-05 Verify failure and hygiene.
+**Exit G0:** All applicable tasks, negative tests, runtime evidence and documentation for M0 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Shipment and tenant business functionality.
 
-**Current evidence:** Source exists on `feat/m0-engineering-baseline`; full runtime validation has not occurred. G0 is open. Nothing in M1 should be marked implemented by this fact.
+#### M1: Authentication and session lifecycle
 
-## M1: Identity, organizations, and shipment operations
+**Scope:** Secure login, session expiry, logout and account disablement.
+**Entry:** G0 verified with a documented gate report. Resolve D-001 before applicable feature implementation.
+**Required work packages:** M1-01 Lock authentication contract; M1-02 Build credential and session store; M1-03 Implement login and logout endpoints; M1-04 Verify session lifecycle end to end.
+**Exit G1:** All applicable tasks, negative tests, runtime evidence and documentation for M1 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Multiple-organization permissions and maritime resources; these begin in M2 and M3.
 
-**Entry:** G0 verified; D-001 session/integration authentication approach and D-003 identifier policy decided.
+#### M2: Organizations and role isolation
 
-**Deliver:** Organization memberships, session lifecycle and role enforcement; ports, vessels, voyages, containers, shipments and assignment schema; validated CRUD, archive and optimistic concurrency; scoped list/detail/search; browser create/edit/link flow and deterministic two-organization fixtures.
+**Scope:** Explicit memberships, roles and organization-scoped access.
+**Entry:** G1 verified with a documented gate report.
+**Required work packages:** M2-01 Model memberships and role grants; M2-02 Enforce permission boundary; M2-03 Implement organization selection; M2-04 Verify tenant isolation.
+**Exit G2:** All applicable tasks, negative tests, runtime evidence and documentation for M2 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Shipment domain CRUD and maritime reference data.
 
-**Gate G1 requires:** Authorized shipment flow works via browser and API; invalid and conflicting writes leave no partial state; unauthenticated, wrong-role, disabled membership, and foreign-organization calls deny retrieval, mutation, and list/filter attempts; migrations and isolation integration suites pass. See FR-001 through FR-005 and acceptance sections A/D.
+#### M3: Ports and vessels reference data
 
-## M2: Durable tracking events and projections
+**Scope:** Validated, queryable and scoped port/vessel reference records.
+**Entry:** G2 verified with a documented gate report.
+**Required work packages:** M3-01 Specify port and vessel invariants; M3-02 Implement port persistence and endpoints; M3-03 Implement vessel persistence and endpoints; M3-04 Verify reference data browser flow.
+**Exit G3:** All applicable tasks, negative tests, runtime evidence and documentation for M3 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Voyage, container, shipment and tracking persistence.
 
-**Entry:** G1 verified; D-002 pinned DCSA subset and D-006 durability/reconciliation design decided.
+#### M4: Voyages and containers reference data
 
-**Deliver:** Authenticated versioned ingress, strict payload validation and receipt persistence; source-scoped deduplication and immutable accepted events; transactional worker processing, bounded retries and dead-letter/reconciliation; late/correction-aware projection, timeline, deterministic ETA/status and exception rule fixtures; event security tests.
+**Scope:** Validated voyage schedules and container identity models.
+**Entry:** G3 verified with a documented gate report. Resolve D-003 before applicable feature implementation.
+**Required work packages:** M4-01 Finalize container identifier policy; M4-02 Implement voyage persistence; M4-03 Implement container persistence; M4-04 Verify voyage and container workflows.
+**Exit G4:** All applicable tasks, negative tests, runtime evidence and documentation for M4 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Shipment assignment and tracking events.
 
-**Gate G2 requires:** New event visibility is durable; duplicates produce one business effect; conflicting IDs, forged sources, malformed and unknown events are handled explicitly; restart and database failure do not cause silent loss; recomputed projections match fixtures. See FR-006 through FR-010 and acceptance section B.
+#### M5: Shipment lifecycle and concurrency
 
-## M3: Operational analytics and user experience
+**Scope:** Create, edit, search and archive organizational shipments.
+**Entry:** G4 verified with a documented gate report.
+**Required work packages:** M5-01 Specify shipment state transitions; M5-02 Implement shipment schema and commands; M5-03 Implement optimistic concurrency; M5-04 Verify shipment CRUD browser journey.
+**Exit G5:** All applicable tasks, negative tests, runtime evidence and documentation for M5 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Container/voyage assignment and event processing.
 
-**Entry:** G2 verified; D-004 tile/license decision and D-005 KPI tolerances finalized.
+#### M6: Container and voyage assignments
 
-**Deliver:** Scoped shipment search/filter, view and bounded CSV export; explainable KPI aggregates with drill-through and denominator definition; route/map context with compliant fallback; exception triage and authorized, deduplicated in-app notifications; polished, premium-quality, responsive and keyboard-usable operational views with clear dashboard hierarchy and map interactions.
+**Scope:** Temporal and organization-safe shipment assignments.
+**Entry:** G5 verified with a documented gate report.
+**Required work packages:** M6-01 Define assignment invariants; M6-02 Implement shipment-container links; M6-03 Implement shipment-voyage links; M6-04 Verify complete allocation journey.
+**Exit G6:** All applicable tasks, negative tests, runtime evidence and documentation for M6 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Tracking intake or analytics.
 
-**Gate G3 requires:** KPIs reconcile with persisted fixture rows; projected at-risk/delayed states match rule tests; maps and exports obey tenant scope; simulated source is labeled; browser workflows and accessibility-critical checks pass. See FR-011 through FR-013 and FR-018/FR-019, acceptance section C.
+### P1: Event ingestion and decision rules
 
-## M4: Security hardening, observability, and service desk
+#### M7: Tracking contracts and source authentication
 
-**Entry:** G3 verified.
+**Scope:** Versioned and authenticated event interface.
+**Entry:** G6 verified with a documented gate report. Resolve D-002 before applicable feature implementation.
+**Required work packages:** M7-01 Pin external subset and contract; M7-02 Implement source entitlements; M7-03 Implement strict payload validation; M7-04 Verify ingestion contract tests.
+**Exit G7:** All applicable tasks, negative tests, runtime evidence and documentation for M7 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Inbox persistence and background processing.
 
-**Deliver:** Security/session/regression matrix and append-only audit records; rate limits and sensitive-log redaction; request and worker metrics, traces, health panels and alerts; incident ticket model, lifecycle, investigation evidence, root-cause and remediation actions; controlled outage-to-recovery journey.
+#### M8: Durable event inbox and immutable history
 
-**Gate G4 requires:** Threat and authorization matrix passes; no sensitive values leak to logs, metrics, or exports; injected failure is detected and represented by an incident; recovery and closeout evidence correlate with the original signal. See FR-014 through FR-016 and FR-020, acceptance sections D/E.
+**Scope:** Transactional receipt persistence and accepted event provenance.
+**Entry:** G7 verified with a documented gate report. Resolve D-006 before applicable feature implementation.
+**Required work packages:** M8-01 Specify inbox and retention states; M8-02 Implement receipt and event schema; M8-03 Implement intake transaction path; M8-04 Verify persistent ingestion behavior.
+**Exit G8:** All applicable tasks, negative tests, runtime evidence and documentation for M8 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Worker retry scheduling and projected shipment state.
 
-## M5: Reliability rehearsal and deployment boundary
+#### M9: Idempotent worker and reconciliation
 
-**Entry:** G4 verified; D-007 budget/hosting policy and D-008 recovery targets decided before relevant work.
+**Scope:** At-least-once processing with effect-once business outcomes.
+**Entry:** G8 verified with a documented gate report.
+**Required work packages:** M9-01 Define worker state transitions; M9-02 Implement transactional worker claim; M9-03 Implement retry and dead-letter queue; M9-04 Verify interrupted-work recovery.
+**Exit G9:** All applicable tasks, negative tests, runtime evidence and documentation for M9 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Shipment timelines, ETA rules and UI dashboards.
 
-**Deliver:** Isolated backup and restoration validation, fresh/historical migration rehearsal, worker and database failure drills; measured reference load/performance; dependency and security review; documented local-full-stack deployment profile. Cloud hosting remains optional and cannot be required for acceptance if the fully verified local-equivalent profile meets the product requirement.
+#### M10: Event timeline and projection rebuild
 
-**Gate G5 requires:** Restore has validated counts, relationships, migration state, and sample API behavior; failure recovery is verified; performance evidence includes dataset, hardware, load and latency distribution; security findings are resolved or explicitly block; no unapproved paid services. See NFR-010 through NFR-012 and acceptance section F.
+**Scope:** Ordered history, current status and explicit correction handling.
+**Entry:** G9 verified with a documented gate report.
+**Required work packages:** M10-01 Specify deterministic event ordering; M10-02 Implement accepted timeline API; M10-03 Implement versioned projections; M10-04 Verify projection rebuild.
+**Exit G10:** All applicable tasks, negative tests, runtime evidence and documentation for M10 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Delay classification, notifications and dashboard metrics.
 
-## M6: Release demonstration and product closure
+#### M11: Delay rules and shipment exceptions
 
-**Entry:** G5 verified.
+**Scope:** Explainable at-risk, delay and conflict detection.
+**Entry:** G10 verified with a documented gate report.
+**Required work packages:** M11-01 Specify delay classification rules; M11-02 Implement exception evaluation; M11-03 Implement exception lifecycle; M11-04 Verify end-to-end exception flow.
+**Exit G11:** All applicable tasks, negative tests, runtime evidence and documentation for M11 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Notifications and high-level KPI visualization.
 
-**Deliver:** Cohesive premium-enterprise UI with polished navigation, operational visual hierarchy, responsive layouts, and correct empty/error/permission states; deterministic complete fixtures; repeatable D01-D06 journey; documentation, operational runbooks, status ledger, evidence index, limitations and release readiness decision.
+### P2: Operational workspaces
 
-**Gate G6 requires:** All applicable release checks in [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) pass; six demo scenarios have recorded results, all required test layers pass, no critical/high security blocker remains, and documentation reflects exactly what was observed. Release becomes acceptance pending until explicitly accepted.
+#### M12: Shipment search and authorized export
 
-## Post-release expansion opportunities (not committed to M0-M6)
+**Scope:** Scoped filtering, detail navigation and CSV output.
+**Entry:** G11 verified with a documented gate report.
+**Required work packages:** M12-01 Define search contract and pagination; M12-02 Implement scoped search services; M12-03 Implement controlled CSV export; M12-04 Verify search/export UX.
+**Exit G12:** All applicable tasks, negative tests, runtime evidence and documentation for M12 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** KPI aggregation, geographic visualization and notification routing.
 
-The long-term direction includes real-world adoptability, broader maritime and logistics operations, and more comprehensive IT service management. Potential increments after a verified M6 release include:
+#### M13: Operational KPI definitions and dashboards
 
-| Opportunity | Examples | Preconditions before committing |
-| --- | --- | --- |
-| Expanded maritime workflows | Freight bookings, documentation, terminal and port operations, extended fleet workflows | Confirm real business actors, domain boundaries, access rules, integration licensing and measurable needs |
-| Expanded IT operations | Asset inventory, service requests, change approvals, SLA policy, escalation workflows and task automation | Confirm service catalog, role scopes, audit evidence, operational targets and acceptable ongoing costs |
-| Enterprise customization | Configurable dashboard widgets, saved workspace layouts, personalized operational views | Validate user needs, accessibility, multi-tenant data access and performance |
-| Real-world readiness | External identity, real data agreements, carrier or terminal integrations, hardened deployment and compliance reviews | Dedicated security, reliability, legal, data-access and operational acceptance plan |
-| Public demonstration | Live hosted stack with synthetic data, guarded access, budget monitoring and shutdown controls | Verify sustainable free usage or explicitly approve a non-mandatory budget; local release remains sufficient |
+**Scope:** Reconciled, drillable throughput and delay metrics.
+**Entry:** G12 verified with a documented gate report. Resolve D-005 before applicable feature implementation.
+**Required work packages:** M13-01 Finalize KPI catalog and cutoffs; M13-02 Implement aggregate query services; M13-03 Build dashboard visualizations; M13-04 Verify dashboard correctness.
+**Exit G13:** All applicable tasks, negative tests, runtime evidence and documentation for M13 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Maps and notification delivery.
 
-These are **candidate directions**, not adopted FR/NFR requirements, scheduled milestones, tasks in the current execution graph, or G6 release blockers. Expand the PRD, requirements, roadmap, execution graph, and acceptance checks together if any is promoted.
+#### M14: Route mapping and geographic context
 
-## Cross-cutting tracks
+**Scope:** Licensed, simulated and accessible route visualization.
+**Entry:** G13 verified with a documented gate report. Resolve D-004 before applicable feature implementation.
+**Required work packages:** M14-01 Resolve map licensing and fallback; M14-02 Implement route visualization model; M14-03 Build interactive map interface; M14-04 Verify mapped data security.
+**Exit G14:** All applicable tasks, negative tests, runtime evidence and documentation for M14 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Notifications and general dashboard widgets.
 
-| Track | Starts | Continues through | Rule |
-| --- | --- | --- | --- |
-| Security and tenant isolation | M1 | M6 | No new business endpoint without negative authorization tests |
-| Database migrations and recoverability | M0 | M6 | Rehearse before treating schema and recovery as verified |
-| Traceability and evidence | M0 | M6 | Record revision, command, environment, output, and outstanding tests at each gate |
-| Synthetic data and provenance | M0 | M6 | No real customer feeds; simulated values visibly labeled |
-| Documentation and decisions | M0 | M6 | Keep one authoritative location per concern and resolve contradictions explicitly |
-| Cost control | M0 | M6 | Essential workflows never require a paid account |
+#### M15: Scoped in-app notifications
 
-## Dependencies and change management
+**Scope:** Authorized event and incident exception messaging.
+**Entry:** G14 verified with a documented gate report.
+**Required work packages:** M15-01 Define recipient and deduplication rules; M15-02 Implement notification persistence; M15-03 Implement notification interface; M15-04 Verify recipient isolation.
+**Exit G15:** All applicable tasks, negative tests, runtime evidence and documentation for M15 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Infrastructure alerts and incident creation.
 
-The binding graph of work packages and explicit gate dependencies is [execution-graph.json](execution-graph.json). Render it with `node scripts/render-execution-graph.mjs`; inspect its [readable view](EXECUTION_GRAPH.md). Before starting a graph node, confirm all its `depends_on` nodes have evidence that meets their gate requirements. A gate node cannot be closed by source inspection, skipped tests, a successful commit, or an unapproved waiver.
+### P3: Security and technical operations
 
-To change priority or sequence, revise the PRD if product scope changes, this roadmap if milestones or gates change, and the graph data if work packages or dependencies change. Then update requirement mappings, acceptance checks, and [Status](STATUS.md) as appropriate. A blocker or intentional deferral must be recorded, not silently removed. Existing accepted architecture decisions remain active until deliberately revised in [Decisions](DECISIONS.md).
+#### M16: Audit logging and access hardening
 
-## Next actionable work
+**Scope:** Append-only evidence and strengthened authorization.
+**Entry:** G15 verified with a documented gate report.
+**Required work packages:** M16-01 Define audit schema and privacy; M16-02 Implement append-only audit entries; M16-03 Harden security boundaries; M16-04 Verify security and audit matrix.
+**Exit G16:** All applicable tasks, negative tests, runtime evidence and documentation for M16 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Telemetry dashboards and IT incident lifecycle.
 
-Complete M0 verification against the existing feature branch. Follow the graph from M0-01 through G0 and record actual evidence in the dedicated M0 register. No M1 implementation promotion until G0 is verified.
+#### M17: Observability and service health
+
+**Scope:** Structured metrics, traces and meaningful operational alerts.
+**Entry:** G16 verified with a documented gate report.
+**Required work packages:** M17-01 Define telemetry signals and thresholds; M17-02 Implement health and trace propagation; M17-03 Implement monitoring dashboards and alerts; M17-04 Verify diagnostic journey.
+**Exit G17:** All applicable tasks, negative tests, runtime evidence and documentation for M17 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Incident ticket workflows and recovery rehearsal.
+
+#### M18: IT incident lifecycle and remediation
+
+**Scope:** Actionable incident triage, notes, and closure evidence.
+**Entry:** G17 verified with a documented gate report.
+**Required work packages:** M18-01 Define severity and state policy; M18-02 Implement incident CRUD and state controls; M18-03 Implement investigation and remediation; M18-04 Verify alert-to-incident workflow.
+**Exit G18:** All applicable tasks, negative tests, runtime evidence and documentation for M18 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Backup restoration and release performance benchmarking.
+
+### P4: Reliability and delivery assurance
+
+#### M19: Database recovery and migration rehearsal
+
+**Scope:** Verified fresh/historical upgrades and isolated restore.
+**Entry:** G18 verified with a documented gate report. Resolve D-008 before applicable feature implementation.
+**Required work packages:** M19-01 Define recovery targets and safeguards; M19-02 Rehearse schema upgrade paths; M19-03 Implement backup and isolated restore; M19-04 Verify restored integrity.
+**Exit G19:** All applicable tasks, negative tests, runtime evidence and documentation for M19 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Comprehensive security scanning and load benchmarks.
+
+#### M20: Security assurance and dependency review
+
+**Scope:** Adversarial regression and high-severity issue closure.
+**Entry:** G19 verified with a documented gate report.
+**Required work packages:** M20-01 Establish security review baseline; M20-02 Run permission and injection tests; M20-03 Run dependency and endpoint scans; M20-04 Remediate and reverify findings.
+**Exit G20:** All applicable tasks, negative tests, runtime evidence and documentation for M20 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Performance benchmarking and hosted deployment.
+
+#### M21: Performance and capacity benchmarks
+
+**Scope:** Measured latency and bounded resource behavior.
+**Entry:** G20 verified with a documented gate report.
+**Required work packages:** M21-01 Define reference benchmark workload; M21-02 Benchmark shipment search; M21-03 Benchmark event processing and exports; M21-04 Resolve bottlenecks and record limits.
+**Exit G21:** All applicable tasks, negative tests, runtime evidence and documentation for M21 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Cloud hosting and final UX polish.
+
+#### M22: Deployment portability and cost controls
+
+**Scope:** Complete local profile and optional guarded public demo.
+**Entry:** G21 verified with a documented gate report. Resolve D-007 before applicable feature implementation.
+**Required work packages:** M22-01 Finalize deployment profile and budget decision; M22-02 Harden local runtime profile; M22-03 Validate optional demonstration policy; M22-04 Verify deploy and rollback runbook.
+**Exit G22:** All applicable tasks, negative tests, runtime evidence and documentation for M22 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Optional public infrastructure is not a mandatory acceptance path.
+
+### P5: Release finish
+
+#### M23: Interface polish and accessibility
+
+**Scope:** Premium, consistent and accessible enterprise user experience.
+**Entry:** G22 verified with a documented gate report.
+**Required work packages:** M23-01 Define visual system and navigation; M23-02 Polish operational workflows; M23-03 Complete error and offline states; M23-04 Verify accessibility critical paths.
+**Exit G23:** All applicable tasks, negative tests, runtime evidence and documentation for M23 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Release acceptance or claims of final product certification.
+
+#### M24: Release scenarios and evidence closure
+
+**Scope:** D01-D06 repeatability, documentation and release decision.
+**Entry:** G23 verified with a documented gate report.
+**Required work packages:** M24-01 Freeze deterministic demonstration fixtures; M24-02 Run end-to-end scenario suite; M24-03 Audit docs and test evidence; M24-04 Prepare release readiness assessment.
+**Exit G24:** All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed.
+**Not covered by this milestone:** Public hosting and production accreditation; only documented local release readiness is required.
+
+## Legacy milestone mapping
+
+The revised identifiers are a **versioned replacement** for the earlier seven-milestone plan. Historical issue and task references using v1 identifiers are not automatically valid under v2. M0 task IDs M0-01 through M0-05 and gate G0 retain their original meaning.
+
+| Previous milestone (v1) | New milestone boundaries (v2) |
+| --- | --- |
+| M0 Engineering Baseline | M0 |
+| M1 Identity and Shipment Operations | M1-M6 |
+| M2 Event Tracking | M7-M11 |
+| M3 Analytics and User Interface | M12-M15 |
+| M4 Security and IT Service Desk | M16-M18 |
+| M5 Cloud and Reliability | M19-M22 |
+| M6 Demonstration Release | M23-M24 |
+
+**ID migration rule:** Previous M1-M6 node IDs and G1-G6 must be treated as superseded planning identifiers. The new work package IDs and gates are not equivalent to the old ones. When moving an issue or evidence reference to v2, match its deliverable and tests explicitly rather than copying an old ID. No completed evidence is inferred.
+
+## Release scope boundary
+
+The planned M14 map view and M15 in-app notifications remain in the release baseline, with licensed offline fallback and entitlement tests. A change to omit these requires an explicit PRD, acceptance, roadmap and graph revision. M22's public demonstration feasibility assessment does **not** require deploying to paid infrastructure. Enterprise asset management, service requests, change-management suites, commercial shipping feeds, public hosting, and advanced user customization remain future candidates, not additional G24 blockers.
+
+## Gate transitions and evidence
+
+1. Deliver one work package with a bounded output and a testable negative/failure case; parallelize only where the JSON dependency graph permits.
+2. Update relevant security, schema, API, operations and decision records before calling the implementation complete.
+3. Execute the specified tests, record exact revision/commands/fixture/environment and distinguish unrun from failed and passed checks.
+4. Verify every dependency and applicable [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) before recording a gate as verified; retain an explicit acceptance-pending state if not yet accepted.
+5. If a gate is blocked, record it in [Status](STATUS.md). Do not skip ahead to dependent functionality without an approved sequencing change.
+
+## Immediate execution
+
+Work against the existing unmerged `feat/m0-engineering-baseline` source. Complete the M0 execution graph tasks and G0 with actual .NET, PostgreSQL, Compose, browser, dependency and failure checks before beginning M1 implementation. No current application feature has been accepted by this roadmap revision.

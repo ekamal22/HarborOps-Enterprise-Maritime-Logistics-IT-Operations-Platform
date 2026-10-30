@@ -74,6 +74,10 @@ For every milestone: commit SHA, commands executed, test summary, pass/fail coun
 
 Keep repositories, npm/NuGet caches, Docker/WSL data, test databases, screenshot/tracing captures and test output on E: per [Local Storage Policy](LOCAL_STORAGE_POLICY.md). C: can be used only for unavoidable short-lived system temporary writes. Each milestone evidence register must record actual storage paths.
 
+## Expanded M0 verification (pending)
+
+A separate test project adds Playwright browser checks for Chromium, Firefox and WebKit, with a PowerShell runner directing caches and browser binaries to E:. A manual assistive-technology checklist covers screen-reader behavior and measured contrast. These are **planned executions**, not results. Clean .NET 10 builds, EF Core 10 migration compatibility and the derived PostgreSQL image must also be verified against the new code. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+
 ## M0 execution boundary
 
 The M0 branch adds unit, contract, PostgreSQL integration, browser utility, and Compose smoke checks. It also adds `scripts/verify-local.sh`, `scripts/smoke-compose.sh`, and a manual-only GitHub workflow.

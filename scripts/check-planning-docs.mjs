@@ -12,12 +12,25 @@ const acceptance = get("docs/ACCEPTANCE_CRITERIA.md");
 const decisions = get("docs/DECISIONS.md");
 const graphView = get("docs/EXECUTION_GRAPH.md");
 const readme = get("README.md");
+const storagePolicy = get("docs/LOCAL_STORAGE_POLICY.md");
 
 function assert(ok, message) {
   if (!ok) throw Error(message);
 }
 
 assert(graph.schema_version === 2, "Expected version 2 execution graph");
+assert(storagePolicy.includes("Persistent project-specific writes to C: are prohibited"), "E-drive storage policy missing its persistent-storage prohibition");
+assert(storagePolicy.includes("APP IDEAS"), "E-drive workspace root missing from storage policy");
+for (const [name, content] of [
+  ["README", readme],
+  ["Status", status],
+  ["Roadmap", roadmap],
+  ["PRD", prd],
+  ["Acceptance", acceptance]
+]) {
+  assert(content.includes("LOCAL_STORAGE_POLICY.md"), name + " does not reference the mandatory E-drive policy");
+}
+assert(status.includes("G0 verified, acceptance pending"), "Status ledger does not reflect the verified M0 gate");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");
 assert(roadmap.includes("## Legacy milestone mapping"), "Missing version migration map");

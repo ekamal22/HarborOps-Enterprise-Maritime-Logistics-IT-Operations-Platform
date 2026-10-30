@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** Planning baseline on the default branch. The M0 hardening in draft PR #3 passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at source revision `fec7429415fede121db8a4a34f0df72cd4fac609`. G0 is verified, acceptance pending; the branches remain unmerged. All described capabilities are requirements or targets unless evidenced in [Project Status](docs/STATUS.md).
+**Status:** M0 engineering baseline merged into `main` and **G0 accepted** on 2026-10-31. The .NET 10, fresh PostgreSQL, functional browser, Compose recovery and image hardening passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at source revision `fec7429415fede121db8a4a34f0df72cd4fac609`. M1-M24 remain planned; M1 has not started. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -54,6 +54,21 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone sequencing is dependency based, not a calendar deadline. Current delivery status is recorded only in [Project Status](docs/STATUS.md).
 
+### Local M0 startup
+
+Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 10 SDK for standalone development.
+
+1. Copy `.env.example` to `.env` and set a unique `HARBOROPS_DB_PASSWORD`.
+2. Run `docker compose up -d --build` from the repository root.
+3. Check `http://localhost:8080/health/live`, `http://localhost:8080/health/ready`, and `http://localhost:8080/api/v1/system/baseline`.
+4. Open `http://localhost:5173` for the read-only system baseline.
+5. For separate disposable verification, run `bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable` with the local test password configured. This builds source-revision-labeled images and checks the isolated stack.
+6. On that disposable test stack only, run `bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage` to test database interruption and recovery. These scripts refuse the primary `harborops` project. The script temporarily stops the PostgreSQL service and restores it on exit.
+7. Use `docker compose down` to stop services. Add `-v` only to intentionally remove the local database.
+
+The web image installs from the committed `web/package-lock.json` with `npm ci`. Run `bash scripts/verify-local.sh` with a disposable `HARBOROPS_TEST_DB` value for the full build and test sequence. Compose uses a one-shot migrator and a synthetic baseline seed, and does not run a tracking worker or ship production data. Integration tests only run against a loopback PostgreSQL database named `harborops_integration` or `harborops_test`. See [M0 Verification](docs/M0_VERIFICATION.md) for environment details, evidence and limitations.
+
+
 ### Documentation index
 
 | Document | Purpose |
@@ -94,6 +109,10 @@ M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). Th
 
 HarborOps is an independent demonstration platform. It does not claim affiliation with any shipping line, authority, port operator, or industry standards organization. Use of third-party identifiers, geographic data, map tiles, and specifications is subject to the applicable rights and service policies.
 
+### M0 verification evidence
+
+The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) preserves the complete 2026-10-31 G0 evidence. The successful GitHub Actions run covered 1 unit, 10 contract, 5 fresh and 5 repeat integration, 6 web and 12 browser tests, Compose fault/recovery and three high/critical image scans. Existing local Docker volumes are not M0 gate requirements. Accessibility testing occurs only at M24-04.
+
 ### Current state
 
-The default branch remains a documentation baseline. On the unmerged `feat/m0-engineering-baseline` branch, a historical M0 run at `4fb34eb` included builds, migrations, Compose, browser and fault recovery, but later cold-state testing reproduced an integration test failure on that baseline. The fix is in the separate M0 hardening PR; G0 remains reopened pending a corrected complete run. No live or hosted deployment was claimed. See [Project Status](docs/STATUS.md) for evidence before treating any milestone as complete.
+The default `main` branch contains the accepted M0 engineering foundation. G0 was verified on the hardening branch and merged via PRs #3 and #1. The code includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic seed, React status UI and Docker Compose. Full shipment, tracking, analytics and incident workflows remain planned for M1-M24. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).

@@ -1,0 +1,98 @@
+name: harborops
+
+services:
+  postgres:
+    image: harborops-postgres:16.15-rootless
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    user: "70:70"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: harborops
+      POSTGRES_USER: harborops
+      POSTGRES_PASSWORD: ${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - harborops-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harborops -d harborops"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks: [internal]
+
+  migrator:
+    build:
+      context: .
+      dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: "no"
+    command: ["--migrate"]
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+
+  api:
+    build:
+      context: .
+      dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
+      Cors__AllowedOrigins__0: "http://localhost:5173"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    networks: [internal]
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        VITE_API_BASE_URL: "http://localhost:8080"
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:5173:80"
+    depends_on:
+      api:
+        condition: service_started
+    networks: [internal]
+
+volumes:
+  harborops-postgres:
+
+networks:
+  internal:
+    driver: bridge

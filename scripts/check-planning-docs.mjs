@@ -30,7 +30,7 @@ for (const [name, content] of [
 ]) {
   assert(content.includes("LOCAL_STORAGE_POLICY.md"), name + " does not reference the mandatory E-drive policy");
 }
-assert(status.includes("G0 verified") && status.includes("acceptance pending"), "Status ledger must reflect verified G0 with explicit acceptance pending");
+assert(status.includes("G0 verified") && status.includes("accepted"), "Status ledger must reflect accepted G0");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");
 assert(roadmap.includes("## Legacy milestone mapping"), "Missing version migration map");

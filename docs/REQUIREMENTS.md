@@ -8,7 +8,7 @@ All requirements are proposed. A requirement is considered delivered only after 
 
 ## Observed baseline and storage boundary
 
-M0 runtime behavior is verified on the unmerged implementation branch at code revision `4fb34eb` (G0 verified, acceptance pending). This covers the baseline status endpoint, PostgreSQL migration and synthetic seed, local Compose startup, dependency health checks and limited security verification. It does **not** satisfy the full later requirements for shipment data, tenant authorization, tracking or incident management. Refer to [Status](STATUS.md) and the [feature-branch M0 evidence register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md).
+M0 baseline functionality is implemented on `main`, verified at `fec7429415fede121db8a4a34f0df72cd4fac609` by [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) and **G0 accepted** on 2026-10-31. The synthetic status endpoint, fresh PostgreSQL migration/seed, Compose startup and fault recovery are covered. This does **not** satisfy later shipment, tenant authorization, tracking or incident requirements. See [Status](STATUS.md) and [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
 All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_POLICY.md): controllable persistent project storage on E:, with unavoidable short-lived Windows temporary writes on C: permitted only as an exception.
 

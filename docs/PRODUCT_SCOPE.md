@@ -43,7 +43,7 @@ HarborOps provides a single operational workspace for maritime shipment lifecycl
 
 ## Verified baseline and workspace
 
-The initial M0 local engineering baseline has been verified on the separate implementation branch against code revision `4fb34eb`; G0 acceptance remains pending. No shipment, tracking, multi-tenant business access, service desk or production deployment is thereby approved. See [Status](STATUS.md). Development storage is constrained by [Local Storage Policy](LOCAL_STORAGE_POLICY.md): E-drive persistence, with C-drive short-lived system temporary use permitted only when unavoidable.
+The M0 engineering baseline is integrated into `main` and G0 was **accepted** on 2026-10-31 after successful [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at source revision `fec7429415fede121db8a4a34f0df72cd4fac609`. Shipment, tracking, multi-tenant business access, service desk and production deployment remain outside the implemented M0 scope. Local persistent development storage remains subject to [Local Storage Policy](LOCAL_STORAGE_POLICY.md): E-drive persistence, with only unavoidable short-lived Windows temporary use on C:.
 
 ## Product principles
 

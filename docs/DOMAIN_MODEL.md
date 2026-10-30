@@ -57,3 +57,9 @@ Order primarily by trusted occurrence time when source rules permit, then by sou
 - Include on-time, delayed, missing, duplicated, out-of-order, invalid, and corrected event scenarios.
 - Document counts and seed version so KPI test results can be reproduced.
 - Always label simulated location traces and estimated arrival predictions.
+
+## M0 physical schema implemented
+
+`bootstrap_records` is a single infrastructure status table, not a shipment-domain model. The initial EF Core migration creates `key` (80-character primary key), `dataset_version` (required, 80 characters), and `seeded_at_utc` (required UTC timestamp). The deterministic row uses key `harborops` and dataset version `m0-synthetic-v1`. The migration and seed were applied to clean PostgreSQL 16.15 databases and inspected on 2026-10-30 (see [M0 Verification](M0_VERIFICATION.md)).
+
+Organization membership and access boundaries are planned for M2; maritime reference entities and shipment/assignment invariants are planned for M3-M6. None of these business entities were implemented in the M0 engineering baseline.

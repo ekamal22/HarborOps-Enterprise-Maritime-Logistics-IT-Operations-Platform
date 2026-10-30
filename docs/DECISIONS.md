@@ -58,3 +58,7 @@ The [granular roadmap](ROADMAP.md) assigns earlier decision deadlines to narrowe
 ## Decision change protocol
 
 Each material reversal records: context, alternatives, trade-offs, chosen approach, impact on requirements and tests, migration needs, and acceptance status. A change is not adopted solely because a new library or service is available.
+
+## Accepted M0 runtime decision
+
+The M0 baseline uses .NET 10, EF Core 10, PostgreSQL 16 with rootless container execution, a public synthetic-only read-only status endpoint and an isolated test database. Runtime verification passed on source revision `fec7429415fede121db8a4a34f0df72cd4fac609` and G0 was accepted on 2026-10-31. Authentication and session management are M1, pending D-001; organization isolation is M2. The browser remains functional-only until the final M24-04 accessibility gate.

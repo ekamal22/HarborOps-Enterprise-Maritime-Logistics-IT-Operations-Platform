@@ -2,7 +2,13 @@
 
 ## Contract status
 
-The endpoints below are proposed resources, not implemented endpoints. Final names and schemas require OpenAPI artifacts and contract tests.
+M0 implements only `GET /api/v1/system/baseline`, `GET /health/live`, and `GET /health/ready`. All other resource routes below remain proposed. Live OpenAPI generation, full schemas, authentication, and protected business routes are deferred.
+
+## Observed M0 contract verification
+
+At code revision `4fb34eb`, the API was tested against real PostgreSQL and through the HTTP pipeline. A local database outage produced controlled 503 responses from readiness and baseline endpoints, with liveness remaining HTTP 200 and a correlation identifier included in the baseline error/log. The tests verified the four-field synthetic status contract. G0 is **verified, acceptance pending**. See [M0 Verification](M0_VERIFICATION.md). All shipment, identity and tracking resources below remain planned.
+
+The workspace, caches and test artifacts must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md), using E: for all controlled persistent project storage. Only unavoidable short-lived Windows temporary activity on C: is permitted.
 
 ## Common conventions
 
@@ -15,6 +21,14 @@ The endpoints below are proposed resources, not implemented endpoints. Final nam
 - Pagination: bounded limit, continuation token where useful
 - Request correlation: correlation ID echoed in responses and structured logs
 - Writes: explicit validation, idempotency where supported, conflict detection
+
+## Implemented M0 endpoint
+
+`GET /api/v1/system/baseline` reads the seeded `bootstrap_records` row in PostgreSQL. Its successful JSON object has `service`, `datasetVersion`, `seededAtUtc`, and `source` fields, where `source` is `synthetic`. No customer data is exposed.
+
+`GET /health/live` reports process liveness without checking dependencies. `GET /health/ready` checks PostgreSQL connectivity and the baseline seed and returns HTTP 503 if unhealthy. Both return only a minimal `status` string.
+
+The baseline endpoint returns a safe `baseline_unavailable` error when the record is missing and a `dependency_unavailable` response for recognized database failures. Unhandled errors use a sanitized `internal_error` envelope. Every API response is intended to carry `X-Correlation-ID`; this behavior is covered by contract tests and was observed against the running stack on 2026-10-30.
 
 ## Proposed resource map
 

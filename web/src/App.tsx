@@ -54,8 +54,8 @@ export default function App() {
       </header>
       <main className="mx-auto max-w-5xl px-6 py-16">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-cyan-300">Platform readiness</p>
-        <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">Connected from interface to database.</h1>
-        <p className="mt-5 max-w-2xl text-slate-400">This foundation verifies a real API response backed by PostgreSQL. Shipment operations, event processing, analytics, and incident management are planned for subsequent milestones.</p>
+        <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">Foundation status from the live API.</h1>
+        <p className="mt-5 max-w-2xl text-slate-400">This page queries a PostgreSQL-backed API to check the engineering foundation. Shipment operations, event processing, analytics, and incident management remain planned for later milestones.</p>
         <section className="mt-12 rounded-2xl border border-slate-800 bg-slate-900/80 p-7" aria-live="polite">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div><h2 className="text-xl font-semibold">System baseline</h2><p className="mt-1 text-sm text-slate-400">Read-only status from /api/v1/system/baseline</p></div>

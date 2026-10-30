@@ -12,7 +12,7 @@ Test domain invariants, integration boundaries, security boundaries, and operati
 | Database integration | xUnit + PostgreSQL test database | Transactions, constraints, migration paths, concurrency |
 | API integration | ASP.NET Core integration test host | Status codes, validation, auth, organization isolation |
 | Contract | OpenAPI validation + fixture tests | Schema versions, errors, event adapter mapping |
-| Browser E2E | Playwright | Shipment workflow, alerts, filters, accessibility-critical flows |
+| Browser E2E | Playwright | Functional behavior through M23; accessibility-specific scenarios only at final M24-04 |
 | Security | Targeted adversarial tests + OWASP ZAP in test environment | BOLA/BFLA, injections, leaks, session boundaries |
 | Load | k6 | Documented scenario throughput and p95 latency |
 | Recovery | Controlled fault injection | Worker restart, duplicate protection, backup restore |

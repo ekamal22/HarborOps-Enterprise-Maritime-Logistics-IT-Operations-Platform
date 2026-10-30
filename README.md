@@ -52,7 +52,7 @@ All persistent HarborOps development data must stay on E:, including the working
 
 ### Pending M0 hardening verification
 
-The initial hardening audit demonstrated .NET 10 compilation, database startup and copied-volume compatibility, clean final image scans and 12 browser passes, but also exposed a 4/5 fresh-database failure and a 4.24:1 contrast issue. Fixes are now committed. The corrected code must pass cold-state tests, fresh and existing-volume startup, image scanning and the expanded browser matrix. Review [Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) before considering this revision verified. The browser runner stores npm cache and browser binaries on E: and uses a committed `tests/browser/package-lock.json` that still requires a fresh `npm ci` check.
+The initial hardening audit demonstrated .NET 10 compilation, database startup and copied-volume compatibility, clean final image scans and 12 browser passes, but also exposed a 4/5 fresh-database failure and a 4.24:1 contrast issue. Fixes are now committed. The corrected code must pass cold-state tests, fresh disposable database startup, image scanning and the functional browser matrix. Existing local Docker volume compatibility is not a G0 requirement; lightweight compatibility checkpoints belong to M6, M12, M18 and M24-03, with the full recovery/migration rehearsal at M19. Review [Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) before considering this revision verified. The browser runner stores npm cache and browser binaries on E: and uses a committed `tests/browser/package-lock.json` that still requires a fresh `npm ci` check.
 
 ### Local M0 startup
 

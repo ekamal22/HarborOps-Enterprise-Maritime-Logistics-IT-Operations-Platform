@@ -1,101 +1,110 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
-function validateGraph(data) {
-  if (data.schema_version !== 1) throw Error("Unsupported graph schema");
-  const milestones = ["M0","M1","M2","M3","M4","M5","M6"];
-  if (data.milestones.map(m => m.id).join(",") !== milestones.join(",")) throw Error("Milestone list is out of sequence");
-  const nodes = data.nodes, nodeMap = new Map(nodes.map(node=>[node.id,node]));
-  if (nodeMap.size !== nodes.length) throw Error("Duplicate work-package ID");
-  for (const [index,node] of nodes.entries()) {
-    if (!/^M[0-6]-[0-9]{2}$|^G[0-6]$/.test(node.id)) throw Error("Invalid node ID: "+node.id);
-    if (!milestones.includes(node.milestone)) throw Error("Unknown milestone: "+node.id);
-    if (!node.title || !node.output || !node.verify || !Array.isArray(node.requirements) || !node.requirements.length) throw Error("Incomplete work-package: "+node.id);
-    if (!node.requirements.every(id => /^(FR|NFR)-[0-9]{3}$/.test(id))) throw Error("Invalid requirement: "+node.id);
-    if (node.gate !== undefined && node.gate !== true) throw Error("Invalid gate value: "+node.id);
-    if (node.id.startsWith("G") !== Boolean(node.gate)) throw Error("Gate ID mismatch: "+node.id);
-    if (node.gate && node.id !== "G"+node.milestone.slice(1)) throw Error("Incorrect gate milestone: "+node.id);
-    if (!Array.isArray(node.depends_on) || new Set(node.depends_on).size !== node.depends_on.length) throw Error("Invalid dependencies: "+node.id);
-    for (const dep of node.depends_on) {
-      const predecessor=nodeMap.get(dep);
-      if (!predecessor || nodes.indexOf(predecessor)>=index) throw Error("Missing, cyclic or unordered dependency: "+dep+" -> "+node.id);
-      if (predecessor.milestone!==node.milestone && dep!=="G"+(Number(node.milestone.slice(1))-1)) throw Error("Invalid cross-milestone edge: "+dep+" -> "+node.id);
-    }
-    if (node.milestone!=="M0" && !node.gate && !node.depends_on.some(dep=>nodeMap.get(dep).milestone===node.milestone) && !node.depends_on.includes("G"+(Number(node.milestone.slice(1))-1))) throw Error("Unblocked milestone root: "+node.id);
+function validateGraph(data,requirementContent,decisionContent) {
+ if(data.schema_version!==2)throw Error("Unsupported graph schema");
+ const ms=data.milestones,ns=data.nodes,ph=data.phases;
+ if(ms.length!==25||ms.some((m,i)=>m.id!=="M"+i))throw Error("Unexpected milestone set");
+ const declared=ph.flatMap(p=>p.milestones);
+ if(declared.length!==ms.length||new Set(declared).size!==ms.length||declared.join(",")!==ms.map(m=>m.id).join(","))throw Error("Phase coverage mismatch");
+ const seen=new Map(), reqIds=new Set([...requirementContent.matchAll(/^\| (FR-\d{3}|NFR-\d{3}) \|/gm)].map(m=>m[1]));
+ for(let i=0;i<ns.length;i++){
+  const n=ns[i];
+  if(seen.has(n.id))throw Error("Duplicate ID "+n.id);
+  if(!ms.some(m=>m.id===n.milestone))throw Error("Unknown milestone "+n.id);
+  if(n.id.startsWith("G")!==Boolean(n.gate))throw Error("Gate flag mismatch "+n.id);
+  if(n.gate?n.id!=="G"+n.milestone.slice(1):!new RegExp("^"+n.milestone+"-\\d{2}$").test(n.id))throw Error("ID format mismatch "+n.id);
+  if(!n.title?.trim()||!n.output?.trim()||!n.verify?.trim()||!Array.isArray(n.depends_on)||!Array.isArray(n.requirements)||!n.requirements.length)throw Error("Incomplete node "+n.id);
+  if(new Set(n.depends_on).size!==n.depends_on.length)throw Error("Duplicate edge "+n.id);
+  for(const id of n.requirements)if(!reqIds.has(id))throw Error("Unknown requirement "+id+" on "+n.id);
+  seen.set(n.id,{node:n,index:i});
+  for(const d of n.depends_on){
+   const prior=seen.get(d);
+   if(!prior)throw Error("Missing or forward dependency "+d+" -> "+n.id);
+   if(prior.node.milestone!==n.milestone && d!=="G"+(Number(n.milestone.slice(1))-1))throw Error("Cross-milestone bypass "+d+" -> "+n.id);
   }
-  for (const milestone of milestones) {
-    const gate=nodeMap.get("G"+milestone.slice(1));
-    if (!gate || gate.milestone!==milestone) throw Error("Missing gate for "+milestone);
-    const reaches=(id,visited=new Set())=>{
-      if(id===gate.id)return true;
-      if(visited.has(id))return false;
-      visited.add(id);
-      return nodes.filter(n=>n.depends_on.includes(id)).some(n=>reaches(n.id,visited));
-    };
-    for (const node of nodes.filter(n=>n.milestone===milestone && !n.gate)) {
-      if(!reaches(node.id)) throw Error("Work package bypasses gate: "+node.id);
-    }
-  }
+ }
+ for(let i=0;i<ms.length;i++){
+  const m=ms[i],work=ns.filter(n=>n.milestone===m.id&&!n.gate),gate=ns.find(n=>n.id==="G"+i);
+  if(work.length<3||work.length>6||!gate||gate.milestone!==m.id)throw Error("Invalid task/gate count "+m.id);
+  if(gate.depends_on.length!==work.length||work.some(n=>!gate.depends_on.includes(n.id)))throw Error("Gate missing prerequisite "+m.id);
+  if(work[0].depends_on.join(",")!==(i?"G"+(i-1):""))throw Error("Invalid entry "+m.id);
+  if(work.slice(1).some(n=>n.depends_on.length===0))throw Error("Orphan node "+m.id);
+  for(const id of m.decisions??[])if(!decisionContent.includes("| "+id+" |"))throw Error("Unknown decision "+m.id+" "+id);
+ }
 }
 
 function renderGraph(data) {
-  const lines=[
-    "# HarborOps Execution Graph",
-    "",
-    "**Version:** "+data.version+"  ",
-    "**Date:** "+data.date+"  ",
-    "**Status:** Planning dependency model. Current implementation and verification are tracked in [Status](STATUS.md).",
-    "",
-    "This file is generated from [execution-graph.json](execution-graph.json), the authoritative source for work-package IDs, prerequisites, and verification intentions. Do not edit this file directly. Regenerate with `node scripts/render-execution-graph.mjs` and check with `node scripts/render-execution-graph.mjs --check`.",
-    "",
-    "## Gate sequence",
-    "",
-    "```mermaid",
-    "flowchart LR",
-    ...data.milestones.map(m=>"  G"+m.id.slice(1)+"[\""+m.id+" gate\"]"),
-    "  "+data.milestones.map(m=>"G"+m.id.slice(1)).join(" --> "),
-    "```",
-    "",
-    "Each gate is an evidence-based checkpoint. A gate may be verified only when its incoming work packages and applicable [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) have executed successfully. Passing verification leads to **acceptance pending** until acceptance is explicitly confirmed.",
-    "",
-    "## Work-package dependency graph",
-    "",
-    "```mermaid",
-    "flowchart TD"
-  ];
-  for(const m of data.milestones){
-    lines.push("  subgraph "+m.id+"[\""+m.id+": "+m.title+"\"]");
-    for(const node of data.nodes.filter(n=>n.milestone===m.id)){
-      const safeId=node.id.replaceAll("-","_");
-      const title=(node.gate?"GATE: ":"")+node.title.replaceAll('"',"'");
-      lines.push("    "+safeId+'["'+node.id+": "+title+'"]');
-    }
-    lines.push("  end");
+ const safe=s=>String(s).replaceAll("|","/").replaceAll("\n"," ").replaceAll('"',"'");
+ const lines=[
+ "# HarborOps Execution Graph",
+ "",
+ "**Version:** "+data.version+"  ",
+ "**Date:** "+data.date+"  ",
+ "**State:** Delivery dependency plan, not observed runtime status.",
+ "",
+ "## Authority and use",
+ "",
+ "The authoritative work-package dataset is [execution-graph.json](execution-graph.json). This document is generated by [scripts/render-execution-graph.mjs](../scripts/render-execution-graph.mjs). Edit JSON first, then run `node scripts/render-execution-graph.mjs`; verify exact consistency with `node scripts/render-execution-graph.mjs --check`.",
+ "",
+ "The [PRD](PRD.md) defines product scope; [Roadmap](ROADMAP.md) defines milestone boundaries and gate obligations; [Requirements](REQUIREMENTS.md) owns atomic FR/NFR identifiers; [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) defines checks; [Status](STATUS.md) exclusively records executed evidence, progress, and acceptance. Graph nodes are planned work and cannot be treated as implemented solely because they exist.",
+ "",
+ "**Granularity:** "+data.milestones.length+" independently gated milestones, "+data.nodes.filter(n=>!n.gate).length+" scoped work packages, "+data.nodes.filter(n=>n.gate).length+" verification gates, "+data.nodes.reduce((n,x)=>n+x.depends_on.length,0)+" dependency edges across "+data.phases.length+" delivery stages.",
+ "",
+ "## Navigation",
+ "",
+ "| Stage | Milestones | Focus |",
+ "| --- | --- | --- |",
+ ...data.phases.map(p=>"| ["+p.id+": "+p.title+"](#"+("stage-"+p.id+"-"+p.title).toLowerCase().replaceAll(/[^a-z0-9 -]/g,"").replaceAll(" ","-")+") | "+p.milestones.join(", ")+" | "+p.title+" |"),
+ "",
+ "## High-level stage dependency",
+ "",
+ "```mermaid",
+ "flowchart LR",
+ ...data.phases.map((p,i)=>"  "+p.id+'["'+safe(p.title)+'"]'),
+ "  "+data.phases.map(p=>p.id).join(" --> "),
+ "```",
+ "",
+ "Gate transitions are sequential. Within a single milestone, tasks that branch from the same prerequisite may be implemented independently and then reunited at verification. Every work package is a narrow, reviewable output with specific tests.",
+ "",
+ "## Legacy identifier migration",
+ "",
+ "Execution graph v1 contained M0-M6. M0-01 through M0-05 and G0 are preserved. **Old M1-M6 node IDs and G1-G6 are superseded and must not be interpreted as the new tasks or completion states.** The old-to-new milestone mapping is documented in [Roadmap](ROADMAP.md). New planning IDs do not rewrite code history or retroactively mark any capability delivered.",
+ ""
+ ];
+ for(const p of data.phases){
+  lines.push("## Stage "+p.id+": "+p.title,"");
+  for(const id of p.milestones){
+   const m=data.milestones.find(m=>m.id===id),nodes=data.nodes.filter(n=>n.milestone===id),gate=nodes.find(n=>n.gate),tasks=nodes.filter(n=>!n.gate);
+   lines.push("### "+m.id+": "+m.title,"", "**Outcome:** "+m.outcome+"  ", "**Entry:** "+(id==="M0"?"Current M0 code assessment; no prior runtime gate.":"G"+(Number(id.slice(1))-1)+" verified, with recorded evidence.")+"  ","**Architecture decisions:** "+(m.decisions.length?m.decisions.join(", ")+" must be resolved before applicable implementation.":"No additional decisions identified for this milestone.")+"  ","**Exit gate:** "+gate.id+", requiring all "+tasks.length+" work-package outcomes and their actual verification results.","");
+   lines.push("```mermaid","flowchart TD");
+   for(const n of nodes)lines.push("  "+n.id.replaceAll("-","_")+'["'+safe(n.id+": "+n.title)+'"]');
+   const external=(tasks[0].depends_on.find(d=>d.startsWith("G")));
+   if(external)lines.push("  "+external+'["'+external+" verified\"]");
+   for(const n of nodes)for(const d of n.depends_on)lines.push("  "+d.replaceAll("-","_")+" --> "+n.id.replaceAll("-","_"));
+   lines.push("```","","| Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |","| --- | --- | --- | --- | --- |");
+   for(const n of tasks)lines.push("| **"+n.id+": "+safe(n.title)+"** | "+(n.depends_on.join(", ")||"None")+" | "+safe(n.output)+" | "+safe(n.verify)+" | "+n.requirements.join(", ")+" |");
+   lines.push("","**"+gate.id+" acceptance evidence:** "+gate.verify+".","")
   }
-  for(const node of data.nodes){
-    for(const dependency of node.depends_on)lines.push("  "+dependency.replaceAll("-","_")+" --> "+node.id.replaceAll("-","_"));
-  }
-  lines.push("```","","## Work packages and verification expectations","","| ID | Depends on | Deliverable / outcome | Required evidence | Requirement links |","| --- | --- | --- | --- | --- |");
-  for(const n of data.nodes){
-    const cell=s=>String(s).replaceAll("|","/").replaceAll("\n"," ");
-    lines.push("| **"+n.id+"**"+(n.gate?" (gate)":"")+" | "+(n.depends_on.join(", ")||"None")+" | "+cell(n.output)+" | "+cell(n.verify)+" | "+n.requirements.join(", ")+" |");
-  }
-  lines.push("","## Execution protocol","","1. Select the next incomplete work package whose dependencies have corresponding verification evidence. Dependencies are necessary conditions, not evidence that the next task works.","2. Recheck branch HEAD and actual source state before implementation. The graph plans work; it never asserts code completion.","3. Implement bounded scope with tests, migration review, security review, and documentation updates appropriate to the node.","4. Record exact revision, commands, environment, expected and observed outcomes, failures, and evidence in [Status](STATUS.md) or the linked milestone verification register.","5. Do not close a gate with skipped required tests, unverified browser behavior, unresolved blocker defects, or source-only assertions.","6. For changes to dependencies or work-package identifiers, edit [execution-graph.json](execution-graph.json), regenerate this document, and update [Roadmap](ROADMAP.md), [PRD](PRD.md), and acceptance records where affected.","","## Execution semantics","","- Arrows mean **must complete and verify prerequisite before proceeding**. Independent nodes inside a milestone may run concurrently where no edge connects them.","- G0-G6 are milestone gates. All work-package paths within a milestone must reach that milestone gate.","- Each later milestone begins only through the preceding gate. A gate being implemented but not verified is not sufficient.","- The graph does not maintain runtime status. [Status](STATUS.md) is the only current-state ledger.","- Requirement references point to [Requirements](REQUIREMENTS.md); detailed tests live in [Test Strategy](TEST_STRATEGY.md) and [Acceptance Criteria](ACCEPTANCE_CRITERIA.md).","","## Current starting point","","Start with the actual M0 feature-branch assessment and outstanding verification in [Status](STATUS.md). Do not treat M1-M6 as delivered based on this planning graph.","");
-  return lines.join("\n");
+ }
+ lines.push("## How to execute the graph","","1. Select the earliest milestone with an open evidence gate. Read [Status](STATUS.md) and the milestone verification register; never infer completion from this diagram.","2. Inspect current source and branch HEAD before changing an implementation. Deliver one graph work package at a time, or parallelize only where explicit prerequisites allow it.","3. Execute the declared positive, negative, security, database, browser, failure and recovery checks applicable to the package. Record commands, fixtures, environment, failures and exact revision.","4. A gate is **verified** only when every inbound package and the relevant [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) have supporting executed evidence. If required checks cannot run, the gate remains open.","5. A verified gate has **acceptance pending** until explicit acceptance. Later milestones cannot be declared implemented or verified based on proposed dependency edges.","6. Change priorities or milestone boundaries through the PRD, Roadmap, JSON graph, acceptance checks and Status as applicable; run `--check` before merging.","","## Current starting point","","M0 is in progress on the separate `feat/m0-engineering-baseline` branch. Its source implementation requires real .NET, PostgreSQL, Compose and browser verification. The M0 gate G0 is still open. M1-M24 are planned and have no accepted application implementation evidence.","");
+ return lines.join("\n");
 }
 
 const source = new URL("../docs/execution-graph.json", import.meta.url);
 const target = new URL("../docs/EXECUTION_GRAPH.md", import.meta.url);
+const requirements = new URL("../docs/REQUIREMENTS.md", import.meta.url);
+const decisions = new URL("../docs/DECISIONS.md", import.meta.url);
 const data = JSON.parse(readFileSync(source, "utf8"));
-validateGraph(data);
+validateGraph(data, readFileSync(requirements, "utf8"), readFileSync(decisions, "utf8"));
 const expected = renderGraph(data);
 if (process.argv.includes("--check")) {
   if (readFileSync(target, "utf8") !== expected) {
-    process.stderr.write("Execution graph view differs from its authoritative JSON. Run node scripts/render-execution-graph.mjs.\n");
+    process.stderr.write("Execution graph view is stale; regenerate with node scripts/render-execution-graph.mjs.\n");
     process.exitCode = 1;
   } else {
-    process.stdout.write("Execution graph structure and rendered view are consistent.\n");
+    process.stdout.write("Verified graph IDs, milestones, gates, dependencies, references and rendered view.\n");
   }
 } else {
   writeFileSync(target, expected, "utf8");
-  process.stdout.write("Rendered docs/EXECUTION_GRAPH.md from docs/execution-graph.json.\n");
+  process.stdout.write("Regenerated docs/EXECUTION_GRAPH.md from docs/execution-graph.json.\n");
 }

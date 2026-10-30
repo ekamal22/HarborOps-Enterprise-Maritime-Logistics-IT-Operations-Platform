@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using HarborOps.Application.Baseline;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace HarborOps.ContractTests;
@@ -54,6 +56,24 @@ public sealed class ApiContractTests
         Assert.Equal(correlation, body.RootElement.GetProperty("correlationId").GetString());
         Assert.DoesNotContain("contract-only", raw, StringComparison.Ordinal);
         Assert.DoesNotContain("127.0.0.1", raw, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task DependencyFailure_IsLoggedWithTheResponseCorrelationIdAndNoSecrets()
+    {
+        var logs = new CapturingLoggerProvider();
+        using var factory = new ApiFactory().WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services => services.AddSingleton<ILoggerProvider>(logs)));
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/api/v1/system/baseline");
+        var correlation = Assert.Single(response.Headers.GetValues("X-Correlation-ID"));
+
+        var entry = Assert.Single(logs.Entries, e =>
+            e.Level == LogLevel.Warning && e.Message.Contains("dependency is unavailable", StringComparison.Ordinal));
+        Assert.Contains(entry.Scopes, scope => scope is IEnumerable<KeyValuePair<string, object>> pairs &&
+            pairs.Any(p => p.Key == "CorrelationId" && correlation.Equals(p.Value as string, StringComparison.Ordinal)));
+        Assert.All(logs.Entries, e => Assert.DoesNotContain("contract-only", e.Message, StringComparison.Ordinal));
     }
 
     [Fact]

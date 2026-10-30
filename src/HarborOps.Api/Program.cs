@@ -79,7 +79,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 });
 
 app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
-    HttpContext context, CancellationToken cancellationToken) =>
+    HttpContext context, ILogger<Program> logger, CancellationToken cancellationToken) =>
 {
     try
     {
@@ -96,6 +96,9 @@ app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
     }
     catch (Exception exception) when (IsDependencyFailure(exception))
     {
+        // Type only: provider messages can carry host details that do not belong in logs.
+        logger.LogWarning("Baseline request failed because a dependency is unavailable ({ExceptionType})",
+            exception.GetType().Name);
         return Results.Json(new { code = "dependency_unavailable",
             message = "Database temporarily unavailable", correlationId = context.Items["CorrelationId"] },
             statusCode: StatusCodes.Status503ServiceUnavailable);

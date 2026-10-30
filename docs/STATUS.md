@@ -1,7 +1,7 @@
 # Project Status
 
 **As of:** 2026-10-30
-**Overall:** Documentation baseline in progress; application implementation not started.
+**Overall:** Documentation baseline established; application implementation not started.
 **Acceptance:** Pending.
 
 ## Delivery ledger

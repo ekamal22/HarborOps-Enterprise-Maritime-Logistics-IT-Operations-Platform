@@ -28,9 +28,13 @@ For each work package, record:
 
 ## M0 checkpoint
 
-The separate branch `feat/m0-engineering-baseline` contains an initial .NET solution, database-backed read-only status API, EF Core migration and seed, worker shell, React frontend, Compose configuration, and test foundations. Full backend compilation, live migration, Compose launch, and browser-to-database behavior remain unverified.
+The separate branch `feat/m0-engineering-baseline` contains a verified local M0 baseline: .NET solution and test projects, PostgreSQL migration and deterministic seed, read-only API, worker shell, React frontend and Docker Compose. Build, migration, clean-volume Compose, HTTP/browser and outage/recovery checks were executed against code revision `4fb34eb`. G0 is **verified, acceptance pending**. See the linked register for the exact environment, test results and limitations.
 
-Complete the preserved M0-01 through M0-05 work packages and gate G0 before implementing dependent M1 features. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 check ledger is on the [feature branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md).
+Review evidence for M0-01 through M0-05 and G0 before recording explicit acceptance. Do not claim M1 has started or is accepted. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 check ledger is on the [feature branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md).
+
+## Local development storage
+
+All controlled persistent project files, caches, container data and verification artifacts must stay on E:. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md); use C: only for unavoidable temporary Windows activity.
 
 ## Change management
 

@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** Planning baseline on the default branch. The unmerged M0 implementation on `feat/m0-engineering-baseline` has a documented runtime verification result: G0 verified, acceptance pending. All described capabilities are requirements or targets unless evidenced in [Project Status](docs/STATUS.md).
+**Status:** Planning baseline on the default branch. The unmerged M0 implementation on `feat/m0-engineering-baseline` has historical local runtime evidence, but G0 was reopened after a fresh-database regression exposed a state-dependent integration test failure. Corrective source changes are tracked in draft PR #3; acceptance remains pending. All described capabilities are requirements or targets unless evidenced in [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -96,4 +96,4 @@ HarborOps is an independent demonstration platform. It does not claim affiliatio
 
 ### Current state
 
-The default branch remains a documentation baseline. On the unmerged `feat/m0-engineering-baseline` branch, M0 was verified locally against code revision `4fb34eb`, including builds, migrations, Compose startup, browser behavior and fault recovery. G0 is verified, acceptance pending. No live or hosted deployment was claimed. See [Project Status](docs/STATUS.md) for evidence before treating any milestone as complete.
+The default branch remains a documentation baseline. On the unmerged `feat/m0-engineering-baseline` branch, a historical M0 run at `4fb34eb` included builds, migrations, Compose, browser and fault recovery, but later cold-state testing reproduced an integration test failure on that baseline. The fix is in the separate M0 hardening PR; G0 remains reopened pending a corrected complete run. No live or hosted deployment was claimed. See [Project Status](docs/STATUS.md) for evidence before treating any milestone as complete.

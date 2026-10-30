@@ -10,11 +10,6 @@ if [[ -z "${HARBOROPS_TEST_DB:-}" ]]; then
   exit 1
 fi
 
-if [[ -z "${HARBOROPS_DB_PASSWORD:-}" ]]; then
-  echo "HARBOROPS_DB_PASSWORD must be set for Compose configuration validation" >&2
-  exit 1
-fi
-
 dotnet restore HarborOps.sln
 dotnet build HarborOps.sln -c Release --no-restore
 dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-build

@@ -16,6 +16,17 @@ for tool in docker curl node; do
   }
 done
 
+# A local Compose project name alone is not sufficient if Docker points to a remote daemon.
+# Permit only local Unix sockets, Windows named pipes, and loopback TCP Docker endpoints.
+context_host=$(docker context inspect --format '{{ (index .Endpoints "docker").Host }}')
+case "${DOCKER_HOST:-$context_host}" in
+  unix://*|npipe://*|tcp://localhost:*|tcp://127.0.0.1:*|tcp://\[::1\]:*) ;;
+  *)
+    echo "Refusing to interrupt PostgreSQL through a remote Docker context" >&2
+    exit 1
+    ;;
+esac
+
 # Do not allow a customized Compose project to target an unrelated stack.
 if [[ -n "${COMPOSE_PROJECT_NAME:-}" && "${COMPOSE_PROJECT_NAME}" != "harborops" ]]; then
   echo "Refusing to stop services for a non-harborops Compose project" >&2

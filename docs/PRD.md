@@ -1,6 +1,6 @@
 # HarborOps Product Requirements Document
 
-**Version:** 1.1 product direction confirmed  
+**Version:** 2.0 granular delivery alignment  
 **Date:** 2026-10-30  
 **State:** Product direction confirmed; complete PRD acceptance pending  
 **Product:** Enterprise Maritime Logistics & IT Operations Platform
@@ -16,7 +16,7 @@ The following product direction has been explicitly confirmed. These decisions g
 | ID | Confirmed direction | Release boundary |
 | --- | --- | --- |
 | PD-01 | Build both a credible portfolio-grade enterprise platform and a foundation capable of evolving toward real organizational adoption. | First prove coherent, functional, verified synthetic workflows. Production adoption, certifications, and operational integrations require separate evaluation. |
-| PD-02 | Prioritize depth and correctness of the existing maritime operations scope over immediate expansion into additional logistics business functions. | Booking, commercial documentation, terminal operations, extended port/fleet management, billing, and customs workflows are future candidates, not M0-M6 requirements. |
+| PD-02 | Prioritize depth and correctness of the existing maritime operations scope over immediate expansion into additional logistics business functions. | Booking, commercial documentation, terminal operations, extended port/fleet management, billing, and customs workflows are future candidates, not M0-M24 requirements. |
 | PD-03 | Evolve toward comprehensive IT operations, delivered incrementally. | M0-M6 includes platform health, observability, incidents, audit, diagnostics, root-cause/remediation, and recovery. Asset management, service requests, change management, formal service-level management, escalation automation, and broader operations capabilities are future candidates. |
 | PD-04 | Deliver a premium enterprise interface with sophisticated dashboards, interactive route maps, polished navigation and operational workflows. | Consistent high-quality UX belongs in M3 and release polish M6; extensive end-user customization, configurable dashboards, and personalization are deferred. |
 | PD-05 | Support multiple organizations and multiple users from the first business-functionality milestone. | M1 introduces memberships, roles, organization isolation, and cross-organization negative tests. M0's public synthetic baseline is not a business-user interface. |
@@ -49,7 +49,7 @@ The complete demonstration path is: create shipment -> assign container and voya
 
 ## 4. Release scope and priority
 
-**Must-have for first complete release (M0 through M6):**
+**Must-have for first complete release (M0 through M24):**
 
 1. Reproducible no-charge local stack: React, ASP.NET Core, PostgreSQL, worker, migration, deterministic fixtures, health and structured logs (FR-015, FR-017; NFR-001, NFR-008).
 2. Identity, session management, organizations, memberships, role/object authorization, and organization isolation (FR-001, FR-002; NFR-002, NFR-003).
@@ -61,7 +61,7 @@ The complete demonstration path is: create shipment -> assign container and voya
 
 **Should-have within the planned release if the gates remain achievable:** licensed or offline-capable route/map context, authorized and deduplicated in-app exception alerts, and incident root-cause/remediation workflow (FR-018 through FR-020). These are planned M3/M4 work, not unconditionally dispensable if a demo scenario depends on them. Any deferral requires a change to the acceptance baseline.
 
-**Optional and excluded from required local operation:** external tracking feeds, external SSO, a public hosted demonstration, permanent hosted deployment, and commercial integrations (FR-021, FR-022). Freight booking, customs clearance, billing, terminal operations, enterprise asset/service/change management, extensive personalization, live AIS guarantees, native mobile apps, multi-region HA, and unattended operational decision-making are out of scope for M0-M6. Candidate future features are not promised release deliverables.
+**Optional and excluded from required local operation:** external tracking feeds, external SSO, a public hosted demonstration, permanent hosted deployment, and commercial integrations (FR-021, FR-022). Freight booking, customs clearance, billing, terminal operations, enterprise asset/service/change management, extensive personalization, live AIS guarantees, native mobile apps, multi-region HA, and unattended operational decision-making are out of scope for M0-M24. Candidate future features are not promised release deliverables.
 
 ## 5. Core product behavior
 
@@ -83,7 +83,7 @@ Liveness reports process availability; readiness independently reports dependenc
 
 ## 6. Interface and accessibility expectations
 
-The web application must meet the confirmed premium-enterprise visual and interaction target: polished operational navigation, clear information hierarchy, sophisticated but explainable dashboards, and interactive map/route context where licensed and feasible. It must provide recognizable loading, empty, ready, denied, conflict, and degraded-service states. Primary flows include sign-in/organization selection, shipment list/detail/edit, container/voyage linking, event timeline, exception queue, operational dashboard, service-health view, and incident management. These views are planned; the M0 interface is only a database-backed synthetic status view.
+The web application must meet the confirmed premium-enterprise visual and interaction target: polished operational navigation, clear information hierarchy, sophisticated but explainable dashboards, and interactive map/route context where licensed and feasible. It must provide recognizable loading, empty, ready, denied, conflict, and degraded-service states. Primary flows include sign-in/organization selection, shipment list/detail/edit, container/voyage linking, event timeline, exception queue, operational dashboard, service-health view, and incident management. These views are planned across the smaller milestone boundaries in [Roadmap](ROADMAP.md); the M0 interface is only a database-backed synthetic status view.
 
 Keyboard navigation, visible focus, accessible form names and errors, sensible color contrast, bounded data tables, and responsive layouts are required at their applicable milestones (NFR-009). Never signal authorization solely by hiding a button; denied calls must fail on the server.
 
@@ -114,19 +114,34 @@ These are targets, not observed results.
 
 Security, reliability, benchmark, and usability evidence must include the exact revision, environment, dataset and executed checks. No metric above is an achieved measurement until recorded in [Status](STATUS.md) and the corresponding evidence register.
 
-## 9. Dependencies, risks, and decisions
+## 9. Granular milestone boundaries
+
+The earlier M0-M6 sequence has been decomposed into 25 individually gated milestones, M0-M24. This change **does not add product requirements or imply new implementation evidence**. It narrows acceptance into independently testable slices.
+
+| Delivery group | Milestone range | Specific sequence |
+| --- | --- | --- |
+| Foundation and maritime records | M0-M6 | Engineering foundation, sessions, organizations, ports/vessels, voyages/containers, shipment CRUD, shipment assignments |
+| Tracking and decision rules | M7-M11 | Source contracts, durable inbox, worker, projections, exceptions |
+| Operational workspaces | M12-M15 | Search/exports, reconciled dashboards, geographic context, notifications |
+| Security and technical operations | M16-M18 | Append-only audit and hardening, monitoring, incident management |
+| Reliability and delivery assurance | M19-M22 | Restoration, security review, performance, local deployment and optional hosting feasibility |
+| Release finish | M23-M24 | Premium interface polish, accessibility, complete deterministic scenarios and evidence closure |
+
+Each milestone is gated on real executed behavior, not merely the presence of source files. Detailed work-package IDs, dependency edges and verification expectations are authoritative in [execution-graph.json](execution-graph.json), represented in [Execution Graph](EXECUTION_GRAPH.md). Old v1 M1-M6 task IDs are superseded; [Roadmap](ROADMAP.md) documents the mapping.
+
+## 10. Dependencies, risks, and decisions
 
 | Risk or decision | Owner document | Required resolution |
 | --- | --- | --- |
-| Session and integration authentication (D-001) | [Decisions](DECISIONS.md) | Before M1 identity implementation |
-| Container identity policy (D-003) | [Decisions](DECISIONS.md) | Before M1 domain validation |
-| DCSA subset and durable queue design (D-002, D-006) | [Decisions](DECISIONS.md) | Before M2 ingress/worker |
-| Tile and KPI policies (D-004, D-005) | [Decisions](DECISIONS.md) | Before M3 maps/KPIs |
-| Hosting budget and backup objectives (D-007, D-008) | [Decisions](DECISIONS.md) | Before M5 relevant tasks |
+| Session and integration authentication (D-001) | [Decisions](DECISIONS.md) | Before M1 session implementation |
+| Container identity policy (D-003) | [Decisions](DECISIONS.md) | Before M4 container identity validation |
+| DCSA subset and durable queue design (D-002, D-006) | [Decisions](DECISIONS.md) | Before M7 contracts / M8 inbox processing |
+| Tile and KPI policies (D-004, D-005) | [Decisions](DECISIONS.md) | Before M14 maps / M13 KPIs |
+| Hosting budget and backup objectives (D-007, D-008) | [Decisions](DECISIONS.md) | Before M22 deployment / M19 recovery |
 | Invalid scope, inaccurate projections, sensitive telemetry, or data loss | [Security](SECURITY.md), [Event Processing](EVENT_PROCESSING.md) | Block verification/release until remedied |
 
-## 10. Change control and approval
+## 11. Change control and approval
 
 Product-scope changes beyond PD-01 through PD-07 require updating this PRD, affected atomic requirements, the [Roadmap](ROADMAP.md) and [execution graph](EXECUTION_GRAPH.md) when sequence changes, plus acceptance criteria and decisions where applicable. Status is updated only from implementation evidence. Proposed scope expansions do not become accepted requirements merely because a branch or issue exists.
 
-**Current state:** The M0 foundation exists on an unmerged feature branch but has not passed full runtime verification. All M1-M6 product workflows remain planned. See [Status](STATUS.md) for the current evidence and [M0 Verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) on the feature branch for its detailed test ledger.
+**Current state:** The M0 foundation exists on an unmerged feature branch but has not passed full runtime verification. All M1-M24 product workflows remain planned. See [Status](STATUS.md) for the current evidence and [M0 Verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) on the feature branch for its detailed test ledger.

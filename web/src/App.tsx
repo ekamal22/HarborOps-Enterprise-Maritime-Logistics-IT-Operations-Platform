@@ -9,6 +9,7 @@ type ViewState =
   | { status: "error"; message: string };
 
 const apiOrigin = normalizeApiOrigin(import.meta.env.VITE_API_BASE_URL);
+const REQUEST_TIMEOUT_MS = 10_000;
 
 export default function App() {
   const [view, setView] = useState<ViewState>({ status: "loading" });
@@ -19,6 +20,11 @@ export default function App() {
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
+    let timedOut = false;
+    const timer = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, REQUEST_TIMEOUT_MS);
     setView({ status: "loading" });
 
     try {
@@ -30,10 +36,13 @@ export default function App() {
       const data = parseBaselineStatus(await response.json());
       if (!controller.signal.aborted) setView({ status: "ready", data });
     } catch (error) {
-      if (!controller.signal.aborted) {
+      if (timedOut && request.current === controller) {
+        setView({ status: "error", message: "The service did not respond in time" });
+      } else if (!controller.signal.aborted) {
         setView({ status: "error", message: error instanceof Error ? error.message : "Request failed" });
       }
     } finally {
+      window.clearTimeout(timer);
       if (request.current === controller) request.current = null;
     }
   }, []);

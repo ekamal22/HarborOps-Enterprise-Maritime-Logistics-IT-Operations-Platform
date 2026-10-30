@@ -25,6 +25,12 @@ services:
       dockerfile: src/HarborOps.Api/Dockerfile
     restart: "no"
     command: ["--migrate"]
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
     environment:
       ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
     depends_on:
@@ -37,6 +43,12 @@ services:
       context: .
       dockerfile: src/HarborOps.Api/Dockerfile
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "127.0.0.1:8080:8080"
     environment:
@@ -55,6 +67,8 @@ services:
       args:
         VITE_API_BASE_URL: "http://localhost:8080"
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "127.0.0.1:5173:80"
     depends_on:

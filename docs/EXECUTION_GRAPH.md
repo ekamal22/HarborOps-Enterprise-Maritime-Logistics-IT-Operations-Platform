@@ -1011,4 +1011,4 @@ flowchart TD
 
 ## Current starting point
 
-M0 is in progress on the separate `feat/m0-engineering-baseline` branch. Its source implementation requires real .NET, PostgreSQL, Compose and browser verification. The M0 gate G0 is still open. M1-M24 are planned and have no accepted application implementation evidence.
+The execution graph does not track completion. Refer to [Status](STATUS.md) and the [M0 feature-branch verification register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) for current evidence and acceptance state. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md) for all development and test work. Do not infer implementation from planned graph nodes.

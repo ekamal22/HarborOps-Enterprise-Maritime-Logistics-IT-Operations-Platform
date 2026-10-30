@@ -50,6 +50,15 @@ for (const milestone of graph.milestones) {
   }
 }
 assert(unique.size === 25, "Milestone count must remain deliberate; update docs and checks if changed");
+assert(graph.nodes.some(n => n.id === "M24-04" && n.requirements.includes("NFR-009") && /accessibility/i.test(n.title)), "Final M24-04 accessibility gate is missing");
+for (const node of graph.nodes) {
+  if (node.milestone !== "M24") {
+    assert(!node.requirements.includes("NFR-009"), "Accessibility requirement cannot block early gate: " + node.id);
+    assert(!/accessibility|screen.reader|keyboard\/focus|WCAG/i.test(node.verify), "Early milestone has accessibility verification: " + node.id);
+  }
+}
+assert(roadmap.includes("All dedicated accessibility testing is deferred to **M24-04"), "Roadmap must reserve accessibility verification for final M24");
+assert(acceptance.includes("exclusively for M24-04"), "Acceptance policy must defer accessibility to M24-04");
 assert(graph.nodes.filter(n => n.gate).length === unique.size, "Gate count mismatch");
 for (const node of graph.nodes) {
   assert(graphView.includes("| **" + node.id + ": ") || graphView.includes("**" + node.id + " acceptance evidence:**"), "Missing work package or gate in rendered view: " + node.id);

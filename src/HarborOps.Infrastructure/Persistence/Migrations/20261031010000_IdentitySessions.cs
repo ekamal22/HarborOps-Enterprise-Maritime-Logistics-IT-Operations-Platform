@@ -64,6 +64,7 @@ public sealed class IdentitySessions : Migration
                 correlation_id varchar(64) NOT NULL,
                 result_code varchar(40) NOT NULL
             );
+            CREATE INDEX "IX_auth_events_user_id" ON auth_events (user_id);
             """);
     }
 

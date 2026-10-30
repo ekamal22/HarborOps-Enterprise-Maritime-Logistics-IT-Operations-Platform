@@ -71,6 +71,7 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
             entity.Property(x => x.UserId).HasColumnName("user_id");
+            entity.HasIndex(x => x.UserId).HasDatabaseName("IX_auth_events_user_id");
             entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.SetNull);
             entity.Property(x => x.SessionId).HasColumnName("session_id");
             entity.Property(x => x.EventType).HasColumnName("event_type").HasMaxLength(40).IsRequired();

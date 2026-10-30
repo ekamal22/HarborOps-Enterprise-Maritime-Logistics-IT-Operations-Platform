@@ -36,6 +36,10 @@ services:
         SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
     restart: "no"
     command: ["--migrate"]
+    environment:
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
+      Identity__AllowInsecureLoopbackHttp: "true"
+      Identity__KeyRingPath: "/tmp/keys"
     read_only: true
     tmpfs:
       - /tmp
@@ -43,7 +47,6 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
-      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
     depends_on:
       postgres:
         condition: service_healthy

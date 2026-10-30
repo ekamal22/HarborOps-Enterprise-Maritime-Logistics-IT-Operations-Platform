@@ -58,8 +58,12 @@ Record observed issues and remediation status in the repository's issue process 
 
 This model is a design specification. It does not assert that controls have already been implemented or independently audited.
 
+## Local storage security
+
+Local project storage is restricted to E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md). C: is not an approved location for persistent secrets, database volumes, build caches, logs or browser evidence; only unavoidable short-lived operating-system temporary writes are permitted. Local credentials remain untracked and are not to be copied into reports.
+
 ## M0 scoped security posture
 
 Only minimal process health and synthetic baseline metadata endpoints are exposed. The browser does not authenticate, and no business records or authorization claims are implemented. Local Compose ports bind to loopback; PostgreSQL uses a password read from an untracked `.env` file. The API uses a limited CORS origin list, redacted error envelopes, and JSON console logging.
 
-This is not a substitute for M1 authentication and organization isolation. The configured Compose profile has no HTTPS termination, should not be exposed to the internet, and has not received a runtime security test. Tracking ingestion, integration secrets, authorization matrices, and audit records remain unimplemented.
+This is not a substitute for M1 authentication and organization isolation. The configured Compose profile has no HTTPS termination, should not be exposed to the internet, and received M0-specific local runtime checks, dependency advisories, secret/port checks and container-image scanning at code revision `4fb34eb`. This does not constitute a complete production security assessment. The upstream PostgreSQL `gosu` binary still has 1 critical and 25 high findings in the recorded Trivy scan, requiring review at acceptance and rescanning when a fixed image is available. Tracking ingestion, integration secrets, authorization matrices, and audit records remain unimplemented.

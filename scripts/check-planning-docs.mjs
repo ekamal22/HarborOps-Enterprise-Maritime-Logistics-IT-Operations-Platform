@@ -50,6 +50,14 @@ for (const milestone of graph.milestones) {
   }
 }
 assert(unique.size === 25, "Milestone count must remain deliberate; update docs and checks if changed");
+const quarterly = [["M6-04", "M6"], ["M12-04", "M12"], ["M18-04", "M18"], ["M24-03", "M24"]];
+for (const [id, milestone] of quarterly) {
+  const node = graph.nodes.find(n => n.id === id);
+  assert(node && node.milestone === milestone && /historical-volume compatibility checkpoint/i.test(node.verify), "Quarter-mile snapshot checkpoint missing: " + id);
+}
+assert(roadmap.includes("Historical Docker/PostgreSQL volume compatibility is **not an M0 acceptance requirement**"), "Roadmap incorrectly requires existing-volume testing at G0");
+assert(acceptance.includes("G0 requires fresh, disposable database migration/seed"), "M0 gate must use only fresh test data");
+assert(roadmap.includes("M19 remains the mandatory"), "Comprehensive M19 recovery gate must remain intact");
 assert(graph.nodes.some(n => n.id === "M24-04" && n.requirements.includes("NFR-009") && /accessibility/i.test(n.title)), "Final M24-04 accessibility gate is missing");
 for (const node of graph.nodes) {
   if (node.milestone !== "M24") {

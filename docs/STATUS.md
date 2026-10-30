@@ -1,8 +1,8 @@
 # Project Status
 
 **As of:** 2026-10-30
-**Overall:** M0 hardening corrections committed; full cold-state regression and acceptance verification pending
-**G0:** reopened for verification. A later fresh-database test failed on the historical `4fb34eb` baseline and the initial .NET 10 hardening revision. Corrective code is committed but not yet retested. Acceptance pending. M1 has not started.
+**Overall:** M0 hardening verified in GitHub Actions at `fec7429415fede121db8a4a34f0df72cd4fac609`, acceptance pending
+**G0:** **verified** at corrected source revision `fec7429415fede121db8a4a34f0df72cd4fac609` by [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879); **acceptance pending**. M1 has not started.
 
 ## Delivery ledger
 
@@ -10,14 +10,14 @@ This branch follows the granular M0-M24 roadmap on the [planning branch](https:/
 
 | Milestone | State | Evidence |
 | --- | --- | --- |
-| **M0 Engineering baseline verification** | G0 reopened, acceptance pending | The earlier `4fb34eb` suite passed against an already seeded test database; a later isolated cold-database run reproduced a test failure. Fix committed on the hardening branch, re-verification required. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). |
+| **M0 Engineering baseline verification** | G0 verified, acceptance pending | Current GitHub Actions run #2 passed 1 unit, 10 contract, 5 fresh + 5 repeat integration, 6 web and 12 functional browser tests, disposable Compose outage/recovery and three image scans. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). |
 | **M1-M24** | Planned | No implementation; gates G1-G24 are open |
 
 ## Hardening changes pending verification
 
 This branch proposes an upgrade from .NET 8/EF Core 8 to .NET 10/EF Core 10, a derived PostgreSQL 16 image running as UID 70 with the upstream `gosu` binary removed, a refreshed test toolchain and a cross-browser suite (Chromium, Firefox, WebKit). An E-drive-only image scan runner and functional cross-browser checks have also been added. All accessibility tests are reserved for final M24-04.
 
-**Corrected branch gate: re-verification pending.** The initial independent hardening audit passed build, database container startup, security scans and 12 browser checks but found a fresh-database integration failure (4/5) and a footer contrast failure. Both have source fixes. The fresh-database regression requires an M0 rerun; contrast auditing is deferred to M24-04. The corrected runtime and functional browser suite must be retested. Do not carry forward old G0 test counts to the new code SHA. The evidence and exact required checks are in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The original `4fb34eb` test result remains historical evidence, but the later cold-database failure prevents relying on it as a complete G0 pass.
+**Corrected branch gate: verified, acceptance pending.** The earlier audit exposed a cold-database test defect and an unrelated accessibility contrast observation. The corrected fresh-database integration suite passed in GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609`; the entire functional browser suite, Compose recovery and final image scans also passed. Accessibility testing remains deferred to M24-04. The older `4fb34eb` result remains historical evidence only.
 
 ## M0 source inventory
 
@@ -48,11 +48,10 @@ No existing local Docker volume is required for G0. New-code verification uses a
 
 ## Open items before acceptance
 
-1. Explicit acceptance of G0 is not recorded. Status stays acceptance pending.
-2. Rerun the previously failing fresh-database integration test and the full .NET 10 suite on the corrected revision.
-3. Rebuild source-labeled images, repeat isolated Compose startup and recovery, and rescan the exact running image IDs with the updated scanner.
-4. Run clean `npm ci` from the committed browser lockfile and execute the three-browser **functional** suite. Do not run accessibility tests before M24-04.
-5. Collect revision-specific build, integration, Compose fault/recovery, final-image scan and functional browser evidence. No accessibility testing is required for G0 through G23; the full accessibility gate is M24-04.
+1. Explicit G0 acceptance is still pending. The verified engineering foundation is not a production deployment.
+2. Resolve decision D-001 before implementing M1 authentication and session lifecycle.
+3. Do not merge draft PRs or begin M1 on the basis of automated verification alone.
+4. Existing-volume compatibility checkpoints remain M6/M12/M18/M24-03; full migration and recovery are M19; accessibility verification is final M24-04.
 
 ## Mandatory storage boundary
 

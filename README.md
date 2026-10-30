@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0 engineering baseline implemented and runtime verified on the feature branch (G0 verified, acceptance pending). Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
+**Status:** Previous M0 code revision `4fb34eb` was locally verified (G0 verified, acceptance pending). This hardening branch proposes a .NET 10 runtime, non-root PostgreSQL and broader browser verification; these new changes are not yet runtime verified. Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -30,7 +30,7 @@ HarborOps is designed to run locally with free, self-hosted development tools. O
 ### Proposed stack
 
 - Web: React, TypeScript, Vite, Tailwind CSS, MapLibre GL JS
-- API: ASP.NET Core on .NET 8, C#, OpenAPI
+- API: ASP.NET Core on .NET 10, C#, OpenAPI
 - Data: PostgreSQL, Entity Framework Core
 - Processing: .NET background worker with durable processing state
 - Local runtime: Docker Compose; reverse proxy optional
@@ -50,9 +50,13 @@ The old M1-M6 milestone IDs were superseded by the granular plan. M0-01 through 
 
 All persistent HarborOps development data must stay on E:, including the working tree at `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`, caches and M0 evidence under `E:\\APP IDEAS\\harborops-m0-cache`, and Docker Desktop/WSL data and volumes. See [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) for PowerShell session setup and preflight checks. C: is reserved for unavoidable short-lived Windows temporary writes only. Do not create new persistent project storage on C:.
 
+### Pending M0 hardening verification
+
+The new .NET 10 and PostgreSQL container changes must pass clean builds, schema comparisons, fresh and existing-volume startup, image scanning and the expanded browser matrix. Review [Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) before considering this revision verified. The browser runner stores npm cache and browser binaries on E: and requires a reviewed lockfile for `tests/browser`.
+
 ### Local M0 startup
 
-Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 8 SDK for standalone development.
+Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 10 SDK for standalone development.
 
 1. Copy `.env.example` to `.env` and set a unique `HARBOROPS_DB_PASSWORD`.
 2. Run `docker compose up -d --build` from the repository root.
@@ -70,7 +74,8 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | --- | --- |
 | [Project Status](docs/STATUS.md) | Implemented, pending, and verified work |
 | [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) | E-drive workspace, caches, Docker and evidence constraints |
-| [M0 Verification](docs/M0_VERIFICATION.md) | Execution commands, limitations, and acceptance evidence |
+| [M0 Verification](docs/M0_VERIFICATION.md) | Previous baseline's executed test evidence |
+| [M0 Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) | Pending .NET 10, rootless PostgreSQL, browser and image verification |
 | [Product Scope](docs/PRODUCT_SCOPE.md) | Goals, non-goals, personas, and constraints |
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
@@ -103,4 +108,4 @@ HarborOps is an independent demonstration platform. It does not claim affiliatio
 
 ### Current state
 
-The M0 application foundation is verified at the engineering gate and acceptance is pending. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).
+The prior M0 foundation was verified at its engineering gate. This hardening branch has not yet passed its required regression and image checks, and acceptance remains pending. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).

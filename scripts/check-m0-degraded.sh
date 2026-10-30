@@ -3,9 +3,11 @@ set -euo pipefail
 
 project=""
 confirmed=false
+envfile=""
 while (($#)); do
   case "$1" in
     --project) project="${2:-}"; shift 2 ;;
+    --env-file) envfile="${2:-}"; shift 2 ;;
     --confirm-local-outage) confirmed=true; shift ;;
     *) echo "Usage: bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage" >&2; exit 2 ;;
   esac
@@ -27,7 +29,13 @@ case "${DOCKER_HOST:-$context_host}" in
   *) echo "Refusing remote Docker context" >&2; exit 1 ;;
 esac
 
-compose=(docker compose --project-name "$project")
+if [[ -n "$envfile" && ! -f "$envfile" ]]; then
+  echo "Compose env file not found: $envfile" >&2
+  exit 2
+fi
+compose=(docker compose)
+if [[ -n "$envfile" ]]; then compose+=(--env-file "$envfile"); fi
+compose+=(--project-name "$project")
 actual=$("${compose[@]}" config --format json | node -e '
 let s="";process.stdin.on("data",x=>s+=x).on("end",()=>{
 const cfg=JSON.parse(s);

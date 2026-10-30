@@ -4,7 +4,7 @@
 
 ## Post-verification hardening change
 
-The separate hardening branch adds a supported .NET 10 baseline, modified PostgreSQL 16 runtime image and additional browser/accessibility tests. Its changes are **pending new runtime verification**. Do not replace the original G0 evidence or begin M1 based on source-only changes. Refer to [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+The hardening branch upgrades to .NET 10 and PostgreSQL 16 rootless runtime, and its functional browser and runtime changes passed GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609`. G0 is verified, acceptance pending. M1 still requires D-001 and an explicit milestone acceptance decision. Accessibility testing is reserved for M24-04. Refer to [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
 ## M0 implementation and verification
 
@@ -18,7 +18,7 @@ On `feat/m0-engineering-baseline`, M0-01 through M0-05 had a recorded local veri
 - Local Compose profile, one-shot migrator, locked frontend dependencies and verification scripts
 - Security checks and local PostgreSQL outage/recovery rehearsal
 
-**Gate G0:** reopened for re-verification, **acceptance pending**. M1 has not started. Verification is separate from final acceptance.
+**Gate G0:** **verified** by GitHub Actions run #2, **acceptance pending**. M1 has not started. Verification is separate from final acceptance.
 
 The detailed evidence is [M0 Verification](M0_VERIFICATION.md). The current observed state is in [Status](STATUS.md). The working tree remains separate from the planning branch; reconcile overlapping documentation when integrating branches.
 

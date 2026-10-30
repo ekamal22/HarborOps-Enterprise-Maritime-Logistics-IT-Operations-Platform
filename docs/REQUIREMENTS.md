@@ -1,5 +1,7 @@
 # Requirements
 
+**Authority:** This document owns atomic FR/NFR identifiers and the permission matrix. The [Product Requirements Document](PRD.md) owns product outcomes and release boundaries. [Roadmap](ROADMAP.md) assigns milestone gates, [execution-graph.json](execution-graph.json) connects work packages to requirement IDs, and [Status](STATUS.md) owns delivery evidence.
+
 ## Requirement status
 
 All requirements are proposed. A requirement is considered delivered only after its tests and acceptance evidence appear in STATUS.md.

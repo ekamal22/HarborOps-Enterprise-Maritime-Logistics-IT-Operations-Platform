@@ -2,8 +2,8 @@
 
 **As of:** 2026-10-30
 **Default branch:** Documentation baseline; no application implementation merged.
-**Parallel work:** M0 source implementation exists on the unmerged `feat/m0-engineering-baseline` branch; full runtime verification is outstanding.
-**Acceptance:** Pending. No milestone verified or accepted.
+**Parallel work:** Unmerged `feat/m0-engineering-baseline` contains the locally verified M0 implementation at code revision `4fb34eb`; evidence and limitations are in [M0 Verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md).
+**Acceptance:** G0 verified, acceptance pending. No milestone accepted; G1-G24 remain open.
 
 ## Delivery ledger
 
@@ -11,7 +11,7 @@ The ledger below is the current *observed* state, not a projection from planning
 
 | Milestone | State | Evidence |
 | --- | --- | --- |
-| **M0 Engineering baseline verification** | In progress on separate feature branch | Existing M0 API, migration, UI, Compose and tests committed; full runtime gate G0 still unverified |
+| **M0 Engineering baseline verification** | G0 verified, acceptance pending, on separate feature branch | Verified code `4fb34eb`: 1 unit, 10 contract, 5 integration, 6 web tests; clean Compose/migration, browser and fault recovery. PostgreSQL image vulnerabilities and other limitations are documented in the feature-branch evidence register. |
 | **M1 Authentication and session lifecycle** | Planned | No verified implementation or accepted gate G1 |
 | **M2 Organizations and role isolation** | Planned | No verified implementation or accepted gate G2 |
 | **M3 Ports and vessels reference data** | Planned | No verified implementation or accepted gate G3 |
@@ -55,22 +55,26 @@ The ledger below is the current *observed* state, not a projection from planning
 - [x] Local-first cost constraints and demonstration plan drafted.
 - [ ] Implemented module architecture validated by code.
 - [ ] API schema generated from working implementation.
-- [ ] CI, migrations, unit, integration, browser, and security tests executed.
+- [ ] Full product CI, migrations, unit, integration, browser, and security tests executed (M0-specific local tests executed and documented separately).
 - [ ] Observability, incident workflow, and backup/restore demonstrated.
 - [ ] Local deployment cost and shutdown verified; hosted safeguards checked only if optional hosting is used.
 - [ ] Complete release acceptance.
 
 ## Verification evidence
 
-Default-branch application verification: none. The separate M0 feature branch records three isolated Node configuration tests passing, while .NET, real PostgreSQL, Compose, and browser checks remain outstanding. See the [branch verification ledger](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md). Planning commits do not demonstrate runtime behavior.
+Default-branch application runtime: none. The separate M0 feature branch records a complete locally verified G0 evidence set against code revision `4fb34eb`, including real .NET, PostgreSQL, Compose and browser checks. See the [branch verification ledger](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md). Planning commits do not demonstrate runtime behavior.
 
 ## Open prerequisites
 
-1. Verify the existing feature-branch solution and local runtime skeleton against G0.
+1. Review the verified M0 feature-branch evidence and outstanding risks; record explicit G0 acceptance or continue acceptance pending.
 2. Resolve D-001 and D-003 before M1 implementation, and D-002 before M2 work.
 3. Expand the M0 metadata seed into two-organization reference fixtures in M1.
-4. Execute the existing verification suite; preserve evidence and repair failures.
-5. Close G0 with observed end-to-end runtime evidence before M1. All later gates G1-G24 remain planned and open.
+4. Preserve the locally executed M0 verification evidence and rerun its checks after any behavior-changing modification or branch integration.
+5. G0 verification is recorded, but acceptance remains pending. Do not start M1 until the acceptance decision and D-001 are resolved. All later gates G1-G24 remain planned and open.
+
+## Storage and residual risk
+
+The [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires all controllable persistent project storage on E:. The M0 host used E-drive repository, caches, evidence and Docker WSL data; operating-system temporary activity on C: may be unavoidable. M0 image scanning recorded one critical and 25 high findings in the upstream PostgreSQL `gosu` helper. This is **a documented residual risk, not an automatically approved security exception**; review it at acceptance and recheck when an updated image is available. .NET 8 support ends on 2026-11-10. Later security, backup/restore, performance and accessibility gates remain planned.
 
 ## Status update rule
 

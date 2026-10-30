@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** Planning baseline on the default branch. The unmerged M0 implementation on `feat/m0-engineering-baseline` has historical local runtime evidence, but G0 was reopened after a fresh-database regression exposed a state-dependent integration test failure. Corrective source changes are tracked in draft PR #3; acceptance remains pending. All described capabilities are requirements or targets unless evidenced in [Project Status](docs/STATUS.md).
+**Status:** Planning baseline on the default branch. The M0 hardening in draft PR #3 passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at source revision `fec7429415fede121db8a4a34f0df72cd4fac609`. G0 is verified, acceptance pending; the branches remain unmerged. All described capabilities are requirements or targets unless evidenced in [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 

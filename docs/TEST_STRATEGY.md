@@ -74,6 +74,10 @@ For every milestone: commit SHA, commands executed, test summary, pass/fail coun
 
 Keep repositories, npm/NuGet caches, Docker/WSL data, test databases, screenshot/tracing captures and test output on E: per [Local Storage Policy](LOCAL_STORAGE_POLICY.md). C: can be used only for unavoidable short-lived system temporary writes. Each milestone evidence register must record actual storage paths.
 
+## Historical-volume compatibility by milestone
+
+Routine M0 CI must use a fresh, disposable PostgreSQL instance and verify repeatable migrations and seeds. It must **not** require access to existing E-drive Docker data. Historical snapshot compatibility is a quarter-mile checkpoint at M6, M12, M18 and M24-03 only, using disposable clones where available. Record NOT APPLICABLE if no representative snapshot exists. M19 contains the full historical-migration and backup/restore rehearsal. A breaking storage or schema change deployed against retained data must be rehearsed on a safe copy before rollout, even between checkpoints.
+
 ## Expanded M0 verification (pending)
 
 A separate test project adds Playwright browser checks for Chromium, Firefox and WebKit, with a PowerShell runner directing caches and browser binaries to E:. M0 browser tests cover functional loading, refresh and API failure/recovery only. All accessibility tests, automated and manual, are reserved exclusively for M24-04, after feature work and M23 interface polish. The initial 12 original browser assertions (including accessibility-related scenarios) passed across three engines in a historical audit at `a791561a`. The current M0 suite excludes accessibility assertions and is **pending execution** against the corrected code. Accessibility tests are retained separately for the M24-04 release audit. Clean .NET 10 builds, EF Core 10 migration compatibility and the derived PostgreSQL image must also be verified against the new code. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).

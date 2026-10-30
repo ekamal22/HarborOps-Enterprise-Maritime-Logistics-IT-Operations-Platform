@@ -66,6 +66,18 @@ function renderGraph(data) {
  "",
  "Gate transitions are sequential. Within a single milestone, tasks that branch from the same prerequisite may be implemented independently and then reunited at verification. Every work package is a narrow, reviewable output with specific tests.",
  "",
+ "## Milestone gate map",
+ "",
+ ...data.phases.flatMap(p=> [
+   "### "+p.id+": "+p.title,
+   "",
+   "```mermaid",
+   "flowchart LR",
+   ...p.milestones.map(id=>"  G"+id.slice(1)+'["'+id+": "+safe(data.milestones.find(m=>m.id===id).title)+'"]'),
+   "  "+p.milestones.map(id=>"G"+id.slice(1)).join(" --> "),
+   "```",
+   ""
+ ]),
  "## Legacy identifier migration",
  "",
  "Execution graph v1 contained M0-M6. M0-01 through M0-05 and G0 are preserved. **Old M1-M6 node IDs and G1-G6 are superseded and must not be interpreted as the new tasks or completion states.** The old-to-new milestone mapping is documented in [Roadmap](ROADMAP.md). New planning IDs do not rewrite code history or retroactively mark any capability delivered.",

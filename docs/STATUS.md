@@ -42,6 +42,10 @@ All results are recorded with commands, versions and revisions in [M0 Verificati
 - Ten defects corrected, including baseline HTTP 500 with the database down and missing correlation identifiers in logs.
 - npm and NuGet advisories: none open. Trivy image scan: no fixable high or critical findings in the api and web images; upstream `gosu` findings remain in the postgres image.
 
+## Historical-volume checkpoint policy
+
+No existing local Docker volume is required for G0. New-code verification uses a disposable fresh database; historical-volume compatibility is deferred to quarter-mile checkpoints M6, M12, M18 and M24-03, and comprehensive backup/restore remains M19. If there is no representative historical snapshot, report NOT APPLICABLE. Never alter the original retained data volume. Breaking database or storage format changes affecting preserved data must be rehearsal-tested on a safe copy before rollout.
+
 ## Open items before acceptance
 
 1. Explicit acceptance of G0 is not recorded. Status stays acceptance pending.

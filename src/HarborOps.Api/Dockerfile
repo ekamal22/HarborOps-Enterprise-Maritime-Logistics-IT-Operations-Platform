@@ -10,6 +10,8 @@ COPY src/ src/
 RUN dotnet publish src/HarborOps.Api/HarborOps.Api.csproj -c Release --no-restore -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
+ARG SOURCE_REVISION=unverified
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION
 WORKDIR /app
 COPY --from=build /app/publish ./
 ENV ASPNETCORE_URLS=http://+:8080

@@ -4,6 +4,12 @@
 
 Test domain invariants, integration boundaries, security boundaries, and operational recovery before investing in visual polish. All results must be reproducible and linked to an exact commit, environment, and dataset seed.
 
+## M0 observed baseline
+
+The separate implementation branch records G0 as verified, acceptance pending, against code revision `4fb34eb`. The evidence register reports 1 unit, 10 API contract, 5 real PostgreSQL integration and 6 frontend tests passing; locked frontend build, clean-volume Compose, browser path, health checks, controlled database outage and recovery executed. Browser coverage used one Chrome 152 engine; manual CI, screen readers and alternative browsers were not tested. Refer to [M0 Verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) for exact commands and residual issues.
+
+All test workspace, cache, browser evidence and container/database data must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). C: is not permitted for new persistent project-specific test data.
+
 ## Test layers
 
 | Layer | Tools | Representative assertions |

@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** The earlier M0 run at `4fb34eb` was documented as verified, but a subsequent cold-database regression reproduced a state-dependent integration test failure on both the old and upgraded code. G0 needs a fresh complete verification run before acceptance. The hardening branch implements the regression and accessibility fixes; revised-code verification remains pending. Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
+**Status:** The hardened M0 code passed the complete GitHub Actions verification at revision `fec7429415fede121db8a4a34f0df72cd4fac609` ([run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879)). **G0 verified, acceptance pending.** The earlier cold-database regression is resolved. Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -52,7 +52,7 @@ All persistent HarborOps development data must stay on E:, including the working
 
 ### Pending M0 hardening verification
 
-The initial hardening audit demonstrated .NET 10 compilation, database startup and copied-volume compatibility, clean final image scans and 12 browser passes, but also exposed a 4/5 fresh-database failure and a 4.24:1 contrast issue. Fixes are now committed. The corrected code must pass cold-state tests, fresh disposable database startup, image scanning and the functional browser matrix. Existing local Docker volume compatibility is not a G0 requirement; lightweight compatibility checkpoints belong to M6, M12, M18 and M24-03, with the full recovery/migration rehearsal at M19. Review [Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) before considering this revision verified. The browser runner stores npm cache and browser binaries on E: and uses a committed `tests/browser/package-lock.json` that still requires a fresh `npm ci` check.
+The initial hardening audit demonstrated .NET 10 compilation, database startup and copied-volume compatibility, clean final image scans and 12 browser passes, but also exposed a 4/5 fresh-database failure and a 4.24:1 contrast issue. Fixes are now committed. The corrected code **passed** cold-state tests, fresh disposable database startup, image scans and the functional browser matrix at the verified revision. Existing local Docker volume compatibility is not a G0 requirement; lightweight compatibility checkpoints belong to M6, M12, M18 and M24-03, with the full recovery/migration rehearsal at M19. Review [Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) before considering this revision verified. The browser runner stores npm cache and browser binaries on E: and uses a committed `tests/browser/package-lock.json` that still requires a fresh `npm ci` check.
 
 ### Local M0 startup
 
@@ -75,7 +75,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Project Status](docs/STATUS.md) | Implemented, pending, and verified work |
 | [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) | E-drive workspace, caches, Docker and evidence constraints |
 | [M0 Verification](docs/M0_VERIFICATION.md) | Previous baseline's executed test evidence |
-| [M0 Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) | Pending .NET 10, rootless PostgreSQL, browser and image verification |
+| [M0 Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) | Passed .NET 10, fresh PostgreSQL, Docker recovery, functional browser and image verification |
 | [Product Scope](docs/PRODUCT_SCOPE.md) | Goals, non-goals, personas, and constraints |
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
@@ -108,4 +108,4 @@ HarborOps is an independent demonstration platform. It does not claim affiliatio
 
 ### Current state
 
-The prior M0 foundation was verified at its engineering gate. This hardening branch has not yet passed its required regression and image checks, and acceptance remains pending. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).
+The hardened M0 foundation passed the regression and image checks in GitHub Actions run #2. **G0 is verified, acceptance pending** until explicitly accepted. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).

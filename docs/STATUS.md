@@ -3,7 +3,7 @@
 **As of:** 2026-10-30
 **Default branch:** Documentation baseline; no application implementation merged.
 **Parallel work:** Unmerged `feat/m0-engineering-baseline` contains the locally verified M0 implementation at code revision `4fb34eb`; evidence and limitations are in [M0 Verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md).
-**Acceptance:** G0 verified, acceptance pending. No milestone accepted; G1-G24 remain open.
+**Acceptance:** G0 reopened after a later cold-database regression; acceptance pending. No milestone accepted; G1-G24 remain open.
 
 ## Delivery ledger
 
@@ -11,7 +11,7 @@ The ledger below is the current *observed* state, not a projection from planning
 
 | Milestone | State | Evidence |
 | --- | --- | --- |
-| **M0 Engineering baseline verification** | G0 verified, acceptance pending, on separate feature branch | Verified code `4fb34eb`: 1 unit, 10 contract, 5 integration, 6 web tests; clean Compose/migration, browser and fault recovery. PostgreSQL image vulnerabilities and other limitations are documented in the feature-branch evidence register. |
+| **M0 Engineering baseline verification** | G0 reopened, acceptance pending | The historical `4fb34eb` run passed on a seeded database, but an isolated cold-database integration test later reproduced a tracked-entity failure. The correction and expanded checks are on [hardening PR #3](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/3); the corrected revision is not yet runtime verified. |
 | **M1 Authentication and session lifecycle** | Planned | No verified implementation or accepted gate G1 |
 | **M2 Organizations and role isolation** | Planned | No verified implementation or accepted gate G2 |
 | **M3 Ports and vessels reference data** | Planned | No verified implementation or accepted gate G3 |
@@ -64,15 +64,15 @@ The unchecked items below concern the complete M0-M24 product release. They do n
 
 ## Verification evidence
 
-Default-branch application runtime: none. The separate M0 feature branch records a complete locally verified G0 evidence set against code revision `4fb34eb`, including real .NET, PostgreSQL, Compose and browser checks. See the [branch verification ledger](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md). Planning commits do not demonstrate runtime behavior.
+Default-branch application runtime: none. The separate M0 feature branch records a historical G0 test run against `4fb34eb`; subsequent fresh-database verification exposed a state-dependent test failure that invalidates a complete cold-state gate claim. See the [branch verification ledger](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md). Planning commits do not demonstrate runtime behavior.
 
 ## Open prerequisites
 
-1. Review the verified M0 feature-branch evidence and outstanding risks; record explicit G0 acceptance or continue acceptance pending.
+1. Re-run the corrected hardening branch on a fresh PostgreSQL database, verify its cross-browser/contrast changes and exact running image scans, then review the resulting G0 evidence before any acceptance decision.
 2. Resolve D-001 and D-003 before M1 implementation, and D-002 before M2 work.
 3. Expand the M0 metadata seed into two-organization reference fixtures in M1.
 4. Preserve the locally executed M0 verification evidence and rerun its checks after any behavior-changing modification or branch integration.
-5. G0 verification is recorded, but acceptance remains pending. Do not start M1 until the acceptance decision and D-001 are resolved. All later gates G1-G24 remain planned and open.
+5. G0 is reopened for complete cold-state verification; acceptance remains pending. Do not start M1 until the gate and D-001 are resolved. All later gates G1-G24 remain planned and open.
 
 ## Storage and residual risk
 

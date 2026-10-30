@@ -46,7 +46,6 @@ services:
     cap_drop: [ALL]
     security_opt:
       - no-new-privileges:true
-    environment:
     depends_on:
       postgres:
         condition: service_healthy

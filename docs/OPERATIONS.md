@@ -121,6 +121,12 @@ Nginx and Vite must proxy browser `/api/*` requests to the internal API under th
 
 Runbook additions at implementation: create a synthetic test account, password reset, disable/re-enable with all-session revocation, session-key rotation/restart, failed-login throttling, CSRF rejection, database outage/recovery, log redaction and user-session expiry. Record commands without credentials in [G1 evidence](M1_VERIFICATION_PLAN.md). Authenticated request volume and database lookups need capacity checks before any hosted use. No real personal credentials are required to pass G1.
 
+## M1 local account and session operations (feature branch)
+
+The M1 branch adds a second persistent Docker volume, `harborops-keyring`, separate from PostgreSQL data. The running API container requires write access to `/keys` while the remainder of the filesystem stays read-only. The local-only HTTP exception is permitted only with loopback-bound Compose ports. Never expose the profile on a public network. Non-local deployment must supply a certificate to encrypt Data Protection keys and use HTTPS.
+
+Use `docker compose run --rm -it -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision EMAIL DISPLAY_NAME` for local provisioning. Use `--account-cli reset EMAIL` to change a password and revoke sessions. Passwords are prompted through terminal input or a controlled stdin pipe; do not supply them as arguments, logs, or tracked environment variables. Restrict who can access the host and Docker volumes.
+
 ## M0 local runbook
 
 - Set a unique password in a local untracked `.env` based on `.env.example`

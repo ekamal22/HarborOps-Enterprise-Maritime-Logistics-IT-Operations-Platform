@@ -26,6 +26,12 @@ Run `node scripts/render-execution-graph.mjs --check` to validate the graph agai
 - Expose metrics, logs, tracing, health checks, and an integrated IT incident workflow.
 - Demonstrate reproducible testing, safe failure handling, recoverability, and deployment portability.
 
+### M1 implementation branch
+
+The feature branch `feat/m1-authentication-session-lifecycle` contains the first M1 implementation of server-authoritative cookie sessions, Argon2id passwords, local account provisioning, database identity tables and a browser sign-in shell. This is not merged into `main` or accepted until G1 verification succeeds and acceptance is recorded. The previous M0 status remains the accepted default-branch baseline.
+
+**Local M1 accounts:** Start Compose with `docker compose up -d --build` as described below. Create an account with `docker compose run --rm -it -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision operator@example.test "Operator"`. The password is read privately from the terminal, never passed as a CLI argument. Reset through `--account-cli reset operator@example.test`. No public registration endpoint exists.
+
 ### Next milestone: M1 authentication design
 
 The M1 architecture is **approved for implementation**, but no M1 source code, database migration or G1 verification has been completed. D-001 selects PostgreSQL-authoritative ASP.NET Core cookie sessions, Argon2id local credentials, a same-origin browser/API proxy, CSRF protection, immediate revocation and persistent Data Protection key storage.

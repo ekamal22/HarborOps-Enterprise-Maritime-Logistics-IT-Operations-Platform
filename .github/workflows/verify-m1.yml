@@ -1,0 +1,148 @@
+name: Verify M1
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/verify-m1.yml
+      - src/**
+      - tests/**
+      - web/**
+      - docker/**
+      - compose.yaml
+      - docs/**
+      - scripts/**
+      - README.md
+permissions:
+  contents: read
+concurrency:
+  group: verify-m1-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      HARBOROPS_DB_PASSWORD: disposable-m1-check-only
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops"
+      COMPOSE_PROJECT_NAME: ho-verify
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.verification/playwright-browsers
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Identify source revision and synthetic secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "HARBOROPS_SOURCE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          secret=$(openssl rand -hex 32)
+          echo "::add-mask::$secret"
+          echo "HARBOROPS_TEST_USER_PASSWORD=$secret" >> "$GITHUB_ENV"
+          mkdir -p .verification
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build hardened PostgreSQL
+        run: docker build --build-arg SOURCE_REVISION="$HARBOROPS_SOURCE_SHA" -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
+      - name: Start fresh PostgreSQL for integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name harborops-m1-ci-db \
+            --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 \
+            --cap-drop ALL --security-opt no-new-privileges \
+            -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops \
+            -e POSTGRES_HOST_AUTH_METHOD=trust \
+            -p 127.0.0.1:5432:5432 harborops-postgres:16.15-rootless
+          for i in $(seq 1 45); do
+            if docker exec harborops-m1-ci-db pg_isready -U harborops -d harborops_integration; then exit 0; fi
+            sleep 2
+          done
+          docker logs harborops-m1-ci-db
+          exit 1
+      - name: Build .NET solution
+        run: |
+          dotnet restore HarborOps.sln
+          dotnet build HarborOps.sln -c Release --no-restore
+      - name: Unit tests
+        run: dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-build
+      - name: API contract tests
+        run: dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --no-build
+      - name: Fresh PostgreSQL integration tests
+        run: dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build
+      - name: Seeded PostgreSQL repeat tests
+        run: dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build
+      - name: Frontend tests and build
+        working-directory: web
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npm run build
+      - name: Planning document consistency
+        run: |
+          node scripts/render-execution-graph.mjs --check
+          node scripts/check-planning-docs.mjs
+      - name: Disposable Compose startup and M0 regression
+        run: bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable
+      - name: Dependency outage/recovery regression
+        run: bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage
+      - name: Provision disposable browser account
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | docker compose -p ho-verify run --rm -T \
+            -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
+            --account-cli provision operator@example.test "Synthetic Operator"
+      - name: Install locked Playwright and three browser engines
+        working-directory: tests/browser
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium firefox webkit
+      - name: Cross-browser M0 and M1 functional tests
+        working-directory: tests/browser
+        run: npm test
+      - name: Scan revision-labeled running images
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/trivy
+          for service in postgres api web; do
+            container=$(docker compose -p ho-verify ps -q "$service")
+            test -n "$container"
+            image=$(docker inspect --format '{{.Image}}' "$container")
+            revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
+            test "$revision" = "$HARBOROPS_SOURCE_SHA"
+            docker run --rm --pull always \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v "$PWD/.verification/trivy:/root/.cache/trivy" \
+              -v "$PWD/.verification:/reports" \
+              aquasec/trivy:0.76.1 image --image-src docker \
+              --scanners vuln --severity HIGH,CRITICAL --exit-code 1 \
+              --format json --output "/reports/$service.json" "$image"
+          done
+      - name: Record diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p .verification
+          git rev-parse HEAD > .verification/source-sha.txt
+          docker compose -p ho-verify ps > .verification/compose-ps.txt 2>&1 || true
+          docker compose -p ho-verify logs --no-color > .verification/compose.log 2>&1 || true
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-verification-${{ github.run_id }}
+          path: |
+            .verification/
+            tests/browser/test-results/
+          retention-days: 7
+      - name: Remove disposable runner resources
+        if: always()
+        run: |
+          docker compose -p ho-verify down --volumes --remove-orphans || true
+          docker rm -f harborops-m1-ci-db || true

@@ -5,6 +5,10 @@
 **Baseline:** The accepted M0 engineering foundation, runtime, tests, documentation and verification workflow are integrated into `main`. PRs #1 and #3 are merged.
 **Acceptance:** G0 verified at source revision `fec7429415fede121db8a4a34f0df72cd4fac609` in [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) and **accepted** on 2026-10-31; G1-G24 remain open. M1 has not started.
 
+## In-progress M1 implementation branch
+
+On `feat/m1-authentication-session-lifecycle`, M1 persistence, cookie authentication, restricted account CLI, same-origin browser shell, and an initial automated test matrix are implemented in source. **G1 remains unverified and acceptance pending.** No passing M1 runtime evidence has been recorded. `main` continues to hold the accepted M0 baseline until a separate verified integration and acceptance decision.
+
 ## Delivery ledger
 
 The ledger below is the current *observed* state, not a projection from planning nodes. The v1 M0-M6 scheme was superseded for planning by v2 M0-M24. Old v1 milestone IDs beyond M0 must not be read as matching new v2 milestones.

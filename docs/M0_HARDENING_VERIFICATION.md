@@ -83,6 +83,14 @@ This resolves **immutable image IDs from running Compose containers**, rejects m
 
 M0 requires automated checks for text contrast (WCAG AA for small text), meaningful headings, accessible button names, keyboard activation and focus visibility, error/status roles, responsive layout and no horizontal overflow. Execute those checks through the Chromium, Firefox and WebKit browser suite. Where tests are not automated, record a limitation rather than claiming it passed. **Manual screen-reader use, spoken-output validation and manual browser zoom are not M0 acceptance requirements.** They are deferred to M23 Interface polish and accessibility when the actual business workflows and navigation are implemented. Do not block M0 solely because no screen reader is installed.
 
+## GitHub Actions as the M0 verification environment
+
+A GitHub-hosted Ubuntu runner can serve as the sole M0 verification environment if its workflow performs all required checks at the exact commit and publishes evidence. It must execute clean .NET 10 restore/build and all tests against an empty PostgreSQL database, migration and repeatability checks, Compose startup, controlled database outage/recovery, a current vulnerability scan of the exact running images, locked frontend and browser dependency installation, and the Chromium/Firefox/WebKit suites with automated accessibility assertions. The repository's current manual `.github/workflows/verify-m0.yml` covers only a subset and is **not yet sufficient as a complete G0 verification workflow**.
+
+Do not claim CI verification until the workflow has actually run against the corrected SHA and its required jobs pass. A workflow limited to `workflow_dispatch` may need an appropriate reviewed trigger to run against an unmerged branch; do not enable an automatic paid-minutes-consuming trigger without approval. GitHub-hosted runner storage is temporary remote storage, not the workstation C: drive. The E-drive policy remains mandatory for local work.
+
+Manual screen-reader testing and full assistive-technology journeys are intentionally deferred to M23 and do not need to be simulated or marked NOT RUN to satisfy G0.
+
 ## Required acceptance evidence for corrected branch
 
 1. Exact corrected branch HEAD, source diff, environment and E-drive locations.

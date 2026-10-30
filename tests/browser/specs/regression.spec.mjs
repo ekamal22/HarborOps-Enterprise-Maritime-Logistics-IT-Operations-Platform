@@ -66,6 +66,7 @@ test("headings and status announcements have distinct roles", async ({ page }) =
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 2, name: "System baseline" })).toBeVisible();
   await ready(page);
+  await expect(page.getByRole("status")).toContainText("System baseline status loaded");
   expect(await page.locator('[aria-live="polite"] [role="status"]').count()).toBe(0);
   const button = page.getByRole("button", { name: "Refresh status" });
   await button.focus();

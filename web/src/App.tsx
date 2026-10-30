@@ -1,12 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { parseBaselineStatus } from "./lib/baseline.mjs";
+import type { BaselineStatus } from "./lib/baseline.mjs";
 import { normalizeApiOrigin } from "./lib/config.mjs";
 
-type BaselineStatus = {
-  service: string;
-  datasetVersion: string;
-  seededAtUtc: string;
-  source: string;
-};
 type ViewState =
   | { status: "loading" }
   | { status: "ready"; data: BaselineStatus }
@@ -17,28 +13,34 @@ const apiOrigin = normalizeApiOrigin(import.meta.env.VITE_API_BASE_URL);
 export default function App() {
   const [view, setView] = useState<ViewState>({ status: "loading" });
 
-  const refresh = useCallback(async (signal?: AbortSignal) => {
+  const request = useRef<AbortController | null>(null);
+
+  const refresh = useCallback(async () => {
+    request.current?.abort();
+    const controller = new AbortController();
+    request.current = controller;
     setView({ status: "loading" });
+
     try {
       const response = await fetch(`${apiOrigin}/api/v1/system/baseline`, {
-        signal,
+        signal: controller.signal,
         headers: { Accept: "application/json" }
       });
       if (!response.ok) throw new Error(`Service returned HTTP ${response.status}`);
-      const data: BaselineStatus = await response.json();
-      if (!data.datasetVersion || data.source !== "synthetic")
-        throw new Error("Unexpected baseline response");
-      setView({ status: "ready", data });
+      const data = parseBaselineStatus(await response.json());
+      if (!controller.signal.aborted) setView({ status: "ready", data });
     } catch (error) {
-      if (signal?.aborted) return;
-      setView({ status: "error", message: error instanceof Error ? error.message : "Request failed" });
+      if (!controller.signal.aborted) {
+        setView({ status: "error", message: error instanceof Error ? error.message : "Request failed" });
+      }
+    } finally {
+      if (request.current === controller) request.current = null;
     }
   }, []);
 
   useEffect(() => {
-    const controller = new AbortController();
-    void refresh(controller.signal);
-    return () => controller.abort();
+    void refresh();
+    return () => request.current?.abort();
   }, [refresh]);
 
   return (
@@ -62,7 +64,7 @@ export default function App() {
             <button onClick={() => void refresh()} className="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200">Refresh status</button>
           </div>
           {view.status === "loading" && <p className="mt-8 text-slate-300" role="status">Checking database-backed status...</p>}
-          {view.status === "error" && <div className="mt-8 rounded-lg border border-rose-800 bg-rose-950/40 p-4"><p className="font-semibold text-rose-200">Service unavailable</p><p className="mt-1 text-sm text-rose-300">{view.message}</p></div>}
+          {view.status === "error" && <div role="alert" className="mt-8 rounded-lg border border-rose-800 bg-rose-950/40 p-4"><p className="font-semibold text-rose-200">Service unavailable</p><p className="mt-1 text-sm text-rose-300">{view.message}</p></div>}
           {view.status === "ready" && <dl className="mt-8 grid gap-6 sm:grid-cols-2">
             <div><dt className="text-xs uppercase tracking-widest text-slate-400">Service</dt><dd className="mt-2 text-lg font-semibold">{view.data.service}</dd></div>
             <div><dt className="text-xs uppercase tracking-widest text-slate-400">Data provenance</dt><dd className="mt-2 text-lg font-semibold text-cyan-300">Synthetic demonstration</dd></div>

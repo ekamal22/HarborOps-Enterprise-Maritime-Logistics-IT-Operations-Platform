@@ -2,7 +2,14 @@ name: harborops
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: harborops-postgres:16.15-rootless
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+    user: "70:70"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     environment:
       POSTGRES_DB: harborops

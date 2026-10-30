@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { dirname, isAbsolute, join, normalize, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -52,7 +52,7 @@ for (const path of documents) {
     if (!target || /^(?:https?:|mailto:)/.test(target)) continue;
     const candidate = normalize(join(root, dirname(path), decodeURIComponent(target)));
     const rel = relative(root, candidate);
-    assert(rel !== ".." && !rel.startsWith("../") && !rel.startsWith("..\\\\") && !isAbsolute(rel), "Link leaves repository: " + path + " -> " + target);
+    assert(rel !== ".." && !rel.startsWith(".." + sep) && !isAbsolute(rel), "Link leaves repository: " + path + " -> " + target);
     assert(existsSync(candidate), "Broken Markdown link: " + path + " -> " + target);
   }
 }

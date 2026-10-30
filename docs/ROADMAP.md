@@ -48,7 +48,7 @@ Week estimates are indicative relative to actual available development time, not
 
 **Deliver:** Organization memberships, session lifecycle and role enforcement; ports, vessels, voyages, containers, shipments and assignment schema; validated CRUD, archive and optimistic concurrency; scoped list/detail/search; browser create/edit/link flow and deterministic two-organization fixtures.
 
-**Gate G1 requires:** Authorized shipment flow works via browser and API; invalid and conflicting writes leave no partial state; unauthenticated, wrong-role, disabled membership, and foreign-organization calls deny retrieval, mutation, filter, and export attempts; migrations and isolation integration suites pass. See FR-001 through FR-005 and acceptance sections A/D.
+**Gate G1 requires:** Authorized shipment flow works via browser and API; invalid and conflicting writes leave no partial state; unauthenticated, wrong-role, disabled membership, and foreign-organization calls deny retrieval, mutation, and list/filter attempts; migrations and isolation integration suites pass. See FR-001 through FR-005 and acceptance sections A/D.
 
 ## M2: Durable tracking events and projections
 

@@ -60,6 +60,25 @@ Security, tenant authorization, data integrity, cost control, migration hygiene 
 
 All dedicated accessibility testing is deferred to **M24-04, the final work package before G24 and the release acceptance decision**. No early milestone, including M0 and M23, has a keyboard, focus, screen-reader, contrast, zoom, accessible-name, or WCAG acceptance gate. Earlier milestones still validate that their implemented behavior works and is secure, but do not perform accessibility certification or audits. M23 completes interface polish; M24-04 evaluates the finished experience and records any remediation and re-test evidence before G24 can close. Accessibility remains part of the final release scope, not a waived requirement.
 
+## Quarter-mile reliability checkpoints
+
+Historical Docker/PostgreSQL volume compatibility is **not an M0 acceptance requirement** and is **not repeated at every commit, branch change or CI run**. Clean-database initialization, migration, deterministic seed and outage/recovery remain mandatory for G0.
+
+The 25-milestone roadmap uses four quarter-mile checkpoints, measured by delivery progress rather than calendar dates:
+
+| Checkpoint | Milestone | Verification |
+| --- | --- | --- |
+| Q1, 25% | M6 / G6 | Exercise current PostgreSQL image against a disposable copy of an older representative data snapshot |
+| Q2, 50% | M12 / G12 | Repeat compatibility with the latest retained historical snapshot and migration path |
+| Q3, 75% | M18 / G18 | Repeat the isolated snapshot boot/read and integrity spot checks |
+| Q4, final | M24-03 / G24 | Final historical snapshot compatibility review before M24-04 accessibility testing and final release assessment |
+
+At each checkpoint, **if no representative historical volume exists**, record `NOT APPLICABLE` with a reason; never fabricate a test result or create a dependency on a user's personal workstation volume. Use a disposable clone or restored test backup, never the only original E-drive data volume. Preserve source and snapshot identification, PostgreSQL major version, startup, migration and representative read results.
+
+**Exception:** Before applying a breaking schema, PostgreSQL-major or storage-layout change to an existing retained dataset, validate that migration against a safe copy at that change's rollout. This is deployment safety, not an extra routine M0 gate.
+
+M19 remains the mandatory, more comprehensive **backup/restore and historical schema migration rehearsal**, separate from these quarterly lightweight compatibility checkpoints. Quarter checkpoints are milestone-based, not an automatic quarterly schedule.
+
 ## Staged delivery plan
 
 ### P0: Foundation and maritime records
@@ -118,6 +137,7 @@ All dedicated accessibility testing is deferred to **M24-04, the final work pack
 **Entry:** G5 verified with a documented gate report.
 **Required work packages:** M6-01 Define assignment invariants; M6-02 Implement shipment-container links; M6-03 Implement shipment-voyage links; M6-04 Verify complete allocation journey.
 **Exit G6:** All applicable tasks, negative tests, runtime evidence and documentation for M6 recorded; acceptance pending until explicitly confirmed.
+**Q1 snapshot checkpoint:** Verify a disposable copy of a retained historical PostgreSQL volume if available; otherwise record NOT APPLICABLE. This is a milestone checkpoint, not a per-commit test.
 **Not covered by this milestone:** Tracking intake or analytics.
 
 ### P1: Event ingestion and decision rules
@@ -170,6 +190,7 @@ All dedicated accessibility testing is deferred to **M24-04, the final work pack
 **Entry:** G11 verified with a documented gate report.
 **Required work packages:** M12-01 Define search contract and pagination; M12-02 Implement scoped search services; M12-03 Implement controlled CSV export; M12-04 Verify search/export UX.
 **Exit G12:** All applicable tasks, negative tests, runtime evidence and documentation for M12 recorded; acceptance pending until explicitly confirmed.
+**Q2 snapshot checkpoint:** Verify a disposable copy of a retained historical PostgreSQL volume if available; otherwise record NOT APPLICABLE. This is a milestone checkpoint, not a per-commit test.
 **Not covered by this milestone:** KPI aggregation, geographic visualization and notification routing.
 
 #### M13: Operational KPI definitions and dashboards
@@ -220,6 +241,7 @@ All dedicated accessibility testing is deferred to **M24-04, the final work pack
 **Entry:** G17 verified with a documented gate report.
 **Required work packages:** M18-01 Define severity and state policy; M18-02 Implement incident CRUD and state controls; M18-03 Implement investigation and remediation; M18-04 Verify alert-to-incident workflow.
 **Exit G18:** All applicable tasks, negative tests, runtime evidence and documentation for M18 recorded; acceptance pending until explicitly confirmed.
+**Q3 snapshot checkpoint:** Verify a disposable copy of a retained historical PostgreSQL volume if available; otherwise record NOT APPLICABLE. This is a milestone checkpoint, not a per-commit test.
 **Not covered by this milestone:** Backup restoration and release performance benchmarking.
 
 ### P4: Reliability and delivery assurance
@@ -272,6 +294,7 @@ All dedicated accessibility testing is deferred to **M24-04, the final work pack
 **Entry:** G23 verified with a documented gate report.
 **Required work packages:** M24-01 Freeze deterministic demonstration fixtures; M24-02 Run end-to-end scenario suite; M24-03 Audit docs and test evidence; M24-04 Run final accessibility tests and release assessment.
 **Exit G24:** All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed.
+**Q4 snapshot checkpoint:** M24-03 records the final historical-volume compatibility check, if a representative snapshot exists; the last work package M24-04 remains the complete final accessibility audit.
 **Not covered by this milestone:** Public hosting and production accreditation; only documented local release readiness is required.
 
 ## Legacy milestone mapping

@@ -68,11 +68,11 @@ A release must not be described as verified if core data can cross organization 
 
 ## Revised M0 code acceptance boundary
 
-The earlier code revision `4fb34eb` has recorded G0 verification. The .NET 10, rootless PostgreSQL and expanded browser changes on this branch **must not inherit that verified state**. Required before recognizing the revised code as verified: clean .NET 10 build and tests, fresh and existing-volume PostgreSQL startup/migration, final image scans with zero unresolved fixable critical/high findings, controlled outage recovery, reproducible Chromium/Firefox/WebKit test results, and the documented screen-reader/contrast checks if those limitations are to be closed. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+The earlier code revision `4fb34eb` had recorded G0 verification, but a later isolated fresh-database test reproduced a failing recovery test on that baseline, invalidating the complete clean-state gate claim. G0 requires re-verification. The .NET 10, rootless PostgreSQL and expanded browser changes on this branch **must not inherit that verified state**. Required before recognizing the revised code as verified: clean .NET 10 build and tests, fresh and existing-volume PostgreSQL startup/migration, final image scans with zero unresolved fixable critical/high findings, controlled outage recovery, reproducible Chromium/Firefox/WebKit test results, and the documented screen-reader/contrast checks if those limitations are to be closed. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
 ## M0 engineering baseline verification (separate from product release)
 
-**G0 state:** verified on 2026-10-30 at code revision `4fb34eb`; **acceptance pending**. The evidence source is [M0 Verification](M0_VERIFICATION.md). Checks below refer only to the M0 baseline, not broader M1-M24 product release requirements.
+**G0 state:** previously recorded as verified on 2026-10-30 at code revision `4fb34eb`, but reopened when a fresh integration test failed on that same baseline. The checked boxes below reflect the historical run only, not the current gate result. **Acceptance pending**. The evidence source is [M0 Verification](M0_VERIFICATION.md). Checks below refer only to the M0 baseline, not broader M1-M24 product release requirements.
 
 - [x] Restore and build the entire .NET solution from a clean environment (0 warnings, 0 errors).
 - [x] Execute M0 unit and HTTP contract tests (1 unit, 10 contract).

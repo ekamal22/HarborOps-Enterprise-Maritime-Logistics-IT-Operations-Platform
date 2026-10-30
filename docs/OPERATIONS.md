@@ -6,7 +6,7 @@
 - Demonstration: disposable cloud environment activated only when required.
 - Production: not in scope for initial milestone acceptance.
 
-No infrastructure is currently deployed or verified.
+The M0 Compose profile has been started and locally verified on Windows 11 against code revision `4fb34eb`. The stack was stopped after verification; no persistent hosting or production deployment exists. The M0 register records health, fault injection, browser behavior and recovery. Future event processing, operational telemetry, backup/restore and incident workflows remain planned.
 
 ## Observability requirements
 
@@ -82,7 +82,11 @@ Only run failure injections against isolated local or authorized demonstration i
 
 ### Recovery readiness
 
-A backup is not considered viable until a clean restore test passes. Create a runbook before M5 and include a reproducible restore verification record in the acceptance evidence.
+A backup is not considered viable until a clean restore test passes. Create a runbook before M19 and include a reproducible restore verification record in the acceptance evidence. M0's disposable PostgreSQL service restart was not a backup/restore rehearsal.
+
+## E-drive operational storage
+
+For local operations, project workspace, database and Docker/WSL data, logs, screenshot evidence, and dependency/build caches must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). M0's local run used the E-drive Docker and cache baseline. Stop before enabling tools that require persistent storage on C:; short-lived system temporary writes are the only permitted exception.
 
 ## Deployment guardrails
 
@@ -93,7 +97,7 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 - Set a budget or usage cap, disable optional paid services, and document shutdown steps.
 - Record exact deployment version and whether sample data is synthetic.
 
-## Required runbooks by M5
+## Required runbooks by M19
 
 - Start and stop local stack.
 - Seed and reset demonstration dataset.

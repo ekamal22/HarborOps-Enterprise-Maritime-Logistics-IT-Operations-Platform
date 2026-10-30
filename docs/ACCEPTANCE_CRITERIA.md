@@ -66,9 +66,13 @@ No item is accepted by implication. See STATUS.md for the current ledger.
 
 A release must not be described as verified if core data can cross organization boundaries, accepted events disappear silently, backups have never been restored, essential tests fail, or the documentation misstates current delivery status.
 
+## Quarter-mile historical-volume check boundary
+
+No existing local Docker volume check is required for M0 acceptance or per-commit CI. Historical-volume compatibility is scheduled at M6, M12, M18 and M24-03 roadmap checkpoints using disposable snapshot copies, or recorded as NOT APPLICABLE when no representative snapshot exists. M19 covers full backup/restore and historical migration rehearsal. Breaking changes that will touch retained data require safe-copy testing before that specific deployment.
+
 ## Revised M0 code acceptance boundary
 
-The earlier code revision `4fb34eb` had recorded G0 verification, but a later isolated fresh-database test reproduced a failing recovery test on that baseline, invalidating the complete clean-state gate claim. G0 requires re-verification. The .NET 10, rootless PostgreSQL and expanded browser changes on this branch **must not inherit that verified state**. Required before recognizing the revised code as verified: clean .NET 10 build and tests, fresh and existing-volume PostgreSQL startup/migration, final image scans with zero unresolved fixable critical/high findings, controlled outage recovery and reproducible functional browser checks in Chromium, Firefox and WebKit for API data display, refresh and error recovery. **No accessibility testing is required in G0.** All accessibility validation, automated and manual, is reserved for M24-04, immediately before final release acceptance. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+The earlier code revision `4fb34eb` had recorded G0 verification, but a later isolated fresh-database test reproduced a failing recovery test on that baseline, invalidating the complete clean-state gate claim. G0 requires re-verification. The .NET 10, rootless PostgreSQL and expanded browser changes on this branch **must not inherit that verified state**. Required before recognizing the revised code as verified: clean .NET 10 build and tests, **fresh disposable PostgreSQL** startup/migration and repeatable seed, final image scans with zero unresolved fixable critical/high findings, controlled outage recovery and reproducible functional browser checks in Chromium, Firefox and WebKit for API data display, refresh and error recovery. **No accessibility testing is required in G0.** All accessibility validation, automated and manual, is reserved for M24-04, immediately before final release acceptance. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
 ## M0 engineering baseline verification (separate from product release)
 

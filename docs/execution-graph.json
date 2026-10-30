@@ -765,7 +765,7 @@
         "FR-005"
       ],
       "output": "Create shipment, attach container/voyage and inspect links",
-      "verify": "Browser/API and rolled-back failure matrix"
+      "verify": "Browser/API failure matrix plus Q1 disposable historical-volume compatibility checkpoint if a representative snapshot exists"
     },
     {
       "id": "G6",
@@ -784,7 +784,7 @@
         "FR-004"
       ],
       "output": "Verified milestone outcome: Temporal and organization-safe shipment assignments",
-      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M6 recorded; acceptance pending until explicitly confirmed",
+      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M6 recorded; acceptance pending until explicitly confirmed; include corresponding quarterly snapshot compatibility result or documented not-applicable reason",
       "gate": true
     },
     {
@@ -1229,7 +1229,7 @@
         "FR-013"
       ],
       "output": "Wire interactive filters, detail transitions and exports",
-      "verify": "Browser filtering, empty-result and denied-export tests"
+      "verify": "Browser filtering and denied-export tests plus Q2 disposable historical-volume compatibility checkpoint if available"
     },
     {
       "id": "G12",
@@ -1248,7 +1248,7 @@
         "FR-013"
       ],
       "output": "Verified milestone outcome: Scoped filtering, detail navigation and CSV output",
-      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M12 recorded; acceptance pending until explicitly confirmed",
+      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M12 recorded; acceptance pending until explicitly confirmed; include corresponding quarterly snapshot compatibility result or documented not-applicable reason",
       "gate": true
     },
     {
@@ -1685,7 +1685,7 @@
         "FR-020"
       ],
       "output": "Detect controlled fault, create incident, investigate and resolve",
-      "verify": "Complete reproducible incident scenario with audit trail"
+      "verify": "Reproducible incident scenario plus Q3 disposable historical-volume compatibility checkpoint if available"
     },
     {
       "id": "G18",
@@ -1704,7 +1704,7 @@
         "FR-014"
       ],
       "output": "Verified milestone outcome: Actionable incident triage, notes, and closure evidence",
-      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M18 recorded; acceptance pending until explicitly confirmed",
+      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M18 recorded; acceptance pending until explicitly confirmed; include corresponding quarterly snapshot compatibility result or documented not-applicable reason",
       "gate": true
     },
     {
@@ -2129,7 +2129,7 @@
         "NFR-003"
       ],
       "output": "Check implementation/requirement mapping, known limits and exact commands",
-      "verify": "No stale claims or missing mandatory verification"
+      "verify": "Documentation/evidence audit and Q4 disposable historical-volume compatibility checkpoint before the final M24-04 accessibility audit"
     },
     {
       "id": "M24-04",
@@ -2165,7 +2165,7 @@
         "NFR-009"
       ],
       "output": "Verified milestone outcome: Complete release scenarios, final accessibility audit and acceptance evidence",
-      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed",
+      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed; include corresponding quarterly snapshot compatibility result or documented not-applicable reason",
       "gate": true
     }
   ]

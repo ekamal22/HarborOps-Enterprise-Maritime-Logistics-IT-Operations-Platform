@@ -2,6 +2,12 @@
 
 This document records accepted baseline decisions and outstanding decisions that affect implementation.
 
+## Local storage constraint
+
+The mandatory [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires E-drive storage for all controllable persistent project files, caches, Docker/WSL state, database data and evidence. C-drive use is limited to unavoidable short-lived Windows temporary activity. This does not grant permission for cleanup, package migration or changes to global tool installations.
+
+The M0 implementation branch records G0 verified, acceptance pending. Its upstream PostgreSQL `gosu` findings require explicit disposition before final acceptance; documenting them is not risk approval.
+
 ## Accepted baseline decisions
 
 ### ADR-001: Modular monolith with separate tracking worker

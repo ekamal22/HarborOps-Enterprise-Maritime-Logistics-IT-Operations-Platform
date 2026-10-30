@@ -97,6 +97,9 @@ jobs:
           printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | docker compose -p ho-verify run --rm -T \
             -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
             --account-cli provision operator@example.test "Synthetic Operator"
+      - name: Persistent session restart, outage and replay
+        shell: bash
+        run: bash scripts/check-m1-session-recovery.sh --project ho-verify --confirm-local-outage
       - name: Install locked Playwright and three browser engines
         working-directory: tests/browser
         run: |

@@ -4,13 +4,22 @@ test("rapid refresh ends with current data and no unrelated network failures", a
   const external = [];
   const consoleErrors = [];
   const unexpectedFailures = [];
+  const expectedAnonymousSessionResponses = [];
 
   page.on("request", request => {
     const hostname = new URL(request.url()).hostname;
     if (!["localhost", "127.0.0.1"].includes(hostname)) external.push(request.url());
   });
+  page.on("response", response => {
+    if (new URL(response.url()).pathname === "/api/v1/auth/session" && response.status() === 401)
+      expectedAnonymousSessionResponses.push(response.url());
+  });
   page.on("console", message => {
-    if (message.type() === "error") consoleErrors.push(message.text());
+    if (message.type() !== "error") return;
+    const expectedAnonymousResponse = message.text().includes("401 (Unauthorized)") &&
+      (new URL(message.location().url || "http://localhost/").pathname === "/api/v1/auth/session" ||
+       expectedAnonymousSessionResponses.length > 0);
+    if (!expectedAnonymousResponse) consoleErrors.push(message.text());
   });
   page.on("requestfailed", request => {
     const failure = request.failure()?.errorText ?? "";

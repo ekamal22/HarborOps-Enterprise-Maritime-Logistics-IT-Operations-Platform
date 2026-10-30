@@ -44,7 +44,7 @@ jobs:
       - name: Web tests and build
         working-directory: web
         run: |
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npm test
           npm run build
       - name: Validate Compose configuration

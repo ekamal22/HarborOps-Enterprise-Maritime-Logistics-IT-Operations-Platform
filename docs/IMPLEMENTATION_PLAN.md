@@ -2,7 +2,7 @@
 
 **Status:** Supporting engineering guidance. This file is not an independent roadmap or authoritative dependency ledger.
 
-The [Product Requirements Document](PRD.md) defines user outcomes and release boundaries. The [Delivery Roadmap](ROADMAP.md) owns M0-M6 scope, sequencing, and gates. The [Execution Graph](EXECUTION_GRAPH.md), generated from [execution-graph.json](execution-graph.json), owns work-package IDs and dependency edges. [Status](STATUS.md) alone owns what is actually implemented and verified.
+The [Product Requirements Document](PRD.md) defines user outcomes and release boundaries. The [Delivery Roadmap](ROADMAP.md) owns M0-M24 scope, sequencing, and gates. The [Execution Graph](EXECUTION_GRAPH.md), generated from [execution-graph.json](execution-graph.json), owns work-package IDs and dependency edges. [Status](STATUS.md) alone owns what is actually implemented and verified.
 
 ## Work-package execution contract
 
@@ -30,7 +30,7 @@ For each work package, record:
 
 The separate branch `feat/m0-engineering-baseline` contains an initial .NET solution, database-backed read-only status API, EF Core migration and seed, worker shell, React frontend, Compose configuration, and test foundations. Full backend compilation, live migration, Compose launch, and browser-to-database behavior remain unverified.
 
-Complete M0 work packages and gate G0 before implementing dependent M1 features. The current M0 check ledger is on the [feature branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md).
+Complete the preserved M0-01 through M0-05 work packages and gate G0 before implementing dependent M1 features. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 check ledger is on the [feature branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md).
 
 ## Change management
 

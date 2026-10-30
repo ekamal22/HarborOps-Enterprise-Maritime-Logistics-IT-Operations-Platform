@@ -68,10 +68,10 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Container image scanner failed with exit code $LASTEXITCODE" }
         }
         if ($RefreshDatabase) {
-            & $scannerCmd @('image', '--download-db-only')
+            & $scannerCmd -ScannerArguments @('image', '--download-db-only')
         }
         foreach ($service in $services) {
-            & $scannerCmd @('image', '--scanners', 'vuln', '--severity', 'HIGH,CRITICAL',
+            & $scannerCmd -ScannerArguments @('image', '--scanners', 'vuln', '--severity', 'HIGH,CRITICAL',
                 '--exit-code', '1', '--format', 'json', '--output', "/evidence/$service.json", $images[$service])
         }
     } else {

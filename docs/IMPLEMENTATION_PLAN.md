@@ -8,7 +8,7 @@ The separate hardening branch adds a supported .NET 10 baseline, modified Postgr
 
 ## M0 implementation and verification
 
-On `feat/m0-engineering-baseline`, M0-01 through M0-05 have recorded local verification at code revision `4fb34eb`. The M0 evidence register includes the actual tool versions, checks, commands, test results, environment, remediation history, and residual risks.
+On `feat/m0-engineering-baseline`, M0-01 through M0-05 had a recorded local verification at code revision `4fb34eb`. A later cold-database failure reproduced on that baseline, so the complete verification conclusion must be reopened. The M0 evidence register includes the actual tool versions, checks, commands, test results, environment, remediation history, and residual risks.
 
 - Originally verified .NET 8 solution with API, application, domain, infrastructure, worker shell and tests
 - PostgreSQL 16 schema migration, fixed synthetic bootstrap seed and repeatable tests
@@ -18,7 +18,7 @@ On `feat/m0-engineering-baseline`, M0-01 through M0-05 have recorded local verif
 - Local Compose profile, one-shot migrator, locked frontend dependencies and verification scripts
 - Security checks and local PostgreSQL outage/recovery rehearsal
 
-**Gate G0:** verified, **acceptance pending**. M1 has not started. Verification is separate from final acceptance.
+**Gate G0:** reopened for re-verification, **acceptance pending**. M1 has not started. Verification is separate from final acceptance.
 
 The detailed evidence is [M0 Verification](M0_VERIFICATION.md). The current observed state is in [Status](STATUS.md). The working tree remains separate from the planning branch; reconcile overlapping documentation when integrating branches.
 

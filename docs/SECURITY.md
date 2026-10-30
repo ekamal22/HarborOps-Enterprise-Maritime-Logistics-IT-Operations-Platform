@@ -1,5 +1,13 @@
 # Security Model
 
+## Verified M0 boundary and residual risk
+
+The separate M0 feature branch records local .NET, database, container and browser verification at code revision `4fb34eb`; G0 is verified, acceptance pending. M0 has public synthetic baseline metadata only, loopback-bound container ports, basic CORS and sanitized errors. These limited checks do not demonstrate authenticated organization isolation, production hardening or future incident/event controls.
+
+The recorded PostgreSQL image scan contains **1 critical and 25 high findings** in the upstream `gosu` helper. This is documented unresolved risk, not automatically approved by the G0 verification state. Review disposition at acceptance and rescan on image changes. Refer to the [M0 verification register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md).
+
+Persistent local project storage, credentials, logs, caches and container data must be E-backed per [Local Storage Policy](LOCAL_STORAGE_POLICY.md). No new persistent C-drive project usage is permitted; unavoidable short-lived OS temporary activity is the only exception.
+
 ## Security goals
 
 Protect organizational boundaries, shipment data integrity, credentials, diagnostic information, and the availability of operational workflows.

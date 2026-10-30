@@ -1,5 +1,8 @@
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Xunit;
 
 namespace HarborOps.IntegrationTests;
@@ -10,7 +13,15 @@ public sealed class MigrationSnapshotTests
     public void ModelSnapshot_MatchesCurrentEntityModel()
     {
         using var db = SnapshotOnlyContext();
-        Assert.False(db.Database.HasPendingModelChanges());
+        var snapshot = db.GetService<IMigrationsAssembly>().ModelSnapshot!.Model;
+        var current = db.GetService<IDesignTimeModel>().Model;
+        var changes = db.GetService<IMigrationsModelDiffer>()
+            .GetDifferences(snapshot.GetRelationalModel(), current.GetRelationalModel());
+        var details = string.Join("; ", changes.Select(change =>
+            change.GetType().Name + " " +
+            change.GetType().GetProperty("Table")?.GetValue(change) + "." +
+            change.GetType().GetProperty("Name")?.GetValue(change)));
+        Assert.False(db.Database.HasPendingModelChanges(), details);
     }
 
     [Fact]

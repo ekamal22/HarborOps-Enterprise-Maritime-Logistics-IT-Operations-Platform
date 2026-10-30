@@ -32,6 +32,12 @@ A subsequent isolated cold-database test reproduced a tracked-row recovery failu
 
 All future work must honor [Local Storage Policy](LOCAL_STORAGE_POLICY.md): controllable persistent project storage on E:, allowing only unavoidable short-lived Windows temporary use on C:.
 
+## G1 detailed authentication gate (approved specification only)
+
+The selected D-001 architecture is [documented](ADR_D001_BROWSER_SESSIONS.md), and [M1 design](M1_AUTHENTICATION_DESIGN.md) and [verification plan](M1_VERIFICATION_PLAN.md) are approved. **G1 is not verified or accepted.** Before G1 verification, execute positive and negative tests for local provisioning, secure Argon2id verification, unknown/disabled accounts, session idle and absolute expiry, logout, logout-all, forced password-change/disable revocation, cookie replay rejection, protected API 401 without redirects, CSRF and foreign-origin denial, login throttling, database outage 503, persistent encryption keys across API restart, same-origin proxy and absence of credentials in logs.
+
+Run fresh disposable PostgreSQL migration tests plus a disposable **M0-seeded-to-M1** additive migration, not a retained local volume. Execute functional Chromium/Firefox/WebKit browser tests, release build, dependency/image scanning and complete M0 regression checks. Maintain G1 state `acceptance pending` only after real passing evidence; design approval is not G1 verification. Full accessibility testing remains exclusively M24-04.
+
 ## Granular milestone verification gates (v2)
 
 The detailed product release checks below remain in force. The [Roadmap](ROADMAP.md) divides their implementation into 25 narrower gates. A milestone gate is verified only after the corresponding graph work packages have verifiable evidence for the checks below, including negative/failure conditions.
@@ -39,7 +45,7 @@ The detailed product release checks below remain in force. The [Roadmap](ROADMAP
 | Gate | Milestone | Required executed evidence |
 | --- | --- | --- |
 | **G0** | M0 Engineering baseline verification | Clean .NET and web builds, unit/contract/integration tests, PostgreSQL repeatable migration, Compose/browser status path, readiness outage and hygiene evidence |
-| **G1** | M1 Authentication and session lifecycle | Login/logout, account-disable, expiry and invalid session negative tests |
+| **G1** | M1 Authentication and session lifecycle | FR-001: real PostgreSQL Argon2id credentials, cookies, CSRF, login/logout/logout-all, expiry, account disablement, immediate revocation, three-browser functional flow, clean migration, restart/outage, rate limits and redacted security evidence. [Full G1 plan](M1_VERIFICATION_PLAN.md). |
 | **G2** | M2 Organizations and role isolation | Two-organization membership scope, role denials, disabled membership and selected-organization tests |
 | **G3** | M3 Ports and vessels reference data | Port/vessel identifier, validation, scoped CRUD and browser lookup tests |
 | **G4** | M4 Voyages and containers reference data | Voyage scheduling and container identity/uniqueness tests with resolved D-003 |

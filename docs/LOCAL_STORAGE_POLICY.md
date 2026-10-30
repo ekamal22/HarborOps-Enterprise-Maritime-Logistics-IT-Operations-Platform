@@ -69,6 +69,12 @@ These variables are scoped to the current shell session. Confirm each tool actua
 7. Keep evidence artifacts, including screenshots and logs, on E:. Redact connection strings, credentials, tokens and unrelated machine details before sharing.
 8. If a tool can only use persistent C-drive storage, **stop and document the blocker**; obtain specific approval before installing, moving or changing system-wide storage.
 
+## M1 credential and key-storage boundary
+
+M1 introduces a persistent ASP.NET Core Data Protection key ring, PostgreSQL credential/session tables, and isolated authentication test fixtures. For local work, **all controllable persistent keys, Docker volumes, credential-related logs and test evidence must remain on E:**. Keep key material and certificates out of Git, images, browser storage and CI artifacts. The API container is read-only, so mount a dedicated restricted E-backed volume for Data Protection keys and test restart continuity. Deployable environments require reviewed encryption at rest.
+
+Create test users only inside disposable PostgreSQL databases; never seed an active user into the public M0 synthetic database initializer. Admin provisioning must read passwords interactively and avoid argument histories or logs. No existing local PostgreSQL volume is required for routine G1 verification. Do not relocate, prune or delete old data or key rings without explicit approval. See [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md) and [G1 Verification](M1_VERIFICATION_PLAN.md).
+
 ## M0 baseline and future milestones
 
 M0 was verified on a Windows 11 host with its working tree under E:, project caches under `E:\APP IDEAS\harborops-m0-cache`, and Docker Desktop's WSL data on E:. [M0 Verification](M0_VERIFICATION.md) preserves historical evidence, while [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) records the accepted G0 CI run. Both are available on `main`.

@@ -6,6 +6,9 @@
 | --- | --- | --- |
 | Organization | Id, name, status | Security and reporting boundary |
 | User | Id, identity fields, status | May belong to multiple organizations through membership |
+| UserCredential (M1 planned) | UserId, Argon2id encoded password hash, hash version, password changed UTC | Exactly one active credential row per local user; never plaintext |
+| AuthSession (M1 planned) | Id, UserId, issue/idle/absolute UTC, security version, revocation | Server authoritative session; many sessions per user |
+| AuthEvent (M1 planned) | Id, nullable UserId/SessionId, type, result, correlation, UTC | Bounded, redacted identity events; not the full M16 audit module |
 | Membership | UserId, OrganizationId, role, state | Access is evaluated within active membership |
 | Port | Id, UN/LOCODE where valid, country, name | Reference data; changes are versioned where needed |
 | Vessel | Id, optional IMO/MMSI, name | External identifiers must be validated and never fabricated as verified |
@@ -37,6 +40,18 @@
 10. Unknown events do not silently advance or reverse the shipment state.
 11. Audit records capture actor, organization scope, resource, action, outcome, and correlation ID, with sensitive values redacted.
 12. Deleting an operational entity is restricted when history depends on it; use archival or tombstones where applicable.
+
+## M1 identity persistence and invariants (approved design, not migrated)
+
+[The M1 schema design](M1_AUTHENTICATION_DESIGN.md) adds `users`, `user_credentials`, `auth_sessions` and `auth_events` in an additive EF Core migration. Accounts have unique normalized emails, Active/Disabled status and a monotonically increasing `security_version`. A user has at most one current password credential and can have multiple concurrent sessions.
+
+1. Only an active account with valid Argon2id credentials can create a session.
+2. An authenticated request succeeds only if its protected ticket refers to an existing active user and an unrevoked session within both idle and absolute expiries with matching security version.
+3. Revocation, disablement and password reset are transactional. Disable/reset increments the security version and makes old cookies unusable immediately.
+4. Expired/revoked sessions cannot be resurrected by sliding refresh or concurrent requests.
+5. Security events never include secrets or raw credentials; full business audit remains M16.
+6. The existing `bootstrap_records` synthetic seed remains unchanged and does not provision an account.
+7. Organization and membership invariants remain M2 scope; authentication alone is not business authorization.
 
 ## Illustrative lifecycle
 

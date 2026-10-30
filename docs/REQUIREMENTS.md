@@ -4,7 +4,7 @@
 
 ## Requirement status
 
-All requirements are proposed. A requirement is considered delivered only after its tests and acceptance evidence appear in STATUS.md.
+Requirements describe the intended complete product. G0 is accepted; the M1 authentication design and D-001 are approved, but FR-001 is not implemented or verified. A requirement is considered delivered only after its tests and acceptance evidence appear in [Status](STATUS.md).
 
 ## Observed baseline and storage boundary
 
@@ -16,7 +16,7 @@ All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_PO
 
 | ID | Priority | Requirement | Evidence expected |
 | --- | --- | --- | --- |
-| FR-001 | Must | Authenticate users and terminate sessions securely | Session and auth integration tests |
+| FR-001 | Must | Controlled local account sign-in using Argon2id; PostgreSQL-authoritative protected-cookie sessions; expiry, logout, logout-all, account disablement, session revocation, CSRF defense and server-enforced protected endpoints | [M1 G1 verification](M1_VERIFICATION_PLAN.md): credential, lifecycle, browser and negative integration tests |
 | FR-002 | Must | Enforce organization-scoped read/write access for every resource | Cross-organization denial tests |
 | FR-003 | Must | Manage ports, vessels, and voyages with validation | API integration tests |
 | FR-004 | Must | Create, edit, search, and archive shipments | CRUD and concurrency tests |
@@ -38,6 +38,10 @@ All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_PO
 | FR-020 | Should | Track incident root cause and associated remediation actions | Incident workflow tests |
 | FR-021 | Could | Add an optional adapter for permitted external tracking APIs | Sandbox contract tests |
 | FR-022 | Could | Add external SSO and enterprise identity mapping | Integration/security review |
+
+## M1 identity requirement allocation
+
+[The accepted M1 design](M1_AUTHENTICATION_DESIGN.md) specifies `FR-001` with `NFR-002` deny-by-default authentication and `NFR-003` protection of credentials, cookies, keys and logs. M1 implements who is authenticated, not which organizations or business records that person may access. Cross-organization authorization and two-organization fixtures remain `FR-002` in M2. Integration source authentication is an M7 concern. Human browser sessions use protected cookies, not browser JWT/refresh-token storage. D-001 is accepted; G1 remains open and unverified.
 
 ## Non-functional requirements
 

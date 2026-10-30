@@ -56,6 +56,14 @@ Only after verifying student/free-tier eligibility, allowed spend, service quota
 
 OpenStreetMap data and map tile services have different rights and operational limits. Follow provider attribution, rate limits, and usage conditions; provide a compliant fallback for demos. Historical AIS datasets require license and attribution review. Publicly accessible data does not necessarily grant unrestricted commercial reuse.
 
+## M1 deployment profile and authentication storage
+
+The accepted [M1 authentication design](M1_AUTHENTICATION_DESIGN.md) fits the existing no-charge React, ASP.NET Core and PostgreSQL Compose stack. It introduces no Redis, identity microservice, hosted account service or paid API. M1 needs only an additive PostgreSQL schema, an internal Nginx/Vite `/api/*` proxy and a small, durable ASP.NET Core Data Protection key-ring mount.
+
+Local persistent application keys and credentials must reside in approved E-backed Docker storage under [Local Storage Policy](LOCAL_STORAGE_POLICY.md), not inside the read-only API image, not on C: and never in Git. Use secrets or interactive provisioning, not plaintext default accounts or reusable demonstration credentials. Hosted authentication remains blocked until HTTPS, host-only Secure cookies, trusted proxy configuration, secret provisioning and encryption of Data Protection keys at rest are verified. Same-origin loopback HTTP is development-only.
+
+Development and CI must prove session persistence across restarts and immediate database revocation without checking a retained local Docker volume. An ephemeral GitHub-hosted runner can perform the G1 tests; persistent development data still follows E-drive rules on a workstation. Authentication design approval does not authorize new cloud charges or public access.
+
 ## Deployment acceptance
 
 - Setup steps work on a clean machine.

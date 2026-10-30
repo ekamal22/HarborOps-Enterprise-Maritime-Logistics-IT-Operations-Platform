@@ -111,6 +111,16 @@ Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Keep the repository, cac
 
 Existing local Docker volumes do not need to be checked on each M0 code revision. G0 tests only fresh disposable PostgreSQL initialization and safe outage/recovery. Lightweight snapshot compatibility checks are scheduled at M6, M12, M18 and M24-03; record NOT APPLICABLE when no historical snapshot exists. M19 remains the full backup/restore and historical upgrade rehearsal. Prior to rolling out a breaking schema or database-storage change to retained data, rehearsal-test that migration against a disposable copy. No routine check may modify the original volume.
 
+## Planned M1 authentication operations (design approved, not deployed)
+
+The approved [M1 design](M1_AUTHENTICATION_DESIGN.md) requires local interactive account provisioning without passwords in CLI arguments, shell history or CI artifacts. Administrative disablement, re-enablement and credential reset operate through restricted commands, with target database validation, transactional changes, session revocation and redacted `auth_events`. No web-accessible administrative account management is exposed at M1.
+
+The API remains read-only at the application filesystem layer. Add a dedicated persistent ASP.NET Core Data Protection key-ring mount with E-drive backing, least-privilege permissions and reviewed encryption at rest for deployable environments. On restart, valid sessions must survive because keys persist; revoked sessions must not reappear. Corrupt/missing key rings and unavailable PostgreSQL must fail closed. Preserve isolated `ho-verify` Compose project safety and the G0 synthetic baseline checks.
+
+Nginx and Vite must proxy browser `/api/*` requests to the internal API under the same frontend origin. The API's direct loopback port remains diagnostic only. Local development may use loopback HTTP with a separate development cookie name/configuration; non-loopback or hosted authentication requires HTTPS, secure cookies and a trusted reverse-proxy configuration. Do not deploy M1 login publicly over HTTP.
+
+Runbook additions at implementation: create a synthetic test account, password reset, disable/re-enable with all-session revocation, session-key rotation/restart, failed-login throttling, CSRF rejection, database outage/recovery, log redaction and user-session expiry. Record commands without credentials in [G1 evidence](M1_VERIFICATION_PLAN.md). Authenticated request volume and database lookups need capacity checks before any hosted use. No real personal credentials are required to pass G1.
+
 ## M0 local runbook
 
 - Set a unique password in a local untracked `.env` based on `.env.example`

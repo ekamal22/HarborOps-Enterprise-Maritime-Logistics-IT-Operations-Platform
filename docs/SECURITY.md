@@ -32,6 +32,19 @@ Protect organizational boundaries, shipment data integrity, credentials, diagnos
 - Verify role changes revoke access as intended.
 - Test logout, expiry, concurrent sessions, invalid credentials, and account disablement.
 
+## Approved M1 session and credential security design
+
+D-001 is accepted for implementation; no M1 security controls are claimed as deployed until G1 passes. See [D-001](ADR_D001_BROWSER_SESSIONS.md), [M1 architecture](M1_AUTHENTICATION_DESIGN.md) and [G1 tests](M1_VERIFICATION_PLAN.md).
+
+- **Human login:** controlled local account provisioning, Argon2id password hashing with unique salts (initial benchmark target: 64 MiB, three iterations, one lane), minimum 15-character passphrases and local compromised/common-password checks. Restrict expensive hash concurrency and never store cleartext credentials.
+- **Browser:** ASP.NET Core protected HTTP-only cookie, same-origin React/API proxy, SameSite reviewed, HTTPS/Secure for remote usage. Local loopback HTTP is a separate development-only configuration, never an insecure remote exception. No browser JWT/refresh-token storage.
+- **Session authority:** validate user/account status, server session row, idle/absolute expiry, revocation and security version on every protected request. An unavailable database causes sanitized 503, never cookie-only access. Proposed defaults are 30-minute idle and 12-hour absolute lifetime, configurable and tested before G1.
+- **CSRF and misuse:** antiforgery token bootstrap, token rotation after login, explicit validation for JSON state-changing requests, Origin/Fetch Metadata checks, bounded request bodies, source/identifier rate limits and generic invalid-login responses.
+- **Lifecycle:** revoke immediately on logout, logout-all, administrative password reset or account disablement; do not expose privileged admin HTTP routes before M2. A protected M1 diagnostic route proves back-end denial.
+- **Keys:** persist ASP.NET Core Data Protection keys on restricted E-backed Docker storage. Configure key encryption at rest for deployable environments and test API restart continuity.
+- **Events and confidentiality:** bounded `auth_events` with correlation/result codes but no plaintext passwords, hashes, cookies, CSRF tokens or raw account identifiers for unknown logins. G1 tests verify redaction.
+- **Boundary:** identity and authentication are M1. Organization memberships/roles are M2; integration credentials are M7; complete accessibility testing remains M24-04.
+
 ## Data protection
 
 - Keep secrets in local secret stores or environment configuration excluded from source control.

@@ -65,6 +65,12 @@ The complete demonstration path is: create shipment -> assign container and voya
 
 ## 5. Core product behavior
 
+### 5.0 Identity and session lifecycle
+
+The approved [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md) establishes controlled local accounts, Argon2id passwords, PostgreSQL-authoritative cookie sessions, expiry, logout, logout-all, self-disablement, antiforgery and login abuse controls. It requires a functional signed-in browser shell through same-origin `/api` routing, not public registration or an external identity provider. M1 protects only its own diagnostic/account routes; business-resource organization and role authorization begin in M2. Integration-source tokens begin in M7.
+
+D-001 is accepted as an architectural decision, but no M1 implementation has started and G1 is not verified. Requirements and test evidence remain governed by [Requirements](REQUIREMENTS.md), [G1 verification](M1_VERIFICATION_PLAN.md) and [Status](STATUS.md).
+
 ### 5.1 Shipment operations
 
 An authenticated, authorized analyst selects an active organization and creates a shipment from validated reference records. Container and voyage assignments must respect temporal and ownership invariants. Edits use concurrency protection. Search and detail requests include the same server-side organization boundary; archive prevents casual deletion of referenced history. See FR-001 through FR-005 and [Domain Model](DOMAIN_MODEL.md).

@@ -12,7 +12,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | Milestone | State | Evidence |
 | --- | --- | --- |
 | **M0 Engineering baseline verification** | G0 verified and accepted | [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) passed all required .NET, clean/seeded PostgreSQL, web, functional browser, Compose recovery and final image checks on `fec7429415fede121db8a4a34f0df72cd4fac609`. |
-| **M1 Authentication and session lifecycle** | Planned | No verified implementation or accepted gate G1 |
+| **M1 Authentication and session lifecycle** | Architecture approved, implementation not started | D-001 accepted; [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 verification plan](M1_VERIFICATION_PLAN.md) documented. No M1 migration, endpoint, frontend or G1 test has executed. |
 | **M2 Organizations and role isolation** | Planned | No verified implementation or accepted gate G2 |
 | **M3 Ports and vessels reference data** | Planned | No verified implementation or accepted gate G3 |
 | **M4 Voyages and containers reference data** | Planned | No verified implementation or accepted gate G4 |
@@ -53,6 +53,7 @@ The unchecked items below concern the complete M0-M24 product release. They do n
 - [x] Functional and non-functional requirements drafted.
 - [x] Architecture, domain model, and API boundary drafted.
 - [x] Tracking processing and security policies drafted.
+- [x] D-001 authentication architecture, M1 contracts and G1 test plan approved and documented (not implemented).
 - [x] Milestone acceptance and verification approach drafted.
 - [x] Local-first cost constraints and demonstration plan drafted.
 - [ ] Implemented module architecture validated by code.
@@ -68,11 +69,11 @@ The `main` branch contains M0 application source and the verified Docker runtime
 
 ## Open prerequisites
 
-1. G0 is accepted. Resolve D-001 and plan M1 authentication/session work under the G1 gate. Do not treat M1 as started or accepted.
-2. Resolve D-001 and D-003 before M1 implementation, and D-002 before M2 work.
-3. Expand the M0 metadata seed into two-organization reference fixtures in M1.
-4. Preserve the locally executed M0 verification evidence and rerun its checks after any behavior-changing modification or branch integration.
-5. G0 was verified at the recorded M0 code SHA and accepted on 2026-10-31. All later gates G1-G24 remain planned and open.
+1. G0 is accepted. D-001 is now an accepted M1 architecture decision, documented in [D-001](ADR_D001_BROWSER_SESSIONS.md).
+2. Implement M1-01 through M1-04 using [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md). The design is approved, but no M1 source implementation has started.
+3. Execute the [G1 Verification Plan](M1_VERIFICATION_PLAN.md) against an exact M1 revision. Preserve accepted M0 regressions and record failed, blocked and unrun checks honestly.
+4. Keep organization membership and two-organization isolation fixtures in **M2**, container identifier decision D-003 in **M4**, and tracking source decision D-002 in **M7**. Do not expand M1 scope.
+5. G1 remains open and requires real verification followed by explicit acceptance. Full accessibility testing is scheduled only for M24-04; historical-volume checks remain at M6, M12, M18 and M24-03.
 
 ## Storage and residual risk
 

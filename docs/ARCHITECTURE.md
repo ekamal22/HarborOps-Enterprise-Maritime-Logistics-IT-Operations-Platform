@@ -25,6 +25,14 @@ A modular monolith provides the HTTP API and transactional domain functions. A s
 
 The diagram is the target topology for later milestones. In M0, the code contains the API, PostgreSQL DbContext and migrator, React status interface, and an idle worker shell. Tracking ingestion, domain modules, metrics, tracing, and incidents are not implemented. Docker Compose startup, database-backed API, browser path and controlled database outage/recovery were verified historically at `4fb34eb`, then successfully reverified on `fec7429415fede121db8a4a34f0df72cd4fac609` with .NET 10 in GitHub Actions run #2. G0 was accepted on 2026-10-31. The containers were stopped after verification; this is not a hosted deployment.
 
+## Approved M1 authentication architecture (not yet implemented)
+
+M1 uses server-managed browser sessions within the existing ASP.NET Core modular monolith. The React browser communicates over one origin through an Nginx production proxy or Vite development proxy for `/api/*`. The API issues protected, HTTP-only session cookies after Argon2id credential verification. A session-validation component checks the `auth_sessions` row and `users` state in PostgreSQL on **every** authenticated request. A missing, revoked, expired or version-stale session is denied; dependency failure is sanitized and fails closed. ASP.NET Core Data Protection keys persist on restricted E-backed storage so valid cookies survive container restart.
+
+M1 adds Domain identity states, Application sign-in and session services, Infrastructure EF Core repositories/password hashing and API middleware/endpoints. Four additive tables are planned: `users`, `user_credentials`, `auth_sessions` and `auth_events`. The public M0 synthetic status route remains unchanged. Integration principals are M7; organization roles and data scoping begin in M2, and cannot be inferred merely from a successful M1 login.
+
+[Detailed architecture](M1_AUTHENTICATION_DESIGN.md) | [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) | [G1 verification](M1_VERIFICATION_PLAN.md). This describes an approved future implementation, not existing code or a verified G1 gate.
+
 ## Bounded modules
 
 ### Identity and Organizations
@@ -83,7 +91,7 @@ Append-only records of sensitive actions and key operational state changes. No d
       scenarios/
     docs/
 
-The application, worker shell, test projects, scripts, and Compose configuration have been added. Some target directories such as `infra/monitoring`, tracking adapters, and the new browser matrix is implemented as source but not yet executed.
+The application, worker shell, test projects, scripts, and Compose configuration have been added. Some target directories such as `infra/monitoring`, tracking adapters, and the M0 functional browser matrix has been executed in the accepted G0 run.
 
 ## Persistence strategy
 

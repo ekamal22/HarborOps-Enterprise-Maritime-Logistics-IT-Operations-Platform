@@ -42,11 +42,15 @@ Never silently replace historical accepted events. Correct data with linked corr
 
 The [granular roadmap](ROADMAP.md) assigns earlier decision deadlines to narrower milestone entry points. These dates denote prerequisite boundaries, not new approvals. The original ADR-001 through ADR-006 architecture decisions remain intact.
 
+### D-001: Human browser authentication and server-side session authority
+**Status:** Accepted architecture for M1; implementation and G1 verification not started.
+
+Human browser login uses ASP.NET Core 10 cookie authentication with protected tickets, PostgreSQL-backed authoritative session validation on every authenticated request, Argon2id password hashes, antiforgery protection, same-origin React/API routing and persistent Data Protection keys. Account disablement or password reset invalidates sessions immediately. Integration-scoped tokens remain deferred to M7, while organization roles/isolation begin in M2. The approved detailed record is [D-001](ADR_D001_BROWSER_SESSIONS.md), with [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 test plan](M1_VERIFICATION_PLAN.md). This decision approval is not runtime acceptance.
+
 ## Open decisions
 
 | ID | Decision required | Default hypothesis | Required before |
 | --- | --- | --- | --- |
-| D-001 | Session versus token auth | Secure server-managed session for browser; scoped tokens for integrations | M1 |
 | D-002 | DCSA reference release/subset | Pin one version with a documented field mapping | M7 |
 | D-003 | Container identifier format | Validate ISO 6346 where relevant; allow visibly synthetic demo values | M4 |
 | D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
@@ -61,4 +65,4 @@ Each material reversal records: context, alternatives, trade-offs, chosen approa
 
 ## Accepted M0 runtime decision
 
-The M0 baseline uses .NET 10, EF Core 10, PostgreSQL 16 with rootless container execution, a public synthetic-only read-only status endpoint and an isolated test database. Runtime verification passed on source revision `fec7429415fede121db8a4a34f0df72cd4fac609` and G0 was accepted on 2026-10-31. Authentication and session management are M1, pending D-001; organization isolation is M2. The browser remains functional-only until the final M24-04 accessibility gate.
+The M0 baseline uses .NET 10, EF Core 10, PostgreSQL 16 with rootless container execution, a public synthetic-only read-only status endpoint and an isolated test database. Runtime verification passed on source revision `fec7429415fede121db8a4a34f0df72cd4fac609` and G0 was accepted on 2026-10-31. Authentication and session management are M1 under the accepted D-001 architecture; organization isolation remains M2. The browser remains functional-only until the final M24-04 accessibility gate.

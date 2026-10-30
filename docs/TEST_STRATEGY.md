@@ -20,6 +20,14 @@ M0 verifies clean PostgreSQL initialization, schema migration, seed idempotency 
 
 Lightweight historical snapshot compatibility is checked only at roadmap quarter-mile milestones **M6, M12, M18 and M24-03**, on a disposable clone when representative historical data exists. Without a historical snapshot, record NOT APPLICABLE and continue. M19 performs the complete backup/restore and migration rehearsal. Breaking schema, PostgreSQL-major or volume-layout upgrades affecting existing retained data require a one-off safe-copy upgrade test before deployment, irrespective of the quarterly cadence.
 
+## Approved M1 verification matrix (not executed)
+
+The [M1 Verification Plan](M1_VERIFICATION_PLAN.md) extends the accepted M0 GitHub Actions sequence. G1 covers controlled account provisioning, Argon2id verify and incorrect credentials; session issue, concurrent devices, idle and absolute expiry under an injected clock, logout and logout-all; disablement/password-reset security-version revocation; cookie replay denial; CSRF invalid/foreign origin and login throttling; protected JSON 401 without redirects; sanitized 503 on database outage; Data Protection persistence across API restart; and functional React authentication through Chromium/Firefox/WebKit.
+
+Run an **additive M0-seeded-to-M1** migration in a disposable database and a fresh-schema M1 migration. Test that `bootstrap_records`, its synthetic baseline contract and M0 outage/recovery remain unchanged. Scan the actual running Docker images, protect secret values in logs and CI artifacts, and record exact SHA plus per-check PASS/FAIL/BLOCKED/NOT RUN status. M1 implementation has not begun and there are no G1 results yet.
+
+This does not add accessibility checks to G1. All formal accessibility testing remains at M24-04. Historical local-volume compatibility remains at M6/M12/M18/M24-03; M19 retains full backup/restore.
+
 ## Test layers
 
 | Layer | Tools | Representative assertions |

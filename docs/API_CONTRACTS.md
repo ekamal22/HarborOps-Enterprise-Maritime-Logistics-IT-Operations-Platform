@@ -15,7 +15,7 @@ The workspace, caches and test artifacts must follow [Local Storage Policy](LOCA
 - Base path: /api/v1
 - Content type: application/json
 - Transport: HTTPS when remotely accessible
-- Authentication: secure session or bearer token, chosen by ADR before implementation
+- Authentication: approved D-001 server-authoritative protected browser cookie (M1), with scoped integration credentials deferred to M7. [Decision](ADR_D001_BROWSER_SESSIONS.md).
 - Organization context: derived from authorized membership and explicitly selected organization
 - Timestamps: ISO 8601 UTC
 - Pagination: bounded limit, continuation token where useful
@@ -29,6 +29,24 @@ The workspace, caches and test artifacts must follow [Local Storage Policy](LOCA
 `GET /health/live` reports process liveness without checking dependencies. `GET /health/ready` checks PostgreSQL connectivity and the baseline seed and returns HTTP 503 if unhealthy. Both return only a minimal `status` string.
 
 The baseline endpoint returns a safe `baseline_unavailable` error when the record is missing and a `dependency_unavailable` response for recognized database failures. Unhandled errors use a sanitized `internal_error` envelope. Every API response is intended to carry `X-Correlation-ID`; this behavior is covered by contract tests and was observed against the running stack on 2026-10-30.
+
+## Approved M1 authentication contract (not implemented)
+
+The M1 route group is `/api/v1/auth`. These routes are planned, **not currently served**. The authoritative detailed contract and negative matrix are [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 verification](M1_VERIFICATION_PLAN.md). The frontend must use same-origin `/api/` proxying in Nginx and Vite rather than cross-origin credential calls.
+
+| Method | Route | Access | Behavior |
+| --- | --- | --- | --- |
+| GET | `/api/v1/auth/csrf` | Public same-origin bootstrap | Issue non-cacheable antiforgery token; no session |
+| POST | `/api/v1/auth/login` | Anonymous + CSRF | Verify password and account, persist session, issue HTTP-only cookie |
+| GET | `/api/v1/auth/session` | Authenticated | Return bounded user and session expiry metadata |
+| POST | `/api/v1/auth/logout` | Authenticated + CSRF | Revoke current session and clear cookie; 204 |
+| POST | `/api/v1/auth/logout-all` | Authenticated + CSRF | Revoke all account sessions; 204 |
+| POST | `/api/v1/auth/account/disable-self` | Authenticated + CSRF + password confirmation | Disable account and revoke all sessions; 204 |
+| GET | `/api/v1/auth/session/guard` | Authenticated | Demonstrate server-side session enforcement |
+
+`POST /login`: `{"email":"operator@example.test","password":"placeholder-not-a-real-password"}` (illustrative only). Successful 200 returns `user.id`, `user.email`, `user.displayName`, and `session.expiresAtUtc`. It never returns the authentication cookie value in JSON. The cookie is issued in a protected `Set-Cookie` response header. Unknown email, wrong password and disabled account return identical generic `401 invalid_credentials` envelopes. Protected anonymous calls return `401` JSON, not 302 redirects. Other safe codes include `authentication_required`, `session_expired`, `csrf_invalid`, `rate_limited`, `dependency_unavailable` and `internal_error`.
+
+Account creation, password reset and privileged re-enablement are restricted interactive local CLI operations. No public administrative endpoints, multi-organization `/me` membership response, bearer tokens, SSO or shipment routes are added at M1. Those remain later milestones. Preserve M0's public synthetic baseline and minimal liveness/readiness routes.
 
 ## Proposed resource map
 

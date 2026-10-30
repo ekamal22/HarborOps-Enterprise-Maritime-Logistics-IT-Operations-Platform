@@ -6,6 +6,12 @@ A fixed seed produces two isolated organizations, role-specific users, realistic
 
 No live customer or carrier data is required. The seed version and expected outputs must be tracked with the code.
 
+## M1 authentication demonstration (planned, distinct from D01-D06)
+
+Before G1 verification, create only a disposable synthetic account and run the [M1 functional matrix](M1_VERIFICATION_PLAN.md): sign in, read protected session state, reload the browser, open a second session, log out the first, revoke all, disable the account, confirm old cookies are rejected, and demonstrate safe database-outage behavior. Verify that invalid credentials, CSRF and login-rate-limit negative cases fail without secrets appearing in responses or logs. Prove that key persistence survives API restart and browser origin remains same-origin.
+
+This demonstration is separate from the later complete business scenarios D01-D06 and does not require two organization fixtures, external tracking data, retained Docker volume checks or M24 accessibility tests. **No M1 scenario has been executed.** The design is in [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md).
+
 ## Scenario D01: Shipment from registration to arrival
 
 **Preconditions:** An authorized analyst is logged into organization Alpha and the demonstration data is loaded.

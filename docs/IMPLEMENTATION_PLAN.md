@@ -30,7 +30,20 @@ For each work package, record:
 
 The accepted M0 implementation is integrated into `main`. It includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic database seed, an idle worker shell, a React status UI, Docker Compose, and executable test suites. The corrected source passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at `fec7429415fede121db8a4a34f0df72cd4fac609`: 1 unit, 10 contract, 5 fresh plus 5 repeat integration, 6 web and 12 functional browser tests, Compose outage/recovery, and PostgreSQL/API/web vulnerability scans. **G0 accepted** on 2026-10-31. No M1 code has started. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
-G0 evidence is recorded and accepted. The next implementation milestone is M1 after D-001 is resolved. Do not claim M1 has started or is accepted. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 verification record is [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) on `main`; [M0 Verification](M0_VERIFICATION.md) preserves the earlier historical run.
+G0 evidence is recorded and accepted. D-001 is now approved as the M1 browser cookie and server-session architecture. The next implementation milestone remains M1, which has not started. Do not claim M1 has started or is accepted. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 verification record is [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) on `main`; [M0 Verification](M0_VERIFICATION.md) preserves the earlier historical run.
+
+## Approved M1 implementation work packages (not started)
+
+Authoritative design: [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md), [D-001](ADR_D001_BROWSER_SESSIONS.md), [G1 Verification](M1_VERIFICATION_PLAN.md). Do not infer implementation or runtime acceptance from approved documents.
+
+| Package | Detailed deliverable | Completion evidence |
+| --- | --- | --- |
+| M1-01 | Finalize identity API, D-001 cookie/CSRF/same-origin decision, hash/expiry defaults, negative matrix and security boundary | Approved design and testable JSON/error contracts; unresolved implementation parameters recorded |
+| M1-02 | Add `users`, `user_credentials`, `auth_sessions`, `auth_events` through an additive EF Core migration, Argon2id hashing, server-session repository and restricted CLI provisioning | Fresh and M0-seeded disposable migration, password verification, expiry/revocation and transactional state tests |
+| M1-03 | Integrate ASP.NET Core authentication, Data Protection key ring, antiforgery, rate limiting, login/session/logout/logout-all/disable-self endpoints and sanitized errors | API contract and negative security tests, instant revocation, restart/outage and no-secret-leak evidence |
+| M1-04 | Configure Nginx/Vite same-origin `/api` proxy, React login/session shell, three-browser functional tests and source-specific GitHub Actions evidence | Full G1 matrix, preserved M0 contracts and image scans at a fixed SHA |
+
+M1-02 and M1-03 may proceed after M1-01; M1-04 integrates both. Do not create roles, organization memberships, shipment data, bearer integration credentials or public sign-up in M1. G1 is verified only after successful executed evidence; explicit acceptance and merge remain separate. Database compatibility with existing retained local volumes is not a G1 requirement. All formal accessibility testing remains the final M24-04 milestone.
 
 ## Local development storage
 

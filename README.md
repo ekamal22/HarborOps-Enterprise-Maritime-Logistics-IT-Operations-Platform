@@ -26,6 +26,16 @@ Run `node scripts/render-execution-graph.mjs --check` to validate the graph agai
 - Expose metrics, logs, tracing, health checks, and an integrated IT incident workflow.
 - Demonstrate reproducible testing, safe failure handling, recoverability, and deployment portability.
 
+### Next milestone: M1 authentication design
+
+The M1 architecture is **approved for implementation**, but no M1 source code, database migration or G1 verification has been completed. D-001 selects PostgreSQL-authoritative ASP.NET Core cookie sessions, Argon2id local credentials, a same-origin browser/API proxy, CSRF protection, immediate revocation and persistent Data Protection key storage.
+
+- [M1 Authentication and Session Lifecycle Design](docs/M1_AUTHENTICATION_DESIGN.md): schema, endpoints, security behavior, frontend and work packages.
+- [D-001 Architecture Decision](docs/ADR_D001_BROWSER_SESSIONS.md): selected model, alternatives and consequences.
+- [M1 G1 Verification Plan](docs/M1_VERIFICATION_PLAN.md): API, database, browser, Compose, security and negative-case evidence.
+
+Organization memberships and authorization remain M2. Historical-volume checks occur at quarter-mile milestones; dedicated accessibility testing remains M24-04. G0 stays accepted, while G1 is open.
+
 ### Planned modules
 
 | Module | Scope |
@@ -40,10 +50,10 @@ Run `node scripts/render-execution-graph.mjs --check` to validate the graph agai
 ### Proposed stack
 
 - Web: React, TypeScript, Vite, Tailwind CSS, MapLibre GL JS
-- API: ASP.NET Core on .NET 8, C#, OpenAPI
+- API: ASP.NET Core on .NET 10, C#; OpenAPI generation is planned
 - Data: PostgreSQL, Entity Framework Core
 - Processing: .NET background worker with durable processing state
-- Local runtime: Docker Compose; reverse proxy optional
+- Local runtime: Docker Compose; same-origin Nginx/Vite API proxy planned for M1 browser authentication
 - Observability: OpenTelemetry, Prometheus, Grafana, structured logs
 - Validation: xUnit, integration tests, Playwright, k6, OWASP ZAP
 - Hosting: local-first; optional student-credit cloud environment and static demonstration
@@ -84,6 +94,8 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
 | [Domain Model](docs/DOMAIN_MODEL.md) | Entities, relationships, and invariants |
 | [API Contracts](docs/API_CONTRACTS.md) | Proposed REST resources, security, and compatibility |
+| [M1 Authentication Design](docs/M1_AUTHENTICATION_DESIGN.md) | Approved D-001 implementation blueprint; M1 not started |
+| [M1 Verification Plan](docs/M1_VERIFICATION_PLAN.md) | G1 checks and evidence requirements, not executed |
 | [Event Processing](docs/EVENT_PROCESSING.md) | Tracking workflow, failure modes, and reconciliation |
 | [Security](docs/SECURITY.md) | Threat model and security acceptance gates |
 | [Operations](docs/OPERATIONS.md) | Monitoring, incidents, backups, and recovery |

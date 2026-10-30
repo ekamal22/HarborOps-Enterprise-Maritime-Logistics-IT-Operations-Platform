@@ -93,11 +93,11 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 #### M1: Authentication and session lifecycle
 
-**Scope:** Secure login, session expiry, logout and account disablement.
-**Entry:** G0 verified with a documented gate report. Resolve D-001 before applicable feature implementation.
-**Required work packages:** M1-01 Lock authentication contract; M1-02 Build credential and session store; M1-03 Implement login and logout endpoints; M1-04 Verify session lifecycle end to end.
+**Scope:** Secure local account login, PostgreSQL-authoritative cookie session lifecycle, expiry, logout, logout-all, self-disablement and a functional authenticated browser shell. Full design in [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md).
+**Entry:** G0 verified and accepted. D-001 accepted; see [D-001](ADR_D001_BROWSER_SESSIONS.md) and the [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md).
+**Required work packages:** M1-01 Lock authentication contract and D-001; M1-02 Build additive identity/credential/session/event persistence; M1-03 Implement cookie auth, CSRF, login, logout and disablement endpoints; M1-04 Implement same-origin browser auth and execute [G1 verification](M1_VERIFICATION_PLAN.md).
 **Exit G1:** All applicable tasks, negative tests, runtime evidence and documentation for M1 recorded; acceptance pending until explicitly confirmed.
-**Not covered by this milestone:** Multiple-organization permissions and maritime resources; these begin in M2 and M3.
+**Not covered by this milestone:** Organization membership and role isolation (M2), maritime resources (M3 onward), integration tokens (M7), public registration, external SSO, historical-volume checks and accessibility audit (M24-04). **Design approved; M1 is not yet implemented or verified.**
 
 #### M2: Organizations and role isolation
 

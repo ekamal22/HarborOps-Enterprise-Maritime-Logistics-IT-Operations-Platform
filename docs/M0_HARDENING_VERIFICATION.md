@@ -2,8 +2,25 @@
 
 **Target branch:** `fix/m0-net10-postgres-browser-hardening`  
 **Prior independently audited revision:** `a791561a797b57afac84e7df7f8a959890b6972c`  
-**Current correction state:** Source changes committed; fresh runtime re-verification pending.  
-**Gate:** Acceptance pending. The earlier `4fb34eb` record is historical and its complete G0 conclusion is reopened because a fresh-database test failed on that baseline. It does not verify the corrected branch.
+**Current correction state:** Revised code verified in GitHub Actions against exact commit `fec7429415fede121db8a4a34f0df72cd4fac609`; G0 acceptance pending.  
+**Gate:** G0 verified at the identified hardening code SHA; acceptance pending. The earlier `4fb34eb` result remains historical and was superseded after its cold-database regression.
+
+## Current G0 execution: GitHub Actions
+
+- **Workflow:** [Verify M0, run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879)
+- **Evidence artifact:** [m0-verification-41134743879](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879/artifacts/13016026538) (GitHub retention policy applies)
+- **Source revision executed:** `fec7429415fede121db8a4a34f0df72cd4fac609`
+- **Environment:** GitHub-hosted `ubuntu-latest`, .NET 10, Node 22, isolated `ho-verify` Docker Compose project and fresh non-root PostgreSQL 16.
+- **Result:** **SUCCESS**, with every required job step passing and no skipped core verification stages. No local E-drive volume was accessed.
+- **Build:** Release build succeeded, **0 warnings, 0 errors**.
+- **Tests:** .NET unit **1/1**, contract **10/10**, fresh PostgreSQL integration **5/5**, repeat seeded integration **5/5**, frontend **6/6**, functional Playwright **12/12** across Chromium, Firefox and WebKit.
+- **Runtime:** Disposable PostgreSQL creation, migrator, API and frontend startup, health/synthetic baseline smoke checks, and database stop/restart with 200/503/503 then 200/200/200 recovery all **PASS**.
+- **Images:** Trivy 0.76.1 scanned immutable running PostgreSQL, API and web image IDs. Each `HIGH,CRITICAL --exit-code 1` scan passed with no high/critical vulnerability findings reported. Source labels matched the tested commit.
+- **Cleanup:** Isolated GitHub runner containers and test volume were removed on successful completion.
+- **Run #1:** [Failed first attempt](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134236402) due exclusively to an ambiguous Playwright text selector. That selector was corrected and all browser cases passed in run #2.
+- **Scope exceptions:** Existing local historical Docker volumes are not part of G0 and are reserved for quarterly milestones M6, M12, M18 and M24-03 (with full migration/backup recovery at M19). Accessibility testing is exclusively a final M24-04 gate. Hosted/production readiness and M1-M24 capabilities are not implied.
+
+**Decision:** G0 **verified, acceptance pending**. This is an executed test result, not an explicit milestone acceptance, merge instruction or production authorization.
 
 ## Recorded audit of the earlier hardening revision
 
@@ -38,7 +55,7 @@ Evidence captured on E: under `E:\APP IDEAS\harborops-m0-cache\evidence\m0-harde
 | D5 | Added three-engine functional browser regressions for refresh races, external requests and console errors; isolated accessibility specs in a separate opt-in M24-only suite | Run the M0 functional suite from the committed lockfile; run accessibility specs only at M24-04 |
 | D6 | Removed redundant ASP.NET URL override; retained documented low-severity image/package concerns | Confirm runtime log warning is gone; review remaining library and image observations |
 
-Unchanged low-severity concerns: test-only xUnit 2.x is marked legacy; a GSSAPI library warning was observed during migrator startup; the web service still uses the stock nginx capability profile; base image tags and `apk upgrade` can change downstream package contents between builds. Do not change these speculatively without verification and an explicit security assessment. The scanner runner now defaults to the reviewed Trivy 0.76.1 container image; its actual new scan has not been executed.
+Unchanged low-severity concerns: test-only xUnit 2.x is marked legacy; a GSSAPI library warning was observed during migrator startup; the web service still uses the stock nginx capability profile; base image tags and `apk upgrade` can change downstream package contents between builds. Do not change these speculatively without verification and an explicit security assessment. The Trivy 0.76.1 container performed the current G0 image scans successfully in run #2.
 
 ## Historical-volume compatibility: quarterly roadmap checkpoints
 
@@ -93,9 +110,9 @@ This resolves **immutable image IDs from running Compose containers**, rejects m
 
 ## GitHub Actions as the M0 verification environment
 
-A GitHub-hosted Ubuntu runner can serve as the sole M0 verification environment if its workflow performs all required checks at the exact commit and publishes evidence. It must execute clean .NET 10 restore/build and all tests against an empty PostgreSQL database, migration and repeatability checks, Compose startup, controlled database outage/recovery, a current vulnerability scan of the exact running images, locked frontend and browser dependency installation, and Chromium/Firefox/WebKit functional browser checks only. It does not require accessibility tests at G0. The repository's current manual `.github/workflows/verify-m0.yml` covers only a subset and is **not yet sufficient as a complete G0 verification workflow**.
+A GitHub-hosted Ubuntu runner completed the required M0 checks against the exact source commit in run #2 and published verification evidence. It must execute clean .NET 10 restore/build and all tests against an empty PostgreSQL database, migration and repeatability checks, Compose startup, controlled database outage/recovery, a current vulnerability scan of the exact running images, locked frontend and browser dependency installation, and Chromium/Firefox/WebKit functional browser checks only. It does not require accessibility tests at G0. The current `.github/workflows/verify-m0.yml` covers the complete G0 verification scope and passed on run #2.
 
-Do not claim CI verification until the workflow has actually run against the corrected SHA and its required jobs pass. A workflow limited to `workflow_dispatch` may need an appropriate reviewed trigger to run against an unmerged branch; do not enable an automatic paid-minutes-consuming trigger without approval. GitHub-hosted runner storage is temporary remote storage, not the workstation C: drive. The E-drive policy remains mandatory for local work.
+The workflow ran through a narrow pull-request trigger for the workflow-file update and passed. Its current trigger does not automatically consume minutes on unrelated changes. Future revisions require their own verification run; the historical passing SHA must not be reused as new-code evidence. GitHub-hosted runner storage is temporary remote storage, not the workstation C: drive. The E-drive policy remains mandatory for local work.
 
 All accessibility verification, automated or manual, is deferred to final M24-04 and is explicitly excluded from M0 acceptance.
 
@@ -111,4 +128,4 @@ All accessibility verification, automated or manual, is deferred to final M24-04
 8. Functional browser results for data display, refresh, API failure and recovery in Chromium, Firefox and WebKit. Accessibility checks are not G0 requirements and are deferred entirely to M24-04.
 9. Hygiene, warnings, remaining vulnerability disposition, exact logs and result matrix.
 
-**Status:** Corrections committed, full revised-branch verification pending. No milestone acceptance or public-deployment authorization is implied. M1 remains unstarted.
+**Status:** G0 verified at `fec7429415fede121db8a4a34f0df72cd4fac609`, **acceptance pending**. No milestone acceptance or public-deployment authorization is implied. M1 remains unstarted.

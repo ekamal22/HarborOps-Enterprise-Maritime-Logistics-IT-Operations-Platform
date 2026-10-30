@@ -45,7 +45,9 @@ The ledger below is the current *observed* state, not a projection from planning
 - [Requirements](REQUIREMENTS.md) and [Acceptance Criteria](ACCEPTANCE_CRITERIA.md): atomic requirement IDs and detailed checks.
 - This file: evidence and true implementation state, not milestone commitments.
 
-## Documentation baseline
+## Full-product documentation and release readiness
+
+The unchecked items below concern the complete M0-M24 product release. They do not reverse M0's separately recorded G0 verification.
 
 - [x] Product vision, 25 small-scope milestones and the dependency graph documented.
 - [x] Functional and non-functional requirements drafted.

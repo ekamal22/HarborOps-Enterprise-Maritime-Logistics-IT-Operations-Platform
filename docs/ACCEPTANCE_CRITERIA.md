@@ -18,6 +18,12 @@ No item is accepted by implication. See STATUS.md for the current ledger.
 
 **All dedicated accessibility testing is scheduled exclusively for M24-04, the final work package before G24.** M0-M23 require functional and security verification appropriate to their features, but have no accessibility audit or accessibility acceptance tests. This includes automated contrast, keyboard/focus, accessible names, screen-reader behavior, zoom, responsive accessibility checks, and WCAG conformance tests. M23 handles interface polish without an accessibility gate. M24-04 executes the complete accessibility test suite against the finished interface, records failures and fixes, and reruns the suite before final release acceptance. The requirement is deferred, not cancelled.
 
+## Historical-volume checks at quarterly milestones
+
+**G0 requires fresh, disposable database migration/seed and runtime recovery tests, not compatibility testing against an existing local Docker volume.** Quarter-mile checkpoints are M6/G6 (Q1), M12/G12 (Q2), M18/G18 (Q3) and M24-03/G24 (Q4). Each runs isolated snapshot compatibility only when a representative historical volume or backup exists, otherwise records NOT APPLICABLE. No test may alter the only copy of a preserved dataset. M19 retains the full backup, historical migration and restore rehearsal.
+
+Before a storage-format or breaking database change is deployed against existing data, test that particular upgrade on a disposable copy regardless of checkpoint timing. That rollout safeguard does not block ordinary M0 CI.
+
 ## Recorded M0 verification state
 
 A subsequent isolated cold-database test reproduced a tracked-row recovery failure on the historical M0 code, invalidating the earlier complete cold-state verification claim. The corrective changes are tracked in [hardening PR #3](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/3). The separate [M0 implementation register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) reports the G0 engineering baseline checks executed on 2026-10-30 against code revision `4fb34eb`, with 1 unit, 10 contract, 5 PostgreSQL integration and 6 frontend tests passed, plus local Compose, browser and database outage/recovery evidence.
@@ -38,25 +44,25 @@ The detailed product release checks below remain in force. The [Roadmap](ROADMAP
 | **G3** | M3 Ports and vessels reference data | Port/vessel identifier, validation, scoped CRUD and browser lookup tests |
 | **G4** | M4 Voyages and containers reference data | Voyage scheduling and container identity/uniqueness tests with resolved D-003 |
 | **G5** | M5 Shipment lifecycle and concurrency | Shipment lifecycle, archival, stale-write, transaction and cross-tenant denial tests |
-| **G6** | M6 Container and voyage assignments | Temporal assignment/overlap prevention and end-to-end linked shipment flow |
+| **G6** | M6 Container and voyage assignments | Temporal assignment/overlap prevention and end-to-end linked shipment flow; quarterly snapshot check or NOT APPLICABLE |
 | **G7** | M7 Tracking contracts and source authentication | Pinned source schema, source authorization, oversized/forged/unsupported payload tests |
 | **G8** | M8 Durable event inbox and immutable history | Durable receipt, collision, uniqueness and restart-preserved immutable history tests |
 | **G9** | M9 Idempotent worker and reconciliation | Worker concurrency, bounded retry, dead-letter and crash-window effect-once tests |
 | **G10** | M10 Event timeline and projection rebuild | Timeline ordering, late event, corrections and projection rebuild equality checks |
 | **G11** | M11 Delay rules and shipment exceptions | Delay rule boundaries, exceptions lifecycle and repeat delivery behavior |
-| **G12** | M12 Shipment search and authorized export | Scoped search/filter and safe bounded CSV export with foreign-user denial tests |
+| **G12** | M12 Shipment search and authorized export | Scoped search/filter and safe bounded CSV export with foreign-user denial tests; quarterly snapshot check or NOT APPLICABLE |
 | **G13** | M13 Operational KPI definitions and dashboards | Exact KPI denominator/window reconciliations and dashboard drill-through checks |
 | **G14** | M14 Route mapping and geographic context | Map license/fallback, simulated labeling, functional interactions and organization scoping |
 | **G15** | M15 Scoped in-app notifications | Notification recipient matrix, deduplication and correctly scoped navigation tests |
 | **G16** | M16 Audit logging and access hardening | Audit immutability, redaction, abuse throttling and permissions regression |
 | **G17** | M17 Observability and service health | Health/trace/log signal propagation with controlled outage detection and redaction |
-| **G18** | M18 IT incident lifecycle and remediation | Incident lifecycle permissions, investigation evidence, remediation and verified closure |
+| **G18** | M18 IT incident lifecycle and remediation | Incident lifecycle permissions, investigation evidence, remediation and verified closure; quarterly snapshot check or NOT APPLICABLE |
 | **G19** | M19 Database recovery and migration rehearsal | Fresh/historical migrations, isolated backup restoration, row/integrity verification and recovery target evidence |
 | **G20** | M20 Security assurance and dependency review | Security test matrix, advisory/secret findings and zero unresolved release-blocker vulnerabilities |
 | **G21** | M21 Performance and capacity benchmarks | Versioned load fixture, measured p50/p95/p99, p95 target and recorded optimization limits |
 | **G22** | M22 Deployment portability and cost controls | Full local deployment reproducibility, cost constraints, teardown and optional public-demo decision with no hosting mandate |
 | **G23** | M23 Interface polish and workflow consistency | Visual polish, consistent workflows and functional error/recovery states; accessibility tests remain deferred |
-| **G24** | M24 Final release validation and acceptance | D01-D06, final M24-04 accessibility audit with remediation/re-tests, complete evidence and release decision |
+| **G24** | M24 Final release validation and acceptance | D01-D06, final M24-04 accessibility audit with remediation/re-tests, complete evidence and release decision; quarterly snapshot check or NOT APPLICABLE |
 
 Additional gate rules:
 

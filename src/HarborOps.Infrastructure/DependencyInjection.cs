@@ -1,5 +1,6 @@
 using HarborOps.Application.Baseline;
 using HarborOps.Infrastructure.Baseline;
+using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,15 +14,15 @@ public static class DependencyInjection
 
     public static IServiceCollection AddHarborOpsPersistence(this IServiceCollection services, string connectionString)
     {
-        // Bound connection attempts so an unreachable database fails fast instead of
-        // holding a request for the Npgsql default of 15 seconds.
         var builder = new NpgsqlConnectionStringBuilder(connectionString);
         if (!connectionString.Contains("Timeout", StringComparison.OrdinalIgnoreCase))
             builder.Timeout = DefaultConnectTimeoutSeconds;
 
-        var bounded = builder.ConnectionString;
-        services.AddDbContext<HarborOpsDbContext>(options => options.UseNpgsql(bounded));
+        services.AddDbContext<HarborOpsDbContext>(options => options.UseNpgsql(builder.ConnectionString));
         services.AddScoped<IBaselineReadService, EfBaselineReadService>();
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddSingleton<PasswordHasher>();
+        services.AddScoped<IdentityStore>();
         return services;
     }
 }

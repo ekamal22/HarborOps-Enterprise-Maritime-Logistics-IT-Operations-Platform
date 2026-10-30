@@ -170,7 +170,7 @@
     {
       "id": "M14",
       "title": "Route mapping and geographic context",
-      "outcome": "Licensed, simulated and accessible route visualization",
+      "outcome": "Licensed and clearly labeled simulated route visualization",
       "decisions": [
         "D-004"
       ]
@@ -229,14 +229,14 @@
     },
     {
       "id": "M23",
-      "title": "Interface polish and accessibility",
-      "outcome": "Premium, consistent and accessible enterprise user experience",
+      "title": "Interface polish and workflow consistency",
+      "outcome": "Polished enterprise interface with complete functional workflows",
       "decisions": []
     },
     {
       "id": "M24",
-      "title": "Release scenarios and evidence closure",
-      "outcome": "D01-D06 repeatability, documentation and release decision",
+      "title": "Final release validation and acceptance",
+      "outcome": "Complete release scenarios, final accessibility audit and acceptance evidence",
       "decisions": []
     }
   ],
@@ -535,11 +535,10 @@
         "M3-03"
       ],
       "requirements": [
-        "FR-003",
-        "NFR-009"
+        "FR-003"
       ],
       "output": "Build basic port and vessel views and scoped lookup interactions",
-      "verify": "Browser smoke, keyboard and organization authorization tests"
+      "verify": "Browser smoke and organization authorization tests"
     },
     {
       "id": "G3",
@@ -1230,11 +1229,10 @@
       ],
       "requirements": [
         "FR-011",
-        "FR-013",
-        "NFR-009"
+        "FR-013"
       ],
       "output": "Wire interactive filters, detail transitions and exports",
-      "verify": "Browser, empty-result, accessible form and denied-export tests"
+      "verify": "Browser filtering, empty-result and denied-export tests"
     },
     {
       "id": "G12",
@@ -1371,11 +1369,10 @@
         "M14-01"
       ],
       "requirements": [
-        "FR-018",
-        "NFR-009"
+        "FR-018"
       ],
       "output": "Add pan, zoom, selection, route and shipment drill-through",
-      "verify": "Keyboard/focus, responsive and loading-error tests"
+      "verify": "Map data selection, loading-error and navigation behavior tests"
     },
     {
       "id": "M14-04",
@@ -1409,7 +1406,7 @@
         "NFR-009",
         "FR-002"
       ],
-      "output": "Verified milestone outcome: Licensed, simulated and accessible route visualization",
+      "output": "Verified milestone outcome: Licensed and clearly labeled simulated route visualization",
       "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M14 recorded; acceptance pending until explicitly confirmed",
       "gate": true
     },
@@ -1448,11 +1445,10 @@
         "M15-01"
       ],
       "requirements": [
-        "FR-019",
-        "NFR-009"
+        "FR-019"
       ],
       "output": "Show relevant alert, unread count and resource navigation",
-      "verify": "Targeted navigation and accessibility browser tests"
+      "verify": "Targeted resource navigation and notification state tests"
     },
     {
       "id": "M15-04",
@@ -2036,10 +2032,10 @@
         "G22"
       ],
       "requirements": [
-        "NFR-009"
+        "NFR-008"
       ],
       "output": "Standardize layout, typography, states and functional module hierarchy",
-      "verify": "Cross-page interaction specification and responsive QA"
+      "verify": "Cross-page functional interaction specification"
     },
     {
       "id": "M23-02",
@@ -2072,22 +2068,21 @@
     {
       "id": "M23-04",
       "milestone": "M23",
-      "title": "Verify accessibility critical paths",
+      "title": "Finish interface consistency review",
       "depends_on": [
         "M23-02",
         "M23-03"
       ],
       "requirements": [
-        "NFR-009",
         "NFR-008"
       ],
-      "output": "Test keyboard, focus, form naming, errors and contrast across modules",
-      "verify": "Accessibility audit and tested remediation"
+      "output": "Check final layouts and navigation states for functional consistency",
+      "verify": "Functional workflow and visual consistency review"
     },
     {
       "id": "G23",
       "milestone": "M23",
-      "title": "Interface polish and accessibility evidence gate",
+      "title": "Interface polish and workflow consistency evidence gate",
       "depends_on": [
         "M23-01",
         "M23-02",
@@ -2100,7 +2095,7 @@
         "NFR-005",
         "NFR-008"
       ],
-      "output": "Verified milestone outcome: Premium, consistent and accessible enterprise user experience",
+      "output": "Verified milestone outcome: Polished enterprise interface with complete functional workflows",
       "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M23 recorded; acceptance pending until explicitly confirmed",
       "gate": true
     },
@@ -2150,7 +2145,7 @@
     {
       "id": "M24-04",
       "milestone": "M24",
-      "title": "Prepare release readiness assessment",
+      "title": "Run final accessibility tests and release assessment",
       "depends_on": [
         "M24-02",
         "M24-03"
@@ -2159,13 +2154,13 @@
         "NFR-008",
         "NFR-009"
       ],
-      "output": "Collect security, performance, accessibility, reliability and UX results",
-      "verify": "Acceptance pending until explicit acceptance after G24 verification"
+      "output": "Execute automated and manual accessibility tests after all features and UX are complete; consolidate release readiness",
+      "verify": "Contrast, keyboard/focus, names/errors, zoom, screen-reader and full-workflow evidence; acceptance pending after G24"
     },
     {
       "id": "G24",
       "milestone": "M24",
-      "title": "Release scenarios and evidence closure evidence gate",
+      "title": "Final release validation and acceptance evidence gate",
       "depends_on": [
         "M24-01",
         "M24-02",
@@ -2180,7 +2175,7 @@
         "NFR-003",
         "NFR-009"
       ],
-      "output": "Verified milestone outcome: D01-D06 repeatability, documentation and release decision",
+      "output": "Verified milestone outcome: Complete release scenarios, final accessibility audit and acceptance evidence",
       "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed",
       "gate": true
     }

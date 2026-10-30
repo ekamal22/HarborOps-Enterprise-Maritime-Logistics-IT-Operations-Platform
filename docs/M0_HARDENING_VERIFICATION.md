@@ -7,7 +7,7 @@
 
 ## Recorded audit of the earlier hardening revision
 
-The audit was executed on a detached E-drive verification worktree, against an isolated `ho-verify` Compose project. This table is **historical evidence from the audited revision**, not a test run of the subsequent corrections.
+The historical audit was executed on a detached E-drive verification worktree, against an isolated `ho-verify` Compose project. This table is **historical evidence from the audited revision**, not a test run of the subsequent corrections.
 
 | Check | Recorded outcome | Constraint |
 | --- | --- | --- |
@@ -39,6 +39,14 @@ Evidence captured on E: under `E:\APP IDEAS\harborops-m0-cache\evidence\m0-harde
 | D6 | Removed redundant ASP.NET URL override; retained documented low-severity image/package concerns | Confirm runtime log warning is gone; review remaining library and image observations |
 
 Unchanged low-severity concerns: test-only xUnit 2.x is marked legacy; a GSSAPI library warning was observed during migrator startup; the web service still uses the stock nginx capability profile; base image tags and `apk upgrade` can change downstream package contents between builds. Do not change these speculatively without verification and an explicit security assessment. The scanner runner now defaults to the reviewed Trivy 0.76.1 container image; its actual new scan has not been executed.
+
+## Historical-volume compatibility: quarterly roadmap checkpoints
+
+**G0 does not require checking the existing local Docker volume.** Only a fresh disposable PostgreSQL instance, migrations, repeatable synthetic seed, API access and controlled outage/recovery are mandatory. An earlier audit also exercised a disposable copy of a historical volume; that result is retained as optional historical evidence, not a recurring G0 obligation.
+
+Quarter-mile compatibility checkpoints are **M6 (Q1), M12 (Q2), M18 (Q3) and M24-03 (Q4)**. At each checkpoint, use a disposable clone of a representative historical snapshot. If no retained snapshot exists, record NOT APPLICABLE. These are delivery milestones, not a time-based automation. **M19** retains the comprehensive backup/restore and upgrade rehearsal.
+
+When an actual breaking schema, major PostgreSQL or data-storage format change will be applied to preserved data, a one-off dry run against a safe copy remains mandatory before deploying that specific change. Never modify the only copy of an existing volume.
 
 ## E-drive verification sequence
 
@@ -96,7 +104,7 @@ All accessibility verification, automated or manual, is deferred to final M24-04
 1. Exact corrected branch HEAD, source diff, environment and E-drive locations.
 2. Clean .NET 10 restore/build and all unit, contract and **fresh-database** integration tests.
 3. EF Core 10 snapshot/migration and repeatable seed evidence.
-4. Disposable fresh-volume and copied historical-volume PostgreSQL startup with row and schema checks.
+4. Disposable **fresh-volume** PostgreSQL startup, schema migration and deterministic seed checks. Existing-volume compatibility is **not** a G0 requirement and is deferred to quarterly milestone checkpoints.
 5. Source-labeled Compose build, successful smoke run and isolated database outage/recovery.
 6. Trivy 0.76.1 or newer scan of actual running PostgreSQL, API and web images, with current DB metadata and observed critical/high counts.
 7. Committed-lockfile `npm ci`, frontend build, and expanded Chromium/Firefox/WebKit results.

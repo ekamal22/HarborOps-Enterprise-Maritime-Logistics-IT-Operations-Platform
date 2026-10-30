@@ -1,14 +1,28 @@
 # HarborOps Delivery Roadmap
 
-**Version:** 1.0 planning baseline  
+**Version:** 1.1 confirmed product direction  
 **Date:** 2026-10-30  
-**State:** Proposed, acceptance pending
+**State:** Product direction confirmed; milestone acceptance remains pending
 
 ## Purpose and authority
 
 This roadmap owns the approved planning sequence, milestone scopes, prerequisites, and exit-gate definitions for M0-M6. [PRD](PRD.md) owns product intent and release scope; [Requirements](REQUIREMENTS.md) owns FR/NFR IDs; [execution-graph.json](execution-graph.json) owns the executable work-package dependency data, rendered in [Execution Graph](EXECUTION_GRAPH.md); [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) owns detailed release checks; [Status](STATUS.md) alone owns actual implementation, verification, and acceptance state. [Implementation Plan](IMPLEMENTATION_PLAN.md) is supporting historical implementation guidance, not an independent schedule or authority.
 
 Week estimates are indicative relative to actual available development time, not calendar commitments. Milestone ordering is mandatory at gate transitions, but independent work packages inside a milestone may run in parallel when graph prerequisites permit.
+
+## Confirmed delivery posture
+
+The [PRD](PRD.md#confirmed-product-decisions-2026-10-30) records the confirmed product decisions PD-01 through PD-07:
+
+- **Release strategy:** Deliver a portfolio-quality, functioning and verifiable enterprise platform that can evolve toward real organizational adoption. Do not claim operational production readiness from simulated demonstrations.
+- **Maritime scope:** Complete the planned shipment, tracking, analytics, exception, and recovery journeys before expanding to additional logistics domains.
+- **IT operations:** Implement the M4 observability, auditing, security and incident/recovery foundation fully. Expand toward broader service and infrastructure management in later product increments.
+- **UX:** Target polished premium-enterprise interfaces, with particularly strong dashboards, maps, and user workflows. Advanced personalization and custom dashboard builders are not required for G6.
+- **Tenancy:** Multiple users, organizations, memberships and server-enforced isolation begin in M1, not as a later extension.
+- **Deployment:** A verified, complete, zero-cost local system is required. A publicly reachable full-stack demonstration is an optional additional profile only if verified free or budget-approved resources allow it without mandatory charges.
+- **Priorities:** No further uniquely non-negotiable feature has been nominated. Existing Must/Should scope and gates are unchanged except where this roadmap explicitly clarifies them.
+
+These decisions set direction, not additional unscheduled milestones.
 
 ## Delivery principles
 
@@ -62,7 +76,7 @@ Week estimates are indicative relative to actual available development time, not
 
 **Entry:** G2 verified; D-004 tile/license decision and D-005 KPI tolerances finalized.
 
-**Deliver:** Scoped shipment search/filter, view and bounded CSV export; explainable KPI aggregates with drill-through and denominator definition; route/map context with compliant fallback; exception triage and authorized, deduplicated in-app notifications; responsive, keyboard-usable operational views.
+**Deliver:** Scoped shipment search/filter, view and bounded CSV export; explainable KPI aggregates with drill-through and denominator definition; route/map context with compliant fallback; exception triage and authorized, deduplicated in-app notifications; polished, premium-quality, responsive and keyboard-usable operational views with clear dashboard hierarchy and map interactions.
 
 **Gate G3 requires:** KPIs reconcile with persisted fixture rows; projected at-risk/delayed states match rule tests; maps and exports obey tenant scope; simulated source is labeled; browser workflows and accessibility-critical checks pass. See FR-011 through FR-013 and FR-018/FR-019, acceptance section C.
 
@@ -86,9 +100,23 @@ Week estimates are indicative relative to actual available development time, not
 
 **Entry:** G5 verified.
 
-**Deliver:** Cohesive accessible UI with correct empty/error/permission states; deterministic complete fixtures; repeatable D01-D06 journey; documentation, operational runbooks, status ledger, evidence index, limitations and release readiness decision.
+**Deliver:** Cohesive premium-enterprise UI with polished navigation, operational visual hierarchy, responsive layouts, and correct empty/error/permission states; deterministic complete fixtures; repeatable D01-D06 journey; documentation, operational runbooks, status ledger, evidence index, limitations and release readiness decision.
 
 **Gate G6 requires:** All applicable release checks in [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) pass; six demo scenarios have recorded results, all required test layers pass, no critical/high security blocker remains, and documentation reflects exactly what was observed. Release becomes acceptance pending until explicitly accepted.
+
+## Post-release expansion opportunities (not committed to M0-M6)
+
+The long-term direction includes real-world adoptability, broader maritime and logistics operations, and more comprehensive IT service management. Potential increments after a verified M6 release include:
+
+| Opportunity | Examples | Preconditions before committing |
+| --- | --- | --- |
+| Expanded maritime workflows | Freight bookings, documentation, terminal and port operations, extended fleet workflows | Confirm real business actors, domain boundaries, access rules, integration licensing and measurable needs |
+| Expanded IT operations | Asset inventory, service requests, change approvals, SLA policy, escalation workflows and task automation | Confirm service catalog, role scopes, audit evidence, operational targets and acceptable ongoing costs |
+| Enterprise customization | Configurable dashboard widgets, saved workspace layouts, personalized operational views | Validate user needs, accessibility, multi-tenant data access and performance |
+| Real-world readiness | External identity, real data agreements, carrier or terminal integrations, hardened deployment and compliance reviews | Dedicated security, reliability, legal, data-access and operational acceptance plan |
+| Public demonstration | Live hosted stack with synthetic data, guarded access, budget monitoring and shutdown controls | Verify sustainable free usage or explicitly approve a non-mandatory budget; local release remains sufficient |
+
+These are **candidate directions**, not adopted FR/NFR requirements, scheduled milestones, tasks in the current execution graph, or G6 release blockers. Expand the PRD, requirements, roadmap, execution graph, and acceptance checks together if any is promoted.
 
 ## Cross-cutting tracks
 

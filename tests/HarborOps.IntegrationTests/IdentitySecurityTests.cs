@@ -136,13 +136,13 @@ public sealed class IdentitySecurityTests
         return json.GetProperty("token").GetString()!;
     }
 
-    private static Task<HttpResponseMessage> MutationAsync(
+    private static async Task<HttpResponseMessage> MutationAsync(
         HttpClient client, string path, string csrf, object body)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, path);
         request.Headers.TryAddWithoutValidation("Origin", "http://localhost");
         request.Headers.TryAddWithoutValidation("X-HarborOps-CSRF", csrf);
         request.Content = JsonContent.Create(body);
-        return client.SendAsync(request);
+        return await client.SendAsync(request);
     }
 }

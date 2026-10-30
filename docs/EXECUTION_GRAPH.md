@@ -102,8 +102,8 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  G23["M23: Interface polish and accessibility"]
-  G24["M24: Release scenarios and evidence closure"]
+  G23["M23: Interface polish and workflow consistency"]
+  G24["M24: Final release validation and acceptance"]
   G23 --> G24
 ```
 
@@ -251,7 +251,7 @@ flowchart TD
 | **M3-01: Specify port and vessel invariants** | G2 | Define identifiers, ownership, allowable changes and synthetic fixtures | Domain-rule review and invalid fixture cases | FR-003, FR-017 |
 | **M3-02: Implement port persistence and endpoints** | M3-01 | Add port schema, lookup and validation with bounded responses | Migration, lookup and bad-input tests | FR-003, NFR-006 |
 | **M3-03: Implement vessel persistence and endpoints** | M3-01 | Add vessel schema and IMO/MMSI validation where applicable | Uniqueness, invalid ID and authorized API tests | FR-003, NFR-002 |
-| **M3-04: Verify reference data browser flow** | M3-02, M3-03 | Build basic port and vessel views and scoped lookup interactions | Browser smoke, keyboard and organization authorization tests | FR-003, NFR-009 |
+| **M3-04: Verify reference data browser flow** | M3-02, M3-03 | Build basic port and vessel views and scoped lookup interactions | Browser smoke and organization authorization tests | FR-003 |
 
 **G3 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M3 recorded; acceptance pending until explicitly confirmed.
 
@@ -321,7 +321,7 @@ flowchart TD
 | **M5-01: Specify shipment state transitions** | G4 | Define references, validation, status and archival policy | State-machine and invalid transition tests | FR-004 |
 | **M5-02: Implement shipment schema and commands** | M5-01 | Create/edit/archive through organization-scoped services and endpoints | Migration, transaction and authorization tests | FR-004, FR-002 |
 | **M5-03: Implement optimistic concurrency** | M5-01 | Require explicit version on conflicting shipment writes | Stale edit, repeated request and conflict tests | FR-004, NFR-006 |
-| **M5-04: Verify shipment CRUD browser journey** | M5-02, M5-03 | Wire create, edit, list, detail and archive with error states | Browser/API replay and foreign organization denial tests | FR-004, NFR-009 |
+| **M5-04: Verify shipment CRUD browser journey** | M5-02, M5-03 | Wire create, edit, list, detail and archive with error states | Browser/API replay and foreign organization denial tests | FR-004 |
 
 **G5 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M5 recorded; acceptance pending until explicitly confirmed.
 
@@ -570,7 +570,7 @@ flowchart TD
 | **M12-01: Define search contract and pagination** | G11 | Specify supported filters, bounded pages and stable ordering | Contract and filter edge-case fixtures | FR-011, NFR-006 |
 | **M12-02: Implement scoped search services** | M12-01 | Filter shipment data without leaking organization records | Direct-ID, foreign filter and aggregate tests | FR-011, FR-002 |
 | **M12-03: Implement controlled CSV export** | M12-01 | Export only authorized, filtered rows with safe CSV escaping | Foreign-tenant, injection and large export tests | FR-013, FR-002 |
-| **M12-04: Verify search/export UX** | M12-02, M12-03 | Wire interactive filters, detail transitions and exports | Browser, empty-result, accessible form and denied-export tests | FR-011, FR-013, NFR-009 |
+| **M12-04: Verify search/export UX** | M12-02, M12-03 | Wire interactive filters, detail transitions and exports | Browser filtering, empty-result and denied-export tests | FR-011, FR-013 |
 
 **G12 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M12 recorded; acceptance pending until explicitly confirmed.
 
@@ -604,14 +604,14 @@ flowchart TD
 | --- | --- | --- | --- | --- |
 | **M13-01: Finalize KPI catalog and cutoffs** | G12 | Close D-005; define denominators, exclusions and UTC windows | Known fixture totals and rule review | FR-012, NFR-007 |
 | **M13-02: Implement aggregate query services** | M13-01 | Compute scoped KPIs with consistent source-record joins | Exact fixture reconciliation and tenant denial | FR-012, FR-002 |
-| **M13-03: Build dashboard visualizations** | M13-01 | Present status, trend, exceptions and drill-through views | Browser rendering and underlying row consistency | FR-012, NFR-009 |
+| **M13-03: Build dashboard visualizations** | M13-01 | Present status, trend, exceptions and drill-through views | Browser rendering and underlying row consistency | FR-012 |
 | **M13-04: Verify dashboard correctness** | M13-02, M13-03 | Reconcile all displayed sample metrics to underlying records | Query/window/permissions test report | FR-012, NFR-008 |
 
 **G13 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M13 recorded; acceptance pending until explicitly confirmed.
 
 ### M14: Route mapping and geographic context
 
-**Outcome:** Licensed, simulated and accessible route visualization  
+**Outcome:** Licensed and clearly labeled simulated route visualization  
 **Entry:** G13 verified, with recorded evidence.  
 **Architecture decisions:** D-004 must be resolved before applicable implementation.  
 **Exit gate:** G14, requiring all 4 work-package outcomes and their actual verification results.
@@ -639,7 +639,7 @@ flowchart TD
 | --- | --- | --- | --- | --- |
 | **M14-01: Resolve map licensing and fallback** | G13 | Close D-004, choose tile licensing and offline/static fallback | Terms, attribution and rate-limit review | FR-018, NFR-001 |
 | **M14-02: Implement route visualization model** | M14-01 | Map planned route/port geography with synthetic source labels | Coordinate validity and unknown-position tests | FR-018, NFR-007 |
-| **M14-03: Build interactive map interface** | M14-01 | Add pan, zoom, selection, route and shipment drill-through | Keyboard/focus, responsive and loading-error tests | FR-018, NFR-009 |
+| **M14-03: Build interactive map interface** | M14-01 | Add pan, zoom, selection, route and shipment drill-through | Map data selection, loading-error and navigation behavior tests | FR-018 |
 | **M14-04: Verify mapped data security** | M14-02, M14-03 | Enforce scoped locations and source provenance in map responses | Cross-organization and simulated labels matrix | FR-018, FR-002 |
 
 **G14 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M14 recorded; acceptance pending until explicitly confirmed.
@@ -674,7 +674,7 @@ flowchart TD
 | --- | --- | --- | --- | --- |
 | **M15-01: Define recipient and deduplication rules** | G14 | Map notification type to organization, membership and resources | Cross-tenant and duplicate recipient fixtures | FR-019, FR-002 |
 | **M15-02: Implement notification persistence** | M15-01 | Store delivered/unread/ack state keyed by exception or event | Uniqueness, scoped reads and lifecycle tests | FR-019 |
-| **M15-03: Implement notification interface** | M15-01 | Show relevant alert, unread count and resource navigation | Targeted navigation and accessibility browser tests | FR-019, NFR-009 |
+| **M15-03: Implement notification interface** | M15-01 | Show relevant alert, unread count and resource navigation | Targeted resource navigation and notification state tests | FR-019 |
 | **M15-04: Verify recipient isolation** | M15-02, M15-03 | Inject unrelated-organization faults and duplicate events | Only entitled recipients notified; dedupe proven | FR-019, FR-002 |
 
 **G15 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M15 recorded; acceptance pending until explicitly confirmed.
@@ -930,9 +930,9 @@ flowchart TD
 
 ## Stage P5: Release finish
 
-### M23: Interface polish and accessibility
+### M23: Interface polish and workflow consistency
 
-**Outcome:** Premium, consistent and accessible enterprise user experience  
+**Outcome:** Polished enterprise interface with complete functional workflows  
 **Entry:** G22 verified, with recorded evidence.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G23, requiring all 4 work-package outcomes and their actual verification results.
@@ -942,8 +942,8 @@ flowchart TD
   M23_01["M23-01: Define visual system and navigation"]
   M23_02["M23-02: Polish operational workflows"]
   M23_03["M23-03: Complete error and offline states"]
-  M23_04["M23-04: Verify accessibility critical paths"]
-  G23["G23: Interface polish and accessibility evidence gate"]
+  M23_04["M23-04: Finish interface consistency review"]
+  G23["G23: Interface polish and workflow consistency evidence gate"]
   G22["G22 verified"]
   G22 --> M23_01
   M23_01 --> M23_02
@@ -958,16 +958,16 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M23-01: Define visual system and navigation** | G22 | Standardize layout, typography, states and functional module hierarchy | Cross-page interaction specification and responsive QA | NFR-009 |
-| **M23-02: Polish operational workflows** | M23-01 | Refine forms, filters, maps, dashboard and incident entry/navigation | Browser workflow consistency and no misleading placeholders | NFR-009, FR-012 |
-| **M23-03: Complete error and offline states** | M23-01 | Handle loading, empty, forbidden, conflict and dependency degradation | Scenario UI screenshots and recovery interactions | NFR-009, NFR-005 |
-| **M23-04: Verify accessibility critical paths** | M23-02, M23-03 | Test keyboard, focus, form naming, errors and contrast across modules | Accessibility audit and tested remediation | NFR-009, NFR-008 |
+| **M23-01: Define visual system and navigation** | G22 | Standardize layout, typography, states and functional module hierarchy | Cross-page functional interaction specification | NFR-008 |
+| **M23-02: Polish operational workflows** | M23-01 | Refine forms, filters, maps, dashboard and incident entry/navigation | Browser workflow consistency and no misleading placeholders | FR-012 |
+| **M23-03: Complete error and offline states** | M23-01 | Handle loading, empty, forbidden, conflict and dependency degradation | Scenario UI screenshots and recovery interactions | NFR-005 |
+| **M23-04: Finish interface consistency review** | M23-02, M23-03 | Check final layouts and navigation states for functional consistency | Functional workflow and visual consistency review | NFR-008 |
 
 **G23 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M23 recorded; acceptance pending until explicitly confirmed.
 
-### M24: Release scenarios and evidence closure
+### M24: Final release validation and acceptance
 
-**Outcome:** D01-D06 repeatability, documentation and release decision  
+**Outcome:** Complete release scenarios, final accessibility audit and acceptance evidence  
 **Entry:** G23 verified, with recorded evidence.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G24, requiring all 4 work-package outcomes and their actual verification results.
@@ -977,8 +977,8 @@ flowchart TD
   M24_01["M24-01: Freeze deterministic demonstration fixtures"]
   M24_02["M24-02: Run end-to-end scenario suite"]
   M24_03["M24-03: Audit docs and test evidence"]
-  M24_04["M24-04: Prepare release readiness assessment"]
-  G24["G24: Release scenarios and evidence closure evidence gate"]
+  M24_04["M24-04: Run final accessibility tests and release assessment"]
+  G24["G24: Final release validation and acceptance evidence gate"]
   G23["G23 verified"]
   G23 --> M24_01
   M24_01 --> M24_02
@@ -996,7 +996,7 @@ flowchart TD
 | **M24-01: Freeze deterministic demonstration fixtures** | G23 | Pin two-organization data, route/event streams and scenario expectations | Fixture hash, count and setup reproducibility | FR-017, NFR-008 |
 | **M24-02: Run end-to-end scenario suite** | M24-01 | Exercise shipment, delay, ordering, tenant isolation, incident and restore cases | Observed D01-D06 exact outcomes and logs | FR-017, FR-009, NFR-004 |
 | **M24-03: Audit docs and test evidence** | M24-01 | Check implementation/requirement mapping, known limits and exact commands | No stale claims or missing mandatory verification | NFR-008, NFR-003 |
-| **M24-04: Prepare release readiness assessment** | M24-02, M24-03 | Collect security, performance, accessibility, reliability and UX results | Acceptance pending until explicit acceptance after G24 verification | NFR-008, NFR-009 |
+| **M24-04: Run final accessibility tests and release assessment** | M24-02, M24-03 | Execute automated and manual accessibility tests after all features and UX are complete; consolidate release readiness | Contrast, keyboard/focus, names/errors, zoom, screen-reader and full-workflow evidence; acceptance pending after G24 | NFR-008, NFR-009 |
 
 **G24 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed.
 

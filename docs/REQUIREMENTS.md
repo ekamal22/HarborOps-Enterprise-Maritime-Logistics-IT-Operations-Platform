@@ -6,6 +6,12 @@
 
 All requirements are proposed. A requirement is considered delivered only after its tests and acceptance evidence appear in STATUS.md.
 
+## Observed baseline and storage boundary
+
+M0 runtime behavior is verified on the unmerged implementation branch at code revision `4fb34eb` (G0 verified, acceptance pending). This covers the baseline status endpoint, PostgreSQL migration and synthetic seed, local Compose startup, dependency health checks and limited security verification. It does **not** satisfy the full later requirements for shipment data, tenant authorization, tracking or incident management. Refer to [Status](STATUS.md) and the [feature-branch M0 evidence register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md).
+
+All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_POLICY.md): controllable persistent project storage on E:, with unavoidable short-lived Windows temporary writes on C: permitted only as an exception.
+
 ## Functional requirements
 
 | ID | Priority | Requirement | Evidence expected |

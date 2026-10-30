@@ -35,6 +35,7 @@ This is **source implementation**, not proof of working runtime behavior. See [M
 - Three pure Node configuration tests passed in an isolated local source copy using Node.js 22.16.0. This is limited evidence only.
 - .NET restore/build/tests: **not run** because the SDK is unavailable in the current environment.
 - PostgreSQL migration, API HTTP endpoints, Docker Compose, browser UX, failure injection: **not run** because required runtime infrastructure is unavailable.
+- Static repository review: 72 tracked files reviewed; no broken relative Markdown links, prohibited attribution terms, or em dashes found. Commit messages and identities reviewed. No full secret scanner or application build has run.
 - No production deployment, complete E2E demonstration, or accepted milestone.
 
 ## M0 verification blockers
@@ -44,7 +45,7 @@ This is **source implementation**, not proof of working runtime behavior. See [M
 3. Execute full frontend installation, test, and production build.
 4. Verify clean Compose startup, database migration, health endpoints, and real browser-to-database request path.
 5. Confirm expected degraded-dependency responses and recovery.
-6. Complete static hygiene and documentation audit.
+6. Run dependency/security scanning and repeat hygiene checks after clean build; basic static repository hygiene audit has passed.
 7. Record exact revision, commands, results, and artifacts. Acceptance pending only after verification passes.
 
 ## Documentation status

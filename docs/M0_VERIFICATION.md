@@ -39,7 +39,7 @@ The worker is an idle shell, not a tracking processor. The baseline database row
 | V09 | Open frontend in a real browser and verify database status, loading, error, refresh | Not run |
 | V10 | Isolate the test database after startup; check liveness HTTP 200 and readiness HTTP 503; restore connectivity | Not run |
 | V11 | Verify repeatable migration on a clean disposable database and inspect `bootstrap_records` | Not run |
-| V12 | Run repository source/metadata, internal-link, and secret hygiene audits | Pending final static review |
+| V12 | Run repository source/metadata, internal-link, and secret hygiene audits | Completed: 72 tracked files inspected, Markdown relative links resolved, no prohibited attribution language or em dashes found; commit messages and identity reviewed. Dynamic secret scanning remains a future security gate. |
 
 Do not interpret any unchecked item as passed.
 

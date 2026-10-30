@@ -34,8 +34,8 @@ The ledger below is the current *observed* state, not a projection from planning
 | **M20 Security assurance and dependency review** | Planned | No verified implementation or accepted gate G20 |
 | **M21 Performance and capacity benchmarks** | Planned | No verified implementation or accepted gate G21 |
 | **M22 Deployment portability and cost controls** | Planned | No verified implementation or accepted gate G22 |
-| **M23 Interface polish and accessibility** | Planned | No verified implementation or accepted gate G23 |
-| **M24 Release scenarios and evidence closure** | Planned | No verified implementation or accepted gate G24 |
+| **M23 Interface polish and workflow consistency** | Planned | Polish functional interfaces; accessibility tests are not an M23 gate |
+| **M24 Final release validation and acceptance** | Planned | Full accessibility testing scheduled only in final package M24-04, followed by G24 release decision |
 
 ## Planning sources of truth
 
@@ -68,7 +68,7 @@ Default-branch application runtime: none. The separate M0 feature branch records
 
 ## Open prerequisites
 
-1. Re-run the corrected hardening branch on a fresh PostgreSQL database, verify its cross-browser/contrast changes and exact running image scans, then review the resulting G0 evidence before any acceptance decision.
+1. Re-run the corrected hardening branch on a fresh PostgreSQL database, verify browser functional behavior and exact running image scans, then review the resulting G0 evidence before any acceptance decision.
 2. Resolve D-001 and D-003 before M1 implementation, and D-002 before M2 work.
 3. Expand the M0 metadata seed into two-organization reference fixtures in M1.
 4. Preserve the locally executed M0 verification evidence and rerun its checks after any behavior-changing modification or branch integration.
@@ -76,7 +76,7 @@ Default-branch application runtime: none. The separate M0 feature branch records
 
 ## Storage and residual risk
 
-The [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires all controllable persistent project storage on E:. The M0 host used E-drive repository, caches, evidence and Docker WSL data; operating-system temporary activity on C: may be unavoidable. M0 image scanning recorded one critical and 25 high findings in the upstream PostgreSQL `gosu` helper. This is **a documented residual risk, not an automatically approved security exception**; review it at acceptance and recheck when an updated image is available. .NET 8 support ends on 2026-11-10. Later security, backup/restore, performance and accessibility gates remain planned.
+The [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires all controllable persistent project storage on E:. The M0 host used E-drive repository, caches, evidence and Docker WSL data; operating-system temporary activity on C: may be unavoidable. M0 image scanning recorded one critical and 25 high findings in the upstream PostgreSQL `gosu` helper. This is **a documented residual risk, not an automatically approved security exception**; review it at acceptance and recheck when an updated image is available. .NET 8 support ends on 2026-11-10. Later security, backup/restore and performance gates remain planned; all accessibility testing is reserved for M24-04 immediately before the final G24 release gate.
 
 ## Status update rule
 

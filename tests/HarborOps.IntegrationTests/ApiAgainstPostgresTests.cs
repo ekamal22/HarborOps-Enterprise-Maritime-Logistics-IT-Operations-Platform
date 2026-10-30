@@ -71,7 +71,11 @@ public sealed class ApiAgainstPostgresTests
         }
         finally
         {
-            await BootstrapSeeder.SeedAsync(db, CancellationToken.None);
+            // Execute recovery with a new context. The original context tracked
+            // the inserted row before ExecuteSqlRawAsync removed it.
+            // Reusing it would add a second entity instance with the same key.
+            await using var recoveryDb = new HarborOpsDbContext(options);
+            await BootstrapSeeder.SeedAsync(recoveryDb, CancellationToken.None);
         }
 
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health/ready")).StatusCode);

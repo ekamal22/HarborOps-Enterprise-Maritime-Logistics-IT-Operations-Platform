@@ -34,18 +34,20 @@ Every business-data path must verify an authenticated principal and explicit org
 
 Never silently replace historical accepted events. Correct data with linked correction records and rebuild projections.
 
+The [granular roadmap](ROADMAP.md) assigns earlier decision deadlines to narrower milestone entry points. These dates denote prerequisite boundaries, not new approvals. The original ADR-001 through ADR-006 architecture decisions remain intact.
+
 ## Open decisions
 
 | ID | Decision required | Default hypothesis | Required before |
 | --- | --- | --- | --- |
 | D-001 | Session versus token auth | Secure server-managed session for browser; scoped tokens for integrations | M1 |
-| D-002 | DCSA reference release/subset | Pin one version with a documented field mapping | M2 |
-| D-003 | Container identifier format | Validate ISO 6346 where relevant; allow visibly synthetic demo values | M1 |
-| D-004 | Map tile provider/license | Use compliant free source with local fallback | M3 |
-| D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M3 |
-| D-006 | Error queue and worker durability detail | PostgreSQL inbox/dead-letter tables | M2 |
-| D-007 | Hosting account and budget ceiling | Local only until credit and spending restrictions checked | M5 |
-| D-008 | Backup retention and recovery objectives | Define measurable targets based on demo environment | M5 |
+| D-002 | DCSA reference release/subset | Pin one version with a documented field mapping | M7 |
+| D-003 | Container identifier format | Validate ISO 6346 where relevant; allow visibly synthetic demo values | M4 |
+| D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
+| D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M13 |
+| D-006 | Error queue and worker durability detail | PostgreSQL inbox/dead-letter tables | M8 |
+| D-007 | Hosting account and budget ceiling | Local only until credit and spending restrictions checked | M22 |
+| D-008 | Backup retention and recovery objectives | Define measurable targets based on demo environment | M19 |
 
 ## Decision change protocol
 

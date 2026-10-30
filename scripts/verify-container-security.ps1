@@ -1,48 +1,69 @@
 param(
+    [Parameter(Mandatory = $true)][string]$Project,
+    [string]$RepositoryPath = (Split-Path -Parent $PSScriptRoot),
+    [string]$ExpectedSha = '',
     [switch]$RefreshDatabase
 )
 
 $ErrorActionPreference = 'Stop'
-$Root = 'E:\APP IDEAS\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform'
+$Root = (Resolve-Path -LiteralPath $RepositoryPath).Path
+if (-not $Root.StartsWith('E:\APP IDEAS\', [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Image verification requires an E-drive checkout'
+}
+if ($Project -notmatch '^ho-verify(?:-[a-z0-9-]+)?$') {
+    throw 'Use an explicitly isolated ho-verify Compose project; refusing to scan unrelated images'
+}
+$sha = (& git -C $Root rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0) { throw 'Cannot identify repository HEAD' }
+if ($ExpectedSha -and !$sha.StartsWith($ExpectedSha, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Wrong source revision, expected $ExpectedSha but found $sha"
+}
+
 $Cache = 'E:\APP IDEAS\harborops-m0-cache'
-$Evidence = Join-Path $Cache 'evidence\image-scans'
-
-if (!(Test-Path -LiteralPath $Root -PathType Container)) {
-    throw 'Required E-drive repository is missing'
-}
-if (!(Get-Command trivy -ErrorAction SilentlyContinue)) {
-    throw 'Trivy must be available before container scan results can be recorded'
-}
-
+$Evidence = Join-Path $Cache "evidence\m0-hardening\image-scans\$sha"
 $env:TRIVY_CACHE_DIR = Join-Path $Cache 'trivy'
 $env:TEMP = Join-Path $Cache 'temp'
 $env:TMP = $env:TEMP
 $env:TMPDIR = $env:TEMP
 New-Item -ItemType Directory -Force -Path $env:TRIVY_CACHE_DIR, $env:TEMP, $Evidence | Out-Null
 
+if (!(Get-Command trivy -ErrorAction SilentlyContinue)) {
+    throw 'Trivy is not installed. Use a vetted container scanner against the exact running image IDs; do not substitute stale local tags.'
+}
+
 Push-Location -LiteralPath $Root
 try {
-    if ($RefreshDatabase) {
-        trivy image --download-db-only
-        if ($LASTEXITCODE -ne 0) { throw 'Could not refresh vulnerability database' }
+    $services = @('postgres', 'api', 'web')
+    $images = @{}
+    foreach ($service in $services) {
+        $container = (& docker compose --project-name $Project ps -q $service)
+        if ($LASTEXITCODE -ne 0 -or !$container) { throw "Service $service is not running in project $Project" }
+        $container = $container.Trim()
+        $actualProject = (& docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' $container).Trim()
+        if ($LASTEXITCODE -ne 0 -or $actualProject -ne $Project) { throw "Service $service does not belong to $Project" }
+        $imageId = (& docker inspect --format '{{.Image}}' $container).Trim()
+        if ($LASTEXITCODE -ne 0 -or $imageId -notmatch '^sha256:[0-9a-f]{64}$') {
+            throw "Could not identify immutable image ID for $service"
+        }
+        $images[$service] = $imageId
     }
-    $images = @(
-        @('harborops-postgres:16.15-rootless', 'postgres'),
-        @('harborops-api:latest', 'api'),
-        @('harborops-web:latest', 'web')
-    )
 
-    foreach ($entry in $images) {
-        $image = $entry[0]
-        $name = $entry[1]
-        $report = Join-Path $Evidence "$name.json"
-        trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --format json --output $report $image
+    $metadata = [ordered]@{ project = $Project; sourceSha = $sha; imageIds = $images }
+    $metadata | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $Evidence 'images.json') -Encoding utf8
+
+    if ($RefreshDatabase) {
+        & trivy image --download-db-only
+        if ($LASTEXITCODE -ne 0) { throw 'Trivy vulnerability database update failed' }
+    }
+
+    foreach ($service in $services) {
+        $report = Join-Path $Evidence "$service.json"
+        & trivy image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format json --output $report $images[$service]
         if ($LASTEXITCODE -ne 0) {
-            throw "Image scan did not pass: $image. Examine the report at $report"
+            throw "High/critical vulnerability finding or scanner failure in $service ($($images[$service])); see $report"
         }
     }
-
-    Write-Host 'All three local image scans reported no fixable high or critical findings.'
+    Write-Host "All final running images passed HIGH/CRITICAL scanning for project $Project at $sha"
 } finally {
     Pop-Location
 }

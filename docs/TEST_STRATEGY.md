@@ -10,6 +10,10 @@ The separate implementation branch records G0 as verified, acceptance pending, a
 
 All test workspace, cache, browser evidence and container/database data must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). C: is not permitted for new persistent project-specific test data.
 
+## Accessibility testing by stage
+
+At M0, automated browser checks establish text contrast, keyboard focus/activation, accessible button labels, error/status semantics, and no layout overflow at representative widths. Full manual screen-reader evaluation is deferred to M23 Interface polish and accessibility. It must not be treated as an M0 gate blocker.
+
 ## Test layers
 
 | Layer | Tools | Representative assertions |

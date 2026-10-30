@@ -74,6 +74,7 @@ export default function App() {
           </div>
           {view.status === "loading" && <p className="mt-8 text-slate-300" role="status">Checking database-backed status...</p>}
           {view.status === "error" && <div role="alert" className="mt-8 rounded-lg border border-rose-800 bg-rose-950/40 p-4"><p className="font-semibold text-rose-200">Service unavailable</p><p className="mt-1 text-sm text-rose-300">{view.message}</p></div>}
+          {view.status === "ready" && <p className="sr-only" role="status">System baseline status loaded</p>}
           {view.status === "ready" && <dl className="mt-8 grid gap-6 sm:grid-cols-2">
             <div><dt className="text-xs uppercase tracking-widest text-slate-400">Service</dt><dd className="mt-2 text-lg font-semibold">{view.data.service}</dd></div>
             <div><dt className="text-xs uppercase tracking-widest text-slate-400">Data provenance</dt><dd className="mt-2 text-lg font-semibold text-cyan-300">Synthetic demonstration</dd></div>

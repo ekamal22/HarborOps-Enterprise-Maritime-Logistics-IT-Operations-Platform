@@ -70,8 +70,12 @@ Never state an achieved latency number until a runnable benchmark report support
 
 For every milestone: commit SHA, commands executed, test summary, pass/fail counts, relevant artifact paths, runtime environment, failed/waived checks, and acceptance status. A checklist without test artifacts is not verification.
 
+## E-drive test artifact location
+
+Keep repositories, npm/NuGet caches, Docker/WSL data, test databases, screenshot/tracing captures and test output on E: per [Local Storage Policy](LOCAL_STORAGE_POLICY.md). C: can be used only for unavoidable short-lived system temporary writes. Each milestone evidence register must record actual storage paths.
+
 ## M0 execution boundary
 
 The M0 branch adds unit, contract, PostgreSQL integration, browser utility, and Compose smoke checks. It also adds `scripts/verify-local.sh`, `scripts/smoke-compose.sh`, and a manual-only GitHub workflow.
 
-A three-case Node.js configuration utility suite was exercised successfully in an isolated local copy of the source on Node.js 22.16.0. This confirms only those three pure-function scenarios. The repository checkout, .NET build, database integration, Docker Compose, frontend production build, and actual HTTP smoke tests have **not** been executed in this environment. No runtime or M0 acceptance assertion follows from the isolated utility checks. Record future results in [M0 Verification](M0_VERIFICATION.md).
+The full M0 local verification was executed on Windows 11 at code revision `4fb34eb`: 1 unit, 10 HTTP-pipeline contract, 5 PostgreSQL integration and 6 frontend utility tests passed; clean restores/builds, Compose migration/startup, browser-to-database flow and database outage/recovery were also exercised. The exact commands, environment and limitations are recorded in [M0 Verification](M0_VERIFICATION.md). G0 is verified, **acceptance pending**. Manual CI workflow dispatch, other browsers and screen readers remain untested and must not be represented as passed.

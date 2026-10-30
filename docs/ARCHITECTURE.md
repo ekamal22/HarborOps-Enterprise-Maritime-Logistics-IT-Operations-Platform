@@ -23,7 +23,7 @@ A modular monolith provides the HTTP API and transactional domain functions. A s
     API + Worker -> OpenTelemetry -> Prometheus/Grafana + structured logs
     Monitoring signals -> Incident workflow
 
-The diagram is conceptual; no services have been deployed.
+The diagram is the target architecture. The minimal M0 API, PostgreSQL migrator/database and React web surface have been launched and locally verified on a Windows 11 Docker Compose stack at code revision `4fb34eb`. The stack was stopped after testing; it is not a hosted service. The event processing, tenant authorization, observability suite and service desk remain planned.
 
 ## Bounded modules
 
@@ -104,6 +104,8 @@ Directories are proposed; do not infer that they already exist.
 - No debug-only bypasses that are available in hosted environments.
 
 ## Infrastructure and deployment
+
+Persistent local project files and runtime state must comply with [Local Storage Policy](LOCAL_STORAGE_POLICY.md): E-drive source, cache, build, container, database and evidence paths. No new persistent C-drive footprint; only unavoidable temporary system writes on C: are permitted.
 
 Local first: PostgreSQL + API + worker + web + optional telemetry, all containerized. A hosted demonstration may use cloud student credits but must feature a budget ceiling, shutdown plan, and explicit limits.
 

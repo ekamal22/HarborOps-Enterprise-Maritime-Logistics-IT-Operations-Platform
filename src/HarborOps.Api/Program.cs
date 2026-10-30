@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Net.Sockets;
 using HarborOps.Api.Health;
 using HarborOps.Application.Baseline;
 using HarborOps.Infrastructure;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
-builder.Logging.AddJsonConsole();
+builder.Logging.AddJsonConsole(options => options.IncludeScopes = true);
 
 var connectionString = builder.Configuration.GetConnectionString("HarborOps");
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -89,7 +90,11 @@ app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
                 statusCode: StatusCodes.Status503ServiceUnavailable)
             : Results.Ok(result);
     }
-    catch (Exception exception) when (exception is DbException or TimeoutException)
+    catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+    {
+        return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
+    }
+    catch (Exception exception) when (IsDependencyFailure(exception))
     {
         return Results.Json(new { code = "dependency_unavailable",
             message = "Database temporarily unavailable", correlationId = context.Items["CorrelationId"] },
@@ -98,5 +103,17 @@ app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
 });
 
 app.Run();
+
+// EF Core wraps provider connection failures in InvalidOperationException ("likely due
+// to a transient failure"), so the provider exception sits in the inner chain.
+static bool IsDependencyFailure(Exception exception)
+{
+    for (var current = exception; current is not null; current = current.InnerException)
+    {
+        if (current is DbException or TimeoutException or SocketException)
+            return true;
+    }
+    return false;
+}
 
 public partial class Program { }

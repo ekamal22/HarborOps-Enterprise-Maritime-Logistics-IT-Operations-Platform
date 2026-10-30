@@ -27,6 +27,10 @@ HarborOps must remain fully usable for essential development, testing, and produ
 
 Credits, free limits, verification requirements, and student entitlements change. Do not encode a fixed credit amount as a permanent architectural assumption.
 
+## Local storage budget
+
+The mandatory local workspace is `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`; project caches and evidence use `E:\\APP IDEAS\\harborops-m0-cache` until explicitly reconfigured to another E-drive location. Docker Desktop/WSL data, named volumes, build output, test databases and logs must be E-backed. **Persistent C-drive project storage is prohibited.** Unavoidable short-lived Windows temporary use is permitted. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md). No cleanup, filesystem migration, or global Docker change is authorized by this policy.
+
 ## Deployment profiles
 
 ### Profile L: Local complete system

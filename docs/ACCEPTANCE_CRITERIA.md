@@ -1,5 +1,7 @@
 # Acceptance Criteria
 
+**Authority:** This document defines detailed product and milestone validation checks. [Roadmap](ROADMAP.md) owns the M0-M6 gate boundaries, [Execution Graph](EXECUTION_GRAPH.md) owns prerequisite relationships, and [Status](STATUS.md) records observed outcomes. None of these planning documents by itself proves a check has passed.
+
 ## Status convention
 
 - Planned: requirements documented, no implementation evidence.

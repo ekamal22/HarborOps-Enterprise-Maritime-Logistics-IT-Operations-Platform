@@ -2,7 +2,7 @@
 
 **Version:** 2.0 granular delivery baseline  
 **Date:** 2026-10-30  
-**State:** Confirmed product direction; revised milestone boundaries proposed, acceptance pending.
+**State:** M0-M24 delivery plan integrated into `main`; G0 verified and accepted on 2026-10-31. G1-G24 remain open and require separate acceptance.
 
 ## Authority and rationale
 

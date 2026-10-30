@@ -14,9 +14,9 @@
 
 No item is accepted by implication. See STATUS.md for the current ledger.
 
-## Stage-appropriate accessibility verification
+## Final-release-only accessibility gate
 
-G0 requires only automated baseline usability checks: readable text contrast, keyboard focus and activation, accessible names, status/error announcements and responsive layout. **A manual screen-reader session is not required for M0 acceptance.** Manual assistive-technology and full user-journey accessibility testing belong to **M23 Interface polish and accessibility**, before the final release evaluation in M24.
+**All dedicated accessibility testing is scheduled exclusively for M24-04, the final work package before G24.** M0-M23 require functional and security verification appropriate to their features, but have no accessibility audit or accessibility acceptance tests. This includes automated contrast, keyboard/focus, accessible names, screen-reader behavior, zoom, responsive accessibility checks, and WCAG conformance tests. M23 handles interface polish without an accessibility gate. M24-04 executes the complete accessibility test suite against the finished interface, records failures and fixes, and reruns the suite before final release acceptance. The requirement is deferred, not cancelled.
 
 ## Recorded M0 verification state
 
@@ -46,7 +46,7 @@ The detailed product release checks below remain in force. The [Roadmap](ROADMAP
 | **G11** | M11 Delay rules and shipment exceptions | Delay rule boundaries, exceptions lifecycle and repeat delivery behavior |
 | **G12** | M12 Shipment search and authorized export | Scoped search/filter and safe bounded CSV export with foreign-user denial tests |
 | **G13** | M13 Operational KPI definitions and dashboards | Exact KPI denominator/window reconciliations and dashboard drill-through checks |
-| **G14** | M14 Route mapping and geographic context | Map license/fallback, simulated labeling, interaction/accessibility and scope tests |
+| **G14** | M14 Route mapping and geographic context | Map license/fallback, simulated labeling, functional interactions and organization scoping |
 | **G15** | M15 Scoped in-app notifications | Notification recipient matrix, deduplication and correctly scoped navigation tests |
 | **G16** | M16 Audit logging and access hardening | Audit immutability, redaction, abuse throttling and permissions regression |
 | **G17** | M17 Observability and service health | Health/trace/log signal propagation with controlled outage detection and redaction |
@@ -55,8 +55,8 @@ The detailed product release checks below remain in force. The [Roadmap](ROADMAP
 | **G20** | M20 Security assurance and dependency review | Security test matrix, advisory/secret findings and zero unresolved release-blocker vulnerabilities |
 | **G21** | M21 Performance and capacity benchmarks | Versioned load fixture, measured p50/p95/p99, p95 target and recorded optimization limits |
 | **G22** | M22 Deployment portability and cost controls | Full local deployment reproducibility, cost constraints, teardown and optional public-demo decision with no hosting mandate |
-| **G23** | M23 Interface polish and accessibility | Premium consistent navigation, operational UX, keyboard/focus/error-state and responsive browser checks |
-| **G24** | M24 Release scenarios and evidence closure | Deterministic D01-D06 actual runs, full acceptance evidence, known limitations and release decision |
+| **G23** | M23 Interface polish and workflow consistency | Visual polish, consistent workflows and functional error/recovery states; accessibility tests remain deferred |
+| **G24** | M24 Final release validation and acceptance | D01-D06, final M24-04 accessibility audit with remediation/re-tests, complete evidence and release decision |
 
 Additional gate rules:
 

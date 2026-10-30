@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../HarborOps.Domain/HarborOps.Domain.csproj" />
+  </ItemGroup>
+</Project>

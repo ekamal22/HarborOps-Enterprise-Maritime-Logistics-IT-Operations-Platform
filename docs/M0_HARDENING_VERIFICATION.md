@@ -3,7 +3,7 @@
 **Target branch:** `fix/m0-net10-postgres-browser-hardening`  
 **Prior independently audited revision:** `a791561a797b57afac84e7df7f8a959890b6972c`  
 **Current correction state:** Source changes committed; fresh runtime re-verification pending.  
-**Gate:** Acceptance pending. The earlier `4fb34eb` record is historical and does not verify the corrected branch.
+**Gate:** Acceptance pending. The earlier `4fb34eb` record is historical and its complete G0 conclusion is reopened because a fresh-database test failed on that baseline. It does not verify the corrected branch.
 
 ## Recorded audit of the earlier hardening revision
 

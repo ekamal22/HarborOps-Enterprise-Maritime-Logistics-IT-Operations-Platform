@@ -40,7 +40,7 @@ This is **source implementation**, not proof of working runtime behavior. See [M
 
 1. Execute clean `.NET` restore and build and resolve any compiler or dependency failures.
 2. Execute unit, contract, and real PostgreSQL integration tests.
-3. Generate and commit a real frontend dependency lockfile, then execute clean frontend installation, tests and production build.
+3. Generate and commit a real frontend dependency lockfile, then execute `npm ci`, frontend tests and production build. The bootstrap Docker image alone does not satisfy reproducibility.
 4. Verify clean Compose startup, database migration, health endpoints, and real browser-to-database request path.
 5. Confirm expected degraded-dependency responses and recovery.
 6. Run dependency/security scanning and repeat hygiene checks after clean build; basic static repository hygiene audit has passed.

@@ -3,9 +3,11 @@ set -euo pipefail
 
 project=""
 confirmed=false
+envfile=""
 while (($#)); do
   case "$1" in
     --project) project="${2:-}"; shift 2 ;;
+    --env-file) envfile="${2:-}"; shift 2 ;;
     --confirm-disposable) confirmed=true; shift ;;
     *) echo "Usage: bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable" >&2; exit 2 ;;
   esac
@@ -19,7 +21,19 @@ for tool in docker curl node grep; do
   command -v "$tool" >/dev/null || { echo "Missing $tool" >&2; exit 1; }
 done
 
-compose=(docker compose --project-name "$project")
+if [[ -n "$envfile" && ! -f "$envfile" ]]; then
+  echo "Compose env file not found: $envfile" >&2
+  exit 2
+fi
+context_host=$(docker context inspect --format '{{ (index .Endpoints "docker").Host }}')
+case "${DOCKER_HOST:-$context_host}" in
+  unix://*|npipe://*|tcp://localhost:*|tcp://127.0.0.1:*|tcp://\[::1\]:*) ;;
+  *) echo "Refusing remote Docker context" >&2; exit 1 ;;
+esac
+
+compose=(docker compose)
+if [[ -n "$envfile" ]]; then compose+=(--env-file "$envfile"); fi
+compose+=(--project-name "$project")
 name=$("${compose[@]}" config --format json | node -e '
 let s=""; process.stdin.on("data",x=>s+=x).on("end",()=>{
   const cfg=JSON.parse(s);

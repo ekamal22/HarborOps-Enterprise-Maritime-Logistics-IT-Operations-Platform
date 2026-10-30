@@ -23,7 +23,7 @@ This register separates three states: source implemented, runtime verified, and 
 | ASP.NET runtime in image | 8.0.33 on Debian 12.15 |
 | nginx in image | 1.30.6 |
 | Git | 2.39.1.windows.1 |
-| Browser | Chrome 152.0.7977.167 engine inside the Claude desktop app browser pane (user agent `Claude/4.4212.0`) |
+| Browser | Embedded desktop browser pane, Chrome 152.0.7977.167 engine, Windows 10.0 x64 |
 
 **Storage.** C: had 4.9 GB free and E: 123.6 GB free at the start. Docker Desktop stores its WSL data on E: (`CustomWslDistroDir`). NuGet, npm and .NET CLI caches were redirected to `E:\APP IDEAS\harborops-m0-cache` with `NUGET_PACKAGES`, `npm_config_cache` and `DOTNET_CLI_HOME`. Nothing was deleted or cleaned on C or E. Existing unrelated containers, volumes and networks were not touched; the only Docker objects created are the `harborops` Compose project and one disposable test database container, `harborops-test-pg`.
 
@@ -143,7 +143,7 @@ Remaining risks: (1) the `gosu` findings are upstream and the binary only drops 
 ## Known limitations
 
 - The baseline record is infrastructure metadata. Shipments, authentication, events, dashboards and incidents are not implemented and belong to M1 and later.
-- Real-browser verification used the Chrome engine of the desktop app only; Firefox, Safari and screen readers were not tested.
+- Real-browser verification used one embedded Chrome 152 engine only; Firefox, Safari and screen readers were not tested.
 - The CI workflow `Verify M0` has not been run and cannot be dispatched until it exists on the default branch.
 - The compose stack was verified on one Windows host with Docker Desktop.
 - Local Node.js is 24.20.0; the frontend tests and the container build were additionally run on Node 22.23.2.

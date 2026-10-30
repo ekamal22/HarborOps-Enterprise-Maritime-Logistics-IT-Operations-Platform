@@ -102,6 +102,7 @@ jobs:
         run: docker compose --project-name ho-verify config --quiet
 
       - name: Start full disposable stack and verify HTTP
+        id: compose_start
         shell: bash
         run: bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable
 
@@ -122,6 +123,7 @@ jobs:
         run: npm test
 
       - name: Scan immutable running image IDs
+        if: ${{ !cancelled() && steps.compose_start.outcome == 'success' }}
         shell: bash
         run: |
           set -euo pipefail

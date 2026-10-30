@@ -121,3 +121,9 @@ Every work package must specify implementation path, tests, migration implicatio
 ## Scope control
 
 New features are evaluated against security risk, test cost, maintainability, data licensing, hosting cost, and impact on the roadmap. Explicitly defer noncritical complexity rather than jeopardizing core verification.
+
+## M0 implementation checkpoint (2026-10-30)
+
+The feature branch includes the .NET solution, HTTP API, EF Core bootstrap migration and synthetic seed, idle worker shell, React frontend, Dockerfiles, Compose deployment, and unit/integration/contract test scaffolds. The proposed end-to-end status flow is `React -> API -> PostgreSQL`. The code is committed but backend compilation, clean migration, Compose launch, and full workflow evidence are outstanding.
+
+The M0 exit gate is not met until all checks in [M0 Verification](M0_VERIFICATION.md) pass. Do not begin M1 based on the presence of source files alone.

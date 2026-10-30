@@ -60,3 +60,7 @@ OpenStreetMap data and map tile services have different rights and operational l
 - Monitoring endpoints are access-controlled.
 - The hosted version indicates its synthetic/demo nature.
 - Shutdown destroys or disables billable resources.
+
+## M0 local infrastructure
+
+`compose.yaml` uses self-hosted PostgreSQL 16, .NET 8 API/migrator containers, and a locally hosted React static frontend. No cloud account, map feed, or paid license is required for the intended baseline workflow. Docker and dependencies must be installed separately. The GitHub validation workflow is manual-only to avoid unrequested CI usage. No hosted resources have been provisioned, and no cloud spending has been authorized. Verify any development tooling license terms independently.

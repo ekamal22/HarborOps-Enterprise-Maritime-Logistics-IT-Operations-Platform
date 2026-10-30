@@ -57,3 +57,9 @@ Protect organizational boundaries, shipment data integrity, credentials, diagnos
 Record observed issues and remediation status in the repository's issue process without posting secrets or exploitable production data. Security fixes require regression tests and clear release notes.
 
 This model is a design specification. It does not assert that controls have already been implemented or independently audited.
+
+## M0 scoped security posture
+
+Only minimal process health and synthetic baseline metadata endpoints are exposed. The browser does not authenticate, and no business records or authorization claims are implemented. Local Compose ports bind to loopback; PostgreSQL uses a password read from an untracked `.env` file. The API uses a limited CORS origin list, redacted error envelopes, and JSON console logging.
+
+This is not a substitute for M1 authentication and organization isolation. The configured Compose profile has no HTTPS termination, should not be exposed to the internet, and has not received a runtime security test. Tracking ingestion, integration secrets, authorization matrices, and audit records remain unimplemented.

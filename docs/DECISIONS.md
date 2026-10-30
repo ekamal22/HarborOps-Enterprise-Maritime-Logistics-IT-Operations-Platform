@@ -50,3 +50,14 @@ Never silently replace historical accepted events. Correct data with linked corr
 ## Decision change protocol
 
 Each material reversal records: context, alternatives, trade-offs, chosen approach, impact on requirements and tests, migration needs, and acceptance status. A change is not adopted solely because a new library or service is available.
+
+## M0 implementation notes
+
+- The API uses .NET 8 and an EF Core 8 PostgreSQL provider. The framework baseline should be upgraded before the end of its support lifecycle.
+- Database migration and deterministic bootstrap seeding run as a one-shot Compose service before the API starts.
+- The only M0 API resource is public, read-only synthetic platform metadata; authorization for operational data will be implemented in M1 after D-001 is resolved.
+- The worker project is deliberately idle. No tracking event behavior is represented as delivered.
+- The browser fetches an explicitly configured local API origin. The API permits CORS only for the configured local frontend origin.
+- The manual-only verification workflow avoids automatically consuming private repository CI minutes.
+
+These are scoped M0 implementation choices. D-001 through D-008 remain open on the timelines indicated above unless explicitly closed in a subsequent decision review.

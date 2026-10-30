@@ -2,7 +2,7 @@
 
 ## Requirement status
 
-All requirements are proposed. A requirement is considered delivered only after its tests and acceptance evidence appear in STATUS.md.
+M0 has source implementations supporting parts of FR-015 (liveness/readiness), FR-017 (deterministic bootstrap metadata only), NFR-001 (local-first configuration), and NFR-006 (initial structured errors). These are not yet verified and do not satisfy their full later-milestone acceptance gates. The business requirements remain proposed.
 
 ## Functional requirements
 

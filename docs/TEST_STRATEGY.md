@@ -69,3 +69,9 @@ Never state an achieved latency number until a runnable benchmark report support
 ## Evidence register
 
 For every milestone: commit SHA, commands executed, test summary, pass/fail counts, relevant artifact paths, runtime environment, failed/waived checks, and acceptance status. A checklist without test artifacts is not verification.
+
+## M0 execution boundary
+
+The M0 branch adds unit, contract, PostgreSQL integration, browser utility, and Compose smoke checks. It also adds `scripts/verify-local.sh`, `scripts/smoke-compose.sh`, and a manual-only GitHub workflow.
+
+A three-case Node.js configuration utility suite was exercised successfully in an isolated local copy of the source on Node.js 22.16.0. This confirms only those three pure-function scenarios. The repository checkout, .NET build, database integration, Docker Compose, frontend production build, and actual HTTP smoke tests have **not** been executed in this environment. No runtime or M0 acceptance assertion follows from the isolated utility checks. Record future results in [M0 Verification](M0_VERIFICATION.md).

@@ -65,3 +65,16 @@ No item is accepted by implication. See STATUS.md for the current ledger.
 ## Release refusal conditions
 
 A release must not be described as verified if core data can cross organization boundaries, accepted events disappear silently, backups have never been restored, essential tests fail, or the documentation misstates current delivery status.
+
+## M0 engineering baseline acceptance (separate from product release)
+
+- [ ] Restore and build the entire .NET solution from a clean environment
+- [ ] Execute all M0 unit and JSON contract tests
+- [ ] Execute PostgreSQL migration and idempotent seed integration test
+- [ ] Build the React frontend and execute its utility tests
+- [ ] Validate Docker Compose configuration and launch all four M0 services
+- [ ] Verify browser to API to PostgreSQL behavior, including error and loading states
+- [ ] Verify liveness stays healthy while readiness fails during an isolated database outage
+- [ ] Check no secrets are tracked and committed documentation matches observed behavior
+
+These checks remain unchecked until supported by exact commands and outputs. See [M0 Verification](M0_VERIFICATION.md).

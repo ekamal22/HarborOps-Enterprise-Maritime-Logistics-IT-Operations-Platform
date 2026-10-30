@@ -6,7 +6,7 @@
 - Demonstration: disposable cloud environment activated only when required.
 - Production: not in scope for initial milestone acceptance.
 
-No infrastructure is currently deployed or verified.
+M0 local Compose infrastructure is defined but no container startup has been executed or verified. The configured stack contains PostgreSQL, one-shot database migration/seed, HTTP API, and static frontend. The worker shell is intentionally not part of the running stack until tracking processing is implemented.
 
 ## Observability requirements
 
@@ -102,3 +102,16 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 - Restore database from backup.
 - Rotate and revoke integration credentials.
 - Deactivate hosted demonstration resources.
+
+## M0 local runbook (not yet runtime-verified)
+
+- Set a unique password in a local untracked `.env` based on `.env.example`
+- Run `docker compose config --quiet` to validate interpolation, then `docker compose up -d --build`
+- Inspect `docker compose ps` and `docker compose logs migrator api postgres web`
+- Probe `/health/live`, `/health/ready`, and `/api/v1/system/baseline`
+- Run `bash scripts/smoke-compose.sh` after prerequisites are installed
+- Stop with `docker compose down`. Only use `docker compose down -v` for deliberate data deletion
+
+The database is bound only to `127.0.0.1:55432` on the host; the API and web ports are bound to loopback. Compose does not configure HTTPS and must not be exposed as-is on a public network.
+
+Failure expectations: if PostgreSQL becomes unavailable after startup, liveness should remain healthy and readiness should become HTTP 503. The baseline UI should display a service error rather than synthetic success. These scenarios require actual failure-injection verification. Bootstrap schema migration recovery, backup, and restore procedures remain pending.

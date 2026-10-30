@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** Planning baseline. The application has not yet been implemented. All described capabilities are requirements or targets unless explicitly marked as delivered in [Project Status](docs/STATUS.md).
+**Status:** M0 source implementation in progress, verification incomplete. A minimal database-backed status API and React interface have been committed on the M0 feature branch. No complete runtime or deployment has been verified. Shipment, tracking, analytics, and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -54,11 +54,25 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 These are planning estimates, not delivery commitments. Each milestone closes only against its documented acceptance gate.
 
+### Local M0 startup (verification pending)
+
+Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 8 SDK for standalone development.
+
+1. Copy `.env.example` to `.env` and set a unique `HARBOROPS_DB_PASSWORD`.
+2. Run `docker compose up -d --build` from the repository root.
+3. Check `http://localhost:8080/health/live`, `http://localhost:8080/health/ready`, and `http://localhost:8080/api/v1/system/baseline`.
+4. Open `http://localhost:5173` for the read-only system baseline.
+5. Run `bash scripts/smoke-compose.sh` for HTTP smoke checks.
+6. Use `docker compose down` to stop services. Add `-v` only to intentionally remove the local database.
+
+The Compose build uses a one-shot migrator and a synthetic baseline seed. It does not run a tracking worker or ship production data. See [M0 Verification](docs/M0_VERIFICATION.md) for prerequisites, incomplete checks, and failure testing.
+
 ### Documentation index
 
 | Document | Purpose |
 | --- | --- |
 | [Project Status](docs/STATUS.md) | Implemented, pending, and verified work |
+| [M0 Verification](docs/M0_VERIFICATION.md) | Execution commands, limitations, and acceptance evidence |
 | [Product Scope](docs/PRODUCT_SCOPE.md) | Goals, non-goals, personas, and constraints |
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
@@ -91,4 +105,4 @@ HarborOps is an independent demonstration platform. It does not claim affiliatio
 
 ### Current state
 
-Documentation baseline only. No application build, database migration, deployed service, test run, or live integration has been verified. See [Project Status](docs/STATUS.md) before treating any roadmap item as complete.
+An M0 application foundation now exists on the feature branch. Full .NET compilation, PostgreSQL integration, Docker Compose startup, and browser behavior are not yet verified. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).

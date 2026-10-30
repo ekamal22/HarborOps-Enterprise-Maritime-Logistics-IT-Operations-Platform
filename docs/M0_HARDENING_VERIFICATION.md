@@ -2,7 +2,7 @@
 
 **Verified source branch:** `fix/m0-net10-postgres-browser-hardening`; merged into `main` through PRs #3 and #1  
 **Prior independently audited revision:** `a791561a797b57afac84e7df7f8a959890b6972c`  
-**Current correction state:** Revised code verified in GitHub Actions against exact commit `fec7429415fede121db8a4a34f0df72cd4fac609`; G0 accepted on 2026-10-31.  
+**Current state:** Revised code verified in GitHub Actions against exact commit `fec7429415fede121db8a4a34f0df72cd4fac609`; G0 accepted on 2026-10-31.  
 **Gate:** G0 verified at the identified hardening code SHA and explicitly accepted on 2026-10-31. The earlier `4fb34eb` result remains historical and was superseded after its cold-database regression.
 
 ## Current G0 execution: GitHub Actions
@@ -43,17 +43,17 @@ The historical audit was executed on a detached E-drive verification worktree, a
 
 Evidence captured on E: under `E:\APP IDEAS\harborops-m0-cache\evidence\m0-hardening`. Neither the original M0 volume nor unrelated containers were modified.
 
-## Corrections now committed
+## Corrected findings and verification disposition
 
-| ID | Finding and source-level correction | Verification still required |
+| ID | Finding and source-level correction | Observed verification or deferred follow-up |
 | --- | --- | --- |
-| D1 | Integration recovery uses a **new DbContext** after raw SQL deletes the row, avoiding stale tracked entities | Execute the specific integration test on a new database and multiple complete cold runs |
-| D2 | Footer color changed to `text-slate-400`; ready-state announcement uses its own status role instead of nested live regions | Rerun functional browser checks; defer contrast, keyboard and status accessibility verification to M24-04 |
-| D3 | PowerShell runners resolve their own checkout or specified E-drive worktree, support expected SHA, and image scanning resolves running container IDs and source-revision labels | Run each runner on the corrected worktree and confirm stale image/branch rejection |
-| D3 | Compose smoke and outage scripts require an explicit disposable `ho-verify` project and confirmation; both support an external env file | Test positive and fail-closed paths; confirm original project remains untouched |
-| D4 | `tests/browser/package-lock.json` added with exact Playwright 1.64.1 registry URLs and integrity hashes cross-checked between two independently generated npm lock records | Execute `npm ci` on E: and validate lockfile consistency; no local install run on the corrected branch yet |
-| D5 | Added three-engine functional browser regressions for refresh races, external requests and console errors; isolated accessibility specs in a separate opt-in M24-only suite | Run the M0 functional suite from the committed lockfile; run accessibility specs only at M24-04 |
-| D6 | Removed redundant ASP.NET URL override; retained documented low-severity image/package concerns | Confirm runtime log warning is gone; review remaining library and image observations |
+| D1 | Integration recovery uses a **new DbContext** after raw SQL deletes the row, avoiding stale tracked entities | PASS: 5/5 on a fresh database and 5/5 on a seeded rerun in GitHub Actions run #2 |
+| D2 | Footer color changed to `text-slate-400`; ready-state announcement uses its own status role instead of nested live regions | PASS: 12/12 functional browser cases in run #2. Full accessibility testing remains deferred to M24-04 |
+| D3 | PowerShell runners resolve their own checkout or specified E-drive worktree, support expected SHA, and image scanning resolves running container IDs and source-revision labels | PASS: CI checked the exact source revision and running image labels. Standalone Windows PowerShell runner behavior remains unverified and is not a G0 requirement |
+| D3 | Compose smoke and outage scripts require an explicit disposable `ho-verify` project and confirmation; both support an external env file | PASS: isolated `ho-verify` Compose smoke and database stop/recovery executed. The local retained volume was not accessed. Additional Windows-specific negative-path tests are not G0 requirements |
+| D4 | `tests/browser/package-lock.json` added with exact Playwright 1.64.1 registry URLs and integrity hashes cross-checked between two independently generated npm lock records | PASS: `npm ci` from committed lockfile on the disposable GitHub runner. E-drive local install is unnecessary for G0 |
+| D5 | Added three-engine functional browser regressions for refresh races, external requests and console errors; isolated accessibility specs in a separate opt-in M24-only suite | PASS: functional Chromium, Firefox and WebKit tests, 12/12 in run #2. Accessibility remains M24-04 |
+| D6 | Removed redundant ASP.NET URL override; retained documented low-severity image/package concerns | The successful CI build reported zero warnings and zero errors. Test-only library and image hygiene remain future maintenance observations, not additional G0 blockers |
 
 Unchanged low-severity concerns: test-only xUnit 2.x is marked legacy; a GSSAPI library warning was observed during migrator startup; the web service still uses the stock nginx capability profile; base image tags and `apk upgrade` can change downstream package contents between builds. Do not change these speculatively without verification and an explicit security assessment. The Trivy 0.76.1 container performed the current G0 image scans successfully in run #2.
 

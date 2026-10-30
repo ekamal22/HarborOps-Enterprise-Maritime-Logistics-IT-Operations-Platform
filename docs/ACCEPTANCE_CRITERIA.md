@@ -66,15 +66,21 @@ No item is accepted by implication. See STATUS.md for the current ledger.
 
 A release must not be described as verified if core data can cross organization boundaries, accepted events disappear silently, backups have never been restored, essential tests fail, or the documentation misstates current delivery status.
 
-## M0 engineering baseline acceptance (separate from product release)
+## M0 engineering baseline verification (separate from product release)
 
-- [ ] Restore and build the entire .NET solution from a clean environment
-- [ ] Execute all M0 unit and JSON contract tests
-- [ ] Execute PostgreSQL migration and idempotent seed integration test
-- [ ] Build the React frontend and execute its utility tests
-- [ ] Validate Docker Compose configuration and launch all four M0 services
-- [ ] Verify browser to API to PostgreSQL behavior, including error and loading states
-- [ ] Verify liveness stays healthy while readiness fails during an isolated database outage
-- [ ] Check no secrets are tracked and committed documentation matches observed behavior
+**G0 state:** verified on 2026-10-30 at code revision `4fb34eb`; **acceptance pending**. The evidence source is [M0 Verification](M0_VERIFICATION.md). Checks below refer only to the M0 baseline, not broader M1-M24 product release requirements.
 
-These checks remain unchecked until supported by exact commands and outputs. See [M0 Verification](M0_VERIFICATION.md).
+- [x] Restore and build the entire .NET solution from a clean environment (0 warnings, 0 errors).
+- [x] Execute M0 unit and HTTP contract tests (1 unit, 10 contract).
+- [x] Execute real PostgreSQL integration tests, migration, repeatable seed and snapshot checks (5 integration).
+- [x] Install locked frontend dependencies, run utility tests and build React production assets (6 frontend tests).
+- [x] Validate Docker Compose configuration, clean-volume startup, migration completion and M0 services.
+- [x] Verify the browser-to-API-to-PostgreSQL path, loading, degraded-state error, refresh and 375 px layout in a Chrome 152 engine.
+- [x] Verify liveness remains 200 while readiness and baseline return 503 during an isolated database outage; verify restoration to 200.
+- [x] Review tracked/history secrets, dependency advisories, container settings and current M0 documentation. Record scan limitations and residual findings.
+
+**Residual risks and boundaries:** the PostgreSQL `gosu` image scan reported one critical and 25 high findings in the upstream helper binary. These findings are documented, **not automatically risk-accepted**. Container-image rescanning and risk disposition remain relevant to the acceptance decision. .NET 8 support ends on 2026-11-10. Manual CI execution, additional browsers, screen readers and the full M19 backup/restore rehearsal are not covered by this G0 verification.
+
+**Development storage:** all persistent project storage must remain on E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Unavoidable short-lived system temporary use on C: is permitted.
+
+The full product-release acceptance sections above remain unchecked. No M1-M24 gate has been verified or accepted.

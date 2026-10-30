@@ -14,6 +14,10 @@
 
 No item is accepted by implication. See STATUS.md for the current ledger.
 
+## Stage-appropriate accessibility verification
+
+G0 requires only automated baseline usability checks: readable text contrast, keyboard focus and activation, accessible names, status/error announcements and responsive layout. **A manual screen-reader session is not required for M0 acceptance.** Manual assistive-technology and full user-journey accessibility testing belong to **M23 Interface polish and accessibility**, before the final release evaluation in M24.
+
 ## Recorded M0 verification state
 
 A subsequent isolated cold-database test reproduced a tracked-row recovery failure on the historical M0 code, invalidating the earlier complete cold-state verification claim. The corrective changes are tracked in [hardening PR #3](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/3). The separate [M0 implementation register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) reports the G0 engineering baseline checks executed on 2026-10-30 against code revision `4fb34eb`, with 1 unit, 10 contract, 5 PostgreSQL integration and 6 frontend tests passed, plus local Compose, browser and database outage/recovery evidence.

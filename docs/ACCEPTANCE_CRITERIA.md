@@ -66,6 +66,10 @@ No item is accepted by implication. See STATUS.md for the current ledger.
 
 A release must not be described as verified if core data can cross organization boundaries, accepted events disappear silently, backups have never been restored, essential tests fail, or the documentation misstates current delivery status.
 
+## Revised M0 code acceptance boundary
+
+The earlier code revision `4fb34eb` has recorded G0 verification. The .NET 10, rootless PostgreSQL and expanded browser changes on this branch **must not inherit that verified state**. Required before recognizing the revised code as verified: clean .NET 10 build and tests, fresh and existing-volume PostgreSQL startup/migration, final image scans with zero unresolved fixable critical/high findings, controlled outage recovery, reproducible Chromium/Firefox/WebKit test results, and the documented screen-reader/contrast checks if those limitations are to be closed. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+
 ## M0 engineering baseline verification (separate from product release)
 
 **G0 state:** verified on 2026-10-30 at code revision `4fb34eb`; **acceptance pending**. The evidence source is [M0 Verification](M0_VERIFICATION.md). Checks below refer only to the M0 baseline, not broader M1-M24 product release requirements.

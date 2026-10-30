@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-30
 **Overall:** M0 engineering baseline implemented and runtime verified on the feature branch; acceptance pending
-**G0 (last verified code `4fb34eb`):** verified, acceptance pending. The separate .NET 10 and PostgreSQL hardening branch has **no passing runtime evidence yet**. M1 has not started.
+**G0 (historical code `4fb34eb`):** previously verified, acceptance pending. The .NET 10 hardening revision has partial execution evidence at `a791561a` plus subsequent source corrections that remain unverified. M1 has not started.
 
 ## Delivery ledger
 
@@ -17,7 +17,7 @@ This branch follows the granular M0-M24 roadmap on the [planning branch](https:/
 
 This branch proposes an upgrade from .NET 8/EF Core 8 to .NET 10/EF Core 10, a derived PostgreSQL 16 image running as UID 70 with the upstream `gosu` binary removed, a refreshed test toolchain and a cross-browser suite (Chromium, Firefox, WebKit). A manual screen-reader procedure and an E-drive-only image scan runner have also been added.
 
-**New branch gate: not verified.** Do not carry forward the old G0 test counts to the new code SHA. The evidence and exact required checks are in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The original M0 verification at `4fb34eb` remains historical evidence, not a pass for these changes.
+**Corrected branch gate: re-verification pending.** The initial independent hardening audit passed build, database container startup, security scans and 12 browser checks but found a fresh-database integration failure (4/5) and a footer contrast failure. Both have source fixes; the corrected revision must be retested. Do not carry forward old G0 test counts to the new code SHA. The evidence and exact required checks are in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The original M0 verification at `4fb34eb` remains historical evidence, not a pass for these changes.
 
 ## M0 source inventory
 
@@ -45,8 +45,10 @@ All results are recorded with commands, versions and revisions in [M0 Verificati
 ## Open items before acceptance
 
 1. Explicit acceptance of G0 is not recorded. Status stays acceptance pending.
-2. Execute the new .NET 10 migration and regression tests; do not mark the upgraded code verified until a successful run is recorded.
-3. Build and rescan the derived non-root PostgreSQL image and verify that the previous `gosu` vulnerabilities are absent from the final filesystem. Verify compatibility with fresh and existing data volumes.
+2. Rerun the previously failing fresh-database integration test and the full .NET 10 suite on the corrected revision.
+3. Rebuild source-labeled images, repeat isolated Compose startup and recovery, and rescan the exact running image IDs with the updated scanner.
+4. Run clean `npm ci` from the committed browser lockfile and execute the expanded three-browser suite and contrast checks.
+5. Complete manual screen-reader and real browser-zoom testing or explicitly record the remaining coverage limitations.
 
 ## Mandatory storage boundary
 
@@ -54,11 +56,9 @@ All controlled persistent HarborOps storage stays on E:, including the repositor
 
 The one critical and 25 high PostgreSQL `gosu` scan findings remain documented residual risk, not an explicitly approved exception. Revisit their disposition during acceptance and subsequent image updates.
 
-4. Complete and record the three-browser test suite and manual screen-reader/color contrast checks before claiming those coverage gaps closed.
-
 ## Documentation status
 
-Specification documents remain authoritative for planned domains. [M0 Verification](M0_VERIFICATION.md) is the single register for M0 evidence.
+Specification documents remain authoritative for planned domains. [M0 Verification](M0_VERIFICATION.md) preserves the earlier baseline evidence; [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) records the hardening audit, corrections, commands and outstanding tests.
 
 ## Next milestone
 

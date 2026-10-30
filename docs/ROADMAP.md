@@ -298,10 +298,14 @@ The planned M14 map view and M15 in-app notifications remain in the release base
 4. Verify every dependency and applicable [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) before recording a gate as verified; retain an explicit acceptance-pending state if not yet accepted.
 5. If a gate is blocked, record it in [Status](STATUS.md). Do not skip ahead to dependent functionality without an approved sequencing change.
 
+## Workspace constraint
+
+All local development, test, cache, build, container and evidence storage must comply with the [E-drive Local Storage Policy](LOCAL_STORAGE_POLICY.md). Do not add new persistent C-drive storage. Unavoidable brief Windows temporary activity is permitted. Verify actual disk paths when starting each milestone.
+
 ## Documentation integrity checks
 
 After any milestone or requirement edit, regenerate the graph with `node scripts/render-execution-graph.mjs`; run `node scripts/render-execution-graph.mjs --check` and `node scripts/check-planning-docs.mjs`. These checks validate structural consistency and links, not application functionality or milestone acceptance.
 
 ## Immediate execution
 
-Work against the existing unmerged `feat/m0-engineering-baseline` source. Complete the M0 execution graph tasks and G0 with actual .NET, PostgreSQL, Compose, browser, dependency and failure checks before beginning M1 implementation. No current application feature has been accepted by this roadmap revision.
+The existing unmerged `feat/m0-engineering-baseline` branch now documents M0 local runtime verification at code revision `4fb34eb`. G0 is verified, **acceptance pending**. Review the [M0 verification register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md), including the unresolved PostgreSQL image findings, before recording acceptance or starting M1. M1 requires D-001 to be resolved. No milestone has been explicitly accepted by this documentation change.

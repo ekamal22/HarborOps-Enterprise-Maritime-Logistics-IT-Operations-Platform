@@ -9,6 +9,12 @@
 
 This register separates three states: source implemented, runtime verified, and accepted. Everything marked verified below was executed on the machine described in the next section. Raw logs were kept outside the repository because they contain local paths.
 
+## Post-baseline hardening revision
+
+The G0 evidence below applies specifically to **code revision `4fb34eb`**, not to the revised .NET 10, rootless PostgreSQL and expanded browser-testing implementation on `fix/m0-net10-postgres-browser-hardening`.
+
+The newer code requires new clean restore/build, unit/contract/integration, existing-volume migration, Docker startup, controlled database outage, final image scans, three-browser and assistive-technology evidence before it can be marked verified. Current revised-code status: **implementation present, verification pending**. Refer to [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). Original G0 acceptance remains pending.
+
 ## Environment
 
 | Item | Value |

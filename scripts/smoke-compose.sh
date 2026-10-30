@@ -29,12 +29,24 @@ let s=""; process.stdin.on("data",x=>s+=x).on("end",()=>{
 });')
 [[ "$name" == "$project" ]] || { echo "Unexpected Compose configuration" >&2; exit 1; }
 
+command -v git >/dev/null || { echo "Git required for revision-bound image builds" >&2; exit 1; }
+export HARBOROPS_SOURCE_SHA=$(git rev-parse HEAD)
+if [[ ! "$HARBOROPS_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "Cannot identify repository source revision" >&2; exit 1
+fi
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "Tracked source changes are uncommitted; cannot label reproducible images" >&2; exit 1
+fi
+
 "${compose[@]}" up -d --build
 for service in postgres api web; do
   id=$("${compose[@]}" ps -q "$service")
   [[ -n "$id" ]] || { echo "$service did not start" >&2; exit 1; }
   label=$(docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$id")
   [[ "$label" == "$project" ]] || { echo "Unexpected $service container ownership" >&2; exit 1; }
+  image=$(docker inspect --format '{{.Image}}' "$id")
+  revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
+  [[ "$revision" == "$HARBOROPS_SOURCE_SHA" ]] || { echo "Stale $service image built for $revision" >&2; exit 1; }
 done
 
 "${compose[@]}" exec -T postgres sh -ec '

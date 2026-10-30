@@ -34,7 +34,7 @@ The worker is an idle shell, not a tracking processor. The baseline database row
 | V03 | `dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release` | Not run |
 | V04 | `dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release` | Not run |
 | V05 | Set disposable `HARBOROPS_TEST_DB`, then `dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release` | Not run; requires PostgreSQL |
-| V06 | `cd web && npm install --no-audit --no-fund && npm test && npm run build` | Utility tests completed only in isolated source copy; full npm dependency installation and frontend build not run |
+| V06 | Generate and commit `web/package-lock.json`, then `cd web && npm ci --no-audit --no-fund && npm test && npm run build` | Utility tests completed only in isolated source copy; full npm dependency installation and frontend build not run |
 | V07 | `docker compose config --quiet` | Not run, Docker unavailable |
 | V08 | `bash scripts/smoke-compose.sh` after setting local `.env` | Not run, Docker unavailable |
 | V09 | Open frontend in a real browser and verify database status, loading, error, refresh | Not run |
@@ -61,7 +61,7 @@ Do not interpret any unchecked item as passed.
 - Persistence tests assert stable synthetic timestamp and repeated migration/seed behavior.
 - Frontend baseline payloads are validated for required fields, source label, dataset version and UTC timestamp before rendering.
 - Frontend refreshes cancel superseded requests, preventing stale responses from overwriting newer states; error alerts use an accessible alert role.
-- `scripts/check-m0-degraded.sh` requires the explicit `--confirm-local-outage` flag, validates the local Compose project, checks healthy HTTP states, stops PostgreSQL, verifies degraded responses, restores service with an EXIT trap, and checks recovery.
+- `scripts/check-m0-degraded.sh` requires the explicit `--confirm-local-outage` flag, validates a local Docker context and the harborops Compose project, checks healthy HTTP states, stops PostgreSQL, verifies degraded responses, restores service with an EXIT trap, and checks recovery.
 - The idle worker's milestone message now points to M9 rather than the superseded v1 M2.
 
 ## Expected behavior and failure checks
@@ -101,8 +101,8 @@ No paid cloud accounts or feeds are necessary. `.env` is local and untracked. Gi
 - No shipment/tenant, event ingestion, analytics, monitoring, audit, or incident functionality exists.
 - The baseline record seeds only one deterministic metadata row. Full synthetic operational fixtures begin later.
 - API supports local HTTP only in Compose, with no HTTPS termination or hosted hardening.
-- `global.json`, package versions, container image tags, and frontend dependencies need a successful clean restore and security review before M0 verification. There is no committed `web/package-lock.json`, so frontend transitive dependencies are not yet locked; M0 must not be marked reproducible until a real npm install produces and verifies a lockfile and build. Use `npm ci` for subsequent clean verification.
-- .NET 8 support ends on 2026-11-10; schedule a deliberate .NET 10 migration with dependency and compatibility tests rather than treating the existing framework as a long-lived supported base.
+- `global.json`, package versions, container image tags, and frontend dependencies need a successful clean restore and security review before M0 verification. There is no committed `web/package-lock.json`, so frontend transitive dependencies are not yet locked. The bootstrap web Dockerfile falls back to `npm install` when no lock is present, but `scripts/verify-local.sh` and manual CI require `npm ci` and intentionally fail without a lock. Create the lockfile with `cd web && npm install --package-lock-only --no-audit --no-fund`, review and commit it, then run the clean verification gates.
+- .NET 8 support ends on 2026-11-10; schedule a deliberate [.NET 10 migration](https://learn.microsoft.com/en-us/dotnet/core/releases-and-support) with dependency and compatibility tests rather than treating the existing framework as a long-lived supported base.
 - M0 tests do not yet exercise a real browser or the degraded-dependency path. A script and guarded controls exist, but have not been run.
 - The full operational backup/restore rehearsal is planned for M19 under the v2 execution graph.
 

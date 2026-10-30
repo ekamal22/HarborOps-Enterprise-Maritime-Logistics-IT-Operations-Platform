@@ -57,7 +57,7 @@ The ledger below is the current *observed* state, not a projection from planning
 - [ ] API schema generated from working implementation.
 - [ ] CI, migrations, unit, integration, browser, and security tests executed.
 - [ ] Observability, incident workflow, and backup/restore demonstrated.
-- [ ] Hosted cost and shutdown verification completed.
+- [ ] Local deployment cost and shutdown verified; hosted safeguards checked only if optional hosting is used.
 - [ ] Complete release acceptance.
 
 ## Verification evidence

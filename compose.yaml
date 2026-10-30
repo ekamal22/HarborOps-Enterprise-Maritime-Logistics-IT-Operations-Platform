@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: docker/postgres/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
     user: "70:70"
     cap_drop: [ALL]
     security_opt:
@@ -30,6 +32,8 @@ services:
     build:
       context: .
       dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
     restart: "no"
     command: ["--migrate"]
     read_only: true
@@ -49,6 +53,8 @@ services:
     build:
       context: .
       dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
     restart: unless-stopped
     read_only: true
     tmpfs:
@@ -73,6 +79,7 @@ services:
       dockerfile: web/Dockerfile
       args:
         VITE_API_BASE_URL: "http://localhost:8080"
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true

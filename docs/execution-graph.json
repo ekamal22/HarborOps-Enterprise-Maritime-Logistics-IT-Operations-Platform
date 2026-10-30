@@ -554,8 +554,7 @@
         "FR-003",
         "FR-017",
         "NFR-006",
-        "NFR-002",
-        "NFR-009"
+        "NFR-002"
       ],
       "output": "Verified milestone outcome: Validated, queryable and scoped port/vessel reference records",
       "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M3 recorded; acceptance pending until explicitly confirmed",
@@ -688,8 +687,7 @@
         "M5-03"
       ],
       "requirements": [
-        "FR-004",
-        "NFR-009"
+        "FR-004"
       ],
       "output": "Wire create, edit, list, detail and archive with error states",
       "verify": "Browser/API replay and foreign organization denial tests"
@@ -707,8 +705,7 @@
       "requirements": [
         "FR-004",
         "FR-002",
-        "NFR-006",
-        "NFR-009"
+        "NFR-006"
       ],
       "output": "Verified milestone outcome: Create, edit, search and archive organizational shipments",
       "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M5 recorded; acceptance pending until explicitly confirmed",
@@ -1248,8 +1245,7 @@
         "FR-011",
         "NFR-006",
         "FR-002",
-        "FR-013",
-        "NFR-009"
+        "FR-013"
       ],
       "output": "Verified milestone outcome: Scoped filtering, detail navigation and CSV output",
       "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M12 recorded; acceptance pending until explicitly confirmed",
@@ -1291,8 +1287,7 @@
         "M13-01"
       ],
       "requirements": [
-        "FR-012",
-        "NFR-009"
+        "FR-012"
       ],
       "output": "Present status, trend, exceptions and drill-through views",
       "verify": "Browser rendering and underlying row consistency"
@@ -1326,7 +1321,6 @@
         "FR-012",
         "NFR-007",
         "FR-002",
-        "NFR-009",
         "NFR-008"
       ],
       "output": "Verified milestone outcome: Reconciled, drillable throughput and delay metrics",
@@ -1403,7 +1397,6 @@
         "FR-018",
         "NFR-001",
         "NFR-007",
-        "NFR-009",
         "FR-002"
       ],
       "output": "Verified milestone outcome: Licensed and clearly labeled simulated route visualization",
@@ -1477,8 +1470,7 @@
       ],
       "requirements": [
         "FR-019",
-        "FR-002",
-        "NFR-009"
+        "FR-002"
       ],
       "output": "Verified milestone outcome: Authorized event and incident exception messaging",
       "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M15 recorded; acceptance pending until explicitly confirmed",
@@ -2045,7 +2037,6 @@
         "M23-01"
       ],
       "requirements": [
-        "NFR-009",
         "FR-012"
       ],
       "output": "Refine forms, filters, maps, dashboard and incident entry/navigation",
@@ -2059,7 +2050,6 @@
         "M23-01"
       ],
       "requirements": [
-        "NFR-009",
         "NFR-005"
       ],
       "output": "Handle loading, empty, forbidden, conflict and dependency degradation",
@@ -2090,7 +2080,6 @@
         "M23-04"
       ],
       "requirements": [
-        "NFR-009",
         "FR-012",
         "NFR-005",
         "NFR-008"

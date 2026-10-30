@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** Previous M0 code revision `4fb34eb` was locally verified (G0 verified, acceptance pending). This hardening branch proposes a .NET 10 runtime, non-root PostgreSQL and broader browser verification; these new changes are not yet runtime verified. Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
+**Status:** The earlier M0 run at `4fb34eb` was documented as verified, but a subsequent cold-database regression reproduced a state-dependent integration test failure on both the old and upgraded code. G0 needs a fresh complete verification run before acceptance. The hardening branch implements the regression and accessibility fixes; revised-code verification remains pending. Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -52,7 +52,7 @@ All persistent HarborOps development data must stay on E:, including the working
 
 ### Pending M0 hardening verification
 
-The new .NET 10 and PostgreSQL container changes must pass clean builds, schema comparisons, fresh and existing-volume startup, image scanning and the expanded browser matrix. Review [Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) before considering this revision verified. The browser runner stores npm cache and browser binaries on E: and requires a reviewed lockfile for `tests/browser`.
+The initial hardening audit demonstrated .NET 10 compilation, database startup and copied-volume compatibility, clean final image scans and 12 browser passes, but also exposed a 4/5 fresh-database failure and a 4.24:1 contrast issue. Fixes are now committed. The corrected code must pass cold-state tests, fresh and existing-volume startup, image scanning and the expanded browser matrix. Review [Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) before considering this revision verified. The browser runner stores npm cache and browser binaries on E: and uses a committed `tests/browser/package-lock.json` that still requires a fresh `npm ci` check.
 
 ### Local M0 startup
 
@@ -62,8 +62,8 @@ Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 10 SDK for stand
 2. Run `docker compose up -d --build` from the repository root.
 3. Check `http://localhost:8080/health/live`, `http://localhost:8080/health/ready`, and `http://localhost:8080/api/v1/system/baseline`.
 4. Open `http://localhost:5173` for the read-only system baseline.
-5. Run `bash scripts/smoke-compose.sh` for HTTP smoke checks.
-6. On a disposable local Compose setup, run `bash scripts/check-m0-degraded.sh --confirm-local-outage` to test database interruption, API health behavior and recovery. The script temporarily stops the PostgreSQL service and restores it on exit.
+5. For separate disposable verification, run `bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable` with the local test password configured. This builds source-revision-labeled images and checks the isolated stack.
+6. On that disposable test stack only, run `bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage` to test database interruption and recovery. These scripts refuse the primary `harborops` project. The script temporarily stops the PostgreSQL service and restores it on exit.
 7. Use `docker compose down` to stop services. Add `-v` only to intentionally remove the local database.
 
 The web image installs from the committed `web/package-lock.json` with `npm ci`. Run `bash scripts/verify-local.sh` with a disposable `HARBOROPS_TEST_DB` value for the full build and test sequence. Compose uses a one-shot migrator and a synthetic baseline seed, and does not run a tracking worker or ship production data. Integration tests only run against a loopback PostgreSQL database named `harborops_integration` or `harborops_test`. See [M0 Verification](docs/M0_VERIFICATION.md) for environment details, evidence and limitations.

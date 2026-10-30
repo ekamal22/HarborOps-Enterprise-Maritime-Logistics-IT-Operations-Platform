@@ -4,7 +4,7 @@ param(
     [string]$ExpectedSha = '',
     [switch]$RefreshDatabase,
     [switch]$UseContainerScanner,
-    [string]$ScannerImage = 'aquasec/trivy:0.58.1'
+    [string]$ScannerImage = 'aquasec/trivy:0.76.1'
 )
 
 $ErrorActionPreference = 'Stop'

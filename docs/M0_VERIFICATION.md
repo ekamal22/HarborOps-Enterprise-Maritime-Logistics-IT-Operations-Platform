@@ -5,7 +5,7 @@
 **Starting revision:** `16523bc1f865f19ef8a86bf1b6604c8c84207003`
 **Final code revision verified:** `4fb34eb` (the commit that records this register follows it and changes documentation only)
 **Historical verification:** The older `4fb34eb` result was reopened after the cold-database defect. The newer hardening implementation passed CI and G0 was accepted on 2026-10-31. All old test results below remain historical.
-**Planning source:** [ROADMAP](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md), [ACCEPTANCE_CRITERIA](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ACCEPTANCE_CRITERIA.md) and [execution-graph.json](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/execution-graph.json) on `docs/product-delivery-source-of-truth`. The branches were not merged.
+**Planning source:** [Roadmap](ROADMAP.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) and [execution-graph.json](execution-graph.json), all integrated into `main` alongside the accepted M0 code.
 
 This register separates three states: source implemented, runtime verified, and accepted. Everything marked verified below was executed on the machine described in the next section. Raw logs were kept outside the repository because they contain local paths.
 
@@ -48,7 +48,7 @@ The corrected implementation passed the full `Verify M0` GitHub Actions run #2 a
 | M0-03 Verify migration and seed | Verified | Migration applied to empty PostgreSQL 16.15 twice, seed idempotent, schema and row inspected with `psql`, snapshot matches model |
 | M0-04 Verify local stack and browser | Verified | Clean-volume Compose start, migrator exit 0, smoke script exit 0, real browser path API to PostgreSQL observed |
 | M0-05 Verify failure and hygiene | Verified | Outage script exit 0, manual outage with browser, recovery, secret scans, dependency and image scans |
-| G0 | Verified, acceptance pending | Every mandatory check executed and passed; limitations listed at the end |
+| G0 (historical run) | At the time verified, acceptance pending | Older state-dependent check; superseded by the passing and accepted hardening run |
 
 ## M0-02 Build and test commands
 

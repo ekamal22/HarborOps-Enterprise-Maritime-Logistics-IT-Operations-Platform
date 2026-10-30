@@ -328,7 +328,7 @@
         "NFR-003"
       ],
       "output": "Verified milestone outcome: Verify the existing source-only foundation against real runtime evidence",
-      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M0 recorded; acceptance pending until explicitly confirmed",
+      "verify": "Verified by GitHub Actions run 41134743879 on source fec7429415fede121db8a4a34f0df72cd4fac609; accepted on 2026-10-31",
       "gate": true
     },
     {

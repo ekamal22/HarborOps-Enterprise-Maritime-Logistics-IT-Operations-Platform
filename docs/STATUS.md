@@ -1,6 +1,6 @@
 # Project Status
 
-**As of:** 2026-10-30
+**As of:** 2026-10-31
 **Default branch:** `main` contains the accepted M0 application, runtime, tests, docs and CI workflow.
 **Baseline:** The accepted M0 engineering foundation, runtime, tests, documentation and verification workflow are integrated into `main`. PRs #1 and #3 are merged.
 **Acceptance:** G0 verified at source revision `fec7429415fede121db8a4a34f0df72cd4fac609` in [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) and **accepted** on 2026-10-31; G1-G24 remain open. M1 has not started.

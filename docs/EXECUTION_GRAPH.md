@@ -148,7 +148,7 @@ flowchart TD
 | **M0-04: Verify local stack and browser** | M0-02, M0-03 | Prove Docker Compose and browser to API to PostgreSQL request path | Observe clean startup, health and real browser state | FR-015, NFR-001 |
 | **M0-05: Verify failure and hygiene** | M0-04 | Test unavailable database, readiness/liveness, secrets and dependencies | Fault evidence, recovery and security review | FR-015, NFR-003 |
 
-**G0 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M0 recorded; acceptance pending until explicitly confirmed.
+**G0 acceptance evidence:** Verified by GitHub Actions run 41134743879 on source fec7429415fede121db8a4a34f0df72cd4fac609; accepted on 2026-10-31.
 
 ### M1: Authentication and session lifecycle
 

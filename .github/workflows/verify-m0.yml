@@ -1,53 +1,174 @@
 name: Verify M0
 
-# Manual only to avoid consuming private-repository minutes unexpectedly.
+# The pull request path filter permits a single requested verification run
+# when this workflow changes, without recurring runs on unrelated commits.
 on:
   workflow_dispatch:
+  pull_request:
+    types: [synchronize]
+    branches:
+      - feat/m0-engineering-baseline
+    paths:
+      - .github/workflows/verify-m0.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-m0-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   baseline:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: harborops_integration
-          POSTGRES_USER: harborops
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U harborops -d harborops_integration"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 12
+    timeout-minutes: 90
     env:
       HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops"
+      HARBOROPS_DB_PASSWORD: "disposable-m0-check-only"
+      COMPOSE_PROJECT_NAME: ho-verify
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.verification/playwright-browsers
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Identify exact source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "HARBOROPS_SOURCE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "Verification revision: $(git rev-parse HEAD)"
+          mkdir -p .verification
+
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Restore
-        run: dotnet restore HarborOps.sln
-      - name: Build
-        run: dotnet build HarborOps.sln --configuration Release --no-restore
+
+      - name: Build non-root PostgreSQL test image
+        run: docker build --build-arg SOURCE_REVISION="$HARBOROPS_SOURCE_SHA" -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
+
+      - name: Start fresh disposable PostgreSQL for integration tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name harborops-m0-ci-db \
+            --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 \
+            --cap-drop ALL --security-opt no-new-privileges \
+            -e POSTGRES_DB=harborops_integration \
+            -e POSTGRES_USER=harborops \
+            -e POSTGRES_HOST_AUTH_METHOD=trust \
+            -p 127.0.0.1:5432:5432 \
+            harborops-postgres:16.15-rootless
+          for attempt in $(seq 1 45); do
+            if docker exec harborops-m0-ci-db pg_isready -U harborops -d harborops_integration; then
+              docker exec harborops-m0-ci-db sh -ec 'test "$(id -u)" = "70"; test ! -e /usr/local/bin/gosu; test ! -e /usr/local/bin/su-exec'
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs harborops-m0-ci-db
+          exit 1
+
+      - name: Restore and build .NET 10 solution
+        run: |
+          dotnet restore HarborOps.sln
+          dotnet build HarborOps.sln --configuration Release --no-restore
+
       - name: Unit tests
         run: dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj --configuration Release --no-build
+
       - name: Contract tests
         run: dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj --configuration Release --no-build
-      - name: PostgreSQL integration tests
+
+      - name: Cold database integration tests
         run: dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj --configuration Release --no-build
-      - name: Web tests and build
+
+      - name: Repeat integration suite against seeded database
+        run: dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj --configuration Release --no-build
+
+      - name: Web unit tests and production build
         working-directory: web
         run: |
           npm ci --no-audit --no-fund
           npm test
           npm run build
-      - name: Validate Compose configuration
-        env:
-          HARBOROPS_DB_PASSWORD: "workflow-only-validation-value"
-        run: docker compose config --quiet
+
+      - name: Validate disposable Compose configuration
+        run: docker compose --project-name ho-verify config --quiet
+
+      - name: Start full disposable stack and verify HTTP
+        id: compose_start
+        shell: bash
+        run: bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable
+
+      - name: Verify database outage and recovery
+        shell: bash
+        run: bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage
+
+      - name: Install locked browser test dependencies
+        working-directory: tests/browser
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Chromium, Firefox and WebKit
+        working-directory: tests/browser
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Functional cross-browser tests (no accessibility gate)
+        working-directory: tests/browser
+        run: npm test
+
+      - name: Scan immutable running image IDs
+        if: ${{ !cancelled() && steps.compose_start.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/trivy
+          for service in postgres api web; do
+            container=$(docker compose --project-name ho-verify ps -q "$service")
+            test -n "$container"
+            image=$(docker inspect --format '{{.Image}}' "$container")
+            revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
+            test "$revision" = "$HARBOROPS_SOURCE_SHA"
+            echo "Scanning $service from $image ($revision)"
+            docker run --rm --pull always \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v "$PWD/.verification/trivy:/root/.cache/trivy" \
+              -v "$PWD/.verification:/reports" \
+              aquasec/trivy:0.76.1 image --image-src docker \
+              --scanners vuln --severity HIGH,CRITICAL --exit-code 1 \
+              --format json --output "/reports/$service.json" "$image"
+          done
+
+      - name: Record diagnostic state
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          mkdir -p .verification
+          git rev-parse HEAD > .verification/source-sha.txt
+          docker compose --project-name ho-verify ps > .verification/compose-ps.txt 2>&1
+          docker compose --project-name ho-verify logs --no-color > .verification/compose.log 2>&1
+          docker logs harborops-m0-ci-db > .verification/integration-postgres.log 2>&1
+
+      - name: Upload verification artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m0-verification-${{ github.run_id }}
+          path: |
+            .verification/
+            tests/browser/test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Clean disposable GitHub runner resources
+        if: always()
+        shell: bash
+        run: |
+          docker compose --project-name ho-verify down --volumes --remove-orphans || true
+          docker rm -f harborops-m0-ci-db || true

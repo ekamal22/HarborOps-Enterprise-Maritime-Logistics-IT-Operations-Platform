@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0 engineering baseline implemented and runtime verified on the feature branch (G0 verified, acceptance pending). Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
+**Status:** The hardened M0 code passed the complete GitHub Actions verification at revision `fec7429415fede121db8a4a34f0df72cd4fac609` ([run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879)). **G0 verified, acceptance pending.** The earlier cold-database regression is resolved. Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -30,7 +30,7 @@ HarborOps is designed to run locally with free, self-hosted development tools. O
 ### Proposed stack
 
 - Web: React, TypeScript, Vite, Tailwind CSS, MapLibre GL JS
-- API: ASP.NET Core on .NET 8, C#, OpenAPI
+- API: ASP.NET Core on .NET 10, C#, OpenAPI
 - Data: PostgreSQL, Entity Framework Core
 - Processing: .NET background worker with durable processing state
 - Local runtime: Docker Compose; reverse proxy optional
@@ -50,16 +50,20 @@ The old M1-M6 milestone IDs were superseded by the granular plan. M0-01 through 
 
 All persistent HarborOps development data must stay on E:, including the working tree at `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`, caches and M0 evidence under `E:\\APP IDEAS\\harborops-m0-cache`, and Docker Desktop/WSL data and volumes. See [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) for PowerShell session setup and preflight checks. C: is reserved for unavoidable short-lived Windows temporary writes only. Do not create new persistent project storage on C:.
 
+### Pending M0 hardening verification
+
+The initial hardening audit demonstrated .NET 10 compilation, database startup and copied-volume compatibility, clean final image scans and 12 browser passes, but also exposed a 4/5 fresh-database failure and a 4.24:1 contrast issue. Fixes are now committed. The corrected code **passed** cold-state tests, fresh disposable database startup, image scans and the functional browser matrix at the verified revision. Existing local Docker volume compatibility is not a G0 requirement; lightweight compatibility checkpoints belong to M6, M12, M18 and M24-03, with the full recovery/migration rehearsal at M19. Review [Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) before considering this revision verified. The browser runner stores npm cache and browser binaries on E: and uses a committed `tests/browser/package-lock.json` that still requires a fresh `npm ci` check.
+
 ### Local M0 startup
 
-Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 8 SDK for standalone development.
+Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 10 SDK for standalone development.
 
 1. Copy `.env.example` to `.env` and set a unique `HARBOROPS_DB_PASSWORD`.
 2. Run `docker compose up -d --build` from the repository root.
 3. Check `http://localhost:8080/health/live`, `http://localhost:8080/health/ready`, and `http://localhost:8080/api/v1/system/baseline`.
 4. Open `http://localhost:5173` for the read-only system baseline.
-5. Run `bash scripts/smoke-compose.sh` for HTTP smoke checks.
-6. On a disposable local Compose setup, run `bash scripts/check-m0-degraded.sh --confirm-local-outage` to test database interruption, API health behavior and recovery. The script temporarily stops the PostgreSQL service and restores it on exit.
+5. For separate disposable verification, run `bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable` with the local test password configured. This builds source-revision-labeled images and checks the isolated stack.
+6. On that disposable test stack only, run `bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage` to test database interruption and recovery. These scripts refuse the primary `harborops` project. The script temporarily stops the PostgreSQL service and restores it on exit.
 7. Use `docker compose down` to stop services. Add `-v` only to intentionally remove the local database.
 
 The web image installs from the committed `web/package-lock.json` with `npm ci`. Run `bash scripts/verify-local.sh` with a disposable `HARBOROPS_TEST_DB` value for the full build and test sequence. Compose uses a one-shot migrator and a synthetic baseline seed, and does not run a tracking worker or ship production data. Integration tests only run against a loopback PostgreSQL database named `harborops_integration` or `harborops_test`. See [M0 Verification](docs/M0_VERIFICATION.md) for environment details, evidence and limitations.
@@ -70,7 +74,8 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | --- | --- |
 | [Project Status](docs/STATUS.md) | Implemented, pending, and verified work |
 | [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) | E-drive workspace, caches, Docker and evidence constraints |
-| [M0 Verification](docs/M0_VERIFICATION.md) | Execution commands, limitations, and acceptance evidence |
+| [M0 Verification](docs/M0_VERIFICATION.md) | Previous baseline's executed test evidence |
+| [M0 Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) | Passed .NET 10, fresh PostgreSQL, Docker recovery, functional browser and image verification |
 | [Product Scope](docs/PRODUCT_SCOPE.md) | Goals, non-goals, personas, and constraints |
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
@@ -103,4 +108,4 @@ HarborOps is an independent demonstration platform. It does not claim affiliatio
 
 ### Current state
 
-The M0 application foundation is verified at the engineering gate and acceptance is pending. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).
+The hardened M0 foundation passed the regression and image checks in GitHub Actions run #2. **G0 is verified, acceptance pending** until explicitly accepted. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).

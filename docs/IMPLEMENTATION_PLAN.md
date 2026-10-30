@@ -1,49 +1,41 @@
 # Implementation Notes
 
-**Authority:** Supporting engineering guidance only. The [Product Requirements Document](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/PRD.md), [Roadmap](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md), and [Execution Graph](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/EXECUTION_GRAPH.md) on the independent planning branch define the approved product direction and proposed M0-M24 sequence. This page must not compete with that roadmap.
+**Status:** Supporting engineering guidance. This file is not an independent roadmap or authoritative dependency ledger.
 
-## Post-verification hardening change
+The [Product Requirements Document](PRD.md) defines user outcomes and release boundaries. The [Delivery Roadmap](ROADMAP.md) owns M0-M24 scope, sequencing, and gates. The [Execution Graph](EXECUTION_GRAPH.md), generated from [execution-graph.json](execution-graph.json), owns work-package IDs and dependency edges. [Status](STATUS.md) alone owns what is actually implemented and verified.
 
-The hardening branch upgrades to .NET 10 and PostgreSQL 16 rootless runtime, and its functional browser and runtime changes passed GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609`. G0 is verified, acceptance pending. M1 still requires D-001 and an explicit milestone acceptance decision. Accessibility testing is reserved for M24-04. Refer to [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+## Work-package execution contract
 
-## M0 implementation and verification
+For each work package, record:
 
-On `feat/m0-engineering-baseline`, M0-01 through M0-05 had a recorded local verification at code revision `4fb34eb`. A later cold-database failure reproduced on that baseline, so the complete verification conclusion must be reopened. The M0 evidence register includes the actual tool versions, checks, commands, test results, environment, remediation history, and residual risks.
+1. Exact branch, source revision, and planned requirement IDs.
+2. Existing implementation and decisions reviewed before changes.
+3. Files and module boundaries affected, API/domain/migration implications.
+4. Correct behavior, expected failure behavior, and permission boundaries.
+5. Exact unit, database, API, browser, security, and operational tests applicable to its scope.
+6. Observed results, environment, fixtures, logs, unresolved issues, and evidence locations.
+7. Documentation updated and gate state. Do not equate code presence with verification.
 
-- Originally verified .NET 8 solution with API, application, domain, infrastructure, worker shell and tests
-- PostgreSQL 16 schema migration, fixed synthetic bootstrap seed and repeatable tests
-- Database-backed `/api/v1/system/baseline`, process liveness and database readiness
-- JSON logs, correlation identifiers, sanitized failures and bounded dependency timeouts
-- React status interface with synthetic provenance, loading, unavailable and refresh states
-- Local Compose profile, one-shot migrator, locked frontend dependencies and verification scripts
-- Security checks and local PostgreSQL outage/recovery rehearsal
+## Technical implementation principles
 
-**Gate G0:** **verified** by GitHub Actions run #2, **acceptance pending**. M1 has not started. Verification is separate from final acceptance.
+- Work within the modular monolith, separate worker, and PostgreSQL baseline in [Architecture](ARCHITECTURE.md).
+- Keep multi-organization authorization checks server-side from M1 onward.
+- Implement event durability, replay safety, and projection correctness as explicit tests before dashboards depend on them.
+- Prefer deterministic synthetic fixtures and local-only free infrastructure.
+- Do not hide failing or skipped tests behind a successful script exit.
+- Keep API contracts, persistence invariants, and operations runbooks aligned with actual code.
+- Record accepted architectural changes in [Decisions](DECISIONS.md).
 
-The detailed evidence is [M0 Verification](M0_VERIFICATION.md). The current observed state is in [Status](STATUS.md). The working tree remains separate from the planning branch; reconcile overlapping documentation when integrating branches.
+## M0 checkpoint
 
-## Granular next steps
+The accepted M0 implementation is integrated into `main`. It includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic database seed, an idle worker shell, a React status UI, Docker Compose, and executable test suites. The corrected source passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at `fec7429415fede121db8a4a34f0df72cd4fac609`: 1 unit, 10 contract, 5 fresh plus 5 repeat integration, 6 web and 12 functional browser tests, Compose outage/recovery, and PostgreSQL/API/web vulnerability scans. **G0 accepted** on 2026-10-31. No M1 code has started. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
-The old seven-milestone plan has been superseded. The v2 roadmap divides the complete initial release into 25 narrowly scoped milestones (M0-M24) and G0-G24 evidence gates.
+G0 evidence is recorded and accepted. The next implementation milestone is M1 after D-001 is resolved. Do not claim M1 has started or is accepted. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 verification record is [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) on `main`; [M0 Verification](M0_VERIFICATION.md) preserves the earlier historical run.
 
-Once G0 has been explicitly accepted and decision D-001 is resolved, the next milestone is **M1 authentication and session lifecycle**. M2 adds organization/membership boundaries. M3-M6 implement maritime reference data, shipment lifecycle and assignments.
+## Local development storage
 
-Do not start or record later features as completed merely because the original broad roadmap grouped them together.
+All controlled persistent project files, caches, container data and verification artifacts must stay on E:. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md); use C: only for unavoidable temporary Windows activity.
 
-## Required work-package discipline
+## Change management
 
-1. Inspect the current branch, requirements, unresolved decisions and predecessor gate evidence before modifying source.
-2. Keep each change within its named work package and explicit dependencies.
-3. Identify API contracts, persistence changes, authorization boundaries, failure behavior and migration implications.
-4. Execute tests and record command, environment, result, precise source SHA and dataset.
-5. Assess dependency and container vulnerabilities without silently approving unresolved findings.
-6. Update affected documentation and evidence records. No source-only completion claim may substitute for executed verification.
-7. Mark a gate verified only from supporting evidence and retain `acceptance pending` until explicit acceptance.
-
-## Storage constraint
-
-All controlled persistent HarborOps data belongs on E:, including `E:\APP IDEAS\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`, `E:\APP IDEAS\harborops-m0-cache`, Docker/WSL data, dependency caches, build output, test databases, screenshots and logs. Only unavoidable short-lived Windows system temporary writes on C: are permitted. Refer to [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Do not delete, migrate or prune storage without separate approval.
-
-## Documentation changes
-
-When a requirement changes, update the PRD, atomic requirements and affected acceptance checks. When milestone boundaries or prerequisites change, update the roadmap, execution-graph JSON and generated view. [Status](STATUS.md) must reflect observed implementation rather than planned capability. Keep future planning in the planning branch until its integration is approved.
+If scope changes, update the PRD and atomic requirements. If milestone gates change, update the roadmap and acceptance criteria. If ordering changes, edit the JSON graph and regenerate the Markdown diagram with `node scripts/render-execution-graph.mjs`. Update status only with observed results. Avoid duplicate tables of milestone states or competing task sequences here.

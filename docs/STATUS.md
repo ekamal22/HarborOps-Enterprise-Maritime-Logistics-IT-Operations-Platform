@@ -1,72 +1,88 @@
 # Project Status
 
-**As of:** 2026-10-30
-**Overall:** M0 hardening verified in GitHub Actions at `fec7429415fede121db8a4a34f0df72cd4fac609`, acceptance pending
-**G0:** **verified** at corrected source revision `fec7429415fede121db8a4a34f0df72cd4fac609` by [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879); **acceptance pending**. M1 has not started.
+**As of:** 2026-10-31
+**Default branch:** `main` contains the accepted M0 application, runtime, tests, docs and CI workflow.
+**Baseline:** The accepted M0 engineering foundation, runtime, tests, documentation and verification workflow are integrated into `main`. PRs #1 and #3 are merged.
+**Acceptance:** G0 verified at source revision `fec7429415fede121db8a4a34f0df72cd4fac609` in [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) and **accepted** on 2026-10-31; G1-G24 remain open. M1 has not started.
 
 ## Delivery ledger
 
-This branch follows the granular M0-M24 roadmap on the [planning branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md). Legacy v1 milestone labels in older documents are superseded and do not match v2 IDs. M0-01 through M0-05 and G0 keep their original meaning.
+The ledger below is the current *observed* state, not a projection from planning nodes. The v1 M0-M6 scheme was superseded for planning by v2 M0-M24. Old v1 milestone IDs beyond M0 must not be read as matching new v2 milestones.
 
 | Milestone | State | Evidence |
 | --- | --- | --- |
-| **M0 Engineering baseline verification** | G0 verified, acceptance pending | Current GitHub Actions run #2 passed 1 unit, 10 contract, 5 fresh + 5 repeat integration, 6 web and 12 functional browser tests, disposable Compose outage/recovery and three image scans. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). |
-| **M1-M24** | Planned | No implementation; gates G1-G24 are open |
+| **M0 Engineering baseline verification** | G0 verified and accepted | [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) passed all required .NET, clean/seeded PostgreSQL, web, functional browser, Compose recovery and final image checks on `fec7429415fede121db8a4a34f0df72cd4fac609`. |
+| **M1 Authentication and session lifecycle** | Planned | No verified implementation or accepted gate G1 |
+| **M2 Organizations and role isolation** | Planned | No verified implementation or accepted gate G2 |
+| **M3 Ports and vessels reference data** | Planned | No verified implementation or accepted gate G3 |
+| **M4 Voyages and containers reference data** | Planned | No verified implementation or accepted gate G4 |
+| **M5 Shipment lifecycle and concurrency** | Planned | No verified implementation or accepted gate G5 |
+| **M6 Container and voyage assignments** | Planned | No verified implementation or accepted gate G6 |
+| **M7 Tracking contracts and source authentication** | Planned | No verified implementation or accepted gate G7 |
+| **M8 Durable event inbox and immutable history** | Planned | No verified implementation or accepted gate G8 |
+| **M9 Idempotent worker and reconciliation** | Planned | No verified implementation or accepted gate G9 |
+| **M10 Event timeline and projection rebuild** | Planned | No verified implementation or accepted gate G10 |
+| **M11 Delay rules and shipment exceptions** | Planned | No verified implementation or accepted gate G11 |
+| **M12 Shipment search and authorized export** | Planned | No verified implementation or accepted gate G12 |
+| **M13 Operational KPI definitions and dashboards** | Planned | No verified implementation or accepted gate G13 |
+| **M14 Route mapping and geographic context** | Planned | No verified implementation or accepted gate G14 |
+| **M15 Scoped in-app notifications** | Planned | No verified implementation or accepted gate G15 |
+| **M16 Audit logging and access hardening** | Planned | No verified implementation or accepted gate G16 |
+| **M17 Observability and service health** | Planned | No verified implementation or accepted gate G17 |
+| **M18 IT incident lifecycle and remediation** | Planned | No verified implementation or accepted gate G18 |
+| **M19 Database recovery and migration rehearsal** | Planned | No verified implementation or accepted gate G19 |
+| **M20 Security assurance and dependency review** | Planned | No verified implementation or accepted gate G20 |
+| **M21 Performance and capacity benchmarks** | Planned | No verified implementation or accepted gate G21 |
+| **M22 Deployment portability and cost controls** | Planned | No verified implementation or accepted gate G22 |
+| **M23 Interface polish and workflow consistency** | Planned | Polish functional interfaces; accessibility tests are not an M23 gate |
+| **M24 Final release validation and acceptance** | Planned | Full accessibility testing scheduled only in final package M24-04, followed by G24 release decision |
 
-## Hardening changes pending verification
+## Planning sources of truth
 
-This branch proposes an upgrade from .NET 8/EF Core 8 to .NET 10/EF Core 10, a derived PostgreSQL 16 image running as UID 70 with the upstream `gosu` binary removed, a refreshed test toolchain and a cross-browser suite (Chromium, Firefox, WebKit). An E-drive-only image scan runner and functional cross-browser checks have also been added. All accessibility tests are reserved for final M24-04.
+- [PRD](PRD.md): product scope, personas, success criteria and priorities.
+- [Roadmap](ROADMAP.md): milestone scopes, delivery order and G0-G24 acceptance gates.
+- [Execution Graph](EXECUTION_GRAPH.md): rendered work-package DAG from [execution-graph.json](execution-graph.json).
+- [Requirements](REQUIREMENTS.md) and [Acceptance Criteria](ACCEPTANCE_CRITERIA.md): atomic requirement IDs and detailed checks.
+- This file: evidence and true implementation state, not milestone commitments.
 
-**Corrected branch gate: verified, acceptance pending.** The earlier audit exposed a cold-database test defect and an unrelated accessibility contrast observation. The corrected fresh-database integration suite passed in GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609`; the entire functional browser suite, Compose recovery and final image scans also passed. Accessibility testing remains deferred to M24-04. The older `4fb34eb` result remains historical evidence only.
+## Full-product documentation and release readiness
 
-## M0 source inventory
+The unchecked items below concern the complete M0-M24 product release. They do not reverse M0's separately recorded G0 verification.
 
-- `HarborOps.sln` with domain, application, infrastructure, API, worker and three test projects
-- EF Core PostgreSQL context, baseline migration, deterministic seed and read service
-- Public read-only baseline API, liveness endpoint and PostgreSQL readiness endpoint
-- Structured JSON logging with correlation identifiers, local CORS policy, controlled 503 responses for database failure
-- React and TypeScript status view with synthetic label, loading, error, timeout and refresh states
-- Docker Compose, one-shot migrator, Dockerfiles, committed `web/package-lock.json`, scripts
-- Manual GitHub workflow `Verify M0` (not run; it can be dispatched only after it exists on the default branch)
+- [x] Product vision, 25 small-scope milestones and the dependency graph documented.
+- [x] Functional and non-functional requirements drafted.
+- [x] Architecture, domain model, and API boundary drafted.
+- [x] Tracking processing and security policies drafted.
+- [x] Milestone acceptance and verification approach drafted.
+- [x] Local-first cost constraints and demonstration plan drafted.
+- [ ] Implemented module architecture validated by code.
+- [ ] API schema generated from working implementation.
+- [ ] Full product CI, migrations, unit, integration, browser, and security tests executed (M0-specific local tests executed and documented separately).
+- [ ] Observability, incident workflow, and backup/restore demonstrated.
+- [ ] Local deployment cost and shutdown verified; hosted safeguards checked only if optional hosting is used.
+- [ ] Complete release acceptance.
 
-## Checks and outcomes
+## Verification evidence
 
-All results are recorded with commands, versions and revisions in [M0 Verification](M0_VERIFICATION.md).
+The `main` branch contains M0 application source and the verified Docker runtime. A disposable GitHub-hosted environment, not a local retained Docker volume, executed the passing G0 verification. No public or production runtime has been deployed. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
-- Clean .NET restore and Release build: 0 warnings, 0 errors.
-- Unit 1, contract 10, PostgreSQL integration 5, web 6 tests passed.
-- `npm ci` from the lockfile, production build, and Docker web build with `npm ci` only.
-- Migration and seed on PostgreSQL 16.15, repeatable, schema inspected.
-- Compose clean-volume start, smoke script, real browser load, refresh, rapid refresh, keyboard focus, mobile width.
-- Database outage: liveness 200, readiness 503, baseline 503; recovery to 200 and the UI recovers on refresh.
-- Ten defects corrected, including baseline HTTP 500 with the database down and missing correlation identifiers in logs.
-- npm and NuGet advisories: none open. Trivy image scan: no fixable high or critical findings in the api and web images; upstream `gosu` findings remain in the postgres image.
+## Open prerequisites
 
-## Historical-volume checkpoint policy
+1. G0 is accepted. Resolve D-001 and plan M1 authentication/session work under the G1 gate. Do not treat M1 as started or accepted.
+2. Resolve D-001 and D-003 before M1 implementation, and D-002 before M2 work.
+3. Expand the M0 metadata seed into two-organization reference fixtures in M1.
+4. Preserve the locally executed M0 verification evidence and rerun its checks after any behavior-changing modification or branch integration.
+5. G0 was verified at the recorded M0 code SHA and accepted on 2026-10-31. All later gates G1-G24 remain planned and open.
 
-No existing local Docker volume is required for G0. New-code verification uses a disposable fresh database; historical-volume compatibility is deferred to quarter-mile checkpoints M6, M12, M18 and M24-03, and comprehensive backup/restore remains M19. If there is no representative historical snapshot, report NOT APPLICABLE. Never alter the original retained data volume. Breaking database or storage format changes affecting preserved data must be rehearsal-tested on a safe copy before rollout.
+## Storage and residual risk
 
-## Open items before acceptance
+The [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires all controllable persistent project storage on E:. The M0 host used E-drive repository, caches, evidence and Docker WSL data; operating-system temporary activity on C: may be unavoidable. The historical PostgreSQL image scan reported one critical and 25 high findings in `gosu`; the accepted rootless image, API and web images passed new high/critical Trivy scans on the verified hardening SHA. The runtime was upgraded from .NET 8 to .NET 10. Later security, backup/restore and performance gates remain planned; all accessibility testing is reserved for M24-04 immediately before the final G24 release gate.
 
-1. Explicit G0 acceptance is still pending. The verified engineering foundation is not a production deployment.
-2. Resolve decision D-001 before implementing M1 authentication and session lifecycle.
-3. Do not merge draft PRs or begin M1 on the basis of automated verification alone.
-4. Existing-volume compatibility checkpoints remain M6/M12/M18/M24-03; full migration and recovery are M19; accessibility verification is final M24-04.
+## Status update rule
 
-## Mandatory storage boundary
+Update this page whenever a milestone materially changes state. Record implemented paths, exact executed checks, failures, accepted limitations, and links to verification artifacts. Do not mark a capability verified based only on documentation or source inspection.
 
-All controlled persistent HarborOps storage stays on E:, including the repository at `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`, project caches and evidence at `E:\\APP IDEAS\\harborops-m0-cache`, and E-backed Docker/WSL data. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Only unavoidable short-lived Windows temporary use on C: is permitted. No storage cleanup, global migration or extra tool installation is authorized by this requirement.
+## Quarterly data compatibility policy
 
-The one critical and 25 high PostgreSQL `gosu` scan findings remain documented residual risk, not an explicitly approved exception. Revisit their disposition during acceptance and subsequent image updates.
+G0 does not depend on any retained local Docker volume. Fresh disposable database checks are required. Historical-volume compatibility moves to quarterly progress checkpoints at M6, M12, M18 and M24-03, using safe copies only; M19 separately owns comprehensive backup, restore and upgrade rehearsal. If no representative snapshot exists at a checkpoint, record NOT APPLICABLE. Breaking changes applied to retained data still require a safe-copy rehearsal before rollout.
 
-## Documentation status
-
-Specification documents remain authoritative for planned domains. [M0 Verification](M0_VERIFICATION.md) preserves the earlier baseline evidence; [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) records the hardening audit, corrections, commands and outstanding tests.
-
-## Next milestone
-
-M1 (authentication and session lifecycle) requires G0 verified and decision D-001 closed, and is not started.
-
-## Acceptance convention
-
-Planned, in progress, implemented, verified, acceptance pending and accepted are distinct states. Do not infer verification or acceptance from a commit, source inspection or a documentation update.

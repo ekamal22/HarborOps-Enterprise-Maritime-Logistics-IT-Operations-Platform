@@ -1,8 +1,16 @@
 # Requirements
 
+**Authority:** This document owns atomic FR/NFR identifiers and the permission matrix. The [Product Requirements Document](PRD.md) owns product outcomes and release boundaries. [Roadmap](ROADMAP.md) assigns milestone gates, [execution-graph.json](execution-graph.json) connects work packages to requirement IDs, and [Status](STATUS.md) owns delivery evidence.
+
 ## Requirement status
 
-M0 has source implementations supporting parts of FR-015 (liveness/readiness), FR-017 (deterministic bootstrap metadata only), NFR-001 (local-first configuration), and NFR-006 (initial structured errors). The M0 behavior was runtime verified on 2026-10-30 against code revision `4fb34eb` (see [M0 Verification](M0_VERIFICATION.md)); G0 acceptance is pending and these do not satisfy their full later-milestone acceptance gates. The business requirements remain proposed.
+All requirements are proposed. A requirement is considered delivered only after its tests and acceptance evidence appear in STATUS.md.
+
+## Observed baseline and storage boundary
+
+M0 baseline functionality is implemented on `main`, verified at `fec7429415fede121db8a4a34f0df72cd4fac609` by [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) and **G0 accepted** on 2026-10-31. The synthetic status endpoint, fresh PostgreSQL migration/seed, Compose startup and fault recovery are covered. This does **not** satisfy later shipment, tenant authorization, tracking or incident requirements. See [Status](STATUS.md) and [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+
+All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_POLICY.md): controllable persistent project storage on E:, with unavoidable short-lived Windows temporary writes on C: permitted only as an exception.
 
 ## Functional requirements
 
@@ -43,7 +51,7 @@ M0 has source implementations supporting parts of FR-015 (liveness/readiness), F
 | NFR-006 | API stability | Public endpoints versioned; errors use a consistent structured envelope |
 | NFR-007 | Time handling | UTC at rest; no ambiguous local timestamp comparisons |
 | NFR-008 | Quality | Required test suites pass from a clean database and reproducible local setup |
-| NFR-009 | Accessibility | Keyboard navigation, accessible names, visible focus, and usable high-contrast states |
+| NFR-009 | Final-release accessibility | Keyboard navigation, accessible names, visible focus, contrast, zoom, error announcements, responsive use and screen-reader workflows; all tested only in M24-04 before G24 |
 | NFR-010 | Performance | For the defined reference dataset, p95 shipment search below 500 ms in local baseline |
 | NFR-011 | Recovery | Restore procedure demonstrated on a disposable environment with integrity checks |
 | NFR-012 | Operational safety | Fault simulations never affect external or production resources |

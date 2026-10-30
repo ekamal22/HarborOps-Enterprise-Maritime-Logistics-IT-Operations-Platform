@@ -65,10 +65,10 @@ OpenStreetMap data and map tile services have different rights and operational l
 - The hosted version indicates its synthetic/demo nature.
 - Shutdown destroys or disables billable resources.
 
-## Pending modernization costs and storage
+## Verified M0 modernization costs and storage
 
 The .NET 10 SDK, derived PostgreSQL image, and browser runner can require additional local downloads and image build space. All such storage must remain on E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md); check free space and effective Docker/WSL paths before running. The PostgreSQL data volume must not be deleted or automatically migrated. These changes do not require paid hosting.
 
 ## M0 local infrastructure
 
-`compose.yaml` uses self-hosted PostgreSQL 16, .NET 10 API/migrator containers in the hardening branch, and a locally hosted React static frontend. No cloud account, map feed, or paid license is required for the intended baseline workflow. M0 Docker and dependencies were already installed and used locally for full G0 verification; no new tool installation was necessary. The GitHub validation workflow is manual-only to avoid unrequested CI usage. No hosted resources have been provisioned, and no cloud spending has been authorized. Verify any development tooling license terms independently.
+`compose.yaml` uses self-hosted PostgreSQL 16, .NET 10 API/migrator containers on `main`, and a locally hosted React static frontend. No cloud account, map feed, or paid license is required for the intended baseline workflow. M0 Docker and dependencies were already installed and used locally for full G0 verification; no new tool installation was necessary. The GitHub verification workflow supports explicit manual dispatch and a narrow pull-request workflow-file trigger. G0 was verified on a temporary GitHub-hosted runner in run 41134743879; it did not provision permanent hosted infrastructure. No hosted resources have been provisioned, and no cloud spending has been authorized. Verify any development tooling license terms independently.

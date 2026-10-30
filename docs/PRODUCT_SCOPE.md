@@ -1,5 +1,7 @@
 # Product Scope
 
+**Supporting scope detail:** The [Product Requirements Document](PRD.md) is authoritative for product vision, users, priorities, and release boundaries. Preserve domain-specific detail here without introducing a competing scope baseline. Actual state is recorded in [Status](STATUS.md).
+
 ## Vision
 
 HarborOps provides a single operational workspace for maritime shipment lifecycle management, tracking event visibility, exception investigation, operational reporting, and technical service reliability. It is a standalone platform using demonstration data and open specifications.
@@ -39,9 +41,9 @@ HarborOps provides a single operational workspace for maritime shipment lifecycl
 - Fully automated operational decisions with no human confirmation.
 - Native mobile applications and general-purpose ERP replacement.
 
-## Baseline state and storage
+## Verified baseline and workspace
 
-The M0 local runtime was verified on 2026-10-30 against code revision `4fb34eb`, with G0 verified and **acceptance pending**. Real shipment, tracking, user/organization and incident capabilities remain planned for M1-M24. Local persistent development and verification data must use E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md), with only unavoidable temporary Windows writes on C: permitted.
+The M0 engineering baseline is integrated into `main` and G0 was **accepted** on 2026-10-31 after successful [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at source revision `fec7429415fede121db8a4a34f0df72cd4fac609`. Shipment, tracking, multi-tenant business access, service desk and production deployment remain outside the implemented M0 scope. Local persistent development storage remains subject to [Local Storage Policy](LOCAL_STORAGE_POLICY.md): E-drive persistence, with only unavoidable short-lived Windows temporary use on C:.
 
 ## Product principles
 

@@ -1,9 +1,9 @@
 # M0 Hardening Verification and Remediation Register
 
-**Target branch:** `fix/m0-net10-postgres-browser-hardening`  
+**Verified source branch:** `fix/m0-net10-postgres-browser-hardening`; merged into `main` through PRs #3 and #1  
 **Prior independently audited revision:** `a791561a797b57afac84e7df7f8a959890b6972c`  
-**Current correction state:** Revised code verified in GitHub Actions against exact commit `fec7429415fede121db8a4a34f0df72cd4fac609`; G0 acceptance pending.  
-**Gate:** G0 verified at the identified hardening code SHA; acceptance pending. The earlier `4fb34eb` result remains historical and was superseded after its cold-database regression.
+**Current correction state:** Revised code verified in GitHub Actions against exact commit `fec7429415fede121db8a4a34f0df72cd4fac609`; G0 accepted on 2026-10-31.  
+**Gate:** G0 verified at the identified hardening code SHA and explicitly accepted on 2026-10-31. The earlier `4fb34eb` result remains historical and was superseded after its cold-database regression.
 
 ## Current G0 execution: GitHub Actions
 
@@ -20,7 +20,7 @@
 - **Run #1:** [Failed first attempt](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134236402) due exclusively to an ambiguous Playwright text selector. That selector was corrected and all browser cases passed in run #2.
 - **Scope exceptions:** Existing local historical Docker volumes are not part of G0 and are reserved for quarterly milestones M6, M12, M18 and M24-03 (with full migration/backup recovery at M19). Accessibility testing is exclusively a final M24-04 gate. Hosted/production readiness and M1-M24 capabilities are not implied.
 
-**Decision:** G0 **verified, acceptance pending**. This is an executed test result, not an explicit milestone acceptance, merge instruction or production authorization.
+**Decision:** G0 **verified and accepted** on 2026-10-31. The accepted code was merged through PRs #3 and #1 into `main`. This does not authorize production deployment or future milestone acceptance.
 
 ## Recorded audit of the earlier hardening revision
 
@@ -128,4 +128,4 @@ All accessibility verification, automated or manual, is deferred to final M24-04
 8. Functional browser results for data display, refresh, API failure and recovery in Chromium, Firefox and WebKit. Accessibility checks are not G0 requirements and are deferred entirely to M24-04.
 9. Hygiene, warnings, remaining vulnerability disposition, exact logs and result matrix.
 
-**Status:** G0 verified at `fec7429415fede121db8a4a34f0df72cd4fac609`, **acceptance pending**. No milestone acceptance or public-deployment authorization is implied. M1 remains unstarted.
+**Status:** G0 verified at `fec7429415fede121db8a4a34f0df72cd4fac609` and **accepted** on 2026-10-31. PRs #3 and #1 are merged to `main`. Public-deployment authorization is not implied. M1 remains unstarted.

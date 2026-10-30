@@ -2,6 +2,12 @@
 
 This document records accepted baseline decisions and outstanding decisions that affect implementation.
 
+## Local storage constraint
+
+The mandatory [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires E-drive storage for all controllable persistent project files, caches, Docker/WSL state, database data and evidence. C-drive use is limited to unavoidable short-lived Windows temporary activity. This does not grant permission for cleanup, package migration or changes to global tool installations.
+
+The accepted M0 baseline uses the hardened rootless PostgreSQL container and .NET 10. The prior upstream `gosu` findings were closed in the immutable-image high/critical scan performed during GitHub Actions run #2. G0 was accepted on 2026-10-31; future image changes require scanning.
+
 ## Accepted baseline decisions
 
 ### ADR-001: Modular monolith with separate tracking worker
@@ -34,6 +40,8 @@ Every business-data path must verify an authenticated principal and explicit org
 
 Never silently replace historical accepted events. Correct data with linked correction records and rebuild projections.
 
+The [granular roadmap](ROADMAP.md) assigns earlier decision deadlines to narrower milestone entry points. These dates denote prerequisite boundaries, not new approvals. The original ADR-001 through ADR-006 architecture decisions remain intact.
+
 ## Open decisions
 
 | ID | Decision required | Default hypothesis | Required before |
@@ -51,19 +59,6 @@ Never silently replace historical accepted events. Correct data with linked corr
 
 Each material reversal records: context, alternatives, trade-offs, chosen approach, impact on requirements and tests, migration needs, and acceptance status. A change is not adopted solely because a new library or service is available.
 
-## Planning and storage decision
+## Accepted M0 runtime decision
 
-The authoritative granular milestone sequence is M0-M24 on the [planning branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md). The deadlines for D-001 through D-008 below use those revised milestone IDs.
-
-The mandatory [Local Storage Policy](LOCAL_STORAGE_POLICY.md) establishes E: for all controllable persistent development data. C: is not approved for new persistent project storage; unavoidable short-lived system temporary activity is excepted. This policy does not authorize data deletion or system-wide migrations.
-
-## M0 implementation notes
-
-- The M0 baseline was previously verified using .NET 8 and EF Core 8. The separate hardening branch now targets .NET 10, EF Core 10, Npgsql EF provider 10 and a non-root PostgreSQL image. Compatibility and security must be verified before this design change is accepted.
-- Database migration and deterministic bootstrap seeding run as a one-shot Compose service before the API starts.
-- The only M0 API resource is public, read-only synthetic platform metadata; authentication starts in M1 after D-001; organization-scoped authorization begins in M2.
-- The worker project is deliberately idle. No tracking event behavior is represented as delivered.
-- The browser fetches an explicitly configured local API origin. The API permits CORS only for the configured local frontend origin.
-- The manual-only verification workflow avoids automatically consuming private repository CI minutes.
-
-These are scoped M0 implementation choices. D-001 through D-008 remain open on the timelines indicated above unless explicitly closed in a subsequent decision review.
+The M0 baseline uses .NET 10, EF Core 10, PostgreSQL 16 with rootless container execution, a public synthetic-only read-only status endpoint and an isolated test database. Runtime verification passed on source revision `fec7429415fede121db8a4a34f0df72cd4fac609` and G0 was accepted on 2026-10-31. Authentication and session management are M1, pending D-001; organization isolation is M2. The browser remains functional-only until the final M24-04 accessibility gate.

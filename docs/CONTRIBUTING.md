@@ -1,9 +1,5 @@
 # Engineering and Documentation Conventions
 
-## Required workspace storage
-
-All project-specific persistent files must be on E:. Use `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform` for the repository; keep NuGet/npm caches, Docker/WSL state, database volumes, build outputs, temporary project datasets, screenshots and logs under approved E-drive directories. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Unavoidable short-lived Windows temporary activity on C: is permitted; new persistent project storage on C: is not. Inspect effective paths before running new tools, and do not prune or relocate unrelated data.
-
 ## Working approach
 
 - Keep changes limited to the named milestone and its explicit dependencies.
@@ -52,6 +48,25 @@ A change is done only when:
 - Deterministic tests and reproducible local commands.
 - Clear rollback, migration, and operational implications.
 - Documentation matches actual code.
+
+## Mandatory local disk policy
+
+Use `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform` for the working tree and E-backed locations for caches, build/test output, Docker/WSL state and logs. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Never configure persistent project storage on C:. Unavoidable system temporary use may occur. Inspect effective paths before introducing additional tools. Do not prune or relocate existing storage without specific approval.
+
+## Scoped milestone execution
+
+- The release is split into M0-M24, each with its own G0-G24 evidence gate. The graph data contains the authoritative task dependencies.
+- Before starting a work package, identify its graph ID and verify all predecessors. Implement only its bounded output and necessary dependencies.
+- Attach tests covering negative cases, permissions and migration implications to that specific work package, rather than deferring all verification until the final release.
+- Completion requires executed evidence. A reviewable commit, source inspection, or a successful partial test suite is insufficient to close a gate.
+- The former v1 M1-M6 node IDs are superseded. Historical task references must be mapped by deliverable and verification, not by copying IDs.
+
+## Planning document authority
+
+- Update [PRD](PRD.md) for product scope and priorities, [Requirements](REQUIREMENTS.md) for atomic FR/NFR changes, [Roadmap](ROADMAP.md) for milestone delivery and gate changes, and [execution-graph.json](execution-graph.json) for work-package dependency changes.
+- Never hand-edit [Execution Graph](EXECUTION_GRAPH.md). Regenerate with `node scripts/render-execution-graph.mjs`, then check with `node scripts/render-execution-graph.mjs --check` and `node scripts/check-planning-docs.mjs`.
+- Treat [Status](STATUS.md) and milestone evidence registers as the only source for achieved results and acceptance state.
+- When changing a node ID or requirement mapping, update affected code tasks, test evidence, gates, and references in the same change.
 
 ## Documentation hygiene
 

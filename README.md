@@ -3,9 +3,19 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** The hardened M0 code passed the complete GitHub Actions verification at revision `fec7429415fede121db8a4a34f0df72cd4fac609` ([run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879)). **G0 verified, acceptance pending.** The earlier cold-database regression is resolved. Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
+**Status:** M0 engineering baseline merged into `main` and **G0 accepted** on 2026-10-31. The .NET 10, fresh PostgreSQL, functional browser, Compose recovery and image hardening passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at source revision `fec7429415fede121db8a4a34f0df72cd4fac609`. M1-M24 remain planned; M1 has not started. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
+
+### Planning source of truth
+
+- [Product Requirements Document](docs/PRD.md) defines intended users, product scope, outcomes, and release priorities.
+- [Delivery Roadmap](docs/ROADMAP.md) defines milestone deliverables, entry criteria, and evidence-based exit gates.
+- [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) requires all controlled persistent development storage on E: and limits C: use to unavoidable temporary system activity.
+- [Execution Graph](docs/EXECUTION_GRAPH.md) visualizes work-package prerequisites; [graph data](docs/execution-graph.json) is authoritative for dependencies and IDs.
+- [Project Status](docs/STATUS.md) alone describes implementation, verification, and acceptance state. [Requirements](docs/REQUIREMENTS.md) and [Acceptance Criteria](docs/ACCEPTANCE_CRITERIA.md) own atomic requirements and detailed checks.
+
+Run `node scripts/render-execution-graph.mjs --check` to validate the graph against its JSON source, and `node scripts/check-planning-docs.mjs` to check milestone coverage, document links and status references. These are documentation consistency checks, not application runtime verification.
 
 ### Product objectives
 
@@ -30,7 +40,7 @@ HarborOps is designed to run locally with free, self-hosted development tools. O
 ### Proposed stack
 
 - Web: React, TypeScript, Vite, Tailwind CSS, MapLibre GL JS
-- API: ASP.NET Core on .NET 10, C#, OpenAPI
+- API: ASP.NET Core on .NET 8, C#, OpenAPI
 - Data: PostgreSQL, Entity Framework Core
 - Processing: .NET background worker with durable processing state
 - Local runtime: Docker Compose; reverse proxy optional
@@ -42,17 +52,7 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 ### Delivery sequence
 
-The planning branch `docs/product-delivery-source-of-truth` defines the revised 25-milestone execution sequence (M0-M24) with a separate G0-G24 gate for each milestone. Review the [granular roadmap](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md) and [execution graph](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/EXECUTION_GRAPH.md).
-
-The old M1-M6 milestone IDs were superseded by the granular plan. M0-01 through M0-05 and G0 retain their meaning. This branch implements the M0 engineering foundation only. All subsequent business capabilities are planned.
-
-### Mandatory E-drive storage
-
-All persistent HarborOps development data must stay on E:, including the working tree at `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`, caches and M0 evidence under `E:\\APP IDEAS\\harborops-m0-cache`, and Docker Desktop/WSL data and volumes. See [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) for PowerShell session setup and preflight checks. C: is reserved for unavoidable short-lived Windows temporary writes only. Do not create new persistent project storage on C:.
-
-### Pending M0 hardening verification
-
-The initial hardening audit demonstrated .NET 10 compilation, database startup and copied-volume compatibility, clean final image scans and 12 browser passes, but also exposed a 4/5 fresh-database failure and a 4.24:1 contrast issue. Fixes are now committed. The corrected code **passed** cold-state tests, fresh disposable database startup, image scans and the functional browser matrix at the verified revision. Existing local Docker volume compatibility is not a G0 requirement; lightweight compatibility checkpoints belong to M6, M12, M18 and M24-03, with the full recovery/migration rehearsal at M19. Review [Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) before considering this revision verified. The browser runner stores npm cache and browser binaries on E: and uses a committed `tests/browser/package-lock.json` that still requires a fresh `npm ci` check.
+M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone sequencing is dependency based, not a calendar deadline. Current delivery status is recorded only in [Project Status](docs/STATUS.md).
 
 ### Local M0 startup
 
@@ -68,14 +68,17 @@ Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 10 SDK for stand
 
 The web image installs from the committed `web/package-lock.json` with `npm ci`. Run `bash scripts/verify-local.sh` with a disposable `HARBOROPS_TEST_DB` value for the full build and test sequence. Compose uses a one-shot migrator and a synthetic baseline seed, and does not run a tracking worker or ship production data. Integration tests only run against a loopback PostgreSQL database named `harborops_integration` or `harborops_test`. See [M0 Verification](docs/M0_VERIFICATION.md) for environment details, evidence and limitations.
 
+
 ### Documentation index
 
 | Document | Purpose |
 | --- | --- |
-| [Project Status](docs/STATUS.md) | Implemented, pending, and verified work |
-| [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) | E-drive workspace, caches, Docker and evidence constraints |
-| [M0 Verification](docs/M0_VERIFICATION.md) | Previous baseline's executed test evidence |
-| [M0 Hardening Verification](docs/M0_HARDENING_VERIFICATION.md) | Passed .NET 10, fresh PostgreSQL, Docker recovery, functional browser and image verification |
+| [Product Requirements Document](docs/PRD.md) | Authoritative product vision, scope, and outcomes |
+| [Delivery Roadmap](docs/ROADMAP.md) | Authoritative milestone plan and gates |
+| [Execution Graph](docs/EXECUTION_GRAPH.md) | Generated execution dependencies and work packages |
+| [Execution Graph Data](docs/execution-graph.json) | Canonical dependency edges and node IDs |
+| [Project Status](docs/STATUS.md) | Authoritative implementation, verification, and acceptance state |
+| [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) | Mandatory E-drive workspace, caches, runtime data and evidence locations |
 | [Product Scope](docs/PRODUCT_SCOPE.md) | Goals, non-goals, personas, and constraints |
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
@@ -85,7 +88,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Security](docs/SECURITY.md) | Threat model and security acceptance gates |
 | [Operations](docs/OPERATIONS.md) | Monitoring, incidents, backups, and recovery |
 | [Testing Strategy](docs/TEST_STRATEGY.md) | Test layers, fixtures, and quality gates |
-| [Implementation Plan](docs/IMPLEMENTATION_PLAN.md) | Milestones, dependencies, and work packages |
+| [Implementation Notes](docs/IMPLEMENTATION_PLAN.md) | Supporting development method, not a separate roadmap |
 | [Acceptance Criteria](docs/ACCEPTANCE_CRITERIA.md) | Release and milestone readiness requirements |
 | [Cost and Deployment](docs/COST_AND_DEPLOYMENT.md) | Zero-cost baseline and hosted-demo constraints |
 | [Demo Scenarios](docs/DEMO_SCENARIOS.md) | Reproducible product walkthroughs |
@@ -106,6 +109,10 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 
 HarborOps is an independent demonstration platform. It does not claim affiliation with any shipping line, authority, port operator, or industry standards organization. Use of third-party identifiers, geographic data, map tiles, and specifications is subject to the applicable rights and service policies.
 
+### M0 verification evidence
+
+The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) preserves the complete 2026-10-31 G0 evidence. The successful GitHub Actions run covered 1 unit, 10 contract, 5 fresh and 5 repeat integration, 6 web and 12 browser tests, Compose fault/recovery and three high/critical image scans. Existing local Docker volumes are not M0 gate requirements. Accessibility testing occurs only at M24-04.
+
 ### Current state
 
-The hardened M0 foundation passed the regression and image checks in GitHub Actions run #2. **G0 is verified, acceptance pending** until explicitly accepted. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).
+The default `main` branch contains the accepted M0 engineering foundation. G0 was verified on the hardening branch and merged via PRs #3 and #1. The code includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic seed, React status UI and Docker Compose. Full shipment, tracking, analytics and incident workflows remain planned for M1-M24. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).

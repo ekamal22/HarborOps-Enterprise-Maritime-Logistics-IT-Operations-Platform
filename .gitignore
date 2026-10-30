@@ -1,0 +1,26 @@
+# Local configuration and private credentials
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/secrets.json
+
+# .NET
+**/bin/
+**/obj/
+**/TestResults/
+*.user
+*.suo
+
+# Web
+**/node_modules/
+**/dist/
+**/*.tsbuildinfo
+
+# Development
+.vs/
+.vscode/
+.idea/
+.DS_Store
+*.log

@@ -39,6 +39,10 @@ HarborOps provides a single operational workspace for maritime shipment lifecycl
 - Fully automated operational decisions with no human confirmation.
 - Native mobile applications and general-purpose ERP replacement.
 
+## Baseline state and storage
+
+The M0 local runtime was verified on 2026-10-30 against code revision `4fb34eb`, with G0 verified and **acceptance pending**. Real shipment, tracking, user/organization and incident capabilities remain planned for M1-M24. Local persistent development and verification data must use E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md), with only unavoidable temporary Windows writes on C: permitted.
+
 ## Product principles
 
 - Every operational record has an explicit organization boundary.

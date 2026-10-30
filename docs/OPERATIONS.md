@@ -6,7 +6,7 @@
 - Demonstration: disposable cloud environment activated only when required.
 - Production: not in scope for initial milestone acceptance.
 
-No infrastructure is currently deployed or verified.
+M0 local Compose infrastructure was started on a clean volume and verified on Windows 11 at code revision `4fb34eb`. The stack was stopped after testing, and no hosted service is running. The configured stack contains PostgreSQL, one-shot database migration/seed, HTTP API, and static frontend. New M0 hardening verification is recorded separately in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The worker shell is intentionally not part of the running stack until tracking processing is implemented.
 
 ## Observability requirements
 
@@ -82,7 +82,7 @@ Only run failure injections against isolated local or authorized demonstration i
 
 ### Recovery readiness
 
-A backup is not considered viable until a clean restore test passes. Create a runbook before M5 and include a reproducible restore verification record in the acceptance evidence.
+A backup is not considered viable until a clean restore test passes. Create a runbook before M19 and include a reproducible restore verification record in the acceptance evidence. Restarting PostgreSQL in M0 is not an isolated backup/restore demonstration.
 
 ## Deployment guardrails
 
@@ -93,7 +93,7 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 - Set a budget or usage cap, disable optional paid services, and document shutdown steps.
 - Record exact deployment version and whether sample data is synthetic.
 
-## Required runbooks by M5
+## Required runbooks by M19
 
 - Start and stop local stack.
 - Seed and reset demonstration dataset.
@@ -102,3 +102,24 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 - Restore database from backup.
 - Rotate and revoke integration credentials.
 - Deactivate hosted demonstration resources.
+
+## Storage and evidence handling
+
+Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Keep the repository, caches, PostgreSQL/Docker/WSL data, logs, screenshots and build outputs on E:. The verified local setup used `E:\\APP IDEAS\\harborops-m0-cache` for dependency caches and evidence. Do not introduce persistent C-drive project storage; system temporary writes are permitted only when unavoidable. No global disk relocation, pruning or data deletion is authorized by this runbook.
+
+## Quarter-mile retained-volume verification
+
+Existing local Docker volumes do not need to be checked on each M0 code revision. G0 tests only fresh disposable PostgreSQL initialization and safe outage/recovery. Lightweight snapshot compatibility checks are scheduled at M6, M12, M18 and M24-03; record NOT APPLICABLE when no historical snapshot exists. M19 remains the full backup/restore and historical upgrade rehearsal. Prior to rolling out a breaking schema or database-storage change to retained data, rehearsal-test that migration against a disposable copy. No routine check may modify the original volume.
+
+## M0 local runbook
+
+- Set a unique password in a local untracked `.env` based on `.env.example`
+- Run `docker compose config --quiet` to validate interpolation, then `docker compose up -d --build`
+- Inspect `docker compose ps` and `docker compose logs migrator api postgres web`
+- Probe `/health/live`, `/health/ready`, and `/api/v1/system/baseline`
+- Run `bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable` on a separate disposable test project with valid local credentials; this script refuses the primary database project
+- Stop with `docker compose down`. Only use `docker compose down -v` for deliberate data deletion
+
+The database is bound only to `127.0.0.1:55432` on the host; the API and web ports are bound to loopback. Compose does not configure HTTPS and must not be exposed as-is on a public network.
+
+Failure behavior (verified 2026-10-30, see [M0 Verification](M0_VERIFICATION.md)): when PostgreSQL becomes unavailable after startup, liveness stays HTTP 200, readiness becomes HTTP 503 and the baseline endpoint returns a controlled HTTP 503 with a correlation identifier. The UI shows a service error and recovers on refresh after the database returns. To repeat the exercise on a disposable local stack run `bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage` against the same isolated test project. Bootstrap schema migration recovery, backup, and restore procedures remain pending until M19.

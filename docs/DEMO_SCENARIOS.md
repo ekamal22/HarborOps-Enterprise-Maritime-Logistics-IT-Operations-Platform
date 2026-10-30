@@ -76,4 +76,4 @@ No live customer or carrier data is required. The seed version and expected outp
 
 For each scenario: scenario ID, run date, git SHA, seed version, environment, steps observed, screenshots or logs, expected versus actual, issues, and status.
 
-All scenarios are planned; no demonstration has yet been executed.
+The complete D01-D06 business and incident scenarios remain planned; none has been executed as a full product acceptance demonstration. Separately, the M0 technical baseline and its browser, migration and database-failure smoke scenarios were locally verified at code revision `4fb34eb` (see [M0 Verification](M0_VERIFICATION.md)). G0 is verified, acceptance pending. Local demonstration fixtures, screenshots, logs and caches must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md).

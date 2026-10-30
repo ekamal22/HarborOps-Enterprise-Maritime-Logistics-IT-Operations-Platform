@@ -23,7 +23,7 @@ A modular monolith provides the HTTP API and transactional domain functions. A s
     API + Worker -> OpenTelemetry -> Prometheus/Grafana + structured logs
     Monitoring signals -> Incident workflow
 
-The diagram is conceptual; no services have been deployed.
+The diagram is the target topology for later milestones. In M0, the code contains the API, PostgreSQL DbContext and migrator, React status interface, and an idle worker shell. Tracking ingestion, domain modules, metrics, tracing, and incidents are not implemented. Docker Compose startup, database-backed API, browser path and controlled database outage/recovery were verified locally at code revision `4fb34eb`. The containers were stopped after verification; this is not a hosted deployment.
 
 ## Bounded modules
 
@@ -55,7 +55,7 @@ Append-only records of sensitive actions and key operational state changes. No d
 - Shared infrastructure abstractions must not obscure domain ownership.
 - Prefer straightforward synchronous paths until measurable requirements justify additional infrastructure.
 
-## Proposed repository layout
+## Repository layout
 
     src/
       HarborOps.Api/
@@ -83,7 +83,7 @@ Append-only records of sensitive actions and key operational state changes. No d
       scenarios/
     docs/
 
-Directories are proposed; do not infer that they already exist.
+The application, worker shell, test projects, scripts, and Compose configuration have been added. Some target directories such as `infra/monitoring`, tracking adapters, and the new browser matrix is implemented as source but not yet executed.
 
 ## Persistence strategy
 
@@ -117,3 +117,23 @@ Local first: PostgreSQL + API + worker + web + optional telemetry, all container
 6. Uncontrolled external map, compute, or telemetry costs.
 
 Each risk has corresponding test and operations requirements. See SECURITY.md, EVENT_PROCESSING.md, and TEST_STRATEGY.md.
+
+## Local disk boundary
+
+The source, build outputs, dependency caches, PostgreSQL/Docker Desktop data and test evidence must use E-drive storage per [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Only unavoidable short-lived Windows temporary writes on C: are permitted.
+
+## Verified M0 runtime modernization
+
+The hardening branch targets .NET 10 and EF Core 10 while preserving the original PostgreSQL 16 on-disk format and immutable bootstrap migration. The PostgreSQL container runs under the built-in non-root account with the `gosu` binary removed. The modernized runtime passed full GitHub Actions verification at exact commit `fec7429415fede121db8a4a34f0df72cd4fac609`; subsequent code changes require a new run. The detailed test matrix is in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+
+## M0 implemented boundaries
+
+- `src/HarborOps.Api`: HTTP composition root, public minimal status endpoint, liveness and readiness, sanitized error envelope, correlation IDs, and JSON console logs
+- `src/HarborOps.Application`: read-only baseline service contract
+- `src/HarborOps.Domain`: immutable synthetic baseline identifiers
+- `src/HarborOps.Infrastructure`: EF Core context, PostgreSQL migration, deterministic baseline seed, and read service
+- `src/HarborOps.Worker`: idle host shell only; no tracking processing
+- `web`: React status UI reading the API, with loading and dependency-error states
+- `compose.yaml`: PostgreSQL, one-shot migrator, API, and static frontend
+
+The M0 baseline record is infrastructure metadata, not a shipment or organization entity. The API does not run migrations while serving requests. Initial database creation and seeding occur in the one-shot migrator container. Subsequent migrations require an explicit operational check. No protected business endpoints exist at this stage.

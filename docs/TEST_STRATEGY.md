@@ -10,9 +10,9 @@ The separate implementation branch records G0 as verified, acceptance pending, a
 
 All test workspace, cache, browser evidence and container/database data must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). C: is not permitted for new persistent project-specific test data.
 
-## Accessibility testing by stage
+## Accessibility verification timing
 
-At M0, automated browser checks establish text contrast, keyboard focus/activation, accessible button labels, error/status semantics, and no layout overflow at representative widths. Full manual screen-reader evaluation is deferred to M23 Interface polish and accessibility. It must not be treated as an M0 gate blocker.
+**Accessibility tests run only in M24-04, after feature delivery and M23 interface polish.** Do not include dedicated accessibility assertions, accessibility scans, or WCAG checks in G0-G23 gates. M0 browser tests may prove ordinary API-to-browser functionality and error recovery without checking accessibility. The final M24-04 suite covers color contrast, keyboard/focus, screen-reader operation, button/form labels, error announcements, browser zoom, responsive usability, and complete workflows. Accessibility defects identified there require corrections and re-testing before G24 acceptance.
 
 ## Test layers
 
@@ -22,7 +22,7 @@ At M0, automated browser checks establish text contrast, keyboard focus/activati
 | Database integration | xUnit + PostgreSQL test database | Transactions, constraints, migration paths, concurrency |
 | API integration | ASP.NET Core integration test host | Status codes, validation, auth, organization isolation |
 | Contract | OpenAPI validation + fixture tests | Schema versions, errors, event adapter mapping |
-| Browser E2E | Playwright | Shipment workflow, alerts, filters, accessibility-critical flows |
+| Browser E2E | Playwright | Functional shipment workflows and browser recovery through M23; accessibility-critical flows tested only in M24-04 |
 | Security | Targeted adversarial tests + OWASP ZAP in test environment | BOLA/BFLA, injections, leaks, session boundaries |
 | Load | k6 | Documented scenario throughput and p95 latency |
 | Recovery | Controlled fault injection | Worker restart, duplicate protection, backup restore |

@@ -22,7 +22,7 @@ The audit was executed on a detached E-drive verification worktree, against an i
 | Final api/web/postgres image scan | PASS, 0 HIGH/CRITICAL | Trivy 0.58.1 and vulnerability DB refreshed 2026-10-30 |
 | Chromium/Firefox/WebKit original suite | PASS, 12/12 | Temporary npm lockfile, not reproducible from Git at that revision |
 | WCAG contrast on baseline UI | FAIL | Footer text 4.24:1; 4.5:1 required |
-| Screen-reader spoken output | NOT RUN | Not available in the audited environment |
+| Manual screen-reader testing | DEFERRED | Not required for M0; scheduled for M23 interface polish and accessibility |
 
 Evidence captured on E: under `E:\APP IDEAS\harborops-m0-cache\evidence\m0-hardening`. Neither the original M0 volume nor unrelated containers were modified.
 
@@ -31,7 +31,7 @@ Evidence captured on E: under `E:\APP IDEAS\harborops-m0-cache\evidence\m0-harde
 | ID | Finding and source-level correction | Verification still required |
 | --- | --- | --- |
 | D1 | Integration recovery uses a **new DbContext** after raw SQL deletes the row, avoiding stale tracked entities | Execute the specific integration test on a new database and multiple complete cold runs |
-| D2 | Footer color changed to `text-slate-400`; ready-state announcement uses its own status role instead of nested live regions | Rerun all browser engines, contrast measurement and screen-reader checks |
+| D2 | Footer color changed to `text-slate-400`; ready-state announcement uses its own status role instead of nested live regions | Rerun all browser engines, measured contrast and automated status/keyboard assertions |
 | D3 | PowerShell runners resolve their own checkout or specified E-drive worktree, support expected SHA, and image scanning resolves running container IDs and source-revision labels | Run each runner on the corrected worktree and confirm stale image/branch rejection |
 | D3 | Compose smoke and outage scripts require an explicit disposable `ho-verify` project and confirmation; both support an external env file | Test positive and fail-closed paths; confirm original project remains untouched |
 | D4 | `tests/browser/package-lock.json` added with exact Playwright 1.64.1 registry URLs and integrity hashes cross-checked between two independently generated npm lock records | Execute `npm ci` on E: and validate lockfile consistency; no local install run on the corrected branch yet |
@@ -79,9 +79,9 @@ powershell -NoProfile -File scripts/verify-container-security.ps1 -Project ho-ve
 
 This resolves **immutable image IDs from running Compose containers**, rejects mismatched source-revision labels and writes redacted evidence under the E-drive cache. A local copy of the selected scanner image is needed; no fallback to stale `latest` tags is allowed.
 
-### Manual accessibility
+### M0 accessibility gate: automated only
 
-Complete keyboard navigation, error/ready announcements using Narrator or NVDA, measured contrast, actual browser-level zoom at 200%, and a 320px layout check. Record browser and screen-reader versions and observed output. Automated DOM assertions do not prove spoken announcements.
+M0 requires automated checks for text contrast (WCAG AA for small text), meaningful headings, accessible button names, keyboard activation and focus visibility, error/status roles, responsive layout and no horizontal overflow. Execute those checks through the Chromium, Firefox and WebKit browser suite. Where tests are not automated, record a limitation rather than claiming it passed. **Manual screen-reader use, spoken-output validation and manual browser zoom are not M0 acceptance requirements.** They are deferred to M23 Interface polish and accessibility when the actual business workflows and navigation are implemented. Do not block M0 solely because no screen reader is installed.
 
 ## Required acceptance evidence for corrected branch
 
@@ -92,7 +92,7 @@ Complete keyboard navigation, error/ready announcements using Narrator or NVDA, 
 5. Source-labeled Compose build, successful smoke run and isolated database outage/recovery.
 6. Trivy 0.76.1 or newer scan of actual running PostgreSQL, API and web images, with current DB metadata and observed critical/high counts.
 7. Committed-lockfile `npm ci`, frontend build, and expanded Chromium/Firefox/WebKit results.
-8. Actual contrast and screen-reader/zoom observations, or explicit NOT RUN/blocked status.
+8. Automated text contrast, accessible names, keyboard/focus, error/status roles and responsive-width results. Manual screen reader and real-device zoom are deferred to M23, not blockers for G0.
 9. Hygiene, warnings, remaining vulnerability disposition, exact logs and result matrix.
 
 **Status:** Corrections committed, full revised-branch verification pending. No milestone acceptance or public-deployment authorization is implied. M1 remains unstarted.

@@ -1,5 +1,9 @@
 # Engineering and Documentation Conventions
 
+## Required workspace storage
+
+All project-specific persistent files must be on E:. Use `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform` for the repository; keep NuGet/npm caches, Docker/WSL state, database volumes, build outputs, temporary project datasets, screenshots and logs under approved E-drive directories. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Unavoidable short-lived Windows temporary activity on C: is permitted; new persistent project storage on C: is not. Inspect effective paths before running new tools, and do not prune or relocate unrelated data.
+
 ## Working approach
 
 - Keep changes limited to the named milestone and its explicit dependencies.

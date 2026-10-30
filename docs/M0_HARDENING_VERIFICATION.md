@@ -21,8 +21,8 @@ The audit was executed on a detached E-drive verification worktree, against an i
 | Compose bootstrap and database outage/recovery | PASS | 200/200/200, 200/503/503, 200/200/200 |
 | Final api/web/postgres image scan | PASS, 0 HIGH/CRITICAL | Trivy 0.58.1 and vulnerability DB refreshed 2026-10-30 |
 | Chromium/Firefox/WebKit original suite | PASS, 12/12 | Temporary npm lockfile, not reproducible from Git at that revision |
-| WCAG contrast on baseline UI | FAIL | Footer text 4.24:1; 4.5:1 required |
-| Manual screen-reader testing | DEFERRED | Not required for M0; scheduled for M23 interface polish and accessibility |
+| Historical WCAG contrast observation | FAIL on audited revision | Footer previously measured 4.24:1; corrected styling is committed, final accessibility testing belongs to M24-04 |
+| Accessibility audit | DEFERRED | All accessibility testing, automated and manual, belongs exclusively to M24-04 |
 
 Evidence captured on E: under `E:\APP IDEAS\harborops-m0-cache\evidence\m0-hardening`. Neither the original M0 volume nor unrelated containers were modified.
 
@@ -31,11 +31,11 @@ Evidence captured on E: under `E:\APP IDEAS\harborops-m0-cache\evidence\m0-harde
 | ID | Finding and source-level correction | Verification still required |
 | --- | --- | --- |
 | D1 | Integration recovery uses a **new DbContext** after raw SQL deletes the row, avoiding stale tracked entities | Execute the specific integration test on a new database and multiple complete cold runs |
-| D2 | Footer color changed to `text-slate-400`; ready-state announcement uses its own status role instead of nested live regions | Rerun all browser engines, measured contrast and automated status/keyboard assertions |
+| D2 | Footer color changed to `text-slate-400`; ready-state announcement uses its own status role instead of nested live regions | Rerun functional browser checks; defer contrast, keyboard and status accessibility verification to M24-04 |
 | D3 | PowerShell runners resolve their own checkout or specified E-drive worktree, support expected SHA, and image scanning resolves running container IDs and source-revision labels | Run each runner on the corrected worktree and confirm stale image/branch rejection |
 | D3 | Compose smoke and outage scripts require an explicit disposable `ho-verify` project and confirmation; both support an external env file | Test positive and fail-closed paths; confirm original project remains untouched |
 | D4 | `tests/browser/package-lock.json` added with exact Playwright 1.64.1 registry URLs and integrity hashes cross-checked between two independently generated npm lock records | Execute `npm ci` on E: and validate lockfile consistency; no local install run on the corrected branch yet |
-| D5 | Added independent three-engine regression scenarios for refresh races, external requests/console errors, four widths, footer contrast and status semantics | Run the expanded suite from committed lockfile; verify no legitimate aborts are misclassified |
+| D5 | Added three-engine functional browser regressions for refresh races, external requests and console errors; isolated accessibility specs in a separate opt-in M24-only suite | Run the M0 functional suite from the committed lockfile; run accessibility specs only at M24-04 |
 | D6 | Removed redundant ASP.NET URL override; retained documented low-severity image/package concerns | Confirm runtime log warning is gone; review remaining library and image observations |
 
 Unchanged low-severity concerns: test-only xUnit 2.x is marked legacy; a GSSAPI library warning was observed during migrator startup; the web service still uses the stock nginx capability profile; base image tags and `apk upgrade` can change downstream package contents between builds. Do not change these speculatively without verification and an explicit security assessment. The scanner runner now defaults to the reviewed Trivy 0.76.1 container image; its actual new scan has not been executed.
@@ -79,17 +79,17 @@ powershell -NoProfile -File scripts/verify-container-security.ps1 -Project ho-ve
 
 This resolves **immutable image IDs from running Compose containers**, rejects mismatched source-revision labels and writes redacted evidence under the E-drive cache. A local copy of the selected scanner image is needed; no fallback to stale `latest` tags is allowed.
 
-### M0 accessibility gate: automated only
+### Final-release-only accessibility testing
 
-M0 requires automated checks for text contrast (WCAG AA for small text), meaningful headings, accessible button names, keyboard activation and focus visibility, error/status roles, responsive layout and no horizontal overflow. Execute those checks through the Chromium, Firefox and WebKit browser suite. Where tests are not automated, record a limitation rather than claiming it passed. **Manual screen-reader use, spoken-output validation and manual browser zoom are not M0 acceptance requirements.** They are deferred to M23 Interface polish and accessibility when the actual business workflows and navigation are implemented. Do not block M0 solely because no screen reader is installed.
+**No accessibility testing is required for G0-G23.** The M0 Playwright command runs functional browser tests only, not contrast, keyboard, focus, accessible naming, screen-reader, zoom, responsive accessibility or WCAG assertions. Accessibility test cases are segregated in `tests/browser/release/` and not discovered by the default `tests/browser/playwright.config.mjs`. They may be run only during **M24-04**, the final release work package, using `npm run test:final-accessibility` and the separate release configuration. M23 is interface polish, not accessibility validation. The full M24 audit will cover the finished product and include manual assistive-technology assessment.
 
 ## GitHub Actions as the M0 verification environment
 
-A GitHub-hosted Ubuntu runner can serve as the sole M0 verification environment if its workflow performs all required checks at the exact commit and publishes evidence. It must execute clean .NET 10 restore/build and all tests against an empty PostgreSQL database, migration and repeatability checks, Compose startup, controlled database outage/recovery, a current vulnerability scan of the exact running images, locked frontend and browser dependency installation, and the Chromium/Firefox/WebKit suites with automated accessibility assertions. The repository's current manual `.github/workflows/verify-m0.yml` covers only a subset and is **not yet sufficient as a complete G0 verification workflow**.
+A GitHub-hosted Ubuntu runner can serve as the sole M0 verification environment if its workflow performs all required checks at the exact commit and publishes evidence. It must execute clean .NET 10 restore/build and all tests against an empty PostgreSQL database, migration and repeatability checks, Compose startup, controlled database outage/recovery, a current vulnerability scan of the exact running images, locked frontend and browser dependency installation, and Chromium/Firefox/WebKit functional browser checks only. It does not require accessibility tests at G0. The repository's current manual `.github/workflows/verify-m0.yml` covers only a subset and is **not yet sufficient as a complete G0 verification workflow**.
 
 Do not claim CI verification until the workflow has actually run against the corrected SHA and its required jobs pass. A workflow limited to `workflow_dispatch` may need an appropriate reviewed trigger to run against an unmerged branch; do not enable an automatic paid-minutes-consuming trigger without approval. GitHub-hosted runner storage is temporary remote storage, not the workstation C: drive. The E-drive policy remains mandatory for local work.
 
-Manual screen-reader testing and full assistive-technology journeys are intentionally deferred to M23 and do not need to be simulated or marked NOT RUN to satisfy G0.
+All accessibility verification, automated or manual, is deferred to final M24-04 and is explicitly excluded from M0 acceptance.
 
 ## Required acceptance evidence for corrected branch
 
@@ -100,7 +100,7 @@ Manual screen-reader testing and full assistive-technology journeys are intentio
 5. Source-labeled Compose build, successful smoke run and isolated database outage/recovery.
 6. Trivy 0.76.1 or newer scan of actual running PostgreSQL, API and web images, with current DB metadata and observed critical/high counts.
 7. Committed-lockfile `npm ci`, frontend build, and expanded Chromium/Firefox/WebKit results.
-8. Automated text contrast, accessible names, keyboard/focus, error/status roles and responsive-width results. Manual screen reader and real-device zoom are deferred to M23, not blockers for G0.
+8. Functional browser results for data display, refresh, API failure and recovery in Chromium, Firefox and WebKit. Accessibility checks are not G0 requirements and are deferred entirely to M24-04.
 9. Hygiene, warnings, remaining vulnerability disposition, exact logs and result matrix.
 
 **Status:** Corrections committed, full revised-branch verification pending. No milestone acceptance or public-deployment authorization is implied. M1 remains unstarted.

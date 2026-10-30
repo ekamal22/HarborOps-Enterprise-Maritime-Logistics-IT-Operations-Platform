@@ -6,6 +6,15 @@ command -v curl >/dev/null || { echo "curl required"; exit 1; }
 command -v node >/dev/null || { echo "Node.js required"; exit 1; }
 
 docker compose up -d --build
+
+# The final Postgres image must run as its existing non-root account,
+# without a gosu executable or compatibility symlink.
+docker compose exec -T postgres sh -ec '
+  test "$(id -u)" = "70"
+  test ! -e /usr/local/bin/gosu
+  test ! -e /usr/local/bin/su-exec
+'
+
 for i in $(seq 1 60); do
   if curl --silent --fail http://localhost:8080/health/ready >/dev/null; then break; fi
   if [[ "$i" == 60 ]]; then echo "Readiness timeout"; docker compose ps; exit 1; fi

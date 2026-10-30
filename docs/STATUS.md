@@ -1,8 +1,8 @@
 # Project Status
 
 **As of:** 2026-10-30
-**Overall:** M0 engineering baseline implemented and runtime verified on the feature branch; acceptance pending
-**G0 (historical code `4fb34eb`):** previously verified, acceptance pending. The .NET 10 hardening revision has partial execution evidence at `a791561a` plus subsequent source corrections that remain unverified. M1 has not started.
+**Overall:** M0 hardening corrections committed; full cold-state regression and acceptance verification pending
+**G0:** reopened for verification. A later fresh-database test failed on the historical `4fb34eb` baseline and the initial .NET 10 hardening revision. Corrective code is committed but not yet retested. Acceptance pending. M1 has not started.
 
 ## Delivery ledger
 
@@ -10,14 +10,14 @@ This branch follows the granular M0-M24 roadmap on the [planning branch](https:/
 
 | Milestone | State | Evidence |
 | --- | --- | --- |
-| **M0 Engineering baseline verification** | G0 verified, acceptance pending | [M0 Verification](M0_VERIFICATION.md): code revision `4fb34eb`, 16 .NET tests and 6 web tests passing, clean-volume Compose run, browser path, database outage and recovery, dependency and image scans |
+| **M0 Engineering baseline verification** | G0 reopened, acceptance pending | The earlier `4fb34eb` suite passed against an already seeded test database; a later isolated cold-database run reproduced a test failure. Fix committed on the hardening branch, re-verification required. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). |
 | **M1-M24** | Planned | No implementation; gates G1-G24 are open |
 
 ## Hardening changes pending verification
 
 This branch proposes an upgrade from .NET 8/EF Core 8 to .NET 10/EF Core 10, a derived PostgreSQL 16 image running as UID 70 with the upstream `gosu` binary removed, a refreshed test toolchain and a cross-browser suite (Chromium, Firefox, WebKit). A manual screen-reader procedure and an E-drive-only image scan runner have also been added.
 
-**Corrected branch gate: re-verification pending.** The initial independent hardening audit passed build, database container startup, security scans and 12 browser checks but found a fresh-database integration failure (4/5) and a footer contrast failure. Both have source fixes; the corrected revision must be retested. Do not carry forward old G0 test counts to the new code SHA. The evidence and exact required checks are in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The original M0 verification at `4fb34eb` remains historical evidence, not a pass for these changes.
+**Corrected branch gate: re-verification pending.** The initial independent hardening audit passed build, database container startup, security scans and 12 browser checks but found a fresh-database integration failure (4/5) and a footer contrast failure. Both have source fixes; the corrected revision must be retested. Do not carry forward old G0 test counts to the new code SHA. The evidence and exact required checks are in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The original `4fb34eb` test result remains historical evidence, but the later cold-database failure prevents relying on it as a complete G0 pass.
 
 ## M0 source inventory
 

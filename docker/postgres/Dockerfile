@@ -5,6 +5,8 @@
 # Running under the image's existing postgres account avoids that branch.
 # Verify fresh init and existing-volume access before replacing a running image.
 FROM postgres:16.15-alpine3.24
+ARG SOURCE_REVISION=unverified
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION
 
 USER root
 RUN set -eux; \

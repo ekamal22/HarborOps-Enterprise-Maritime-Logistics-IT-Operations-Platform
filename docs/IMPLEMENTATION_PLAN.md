@@ -30,11 +30,11 @@ For each work package, record:
 
 The accepted M0 implementation is integrated into `main`. It includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic database seed, an idle worker shell, a React status UI, Docker Compose, and executable test suites. The corrected source passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at `fec7429415fede121db8a4a34f0df72cd4fac609`: 1 unit, 10 contract, 5 fresh plus 5 repeat integration, 6 web and 12 functional browser tests, Compose outage/recovery, and PostgreSQL/API/web vulnerability scans. **G0 accepted** on 2026-10-31. No M1 code has started. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
-G0 evidence is recorded and accepted. D-001 is now approved as the M1 browser cookie and server-session architecture. The next implementation milestone remains M1, which has not started. Do not claim M1 has started or is accepted. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 verification record is [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) on `main`; [M0 Verification](M0_VERIFICATION.md) preserves the earlier historical run.
+G0 evidence is recorded and accepted. D-001 is now approved as the M1 browser cookie and server-session architecture. M1 is implemented and verified on the feature branch. G1 acceptance pending; do not claim the feature is merged into `main` or accepted. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 verification record is [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) on `main`; [M0 Verification](M0_VERIFICATION.md) preserves the earlier historical run.
 
-## Approved M1 implementation work packages (not started)
+## M1 implementation work packages (verified on feature branch; acceptance pending)
 
-Authoritative design: [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md), [D-001](ADR_D001_BROWSER_SESSIONS.md), [G1 Verification](M1_VERIFICATION_PLAN.md). Do not infer implementation or runtime acceptance from approved documents.
+Authoritative design: [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md), [D-001](ADR_D001_BROWSER_SESSIONS.md), [G1 Verification](M1_VERIFICATION_PLAN.md). See [executed M1 verification](M1_IMPLEMENTATION_VERIFICATION.md) for actual implementation and runtime evidence. Approval of this implementation remains a separate gate.
 
 | Package | Detailed deliverable | Completion evidence |
 | --- | --- | --- |

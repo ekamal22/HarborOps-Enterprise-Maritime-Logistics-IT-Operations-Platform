@@ -4,7 +4,7 @@
 
 ## Requirement status
 
-Requirements describe the intended complete product. G0 is accepted; the M1 authentication design and D-001 are approved, but FR-001 is not implemented or verified. A requirement is considered delivered only after its tests and acceptance evidence appear in [Status](STATUS.md).
+Requirements describe the intended complete product. G0 is accepted; D-001 and the M1 design are approved. FR-001 is implemented and verified on the feature branch, with acceptance pending. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
 
 ## Observed baseline and storage boundary
 

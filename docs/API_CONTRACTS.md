@@ -30,9 +30,9 @@ The workspace, caches and test artifacts must follow [Local Storage Policy](LOCA
 
 The baseline endpoint returns a safe `baseline_unavailable` error when the record is missing and a `dependency_unavailable` response for recognized database failures. Unhandled errors use a sanitized `internal_error` envelope. Every API response is intended to carry `X-Correlation-ID`; this behavior is covered by contract tests and was observed against the running stack on 2026-10-30.
 
-## Approved M1 authentication contract (not implemented)
+## Implemented M1 authentication contract (feature branch; acceptance pending)
 
-The M1 route group is `/api/v1/auth`. These routes are planned, **not currently served**. The authoritative detailed contract and negative matrix are [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 verification](M1_VERIFICATION_PLAN.md). The frontend must use same-origin `/api/` proxying in Nginx and Vite rather than cross-origin credential calls.
+The M1 route group is `/api/v1/auth`. These routes are served on `feat/m1-authentication-session-lifecycle` and are not yet merged into `main`. The authoritative detailed contract and negative matrix are [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 verification](M1_VERIFICATION_PLAN.md). The feature-branch frontend uses same-origin `/api/` proxying in Nginx and Vite. See [M1 executed evidence](M1_IMPLEMENTATION_VERIFICATION.md).
 
 | Method | Route | Access | Behavior |
 | --- | --- | --- | --- |

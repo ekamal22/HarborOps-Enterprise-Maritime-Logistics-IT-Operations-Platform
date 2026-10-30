@@ -32,9 +32,9 @@ A subsequent isolated cold-database test reproduced a tracked-row recovery failu
 
 All future work must honor [Local Storage Policy](LOCAL_STORAGE_POLICY.md): controllable persistent project storage on E:, allowing only unavoidable short-lived Windows temporary use on C:.
 
-## G1 detailed authentication gate (approved specification only)
+## G1 detailed authentication gate (verified on feature branch, acceptance pending)
 
-The selected D-001 architecture is [documented](ADR_D001_BROWSER_SESSIONS.md), and [M1 design](M1_AUTHENTICATION_DESIGN.md) and [verification plan](M1_VERIFICATION_PLAN.md) are approved. **G1 is not verified or accepted.** Before G1 verification, execute positive and negative tests for local provisioning, secure Argon2id verification, unknown/disabled accounts, session idle and absolute expiry, logout, logout-all, forced password-change/disable revocation, cookie replay rejection, protected API 401 without redirects, CSRF and foreign-origin denial, login throttling, database outage 503, persistent encryption keys across API restart, same-origin proxy and absence of credentials in logs.
+The selected D-001 architecture is [documented](ADR_D001_BROWSER_SESSIONS.md), and [M1 design](M1_AUTHENTICATION_DESIGN.md) and [verification plan](M1_VERIFICATION_PLAN.md) are approved. **G1 verification passed on the M1 feature branch; acceptance pending.** See the [execution record](M1_IMPLEMENTATION_VERIFICATION.md). Before G1 verification, execute positive and negative tests for local provisioning, secure Argon2id verification, unknown/disabled accounts, session idle and absolute expiry, logout, logout-all, forced password-change/disable revocation, cookie replay rejection, protected API 401 without redirects, CSRF and foreign-origin denial, login throttling, database outage 503, persistent encryption keys across API restart, same-origin proxy and absence of credentials in logs.
 
 Run fresh disposable PostgreSQL migration tests plus a disposable **M0-seeded-to-M1** additive migration, not a retained local volume. Execute functional Chromium/Firefox/WebKit browser tests, release build, dependency/image scanning and complete M0 regression checks. Maintain G1 state `acceptance pending` only after real passing evidence; design approval is not G1 verification. Full accessibility testing remains exclusively M24-04.
 

@@ -111,7 +111,7 @@ Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Keep the repository, cac
 
 Existing local Docker volumes do not need to be checked on each M0 code revision. G0 tests only fresh disposable PostgreSQL initialization and safe outage/recovery. Lightweight snapshot compatibility checks are scheduled at M6, M12, M18 and M24-03; record NOT APPLICABLE when no historical snapshot exists. M19 remains the full backup/restore and historical upgrade rehearsal. Prior to rolling out a breaking schema or database-storage change to retained data, rehearsal-test that migration against a disposable copy. No routine check may modify the original volume.
 
-## Planned M1 authentication operations (design approved, not deployed)
+## M1 authentication operations (feature-branch implementation, not publicly deployed)
 
 The approved [M1 design](M1_AUTHENTICATION_DESIGN.md) requires local interactive account provisioning without passwords in CLI arguments, shell history or CI artifacts. Administrative disablement, re-enablement and credential reset operate through restricted commands, with target database validation, transactional changes, session revocation and redacted `auth_events`. No web-accessible administrative account management is exposed at M1.
 

@@ -25,13 +25,13 @@ A modular monolith provides the HTTP API and transactional domain functions. A s
 
 The diagram is the target topology for later milestones. In M0, the code contains the API, PostgreSQL DbContext and migrator, React status interface, and an idle worker shell. Tracking ingestion, domain modules, metrics, tracing, and incidents are not implemented. Docker Compose startup, database-backed API, browser path and controlled database outage/recovery were verified historically at `4fb34eb`, then successfully reverified on `fec7429415fede121db8a4a34f0df72cd4fac609` with .NET 10 in GitHub Actions run #2. G0 was accepted on 2026-10-31. The containers were stopped after verification; this is not a hosted deployment.
 
-## Approved M1 authentication architecture (not yet implemented)
+## M1 authentication architecture (implemented on feature branch; acceptance pending)
 
 M1 uses server-managed browser sessions within the existing ASP.NET Core modular monolith. The React browser communicates over one origin through an Nginx production proxy or Vite development proxy for `/api/*`. The API issues protected, HTTP-only session cookies after Argon2id credential verification. A session-validation component checks the `auth_sessions` row and `users` state in PostgreSQL on **every** authenticated request. A missing, revoked, expired or version-stale session is denied; dependency failure is sanitized and fails closed. ASP.NET Core Data Protection keys persist on restricted E-backed storage so valid cookies survive container restart.
 
-M1 adds Domain identity states, Application sign-in and session services, Infrastructure EF Core repositories/password hashing and API middleware/endpoints. Four additive tables are planned: `users`, `user_credentials`, `auth_sessions` and `auth_events`. The public M0 synthetic status route remains unchanged. Integration principals are M7; organization roles and data scoping begin in M2, and cannot be inferred merely from a successful M1 login.
+The M1 branch adds identity entities and services in Infrastructure, EF Core persistence, and API cookie middleware/endpoints. Domain and Application retain the accepted M0 boundaries and have no new persistence or HTTP dependencies. Four additive tables are implemented: `users`, `user_credentials`, `auth_sessions` and `auth_events`. The public M0 synthetic status route remains unchanged. Integration principals are M7; organization roles and data scoping begin in M2, and cannot be inferred merely from a successful M1 login.
 
-[Detailed architecture](M1_AUTHENTICATION_DESIGN.md) | [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) | [G1 verification](M1_VERIFICATION_PLAN.md). This describes an approved future implementation, not existing code or a verified G1 gate.
+[Detailed architecture](M1_AUTHENTICATION_DESIGN.md) | [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) | [G1 verification](M1_VERIFICATION_PLAN.md). This describes implemented M1 feature-branch behavior and [executed verification evidence](M1_IMPLEMENTATION_VERIFICATION.md), not G1 acceptance or integration into `main`.
 
 ## Bounded modules
 

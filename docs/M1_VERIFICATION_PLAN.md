@@ -1,7 +1,7 @@
 # M1 G1 Verification Plan
 
-**State:** Approved test design, not executed.  
-**Gate:** G1, acceptance pending only after successful verification.  
+**State:** Approved test design executed against the M1 feature-branch source. [Execution record](M1_IMPLEMENTATION_VERIFICATION.md); acceptance pending.  
+**Gate:** G1 verification passed in [GitHub Actions run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41143665657); acceptance pending.  
 **Source:** [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Roadmap](ROADMAP.md).
 
 ## Verification environment

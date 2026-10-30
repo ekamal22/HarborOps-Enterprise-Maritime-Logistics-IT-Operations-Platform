@@ -356,9 +356,9 @@ flowchart TD
 | **M6-01: Define assignment invariants** | G5 | Model active intervals, overlap policy and link ownership | Domain edge cases and conflicting scenarios | FR-005 |
 | **M6-02: Implement shipment-container links** | M6-01 | Persist assignment intervals with overlap safeguards | Overlap, foreign equipment and concurrent-write tests | FR-005, FR-002 |
 | **M6-03: Implement shipment-voyage links** | M6-01 | Persist voyage association, transitions and reference validation | Cross-tenant and incompatible route tests | FR-005, FR-003 |
-| **M6-04: Verify complete allocation journey** | M6-02, M6-03 | Create shipment, attach container/voyage and inspect links | Browser/API and rolled-back failure matrix | FR-004, FR-005 |
+| **M6-04: Verify complete allocation journey** | M6-02, M6-03 | Create shipment, attach container/voyage and inspect links | Browser/API failure matrix plus Q1 disposable historical-volume compatibility checkpoint if a representative snapshot exists | FR-004, FR-005 |
 
-**G6 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M6 recorded; acceptance pending until explicitly confirmed.
+**G6 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M6 recorded; acceptance pending until explicitly confirmed; include corresponding quarterly snapshot compatibility result or documented not-applicable reason.
 
 ## Stage P1: Event ingestion and decision rules
 
@@ -570,9 +570,9 @@ flowchart TD
 | **M12-01: Define search contract and pagination** | G11 | Specify supported filters, bounded pages and stable ordering | Contract and filter edge-case fixtures | FR-011, NFR-006 |
 | **M12-02: Implement scoped search services** | M12-01 | Filter shipment data without leaking organization records | Direct-ID, foreign filter and aggregate tests | FR-011, FR-002 |
 | **M12-03: Implement controlled CSV export** | M12-01 | Export only authorized, filtered rows with safe CSV escaping | Foreign-tenant, injection and large export tests | FR-013, FR-002 |
-| **M12-04: Verify search/export UX** | M12-02, M12-03 | Wire interactive filters, detail transitions and exports | Browser filtering, empty-result and denied-export tests | FR-011, FR-013 |
+| **M12-04: Verify search/export UX** | M12-02, M12-03 | Wire interactive filters, detail transitions and exports | Browser filtering and denied-export tests plus Q2 disposable historical-volume compatibility checkpoint if available | FR-011, FR-013 |
 
-**G12 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M12 recorded; acceptance pending until explicitly confirmed.
+**G12 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M12 recorded; acceptance pending until explicitly confirmed; include corresponding quarterly snapshot compatibility result or documented not-applicable reason.
 
 ### M13: Operational KPI definitions and dashboards
 
@@ -782,9 +782,9 @@ flowchart TD
 | **M18-01: Define severity and state policy** | G17 | Specify New/Triage/Investigating/Mitigated/Monitoring/Resolved/Closed and reopen | Transition matrix and role grants | FR-016, FR-020 |
 | **M18-02: Implement incident CRUD and state controls** | M18-01 | Persist incident evidence, actor, service and explicit transitions | Invalid transition and concurrency/role tests | FR-016, NFR-002 |
 | **M18-03: Implement investigation and remediation** | M18-01 | Add timeline activities, cause, mitigation and corrective actions | No unauthorized exposure and evidence-required closure tests | FR-020, FR-014 |
-| **M18-04: Verify alert-to-incident workflow** | M18-02, M18-03 | Detect controlled fault, create incident, investigate and resolve | Complete reproducible incident scenario with audit trail | FR-016, FR-020 |
+| **M18-04: Verify alert-to-incident workflow** | M18-02, M18-03 | Detect controlled fault, create incident, investigate and resolve | Reproducible incident scenario plus Q3 disposable historical-volume compatibility checkpoint if available | FR-016, FR-020 |
 
-**G18 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M18 recorded; acceptance pending until explicitly confirmed.
+**G18 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M18 recorded; acceptance pending until explicitly confirmed; include corresponding quarterly snapshot compatibility result or documented not-applicable reason.
 
 ## Stage P4: Reliability and delivery assurance
 
@@ -995,10 +995,10 @@ flowchart TD
 | --- | --- | --- | --- | --- |
 | **M24-01: Freeze deterministic demonstration fixtures** | G23 | Pin two-organization data, route/event streams and scenario expectations | Fixture hash, count and setup reproducibility | FR-017, NFR-008 |
 | **M24-02: Run end-to-end scenario suite** | M24-01 | Exercise shipment, delay, ordering, tenant isolation, incident and restore cases | Observed D01-D06 exact outcomes and logs | FR-017, FR-009, NFR-004 |
-| **M24-03: Audit docs and test evidence** | M24-01 | Check implementation/requirement mapping, known limits and exact commands | No stale claims or missing mandatory verification | NFR-008, NFR-003 |
+| **M24-03: Audit docs and test evidence** | M24-01 | Check implementation/requirement mapping, known limits and exact commands | Documentation/evidence audit and Q4 disposable historical-volume compatibility checkpoint before the final M24-04 accessibility audit | NFR-008, NFR-003 |
 | **M24-04: Run final accessibility tests and release assessment** | M24-02, M24-03 | Execute automated and manual accessibility tests after all features and UX are complete; consolidate release readiness | Contrast, keyboard/focus, names/errors, zoom, screen-reader and full-workflow evidence; acceptance pending after G24 | NFR-008, NFR-009 |
 
-**G24 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed.
+**G24 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed; include corresponding quarterly snapshot compatibility result or documented not-applicable reason.
 
 ## How to execute the graph
 

@@ -23,7 +23,7 @@ A modular monolith provides the HTTP API and transactional domain functions. A s
     API + Worker -> OpenTelemetry -> Prometheus/Grafana + structured logs
     Monitoring signals -> Incident workflow
 
-The diagram is the target topology for later milestones. In M0, the code contains the API, PostgreSQL DbContext and migrator, React status interface, and an idle worker shell. Tracking ingestion, domain modules, metrics, tracing, and incidents are not implemented. Docker Compose startup has not been executed or verified.
+The diagram is the target topology for later milestones. In M0, the code contains the API, PostgreSQL DbContext and migrator, React status interface, and an idle worker shell. Tracking ingestion, domain modules, metrics, tracing, and incidents are not implemented. Docker Compose startup, database-backed API, browser path and controlled database outage/recovery were verified locally at code revision `4fb34eb`. The containers were stopped after verification; this is not a hosted deployment.
 
 ## Bounded modules
 
@@ -117,6 +117,10 @@ Local first: PostgreSQL + API + worker + web + optional telemetry, all container
 6. Uncontrolled external map, compute, or telemetry costs.
 
 Each risk has corresponding test and operations requirements. See SECURITY.md, EVENT_PROCESSING.md, and TEST_STRATEGY.md.
+
+## Local disk boundary
+
+The source, build outputs, dependency caches, PostgreSQL/Docker Desktop data and test evidence must use E-drive storage per [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Only unavoidable short-lived Windows temporary writes on C: are permitted.
 
 ## M0 implemented boundaries
 

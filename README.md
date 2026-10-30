@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0 source implementation in progress, verification incomplete. A minimal database-backed status API and React interface have been committed on the M0 feature branch. No complete runtime or deployment has been verified. Shipment, tracking, analytics, and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
+**Status:** M0 engineering baseline implemented and runtime verified on the feature branch (G0 verified, acceptance pending). Shipment, tracking, analytics and incident capabilities remain planned. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -46,7 +46,7 @@ The planning branch `docs/product-delivery-source-of-truth` defines the revised 
 
 The old M1-M6 milestone IDs were superseded by the granular plan. M0-01 through M0-05 and G0 retain their meaning. This branch implements the M0 engineering foundation only. All subsequent business capabilities are planned.
 
-### Local M0 startup (verification pending)
+### Local M0 startup
 
 Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 8 SDK for standalone development.
 
@@ -58,7 +58,7 @@ Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 8 SDK for standa
 6. On a disposable local Compose setup, run `bash scripts/check-m0-degraded.sh --confirm-local-outage` to test database interruption, API health behavior and recovery. The script temporarily stops the PostgreSQL service and restores it on exit.
 7. Use `docker compose down` to stop services. Add `-v` only to intentionally remove the local database.
 
-The Compose web bootstrap uses an unlocked install until a real `web/package-lock.json` is generated, reviewed, and committed. This allows local startup but does not meet M0 reproducibility acceptance. After adding the lockfile, run `bash scripts/verify-local.sh` with a disposable `HARBOROPS_TEST_DB` value; full acceptance also requires browser and database-outage checks. The Compose build uses a one-shot migrator and a synthetic baseline seed. It does not run a tracking worker or ship production data. Integration tests only run against a loopback PostgreSQL database named `harborops_integration` or `harborops_test`. See [M0 Verification](docs/M0_VERIFICATION.md) for prerequisites, incomplete checks, and failure testing.
+The web image installs from the committed `web/package-lock.json` with `npm ci`. Run `bash scripts/verify-local.sh` with a disposable `HARBOROPS_TEST_DB` value for the full build and test sequence. Compose uses a one-shot migrator and a synthetic baseline seed, and does not run a tracking worker or ship production data. Integration tests only run against a loopback PostgreSQL database named `harborops_integration` or `harborops_test`. See [M0 Verification](docs/M0_VERIFICATION.md) for environment details, evidence and limitations.
 
 ### Documentation index
 
@@ -98,4 +98,4 @@ HarborOps is an independent demonstration platform. It does not claim affiliatio
 
 ### Current state
 
-An M0 application foundation now exists on the feature branch. Full .NET compilation, PostgreSQL integration, Docker Compose startup, and browser behavior are not yet verified. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).
+The M0 application foundation is verified at the engineering gate and acceptance is pending. Do not treat later roadmap capabilities as implemented. See [Project Status](docs/STATUS.md) and [M0 Verification](docs/M0_VERIFICATION.md).

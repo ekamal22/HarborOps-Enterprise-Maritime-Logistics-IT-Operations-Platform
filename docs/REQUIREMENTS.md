@@ -2,7 +2,7 @@
 
 ## Requirement status
 
-M0 has source implementations supporting parts of FR-015 (liveness/readiness), FR-017 (deterministic bootstrap metadata only), NFR-001 (local-first configuration), and NFR-006 (initial structured errors). These are not yet verified and do not satisfy their full later-milestone acceptance gates. The business requirements remain proposed.
+M0 has source implementations supporting parts of FR-015 (liveness/readiness), FR-017 (deterministic bootstrap metadata only), NFR-001 (local-first configuration), and NFR-006 (initial structured errors). The M0 behavior was runtime verified on 2026-10-30 (see [M0 Verification](M0_VERIFICATION.md)); acceptance is pending and these do not satisfy their full later-milestone acceptance gates. The business requirements remain proposed.
 
 ## Functional requirements
 

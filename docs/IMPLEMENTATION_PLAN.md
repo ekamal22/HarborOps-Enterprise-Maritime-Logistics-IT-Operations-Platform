@@ -1,5 +1,7 @@
 # Implementation Plan
 
+> **Superseded numbering.** This page keeps the original seven-milestone sketch. The authoritative M0-M24 roadmap and G0-G24 gates are on the planning branch `docs/product-delivery-source-of-truth`. M1-M6 below are legacy labels and do not match v2 milestone IDs. M0-01 through M0-05 and G0 keep their meaning.
+
 ## Roadmap intent
 
 Deliver a functional, secure maritime logistics prototype through incremental, independently testable milestones. The twelve-week projection assumes sustained development time and can be revised when implementation evidence changes.
@@ -124,6 +126,6 @@ New features are evaluated against security risk, test cost, maintainability, da
 
 ## M0 implementation checkpoint (2026-10-30)
 
-The feature branch includes the .NET solution, HTTP API, EF Core bootstrap migration and synthetic seed, idle worker shell, React frontend, Dockerfiles, Compose deployment, and unit/integration/contract test scaffolds. The proposed end-to-end status flow is `React -> API -> PostgreSQL`. The code is committed but backend compilation, clean migration, Compose launch, and full workflow evidence are outstanding.
+The feature branch includes the .NET solution, HTTP API, EF Core bootstrap migration and synthetic seed, idle worker shell, React frontend, Dockerfiles, Compose deployment, and unit/integration/contract test scaffolds. The proposed end-to-end status flow is `React -> API -> PostgreSQL`. The M0 foundation was build-, test- and runtime-verified on 2026-10-30; see [M0 Verification](M0_VERIFICATION.md). G0 is verified and acceptance is pending.
 
 The M0 exit gate is not met until all checks in [M0 Verification](M0_VERIFICATION.md) pass. Do not begin M1 based on the presence of source files alone.

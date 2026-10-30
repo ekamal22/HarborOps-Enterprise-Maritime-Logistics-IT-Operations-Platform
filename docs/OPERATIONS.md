@@ -103,7 +103,7 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 - Rotate and revoke integration credentials.
 - Deactivate hosted demonstration resources.
 
-## M0 local runbook (not yet runtime-verified)
+## M0 local runbook
 
 - Set a unique password in a local untracked `.env` based on `.env.example`
 - Run `docker compose config --quiet` to validate interpolation, then `docker compose up -d --build`
@@ -114,4 +114,4 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 
 The database is bound only to `127.0.0.1:55432` on the host; the API and web ports are bound to loopback. Compose does not configure HTTPS and must not be exposed as-is on a public network.
 
-Failure expectations: if PostgreSQL becomes unavailable after startup, liveness should remain healthy and readiness should become HTTP 503. The baseline UI should display a service error rather than synthetic success. These scenarios require actual failure-injection verification. Bootstrap schema migration recovery, backup, and restore procedures remain pending.
+Failure behavior (verified 2026-10-30, see [M0 Verification](M0_VERIFICATION.md)): when PostgreSQL becomes unavailable after startup, liveness stays HTTP 200, readiness becomes HTTP 503 and the baseline endpoint returns a controlled HTTP 503 with a correlation identifier. The UI shows a service error and recovers on refresh after the database returns. To repeat the exercise on a disposable local stack run `bash scripts/check-m0-degraded.sh --confirm-local-outage`. Bootstrap schema migration recovery, backup, and restore procedures remain pending until M19.

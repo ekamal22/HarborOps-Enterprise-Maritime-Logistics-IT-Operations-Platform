@@ -122,9 +122,9 @@ Each risk has corresponding test and operations requirements. See SECURITY.md, E
 
 The source, build outputs, dependency caches, PostgreSQL/Docker Desktop data and test evidence must use E-drive storage per [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Only unavoidable short-lived Windows temporary writes on C: are permitted.
 
-## Pending runtime modernization
+## Verified M0 runtime modernization
 
-The hardening branch targets .NET 10 and EF Core 10 while preserving the original PostgreSQL 16 on-disk format and immutable bootstrap migration. The PostgreSQL container runs under the built-in non-root account with the `gosu` binary removed. The current branch's new runtime behavior must be retested before any G0 claim applies to its commit. The detailed test matrix is in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+The hardening branch targets .NET 10 and EF Core 10 while preserving the original PostgreSQL 16 on-disk format and immutable bootstrap migration. The PostgreSQL container runs under the built-in non-root account with the `gosu` binary removed. The modernized runtime passed full GitHub Actions verification at exact commit `fec7429415fede121db8a4a34f0df72cd4fac609`; subsequent code changes require a new run. The detailed test matrix is in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
 ## M0 implemented boundaries
 

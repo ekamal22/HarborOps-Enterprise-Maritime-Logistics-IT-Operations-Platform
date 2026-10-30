@@ -64,7 +64,7 @@ Local project storage is restricted to E: under [Local Storage Policy](LOCAL_STO
 
 ## Proposed PostgreSQL hardening
 
-The separate hardening branch builds a PostgreSQL 16.15 Alpine image without `gosu` or `su-exec`, runs the server under the built-in `postgres` account (UID 70) and restricts container privileges. An isolated audit at revision `a791561a` verified non-root startup and 0 critical/high findings in the final derived image using Trivy 0.58.1. The subsequent changes require a fresh scan using a current scanner; source-level mitigation alone does not verify the final revised image. A fresh Trivy scan of the final image, clean-volume initialization, existing-volume compatibility and recovery checks are mandatory. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+The separate hardening branch builds a PostgreSQL 16.15 Alpine image without `gosu` or `su-exec`, runs the server under the built-in `postgres` account (UID 70) and restricts container privileges. An isolated audit at revision `a791561a` verified non-root startup and 0 critical/high findings in the final derived image using Trivy 0.58.1. The subsequent changes require a fresh scan using a current scanner; source-level mitigation alone does not verify the final revised image. A fresh Trivy scan of the final image, clean-volume initialization and isolated outage/recovery checks are mandatory for G0. Existing-volume compatibility is deferred to the quarter-mile M6, M12, M18 and M24-03 checkpoints; M19 covers full backup/restore. Before a breaking change is applied to preserved data, rehearse it against a disposable copy. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
 ## M0 scoped security posture
 

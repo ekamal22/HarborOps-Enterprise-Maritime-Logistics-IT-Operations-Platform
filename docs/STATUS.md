@@ -24,7 +24,7 @@
 - Structured JSON console logging, generated request correlation identifiers, and local CORS policy
 - React/TypeScript status view with explicit synthetic label, loading/error states, and refresh
 - Docker Compose, one-shot migrator, Dockerfiles, untracked credentials template, and local scripts
-- Manual GitHub workflow `Verify M0`
+- Manual GitHub workflow `Verify M0` (usable after the workflow exists on the default branch; use local scripts before that)
 
 This is **source implementation**, not proof of working runtime behavior. See [M0 Verification](M0_VERIFICATION.md).
 

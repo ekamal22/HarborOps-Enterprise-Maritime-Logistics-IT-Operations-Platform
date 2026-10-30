@@ -62,7 +62,7 @@ These are expected outcomes derived from source code, not observed results.
 - Node.js 22 and npm for frontend installation, tests, and build
 - A browser for actual user-interface observation
 
-No paid cloud accounts or feeds are necessary. `.env` is local and untracked. GitHub workflow `Verify M0` is manually triggered only; review CI quota before running it.
+No paid cloud accounts or feeds are necessary. `.env` is local and untracked. GitHub workflow `Verify M0` is configured for manual triggering only, but a workflow-dispatch file must exist on the repository default branch before GitHub permits the usual manual run. Until then, use the local scripts or an explicitly authorized external runner. Review CI quota before any later workflow run.
 
 ## Next verification sequence
 

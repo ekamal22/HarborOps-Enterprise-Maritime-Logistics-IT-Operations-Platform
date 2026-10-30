@@ -44,7 +44,7 @@ Security, tenant authorization, data integrity, cost control, migration hygiene 
 | **M11 Delay rules and shipment exceptions** | Explainable at-risk, delay and conflict detection | G10 verified | G11 |
 | **M12 Shipment search and authorized export** | Scoped filtering, detail navigation and CSV output | G11 verified | G12 |
 | **M13 Operational KPI definitions and dashboards** | Reconciled, drillable throughput and delay metrics | G12 verified; D-005 closed | G13 |
-| **M14 Route mapping and geographic context** | Licensed, simulated and accessible route visualization | G13 verified; D-004 closed | G14 |
+| **M14 Route mapping and geographic context** | Licensed and clearly labeled simulated route visualization | G13 verified; D-004 closed | G14 |
 | **M15 Scoped in-app notifications** | Authorized event and incident exception messaging | G14 verified | G15 |
 | **M16 Audit logging and access hardening** | Append-only evidence and strengthened authorization | G15 verified | G16 |
 | **M17 Observability and service health** | Structured metrics, traces and meaningful operational alerts | G16 verified | G17 |
@@ -53,8 +53,12 @@ Security, tenant authorization, data integrity, cost control, migration hygiene 
 | **M20 Security assurance and dependency review** | Adversarial regression and high-severity issue closure | G19 verified | G20 |
 | **M21 Performance and capacity benchmarks** | Measured latency and bounded resource behavior | G20 verified | G21 |
 | **M22 Deployment portability and cost controls** | Complete local profile and optional guarded public demo | G21 verified; D-007 closed | G22 |
-| **M23 Interface polish and accessibility** | Premium, consistent and accessible enterprise user experience | G22 verified | G23 |
-| **M24 Release scenarios and evidence closure** | D01-D06 repeatability, documentation and release decision | G23 verified | G24 |
+| **M23 Interface polish and workflow consistency** | Polished enterprise interface with complete functional workflows | G22 verified | G23 |
+| **M24 Final release validation and acceptance** | Complete release scenarios, final accessibility audit and acceptance evidence | G23 verified | G24 |
+
+## Accessibility verification sequencing
+
+All dedicated accessibility testing is deferred to **M24-04, the final work package before G24 and the release acceptance decision**. No early milestone, including M0 and M23, has a keyboard, focus, screen-reader, contrast, zoom, accessible-name, or WCAG acceptance gate. Earlier milestones still validate that their implemented behavior works and is secure, but do not perform accessibility certification or audits. M23 completes interface polish; M24-04 evaluates the finished experience and records any remediation and re-test evidence before G24 can close. Accessibility remains part of the final release scope, not a waived requirement.
 
 ## Staged delivery plan
 
@@ -178,7 +182,7 @@ Security, tenant authorization, data integrity, cost control, migration hygiene 
 
 #### M14: Route mapping and geographic context
 
-**Scope:** Licensed, simulated and accessible route visualization.
+**Scope:** Licensed and clearly labeled simulated route visualization.
 **Entry:** G13 verified with a documented gate report. Resolve D-004 before applicable feature implementation.
 **Required work packages:** M14-01 Resolve map licensing and fallback; M14-02 Implement route visualization model; M14-03 Build interactive map interface; M14-04 Verify mapped data security.
 **Exit G14:** All applicable tasks, negative tests, runtime evidence and documentation for M14 recorded; acceptance pending until explicitly confirmed.
@@ -254,19 +258,19 @@ Security, tenant authorization, data integrity, cost control, migration hygiene 
 
 ### P5: Release finish
 
-#### M23: Interface polish and accessibility
+#### M23: Interface polish and workflow consistency
 
-**Scope:** Premium, consistent and accessible enterprise user experience.
+**Scope:** Polished enterprise interface with complete functional workflows. No accessibility testing is required in M23.
 **Entry:** G22 verified with a documented gate report.
-**Required work packages:** M23-01 Define visual system and navigation; M23-02 Polish operational workflows; M23-03 Complete error and offline states; M23-04 Verify accessibility critical paths.
+**Required work packages:** M23-01 Define visual system and navigation; M23-02 Polish operational workflows; M23-03 Complete error and offline states; M23-04 Finish interface consistency review.
 **Exit G23:** All applicable tasks, negative tests, runtime evidence and documentation for M23 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Release acceptance or claims of final product certification.
 
-#### M24: Release scenarios and evidence closure
+#### M24: Final release validation and acceptance
 
-**Scope:** D01-D06 repeatability, documentation and release decision.
+**Scope:** Complete release scenarios and then perform the only formal accessibility test pass as the final work package before G24. Include automated checks and manual screen-reader, keyboard, focus, labels, contrast, zoom, responsive layouts, and complete workflows.
 **Entry:** G23 verified with a documented gate report.
-**Required work packages:** M24-01 Freeze deterministic demonstration fixtures; M24-02 Run end-to-end scenario suite; M24-03 Audit docs and test evidence; M24-04 Prepare release readiness assessment.
+**Required work packages:** M24-01 Freeze deterministic demonstration fixtures; M24-02 Run end-to-end scenario suite; M24-03 Audit docs and test evidence; M24-04 Run final accessibility tests and release assessment.
 **Exit G24:** All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Public hosting and production accreditation; only documented local release readiness is required.
 

@@ -1,56 +1,98 @@
-# Cross-browser and accessibility verification
+# M0 Hardening Verification and Remediation Register
 
-**Scope:** M0 foundation only. These tests do not certify M1-M24 interfaces.
+**Target branch:** `fix/m0-net10-postgres-browser-hardening`  
+**Prior independently audited revision:** `a791561a797b57afac84e7df7f8a959890b6972c`  
+**Current correction state:** Source changes committed; fresh runtime re-verification pending.  
+**Gate:** Acceptance pending. The earlier `4fb34eb` record is historical and does not verify the corrected branch.
 
-## Automated browser verification
+## Recorded audit of the earlier hardening revision
 
-The browser project in `tests/browser` uses a pinned Playwright test runner and defines Chromium, Firefox and WebKit projects. It tests live synthetic baseline rendering, local-origin requests, keyboard refresh, a controlled HTTP 503 interface and mobile overflow.
+The audit was executed on a detached E-drive verification worktree, against an isolated `ho-verify` Compose project. This table is **historical evidence from the audited revision**, not a test run of the subsequent corrections.
 
-Run from an E-drive PowerShell terminal after starting a disposable HarborOps Compose stack:
+| Check | Recorded outcome | Constraint |
+| --- | --- | --- |
+| .NET 10 restore and Release build | PASS, zero warnings/errors | SDK 10.0.403 container, not an installed host SDK |
+| Unit and HTTP contract tests | PASS, 1/1 and 10/10 | At audited revision |
+| Integration tests on empty database | FAIL, 4/5 | A tracked bootstrap record conflicted on re-seed |
+| Integration tests against already seeded database | PASS, 5/5 twice | State-dependent result did not close the fresh-database failure |
+| EF migration discovery and snapshot | PASS | At audited revision |
+| PostgreSQL 16 startup, fresh initialization and existing-volume copy | PASS | Original volume mounted read-only; disposable copy used |
+| Derived PostgreSQL non-root execution | PASS | UID 70, no `gosu`/`su-exec`, capabilities dropped |
+| Compose bootstrap and database outage/recovery | PASS | 200/200/200, 200/503/503, 200/200/200 |
+| Final api/web/postgres image scan | PASS, 0 HIGH/CRITICAL | Trivy 0.58.1 and vulnerability DB refreshed 2026-10-30 |
+| Chromium/Firefox/WebKit original suite | PASS, 12/12 | Temporary npm lockfile, not reproducible from Git at that revision |
+| WCAG contrast on baseline UI | FAIL | Footer text 4.24:1; 4.5:1 required |
+| Screen-reader spoken output | NOT RUN | Not available in the audited environment |
+
+Evidence captured on E: under `E:\APP IDEAS\harborops-m0-cache\evidence\m0-hardening`. Neither the original M0 volume nor unrelated containers were modified.
+
+## Corrections now committed
+
+| ID | Finding and source-level correction | Verification still required |
+| --- | --- | --- |
+| D1 | Integration recovery uses a **new DbContext** after raw SQL deletes the row, avoiding stale tracked entities | Execute the specific integration test on a new database and multiple complete cold runs |
+| D2 | Footer color changed to `text-slate-400`; ready-state announcement uses its own status role instead of nested live regions | Rerun all browser engines, contrast measurement and screen-reader checks |
+| D3 | PowerShell runners resolve their own checkout or specified E-drive worktree, support expected SHA, and image scanning resolves running container IDs and source-revision labels | Run each runner on the corrected worktree and confirm stale image/branch rejection |
+| D3 | Compose smoke and outage scripts require an explicit disposable `ho-verify` project and confirmation; both support an external env file | Test positive and fail-closed paths; confirm original project remains untouched |
+| D4 | `tests/browser/package-lock.json` added with exact Playwright 1.64.1 registry URLs and integrity hashes cross-checked between two independently generated npm lock records | Execute `npm ci` on E: and validate lockfile consistency; no local install run on the corrected branch yet |
+| D5 | Added independent three-engine regression scenarios for refresh races, external requests/console errors, four widths, footer contrast and status semantics | Run the expanded suite from committed lockfile; verify no legitimate aborts are misclassified |
+| D6 | Removed redundant ASP.NET URL override; retained documented low-severity image/package concerns | Confirm runtime log warning is gone; review remaining library and image observations |
+
+Unchanged low-severity concerns: test-only xUnit 2.x is marked legacy; a GSSAPI library warning was observed during migrator startup; the web service still uses the stock nginx capability profile; base image tags and `apk upgrade` can change downstream package contents between builds. Do not change these speculatively without verification and an explicit security assessment. The scanner runner now defaults to the reviewed Trivy 0.76.1 container image; its actual new scan has not been executed.
+
+## E-drive verification sequence
+
+First confirm the selected repository/worktree, Git SHA and clean tracked state. Set local Docker Desktop/WSL, npm/NuGet and temporary storage to approved E-drive locations per [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Do not delete existing database volumes or Docker images to free space.
+
+### Framework
 
 ```powershell
-# First run: generate the reproducible browser dependency lockfile
-powershell -NoProfile -File scripts/verify-browser.ps1 -GenerateLockfile -InstallBrowsers
-
-# Review and commit tests/browser/package-lock.json, then rerun
-powershell -NoProfile -File scripts/verify-browser.ps1
+powershell -NoProfile -File scripts/verify-dotnet10.ps1 -UseContainer
 ```
 
-The script puts npm cache, browser binaries, temporary data and test artifacts on E:. Do not run its browser download phase if E: has insufficient space. Check the Docker Desktop/WSL disk image remains E-backed. It requires the frontend and API on the M0 loopback ports.
+The command above performs restore/build using a locally available SDK image. Run all three .NET test projects against a disposable PostgreSQL instance using an appropriately configured local/container network. Capture a cold-start isolated run of the integration test that previously failed and repeat the complete suite.
 
-**Current state:** tests and runner are implemented but **not yet executed** against the updated .NET 10 and hardened PostgreSQL branch. A generated lockfile is required before this phase can count as reproducible evidence.
+### Browser
 
-## Assistive-technology verification
+```powershell
+powershell -NoProfile -File scripts/verify-browser.ps1 -InstallBrowsers
+```
 
-Automated accessible-name and focus checks are not a substitute for a real screen reader. Perform and record these manual checks on the actual running application:
+Use `-RepositoryPath` when testing a detached E-drive worktree, and `-ExpectedSha` to enforce a particular revision. Browser binaries and test output stay on E:. With the committed lockfile, the runner uses `npm ci`; normal verification should not regenerate dependency resolution.
 
-1. Start Windows Narrator or NVDA on a disposable browser test profile, with screenshots/recordings saved only on E:.
-2. Navigate to `http://localhost:5173` using keyboard only.
-3. Confirm the page's headings convey the purpose and the System baseline section can be reached.
-4. Confirm the Refresh status control is announced with its accessible name.
-5. Activate refresh by keyboard and confirm the loading state and ready state are understandable.
-6. Simulate an HTTP 503 using a disposable local test environment and confirm the error is announced by the live region.
-7. Verify the error remains understandable without colors and the focus position remains useful after an update.
-8. Verify 375px mobile layout and 200% browser zoom do not obscure the Refresh control or status.
-9. Check text and interactive contrast under the selected color scheme with a measured method.
-10. Record the screen reader version, browser version, exact run revision, pass/fail, evidence and any remediation.
+### Disposable Compose smoke and outage
 
-For a finding that fails, fix the UI and rerun both the automated browser suite and the relevant screen-reader check.
+Provide an approved local Compose password configuration, optionally via `--env-file` referencing an E-drive secret file. Stop any other service using the M0 loopback ports before starting the isolated project.
 
-## Framework and database verification
+```bash
+bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable
+bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage
+```
 
-.NET 10 and the non-root PostgreSQL derived image require new verification evidence. Execute:
+Both scripts refuse the main `harborops` project for fault testing. The smoke script builds source-revision-labeled images and validates running container ownership. Use an E-drive external env file if `.env` is not configured.
 
-- Clean `dotnet restore`, `dotnet build` and all three .NET test suites.
-- EF Core 10 migration snapshot comparison, fresh migration/seed twice, and historical volume startup with checksum/row validation.
-- `docker compose build postgres api migrator web` and a fresh-volume Compose run.
-- `bash scripts/smoke-compose.sh`, including the non-root Postgres helper check.
-- Controlled outage and recovery on a disposable Compose project.
-- Fresh Trivy DB scan of the **final derived** `harborops-postgres:16.15-rootless` image, plus API and web.
-- Compare PostgreSQL 16 data schema and existing-volume access with previous M0 evidence.
+### Image scanning
 
-Do not delete the existing E-backed `harborops-postgres` data volume to achieve startup. Use a separate disposable project/volume for clean initialization first, and take a known-good backup before testing an existing-volume migration. Do not treat removing `gosu` from the final filesystem as proof of a clean image scan.
+```powershell
+powershell -NoProfile -File scripts/verify-container-security.ps1 -Project ho-verify -UseContainerScanner -RefreshDatabase
+```
 
-## Evidence and acceptance rule
+This resolves **immutable image IDs from running Compose containers**, rejects mismatched source-revision labels and writes redacted evidence under the E-drive cache. A local copy of the selected scanner image is needed; no fallback to stale `latest` tags is allowed.
 
-The earlier code revision `4fb34eb` remains the last fully verified M0 code baseline. This change branch has new runtime, storage and test dependencies, so it is **implementation pending re-verification**. Keep the revised verification status separate from the earlier G0 record. No automatic acceptance or production deployment is implied.
+### Manual accessibility
+
+Complete keyboard navigation, error/ready announcements using Narrator or NVDA, measured contrast, actual browser-level zoom at 200%, and a 320px layout check. Record browser and screen-reader versions and observed output. Automated DOM assertions do not prove spoken announcements.
+
+## Required acceptance evidence for corrected branch
+
+1. Exact corrected branch HEAD, source diff, environment and E-drive locations.
+2. Clean .NET 10 restore/build and all unit, contract and **fresh-database** integration tests.
+3. EF Core 10 snapshot/migration and repeatable seed evidence.
+4. Disposable fresh-volume and copied historical-volume PostgreSQL startup with row and schema checks.
+5. Source-labeled Compose build, successful smoke run and isolated database outage/recovery.
+6. Trivy 0.76.1 or newer scan of actual running PostgreSQL, API and web images, with current DB metadata and observed critical/high counts.
+7. Committed-lockfile `npm ci`, frontend build, and expanded Chromium/Firefox/WebKit results.
+8. Actual contrast and screen-reader/zoom observations, or explicit NOT RUN/blocked status.
+9. Hygiene, warnings, remaining vulnerability disposition, exact logs and result matrix.
+
+**Status:** Corrections committed, full revised-branch verification pending. No milestone acceptance or public-deployment authorization is implied. M1 remains unstarted.

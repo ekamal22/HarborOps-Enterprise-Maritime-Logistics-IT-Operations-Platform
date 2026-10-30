@@ -51,7 +51,7 @@ All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_PO
 | NFR-006 | API stability | Public endpoints versioned; errors use a consistent structured envelope |
 | NFR-007 | Time handling | UTC at rest; no ambiguous local timestamp comparisons |
 | NFR-008 | Quality | Required test suites pass from a clean database and reproducible local setup |
-| NFR-009 | Accessibility | Keyboard navigation, accessible names, visible focus, and usable high-contrast states |
+| NFR-009 | Final-release accessibility | Keyboard navigation, accessible names, visible focus, contrast, zoom, error announcements, responsive use and screen-reader workflows; all tested only in M24-04 before G24 |
 | NFR-010 | Performance | For the defined reference dataset, p95 shipment search below 500 ms in local baseline |
 | NFR-011 | Recovery | Restore procedure demonstrated on a disposable environment with integrity checks |
 | NFR-012 | Operational safety | Fault simulations never affect external or production resources |

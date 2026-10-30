@@ -6,7 +6,7 @@ M0 implements only `GET /api/v1/system/baseline`, `GET /health/live`, and `GET /
 
 ## Observed M0 contract verification
 
-At code revision `4fb34eb`, the API was tested against real PostgreSQL and through the HTTP pipeline. A local database outage produced controlled 503 responses from readiness and baseline endpoints, with liveness remaining HTTP 200 and a correlation identifier included in the baseline error/log. The tests verified the four-field synthetic status contract. G0 is **verified, acceptance pending**. See [M0 Verification](M0_VERIFICATION.md). All shipment, identity and tracking resources below remain planned.
+At code revision `4fb34eb`, the API was tested against real PostgreSQL and through the HTTP pipeline. A local database outage produced controlled 503 responses from readiness and baseline endpoints, with liveness remaining HTTP 200 and a correlation identifier included in the baseline error/log. The tests verified the four-field synthetic status contract. The corrected .NET 10 runtime was subsequently verified in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md), with G0 **accepted** on 2026-10-31. The `4fb34eb` check remains historical. All shipment, identity and tracking resources below remain planned.
 
 The workspace, caches and test artifacts must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md), using E: for all controlled persistent project storage. Only unavoidable short-lived Windows temporary activity on C: is permitted.
 

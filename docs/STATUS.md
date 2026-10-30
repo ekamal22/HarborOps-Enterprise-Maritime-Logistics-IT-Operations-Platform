@@ -1,7 +1,7 @@
 # Project Status
 
 **As of:** 2026-10-30
-**Default branch:** Documentation baseline; no application implementation merged.
+**Default branch:** `main` contains the accepted M0 application, runtime, tests, docs and CI workflow.
 **Baseline:** The accepted M0 engineering foundation, runtime, tests, documentation and verification workflow are integrated into `main`. PRs #1 and #3 are merged.
 **Acceptance:** G0 verified at source revision `fec7429415fede121db8a4a34f0df72cd4fac609` in [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) and **accepted** on 2026-10-31; G1-G24 remain open. M1 has not started.
 
@@ -76,7 +76,7 @@ The `main` branch contains M0 application source and the verified Docker runtime
 
 ## Storage and residual risk
 
-The [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires all controllable persistent project storage on E:. The M0 host used E-drive repository, caches, evidence and Docker WSL data; operating-system temporary activity on C: may be unavoidable. M0 image scanning recorded one critical and 25 high findings in the upstream PostgreSQL `gosu` helper. This is **a documented residual risk, not an automatically approved security exception**; review it at acceptance and recheck when an updated image is available. .NET 8 support ends on 2026-11-10. Later security, backup/restore and performance gates remain planned; all accessibility testing is reserved for M24-04 immediately before the final G24 release gate.
+The [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires all controllable persistent project storage on E:. The M0 host used E-drive repository, caches, evidence and Docker WSL data; operating-system temporary activity on C: may be unavoidable. The historical PostgreSQL image scan reported one critical and 25 high findings in `gosu`; the accepted rootless image, API and web images passed new high/critical Trivy scans on the verified hardening SHA. The runtime was upgraded from .NET 8 to .NET 10. Later security, backup/restore and performance gates remain planned; all accessibility testing is reserved for M24-04 immediately before the final G24 release gate.
 
 ## Status update rule
 

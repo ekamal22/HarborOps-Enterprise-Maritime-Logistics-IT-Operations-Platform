@@ -6,7 +6,7 @@ This document records accepted baseline decisions and outstanding decisions that
 
 The mandatory [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires E-drive storage for all controllable persistent project files, caches, Docker/WSL state, database data and evidence. C-drive use is limited to unavoidable short-lived Windows temporary activity. This does not grant permission for cleanup, package migration or changes to global tool installations.
 
-The M0 implementation branch records G0 verified, acceptance pending. Its upstream PostgreSQL `gosu` findings require explicit disposition before final acceptance; documenting them is not risk approval.
+The accepted M0 baseline uses the hardened rootless PostgreSQL container and .NET 10. The prior upstream `gosu` findings were closed in the immutable-image high/critical scan performed during GitHub Actions run #2. G0 was accepted on 2026-10-31; future image changes require scanning.
 
 ## Accepted baseline decisions
 

@@ -71,7 +71,7 @@ These variables are scoped to the current shell session. Confirm each tool actua
 
 ## M0 baseline and future milestones
 
-M0 was verified on a Windows 11 host with its working tree under E:, project caches under `E:\APP IDEAS\harborops-m0-cache`, and Docker Desktop's WSL data on E:. The [M0 Verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) evidence file exists on the implementation branch; the accepted baseline and verification records now exist on `main`.
+M0 was verified on a Windows 11 host with its working tree under E:, project caches under `E:\APP IDEAS\harborops-m0-cache`, and Docker Desktop's WSL data on E:. [M0 Verification](M0_VERIFICATION.md) preserves historical evidence, while [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) records the accepted G0 CI run. Both are available on `main`.
 
 For future milestones, reuse this E-drive baseline and recheck disk paths before adding new tools or test frameworks. No new service, package manager, browser test runner or build pipeline may silently introduce persistent C-drive usage.
 

@@ -23,7 +23,7 @@ A modular monolith provides the HTTP API and transactional domain functions. A s
     API + Worker -> OpenTelemetry -> Prometheus/Grafana + structured logs
     Monitoring signals -> Incident workflow
 
-The diagram is the target topology for later milestones. In M0, the code contains the API, PostgreSQL DbContext and migrator, React status interface, and an idle worker shell. Tracking ingestion, domain modules, metrics, tracing, and incidents are not implemented. Docker Compose startup, database-backed API, browser path and controlled database outage/recovery were verified locally at code revision `4fb34eb`. The containers were stopped after verification; this is not a hosted deployment.
+The diagram is the target topology for later milestones. In M0, the code contains the API, PostgreSQL DbContext and migrator, React status interface, and an idle worker shell. Tracking ingestion, domain modules, metrics, tracing, and incidents are not implemented. Docker Compose startup, database-backed API, browser path and controlled database outage/recovery were verified historically at `4fb34eb`, then successfully reverified on `fec7429415fede121db8a4a34f0df72cd4fac609` with .NET 10 in GitHub Actions run #2. G0 was accepted on 2026-10-31. The containers were stopped after verification; this is not a hosted deployment.
 
 ## Bounded modules
 

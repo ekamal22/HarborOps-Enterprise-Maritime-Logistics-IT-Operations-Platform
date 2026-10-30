@@ -88,7 +88,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Verify the existing source-only foundation against real runtime evidence.
 **Entry:** Existing implementation reviewed without assuming runtime correctness.
 **Required work packages:** M0-01 Assess existing M0 branch; M0-02 Build and test foundations; M0-03 Verify migration and seed; M0-04 Verify local stack and browser; M0-05 Verify failure and hygiene.
-**Exit G0:** All applicable tasks, negative tests, runtime evidence and documentation for M0 recorded; acceptance pending until explicitly confirmed.
+**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1-G24 remain open.
 **Not covered by this milestone:** Shipment and tenant business functionality.
 
 #### M1: Authentication and session lifecycle

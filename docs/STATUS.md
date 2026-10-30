@@ -42,6 +42,12 @@ All results are recorded with commands, versions and revisions in [M0 Verificati
 2. Plan the .NET 10 move before .NET 8 support ends on 2026-11-10.
 3. Re-run the image scan after any base image update.
 
+## Mandatory storage boundary
+
+All controlled persistent HarborOps storage stays on E:, including the repository at `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`, project caches and evidence at `E:\\APP IDEAS\\harborops-m0-cache`, and E-backed Docker/WSL data. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Only unavoidable short-lived Windows temporary use on C: is permitted. No storage cleanup, global migration or extra tool installation is authorized by this requirement.
+
+The one critical and 25 high PostgreSQL `gosu` scan findings remain documented residual risk, not an explicitly approved exception. Revisit their disposition during acceptance and subsequent image updates.
+
 ## Documentation status
 
 Specification documents remain authoritative for planned domains. [M0 Verification](M0_VERIFICATION.md) is the single register for M0 evidence.

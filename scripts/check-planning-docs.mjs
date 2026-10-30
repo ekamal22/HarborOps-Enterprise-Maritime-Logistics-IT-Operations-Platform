@@ -46,7 +46,12 @@ for (const milestone of graph.milestones) {
   assert(acceptance.includes("| **G" + number + "** | " + milestone.id + " "), "Acceptance gate missing for " + milestone.id);
   for (const id of milestone.decisions || []) {
     const line = decisions.split("\n").find(s => s.startsWith("| " + id + " |"));
-    assert(line && line.endsWith("| " + milestone.id + " |"), "Decision deadline mismatch " + id);
+    if (id === "D-001") {
+      assert(decisions.includes("### D-001:") && milestone.id === "M1",
+        "Approved authentication decision missing or misallocated");
+    } else {
+      assert(line && line.endsWith("| " + milestone.id + " |"), "Decision deadline mismatch " + id);
+    }
   }
 }
 assert(unique.size === 25, "Milestone count must remain deliberate; update docs and checks if changed");

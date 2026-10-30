@@ -1,111 +1,167 @@
 # M0 Engineering Verification Register
 
-**Date:** 2026-10-30  
-**Branch:** `feat/m0-engineering-baseline`  
-**State:** Source implemented with additional safety and failure-path checks; full runtime verification still blocked by unavailable tooling  
-**Acceptance:** Not yet eligible for acceptance
+**Date of execution:** 2026-10-30
+**Branch:** `feat/m0-engineering-baseline`
+**Starting revision:** `16523bc1f865f19ef8a86bf1b6604c8c84207003`
+**Final code revision verified:** `4fb34eb` (the commit that records this register follows it and changes documentation only)
+**Gate G0:** verified, acceptance pending
+**Planning source:** [ROADMAP](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md), [ACCEPTANCE_CRITERIA](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ACCEPTANCE_CRITERIA.md) and [execution-graph.json](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/execution-graph.json) on `docs/product-delivery-source-of-truth`. The branches were not merged.
 
-## Implemented source paths
+This register separates three states: source implemented, runtime verified, and accepted. Everything marked verified below was executed on the machine described in the next section. Raw logs were kept outside the repository because they contain local paths.
 
-- `HarborOps.sln` and `src/HarborOps.Domain`, `src/HarborOps.Application`, `src/HarborOps.Infrastructure`, `src/HarborOps.Api`, and `src/HarborOps.Worker`
-- EF Core migration `20261030170000_InitialBootstrap` and idempotent `BootstrapSeeder`
-- API routes `/api/v1/system/baseline`, `/health/live`, and `/health/ready`
-- `web/` React status screen, explicit synthetic source label, loading/error states, and local HTTP origin validation
-- `compose.yaml`, Dockerfiles, development environment template, scripts, and manual CI workflow
-- Unit, contract, and PostgreSQL integration test projects
+## Environment
 
-The worker is an idle shell, not a tracking processor. The baseline database row is synthetic infrastructure metadata, not a shipment fixture. The v2 planning [execution graph](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/EXECUTION_GRAPH.md) preserves the M0-01 through M0-05 IDs and G0 gate; M1-M24 remain planned.
+| Item | Value |
+| --- | --- |
+| Operating system | Windows 11 Home 10.0.26200 |
+| Repository location | `E:\APP IDEAS\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform` (fresh clone, no copy on C) |
+| .NET SDK | 8.0.423 (repository `global.json` pins 8.0.400 with `latestPatch`; SDK 9.0.200 is also installed and not selected) |
+| Node.js / npm (host) | 24.20.0 / 11.19.0 |
+| Node.js / npm (Docker web build) | 22.23.2 / 10.9.8 (`node:22-alpine`) |
+| Docker | Engine and client 29.6.2, Compose v5.3.1, context `desktop-linux` (local named pipe) |
+| PostgreSQL | 16.15 (`postgres:16-alpine`, digest `sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab`) |
+| ASP.NET runtime in image | 8.0.33 on Debian 12.15 |
+| nginx in image | 1.30.6 |
+| Git | 2.39.1.windows.1 |
+| Browser | Chrome 152.0.7977.167 engine inside the Claude desktop app browser pane (user agent `Claude/4.4212.0`) |
 
-## Checks actually executed
+**Storage.** C: had 4.9 GB free and E: 123.6 GB free at the start. Docker Desktop stores its WSL data on E: (`CustomWslDistroDir`). NuGet, npm and .NET CLI caches were redirected to `E:\APP IDEAS\harborops-m0-cache` with `NUGET_PACKAGES`, `npm_config_cache` and `DOTNET_CLI_HOME`. Nothing was deleted or cleaned on C or E. Existing unrelated containers, volumes and networks were not touched; the only Docker objects created are the `harborops` Compose project and one disposable test database container, `harborops-test-pg`.
 
-| Check | Environment | Command | Outcome | Limit |
-| --- | --- | --- | --- | --- |
-| Node origin utility tests, isolated source copy | Debian 13, Node.js 22.16.0 | `node --test tests/*.test.mjs` | 3 passed, 0 failed | Source copied into an isolated local review directory, not run against a connected repository checkout |
-| GitHub repository assessment | Connected repository | Read `main` commit/tree and all 17 planning Markdown files | 17 baseline files, no prior application code | Repository inventory only |
-| GitHub branch source creation | Connected repository | Created feature branch and committed M0 files | GitHub accepted changes | Commits do not demonstrate runtime correctness |
-| M0 Node origin and baseline-payload utility tests, isolated source copy | Debian 13, Node.js 22.16.0 | `node --test tests/*.test.mjs` | **6 passed, 0 failed** | Both current test files and their two utility modules were reproduced in an isolated local review directory; not a full checked-out frontend, dependency installation, TypeScript build, or browser test |
+**Disposable integration database.** `harborops-test-pg` runs `postgres:16-alpine` on `127.0.0.1:55433` with its data directory on tmpfs, database `harborops_integration`, and a random password kept outside the repository.
 
-## Required checks still outstanding
+## Result matrix
 
-| ID | Required command / scenario | Status |
+| ID | Outcome | Evidence summary |
 | --- | --- | --- |
-| V01 | `dotnet restore HarborOps.sln` | Not run, .NET SDK unavailable |
-| V02 | `dotnet build HarborOps.sln -c Release --no-restore` | Not run, .NET SDK unavailable |
-| V03 | `dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release` | Not run |
-| V04 | `dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release` | Not run |
-| V05 | Set disposable `HARBOROPS_TEST_DB`, then `dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release` | Not run; requires PostgreSQL |
-| V06 | Generate and commit `web/package-lock.json`, then `cd web && npm ci --no-audit --no-fund && npm test && npm run build` | Utility tests completed only in isolated source copy; full npm dependency installation and frontend build not run |
-| V07 | `docker compose config --quiet` | Not run, Docker unavailable |
-| V08 | `bash scripts/smoke-compose.sh` after setting local `.env` | Not run, Docker unavailable |
-| V09 | Open frontend in a real browser and verify database status, loading, error, refresh | Not run |
-| V10 | Run `bash scripts/check-m0-degraded.sh --confirm-local-outage` on disposable local Compose; check liveness 200, readiness 503, baseline 503, then recovery to 200 | Not run; safe manual fault script committed, real Docker/PostgreSQL unavailable |
-| V11 | Verify repeatable migration on a clean disposable database and inspect `bootstrap_records` | Not run |
-| V12 | Run repository source/metadata, internal-link, and secret hygiene audits | Baseline static audit previously passed at 72 tracked files; new M0 changes require a repeat comprehensive check before G0. Dynamic secret scanning and clean dependency restore remain pending. |
+| M0-01 Assess existing M0 branch | Verified | Source inventory, static audit and defect list below; starting SHA recorded |
+| M0-02 Build and test foundations | Verified | `verify-local.sh` exit 0 at `4fb34eb`: 0 warnings, 0 errors, 1 unit, 10 contract, 5 integration, 6 frontend tests passing, `npm ci` and production build clean |
+| M0-03 Verify migration and seed | Verified | Migration applied to empty PostgreSQL 16.15 twice, seed idempotent, schema and row inspected with `psql`, snapshot matches model |
+| M0-04 Verify local stack and browser | Verified | Clean-volume Compose start, migrator exit 0, smoke script exit 0, real browser path API to PostgreSQL observed |
+| M0-05 Verify failure and hygiene | Verified | Outage script exit 0, manual outage with browser, recovery, secret scans, dependency and image scans |
+| G0 | Verified, acceptance pending | Every mandatory check executed and passed; limitations listed at the end |
 
-Do not interpret any unchecked item as passed.
+## M0-02 Build and test commands
 
-## M0 v2 work-package ledger
+Run at `4fb34eb` through `bash scripts/verify-local.sh` with `HARBOROPS_TEST_DB` set to the disposable database, after deleting `web/node_modules` and `web/dist`.
 
-| ID | State | Recorded evidence or required follow-up |
-| --- | --- | --- |
-| M0-01 Assess existing M0 branch | Source review completed, gate open | Inspected core API, persistence, Compose, UI, test, and script files. Identified and addressed unsafe integration DB targeting, limited seed assertions, stale refresh responses, malformed baseline rendering, and missing controlled degradation exercise. |
-| M0-02 Build and test foundations | Partial | Six frontend utility tests passed in an isolated source copy. No .NET SDK, npm dependency install, production web build, or real browser verification available. |
-| M0-03 Verify migration and seed | Not verified | Integration test now restricts database name to `harborops_integration` or `harborops_test` on loopback and asserts deterministic timestamp; actual migration and data checks not executed. |
-| M0-04 Verify local stack and browser | Not verified | Compose and HTTP smoke scripts exist; clean Compose startup and browser-to-database path not executed. |
-| M0-05 Verify failure and hygiene | Not verified | Explicit opt-in outage script verifies baseline degradation and restoration once run; it has not been executed. Full current-revision hygiene and package audit remain pending. |
-| G0 Engineering baseline gate | Open | M0-02 through M0-05 are not fully evidenced; acceptance pending only after required runtime checks are completed. |
+| Command | Result |
+| --- | --- |
+| `dotnet restore HarborOps.sln` | Succeeded, 8 projects |
+| `dotnet build HarborOps.sln -c Release --no-restore` | Succeeded, 0 warnings, 0 errors (warnings are errors in `Directory.Build.props`) |
+| `dotnet test tests/HarborOps.UnitTests/...csproj -c Release` | Passed 1, failed 0 |
+| `dotnet test tests/HarborOps.ContractTests/...csproj -c Release` | Passed 10, failed 0 |
+| `dotnet test tests/HarborOps.IntegrationTests/...csproj -c Release` | Passed 5, failed 0 |
+| `npm ci --no-audit --no-fund` (in `web`) | Added 104 packages |
+| `npm test` | 6 passed, 0 failed (also 6 passed on Node 22.23.2) |
+| `npm run build` | `tsc -b` and `vite build` succeeded, 17 modules |
+| `docker compose config --quiet` | Succeeded |
 
-## Implementation corrections added in this review
+Contract tests host the real API pipeline with `WebApplicationFactory` and assert: liveness 200 with no database; readiness 503 and baseline 503 with an unreachable database; sanitized error body without password or host; baseline 503 when the seed row is missing; the exact four-field synthetic contract; unique 32 hex correlation identifier on every response including 404; CORS allows only the configured origin; the dependency-failure log entry carries the same correlation identifier as the response and no secret; timestamp format accepted by the frontend parser.
 
-- PostgreSQL integration tests fail closed when `HARBOROPS_TEST_DB` targets a non-loopback host or an unexpected database name, preventing accidental migration of ordinary project data.
-- Persistence tests assert stable synthetic timestamp and repeated migration/seed behavior.
-- Frontend baseline payloads are validated for required fields, source label, dataset version and UTC timestamp before rendering.
-- Frontend refreshes cancel superseded requests, preventing stale responses from overwriting newer states; error alerts use an accessible alert role.
-- `scripts/check-m0-degraded.sh` requires the explicit `--confirm-local-outage` flag, validates a local Docker context and the harborops Compose project, checks healthy HTTP states, stops PostgreSQL, verifies degraded responses, restores service with an EXIT trap, and checks recovery.
-- The idle worker's milestone message now points to M9 rather than the superseded v1 M2.
+Integration tests assert: migrate and seed twice leaves one row with the fixed UTC timestamp and no pending migrations; the model snapshot has no differences from the current entity model; migrations are discovered in order; the API serves 200 for liveness, readiness and baseline from a real PostgreSQL database; deleting the baseline row turns readiness and baseline into 503 while liveness stays 200, and re-seeding recovers.
 
-## Expected behavior and failure checks
+Integration safety guard, checked negatively: with `HARBOROPS_TEST_DB` unset, with database `postgres`, and with host `db.example.test`, the integration tests fail before opening any connection.
 
-1. First Compose startup waits for a healthy PostgreSQL service, applies the migration and seed in the one-shot migrator, starts the API, and serves the web shell.
-2. `/health/live` returns minimal process status regardless of database readiness.
-3. `/health/ready` returns HTTP 503 for unavailable database or missing bootstrap row.
-4. The baseline endpoint uses a real query against PostgreSQL; the UI displays data marked `synthetic`.
-5. If the database is inaccessible, the status UI presents a visible error, not a false ready state.
-6. The idle worker shell does not affect M0 API behavior because event processing is not implemented or enabled in Compose.
+## M0-03 Migration and seed evidence
 
-These are expected outcomes derived from source code, not observed results.
+Applied to the empty disposable database: table `bootstrap_records` with `key varchar(80)` primary key, `dataset_version varchar(80) not null`, `seeded_at_utc timestamptz not null`; one row `harborops | m0-synthetic-v1 | 2026-10-30 00:00:00+00`; `__EFMigrationsHistory` contains only `20261030170000_InitialBootstrap` (EF 8.0.33). The same schema and row were then produced by the Compose migrator on a clean volume (second `psql` inspection).
 
-## Test environment required
+## M0-04 Compose and browser evidence
 
-- .NET 8 SDK capable of building the pinned projects and NuGet package references
-- PostgreSQL 16 with a disposable integration-test database
-- Docker Engine with Compose to validate complete container startup
-- Node.js 22 and npm for frontend installation, tests, and build
-- A browser for actual user-interface observation
+Clean-volume run: `docker compose down -v` (own project only), `docker compose up -d --build`, then `bash scripts/smoke-compose.sh` (exit 0, "API, dependency readiness, and frontend HTTP smoke checks passed"). Migrator exited 0 before the API started; postgres reached `healthy`.
 
-No paid cloud accounts or feeds are necessary. `.env` is local and untracked. GitHub workflow `Verify M0` is configured for manual triggering only, but a workflow-dispatch file must exist on the repository default branch before GitHub permits the usual manual run. Until then, use the local scripts or an explicitly authorized external runner. Review CI quota before any later workflow run.
+Browser observations (Chrome 152 engine, `http://localhost:5173`):
 
-## Next verification sequence
+| Check | Observed |
+| --- | --- |
+| Initial load | Status screen rendered from `GET http://localhost:8080/api/v1/system/baseline` 200 |
+| Data and labels | Service `HarborOps`, provenance "Synthetic demonstration", dataset `m0-synthetic-v1`, seed reference `2026-10-30T00:00:00.000Z` |
+| Network requests | Only the HTML, one JS bundle, one CSS file and the baseline call; no other origins |
+| Manual refresh and rapid refresh | 15 clicks produced 15 requests, superseded requests aborted, final state ready with correct data, no alert |
+| Keyboard | Tab reached the Refresh button with a 2 px cyan outline; Enter triggered a refresh |
+| Database stopped | Alert "Service unavailable / Service returned HTTP 503" |
+| Database restored | Manual refresh returned the data; no reload needed |
+| Hung API (container paused) | Alert "The service did not respond in time" after the 10 s client timeout |
+| Responsive layout | 375 px wide emulation, no horizontal overflow |
+| Console | The only console error was the 503 resource message from the deliberate outage |
 
-1. Execute `bash scripts/verify-local.sh` with `HARBOROPS_TEST_DB` set to a disposable PostgreSQL database, .NET, Node.js, npm, Docker and a valid local `.env` available. The script now fails explicitly if a required tool or integration database setting is missing; it does not silently skip mandatory checks.
-2. Resolve build, package restore, migration, or test failures without skipping checks. Use a dedicated loopback PostgreSQL database named `harborops_integration` or `harborops_test`.
-3. Run `bash scripts/smoke-compose.sh` on a clean local Compose volume.
-4. On a disposable local Compose stack, deliberately run `bash scripts/check-m0-degraded.sh --confirm-local-outage`. This temporarily stops PostgreSQL and restores it. Never run it against a shared or production stack. Preserve exact HTTP codes and redacted logs.
-5. Verify browser loading/error and rapid repeated refresh states using a real browser. The Node utility test results alone do not verify UI rendering.
-6. Record commands, environment, failures, evidence paths, and exact commit.
-7. Only then move the M0 ledger to verified and `acceptance pending`.
+The outage, rapid refresh, keyboard, hung-API and mobile checks ran against the stack built from `ecfc77e`; the later commits changed the nginx base image (`e3af3ed`) and added one warning log (`4fb34eb`). After the final rebuild the page was loaded again and showed the same data with the same three requests. Screen reader behavior and color contrast were not measured; this register makes no accessibility claim beyond the focus ring and the `alert` and `status` roles.
 
-## Known limitations and risks
+## M0-05 Failure and recovery evidence
 
-- No application compile, Compose startup, PostgreSQL migration, browser, or full frontend production build evidence exists yet.
-- No shipment/tenant, event ingestion, analytics, monitoring, audit, or incident functionality exists.
-- The baseline record seeds only one deterministic metadata row. Full synthetic operational fixtures begin later.
-- API supports local HTTP only in Compose, with no HTTPS termination or hosted hardening.
-- `global.json`, package versions, container image tags, and frontend dependencies need a successful clean restore and security review before M0 verification. There is no committed `web/package-lock.json`, so frontend transitive dependencies are not yet locked. The bootstrap web Dockerfile falls back to `npm install` when no lock is present, but `scripts/verify-local.sh` and manual CI require `npm ci` and intentionally fail without a lock. Create the lockfile with `cd web && npm install --package-lock-only --no-audit --no-fund`, review and commit it, then run the clean verification gates.
-- .NET 8 support ends on 2026-11-10; schedule a deliberate [.NET 10 migration](https://learn.microsoft.com/en-us/dotnet/core/releases-and-support) with dependency and compatibility tests rather than treating the existing framework as a long-lived supported base.
-- M0 tests do not yet exercise a real browser or the degraded-dependency path. A script and guarded controls exist, but have not been run.
-- The full operational backup/restore rehearsal is planned for M19 under the v2 execution graph.
+Preflight: Docker context `desktop-linux` (local pipe), Compose project `harborops`, data is the synthetic seed only, the script stops only the `postgres` service of this project and restores it from an exit trap.
+
+| Condition | Liveness | Readiness | Baseline |
+| --- | --- | --- | --- |
+| Database healthy | 200 | 200 | 200 |
+| Database stopped | 200 | 503 | 503 `dependency_unavailable` with correlation identifier |
+| Database restored | 200 | 200 | 200 |
+
+`bash scripts/check-m0-degraded.sh --confirm-local-outage` exited 0 three times (first on the working tree that became `ecfc77e`, then on the clean volume at `e3af3ed`, then on the final `4fb34eb` build). In the first manual outage the same codes were captured with `curl`. The final run logged `Baseline request failed because a dependency is unavailable (InvalidOperationException)` with a `CorrelationId` scope.
+
+## Security and hygiene
+
+| Check | Result |
+| --- | --- |
+| Secret patterns in tracked files | None; `.env` is ignored, only `.env.example` with a placeholder is tracked |
+| Secret patterns in M0 branch history | None found (`git log -p --all -S"Password="` and keyword scan) |
+| Password in container logs | 0 occurrences in api, migrator, postgres and web logs |
+| Error bodies | `internal_error` and `dependency_unavailable` envelopes carry no connection details (asserted by a contract test) |
+| CORS | Allowed origin echoed for `http://localhost:5173`, absent for `http://evil.example` (contract test and live curl) |
+| Listening ports | Compose publishes 127.0.0.1 only: 8080, 5173, 55432 |
+| NuGet advisories | `dotnet list package --vulnerable --include-transitive`: none in all 8 projects |
+| NuGet deprecation | `xunit` 2.9.2 flagged Legacy (successor `xunit.v3`) in two test projects; test-only, low severity, not changed |
+| npm advisories | Initially 1 high (postcss 8.5.6, four advisories); fixed by pinning 8.5.32; `npm audit` reports 0 vulnerabilities, including production only |
+| Container settings | api and migrator run as UID 1654, read-only root filesystem, all capabilities dropped, `no-new-privileges`; web has `no-new-privileges`; postgres is stock |
+| Image scan | Trivy 0.58.1, database updated 2026-10-30, fixable HIGH and CRITICAL only: api image 0; web image 0 after the nginx update; `postgres:16-alpine` 1 CRITICAL and 25 HIGH, all in the `gosu` helper binary's Go standard library |
+| Attribution and punctuation | No tool or co-author attribution in tracked files or in any commit made for M0; no em dashes in the changes made here |
+
+Remaining risks: (1) the `gosu` findings are upstream and the binary only drops privileges at container start; postgres is bound to loopback and local-only. Revisit when a newer 16.x image is published. (2) .NET 8 support ends 2026-11-10, 11 days after this run; the .NET 10 move should be scheduled before any hosted use. (3) The Trivy findings reflect the database on the run date. (4) The API serves HTTP only; there is no TLS or authentication yet by design. (5) The Docker .NET base tags (`8.0`) are floating, so rebuilds can change patch levels. (6) `VITE_API_BASE_URL` is fixed at web image build time, not at container start.
+
+## Defects found and corrected
+
+| # | Finding | Severity | Fix |
+| --- | --- | --- | --- |
+| 1 | No line-ending rules; on a Windows checkout with `core.autocrlf=true` the shell scripts were CRLF and cannot run under bash | Medium | `.gitattributes` (`53aee70`) |
+| 2 | No frontend lockfile; postcss 8.5.6 carried a high advisory | High for build tooling | Lockfile with 129 integrity-checked registry entries and postcss 8.5.32 (`216accf`) |
+| 3 | Baseline returned HTTP 500 with the database down because EF wraps the provider exception in `InvalidOperationException`; the existing filter only matched the unwrapped types. The new contract test failed before the fix | High (acceptance expectation violated) | Inner-chain check (`adbee5e`) |
+| 4 | JSON logs omitted scopes, so the correlation identifier never reached any log line | Medium | `IncludeScopes = true` (`adbee5e`) |
+| 5 | Dependency failures on the baseline path produced no log entry | Medium | Warning with correlation scope, type name only (`4fb34eb`) |
+| 6 | Existing contract test only serialized a DTO and could not detect HTTP-level regressions | Medium | 10 pipeline-level contract tests, snapshot and API-against-PostgreSQL tests |
+| 7 | A hung API left the UI loading forever | Medium | 10 s client timeout with an explicit error (`ecfc77e`) |
+| 8 | Web image fell back to `npm install` without a lockfile | Medium | `npm ci` only (`ecfc77e`) |
+| 9 | Hardening: unbounded 15 s connect time, no readiness time limit, client abort treated as server error, writable root filesystem and full capabilities in api containers | Low | Bounded connect and readiness time, 499 on client abort, container settings (`adbee5e`, `ecfc77e`). The abort path has no automated test |
+| 10 | Web base `nginx:1.27-alpine` carried 2 critical and 43 high fixable findings on an older scanner database | High | `nginx:1.30.6-alpine` plus `apk upgrade` (`e3af3ed`); rescan 0 |
+
+## Execution notes
+
+- One `docker compose up -d --build` failed with a transient `EOF` fetching `mcr.microsoft.com` metadata; the immediate retry succeeded with exit 0 and no change.
+- `docker pull` refreshed `postgres:16-alpine` and fetched `nginx:1.30.6-alpine` and `mcr.microsoft.com/dotnet/sdk:8.0` during the run.
+- A stray local API process used for a manual test was found still running and was stopped.
+- The scanner database was refreshed before the final scans; earlier scans used a cached database dated 2026-10-09.
+
+## Known limitations
+
+- The baseline record is infrastructure metadata. Shipments, authentication, events, dashboards and incidents are not implemented and belong to M1 and later.
+- Real-browser verification used the Chrome engine of the desktop app only; Firefox, Safari and screen readers were not tested.
+- The CI workflow `Verify M0` has not been run and cannot be dispatched until it exists on the default branch.
+- The compose stack was verified on one Windows host with Docker Desktop.
+- Local Node.js is 24.20.0; the frontend tests and the container build were additionally run on Node 22.23.2.
+- Raw logs and screenshots are stored locally, not in the repository.
+
+## Reproduce
+
+```bash
+cp .env.example .env              # set a unique HARBOROPS_DB_PASSWORD
+docker run -d --name harborops-test-pg --tmpfs /var/lib/postgresql/data \
+  -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops_test \
+  -e POSTGRES_PASSWORD=<local value> -p 127.0.0.1:55433:5432 postgres:16-alpine
+export HARBOROPS_TEST_DB="Host=127.0.0.1;Port=55433;Database=harborops_integration;Username=harborops_test;Password=<local value>"
+bash scripts/verify-local.sh
+bash scripts/smoke-compose.sh
+bash scripts/check-m0-degraded.sh --confirm-local-outage
+```
 
 ## Status rule
 
-An implemented code path is not a verified runtime behavior. Do not mark M0 accepted unless all required gates pass and acceptance is explicitly confirmed.
+An implemented code path is not a verified runtime behavior, and a verified gate is not an accepted milestone. G0 is verified with this evidence and remains acceptance pending until explicitly accepted. M1 must not start before that decision.

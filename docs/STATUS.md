@@ -1,59 +1,55 @@
 # Project Status
 
-**As of:** 2026-10-30  
-**Overall:** M0 application foundation committed on a feature branch; full runtime verification outstanding  
-**M0 acceptance:** Not yet eligible for acceptance
+**As of:** 2026-10-30
+**Overall:** M0 engineering baseline implemented and runtime verified on the feature branch; acceptance pending
+**G0:** verified, acceptance pending. M1 has not started.
 
 ## Delivery ledger
 
-This implementation branch follows the proposed granular M0-M24 roadmap available on the [planning branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md). The older M1-M6 labels in the table below are legacy categories, not valid v2 milestone IDs. M1-M24 remain planned. G0 remains open.
-
+This branch follows the granular M0-M24 roadmap on the [planning branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md). Legacy v1 milestone labels in older documents are superseded and do not match v2 IDs. M0-01 through M0-05 and G0 keep their original meaning.
 
 | Milestone | State | Evidence |
 | --- | --- | --- |
-| **M0 Engineering baseline verification** | In progress | Source exists and six isolated Node utility tests passed; .NET, PostgreSQL, Compose and real browser verification outstanding; G0 open |
-| **M1-M24** | Planned | No accepted business, operational, or release milestone implementation |
+| **M0 Engineering baseline verification** | G0 verified, acceptance pending | [M0 Verification](M0_VERIFICATION.md): code revision `4fb34eb`, 16 .NET tests and 6 web tests passing, clean-volume Compose run, browser path, database outage and recovery, dependency and image scans |
+| **M1-M24** | Planned | No implementation; gates G1-G24 are open |
 
 ## M0 source inventory
 
-- `HarborOps.sln` with domain, application, infrastructure, API, worker, and three test projects
-- EF Core PostgreSQL DbContext, baseline migration, deterministic seed, and read service
-- Public read-only baseline API; separate liveness and PostgreSQL readiness endpoints
-- Structured JSON console logging, generated request correlation identifiers, and local CORS policy
-- React/TypeScript status view with explicit synthetic label, loading/error states, and refresh
-- Docker Compose, one-shot migrator, Dockerfiles, untracked credentials template, and local scripts
-- Manual GitHub workflow `Verify M0` (usable after the workflow exists on the default branch; use local scripts before that)
-
-This is **source implementation**, not proof of working runtime behavior. See [M0 Verification](M0_VERIFICATION.md).
+- `HarborOps.sln` with domain, application, infrastructure, API, worker and three test projects
+- EF Core PostgreSQL context, baseline migration, deterministic seed and read service
+- Public read-only baseline API, liveness endpoint and PostgreSQL readiness endpoint
+- Structured JSON logging with correlation identifiers, local CORS policy, controlled 503 responses for database failure
+- React and TypeScript status view with synthetic label, loading, error, timeout and refresh states
+- Docker Compose, one-shot migrator, Dockerfiles, committed `web/package-lock.json`, scripts
+- Manual GitHub workflow `Verify M0` (not run; it can be dispatched only after it exists on the default branch)
 
 ## Checks and outcomes
 
-- Repository baseline read: main at `754da6c66b4037303806e3ea825ace86f687a766`; 17 planning Markdown files; no previously implemented code.
-- M0 code commits: available on `feat/m0-engineering-baseline`.
-- Six Node utility tests passed in an isolated local source copy using Node.js 22.16.0. Frontend dependency install, full build and browser behavior were not tested.
-- .NET restore/build/tests: **not run** because the SDK is unavailable in the current environment.
-- PostgreSQL migration, API HTTP endpoints, Docker Compose, browser UX, failure injection: **not run** because required runtime infrastructure is unavailable.
-- Previous source baseline static review checked 72 files. A repeat full-branch audit, dependency scan and application build remain outstanding after the latest changes.
-- No production deployment, complete E2E demonstration, or accepted milestone.
+All results are recorded with commands, versions and revisions in [M0 Verification](M0_VERIFICATION.md).
 
-## M0 verification blockers
+- Clean .NET restore and Release build: 0 warnings, 0 errors.
+- Unit 1, contract 10, PostgreSQL integration 5, web 6 tests passed.
+- `npm ci` from the lockfile, production build, and Docker web build with `npm ci` only.
+- Migration and seed on PostgreSQL 16.15, repeatable, schema inspected.
+- Compose clean-volume start, smoke script, real browser load, refresh, rapid refresh, keyboard focus, mobile width.
+- Database outage: liveness 200, readiness 503, baseline 503; recovery to 200 and the UI recovers on refresh.
+- Ten defects corrected, including baseline HTTP 500 with the database down and missing correlation identifiers in logs.
+- npm and NuGet advisories: none open. Trivy image scan: no fixable high or critical findings in the api and web images; upstream `gosu` findings remain in the postgres image.
 
-1. Execute clean `.NET` restore and build and resolve any compiler or dependency failures.
-2. Execute unit, contract, and real PostgreSQL integration tests.
-3. Generate and commit a real frontend dependency lockfile, then execute `npm ci`, frontend tests and production build. The bootstrap Docker image alone does not satisfy reproducibility.
-4. Verify clean Compose startup, database migration, health endpoints, and real browser-to-database request path.
-5. Confirm expected degraded-dependency responses and recovery.
-6. Run dependency/security scanning and repeat hygiene checks after clean build; basic static repository hygiene audit has passed.
-7. Record exact revision, commands, results, and artifacts. Acceptance pending only after verification passes.
+## Open items before acceptance
+
+1. Explicit acceptance of G0 is not recorded. Status stays acceptance pending.
+2. Plan the .NET 10 move before .NET 8 support ends on 2026-11-10.
+3. Re-run the image scan after any base image update.
 
 ## Documentation status
 
-All baseline specification documents remain authoritative for their planned domain requirements. Relevant documents were updated with M0 implementation boundaries. [M0 Verification](M0_VERIFICATION.md) is the single register for M0 execution evidence and pending checks.
+Specification documents remain authoritative for planned domains. [M0 Verification](M0_VERIFICATION.md) is the single register for M0 evidence.
 
 ## Next milestone
 
-Close G0 before beginning M1. The granular roadmap places authentication/session lifecycle in M1, organization roles in M2, and maritime reference and shipment workflows in M3-M6.
+M1 (authentication and session lifecycle) requires G0 verified and decision D-001 closed, and is not started.
 
 ## Acceptance convention
 
-Planned, in progress, implemented, verified, acceptance pending, and accepted are distinct states. Do not infer verification or acceptance from a commit, static source inspection, or documentation update.
+Planned, in progress, implemented, verified, acceptance pending and accepted are distinct states. Do not infer verification or acceptance from a commit, source inspection or a documentation update.

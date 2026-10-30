@@ -46,6 +46,10 @@ The planning branch `docs/product-delivery-source-of-truth` defines the revised 
 
 The old M1-M6 milestone IDs were superseded by the granular plan. M0-01 through M0-05 and G0 retain their meaning. This branch implements the M0 engineering foundation only. All subsequent business capabilities are planned.
 
+### Mandatory E-drive storage
+
+All persistent HarborOps development data must stay on E:, including the working tree at `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`, caches and M0 evidence under `E:\\APP IDEAS\\harborops-m0-cache`, and Docker Desktop/WSL data and volumes. See [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) for PowerShell session setup and preflight checks. C: is reserved for unavoidable short-lived Windows temporary writes only. Do not create new persistent project storage on C:.
+
 ### Local M0 startup
 
 Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 8 SDK for standalone development.
@@ -65,6 +69,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | Document | Purpose |
 | --- | --- |
 | [Project Status](docs/STATUS.md) | Implemented, pending, and verified work |
+| [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) | E-drive workspace, caches, Docker and evidence constraints |
 | [M0 Verification](docs/M0_VERIFICATION.md) | Execution commands, limitations, and acceptance evidence |
 | [Product Scope](docs/PRODUCT_SCOPE.md) | Goals, non-goals, personas, and constraints |
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |

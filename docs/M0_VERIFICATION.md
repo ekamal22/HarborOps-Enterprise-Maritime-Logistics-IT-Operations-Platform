@@ -66,7 +66,7 @@ No paid cloud accounts or feeds are necessary. `.env` is local and untracked. Gi
 
 ## Next verification sequence
 
-1. Execute `bash scripts/verify-local.sh` with `HARBOROPS_TEST_DB` set to a disposable PostgreSQL database.
+1. Execute `bash scripts/verify-local.sh` with `HARBOROPS_TEST_DB` set to a disposable PostgreSQL database, .NET, Node.js, npm, Docker and a valid local `.env` available. The script now fails explicitly if a required tool or integration database setting is missing; it does not silently skip mandatory checks.
 2. Resolve build, package restore, migration, or test failures without skipping checks.
 3. Run `bash scripts/smoke-compose.sh` on a clean local Compose volume.
 4. Exercise failure and recovery paths; preserve exact HTTP codes and logs without secrets.

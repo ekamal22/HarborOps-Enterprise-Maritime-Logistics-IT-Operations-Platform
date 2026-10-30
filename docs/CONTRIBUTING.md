@@ -49,6 +49,14 @@ A change is done only when:
 - Clear rollback, migration, and operational implications.
 - Documentation matches actual code.
 
+## Scoped milestone execution
+
+- The release is split into M0-M24, each with its own G0-G24 evidence gate. The graph data contains the authoritative task dependencies.
+- Before starting a work package, identify its graph ID and verify all predecessors. Implement only its bounded output and necessary dependencies.
+- Attach tests covering negative cases, permissions and migration implications to that specific work package, rather than deferring all verification until the final release.
+- Completion requires executed evidence. A reviewable commit, source inspection, or a successful partial test suite is insufficient to close a gate.
+- The former v1 M1-M6 node IDs are superseded. Historical task references must be mapped by deliverable and verification, not by copying IDs.
+
 ## Planning document authority
 
 - Update [PRD](PRD.md) for product scope and priorities, [Requirements](REQUIREMENTS.md) for atomic FR/NFR changes, [Roadmap](ROADMAP.md) for milestone delivery and gate changes, and [execution-graph.json](execution-graph.json) for work-package dependency changes.

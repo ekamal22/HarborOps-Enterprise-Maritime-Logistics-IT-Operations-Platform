@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** Planning baseline on the default branch. An unmerged M0 engineering implementation exists on `feat/m0-engineering-baseline`, but full runtime verification is outstanding. All described capabilities are requirements or targets unless evidenced in [Project Status](docs/STATUS.md).
+**Status:** Planning baseline on the default branch. The unmerged M0 implementation on `feat/m0-engineering-baseline` has a documented runtime verification result: G0 verified, acceptance pending. All described capabilities are requirements or targets unless evidenced in [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -11,6 +11,7 @@ HarborOps is designed to run locally with free, self-hosted development tools. O
 
 - [Product Requirements Document](docs/PRD.md) defines intended users, product scope, outcomes, and release priorities.
 - [Delivery Roadmap](docs/ROADMAP.md) defines milestone deliverables, entry criteria, and evidence-based exit gates.
+- [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) requires all controlled persistent development storage on E: and limits C: use to unavoidable temporary system activity.
 - [Execution Graph](docs/EXECUTION_GRAPH.md) visualizes work-package prerequisites; [graph data](docs/execution-graph.json) is authoritative for dependencies and IDs.
 - [Project Status](docs/STATUS.md) alone describes implementation, verification, and acceptance state. [Requirements](docs/REQUIREMENTS.md) and [Acceptance Criteria](docs/ACCEPTANCE_CRITERIA.md) own atomic requirements and detailed checks.
 
@@ -62,6 +63,7 @@ M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). Th
 | [Execution Graph](docs/EXECUTION_GRAPH.md) | Generated execution dependencies and work packages |
 | [Execution Graph Data](docs/execution-graph.json) | Canonical dependency edges and node IDs |
 | [Project Status](docs/STATUS.md) | Authoritative implementation, verification, and acceptance state |
+| [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) | Mandatory E-drive workspace, caches, runtime data and evidence locations |
 | [Product Scope](docs/PRODUCT_SCOPE.md) | Goals, non-goals, personas, and constraints |
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
@@ -94,4 +96,4 @@ HarborOps is an independent demonstration platform. It does not claim affiliatio
 
 ### Current state
 
-The default branch remains a documentation baseline. M0 source exists separately on the unmerged `feat/m0-engineering-baseline` branch. No complete application build, database migration, deployed service, or live integration has been verified. See [Project Status](docs/STATUS.md) for evidence before treating any milestone as complete.
+The default branch remains a documentation baseline. On the unmerged `feat/m0-engineering-baseline` branch, M0 was verified locally against code revision `4fb34eb`, including builds, migrations, Compose startup, browser behavior and fault recovery. G0 is verified, acceptance pending. No live or hosted deployment was claimed. See [Project Status](docs/STATUS.md) for evidence before treating any milestone as complete.

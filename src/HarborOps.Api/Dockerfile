@@ -14,7 +14,6 @@ ARG SOURCE_REVISION=unverified
 LABEL org.opencontainers.image.revision=$SOURCE_REVISION
 WORKDIR /app
 COPY --from=build /app/publish ./
-ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 USER $APP_UID
 ENTRYPOINT ["dotnet", "HarborOps.Api.dll"]

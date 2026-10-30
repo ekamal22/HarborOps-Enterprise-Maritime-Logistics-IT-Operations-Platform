@@ -2,11 +2,15 @@
 
 **Authority:** Supporting engineering guidance only. The [Product Requirements Document](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/PRD.md), [Roadmap](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md), and [Execution Graph](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/EXECUTION_GRAPH.md) on the independent planning branch define the approved product direction and proposed M0-M24 sequence. This page must not compete with that roadmap.
 
+## Post-verification hardening change
+
+The separate hardening branch adds a supported .NET 10 baseline, modified PostgreSQL 16 runtime image and additional browser/accessibility tests. Its changes are **pending new runtime verification**. Do not replace the original G0 evidence or begin M1 based on source-only changes. Refer to [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+
 ## M0 implementation and verification
 
 On `feat/m0-engineering-baseline`, M0-01 through M0-05 have recorded local verification at code revision `4fb34eb`. The M0 evidence register includes the actual tool versions, checks, commands, test results, environment, remediation history, and residual risks.
 
-- .NET 8 solution with API, application, domain, infrastructure, worker shell and tests
+- Originally verified .NET 8 solution with API, application, domain, infrastructure, worker shell and tests
 - PostgreSQL 16 schema migration, fixed synthetic bootstrap seed and repeatable tests
 - Database-backed `/api/v1/system/baseline`, process liveness and database readiness
 - JSON logs, correlation identifiers, sanitized failures and bounded dependency timeouts

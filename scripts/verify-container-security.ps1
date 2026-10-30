@@ -45,6 +45,10 @@ try {
         if ($LASTEXITCODE -ne 0 -or $imageId -notmatch '^sha256:[0-9a-f]{64}$') {
             throw "Could not identify immutable image ID for $service"
         }
+        $imageRevision = (& docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' $imageId).Trim()
+        if ($LASTEXITCODE -ne 0 -or $imageRevision -ne $sha) {
+            throw "Stale $service image: expected source revision $sha but found $imageRevision"
+        }
         $images[$service] = $imageId
     }
 

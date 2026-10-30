@@ -38,6 +38,75 @@ flowchart LR
 
 Gate transitions are sequential. Within a single milestone, tasks that branch from the same prerequisite may be implemented independently and then reunited at verification. Every work package is a narrow, reviewable output with specific tests.
 
+## Milestone gate map
+
+### P0: Foundation and maritime records
+
+```mermaid
+flowchart LR
+  G0["M0: Engineering baseline verification"]
+  G1["M1: Authentication and session lifecycle"]
+  G2["M2: Organizations and role isolation"]
+  G3["M3: Ports and vessels reference data"]
+  G4["M4: Voyages and containers reference data"]
+  G5["M5: Shipment lifecycle and concurrency"]
+  G6["M6: Container and voyage assignments"]
+  G0 --> G1 --> G2 --> G3 --> G4 --> G5 --> G6
+```
+
+### P1: Event ingestion and decision rules
+
+```mermaid
+flowchart LR
+  G7["M7: Tracking contracts and source authentication"]
+  G8["M8: Durable event inbox and immutable history"]
+  G9["M9: Idempotent worker and reconciliation"]
+  G10["M10: Event timeline and projection rebuild"]
+  G11["M11: Delay rules and shipment exceptions"]
+  G7 --> G8 --> G9 --> G10 --> G11
+```
+
+### P2: Operational workspaces
+
+```mermaid
+flowchart LR
+  G12["M12: Shipment search and authorized export"]
+  G13["M13: Operational KPI definitions and dashboards"]
+  G14["M14: Route mapping and geographic context"]
+  G15["M15: Scoped in-app notifications"]
+  G12 --> G13 --> G14 --> G15
+```
+
+### P3: Security and technical operations
+
+```mermaid
+flowchart LR
+  G16["M16: Audit logging and access hardening"]
+  G17["M17: Observability and service health"]
+  G18["M18: IT incident lifecycle and remediation"]
+  G16 --> G17 --> G18
+```
+
+### P4: Reliability and delivery assurance
+
+```mermaid
+flowchart LR
+  G19["M19: Database recovery and migration rehearsal"]
+  G20["M20: Security assurance and dependency review"]
+  G21["M21: Performance and capacity benchmarks"]
+  G22["M22: Deployment portability and cost controls"]
+  G19 --> G20 --> G21 --> G22
+```
+
+### P5: Release finish
+
+```mermaid
+flowchart LR
+  G23["M23: Interface polish and accessibility"]
+  G24["M24: Release scenarios and evidence closure"]
+  G23 --> G24
+```
+
 ## Legacy identifier migration
 
 Execution graph v1 contained M0-M6. M0-01 through M0-05 and G0 are preserved. **Old M1-M6 node IDs and G1-G6 are superseded and must not be interpreted as the new tasks or completion states.** The old-to-new milestone mapping is documented in [Roadmap](ROADMAP.md). New planning IDs do not rewrite code history or retroactively mark any capability delivered.

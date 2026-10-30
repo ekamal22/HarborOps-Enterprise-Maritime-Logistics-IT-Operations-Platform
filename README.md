@@ -49,7 +49,7 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 ### Delivery sequence
 
-M0 through M6 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes dependency order and permissible parallel work. Indicative windows are not completion commitments. Current delivery status is recorded only in [Project Status](docs/STATUS.md).
+M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone sequencing is dependency based, not a calendar deadline. Current delivery status is recorded only in [Project Status](docs/STATUS.md).
 
 ### Documentation index
 

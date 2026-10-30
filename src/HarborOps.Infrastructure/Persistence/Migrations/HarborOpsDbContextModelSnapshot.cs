@@ -12,6 +12,10 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
 {
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasAnnotation("ProductVersion", "10.0.14");
+        modelBuilder.HasAnnotation("Relational:MaxIdentifierLength", 63);
+        Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlModelBuilderExtensions
+            .UseIdentityByDefaultColumns(modelBuilder);
         modelBuilder.Entity<BootstrapRecord>(entity =>
         {
             entity.ToTable("bootstrap_records");

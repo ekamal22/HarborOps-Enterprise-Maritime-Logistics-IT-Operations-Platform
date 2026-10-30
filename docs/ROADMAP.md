@@ -298,6 +298,10 @@ The planned M14 map view and M15 in-app notifications remain in the release base
 4. Verify every dependency and applicable [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) before recording a gate as verified; retain an explicit acceptance-pending state if not yet accepted.
 5. If a gate is blocked, record it in [Status](STATUS.md). Do not skip ahead to dependent functionality without an approved sequencing change.
 
+## Documentation integrity checks
+
+After any milestone or requirement edit, regenerate the graph with `node scripts/render-execution-graph.mjs`; run `node scripts/render-execution-graph.mjs --check` and `node scripts/check-planning-docs.mjs`. These checks validate structural consistency and links, not application functionality or milestone acceptance.
+
 ## Immediate execution
 
 Work against the existing unmerged `feat/m0-engineering-baseline` source. Complete the M0 execution graph tasks and G0 with actual .NET, PostgreSQL, Compose, browser, dependency and failure checks before beginning M1 implementation. No current application feature has been accepted by this roadmap revision.

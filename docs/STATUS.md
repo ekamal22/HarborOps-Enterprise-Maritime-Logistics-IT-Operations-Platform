@@ -81,3 +81,8 @@ The [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires all controllable pe
 ## Status update rule
 
 Update this page whenever a milestone materially changes state. Record implemented paths, exact executed checks, failures, accepted limitations, and links to verification artifacts. Do not mark a capability verified based only on documentation or source inspection.
+
+## Quarterly data compatibility policy
+
+G0 does not depend on any retained local Docker volume. Fresh disposable database checks are required. Historical-volume compatibility moves to quarterly progress checkpoints at M6, M12, M18 and M24-03, using safe copies only; M19 separately owns comprehensive backup, restore and upgrade rehearsal. If no representative snapshot exists at a checkpoint, record NOT APPLICABLE. Breaking changes applied to retained data still require a safe-copy rehearsal before rollout.
+

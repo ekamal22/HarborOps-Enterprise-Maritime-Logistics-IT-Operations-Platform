@@ -7,7 +7,7 @@ test("baseline status loads from the API without unrelated network calls", async
     if (!["localhost", "127.0.0.1"].includes(hostname)) external.push(request.url());
   });
   await page.goto("/");
-  await expect(page.getByText("System baseline")).toBeVisible();
+  await expect(page.getByText("System baseline", { exact: true })).toBeVisible();
   await expect(page.getByText("Synthetic demonstration")).toBeVisible();
   await expect(page.getByText("m0-synthetic-v1")).toBeVisible();
   expect(external).toEqual([]);

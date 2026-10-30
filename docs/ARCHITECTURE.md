@@ -83,7 +83,7 @@ Append-only records of sensitive actions and key operational state changes. No d
       scenarios/
     docs/
 
-The application, worker shell, test projects, scripts, and Compose configuration have been added. Some target directories such as `infra/monitoring`, tracking adapters, and browser test suites are not yet implemented.
+The application, worker shell, test projects, scripts, and Compose configuration have been added. Some target directories such as `infra/monitoring`, tracking adapters, and the new browser matrix is implemented as source but not yet executed.
 
 ## Persistence strategy
 
@@ -121,6 +121,10 @@ Each risk has corresponding test and operations requirements. See SECURITY.md, E
 ## Local disk boundary
 
 The source, build outputs, dependency caches, PostgreSQL/Docker Desktop data and test evidence must use E-drive storage per [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Only unavoidable short-lived Windows temporary writes on C: are permitted.
+
+## Pending runtime modernization
+
+The hardening branch targets .NET 10 and EF Core 10 while preserving the original PostgreSQL 16 on-disk format and immutable bootstrap migration. The PostgreSQL container runs under the built-in non-root account with the `gosu` binary removed. The current branch's new runtime behavior must be retested before any G0 claim applies to its commit. The detailed test matrix is in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
 ## M0 implemented boundaries
 

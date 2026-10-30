@@ -67,7 +67,7 @@ export default function App() {
         <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-cyan-300">Platform readiness</p>
         <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">Foundation status from the live API.</h1>
         <p className="mt-5 max-w-2xl text-slate-400">This page queries a PostgreSQL-backed API to check the engineering foundation. Shipment operations, event processing, analytics, and incident management remain planned for later milestones.</p>
-        <section className="mt-12 rounded-2xl border border-slate-800 bg-slate-900/80 p-7" aria-live="polite">
+        <section className="mt-12 rounded-2xl border border-slate-800 bg-slate-900/80 p-7" >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div><h2 className="text-xl font-semibold">System baseline</h2><p className="mt-1 text-sm text-slate-400">Read-only status from /api/v1/system/baseline</p></div>
             <button onClick={() => void refresh()} className="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200">Refresh status</button>
@@ -81,7 +81,7 @@ export default function App() {
             <div><dt className="text-xs uppercase tracking-widest text-slate-400">Seed reference (UTC)</dt><dd className="mt-2 font-mono text-sm">{new Date(view.data.seededAtUtc).toISOString()}</dd></div>
           </dl>}
         </section>
-        <p className="mt-8 text-xs text-slate-500">Demo data only. No live vessel information or shipping integrations.</p>
+        <p className="mt-8 text-xs text-slate-400">Demo data only. No live vessel information or shipping integrations.</p>
       </main>
     </div>
   );

@@ -6,7 +6,7 @@
 - Demonstration: disposable cloud environment activated only when required.
 - Production: not in scope for initial milestone acceptance.
 
-M0 local Compose infrastructure was started on a clean volume and verified on Windows 11 at code revision `4fb34eb`. The stack was stopped after testing, and no hosted service is running. The configured stack contains PostgreSQL, one-shot database migration/seed, HTTP API, and static frontend. The worker shell is intentionally not part of the running stack until tracking processing is implemented.
+M0 local Compose infrastructure was started on a clean volume and verified on Windows 11 at code revision `4fb34eb`. The stack was stopped after testing, and no hosted service is running. The configured stack contains PostgreSQL, one-shot database migration/seed, HTTP API, and static frontend. New M0 hardening verification is recorded separately in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The worker shell is intentionally not part of the running stack until tracking processing is implemented.
 
 ## Observability requirements
 
@@ -113,9 +113,9 @@ Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Keep the repository, cac
 - Run `docker compose config --quiet` to validate interpolation, then `docker compose up -d --build`
 - Inspect `docker compose ps` and `docker compose logs migrator api postgres web`
 - Probe `/health/live`, `/health/ready`, and `/api/v1/system/baseline`
-- Run `bash scripts/smoke-compose.sh` after prerequisites are installed
+- Run `bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable` on a separate disposable test project with valid local credentials; this script refuses the primary database project
 - Stop with `docker compose down`. Only use `docker compose down -v` for deliberate data deletion
 
 The database is bound only to `127.0.0.1:55432` on the host; the API and web ports are bound to loopback. Compose does not configure HTTPS and must not be exposed as-is on a public network.
 
-Failure behavior (verified 2026-10-30, see [M0 Verification](M0_VERIFICATION.md)): when PostgreSQL becomes unavailable after startup, liveness stays HTTP 200, readiness becomes HTTP 503 and the baseline endpoint returns a controlled HTTP 503 with a correlation identifier. The UI shows a service error and recovers on refresh after the database returns. To repeat the exercise on a disposable local stack run `bash scripts/check-m0-degraded.sh --confirm-local-outage`. Bootstrap schema migration recovery, backup, and restore procedures remain pending until M19.
+Failure behavior (verified 2026-10-30, see [M0 Verification](M0_VERIFICATION.md)): when PostgreSQL becomes unavailable after startup, liveness stays HTTP 200, readiness becomes HTTP 503 and the baseline endpoint returns a controlled HTTP 503 with a correlation identifier. The UI shows a service error and recovers on refresh after the database returns. To repeat the exercise on a disposable local stack run `bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage` against the same isolated test project. Bootstrap schema migration recovery, backup, and restore procedures remain pending until M19.

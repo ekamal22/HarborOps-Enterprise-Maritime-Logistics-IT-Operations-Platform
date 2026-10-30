@@ -2,7 +2,9 @@ param(
     [Parameter(Mandatory = $true)][string]$Project,
     [string]$RepositoryPath = (Split-Path -Parent $PSScriptRoot),
     [string]$ExpectedSha = '',
-    [switch]$RefreshDatabase
+    [switch]$RefreshDatabase,
+    [switch]$UseContainerScanner,
+    [string]$ScannerImage = 'aquasec/trivy:0.58.1'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,8 +29,8 @@ $env:TMP = $env:TEMP
 $env:TMPDIR = $env:TEMP
 New-Item -ItemType Directory -Force -Path $env:TRIVY_CACHE_DIR, $env:TEMP, $Evidence | Out-Null
 
-if (!(Get-Command trivy -ErrorAction SilentlyContinue)) {
-    throw 'Trivy is not installed. Use a vetted container scanner against the exact running image IDs; do not substitute stale local tags.'
+if (!$UseContainerScanner -and !(Get-Command trivy -ErrorAction SilentlyContinue)) {
+    throw 'Trivy is not installed on the host. Use -UseContainerScanner with a reviewed scanner image already stored on E:.'
 }
 
 Push-Location -LiteralPath $Root
@@ -55,16 +57,34 @@ try {
     $metadata = [ordered]@{ project = $Project; sourceSha = $sha; imageIds = $images }
     $metadata | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $Evidence 'images.json') -Encoding utf8
 
-    if ($RefreshDatabase) {
-        & trivy image --download-db-only
-        if ($LASTEXITCODE -ne 0) { throw 'Trivy vulnerability database update failed' }
-    }
-
-    foreach ($service in $services) {
-        $report = Join-Path $Evidence "$service.json"
-        & trivy image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format json --output $report $images[$service]
-        if ($LASTEXITCODE -ne 0) {
-            throw "High/critical vulnerability finding or scanner failure in $service ($($images[$service])); see $report"
+    if ($UseContainerScanner) {
+        $localScanner = & docker image inspect --format '{{.Id}}' $ScannerImage
+        if ($LASTEXITCODE -ne 0 -or !$localScanner) {
+            throw "Scanner image $ScannerImage is not available locally. Review its version and pull it into the E-backed Docker store before retrying."
+        }
+        $scannerCmd = {
+            param([string[]]$ScannerArguments)
+            & docker run --rm --pull never -v "${env:TRIVY_CACHE_DIR}:/root/.cache/trivy" -v "${Evidence}:/evidence" -v /var/run/docker.sock:/var/run/docker.sock $ScannerImage @ScannerArguments
+            if ($LASTEXITCODE -ne 0) { throw "Container image scanner failed with exit code $LASTEXITCODE" }
+        }
+        if ($RefreshDatabase) {
+            & $scannerCmd @('image', '--download-db-only')
+        }
+        foreach ($service in $services) {
+            & $scannerCmd @('image', '--scanners', 'vuln', '--severity', 'HIGH,CRITICAL',
+                '--exit-code', '1', '--format', 'json', '--output', "/evidence/$service.json", $images[$service])
+        }
+    } else {
+        if ($RefreshDatabase) {
+            & trivy image --download-db-only
+            if ($LASTEXITCODE -ne 0) { throw 'Trivy vulnerability database update failed' }
+        }
+        foreach ($service in $services) {
+            $report = Join-Path $Evidence "$service.json"
+            & trivy image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format json --output $report $images[$service]
+            if ($LASTEXITCODE -ne 0) {
+                throw "High/critical vulnerability finding or scanner failure in $service ($($images[$service])); see $report"
+            }
         }
     }
     Write-Host "All final running images passed HIGH/CRITICAL scanning for project $Project at $sha"

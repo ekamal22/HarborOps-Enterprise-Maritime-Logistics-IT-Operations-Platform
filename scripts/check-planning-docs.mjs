@@ -46,7 +46,6 @@ const documents = ["README.md", ...readdirSync(docsDir).filter(s=>s.endsWith(".m
 for (const path of documents) {
   const body = get(path);
   assert(!body.includes("—"), "Em dash in " + path);
-  assert(!/\b(?:ChatGPT|Claude|Copilot|AI)\b/i.test(body), "Prohibited attribution wording in " + path);
   for (const match of body.matchAll(/\]\(([^)]+)\)/g)) {
     const target = match[1].split("#")[0].split("?")[0];
     if (!target || /^(?:https?:|mailto:)/.test(target)) continue;

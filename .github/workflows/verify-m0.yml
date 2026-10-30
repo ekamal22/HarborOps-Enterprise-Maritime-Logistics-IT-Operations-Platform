@@ -1,0 +1,53 @@
+name: Verify M0
+
+# Manual only to avoid consuming private-repository minutes unexpectedly.
+on:
+  workflow_dispatch:
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Restore
+        run: dotnet restore HarborOps.sln
+      - name: Build
+        run: dotnet build HarborOps.sln --configuration Release --no-restore
+      - name: Unit tests
+        run: dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj --configuration Release --no-build
+      - name: Contract tests
+        run: dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj --configuration Release --no-build
+      - name: PostgreSQL integration tests
+        run: dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj --configuration Release --no-build
+      - name: Web tests and build
+        working-directory: web
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+          npm run build
+      - name: Validate Compose configuration
+        env:
+          HARBOROPS_DB_PASSWORD: "workflow-only-validation-value"
+        run: docker compose config --quiet

@@ -1,25 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-command -v dotnet >/dev/null || { echo "Missing .NET SDK"; exit 1; }
-command -v node >/dev/null || { echo "Missing Node.js"; exit 1; }
-command -v npm >/dev/null || { echo "Missing npm"; exit 1; }
+for tool in dotnet node npm docker; do
+  command -v "$tool" >/dev/null || { echo "Required verification tool unavailable: $tool" >&2; exit 1; }
+done
+
+if [[ -z "${HARBOROPS_TEST_DB:-}" ]]; then
+  echo "HARBOROPS_TEST_DB must target a disposable PostgreSQL integration database" >&2
+  exit 1
+fi
+
+if [[ -z "${HARBOROPS_DB_PASSWORD:-}" ]]; then
+  echo "HARBOROPS_DB_PASSWORD must be set for Compose configuration validation" >&2
+  exit 1
+fi
 
 dotnet restore HarborOps.sln
 dotnet build HarborOps.sln -c Release --no-restore
 dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-build
 dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --no-build
-
-if [[ -n "${HARBOROPS_TEST_DB:-}" ]]; then
-  dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build
-else
-  echo "Integration tests not executed: HARBOROPS_TEST_DB is unset"
-fi
+dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build
 
 (cd web && npm install --no-audit --no-fund && npm test && npm run build)
 
-if command -v docker >/dev/null; then
-  docker compose config --quiet
-else
-  echo "Compose validation not executed: Docker unavailable"
-fi
+docker compose config --quiet
+echo "M0 local verification commands completed. Compose startup, browser checks, and failure injection remain separate gates."

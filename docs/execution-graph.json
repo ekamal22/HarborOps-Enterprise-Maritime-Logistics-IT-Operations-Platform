@@ -1,0 +1,597 @@
+{
+  "schema_version": 1,
+  "version": "1.0",
+  "date": "2026-10-30",
+  "authority": "Dependency graph and work-package IDs only; actual status is maintained in docs/STATUS.md.",
+  "milestones": [
+    {
+      "id": "M0",
+      "title": "Engineering baseline"
+    },
+    {
+      "id": "M1",
+      "title": "Identity and shipment operations"
+    },
+    {
+      "id": "M2",
+      "title": "Tracking integrity"
+    },
+    {
+      "id": "M3",
+      "title": "Operational analytics"
+    },
+    {
+      "id": "M4",
+      "title": "Security and IT operations"
+    },
+    {
+      "id": "M5",
+      "title": "Reliability and deployment"
+    },
+    {
+      "id": "M6",
+      "title": "Release demonstration"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "M0-01",
+      "milestone": "M0",
+      "title": "Assess code and design",
+      "depends_on": [],
+      "requirements": [
+        "NFR-008"
+      ],
+      "output": "Inventory current M0 source, decisions, prerequisites, and known defects",
+      "verify": "Branch and implementation inventory recorded"
+    },
+    {
+      "id": "M0-02",
+      "milestone": "M0",
+      "title": "Build and test foundations",
+      "depends_on": [
+        "M0-01"
+      ],
+      "requirements": [
+        "NFR-008"
+      ],
+      "output": "Clean .NET build, unit/contract tests, frontend test and build",
+      "verify": "Actual command results and failures recorded"
+    },
+    {
+      "id": "M0-03",
+      "milestone": "M0",
+      "title": "Verify migration and seed",
+      "depends_on": [
+        "M0-01"
+      ],
+      "requirements": [
+        "FR-017",
+        "NFR-007",
+        "NFR-008"
+      ],
+      "output": "PostgreSQL migration, deterministic row and repeatable seed",
+      "verify": "Real PostgreSQL integration and repeat migration checks"
+    },
+    {
+      "id": "M0-04",
+      "milestone": "M0",
+      "title": "Verify local stack and browser",
+      "depends_on": [
+        "M0-02",
+        "M0-03"
+      ],
+      "requirements": [
+        "FR-015",
+        "NFR-001",
+        "NFR-008"
+      ],
+      "output": "Compose startup and browser -> API -> PostgreSQL read path",
+      "verify": "Clean Compose launch, HTTP status, browser observation"
+    },
+    {
+      "id": "M0-05",
+      "milestone": "M0",
+      "title": "Verify failure and hygiene",
+      "depends_on": [
+        "M0-04"
+      ],
+      "requirements": [
+        "FR-015",
+        "NFR-003",
+        "NFR-008"
+      ],
+      "output": "Liveness/readiness outage, dependency and secret checks",
+      "verify": "Controlled outage/recovery and hygiene logs"
+    },
+    {
+      "id": "G0",
+      "milestone": "M0",
+      "title": "Engineering baseline gate",
+      "depends_on": [
+        "M0-02",
+        "M0-03",
+        "M0-04",
+        "M0-05"
+      ],
+      "requirements": [
+        "FR-015",
+        "FR-017",
+        "NFR-001",
+        "NFR-008"
+      ],
+      "output": "M0 evidence ledger and acceptance review",
+      "verify": "All M0 acceptance checks evidenced",
+      "gate": true
+    },
+    {
+      "id": "M1-01",
+      "milestone": "M1",
+      "title": "Resolve identity and ID policy",
+      "depends_on": [
+        "G0"
+      ],
+      "requirements": [
+        "FR-001",
+        "FR-002",
+        "FR-005"
+      ],
+      "output": "Close D-001 and D-003; model organizations and identifiers",
+      "verify": "Decision log and schema/contract review"
+    },
+    {
+      "id": "M1-02",
+      "milestone": "M1",
+      "title": "Implement identity and scopes",
+      "depends_on": [
+        "M1-01"
+      ],
+      "requirements": [
+        "FR-001",
+        "FR-002",
+        "NFR-002"
+      ],
+      "output": "Sessions, memberships, permission enforcement",
+      "verify": "Authentication lifecycle and negative access tests"
+    },
+    {
+      "id": "M1-03",
+      "milestone": "M1",
+      "title": "Implement maritime references",
+      "depends_on": [
+        "M1-01"
+      ],
+      "requirements": [
+        "FR-003",
+        "FR-005"
+      ],
+      "output": "Ports, vessels, voyages, containers and schema constraints",
+      "verify": "CRUD validation and database invariant tests"
+    },
+    {
+      "id": "M1-04",
+      "milestone": "M1",
+      "title": "Implement shipment lifecycle",
+      "depends_on": [
+        "M1-02",
+        "M1-03"
+      ],
+      "requirements": [
+        "FR-004",
+        "FR-005"
+      ],
+      "output": "Create/edit/archive, assignments, conflict protection",
+      "verify": "Transactional, concurrency, and assignment tests"
+    },
+    {
+      "id": "M1-05",
+      "milestone": "M1",
+      "title": "Verify scoped browser workflow",
+      "depends_on": [
+        "M1-04"
+      ],
+      "requirements": [
+        "FR-001",
+        "FR-002",
+        "FR-003",
+        "FR-004",
+        "FR-005"
+      ],
+      "output": "Complete browser workflow and two-organization fixture matrix",
+      "verify": "Browser/API and cross-organization negative tests"
+    },
+    {
+      "id": "G1",
+      "milestone": "M1",
+      "title": "Shipment operations gate",
+      "depends_on": [
+        "M1-02",
+        "M1-03",
+        "M1-04",
+        "M1-05"
+      ],
+      "requirements": [
+        "FR-001",
+        "FR-002",
+        "FR-003",
+        "FR-004",
+        "FR-005"
+      ],
+      "output": "M1 validation evidence and decision review",
+      "verify": "Acceptance sections A/D satisfied",
+      "gate": true
+    },
+    {
+      "id": "M2-01",
+      "milestone": "M2",
+      "title": "Pin event contracts and durability",
+      "depends_on": [
+        "G1"
+      ],
+      "requirements": [
+        "FR-006",
+        "FR-007",
+        "FR-008"
+      ],
+      "output": "Resolve D-002/D-006, versioned schema, inbox and retry policy",
+      "verify": "Contract fixtures and decision log"
+    },
+    {
+      "id": "M2-02",
+      "milestone": "M2",
+      "title": "Implement authenticated event inbox",
+      "depends_on": [
+        "M2-01"
+      ],
+      "requirements": [
+        "FR-006",
+        "FR-007",
+        "FR-008"
+      ],
+      "output": "Authenticated ingestion, receipt and conflict records",
+      "verify": "Malformed, forged, replay, and durable-write tests"
+    },
+    {
+      "id": "M2-03",
+      "milestone": "M2",
+      "title": "Implement resilient processing",
+      "depends_on": [
+        "M2-02"
+      ],
+      "requirements": [
+        "FR-008",
+        "NFR-004"
+      ],
+      "output": "Worker, transactional deduplication, retries, dead letters",
+      "verify": "Duplicate, crash-window, worker restart tests"
+    },
+    {
+      "id": "M2-04",
+      "milestone": "M2",
+      "title": "Implement timeline and exceptions",
+      "depends_on": [
+        "M2-03"
+      ],
+      "requirements": [
+        "FR-009",
+        "FR-010"
+      ],
+      "output": "Immutable history, deterministic projection and delay rules",
+      "verify": "Rebuild, correction, ordering, conflict fixture tests"
+    },
+    {
+      "id": "M2-05",
+      "milestone": "M2",
+      "title": "Verify end-to-end event flow",
+      "depends_on": [
+        "M2-04"
+      ],
+      "requirements": [
+        "FR-006",
+        "FR-007",
+        "FR-008",
+        "FR-009",
+        "FR-010"
+      ],
+      "output": "Receipt-to-timeline test and operational replay scenarios",
+      "verify": "DB outage, replay, negative-source tests"
+    },
+    {
+      "id": "G2",
+      "milestone": "M2",
+      "title": "Tracking integrity gate",
+      "depends_on": [
+        "M2-02",
+        "M2-03",
+        "M2-04",
+        "M2-05"
+      ],
+      "requirements": [
+        "FR-006",
+        "FR-008",
+        "FR-009",
+        "FR-010"
+      ],
+      "output": "Recorded tracking reliability matrix",
+      "verify": "Acceptance section B satisfied",
+      "gate": true
+    },
+    {
+      "id": "M3-01",
+      "milestone": "M3",
+      "title": "Define KPI and map policies",
+      "depends_on": [
+        "G2"
+      ],
+      "requirements": [
+        "FR-012",
+        "FR-018"
+      ],
+      "output": "Close D-004/D-005, fixture definitions and tile fallback",
+      "verify": "Rules and licensing review"
+    },
+    {
+      "id": "M3-02",
+      "milestone": "M3",
+      "title": "Implement search and secure export",
+      "depends_on": [
+        "G2"
+      ],
+      "requirements": [
+        "FR-011",
+        "FR-013",
+        "NFR-002"
+      ],
+      "output": "Scoped shipment filter, details and CSV export",
+      "verify": "Query, pagination, authorization matrix"
+    },
+    {
+      "id": "M3-03",
+      "milestone": "M3",
+      "title": "Implement reconciled dashboards",
+      "depends_on": [
+        "M3-01",
+        "M3-02"
+      ],
+      "requirements": [
+        "FR-012",
+        "FR-010"
+      ],
+      "output": "KPIs and source-row drill-through",
+      "verify": "Reconciliation of exact fixture totals"
+    },
+    {
+      "id": "M3-04",
+      "milestone": "M3",
+      "title": "Implement route and exception UX",
+      "depends_on": [
+        "M3-01",
+        "M3-03"
+      ],
+      "requirements": [
+        "FR-018",
+        "FR-019",
+        "NFR-009"
+      ],
+      "output": "Route view, exception inbox, scoped notifications",
+      "verify": "Browser access, simulated labels, recipient matrix"
+    },
+    {
+      "id": "G3",
+      "milestone": "M3",
+      "title": "Analytics gate",
+      "depends_on": [
+        "M3-02",
+        "M3-03",
+        "M3-04"
+      ],
+      "requirements": [
+        "FR-011",
+        "FR-012",
+        "FR-013",
+        "FR-018",
+        "FR-019"
+      ],
+      "output": "Reconciled user experience evidence",
+      "verify": "Acceptance section C satisfied",
+      "gate": true
+    },
+    {
+      "id": "M4-01",
+      "milestone": "M4",
+      "title": "Harden authorization and audit",
+      "depends_on": [
+        "G3"
+      ],
+      "requirements": [
+        "FR-014",
+        "NFR-002",
+        "NFR-003"
+      ],
+      "output": "Audit records, rate limiting, session and export regression",
+      "verify": "Security threat and isolation tests"
+    },
+    {
+      "id": "M4-02",
+      "milestone": "M4",
+      "title": "Implement telemetry and alerting",
+      "depends_on": [
+        "G3"
+      ],
+      "requirements": [
+        "FR-015",
+        "NFR-005"
+      ],
+      "output": "Health, structured logs, metrics, traces and alerts",
+      "verify": "Signals observable during controlled faults"
+    },
+    {
+      "id": "M4-03",
+      "milestone": "M4",
+      "title": "Implement service incidents",
+      "depends_on": [
+        "M4-02"
+      ],
+      "requirements": [
+        "FR-016",
+        "FR-020"
+      ],
+      "output": "Incident lifecycle, evidence, root-cause and remediation",
+      "verify": "State transitions and role-boundary tests"
+    },
+    {
+      "id": "M4-04",
+      "milestone": "M4",
+      "title": "Verify fault-to-recovery incident",
+      "depends_on": [
+        "M4-01",
+        "M4-03"
+      ],
+      "requirements": [
+        "FR-014",
+        "FR-015",
+        "FR-016",
+        "FR-020"
+      ],
+      "output": "End-to-end detected failure and documented recovery",
+      "verify": "Incident evidence and sensitive-data checks"
+    },
+    {
+      "id": "G4",
+      "milestone": "M4",
+      "title": "Operations gate",
+      "depends_on": [
+        "M4-01",
+        "M4-02",
+        "M4-03",
+        "M4-04"
+      ],
+      "requirements": [
+        "FR-014",
+        "FR-015",
+        "FR-016"
+      ],
+      "output": "Security and service readiness report",
+      "verify": "Acceptance sections D/E satisfied",
+      "gate": true
+    },
+    {
+      "id": "M5-01",
+      "milestone": "M5",
+      "title": "Prove migration and restoration",
+      "depends_on": [
+        "G4"
+      ],
+      "requirements": [
+        "NFR-011",
+        "NFR-012"
+      ],
+      "output": "D-008 recovery targets, fresh/historical migration and isolated restore",
+      "verify": "Counts, constraints, queries and elapsed time evidence"
+    },
+    {
+      "id": "M5-02",
+      "milestone": "M5",
+      "title": "Benchmark and security review",
+      "depends_on": [
+        "G4"
+      ],
+      "requirements": [
+        "NFR-003",
+        "NFR-010"
+      ],
+      "output": "Load baselines, dependency review, targeted security test",
+      "verify": "Dataset and p50/p95/p99 plus findings"
+    },
+    {
+      "id": "M5-03",
+      "milestone": "M5",
+      "title": "Validate deployment cost boundary",
+      "depends_on": [
+        "G4"
+      ],
+      "requirements": [
+        "NFR-001",
+        "NFR-012"
+      ],
+      "output": "D-007 decision, zero-cost local or explicitly approved hosted profile",
+      "verify": "Budget, shutdown and deployment evidence"
+    },
+    {
+      "id": "G5",
+      "milestone": "M5",
+      "title": "Reliability gate",
+      "depends_on": [
+        "M5-01",
+        "M5-02",
+        "M5-03"
+      ],
+      "requirements": [
+        "NFR-001",
+        "NFR-010",
+        "NFR-011",
+        "NFR-012"
+      ],
+      "output": "Recoverability, security and cost report",
+      "verify": "Acceptance section F reliability requirements met",
+      "gate": true
+    },
+    {
+      "id": "M6-01",
+      "milestone": "M6",
+      "title": "Polish accessibility and states",
+      "depends_on": [
+        "G5"
+      ],
+      "requirements": [
+        "NFR-009"
+      ],
+      "output": "Consistent responsive UI, error, empty, forbidden and degraded views",
+      "verify": "Browser, keyboard and accessibility checks"
+    },
+    {
+      "id": "M6-02",
+      "milestone": "M6",
+      "title": "Rehearse complete product scenarios",
+      "depends_on": [
+        "M6-01"
+      ],
+      "requirements": [
+        "FR-017",
+        "NFR-004",
+        "NFR-005"
+      ],
+      "output": "Deterministic full fixture and D01-D06 scenarios",
+      "verify": "Scenario logs and expected-vs-actual checks"
+    },
+    {
+      "id": "M6-03",
+      "milestone": "M6",
+      "title": "Audit release evidence and docs",
+      "depends_on": [
+        "M6-02"
+      ],
+      "requirements": [
+        "NFR-008"
+      ],
+      "output": "Release documentation, known limitations and acceptance evidence",
+      "verify": "Requirements traceability, docs and reproducibility audit"
+    },
+    {
+      "id": "G6",
+      "milestone": "M6",
+      "title": "Release readiness gate",
+      "depends_on": [
+        "M6-03"
+      ],
+      "requirements": [
+        "NFR-002",
+        "NFR-008",
+        "NFR-009"
+      ],
+      "output": "Release readiness report; acceptance pending until explicit approval",
+      "verify": "All applicable acceptance criteria satisfied",
+      "gate": true
+    }
+  ]
+}

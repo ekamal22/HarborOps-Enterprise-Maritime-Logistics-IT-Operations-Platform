@@ -42,17 +42,9 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 ### Delivery sequence
 
-| Phase | Indicative window | Outcome |
-| --- | --- | --- |
-| M0 | Week 1 | Development baseline, decisions, schema outline, quality gates |
-| M1 | Weeks 1–2 | Identity, organizations, ports, shipments, containers, voyages |
-| M2 | Weeks 3–4 | Tracking ingestion, event history, idempotency, exceptions |
-| M3 | Weeks 5–6 | Operational dashboards, KPI definitions, search, exports |
-| M4 | Weeks 7–8 | Authorization hardening, auditing, service desk, observability |
-| M5 | Weeks 9–10 | Cloud demonstration, backup/recovery, performance and security verification |
-| M6 | Weeks 11–12 | Usability refinement, complete demo scenario, release documentation |
+The planning branch `docs/product-delivery-source-of-truth` defines the revised 25-milestone execution sequence (M0-M24) with a separate G0-G24 gate for each milestone. Review the [granular roadmap](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/ROADMAP.md) and [execution graph](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/product-delivery-source-of-truth/docs/EXECUTION_GRAPH.md).
 
-These are planning estimates, not delivery commitments. Each milestone closes only against its documented acceptance gate.
+The old M1-M6 milestone IDs were superseded by the granular plan. M0-01 through M0-05 and G0 retain their meaning. This branch implements the M0 engineering foundation only. All subsequent business capabilities are planned.
 
 ### Local M0 startup (verification pending)
 
@@ -63,9 +55,10 @@ Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 8 SDK for standa
 3. Check `http://localhost:8080/health/live`, `http://localhost:8080/health/ready`, and `http://localhost:8080/api/v1/system/baseline`.
 4. Open `http://localhost:5173` for the read-only system baseline.
 5. Run `bash scripts/smoke-compose.sh` for HTTP smoke checks.
-6. Use `docker compose down` to stop services. Add `-v` only to intentionally remove the local database.
+6. On a disposable local Compose setup, run `bash scripts/check-m0-degraded.sh --confirm-local-outage` to test database interruption, API health behavior and recovery. The script temporarily stops the PostgreSQL service and restores it on exit.
+7. Use `docker compose down` to stop services. Add `-v` only to intentionally remove the local database.
 
-The Compose build uses a one-shot migrator and a synthetic baseline seed. It does not run a tracking worker or ship production data. See [M0 Verification](docs/M0_VERIFICATION.md) for prerequisites, incomplete checks, and failure testing.
+The Compose build uses a one-shot migrator and a synthetic baseline seed. It does not run a tracking worker or ship production data. Integration tests only run against a loopback PostgreSQL database named `harborops_integration` or `harborops_test`. See [M0 Verification](docs/M0_VERIFICATION.md) for prerequisites, incomplete checks, and failure testing.
 
 ### Documentation index
 

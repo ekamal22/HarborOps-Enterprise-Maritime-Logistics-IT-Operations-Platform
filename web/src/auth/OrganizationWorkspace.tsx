@@ -66,15 +66,6 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
     setProfileName("");
   }, []);
 
-  const onReferenceAccessInvalidated = useCallback(() => {
-    sequence.current += 1;
-    clearProtected();
-    setOrganizations([]);
-    setError("Your organization access has changed. Refreshing permissions.");
-    void Promise.resolve().then(() => refreshRef.current?.());
-  }, [clearProtected]);
-  const refreshRef = useRef<(() => Promise<void>) | null>(null);
-
   const refresh = useCallback(async () => {
     const serial = ++sequence.current;
     setLoading(true);
@@ -113,7 +104,12 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
     }
   }, [clearProtected]);
 
-  refreshRef.current = refresh;
+  const onReferenceAccessInvalidated = useCallback(() => {
+    sequence.current += 1;
+    clearProtected();
+    setOrganizations([]);
+    void refresh();
+  }, [clearProtected, refresh]);
 
   useEffect(() => {
     void refresh();

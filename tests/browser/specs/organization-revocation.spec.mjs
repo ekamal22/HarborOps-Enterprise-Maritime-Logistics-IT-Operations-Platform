@@ -8,9 +8,14 @@ async function signIn(page, email) {
   await page.goto("/");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
+  const login = page.waitForResponse(response => response.request().method() === "POST" &&
+    new URL(response.url()).pathname === "/api/v1/auth/login");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByText("Signed in as")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Organization workspace" })).toBeVisible();
+  expect((await login).status()).toBe(200);
+  // The server answers in milliseconds; rendering can lag in an engine that shares the machine
+  // with parallel workers, so the post-login render has a longer bounded wait.
+  await expect(page.getByText("Signed in as")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: "Organization workspace" })).toBeVisible({ timeout: 30_000 });
 }
 
 async function addRole(page, organization, userId, email, role) {

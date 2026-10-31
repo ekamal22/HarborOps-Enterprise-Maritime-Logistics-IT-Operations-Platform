@@ -4,12 +4,16 @@ const password = process.env.HARBOROPS_TEST_USER_PASSWORD;
 const email = "operator@example.test";
 
 test("provisioned account signs in, survives reload and logs out", async ({ page }) => {
+  test.setTimeout(90_000);
   test.skip(!password, "Synthetic account secret must be provided by isolated verification");
   await page.goto("/");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
+  const login = page.waitForResponse(response => response.request().method() === "POST" &&
+    new URL(response.url()).pathname === "/api/v1/auth/login");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByText("Signed in as")).toBeVisible();
+  expect((await login).status()).toBe(200);
+  await expect(page.getByText("Signed in as")).toBeVisible({ timeout: 30_000 });
   await page.reload();
   await expect(page.getByText("Signed in as")).toBeVisible();
   const authenticated = await page.request.get("/api/v1/auth/session/guard");

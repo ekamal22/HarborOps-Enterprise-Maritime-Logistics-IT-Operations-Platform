@@ -29,6 +29,8 @@ test("membership switching and live revocation clear protected browser state", a
   test.skip(!password, "Disposable synthetic browser accounts are required");
   const projectName = testInfo.project.name;
   const memberEmail = "m2-browser-" + projectName + "@example.test";
+  const memberName = "Synthetic Browser " +
+    projectName[0].toUpperCase() + projectName.slice(1) + " Member";
   const adminContext = await browser.newContext();
   const otherContext = await browser.newContext();
   const admin = await adminContext.newPage();
@@ -57,9 +59,9 @@ test("membership switching and live revocation clear protected browser state", a
     await expect(page.getByText("Slug: north-terminal")).toBeVisible();
     await expect(page.getByText("Role: Analyst")).toBeVisible();
 
-    await admin.getByLabel("Membership state for Synthetic Browser Member").selectOption("Suspended");
+    await admin.getByLabel("Membership state for " + memberName).selectOption("Suspended");
     await admin.getByRole("button", { name: "Save membership" }).click();
-    await expect(admin.getByLabel("Membership state for Synthetic Browser Member")).toHaveValue("Suspended");
+    await expect(admin.getByLabel("Membership state for " + memberName)).toHaveValue("Suspended");
 
     await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
     await expect(page.getByText("Slug: north-terminal")).toHaveCount(0);

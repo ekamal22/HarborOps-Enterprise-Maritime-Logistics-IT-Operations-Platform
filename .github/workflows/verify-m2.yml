@@ -121,7 +121,7 @@ jobs:
             "m2-browser-webkit@example.test|Synthetic Browser Member"; do
             email=${entry%%|*}
             name=${entry#*|}
-            printf '%s\\n' "$HARBOROPS_TEST_USER_PASSWORD" | docker compose -p ho-verify run --rm -T \
+            printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | docker compose -p ho-verify run --rm -T \
               -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
               --account-cli provision "$email" "$name"
           done

@@ -51,11 +51,11 @@
 4. Expired/revoked sessions cannot be resurrected by sliding refresh or concurrent requests.
 5. Security events never include secrets or raw credentials; full business audit remains M16.
 6. The existing `bootstrap_records` synthetic seed remains unchanged and does not provision an account.
-7. Organization and membership invariants remain M2 scope; authentication alone is not business authorization.
+7. Organization and membership invariants were implemented and verified in M2. Authentication alone is not business authorization; tenant scope and role permissions remain server-enforced.
 
 ## M2 organization model (implemented, migrated and accepted on `main`)
 
-The proposed [M2 architecture](M2_ARCHITECTURE_DESIGN.md) adds additive `organizations` and `organization_memberships` tables, one effective role per user/organization, independent role membership states and a per-session nullable selected-organization reference. The explicit role set is Analyst, Manager, Support, Administrator and Auditor. A user's active membership in organization A confers no permissions in B. Administrator grants are limited to the authorized organization and do not imply business-data access.
+The implemented [M2 architecture](M2_ARCHITECTURE_DESIGN.md) adds `organizations` and `organization_memberships` tables, one effective role per user/organization, independent role membership states and a per-session nullable selected-organization reference. The explicit role set is Analyst, Manager, Support, Administrator and Auditor. A user's active membership in organization A confers no permissions in B. Administrator grants are limited to the authorized organization and do not imply business-data access.
 
 Required invariants include unique organization slug and user/organization membership, soft removal, active-organization checks, live role revalidation, versioned updates and transactional protection against loss of the last active Administrator. The accepted M1 cookie does not carry trusted organization roles. The M2 additive migration and invariants passed fresh and repeated disposable PostgreSQL verification; see [G2 executed evidence](M2_EXECUTED_VERIFICATION.md).
 

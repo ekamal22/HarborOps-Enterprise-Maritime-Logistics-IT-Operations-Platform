@@ -4,7 +4,7 @@
 
 ## Requirement status
 
-Requirements describe the intended complete product. G0 is accepted; D-001 and the M1 design are approved. FR-001 is implemented, verified, and accepted on `main` following explicit G1 acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
+Requirements describe the intended complete product. G0, G1 and G2 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
 
 ## Observed baseline and storage boundary
 

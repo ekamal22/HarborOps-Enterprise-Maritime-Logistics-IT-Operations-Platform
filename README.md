@@ -80,17 +80,18 @@ M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). Th
 
 ### Local M0/M1/M2 startup
 
-Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 10 SDK for standalone development.
+Prerequisites: Docker Engine with Compose, Node.js 22 or later, and either the .NET 10 SDK for standalone development or an E:-backed local .NET 10 SDK container.
 
 1. Copy `.env.example` to `.env` and set a unique `HARBOROPS_DB_PASSWORD`.
 2. Run `docker compose up -d --build` from the repository root.
 3. Check `http://localhost:8080/health/live`, `http://localhost:8080/health/ready`, and `http://localhost:8080/api/v1/system/baseline`.
-4. Open `http://localhost:5173` for the system baseline and M1 sign-in interface. Provision an account locally as described above.
-5. For separate disposable verification, run `bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable` with the local test password configured. This builds source-revision-labeled images and checks the isolated stack.
-6. On that disposable test stack only, run `bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage` to test database interruption and recovery. These scripts refuse the primary `harborops` project. The script temporarily stops the PostgreSQL service and restores it on exit.
-7. Use `docker compose down` to stop services. Add `-v` only if you intend to remove both the local database **and** persistent authentication key-ring volumes, invalidating existing cookies.
+4. Open `http://localhost:5173` for the baseline, sign-in interface and M2 organization workspace. Provision a local account as described above.
+5. After migrations and account provisioning, bootstrap an organization through the restricted local CLI, for example `docker compose run --rm -it -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api --organization-cli bootstrap north-terminal "North Terminal" operator@example.test`. Organization membership is required before scoped operations; no organization is created by public registration.
+6. For separate disposable verification, run `bash scripts/smoke-compose.sh --project ho-verify --confirm-disposable` with the local test password configured. This builds source-revision-labeled images and checks the isolated stack.
+7. On that disposable test stack only, run `bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage` to test database interruption and recovery. These scripts refuse the primary `harborops` project. The script temporarily stops the PostgreSQL service and restores it on exit.
+8. Use `docker compose down` to stop services. Add `-v` only if you intend to remove both the local database **and** persistent authentication key-ring volumes, invalidating existing cookies.
 
-The web image installs from the committed `web/package-lock.json` with `npm ci`. Run `bash scripts/verify-local.sh` with a disposable `HARBOROPS_TEST_DB` value for the full build and test sequence. Compose uses a one-shot migrator and a synthetic baseline seed, and does not run a tracking worker or ship production data. Integration tests only run against a loopback PostgreSQL database named `harborops_integration` or `harborops_test`. See [M0 Verification](docs/M0_VERIFICATION.md) for environment details, evidence and limitations.
+The web image installs from the committed `web/package-lock.json` with `npm ci`. For M0 baseline checks, `scripts/verify-local.sh` remains available. The complete G2-local verification command is `bash scripts/verify-m2-local.sh preflight dotnet deps web docs stack accounts organizations session browsers recovery scan` with the required E:-only storage configuration and disposable resources; see [M2 executed evidence](docs/M2_EXECUTED_VERIFICATION.md) and [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) before invoking it. No GitHub Actions executions are authorized. Compose uses a one-shot migrator and a synthetic baseline seed; it does not ship a tracking worker or production data. Integration tests use isolated PostgreSQL databases. Do not run destructive checks on the retained primary stack.
 
 
 ### Documentation index
@@ -107,10 +108,15 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
 | [Domain Model](docs/DOMAIN_MODEL.md) | Entities, relationships, and invariants |
-| [API Contracts](docs/API_CONTRACTS.md) | Proposed REST resources, security, and compatibility |
+| [API Contracts](docs/API_CONTRACTS.md) | Implemented M0-M2 HTTP routes and planned future REST resources |
 | [M1 Authentication Design](docs/M1_AUTHENTICATION_DESIGN.md) | Approved D-001 implementation blueprint; M1 accepted on `main` |
 | [M1 Verification Plan](docs/M1_VERIFICATION_PLAN.md) | G1 checks and evidence requirements; executed M1 evidence is recorded separately |
 | [M1 Verification Register](docs/M1_IMPLEMENTATION_VERIFICATION.md) | Executed M1 checks, exact revisions, G1 acceptance and merge record |
+| [M2 Architecture Design](docs/M2_ARCHITECTURE_DESIGN.md) | Implemented organization, membership, role and scope model |
+| [M2 Implementation Plan](docs/M2_IMPLEMENTATION_PLAN.md) | Completed M2-01 through M2-04 work packages |
+| [M2 Implementation Register](docs/M2_IMPLEMENTATION_STATUS.md) | M2 source paths and verified behavior |
+| [M2 G2 Verification Plan](docs/M2_VERIFICATION_PLAN.md) | All 25 mandatory G2 scenarios |
+| [M2 Executed Verification](docs/M2_EXECUTED_VERIFICATION.md) | Local E:-only results and G2 acceptance record |
 | [Event Processing](docs/EVENT_PROCESSING.md) | Tracking workflow, failure modes, and reconciliation |
 | [Security](docs/SECURITY.md) | Threat model and security acceptance gates |
 | [Operations](docs/OPERATIONS.md) | Monitoring, incidents, backups, and recovery |

@@ -182,8 +182,10 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         if (currentSession.SelectedOrganizationId != orgId)
             return OrganizationAccessError.NotFound;
         if (org is null || org.Status != "Active") return OrganizationAccessError.Revoked;
-        if (!await db.AuthUsers.AsNoTracking()
-            .AnyAsync(u => u.Id == session.UserId && u.Status == "Active", ct))
+        var user = await db.AuthUsers.AsNoTracking()
+            .SingleOrDefaultAsync(u => u.Id == session.UserId, ct);
+        if (user is null || user.Status != "Active" ||
+            user.SecurityVersion != currentSession.SecurityVersion)
             return OrganizationAccessError.Revoked;
         var role = await db.OrganizationMemberships.AsNoTracking()
             .Where(m => m.OrganizationId == orgId && m.UserId == session.UserId &&

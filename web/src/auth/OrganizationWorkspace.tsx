@@ -71,12 +71,17 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
     setError("");
     clearProtected();
     try {
-      const [list, context] = await Promise.all([
-        getJson<{ organizations: OrganizationItem[] }>("/api/v1/me/organizations"),
-        getJson<SessionSelection>("/api/v1/me/organization-context")
-      ]);
+      const list = await getJson<{ organizations: OrganizationItem[] }>("/api/v1/me/organizations");
       if (serial !== sequence.current) return;
       setOrganizations(list.organizations);
+      let context: SessionSelection;
+      try {
+        context = await getJson<SessionSelection>("/api/v1/me/organization-context");
+      } catch (cause) {
+        if (serial === sequence.current) setError(organizationError(cause));
+        return;
+      }
+      if (serial !== sequence.current) return;
       const selected = context.selected &&
         list.organizations.find(item => item.id === context.selected?.id);
       if (!selected) return;
@@ -119,11 +124,13 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
   }
 
   async function choose(id: string) {
+    sequence.current += 1;
     clearProtected();
     await act(() => mutate("PUT", "/api/v1/auth/session/organization", { organizationId: id }));
   }
 
   async function clearSelection() {
+    sequence.current += 1;
     clearProtected();
     await act(() => mutate("DELETE", "/api/v1/auth/session/organization"));
   }
@@ -163,11 +170,12 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
     if (!selection || !nextAfter) return;
     const id = selection.id;
     const next = nextAfter;
+    const atStart = sequence.current;
     setBusy(true); setError("");
     try {
       const page = await getJson<MembershipList>(
         "/api/v1/organizations/" + id + "/memberships?limit=25&after=" + encodeURIComponent(next));
-      if (selection.id !== id) return;
+      if (sequence.current !== atStart) return;
       setMembers(existing => [...existing, ...page.memberships]);
       setNextAfter(page.nextAfter);
     } catch (cause) { clearProtected(); setError(organizationError(cause)); }

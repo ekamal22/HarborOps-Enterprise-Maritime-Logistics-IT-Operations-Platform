@@ -96,12 +96,14 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
     public async Task<List<MembershipProfile>> ListMembersAsync(
         OrganizationScope scope, Guid? after, int limit, CancellationToken ct)
     {
-        var query = from membership in db.OrganizationMemberships.AsNoTracking()
+        var source = after.HasValue
+            ? db.OrganizationMemberships.FromSqlInterpolated(
+                $"SELECT * FROM organization_memberships WHERE organization_id = {scope.OrganizationId} AND user_id > {after.Value}")
+            : db.OrganizationMemberships.Where(x => x.OrganizationId == scope.OrganizationId);
+        var query = from membership in source.AsNoTracking()
                     join user in db.AuthUsers.AsNoTracking() on membership.UserId equals user.Id
                     where membership.OrganizationId == scope.OrganizationId
                     select new { membership, user };
-        if (after.HasValue)
-            query = query.Where(x => x.membership.UserId.CompareTo(after.Value) > 0);
         return await query.OrderBy(x => x.membership.UserId).Take(Math.Clamp(limit, 1, 100))
             .Select(x => new MembershipProfile(x.user.Id, x.user.Email, x.user.DisplayName,
                 x.membership.Role, x.membership.Status, x.membership.Version)).ToListAsync(ct);

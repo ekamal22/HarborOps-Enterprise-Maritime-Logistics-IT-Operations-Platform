@@ -108,11 +108,10 @@ for (const [id, expected] of Object.entries(requiredStarts)) {
   assert(node && node.depends_on.join(",") === expected.join(","),
     "Unexpected parallel dependency on " + id);
 }
-for (const id of ["G6", "G7"]) {
-  assert(graphNodes.get("M8-02").depends_on.includes(id === "G7" ? "M8-01" : id) ||
-    id === "G7" && graphNodes.get("M8-01").depends_on.includes("G7"),
-    "Missing split M8 entry requirement: " + id);
-}
+assert(graphNodes.get("M8-01").depends_on.includes("G7") &&
+  graphNodes.get("M8-02").depends_on.includes("G6") &&
+  graphNodes.get("M8-03").depends_on.includes("G6"),
+  "Split M8 contract and assignment prerequisites missing");
 const allPrior = new Set();
 const visit = id => {
   if (allPrior.has(id)) return;
@@ -126,8 +125,8 @@ for (let i = 0; i < 24; i++)
   assert(allPrior.has("G" + i), "Final release omits accepted prerequisite G" + i);
 for (const m of graph.milestones.slice(1)) {
   const gates = [...new Set(graph.nodes.filter(n => n.milestone === m.id && !n.gate)
-    .flatMap(n => n.depends_on.filter(d => /^G\\d+$/.test(d))))];
-  const row = roadmap.split("\\n").find(line => line.startsWith("| **" + m.id + " "));
+    .flatMap(n => n.depends_on.filter(d => /^G\d+$/.test(d))))];
+  const row = roadmap.split("\n").find(line => line.startsWith("| **" + m.id + " "));
   assert(row && gates.every(gate => row.includes(gate + " accepted")),
     "Roadmap prerequisites diverged from graph " + m.id);
 }

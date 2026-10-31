@@ -135,6 +135,7 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
             entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
         });
+        modelBuilder.Entity<ReferenceRecord>().UseTpcMappingStrategy();
         modelBuilder.Entity<PortReference>(entity =>
         {
             ConfigureReference(entity, "ports");

@@ -48,7 +48,7 @@ Add a third temporary suspended organization to verify organization-status denia
 | G2-S13 | Administrator in A requesting B | No global administrator bypass; foreign ID denied |
 | G2-S14 | Membership disabled/removed while selected | Next request denied immediately and selected context invalidated; browser clears stale A data |
 | G2-S15 | Organization suspension | Deny selection and all scoped requests, including administrator calls |
-| G2-S16 | Last administrator and self-change | Final Admin demotion/removal rejected; Admin cannot edit their own administrator role/state |
+| G2-S16 | Last administrator and self-change | Final Admin demotion/removal or M1 account self-disable rejected; Admin cannot edit their own administrator role/state |
 | G2-S17 | Competing admin writes | Organization-row serialization and version predicates avoid zero Admins and lost updates |
 | G2-S18 | Stale version and duplicate create | 409 conflict; no partial write or silent role escalation |
 | G2-S19 | Invalid data and foreign origin | 400 validation, 403 CSRF/origin rejection, bounded response payload |

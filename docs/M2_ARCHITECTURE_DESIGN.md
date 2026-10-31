@@ -61,7 +61,7 @@ Selection must be checked against the current active user, active organization, 
 
 - Only an active `Administrator` membership in the **same selected active organization** may manage that organization's memberships and editable profile.
 - A caller cannot change their own role or suspend/remove their own administrator membership through the admin API. This is a conservative M2 policy.
-- The last active Administrator cannot be suspended, removed or demoted, including through concurrent requests. Serialize admin mutations on the organization row and check the current active-admin set inside the same transaction before update.
+- The last active Administrator cannot be suspended, removed, demoted or disabled as an account, including through concurrent requests. M1's self-disable action must enforce the same invariant inside a transaction with organization-row locks. Serialize admin mutations on the organization row and check the current active-admin set inside the same transaction before update.
 - No membership is granted merely because an email matches a domain, the user owns another organization, or the role is `Support`.
 - Only existing active provisioned user IDs may receive a membership. Never create a user, account or credential as a side effect of a membership API.
 - Enforce unique membership in the database; duplicate provisioning cannot silently escalate or overwrite a role.

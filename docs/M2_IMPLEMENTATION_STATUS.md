@@ -51,12 +51,12 @@ This command is recorded as implemented **source**, not a demonstrated working c
 - Selected organization is persisted on `auth_sessions`, independently per browser session.
 - Request-path organization IDs are checked against current selected organization before member/object reads.
 - Sensitive organization/member writes lock organization rows and revalidate an active Administrator inside the write transaction.
-- Last active Administrator and administrator self-change protection, optimistic version conflicts, soft removal and selected-session invalidation.
+- Last active Administrator and administrator self-change protection, including the existing M1 self-disable action, optimistic version conflicts, soft removal and selected-session invalidation.
 - No cross-organization membership listing or global business-data read grant.
 - Scoped HTTP errors and request correlation, without passwords or raw session cookies in responses.
 - Browser context reload and protected state clearing on changes/denials.
 
-These are implementation characteristics, **not verified security claims**. No concurrency, authorization bypass, API contract, browser or migration test was executed in this handoff.
+These are implementation characteristics, **not verified security claims**. No concurrency, authorization bypass, API contract, browser or migration test was executed in this handoff. Last-administrator self-disable denial is represented by a new typed failure and HTTP 409 response, without changing ordinary M1 disablement for non-administrators.
 
 ## Verification still required for G2
 

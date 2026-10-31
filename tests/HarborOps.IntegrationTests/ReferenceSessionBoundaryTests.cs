@@ -64,9 +64,15 @@ public sealed class ReferenceSessionBoundaryTests
                         .SetProperty(u => u.SecurityVersion, u => u.SecurityVersion + 1));
                 break;
             default:
-                await db.AuthSessions.Where(s => s.UserId == user.Id).ExecuteUpdateAsync(set =>
-                    set.SetProperty(s => s.IdleExpiresAtUtc,
-                        s => s.IssuedAtUtc.AddTicks(1)));
+                var sessions = await db.AuthSessions.AsNoTracking()
+                    .Where(s => s.UserId == user.Id)
+                    .Select(s => new { s.Id, s.IssuedAtUtc }).ToListAsync();
+                foreach (var session in sessions)
+                {
+                    var expired = session.IssuedAtUtc.AddTicks(1);
+                    await db.AuthSessions.Where(s => s.Id == session.Id)
+                        .ExecuteUpdateAsync(set => set.SetProperty(s => s.IdleExpiresAtUtc, expired));
+                }
                 break;
         }
         foreach (var (method, path, body) in Routes(f.A))

@@ -67,7 +67,7 @@ public sealed class PortVesselReferences : Migration
             CREATE UNIQUE INDEX "IX_vessels_OrganizationId_Mmsi" ON vessels(organization_id, mmsi) WHERE mmsi IS NOT NULL;
 
             CREATE FUNCTION harborops_reference_immutable_fields() RETURNS trigger
-            LANGUAGE plpgsql AS $
+            LANGUAGE plpgsql AS $$
             BEGIN
                 IF NEW.id IS DISTINCT FROM OLD.id
                     OR NEW.organization_id IS DISTINCT FROM OLD.organization_id
@@ -79,7 +79,7 @@ public sealed class PortVesselReferences : Migration
                 END IF;
                 RETURN NEW;
             END;
-            $;
+            $$;
 
             CREATE TRIGGER ports_immutable_fields BEFORE UPDATE ON ports
             FOR EACH ROW EXECUTE FUNCTION harborops_reference_immutable_fields();

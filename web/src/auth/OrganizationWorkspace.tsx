@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import ReferenceDataWorkspace from "../references/ReferenceDataWorkspace";
 import {
   getJson, mutate, organizationError,
   type Membership, type OrganizationItem, type OrganizationProfile
@@ -208,6 +209,9 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
         <div className="mt-5 rounded-lg border border-slate-700 p-4">
           <p className="font-semibold">{profile.displayName}</p>
           <p className="mt-1 text-xs text-slate-400">Slug: {profile.slug} | Role: {selection.role}</p>
+          {(selection.role === "Analyst" || selection.role === "Manager") &&
+            <ReferenceDataWorkspace key={selection.id + ":" + selection.role}
+              organizationId={selection.id} canManage={selection.role === "Manager"} />}
           {selection.role === "Administrator" && (
             <div className="mt-5 border-t border-slate-700 pt-5">
               <form onSubmit={e => void updateProfile(e)} className="flex flex-wrap items-end gap-2">

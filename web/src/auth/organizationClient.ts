@@ -51,7 +51,7 @@ async function csrf(): Promise<string> {
   return result.token;
 }
 
-export async function mutate<T>(method: "PUT" | "PATCH" | "DELETE", path: string,
+export async function mutate<T>(method: "POST" | "PUT" | "PATCH" | "DELETE", path: string,
   body?: object): Promise<T | null> {
   const token = await csrf();
   const response = await fetch(path, {

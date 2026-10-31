@@ -65,6 +65,10 @@ Required invariants include unique organization slug and user/organization membe
 
 M3 `ports` and `vessels` entity mappings, additive migration, scoped endpoints and frontend are integrated into `main`. All 25 G3 scenarios passed locally at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`, with independent raw-evidence review and explicit acceptance on 2026-10-31. See [implementation register](M3_IMPLEMENTATION_STATUS.md), [executed verification](M3_EXECUTED_VERIFICATION.md) and [G3 specification](M3_VERIFICATION_PLAN.md). M4 may subsequently reference immutable port/vessel UUIDs, but M4 is not yet implemented.
 
+## M4 proposed reference models
+
+[M4 architecture](M4_ARCHITECTURE_DESIGN.md) separates planned and actual UTC voyage timestamps, a `Planned|Underway|Arrived|Cancelled` progress state and `Active|Archived` record visibility. Voyage vessel and ports reference accepted M3 immutable UUIDs through same-tenant composite FKs. Unknown time values stay null; vessel/route identity is immutable. Proposed containers have internal UUID/local code plus immutable kind, canonical identifier, type, source classification and version. The [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) still requires approval. M5 shipment state and M6 assignment intervals are outside M4. The [G4 plan](M4_VERIFICATION_PLAN.md) is specified but unexecuted.
+
 ## Illustrative lifecycle
 
     Draft -> Booked -> In Transit -> Arrived -> Completed

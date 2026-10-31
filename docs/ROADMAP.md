@@ -131,11 +131,13 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 #### M4: Voyages and containers reference data
 
-**Scope:** Validated voyage schedules and container identity models.
-**Entry:** G3 accepted before respective dependent work packages. Resolve D-003 before applicable feature implementation.
-**Required work packages:** M4-01 Finalize container identifier policy; M4-02 Implement voyage persistence; M4-03 Implement container persistence; M4-04 Verify voyage and container workflows.
-**Exit G4:** All applicable tasks, negative tests, runtime evidence and documentation for M4 recorded; acceptance pending until explicitly confirmed.
-**Not covered by this milestone:** Shipment assignment and tracking events.
+**Scope:** Validated organization-owned voyages and containers with explicit schedule/progress, checked container identity, tenant-safe persistence, versioned API and browser workflows.
+**Entry:** G3 explicitly accepted. Resolve D-003 before implementing the identifier contract.
+**Required work packages:** M4-01 finalize D-003 and freeze domain/API contracts; M4-02 voyage persistence/API; M4-03 container persistence/API in parallel after M4-01; M4-04 browser integration and G4. See [M4 architecture](M4_ARCHITECTURE_DESIGN.md) and [implementation plan](M4_IMPLEMENTATION_PLAN.md).
+**Exit G4:** All [G4-S01 through G4-S25](M4_VERIFICATION_PLAN.md) must execute on one final integrated source SHA with historical migration, security, three-browser and M0-M3 regressions. Explicit acceptance required.
+**Decision:** [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) recommends ISO6346/Synthetic kinds; not approved.
+**Status:** Planning documented, implementation not started, G4 open.
+**Not covered by this milestone:** M5 shipments, M6 assignments, tracking events, external registry verification.
 
 #### M5: Shipment lifecycle and concurrency
 

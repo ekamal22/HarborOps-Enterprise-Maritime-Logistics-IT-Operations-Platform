@@ -73,6 +73,10 @@ The [M3 architecture](M3_ARCHITECTURE_DESIGN.md) defines ten implemented and acc
 
 Port create requires tenant-local `referenceCode`, `name`, `countryCode`, optional `unLocode`. Vessel create requires local `referenceCode` and `name`, optional `imoNumber`, `mmsi` and `flagCountryCode`. All organization IDs, UUIDs, version numbers and timestamps are server-managed. `GET` lists support bounded `q`, `status`, `limit` and `after` filters. Writes require the existing CSRF/Origin protections and optimistic expected version. DELETE soft-archives rather than physically deletes. Data access must remain tenant-bound even if the caller knows a foreign UUID. See [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 negative test matrix](M3_VERIFICATION_PLAN.md) for authoritative details.
 
+## M4 proposed scoped APIs (not implemented)
+
+The [M4 architecture](M4_ARCHITECTURE_DESIGN.md) defines ten `/api/v1/organizations/{organizationId}/voyages` and `/containers` endpoints: GET list/detail, POST create, PATCH versioned edit/restore, DELETE versioned soft archive. Manager read/write, Analyst read-only, and default denial for Administrator, Support and Auditor are proposed, reusing accepted M1-M3 session and scope checks. Every mutation requires CSRF/Origin validation and expectedVersion. Voyage route requires same-organization `vesselId`, `originPortId` and `destinationPortId`, with separate nullable planned and actual UTC times, `voyageStatus` and `recordStatus`. Container create requires `referenceCode`, `identifierKind`, `containerIdentifier` and `equipmentType` under [D-003 pending](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). Lists have bounded search/filter, `limit=1..100` and UUID cursor `after`. Detailed request/response and error contracts are in [M4 Architecture](M4_ARCHITECTURE_DESIGN.md). No route exists yet.
+
 ## Proposed resource map
 
 | Method | Route | Purpose | Access |

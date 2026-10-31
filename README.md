@@ -78,6 +78,10 @@ M4 voyages/containers is one eligible next stream, not an exclusive next step. M
 
 A modular monolith plus a background worker is the initial architecture. Distributed services, live commercial feeds, and continuous paid infrastructure are not prerequisites.
 
+### M4 architecture and implementation planning
+
+M4 voyage and container reference-data planning is documented in [M4 Architecture](docs/M4_ARCHITECTURE_DESIGN.md), [M4 Implementation Plan](docs/M4_IMPLEMENTATION_PLAN.md) and [G4 Verification Plan](docs/M4_VERIFICATION_PLAN.md). The recommended identifier policy is recorded in the [D-003 proposal](docs/M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), but **D-003 is not accepted**. No M4 application source or G4 runtime tests have started. M5 and other eligible workstreams remain independently parallel.
+
 ### Parallel dependency-based delivery
 
 M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone IDs are not execution order: independently ready workstreams may run in parallel after their named upstream gates are accepted. The graph v3.0 defines work-package-level hard and integration dependencies; see [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md). Current delivery status remains exclusive to [Project Status](docs/STATUS.md).

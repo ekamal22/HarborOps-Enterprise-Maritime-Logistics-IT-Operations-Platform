@@ -59,12 +59,16 @@ Each D-number belongs to the first applicable implementing work package and must
 
 The [M3 architecture](M3_ARCHITECTURE_DESIGN.md) implements organization-owned port/vessel references with immutable UUID and tenant-local code, optional external identifiers, optimistic versions, and soft archive. Analysts may read; Managers may manage; Support, Administrator and Auditor do not receive implicit business permissions. These M3 implementation decisions follow ADR-002/003/004/005 without changing their scope. All 25 G3 scenarios passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; G3 was explicitly accepted on 2026-10-31 ([executed verification](M3_EXECUTED_VERIFICATION.md)). D-003 container identifiers remains pending for M4.
 
+## Proposed D-003 decision for M4
+
+[M4 container identifier proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) compares ISO-only, tagged ISO+Synthetic and free-form local alternatives. The recommended option is not accepted. Explicit decision is required on the edition, category U scope, checksum, prefix, equipment type and immutability before implementing the container identifier policy. [M4 architecture](M4_ARCHITECTURE_DESIGN.md) and [implementation](M4_IMPLEMENTATION_PLAN.md) are proposals; G4 remains open.
+
 ## Open decisions
 
 | ID | Decision required | Default hypothesis | Required before |
 | --- | --- | --- | --- |
 | D-002 | DCSA reference release/subset | Pin one version with a documented field mapping | M7 |
-| D-003 | Container identifier format | Validate ISO 6346 where relevant; allow visibly synthetic demo values | M4 |
+| D-003 | Container identifier format | [Proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md): distinct ISO6346/Synthetic kinds, freight-container U only, checksum and explicit synthetic labels. Decision pending. | M4 |
 | D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
 | D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M13 |
 | D-006 | Error queue and worker durability detail | PostgreSQL inbox/dead-letter tables | M8 |

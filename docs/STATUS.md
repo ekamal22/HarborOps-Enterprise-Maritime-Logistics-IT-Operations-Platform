@@ -19,7 +19,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | **M1 Authentication and session lifecycle** | G1 verified and accepted; merged into `main` | [M1 verification register](M1_IMPLEMENTATION_VERIFICATION.md); both final CI runs passed; PR #4 merge `8f9fc0d506a9e1dc1d4f5acab936622df988f413` on 2026-10-31. |
 | **M2 Organizations and role isolation** | G2 verified locally, accepted and merged into `main` | [Executed M2 verification](M2_EXECUTED_VERIFICATION.md): all G2-S01 to G2-S25 scenarios passed on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) merged as `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31. |
 | **M3 Ports and vessels reference data** | **G3 verified locally, accepted and integrated into `main`** | [G3 executed verification](M3_EXECUTED_VERIFICATION.md) records the 25/25 passing matrix at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. Independent review of 63 raw evidence files confirmed 174 passing .NET executions, 57 passing browser tests across three engines and 0 HIGH/CRITICAL findings in three image scans. Accepted 2026-10-31; fast-forward integration from `feat/m3-port-vessel-reference-data`. [Implementation register](M3_IMPLEMENTATION_STATUS.md) and historical [first](M3_CORRECTNESS_AUDIT.md)/[second](M3_SECOND_CORRECTNESS_AUDIT.md) audits retain provenance. |
-| **M4 Voyages and containers reference data** | Planned | No verified implementation or accepted gate G4 |
+| **M4 Voyages and containers reference data** | Architecture and implementation plan documented; not started | [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [implementation plan](M4_IMPLEMENTATION_PLAN.md), [G4 verification matrix](M4_VERIFICATION_PLAN.md) drafted. [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) remains pending. No M4 code, migration, executed tests or G4 acceptance. |
 | **M5 Shipment lifecycle and concurrency** | Planned | No verified implementation or accepted gate G5 |
 | **M6 Container and voyage assignments** | Planned | No verified implementation or accepted gate G6 |
 | **M7 Tracking contracts and source authentication** | Planned | No verified implementation or accepted gate G7 |
@@ -76,6 +76,10 @@ The `main` branch includes M0 runtime, M1 authentication and M2 organization aut
 M2-01 through M2-04 and all G2-S01 through G2-S25 scenarios are complete. The locally verified source revision is `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. G2 was explicitly accepted on 2026-10-31 and [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) merged the accepted work into `main` at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. See [architecture](M2_ARCHITECTURE_DESIGN.md), [implementation record](M2_IMPLEMENTATION_STATUS.md), [G2 verification plan](M2_VERIFICATION_PLAN.md) and [executed evidence](M2_EXECUTED_VERIFICATION.md).
 
 G0, G1, G2 and G3 are accepted and integrated into `main`. D-003 remains scheduled for M4 and D-002 for M7. Historical-volume compatibility remains at M6, M12, M18 and M24-03; dedicated accessibility verification remains M24-04.
+
+## M4 planning status
+
+M4-01 through M4-04 architecture, implementation sequence and 25-scenario G4 verification plan are documented. Proposed D-003 separates ISO 6346 IDs from visibly synthetic references, but is not accepted. The design uses accepted M3 port/vessel UUIDs, same-tenant composite FKs, separate voyage progress and archive states, and an additive migration coordinated with M5. No M4 implementation or verification has been performed. See [Architecture](M4_ARCHITECTURE_DESIGN.md), [Implementation](M4_IMPLEMENTATION_PLAN.md), [G4 Plan](M4_VERIFICATION_PLAN.md) and [D-003](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md).
 
 ## Next eligible parallel workstreams
 

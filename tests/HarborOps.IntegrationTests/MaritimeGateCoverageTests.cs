@@ -304,4 +304,32 @@ public sealed class MaritimeGateCoverageTests
         Assert.Equal(0, await db.Containers.CountAsync(x => x.OrganizationId == f.A));
         Assert.Equal(0, await db.Voyages.CountAsync(x => x.OrganizationId == f.A));
     }
+
+    [Fact]
+    public async Task ForeignOriginIsRejectedWithRealCsrfOnBothMaritimeResources()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var manager = f.Manager;
+        using var admin = f.Admin;
+        using var analyst = f.Analyst;
+        using var csrfResponse = await manager.GetAsync("/api/v1/auth/csrf");
+        csrfResponse.EnsureSuccessStatusCode();
+        var csrf = await csrfResponse.Content.ReadFromJsonAsync<JsonElement>();
+        foreach (var kind in new[] { "voyages", "containers" })
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, Root(f.A, kind));
+            request.Headers.TryAddWithoutValidation("Origin", "https://untrusted-origin.example");
+            request.Headers.TryAddWithoutValidation("X-HarborOps-CSRF",
+                csrf.GetProperty("token").GetString());
+            request.Content = JsonContent.Create(PostBody(kind));
+            using var response = await manager.SendAsync(request);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Contains("csrf_invalid", await response.Content.ReadAsStringAsync());
+        }
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Equal(0, await db.Containers.CountAsync(x => x.OrganizationId == f.A));
+        Assert.Equal(0, await db.Voyages.CountAsync(x => x.OrganizationId == f.A));
+    }
 }

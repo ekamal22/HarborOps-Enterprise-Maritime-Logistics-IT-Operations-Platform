@@ -23,6 +23,7 @@ public sealed class AuthSession
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
+    public Guid? SelectedOrganizationId { get; set; }
     public DateTimeOffset IssuedAtUtc { get; set; }
     public DateTimeOffset LastSeenAtUtc { get; set; }
     public DateTimeOffset IdleExpiresAtUtc { get; set; }

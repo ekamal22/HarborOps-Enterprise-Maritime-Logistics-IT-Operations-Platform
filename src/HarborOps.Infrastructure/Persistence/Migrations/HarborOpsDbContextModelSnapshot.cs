@@ -1,4 +1,5 @@
 using HarborOps.Infrastructure.Identity;
+using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -56,6 +57,8 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
             entity.Property(x => x.UserId).HasColumnName("user_id");
             entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            entity.Property(x => x.SelectedOrganizationId).HasColumnName("selected_organization_id");
+            entity.HasOne<Organization>().WithMany().HasForeignKey(x => x.SelectedOrganizationId).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(x => new { x.UserId, x.RevokedAtUtc });
             entity.Property(x => x.IssuedAtUtc).HasColumnName("issued_at_utc").HasColumnType("timestamp with time zone");
             entity.Property(x => x.LastSeenAtUtc).HasColumnName("last_seen_at_utc").HasColumnType("timestamp with time zone");
@@ -80,6 +83,49 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.Property(x => x.OccurredAtUtc).HasColumnName("occurred_at_utc").HasColumnType("timestamp with time zone");
             entity.Property(x => x.CorrelationId).HasColumnName("correlation_id").HasMaxLength(64).IsRequired();
             entity.Property(x => x.ResultCode).HasColumnName("result_code").HasMaxLength(40).IsRequired();
+        });
+
+        modelBuilder.Entity<Organization>(entity =>
+        {
+            entity.ToTable("organizations", t =>
+            {
+                t.HasCheckConstraint("CK_organizations_status", "status IN ('Active', 'Suspended')");
+                t.HasCheckConstraint("CK_organizations_version", "version > 0");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.Slug).HasColumnName("slug").HasMaxLength(80).IsRequired();
+            entity.HasIndex(x => x.Slug).IsUnique();
+            entity.Property(x => x.DisplayName).HasColumnName("display_name").HasMaxLength(160).IsRequired();
+            entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.Version).HasColumnName("version");
+            entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+        });
+        modelBuilder.Entity<OrganizationMembership>(entity =>
+        {
+            entity.ToTable("organization_memberships", t =>
+            {
+                t.HasCheckConstraint("CK_membership_role", "role IN ('Analyst','Manager','Support','Administrator','Auditor')");
+                t.HasCheckConstraint("CK_membership_status", "status IN ('Active','Suspended','Removed')");
+                t.HasCheckConstraint("CK_membership_version", "version > 0");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+            entity.Property(x => x.UserId).HasColumnName("user_id");
+            entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+            entity.Property(x => x.GrantedByUserId).HasColumnName("granted_by_user_id");
+            entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.GrantedByUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => new { x.OrganizationId, x.UserId }).IsUnique();
+            entity.HasIndex(x => new { x.UserId, x.Status, x.OrganizationId });
+            entity.HasIndex(x => new { x.OrganizationId, x.Status, x.Role });
+            entity.Property(x => x.Role).HasColumnName("role").HasMaxLength(24).IsRequired();
+            entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.Version).HasColumnName("version");
+            entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
         });
     }
 }

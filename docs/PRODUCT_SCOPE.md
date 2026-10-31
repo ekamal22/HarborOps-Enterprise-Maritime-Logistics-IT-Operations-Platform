@@ -41,6 +41,10 @@ This functionality is implemented, verified and accepted on `main` following G1 
 
 M2 introduces organization memberships, five fixed roles, per-session selected organization context, scoped organization and membership APIs, live permission evaluation and last-administrator protection. All 25 G2 scenarios passed locally on the recorded revision; G2 was accepted on 2026-10-31 and merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5). The [executed verification record](M2_EXECUTED_VERIFICATION.md) preserves the source SHA, fixtures, cases and operational evidence. Maritime port and vessel reference entities are implemented and accepted in M3.
 
+## Planned M4 voyage/container reference scope
+
+[M4 architecture](M4_ARCHITECTURE_DESIGN.md) adds organization-owned voyage route/schedule references derived from M3 vessels and ports, plus validated container identity records. The proposed ISO 6346/Synthetic split requires a separate [D-003 decision](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). [M4 implementation](M4_IMPLEMENTATION_PLAN.md) and [G4 verification](M4_VERIFICATION_PLAN.md) explicitly exclude bookings, M5 shipment CRUD, M6 assignments, tracking integration, registry-verified ownership and paid API dependencies. G4 is open and M4 code is not started.
+
 ## M3 reference-data module (verified, accepted and integrated)
 
 The [M3 design](M3_ARCHITECTURE_DESIGN.md) separates accepted organization-owned port and vessel reference records from later M4 voyage/container and M5 shipment models. It validates external identifier syntax without asserting official registry verification. Implementation is integrated into `main`; all 25 G3 scenarios passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)). G3 was explicitly accepted on 2026-10-31. M4 remains planned, and no public deployment is implied.

@@ -144,6 +144,10 @@ The earlier M0-M6 delivery bundles are represented by 25 individually gated mile
 
 Each milestone is gated on real executed behavior, not merely the presence of source files. Detailed work-package IDs, dependency edges and verification expectations are authoritative in [execution-graph.json](execution-graph.json), represented in [Execution Graph](EXECUTION_GRAPH.md). Old v1 M1-M6 task IDs are superseded; [Roadmap](ROADMAP.md) documents the mapping. [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) controls overlapping branches, migrations, shared contracts and integration verification.
 
+## M4 maritime references (proposed, not implemented)
+
+Accepted M3 port/vessel UUIDs provide the trusted identity foundation for planned M4 voyages and containers. The [M4 architecture](M4_ARCHITECTURE_DESIGN.md) specifies same-org voyage route/vessel, independently nullable planned/actual UTC times, explicit progression, and immutable reference identity. Container records have a recommended ISO 6346/Synthetic distinction, subject to [D-003 decision](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). The [M4 implementation plan](M4_IMPLEMENTATION_PLAN.md) allows voyage/container work in parallel after M4-01, converging at browser integration and the 25-case [G4 plan](M4_VERIFICATION_PLAN.md). M5 shipments and M6 assignments remain separate. This adds no product requirements and creates no implemented functionality.
+
 ## 10. Dependencies, risks, and decisions
 
 | Risk or decision | Owner document | Required resolution |

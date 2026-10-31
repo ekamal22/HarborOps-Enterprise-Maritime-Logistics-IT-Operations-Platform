@@ -5,7 +5,7 @@
 **Scope:** Follow-up to [M3 correctness audit](M3_CORRECTNESS_AUDIT.md)  
 **Execution status:** Source changes committed; no .NET, PostgreSQL, Compose, browser or image scan executed in this session  
 **Gate:** Written before execution; see the outcome below. Nothing in this register constitutes G3 acceptance.  
-**Execution outcome:** the complete G3 matrix later executed and passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. Status cells in the ledger below record the state when each item was written; the authoritative result is the [executed verification](M3_EXECUTED_VERIFICATION.md).
+**Final outcome:** All 25 G3 scenarios passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; independent raw-evidence review confirmed successful test, browser, scan and cleanup results. G3 explicitly accepted and M3 integrated into `main` on 2026-10-31. Status cells below remain historical and describe the state when each remediation was first authored. The [executed verification](M3_EXECUTED_VERIFICATION.md) is authoritative for the accepted result.
 
 ## Remediation ledger
 
@@ -30,8 +30,8 @@
 
 ## Verification and readiness rules
 
-No source-level remediation is marked as a verified PASS. The [G3 verification plan](M3_VERIFICATION_PLAN.md) remains the mandatory acceptance contract. The [evidence indexer](../scripts/assert-g3-evidence.mjs) verifies a minimum set of successfully executed named tests per scenario and outputs `G3_EXECUTION_INDEX.md` under the E:-backed evidence directory, but an index does not substitute for adjudicating all G3 negative cases.
+The historical status column below does not represent the accepted outcome. The full G3 execution later verified the corrected implementation. The [G3 verification plan](M3_VERIFICATION_PLAN.md) remains the mandatory acceptance contract. The [evidence indexer](../scripts/assert-g3-evidence.mjs) verifies a minimum set of successfully executed named tests per scenario and outputs `G3_EXECUTION_INDEX.md` under the E:-backed evidence directory, but an index does not substitute for adjudicating all G3 negative cases.
 
 Run only on the authorized E:-drive workstation with an isolated `ho-verify` stack. Before launching, confirm the **actual active Docker Desktop data VHDX** is on E: and set `HARBOROPS_DOCKER_VHDX` to that verified file, in addition to `HARBOROPS_VERIFICATION_ROOT` and the pre-existing E:-based cache and temporary paths. Run `bash scripts/verify-m3-local.sh` from a clean, fixed source revision.
 
-On any build, test, fixture, migration, browser, scanner or evidence-index error, record FAIL/BLOCKED, repair the implementation or harness and rerun all mandatory stages on the final revision. Do not merge M3 or mark G3 verified/accepted until genuine evidence exists and acceptance is explicit. No GitHub Actions executions are authorized.
+The full executable G3 matrix passed, its raw evidence was reviewed and G3 accepted on 2026-10-31. M3 is integrated into `main`. Preserve the evidence and regression coverage, do not run GitHub Actions, and do not infer M4 authorization or production approval from G3 acceptance.

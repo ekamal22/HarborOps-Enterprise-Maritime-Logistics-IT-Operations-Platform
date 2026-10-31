@@ -3,9 +3,9 @@
 **Date:** 2026-10-31  
 **Branch:** `feat/m3-port-vessel-reference-data`  
 **Audit:** [Second correctness audit](M3_SECOND_CORRECTNESS_AUDIT.md)  
-**Status:** Corrective source and executable test coverage committed; written before execution, which has since passed (see below). G3 acceptance pending, not merged.
+**Status:** Second-audit corrections implemented; subsequently verified locally with 25/25 G3 scenarios passing. G3 explicitly accepted and M3 integrated into `main` on 2026-10-31.
 
-**Execution outcome:** the complete G3 matrix later executed and passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. Status cells in the ledger below record the state when each item was written; the authoritative result is the [executed verification](M3_EXECUTED_VERIFICATION.md).
+**Execution outcome:** G3-S01 through G3-S25 passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; the raw execution archive was independently reviewed before G3 was accepted on 2026-10-31. M3 integrated into `main`; the table below remains a historical record of initial remedy status ([executed verification](M3_EXECUTED_VERIFICATION.md)).
 
 This register tracks the second audit's B01-B12 findings against the feature branch. A committed correction is **not** a passed verification. The [G3 verification plan](M3_VERIFICATION_PLAN.md) remains the acceptance contract.
 
@@ -34,4 +34,4 @@ bash scripts/verify-m3-local.sh
 
 Inspect `evidence/G3_EXECUTION_INDEX.md` alongside individual TRX, logs, browser JSON, PostgreSQL upgrade and Trivy output. The index intentionally does not grant acceptance. Failed/blocked/skipped results must be repaired and the entire matrix rerun at the resulting final source SHA.
 
-No GitHub Actions may be dispatched or implicitly triggered. No approval to merge M3, start M4, change primary volumes or move project storage to C: is implied. G3 acceptance remains pending until explicitly given.
+No GitHub Actions may be dispatched or implicitly triggered. G3 was explicitly accepted and M3 integrated into `main` on 2026-10-31. This acceptance does not authorize M4 implementation, changes to primary volumes, C: storage migration or production deployment.

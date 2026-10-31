@@ -1,11 +1,11 @@
 # M3 Implementation Register
 
 **Milestone:** M3 Ports and vessels reference data
-**Branch:** `feat/m3-port-vessel-reference-data`
-**Baseline:** Accepted G0, G1 and G2 on `main`; M2 merged through PR #5
+**Original feature branch:** `feat/m3-port-vessel-reference-data`; accepted M3 now integrated into `main`.
+**Baseline:** G0-G3 accepted on 2026-10-31; M0-M3 integrated into `main`.
 **Implementation state:** Source changes from both correctness audits committed and corrected during execution; complete local verification executed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`
-**Gate:** G3 verified locally; acceptance pending. G3-S01 through G3-S25 all passed in one executable run ([executed verification](M3_EXECUTED_VERIFICATION.md))
-**Merge:** Not merged into `main`; explicit G3 acceptance is pending
+**Gate:** G3 verified locally and explicitly accepted on 2026-10-31. All G3-S01 through G3-S25 scenarios passed on the verified source ([executed verification](M3_EXECUTED_VERIFICATION.md)).
+**Merge:** Fast-forward integration of the accepted M3 feature branch into `main` on 2026-10-31; M4 has not started.
 
 ## Implemented source inventory
 
@@ -25,7 +25,7 @@
 - User-provided external identifier syntax and checksum validation does not establish actual registration or port function. No external service or paid dependency was added.
 - M4 voyages/containers, M5 shipments and later tracking/analytics are not implemented by M3.
 
-## Tests and local verification tooling authored, not yet executed
+## Tests and local verification tooling executed and accepted
 
 - `tests/HarborOps.UnitTests/ReferencePolicyTests.cs`: role matrix, local code, UN/LOCODE, IMO checksum, MMSI and invalid fields.
 - `tests/HarborOps.IntegrationTests/ReferenceDataHttpTests.cs`: real PostgreSQL API lifecycle, tenant scoping, duplicate IDs, concurrency and suspension/revocation.
@@ -40,7 +40,7 @@
 
 The source was built and run in full by `scripts/verify-m3-local.sh` at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. That execution found a persistence-model mapping defect and a frontend authorization-notice defect, which were fixed, along with several test-harness defects; see the failure history in the [executed verification](M3_EXECUTED_VERIFICATION.md). The [G3 verification plan](M3_VERIFICATION_PLAN.md) scenarios all have observed evidence on that revision.
 
-## Required local execution and acceptance
+## Reproducible local execution and acceptance history
 
 Run from a clean E:-drive worktree using an E:-backed Docker Desktop/WSL installation, configured `HARBOROPS_VERIFICATION_ROOT`, `HARBOROPS_DOCKER_VHDX` pointing to the actual active E:-backed Docker Desktop data image, E: environment caches/temp/browser output and a disposable `ho-verify` stack:
 
@@ -50,7 +50,7 @@ bash scripts/verify-m3-local.sh
 
 The script must stop rather than use controllable C: storage. It must not run GitHub Actions. Inspect actual runner logs, migration results, PostgreSQL schema, cross-tenant denials, negative validation, browser behavior and high/critical image findings before marking any scenario PASS. Do not modify retained primary volumes.
 
-Actual results are recorded in `docs/M3_EXECUTED_VERIFICATION.md`. Any future change to implementation or tests requires rerunning the entire matrix at the new revision. Explicit G3 acceptance is still required; do not merge this branch or start M4 without it.
+Actual results are recorded in [G3 executed verification](M3_EXECUTED_VERIFICATION.md). G3 was accepted on 2026-10-31 and M3 fast-forward integrated into `main`. Future changes to code, tests or runtime images require verification appropriate to their impact. M4 implementation has not started.
 
 ## Review findings corrected during implementation
 
@@ -60,4 +60,4 @@ Actual results are recorded in `docs/M3_EXECUTED_VERIFICATION.md`. Any future ch
 - Removed a duplicated helper/brace block from the M3 EF model snapshot.
 - Corrected adversarial tests to compare sanitized error codes rather than per-request correlation IDs.
 
-These source-level corrections remain subject to G3 testing. See the [correctness audit](M3_CORRECTNESS_AUDIT.md) and [remediation register](M3_CORRECTNESS_REMEDIATION.md). The [second correctness audit](M3_SECOND_CORRECTNESS_AUDIT.md) and [second remediation register](M3_SECOND_CORRECTNESS_REMEDIATION.md) document additional corrections. No implementation defect may be marked verified from source inspection alone.
+The original [correctness audit](M3_CORRECTNESS_AUDIT.md) and [remediation register](M3_CORRECTNESS_REMEDIATION.md), together with the [second audit](M3_SECOND_CORRECTNESS_AUDIT.md) and [second remediation register](M3_SECOND_CORRECTNESS_REMEDIATION.md), preserve historical defects and corrections. The final source was exercised in the complete local G3 verification and its raw evidence independently reviewed before acceptance.

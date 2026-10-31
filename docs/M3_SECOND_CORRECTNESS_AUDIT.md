@@ -5,9 +5,9 @@
 **Branch:** `feat/m3-port-vessel-reference-data`  
 **Method:** Read-only review of the current GitHub source, approved M3 architecture, G3-S01 through G3-S25 test contract, API/domain/database code, browser implementation, test harness, and existing remediation records.  
 **Execution:** No .NET build, PostgreSQL migrations, browser tests, Docker Compose, image scans, or GitHub Actions were executed. No workstation drive accessed.  
-**Gate:** G3 OPEN. Acceptance and merge are blocked.
+**Gate at time of this audit:** G3 OPEN. Acceptance and merge were blocked at the audited source revision.
 
-**Subsequent correction:** See [second-audit remediation register](M3_SECOND_CORRECTNESS_REMEDIATION.md). The findings below describe the originally audited source revision; source changes require real local execution before G3 can be marked verified.
+**Historical audit notice:** This report describes the second audited snapshot, not the accepted final implementation. The [second-audit remediation](M3_SECOND_CORRECTNESS_REMEDIATION.md) and [G3 executed verification](M3_EXECUTED_VERIFICATION.md) document corrected source and 25/25 passing runtime scenarios. G3 was explicitly accepted on 2026-10-31 and M3 integrated into `main`.
 
 ## Executive finding
 

@@ -5,7 +5,7 @@
 **Verified source revision:** `b72025d35d62d0a8a45b466986a0b3bd89eebadb` on `feat/m3-port-vessel-reference-data`. Every result below was produced by one invocation of `scripts/verify-m3-local.sh` against this revision from a clean worktree. Commits after this revision change documentation only.  
 **Verification method:** complete local execution on the Windows development machine with every controllable path on E:. No GitHub Actions workflow was dispatched, rerun or triggered, and every commit carries `[skip ci]`.  
 **Result:** every mandatory scenario G3-S01 through G3-S25 has observed, passing evidence on the verified revision.  
-**Gate state:** G3 verified locally; acceptance pending. M3 is not merged into `main` and M4 has not started.
+**Gate state:** G3 verified locally and explicitly accepted on 2026-10-31. Accepted M3 integrated into `main` by fast-forward; M4 has not started.
 
 The mapping of scenarios to named tests below was checked in two ways: `scripts/assert-g3-evidence.mjs` rejected a missing, failed, skipped or stale result, and every named test was then cross-checked by hand against the fresh .NET result files.
 
@@ -144,4 +144,10 @@ The set of tests actually executed stayed the same or grew: no test was removed,
 
 ## Conclusion
 
-G3 verified locally; acceptance pending. All 25 mandatory scenarios passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`, with the only later commits being documentation. No blocker is open. Explicit G3 acceptance, the merge of `feat/m3-port-vessel-reference-data` into `main` and the start of M4 are separate decisions that have not been made.
+All 25 mandatory G3 scenarios passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. No blocking correctness or security finding remains under the G3 acceptance contract. Independent raw-evidence review preceded explicit G3 acceptance on 2026-10-31. M3 has been fast-forward integrated into `main`. M4 is not started or approved for implementation by this record.
+
+## Independent evidence review and acceptance
+
+The final E:-backed run evidence was independently inspected before the G3 decision. All 63 files in the uploaded evidence archive matched their SHA-256 inventory. The raw TRX files contained 50 unit, 12 contract, 56 fresh PostgreSQL integration and 56 repeated PostgreSQL integration passes, with no failures or skips. Twenty-seven Playwright JSON reports contained 19 passes each in Chromium, Firefox and WebKit, no failures, skips or flaky tests. Three Trivy JSON reports contained zero HIGH or CRITICAL findings. All 17 stages exited 0 for the same source SHA, with no abort marker, and the disposable stack cleanup was logged. The evidence review found no blocking G3 discrepancies. The review does not establish production deployment readiness or broad vulnerability-free status outside the configured scans.
+
+**Acceptance decision:** G3 explicitly accepted on 2026-10-31. **Integration:** M3 fast-forward integrated into `main` with `[skip ci]` commits, without executing GitHub Actions. **Next gate:** M4/G4 remains planned, not started. D-003 container identifier policy remains pending.

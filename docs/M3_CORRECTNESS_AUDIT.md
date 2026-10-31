@@ -5,9 +5,9 @@
 **Source snapshot:** `051ea3b8d1322f76a8fa085ec3ba6bb1095c35f5` before this audit-only document commit  
 **Review mode:** Read-only source and verification-harness inspection using the repository connector; ASP.NET Core DELETE binding behavior cross-checked with the Microsoft Minimal API documentation  
 **Execution:** No .NET compiler, PostgreSQL, Compose, browser or image-scan run. No GitHub Actions triggered. No C: or E: workstation file operations.  
-**Gate:** G3 OPEN. Not ready for acceptance or merge.
+**Gate at time of this audit:** G3 OPEN. Not ready for acceptance or merge at the audited source revision.
 
-**Follow-up:** [M3 correctness remediation register](M3_CORRECTNESS_REMEDIATION.md) records subsequent source changes and remaining verification work. Findings here reflect the original audited snapshot.
+**Historical audit notice:** This report describes the original source snapshot, not the accepted final implementation. The [remediation register](M3_CORRECTNESS_REMEDIATION.md), [second audit](M3_SECOND_CORRECTNESS_AUDIT.md) and [G3 executed verification](M3_EXECUTED_VERIFICATION.md) record corrective work and passing runtime evidence. G3 was explicitly accepted on 2026-10-31 and M3 integrated into `main`.
 
 ## 1. Summary
 

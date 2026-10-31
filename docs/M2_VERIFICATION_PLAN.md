@@ -29,6 +29,10 @@ Create deterministic synthetic users and organizations under disposable test sco
 
 Add a third temporary suspended organization to verify organization-status denial. Create distinct UUIDs and membership records whose IDs can be deliberately substituted across organizations. Seed a dormant third Administrator only if necessary to prove last-admin behavior without modifying the fixture's expected ending state.
 
+## Expanded G2 verification execution
+
+The initial passing M2 workflow covered the core tests. New independent PostgreSQL and HTTP regression fixtures now exercise two-context administrator races, session independence, suspension, invalid database constraints, negative bootstrap, every non-Administrator role, guessed valid foreign IDs and CSRF/origin denials. The new fixtures use random account identifiers per case, a disposable integration database and no shared M1 browser account. A new GitHub run is required to establish results; these assertions are not recorded as passing until their run completes.
+
 ## Verification matrix
 
 | ID | Required scenario | Expected observation |

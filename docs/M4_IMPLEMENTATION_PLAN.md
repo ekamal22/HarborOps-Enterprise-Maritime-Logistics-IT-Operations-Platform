@@ -1,7 +1,7 @@
 # M4 Implementation Plan: Voyage and Container References
 
 **Milestone:** M4, M4-01 through M4-04; exit gate G4  
-**Status:** Detailed implementation proposal. M4 source not started; G4 open.  
+**Status:** Initial voyage/container, API, migration, UI and test source committed on a feature branch. Correctness and full G4 verification are not established. See [implementation status](M4_IMPLEMENTATION_STATUS.md). D-003 pending; G4 open.  
 **Base:** Accepted G0-G3 implementation on `main` as of 2026-10-31.  
 **Design authority:** [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), [G4 verification plan](M4_VERIFICATION_PLAN.md), [Execution Graph](EXECUTION_GRAPH.md), [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md), [Storage Policy](LOCAL_STORAGE_POLICY.md).
 

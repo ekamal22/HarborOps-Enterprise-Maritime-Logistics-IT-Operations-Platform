@@ -1,7 +1,7 @@
 # M4 Voyage and Container Reference Data: Architecture Design
 
 **Milestone:** M4, work packages M4-01 through M4-04; exit gate G4  
-**Status:** Design proposal committed for review; M4 implementation not started; G4 OPEN; acceptance pending only after successful future verification  
+**Status:** Proposed architecture with initial feature-branch implementation, not runtime-verified. [Implementation status](M4_IMPLEMENTATION_STATUS.md) records code paths and blockers. G4 OPEN; acceptance pending only after executed verification.  
 **Foundation:** G0-G3 accepted on `main`; parent references and authorization supplied by accepted M2/M3  
 **Open decision:** [D-003 container identifier policy](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). Its recommendation is provisional until explicitly approved.  
 **Authority:** [Roadmap](ROADMAP.md), [Graph](EXECUTION_GRAPH.md), [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md), [Requirements](REQUIREMENTS.md), [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [M4 implementation plan](M4_IMPLEMENTATION_PLAN.md), [G4 verification plan](M4_VERIFICATION_PLAN.md).

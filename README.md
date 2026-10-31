@@ -80,7 +80,7 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 ### M4 architecture and implementation planning
 
-M4 voyage and container reference-data planning is documented in [M4 Architecture](docs/M4_ARCHITECTURE_DESIGN.md), [M4 Implementation Plan](docs/M4_IMPLEMENTATION_PLAN.md) and [G4 Verification Plan](docs/M4_VERIFICATION_PLAN.md). The recommended identifier policy is recorded in the [D-003 proposal](docs/M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), but **D-003 is not accepted**. No M4 application source or G4 runtime tests have started. M5 and other eligible workstreams remain independently parallel.
+M4 voyage and container reference-data planning is documented in [M4 Architecture](docs/M4_ARCHITECTURE_DESIGN.md), [M4 Implementation Plan](docs/M4_IMPLEMENTATION_PLAN.md) and [G4 Verification Plan](docs/M4_VERIFICATION_PLAN.md). The recommended identifier policy is recorded in the [D-003 proposal](docs/M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), but **D-003 is not accepted**. M4 application and test source is committed on `feat/m4-voyage-container-references`, but no .NET, PostgreSQL, browser or G4 execution is verified. [M4 implementation status](docs/M4_IMPLEMENTATION_STATUS.md) records the unverified source and remaining blockers. M5 and other eligible workstreams remain independently parallel.
 
 ### Parallel dependency-based delivery
 

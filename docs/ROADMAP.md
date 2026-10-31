@@ -136,7 +136,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Required work packages:** M4-01 finalize D-003 and freeze domain/API contracts; M4-02 voyage persistence/API; M4-03 container persistence/API in parallel after M4-01; M4-04 browser integration and G4. See [M4 architecture](M4_ARCHITECTURE_DESIGN.md) and [implementation plan](M4_IMPLEMENTATION_PLAN.md).
 **Exit G4:** All [G4-S01 through G4-S25](M4_VERIFICATION_PLAN.md) must execute on one final integrated source SHA with historical migration, security, three-browser and M0-M3 regressions. Explicit acceptance required.
 **Decision:** [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) recommends ISO6346/Synthetic kinds; not approved.
-**Status:** Planning documented, implementation not started, G4 open.
+**Status:** Proposed implementation committed only to `feat/m4-voyage-container-references`; no G4 runtime verification or acceptance. [Implementation status](M4_IMPLEMENTATION_STATUS.md) retains the source inventory and blockers. D-003 remains pending.
 **Not covered by this milestone:** M5 shipments, M6 assignments, tracking events, external registry verification.
 
 #### M5: Shipment lifecycle and concurrency

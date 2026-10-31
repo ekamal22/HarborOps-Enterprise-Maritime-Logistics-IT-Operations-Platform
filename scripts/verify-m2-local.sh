@@ -2,7 +2,7 @@
 # Local G2 verification stages for the isolated ho-verify Compose project.
 # Every cache, temporary file and evidence path stays under HARBOROPS_VERIFICATION_ROOT on E:.
 # Usage: bash scripts/verify-m2-local.sh <stage> [<stage>...]
-#   stages: preflight web docs stack accounts organizations session browsers recovery scan down
+#   stages: preflight dotnet deps web docs stack accounts organizations session browsers recovery scan down
 set -euo pipefail
 export MSYS_NO_PATHCONV=1
 
@@ -43,6 +43,71 @@ stage_preflight() {
   docker version --format 'docker server {{.Server.Version}}'
   docker compose version
   docker info --format 'docker root {{.DockerRootDir}}'
+}
+
+# Release build, unit, contract and PostgreSQL integration suites (fresh, then repeated against the
+# now-migrated and seeded database) inside the pinned .NET 10 SDK image. The throwaway PostgreSQL
+# container is the only database used; the Compose volumes are never touched.
+stage_dotnet() {
+  winroot=$(cygpath -w "$root")
+  repo=$(pwd -W)
+  docker rm -f ho-g2-pg >/dev/null 2>&1 || true
+  docker run -d --name ho-g2-pg --label harborops.g2=disposable \
+    --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 --cap-drop ALL \
+    --security-opt no-new-privileges -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops \
+    -e POSTGRES_HOST_AUTH_METHOD=trust harborops-postgres:16.15-rootless >/dev/null
+  for _ in $(seq 1 45); do
+    docker exec ho-g2-pg pg_isready -U harborops -d harborops_integration >/dev/null 2>&1 && break
+    sleep 2
+  done
+  rm -rf "$evidence/trx"
+  cat > "$root/run-dotnet.sh" <<'INNER'
+set -uo pipefail
+cd /src
+dotnet --version
+dotnet restore HarborOps.sln -v q || exit 10
+dotnet build HarborOps.sln -c Release --no-restore 2>&1 | tail -6
+test "${PIPESTATUS[0]}" -eq 0 || exit 11
+T=(--no-build -c Release --logger "console;verbosity=normal" --logger trx --results-directory /cache/evidence/trx)
+status=0
+run() {
+  name="$1"; project="$2"
+  dotnet test "$project" "${T[@]}" 2>&1 | grep -v '^{"EventId' > "/cache/evidence/$name.log"
+  code=${PIPESTATUS[0]}
+  echo "$name exit=$code"
+  grep -E "Total tests|Passed:|Failed:|Skipped:" "/cache/evidence/$name.log" || true
+  if [ "$code" -ne 0 ]; then status=1; fi
+}
+run unit tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj
+run contract tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj
+run integration-fresh tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj
+run integration-repeat tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj
+exit $status
+INNER
+  docker run --rm --name ho-g2-sdk --network container:ho-g2-pg -v "$repo:/src" -v "$winroot:/cache" \
+    -w /src -e DOTNET_NOLOGO=1 -e DOTNET_CLI_TELEMETRY_OPTOUT=1 -e NUGET_PACKAGES=/cache/nuget/packages \
+    -e NUGET_HTTP_CACHE_PATH=/cache/nuget/http-cache -e DOTNET_CLI_HOME=/cache/dotnet-home \
+    -e HOME=/cache/dotnet-home -e TMPDIR=/cache/tmp \
+    -e HARBOROPS_TEST_DB="Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops" \
+    mcr.microsoft.com/dotnet/sdk:10.0 bash /cache/run-dotnet.sh
+  docker rm -f ho-g2-pg >/dev/null 2>&1 || true
+}
+
+# G2-S25: dependency review with the NuGet advisory feed and npm audit.
+stage_deps() {
+  winroot=$(cygpath -w "$root")
+  repo=$(pwd -W)
+  docker run --rm -v "$repo:/src" -v "$winroot:/cache" -w /src -e DOTNET_NOLOGO=1 \
+    -e NUGET_PACKAGES=/cache/nuget/packages -e NUGET_HTTP_CACHE_PATH=/cache/nuget/http-cache \
+    -e DOTNET_CLI_HOME=/cache/dotnet-home -e HOME=/cache/dotnet-home -e TMPDIR=/cache/tmp \
+    mcr.microsoft.com/dotnet/sdk:10.0 bash -c \
+    'dotnet list HarborOps.sln package --vulnerable --include-transitive 2>&1 | tee /cache/evidence/nuget-vulnerable.log'
+  if grep -q "has the following vulnerable packages" "$evidence/nuget-vulnerable.log"; then
+    echo "Vulnerable NuGet packages reported" >&2; exit 1
+  fi
+  (cd web && npm audit --audit-level=low)
+  (cd tests/browser && npm audit --audit-level=low)
+  echo "G2-S25 dependency review: no vulnerable NuGet or npm packages"
 }
 
 stage_web() {
@@ -114,7 +179,7 @@ stage_recovery() {
 }
 
 stage_scan() {
-  mkdir -p "$evidence/trivy"
+  mkdir -p "$evidence/trivy" "$root/trivy-cache"
   sha=$(git rev-parse HEAD)
   for service in postgres api web; do
     container=$("${compose[@]}" ps -q "$service")

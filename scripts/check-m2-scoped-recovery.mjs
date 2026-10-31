@@ -110,6 +110,8 @@ async function waitForScopedRecovery(organizationId) {
     if (result.status === 200) {
       assert.equal(result.body.id, organizationId,
         "Recovered request must preserve the selected organization");
+      console.log("Scoped access recovered on attempt " + attempt + " of " + attempts +
+        " after " + (attempt - 1) + " sanitized 503 response(s) from stale pooled connections");
       return;
     }
     safeError(result, 503);

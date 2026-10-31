@@ -28,7 +28,7 @@ public sealed class MaritimeRevocationInterleavingTests
             if (waiting >= count) return;
             await Task.Delay(25);
         }
-        Assert.Fail($"Expected {count} blocked organization operations before releasing the transaction");
+        Assert.True(false, $"Expected {count} blocked organization operations before releasing the transaction");
     }
 
     [Fact]
@@ -65,6 +65,7 @@ public sealed class MaritimeRevocationInterleavingTests
             acquire.Parameters.AddWithValue("id", f.A);
             Assert.Equal(f.A, (Guid)(await acquire.ExecuteScalarAsync())!);
         }
+        var committed = false;
         var adminChange = ReferenceDataHttpTests.Send(admin, HttpMethod.Put,
             $"/api/v1/organizations/{f.A}/memberships/{managerId}",
             new { role = "Support", status = "Active", expectedVersion = membershipVersion });
@@ -75,6 +76,7 @@ public sealed class MaritimeRevocationInterleavingTests
                 route + "/" + id, new { displayName = "Should never commit", expectedVersion = 1L });
             await WaitForLockWaiters(connection, 2);
             await tx.CommitAsync();
+            committed = true;
             using var changed = await adminChange;
             using var denied = await managerChange;
             Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
@@ -88,7 +90,7 @@ public sealed class MaritimeRevocationInterleavingTests
         finally
         {
             // Safe when committed, and ensures no stranded lock if a waiter assertion fails.
-            await tx.RollbackAsync().ConfigureAwait(false);
+            if (!committed) await tx.RollbackAsync().ConfigureAwait(false);
         }
     }
 }

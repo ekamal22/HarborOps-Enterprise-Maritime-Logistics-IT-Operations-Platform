@@ -8,7 +8,7 @@
 | Category | Approved location |
 | --- | --- |
 | Git working tree | `E:\APP IDEAS\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform` |
-| Project-specific dependency caches and evidence | `E:\APP IDEAS\harborops-m0-cache` for the M0 baseline; future named per-milestone subdirectories may be added under `E:\APP IDEAS` |
+| Project-specific dependency caches and evidence | Historical M0: `E:\APP IDEAS\harborops-m0-cache`; locally verified G2: `E:\HarborOps-Verification` (caches, temporary files, Playwright and evidence); future milestones: explicit E:-backed project directories |
 | .NET and frontend build outputs | Inside the repository or an explicitly configured E-drive output directory |
 | Package downloads and compilation scratch | E-drive scoped cache and temporary directories |
 | Database integration-test data | Disposable local PostgreSQL instance, with data held on E or in disposable memory-backed storage |
@@ -75,7 +75,11 @@ M1 introduces a persistent ASP.NET Core Data Protection key ring, PostgreSQL cre
 
 Create test users only inside disposable PostgreSQL databases; never seed an active user into the public M0 synthetic database initializer. Admin provisioning must read passwords interactively and avoid argument histories or logs. No existing local PostgreSQL volume is required for routine G1 verification. Do not relocate, prune or delete old data or key rings without explicit approval. See [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md) and [G1 Verification](M1_VERIFICATION_PLAN.md).
 
-## M0 baseline and future milestones
+## M2 local verification and future milestones
+
+G2 passed through `scripts/verify-m2-local.sh` using disposable PostgreSQL/Compose resources and E:-backed caches, browser binaries and evidence under `E:\HarborOps-Verification`. The recorded source is `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; see [G2 executed verification](M2_EXECUTED_VERIFICATION.md). Earlier test iterations caused WSL crash reports to be written by the operating system under C:; corrected command failure handling and container core-dump controls prevented new crash files in the final G2 run. Existing crash reports were not modified. Never deliberately initiate project storage or dumps on C:, and stop if a tool cannot be constrained to E:.
+
+## M0 baseline and historical context
 
 M0 was verified on a Windows 11 host with its working tree under E:, project caches under `E:\APP IDEAS\harborops-m0-cache`, and Docker Desktop's WSL data on E:. [M0 Verification](M0_VERIFICATION.md) preserves historical evidence, while [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) records the accepted G0 CI run. Both are available on `main`.
 

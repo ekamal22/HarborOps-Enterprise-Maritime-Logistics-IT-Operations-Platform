@@ -64,7 +64,11 @@ The accepted [M1 authentication design](M1_AUTHENTICATION_DESIGN.md) fits the ex
 
 Local persistent application keys and credentials must reside in approved E-backed Docker storage under [Local Storage Policy](LOCAL_STORAGE_POLICY.md), not inside the read-only API image, not on C: and never in Git. Use secrets or interactive provisioning, not plaintext default accounts or reusable demonstration credentials. Hosted authentication remains blocked until HTTPS, host-only Secure cookies, trusted proxy configuration, secret provisioning and encryption of Data Protection keys at rest are verified. Same-origin loopback HTTP is development-only.
 
-Development and CI must prove session persistence across restarts and immediate database revocation without checking a retained local Docker volume. An ephemeral GitHub-hosted runner can perform the G1 tests; persistent development data still follows E-drive rules on a workstation. Authentication design approval does not authorize new cloud charges or public access.
+Verification must prove session persistence across restarts and immediate database revocation without checking a retained local Docker volume. Historical G1 verification used ephemeral GitHub-hosted runners. Current and future verification must run locally on E: while GitHub Actions remains prohibited. Authentication approval does not authorize cloud charges or public access.
+
+## M2 deployment and verification boundary
+
+M2 organization and membership authorization is included in the accepted local Compose application on `main`; no hosted identity or tenancy service was introduced. G2 passed in isolated local tests on E:, including migration preservation, scoped access denial, recovery, dependency review and high/critical image scans. [G2 evidence](M2_EXECUTED_VERIFICATION.md) identifies the verified source SHA. No public hosting or production deployment is approved. GitHub Actions execution remains prohibited unless explicitly restored.
 
 ## Deployment acceptance
 

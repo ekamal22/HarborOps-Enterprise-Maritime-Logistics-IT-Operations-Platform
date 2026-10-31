@@ -14,11 +14,11 @@ M2 owns identity-to-organization authorization, not shipment entities. M3 introd
 
 ## 2. Accepted foundation and integration points
 
-Current `main` contains:
+The accepted M0/M1 foundation, preserved during M2, contains:
 - `src/HarborOps.Api/Authentication/AuthenticationSetup.cs`: protected cookie authentication and per-request database validation.
 - `src/HarborOps.Api/Authentication/AuthenticationEndpoints.cs`: session information and CSRF-protected mutations.
 - `src/HarborOps.Infrastructure/Identity/IdentityStore.cs`: `CurrentSession` with user ID, session ID and expiry; login, revocation and status checks.
-- `src/HarborOps.Infrastructure/Persistence/HarborOpsDbContext.cs`: M0 and M1 entity mappings.
+- `src/HarborOps.Infrastructure/Persistence/HarborOpsDbContext.cs`: existing M0 and M1 entity mappings, extended by M2 for organizations and memberships.
 - `web/src/auth/AuthPanel.tsx`: M1 login/session interface on same-origin `/api`.
 - `src/HarborOps.Api/Program.cs`: authentication/authorization middleware, correlation IDs and sanitized errors.
 

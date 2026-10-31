@@ -2,7 +2,7 @@
 
 ## Demo dataset contract
 
-A fixed seed produces two isolated organizations, role-specific users, realistic-looking but fictional ports/routes/containers, event histories, expected KPI values, and service incidents.
+The planned final demonstration dataset will contain two isolated organizations, role-specific users, realistic-looking but fictional ports/routes/containers, event histories, expected KPI values and service incidents. Those full business entities and datasets are not implemented at M2. G2 separately verified two synthetic organizations and role-specific users in disposable test fixtures.
 
 No live customer or carrier data is required. The seed version and expected outputs must be tracked with the code.
 
@@ -11,6 +11,10 @@ No live customer or carrier data is required. The seed version and expected outp
 G1 verification used a disposable synthetic account and executed the [M1 functional matrix](M1_VERIFICATION_PLAN.md), including: sign in, read protected session state, reload the browser, open a second session, log out the first, revoke all, disable the account, confirm old cookies are rejected, and demonstrate safe database-outage behavior. Verify that invalid credentials, CSRF and login-rate-limit negative cases fail without secrets appearing in responses or logs. Prove that key persistence survives API restart and browser origin remains same-origin.
 
 This demonstration is separate from the later complete business scenarios D01-D06 and does not require two organization fixtures, external tracking data, retained Docker volume checks or M24 accessibility tests. The synthetic M1 account, real browser sign-in/logout, session restart, outage fail-closed behavior, global revocation and rejected-cookie replay passed in [M1 verification](M1_IMPLEMENTATION_VERIFICATION.md). G1 was accepted on 2026-10-31 and M1 merged into `main`. The design is in [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md).
+
+## M2 organization authorization demonstration (verified in disposable fixtures)
+
+G2 verified local organization bootstrap for two synthetic tenants, five fixed role permissions, an authenticated organization switch, denial of foreign organization and member IDs, last-administrator protection, suspension and revocation across browser sessions, and database outage/recovery with durable authorization denial. The [G2 executed record](M2_EXECUTED_VERIFICATION.md) identifies the tested revision and exact suites. These fixtures are not a permanent production tenant seed and do not imply that port, vessel or shipment reference data already exists.
 
 ## Scenario D01: Shipment from registration to arrival
 

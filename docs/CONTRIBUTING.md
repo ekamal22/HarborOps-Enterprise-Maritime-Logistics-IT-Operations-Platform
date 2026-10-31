@@ -11,11 +11,12 @@
 
 ## Branches and commits
 
-- Use descriptive branch names tied to a milestone or concern, such as feat/m1-shipment-core or fix/m2-event-deduplication.
-- Write concise, imperative commit subjects describing the change, not the activity or an unverified outcome.
+- Use descriptive branch names tied to a milestone or concern, such as `feat/m3-port-vessel-reference-data` or `fix/m3-port-lookup`.
+- Write concise, imperative commit subjects describing the change, not the activity or an unverified outcome. Append `[skip ci]` to all commits while GitHub Actions is prohibited.
 - Do not append co-author trailers, attribution footers, automated signatures, or tool-origin notes to commit messages.
 - Review commit metadata before publication. Keep the commit body relevant to technical content.
 - Do not rewrite shared history without an explicit reason and approval.
+- Do not trigger, dispatch, rerun or indirectly cause GitHub Actions workflows. Run required verification locally on E: using isolated resources. Check the event triggers before pushing. If a push cannot be made without launching a workflow, do not push and report the blocker.
 
 ## Language and references
 

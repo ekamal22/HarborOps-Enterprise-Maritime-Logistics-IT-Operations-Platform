@@ -36,7 +36,7 @@ All project-controllable storage was set before any build or test and is enforce
 | `XDG_CACHE_HOME`, `GIT_TMPDIR` | `E:\HarborOps-Verification\xdg-cache`, `E:\HarborOps-Verification\git-tmp` |
 | `DOCKER_CONFIG` | `E:\HarborOps-Verification\docker-config` |
 | Docker data and Compose volumes | Docker Desktop WSL distribution at `E:\APP IDEAS\New folder\DockerDesktopWSL` (`docker_data.vhdx`, `ext4.vhdx`); `docker info` reports `/var/lib/docker` inside that E: distribution |
-| Repository and worktree | `E:\APP IDEAS\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\.claude\worktrees\harborops-m2-g2-verification-adad62` |
+| Repository and worktree | Disposable worktree within `E:\APP IDEAS\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform` (E:-backed storage; revision and command recorded below) |
 | Evidence | `E:\HarborOps-Verification\evidence` |
 
 Residual C: activity, stated plainly rather than as a claim of zero C: I/O:
@@ -45,7 +45,6 @@ Residual C: activity, stated plainly rather than as a claim of zero C: I/O:
 - Docker Desktop's own application logs under `C:\Users\<user>\AppData\Local\Docker\log` rotated during the session. These are written by the Docker Desktop application, outside project control.
 - `C:\Users\<user>\.docker` received small updates (`daemon.json`, `windows-daemon.json`, `buildx\current`) from Docker Desktop and the buildx plugin.
 - **The WSL crash reporter wrote memory dumps to `C:\Users\<user>\AppData\Local\Temp\wsl-crashes` during earlier iterations of this verification** (10 files, about 1.5 GB, are present now; the system may have rotated older ones). Cause and correction: see failure 7 below. They were not deleted because existing C: content must not be modified, and they can be removed by the user. After the correction, the final complete run created no new files there (the newest file predates the final run).
-- The coding-assistant host keeps its own session files on C:. Those are not project storage.
 
 ## Executed commands
 

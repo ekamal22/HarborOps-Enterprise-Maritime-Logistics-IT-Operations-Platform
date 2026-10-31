@@ -2,7 +2,7 @@
 
 ## Contract status
 
-M0 provides public synthetic status and health routes. M1 implements and has accepted protected authentication endpoints. M2 organization and membership routes below are implemented as feature-branch source but remain unverified and are not on `main`. Maritime resource routes, shipment business APIs and full OpenAPI generation remain planned.
+M0 provides public synthetic status and health routes. M1 implements and has accepted protected authentication endpoints. M2 organization and membership routes below are implemented on the unmerged feature branch. The [automated run #41157387340](M2_EXECUTED_VERIFICATION.md) passed its tests, but some G2 endpoint/role/foreign-ID combinations remain untested. Maritime resource routes, shipment business APIs and full OpenAPI generation remain planned.
 
 ## Observed M0 contract verification
 
@@ -48,9 +48,9 @@ The M1 route group is `/api/v1/auth`. These routes are served on `main` followin
 
 Local account provisioning and password reset are available through restricted interactive CLI commands. Self-disablement is available through the protected API. Privileged account re-enablement is not implemented in M1 and requires a separate reviewed administrative procedure. No public administrative endpoints, multi-organization `/me` membership response, bearer tokens, SSO or shipment routes are added at M1. Those remain later milestones. Preserve M0's public synthetic baseline and minimal liveness/readiness routes.
 
-## M2 organization and context contract (feature branch; unverified)
+## M2 organization and context contract (feature branch; partially verified)
 
-The [M2 design](M2_ARCHITECTURE_DESIGN.md) and [G2 verification specification](M2_VERIFICATION_PLAN.md) propose the following endpoints. **The routes are mapped in feature-branch source but none has been executed or verified, and they are not merged into `main`.** They use the already accepted M1 protected-cookie session; mutating calls also require same-origin CSRF validation.
+The [M2 design](M2_ARCHITECTURE_DESIGN.md) and [G2 verification specification](M2_VERIFICATION_PLAN.md) propose the following endpoints. **Selected routes and authorization flows passed [M2 GitHub verification](M2_EXECUTED_VERIFICATION.md); the full method and role matrix is incomplete, and the source is not merged into `main`.** They use the already accepted M1 protected-cookie session; mutating calls also require same-origin CSRF validation.
 
 | Method | Route | Intended access |
 | --- | --- | --- |

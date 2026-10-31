@@ -54,6 +54,27 @@ function payload(kind: MaritimeKind, form: Form, isNew: boolean, prior?: Maritim
   }
   return changes;
 }
+async function loadActiveReferences(organizationId: string, kind: "ports" | "vessels"): Promise<ReferenceRow[]> {
+  const records: ReferenceRow[] = [];
+  const seen = new Set<string>();
+  let after: string | null = null;
+  do {
+    const params = new URLSearchParams({ status: "Active", limit: "100" });
+    if (after) params.set("after", after);
+    const path = "/api/v1/organizations/" + encodeURIComponent(organizationId) +
+      "/" + kind + "?" + params;
+    const page = await getJson<{ ports?: ReferenceRow[]; vessels?: ReferenceRow[];
+      nextAfter: string | null }>(path);
+    const rows = page[kind] ?? [];
+    for (const row of rows) {
+      if (!seen.has(row.id)) { seen.add(row.id); records.push(row); }
+    }
+    if (page.nextAfter && (page.nextAfter === after || rows.length === 0 ||
+      records.length > 10000)) throw new Error("Reference pagination did not complete safely");
+    after = page.nextAfter;
+  } while (after);
+  return records;
+}
 function classify(error: unknown): boolean {
   return error instanceof OrganizationRequestError &&
     (error.status === 401 || error.code === "organization_access_revoked" ||
@@ -93,13 +114,12 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
     try {
       const request = listMaritime(organizationId, kind, q, status);
       if (kind === "voyages") {
-        const base = "/api/v1/organizations/" + encodeURIComponent(organizationId);
-        const [portPage, vesselPage] = await Promise.all([
-          getJson<{ ports: ReferenceRow[] }>(base + "/ports?limit=100&status=Active"),
-          getJson<{ vessels: ReferenceRow[] }>(base + "/vessels?limit=100&status=Active")
+        const [allPorts, allVessels] = await Promise.all([
+          loadActiveReferences(organizationId, "ports"),
+          loadActiveReferences(organizationId, "vessels")
         ]);
         if (serial !== generation.current) return;
-        setPorts(portPage.ports); setVessels(vesselPage.vessels);
+        setPorts(allPorts); setVessels(allVessels);
       }
       const page = await request;
       if (serial !== generation.current) return;

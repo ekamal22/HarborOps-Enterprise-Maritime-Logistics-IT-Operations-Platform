@@ -29,7 +29,7 @@ function validateGraph(data,requirementContent,decisionContent) {
   if(gate.depends_on.length!==work.length||work.some(n=>!gate.depends_on.includes(n.id)))throw Error("Gate missing prerequisite "+m.id);
   if(work[0].depends_on.join(",")!==(i?"G"+(i-1):""))throw Error("Invalid entry "+m.id);
   if(work.slice(1).some(n=>n.depends_on.length===0))throw Error("Orphan node "+m.id);
-  for(const id of m.decisions??[])if(!decisionContent.includes("| "+id+" |"))throw Error("Unknown decision "+m.id+" "+id);
+  for(const id of m.decisions??[])if(!decisionContent.includes("| "+id+" |") && !decisionContent.includes("### "+id+":"))throw Error("Unknown decision "+m.id+" "+id);
  }
 }
 

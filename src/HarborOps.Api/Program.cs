@@ -1,4 +1,6 @@
 using System.Data.Common;
+using HarborOps.Api.Authentication;
+using Microsoft.AspNetCore.Diagnostics;
 using System.Net.Sockets;
 using HarborOps.Api.Health;
 using HarborOps.Application.Baseline;
@@ -17,6 +19,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("ConnectionStrings:HarborOps is required");
 
 builder.Services.AddHarborOpsPersistence(connectionString);
+builder.Services.AddHarborOpsAuthentication(builder.Configuration);
 builder.Services.AddHealthChecks()
     .AddCheck<DatabaseReadinessCheck>("database", tags: ["ready"]);
 
@@ -28,6 +31,12 @@ builder.Services.AddCors(options => options.AddPolicy("Web", policy =>
 }));
 
 var app = builder.Build();
+
+if (args.Contains("--account-cli", StringComparer.Ordinal))
+{
+    await AccountCli.RunAsync(args, app.Services);
+    return;
+}
 
 if (args.Contains("--migrate", StringComparer.Ordinal))
 {
@@ -53,16 +62,23 @@ app.Use(async (context, next) =>
 
 app.UseExceptionHandler(handler => handler.Run(async context =>
 {
-    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+    var error = context.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+    var dependency = error is IdentityDependencyException || (error is not null && IsDependencyFailure(error));
+    context.Response.StatusCode = dependency
+        ? StatusCodes.Status503ServiceUnavailable : StatusCodes.Status500InternalServerError;
     await context.Response.WriteAsJsonAsync(new
     {
-        code = "internal_error",
-        message = "An unexpected error occurred",
+        code = dependency ? "dependency_unavailable" : "internal_error",
+        message = dependency ? "Dependency temporarily unavailable" : "An unexpected error occurred",
         correlationId = context.Items["CorrelationId"]
     });
 }));
 
 app.UseCors("Web");
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseRateLimiter();
+app.MapAuthenticationEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

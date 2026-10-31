@@ -16,6 +16,8 @@ public sealed class ApiAgainstPostgresTests
         {
             builder.UseEnvironment("Production");
             builder.UseSetting("ConnectionStrings:HarborOps", connectionString);
+            builder.UseSetting("Identity:AllowInsecureLoopbackHttp", "true");
+            builder.UseSetting("Identity:KeyRingPath", Path.Combine(Directory.GetCurrentDirectory(), ".identity-keys"));
         }
     }
 

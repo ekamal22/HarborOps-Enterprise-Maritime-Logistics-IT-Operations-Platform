@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0 engineering baseline merged into `main` and **G0 accepted** on 2026-10-31. The .NET 10, fresh PostgreSQL, functional browser, Compose recovery and image hardening passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at source revision `fec7429415fede121db8a4a34f0df72cd4fac609`. M1-M24 remain planned; M1 has not started. See [Project Status](docs/STATUS.md).
+**Status:** M0 engineering baseline merged into `main` and **G0 accepted** on 2026-10-31. The .NET 10, fresh PostgreSQL, functional browser, Compose recovery and image hardening passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at source revision `fec7429415fede121db8a4a34f0df72cd4fac609`. M1 is implemented and verified on the feature branch, with G1 acceptance pending; M2-M24 remain planned. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -26,9 +26,15 @@ Run `node scripts/render-execution-graph.mjs --check` to validate the graph agai
 - Expose metrics, logs, tracing, health checks, and an integrated IT incident workflow.
 - Demonstrate reproducible testing, safe failure handling, recoverability, and deployment portability.
 
-### Next milestone: M1 authentication design
+### M1 implementation branch
 
-The M1 architecture is **approved for implementation**, but no M1 source code, database migration or G1 verification has been completed. D-001 selects PostgreSQL-authoritative ASP.NET Core cookie sessions, Argon2id local credentials, a same-origin browser/API proxy, CSRF protection, immediate revocation and persistent Data Protection key storage.
+The feature branch `feat/m1-authentication-session-lifecycle` contains the first M1 implementation of server-authoritative cookie sessions, Argon2id passwords, local account provisioning, database identity tables and a browser sign-in shell. The full M1 verification suite passed on the feature branch at `fdefe052e4335ca8d1d287160a9859828d05f9d8`; acceptance pending. The feature branch is not merged into `main`. The previous M0 status remains the accepted default-branch baseline.
+
+**Local M1 accounts:** Start Compose with `docker compose up -d --build` as described below. Create an account with `docker compose run --rm -it -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision operator@example.test "Operator"`. The password is read privately from the terminal, never passed as a CLI argument. Reset through `--account-cli reset operator@example.test`. No public registration endpoint exists.
+
+### M1 authentication verification
+
+The M1 architecture is implemented and its engineering verification passed in [Verify M1 run](docs/M1_IMPLEMENTATION_VERIFICATION.md). G1 acceptance pending; `main` retains the accepted M0 baseline. D-001 selects PostgreSQL-authoritative ASP.NET Core cookie sessions, Argon2id local credentials, a same-origin browser/API proxy, CSRF protection, immediate revocation and persistent Data Protection key storage.
 
 - [M1 Authentication and Session Lifecycle Design](docs/M1_AUTHENTICATION_DESIGN.md): schema, endpoints, security behavior, frontend and work packages.
 - [D-001 Architecture Decision](docs/ADR_D001_BROWSER_SESSIONS.md): selected model, alternatives and consequences.
@@ -53,7 +59,7 @@ Organization memberships and authorization remain M2. Historical-volume checks o
 - API: ASP.NET Core on .NET 10, C#; OpenAPI generation is planned
 - Data: PostgreSQL, Entity Framework Core
 - Processing: .NET background worker with durable processing state
-- Local runtime: Docker Compose; same-origin Nginx/Vite API proxy planned for M1 browser authentication
+- Local runtime: Docker Compose; same-origin Nginx/Vite API proxy implemented on the M1 branch
 - Observability: OpenTelemetry, Prometheus, Grafana, structured logs
 - Validation: xUnit, integration tests, Playwright, k6, OWASP ZAP
 - Hosting: local-first; optional student-credit cloud environment and static demonstration
@@ -94,8 +100,9 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
 | [Domain Model](docs/DOMAIN_MODEL.md) | Entities, relationships, and invariants |
 | [API Contracts](docs/API_CONTRACTS.md) | Proposed REST resources, security, and compatibility |
-| [M1 Authentication Design](docs/M1_AUTHENTICATION_DESIGN.md) | Approved D-001 implementation blueprint; M1 not started |
-| [M1 Verification Plan](docs/M1_VERIFICATION_PLAN.md) | G1 checks and evidence requirements, not executed |
+| [M1 Authentication Design](docs/M1_AUTHENTICATION_DESIGN.md) | Approved D-001 implementation blueprint; M1 verified on feature branch |
+| [M1 Verification Plan](docs/M1_VERIFICATION_PLAN.md) | G1 checks and evidence requirements; executed M1 evidence is recorded separately |
+| [M1 Verification Register](docs/M1_IMPLEMENTATION_VERIFICATION.md) | Executed M1 checks, exact revision, results and remaining acceptance |
 | [Event Processing](docs/EVENT_PROCESSING.md) | Tracking workflow, failure modes, and reconciliation |
 | [Security](docs/SECURITY.md) | Threat model and security acceptance gates |
 | [Operations](docs/OPERATIONS.md) | Monitoring, incidents, backups, and recovery |
@@ -127,4 +134,4 @@ The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) pres
 
 ### Current state
 
-The default `main` branch contains the accepted M0 engineering foundation. G0 was verified on the hardening branch and merged via PRs #3 and #1. The code includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic seed, React status UI and Docker Compose. Full shipment, tracking, analytics and incident workflows remain planned for M1-M24. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).
+The default `main` branch contains the accepted M0 engineering foundation. G0 was verified on the hardening branch and merged via PRs #3 and #1. The code includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic seed, React status UI and Docker Compose. Shipment, tracking, analytics and incident workflows remain planned for M2-M24. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).

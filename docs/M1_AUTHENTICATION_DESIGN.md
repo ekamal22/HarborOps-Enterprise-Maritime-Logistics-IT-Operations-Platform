@@ -2,7 +2,7 @@
 
 **Decision:** Approved architecture. D-001 closed.  
 **Milestone:** M1-01 through M1-04, exit gate G1.  
-**Implementation:** Not started. G1 has no verification or acceptance evidence.  
+**Implementation:** Feature-branch source implemented. [G1 verification](M1_IMPLEMENTATION_VERIFICATION.md) passed at `fdefe052e4335ca8d1d287160a9859828d05f9d8`; acceptance pending.  
 **Baseline:** G0 accepted on 2026-10-31; .NET 10, EF Core 10, PostgreSQL 16, React/Vite, Nginx and Docker Compose.  
 **Related:** [D-001 decision](ADR_D001_BROWSER_SESSIONS.md), [Roadmap](ROADMAP.md), [Requirements](REQUIREMENTS.md), [API Contracts](API_CONTRACTS.md), [Security](SECURITY.md), [M1 verification plan](M1_VERIFICATION_PLAN.md).
 
@@ -226,7 +226,7 @@ src/HarborOps.Infrastructure/Identity/
   SessionValidationEvents.cs
 src/HarborOps.Infrastructure/Persistence/
   HarborOpsDbContext.cs
-  Migrations/<new additive M1 migration>
+  Migrations/20261031010000_IdentitySessions.cs
 src/HarborOps.Api/Authentication/
   AuthenticationEndpoints.cs
   AuthenticationSetup.cs
@@ -245,7 +245,7 @@ tests/HarborOps.IntegrationTests/Identity/
 tests/browser/specs/auth.spec.mjs
 \`\`\`
 
-Do not treat the planned paths as files that already exist. A restricted local CLI mode may live in the existing API project. Its exact command name and validated target database checks must be selected and documented during implementation.
+The path list above is the original design outline. Actual implementation files are enumerated in [M1 Verification](M1_IMPLEMENTATION_VERIFICATION.md) and retain the accepted M0 module boundaries. A restricted local CLI mode may live in the existing API project. Its exact command name and validated target database checks must be selected and documented during implementation.
 
 ## 12. Delivery and verification sequence
 
@@ -278,6 +278,6 @@ G1 needs no manual old-volume compatibility check, no early WCAG/screen-reader a
 
 See [M1 verification plan](M1_VERIFICATION_PLAN.md) for the detailed evidence policy. The G0 evidence is immutable historical proof of the accepted baseline, not a substitute for running M1 tests.
 
-## 14. Remaining implementation-level selections
+## 14. Implementation selections and future review
 
 The approved **approach** is fixed. During M1-01, settle exact hash library/package version with security and maintenance review, chosen \`csrf_invalid\` status (400 or 403), key-protection certificate provisioning and cleanup process, exact rate-limit partitions and retention, and password/email normalization edge cases. These are tunable implementation details, not reasons to reopen D-001. Never claim they were benchmarked or implemented before measured evidence exists.

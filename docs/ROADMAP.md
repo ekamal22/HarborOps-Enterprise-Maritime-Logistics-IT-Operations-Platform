@@ -2,7 +2,7 @@
 
 **Version:** 2.0 granular delivery baseline  
 **Date:** 2026-10-30  
-**State:** M0-M24 delivery plan integrated into `main`; G0 verified and accepted on 2026-10-31. G1-G24 remain open and require separate acceptance.
+**State:** M0-M24 delivery plan integrated into `main`; G0 verified and accepted on 2026-10-31. G1 verified on the M1 feature branch, acceptance pending; G2-G24 remain open.
 
 ## Authority and rationale
 
@@ -97,7 +97,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Entry:** G0 verified and accepted. D-001 accepted; see [D-001](ADR_D001_BROWSER_SESSIONS.md) and the [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md).
 **Required work packages:** M1-01 Lock authentication contract and D-001; M1-02 Build additive identity/credential/session/event persistence; M1-03 Implement cookie auth, CSRF, login, logout and disablement endpoints; M1-04 Implement same-origin browser auth and execute [G1 verification](M1_VERIFICATION_PLAN.md).
 **Exit G1:** All applicable tasks, negative tests, runtime evidence and documentation for M1 recorded; acceptance pending until explicitly confirmed.
-**Not covered by this milestone:** Organization membership and role isolation (M2), maritime resources (M3 onward), integration tokens (M7), public registration, external SSO, historical-volume checks and accessibility audit (M24-04). **Design approved; M1 is not yet implemented or verified.**
+**Not covered by this milestone:** Organization membership and role isolation (M2), maritime resources (M3 onward), integration tokens (M7), public registration, external SSO, historical-volume checks and accessibility audit (M24-04). **M1 implemented and verified on its feature branch; G1 acceptance pending.**
 
 #### M2: Organizations and role isolation
 

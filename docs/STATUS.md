@@ -3,7 +3,11 @@
 **As of:** 2026-10-31
 **Default branch:** `main` contains the accepted M0 application, runtime, tests, docs and CI workflow.
 **Baseline:** The accepted M0 engineering foundation, runtime, tests, documentation and verification workflow are integrated into `main`. PRs #1 and #3 are merged.
-**Acceptance:** G0 verified at source revision `fec7429415fede121db8a4a34f0df72cd4fac609` in [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) and **accepted** on 2026-10-31; G1-G24 remain open. M1 has not started.
+**Acceptance:** G0 verified at source revision `fec7429415fede121db8a4a34f0df72cd4fac609` in [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) and **accepted** on 2026-10-31; G1 verified on the M1 feature branch, acceptance pending; G2-G24 remain open.
+
+## In-progress M1 implementation branch
+
+On `feat/m1-authentication-session-lifecycle`, M1 persistence, cookie authentication, restricted account CLI, same-origin browser shell, and an initial automated test matrix are implemented in source. **G1 verified on the feature branch, acceptance pending.** [M1 verification register](M1_IMPLEMENTATION_VERIFICATION.md) records the successful execution at `fdefe052e4335ca8d1d287160a9859828d05f9d8`. `main` continues to hold the accepted M0 baseline until a separate verified integration and acceptance decision.
 
 ## Delivery ledger
 
@@ -12,7 +16,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | Milestone | State | Evidence |
 | --- | --- | --- |
 | **M0 Engineering baseline verification** | G0 verified and accepted | [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) passed all required .NET, clean/seeded PostgreSQL, web, functional browser, Compose recovery and final image checks on `fec7429415fede121db8a4a34f0df72cd4fac609`. |
-| **M1 Authentication and session lifecycle** | Architecture approved, implementation not started | D-001 accepted; [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 verification plan](M1_VERIFICATION_PLAN.md) documented. No M1 migration, endpoint, frontend or G1 test has executed. |
+| **M1 Authentication and session lifecycle** | Verified on feature branch, acceptance pending | D-001 accepted; M1 identity migration, auth API, React shell, negative tests and [G1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) executed on `fdefe052e4335ca8d1d287160a9859828d05f9d8`. Not merged into `main`. |
 | **M2 Organizations and role isolation** | Planned | No verified implementation or accepted gate G2 |
 | **M3 Ports and vessels reference data** | Planned | No verified implementation or accepted gate G3 |
 | **M4 Voyages and containers reference data** | Planned | No verified implementation or accepted gate G4 |
@@ -53,7 +57,7 @@ The unchecked items below concern the complete M0-M24 product release. They do n
 - [x] Functional and non-functional requirements drafted.
 - [x] Architecture, domain model, and API boundary drafted.
 - [x] Tracking processing and security policies drafted.
-- [x] D-001 authentication architecture, M1 contracts and G1 test plan approved and documented (not implemented).
+- [x] D-001 architecture approved; M1 implemented and verified on the feature branch with acceptance pending.
 - [x] Milestone acceptance and verification approach drafted.
 - [x] Local-first cost constraints and demonstration plan drafted.
 - [ ] Implemented module architecture validated by code.
@@ -70,10 +74,10 @@ The `main` branch contains M0 application source and the verified Docker runtime
 ## Open prerequisites
 
 1. G0 is accepted. D-001 is now an accepted M1 architecture decision, documented in [D-001](ADR_D001_BROWSER_SESSIONS.md).
-2. Implement M1-01 through M1-04 using [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md). The design is approved, but no M1 source implementation has started.
-3. Execute the [G1 Verification Plan](M1_VERIFICATION_PLAN.md) against an exact M1 revision. Preserve accepted M0 regressions and record failed, blocked and unrun checks honestly.
+2. M1-01 through M1-04 are implemented on the feature branch. Review [M1 verification evidence](M1_IMPLEMENTATION_VERIFICATION.md) and record acceptance separately.
+3. The [G1 Verification Plan](M1_VERIFICATION_PLAN.md) has been executed against a fixed M1 revision. Preserve its results and rerun it after material implementation changes.
 4. Keep organization membership and two-organization isolation fixtures in **M2**, container identifier decision D-003 in **M4**, and tracking source decision D-002 in **M7**. Do not expand M1 scope.
-5. G1 remains open and requires real verification followed by explicit acceptance. Full accessibility testing is scheduled only for M24-04; historical-volume checks remain at M6, M12, M18 and M24-03.
+5. G1 verification is recorded; acceptance pending. Full accessibility testing is scheduled only for M24-04; historical-volume checks remain at M6, M12, M18 and M24-03.
 
 ## Storage and residual risk
 

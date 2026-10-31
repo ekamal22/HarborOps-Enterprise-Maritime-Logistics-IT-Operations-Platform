@@ -24,3 +24,7 @@
 .idea/
 .DS_Store
 *.log
+
+# Local cookie protection key ring
+**/.identity-keys/
+.verification/

@@ -20,6 +20,8 @@ public sealed class ApiFactory(IBaselineReadService? baseline = null) : WebAppli
         builder.UseSetting("ConnectionStrings:HarborOps",
             "Host=127.0.0.1;Port=1;Database=harborops_test;Username=contract;Password=contract-only;Timeout=2");
         builder.UseSetting("Cors:AllowedOrigins:0", AllowedOrigin);
+        builder.UseSetting("Identity:AllowInsecureLoopbackHttp", "true");
+        builder.UseSetting("Identity:KeyRingPath", Path.Combine(Directory.GetCurrentDirectory(), ".identity-keys"));
 
         if (baseline is not null)
         {

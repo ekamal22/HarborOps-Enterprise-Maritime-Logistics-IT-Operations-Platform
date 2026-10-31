@@ -35,7 +35,7 @@ HarborOps provides a single operational workspace for maritime shipment lifecycl
 
 The initial human sign-in implementation is a local-first server-managed cookie session with PostgreSQL authority and Argon2id. The approved [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) include login, idle/absolute expiry, session revocation, logout, logout-all, disabled account handling and a functional protected React shell. No identity hosting bill is required. Organization role isolation follows in M2; integration tokens and external tracking adapters follow later.
 
-This is design scope, not completed functionality. No public self-registration, enterprise single sign-on, paid identity service, JWT refresh-token system or organization-access claims are included in M1. Accessibility is tested only at the final M24-04 release package.
+This functionality is implemented and verified on the M1 feature branch, with acceptance pending and no merge into `main`. See [executed evidence](M1_IMPLEMENTATION_VERIFICATION.md). No public self-registration, enterprise single sign-on, paid identity service, JWT refresh-token system or organization-access claims are included in M1. Accessibility is tested only at the final M24-04 release package.
 
 ## Out of scope for initial release
 

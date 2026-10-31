@@ -6,9 +6,9 @@
 | --- | --- | --- |
 | Organization | Id, name, status | Security and reporting boundary |
 | User | Id, identity fields, status | May belong to multiple organizations through membership |
-| UserCredential (M1 planned) | UserId, Argon2id encoded password hash, hash version, password changed UTC | Exactly one active credential row per local user; never plaintext |
-| AuthSession (M1 planned) | Id, UserId, issue/idle/absolute UTC, security version, revocation | Server authoritative session; many sessions per user |
-| AuthEvent (M1 planned) | Id, nullable UserId/SessionId, type, result, correlation, UTC | Bounded, redacted identity events; not the full M16 audit module |
+| UserCredential (M1 branch implemented) | UserId, Argon2id encoded password hash, hash version, password changed UTC | Exactly one active credential row per local user; never plaintext |
+| AuthSession (M1 branch implemented) | Id, UserId, issue/idle/absolute UTC, security version, revocation | Server authoritative session; many sessions per user |
+| AuthEvent (M1 branch implemented) | Id, nullable UserId/SessionId, type, result, correlation, UTC | Bounded, redacted identity events; not the full M16 audit module |
 | Membership | UserId, OrganizationId, role, state | Access is evaluated within active membership |
 | Port | Id, UN/LOCODE where valid, country, name | Reference data; changes are versioned where needed |
 | Vessel | Id, optional IMO/MMSI, name | External identifiers must be validated and never fabricated as verified |
@@ -41,9 +41,9 @@
 11. Audit records capture actor, organization scope, resource, action, outcome, and correlation ID, with sensitive values redacted.
 12. Deleting an operational entity is restricted when history depends on it; use archival or tombstones where applicable.
 
-## M1 identity persistence and invariants (approved design, not migrated)
+## M1 identity persistence and invariants (feature branch migrated and verified)
 
-[The M1 schema design](M1_AUTHENTICATION_DESIGN.md) adds `users`, `user_credentials`, `auth_sessions` and `auth_events` in an additive EF Core migration. Accounts have unique normalized emails, Active/Disabled status and a monotonically increasing `security_version`. A user has at most one current password credential and can have multiple concurrent sessions.
+[The implemented M1 schema](M1_AUTHENTICATION_DESIGN.md) adds `users`, `user_credentials`, `auth_sessions` and `auth_events` in an additive EF Core migration. Accounts have unique normalized emails, Active/Disabled status and a monotonically increasing `security_version`. A user has at most one current password credential and can have multiple concurrent sessions.
 
 1. Only an active account with valid Argon2id credentials can create a session.
 2. An authenticated request succeeds only if its protected ticket refers to an existing active user and an unrevoked session within both idle and absolute expiries with matching security version.
@@ -78,3 +78,5 @@ Order primarily by trusted occurrence time when source rules permit, then by sou
 `bootstrap_records` is a single infrastructure status table, not a shipment-domain model. The initial EF Core migration creates `key` (80-character primary key), `dataset_version` (required, 80 characters), and `seeded_at_utc` (required UTC timestamp). The deterministic row uses key `harborops` and dataset version `m0-synthetic-v1`. The migration and seed were applied to clean PostgreSQL 16.15 databases and inspected on 2026-10-30 (see [M0 Verification](M0_VERIFICATION.md)).
 
 Organization membership and access boundaries are planned for M2; maritime reference entities and shipment/assignment invariants are planned for M3-M6. None of these business entities were implemented in the M0 engineering baseline.
+
+The four M1 identity tables and migration were exercised in isolated PostgreSQL integration tests, including an existing M0-seeded schema upgrade. See [M1 verification register](M1_IMPLEMENTATION_VERIFICATION.md). G1 acceptance pending; the default branch remains M0.

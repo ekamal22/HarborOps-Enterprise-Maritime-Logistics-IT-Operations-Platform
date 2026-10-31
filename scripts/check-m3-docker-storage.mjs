@@ -59,10 +59,15 @@ function command(binary, args) {
     fail("Unable to verify Docker backend");
   }
 }
-if (command("docker", ["context", "show"]) !== "desktop-linux")
-  fail("Active Docker context is not desktop-linux");
-if (command("docker", ["info", "--format", "{{.OSType}}"]) !== "linux")
-  fail("Docker is not running the Linux container backend");
+// Verification runs may use an E: DOCKER_CONFIG that has no named contexts. In that case the
+// engine must be pinned explicitly to the Docker Desktop Linux engine pipe.
+const desktopLinuxPipe = "npipe:////./pipe/dockerDesktopLinuxEngine";
+const context = command("docker", ["context", "show"]);
+if (context !== "desktop-linux" && !(process.env.DOCKER_HOST === desktopLinuxPipe))
+  fail("Active Docker context is not desktop-linux and DOCKER_HOST is not pinned to " + desktopLinuxPipe);
+const engine = command("docker", ["info", "--format", "{{.OSType}}|{{.OperatingSystem}}|{{.Name}}"]);
+if (engine !== "linux|Docker Desktop|docker-desktop")
+  fail("Engine is not the Docker Desktop Linux backend (" + engine + ")");
 const repo = command("git", ["rev-parse", "--show-toplevel"]);
 if (!/^E:[\\/]/i.test(win.normalize(repo)))
   fail("Repository worktree must be on E:");

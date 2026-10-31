@@ -16,6 +16,7 @@ public sealed class ReferenceInput
 {
     private readonly Dictionary<string, string?> strings = new(StringComparer.Ordinal);
     public long? ExpectedVersion { get; private set; }
+    public int ChangedFieldCount => strings.Count;
     public bool Has(string name) => strings.ContainsKey(name);
     public string? Get(string name) => strings.GetValueOrDefault(name);
 
@@ -192,6 +193,15 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         return role == "Manager" ? OrganizationAccessError.None : OrganizationAccessError.Forbidden;
     }
 
+    private static bool ReferenceTransitionAllowed(ReferenceRecord item, string action, ReferenceInput input)
+    {
+        if (action == "delete") return item.Status == "Active";
+        if (item.Status == "Archived")
+            return input.Has("status") && input.Get("status") == "Active" &&
+                input.ChangedFieldCount == 1;
+        return !input.Has("status");
+    }
+
     private static bool Duplicate(DbUpdateException error) =>
         error.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 
@@ -222,7 +232,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
             {
                 item = await db.Ports.SingleOrDefaultAsync(x => x.OrganizationId == orgId && x.Id == id, ct)
                     ?? throw new ReferenceMissingException();
-                if (item.Version != input.ExpectedVersion || (action == "delete" && item.Status == "Archived"))
+                if (item.Version != input.ExpectedVersion || !ReferenceTransitionAllowed(item, action, input))
                     return new(null, OrganizationAccessError.Conflict);
                 if (action == "delete") item.Status = "Archived";
                 else
@@ -277,7 +287,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
             {
                 item = await db.Vessels.SingleOrDefaultAsync(x => x.OrganizationId == orgId && x.Id == id, ct)
                     ?? throw new ReferenceMissingException();
-                if (item.Version != input.ExpectedVersion || (action == "delete" && item.Status == "Archived"))
+                if (item.Version != input.ExpectedVersion || !ReferenceTransitionAllowed(item, action, input))
                     return new(null, OrganizationAccessError.Conflict);
                 if (action == "delete") item.Status = "Archived";
                 else

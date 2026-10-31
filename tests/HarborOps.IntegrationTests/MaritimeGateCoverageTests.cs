@@ -43,6 +43,7 @@ public sealed class MaritimeGateCoverageTests
     [InlineData("revoked")]
     [InlineData("disabled")]
     [InlineData("idle_expired")]
+    [InlineData("absolute_expired")]
     [InlineData("security_version")]
     public async Task AllTenM4RoutesRejectInvalidatedAuthentication(string invalidation)
     {
@@ -69,6 +70,14 @@ public sealed class MaritimeGateCoverageTests
             case "security_version":
                 await db.AuthUsers.Where(u => u.Id == user.Id).ExecuteUpdateAsync(u =>
                     u.SetProperty(s => s.SecurityVersion, s => s.SecurityVersion + 1));
+                break;
+            case "absolute_expired":
+                var old = now.AddDays(-2);
+                await db.AuthSessions.Where(s => s.UserId == user.Id).ExecuteUpdateAsync(upd =>
+                    upd.SetProperty(s => s.IssuedAtUtc, old)
+                        .SetProperty(s => s.LastSeenAtUtc, old.AddMinutes(5))
+                        .SetProperty(s => s.IdleExpiresAtUtc, old.AddMinutes(20))
+                        .SetProperty(s => s.AbsoluteExpiresAtUtc, old.AddHours(1)));
                 break;
             case "idle_expired":
                 var sessions = await db.AuthSessions.AsNoTracking()

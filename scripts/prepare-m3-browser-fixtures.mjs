@@ -68,11 +68,16 @@ for (const [ownerEmail, slug] of [
   const row = (await owner.organizations()).find(o => o.slug === slug);
   assert.ok(row, "Missing isolated M3 organization " + slug);
   await owner.select(row.id);
-  await owner.call("PUT", "/api/v1/organizations/" + row.id + "/memberships/" + managerId,
-    { role: "Manager", status: "Active", expectedVersion: null });
-  if (slug === "m3-north")
-    await owner.call("PUT", "/api/v1/organizations/" + row.id + "/memberships/" + analystId,
-      { role: "Analyst", status: "Active", expectedVersion: null });
+  const root = "/api/v1/organizations/" + row.id;
+  const roster = (await owner.call("GET", root + "/memberships?limit=100")).memberships;
+  async function ensureMember(userId, role) {
+    const existing = roster.find(m => m.userId === userId);
+    if (existing?.status === "Active" && existing.role === role) return;
+    await owner.call("PUT", root + "/memberships/" + userId,
+      { role, status: "Active", expectedVersion: existing?.version ?? null });
+  }
+  await ensureMember(managerId, "Manager");
+  if (slug === "m3-north") await ensureMember(analystId, "Analyst");
 }
 const managerOrgs = await manager.organizations();
 assert.ok(managerOrgs.some(o => o.slug === "m3-north" && o.role === "Manager"));
@@ -80,4 +85,51 @@ assert.ok(managerOrgs.some(o => o.slug === "m3-east" && o.role === "Manager"));
 const analystOrgs = await analyst.organizations();
 assert.ok(analystOrgs.some(o => o.slug === "m3-north" && o.role === "Analyst"));
 assert.ok(!analystOrgs.some(o => o.slug === "m3-east"));
-console.log("M3 browser fixture roles and two-organization isolation: PASS");
+const expected = [
+  ["ports", [
+    { referenceCode: "DEMO-PORT-1", name: "Synthetic Primary Port", countryCode: "US", unLocode: "USNYC" },
+    { referenceCode: "DEMO-PORT-2", name: "Synthetic Secondary Port", countryCode: "GB" },
+    { referenceCode: "DEMO-PORT-3", name: "Synthetic Archived Port", countryCode: "BD", archived: true }
+  ]],
+  ["vessels", [
+    { referenceCode: "DEMO-SHIP-1", name: "Synthetic IMO Vessel", imoNumber: "9074729" },
+    { referenceCode: "DEMO-SHIP-2", name: "Synthetic MMSI Vessel", mmsi: "012345678" },
+    { referenceCode: "DEMO-SHIP-3", name: "Synthetic Archived Vessel", archived: true }
+  ]]
+];
+async function ensureRecords(organizationId) {
+  await manager.select(organizationId);
+  const snapshot = {};
+  for (const [kind, definitions] of expected) {
+    const path = "/api/v1/organizations/" + organizationId + "/" + kind;
+    let rows = (await manager.call("GET", path + "?status=All&limit=100"))[kind];
+    for (const definition of definitions) {
+      let row = rows.find(value => value.referenceCode === definition.referenceCode);
+      if (!row) {
+        const { archived, ...body } = definition;
+        row = await manager.call("POST", path, body);
+        if (archived) {
+          await manager.call("DELETE", path + "/" + row.id, { expectedVersion: row.version });
+        }
+      }
+    }
+    rows = (await manager.call("GET", path + "?status=All&limit=100"))[kind];
+    for (const definition of definitions) {
+      const matches = rows.filter(row => row.referenceCode === definition.referenceCode);
+      assert.equal(matches.length, 1, kind + " reference fixture must be unique");
+      assert.equal(matches[0].status, definition.archived ? "Archived" : "Active");
+    }
+    snapshot[kind] = definitions.map(definition => {
+      const row = rows.find(value => value.referenceCode === definition.referenceCode);
+      return [row.id, row.referenceCode, row.version, row.status];
+    });
+  }
+  return snapshot;
+}
+for (const slug of ["m3-north", "m3-east"]) {
+  const org = managerOrgs.find(o => o.slug === slug);
+  const first = await ensureRecords(org.id);
+  const second = await ensureRecords(org.id);
+  assert.deepEqual(second, first, "Repeated fixture preparation must not mutate records");
+}
+console.log("M3 deterministic reference fixtures, role memberships and two-organization isolation: PASS");

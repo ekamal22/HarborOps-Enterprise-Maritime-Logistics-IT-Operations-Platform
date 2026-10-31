@@ -7,6 +7,9 @@ public sealed class OrganizationPolicyTests
 {
     [Theory]
     [InlineData(" Analyst", false)]
+    [InlineData("Analyst ", false)]
+    [InlineData("analyst", false)]
+    [InlineData("1", false)]
     [InlineData("Analyst", true)]
     [InlineData("Manager", true)]
     [InlineData("Support", true)]

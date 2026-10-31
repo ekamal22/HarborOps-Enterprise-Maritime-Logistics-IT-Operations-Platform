@@ -25,8 +25,14 @@ public static class OrganizationPolicy
         return value;
     }
 
-    public static bool ParseRole(string? input, out OrganizationRole role) =>
-        Enum.TryParse(input, ignoreCase: false, out role) && Enum.IsDefined(role);
+    public static bool ParseRole(string? input, out OrganizationRole role)
+    {
+        role = default;
+        return input is not null &&
+            Enum.TryParse(input, ignoreCase: false, out role) &&
+            Enum.IsDefined(role) &&
+            string.Equals(input, role.ToString(), StringComparison.Ordinal);
+    }
 
     public static bool ValidStatus(string? value) =>
         value is "Active" or "Suspended" or "Removed";

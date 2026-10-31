@@ -56,7 +56,7 @@ test("membership switching and live revocation clear protected browser state", a
 
     await admin.getByLabel("Membership state for Synthetic Browser Member").selectOption("Suspended");
     await admin.getByRole("button", { name: "Save membership" }).click();
-    await expect(admin.getByText("Suspended", { exact: true })).toBeVisible();
+    await expect(admin.getByLabel("Membership state for Synthetic Browser Member")).toHaveValue("Suspended");
 
     await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
     await expect(page.getByText("Slug: north-terminal")).toHaveCount(0);

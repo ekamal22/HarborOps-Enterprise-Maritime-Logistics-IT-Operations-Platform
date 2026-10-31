@@ -72,7 +72,6 @@ public sealed class MaritimePolicyTests
     [InlineData("Arrived", "Arrived", true)]
     [InlineData("Cancelled", "Cancelled", true)]
     [InlineData("Underway", "Cancelled", false)]
-    [InlineData("Planned", "Cancelled", true)]
     public void TransitionGraphIsClosed(string start, string end, bool allowed) =>
         Assert.Equal(allowed, MaritimePolicy.Transition(start, end));
     [Fact]

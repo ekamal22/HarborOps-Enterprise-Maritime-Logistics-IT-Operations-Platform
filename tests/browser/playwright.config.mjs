@@ -6,7 +6,12 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   forbidOnly: true,
   retries: 0,
-  reporter: [["list"], ["html", { outputFolder: "test-results/report", open: "never" }]],
+  reporter: [
+    ["list"],
+    ...(process.env.HARBOROPS_G3_JSON_REPORT
+      ? [["json", { outputFile: process.env.HARBOROPS_G3_JSON_REPORT }]] : []),
+    ["html", { outputFolder: "test-results/report", open: "never" }]
+  ],
   outputDir: "test-results/artifacts",
   use: {
     baseURL: "http://localhost:5173",

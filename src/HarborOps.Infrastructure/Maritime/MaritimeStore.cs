@@ -83,7 +83,6 @@ public sealed class MaritimeStore(HarborOpsDbContext db, OrganizationStore organ
     private async Task<OrganizationAccessError> ScopeAsync(CurrentSession session, Guid orgId,
         OrganizationPermission permission, bool writing, CancellationToken ct)
     {
-        var suffix = writing ? "FOR UPDATE" : "FOR SHARE";
         // Static queries are deliberate: SQL identifiers or lock clauses never come from user input.
         if (writing)
             await db.Organizations.FromSqlInterpolated(
@@ -119,9 +118,12 @@ public sealed class MaritimeStore(HarborOpsDbContext db, OrganizationStore organ
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var access = await ScopeAsync(session, org, OrganizationPermission.ViewVoyageData, false, ct);
         if (access != OrganizationAccessError.None) return new(null, access);
-        var query = Own<VoyageRecord>(org).AsNoTracking();
+        IQueryable<VoyageRecord> query = after.HasValue
+            ? db.Voyages.FromSqlInterpolated(
+                $"SELECT * FROM voyages WHERE organization_id = {org} AND id > {after.Value}")
+            : Own<VoyageRecord>(org);
+        query = query.AsNoTracking();
         if (status != "All") query = query.Where(x => x.RecordStatus == status);
-        if (after.HasValue) query = query.Where(x => x.Id.CompareTo(after.Value) > 0);
         if (vessel.HasValue) query = query.Where(x => x.VesselId == vessel);
         if (origin.HasValue) query = query.Where(x => x.OriginPortId == origin);
         if (destination.HasValue) query = query.Where(x => x.DestinationPortId == destination);
@@ -140,9 +142,12 @@ public sealed class MaritimeStore(HarborOpsDbContext db, OrganizationStore organ
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var access = await ScopeAsync(session, org, OrganizationPermission.ViewContainerData, false, ct);
         if (access != OrganizationAccessError.None) return new(null, access);
-        var query = Own<ContainerRecord>(org).AsNoTracking();
+        IQueryable<ContainerRecord> query = after.HasValue
+            ? db.Containers.FromSqlInterpolated(
+                $"SELECT * FROM containers WHERE organization_id = {org} AND id > {after.Value}")
+            : Own<ContainerRecord>(org);
+        query = query.AsNoTracking();
         if (status != "All") query = query.Where(x => x.RecordStatus == status);
-        if (after.HasValue) query = query.Where(x => x.Id.CompareTo(after.Value) > 0);
         if (kind is not null) query = query.Where(x => x.IdentifierKind == kind);
         if (equipment is not null) query = query.Where(x => x.EquipmentType == equipment);
         if (q.Length != 0) query = query.Where(x =>

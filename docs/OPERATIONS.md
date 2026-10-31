@@ -135,6 +135,10 @@ The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) defines an opt-in local `--orga
 
 G2 tests use disposable databases and controlled environments. The [local G2 verification](M2_EXECUTED_VERIFICATION.md) ran `scripts/verify-m2-local.sh` against the isolated `ho-verify` Compose project with all caches and evidence on E:. Do not access or delete the primary workstation PostgreSQL volume or perform historical-volume compatibility ahead of scheduled checkpoints. A required unavailable tool or browser engine is BLOCKED, not a successful test.
 
+## Planned M3 reference-data operations (no executable M3 workflow yet)
+
+After design approval, M3 will introduce tenant-owned port/vessel records through an additive migration and same-origin, authenticated organization-scoped APIs. [M3 architecture](M3_ARCHITECTURE_DESIGN.md) and [implementation plan](M3_IMPLEMENTATION_PLAN.md) define versioned mutations and soft archival. There will be no automatic live-port/vessel seed or external registry sync; fixture creation must use isolated disposable databases. [G3 local verification](M3_VERIFICATION_PLAN.md) requires the existing E:-only preflight, authorization regressions, 3-browser flow and image scans. Do not treat this section as evidence that M3 commands, tables or endpoints exist. No historical primary Docker volume or C: project storage may be touched.
+
 ## M0 local runbook
 
 - Set a unique password in a local untracked `.env` based on `.env.example`

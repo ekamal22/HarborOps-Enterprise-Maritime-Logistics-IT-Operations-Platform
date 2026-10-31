@@ -51,6 +51,10 @@ Human browser login uses ASP.NET Core 10 cookie authentication with protected ti
 
 [ADR-005](#adr-005-secure-organization-boundaries) requires scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) implements one role per organization membership, a fixed typed permission matrix, server-stored selection in `auth_sessions`, live authorization checks, controlled local bootstrap and transactional last-Administrator protection. These implementation-level choices are now integrated into `main` via PR #5 and do not create a new global ADR. The full G2 matrix passed locally on disposable resources ([executed record](M2_EXECUTED_VERIFICATION.md)); no retained workstation database was changed. G2 accepted on 2026-10-31.
 
+## M3 reference-data design choices (proposal; approval pending)
+
+The proposed [M3 architecture](M3_ARCHITECTURE_DESIGN.md) keeps each port/vessel reference owned by one organization, with an immutable UUID and tenant-local reference code, optional external identifiers, optimistic versioning and soft archival. Analysts may view reference data; Managers may manage it; M2 Support, Administrator and Auditor roles do not acquire implicit business access. These choices follow accepted ADR-002/003/004/005, but remain M3-specific implementation decisions subject to design approval. The [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 tests](M3_VERIFICATION_PLAN.md) define the executable obligations. G3 is open, and no new globally accepted ADR is asserted.
+
 ## Open decisions
 
 | ID | Decision required | Default hypothesis | Required before |

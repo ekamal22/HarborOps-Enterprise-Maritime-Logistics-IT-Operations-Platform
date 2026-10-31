@@ -75,6 +75,10 @@ D-001 is accepted and M1 is implemented, G1 verified and explicitly accepted on 
 
 The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) defines additive organizations and memberships, a selected organization per authenticated server session, a fixed role-permission matrix and live server checks on each scoped request. A guessed organization ID is never sufficient authorization; administrators cannot automatically read other organizations' data. M2 implements restricted local bootstrap and scoped membership/profile management, not shipment CRUD. The implementation is integrated into `main` via PR #5; all mandatory G2 scenarios passed locally ([executed verification](M2_EXECUTED_VERIFICATION.md)) and G2 was accepted on 2026-10-31.
 
+### 5.0.2 M3 port and vessel reference records (design proposed)
+
+M3 is the first planned organization-owned business reference module after accepted M2 authorization. The [M3 architecture](M3_ARCHITECTURE_DESIGN.md) proposes port and vessel records, optional syntactically validated UN/LOCODE/IMO/MMSI fields, explicit reference-data read/write permissions and a scoped React lookup. The [implementation sequence](M3_IMPLEMENTATION_PLAN.md) and [G3 verification plan](M3_VERIFICATION_PLAN.md) govern delivery. This proposal does not implement reference tables, automatic registry verification, external position tracking or M4 voyage resources. Design approval is pending; G3 is open.
+
 ### 5.1 Shipment operations
 
 An authenticated, authorized analyst selects an active organization and creates a shipment from validated reference records. Container and voyage assignments must respect temporal and ownership invariants. Edits use concurrency protection. Search and detail requests include the same server-side organization boundary; archive prevents casual deletion of referenced history. See FR-001 through FR-005 and [Domain Model](DOMAIN_MODEL.md).

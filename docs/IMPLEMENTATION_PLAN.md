@@ -58,6 +58,10 @@ The [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation plan](M2_IM
 
 **Execution restriction:** Do not use GitHub Actions, modify workflows, dispatch runs, or rely on remote CI until the restriction is explicitly lifted. Required verification must be executed locally with disposable resources under the E-drive storage policy.
 
+## M3 implementation (architecture proposed; work not started)
+
+The [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification plan](M3_VERIFICATION_PLAN.md) define four bounded work packages: M3-01 freezes identifiers, tenant ownership, role permissions and fixtures; M3-02 adds port persistence and scoped endpoints; M3-03 adds vessel persistence and scoped endpoints; M3-04 delivers a browser reference workspace and executes G3-S01 to G3-S25. After the shared M3-01 contract, port and vessel work may proceed in parallel only with a coordinated additive migration. Design approval is pending; no M3 implementation or G3 verification has occurred. Preserve accepted M0-M2 behavior and do not use GitHub Actions.
+
 ## Local development storage
 
 All controlled persistent project files, caches, container data and verification artifacts must stay on E:. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md); use C: only for unavoidable temporary Windows activity.

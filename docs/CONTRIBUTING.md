@@ -69,6 +69,10 @@ Use `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platfo
 - Treat [Status](STATUS.md) and milestone evidence registers as the only source for achieved results and acceptance state.
 - When changing a node ID or requirement mapping, update affected code tasks, test evidence, gates, and references in the same change.
 
+## M3 design and local verification boundary
+
+Before implementing M3, review the proposed [architecture](M3_ARCHITECTURE_DESIGN.md), [work-package plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification specification](M3_VERIFICATION_PLAN.md), then obtain explicit design approval. Keep port and vessel data tenant-owned, avoid Administrator/Support business-data bypasses, and preserve all accepted M0-M2 regressions. Use disposable local E: storage, never run GitHub Actions and do not mark G3 verified without full executed evidence. Planning files alone are not implementation.
+
 ## Historical M1 identity implementation review boundary
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. The completed M1 pull request included schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and the historical GitHub Actions evidence in [G1 Verification](M1_VERIFICATION_PLAN.md). This does not authorize any additional workflow runs. No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.

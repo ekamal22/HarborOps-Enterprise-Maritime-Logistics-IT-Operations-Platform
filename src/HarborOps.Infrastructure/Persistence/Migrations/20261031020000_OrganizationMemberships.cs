@@ -24,7 +24,9 @@ public sealed class OrganizationMemberships : Migration
                 CONSTRAINT "CK_organizations_status" CHECK (status IN ('Active', 'Suspended')),
                 CONSTRAINT "CK_organizations_version" CHECK (version > 0),
                 CONSTRAINT "CK_organizations_slug" CHECK (
-                    slug ~ '^[a-z0-9]+(-[a-z0-9]+)*
+                    slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND length(slug) BETWEEN 3 AND 80),
+                CONSTRAINT "CK_organizations_display_name" CHECK (
+                    length(btrim(display_name)) BETWEEN 1 AND 160)
             );
             CREATE UNIQUE INDEX "IX_organizations_Slug" ON organizations (slug);
 

@@ -102,4 +102,6 @@ assert.equal((await admin.send("/api/v1/organizations/" + organization.id)).stat
 safeError(await member.mutate("/api/v1/auth/session/organization", "PUT",
   { organizationId: organization.id }), 404);
 safeError(await member.send("/api/v1/organizations/" + organization.id), 409);
+const serviceLog = docker("compose", "-p", project, "logs", "--no-color", "api");
+assert.ok(!serviceLog.includes(password), "Synthetic authentication input must not appear in service logs");
 console.log("G2 scoped PostgreSQL outage, sanitized 503, recovery and durable revocation: PASS");

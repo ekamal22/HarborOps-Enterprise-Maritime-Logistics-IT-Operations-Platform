@@ -110,13 +110,30 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         }
     }
 
+    private async Task<ScopeResult> ReadScopeAsync(CurrentSession session, Guid orgId,
+        CancellationToken ct)
+    {
+        var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
+            OrganizationPermission.ViewReferenceData, ct);
+        if (scope.Value is null) return scope;
+        var current = await (
+            from active in db.AuthSessions.AsNoTracking()
+            join user in db.AuthUsers.AsNoTracking() on active.UserId equals user.Id
+            where active.Id == session.SessionId && active.UserId == session.UserId &&
+                active.SelectedOrganizationId == orgId && active.RevokedAtUtc == null &&
+                active.IdleExpiresAtUtc > clock.GetUtcNow() &&
+                active.AbsoluteExpiresAtUtc > clock.GetUtcNow() &&
+                active.SecurityVersion == user.SecurityVersion && user.Status == "Active"
+            select active.Id).AnyAsync(ct);
+        return current ? scope : new ScopeResult(null, OrganizationAccessError.Revoked);
+    }
+
     public async Task<ReferenceResult<ReferencePage<PortReference>>> ListPortsAsync(
         CurrentSession session, Guid orgId, string? q, string status, Guid? after, int limit,
         CancellationToken ct)
     {
         await using var readTx = await BeginReadAsync(session, orgId, ct);
-        var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
-            OrganizationPermission.ViewReferenceData, ct);
+        var scope = await ReadScopeAsync(session, orgId, ct);
         if (scope.Value is null) return new(null, scope.Error);
         var baseQuery = after.HasValue
             ? db.Ports.FromSqlInterpolated($"SELECT * FROM ports WHERE organization_id = {orgId} AND id > {after.Value}")
@@ -143,8 +160,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         CancellationToken ct)
     {
         await using var readTx = await BeginReadAsync(session, orgId, ct);
-        var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
-            OrganizationPermission.ViewReferenceData, ct);
+        var scope = await ReadScopeAsync(session, orgId, ct);
         if (scope.Value is null) return new(null, scope.Error);
         var baseQuery = after.HasValue
             ? db.Vessels.FromSqlInterpolated($"SELECT * FROM vessels WHERE organization_id = {orgId} AND id > {after.Value}")
@@ -171,8 +187,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         CurrentSession session, Guid orgId, Guid id, CancellationToken ct)
     {
         await using var readTx = await BeginReadAsync(session, orgId, ct);
-        var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
-            OrganizationPermission.ViewReferenceData, ct);
+        var scope = await ReadScopeAsync(session, orgId, ct);
         if (scope.Value is null) return new(null, scope.Error);
         var item = await Visible<PortReference>(session, orgId).SingleOrDefaultAsync(x => x.Id == id, ct);
         await readTx.CommitAsync(ct);
@@ -184,8 +199,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         CurrentSession session, Guid orgId, Guid id, CancellationToken ct)
     {
         await using var readTx = await BeginReadAsync(session, orgId, ct);
-        var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
-            OrganizationPermission.ViewReferenceData, ct);
+        var scope = await ReadScopeAsync(session, orgId, ct);
         if (scope.Value is null) return new(null, scope.Error);
         var item = await Visible<VesselReference>(session, orgId).SingleOrDefaultAsync(x => x.Id == id, ct);
         await readTx.CommitAsync(ct);

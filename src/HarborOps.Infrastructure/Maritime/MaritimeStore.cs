@@ -43,11 +43,11 @@ public sealed class MaritimeInput
             }
             if (!allowed.Contains(property.Name, StringComparer.Ordinal) ||
                 result.fields.ContainsKey(property.Name) ||
-                action != "create" && property.Name is "referenceCode" or "vesselId" or
-                    "originPortId" or "destinationPortId" or "identifierKind" or
-                    "containerIdentifier" or "equipmentType" ||
-                action == "create" && property.Name is "recordStatus" or "voyageStatus" or
-                    "actualDepartureAtUtc" or "actualArrivalAtUtc" ||
+                (action != "create" && property.Name is
+                    ("referenceCode" or "vesselId" or "originPortId" or "destinationPortId" or
+                     "identifierKind" or "containerIdentifier" or "equipmentType")) ||
+                (action == "create" && property.Name is
+                    ("recordStatus" or "voyageStatus" or "actualDepartureAtUtc" or "actualArrivalAtUtc")) ||
                 action == "delete" ||
                 property.Value.ValueKind is not (JsonValueKind.String or JsonValueKind.Null))
                 throw new ArgumentException("Unexpected field");

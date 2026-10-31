@@ -90,3 +90,33 @@ test("Organization switch discards previous tenant reference rows", async ({ pag
   const allowed = await page.request.get("/api/v1/organizations/" + b.id + "/ports");
   expect(allowed.status()).toBe(200);
 });
+
+test("Manager vessel edit archive and restore", async ({ page }) => {
+  test.skip(!password || !fixtures, "M3 isolated fixture required");
+  test.setTimeout(120_000);
+  await login(page, "m3-manager@example.test");
+  await page.locator("#current-organization")
+    .selectOption({ label: "M3 North Terminal (Manager)" });
+  await page.getByRole("button", { name: "Vessels", exact: true }).click();
+  const nonce = Math.random().toString(36).slice(2, 10).toUpperCase();
+  const code = "VSL-" + nonce;
+  await page.getByRole("button", { name: "Add vessel" }).click();
+  await page.getByLabel("Reference code").fill(code);
+  await page.getByLabel("Name", { exact: true }).fill("Synthetic UI Vessel " + nonce);
+  await page.getByRole("button", { name: "Create reference" }).click();
+  await expect(page.getByText("Synthetic UI Vessel " + nonce)).toBeVisible();
+  await page.getByLabel("Search vessels").fill(code);
+  await expect(page.getByText("Synthetic UI Vessel " + nonce)).toBeVisible();
+  await page.getByRole("button", { name: "View or edit" }).first().click();
+  await page.getByLabel("Name", { exact: true }).fill("Updated UI Vessel " + nonce);
+  await page.getByRole("button", { name: "Save reference" }).click();
+  await expect(page.getByText("Updated UI Vessel " + nonce)).toBeVisible();
+  page.once("dialog", dialog => dialog.accept());
+  await page.getByRole("button", { name: "Archive" }).first().click();
+  await expect(page.getByText("Updated UI Vessel " + nonce)).toHaveCount(0);
+  await page.getByLabel("Reference status").selectOption("Archived");
+  await expect(page.getByText("Updated UI Vessel " + nonce)).toBeVisible();
+  await page.getByRole("button", { name: "Restore" }).first().click();
+  await page.getByLabel("Reference status").selectOption("Active");
+  await expect(page.getByText("Updated UI Vessel " + nonce)).toBeVisible();
+});

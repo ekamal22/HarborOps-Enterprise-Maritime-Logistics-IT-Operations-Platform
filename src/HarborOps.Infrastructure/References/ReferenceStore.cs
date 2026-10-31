@@ -69,18 +69,21 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
 {
     private IQueryable<TEntity> Visible<TEntity>(CurrentSession session, Guid orgId,
         IQueryable<TEntity>? source = null)
-        where TEntity : ReferenceRecord =>
-        (source ?? db.Set<TEntity>()).AsNoTracking().Where(x =>
+        where TEntity : ReferenceRecord
+    {
+        var now = clock.GetUtcNow();
+        return (source ?? db.Set<TEntity>()).AsNoTracking().Where(x =>
             x.OrganizationId == orgId &&
             db.AuthSessions.Any(s => s.Id == session.SessionId && s.UserId == session.UserId &&
                 s.SelectedOrganizationId == orgId && s.RevokedAtUtc == null &&
-                s.IdleExpiresAtUtc > clock.GetUtcNow() &&
-                s.AbsoluteExpiresAtUtc > clock.GetUtcNow()) &&
+                s.IdleExpiresAtUtc > now &&
+                s.AbsoluteExpiresAtUtc > now) &&
             db.AuthUsers.Any(u => u.Id == session.UserId && u.Status == "Active") &&
             db.Organizations.Any(o => o.Id == orgId && o.Status == "Active") &&
             db.OrganizationMemberships.Any(m => m.UserId == session.UserId &&
                 m.OrganizationId == orgId && m.Status == "Active" &&
                 (m.Role == "Analyst" || m.Role == "Manager")));
+    }
 
     public async Task<ReferenceResult<ReferencePage<PortReference>>> ListPortsAsync(
         CurrentSession session, Guid orgId, string? q, string status, Guid? after, int limit,
@@ -120,7 +123,6 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
             : db.Vessels.AsQueryable();
         var query = Visible<VesselReference>(session, orgId, baseQuery);
         if (status != "All") query = query.Where(x => x.Status == status);
-        if (after.HasValue) query = query.Where(x => x.Id.CompareTo(after.Value) > 0);
         if (!string.IsNullOrEmpty(q))
         {
             var term = q.ToLowerInvariant();

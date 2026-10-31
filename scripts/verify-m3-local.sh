@@ -9,6 +9,8 @@ case "$root" in
   *) echo "Set HARBOROPS_VERIFICATION_ROOT to the approved E: verification directory" >&2; exit 2 ;;
 esac
 mkdir -p "$root/evidence"
+export HARBOROPS_DB_PASSWORD="$(printenv HARBOROPS_DB_PASSWORD || true)"
+if [[ -z "$HARBOROPS_DB_PASSWORD" ]]; then export HARBOROPS_DB_PASSWORD="disposable-m3-check-only"; fi
 override="$root/compose.core0.yaml"
 if [[ ! -f "$override" ]]; then
   cat > "$override" <<'YAML'
@@ -27,6 +29,8 @@ services:
       core: 0
 YAML
 fi
+export COMPOSE_PATH_SEPARATOR=";"
+export COMPOSE_FILE="compose.yaml;$(cygpath -w "$override")"
 
 # Reuse the G2 runner E: guards and existing disposable-only Compose setup.
 bash scripts/verify-m2-local.sh preflight

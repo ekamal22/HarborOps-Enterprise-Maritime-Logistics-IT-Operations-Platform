@@ -1,12 +1,12 @@
 # M2 Organizations and Role Isolation: Implementation Plan
 
-**State:** M2-01, M2-02 and M2-03 committed as unverified feature-branch source; M2-04 verification not executed. G2 open.  
+**State:** M2-01 through M2-03 source committed and initial GitHub verification passed. Full M2-04 adversarial matrix incomplete; G2 open.  
 **Entry:** G1 verified and accepted on 2026-10-31, with M1 integrated into `main`.  
 **Scope authority:** [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [Roadmap](ROADMAP.md), [execution graph](EXECUTION_GRAPH.md), [Requirements](REQUIREMENTS.md), [G2 verification](M2_VERIFICATION_PLAN.md).
 
 ## Delivery rules
 
-Implement only M2-01 to M2-04. Do not modify M0/M1 applied migration history, expand to shipments/reference entities, run against the primary local PostgreSQL database or use the only retained Docker volume. No GitHub Actions are permitted until the restriction is explicitly lifted. No workflow additions, modifications, dispatches or remote CI checks are part of this milestone. Any implementation/verification must use isolated local tests, with persistent project files and evidence on E:.
+Implement only M2-01 to M2-04. Do not modify M0/M1 applied migration history, expand to shipments/reference entities, run against the primary local PostgreSQL database or use the only retained Docker volume. GitHub Actions verification was explicitly authorized for M2 on 2026-10-31. [Run #41157387340](M2_EXECUTED_VERIFICATION.md) passed on disposable hosted runner resources. Further G2 verification must remain isolated and avoid retained workstation volumes.
 
 This plan is the implementation contract. [M2 source register](M2_IMPLEMENTATION_STATUS.md) records the committed implementation paths. None of the source paths has been validated by executed runtime tests; documentation approval is separate from verification.
 

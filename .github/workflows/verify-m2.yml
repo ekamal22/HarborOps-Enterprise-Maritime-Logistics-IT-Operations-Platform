@@ -46,6 +46,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Check browser and operational script syntax before container builds
+        shell: bash
+        run: |
+          set -euo pipefail
+          find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
+          node --check scripts/check-m2-scoped-recovery.mjs
       - name: Build hardened PostgreSQL
         run: docker build --build-arg SOURCE_REVISION="$HARBOROPS_SOURCE_SHA" -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
       - name: Start fresh PostgreSQL for integration

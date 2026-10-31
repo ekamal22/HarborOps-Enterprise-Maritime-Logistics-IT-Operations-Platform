@@ -39,19 +39,19 @@ Each row below identifies authored evidence targets, not successful execution.
 | G4-S05 | Historical M3 upgrade, repeat, rollback and reapply | NOT RUN |
 | G4-S06 | Foreign tenant FK, direct immutable route/code/kind, status, window and version SQL tests | NOT RUN |
 | G4-S07 | Two-tenant fixture preparation and repeatability checks | NOT RUN |
-| G4-S08 | Anonymous and four invalidated-session cases applied to all ten M4 routes | NOT RUN; absolute-expiry case requires additional confirmation |
+| G4-S08 | Anonymous and five invalidation cases, including absolute expiry, applied to all ten M4 routes | NOT RUN; full expiry behavior requires runtime confirmation |
 | G4-S09 | All ten routes without selected organization; server selection-change tests | NOT RUN |
 | G4-S10 | Foreign organization substitution for all ten routes | NOT RUN |
 | G4-S11 | Existing foreign voyage UUID read/update/delete isolation | NOT RUN |
 | G4-S12 | Existing foreign container UUID read/update/delete, foreign list denial, unchanged row | NOT RUN |
 | G4-S13 | Manager/Analyst/Administrator/Support/Auditor ten-route permission matrix | NOT RUN |
-| G4-S14 | Membership downgrade, suspended organization, browser live revocation and outage checks | NOT RUN; deterministic queued-write ordering still needs execution review |
+| G4-S14 | PostgreSQL lock-observed queued administrator downgrade, suspended organization, browser live revocation and outage checks | NOT RUN; queued-write lock ordering requires runtime evidence |
 | G4-S15 | Bad query/body, oversize/duplicate JSON, CSRF, real foreign Origin | NOT RUN; comprehensive malformed-input fuzzing remains an enhancement |
 | G4-S16 | Voyage creation, progression, archive, restore, schedule and filters | NOT RUN |
 | G4-S17 | ISO and synthetic container lifecycle, immutable SQL fields, browser form recovery | NOT RUN |
 | G4-S18 | Duplicate reservation, archived identifiers, two simultaneous writes | NOT RUN |
 | G4-S19 | Tenant-scoped 29-row pagination, 27-row browser paging, voyage filters and literal wildcards | NOT RUN |
-| G4-S20 | Concurrent version changes, parent archival race, SQL invariants | NOT RUN; deterministic lock interleaving needs runtime observation |
+| G4-S20 | Concurrent version changes, lock-observed role revocation, parent archival race, SQL invariants | NOT RUN; deterministic lock interleaving needs runtime observation |
 | G4-S21 | Archive/restoration, historical schedules, forbidden status transition and direct SQL archive-only semantics | NOT RUN |
 | G4-S22 | Manager and Analyst Playwright workflows, validation recovery, pagination on three browser engines | NOT RUN |
 | G4-S23 | Delayed foreign response, logout while pending, live role change, stale pagination, 503/recovery | NOT RUN |
@@ -63,7 +63,7 @@ Each row below identifies authored evidence targets, not successful execution.
 1. M4 has no executable .NET or TypeScript build evidence at the current commit. Compile-time errors remain possible.
 2. The EF snapshot was manually amended. The isolated fresh migration and model-drift tests are mandatory and have not been executed.
 3. The migration's PostgreSQL functions, composite foreign keys, triggers, and rollback have not been validated by a live database. The SQL archive-only correction must be exercised on a disposable schema.
-4. Concurrent administrator changes, queued writes and parent archival must be checked with controlled real database interleavings. Task.WhenAll outcomes alone are not sufficient to establish deterministic serialization in every ordering.
+4. Concurrent administrator changes, queued writes and parent archival must be checked with controlled real database interleavings. The new lock-observation test must run and its queue ordering and final rows be reviewed; Task.WhenAll outcomes alone do not establish serialization in every ordering.
 5. The three-browser suite has not run on Chromium, Firefox or WebKit. Assertions may require correction against actual rendered behavior.
 6. D-003 remains a proposed identifier policy, not an accepted decision. It cannot be implicitly approved by passing syntax or tests.
 7. Existing and newly authored tests cannot establish G4 acceptance until the full 25-scenario contract is observed at one final revision and its raw artifacts independently reviewed.

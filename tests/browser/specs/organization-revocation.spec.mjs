@@ -59,10 +59,17 @@ test("membership switching and live revocation clear protected browser state", a
     await expect(page.getByText("Slug: north-terminal")).toBeVisible();
     await expect(page.getByText("Role: Analyst")).toBeVisible();
 
+    // The select value is local state, so wait for the server to persist the change
+    // before the member's page is asked to observe it.
     await admin.getByLabel("Membership state for " + memberName).selectOption("Suspended");
+    const saved = admin.waitForResponse(response =>
+      response.request().method() === "PUT" &&
+      response.url().includes("/api/v1/organizations/") &&
+      response.url().endsWith("/memberships/" + userId));
     await admin.getByRole("listitem").filter({
       has: admin.getByText(memberEmail, { exact: true })
     }).getByRole("button", { name: "Save membership" }).click();
+    expect((await saved).status()).toBe(200);
     await expect(admin.getByLabel("Membership state for " + memberName)).toHaveValue("Suspended");
 
     await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));

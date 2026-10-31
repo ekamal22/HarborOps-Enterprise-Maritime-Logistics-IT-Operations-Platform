@@ -40,7 +40,12 @@ test("organization selection, reload, foreign identifier and last-admin denial",
   await expect(page.getByRole("alert")).toContainText("Assign another active administrator");
   await expect(page.getByText("Signed in as")).toBeVisible();
 
+  // The interface hides organization data immediately; the server-side clear is asynchronous.
+  const cleared = page.waitForResponse(response =>
+    response.request().method() === "DELETE" &&
+    new URL(response.url()).pathname === "/api/v1/auth/session/organization");
   await page.locator("#current-organization").selectOption("");
+  expect((await cleared).status()).toBe(204);
   await expect(page.getByText("Slug: north-terminal")).toHaveCount(0);
   const context = await page.request.get("/api/v1/me/organization-context");
   expect(context.status()).toBe(200);

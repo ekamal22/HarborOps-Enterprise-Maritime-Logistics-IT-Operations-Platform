@@ -30,15 +30,18 @@ test("revocation removes management controls using real HTTP permissions", async
   expect(organization).toBeTruthy();
   const root = "/api/v1/organizations/" + organization.id;
 
+  // A per-run record keeps the test repeatable against the same disposable fixture organization.
+  const nonce = Math.random().toString(36).slice(2, 10).toUpperCase();
+  const portName = "Revocation protected port " + nonce;
   const token = (await (await page.request.get("/api/v1/auth/csrf")).json()).token;
   const created = await page.request.post(root + "/ports", {
     headers: { Origin: base, "X-HarborOps-CSRF": token },
-    data: { referenceCode: "REVOCATION-PORT", name: "Revocation protected port",
+    data: { referenceCode: "REVOCATION-" + nonce, name: portName,
       countryCode: "US" }
   });
   expect(created.status()).toBe(201);
   await page.getByRole("button", { name: "Refresh references" }).click();
-  await expect(page.getByText("Revocation protected port")).toBeVisible();
+  await expect(page.getByText(portName)).toBeVisible();
 
   const adminContext = await browser.newContext({ baseURL: base });
   const administrator = await adminContext.newPage();
@@ -76,7 +79,7 @@ test("revocation removes management controls using real HTTP permissions", async
     release();
     await expect(page.getByRole("heading", { name: "Reference data" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Add port" })).toHaveCount(0);
-    await expect(page.getByText("Revocation protected port")).toHaveCount(0);
+    await expect(page.getByText(portName)).toHaveCount(0);
     await page.unrouteAll({ behavior: "wait" });
     const csrfAgain = (await (await administrator.request.get("/api/v1/auth/csrf")).json()).token;
     const restored = await administrator.request.put(root + "/memberships/" + managerId, {

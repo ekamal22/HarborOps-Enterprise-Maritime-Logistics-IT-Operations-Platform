@@ -1,7 +1,7 @@
 # M3 Ports and Vessels Reference Data: Architecture Design
 
 **Milestone:** M3, packages M3-01 through M3-04; exit gate G3  
-**State:** Architecture implemented in feature-branch source, corrected following the M3 audit; G3 runtime verification not executed and acceptance pending  
+**State:** Architecture implemented in feature-branch source, corrected following the M3 audit; G3 verified locally on the feature branch and acceptance pending  
 **Foundation:** G0, G1 and G2 accepted on 2026-10-31; M2 merged through PR #5. G3 remains open.  
 **Authority:** [Roadmap](ROADMAP.md), [Requirements](REQUIREMENTS.md), [Domain Model](DOMAIN_MODEL.md), [API Contracts](API_CONTRACTS.md), [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md), [G3 verification plan](M3_VERIFICATION_PLAN.md).
 
@@ -141,4 +141,4 @@ UN/LOCODE geographic existence, function codes, approval state, IMO registry mat
 - IMO Ship Identification Number Scheme, current seven-digit example and possible future extension: https://www.imo.org/en/ourwork/iiis/pages/imo-identification-number-schemes.aspx
 - ITU-R M.585 maritime identities and nine-digit MMSI: https://www.itu.int/dms_pubrec/itu-r/rec/m/R-REC-M.585-9-202205-I%21%21PDF-E.pdf
 
-**Implementation note:** The reference model and API design are now present as feature-branch source. The [correctness remediation register](M3_CORRECTNESS_REMEDIATION.md) records source corrections and residual execution requirements. Real PostgreSQL, HTTP and three-browser outcomes remain unverified; G3 remains open.
+**Implementation note:** The reference model and API design are present as feature-branch source and were exercised against real PostgreSQL, HTTP and three browsers. One design correction followed from execution: the shared `ReferenceRecord` base class is not an EF Core entity, and `PortReference` and `VesselReference` map their inherited properties directly. See the [executed verification](M3_EXECUTED_VERIFICATION.md). G3 acceptance is pending.

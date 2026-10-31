@@ -43,7 +43,7 @@ M2 introduces organization memberships, five fixed roles, per-session selected o
 
 ## M3 reference-data module (unverified feature-branch source)
 
-The proposed [M3 design](M3_ARCHITECTURE_DESIGN.md) separates organization-owned port and vessel reference records from later M4 voyage/container models and M5 shipment lifecycle. Its validation accepts optional external identifiers without making official registry claims. The [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 test plan](M3_VERIFICATION_PLAN.md) are documented and their source implementation is committed on the feature branch. Runtime testing has not occurred; G3 is open and no merge is claimed.
+The proposed [M3 design](M3_ARCHITECTURE_DESIGN.md) separates organization-owned port and vessel reference records from later M4 voyage/container models and M5 shipment lifecycle. Its validation accepts optional external identifiers without making official registry claims. The [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 test plan](M3_VERIFICATION_PLAN.md) are documented and their source implementation is committed on the feature branch. The complete local G3 matrix passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); G3 acceptance is pending and no merge is claimed.
 
 ## Out of scope for initial release
 

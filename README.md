@@ -48,7 +48,7 @@ M2 is merged into `main` through [PR #5](https://github.com/ekamal22/HarborOps-E
 
 ### Next milestone: M3 ports and vessels reference data
 
-M3 port/vessel reference source is committed on `feat/m3-port-vessel-reference-data`, including an additive PostgreSQL migration, scoped APIs, React workspace, unit/integration/browser tests and a local verification runner. It has **not been built or runtime-verified here**. G3 is open and M3 is not merged into `main`. See the [M3 implementation register](docs/M3_IMPLEMENTATION_STATUS.md), [architecture](docs/M3_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M3_IMPLEMENTATION_PLAN.md), [G3 plan](docs/M3_VERIFICATION_PLAN.md) and the [roadmap](docs/ROADMAP.md).
+M3 port/vessel reference source is committed on `feat/m3-port-vessel-reference-data`, including an additive PostgreSQL migration, scoped APIs, React workspace, unit/integration/browser tests and a local verification runner. It passed the complete local G3 verification on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` (**G3 verified locally; acceptance pending**). M3 is not accepted and not merged into `main`. See the [executed verification](docs/M3_EXECUTED_VERIFICATION.md). See the [M3 implementation register](docs/M3_IMPLEMENTATION_STATUS.md), [architecture](docs/M3_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M3_IMPLEMENTATION_PLAN.md), [G3 plan](docs/M3_VERIFICATION_PLAN.md) and the [roadmap](docs/ROADMAP.md).
 
 ### Planned modules
 
@@ -117,10 +117,11 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M2 Implementation Register](docs/M2_IMPLEMENTATION_STATUS.md) | M2 source paths and verified behavior |
 | [M2 G2 Verification Plan](docs/M2_VERIFICATION_PLAN.md) | All 25 mandatory G2 scenarios |
 | [M2 Executed Verification](docs/M2_EXECUTED_VERIFICATION.md) | Local E:-only results and G2 acceptance record |
-| [M3 Architecture Design](docs/M3_ARCHITECTURE_DESIGN.md) | Proposed tenant-owned port/vessel models, permissions and API contracts |
-| [M3 Implementation Plan](docs/M3_IMPLEMENTATION_PLAN.md) | Proposed M3-01 to M3-04 work packages and dependency sequence |
-| [G3 Verification Plan](docs/M3_VERIFICATION_PLAN.md) | Required G3-S01 to G3-S25 local tests, not yet executed |
-| [M3 Implementation Register](docs/M3_IMPLEMENTATION_STATUS.md) | Feature-branch source inventory and outstanding runtime verification |
+| [M3 Architecture Design](docs/M3_ARCHITECTURE_DESIGN.md) | Tenant-owned port/vessel models, permissions and API contracts |
+| [M3 Implementation Plan](docs/M3_IMPLEMENTATION_PLAN.md) | M3-01 to M3-04 work packages and dependency sequence |
+| [G3 Verification Plan](docs/M3_VERIFICATION_PLAN.md) | Required G3-S01 to G3-S25 local tests, all executed and passed |
+| [M3 Implementation Register](docs/M3_IMPLEMENTATION_STATUS.md) | Feature-branch source inventory |
+| [M3 Executed Verification](docs/M3_EXECUTED_VERIFICATION.md) | G3 local execution evidence and failure history; acceptance pending |
 | [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Source-level fixes following the correctness audit, with residual G3 work |
 | [Second M3 Audit Remediation](docs/M3_SECOND_CORRECTNESS_REMEDIATION.md) | Follow-up to the second correctness audit and remaining local verification |
 | [Event Processing](docs/EVENT_PROCESSING.md) | Tracking workflow, failure modes, and reconciliation |

@@ -3,9 +3,9 @@
 **Milestone:** M3 Ports and vessels reference data
 **Branch:** `feat/m3-port-vessel-reference-data`
 **Baseline:** Accepted G0, G1 and G2 on `main`; M2 merged through PR #5
-**Implementation state:** Source changes from both correctness audits committed; full runtime verification remains unexecuted
-**Gate:** G3 open; G3-S01 through G3-S25 have not been confirmed against a final executable run
-**Merge:** Not merged into `main`; acceptance pending only after verified evidence is complete
+**Implementation state:** Source changes from both correctness audits committed and corrected during execution; complete local verification executed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`
+**Gate:** G3 verified locally; acceptance pending. G3-S01 through G3-S25 all passed in one executable run ([executed verification](M3_EXECUTED_VERIFICATION.md))
+**Merge:** Not merged into `main`; explicit G3 acceptance is pending
 
 ## Implemented source inventory
 
@@ -38,7 +38,7 @@
 - Additional integration suites: `ReferenceAdversarialHttpTests.cs`, `ReferenceHistoricalUpgradeTests.cs`, `ReferenceAdditionalContractTests.cs`, `ReferenceSessionBoundaryTests.cs` and `ReferenceConcurrencyTests.cs`.
 - Additional browser cases: `reference-races.spec.mjs` and `reference-paging.spec.mjs`, with isolated pagination fixtures.
 
-No compiler, PostgreSQL, browser, Compose, migration, image scan or documentation check has been executed on this source in this session. The implementation is not claimed runtime-correct or G3-ready based solely on source inspection. The [G3 verification plan](M3_VERIFICATION_PLAN.md) requires executed evidence for each G3-S01 through G3-S25 scenario, an exact final implementation SHA and a full rerun after the final code fix.
+The source was built and run in full by `scripts/verify-m3-local.sh` at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. That execution found a persistence-model mapping defect and a frontend authorization-notice defect, which were fixed, along with several test-harness defects; see the failure history in the [executed verification](M3_EXECUTED_VERIFICATION.md). The [G3 verification plan](M3_VERIFICATION_PLAN.md) scenarios all have observed evidence on that revision.
 
 ## Required local execution and acceptance
 
@@ -50,7 +50,7 @@ bash scripts/verify-m3-local.sh
 
 The script must stop rather than use controllable C: storage. It must not run GitHub Actions. Inspect actual runner logs, migration results, PostgreSQL schema, cross-tenant denials, negative validation, browser behavior and high/critical image findings before marking any scenario PASS. Do not modify retained primary volumes.
 
-Record actual results in `docs/M3_EXECUTED_VERIFICATION.md` only after a verified complete local execution. Failed, skipped, untested or blocked mandatory checks keep G3 open. After every required scenario passes, request explicit G3 acceptance; do not merge this branch or start M4 based on implementation alone.
+Actual results are recorded in `docs/M3_EXECUTED_VERIFICATION.md`. Any future change to implementation or tests requires rerunning the entire matrix at the new revision. Explicit G3 acceptance is still required; do not merge this branch or start M4 without it.
 
 ## Review findings corrected during implementation
 

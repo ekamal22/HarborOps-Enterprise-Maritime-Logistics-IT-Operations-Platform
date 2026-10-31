@@ -1,6 +1,6 @@
 # M3 Ports and Vessels Reference Data: Implementation Plan
 
-**State:** Implementation source committed on feature branch; G3 local verification not executed, gate open  
+**State:** Implementation source committed on feature branch; G3 verified locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`, acceptance pending  
 **Entry:** G2 verified, accepted and merged into `main` through PR #5  
 **Milestone packages:** M3-01, M3-02, M3-03, M3-04  
 **Design authority:** [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [Roadmap](ROADMAP.md), [Requirements](REQUIREMENTS.md), [G3 verification plan](M3_VERIFICATION_PLAN.md), [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
@@ -186,7 +186,7 @@ The design set consists of:
 1. [M3 architecture](M3_ARCHITECTURE_DESIGN.md): schema, API, permissions, ownership, status and future seams.
 2. This implementation plan: work-package files, dependency order, checkpoints and release boundaries.
 3. [G3 verification plan](M3_VERIFICATION_PLAN.md): mandatory executable scenario matrix and evidence requirements.
-4. [Project Status](STATUS.md) and [M3 implementation register](M3_IMPLEMENTATION_STATUS.md): implementation source is committed on a feature branch, but G3 is open and no runtime verification is claimed.
+4. [Project Status](STATUS.md) and [M3 implementation register](M3_IMPLEMENTATION_STATUS.md): implementation source is committed on a feature branch and G3 is verified locally with acceptance pending (see the [executed verification](M3_EXECUTED_VERIFICATION.md)).
 5. [Roadmap](ROADMAP.md) and [Requirements](REQUIREMENTS.md): existing M3 allocation and cross-reference.
 
-**Next decision:** Architecture/design approval before implementation. Do not conflate this plan with implemented M3 or an accepted G3 gate.
+**Next decision:** Explicit G3 acceptance, which is separate from this plan and from the executed verification record. Do not conflate local verification with an accepted G3 gate or a merge.

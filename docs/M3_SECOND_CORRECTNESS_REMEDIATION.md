@@ -3,7 +3,9 @@
 **Date:** 2026-10-31  
 **Branch:** `feat/m3-port-vessel-reference-data`  
 **Audit:** [Second correctness audit](M3_SECOND_CORRECTNESS_AUDIT.md)  
-**Status:** Corrective source and executable test coverage committed; no local .NET/PostgreSQL/browser verification performed. G3 open, not merged or accepted.
+**Status:** Corrective source and executable test coverage committed; written before execution, which has since passed (see below). G3 acceptance pending, not merged.
+
+**Execution outcome:** the complete G3 matrix later executed and passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. Status cells in the ledger below record the state when each item was written; the authoritative result is the [executed verification](M3_EXECUTED_VERIFICATION.md).
 
 This register tracks the second audit's B01-B12 findings against the feature branch. A committed correction is **not** a passed verification. The [G3 verification plan](M3_VERIFICATION_PLAN.md) remains the acceptance contract.
 
@@ -32,4 +34,4 @@ bash scripts/verify-m3-local.sh
 
 Inspect `evidence/G3_EXECUTION_INDEX.md` alongside individual TRX, logs, browser JSON, PostgreSQL upgrade and Trivy output. The index intentionally does not grant acceptance. Failed/blocked/skipped results must be repaired and the entire matrix rerun at the resulting final source SHA.
 
-No GitHub Actions may be dispatched or implicitly triggered. No approval to merge M3, start M4, change primary volumes or move project storage to C: is implied. G3 remains open until complete verified evidence and explicit acceptance.
+No GitHub Actions may be dispatched or implicitly triggered. No approval to merge M3, start M4, change primary volumes or move project storage to C: is implied. G3 acceptance remains pending until explicitly given.

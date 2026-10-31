@@ -53,7 +53,7 @@ Human browser login uses ASP.NET Core 10 cookie authentication with protected ti
 
 ## M3 reference-data design choices (proposal; approval pending)
 
-The proposed [M3 architecture](M3_ARCHITECTURE_DESIGN.md) keeps each port/vessel reference owned by one organization, with an immutable UUID and tenant-local reference code, optional external identifiers, optimistic versioning and soft archival. Analysts may view reference data; Managers may manage it; M2 Support, Administrator and Auditor roles do not acquire implicit business access. These choices follow accepted ADR-002/003/004/005, but remain M3-specific implementation decisions subject to design approval. The [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 tests](M3_VERIFICATION_PLAN.md) define the executable obligations. G3 is open, and no new globally accepted ADR is asserted.
+The proposed [M3 architecture](M3_ARCHITECTURE_DESIGN.md) keeps each port/vessel reference owned by one organization, with an immutable UUID and tenant-local reference code, optional external identifiers, optimistic versioning and soft archival. Analysts may view reference data; Managers may manage it; M2 Support, Administrator and Auditor roles do not acquire implicit business access. These choices follow accepted ADR-002/003/004/005, but remain M3-specific implementation decisions subject to design approval. The [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 tests](M3_VERIFICATION_PLAN.md) define the executable obligations. G3 is verified locally with acceptance pending ([executed verification](M3_EXECUTED_VERIFICATION.md)), and no new globally accepted ADR is asserted.
 
 ## Open decisions
 

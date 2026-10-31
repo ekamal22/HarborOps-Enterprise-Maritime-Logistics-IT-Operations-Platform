@@ -4,7 +4,8 @@
 **Branch:** `feat/m3-port-vessel-reference-data`  
 **Scope:** Follow-up to [M3 correctness audit](M3_CORRECTNESS_AUDIT.md)  
 **Execution status:** Source changes committed; no .NET, PostgreSQL, Compose, browser or image scan executed in this session  
-**Gate:** G3 remains open. Nothing in this register constitutes executed verification or acceptance.
+**Gate:** Written before execution; see the outcome below. Nothing in this register constitutes G3 acceptance.  
+**Execution outcome:** the complete G3 matrix later executed and passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. Status cells in the ledger below record the state when each item was written; the authoritative result is the [executed verification](M3_EXECUTED_VERIFICATION.md).
 
 ## Remediation ledger
 

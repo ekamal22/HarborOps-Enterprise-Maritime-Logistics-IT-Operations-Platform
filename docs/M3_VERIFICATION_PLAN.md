@@ -1,6 +1,6 @@
 # G3 Ports and Vessels Reference Data: Verification Plan
 
-**State:** Proposed mandatory G3 test specification; not executed  
+**State:** Mandatory G3 test specification; executed in full on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`, all scenarios passed, acceptance pending ([executed verification](M3_EXECUTED_VERIFICATION.md))  
 **Gate:** G3, following M3-01 through M3-04  
 **Prerequisites:** Accepted G2, approved [M3 architecture](M3_ARCHITECTURE_DESIGN.md) and completed [M3 implementation](M3_IMPLEMENTATION_PLAN.md)  
 **Acceptance:** All mandatory scenarios pass on one final implementation revision, evidence recorded; then G3 is verified with acceptance pending. Explicit acceptance is separate.  
@@ -8,7 +8,7 @@
 
 ## 1. Local execution policy
 
-No GitHub Actions workflow may be dispatched, rerun, triggered through a push or used as the G3 verification environment. Perform all G3 tests on a local E:-backed disposable environment. This plan is a contract for future tests, not evidence of executed results.
+No GitHub Actions workflow may be dispatched, rerun, triggered through a push or used as the G3 verification environment. Perform all G3 tests on a local E:-backed disposable environment. This plan is the contract the tests were written against; executed results are recorded only in the executed verification record.
 
 Before testing, validate the current branch/SHA and clean worktree; verify E: for `TEMP`, `TMP`, `TMPDIR`, NuGet/npm cache, `DOTNET_CLI_HOME`, Playwright browser path, repository/worktrees, evidence, Docker Desktop/WSL image store and Compose volumes. Do not modify C: or existing primary database/volumes. Use a throwaway PostgreSQL database with the established test-database name guard and a disposable Compose project, separate from the primary `harborops` project. Local .NET 10 SDK containers are acceptable when their data is on E:.
 
@@ -108,4 +108,4 @@ Write `docs/M3_EXECUTED_VERIFICATION.md` only when there is real execution evide
 
 G3 can be marked `verified locally; acceptance pending` only when every mandatory scenario has successful evidence at one final implementation SHA, with no unresolved security, data-integrity or isolation blocker, and synchronized repository documentation. A missing mandatory browser engine, scanner, E: storage confinement, migration proof or regression result blocks G3.
 
-**G3 is not yet verified, accepted or merged. Source implementation is committed on a feature branch, but runtime execution remains outstanding.** This document defines what a future execution must prove. Explicit design approval precedes implementation; explicit G3 acceptance follows verification. No M4 implementation until the G3 gate is satisfied under the roadmap policy.
+**G3 verified locally; acceptance pending.** All 25 scenarios passed at `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)). G3 is not accepted and M3 is not merged. Explicit G3 acceptance is a separate decision; no M4 implementation until the G3 gate is satisfied under the roadmap policy.

@@ -77,7 +77,7 @@ const scenarios = [
   ["S19", ["ReferenceBoundaryMatrixTests.QueryBounds"]],
   ["S20", ["ReferenceDataHttpTests.CompetingUpdates", "ReferenceConcurrencyTests.ParallelUpdateAndArchive"]],
   ["S21", ["ReferenceAdditionalContractTests.VesselFull"]],
-  ["S22", [], ["Manager port and vessel", "Analyst can read"]],
+  ["S22", [], ["Manager port and vessel", "Analyst can read", "scoped UI pagination"]],
   ["S23", [], ["delayed old-tenant", "reference list clears", "logging out during"]],
   ["S24", ["OrganizationBoundaryMatrixTests.MissingAndForeignSelections"], ["Organization switch discards"], ["dotnet", "session", "recovery"]],
   ["S25", [], [], ["deps", "web", "docs", "stack", "scan"]]

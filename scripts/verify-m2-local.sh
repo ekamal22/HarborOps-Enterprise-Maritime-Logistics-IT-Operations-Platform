@@ -12,9 +12,11 @@ case "$root" in
   *) echo "HARBOROPS_VERIFICATION_ROOT must be a directory on E:" >&2; exit 2 ;;
 esac
 for dir in "${TEMP:-}" "${TMP:-}" "${TMPDIR:-}" "${NPM_CONFIG_CACHE:-}" "${PLAYWRIGHT_BROWSERS_PATH:-}"; do
-  case "$dir" in
-    [Ee]:[/\\]*|/e/*) ;;
-    *) echo "Temporary and cache locations must be set to E: (found '${dir}')" >&2; exit 2 ;;
+  resolved="$dir"
+  if [[ -n "$dir" ]] && command -v cygpath >/dev/null; then resolved=$(cygpath -w "$dir"); fi
+  case "$resolved" in
+    [Ee]:[/\\]*) ;;
+    *) echo "Temporary and cache locations must resolve to E: (found '${dir}' -> '${resolved}')" >&2; exit 2 ;;
   esac
 done
 evidence="$root/evidence"

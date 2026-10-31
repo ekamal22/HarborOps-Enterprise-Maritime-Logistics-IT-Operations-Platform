@@ -3,9 +3,9 @@
 **Milestone:** M2 Organizations and role isolation  
 **Branch:** `feat/m2-organization-authorization`  
 **Baseline:** `a2acd64234049580c21dec49dbdd987b01030a4b` on `main`; G0 and G1 accepted  
-**Implementation state:** Source committed and initial GitHub automated verification passed. **Not merged to `main`; expanded adversarial verification passed, residual G2 cases pending and G2 open.**  
-**Verification authorization:** M2 GitHub verification was explicitly requested on 2026-10-31. [Run #41157387340](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41157387340) succeeded on draft PR #5.  
-**Verification:** [Executed record](M2_EXECUTED_VERIFICATION.md): 22 unit, 12 contract, 13 fresh/13 repeat integration, 6 frontend, 24 browser and runtime/image checks passed. Expanded [run #41158772090](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41158772090) passed, including 19 fresh and 19 repeated PostgreSQL tests; residual G2 cases open.
+**Implementation state:** M2-01 through M2-04 complete on the feature branch. **G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; Acceptance pending. Not merged to `main`.**  
+**Verification authorization:** G2 verification is local only: the complete matrix ran on the Windows development machine with every controllable path on E:, against disposable resources. Earlier GitHub runs (the first on draft PR #5) are historical; no workflow run was started after the local-only restriction.  
+**Verification:** [Executed record](M2_EXECUTED_VERIFICATION.md): 22 unit, 12 contract, 32 fresh and 32 repeated PostgreSQL integration, 6 frontend and 24 browser tests (Chromium, Firefox, WebKit), plus Compose, M0 and M1 recovery, authenticated organization outage recovery with durable revocation, restricted bootstrap denial, dependency review and clean scans of the three running images. All G2-S01 through G2-S25 scenarios passed.
 
 ## Delivered source changes
 
@@ -15,7 +15,9 @@
 | M2-01 | `src/HarborOps.Api/Organizations/OrganizationCli.cs`, `src/HarborOps.Infrastructure/Organizations/OrganizationStore.cs` | Environment-gated local bootstrap for an existing active account and initial organization Administrator, transactionally persisted without public registration |
 | M2-02 | `src/HarborOps.Infrastructure/Organizations/OrganizationStore.cs`, `src/HarborOps.Api/Organizations/OrganizationEndpoints.cs` | Live database-selected scope and role authorization, organization profile read/update, bounded member listing/detail, grant/change/soft removal, self-change restriction, version conflict and last-admin protections |
 | M2-03 | `src/HarborOps.Api/Organizations/OrganizationEndpoints.cs`, `web/src/auth/organizationClient.ts`, `web/src/auth/OrganizationWorkspace.tsx`, `web/src/auth/AuthPanel.tsx` | Current-user organization list, per-session select/clear, server context read, role-aware React switcher and administrator membership/profile controls |
-| Preparation for M2-04 | `tests/HarborOps.UnitTests/OrganizationPolicyTests.cs`, `tests/HarborOps.IntegrationTests/OrganizationIsolationTests.cs`, `tests/HarborOps.IntegrationTests/MigrationSnapshotTests.cs` | Added source-level authorization and isolation cases and extended migration discovery expectations; **executed in initial GitHub regression tests** |
+| M2-04 | `tests/HarborOps.UnitTests/OrganizationPolicyTests.cs`; `tests/HarborOps.IntegrationTests/` `OrganizationIsolationTests`, `OrganizationAdversarialTests`, `OrganizationAdversarialHttpTests`, `OrganizationFinalInvariantsTests`, `OrganizationHttpTests`, `OrganizationHttpLifecycleTests`, `OrganizationUpgradeAndConstraintTests`, `OrganizationBoundaryMatrixTests`, `OrganizationLogRedactionTests`, `MigrationSnapshotTests`; `tests/browser/specs/organizations.spec.mjs`, `organization-revocation.spec.mjs` | Authorization, isolation, concurrency, constraint, upgrade, boundary, redaction and browser cases; **all executed and passing in the local G2 verification** |
+| M2-04 operations | `scripts/verify-m2-local.sh`, `scripts/check-m2-scoped-recovery.mjs`, `.github/workflows/verify-m2.yml` | E:-confined local runner for the G2 stages, authenticated outage and recovery check, and the (not executed after the local-only restriction) hosted workflow |
+| Operator command hardening | `src/HarborOps.Api/Program.cs` | `--account-cli` and `--organization-cli` report a rejected operation with a sanitized message and exit code 1 instead of aborting the process |
 
 Existing M0/M1 endpoints are left in place. M2 introduces no shipment or maritime entities, no cross-tenant support bypass, no integration tokens, no SSO, no paid dependencies, and no public deployment.
 
@@ -36,13 +38,13 @@ Mutations use existing same-origin and antiforgery enforcement. No organization 
 
 ## Operational interface
 
-After applying the new migration in a controlled deployment and provisioning the Administrator using the already accepted M1 account CLI, the proposed local bootstrap command is:
+After applying the new migration in a controlled deployment and provisioning the Administrator using the already accepted M1 account CLI, the local bootstrap command is:
 
 ```powershell
 docker compose run --rm -it -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api --organization-cli bootstrap north-terminal "North Terminal" operator@example.test
 ```
 
-An equivalent restricted bootstrap of a synthetic organization was executed successfully on the disposable GitHub runner. It is gated by `HARBOROPS_ALLOW_ORGANIZATION_CLI=true`; no password is read or printed. Normal account provisioning remains a separate M1 operation. Run migration only on an intended disposable test database before applying it to retained data. The existing primary local database and volumes have not been touched here.
+The restricted bootstrap of two synthetic organizations was executed in the local G2 verification. It is gated by `HARBOROPS_ALLOW_ORGANIZATION_CLI=true`; no password is read or printed. Without the opt-in, for an unknown account and for a duplicate slug it exits with code 1 and writes nothing. Normal account provisioning remains a separate M1 operation. Run migration only on an intended disposable test database before applying it to retained data. The existing primary local database and volumes were not touched.
 
 ## Security and consistency provisions in source
 
@@ -56,18 +58,18 @@ An equivalent restricted bootstrap of a synthetic organization was executed succ
 - Scoped HTTP errors and request correlation, without passwords or raw session cookies in responses.
 - Browser context reload and protected state clearing on changes/denials.
 
-These are source characteristics. The [executed verification](M2_EXECUTED_VERIFICATION.md) passed the included unit, integration, HTTP and browser assertions. The two-context Administrator demotion and suspended-organization tests passed in [expanded run #41158772090](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41158772090). Some other G2 cases remain open. Last-administrator self-disable denial is represented by a new typed failure and HTTP 409 response, without changing ordinary M1 disablement for non-administrators.
+These characteristics are exercised by the [executed verification](M2_EXECUTED_VERIFICATION.md). Restricted operator commands (`--account-cli`, `--organization-cli`) report rejected use with a sanitized message and exit code 1 instead of aborting the process. Last-administrator self-disable denial is a typed failure returned as HTTP 409, without changing ordinary M1 disablement for non-administrators.
 
-## Verification still required for G2
+## Verification completed for G2
 
-The [initial GitHub verification](M2_EXECUTED_VERIFICATION.md) passed. The following cases remain incomplete under the full [G2 verification plan](M2_VERIFICATION_PLAN.md):
+The seven verification areas below were executed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` and all passed. Exact commands, counts and per-scenario evidence are in the [executed record](M2_EXECUTED_VERIFICATION.md).
 
-1. .NET restore, release build and all existing M0/M1 unit/contract/real PostgreSQL suites, plus new M2 source tests.
-2. EF migration discovery, model snapshot drift check, fresh disposable schema migration, and an M1-seeded-to-M2 upgrade/repeat rehearsal with retained identity and baseline data.
-3. Complete two-organization role/ownership denial matrix through real HTTP, including guessed foreign organization/member identifiers, suspended/removed memberships, server-selected context, stale versions, same-origin and CSRF.
-4. Concurrent administrator transaction and last-active-admin tests with two independent database contexts.
-5. Local frontend build and functional browser scenarios, including multiple sessions, role changes, selected-organization switch and stale UI recovery.
-6. Safe disposable Compose startup, API restart and database outage/recovery tests, local image and dependency review, and final documentation/link review.
-7. Remediate any observed failures and record exact source SHA, commands, fixture, environment and PASS/FAIL/BLOCKED/NOT RUN evidence.
+1. .NET restore, Release build and all M0, M1 and M2 unit, contract and real PostgreSQL suites.
+2. EF migration discovery, model snapshot drift check, fresh disposable schema migration, and an M0-to-M1-to-M2 upgrade and repeat rehearsal with retained identity and baseline data.
+3. The two-organization role and ownership denial matrix through real HTTP, including guessed foreign organization and member identifiers, suspended and removed memberships, server-selected context, stale versions, same-origin and CSRF checks, malformed input and paging.
+4. Concurrent administrator transactions and last-active-administrator protection with independent database contexts.
+5. Frontend build and functional browser scenarios on Chromium, Firefox and WebKit, including separate sessions, role changes, selected-organization switching and stale interface recovery.
+6. Disposable Compose startup, API restart, database outage and recovery (M0, M1 and M2 scoped), image revision labels, image scans and dependency review.
+7. Failures were investigated, corrected and the complete run repeated on the final source revision.
 
-**Initial GitHub verification passed.** G2 remains open and not accepted due to remaining negative cases. No automatic merge to `main` or progression to M3 is authorized by this implementation commit. Historical retained-volume compatibility remains at M6/M12/M18/M24-03, and full dedicated accessibility testing stays at M24-04.
+**G2 verified locally; Acceptance pending.** No automatic merge to `main` or progression to M3 is authorized. Historical retained-volume compatibility remains at M6/M12/M18/M24-03, and full dedicated accessibility testing stays at M24-04.

@@ -1,15 +1,17 @@
 # G2 Organizations and Role Isolation: Verification Plan
 
-**Status:** Initial [GitHub verification](M2_EXECUTED_VERIFICATION.md) passed. Expanded [run #41158772090](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41158772090) passed the concurrent-administrator, suspension, cross-tenant and two-session tests; some G2 cases remain.  
+**Status:** G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; Acceptance pending. All 25 scenarios below passed in a complete local run; see the [executed record](M2_EXECUTED_VERIFICATION.md). Earlier GitHub runs are historical.  
 **Gate:** G2; requires separate acceptance after complete successful evidence  
 **Prerequisites:** M2-01, M2-02, M2-03 and M2-04 as defined in the [execution graph](EXECUTION_GRAPH.md)  
 **Reference:** [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation plan](M2_IMPLEMENTATION_PLAN.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Status](STATUS.md).
 
 ## Tooling and execution restriction
 
-GitHub verification of M2 was explicitly requested on 2026-10-31. The repository's dedicated M2 verification workflow can execute the disposable-runner matrix through draft PR #5; the local-only approach remains available as an alternative. [Run #41157387340](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41157387340) provides successful evidence for the configured tests. Unexecuted cases are identified in [M2 results](M2_EXECUTED_VERIFICATION.md).
+G2 verification is **local only**. No GitHub Actions workflow is dispatched, rerun or otherwise triggered for it. The matrix is executed on the Windows development machine by `scripts/verify-m2-local.sh` (stages `preflight dotnet deps web docs stack accounts organizations session browsers recovery scan`), which refuses to run unless every temporary and cache location resolves to E:. The .NET 10 suites run in the pinned `mcr.microsoft.com/dotnet/sdk:10.0` image because the host has no .NET 10 SDK and installing one would write to C:. The dedicated `.github/workflows/verify-m2.yml` remains in the repository as a record of the earlier hosted verification. Earlier hosted results are listed in the [executed record](M2_EXECUTED_VERIFICATION.md) as history.
 
 Use an isolated `ho-verify` Compose project or a dedicated throwaway PostgreSQL database, never the primary `harborops` project or existing local retained volume. Dispose only resources positively identified as part of that isolated project. No compatibility check against a historical user volume is due at G2; quarter-mile checkpoints remain M6, M12, M18 and M24-03. Backups and full restores remain M19. Dedicated accessibility checks remain M24-04.
+
+All verification containers run with core dumps disabled (`--ulimit core=0`, plus a verification-only Compose override stored on E:), so that a crashing process cannot make the host write a memory dump to C:.
 
 ## Mandatory fixture matrix
 
@@ -31,7 +33,7 @@ Add a third temporary suspended organization to verify organization-status denia
 
 ## Expanded G2 verification execution
 
-The initial passing M2 workflow covered the core tests. New independent PostgreSQL and HTTP regression fixtures now exercise two-context administrator races, session independence, suspension, invalid database constraints, negative bootstrap, every non-Administrator role, guessed valid foreign IDs and CSRF/origin denials. The new fixtures use random account identifiers per case, a disposable integration database and no shared M1 browser account. A new GitHub run is required to establish results; these assertions are not recorded as passing until their run completes.
+The G2 fixtures use random account identifiers per case, a disposable integration database and no shared M1 browser account. Coverage that goes beyond the original scenarios: anonymous access on every endpoint and verb, missing and foreign selections on every verb, malformed bodies, identifiers and queries, bounded paging, removal and explicit reinstatement, concurrent duplicate grants and mutual removals, log and response redaction including a logged dependency failure, an M0 to M1 to M2 upgrade in a separate database, and clean exit code 1 for rejected restricted operator commands. Results are recorded in the [executed record](M2_EXECUTED_VERIFICATION.md).
 
 ## Verification matrix
 
@@ -74,7 +76,13 @@ The initial passing M2 workflow covered the core tests. New independent PostgreS
 
 ## Local command outline
 
-The exact commands will be finalized when the M2 tests exist. Applicable existing commands run from the E-drive repository root include:
+The complete local run is a single command (all stages, in order), executed from the repository root in Git Bash with the E: environment from `E:HarborOps-Verificationenv.ps1`:
+
+```bash
+bash scripts/verify-m2-local.sh preflight dotnet deps web docs stack accounts organizations session browsers recovery scan
+```
+
+The individual commands it wraps are listed below.
 
 ```powershell
 # Set local caches and selected disposable test database on E: first.
@@ -119,4 +127,4 @@ Do not fabricate passing test counts or mark G2 complete based on this document.
 
 ## Current status
 
-M2 feature-branch implementation source and initial regression test files are committed, as recorded in [M2 implementation status](M2_IMPLEMENTATION_STATUS.md). Expanded GitHub suites passed, including concurrent Administrator demotions, suspended organizations, session isolation and API role-denial matrices. The remaining historical-upgrade, invalid-data, authenticated-outage and browser revocation checks have been implemented. Execution and exact evidence are pending. **G2 open.**
+G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`: all 25 scenarios passed in one complete run (22 unit, 12 contract, 32 fresh and 32 repeated integration, 6 frontend and 24 browser tests, plus the operational and security stages). **Acceptance pending.** No merge of M2 and no M3 work until acceptance is recorded.

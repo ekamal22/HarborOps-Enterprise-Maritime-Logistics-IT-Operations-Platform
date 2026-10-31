@@ -32,7 +32,7 @@ The baseline endpoint returns a safe `baseline_unavailable` error when the recor
 
 ## Implemented M1 authentication contract (accepted on main)
 
-The M1 route group is `/api/v1/auth`. These routes are served on `main` following accepted G1 and merged PR #4. The authoritative detailed contract and negative matrix are [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 verification](M1_VERIFICATION_PLAN.md). The feature-branch frontend uses same-origin `/api/` proxying in Nginx and Vite. See [M1 executed evidence](M1_IMPLEMENTATION_VERIFICATION.md).
+The M1 route group is `/api/v1/auth`. These routes are served on `main` following accepted G1 and merged PR #4. The authoritative detailed contract and negative matrix are [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 verification](M1_VERIFICATION_PLAN.md). The merged frontend uses same-origin `/api/` proxying in Nginx and Vite. See [M1 executed evidence](M1_IMPLEMENTATION_VERIFICATION.md).
 
 | Method | Route | Access | Behavior |
 | --- | --- | --- | --- |
@@ -46,7 +46,7 @@ The M1 route group is `/api/v1/auth`. These routes are served on `main` followin
 
 `POST /login`: `{"email":"operator@example.test","password":"placeholder-not-a-real-password"}` (illustrative only). Successful 200 returns `user.id`, `user.email`, `user.displayName`, and `session.expiresAtUtc`. It never returns the authentication cookie value in JSON. The cookie is issued in a protected `Set-Cookie` response header. Unknown email, wrong password and disabled account return identical generic `401 invalid_credentials` envelopes. Protected anonymous calls return `401` JSON, not 302 redirects. Other safe codes include `authentication_required`, `session_expired`, `csrf_invalid`, `rate_limited`, `dependency_unavailable` and `internal_error`.
 
-Account creation, password reset and privileged re-enablement are restricted interactive local CLI operations. No public administrative endpoints, multi-organization `/me` membership response, bearer tokens, SSO or shipment routes are added at M1. Those remain later milestones. Preserve M0's public synthetic baseline and minimal liveness/readiness routes.
+Local account provisioning and password reset are available through restricted interactive CLI commands. Self-disablement is available through the protected API. Privileged account re-enablement is not implemented in M1 and requires a separate reviewed administrative procedure. No public administrative endpoints, multi-organization `/me` membership response, bearer tokens, SSO or shipment routes are added at M1. Those remain later milestones. Preserve M0's public synthetic baseline and minimal liveness/readiness routes.
 
 ## Proposed resource map
 

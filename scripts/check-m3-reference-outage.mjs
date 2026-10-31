@@ -9,7 +9,11 @@ const base = "http://127.0.0.1:5173";
 const docker = (...args) => execFileSync("docker", args, {
   encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000
 }).trim();
-assert.equal(docker("context", "show"), "desktop-linux");
+// An E:-confined DOCKER_CONFIG has no named contexts, so accept the pinned Docker Desktop pipe.
+assert.ok(docker("context", "show") === "desktop-linux" ||
+  process.env.DOCKER_HOST === "npipe:////./pipe/dockerDesktopLinuxEngine");
+assert.equal(docker("info", "--format", "{{.OSType}}|{{.OperatingSystem}}|{{.Name}}"),
+  "linux|Docker Desktop|docker-desktop");
 assert.equal(JSON.parse(docker("compose", "-p", project, "config", "--format", "json")).name, project);
 for (const service of ["postgres", "api"]) {
   const id = docker("compose", "-p", project, "ps", "-q", service);

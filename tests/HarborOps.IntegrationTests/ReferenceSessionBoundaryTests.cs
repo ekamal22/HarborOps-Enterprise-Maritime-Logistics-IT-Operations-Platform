@@ -69,7 +69,9 @@ public sealed class ReferenceSessionBoundaryTests
                     .Select(s => new { s.Id, s.IssuedAtUtc }).ToListAsync();
                 foreach (var session in sessions)
                 {
-                    var expired = session.IssuedAtUtc.AddTicks(1);
+                    // PostgreSQL stores microseconds, and the session constraint requires idle expiry
+                    // strictly after issue. One millisecond is representable and already in the past.
+                    var expired = session.IssuedAtUtc.AddMilliseconds(1);
                     await db.AuthSessions.Where(s => s.Id == session.Id)
                         .ExecuteUpdateAsync(set => set.SetProperty(s => s.IdleExpiresAtUtc, expired));
                 }

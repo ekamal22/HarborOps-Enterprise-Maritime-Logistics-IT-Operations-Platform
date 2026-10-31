@@ -129,23 +129,25 @@ public sealed class ReferenceHistoricalUpgradeTests
             db.Ports.Add(port); db.Vessels.Add(vessel);
             await db.SaveChangesAsync();
 
-            async Task MustFail(string sql)
+            // 23514 check_violation (CHECK constraint or immutability trigger), 22001 string too long.
+            async Task MustFail(string expectedState, string sql)
             {
                 var error = await Record.ExceptionAsync(() => db.Database.ExecuteSqlRawAsync(sql));
                 Assert.NotNull(error);
                 var pg = error as PostgresException ?? error.InnerException as PostgresException;
                 Assert.NotNull(pg);
-                Assert.Contains(pg!.SqlState, new[] { "23503", "23505", "23514" });
+                Assert.Equal(expectedState, pg!.SqlState);
             }
-            await MustFail($"UPDATE ports SET organization_id = '{Guid.NewGuid()}' WHERE id = '{port.Id}'");
-            await MustFail($"UPDATE ports SET reference_code = 'OTHER-PORT' WHERE id = '{port.Id}'");
-            await MustFail($"UPDATE vessels SET reference_code = 'OTHER-SHIP' WHERE id = '{vessel.Id}'");
-            await MustFail($"UPDATE vessels SET source_kind = 'UserProvided' WHERE id = '{vessel.Id}'");
-            await MustFail($"UPDATE ports SET version = 0 WHERE id = '{port.Id}'");
-            await MustFail($"UPDATE vessels SET status = 'Removed' WHERE id = '{vessel.Id}'");
-            await MustFail($"UPDATE ports SET country_code = 'USA' WHERE id = '{port.Id}'");
-            await MustFail($"UPDATE vessels SET imo_number = '9074728' WHERE id = '{vessel.Id}'");
-            await MustFail($"UPDATE vessels SET mmsi = '000000000' WHERE id = '{vessel.Id}'");
+            await MustFail("23514", $"UPDATE ports SET organization_id = '{Guid.NewGuid()}' WHERE id = '{port.Id}'");
+            await MustFail("23514", $"UPDATE ports SET reference_code = 'OTHER-PORT' WHERE id = '{port.Id}'");
+            await MustFail("23514", $"UPDATE vessels SET reference_code = 'OTHER-SHIP' WHERE id = '{vessel.Id}'");
+            await MustFail("23514", $"UPDATE vessels SET source_kind = 'UserProvided' WHERE id = '{vessel.Id}'");
+            await MustFail("23514", $"UPDATE ports SET version = 0 WHERE id = '{port.Id}'");
+            await MustFail("23514", $"UPDATE vessels SET status = 'Removed' WHERE id = '{vessel.Id}'");
+            await MustFail("22001", $"UPDATE ports SET country_code = 'USA' WHERE id = '{port.Id}'");
+            await MustFail("23514", $"UPDATE ports SET country_code = 'u1' WHERE id = '{port.Id}'");
+            await MustFail("23514", $"UPDATE vessels SET imo_number = '9074728' WHERE id = '{vessel.Id}'");
+            await MustFail("23514", $"UPDATE vessels SET mmsi = '000000000' WHERE id = '{vessel.Id}'");
             Assert.Equal("FIXED-PORT",
                 (await db.Ports.AsNoTracking().SingleAsync(x => x.Id == port.Id)).ReferenceCode);
             Assert.Equal("FIXED-SHIP",

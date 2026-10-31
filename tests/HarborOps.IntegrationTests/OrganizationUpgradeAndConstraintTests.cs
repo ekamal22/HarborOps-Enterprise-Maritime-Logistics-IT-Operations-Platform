@@ -67,7 +67,12 @@ public sealed class OrganizationUpgradeAndConstraintTests
 
             await db.Database.MigrateAsync();
             Assert.Empty(await db.Database.GetPendingMigrationsAsync());
-            Assert.Equal(3, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(
+                [
+                    "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions",
+                    "20261031020000_OrganizationMemberships", "20261031110000_PortVesselReferences"
+                ],
+                (await db.Database.GetAppliedMigrationsAsync()).ToArray());
             var identity = scope.ServiceProvider.GetRequiredService<IdentityStore>();
             var legacy = await identity.ValidateAsync(user, session, 1, CancellationToken.None);
             Assert.NotNull(legacy);

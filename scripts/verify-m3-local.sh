@@ -92,6 +92,8 @@ docker compose -p ho-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true
   --organization-cli bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test
 docker compose -p ho-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
   --organization-cli bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test
+docker compose -p ho-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+  --organization-cli bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test
 
 run_stage fixtures node scripts/prepare-m3-browser-fixtures.mjs
 export HARBOROPS_M3_FIXTURES=1

@@ -121,6 +121,7 @@ setup_m3() {
 }
 run_stage setup-fixtures setup_m3
 run_stage fixtures node scripts/prepare-m3-browser-fixtures.mjs
+run_stage m4-fixtures node scripts/prepare-m4-browser-fixtures.mjs
 export HARBOROPS_M3_FIXTURES=1
 export HARBOROPS_M4_FIXTURES=1
 run_stage browsers bash scripts/run-m3-browsers-local.sh

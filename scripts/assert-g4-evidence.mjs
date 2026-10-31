@@ -25,7 +25,7 @@ if (existsFresh("g4-aborted.txt"))
   throw new Error("G4 run has an abort marker");
 const expectedStages = [
   "preflight", "postgres-image", "dotnet", "deps", "web", "docs", "stack",
-  "accounts", "organizations", "session", "setup-fixtures", "fixtures",
+  "accounts", "organizations", "session", "setup-fixtures", "fixtures", "m4-fixtures",
   "browsers", "reference-outage", "maritime-outage", "recovery", "scan"
 ];
 const stages = read("g4-stages.tsv").trim().split(/\r?\n/).map(line => line.split("\t"));
@@ -116,7 +116,7 @@ const scenarios = [
   ["S04", ["MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel","MigrationSnapshotTests.Migrations_AreDiscoveredInOrder","MaritimeMigrationTests.SeededM3HistorySurvivesM4UpgradeRollbackAndReapply"], [], []],
   ["S05", ["MaritimeMigrationTests.SeededM3HistorySurvivesM4UpgradeRollbackAndReapply"], [], []],
   ["S06", ["MaritimeMigrationTests.DirectSqlRejectsCrossTenantVoyagesBadIdentifiersAndMutatedIdentity"], [], []],
-  ["S07", [], [], ["fixtures"]],
+  ["S07", [], [], ["fixtures","m4-fixtures"]],
   ["S08", ["ReferenceSessionBoundaryTests.EveryReferenceVerbRejectsInvalidatedSession"], [], []],
   ["S09", ["ReferenceBoundaryMatrixTests.EveryReferenceVerbRequiresExplicitSelection"], [], []],
   ["S10", ["MaritimeHttpTests.ForeignParentAndForeignRecordIdsDoNotLeak"], [], []],

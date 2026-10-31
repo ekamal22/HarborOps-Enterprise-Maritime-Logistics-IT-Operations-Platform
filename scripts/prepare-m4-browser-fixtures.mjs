@@ -19,8 +19,8 @@ class Session {
       method, headers, ...(data === undefined ? {} : { body: JSON.stringify(data) })
     });
     for (const cookie of response.headers.getSetCookie()) {
-      const [name, value] = cookie.split(";",1)[0].split("=");
-      if (name && value !== undefined) this.jar.set(name,value);
+      const match = cookie.match(/^([^=;]+)=([^;]*)/);
+      if (match) this.jar.set(match[1], match[2]);
     }
     const raw = await response.text();
     const body = raw ? JSON.parse(raw) : null;

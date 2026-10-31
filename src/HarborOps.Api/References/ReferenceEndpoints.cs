@@ -4,6 +4,7 @@ using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.References;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HarborOps.Api.References;
 
@@ -103,7 +104,7 @@ public static class ReferenceEndpoints
                 Results.Created($"{ctx.Request.Path}/{result.Value.Id}", result.Value);
         });
         root.MapPatch("/ports/{portId}", async (string organizationId, string portId,
-            JsonElement request, HttpContext ctx, IAntiforgery anti,
+            [FromBody] JsonElement request, HttpContext ctx, IAntiforgery anti,
             ReferenceStore store, CancellationToken ct) =>
         {
             ctx.Response.Headers.CacheControl = "no-store";
@@ -117,7 +118,7 @@ public static class ReferenceEndpoints
             return result.Value is null ? Error(ctx, result.Error) : Results.Ok(result.Value);
         });
         root.MapDelete("/ports/{portId}", async (string organizationId, string portId,
-            JsonElement request, HttpContext ctx, IAntiforgery anti,
+            [FromBody] JsonElement request, HttpContext ctx, IAntiforgery anti,
             ReferenceStore store, CancellationToken ct) =>
         {
             ctx.Response.Headers.CacheControl = "no-store";
@@ -166,7 +167,7 @@ public static class ReferenceEndpoints
                 Results.Created($"{ctx.Request.Path}/{result.Value.Id}", result.Value);
         });
         root.MapPatch("/vessels/{vesselId}", async (string organizationId, string vesselId,
-            JsonElement request, HttpContext ctx, IAntiforgery anti,
+            [FromBody] JsonElement request, HttpContext ctx, IAntiforgery anti,
             ReferenceStore store, CancellationToken ct) =>
         {
             ctx.Response.Headers.CacheControl = "no-store";
@@ -180,7 +181,7 @@ public static class ReferenceEndpoints
             return result.Value is null ? Error(ctx, result.Error) : Results.Ok(result.Value);
         });
         root.MapDelete("/vessels/{vesselId}", async (string organizationId, string vesselId,
-            JsonElement request, HttpContext ctx, IAntiforgery anti,
+            [FromBody] JsonElement request, HttpContext ctx, IAntiforgery anti,
             ReferenceStore store, CancellationToken ct) =>
         {
             ctx.Response.Headers.CacheControl = "no-store";

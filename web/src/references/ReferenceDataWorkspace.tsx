@@ -56,6 +56,8 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const generation = useRef(0);
+  const mutationGeneration = useRef(0);
+  useEffect(() => () => { mutationGeneration.current += 1; }, [organizationId, kind]);
 
   const reload = useCallback(async () => {
     const serial = ++generation.current;
@@ -90,6 +92,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
   const loadMore = async () => {
     if (!nextAfter || busy || loading) return;
     const serial = generation.current;
+    const mutationSerial = mutationGeneration.current;
     setBusy(true); setError("");
     try {
       const page = await listReferences(organizationId, kind, q, status, nextAfter);
@@ -108,6 +111,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
     event.preventDefault();
     if (!canManage || busy) return;
     const serial = generation.current;
+    const mutationSerial = mutationGeneration.current;
     setBusy(true); setError("");
     try {
       if (creating) {
@@ -123,13 +127,14 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
         setSelected(null);
         setItems([]); setNextAfter(null);
       }
-    } finally { if (serial === generation.current) setBusy(false); }
+    } finally { if (mutationSerial === mutationGeneration.current) setBusy(false); }
   };
 
   const changeStatus = async (row: ReferenceRow) => {
     if (!canManage || busy) return;
     if (row.status === "Active" && !window.confirm("Archive this reference?")) return;
     const serial = generation.current;
+    const mutationSerial = mutationGeneration.current;
     setBusy(true); setError("");
     try {
       if (row.status === "Active")
@@ -143,7 +148,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
         setError(organizationError(cause));
         setSelected(null); setItems([]); setNextAfter(null);
       }
-    } finally { if (serial === generation.current) setBusy(false); }
+    } finally { if (mutationSerial === mutationGeneration.current) setBusy(false); }
   };
 
   return (
@@ -156,7 +161,8 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
       <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Reference type">
         {(["ports", "vessels"] as const).map(value =>
           <button key={value} type="button" onClick={() => {
-            generation.current += 1; setKind(value); setQ(""); setStatus("Active");
+            generation.current += 1; mutationGeneration.current += 1; setBusy(false);
+            setKind(value); setQ(""); setStatus("Active");
             setSelected(null); setCreating(false); setItems([]);
           }} className={"rounded px-3 py-2 text-sm " +
             (kind === value ? "bg-cyan-300 text-slate-950" : "border border-slate-600")}>

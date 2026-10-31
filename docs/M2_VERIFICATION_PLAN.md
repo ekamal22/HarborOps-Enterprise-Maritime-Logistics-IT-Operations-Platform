@@ -119,4 +119,4 @@ Do not fabricate passing test counts or mark G2 complete based on this document.
 
 ## Current status
 
-M2 feature-branch implementation source and initial regression test files are committed, as recorded in [M2 implementation status](M2_IMPLEMENTATION_STATUS.md). Expanded GitHub suites passed, including concurrent Administrator demotions, suspended organizations, session isolation and API role-denial matrices. Residual G2 cases remain. **G2 open.**
+M2 feature-branch implementation source and initial regression test files are committed, as recorded in [M2 implementation status](M2_IMPLEMENTATION_STATUS.md). Expanded GitHub suites passed, including concurrent Administrator demotions, suspended organizations, session isolation and API role-denial matrices. The remaining historical-upgrade, invalid-data, authenticated-outage and browser revocation checks have been implemented. Execution and exact evidence are pending. **G2 open.**

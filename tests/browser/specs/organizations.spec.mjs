@@ -34,6 +34,7 @@ test("foreign tenant selection and last administrator disablement are denied", a
   test.skip(!password, "Disposable synthetic account is required");
   await signIn(page);
   await page.locator("#current-organization").selectOption({ label: "North Terminal (Administrator)" });
+  await expect(page.getByText("Slug: north-terminal")).toBeVisible();
   const current = await page.request.get("/api/v1/me/organizations");
   const list = await current.json();
   const orgId = list.organizations[0].id;

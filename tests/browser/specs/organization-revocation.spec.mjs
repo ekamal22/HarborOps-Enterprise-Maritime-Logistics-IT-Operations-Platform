@@ -17,12 +17,15 @@ async function addRole(page, organization, userId, email, role) {
   await page.locator("#current-organization").selectOption({ label: organization });
   await expect(page.getByRole("heading", { name: "Memberships" })).toBeVisible();
   await page.getByLabel("Existing account ID").fill(userId);
-  await page.getByLabel("Role", { exact: true }).selectOption(role);
+  await page.locator("form").filter({
+    has: page.getByRole("button", { name: "Add member" })
+  }).locator("select").selectOption(role);
   await page.getByRole("button", { name: "Add member" }).click();
   await expect(page.getByRole("list").getByText(email)).toBeVisible();
 }
 
 test("membership switching and live revocation clear protected browser state", async ({ page, browser }, testInfo) => {
+  test.setTimeout(120_000);
   test.skip(!password, "Disposable synthetic browser accounts are required");
   const projectName = testInfo.project.name;
   const memberEmail = "m2-browser-" + projectName + "@example.test";

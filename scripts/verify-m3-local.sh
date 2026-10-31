@@ -67,7 +67,7 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 echo "M3 verification source: $sha"
 echo "Building revision-labelled disposable PostgreSQL test image"
-docker build --build-arg "SOURCE_REVISION=$sha" \
+run_stage postgres-image docker build --build-arg "SOURCE_REVISION=$sha" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
 
 for stage in dotnet deps web docs stack accounts organizations session; do

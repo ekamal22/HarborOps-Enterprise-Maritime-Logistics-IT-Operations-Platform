@@ -80,7 +80,7 @@ const scenarios = [
   ["S22", [], ["Manager port and vessel", "Analyst can read", "scoped UI pagination", "selected organization and reference rows survive"]],
   ["S23", [], ["delayed old-tenant", "reference list clears", "logging out during", "revocation during"]],
   ["S24", ["OrganizationBoundaryMatrixTests.MissingAndForeignSelections"], ["Organization switch discards"], ["dotnet", "session", "recovery"]],
-  ["S25", [], [], ["deps", "web", "docs", "stack", "scan"]]
+  ["S25", [], [], ["postgres-image", "deps", "web", "docs", "stack", "scan"]]
 ];
 const rows = scenarios.map(([id, unit, browser = [], stages = []]) => {
   const missing = [

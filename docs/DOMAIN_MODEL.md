@@ -53,11 +53,11 @@
 6. The existing `bootstrap_records` synthetic seed remains unchanged and does not provision an account.
 7. Organization and membership invariants remain M2 scope; authentication alone is not business authorization.
 
-## M2 organization model (implemented in feature branch; migration not executed)
+## M2 organization model (implemented, migrated and accepted on `main`)
 
 The proposed [M2 architecture](M2_ARCHITECTURE_DESIGN.md) adds additive `organizations` and `organization_memberships` tables, one effective role per user/organization, independent role membership states and a per-session nullable selected-organization reference. The explicit role set is Analyst, Manager, Support, Administrator and Auditor. A user's active membership in organization A confers no permissions in B. Administrator grants are limited to the authorized organization and do not imply business-data access.
 
-Required invariants include uniqueness of organization slug and user/organization membership, soft removal, active-organization checks, live role revalidation, versioned updates and transactional protection against loss of the final active Administrator. The accepted M1 cookie does not carry trusted organization roles. These invariants are represented in feature-branch source and an additive migration. Fresh and repeated disposable PostgreSQL tests passed in [M2 GitHub verification](M2_EXECUTED_VERIFICATION.md); not every tenant-adversarial check has been executed. See [M2 source register](M2_IMPLEMENTATION_STATUS.md), [implementation sequence](M2_IMPLEMENTATION_PLAN.md) and [G2 verification](M2_VERIFICATION_PLAN.md).
+Required invariants include unique organization slug and user/organization membership, soft removal, active-organization checks, live role revalidation, versioned updates and transactional protection against loss of the last active Administrator. The accepted M1 cookie does not carry trusted organization roles. The M2 additive migration and invariants passed fresh and repeated disposable PostgreSQL verification; see [G2 executed evidence](M2_EXECUTED_VERIFICATION.md).
 
 ## Illustrative lifecycle
 
@@ -83,6 +83,6 @@ Order primarily by trusted occurrence time when source rules permit, then by sou
 
 `bootstrap_records` is a single infrastructure status table, not a shipment-domain model. The initial EF Core migration creates `key` (80-character primary key), `dataset_version` (required, 80 characters), and `seeded_at_utc` (required UTC timestamp). The deterministic row uses key `harborops` and dataset version `m0-synthetic-v1`. The migration and seed were applied to clean PostgreSQL 16.15 databases and inspected on 2026-10-30 (see [M0 Verification](M0_VERIFICATION.md)).
 
-Organization membership and access boundaries are planned for M2; maritime reference entities and shipment/assignment invariants are planned for M3-M6. None of these business entities were implemented in the M0 engineering baseline.
+Organization membership and access boundaries were implemented and accepted in M2; port/vessel references and shipment/assignment invariants remain planned for M3-M6. Those later business entities have not been implemented.
 
-The four M1 identity tables and migration were exercised in isolated PostgreSQL integration tests, including an existing M0-seeded schema upgrade. See [M1 verification register](M1_IMPLEMENTATION_VERIFICATION.md). G1 was accepted on 2026-10-31 and merged into `main`; M2 organization isolation remains planned.
+The four M1 identity tables and migration were exercised in isolated PostgreSQL integration tests, including an existing M0-seeded upgrade; G1 was accepted on 2026-10-31 and merged into `main`. M2 organization persistence and tenant isolation also passed local G2 verification, were accepted and were merged via PR #5. See [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) and [M2 evidence](M2_EXECUTED_VERIFICATION.md).

@@ -2,7 +2,7 @@
 
 **Version:** 2.0 granular delivery baseline  
 **Date:** 2026-10-30  
-**State:** M0-M24 delivery plan integrated into `main`; G0 and G1 verified and accepted on 2026-10-31. M1 merged into `main` via PR #4 at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31; M2 is not merged. G3-G24 remain open.
+**State:** M0/G0, M1/G1 and M2/G2 verified, accepted and merged into `main` by 2026-10-31. M2 passed complete local [G2 verification](M2_EXECUTED_VERIFICATION.md) on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` and merged via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. M3 is next; G3-G24 remain open.
 
 ## Authority and rationale
 
@@ -101,17 +101,17 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 #### M2: Organizations and role isolation
 
-**Scope:** Explicit memberships, roles and organization-scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) defines additive organization/membership persistence, typed role grants, per-session organization selection and fail-closed cross-tenant authorization. The feature-branch implementation has been executed and verified locally (see G2 below).
+**Scope:** Explicit memberships, roles and organization-scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) specifies organization/membership persistence, role grants, per-session organization selection and fail-closed tenant boundaries. The verified implementation is integrated into `main`.
 **Entry:** G1 verified and accepted, with documented evidence and merged source.
 **Required work packages:** M2-01 Model memberships and role grants; M2-02 Enforce permission boundary; M2-03 Implement organization selection; M2-04 Verify tenant isolation. See the [M2 implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](M2_VERIFICATION_PLAN.md).
 **Verification:** All 25 scenarios of the [G2 verification plan](M2_VERIFICATION_PLAN.md) were executed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. The [executed record](M2_EXECUTED_VERIFICATION.md) lists the environment, E: storage configuration, suite counts, per-scenario evidence, security scans and the failure history. Earlier GitHub runs are retained there as history only.
-**Exit G2:** G2 verified locally and accepted on 2026-10-31. M2 is not merged and no M3 work has started.
+**Exit G2:** All 25 scenarios passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. G2 accepted on 2026-10-31; M2 merged via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. M3 has not started.
 **Not covered by this milestone:** Shipment domain CRUD and maritime reference data.
 
 #### M3: Ports and vessels reference data
 
 **Scope:** Validated, queryable and scoped port/vessel reference records.
-**Entry:** G2 verified with a documented gate report.
+**Entry:** G2 verified, explicitly accepted and merged, with [executed evidence](M2_EXECUTED_VERIFICATION.md).
 **Required work packages:** M3-01 Specify port and vessel invariants; M3-02 Implement port persistence and endpoints; M3-03 Implement vessel persistence and endpoints; M3-04 Verify reference data browser flow.
 **Exit G3:** All applicable tasks, negative tests, runtime evidence and documentation for M3 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Voyage, container, shipment and tracking persistence.

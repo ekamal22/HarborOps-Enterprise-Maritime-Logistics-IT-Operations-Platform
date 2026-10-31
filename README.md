@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0/G0 and M1/G1 verified, accepted and merged into `main` on 2026-10-31. M1 adds PostgreSQL-backed identity, protected browser sessions and a same-origin sign-in interface. [PR #4](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/4) merged as `8f9fc0d506a9e1dc1d4f5acab936622df988f413` after passing [M1 verification](docs/M1_IMPLEMENTATION_VERIFICATION.md). M2 is verified locally, and G2 was accepted on 2026-10-31; M3-M24 remain planned. See [Project Status](docs/STATUS.md).
+**Status:** M0/G0, M1/G1 and M2/G2 are verified, accepted and merged into `main` as of 2026-10-31. M2 merged through [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`, following complete local [G2 verification](docs/M2_EXECUTED_VERIFICATION.md). M3-M24 remain planned. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -40,11 +40,15 @@ The M1 architecture is implemented and its engineering verification passed in [V
 - [D-001 Architecture Decision](docs/ADR_D001_BROWSER_SESSIONS.md): selected model, alternatives and consequences.
 - [M1 G1 Verification Plan](docs/M1_VERIFICATION_PLAN.md): API, database, browser, Compose, security and negative-case evidence.
 
-Organization memberships and authorization are M2, verified locally, and G2 was accepted on 2026-10-31. Historical-volume checks occur at quarter-mile milestones; dedicated accessibility testing remains M24-04. G0 and G1 are accepted.
+Organization memberships and role-scoped authorization were delivered in M2 and are now on `main`. G0, G1 and G2 are accepted. Historical-volume checks remain at quarterly milestones; dedicated accessibility testing remains M24-04.
 
-### Next milestone: M2 organizations and role isolation
+### Accepted milestone: M2 organizations and role isolation
 
-M2 source is implemented on `feat/m2-organization-authorization`, not merged into `main`. All 25 G2 scenarios passed in a complete local run on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` ((22 unit, 12 contract, 32 fresh and 32 repeated PostgreSQL integration, 6 frontend and 24 browser tests (Chromium, Firefox, WebKit), Compose outage and recovery, M1 session recovery, authenticated organization outage recovery and three clean image scans)); see the [executed verification record](docs/M2_EXECUTED_VERIFICATION.md). Earlier GitHub runs remain in that record as history. The [architecture](docs/M2_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](docs/M2_VERIFICATION_PLAN.md) specify server-authoritative organization selection, membership role grants and cross-organization denials; the [implementation status](docs/M2_IMPLEMENTATION_STATUS.md) identifies source paths. G2 verified locally and accepted on 2026-10-31.
+M2 is merged into `main` through [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. All 25 G2 scenarios passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` (22 unit, 12 contract, 32 fresh and 32 repeated PostgreSQL integration, 6 frontend and 24 cross-browser tests, Compose/session recovery, scoped database outage recovery and three clean image scans). See the [executed verification record](docs/M2_EXECUTED_VERIFICATION.md), [architecture](docs/M2_ARCHITECTURE_DESIGN.md), [implementation record](docs/M2_IMPLEMENTATION_STATUS.md) and [G2 plan](docs/M2_VERIFICATION_PLAN.md). G2 was accepted on 2026-10-31.
+
+### Next milestone: M3 ports and vessels reference data
+
+M3 is planned and G3 is open. Its scope is validated, queryable, organization-scoped port and vessel reference records. M3 implementation has not started; see the [roadmap](docs/ROADMAP.md).
 
 ### Planned modules
 
@@ -74,7 +78,7 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone sequencing is dependency based, not a calendar deadline. Current delivery status is recorded only in [Project Status](docs/STATUS.md).
 
-### Local M0/M1 startup
+### Local M0/M1/M2 startup
 
 Prerequisites: Docker Engine with Compose, Node.js 22, and .NET 10 SDK for standalone development.
 
@@ -138,4 +142,4 @@ The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) pres
 
 ### Current state
 
-The default `main` branch contains the accepted M0 engineering foundation and accepted M1 identity and session lifecycle. G1 verification passed in GitHub Actions, acceptance was recorded on 2026-10-31, and [PR #4](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/4) merged as `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. Shipment, tracking, analytics and incident workflows remain planned for M2-M24. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).
+The default `main` branch contains the accepted M0 engineering baseline, M1 identity/session lifecycle and M2 organization authorization. G2 was locally verified on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`, explicitly accepted on 2026-10-31, and merged through [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) as `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. Shipments, tracking, analytics and incident workflows remain planned for M3-M24. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).

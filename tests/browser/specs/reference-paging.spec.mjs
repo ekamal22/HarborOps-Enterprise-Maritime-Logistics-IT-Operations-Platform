@@ -43,6 +43,32 @@ test("scoped UI pagination loads beyond 25 results without duplicates", async ({
     const codes = await workspace.locator("ul > li p").allTextContents();
     expect(new Set(codes).size).toBe(27);
     await expect(page.getByRole("button", { name: "Load more references" })).toHaveCount(0);
+
+    // A visibility refresh must invalidate an in-flight cursor response and
+    // leave pagination controls usable after the abandoned response arrives.
+    await page.getByLabel("Search ports").fill("");
+    await page.getByLabel("Search ports").fill(nonce);
+    await expect(page.getByRole("button", { name: "Load more references" })).toBeVisible();
+    let reached;
+    let release;
+    const queued = new Promise(resolve => { reached = resolve; });
+    const permit = new Promise(resolve => { release = resolve; });
+    await page.route("**/api/v1/organizations/*/ports?*", async route => {
+      const query = new URL(route.request().url()).searchParams;
+      if (query.has("after")) {
+        reached();
+        await permit;
+      }
+      await route.continue();
+    });
+    await page.getByRole("button", { name: "Load more references" }).click();
+    await queued;
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(page.getByRole("button", { name: "Load more references" })).toBeEnabled();
+    release();
+    await expect(page.getByRole("button", { name: "Load more references" })).toBeEnabled();
+    await page.unrouteAll({ behavior: "wait" });
+
   } finally {
     for (const row of created) {
       const response = await page.request.delete(prefix + "/" + row.id, {

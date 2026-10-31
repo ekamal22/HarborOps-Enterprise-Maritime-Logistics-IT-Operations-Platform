@@ -109,3 +109,24 @@ test("logging out during a held reference request clears protected state", async
   await expect(page.getByRole("heading", { name: "Reference data" })).toHaveCount(0);
   await page.unrouteAll({ behavior: "wait" });
 });
+
+test("revocation during a reference refresh clears protected rows", async ({ page }) => {
+  test.skip(!enabled, "M3 isolated browser fixture required");
+  await login(page);
+  await page.locator("#current-organization")
+    .selectOption({ label: "M3 North Terminal (Manager)" });
+  await expect(page.getByText("Synthetic Primary Port North")).toBeVisible();
+  await page.route("**/api/v1/organizations/*/ports?*", route => route.fulfill({
+    status: 403,
+    contentType: "application/json",
+    body: JSON.stringify({
+      code: "organization_access_revoked",
+      message: "Organization access is no longer available",
+      correlationId: "synthetic-revocation"
+    })
+  }));
+  await page.getByRole("button", { name: "Refresh references" }).click();
+  await expect(page.getByRole("alert")).toContainText("access has changed");
+  await expect(page.getByText("Synthetic Primary Port North")).toHaveCount(0);
+  await page.unrouteAll();
+});

@@ -70,7 +70,8 @@ public sealed class OrganizationUpgradeAndConstraintTests
             Assert.Equal(
                 [
                     "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions",
-                    "20261031020000_OrganizationMemberships", "20261031110000_PortVesselReferences"
+                    "20261031020000_OrganizationMemberships", "20261031110000_PortVesselReferences",
+                    "20261101010000_VoyageContainerReferences"
                 ],
                 (await db.Database.GetAppliedMigrationsAsync()).ToArray());
             var identity = scope.ServiceProvider.GetRequiredService<IdentityStore>();

@@ -124,7 +124,7 @@ const scenarios = [
   ["S12",["MaritimeHttpTests.ForeignParentAndForeignRecordIdsDoNotLeak"]],
   ["S13",["MaritimePolicyTests.RoleGrantsStayWithinBusinessPermissions","MaritimeHttpTests.ManagerCreatesBothKindsAndAnalystReadsWithoutWritePermission","MaritimeBoundaryTests.NonBusinessRolesReceiveNoImplicitM4Access","MaritimeGateCoverageTests.CompleteMaritimeRoleAndVerbMatrixDeniesUnauthorizedChanges"]],
   ["S14",["MaritimeBoundaryTests.NonBusinessRolesReceiveNoImplicitM4Access","MaritimeUpgradeAndSecurityTests.SelectedOrganizationChangeAndSuspensionFailClosedForBothResources"],["M4 real Manager role revocation clears browser management controls"],["maritime-outage"]],
-  ["S15",["MaritimeBoundaryTests.InvalidFiltersAndMalformedPayloadsFailSafely","MaritimeGateCoverageTests.HostileMaritimeQueriesAndBodiesFailWithoutCreatingRows"]],
+  ["S15",["MaritimeBoundaryTests.InvalidFiltersAndMalformedPayloadsFailSafely","MaritimeGateCoverageTests.HostileMaritimeQueriesAndBodiesFailWithoutCreatingRows","MaritimeGateCoverageTests.ForeignOriginIsRejectedWithRealCsrfOnBothMaritimeResources"]],
   ["S16",["MaritimeHttpTests.VoyageProgressAndArchiveRestoreRequireExpectedVersion","MaritimeUpgradeAndSecurityTests.VoyageFilteringSchedulesArchiveAndImmutableRoutesAreScoped"],["M4 Manager voyage progress and archive restoration"]],
   ["S17",["MaritimeHttpTests.ManagerCreatesBothKindsAndAnalystReadsWithoutWritePermission"],["M4 Manager container lifecycle retains synthetic identity"]],
   ["S18",["MaritimeHttpTests.InvalidChecksumAndDuplicateIdentifierRejectWithoutPartialWrites","MaritimeConcurrencyTests.DuplicateContainerCreateRacePersistsOneIdentifier","MaritimeGateCoverageTests.ArchivedIdentifiersRemainReservedAndDirectSqlCannotArchiveWithEdits"]],

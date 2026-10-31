@@ -62,7 +62,10 @@ const analystId = await analyst.login(users.analyst);
 for (const [ownerEmail, slug] of [
   [users.a, "m3-north"],
   [users.b, "m3-east"],
-  [users.a, "m3-pagination"]
+  [users.a, "m3-pagination"],
+  [users.a, "m3-revocation-chromium"],
+  [users.a, "m3-revocation-firefox"],
+  [users.a, "m3-revocation-webkit"]
 ]) {
   const owner = new Session();
   await owner.login(ownerEmail);
@@ -84,6 +87,10 @@ const managerOrgs = await manager.organizations();
 assert.ok(managerOrgs.some(o => o.slug === "m3-north" && o.role === "Manager"));
 assert.ok(managerOrgs.some(o => o.slug === "m3-east" && o.role === "Manager"));
 assert.ok(managerOrgs.some(o => o.slug === "m3-pagination" && o.role === "Manager"));
+for (const engine of ["chromium", "firefox", "webkit"]) {
+  assert.ok(managerOrgs.some(o =>
+    o.slug === "m3-revocation-" + engine && o.role === "Manager"));
+}
 const analystOrgs = await analyst.organizations();
 assert.ok(analystOrgs.some(o => o.slug === "m3-north" && o.role === "Analyst"));
 assert.ok(!analystOrgs.some(o => o.slug === "m3-east"));

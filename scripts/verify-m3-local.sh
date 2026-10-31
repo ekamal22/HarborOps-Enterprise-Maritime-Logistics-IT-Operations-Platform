@@ -113,6 +113,11 @@ setup_m3() {
     --organization-cli bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test || return 1
   docker compose -p ho-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
     --organization-cli bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test || return 1
+  for engine in chromium firefox webkit; do
+    docker compose -p ho-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+      --organization-cli bootstrap "m3-revocation-$engine" "M3 Revocation $engine" \
+      m3-admin-a@example.test || return 1
+  done
 }
 run_stage setup-fixtures setup_m3
 run_stage fixtures node scripts/prepare-m3-browser-fixtures.mjs

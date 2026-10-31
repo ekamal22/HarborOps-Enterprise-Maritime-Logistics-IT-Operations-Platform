@@ -91,8 +91,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
 
   const loadMore = async () => {
     if (!nextAfter || busy || loading) return;
-    const serial = generation.current;
-    const mutationSerial = mutationGeneration.current;
+    const serial = generation.current;;
     setBusy(true); setError("");
     try {
       const page = await listReferences(organizationId, kind, q, status, nextAfter);

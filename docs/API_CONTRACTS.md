@@ -2,7 +2,7 @@
 
 ## Contract status
 
-M0 provides public synthetic status and health routes. M1 implements and has accepted protected authentication endpoints. M2 organization and membership routes below are proposed only. Maritime resource routes, shipment business APIs and full OpenAPI generation remain planned.
+M0 provides public synthetic status and health routes. M1 implements and has accepted protected authentication endpoints. M2 organization and membership routes below are implemented as feature-branch source but remain unverified and are not on `main`. Maritime resource routes, shipment business APIs and full OpenAPI generation remain planned.
 
 ## Observed M0 contract verification
 
@@ -48,9 +48,9 @@ The M1 route group is `/api/v1/auth`. These routes are served on `main` followin
 
 Local account provisioning and password reset are available through restricted interactive CLI commands. Self-disablement is available through the protected API. Privileged account re-enablement is not implemented in M1 and requires a separate reviewed administrative procedure. No public administrative endpoints, multi-organization `/me` membership response, bearer tokens, SSO or shipment routes are added at M1. Those remain later milestones. Preserve M0's public synthetic baseline and minimal liveness/readiness routes.
 
-## Planned M2 organization and context contract
+## M2 organization and context contract (feature branch; unverified)
 
-The [M2 design](M2_ARCHITECTURE_DESIGN.md) and [G2 verification specification](M2_VERIFICATION_PLAN.md) propose the following endpoints. **None is implemented or verified yet.** They use the already accepted M1 protected-cookie session; mutating calls also require same-origin CSRF validation.
+The [M2 design](M2_ARCHITECTURE_DESIGN.md) and [G2 verification specification](M2_VERIFICATION_PLAN.md) propose the following endpoints. **The routes are mapped in feature-branch source but none has been executed or verified, and they are not merged into `main`.** They use the already accepted M1 protected-cookie session; mutating calls also require same-origin CSRF validation.
 
 | Method | Route | Intended access |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ The [M2 design](M2_ARCHITECTURE_DESIGN.md) and [G2 verification specification](M
 | PUT | `/api/v1/organizations/{organizationId}/memberships/{userId}` | Selected organization Administrator, protected grant/state change |
 | DELETE | `/api/v1/organizations/{organizationId}/memberships/{userId}` | Selected organization Administrator, soft removal and last-admin guard |
 
-A null selected organization yields 409 `organization_selection_required` on scoped routes. Valid foreign organization or membership IDs return 404, wrong-role operations return 403, expired or missing M1 authentication returns 401, and database failure returns sanitized 503. A route ID, claimed role or custom header never authorizes resource access. [M2 architecture](M2_ARCHITECTURE_DESIGN.md) defines the exact envelope and transaction guarantees.
+A null selected organization yields 409 `organization_selection_required` on scoped routes. Valid foreign organization or membership IDs return 404, wrong-role operations return 403, expired or missing M1 authentication returns 401, and database failure returns sanitized 503. A route ID, claimed role or custom header is not accepted as authorization in the new implementation. [M2 architecture](M2_ARCHITECTURE_DESIGN.md) defines intended responses and transactions. [M2 implementation register](M2_IMPLEMENTATION_STATUS.md) records source and unexecuted tests. No G2 evidence exists.
 
 ## Proposed resource map
 

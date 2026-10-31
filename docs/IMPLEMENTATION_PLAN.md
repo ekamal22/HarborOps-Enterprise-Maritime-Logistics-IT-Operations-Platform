@@ -43,11 +43,11 @@ Authoritative design: [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md), [
 | M1-03 | Integrate ASP.NET Core authentication, Data Protection key ring, antiforgery, rate limiting, login/session/logout/logout-all/disable-self endpoints and sanitized errors | API contract and negative security tests, instant revocation, restart/outage and no-secret-leak evidence |
 | M1-04 | Configure Nginx/Vite same-origin `/api` proxy, React login/session shell, three-browser functional tests and source-specific GitHub Actions evidence | Full G1 matrix, preserved M0 contracts and image scans at a fixed SHA |
 
-M1-02 and M1-03 may proceed after M1-01; M1-04 integrates both. Do not create roles, organization memberships, shipment data, bearer integration credentials or public sign-up in M1. G1 is verified only after successful executed evidence; explicit acceptance and merge remain separate. Database compatibility with existing retained local volumes is not a G1 requirement. All formal accessibility testing remains the final M24-04 milestone.
+M1-02 and M1-03 may proceed after M1-01; M1-04 integrates both. M1 did not introduce organization authorization. Its G1 verification, acceptance and merge are complete. M2 adds organization authorization on a separate branch; M2 verification and acceptance remain separate. Database compatibility with existing retained local volumes is not a G1 requirement. All formal accessibility testing remains the final M24-04 milestone.
 
-## M2 planned implementation work packages (not started)
+## M2 implementation source (committed on feature branch; unverified)
 
-The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation sequence](M2_IMPLEMENTATION_PLAN.md), and [G2 local test specification](M2_VERIFICATION_PLAN.md) govern this milestone. G1 is accepted; G2 remains open. Do not begin M3 based on documentation alone.
+The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation sequence](M2_IMPLEMENTATION_PLAN.md), and [G2 local test specification](M2_VERIFICATION_PLAN.md) govern this milestone. G1 is accepted. M2-01 through M2-03 source is committed on a feature branch, with [implementation evidence inventory](M2_IMPLEMENTATION_STATUS.md); M2-04 remains unexecuted and G2 open. Do not begin M3 based on source alone.
 
 | Package | Planned change | Gate evidence |
 | --- | --- | --- |

@@ -28,11 +28,11 @@ Run an **additive M0-seeded-to-M1** migration in a disposable database and a fre
 
 This does not add accessibility checks to G1. All formal accessibility testing remains at M24-04. Historical local-volume compatibility remains at M6/M12/M18/M24-03; M19 retains full backup/restore.
 
-## M2 local verification matrix (proposed, not executed)
+## M2 local verification matrix (source tests added, not executed)
 
 The [G2 verification plan](M2_VERIFICATION_PLAN.md) specifies two active organizations, a multi-organization user with different roles, Administrator/Analyst/Manager/Support/Auditor grants, suspended and removed memberships, selected-session context and real PostgreSQL authorization. Mandatory cases include foreign organization/member IDs, wrong-role read/write denial, active membership changes, last-Administrator concurrency, migration preservation, CSRF/origin rejection, browser role-switch and M0/M1 regressions.
 
-M2 implementation must use the [M2 architecture](M2_ARCHITECTURE_DESIGN.md) and [M2 work plan](M2_IMPLEMENTATION_PLAN.md). GitHub Actions use is prohibited until the restriction is explicitly lifted. Do not dispatch, rerun, inspect or modify workflows; verify using explicitly invoked local build, unit, API, disposable PostgreSQL, browser and Docker smoke checks. No G2 commands have run and no new source is implemented. **G2 open.**
+M2 implementation must use the [M2 architecture](M2_ARCHITECTURE_DESIGN.md) and [M2 work plan](M2_IMPLEMENTATION_PLAN.md). GitHub Actions use is prohibited until the restriction is explicitly lifted. Do not dispatch, rerun, inspect or modify workflows; verify using explicitly invoked local build, unit, API, disposable PostgreSQL, browser and Docker smoke checks. No G2 commands have run. M2 application and initial test source are committed on a feature branch, but no cases have been verified. [Implementation register](M2_IMPLEMENTATION_STATUS.md). **G2 open.**
 
 ## Test layers
 

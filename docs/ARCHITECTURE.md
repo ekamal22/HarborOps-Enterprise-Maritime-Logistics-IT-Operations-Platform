@@ -25,11 +25,11 @@ A modular monolith provides the HTTP API and transactional domain functions. A s
 
 The diagram is the target topology for later milestones. In M0, the code contains the API, PostgreSQL DbContext and migrator, React status interface, and an idle worker shell. Tracking ingestion, domain modules, metrics, tracing, and incidents are not implemented. Docker Compose startup, database-backed API, browser path and controlled database outage/recovery were verified historically at `4fb34eb`, then successfully reverified on `fec7429415fede121db8a4a34f0df72cd4fac609` with .NET 10 in GitHub Actions run #2. G0 was accepted on 2026-10-31. The containers were stopped after verification; this is not a hosted deployment.
 
-## M2 organization and authorization architecture (planned)
+## M2 organization and authorization architecture (implemented in feature branch; unverified)
 
 M2 adds `organizations`, `organization_memberships` and a nullable selected-organization field in server-side `auth_sessions`, with role-based grants and permission evaluation fresh from PostgreSQL for every scoped request. The server, not the browser, binds authenticated users to an active selected organization. Organization detail and membership administration are the real scoped resources used to prove cross-tenant isolation before shipment entities exist.
 
-The proposed [M2 architecture](M2_ARCHITECTURE_DESIGN.md) specifies role and permission semantics, last-administrator invariants, transaction locks, session selection, API responses and frontend integration. [M2 implementation](M2_IMPLEMENTATION_PLAN.md) and [G2 local verification](M2_VERIFICATION_PLAN.md) are planned only. No M2 code or runtime acceptance exists. GitHub Actions usage is prohibited until explicitly restored.
+The proposed [M2 architecture](M2_ARCHITECTURE_DESIGN.md) specifies role and permission semantics, last-administrator invariants, transaction locks, session selection, API responses and frontend integration. [M2 implementation](M2_IMPLEMENTATION_PLAN.md) has feature-branch source, listed in the [implementation register](M2_IMPLEMENTATION_STATUS.md). [G2 local verification](M2_VERIFICATION_PLAN.md) is unexecuted; no M2 runtime acceptance exists. GitHub Actions usage is prohibited until explicitly restored.
 
 ## M1 authentication architecture (implemented, accepted on main)
 

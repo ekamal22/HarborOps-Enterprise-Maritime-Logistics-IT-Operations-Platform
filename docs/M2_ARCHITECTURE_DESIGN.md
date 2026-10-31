@@ -1,7 +1,7 @@
 # M2 Organizations and Role Isolation: Architecture Design
 
 **Milestone:** M2, packages M2-01 through M2-04; exit gate G2  
-**State:** Detailed implementation proposal, not yet implemented or accepted  
+**State:** Implemented in feature-branch source, not verified or accepted; G2 open  
 **Baseline:** M0/G0 and M1/G1 accepted on 2026-10-31. M1 is in `main` at the accepted merge lineage.  
 **Requirements:** FR-002, FR-001 integration, NFR-002, NFR-003, NFR-006, NFR-007 and NFR-008  
 **Related:** [Roadmap](ROADMAP.md), [Requirements](REQUIREMENTS.md), [Domain Model](DOMAIN_MODEL.md), [API Contracts](API_CONTRACTS.md), [Security](SECURITY.md), [M2 implementation plan](M2_IMPLEMENTATION_PLAN.md), [G2 verification plan](M2_VERIFICATION_PLAN.md)
@@ -171,4 +171,4 @@ Keep the same-origin `/api` proxy, use `credentials: "same-origin"`, and do not 
 
 G2 does not require tenant-owned shipment data, a dynamic RBAC editor, external login, invitation messages, a production deployment, old Docker volume compatibility, or dedicated accessibility auditing. The last two remain at M6/M12/M18/M24-03 and M24-04 respectively, with M19 owning full restore verification. The environment must remain zero-cost and local-first; controlled persistent data, caches and evidence must remain on E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
 
-Do not use GitHub Actions for M2 planning, implementation or verification until the restriction is explicitly lifted. Do not create or edit workflow files, dispatch workflows or rely on remote CI status. G2 can be verified later with explicitly run local build, PostgreSQL and browser checks against isolated disposable databases. Every result must name the exact source revision, fixture and observed outcome. This design document does not mark M2 code delivered, G2 verified or G2 accepted.
+Do not use GitHub Actions for M2 planning, implementation or verification until the restriction is explicitly lifted. Do not create or edit workflow files, dispatch workflows or rely on remote CI status. G2 can be verified later with explicitly run local build, PostgreSQL and browser checks against isolated disposable databases. Every result must name the exact source revision, fixture and observed outcome. This architecture is implemented as feature-branch source; [M2 implementation status](M2_IMPLEMENTATION_STATUS.md) records exact paths. No build, migration, HTTP or browser verification has run. G2 remains open and not accepted.

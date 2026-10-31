@@ -17,7 +17,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | --- | --- | --- |
 | **M0 Engineering baseline verification** | G0 verified and accepted | [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) passed all required .NET, clean/seeded PostgreSQL, web, functional browser, Compose recovery and final image checks on `fec7429415fede121db8a4a34f0df72cd4fac609`. |
 | **M1 Authentication and session lifecycle** | G1 verified and accepted; merged into `main` | [M1 verification register](M1_IMPLEMENTATION_VERIFICATION.md); both final CI runs passed; PR #4 merge `8f9fc0d506a9e1dc1d4f5acab936622df988f413` on 2026-10-31. |
-| **M2 Organizations and role isolation** | Architecture and implementation planned; no implementation | [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 verification matrix](M2_VERIFICATION_PLAN.md) prepared. No M2 source or G2 runtime evidence; G2 open. |
+| **M2 Organizations and role isolation** | Source implemented on feature branch, unverified | [M2 implementation register](M2_IMPLEMENTATION_STATUS.md): organization/membership migration, permission service, API, local CLI, React UI and unexecuted test source. No M2 runtime evidence, not merged into `main`; G2 open. |
 | **M3 Ports and vessels reference data** | Planned | No verified implementation or accepted gate G3 |
 | **M4 Voyages and containers reference data** | Planned | No verified implementation or accepted gate G4 |
 | **M5 Shipment lifecycle and concurrency** | Planned | No verified implementation or accepted gate G5 |
@@ -73,7 +73,7 @@ The `main` branch contains the M0 runtime and M1 authentication implementation. 
 
 ## Next milestone: M2
 
-The proposed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 execution sequence](M2_IMPLEMENTATION_PLAN.md) and [G2 local verification plan](M2_VERIFICATION_PLAN.md) are documented. The source remains at the accepted M1 baseline. No M2 migrations, endpoints, browser selector or G2 tests have been implemented or run. GitHub Actions usage is prohibited until explicitly restored, so no workflows, dispatches, reruns or remote CI checks are authorized.
+The [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 execution sequence](M2_IMPLEMENTATION_PLAN.md) and [G2 local verification plan](M2_VERIFICATION_PLAN.md) are documented. Source for M2-01 through M2-03 has been committed on a feature branch; verification is excluded from this handoff. The `main` branch remains at the accepted M1 baseline, while M2 source is committed on `feat/m2-organization-authorization`. [M2 implementation status](M2_IMPLEMENTATION_STATUS.md) lists the additive migration, scoped endpoints, membership service, browser controls and unexecuted test source. No M2 migration or test has been run and no G2 runtime evidence exists. GitHub Actions usage is prohibited until explicitly restored, so no workflows, dispatches, reruns or remote CI checks are authorized.
 
 G0 and G1 are accepted. M2 is the next unverified milestone: organization and membership modeling, roles, server-enforced tenant isolation and cross-organization denial tests. Follow the [roadmap](ROADMAP.md) and [execution graph](EXECUTION_GRAPH.md); do not claim G2 until its implementation and dedicated verification are complete. D-003 remains scheduled for M4, D-002 for M7. Dedicated accessibility verification remains M24-04; historical-volume compatibility stays at M6, M12, M18 and M24-03.
 

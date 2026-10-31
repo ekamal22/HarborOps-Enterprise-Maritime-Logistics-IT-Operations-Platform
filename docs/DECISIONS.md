@@ -49,7 +49,7 @@ Human browser login uses ASP.NET Core 10 cookie authentication with protected ti
 
 ## M2 implementation proposal (not an accepted new decision)
 
-[ADR-005](#adr-005-secure-organization-boundaries) already requires scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) proposes one role per organization membership, a fixed typed permission matrix, server-stored selection in `auth_sessions`, live authorization checks, controlled local organization bootstrap and transactionally enforced last-Administrator protection. These are implementation-level choices for review, not a new globally accepted ADR. G2 remains open; no M2 schema or code has been delivered. [Implementation sequence](M2_IMPLEMENTATION_PLAN.md) and [local G2 verification](M2_VERIFICATION_PLAN.md) own the next steps.
+[ADR-005](#adr-005-secure-organization-boundaries) already requires scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) proposes one role per organization membership, a fixed typed permission matrix, server-stored selection in `auth_sessions`, live authorization checks, controlled local organization bootstrap and transactionally enforced last-Administrator protection. These are implementation-level choices expressed in source on the feature branch, not a new globally accepted ADR. G2 remains open; no M2 schema has been applied or verified. See the [M2 implementation register](M2_IMPLEMENTATION_STATUS.md). [Implementation sequence](M2_IMPLEMENTATION_PLAN.md) and [local G2 verification](M2_VERIFICATION_PLAN.md) own the next steps.
 
 ## Open decisions
 

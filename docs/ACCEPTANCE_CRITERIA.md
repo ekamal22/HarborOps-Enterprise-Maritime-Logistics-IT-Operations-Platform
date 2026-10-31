@@ -42,7 +42,7 @@ Run fresh disposable PostgreSQL migration tests plus a disposable **M0-seeded-to
 
 The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation sequence](M2_IMPLEMENTATION_PLAN.md) and [G2 verification specification](M2_VERIFICATION_PLAN.md) require two-organization real-database fixtures, valid foreign organization and membership identifiers, a five-role permission matrix, explicit server-session organization selection, denied privilege escalation, suspension/revocation and last-active-Administrator concurrency tests. The verification must also preserve accepted M0 and M1 behavior.
 
-No G2 implementation or tests are recorded. GitHub Actions use is prohibited until explicitly restored; run mandatory G2 evidence locally against disposable resources only. G2 cannot be marked verified or accepted from this architecture proposal.
+M2 implementation source and initial regression tests are committed on a feature branch, but no G2 tests are executed. [Implementation inventory](M2_IMPLEMENTATION_STATUS.md). GitHub Actions use is prohibited until explicitly restored; run mandatory G2 evidence locally against disposable resources only. G2 cannot be marked verified or accepted from committed source alone.
 
 ## Granular milestone verification gates (v2)
 

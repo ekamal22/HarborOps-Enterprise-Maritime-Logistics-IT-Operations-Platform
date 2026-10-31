@@ -115,4 +115,4 @@ Do not fabricate passing test counts or mark G2 complete based on this document.
 
 ## Current status
 
-M2 is fully planned in documentation only. No M2 migrations, authorization middleware, organization endpoints, organization switcher, dedicated G2 tests or executed runtime verification are claimed. **G2 open.**
+M2 feature-branch implementation source and initial regression test files are committed, as recorded in [M2 implementation status](M2_IMPLEMENTATION_STATUS.md). This plan remains unexecuted. **G2 open.**

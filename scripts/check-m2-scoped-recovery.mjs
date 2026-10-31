@@ -99,7 +99,25 @@ try {
   if (stopped) docker("compose", "-p", project, "start", "postgres");
 }
 await ready();
-assert.equal((await admin.send("/api/v1/organizations/" + organization.id)).status, 200);
+// Database readiness and authenticated scope reads use different connections.
+// During restart, a stale pooled connection may still fail after readiness
+// succeeds. Only sanitized 503s are permissible until scope access recovers.
+async function waitForScopedRecovery(organizationId) {
+  const path = "/api/v1/organizations/" + organizationId;
+  const attempts = 30;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const result = await admin.send(path);
+    if (result.status === 200) {
+      assert.equal(result.body.id, organizationId,
+        "Recovered request must preserve the selected organization");
+      return;
+    }
+    safeError(result, 503);
+    if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  assert.fail("Authenticated organization scope did not recover after database restart");
+}
+await waitForScopedRecovery(organization.id);
 safeError(await member.mutate("/api/v1/auth/session/organization", "PUT",
   { organizationId: organization.id }), 404);
 safeError(await member.send("/api/v1/organizations/" + organization.id), 409);

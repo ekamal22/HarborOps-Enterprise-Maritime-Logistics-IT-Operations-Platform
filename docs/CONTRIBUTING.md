@@ -72,7 +72,7 @@ Use `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platfo
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. An M1 pull request must include schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and redacted GitHub Actions evidence according to [G1 Verification](M1_VERIFICATION_PLAN.md). No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.
 
-Do not conflate decision approval with G1 completion. G1 verification and explicit acceptance on 2026-10-31 are recorded in [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md). PR #4 was merged into `main`. G2 and later gates require separate verification and acceptance. M2 organization isolation, M7 integration credentials and final M24 accessibility audits remain outside the M1 gate.
+Do not conflate architecture approval with milestone acceptance. G1 was accepted on 2026-10-31 and merged via PR #4 ([M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md)). G2 tenant isolation was verified locally, explicitly accepted and merged via PR #5 ([M2 evidence](M2_EXECUTED_VERIFICATION.md)). G3 and later gates each require independent verification and acceptance. M7 integration credentials and final M24 accessibility remain outside M1 and M2.
 
 ## Documentation hygiene
 

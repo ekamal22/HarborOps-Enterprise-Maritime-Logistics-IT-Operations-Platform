@@ -43,11 +43,11 @@ Authoritative design: [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md), [
 | M1-03 | Integrate ASP.NET Core authentication, Data Protection key ring, antiforgery, rate limiting, login/session/logout/logout-all/disable-self endpoints and sanitized errors | API contract and negative security tests, instant revocation, restart/outage and no-secret-leak evidence |
 | M1-04 | Configure Nginx/Vite same-origin `/api` proxy, React login/session shell, three-browser functional tests and source-specific GitHub Actions evidence | Full G1 matrix, preserved M0 contracts and image scans at a fixed SHA |
 
-M1-02 and M1-03 may proceed after M1-01; M1-04 integrates both. M1 did not introduce organization authorization. Its G1 verification, acceptance and merge are complete. M2 adds organization authorization on a separate branch; M2 verification and acceptance remain separate. Database compatibility with existing retained local volumes is not a G1 requirement. All formal accessibility testing remains the final M24-04 milestone.
+M1-02 and M1-03 followed M1-01; M1-04 integrated both. M1 did not introduce organization authorization; M2 delivered it and is accepted and integrated into `main` via PR #5. Database compatibility with retained local volumes is not a G1/G2 requirement; designated later milestones own those checks. Dedicated accessibility verification remains M24-04.
 
 ## M2 implementation (verified locally; G2 accepted)
 
-The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation sequence](M2_IMPLEMENTATION_PLAN.md), and [G2 local test specification](M2_VERIFICATION_PLAN.md) govern this milestone. G1 is accepted. M2-01 through M2-04 are complete on a feature branch, with the [implementation evidence inventory](M2_IMPLEMENTATION_STATUS.md). The full G2 matrix passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` ([executed record](M2_EXECUTED_VERIFICATION.md)). G2 verified locally and accepted on 2026-10-31. M2 is not merged and M3 has not started; both need a separate decision.
+The [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 local verification plan](M2_VERIFICATION_PLAN.md) governed the completed M2-01 through M2-04 implementation. The full G2 matrix passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` ([executed record](M2_EXECUTED_VERIFICATION.md)); G2 was accepted on 2026-10-31 and M2 merged into `main` via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. M3 is planned and has not started.
 
 | Package | Planned change | Gate evidence |
 | --- | --- | --- |

@@ -59,11 +59,16 @@ for (const file of trxFiles) {
     cases.set(name, all);
   }
 }
+const requiredDistinctCases = new Map([
+  ["MaritimeGateCoverageTests.AllTenM4RoutesRejectInvalidatedAuthentication", 5],
+  ["MaritimePolicyTests.KnownIsoChecksumVectorsAreAccepted", 7]
+]);
 const unit = name => {
   const matches = [...cases.entries()].filter(([test]) =>
     test.endsWith("." + name) || test.includes("." + name + "("));
-  return matches.length > 0 && matches.every(([, outcomes]) =>
-    outcomes.length > 0 && outcomes.every(v => v === "Passed"));
+  return matches.length >= (requiredDistinctCases.get(name) ?? 1) &&
+    matches.every(([, outcomes]) => outcomes.length > 0 &&
+      outcomes.every(v => v === "Passed"));
 };
 const browserRoot = path.join(root, "playwright");
 if (!fs.existsSync(browserRoot)) throw new Error("Missing per-spec browser reports");
@@ -117,7 +122,7 @@ const scenarios = [
   ["S05",["MaritimeMigrationTests.SeededM3HistorySurvivesM4UpgradeRollbackAndReapply"]],
   ["S06",["MaritimeMigrationTests.DirectSqlRejectsCrossTenantVoyagesBadIdentifiersAndMutatedIdentity","MaritimeSqlInvariantTests.DirectSqlCannotBypassVoyageTransitionRouteVersionOrScheduleRules","MaritimeSqlInvariantTests.DirectSqlCannotModifyArchivedContainerOrImmutableIdentifiers"]],
   ["S07",[],[],["fixtures","m4-fixtures"]],
-  ["S08",["MaritimeGateCoverageTests.AllTenM4RoutesRejectInvalidatedAuthentication"]],
+  ["S08",["MaritimeGateCoverageTests.AllTenM4RoutesRejectInvalidatedAuthentication","MaritimeGateCoverageTests.AllTenM4RoutesRejectAnonymousAndForeignOrganization"]],
   ["S09",["MaritimeBoundaryTests.EveryMaritimeVerbRequiresSelectedOrganization","MaritimeUpgradeAndSecurityTests.SelectedOrganizationChangeAndSuspensionFailClosedForBothResources","MaritimeRevocationInterleavingTests.QueuedAdministratorDowngradePrecedesContainerMutation"]],
   ["S10",["MaritimeGateCoverageTests.AllTenM4RoutesRejectAnonymousAndForeignOrganization","MaritimeHttpTests.ForeignParentAndForeignRecordIdsDoNotLeak"]],
   ["S11",["MaritimeConcurrencyTests.ExistingForeignVoyageUuidCannotBeReadOrMutated"]],

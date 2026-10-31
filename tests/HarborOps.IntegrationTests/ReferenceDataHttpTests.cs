@@ -16,7 +16,7 @@ public sealed class ReferenceDataHttpTests
 {
     private const string Password = "Synthetic-reference-integration-passphrase-123";
 
-    private sealed class ApiFactory(string connection) : WebApplicationFactory<Program>
+    internal sealed class ApiFactory(string connection) : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -28,7 +28,7 @@ public sealed class ReferenceDataHttpTests
         }
     }
 
-    private static async Task<HttpResponseMessage> Send(
+    internal static async Task<HttpResponseMessage> Send(
         HttpClient client, HttpMethod method, string path, object? payload = null, bool csrf = true)
     {
         using var request = new HttpRequestMessage(method, path);
@@ -45,24 +45,24 @@ public sealed class ReferenceDataHttpTests
         return await client.SendAsync(request);
     }
 
-    private static async Task Login(HttpClient client, string email)
+    internal static async Task Login(HttpClient client, string email)
     {
         using var response = await Send(client, HttpMethod.Post, "/api/v1/auth/login",
             new { email, password = Password });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    private static async Task Select(HttpClient client, Guid orgId)
+    internal static async Task Select(HttpClient client, Guid orgId)
     {
         using var response = await Send(client, HttpMethod.Put,
             "/api/v1/auth/session/organization", new { organizationId = orgId });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    private sealed record Fixture(Guid A, Guid B, string AdminEmail, string ManagerEmail,
+    internal sealed record Fixture(Guid A, Guid B, string AdminEmail, string ManagerEmail,
         string AnalystEmail, HttpClient Admin, HttpClient Manager, HttpClient Analyst);
 
-    private static async Task<Fixture> Setup(ApiFactory factory)
+    internal static async Task<Fixture> Setup(ApiFactory factory)
     {
         await using var scope = factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();

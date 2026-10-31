@@ -42,6 +42,10 @@ The M1 architecture is implemented and its engineering verification passed in [V
 
 Organization memberships and authorization remain M2. Historical-volume checks occur at quarter-mile milestones; dedicated accessibility testing remains M24-04. G0 and G1 are accepted. M2 (organizations and role isolation) is next; G2 is open.
 
+### Next milestone: M2 organizations and role isolation
+
+M2 is planned, not implemented. Its [architecture](docs/M2_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](docs/M2_VERIFICATION_PLAN.md) specify server-authoritative organization selection, membership role grants and cross-organization denials. G2 remains open. No GitHub Actions usage is permitted until this restriction is explicitly lifted; M2 verification is local-only.
+
 ### Planned modules
 
 | Module | Scope |

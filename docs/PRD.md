@@ -71,6 +71,10 @@ The approved [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md) establishes
 
 D-001 is accepted and M1 is implemented, G1 verified and explicitly accepted on 2026-10-31. PR #4 was merged into `main` at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. Requirements and test evidence remain governed by [Requirements](REQUIREMENTS.md), [G1 verification](M1_VERIFICATION_PLAN.md) and [Status](STATUS.md).
 
+### 5.0.1 M2 organization membership and role boundary (planned)
+
+The proposed [M2 architecture](M2_ARCHITECTURE_DESIGN.md) defines additive organizations and memberships, selected organization per authenticated server session, a fixed role-permission matrix and fresh server-side checks on each organization-scoped request. A selected or guessed organization ID is never sufficient authorization; administrators cannot automatically read every organization's business data. M2 includes local organization bootstrap and guarded membership/profile management, with no shipment CRUD. The [implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 local verification matrix](M2_VERIFICATION_PLAN.md) are documented. G2 remains open and no M2 implementation is claimed.
+
 ### 5.1 Shipment operations
 
 An authenticated, authorized analyst selects an active organization and creates a shipment from validated reference records. Container and voyage assignments must respect temporal and ownership invariants. Edits use concurrency protection. Search and detail requests include the same server-side organization boundary; archive prevents casual deletion of referenced history. See FR-001 through FR-005 and [Domain Model](DOMAIN_MODEL.md).

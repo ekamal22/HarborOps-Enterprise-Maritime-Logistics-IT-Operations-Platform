@@ -53,6 +53,12 @@
 6. The existing `bootstrap_records` synthetic seed remains unchanged and does not provision an account.
 7. Organization and membership invariants remain M2 scope; authentication alone is not business authorization.
 
+## M2 organization model (planned, not migrated)
+
+The proposed [M2 architecture](M2_ARCHITECTURE_DESIGN.md) adds additive `organizations` and `organization_memberships` tables, one effective role per user/organization, independent role membership states and a per-session nullable selected-organization reference. The explicit role set is Analyst, Manager, Support, Administrator and Auditor. A user's active membership in organization A confers no permissions in B. Administrator grants are limited to the authorized organization and do not imply business-data access.
+
+Required invariants include uniqueness of organization slug and user/organization membership, soft removal, active-organization checks, live role revalidation, versioned updates and transactional protection against loss of the final active Administrator. The accepted M1 cookie does not carry trusted organization roles. These invariants are planned only and do not imply any M2 migration or test execution. See [M2 implementation](M2_IMPLEMENTATION_PLAN.md) and [G2 verification](M2_VERIFICATION_PLAN.md).
+
 ## Illustrative lifecycle
 
     Draft -> Booked -> In Transit -> Arrived -> Completed

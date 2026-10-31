@@ -45,6 +45,19 @@ Authoritative design: [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md), [
 
 M1-02 and M1-03 may proceed after M1-01; M1-04 integrates both. Do not create roles, organization memberships, shipment data, bearer integration credentials or public sign-up in M1. G1 is verified only after successful executed evidence; explicit acceptance and merge remain separate. Database compatibility with existing retained local volumes is not a G1 requirement. All formal accessibility testing remains the final M24-04 milestone.
 
+## M2 planned implementation work packages (not started)
+
+The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation sequence](M2_IMPLEMENTATION_PLAN.md), and [G2 local test specification](M2_VERIFICATION_PLAN.md) govern this milestone. G1 is accepted; G2 remains open. Do not begin M3 based on documentation alone.
+
+| Package | Planned change | Gate evidence |
+| --- | --- | --- |
+| M2-01 | Additive organization/membership schema, fixed roles, restricted bootstrap and nullable server-side session selection | Fresh and M1-to-M2 migration, constraints, fixture and bootstrap tests |
+| M2-02 | Deny-by-default organization authorization guard, scoped profile/membership APIs, optimistic versioning, last-admin transaction safety | Wrong-role, foreign-ID, concurrency, CSRF and outage tests |
+| M2-03 | Session-owned selected organization, context endpoints and functional browser switcher | Multi-session, differing-role, removal, suspension and state-refresh tests |
+| M2-04 | Execute G2 two-tenant matrix and M0/M1 regressions, record exact revision and outcomes | Local unit, real PostgreSQL, HTTP, browser and operational evidence |
+
+**Execution restriction:** Do not use GitHub Actions, modify workflows, dispatch runs, or rely on remote CI until the restriction is explicitly lifted. Required verification must be executed locally with disposable resources under the E-drive storage policy.
+
 ## Local development storage
 
 All controlled persistent project files, caches, container data and verification artifacts must stay on E:. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md); use C: only for unavoidable temporary Windows activity.

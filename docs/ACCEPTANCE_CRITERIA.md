@@ -38,6 +38,12 @@ The selected D-001 architecture is [documented](ADR_D001_BROWSER_SESSIONS.md), a
 
 Run fresh disposable PostgreSQL migration tests plus a disposable **M0-seeded-to-M1** additive migration, not a retained local volume. Execute functional Chromium/Firefox/WebKit browser tests, release build, dependency/image scanning and complete M0 regression checks. G1 initially advanced to `acceptance pending` after passing executed verification. Explicit acceptance was subsequently recorded on 2026-10-31; design approval alone never constituted G1 verification. Full accessibility testing remains exclusively M24-04.
 
+## G2 proposed organization authorization verification
+
+The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation sequence](M2_IMPLEMENTATION_PLAN.md) and [G2 verification specification](M2_VERIFICATION_PLAN.md) require two-organization real-database fixtures, valid foreign organization and membership identifiers, a five-role permission matrix, explicit server-session organization selection, denied privilege escalation, suspension/revocation and last-active-Administrator concurrency tests. The verification must also preserve accepted M0 and M1 behavior.
+
+No G2 implementation or tests are recorded. GitHub Actions use is prohibited until explicitly restored; run mandatory G2 evidence locally against disposable resources only. G2 cannot be marked verified or accepted from this architecture proposal.
+
 ## Granular milestone verification gates (v2)
 
 The detailed product release checks below remain in force. The [Roadmap](ROADMAP.md) divides their implementation into 25 narrower gates. A milestone gate is verified only after the corresponding graph work packages have verifiable evidence for the checks below, including negative/failure conditions.
@@ -46,7 +52,7 @@ The detailed product release checks below remain in force. The [Roadmap](ROADMAP
 | --- | --- | --- |
 | **G0** | M0 Engineering baseline verification | Clean .NET and web builds, unit/contract/integration tests, PostgreSQL repeatable migration, Compose/browser status path, readiness outage and hygiene evidence |
 | **G1** | M1 Authentication and session lifecycle | FR-001: real PostgreSQL Argon2id credentials, cookies, CSRF, login/logout/logout-all, expiry, account disablement, immediate revocation, three-browser functional flow, clean migration, restart/outage, rate limits and redacted security evidence. [Full G1 plan](M1_VERIFICATION_PLAN.md). |
-| **G2** | M2 Organizations and role isolation | Two-organization membership scope, role denials, disabled membership and selected-organization tests |
+| **G2** | M2 Organizations and role isolation | Two-organization membership scope, role denials, disabled membership, session-scoped organization selection, foreign-ID denial, last-admin concurrency and M0/M1 regressions; [G2 local plan](M2_VERIFICATION_PLAN.md) |
 | **G3** | M3 Ports and vessels reference data | Port/vessel identifier, validation, scoped CRUD and browser lookup tests |
 | **G4** | M4 Voyages and containers reference data | Voyage scheduling and container identity/uniqueness tests with resolved D-003 |
 | **G5** | M5 Shipment lifecycle and concurrency | Shipment lifecycle, archival, stale-write, transaction and cross-tenant denial tests |

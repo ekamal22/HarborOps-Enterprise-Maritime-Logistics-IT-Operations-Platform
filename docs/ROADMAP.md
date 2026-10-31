@@ -101,9 +101,10 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 #### M2: Organizations and role isolation
 
-**Scope:** Explicit memberships, roles and organization-scoped access.
+**Scope:** Explicit memberships, roles and organization-scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) proposes additive organization/membership persistence, typed role grants, per-session organization selection and fail-closed cross-tenant authorization. This is a design proposal, not delivered functionality.
 **Entry:** G1 verified and accepted, with documented evidence and merged source.
-**Required work packages:** M2-01 Model memberships and role grants; M2-02 Enforce permission boundary; M2-03 Implement organization selection; M2-04 Verify tenant isolation.
+**Required work packages:** M2-01 Model memberships and role grants; M2-02 Enforce permission boundary; M2-03 Implement organization selection; M2-04 Verify tenant isolation. See the [M2 implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](M2_VERIFICATION_PLAN.md).
+**Verification restriction:** GitHub Actions usage is prohibited until expressly restored. M2 verification is local-only with isolated disposable PostgreSQL and browser fixtures.
 **Exit G2:** All applicable tasks, negative tests, runtime evidence and documentation for M2 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Shipment domain CRUD and maritime reference data.
 

@@ -129,6 +129,12 @@ The accepted M1 runtime adds a second persistent Docker volume, `harborops-keyri
 
 Use `docker compose run --rm -it -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision EMAIL DISPLAY_NAME` for local provisioning. Use `--account-cli reset EMAIL` to change a password and revoke sessions. Passwords are prompted through terminal input or a controlled stdin pipe; do not supply them as arguments, logs, or tracked environment variables. Restrict who can access the host and Docker volumes.
 
+## M2 organization operations runbook (planned)
+
+The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) proposes an opt-in local `--organization-cli bootstrap` command that creates one organization and its first Administrator membership transactionally for an already provisioned active user. The exact command shape and safe lifecycle are specified in [M2 Implementation Plan](M2_IMPLEMENTATION_PLAN.md); no such command currently exists. Membership changes will be via explicitly authorized, CSRF-protected scoped APIs. There is no public organization registration.
+
+All M2/G2 tests are restricted to isolated disposable databases and locally executed tools. Do not access or delete the primary PostgreSQL volume or use the historical-volume compatibility checkpoint early. GitHub Actions use is prohibited until explicitly restored. A missing local tool or browser engine must be documented as BLOCKED, not treated as successful verification.
+
 ## M0 local runbook
 
 - Set a unique password in a local untracked `.env` based on `.env.example`

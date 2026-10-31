@@ -79,7 +79,7 @@ public sealed class OrganizationAdversarialHttpTests
         var foreign = await store.BootstrapAsync("g2-http-b-" + nonce[..12],
             "Organization B", foreignEmail, CancellationToken.None);
         var foreignId = (await db.AuthUsers.AsNoTracking()
-            .SingleAsync(x => x.NormalizedEmail == foreignEmail)).Id;
+            .SingleAsync(x => x.NormalizedEmail == IdentityStore.NormalizeEmail(foreignEmail))).Id;
         using var admin = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
         await Login(admin, adminEmail);
         await Select(admin, org.Id);
@@ -89,7 +89,7 @@ public sealed class OrganizationAdversarialHttpTests
             var email = "g2-" + role.ToLowerInvariant() + "-" + nonce + "@example.test";
             await identity.ProvisionAsync(email, role, Password, CancellationToken.None);
             var user = await db.AuthUsers.AsNoTracking()
-                .SingleAsync(x => x.NormalizedEmail == email);
+                .SingleAsync(x => x.NormalizedEmail == IdentityStore.NormalizeEmail(email));
             using (var grant = await Mutate(admin, HttpMethod.Put,
                 "/api/v1/organizations/" + org.Id + "/memberships/" + user.Id,
                 new { role, status = "Active", expectedVersion = (long?)null }))
@@ -171,7 +171,7 @@ public sealed class OrganizationAdversarialHttpTests
         var b = await store.BootstrapAsync("g2-session-b-" + nonce[..10], "Site B",
             adminBEmail, CancellationToken.None);
         var memberId = (await db.AuthUsers.AsNoTracking()
-            .SingleAsync(x => x.NormalizedEmail == memberEmail)).Id;
+            .SingleAsync(x => x.NormalizedEmail == IdentityStore.NormalizeEmail(memberEmail))).Id;
         var adminA = (await identity.LoginAsync(adminAEmail, Password,
             Correlation, CancellationToken.None))!;
         var adminB = (await identity.LoginAsync(adminBEmail, Password,

@@ -9,6 +9,11 @@ public sealed class MaritimePolicyTests
     [Theory]
     [InlineData("CSQU3054383", "CSQU3054383")]
     [InlineData(" csqu 3054383 ", "CSQU3054383")]
+    [InlineData("MSCU6639870", "MSCU6639870")]
+    [InlineData("TGHU1234567", "TGHU1234567")]
+    [InlineData("ABCU1234560", "ABCU1234560")]
+    [InlineData("CMAU1234564", "CMAU1234564")]
+    [InlineData("OOLU1234567", "OOLU1234567")]
     public void KnownIsoChecksumVectorsAreAccepted(string input, string normalized) =>
         Assert.Equal(normalized, MaritimePolicy.Identifier("ISO6346", input));
     [Theory]
@@ -17,6 +22,12 @@ public sealed class MaritimePolicyTests
     [InlineData("CSQU305438")]
     [InlineData("CSQU30543833")]
     [InlineData("SYN-BOX-TEST1")]
+    [InlineData("MSCU6639871")]
+    [InlineData("TGHU1234568")]
+    [InlineData("ABCU1234561")]
+    [InlineData("CMAU1234565")]
+    [InlineData("OOLU1234568")]
+    [InlineData("CSQU3054383\u0000")]
     public void IncorrectIsoIdentifiersAreRejected(string value) =>
         Assert.Throws<ArgumentException>(() => MaritimePolicy.Identifier("ISO6346", value));
     [Fact]
@@ -58,6 +69,10 @@ public sealed class MaritimePolicyTests
     [InlineData("Planned", "Arrived", false)]
     [InlineData("Arrived", "Underway", false)]
     [InlineData("Cancelled", "Planned", false)]
+    [InlineData("Arrived", "Arrived", true)]
+    [InlineData("Cancelled", "Cancelled", true)]
+    [InlineData("Underway", "Cancelled", false)]
+    [InlineData("Planned", "Cancelled", true)]
     public void TransitionGraphIsClosed(string start, string end, bool allowed) =>
         Assert.Equal(allowed, MaritimePolicy.Transition(start, end));
     [Fact]

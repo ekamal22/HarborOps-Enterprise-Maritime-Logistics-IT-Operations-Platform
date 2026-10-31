@@ -32,6 +32,12 @@ if [[ -z "${HARBOROPS_TEST_USER_PASSWORD:-}" ]]; then
   HARBOROPS_TEST_USER_PASSWORD=$(cat "$secret_file")
   export HARBOROPS_TEST_USER_PASSWORD
 fi
+# Verification-only Compose override on E: that disables core dumps, so a crashing process inside
+# a container cannot make the WSL crash handler write dump files to C:. compose.yaml is unchanged.
+core_override="$root/compose.core0.yaml"
+test -f "$core_override" || { echo "Missing $core_override" >&2; exit 2; }
+export COMPOSE_PATH_SEPARATOR=";"
+export COMPOSE_FILE="compose.yaml;$(cygpath -w "$core_override")"
 compose=(docker compose -p "$project")
 
 stage_preflight() {
@@ -51,7 +57,7 @@ stage_dotnet() {
   winroot=$(cygpath -w "$root")
   repo=$(pwd -W)
   docker rm -f ho-g2-pg >/dev/null 2>&1 || true
-  docker run -d --name ho-g2-pg --label harborops.g2=disposable \
+  docker run -d --name ho-g2-pg --label harborops.g2=disposable --ulimit core=0 \
     --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 --cap-drop ALL \
     --security-opt no-new-privileges -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops \
     -e POSTGRES_HOST_AUTH_METHOD=trust harborops-postgres:16.15-rootless >/dev/null
@@ -83,7 +89,7 @@ run integration-fresh tests/HarborOps.IntegrationTests/HarborOps.IntegrationTest
 run integration-repeat tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj
 exit $status
 INNER
-  MSYS_NO_PATHCONV=1 docker run --rm --name ho-g2-sdk --network container:ho-g2-pg -v "$repo:/src" -v "$winroot:/cache" \
+  MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 --name ho-g2-sdk --network container:ho-g2-pg -v "$repo:/src" -v "$winroot:/cache" \
     -w /src -e DOTNET_NOLOGO=1 -e DOTNET_CLI_TELEMETRY_OPTOUT=1 -e NUGET_PACKAGES=/cache/nuget/packages \
     -e NUGET_HTTP_CACHE_PATH=/cache/nuget/http-cache -e DOTNET_CLI_HOME=/cache/dotnet-home \
     -e HOME=/cache/dotnet-home -e TMPDIR=/cache/tmp \
@@ -96,7 +102,7 @@ INNER
 stage_deps() {
   winroot=$(cygpath -w "$root")
   repo=$(pwd -W)
-  MSYS_NO_PATHCONV=1 docker run --rm -v "$repo:/src" -v "$winroot:/cache" -w /src -e DOTNET_NOLOGO=1 \
+  MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 -v "$repo:/src" -v "$winroot:/cache" -w /src -e DOTNET_NOLOGO=1 \
     -e NUGET_PACKAGES=/cache/nuget/packages -e NUGET_HTTP_CACHE_PATH=/cache/nuget/http-cache \
     -e DOTNET_CLI_HOME=/cache/dotnet-home -e HOME=/cache/dotnet-home -e TMPDIR=/cache/tmp \
     mcr.microsoft.com/dotnet/sdk:10.0 bash -c \
@@ -186,7 +192,7 @@ stage_scan() {
     image=$(docker inspect --format '{{.Image}}' "$container")
     revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
     test "$revision" = "$sha"
-    MSYS_NO_PATHCONV=1 docker run --rm \
+    MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 \
       -v /var/run/docker.sock:/var/run/docker.sock \
       -v "$root/trivy-cache:/root/.cache/trivy" \
       -v "$evidence/trivy:/reports" \

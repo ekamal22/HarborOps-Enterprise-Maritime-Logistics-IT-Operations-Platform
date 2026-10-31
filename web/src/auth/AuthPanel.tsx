@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import OrganizationWorkspace from "./OrganizationWorkspace";
 
 type User = { id: string; email: string; displayName: string };
 type SessionState = { user: User; session: { expiresAtUtc: string } };
@@ -88,6 +89,7 @@ export default function AuthPanel() {
             <button disabled={busy} onClick={() => void operation("logout")} className="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-50">Log out</button>
             <button disabled={busy} onClick={() => void operation("logout-all")} className="rounded-lg border border-slate-600 px-4 py-2 disabled:opacity-50">Log out all devices</button>
           </div>
+          <OrganizationWorkspace currentUserId={current.user.id} />
           <div className="mt-6 border-t border-slate-700 pt-5">
             <label htmlFor="confirmation" className="block text-sm text-slate-300">Password confirmation to disable account</label>
             <input id="confirmation" type="password" autoComplete="current-password" value={confirmation}

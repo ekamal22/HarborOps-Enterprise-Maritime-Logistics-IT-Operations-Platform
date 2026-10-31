@@ -66,6 +66,15 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
     setProfileName("");
   }, []);
 
+  const onReferenceAccessInvalidated = useCallback(() => {
+    sequence.current += 1;
+    clearProtected();
+    setOrganizations([]);
+    setError("Your organization access has changed. Refreshing permissions.");
+    void Promise.resolve().then(() => refreshRef.current?.());
+  }, [clearProtected]);
+  const refreshRef = useRef<(() => Promise<void>) | null>(null);
+
   const refresh = useCallback(async () => {
     const serial = ++sequence.current;
     setLoading(true);
@@ -103,6 +112,8 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
       if (serial === sequence.current) setLoading(false);
     }
   }, [clearProtected]);
+
+  refreshRef.current = refresh;
 
   useEffect(() => {
     void refresh();
@@ -211,7 +222,8 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
           <p className="mt-1 text-xs text-slate-400">Slug: {profile.slug} | Role: {selection.role}</p>
           {(selection.role === "Analyst" || selection.role === "Manager") &&
             <ReferenceDataWorkspace key={selection.id + ":" + selection.role}
-              organizationId={selection.id} canManage={selection.role === "Manager"} />}
+              organizationId={selection.id} canManage={selection.role === "Manager"}
+              onAccessInvalidated={onReferenceAccessInvalidated} />}
           {selection.role === "Administrator" && (
             <div className="mt-5 border-t border-slate-700 pt-5">
               <form onSubmit={e => void updateProfile(e)} className="flex flex-wrap items-end gap-2">

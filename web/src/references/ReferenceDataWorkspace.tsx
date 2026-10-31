@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { organizationError } from "../auth/organizationClient";
+import { organizationError, OrganizationRequestError } from "../auth/organizationClient";
 import {
   listReferences, createReference, updateReference, archiveReference,
   type ReferenceKind, type ReferenceRow, type ReferenceStatus
@@ -40,9 +40,10 @@ function payload(kind: ReferenceKind, form: FormState, isNew: boolean): Record<s
   };
 }
 
-export default function ReferenceDataWorkspace({ organizationId, canManage }: {
+export default function ReferenceDataWorkspace({ organizationId, canManage, onAccessInvalidated }: {
   organizationId: string;
   canManage: boolean;
+  onAccessInvalidated: () => void;
 }) {
   const [kind, setKind] = useState<ReferenceKind>("ports");
   const [q, setQ] = useState("");
@@ -53,14 +54,24 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
   const [form, setForm] = useState<FormState>(empty);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [paging, setPaging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const generation = useRef(0);
   const mutationGeneration = useRef(0);
+  const pagingGeneration = useRef(0);
+  const invalidateAccess = useCallback((cause: unknown) => {
+    if (cause instanceof OrganizationRequestError &&
+        (cause.status === 401 || cause.code === "organization_access_revoked" ||
+         cause.code === "organization_selection_required" || cause.code === "access_denied"))
+      onAccessInvalidated();
+  }, [onAccessInvalidated]);
   useEffect(() => () => { mutationGeneration.current += 1; }, [organizationId, kind]);
 
   const reload = useCallback(async () => {
     const serial = ++generation.current;
+    ++pagingGeneration.current;
+    setPaging(false);
     setItems([]); setSelected(null); setCreating(false); setNextAfter(null);
     setLoading(true); setError("");
     try {
@@ -72,10 +83,11 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
       if (serial !== generation.current) return;
       setError(organizationError(cause));
       setItems([]);
+      invalidateAccess(cause);
     } finally {
       if (serial === generation.current) setLoading(false);
     }
-  }, [organizationId, kind, q, status]);
+  }, [organizationId, kind, q, status, invalidateAccess]);
 
   useEffect(() => {
     void reload();
@@ -90,9 +102,10 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
   }, [reload]);
 
   const loadMore = async () => {
-    if (!nextAfter || busy || loading) return;
-    const serial = generation.current;;
-    setBusy(true); setError("");
+    if (!nextAfter || busy || paging || loading) return;
+    const serial = generation.current;
+    const pageSerial = ++pagingGeneration.current;
+    setPaging(true); setError("");
     try {
       const page = await listReferences(organizationId, kind, q, status, nextAfter);
       if (serial !== generation.current) return;
@@ -102,8 +115,9 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
       if (serial === generation.current) {
         setError(organizationError(cause));
         setItems([]); setNextAfter(null); setSelected(null);
+        invalidateAccess(cause);
       }
-    } finally { if (serial === generation.current) setBusy(false); }
+    } finally { if (pageSerial === pagingGeneration.current) setPaging(false); }
   };
 
   const write = async (event: FormEvent) => {
@@ -125,6 +139,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
         setError(organizationError(cause));
         setSelected(null);
         setItems([]); setNextAfter(null);
+        invalidateAccess(cause);
       }
     } finally { if (mutationSerial === mutationGeneration.current) setBusy(false); }
   };
@@ -146,6 +161,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
       if (serial === generation.current) {
         setError(organizationError(cause));
         setSelected(null); setItems([]); setNextAfter(null);
+        invalidateAccess(cause);
       }
     } finally { if (mutationSerial === mutationGeneration.current) setBusy(false); }
   };
@@ -159,7 +175,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
       </div>
       <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Reference type">
         {(["ports", "vessels"] as const).map(value =>
-          <button key={value} type="button" disabled={busy} onClick={() => {
+          <button key={value} type="button" disabled={busy || paging} onClick={() => {
             generation.current += 1; mutationGeneration.current += 1; setBusy(false);
             setKind(value); setQ(""); setStatus("Active");
             setSelected(null); setCreating(false); setItems([]);
@@ -170,17 +186,17 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
       </div>
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <label className="text-sm">Search {kind}
-          <input value={q} maxLength={80} disabled={busy} onChange={event => setQ(event.target.value)}
+          <input value={q} maxLength={80} disabled={busy || paging} onChange={event => setQ(event.target.value)}
             className="mt-1 block rounded bg-slate-950 px-3 py-2"
             placeholder="Name, reference, identifier" />
         </label>
         <label className="text-sm">Reference status
-          <select value={status} disabled={busy} onChange={event => setStatus(event.target.value as ReferenceStatus | "All")}
+          <select value={status} disabled={busy || paging} onChange={event => setStatus(event.target.value as ReferenceStatus | "All")}
             className="mt-1 block rounded bg-slate-950 px-3 py-2">
             <option>Active</option><option>Archived</option><option>All</option>
           </select>
         </label>
-        {canManage && <button type="button" disabled={busy || loading}
+        {canManage && <button type="button" disabled={busy || paging || loading}
           onClick={() => { setCreating(true); setSelected(null); setForm(empty); setError(""); }}
           className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">
           Add {kind === "ports" ? "port" : "vessel"}
@@ -205,7 +221,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
                 onClick={() => { setSelected(item); setCreating(false); setForm(formOf(item)); }}>
                 {canManage ? "View or edit" : "Details"}
               </button>
-              {canManage && <button type="button" disabled={busy}
+              {canManage && <button type="button" disabled={busy || paging}
                 className="rounded border border-slate-600 px-3 py-1 text-sm disabled:opacity-50"
                 onClick={() => void changeStatus(item)}>
                 {item.status === "Active" ? "Archive" : "Restore"}
@@ -213,7 +229,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
             </div>
           </li>)}
       </ul>
-      {nextAfter && <button type="button" disabled={busy || loading}
+      {nextAfter && <button type="button" disabled={busy || paging || loading}
         className="mt-3 rounded border border-slate-600 px-3 py-2 text-sm disabled:opacity-50"
         onClick={() => void loadMore()}>Load more references</button>}
       {(creating || selected) &&
@@ -261,7 +277,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
               </label>
             </>}
             <div className="sm:col-span-2 flex flex-wrap gap-2">
-              {canManage && <button type="submit" disabled={busy}
+              {canManage && <button type="submit" disabled={busy || paging}
                 className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50">
                 {creating ? "Create reference" : "Save reference"}
               </button>}

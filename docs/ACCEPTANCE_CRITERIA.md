@@ -42,7 +42,7 @@ Run fresh disposable PostgreSQL migration tests plus a disposable **M0-seeded-to
 
 The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation sequence](M2_IMPLEMENTATION_PLAN.md) and [G2 verification specification](M2_VERIFICATION_PLAN.md) require two-organization real-database fixtures, valid foreign organization and membership identifiers, a five-role permission matrix, explicit server-session organization selection, denied privilege escalation, suspension/revocation and last-active-Administrator concurrency tests. The verification must also preserve accepted M0 and M1 behavior.
 
-M2 source and initial regression tests are committed on a feature branch, and [GitHub run #41157387340](M2_EXECUTED_VERIFICATION.md) passed. The [executed evidence](M2_EXECUTED_VERIFICATION.md) identifies mandatory G2 cases not yet covered, including two-writer administrator changes and suspended organizations. G2 is not fully verified or accepted; no retained workstation data was used.
+M2 source and initial regression tests are committed on a feature branch, and [GitHub run #41157387340](M2_EXECUTED_VERIFICATION.md) passed. The [executed evidence](M2_EXECUTED_VERIFICATION.md) identifies mandatory G2 cases not yet covered, including remaining historical-upgrade, disabled-bootstrap, scoped-outage and other negative cases. Expanded [run #41158772090](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41158772090) passed the independent two-writer Administrator and suspended-organization checks. G2 is not fully verified or accepted; no retained workstation data was used.
 
 ## Granular milestone verification gates (v2)
 

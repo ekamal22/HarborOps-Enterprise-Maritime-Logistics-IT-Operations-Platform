@@ -3,9 +3,9 @@
 **Milestone:** M2 Organizations and role isolation  
 **Branch:** `feat/m2-organization-authorization`  
 **Baseline:** `a2acd64234049580c21dec49dbdd987b01030a4b` on `main`; G0 and G1 accepted  
-**Implementation state:** Source committed and initial GitHub automated verification passed. **Not merged to `main`; complete G2 verification unfinished and G2 open.**  
+**Implementation state:** Source committed and initial GitHub automated verification passed. **Not merged to `main`; expanded adversarial verification passed, residual G2 cases pending and G2 open.**  
 **Verification authorization:** M2 GitHub verification was explicitly requested on 2026-10-31. [Run #41157387340](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41157387340) succeeded on draft PR #5.  
-**Verification:** [Executed record](M2_EXECUTED_VERIFICATION.md): 22 unit, 12 contract, 13 fresh/13 repeat integration, 6 frontend, 24 browser and runtime/image checks passed. Remaining G2 cases open.
+**Verification:** [Executed record](M2_EXECUTED_VERIFICATION.md): 22 unit, 12 contract, 13 fresh/13 repeat integration, 6 frontend, 24 browser and runtime/image checks passed. Expanded [run #41158772090](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41158772090) passed, including 19 fresh and 19 repeated PostgreSQL tests; residual G2 cases open.
 
 ## Delivered source changes
 
@@ -56,7 +56,7 @@ An equivalent restricted bootstrap of a synthetic organization was executed succ
 - Scoped HTTP errors and request correlation, without passwords or raw session cookies in responses.
 - Browser context reload and protected state clearing on changes/denials.
 
-These are source characteristics. The [executed verification](M2_EXECUTED_VERIFICATION.md) passed the included unit, integration, HTTP and browser assertions. Comprehensive two-writer and suspension tests remain unexecuted. Last-administrator self-disable denial is represented by a new typed failure and HTTP 409 response, without changing ordinary M1 disablement for non-administrators.
+These are source characteristics. The [executed verification](M2_EXECUTED_VERIFICATION.md) passed the included unit, integration, HTTP and browser assertions. The two-context Administrator demotion and suspended-organization tests passed in [expanded run #41158772090](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41158772090). Some other G2 cases remain open. Last-administrator self-disable denial is represented by a new typed failure and HTTP 409 response, without changing ordinary M1 disablement for non-administrators.
 
 ## Verification still required for G2
 

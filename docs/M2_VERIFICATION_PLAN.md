@@ -1,6 +1,6 @@
 # G2 Organizations and Role Isolation: Verification Plan
 
-**Status:** Initial [GitHub verification](M2_EXECUTED_VERIFICATION.md) passed. The full adversarial matrix remains incomplete.  
+**Status:** Initial [GitHub verification](M2_EXECUTED_VERIFICATION.md) passed. Expanded [run #41158772090](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41158772090) passed the concurrent-administrator, suspension, cross-tenant and two-session tests; some G2 cases remain.  
 **Gate:** G2; requires separate acceptance after complete successful evidence  
 **Prerequisites:** M2-01, M2-02, M2-03 and M2-04 as defined in the [execution graph](EXECUTION_GRAPH.md)  
 **Reference:** [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation plan](M2_IMPLEMENTATION_PLAN.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Status](STATUS.md).
@@ -119,4 +119,4 @@ Do not fabricate passing test counts or mark G2 complete based on this document.
 
 ## Current status
 
-M2 feature-branch implementation source and initial regression test files are committed, as recorded in [M2 implementation status](M2_IMPLEMENTATION_STATUS.md). Initial GitHub suites passed; mandatory outstanding cases remain. **G2 open.**
+M2 feature-branch implementation source and initial regression test files are committed, as recorded in [M2 implementation status](M2_IMPLEMENTATION_STATUS.md). Expanded GitHub suites passed, including concurrent Administrator demotions, suspended organizations, session isolation and API role-denial matrices. Residual G2 cases remain. **G2 open.**

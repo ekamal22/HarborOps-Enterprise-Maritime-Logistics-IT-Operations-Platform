@@ -377,12 +377,12 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M4-01: Finalize container identifier policy** | G3 | Close D-003 and capture synthetic ID rules and constraints | Decision documented with positive/negative examples | FR-005, FR-017 |
-| **M4-02: Implement voyage persistence** | M4-01 | Link vessels, ports and coherent planned/actual time windows | Time-order and missing-value database/API tests | FR-003, NFR-007 |
-| **M4-03: Implement container persistence** | M4-01 | Store equipment type, identifier and lifecycle reference | Uniqueness, format, state and organization tests | FR-005, FR-003 |
-| **M4-04: Verify voyage and container workflows** | M4-02, M4-03 | Expose create/detail/list with scoped browser controls | API, database and browser fixture regression | FR-003, FR-005 |
+| **M4-01: Finalize container identifier policy** | G3 | Approve D-003 with pinned ISO edition, canonical synthetic kind, type set, immutable keys, voyage time/status and scoped API contracts; see M4 architecture and D-003 proposal | Document the decision with checksum vectors, competing options, positive/negative examples and accepted domain/API contract before implementing identifiers | FR-005, FR-017 |
+| **M4-02: Implement voyage persistence** | M4-01 | Implement organization-owned voyage schema with composite same-tenant port/vessel FKs, nullable planned/actual UTC times, explicit progress, optimistic versions and five scoped HTTP routes | Pass time/route, direct SQL, true foreign-parent UUID, lifecycle, role/revocation and concurrency cases of the G4 plan | FR-003, NFR-007 |
+| **M4-03: Implement container persistence** | M4-01 | Implement approved kind-tagged container identifiers and equipment references, canonical ISO/synthetic validation, SQL checksum and immutability, scoped API, archive/restore | Pass ISO checksum, synthetic label/kind, identifier reservation, direct SQL, role/tenant/version, duplicate-race and archive tests in the G4 plan | FR-005, FR-003 |
+| **M4-04: Verify voyage and container workflows** | M4-02, M4-03 | Integrate voyage/container browser workspaces, deterministic E:-backed fixtures and complete G4 local verification across three browsers | Execute G4-S01 through G4-S25, including historical M3 upgrade, accepted M0-M3 regressions, outage/recovery, Trivy and reviewable source-SHA evidence | FR-003, FR-005 |
 
-**G4 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M4 recorded; acceptance pending until explicitly confirmed.
+**G4 acceptance evidence:** All 25 mandatory scenarios in M4_VERIFICATION_PLAN.md genuinely pass on one integrated SHA; D-003 accepted, independent evidence reviewed and explicit G4 acceptance pending.
 
 ### M5: Shipment lifecycle and concurrency
 

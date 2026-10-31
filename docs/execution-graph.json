@@ -571,8 +571,8 @@
         "FR-005",
         "FR-017"
       ],
-      "output": "Close D-003 and capture synthetic ID rules and constraints",
-      "verify": "Decision documented with positive/negative examples"
+      "output": "Approve D-003 with pinned ISO edition, canonical synthetic kind, type set, immutable keys, voyage time/status and scoped API contracts; see M4 architecture and D-003 proposal",
+      "verify": "Document the decision with checksum vectors, competing options, positive/negative examples and accepted domain/API contract before implementing identifiers"
     },
     {
       "id": "M4-02",
@@ -585,8 +585,8 @@
         "FR-003",
         "NFR-007"
       ],
-      "output": "Link vessels, ports and coherent planned/actual time windows",
-      "verify": "Time-order and missing-value database/API tests"
+      "output": "Implement organization-owned voyage schema with composite same-tenant port/vessel FKs, nullable planned/actual UTC times, explicit progress, optimistic versions and five scoped HTTP routes",
+      "verify": "Pass time/route, direct SQL, true foreign-parent UUID, lifecycle, role/revocation and concurrency cases of the G4 plan"
     },
     {
       "id": "M4-03",
@@ -599,8 +599,8 @@
         "FR-005",
         "FR-003"
       ],
-      "output": "Store equipment type, identifier and lifecycle reference",
-      "verify": "Uniqueness, format, state and organization tests"
+      "output": "Implement approved kind-tagged container identifiers and equipment references, canonical ISO/synthetic validation, SQL checksum and immutability, scoped API, archive/restore",
+      "verify": "Pass ISO checksum, synthetic label/kind, identifier reservation, direct SQL, role/tenant/version, duplicate-race and archive tests in the G4 plan"
     },
     {
       "id": "M4-04",
@@ -614,8 +614,8 @@
         "FR-003",
         "FR-005"
       ],
-      "output": "Expose create/detail/list with scoped browser controls",
-      "verify": "API, database and browser fixture regression"
+      "output": "Integrate voyage/container browser workspaces, deterministic E:-backed fixtures and complete G4 local verification across three browsers",
+      "verify": "Execute G4-S01 through G4-S25, including historical M3 upgrade, accepted M0-M3 regressions, outage/recovery, Trivy and reviewable source-SHA evidence"
     },
     {
       "id": "G4",
@@ -633,8 +633,8 @@
         "FR-003",
         "NFR-007"
       ],
-      "output": "Verified milestone outcome: Validated voyage schedules and container identity models",
-      "verify": "All applicable tasks, negative tests, runtime evidence and documentation for M4 recorded; acceptance pending until explicitly confirmed",
+      "output": "Verified, organization-scoped voyage and container reference module without M5 shipments or M6 assignment state",
+      "verify": "All 25 mandatory scenarios in M4_VERIFICATION_PLAN.md genuinely pass on one integrated SHA; D-003 accepted, independent evidence reviewed and explicit G4 acceptance pending",
       "gate": true
     },
     {

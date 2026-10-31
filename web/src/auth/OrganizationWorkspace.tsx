@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import ReferenceDataWorkspace from "../references/ReferenceDataWorkspace";
+import MaritimeWorkspace from "../maritime/MaritimeWorkspace";
 import {
   getJson, mutate, organizationError,
   type Membership, type OrganizationItem, type OrganizationProfile
@@ -225,6 +226,10 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
           <p className="mt-1 text-xs text-slate-400">Slug: {profile.slug} | Role: {selection.role}</p>
           {(selection.role === "Analyst" || selection.role === "Manager") &&
             <ReferenceDataWorkspace key={selection.id + ":" + selection.role}
+              organizationId={selection.id} canManage={selection.role === "Manager"}
+              onAccessInvalidated={onReferenceAccessInvalidated} />}
+          {(selection.role === "Analyst" || selection.role === "Manager") &&
+            <MaritimeWorkspace key={"maritime:" + selection.id + ":" + selection.role}
               organizationId={selection.id} canManage={selection.role === "Manager"}
               onAccessInvalidated={onReferenceAccessInvalidated} />}
           {selection.role === "Administrator" && (

@@ -31,6 +31,10 @@ Cross-workstream integration must rerun affected previous gates' regression case
 
 Before a storage-format or breaking database change is deployed against existing data, test that particular upgrade on a disposable copy regardless of checkpoint timing. That rollout safeguard does not block ordinary M0 CI.
 
+## Proposed G4 exit criteria
+
+G4 is OPEN. Once D-003 is explicitly accepted and M4-01 through M4-04 are implemented, all 25 scenarios in [G4 Verification Plan](M4_VERIFICATION_PLAN.md) must pass on one final integrated SHA. Verify true foreign voyage/container and parent UUID isolation, SQL-enforced temporal and identity checks, archived identifier reservation, concurrent M3 parent archival, revocation, PostgreSQL outage/recovery, historical schema upgrades, three browsers and accepted M0-M3 regressions. M5 shipment CRUD, M6 assignments, retained-volume compatibility and formal accessibility are not G4 scope. Gate acceptance is separate from passing tests.
+
 ## Recorded M0 verification state
 
 A subsequent isolated cold-database test reproduced a tracked-row recovery failure on the historical M0 code, invalidating the earlier complete cold-state verification claim. The corrective changes are tracked in [hardening PR #3](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/3). The separate [M0 implementation register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m0-engineering-baseline/docs/M0_VERIFICATION.md) reports the G0 engineering baseline checks executed on 2026-10-30 against code revision `4fb34eb`, with 1 unit, 10 contract, 5 PostgreSQL integration and 6 frontend tests passed, plus local Compose, browser and database outage/recovery evidence.
@@ -61,7 +65,7 @@ The detailed product release checks below remain in force. The [Roadmap](ROADMAP
 | **G1** | M1 Authentication and session lifecycle | FR-001: real PostgreSQL Argon2id credentials, cookies, CSRF, login/logout/logout-all, expiry, account disablement, immediate revocation, three-browser functional flow, clean migration, restart/outage, rate limits and redacted security evidence. [Full G1 plan](M1_VERIFICATION_PLAN.md). |
 | **G2** | M2 Organizations and role isolation | Two-organization membership scope, role denials, disabled membership, session-scoped organization selection, foreign-ID denial, last-admin concurrency and M0/M1 regressions; [G2 local plan](M2_VERIFICATION_PLAN.md) |
 | **G3** | M3 Ports and vessels reference data | Port/vessel identifiers and uniqueness, tenant/role-scoped CRUD, cross-tenant and race denials, migration preservation and three-browser lookup, plus full M0-M2 regression; [G3 local plan](M3_VERIFICATION_PLAN.md). Executed and passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([record](M3_EXECUTED_VERIFICATION.md)); G3 explicitly accepted on 2026-10-31 and integrated into `main`. |
-| **G4** | M4 Voyages and containers reference data | Voyage scheduling and container identity/uniqueness tests with resolved D-003 |
+| **G4** | M4 Voyages and containers reference data | Execute all [G4-S01 through G4-S25](M4_VERIFICATION_PLAN.md): approved D-003, time/identity constraints, live tenant/role/race matrix, M3 upgrade preservation, three browsers, M0-M3 regressions, E:-only evidence, explicit acceptance |
 | **G5** | M5 Shipment lifecycle and concurrency | Shipment lifecycle, archival, stale-write, transaction and cross-tenant denial tests |
 | **G6** | M6 Container and voyage assignments | Temporal assignment/overlap prevention and end-to-end linked shipment flow; quarterly snapshot check or NOT APPLICABLE |
 | **G7** | M7 Tracking contracts and source authentication | Pinned source schema, source authorization, oversized/forged/unsupported payload tests |

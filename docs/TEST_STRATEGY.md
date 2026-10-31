@@ -40,6 +40,10 @@ Milestone gates may execute out of numeric order when their explicitly named pre
 
 Early M19 recovery and M20 security assurance cannot preapprove features added later; rerun affected checks at integration and again before G24. G24 requires all earlier gates accepted and complete release verification. Formal accessibility tests remain only M24-04, and historical-volume checkpoints remain M6/M12/M18/M24-03. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md).
 
+## M4 planned local verification (G4 open)
+
+The [G4 verification plan](M4_VERIFICATION_PLAN.md) contains 25 mandatory cases: D-003 and checksum policy, time/route invariants, M3 composite foreign keys and direct SQL, five-role HTTP matrix, real foreign UUIDs, concurrent parent archival, identifier reservation, scoped pagination, Chromium/Firefox/WebKit, real dependency outage, and accepted M0-M3 regressions. Test files, fixtures and runner are not yet implemented or executed; do not mark a scenario PASS. New G4 evidence must be SHA-tied, E:-backed and inspectable. M6/M12/M18/M24-03 historical compatibility and M24-04 dedicated accessibility remain in their established gates.
+
 ## M3 reference-data verification (G3 verified and accepted)
 
 The [G3 plan](M3_VERIFICATION_PLAN.md) specified 25 mandatory scenarios spanning port/vessel validation, five-role permissions, real foreign UUID substitution, direct PostgreSQL constraints, M2-to-M3 upgrade, optimistic concurrency, archive/restore, real tenant/session races and three-browser flows. The full local G3 matrix passed at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`: 50 unit, 12 contract, 56 fresh and 56 repeated integration, 6 frontend and 19 browser tests per engine, with zero HIGH/CRITICAL findings in the three running image scans. Evidence and failure history are retained in [G3 executed verification](M3_EXECUTED_VERIFICATION.md). Independent raw-evidence review preceded explicit G3 acceptance on 2026-10-31. Preserve these suites as M4 regressions.

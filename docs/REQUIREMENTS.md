@@ -53,6 +53,10 @@ FR-002 and NFR-002 were implemented in M2-01 through M2-04 with live server-side
 
 FR-003 covers accepted M3 port/vessel reference data and planned M4 voyage records. The [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification plan](M3_VERIFICATION_PLAN.md) govern tenant-owned immutable UUID/local-code references, optional syntax-checked UN/LOCODE/IMO/MMSI, Manager-only writes, Analyst reads and denial by default for all other M2 roles. NFR-002, NFR-003, NFR-006, NFR-007, NFR-008 and NFR-012 were exercised across migration, API, security and browser testing. All 25 G3 scenarios passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); G3 accepted 2026-10-31 and M3 integrated into `main`. Official registry validation and M4 models are excluded.
 
+## M4 requirement allocation (planning only)
+
+FR-003's remaining voyage slice is assigned to M4-02: same-organization vessel and port route, optional planned/actual UTC windows, explicit voyage status and immutable reference identity. FR-005's container reference slice is M4-03: canonical identifier, tenant uniqueness and soft archive under unresolved D-003. Shipment-to-container/voyage temporal assignments remain M6 after G4 and G5. FR-017 governs deterministic synthetic fixtures. NFR-002/003/006/007/008 govern authorization, safe errors, UTC, repeatability and executed tests. The [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [implementation plan](M4_IMPLEMENTATION_PLAN.md) and [G4 matrix](M4_VERIFICATION_PLAN.md) are proposals, not completed requirements.
+
 ## Non-functional requirements
 
 | ID | Area | Proposed target and verification |

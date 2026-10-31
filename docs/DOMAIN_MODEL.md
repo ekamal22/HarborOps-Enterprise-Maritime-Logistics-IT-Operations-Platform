@@ -53,11 +53,11 @@
 6. The existing `bootstrap_records` synthetic seed remains unchanged and does not provision an account.
 7. Organization and membership invariants remain M2 scope; authentication alone is not business authorization.
 
-## M2 organization model (planned, not migrated)
+## M2 organization model (implemented in feature branch; migration not executed)
 
 The proposed [M2 architecture](M2_ARCHITECTURE_DESIGN.md) adds additive `organizations` and `organization_memberships` tables, one effective role per user/organization, independent role membership states and a per-session nullable selected-organization reference. The explicit role set is Analyst, Manager, Support, Administrator and Auditor. A user's active membership in organization A confers no permissions in B. Administrator grants are limited to the authorized organization and do not imply business-data access.
 
-Required invariants include uniqueness of organization slug and user/organization membership, soft removal, active-organization checks, live role revalidation, versioned updates and transactional protection against loss of the final active Administrator. The accepted M1 cookie does not carry trusted organization roles. These invariants are planned only and do not imply any M2 migration or test execution. See [M2 implementation](M2_IMPLEMENTATION_PLAN.md) and [G2 verification](M2_VERIFICATION_PLAN.md).
+Required invariants include uniqueness of organization slug and user/organization membership, soft removal, active-organization checks, live role revalidation, versioned updates and transactional protection against loss of the final active Administrator. The accepted M1 cookie does not carry trusted organization roles. These invariants are represented in feature-branch source and an additive migration. Fresh and repeated disposable PostgreSQL tests passed in [M2 GitHub verification](M2_EXECUTED_VERIFICATION.md); not every tenant-adversarial check has been executed. See [M2 source register](M2_IMPLEMENTATION_STATUS.md), [implementation sequence](M2_IMPLEMENTATION_PLAN.md) and [G2 verification](M2_VERIFICATION_PLAN.md).
 
 ## Illustrative lifecycle
 

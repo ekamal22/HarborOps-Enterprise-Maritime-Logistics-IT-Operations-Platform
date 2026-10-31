@@ -110,10 +110,19 @@ public static class AuthenticationEndpoints
             if (!await AuthenticationSetup.ValidMutationAsync(ctx, anti))
                 return Failure(ctx, 403, "csrf_invalid", "Request validation failed");
             var session = Session(ctx);
-            if (input.Password is null || input.Password.Length > 1024 ||
-                !await store.DisableSelfAsync(session.UserId, input.Password,
-                    ctx.Items["CorrelationId"]!.ToString()!, ct))
+            if (input.Password is null || input.Password.Length > 1024)
                 return Failure(ctx, 403, "confirmation_failed", "Password confirmation failed");
+            try
+            {
+                if (!await store.DisableSelfAsync(session.UserId, input.Password,
+                        ctx.Items["CorrelationId"]!.ToString()!, ct))
+                    return Failure(ctx, 403, "confirmation_failed", "Password confirmation failed");
+            }
+            catch (LastActiveAdministratorException)
+            {
+                return Failure(ctx, 409, "last_administrator",
+                    "Assign another active administrator before disabling this account");
+            }
             await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Results.NoContent();
         }).RequireAuthorization();

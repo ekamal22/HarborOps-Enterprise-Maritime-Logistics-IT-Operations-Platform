@@ -30,7 +30,7 @@ public sealed class MigrationSnapshotTests
     {
         using var db = SnapshotOnlyContext();
         Assert.Equal(
-            new[] { "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions" },
+            new[] { "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions", "20261031020000_OrganizationMemberships" },
             db.Database.GetMigrations().ToArray());
     }
 

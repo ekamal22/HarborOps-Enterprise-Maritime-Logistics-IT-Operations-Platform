@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0/G0 and M1/G1 verified, accepted and merged into `main` on 2026-10-31. M1 adds PostgreSQL-backed identity, protected browser sessions and a same-origin sign-in interface. [PR #4](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/4) merged as `8f9fc0d506a9e1dc1d4f5acab936622df988f413` after passing [M1 verification](docs/M1_IMPLEMENTATION_VERIFICATION.md). M2-M24 remain planned. See [Project Status](docs/STATUS.md).
+**Status:** M0/G0 and M1/G1 verified, accepted and merged into `main` on 2026-10-31. M1 adds PostgreSQL-backed identity, protected browser sessions and a same-origin sign-in interface. [PR #4](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/4) merged as `8f9fc0d506a9e1dc1d4f5acab936622df988f413` after passing [M1 verification](docs/M1_IMPLEMENTATION_VERIFICATION.md). M2 is verified locally, and G2 was accepted on 2026-10-31; M3-M24 remain planned. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -40,11 +40,11 @@ The M1 architecture is implemented and its engineering verification passed in [V
 - [D-001 Architecture Decision](docs/ADR_D001_BROWSER_SESSIONS.md): selected model, alternatives and consequences.
 - [M1 G1 Verification Plan](docs/M1_VERIFICATION_PLAN.md): API, database, browser, Compose, security and negative-case evidence.
 
-Organization memberships and authorization remain M2. Historical-volume checks occur at quarter-mile milestones; dedicated accessibility testing remains M24-04. G0 and G1 are accepted. M2 (organizations and role isolation) is next; G2 is open.
+Organization memberships and authorization are M2, verified locally, and G2 was accepted on 2026-10-31. Historical-volume checks occur at quarter-mile milestones; dedicated accessibility testing remains M24-04. G0 and G1 are accepted.
 
 ### Next milestone: M2 organizations and role isolation
 
-M2 is planned, not implemented. Its [architecture](docs/M2_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](docs/M2_VERIFICATION_PLAN.md) specify server-authoritative organization selection, membership role grants and cross-organization denials. G2 remains open. No GitHub Actions usage is permitted until this restriction is explicitly lifted; M2 verification is local-only.
+M2 source is implemented on `feat/m2-organization-authorization`, not merged into `main`. All 25 G2 scenarios passed in a complete local run on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` ((22 unit, 12 contract, 32 fresh and 32 repeated PostgreSQL integration, 6 frontend and 24 browser tests (Chromium, Firefox, WebKit), Compose outage and recovery, M1 session recovery, authenticated organization outage recovery and three clean image scans)); see the [executed verification record](docs/M2_EXECUTED_VERIFICATION.md). Earlier GitHub runs remain in that record as history. The [architecture](docs/M2_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](docs/M2_VERIFICATION_PLAN.md) specify server-authoritative organization selection, membership role grants and cross-organization denials; the [implementation status](docs/M2_IMPLEMENTATION_STATUS.md) identifies source paths. G2 verified locally and accepted on 2026-10-31.
 
 ### Planned modules
 

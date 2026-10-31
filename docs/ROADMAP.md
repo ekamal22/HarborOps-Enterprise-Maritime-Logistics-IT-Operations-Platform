@@ -2,7 +2,7 @@
 
 **Version:** 2.0 granular delivery baseline  
 **Date:** 2026-10-30  
-**State:** M0-M24 delivery plan integrated into `main`; G0 and G1 verified and accepted on 2026-10-31. M1 merged into `main` via PR #4 at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`; G2-G24 remain open.
+**State:** M0-M24 delivery plan integrated into `main`; G0 and G1 verified and accepted on 2026-10-31. M1 merged into `main` via PR #4 at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31; M2 is not merged. G3-G24 remain open.
 
 ## Authority and rationale
 
@@ -88,7 +88,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Verify the existing source-only foundation against real runtime evidence.
 **Entry:** Existing implementation reviewed without assuming runtime correctness.
 **Required work packages:** M0-01 Assess existing M0 branch; M0-02 Build and test foundations; M0-03 Verify migration and seed; M0-04 Verify local stack and browser; M0-05 Verify failure and hygiene.
-**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2-G24 remain open.
+**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2 is verified locally and accepted on 2026-10-31, and G3-G24 remain open.
 **Not covered by this milestone:** Shipment and tenant business functionality.
 
 #### M1: Authentication and session lifecycle
@@ -101,11 +101,11 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 #### M2: Organizations and role isolation
 
-**Scope:** Explicit memberships, roles and organization-scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) proposes additive organization/membership persistence, typed role grants, per-session organization selection and fail-closed cross-tenant authorization. This is a design proposal, not delivered functionality.
+**Scope:** Explicit memberships, roles and organization-scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) defines additive organization/membership persistence, typed role grants, per-session organization selection and fail-closed cross-tenant authorization. The feature-branch implementation has been executed and verified locally (see G2 below).
 **Entry:** G1 verified and accepted, with documented evidence and merged source.
 **Required work packages:** M2-01 Model memberships and role grants; M2-02 Enforce permission boundary; M2-03 Implement organization selection; M2-04 Verify tenant isolation. See the [M2 implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](M2_VERIFICATION_PLAN.md).
-**Verification restriction:** GitHub Actions usage is prohibited until expressly restored. M2 verification is local-only with isolated disposable PostgreSQL and browser fixtures.
-**Exit G2:** All applicable tasks, negative tests, runtime evidence and documentation for M2 recorded; acceptance pending until explicitly confirmed.
+**Verification:** All 25 scenarios of the [G2 verification plan](M2_VERIFICATION_PLAN.md) were executed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. The [executed record](M2_EXECUTED_VERIFICATION.md) lists the environment, E: storage configuration, suite counts, per-scenario evidence, security scans and the failure history. Earlier GitHub runs are retained there as history only.
+**Exit G2:** G2 verified locally and accepted on 2026-10-31. M2 is not merged and no M3 work has started.
 **Not covered by this milestone:** Shipment domain CRUD and maritime reference data.
 
 #### M3: Ports and vessels reference data

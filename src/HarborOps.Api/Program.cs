@@ -1,5 +1,6 @@
 using System.Data.Common;
 using HarborOps.Api.Authentication;
+using HarborOps.Api.Organizations;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net.Sockets;
 using HarborOps.Api.Health;
@@ -34,7 +35,13 @@ var app = builder.Build();
 
 if (args.Contains("--account-cli", StringComparer.Ordinal))
 {
-    await AccountCli.RunAsync(args, app.Services);
+    Environment.ExitCode = await RunCommandAsync(() => AccountCli.RunAsync(args, app.Services));
+    return;
+}
+
+if (args.Contains("--organization-cli", StringComparer.Ordinal))
+{
+    Environment.ExitCode = await RunCommandAsync(() => OrganizationCli.RunAsync(args, app.Services));
     return;
 }
 
@@ -63,13 +70,17 @@ app.Use(async (context, next) =>
 app.UseExceptionHandler(handler => handler.Run(async context =>
 {
     var error = context.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+    var invalidRequest = error is BadHttpRequestException;
     var dependency = error is IdentityDependencyException || (error is not null && IsDependencyFailure(error));
-    context.Response.StatusCode = dependency
-        ? StatusCodes.Status503ServiceUnavailable : StatusCodes.Status500InternalServerError;
+    context.Response.StatusCode = invalidRequest ? StatusCodes.Status400BadRequest
+        : dependency ? StatusCodes.Status503ServiceUnavailable
+        : StatusCodes.Status500InternalServerError;
     await context.Response.WriteAsJsonAsync(new
     {
-        code = dependency ? "dependency_unavailable" : "internal_error",
-        message = dependency ? "Dependency temporarily unavailable" : "An unexpected error occurred",
+        code = invalidRequest ? "invalid_request"
+            : dependency ? "dependency_unavailable" : "internal_error",
+        message = invalidRequest ? "Invalid request body"
+            : dependency ? "Dependency temporarily unavailable" : "An unexpected error occurred",
         correlationId = context.Items["CorrelationId"]
     });
 }));
@@ -79,6 +90,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
 app.MapAuthenticationEndpoints();
+app.MapOrganizationEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
@@ -133,6 +145,28 @@ static bool IsDependencyFailure(Exception exception)
             return true;
     }
     return false;
+}
+
+// Restricted operator commands fail with a sanitized message and exit code 1. An unhandled exception
+// would abort the process and let the host write a memory dump, which could contain secrets that
+// were just entered. Only messages raised by the commands themselves are shown; wrapped provider
+// failures report their type alone.
+static async Task<int> RunCommandAsync(Func<Task> operation)
+{
+    try
+    {
+        await operation();
+        return 0;
+    }
+    catch (Exception exception)
+    {
+        var message = exception is InvalidOperationException or ArgumentException &&
+            exception.InnerException is null
+            ? exception.Message
+            : "The operation could not be completed (" + exception.GetType().Name + ")";
+        Console.Error.WriteLine(message);
+        return 1;
+    }
 }
 
 public partial class Program { }

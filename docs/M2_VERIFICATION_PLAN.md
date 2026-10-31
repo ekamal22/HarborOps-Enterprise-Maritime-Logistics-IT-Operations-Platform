@@ -1,15 +1,17 @@
-# G2 Organizations and Role Isolation: Local Verification Plan
+# G2 Organizations and Role Isolation: Verification Plan
 
-**Status:** Proposed verification specification, not executed  
+**Status:** G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31. All 25 scenarios below passed in a complete local run; see the [executed record](M2_EXECUTED_VERIFICATION.md). Earlier GitHub runs are historical.  
 **Gate:** G2; requires separate acceptance after complete successful evidence  
 **Prerequisites:** M2-01, M2-02, M2-03 and M2-04 as defined in the [execution graph](EXECUTION_GRAPH.md)  
 **Reference:** [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation plan](M2_IMPLEMENTATION_PLAN.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Status](STATUS.md).
 
 ## Tooling and execution restriction
 
-GitHub Actions usage is prohibited until explicitly restored. No workflow editing, triggering, rerunning or checking is part of M2 planning or execution. Use explicit local testing only. This plan is a test specification, **not** evidence that any command was run.
+G2 verification is **local only**. No GitHub Actions workflow is dispatched, rerun or otherwise triggered for it. The matrix is executed on the Windows development machine by `scripts/verify-m2-local.sh` (stages `preflight dotnet deps web docs stack accounts organizations session browsers recovery scan`), which refuses to run unless every temporary and cache location resolves to E:. The .NET 10 suites run in the pinned `mcr.microsoft.com/dotnet/sdk:10.0` image because the host has no .NET 10 SDK and installing one would write to C:. The dedicated `.github/workflows/verify-m2.yml` remains in the repository as a record of the earlier hosted verification. Earlier hosted results are listed in the [executed record](M2_EXECUTED_VERIFICATION.md) as history.
 
 Use an isolated `ho-verify` Compose project or a dedicated throwaway PostgreSQL database, never the primary `harborops` project or existing local retained volume. Dispose only resources positively identified as part of that isolated project. No compatibility check against a historical user volume is due at G2; quarter-mile checkpoints remain M6, M12, M18 and M24-03. Backups and full restores remain M19. Dedicated accessibility checks remain M24-04.
+
+All verification containers run with core dumps disabled (`--ulimit core=0`, plus a verification-only Compose override stored on E:), so that a crashing process cannot make the host write a memory dump to C:.
 
 ## Mandatory fixture matrix
 
@@ -28,6 +30,10 @@ Create deterministic synthetic users and organizations under disposable test sco
 | `zeroUser` | No membership | No membership | Valid login, no tenant entitlement |
 
 Add a third temporary suspended organization to verify organization-status denial. Create distinct UUIDs and membership records whose IDs can be deliberately substituted across organizations. Seed a dormant third Administrator only if necessary to prove last-admin behavior without modifying the fixture's expected ending state.
+
+## Expanded G2 verification execution
+
+The G2 fixtures use random account identifiers per case, a disposable integration database and no shared M1 browser account. Coverage that goes beyond the original scenarios: anonymous access on every endpoint and verb, missing and foreign selections on every verb, malformed bodies, identifiers and queries, bounded paging, removal and explicit reinstatement, concurrent duplicate grants and mutual removals, log and response redaction including a logged dependency failure, an M0 to M1 to M2 upgrade in a separate database, and clean exit code 1 for rejected restricted operator commands. Results are recorded in the [executed record](M2_EXECUTED_VERIFICATION.md).
 
 ## Verification matrix
 
@@ -48,7 +54,7 @@ Add a third temporary suspended organization to verify organization-status denia
 | G2-S13 | Administrator in A requesting B | No global administrator bypass; foreign ID denied |
 | G2-S14 | Membership disabled/removed while selected | Next request denied immediately and selected context invalidated; browser clears stale A data |
 | G2-S15 | Organization suspension | Deny selection and all scoped requests, including administrator calls |
-| G2-S16 | Last administrator and self-change | Final Admin demotion/removal rejected; Admin cannot edit their own administrator role/state |
+| G2-S16 | Last administrator and self-change | Final Admin demotion/removal or M1 account self-disable rejected; Admin cannot edit their own administrator role/state |
 | G2-S17 | Competing admin writes | Organization-row serialization and version predicates avoid zero Admins and lost updates |
 | G2-S18 | Stale version and duplicate create | 409 conflict; no partial write or silent role escalation |
 | G2-S19 | Invalid data and foreign origin | 400 validation, 403 CSRF/origin rejection, bounded response payload |
@@ -70,7 +76,13 @@ Add a third temporary suspended organization to verify organization-status denia
 
 ## Local command outline
 
-The exact commands will be finalized when the M2 tests exist. Applicable existing commands run from the E-drive repository root include:
+The complete local run is a single command (all stages, in order), executed from the repository root in Git Bash with the E: environment from `E:HarborOps-Verificationenv.ps1`:
+
+```bash
+bash scripts/verify-m2-local.sh preflight dotnet deps web docs stack accounts organizations session browsers recovery scan
+```
+
+The individual commands it wraps are listed below.
 
 ```powershell
 # Set local caches and selected disposable test database on E: first.
@@ -115,4 +127,4 @@ Do not fabricate passing test counts or mark G2 complete based on this document.
 
 ## Current status
 
-M2 is fully planned in documentation only. No M2 migrations, authorization middleware, organization endpoints, organization switcher, dedicated G2 tests or executed runtime verification are claimed. **G2 open.**
+G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`: all 25 scenarios passed in one complete run (22 unit, 12 contract, 32 fresh and 32 repeated integration, 6 frontend and 24 browser tests, plus the operational and security stages). **G2 accepted on 2026-10-31.** M2 is not merged and no M3 work has started.

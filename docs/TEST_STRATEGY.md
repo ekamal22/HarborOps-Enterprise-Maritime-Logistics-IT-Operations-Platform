@@ -28,11 +28,11 @@ Run an **additive M0-seeded-to-M1** migration in a disposable database and a fre
 
 This does not add accessibility checks to G1. All formal accessibility testing remains at M24-04. Historical local-volume compatibility remains at M6/M12/M18/M24-03; M19 retains full backup/restore.
 
-## M2 local verification matrix (proposed, not executed)
+## M2 verification matrix (G2 verified locally and accepted on 2026-10-31)
 
 The [G2 verification plan](M2_VERIFICATION_PLAN.md) specifies two active organizations, a multi-organization user with different roles, Administrator/Analyst/Manager/Support/Auditor grants, suspended and removed memberships, selected-session context and real PostgreSQL authorization. Mandatory cases include foreign organization/member IDs, wrong-role read/write denial, active membership changes, last-Administrator concurrency, migration preservation, CSRF/origin rejection, browser role-switch and M0/M1 regressions.
 
-M2 implementation must use the [M2 architecture](M2_ARCHITECTURE_DESIGN.md) and [M2 work plan](M2_IMPLEMENTATION_PLAN.md). GitHub Actions use is prohibited until the restriction is explicitly lifted. Do not dispatch, rerun, inspect or modify workflows; verify using explicitly invoked local build, unit, API, disposable PostgreSQL, browser and Docker smoke checks. No G2 commands have run and no new source is implemented. **G2 open.**
+M2 source follows the [architecture](M2_ARCHITECTURE_DESIGN.md) and [implementation plan](M2_IMPLEMENTATION_PLAN.md). G2 verification was executed locally with `scripts/verify-m2-local.sh`: .NET 10 build and suites in the pinned SDK image against a throwaway PostgreSQL 16.15 container, the isolated `ho-verify` Compose project, Playwright on Chromium, Firefox and WebKit, real PostgreSQL stop and start, and Trivy on the running images, with every cache, temporary and evidence path on E:. Results on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`: 22 unit, 12 contract, 32 fresh and 32 repeated PostgreSQL integration, 6 frontend and 24 browser tests (Chromium, Firefox, WebKit), Compose outage and recovery, M1 session recovery, authenticated organization outage recovery and three clean image scans. New G2 suites cover anonymous access on every endpoint and verb, missing and foreign selections on every verb, malformed input and identifiers, paging, removal and reinstatement, concurrent duplicate grants and mutual removals, and log and response redaction. The [executed record](M2_EXECUTED_VERIFICATION.md) maps each G2-S01 to G2-S25 scenario to its tests. Documentation changes use `[skip ci]`. **G2 verified locally and accepted on 2026-10-31.**
 
 ## Test layers
 

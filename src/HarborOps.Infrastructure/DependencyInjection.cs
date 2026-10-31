@@ -3,6 +3,7 @@ using HarborOps.Infrastructure.Baseline;
 using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.References;
+using HarborOps.Infrastructure.Maritime;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IdentityStore>();
         services.AddScoped<OrganizationStore>();
         services.AddScoped<ReferenceStore>();
+        services.AddScoped<MaritimeStore>();
         return services;
     }
 }

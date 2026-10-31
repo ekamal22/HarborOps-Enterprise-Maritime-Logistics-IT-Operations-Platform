@@ -2,7 +2,7 @@
 
 **Branch:** `feat/m4-voyage-container-references`  
 **Base:** Accepted M0-M3 on `main`; G3 accepted  
-**State:** M4 application source and initial G4 test harness committed; implementation correctness and complete G4 runtime evidence remain unverified. G4 OPEN, acceptance pending.  
+**State:** M4 application source, expanded G4 tests and static correctness remediation committed; implementation correctness and complete G4 runtime evidence remain unverified. G4 OPEN, acceptance pending.  
 **Decision:** D-003 remains a proposal. The branch temporarily implements the tagged `ISO6346`/`Synthetic` option described in [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), without asserting that option is accepted.  
 **No merge:** M4 remains on the feature branch, not `main`.
 
@@ -31,11 +31,13 @@
 ## Tests and local verification authored, not executed
 
 - Unit: `MaritimePolicyTests.cs`
-- Integration: `MaritimeHttpTests.cs`, `MaritimeBoundaryTests.cs`, `MaritimeMigrationTests.cs`, `MaritimeConcurrencyTests.cs`
-- Browser: `maritime.spec.mjs`, `maritime-races.spec.mjs`
+- Integration: `MaritimeHttpTests.cs`, `MaritimeBoundaryTests.cs`, `MaritimeMigrationTests.cs`, `MaritimeConcurrencyTests.cs`, `MaritimeGateCoverageTests.cs`, `MaritimeUpgradeAndSecurityTests.cs`, `MaritimeSqlInvariantTests.cs`
+- Browser: `maritime.spec.mjs`, `maritime-races.spec.mjs`, `maritime-gate.spec.mjs`
 - Fixture: `scripts/prepare-m4-browser-fixtures.mjs`
 - Runner: `scripts/verify-m4-local.sh`, `scripts/check-m4-maritime-outage.mjs`, `scripts/assert-g4-evidence.mjs`
 - Existing M0-M3 migration regression test expectations updated for the fifth migration.
+- [M4 correctness audit](M4_CORRECTNESS_AUDIT.md) records eleven source findings and the 25-case unexecuted test trace.
+- Source corrections prevent combined archive-and-edit SQL transitions, no-op container edits and stale page repaint, and load parent references beyond the first 100.
 - G4 evidence index is required to fail on missing executed evidence and pending D-003, without implying acceptance.
 
 ## Outstanding blockers and limitations
@@ -43,7 +45,7 @@
 1. **No .NET build:** Current execution environment lacks the .NET 10 SDK. Compile-time correctness of the newly added C# services, mappings, API handlers and tests has not been established.
 2. **No PostgreSQL/Docker execution:** Fresh and historical upgrades, rollback, real SQL constraints, migrations and outage/recovery have not been executed. The accepted M3 databases have not been touched.
 3. **No browser build/runtime:** React TypeScript compilation, actual browser workflows and concurrency are not verified. Chromium, Firefox and WebKit results have not been produced.
-4. **G4 scenario coverage incomplete:** The initial test suite does not yet exercise all subcases of the 25-case [G4 verification contract](M4_VERIFICATION_PLAN.md), including full ten-verb/session/role matrices, every hostile input, all cursor/filter variants and every requested browser race. Existing coverage is not equivalent to 25/25 PASS.
+4. **G4 scenario coverage incomplete:** The expanded but unexecuted test suite still requires full scenario/subcase reconciliation against the 25-case [G4 verification contract](M4_VERIFICATION_PLAN.md), including absolute session expiry, comprehensive hostile input cases and deterministic queued-write interleavings. Existing coverage is not equivalent to 25/25 PASS.
 5. **D-003 open:** The ISO 6346 and synthetic kind policy is a provisional implementation assumption; it must be explicitly accepted or revised before G4.
 6. **Parallel migrations:** Confirm the chosen migration number does not collide with an independently implemented M5 workstream before integrating.
 7. **Runtime source SHA:** The final integrated revision must pass fresh/repeat M4, accepted M0-M3 regressions, three browsers, live PostgreSQL outage and security/dependency scans on disposable E:-backed storage.

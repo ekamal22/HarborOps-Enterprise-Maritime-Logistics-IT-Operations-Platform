@@ -144,11 +144,21 @@ public sealed class VoyageContainerReferences : Migration
                         RAISE EXCEPTION 'Container identity immutable' USING ERRCODE = '23514';
                     END IF;
                 END IF;
-                IF OLD.record_status='Archived' AND (
-                    NEW.record_status <> 'Active' OR
-                    NEW.version <> OLD.version + 1 OR
-                    NEW.updated_at_utc < OLD.updated_at_utc) THEN
-                    RAISE EXCEPTION 'Invalid archive restoration' USING ERRCODE = '23514';
+                IF NEW.version <> OLD.version + 1 OR NEW.updated_at_utc < OLD.updated_at_utc THEN
+                    RAISE EXCEPTION 'Version must advance exactly once' USING ERRCODE = '23514';
+                END IF;
+                IF OLD.record_status='Archived' THEN
+                    IF NEW.record_status <> 'Active' OR
+                        (to_jsonb(NEW) - 'record_status' - 'version' - 'updated_at_utc')
+                        IS DISTINCT FROM
+                        (to_jsonb(OLD) - 'record_status' - 'version' - 'updated_at_utc') THEN
+                        RAISE EXCEPTION 'Archive restoration must not edit fields' USING ERRCODE = '23514';
+                    END IF;
+                END IF;
+                IF TG_TABLE_NAME = 'voyages' AND OLD.voyage_status <> 'Planned' AND
+                    (NEW.planned_departure_at_utc IS DISTINCT FROM OLD.planned_departure_at_utc OR
+                     NEW.planned_arrival_at_utc IS DISTINCT FROM OLD.planned_arrival_at_utc) THEN
+                    RAISE EXCEPTION 'Historical planned schedule immutable' USING ERRCODE = '23514';
                 END IF;
                 RETURN NEW;
             END;

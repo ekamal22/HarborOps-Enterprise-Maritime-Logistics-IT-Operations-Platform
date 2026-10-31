@@ -74,10 +74,10 @@ function sanitized(result, code) {
 }
 await ready();
 await login(manager, "m3-manager@example.test");
-await login(admin, "m3-admin-a@example.test");
+await login(admin, "m3-admin-b@example.test");
 const list = await manager.request("/api/v1/me/organizations");
 assert.equal(list.status, 200);
-const org = list.body.organizations.find(x => x.slug === "m3-north");
+const org = list.body.organizations.find(x => x.slug === "m3-east");
 assert.ok(org);
 assert.equal((await manager.request("/api/v1/auth/session/organization", "PUT",
   { organizationId: org.id })).status, 200);

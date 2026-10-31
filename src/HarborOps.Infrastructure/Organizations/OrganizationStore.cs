@@ -19,13 +19,18 @@ public sealed record OperationResult<T>(T? Value, OrganizationAccessError Error)
 
 public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
 {
-    public async Task<List<OrganizationSelection>> ListMineAsync(Guid userId, CancellationToken ct) =>
-        await (from member in db.OrganizationMemberships.AsNoTracking()
-               join org in db.Organizations.AsNoTracking() on member.OrganizationId equals org.Id
-               where member.UserId == userId && member.Status == "Active" && org.Status == "Active"
-               orderby org.DisplayName, org.Id
-               select new OrganizationSelection(org.Id, org.Slug, org.DisplayName,
-                   Enum.Parse<OrganizationRole>(member.Role), member.Version)).ToListAsync(ct);
+    public async Task<List<OrganizationSelection>> ListMineAsync(Guid userId, CancellationToken ct)
+    {
+        var rows = await (from member in db.OrganizationMemberships.AsNoTracking()
+                          join org in db.Organizations.AsNoTracking() on member.OrganizationId equals org.Id
+                          where member.UserId == userId && member.Status == "Active" && org.Status == "Active"
+                          orderby org.DisplayName, org.Id
+                          select new { org.Id, org.Slug, org.DisplayName, member.Role, member.Version })
+            .ToListAsync(ct);
+        return rows.Where(row => OrganizationPolicy.ParseRole(row.Role, out _))
+            .Select(row => new OrganizationSelection(row.Id, row.Slug, row.DisplayName,
+                Enum.Parse<OrganizationRole>(row.Role), row.Version)).ToList();
+    }
 
     public async Task<ScopeResult> ResolveAsync(Guid userId, Guid sessionId,
         Guid? requestedOrganizationId, OrganizationPermission permission, CancellationToken ct)
@@ -77,10 +82,12 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
             role, membership.Version), OrganizationAccessError.None);
     }
 
-    public async Task ClearSelectionAsync(Guid userId, Guid sessionId, CancellationToken ct) =>
+    public async Task ClearSelectionAsync(Guid userId, Guid sessionId, CancellationToken ct)
+    {
         await db.AuthSessions.Where(s => s.Id == sessionId && s.UserId == userId &&
             s.RevokedAtUtc == null).ExecuteUpdateAsync(
                 p => p.SetProperty(s => s.SelectedOrganizationId, (Guid?)null), ct);
+    }
 
     public static OrganizationProfile Profile(OrganizationScope context) =>
         new(context.OrganizationId, context.Slug, context.DisplayName, "Active",
@@ -137,7 +144,8 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
     }
 
     public async Task<OperationResult<OrganizationProfile>> UpdateProfileAsync(Guid actorId, Guid sessionId,
-        Guid orgId, string name, long expectedVersion, CancellationToken ct)
+        Guid orgId, string name, long expectedVersion,
+        string correlationId, CancellationToken ct)
     {
         string display;
         try { display = OrganizationPolicy.ValidateDisplayName(name); }
@@ -153,6 +161,8 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
                 .SetProperty(x => x.Version, x => x.Version + 1)
                 .SetProperty(x => x.UpdatedAtUtc, clock.GetUtcNow()), ct);
         if (changed != 1) return new(null, OrganizationAccessError.Conflict);
+        RecordChange(actorId, sessionId, "organization_updated", correlationId);
+        await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return new(new OrganizationProfile(orgId, org.Slug, display, "Active",
             expectedVersion + 1), OrganizationAccessError.None);
@@ -160,11 +170,12 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
 
     public async Task<OperationResult<MembershipProfile>> PutMemberAsync(
         Guid actorId, Guid sessionId, Guid orgId, Guid targetId,
-        string roleName, string status, long? expectedVersion, CancellationToken ct)
+        string roleName, string status, long? expectedVersion,
+        string correlationId, CancellationToken ct)
     {
+        if (actorId == targetId) return new(null, OrganizationAccessError.Forbidden);
         if (!OrganizationPolicy.ParseRole(roleName, out _) ||
-            !OrganizationPolicy.ValidStatus(status) || actorId == targetId ||
-            expectedVersion is < 1)
+            !OrganizationPolicy.ValidStatus(status) || expectedVersion is < 1)
             return new(null, OrganizationAccessError.Invalid);
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -216,7 +227,7 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
         }
         if (status != "Active")
             await InvalidateSelectionsAsync(orgId, targetId, ct);
-        RecordChange(actorId, sessionId, "membership_changed");
+        RecordChange(actorId, sessionId, "membership_changed", correlationId);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return new(new MembershipProfile(targetId, target.Email, target.DisplayName,
@@ -224,7 +235,8 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
     }
 
     public async Task<OrganizationAccessError> RemoveMemberAsync(Guid actorId, Guid sessionId,
-        Guid orgId, Guid targetId, long expectedVersion, CancellationToken ct)
+        Guid orgId, Guid targetId, long expectedVersion,
+        string correlationId, CancellationToken ct)
     {
         if (expectedVersion < 1) return OrganizationAccessError.Invalid;
         if (actorId == targetId) return OrganizationAccessError.Forbidden;
@@ -249,7 +261,7 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
                 .SetProperty(x => x.UpdatedAtUtc, clock.GetUtcNow()), ct);
         if (changed != 1) return OrganizationAccessError.Conflict;
         await InvalidateSelectionsAsync(orgId, targetId, ct);
-        RecordChange(actorId, sessionId, "membership_removed");
+        RecordChange(actorId, sessionId, "membership_removed", correlationId);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return OrganizationAccessError.None;
@@ -259,9 +271,10 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
         db.AuthSessions.Where(x => x.UserId == userId && x.SelectedOrganizationId == orgId)
             .ExecuteUpdateAsync(p => p.SetProperty(x => x.SelectedOrganizationId, (Guid?)null), ct);
 
-    private void RecordChange(Guid actorId, Guid sessionId, string type) =>
+    private void RecordChange(Guid actorId, Guid sessionId, string type, string correlationId) =>
         db.AuthEvents.Add(new AuthEvent { Id = Guid.NewGuid(), UserId = actorId, SessionId = sessionId,
-            EventType = type, ResultCode = "ok", CorrelationId = "organization-write",
+            EventType = type, ResultCode = "ok",
+            CorrelationId = correlationId[..Math.Min(correlationId.Length, 64)],
             OccurredAtUtc = clock.GetUtcNow() });
 
     public async Task<OrganizationProfile> BootstrapAsync(string slug, string displayName,

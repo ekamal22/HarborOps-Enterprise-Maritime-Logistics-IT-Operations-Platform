@@ -131,7 +131,8 @@ public static class OrganizationEndpoints
             if (denied is not null) return denied;
             var current = Current(ctx);
             var changed = await store.UpdateProfileAsync(current.UserId, current.SessionId,
-                scope!.OrganizationId, input.DisplayName ?? "", input.ExpectedVersion, ct);
+                scope!.OrganizationId, input.DisplayName ?? "", input.ExpectedVersion,
+                ctx.Items["CorrelationId"]?.ToString() ?? "", ct);
             return changed.Value is null ? Error(ctx, changed.Error) : Results.Ok(changed.Value);
         });
 
@@ -190,7 +191,7 @@ public static class OrganizationEndpoints
             var current = Current(ctx);
             var changed = await store.PutMemberAsync(current.UserId, current.SessionId,
                 scope!.OrganizationId, target, input.Role ?? "", input.Status ?? "",
-                input.ExpectedVersion, ct);
+                input.ExpectedVersion, ctx.Items["CorrelationId"]?.ToString() ?? "", ct);
             return changed.Value is null ? Error(ctx, changed.Error) : Results.Ok(changed.Value);
         });
 
@@ -209,7 +210,8 @@ public static class OrganizationEndpoints
             if (denied is not null) return denied;
             var current = Current(ctx);
             var error = await store.RemoveMemberAsync(current.UserId, current.SessionId,
-                scope!.OrganizationId, target, input.ExpectedVersion, ct);
+                scope!.OrganizationId, target, input.ExpectedVersion,
+                ctx.Items["CorrelationId"]?.ToString() ?? "", ct);
             return error == OrganizationAccessError.None ? Results.NoContent() : Error(ctx, error);
         });
     }

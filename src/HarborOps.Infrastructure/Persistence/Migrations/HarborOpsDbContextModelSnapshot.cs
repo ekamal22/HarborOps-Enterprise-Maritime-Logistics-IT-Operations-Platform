@@ -58,6 +58,7 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.Property(x => x.UserId).HasColumnName("user_id");
             entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
             entity.Property(x => x.SelectedOrganizationId).HasColumnName("selected_organization_id");
+            entity.HasIndex(x => x.SelectedOrganizationId);
             entity.HasOne<Organization>().WithMany().HasForeignKey(x => x.SelectedOrganizationId).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(x => new { x.UserId, x.RevokedAtUtc });
             entity.Property(x => x.IssuedAtUtc).HasColumnName("issued_at_utc").HasColumnType("timestamp with time zone");
@@ -117,6 +118,7 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.Property(x => x.UserId).HasColumnName("user_id");
             entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
             entity.Property(x => x.GrantedByUserId).HasColumnName("granted_by_user_id");
+            entity.HasIndex(x => x.GrantedByUserId);
             entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.GrantedByUserId).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(x => new { x.OrganizationId, x.UserId }).IsUnique();
             entity.HasIndex(x => new { x.UserId, x.Status, x.OrganizationId });

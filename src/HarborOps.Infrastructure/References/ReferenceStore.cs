@@ -114,6 +114,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         CurrentSession session, Guid orgId, string? q, string status, Guid? after, int limit,
         CancellationToken ct)
     {
+        await using var readTx = await BeginReadAsync(session, orgId, ct);
         var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
             OrganizationPermission.ViewReferenceData, ct);
         if (scope.Value is null) return new(null, scope.Error);
@@ -132,6 +133,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         var items = await query.OrderBy(x => x.Id).Take(limit + 1).ToListAsync(ct);
         var more = items.Count > limit;
         if (more) items.RemoveAt(limit);
+        await readTx.CommitAsync(ct);
         return new(new ReferencePage<PortReference>(items, more ? items[^1].Id : null),
             OrganizationAccessError.None);
     }
@@ -140,6 +142,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         CurrentSession session, Guid orgId, string? q, string status, Guid? after, int limit,
         CancellationToken ct)
     {
+        await using var readTx = await BeginReadAsync(session, orgId, ct);
         var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
             OrganizationPermission.ViewReferenceData, ct);
         if (scope.Value is null) return new(null, scope.Error);
@@ -159,6 +162,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         var items = await query.OrderBy(x => x.Id).Take(limit + 1).ToListAsync(ct);
         var more = items.Count > limit;
         if (more) items.RemoveAt(limit);
+        await readTx.CommitAsync(ct);
         return new(new ReferencePage<VesselReference>(items, more ? items[^1].Id : null),
             OrganizationAccessError.None);
     }
@@ -166,10 +170,12 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
     public async Task<ReferenceResult<PortReference>> GetPortAsync(
         CurrentSession session, Guid orgId, Guid id, CancellationToken ct)
     {
+        await using var readTx = await BeginReadAsync(session, orgId, ct);
         var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
             OrganizationPermission.ViewReferenceData, ct);
         if (scope.Value is null) return new(null, scope.Error);
         var item = await Visible<PortReference>(session, orgId).SingleOrDefaultAsync(x => x.Id == id, ct);
+        await readTx.CommitAsync(ct);
         return item is null ? new(null, OrganizationAccessError.NotFound) :
             new(item, OrganizationAccessError.None);
     }
@@ -177,10 +183,12 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
     public async Task<ReferenceResult<VesselReference>> GetVesselAsync(
         CurrentSession session, Guid orgId, Guid id, CancellationToken ct)
     {
+        await using var readTx = await BeginReadAsync(session, orgId, ct);
         var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
             OrganizationPermission.ViewReferenceData, ct);
         if (scope.Value is null) return new(null, scope.Error);
         var item = await Visible<VesselReference>(session, orgId).SingleOrDefaultAsync(x => x.Id == id, ct);
+        await readTx.CommitAsync(ct);
         return item is null ? new(null, OrganizationAccessError.NotFound) :
             new(item, OrganizationAccessError.None);
     }

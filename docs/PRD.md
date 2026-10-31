@@ -1,6 +1,6 @@
 # HarborOps Product Requirements Document
 
-**Version:** 2.0 granular delivery alignment  
+**Version:** 3.0 parallel delivery alignment  
 **Date:** 2026-10-30  
 **State:** Product direction confirmed; complete PRD acceptance pending  
 **Product:** Enterprise Maritime Logistics & IT Operations Platform
@@ -131,9 +131,9 @@ Security, reliability, benchmark, and usability evidence must include the exact 
 
 ## 9. Granular milestone boundaries
 
-The earlier M0-M6 sequence has been decomposed into 25 individually gated milestones, M0-M24. This change **does not add product requirements or imply new implementation evidence**. It narrows acceptance into independently testable slices.
+The earlier M0-M6 delivery bundles are represented by 25 individually gated milestones, M0-M24. Version 3.0 makes workstreams parallel wherever genuine technical prerequisites allow it. This **does not change product scope, approval status, or executed evidence**. Numbering identifies accountability rather than implementation order.
 
-| Delivery group | Milestone range | Specific sequence |
+| Delivery group | Milestone range | Workstream scope |
 | --- | --- | --- |
 | Foundation and maritime records | M0-M6 | Engineering foundation, sessions, organizations, ports/vessels, voyages/containers, shipment CRUD, shipment assignments |
 | Tracking and decision rules | M7-M11 | Source contracts, durable inbox, worker, projections, exceptions |
@@ -142,7 +142,7 @@ The earlier M0-M6 sequence has been decomposed into 25 individually gated milest
 | Reliability and delivery assurance | M19-M22 | Restoration, security review, performance, local deployment and optional hosting feasibility |
 | Release finish | M23-M24 | Premium interface polish, accessibility, complete deterministic scenarios and evidence closure |
 
-Each milestone is gated on real executed behavior, not merely the presence of source files. Detailed work-package IDs, dependency edges and verification expectations are authoritative in [execution-graph.json](execution-graph.json), represented in [Execution Graph](EXECUTION_GRAPH.md). Old v1 M1-M6 task IDs are superseded; [Roadmap](ROADMAP.md) documents the mapping.
+Each milestone is gated on real executed behavior, not merely the presence of source files. Detailed work-package IDs, dependency edges and verification expectations are authoritative in [execution-graph.json](execution-graph.json), represented in [Execution Graph](EXECUTION_GRAPH.md). Old v1 M1-M6 task IDs are superseded; [Roadmap](ROADMAP.md) documents the mapping. [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) controls overlapping branches, migrations, shared contracts and integration verification.
 
 ## 10. Dependencies, risks, and decisions
 

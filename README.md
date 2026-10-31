@@ -78,9 +78,9 @@ M4 is planned and has not started. Its entry gate G3 is accepted; D-003 containe
 
 A modular monolith plus a background worker is the initial architecture. Distributed services, live commercial feeds, and continuous paid infrastructure are not prerequisites.
 
-### Delivery sequence
+### Parallel dependency-based delivery
 
-M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone sequencing is dependency based, not a calendar deadline. Current delivery status is recorded only in [Project Status](docs/STATUS.md).
+M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone IDs are not execution order: independently ready workstreams may run in parallel after their named upstream gates are accepted. The graph v3.0 defines work-package-level hard and integration dependencies; see [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md). Current delivery status remains exclusive to [Project Status](docs/STATUS.md).
 
 ### Local M0-M3 startup
 

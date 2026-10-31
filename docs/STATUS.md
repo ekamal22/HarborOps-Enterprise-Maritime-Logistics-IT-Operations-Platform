@@ -77,9 +77,9 @@ M2-01 through M2-04 and all G2-S01 through G2-S25 scenarios are complete. The lo
 
 G0, G1, G2 and G3 are accepted and integrated into `main`. D-003 remains scheduled for M4 and D-002 for M7. Historical-volume compatibility remains at M6, M12, M18 and M24-03; dedicated accessibility verification remains M24-04.
 
-## Next milestone: M4
+## Next eligible parallel workstreams
 
-M3-01 through M3-04 are implemented, G3 is accepted and M3 has been fast-forward integrated into `main`. The E:-backed G3 run at `b72025d35d62d0a8a45b466986a0b3bd89eebadb` passed 50 unit, 12 contract, 56 fresh and 56 repeated PostgreSQL integration tests plus 19 browser tests in each of Chromium, Firefox and WebKit. [Executed verification](M3_EXECUTED_VERIFICATION.md) and [implementation status](M3_IMPLEMENTATION_STATUS.md) record the evidence. **M4 remains planned and has not started.** D-003 container identifier policy must be decided before applicable M4 implementation. No G4 verification or production deployment is claimed.
+M3-01 through M3-04 are implemented, G3 is accepted and M3 has been fast-forward integrated into `main`. The E:-backed G3 run at `b72025d35d62d0a8a45b466986a0b3bd89eebadb` passed 50 unit, 12 contract, 56 fresh and 56 repeated PostgreSQL integration tests plus 19 browser tests in each of Chromium, Firefox and WebKit. [Executed verification](M3_EXECUTED_VERIFICATION.md) and [implementation status](M3_IMPLEMENTATION_STATUS.md) record the evidence. **No M4-M24 implementation has started.** The v3.0 dependency graph allows distinct eligible tracks from accepted G3, including M4 (D-003), M5, M7 (D-002), M16, M17, M19 (D-008), M20-01 and M23-01. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md). No G4-G24 gate is verified or accepted and no production deployment is authorized.
 
 ## Storage and residual risk
 

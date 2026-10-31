@@ -159,7 +159,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
       </div>
       <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Reference type">
         {(["ports", "vessels"] as const).map(value =>
-          <button key={value} type="button" onClick={() => {
+          <button key={value} type="button" disabled={busy} onClick={() => {
             generation.current += 1; mutationGeneration.current += 1; setBusy(false);
             setKind(value); setQ(""); setStatus("Active");
             setSelected(null); setCreating(false); setItems([]);
@@ -170,12 +170,12 @@ export default function ReferenceDataWorkspace({ organizationId, canManage }: {
       </div>
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <label className="text-sm">Search {kind}
-          <input value={q} maxLength={80} onChange={event => setQ(event.target.value)}
+          <input value={q} maxLength={80} disabled={busy} onChange={event => setQ(event.target.value)}
             className="mt-1 block rounded bg-slate-950 px-3 py-2"
             placeholder="Name, reference, identifier" />
         </label>
         <label className="text-sm">Reference status
-          <select value={status} onChange={event => setStatus(event.target.value as ReferenceStatus | "All")}
+          <select value={status} disabled={busy} onChange={event => setStatus(event.target.value as ReferenceStatus | "All")}
             className="mt-1 block rounded bg-slate-950 px-3 py-2">
             <option>Active</option><option>Archived</option><option>All</option>
           </select>

@@ -3,7 +3,7 @@
 **Milestone:** M3 Ports and vessels reference data
 **Branch:** `feat/m3-port-vessel-reference-data`
 **Baseline:** Accepted G0, G1 and G2 on `main`; M2 merged through PR #5
-**Implementation state:** Source and corrective changes committed following the correctness audit; runtime verification not executed in this session
+**Implementation state:** Source changes from both correctness audits committed; full runtime verification remains unexecuted
 **Gate:** G3 open; G3-S01 through G3-S25 have not been confirmed against a final executable run
 **Merge:** Not merged into `main`; acceptance pending only after verified evidence is complete
 
@@ -60,4 +60,4 @@ Record actual results in `docs/M3_EXECUTED_VERIFICATION.md` only after a verifie
 - Removed a duplicated helper/brace block from the M3 EF model snapshot.
 - Corrected adversarial tests to compare sanitized error codes rather than per-request correlation IDs.
 
-These source-level corrections remain subject to G3 testing. See the [correctness audit](M3_CORRECTNESS_AUDIT.md) and [remediation register](M3_CORRECTNESS_REMEDIATION.md). No implementation defect may be marked verified from source inspection alone.
+These source-level corrections remain subject to G3 testing. See the [correctness audit](M3_CORRECTNESS_AUDIT.md) and [remediation register](M3_CORRECTNESS_REMEDIATION.md). The [second correctness audit](M3_SECOND_CORRECTNESS_AUDIT.md) and [second remediation register](M3_SECOND_CORRECTNESS_REMEDIATION.md) document additional corrections. No implementation defect may be marked verified from source inspection alone.

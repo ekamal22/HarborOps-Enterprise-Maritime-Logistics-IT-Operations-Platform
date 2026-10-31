@@ -7,6 +7,8 @@
 **Execution:** No .NET build, PostgreSQL migrations, browser tests, Docker Compose, image scans, or GitHub Actions were executed. No workstation drive accessed.  
 **Gate:** G3 OPEN. Acceptance and merge are blocked.
 
+**Subsequent correction:** See [second-audit remediation register](M3_SECOND_CORRECTNESS_REMEDIATION.md). The findings below describe the originally audited source revision; source changes require real local execution before G3 can be marked verified.
+
 ## Executive finding
 
 The remediated M3 source includes material improvements over the first audit, including explicit bounded JSON parsing, independent mutation busy tracking, transaction-scoped reads, richer adversarial tests, deterministic reference fixtures, and a G3 evidence index. However, the newly added database trigger function contains a definite PostgreSQL SQL syntax error, so M3 migration execution cannot succeed unchanged. The G3 evidence checker also does not yet safely prove that each scenario passed on the final revision.

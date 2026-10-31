@@ -1,6 +1,7 @@
 using System.Data.Common;
 using HarborOps.Api.Authentication;
 using HarborOps.Api.Organizations;
+using HarborOps.Api.References;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net.Sockets;
 using HarborOps.Api.Health;
@@ -91,6 +92,7 @@ app.UseAuthorization();
 app.UseRateLimiter();
 app.MapAuthenticationEndpoints();
 app.MapOrganizationEndpoints();
+app.MapReferenceEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

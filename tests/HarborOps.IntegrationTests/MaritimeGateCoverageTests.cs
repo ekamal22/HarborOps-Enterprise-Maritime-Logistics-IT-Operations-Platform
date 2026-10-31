@@ -233,6 +233,16 @@ public sealed class MaritimeGateCoverageTests
         });
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var id = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var error = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE containers SET record_status = {"Archived"}, display_name = {"Tampered"}, version = {2L}, updated_at_utc = {DateTimeOffset.UtcNow.AddMinutes(1)} WHERE id = {id}"));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, error.SqlState);
+        var active = await db.Containers.AsNoTracking().SingleAsync(x => x.Id == id);
+        Assert.Equal("Active", active.RecordStatus);
+        Assert.Null(active.DisplayName);
+        Assert.Equal(1L, active.Version);
         using var archive = await Send(manager, HttpMethod.Delete, root + "/" + id,
             new { expectedVersion = 1L });
         Assert.Equal(HttpStatusCode.NoContent, archive.StatusCode);
@@ -241,12 +251,6 @@ public sealed class MaritimeGateCoverageTests
             containerIdentifier = "SYN-BOX-ARCHIVED", equipmentType = "Reefer40"
         });
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
-        await using var scope = factory.Services.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
-        var error = await Assert.ThrowsAsync<PostgresException>(() =>
-            db.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE containers SET record_status = {'A'} || {'r'} || {'c'} || {'h'} || {'i'} || {'v'} || {'e'} || {'d'}, display_name = {"Tampered"}, version = {3L}, updated_at_utc = {DateTimeOffset.UtcNow.AddMinutes(1)} WHERE id = {id}"));
-        Assert.Equal(PostgresErrorCodes.CheckViolation, error.SqlState);
         var row = await db.Containers.AsNoTracking().SingleAsync(x => x.Id == id);
         Assert.Equal("Archived", row.RecordStatus);
         Assert.Null(row.DisplayName);

@@ -44,8 +44,13 @@ test("revocation removes management controls using real HTTP permissions", async
   const administrator = await adminContext.newPage();
   try {
     await login(administrator, "m3-admin-a@example.test");
+    // The selection is stored server-side; wait for it before calling organization-scoped APIs.
+    const selected = administrator.waitForResponse(response =>
+      response.request().method() === "PUT" &&
+      new URL(response.url()).pathname === "/api/v1/auth/session/organization");
     await administrator.locator("#current-organization")
       .selectOption({ label: label + " (Administrator)" });
+    expect((await selected).status()).toBe(200);
     const roster = await administrator.request.get(root + "/memberships?limit=100");
     expect(roster.status()).toBe(200);
     const member = (await roster.json()).memberships.find(x => x.userId === managerId);

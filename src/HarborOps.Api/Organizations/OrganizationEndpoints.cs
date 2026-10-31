@@ -2,6 +2,7 @@ using HarborOps.Domain.Organizations;
 using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Organizations;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HarborOps.Api.Organizations;
 
@@ -196,7 +197,7 @@ public static class OrganizationEndpoints
         });
 
         organizations.MapDelete("/{organizationId}/memberships/{userId}", async (
-            string organizationId, string userId, RemoveMembershipRequest input,
+            string organizationId, string userId, [FromBody] RemoveMembershipRequest input,
             HttpContext ctx, IAntiforgery anti, OrganizationStore store, CancellationToken ct) =>
         {
             ctx.Response.Headers.CacheControl = "no-store";

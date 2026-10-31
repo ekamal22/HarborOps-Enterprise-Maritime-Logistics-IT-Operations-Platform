@@ -71,7 +71,7 @@ public sealed class ReferenceSessionBoundaryTests
         }
         foreach (var (method, path, body) in Routes(f.A))
         {
-            using var result = await ReferenceDataHttpTests.Send(manager, method, path, body);
+            using var result = await ReferenceDataHttpTests.Send(manager, method, path, body, csrf: false);
             Assert.Equal(HttpStatusCode.Unauthorized, result.StatusCode);
             Assert.Contains("authentication_required",
                 await result.Content.ReadAsStringAsync(), StringComparison.Ordinal);

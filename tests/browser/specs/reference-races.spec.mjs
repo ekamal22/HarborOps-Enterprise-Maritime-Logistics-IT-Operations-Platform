@@ -130,3 +130,16 @@ test("revocation during a reference refresh clears protected rows", async ({ pag
   await expect(page.getByText("Synthetic Primary Port North")).toHaveCount(0);
   await page.unrouteAll();
 });
+
+test("selected organization and reference rows survive browser reload", async ({ page }) => {
+  test.skip(!enabled, "M3 isolated browser fixture required");
+  await login(page);
+  await page.locator("#current-organization")
+    .selectOption({ label: "M3 North Terminal (Manager)" });
+  await expect(page.getByText("Synthetic Primary Port North")).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Organization workspace" })).toBeVisible();
+  await expect(page.locator("#current-organization")).toHaveValue(
+    (await (await page.request.get("/api/v1/me/organization-context")).json()).selected.id);
+  await expect(page.getByText("Synthetic Primary Port North")).toBeVisible();
+});

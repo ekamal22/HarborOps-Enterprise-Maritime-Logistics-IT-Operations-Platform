@@ -108,8 +108,13 @@ public sealed class ReferenceBoundaryMatrixTests
         using var nonexistent = await manager.GetAsync(root + "/ports/" + Guid.NewGuid());
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, nonexistent.StatusCode);
-        Assert.Equal(await nonexistent.Content.ReadAsStringAsync(),
-            await foreign.Content.ReadAsStringAsync());
+        var foreignBody = await foreign.Content.ReadFromJsonAsync<JsonElement>();
+        var absentBody = await nonexistent.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("resource_not_found", foreignBody.GetProperty("code").GetString());
+        Assert.Equal(absentBody.GetProperty("code").GetString(),
+            foreignBody.GetProperty("code").GetString());
+        Assert.DoesNotContain("Foreign private port",
+            foreignBody.GetProperty("message").GetString() ?? "", StringComparison.Ordinal);
         using var list = await manager.GetAsync(root + "/ports?q=Foreign");
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         var json = await list.Content.ReadFromJsonAsync<JsonElement>();

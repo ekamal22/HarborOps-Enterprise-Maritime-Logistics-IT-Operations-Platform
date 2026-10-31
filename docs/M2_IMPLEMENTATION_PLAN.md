@@ -1,6 +1,6 @@
 # M2 Organizations and Role Isolation: Implementation Plan
 
-**State:** M2-01 through M2-04 complete on the feature branch; G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31.  
+**State:** M2-01 through M2-04 complete and merged into `main` via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` and accepted on 2026-10-31.
 **Entry:** G1 verified and accepted on 2026-10-31, with M1 integrated into `main`.  
 **Scope authority:** [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [Roadmap](ROADMAP.md), [execution graph](EXECUTION_GRAPH.md), [Requirements](REQUIREMENTS.md), [G2 verification](M2_VERIFICATION_PLAN.md).
 
@@ -98,7 +98,7 @@ Proposed source paths:
 5. Exercise browser sign-in, organization selection, reload, different-role organization switch, forbidden roster action, logout and membership-revocation recovery. Chromium, Firefox and WebKit are included if installed locally; a missing required engine is BLOCKED, not PASS.
 6. Recheck M0 synthetic baseline and M1 login, cookies, CSRF, expiry, logout, disabled account and PostgreSQL outage handling against a disposable local Compose project. Test a restarted API with persistent authentication keys, not a retained personal volume.
 7. Perform a targeted dependency and image review with locally available tooling, record actual results and limitations. Do not silently substitute unverified statements for executed scans.
-8. Write `docs/M2_IMPLEMENTATION_VERIFICATION.md` only with actual commands, source SHA, environment, fixture identifiers, case counts, PASS/FAIL/BLOCKED/NOT RUN results and residual risks. Advance G2 to `verified, acceptance pending` only after complete evidence.
+8. Record executed G2 evidence in `docs/M2_EXECUTED_VERIFICATION.md`, including commands, source SHA, environment, fixture IDs, case counts, PASS/FAIL/BLOCKED/NOT RUN results and residual risks. Advance G2 to acceptance pending only after complete evidence, then require explicit acceptance.
 9. Update [Status](STATUS.md), [Roadmap](ROADMAP.md), [Requirements](REQUIREMENTS.md), [API Contracts](API_CONTRACTS.md), [Domain Model](DOMAIN_MODEL.md), [Security](SECURITY.md), [Operations](OPERATIONS.md) and [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) to reflect actual implemented behavior rather than the proposal.
 
 Do not accept G2, merge implementation automatically or begin M3 solely because tests pass. Explicit acceptance remains a separate decision.
@@ -138,4 +138,4 @@ These choices are described in the design, but the documentation does not imply 
 
 ## Milestone exit
 
-M2 ends only with G2 evidence covering the full two-organization/role matrix, verified server-side isolation, migration safety, session selection, browser flow and preserved M0/M1 behavior. **Current state: M2-01 through M2-04 complete on the feature branch; G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31.**
+M2 was completed after G2 evidence covered the two-organization/role matrix, server-side isolation, migration safety, session selection, browser flows and M0/M1 regression. **Recorded state: M2-01 through M2-04 complete, G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`, accepted on 2026-10-31 and merged into `main` via PR #5.**

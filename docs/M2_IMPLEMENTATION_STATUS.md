@@ -1,9 +1,9 @@
 # M2 Implementation Register
 
 **Milestone:** M2 Organizations and role isolation  
-**Branch:** `feat/m2-organization-authorization`  
-**Baseline:** `a2acd64234049580c21dec49dbdd987b01030a4b` on `main`; G0 and G1 accepted  
-**Implementation state:** M2-01 through M2-04 complete on the feature branch. **G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31. Not merged to `main`.**  
+**Integrated branch:** `main`, merged from `feat/m2-organization-authorization` via PR #5.
+**Historical baseline:** `a2acd64234049580c21dec49dbdd987b01030a4b` was the accepted G0/G1 `main` revision before M2. M2 merged via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`.
+**Implementation state:** M2-01 through M2-04 complete and integrated into `main`. G2 passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`, was accepted on 2026-10-31 and merged via PR #5.
 **Verification authorization:** G2 verification is local only: the complete matrix ran on the Windows development machine with every controllable path on E:, against disposable resources. Earlier GitHub runs (the first on draft PR #5) are historical; no workflow run was started after the local-only restriction.  
 **Verification:** [Executed record](M2_EXECUTED_VERIFICATION.md): 22 unit, 12 contract, 32 fresh and 32 repeated PostgreSQL integration, 6 frontend and 24 browser tests (Chromium, Firefox, WebKit), plus Compose, M0 and M1 recovery, authenticated organization outage recovery with durable revocation, restricted bootstrap denial, dependency review and clean scans of the three running images. All G2-S01 through G2-S25 scenarios passed.
 
@@ -72,4 +72,4 @@ The seven verification areas below were executed locally on `fbddc1361d79b027275
 6. Disposable Compose startup, API restart, database outage and recovery (M0, M1 and M2 scoped), image revision labels, image scans and dependency review.
 7. Failures were investigated, corrected and the complete run repeated on the final source revision.
 
-**G2 verified locally and accepted on 2026-10-31.** M2 is not merged to `main` and M3 has not started; both need a separate decision. Historical retained-volume compatibility remains at M6/M12/M18/M24-03, and full dedicated accessibility testing stays at M24-04.
+**G2 verified locally and accepted on 2026-10-31.** M2 is merged into `main` via PR #5; M3 implementation has not started. Historical retained-volume checks remain at M6/M12/M18/M24-03, and dedicated accessibility verification remains M24-04.

@@ -147,6 +147,13 @@ public sealed class VoyageContainerReferences : Migration
                 IF NEW.version <> OLD.version + 1 OR NEW.updated_at_utc < OLD.updated_at_utc THEN
                     RAISE EXCEPTION 'Version must advance exactly once' USING ERRCODE = '23514';
                 END IF;
+                IF OLD.record_status='Active' AND NEW.record_status='Archived' THEN
+                    IF (to_jsonb(NEW) - 'record_status' - 'version' - 'updated_at_utc')
+                       IS DISTINCT FROM
+                       (to_jsonb(OLD) - 'record_status' - 'version' - 'updated_at_utc') THEN
+                        RAISE EXCEPTION 'Archive must not edit fields' USING ERRCODE = '23514';
+                    END IF;
+                END IF;
                 IF OLD.record_status='Archived' THEN
                     IF NEW.record_status <> 'Active' OR
                         (to_jsonb(NEW) - 'record_status' - 'version' - 'updated_at_utc')

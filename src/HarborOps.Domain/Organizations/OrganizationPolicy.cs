@@ -39,7 +39,7 @@ public static class OrganizationPolicy
 
     public static bool Allows(OrganizationRole role, OrganizationPermission permission) =>
         permission == OrganizationPermission.ViewOrganization ||
-        (permission == OrganizationPermission.ViewReferenceData && role is OrganizationRole.Analyst or OrganizationRole.Manager) ||
+        (permission == OrganizationPermission.ViewReferenceData && (role is OrganizationRole.Analyst or OrganizationRole.Manager)) ||
         (permission == OrganizationPermission.ManageReferenceData && role == OrganizationRole.Manager) ||
         (role == OrganizationRole.Administrator &&
             (permission == OrganizationPermission.ViewMemberships ||

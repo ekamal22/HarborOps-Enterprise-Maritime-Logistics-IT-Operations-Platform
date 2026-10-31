@@ -57,7 +57,7 @@ public sealed class ReferenceInput
             (!result.Has("referenceCode") || !result.Has("name") ||
              (port && !result.Has("countryCode"))))
             throw new ArgumentException("Required fields missing");
-        if (action is "update" or "delete" && !result.ExpectedVersion.HasValue)
+        if ((action is "update" or "delete") && !result.ExpectedVersion.HasValue)
             throw new ArgumentException("Expected version required");
         if (action == "update" && !result.strings.Keys.Any())
             throw new ArgumentException("No change supplied");
@@ -67,11 +67,10 @@ public sealed class ReferenceInput
 
 public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore organizations, TimeProvider clock)
 {
-    private static bool CanRead(string role) => role is "Analyst" or "Manager";
-
-    private IQueryable<TEntity> Visible<TEntity>(CurrentSession session, Guid orgId)
+    private IQueryable<TEntity> Visible<TEntity>(CurrentSession session, Guid orgId,
+        IQueryable<TEntity>? source = null)
         where TEntity : ReferenceRecord =>
-        db.Set<TEntity>().AsNoTracking().Where(x =>
+        (source ?? db.Set<TEntity>()).AsNoTracking().Where(x =>
             x.OrganizationId == orgId &&
             db.AuthSessions.Any(s => s.Id == session.SessionId && s.UserId == session.UserId &&
                 s.SelectedOrganizationId == orgId && s.RevokedAtUtc == null &&
@@ -90,9 +89,11 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
             OrganizationPermission.ViewReferenceData, ct);
         if (scope.Value is null) return new(null, scope.Error);
-        var query = Visible<PortReference>(session, orgId);
+        var baseQuery = after.HasValue
+            ? db.Ports.FromSqlInterpolated($"SELECT * FROM ports WHERE organization_id = {orgId} AND id > {after.Value}")
+            : db.Ports.AsQueryable();
+        var query = Visible<PortReference>(session, orgId, baseQuery);
         if (status != "All") query = query.Where(x => x.Status == status);
-        if (after.HasValue) query = query.Where(x => x.Id.CompareTo(after.Value) > 0);
         if (!string.IsNullOrEmpty(q))
         {
             var term = q.ToLowerInvariant();
@@ -114,7 +115,10 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         var scope = await organizations.ResolveAsync(session.UserId, session.SessionId, orgId,
             OrganizationPermission.ViewReferenceData, ct);
         if (scope.Value is null) return new(null, scope.Error);
-        var query = Visible<VesselReference>(session, orgId);
+        var baseQuery = after.HasValue
+            ? db.Vessels.FromSqlInterpolated($"SELECT * FROM vessels WHERE organization_id = {orgId} AND id > {after.Value}")
+            : db.Vessels.AsQueryable();
+        var query = Visible<VesselReference>(session, orgId, baseQuery);
         if (status != "All") query = query.Where(x => x.Status == status);
         if (after.HasValue) query = query.Where(x => x.Id.CompareTo(after.Value) > 0);
         if (!string.IsNullOrEmpty(q))
@@ -162,13 +166,18 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         var org = await db.Organizations
             .FromSqlInterpolated($"SELECT * FROM organizations WHERE id = {orgId} FOR UPDATE")
             .AsNoTracking().SingleOrDefaultAsync(ct);
-        var selected = await db.AuthSessions.AsNoTracking()
-            .Where(s => s.Id == session.SessionId && s.UserId == session.UserId &&
-                s.RevokedAtUtc == null && s.IdleExpiresAtUtc > clock.GetUtcNow() &&
-                s.AbsoluteExpiresAtUtc > clock.GetUtcNow())
-            .Select(s => s.SelectedOrganizationId).SingleOrDefaultAsync(ct);
-        if (selected is null) return OrganizationAccessError.SelectionRequired;
-        if (selected != orgId) return OrganizationAccessError.NotFound;
+        var now = clock.GetUtcNow();
+        var currentSession = await db.AuthSessions
+            .FromSqlInterpolated($"SELECT * FROM auth_sessions WHERE id = {session.SessionId} FOR UPDATE")
+            .AsNoTracking().SingleOrDefaultAsync(ct);
+        if (currentSession is null || currentSession.UserId != session.UserId ||
+            currentSession.RevokedAtUtc is not null ||
+            currentSession.IdleExpiresAtUtc <= now || currentSession.AbsoluteExpiresAtUtc <= now)
+            return OrganizationAccessError.Revoked;
+        if (currentSession.SelectedOrganizationId is null)
+            return OrganizationAccessError.SelectionRequired;
+        if (currentSession.SelectedOrganizationId != orgId)
+            return OrganizationAccessError.NotFound;
         if (org is null || org.Status != "Active") return OrganizationAccessError.Revoked;
         if (!await db.AuthUsers.AsNoTracking()
             .AnyAsync(u => u.Id == session.UserId && u.Status == "Active", ct))
@@ -293,5 +302,5 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         }
     }
 
-    private sealed class ReferenceMissingException : Exception;
+    private sealed class ReferenceMissingException : Exception { }
 }

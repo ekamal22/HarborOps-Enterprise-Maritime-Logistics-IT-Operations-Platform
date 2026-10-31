@@ -100,7 +100,7 @@ public static class ReferenceEndpoints
             if (input is null) return Error(ctx, OrganizationAccessError.Invalid);
             var result = await store.WritePortAsync(Current(ctx), org, null, "create", input, ct);
             return result.Value is null ? Error(ctx, result.Error) :
-                Results.Created(ctx.Request.Path + "/" + result.Value.Id, result.Value);
+                Results.Created($"{ctx.Request.Path}/{result.Value.Id}", result.Value);
         });
         root.MapPatch("/ports/{portId}", async (string organizationId, string portId,
             JsonElement request, HttpContext ctx, IAntiforgery anti,
@@ -163,7 +163,7 @@ public static class ReferenceEndpoints
             if (input is null) return Error(ctx, OrganizationAccessError.Invalid);
             var result = await store.WriteVesselAsync(Current(ctx), org, null, "create", input, ct);
             return result.Value is null ? Error(ctx, result.Error) :
-                Results.Created(ctx.Request.Path + "/" + result.Value.Id, result.Value);
+                Results.Created($"{ctx.Request.Path}/{result.Value.Id}", result.Value);
         });
         root.MapPatch("/vessels/{vesselId}", async (string organizationId, string vesselId,
             JsonElement request, HttpContext ctx, IAntiforgery anti,

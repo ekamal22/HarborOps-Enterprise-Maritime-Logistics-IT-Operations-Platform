@@ -38,7 +38,8 @@ function payload(kind: MaritimeKind, form: Form, isNew: boolean, prior?: Maritim
       referenceCode: form.referenceCode.trim(), identifierKind: form.identifierKind,
       containerIdentifier: form.containerIdentifier.trim(),
       equipmentType: form.equipmentType, displayName: form.displayName.trim() || null
-    } : { displayName: form.displayName.trim() || null };
+} : (form.displayName.trim() || null) === (prior?.displayName ?? null)
+      ? {} : { displayName: form.displayName.trim() || null };
   if (isNew) return {
     referenceCode: form.referenceCode.trim(), vesselId: form.vesselId,
     originPortId: form.originPortId, destinationPortId: form.destinationPortId,
@@ -122,11 +123,11 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
     setPaging(true);
     try {
       const page = await listMaritime(organizationId, kind, q, status, nextAfter);
-      if (serial !== generation.current) return;
+      if (serial !== generation.current || token !== pageToken.current) return;
       setItems(old => [...old, ...(page[kind] ?? [])]);
       setNextAfter(page.nextAfter);
     } catch (cause) {
-      if (serial !== generation.current) return;
+      if (serial !== generation.current || token !== pageToken.current) return;
       setItems([]); setNextAfter(null); setSelected(null);
       setError(organizationError(cause)); invalidate(cause);
     } finally { if (token === pageToken.current) setPaging(false); }

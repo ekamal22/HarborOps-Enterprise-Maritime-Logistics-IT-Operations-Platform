@@ -18,7 +18,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | **M0 Engineering baseline verification** | G0 verified and accepted | [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) passed all required .NET, clean/seeded PostgreSQL, web, functional browser, Compose recovery and final image checks on `fec7429415fede121db8a4a34f0df72cd4fac609`. |
 | **M1 Authentication and session lifecycle** | G1 verified and accepted; merged into `main` | [M1 verification register](M1_IMPLEMENTATION_VERIFICATION.md); both final CI runs passed; PR #4 merge `8f9fc0d506a9e1dc1d4f5acab936622df988f413` on 2026-10-31. |
 | **M2 Organizations and role isolation** | G2 verified locally, accepted and merged into `main` | [Executed M2 verification](M2_EXECUTED_VERIFICATION.md): all G2-S01 to G2-S25 scenarios passed on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) merged as `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31. |
-| **M3 Ports and vessels reference data** | Planned | No verified implementation or accepted gate G3 |
+| **M3 Ports and vessels reference data** | Architecture and implementation plan documented; implementation not started | [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md), [G3 verification plan](M3_VERIFICATION_PLAN.md). Design approval pending; no executed G3 evidence, G3 open. |
 | **M4 Voyages and containers reference data** | Planned | No verified implementation or accepted gate G4 |
 | **M5 Shipment lifecycle and concurrency** | Planned | No verified implementation or accepted gate G5 |
 | **M6 Container and voyage assignments** | Planned | No verified implementation or accepted gate G6 |
@@ -79,7 +79,7 @@ G0, G1 and G2 are accepted and integrated into `main`. D-003 remains scheduled f
 
 ## Next milestone: M3
 
-M3 Ports and vessels reference data is planned. Entry G2 is satisfied; G3 remains open. Required packages M3-01 through M3-04 cover port/vessel invariants, persistence, scoped endpoints and browser verification. Implementation has not started. See [Roadmap](ROADMAP.md).
+M3 Ports and vessels reference data has a proposed [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation sequence](M3_IMPLEMENTATION_PLAN.md) and [G3 verification specification](M3_VERIFICATION_PLAN.md). Entry G2 is accepted; M3-01 through M3-04 remain unimplemented. Design approval is pending, G3-S01 through G3-S25 have not been executed, and G3 remains open. The design introduces tenant-owned reference UUIDs, explicit Analyst read/Manager write permissions, checked optional UN/LOCODE/IMO/MMSI input and a three-browser lookup flow. No M4 code or production deployment is authorized.
 
 ## Storage and residual risk
 

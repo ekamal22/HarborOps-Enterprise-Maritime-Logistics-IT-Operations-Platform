@@ -112,7 +112,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** Validated, queryable and scoped port/vessel reference records.
 **Entry:** G2 verified, explicitly accepted and merged, with [executed evidence](M2_EXECUTED_VERIFICATION.md).
-**Required work packages:** M3-01 Specify port and vessel invariants; M3-02 Implement port persistence and endpoints; M3-03 Implement vessel persistence and endpoints; M3-04 Verify reference data browser flow.
+**Required work packages:** M3-01 Specify port and vessel invariants; M3-02 Implement port persistence and endpoints; M3-03 Implement vessel persistence and endpoints; M3-04 Verify reference data browser flow. The proposed [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation sequence](M3_IMPLEMENTATION_PLAN.md) and [G3-S01 to G3-S25 plan](M3_VERIFICATION_PLAN.md) define the implementation contract. Design approval is pending; no M3 code or G3 execution is claimed.
 **Exit G3:** All applicable tasks, negative tests, runtime evidence and documentation for M3 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Voyage, container, shipment and tracking persistence.
 

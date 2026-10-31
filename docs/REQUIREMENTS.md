@@ -47,6 +47,10 @@ All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_PO
 
 FR-002 and NFR-002 were implemented in M2-01 through M2-04 with live server-side permission resolution, organization memberships and role grants, session-owned organization selection, scoped resource predicates and immediate revocation. The existing role matrix below remains policy for future business operations. M2 implements organization/profile and membership APIs; shipment CRUD, event ingestion, exports and dashboards remain later milestones. The work is merged into `main` via PR #5 and the complete [G2 matrix](M2_VERIFICATION_PLAN.md) passed locally ([executed evidence](M2_EXECUTED_VERIFICATION.md)).
 
+## M3 port and vessel reference-data allocation (design proposed, not implemented)
+
+FR-003 covers M3 port/vessel reference data and later M4 voyage records. M3-01 through M3-04 are specified in the [proposed architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification plan](M3_VERIFICATION_PLAN.md). The proposal adds tenant-owned immutable reference IDs/local codes, optional syntactically checked UN/LOCODE/IMO/MMSI inputs, Manager-only writes, Analyst reads and complete denied-by-default business permissions for the other M2 roles. It carries NFR-002, NFR-003, NFR-006, NFR-007, NFR-008 and NFR-012 across migration, API and browser verification. No official registry validation or M4 voyage model is included. No FR-003 G3 evidence has executed; design approval and implementation remain pending.
+
 ## Non-functional requirements
 
 | ID | Area | Proposed target and verification |

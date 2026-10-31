@@ -35,13 +35,13 @@ var app = builder.Build();
 
 if (args.Contains("--account-cli", StringComparer.Ordinal))
 {
-    await AccountCli.RunAsync(args, app.Services);
+    Environment.ExitCode = await RunCommandAsync(() => AccountCli.RunAsync(args, app.Services));
     return;
 }
 
 if (args.Contains("--organization-cli", StringComparer.Ordinal))
 {
-    await OrganizationCli.RunAsync(args, app.Services);
+    Environment.ExitCode = await RunCommandAsync(() => OrganizationCli.RunAsync(args, app.Services));
     return;
 }
 
@@ -145,6 +145,28 @@ static bool IsDependencyFailure(Exception exception)
             return true;
     }
     return false;
+}
+
+// Restricted operator commands fail with a sanitized message and exit code 1. An unhandled exception
+// would abort the process and let the host write a memory dump, which could contain secrets that
+// were just entered. Only messages raised by the commands themselves are shown; wrapped provider
+// failures report their type alone.
+static async Task<int> RunCommandAsync(Func<Task> operation)
+{
+    try
+    {
+        await operation();
+        return 0;
+    }
+    catch (Exception exception)
+    {
+        var message = exception is InvalidOperationException or ArgumentException &&
+            exception.InnerException is null
+            ? exception.Message
+            : "The operation could not be completed (" + exception.GetType().Name + ")";
+        Console.Error.WriteLine(message);
+        return 1;
+    }
 }
 
 public partial class Program { }

@@ -153,12 +153,18 @@ stage_organizations() {
     --organization-cli bootstrap north-terminal "North Terminal" m2-operator@example.test
   "${compose[@]}" run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
     --organization-cli bootstrap east-terminal "East Terminal" m2-second-admin@example.test
+  # A rejected restricted command must exit cleanly with code 1. Any other non-zero code means the
+  # process aborted, which would also let the host write a memory dump.
   expect_failure() {
-    if "$@" > /dev/null 2>&1; then
-      echo "An intentionally invalid organization operation succeeded" >&2
+    local rc=0
+    "$@" > /dev/null 2>&1 || rc=$?
+    if [[ "$rc" != 1 ]]; then
+      echo "Expected a clean rejection (exit code 1) but observed $rc" >&2
       exit 1
     fi
   }
+  expect_failure "${compose[@]}" run --rm -T api \
+    --account-cli provision denied-account@example.test "Denied Account"
   expect_failure "${compose[@]}" run --rm -T api \
     --organization-cli bootstrap unauthorized-terminal "Unapproved" m2-second-admin@example.test
   expect_failure "${compose[@]}" run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \

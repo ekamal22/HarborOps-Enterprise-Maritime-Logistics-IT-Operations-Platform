@@ -52,7 +52,7 @@ M3 is implemented, locally verified, explicitly accepted on 2026-10-31 and integ
 
 ### Parallel-ready workstreams after G3
 
-M4 voyages/containers is one eligible next stream, not an exclusive next step. M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability and M19 recovery are also eligible based on accepted G3, alongside M20-01 security review and M23-01 design-system planning. Individual architecture decisions remain mandatory, including D-003 for M4 and D-002 for M7. No M4-M24 code has started or been approved merely through this planning change. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md), [Roadmap](docs/ROADMAP.md) and [Decisions](docs/DECISIONS.md).
+M4 voyages/containers is one eligible next stream, not an exclusive next step. M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability and M19 recovery are also eligible based on accepted G3, alongside M20-01 security review and M23-01 design-system planning. Individual architecture decisions remain mandatory, including D-003 for M4 and D-002 for M7. M4 implementation and expanded tests are committed on a separate feature branch without G4 acceptance. Other M5-M24 work remains planned and may proceed independently when prerequisites are satisfied. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md), [Roadmap](docs/ROADMAP.md) and [Decisions](docs/DECISIONS.md).
 
 ### Planned modules
 
@@ -80,7 +80,7 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 ### M4 architecture and implementation planning
 
-M4 voyage and container reference-data planning is documented in [M4 Architecture](docs/M4_ARCHITECTURE_DESIGN.md), [M4 Implementation Plan](docs/M4_IMPLEMENTATION_PLAN.md) and [G4 Verification Plan](docs/M4_VERIFICATION_PLAN.md). The recommended identifier policy is recorded in the [D-003 proposal](docs/M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), but **D-003 is not accepted**. M4 application and test source is committed on `feat/m4-voyage-container-references`, but no .NET, PostgreSQL, browser or G4 execution is verified. [M4 implementation status](docs/M4_IMPLEMENTATION_STATUS.md) records the unverified source and remaining blockers. M5 and other eligible workstreams remain independently parallel.
+M4 voyage and container reference-data planning is documented in [M4 Architecture](docs/M4_ARCHITECTURE_DESIGN.md), [M4 Implementation Plan](docs/M4_IMPLEMENTATION_PLAN.md) and [G4 Verification Plan](docs/M4_VERIFICATION_PLAN.md). The recommended identifier policy is recorded in the [D-003 proposal](docs/M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), but **D-003 is not accepted**. M4 application and test source is committed on `feat/m4-voyage-container-references`, but no .NET, PostgreSQL, browser or G4 execution is verified. [M4 implementation status](docs/M4_IMPLEMENTATION_STATUS.md) and [M4 correctness audit](docs/M4_CORRECTNESS_AUDIT.md) record the expanded unexecuted coverage, source corrections and remaining blockers. M5 and other eligible workstreams remain independently parallel.
 
 ### Parallel dependency-based delivery
 

@@ -100,6 +100,8 @@ Create or extend an E:-confined local runner, preserving the strict storage pref
 | Documentation | `node scripts/render-execution-graph.mjs --check` and `node scripts/check-planning-docs.mjs` results on the final source |
 | Gate record | PASS/FAIL/BLOCKED/NOT RUN for all G3-S01 to S25, evidence path and any residual risk |
 
+The local runner captures stage logs and structured TRX/browser results on E:. `scripts/assert-g3-evidence.mjs` writes a source-revision-labeled coverage index that fails on missing named evidence; the index must still be reviewed against the full negative-case matrix. See [M3 correctness remediation](M3_CORRECTNESS_REMEDIATION.md).
+
 Write `docs/M3_EXECUTED_VERIFICATION.md` only when there is real execution evidence, not as a prefilled PASS template. The evidence must distinguish prior M0-M2 accepted results from G3 runs on the new source SHA.
 
 ## 7. Closure and acceptance rule

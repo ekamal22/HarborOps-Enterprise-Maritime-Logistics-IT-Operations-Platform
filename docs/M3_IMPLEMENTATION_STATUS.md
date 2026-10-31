@@ -3,7 +3,7 @@
 **Milestone:** M3 Ports and vessels reference data
 **Branch:** `feat/m3-port-vessel-reference-data`
 **Baseline:** Accepted G0, G1 and G2 on `main`; M2 merged through PR #5
-**Implementation state:** Source implementation and test harness committed, runtime verification not executed from this session
+**Implementation state:** Source and corrective changes committed following the correctness audit; runtime verification not executed in this session
 **Gate:** G3 open; G3-S01 through G3-S25 have not been confirmed against a final executable run
 **Merge:** Not merged into `main`; acceptance pending only after verified evidence is complete
 
@@ -34,12 +34,15 @@
 - `tests/browser/specs/references.spec.mjs`: manager/analyst workflows in Chromium/Firefox/WebKit, reference create/edit/archive/restore and tenant switching.
 - `scripts/prepare-m3-browser-fixtures.mjs`: isolated M3 organization and role fixtures, distinct from accepted G2 browser test accounts.
 - `scripts/verify-m3-local.sh`: guarded E:-drive orchestration using the accepted M2 runner, disposable PostgreSQL/Compose, synthetic fixtures, all web/browser regressions, outage recovery and image scans.
+- `scripts/assert-g3-evidence.mjs`: verifies the presence of successful named TRX and three-engine browser results across G3-S01 to G3-S25, without assigning acceptance.
+- Additional integration suites: `ReferenceAdversarialHttpTests.cs`, `ReferenceHistoricalUpgradeTests.cs`, `ReferenceAdditionalContractTests.cs`, `ReferenceSessionBoundaryTests.cs` and `ReferenceConcurrencyTests.cs`.
+- Additional browser cases: `reference-races.spec.mjs` and `reference-paging.spec.mjs`, with isolated pagination fixtures.
 
 No compiler, PostgreSQL, browser, Compose, migration, image scan or documentation check has been executed on this source in this session. The implementation is not claimed runtime-correct or G3-ready based solely on source inspection. The [G3 verification plan](M3_VERIFICATION_PLAN.md) requires executed evidence for each G3-S01 through G3-S25 scenario, an exact final implementation SHA and a full rerun after the final code fix.
 
 ## Required local execution and acceptance
 
-Run from a clean E:-drive worktree using an E:-backed Docker Desktop/WSL installation, configured `HARBOROPS_VERIFICATION_ROOT`, E: environment caches/temp/browser output and a disposable `ho-verify` stack:
+Run from a clean E:-drive worktree using an E:-backed Docker Desktop/WSL installation, configured `HARBOROPS_VERIFICATION_ROOT`, `HARBOROPS_DOCKER_VHDX` pointing to the actual active E:-backed Docker Desktop data image, E: environment caches/temp/browser output and a disposable `ho-verify` stack:
 
 ```bash
 bash scripts/verify-m3-local.sh
@@ -57,4 +60,4 @@ Record actual results in `docs/M3_EXECUTED_VERIFICATION.md` only after a verifie
 - Removed a duplicated helper/brace block from the M3 EF model snapshot.
 - Corrected adversarial tests to compare sanitized error codes rather than per-request correlation IDs.
 
-These are source-level corrections; their runtime effectiveness remains subject to G3 testing.
+These source-level corrections remain subject to G3 testing. See the [correctness audit](M3_CORRECTNESS_AUDIT.md) and [remediation register](M3_CORRECTNESS_REMEDIATION.md). No implementation defect may be marked verified from source inspection alone.

@@ -7,6 +7,8 @@
 **Execution:** No .NET compiler, PostgreSQL, Compose, browser or image-scan run. No GitHub Actions triggered. No C: or E: workstation file operations.  
 **Gate:** G3 OPEN. Not ready for acceptance or merge.
 
+**Follow-up:** [M3 correctness remediation register](M3_CORRECTNESS_REMEDIATION.md) records subsequent source changes and remaining verification work. Findings here reflect the original audited snapshot.
+
 ## 1. Summary
 
 M3 implements a substantial initial port/vessel reference-data slice on the feature branch, with scoped store methods, additive migration source, ten HTTP operations, React screens and test files. However, committed code is not verified code. The review found two immediate release blockers and multiple gaps between the mandatory G3-S01 through G3-S25 plan and executable assertions.

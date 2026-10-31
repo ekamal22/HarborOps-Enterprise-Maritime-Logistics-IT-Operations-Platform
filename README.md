@@ -121,6 +121,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M3 Implementation Plan](docs/M3_IMPLEMENTATION_PLAN.md) | Proposed M3-01 to M3-04 work packages and dependency sequence |
 | [G3 Verification Plan](docs/M3_VERIFICATION_PLAN.md) | Required G3-S01 to G3-S25 local tests, not yet executed |
 | [M3 Implementation Register](docs/M3_IMPLEMENTATION_STATUS.md) | Feature-branch source inventory and outstanding runtime verification |
+| [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Source-level fixes following the correctness audit, with residual G3 work |
 | [Event Processing](docs/EVENT_PROCESSING.md) | Tracking workflow, failure modes, and reconciliation |
 | [Security](docs/SECURITY.md) | Threat model and security acceptance gates |
 | [Operations](docs/OPERATIONS.md) | Monitoring, incidents, backups, and recovery |

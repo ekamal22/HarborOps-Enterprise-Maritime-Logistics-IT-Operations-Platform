@@ -65,6 +65,26 @@ public sealed class PortVesselReferences : Migration
             CREATE INDEX "IX_vessels_OrganizationId_Id" ON vessels(organization_id, id);
             CREATE UNIQUE INDEX "IX_vessels_OrganizationId_ImoNumber" ON vessels(organization_id, imo_number) WHERE imo_number IS NOT NULL;
             CREATE UNIQUE INDEX "IX_vessels_OrganizationId_Mmsi" ON vessels(organization_id, mmsi) WHERE mmsi IS NOT NULL;
+
+            CREATE FUNCTION harborops_reference_immutable_fields() RETURNS trigger
+            LANGUAGE plpgsql AS $
+            BEGIN
+                IF NEW.id IS DISTINCT FROM OLD.id
+                    OR NEW.organization_id IS DISTINCT FROM OLD.organization_id
+                    OR NEW.reference_code IS DISTINCT FROM OLD.reference_code
+                    OR NEW.source_kind IS DISTINCT FROM OLD.source_kind
+                    OR NEW.created_at_utc IS DISTINCT FROM OLD.created_at_utc THEN
+                    RAISE EXCEPTION 'Reference identity and provenance are immutable'
+                        USING ERRCODE = '23514';
+                END IF;
+                RETURN NEW;
+            END;
+            $;
+
+            CREATE TRIGGER ports_immutable_fields BEFORE UPDATE ON ports
+            FOR EACH ROW EXECUTE FUNCTION harborops_reference_immutable_fields();
+            CREATE TRIGGER vessels_immutable_fields BEFORE UPDATE ON vessels
+            FOR EACH ROW EXECUTE FUNCTION harborops_reference_immutable_fields();
             """);
     }
 
@@ -73,6 +93,7 @@ public sealed class PortVesselReferences : Migration
         migrationBuilder.Sql("""
             DROP TABLE vessels;
             DROP TABLE ports;
+            DROP FUNCTION harborops_reference_immutable_fields();
             """);
     }
 }

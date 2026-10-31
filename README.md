@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0/G0, M1/G1 and M2/G2 are verified, accepted and merged into `main` as of 2026-10-31. M2 merged through [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`, following complete local [G2 verification](docs/M2_EXECUTED_VERIFICATION.md). M3-M24 remain planned. See [Project Status](docs/STATUS.md).
+**Status:** M0/G0 through M3/G3 are verified, explicitly accepted and integrated into `main` as of 2026-10-31. G3 passed all 25 local scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; the independent [executed verification record](docs/M3_EXECUTED_VERIFICATION.md) preserves the test results. M4 is next, with D-003 container identifier policy unresolved. G4-G24 are open. See [Project Status](docs/STATUS.md).
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -46,9 +46,13 @@ Organization memberships and role-scoped authorization were delivered in M2 and 
 
 M2 is merged into `main` through [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. All 25 G2 scenarios passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` (22 unit, 12 contract, 32 fresh and 32 repeated PostgreSQL integration, 6 frontend and 24 cross-browser tests, Compose/session recovery, scoped database outage recovery and three clean image scans). See the [executed verification record](docs/M2_EXECUTED_VERIFICATION.md), [architecture](docs/M2_ARCHITECTURE_DESIGN.md), [implementation record](docs/M2_IMPLEMENTATION_STATUS.md) and [G2 plan](docs/M2_VERIFICATION_PLAN.md). G2 was accepted on 2026-10-31.
 
-### Next milestone: M3 ports and vessels reference data
+### Accepted milestone: M3 ports and vessels reference data
 
-M3 port/vessel reference source is committed on `feat/m3-port-vessel-reference-data`, including an additive PostgreSQL migration, scoped APIs, React workspace, unit/integration/browser tests and a local verification runner. It passed the complete local G3 verification on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` (**G3 verified locally; acceptance pending**). M3 is not accepted and not merged into `main`. See the [executed verification](docs/M3_EXECUTED_VERIFICATION.md). See the [M3 implementation register](docs/M3_IMPLEMENTATION_STATUS.md), [architecture](docs/M3_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M3_IMPLEMENTATION_PLAN.md), [G3 plan](docs/M3_VERIFICATION_PLAN.md) and the [roadmap](docs/ROADMAP.md).
+M3 is implemented, locally verified, explicitly accepted on 2026-10-31 and integrated into `main` by fast-forward from `feat/m3-port-vessel-reference-data`. The additive PostgreSQL migration, scoped port/vessel APIs, React reference workspace, authorization and regression coverage all passed G3-S01 through G3-S25 on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. See the [executed verification](docs/M3_EXECUTED_VERIFICATION.md), [implementation register](docs/M3_IMPLEMENTATION_STATUS.md), [architecture](docs/M3_ARCHITECTURE_DESIGN.md), [plan](docs/M3_IMPLEMENTATION_PLAN.md) and [G3 specification](docs/M3_VERIFICATION_PLAN.md).
+
+### Next milestone: M4 voyages and containers reference data
+
+M4 is planned and has not started. Its entry gate G3 is accepted; D-003 container identifier policy must be resolved before applicable M4 work. No M4 implementation, G4 verification or production deployment is implied. See [Roadmap](docs/ROADMAP.md) and [Decisions](docs/DECISIONS.md).
 
 ### Planned modules
 
@@ -78,7 +82,7 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone sequencing is dependency based, not a calendar deadline. Current delivery status is recorded only in [Project Status](docs/STATUS.md).
 
-### Local M0/M1/M2 startup
+### Local M0-M3 startup
 
 Prerequisites: Docker Engine with Compose, Node.js 22 or later, and either the .NET 10 SDK for standalone development or an E:-backed local .NET 10 SDK container.
 
@@ -108,7 +112,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
 | [Domain Model](docs/DOMAIN_MODEL.md) | Entities, relationships, and invariants |
-| [API Contracts](docs/API_CONTRACTS.md) | Implemented M0-M2 HTTP routes and planned future REST resources |
+| [API Contracts](docs/API_CONTRACTS.md) | Implemented M0-M3 HTTP routes and planned future REST resources |
 | [M1 Authentication Design](docs/M1_AUTHENTICATION_DESIGN.md) | Approved D-001 implementation blueprint; M1 accepted on `main` |
 | [M1 Verification Plan](docs/M1_VERIFICATION_PLAN.md) | G1 checks and evidence requirements; executed M1 evidence is recorded separately |
 | [M1 Verification Register](docs/M1_IMPLEMENTATION_VERIFICATION.md) | Executed M1 checks, exact revisions, G1 acceptance and merge record |
@@ -120,10 +124,10 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M3 Architecture Design](docs/M3_ARCHITECTURE_DESIGN.md) | Tenant-owned port/vessel models, permissions and API contracts |
 | [M3 Implementation Plan](docs/M3_IMPLEMENTATION_PLAN.md) | M3-01 to M3-04 work packages and dependency sequence |
 | [G3 Verification Plan](docs/M3_VERIFICATION_PLAN.md) | Required G3-S01 to G3-S25 local tests, all executed and passed |
-| [M3 Implementation Register](docs/M3_IMPLEMENTATION_STATUS.md) | Feature-branch source inventory |
-| [M3 Executed Verification](docs/M3_EXECUTED_VERIFICATION.md) | G3 local execution evidence and failure history; acceptance pending |
-| [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Source-level fixes following the correctness audit, with residual G3 work |
-| [Second M3 Audit Remediation](docs/M3_SECOND_CORRECTNESS_REMEDIATION.md) | Follow-up to the second correctness audit and remaining local verification |
+| [M3 Implementation Register](docs/M3_IMPLEMENTATION_STATUS.md) | Accepted M3 implementation and source inventory |
+| [M3 Executed Verification](docs/M3_EXECUTED_VERIFICATION.md) | Verified G3 execution evidence, failure history and acceptance record |
+| [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Historical first-audit fixes and subsequent verified G3 outcome |
+| [Second M3 Audit Remediation](docs/M3_SECOND_CORRECTNESS_REMEDIATION.md) | Historical second-audit fixes and subsequent verified G3 outcome |
 | [Event Processing](docs/EVENT_PROCESSING.md) | Tracking workflow, failure modes, and reconciliation |
 | [Security](docs/SECURITY.md) | Threat model and security acceptance gates |
 | [Operations](docs/OPERATIONS.md) | Monitoring, incidents, backups, and recovery |
@@ -155,4 +159,4 @@ The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) pres
 
 ### Current state
 
-The default `main` branch contains the accepted M0 engineering baseline, M1 identity/session lifecycle and M2 organization authorization. G2 was locally verified on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`, explicitly accepted on 2026-10-31, and merged through [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) as `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. Shipments, tracking, analytics and incident workflows remain planned for M3-M24. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).
+The default `main` branch contains accepted M0-M3 implementation, tests and documentation. G3 was independently reviewed and explicitly accepted on 2026-10-31 after the successful local run on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. Future voyages, containers, shipments, tracking, analytics and incident workflows remain planned for M4-M24. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).

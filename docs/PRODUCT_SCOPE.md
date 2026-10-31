@@ -39,11 +39,11 @@ This functionality is implemented, verified and accepted on `main` following G1 
 
 ## Accepted M2 organization authorization
 
-M2 introduces organization memberships, five fixed roles, per-session selected organization context, scoped organization and membership APIs, live permission evaluation and last-administrator protection. All 25 G2 scenarios passed locally on the recorded revision; G2 was accepted on 2026-10-31 and merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5). The [executed verification record](M2_EXECUTED_VERIFICATION.md) preserves the source SHA, fixtures, cases and operational evidence. Maritime reference entities begin in M3 and remain unimplemented.
+M2 introduces organization memberships, five fixed roles, per-session selected organization context, scoped organization and membership APIs, live permission evaluation and last-administrator protection. All 25 G2 scenarios passed locally on the recorded revision; G2 was accepted on 2026-10-31 and merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5). The [executed verification record](M2_EXECUTED_VERIFICATION.md) preserves the source SHA, fixtures, cases and operational evidence. Maritime port and vessel reference entities are implemented and accepted in M3.
 
-## M3 reference-data module (unverified feature-branch source)
+## M3 reference-data module (verified, accepted and integrated)
 
-The proposed [M3 design](M3_ARCHITECTURE_DESIGN.md) separates organization-owned port and vessel reference records from later M4 voyage/container models and M5 shipment lifecycle. Its validation accepts optional external identifiers without making official registry claims. The [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 test plan](M3_VERIFICATION_PLAN.md) are documented and their source implementation is committed on the feature branch. The complete local G3 matrix passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); G3 acceptance is pending and no merge is claimed.
+The [M3 design](M3_ARCHITECTURE_DESIGN.md) separates accepted organization-owned port and vessel reference records from later M4 voyage/container and M5 shipment models. It validates external identifier syntax without asserting official registry verification. Implementation is integrated into `main`; all 25 G3 scenarios passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)). G3 was explicitly accepted on 2026-10-31. M4 remains planned, and no public deployment is implied.
 
 ## Out of scope for initial release
 

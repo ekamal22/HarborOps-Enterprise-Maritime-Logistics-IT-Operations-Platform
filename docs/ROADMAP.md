@@ -2,7 +2,7 @@
 
 **Version:** 2.0 granular delivery baseline  
 **Date:** 2026-10-30  
-**State:** M0/G0, M1/G1 and M2/G2 verified, accepted and merged into `main` by 2026-10-31. M2 passed complete local [G2 verification](M2_EXECUTED_VERIFICATION.md) on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` and merged via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. M3 passed complete local [G3 verification](M3_EXECUTED_VERIFICATION.md) on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` (feature branch, not merged); G3 acceptance is pending and G4-G24 remain open.
+**State:** M0/G0 through M3/G3 verified, explicitly accepted and integrated into `main` on 2026-10-31. M3 passed all 25 scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); independently inspected raw evidence supports G3 acceptance. M4 is next and remains unstarted; D-003 remains pending. G4-G24 are open.
 
 ## Authority and rationale
 
@@ -88,7 +88,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Verify the existing source-only foundation against real runtime evidence.
 **Entry:** Existing implementation reviewed without assuming runtime correctness.
 **Required work packages:** M0-01 Assess existing M0 branch; M0-02 Build and test foundations; M0-03 Verify migration and seed; M0-04 Verify local stack and browser; M0-05 Verify failure and hygiene.
-**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2 is verified locally and accepted on 2026-10-31, and G3-G24 remain open.
+**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2 and G3 are verified locally and accepted on 2026-10-31, and G4-G24 remain open.
 **Not covered by this milestone:** Shipment and tenant business functionality.
 
 #### M1: Authentication and session lifecycle
@@ -105,15 +105,15 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Entry:** G1 verified and accepted, with documented evidence and merged source.
 **Required work packages:** M2-01 Model memberships and role grants; M2-02 Enforce permission boundary; M2-03 Implement organization selection; M2-04 Verify tenant isolation. See the [M2 implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](M2_VERIFICATION_PLAN.md).
 **Verification:** All 25 scenarios of the [G2 verification plan](M2_VERIFICATION_PLAN.md) were executed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. The [executed record](M2_EXECUTED_VERIFICATION.md) lists the environment, E: storage configuration, suite counts, per-scenario evidence, security scans and the failure history. Earlier GitHub runs are retained there as history only.
-**Exit G2:** All 25 scenarios passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. G2 accepted on 2026-10-31; M2 merged via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. M3 source implementation is subsequently committed on a feature branch, and later passed local G3 verification; G3 acceptance is pending.
+**Exit G2:** All 25 scenarios passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. G2 accepted on 2026-10-31; M2 merged via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. M3 subsequently passed complete local G3 verification, was explicitly accepted on 2026-10-31 and integrated into `main`.
 **Not covered by this milestone:** Shipment domain CRUD and maritime reference data.
 
 #### M3: Ports and vessels reference data
 
 **Scope:** Validated, queryable and scoped port/vessel reference records.
 **Entry:** G2 verified, explicitly accepted and merged, with [executed evidence](M2_EXECUTED_VERIFICATION.md).
-**Required work packages:** M3-01 Specify port and vessel invariants; M3-02 Implement port persistence and endpoints; M3-03 Implement vessel persistence and endpoints; M3-04 Verify reference data browser flow. The proposed [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation sequence](M3_IMPLEMENTATION_PLAN.md) and [G3-S01 to G3-S25 plan](M3_VERIFICATION_PLAN.md) define the implementation contract. [M3 implementation register](M3_IMPLEMENTATION_STATUS.md) records committed feature-branch source. All 25 G3 scenarios passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); G3 acceptance is pending.
-**Exit G3:** All applicable tasks, negative tests, runtime evidence and documentation for M3 recorded; acceptance pending until explicitly confirmed.
+**Required work packages:** M3-01 Specify port and vessel invariants; M3-02 Implement port persistence and endpoints; M3-03 Implement vessel persistence and endpoints; M3-04 Verify reference data browser flow. All four work packages are implemented and G3-S01 through G3-S25 passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)).
+**Exit G3:** All 25 mandatory scenarios passed on the verified M3 source revision; G3 explicitly accepted on 2026-10-31 and M3 integrated into `main` by fast-forward. G4 remains open.
 **Not covered by this milestone:** Voyage, container, shipment and tracking persistence.
 
 #### M4: Voyages and containers reference data
@@ -336,4 +336,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0, M1 and M2 are integrated into `main`; G0, G1 and G2 were verified and explicitly accepted on 2026-10-31. M0 and M1 hosted verification is recorded in [M0 evidence](M0_HARDENING_VERIFICATION.md) and [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md). The complete G2 matrix passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` with disposable E:-backed resources ([executed evidence](M2_EXECUTED_VERIFICATION.md)), and M2 was merged through [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5). M3 Ports and vessels reference data passed complete local G3 verification on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); G3 acceptance is pending and M3 is not merged. M4-M24 remain planned. GitHub Actions execution is prohibited until explicitly restored.
+M0, M1, M2 and M3 are integrated into `main`; G0, G1, G2 and G3 were verified and explicitly accepted on 2026-10-31. G3 ran locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`, with 25/25 scenarios passed ([executed evidence](M3_EXECUTED_VERIFICATION.md)). M4 has not started. D-003 remains the first required M4 architecture decision.

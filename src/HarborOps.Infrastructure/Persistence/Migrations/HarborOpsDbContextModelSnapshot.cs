@@ -1,5 +1,7 @@
 using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Organizations;
+using HarborOps.Infrastructure.References;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -133,5 +135,96 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
             entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
         });
+        modelBuilder.Entity<PortReference>(entity =>
+        {
+            ConfigureReference(entity, "ports");
+            entity.Property(x => x.CountryCode).HasColumnName("country_code").HasMaxLength(2).IsRequired();
+            entity.Property(x => x.UnLocode).HasColumnName("un_locode").HasMaxLength(5);
+            entity.HasIndex(x => new { x.OrganizationId, x.UnLocode })
+                .IsUnique().HasFilter("un_locode IS NOT NULL");
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_ports_country", "country_code ~ '^[A-Z]{2}$'");
+                t.HasCheckConstraint("CK_ports_locode",
+                    "un_locode IS NULL OR (un_locode ~ '^[A-Z]{2}[A-Z2-9]{3}$' AND substring(un_locode,1,2) = country_code)");
+            });
+        });
+        modelBuilder.Entity<VesselReference>(entity =>
+        {
+            ConfigureReference(entity, "vessels");
+            entity.Property(x => x.ImoNumber).HasColumnName("imo_number").HasMaxLength(7);
+            entity.Property(x => x.Mmsi).HasColumnName("mmsi").HasMaxLength(9);
+            entity.Property(x => x.FlagCountryCode).HasColumnName("flag_country_code").HasMaxLength(2);
+            entity.HasIndex(x => new { x.OrganizationId, x.ImoNumber })
+                .IsUnique().HasFilter("imo_number IS NOT NULL");
+            entity.HasIndex(x => new { x.OrganizationId, x.Mmsi })
+                .IsUnique().HasFilter("mmsi IS NOT NULL");
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_vessels_mmsi", "mmsi IS NULL OR (mmsi ~ '^[0-9]{9}$' AND mmsi <> '000000000')");
+                t.HasCheckConstraint("CK_vessels_flag", "flag_country_code IS NULL OR flag_country_code ~ '^[A-Z]{2}$'");
+                t.HasCheckConstraint("CK_vessels_imo", "imo_number IS NULL OR (imo_number ~ '^[0-9]{7}$' AND (substring(imo_number,1,1)::int * 7 + substring(imo_number,2,1)::int * 6 + substring(imo_number,3,1)::int * 5 + substring(imo_number,4,1)::int * 4 + substring(imo_number,5,1)::int * 3 + substring(imo_number,6,1)::int * 2) % 10 = substring(imo_number,7,1)::int)");
+            });
+        });
+
+    }
+
+
+    private static void ConfigureReference<TEntity>(EntityTypeBuilder<TEntity> entity, string table)
+        where TEntity : ReferenceRecord
+    {
+        entity.ToTable(table, t =>
+        {
+            t.HasCheckConstraint("CK_" + table + "_status", "status IN ('Active','Archived')");
+            t.HasCheckConstraint("CK_" + table + "_source_kind", "source_kind IN ('UserProvided','Synthetic')");
+            t.HasCheckConstraint("CK_" + table + "_version", "version > 0");
+            t.HasCheckConstraint("CK_" + table + "_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*$' AND length(reference_code) BETWEEN 3 AND 32");
+            t.HasCheckConstraint("CK_" + table + "_name", "length(btrim(name)) BETWEEN 1 AND 160");
+            t.HasCheckConstraint("CK_" + table + "_time", "updated_at_utc >= created_at_utc");
+        });
+        entity.HasKey(x => x.Id);
+        entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+        entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+        entity.HasOne<HarborOps.Infrastructure.Organizations.Organization>().WithMany()
+            .HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+        entity.Property(x => x.ReferenceCode).HasColumnName("reference_code").HasMaxLength(32).IsRequired();
+        entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
+        entity.HasIndex(x => new { x.OrganizationId, x.Id });
+        entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(160).IsRequired();
+        entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.SourceKind).HasColumnName("source_kind").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.Version).HasColumnName("version");
+        entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+        entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+    }
+}
+    }
+
+    private static void ConfigureReference<TEntity>(EntityTypeBuilder<TEntity> entity, string table)
+        where TEntity : ReferenceRecord
+    {
+        entity.ToTable(table, t =>
+        {
+            t.HasCheckConstraint("CK_" + table + "_status", "status IN ('Active','Archived')");
+            t.HasCheckConstraint("CK_" + table + "_source_kind", "source_kind IN ('UserProvided','Synthetic')");
+            t.HasCheckConstraint("CK_" + table + "_version", "version > 0");
+            t.HasCheckConstraint("CK_" + table + "_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*$' AND length(reference_code) BETWEEN 3 AND 32");
+            t.HasCheckConstraint("CK_" + table + "_name", "length(btrim(name)) BETWEEN 1 AND 160");
+            t.HasCheckConstraint("CK_" + table + "_time", "updated_at_utc >= created_at_utc");
+        });
+        entity.HasKey(x => x.Id);
+        entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+        entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+        entity.HasOne<HarborOps.Infrastructure.Organizations.Organization>().WithMany()
+            .HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+        entity.Property(x => x.ReferenceCode).HasColumnName("reference_code").HasMaxLength(32).IsRequired();
+        entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
+        entity.HasIndex(x => new { x.OrganizationId, x.Id });
+        entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(160).IsRequired();
+        entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.SourceKind).HasColumnName("source_kind").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.Version).HasColumnName("version");
+        entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+        entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
     }
 }

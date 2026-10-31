@@ -7,8 +7,26 @@ namespace HarborOps.Infrastructure.Organizations;
 
 public enum OrganizationAccessError { None, SelectionRequired, Revoked, NotFound, Forbidden, Invalid, Conflict }
 
-public sealed record OrganizationScope(Guid OrganizationId, Guid UserId, Guid SessionId,
-    OrganizationRole Role, long MembershipVersion, long OrganizationVersion, string Slug, string DisplayName);
+public sealed class OrganizationScope
+{
+    internal OrganizationScope(Guid organizationId, Guid userId, Guid sessionId,
+        OrganizationRole role, long membershipVersion, long organizationVersion,
+        string slug, string displayName)
+    {
+        OrganizationId = organizationId; UserId = userId; SessionId = sessionId;
+        Role = role; MembershipVersion = membershipVersion;
+        OrganizationVersion = organizationVersion; Slug = slug; DisplayName = displayName;
+    }
+
+    public Guid OrganizationId { get; }
+    public Guid UserId { get; }
+    public Guid SessionId { get; }
+    public OrganizationRole Role { get; }
+    public long MembershipVersion { get; }
+    public long OrganizationVersion { get; }
+    public string Slug { get; }
+    public string DisplayName { get; }
+}
 public sealed record OrganizationSelection(Guid Id, string Slug, string DisplayName,
     OrganizationRole Role, long MembershipVersion);
 public sealed record OrganizationProfile(Guid Id, string Slug, string DisplayName, string Status, long Version);
@@ -102,7 +120,11 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
             : db.OrganizationMemberships.Where(x => x.OrganizationId == scope.OrganizationId);
         var query = from membership in source.AsNoTracking()
                     join user in db.AuthUsers.AsNoTracking() on membership.UserId equals user.Id
-                    where membership.OrganizationId == scope.OrganizationId
+                    where membership.OrganizationId == scope.OrganizationId &&
+                        db.Organizations.Any(o => o.Id == scope.OrganizationId && o.Status == "Active") &&
+                        db.OrganizationMemberships.Any(m => m.OrganizationId == scope.OrganizationId &&
+                            m.UserId == scope.UserId && m.Status == "Active" &&
+                            m.Role == "Administrator")
                     select new { membership, user };
         return await query.OrderBy(x => x.membership.UserId).Take(Math.Clamp(limit, 1, 100))
             .Select(x => new MembershipProfile(x.user.Id, x.user.Email, x.user.DisplayName,
@@ -113,7 +135,11 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
         OrganizationScope scope, Guid targetId, CancellationToken ct) =>
         await (from member in db.OrganizationMemberships.AsNoTracking()
                join user in db.AuthUsers.AsNoTracking() on member.UserId equals user.Id
-               where member.OrganizationId == scope.OrganizationId && member.UserId == targetId
+               where member.OrganizationId == scope.OrganizationId && member.UserId == targetId &&
+                   db.Organizations.Any(o => o.Id == scope.OrganizationId && o.Status == "Active") &&
+                   db.OrganizationMemberships.Any(m => m.OrganizationId == scope.OrganizationId &&
+                       m.UserId == scope.UserId && m.Status == "Active" &&
+                       m.Role == "Administrator")
                select new MembershipProfile(user.Id, user.Email, user.DisplayName,
                    member.Role, member.Status, member.Version)).SingleOrDefaultAsync(ct);
 

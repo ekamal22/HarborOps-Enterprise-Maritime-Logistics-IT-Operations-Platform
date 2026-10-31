@@ -1,7 +1,7 @@
 # HarborOps Execution Graph
 
-**Version:** 2.0  
-**Date:** 2026-10-30  
+**Version:** 3.0  
+**Date:** 2026-10-31  
 **State:** Delivery dependency plan, not observed runtime status.
 
 ## Authority and use
@@ -10,7 +10,7 @@ The authoritative work-package dataset is [execution-graph.json](execution-graph
 
 The [PRD](PRD.md) defines product scope; [Roadmap](ROADMAP.md) defines milestone boundaries and gate obligations; [Requirements](REQUIREMENTS.md) owns atomic FR/NFR identifiers; [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) defines checks; [Status](STATUS.md) exclusively records executed evidence, progress, and acceptance. Graph nodes are planned work and cannot be treated as implemented solely because they exist.
 
-**Granularity:** 25 independently gated milestones, 101 scoped work packages, 25 verification gates, 226 dependency edges across 6 delivery stages.
+**Granularity:** 25 independently gated milestones, 101 scoped work packages, 25 verification gates, 244 dependency edges across 6 delivery stages.
 
 ## Navigation
 
@@ -23,20 +23,79 @@ The [PRD](PRD.md) defines product scope; [Roadmap](ROADMAP.md) defines milestone
 | [P4: Reliability and delivery assurance](#stage-p4-reliability-and-delivery-assurance) | M19, M20, M21, M22 | Reliability and delivery assurance |
 | [P5: Release finish](#stage-p5-release-finish) | M23, M24 | Release finish |
 
-## High-level stage dependency
+## Full milestone dependency DAG
 
 ```mermaid
 flowchart LR
-  P0["Foundation and maritime records"]
-  P1["Event ingestion and decision rules"]
-  P2["Operational workspaces"]
-  P3["Security and technical operations"]
-  P4["Reliability and delivery assurance"]
-  P5["Release finish"]
-  P0 --> P1 --> P2 --> P3 --> P4 --> P5
+  G0["M0: Engineering baseline verification"]
+  G1["M1: Authentication and session lifecycle"]
+  G2["M2: Organizations and role isolation"]
+  G3["M3: Ports and vessels reference data"]
+  G4["M4: Voyages and containers reference data"]
+  G5["M5: Shipment lifecycle and concurrency"]
+  G6["M6: Container and voyage assignments"]
+  G7["M7: Tracking contracts and source authentication"]
+  G8["M8: Durable event inbox and immutable history"]
+  G9["M9: Idempotent worker and reconciliation"]
+  G10["M10: Event timeline and projection rebuild"]
+  G11["M11: Delay rules and shipment exceptions"]
+  G12["M12: Shipment search and authorized export"]
+  G13["M13: Operational KPI definitions and dashboards"]
+  G14["M14: Route mapping and geographic context"]
+  G15["M15: Scoped in-app notifications"]
+  G16["M16: Audit logging and access hardening"]
+  G17["M17: Observability and service health"]
+  G18["M18: IT incident lifecycle and remediation"]
+  G19["M19: Database recovery and migration rehearsal"]
+  G20["M20: Security assurance and dependency review"]
+  G21["M21: Performance and capacity benchmarks"]
+  G22["M22: Deployment portability and cost controls"]
+  G23["M23: Interface polish and workflow consistency"]
+  G24["M24: Final release validation and acceptance"]
+  G0 --> G1
+  G1 --> G2
+  G2 --> G3
+  G3 --> G4
+  G3 --> G5
+  G4 --> G6
+  G5 --> G6
+  G3 --> G7
+  G7 --> G8
+  G6 --> G8
+  G8 --> G9
+  G9 --> G10
+  G10 --> G11
+  G5 --> G12
+  G11 --> G13
+  G12 --> G13
+  G4 --> G14
+  G11 --> G15
+  G3 --> G16
+  G3 --> G17
+  G17 --> G18
+  G16 --> G18
+  G3 --> G19
+  G3 --> G20
+  G15 --> G20
+  G18 --> G20
+  G19 --> G20
+  G9 --> G21
+  G12 --> G21
+  G13 --> G21
+  G19 --> G22
+  G20 --> G22
+  G21 --> G22
+  G3 --> G23
+  G12 --> G23
+  G13 --> G23
+  G14 --> G23
+  G15 --> G23
+  G18 --> G23
+  G22 --> G24
+  G23 --> G24
 ```
 
-Gate transitions are sequential. Within a single milestone, tasks that branch from the same prerequisite may be implemented independently and then reunited at verification. Every work package is a narrow, reviewable output with specific tests.
+Stages classify related workstreams and are not sequence locks. Dependency edges represent required upstream gates; work packages may run independently when their actual prerequisites are accepted.
 
 ## Milestone gate map
 
@@ -51,7 +110,13 @@ flowchart LR
   G4["M4: Voyages and containers reference data"]
   G5["M5: Shipment lifecycle and concurrency"]
   G6["M6: Container and voyage assignments"]
-  G0 --> G1 --> G2 --> G3 --> G4 --> G5 --> G6
+  G0 --> G1
+  G1 --> G2
+  G2 --> G3
+  G3 --> G4
+  G3 --> G5
+  G4 --> G6
+  G5 --> G6
 ```
 
 ### P1: Event ingestion and decision rules
@@ -63,7 +128,12 @@ flowchart LR
   G9["M9: Idempotent worker and reconciliation"]
   G10["M10: Event timeline and projection rebuild"]
   G11["M11: Delay rules and shipment exceptions"]
-  G7 --> G8 --> G9 --> G10 --> G11
+  G3 --> G7
+  G7 --> G8
+  G6 --> G8
+  G8 --> G9
+  G9 --> G10
+  G10 --> G11
 ```
 
 ### P2: Operational workspaces
@@ -74,7 +144,11 @@ flowchart LR
   G13["M13: Operational KPI definitions and dashboards"]
   G14["M14: Route mapping and geographic context"]
   G15["M15: Scoped in-app notifications"]
-  G12 --> G13 --> G14 --> G15
+  G5 --> G12
+  G11 --> G13
+  G12 --> G13
+  G4 --> G14
+  G11 --> G15
 ```
 
 ### P3: Security and technical operations
@@ -84,7 +158,10 @@ flowchart LR
   G16["M16: Audit logging and access hardening"]
   G17["M17: Observability and service health"]
   G18["M18: IT incident lifecycle and remediation"]
-  G16 --> G17 --> G18
+  G3 --> G16
+  G3 --> G17
+  G17 --> G18
+  G16 --> G18
 ```
 
 ### P4: Reliability and delivery assurance
@@ -95,7 +172,17 @@ flowchart LR
   G20["M20: Security assurance and dependency review"]
   G21["M21: Performance and capacity benchmarks"]
   G22["M22: Deployment portability and cost controls"]
-  G19 --> G20 --> G21 --> G22
+  G3 --> G19
+  G3 --> G20
+  G15 --> G20
+  G18 --> G20
+  G19 --> G20
+  G9 --> G21
+  G12 --> G21
+  G13 --> G21
+  G19 --> G22
+  G20 --> G22
+  G21 --> G22
 ```
 
 ### P5: Release finish
@@ -104,6 +191,13 @@ flowchart LR
 flowchart LR
   G23["M23: Interface polish and workflow consistency"]
   G24["M24: Final release validation and acceptance"]
+  G3 --> G23
+  G12 --> G23
+  G13 --> G23
+  G14 --> G23
+  G15 --> G23
+  G18 --> G23
+  G22 --> G24
   G23 --> G24
 ```
 
@@ -116,7 +210,7 @@ Execution graph v1 contained M0-M6. M0-01 through M0-05 and G0 are preserved. **
 ### M0: Engineering baseline verification
 
 **Outcome:** Verify the existing source-only foundation against real runtime evidence  
-**Entry:** Current M0 code assessment; no prior runtime gate.  
+**Entry:** Existing source assessment.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G0, requiring all 5 work-package outcomes and their actual verification results.
 
@@ -153,7 +247,7 @@ flowchart TD
 ### M1: Authentication and session lifecycle
 
 **Outcome:** Secure login, session expiry, logout and account disablement  
-**Entry:** G0 verified, with recorded evidence.  
+**Entry:** G0 accepted before dependent work.  
 **Architecture decisions:** D-001 must be resolved before applicable implementation.  
 **Exit gate:** G1, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -164,7 +258,7 @@ flowchart TD
   M1_03["M1-03: Implement login and logout endpoints"]
   M1_04["M1-04: Verify session lifecycle end to end"]
   G1["G1: Authentication and session lifecycle evidence gate"]
-  G0["G0 verified"]
+  G0["G0 accepted"]
   G0 --> M1_01
   M1_01 --> M1_02
   M1_01 --> M1_03
@@ -188,7 +282,7 @@ flowchart TD
 ### M2: Organizations and role isolation
 
 **Outcome:** Explicit memberships, roles and organization-scoped access  
-**Entry:** G1 verified, with recorded evidence.  
+**Entry:** G1 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G2, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -199,7 +293,7 @@ flowchart TD
   M2_03["M2-03: Implement organization selection"]
   M2_04["M2-04: Verify tenant isolation"]
   G2["G2: Organizations and role isolation evidence gate"]
-  G1["G1 verified"]
+  G1["G1 accepted"]
   G1 --> M2_01
   M2_01 --> M2_02
   M2_01 --> M2_03
@@ -223,7 +317,7 @@ flowchart TD
 ### M3: Ports and vessels reference data
 
 **Outcome:** Validated, queryable and scoped port/vessel reference records  
-**Entry:** G2 verified, with recorded evidence.  
+**Entry:** G2 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G3, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -234,7 +328,7 @@ flowchart TD
   M3_03["M3-03: Implement vessel persistence and endpoints"]
   M3_04["M3-04: Verify reference data browser flow"]
   G3["G3: Ports and vessels reference data evidence gate"]
-  G2["G2 verified"]
+  G2["G2 accepted"]
   G2 --> M3_01
   M3_01 --> M3_02
   M3_01 --> M3_03
@@ -258,7 +352,7 @@ flowchart TD
 ### M4: Voyages and containers reference data
 
 **Outcome:** Validated voyage schedules and container identity models  
-**Entry:** G3 verified, with recorded evidence.  
+**Entry:** G3 accepted before dependent work.  
 **Architecture decisions:** D-003 must be resolved before applicable implementation.  
 **Exit gate:** G4, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -269,7 +363,7 @@ flowchart TD
   M4_03["M4-03: Implement container persistence"]
   M4_04["M4-04: Verify voyage and container workflows"]
   G4["G4: Voyages and containers reference data evidence gate"]
-  G3["G3 verified"]
+  G3["G3 accepted"]
   G3 --> M4_01
   M4_01 --> M4_02
   M4_01 --> M4_03
@@ -293,7 +387,7 @@ flowchart TD
 ### M5: Shipment lifecycle and concurrency
 
 **Outcome:** Create, edit, search and archive organizational shipments  
-**Entry:** G4 verified, with recorded evidence.  
+**Entry:** G3 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G5, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -304,8 +398,8 @@ flowchart TD
   M5_03["M5-03: Implement optimistic concurrency"]
   M5_04["M5-04: Verify shipment CRUD browser journey"]
   G5["G5: Shipment lifecycle and concurrency evidence gate"]
-  G4["G4 verified"]
-  G4 --> M5_01
+  G3["G3 accepted"]
+  G3 --> M5_01
   M5_01 --> M5_02
   M5_01 --> M5_03
   M5_02 --> M5_04
@@ -318,7 +412,7 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M5-01: Specify shipment state transitions** | G4 | Define references, validation, status and archival policy | State-machine and invalid transition tests | FR-004 |
+| **M5-01: Specify shipment state transitions** | G3 | Define references, validation, status and archival policy | State-machine and invalid transition tests | FR-004 |
 | **M5-02: Implement shipment schema and commands** | M5-01 | Create/edit/archive through organization-scoped services and endpoints | Migration, transaction and authorization tests | FR-004, FR-002 |
 | **M5-03: Implement optimistic concurrency** | M5-01 | Require explicit version on conflicting shipment writes | Stale edit, repeated request and conflict tests | FR-004, NFR-006 |
 | **M5-04: Verify shipment CRUD browser journey** | M5-02, M5-03 | Wire create, edit, list, detail and archive with error states | Browser/API replay and foreign organization denial tests | FR-004 |
@@ -328,7 +422,7 @@ flowchart TD
 ### M6: Container and voyage assignments
 
 **Outcome:** Temporal and organization-safe shipment assignments  
-**Entry:** G5 verified, with recorded evidence.  
+**Entry:** G4, G5 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G6, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -339,7 +433,9 @@ flowchart TD
   M6_03["M6-03: Implement shipment-voyage links"]
   M6_04["M6-04: Verify complete allocation journey"]
   G6["G6: Container and voyage assignments evidence gate"]
-  G5["G5 verified"]
+  G4["G4 accepted"]
+  G5["G5 accepted"]
+  G4 --> M6_01
   G5 --> M6_01
   M6_01 --> M6_02
   M6_01 --> M6_03
@@ -353,7 +449,7 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M6-01: Define assignment invariants** | G5 | Model active intervals, overlap policy and link ownership | Domain edge cases and conflicting scenarios | FR-005 |
+| **M6-01: Define assignment invariants** | G4, G5 | Model active intervals, overlap policy and link ownership | Domain edge cases and conflicting scenarios | FR-005 |
 | **M6-02: Implement shipment-container links** | M6-01 | Persist assignment intervals with overlap safeguards | Overlap, foreign equipment and concurrent-write tests | FR-005, FR-002 |
 | **M6-03: Implement shipment-voyage links** | M6-01 | Persist voyage association, transitions and reference validation | Cross-tenant and incompatible route tests | FR-005, FR-003 |
 | **M6-04: Verify complete allocation journey** | M6-02, M6-03 | Create shipment, attach container/voyage and inspect links | Browser/API failure matrix plus Q1 disposable historical-volume compatibility checkpoint if a representative snapshot exists | FR-004, FR-005 |
@@ -365,7 +461,7 @@ flowchart TD
 ### M7: Tracking contracts and source authentication
 
 **Outcome:** Versioned and authenticated event interface  
-**Entry:** G6 verified, with recorded evidence.  
+**Entry:** G3 accepted before dependent work.  
 **Architecture decisions:** D-002 must be resolved before applicable implementation.  
 **Exit gate:** G7, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -376,8 +472,8 @@ flowchart TD
   M7_03["M7-03: Implement strict payload validation"]
   M7_04["M7-04: Verify ingestion contract tests"]
   G7["G7: Tracking contracts and source authentication evidence gate"]
-  G6["G6 verified"]
-  G6 --> M7_01
+  G3["G3 accepted"]
+  G3 --> M7_01
   M7_01 --> M7_02
   M7_01 --> M7_03
   M7_02 --> M7_04
@@ -390,7 +486,7 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M7-01: Pin external subset and contract** | G6 | Choose DCSA reference version, adapter fields and internal event contract | Decision, schema fixtures and mapping gap review | FR-006, FR-007 |
+| **M7-01: Pin external subset and contract** | G3 | Choose DCSA reference version, adapter fields and internal event contract | Decision, schema fixtures and mapping gap review | FR-006, FR-007 |
 | **M7-02: Implement source entitlements** | M7-01 | Authenticate integration source and bind organization/source permissions | Forged source, token expiry and tenant-boundary tests | FR-007, FR-002 |
 | **M7-03: Implement strict payload validation** | M7-01 | Bound sizes, timestamps, identifiers and supported event types | Malformed, oversize and unsupported variant tests | FR-007, NFR-006 |
 | **M7-04: Verify ingestion contract tests** | M7-02, M7-03 | Publish versioned payload fixtures and safe error semantics | Positive/negative API contract tests with no secret exposure | FR-006, FR-007 |
@@ -400,7 +496,7 @@ flowchart TD
 ### M8: Durable event inbox and immutable history
 
 **Outcome:** Transactional receipt persistence and accepted event provenance  
-**Entry:** G7 verified, with recorded evidence.  
+**Entry:** G7, G6 accepted before dependent work.  
 **Architecture decisions:** D-006 must be resolved before applicable implementation.  
 **Exit gate:** G8, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -411,10 +507,13 @@ flowchart TD
   M8_03["M8-03: Implement intake transaction path"]
   M8_04["M8-04: Verify persistent ingestion behavior"]
   G8["G8: Durable event inbox and immutable history evidence gate"]
-  G7["G7 verified"]
+  G7["G7 accepted"]
+  G6["G6 accepted"]
   G7 --> M8_01
   M8_01 --> M8_02
+  G6 --> M8_02
   M8_01 --> M8_03
+  G6 --> M8_03
   M8_02 --> M8_04
   M8_03 --> M8_04
   M8_01 --> G8
@@ -426,8 +525,8 @@ flowchart TD
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
 | **M8-01: Specify inbox and retention states** | G7 | Close durability decision and define source keys, receipts and outcomes | Decision plus crash-window and collision scenarios | FR-006, FR-008 |
-| **M8-02: Implement receipt and event schema** | M8-01 | Create inbox and immutable history with unique source-scoped keys | Migration, duplicate index and append-only tests | FR-006, FR-008 |
-| **M8-03: Implement intake transaction path** | M8-01 | Acknowledge only committed receipts and quarantine key collisions | Rollback, conflicting replay and authorization tests | FR-006, FR-007, FR-008 |
+| **M8-02: Implement receipt and event schema** | M8-01, G6 | Create inbox and immutable history with unique source-scoped keys | Migration, duplicate index and append-only tests | FR-006, FR-008 |
+| **M8-03: Implement intake transaction path** | M8-01, G6 | Acknowledge only committed receipts and quarantine key collisions | Rollback, conflicting replay and authorization tests | FR-006, FR-007, FR-008 |
 | **M8-04: Verify persistent ingestion behavior** | M8-02, M8-03 | Inspect raw provenance and receipt status across restart | Real database durability and retry-outcome tests | FR-006, NFR-004 |
 
 **G8 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M8 recorded; acceptance pending until explicitly confirmed.
@@ -435,7 +534,7 @@ flowchart TD
 ### M9: Idempotent worker and reconciliation
 
 **Outcome:** At-least-once processing with effect-once business outcomes  
-**Entry:** G8 verified, with recorded evidence.  
+**Entry:** G8 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G9, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -446,7 +545,7 @@ flowchart TD
   M9_03["M9-03: Implement retry and dead-letter queue"]
   M9_04["M9-04: Verify interrupted-work recovery"]
   G9["G9: Idempotent worker and reconciliation evidence gate"]
-  G8["G8 verified"]
+  G8["G8 accepted"]
   G8 --> M9_01
   M9_01 --> M9_02
   M9_01 --> M9_03
@@ -470,7 +569,7 @@ flowchart TD
 ### M10: Event timeline and projection rebuild
 
 **Outcome:** Ordered history, current status and explicit correction handling  
-**Entry:** G9 verified, with recorded evidence.  
+**Entry:** G9 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G10, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -481,7 +580,7 @@ flowchart TD
   M10_03["M10-03: Implement versioned projections"]
   M10_04["M10-04: Verify projection rebuild"]
   G10["G10: Event timeline and projection rebuild evidence gate"]
-  G9["G9 verified"]
+  G9["G9 accepted"]
   G9 --> M10_01
   M10_01 --> M10_02
   M10_01 --> M10_03
@@ -505,7 +604,7 @@ flowchart TD
 ### M11: Delay rules and shipment exceptions
 
 **Outcome:** Explainable at-risk, delay and conflict detection  
-**Entry:** G10 verified, with recorded evidence.  
+**Entry:** G10 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G11, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -516,7 +615,7 @@ flowchart TD
   M11_03["M11-03: Implement exception lifecycle"]
   M11_04["M11-04: Verify end-to-end exception flow"]
   G11["G11: Delay rules and shipment exceptions evidence gate"]
-  G10["G10 verified"]
+  G10["G10 accepted"]
   G10 --> M11_01
   M11_01 --> M11_02
   M11_01 --> M11_03
@@ -542,7 +641,7 @@ flowchart TD
 ### M12: Shipment search and authorized export
 
 **Outcome:** Scoped filtering, detail navigation and CSV output  
-**Entry:** G11 verified, with recorded evidence.  
+**Entry:** G5 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G12, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -553,8 +652,8 @@ flowchart TD
   M12_03["M12-03: Implement controlled CSV export"]
   M12_04["M12-04: Verify search/export UX"]
   G12["G12: Shipment search and authorized export evidence gate"]
-  G11["G11 verified"]
-  G11 --> M12_01
+  G5["G5 accepted"]
+  G5 --> M12_01
   M12_01 --> M12_02
   M12_01 --> M12_03
   M12_02 --> M12_04
@@ -567,7 +666,7 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M12-01: Define search contract and pagination** | G11 | Specify supported filters, bounded pages and stable ordering | Contract and filter edge-case fixtures | FR-011, NFR-006 |
+| **M12-01: Define search contract and pagination** | G5 | Specify supported filters, bounded pages and stable ordering | Contract and filter edge-case fixtures | FR-011, NFR-006 |
 | **M12-02: Implement scoped search services** | M12-01 | Filter shipment data without leaking organization records | Direct-ID, foreign filter and aggregate tests | FR-011, FR-002 |
 | **M12-03: Implement controlled CSV export** | M12-01 | Export only authorized, filtered rows with safe CSV escaping | Foreign-tenant, injection and large export tests | FR-013, FR-002 |
 | **M12-04: Verify search/export UX** | M12-02, M12-03 | Wire interactive filters, detail transitions and exports | Browser filtering and denied-export tests plus Q2 disposable historical-volume compatibility checkpoint if available | FR-011, FR-013 |
@@ -577,7 +676,7 @@ flowchart TD
 ### M13: Operational KPI definitions and dashboards
 
 **Outcome:** Reconciled, drillable throughput and delay metrics  
-**Entry:** G12 verified, with recorded evidence.  
+**Entry:** G11, G12 accepted before dependent work.  
 **Architecture decisions:** D-005 must be resolved before applicable implementation.  
 **Exit gate:** G13, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -588,9 +687,11 @@ flowchart TD
   M13_03["M13-03: Build dashboard visualizations"]
   M13_04["M13-04: Verify dashboard correctness"]
   G13["G13: Operational KPI definitions and dashboards evidence gate"]
-  G12["G12 verified"]
-  G12 --> M13_01
+  G11["G11 accepted"]
+  G12["G12 accepted"]
+  G11 --> M13_01
   M13_01 --> M13_02
+  G12 --> M13_02
   M13_01 --> M13_03
   M13_02 --> M13_04
   M13_03 --> M13_04
@@ -602,8 +703,8 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M13-01: Finalize KPI catalog and cutoffs** | G12 | Close D-005; define denominators, exclusions and UTC windows | Known fixture totals and rule review | FR-012, NFR-007 |
-| **M13-02: Implement aggregate query services** | M13-01 | Compute scoped KPIs with consistent source-record joins | Exact fixture reconciliation and tenant denial | FR-012, FR-002 |
+| **M13-01: Finalize KPI catalog and cutoffs** | G11 | Close D-005; define denominators, exclusions and UTC windows | Known fixture totals and rule review | FR-012, NFR-007 |
+| **M13-02: Implement aggregate query services** | M13-01, G12 | Compute scoped KPIs with consistent source-record joins | Exact fixture reconciliation and tenant denial | FR-012, FR-002 |
 | **M13-03: Build dashboard visualizations** | M13-01 | Present status, trend, exceptions and drill-through views | Browser rendering and underlying row consistency | FR-012 |
 | **M13-04: Verify dashboard correctness** | M13-02, M13-03 | Reconcile all displayed sample metrics to underlying records | Query/window/permissions test report | FR-012, NFR-008 |
 
@@ -612,7 +713,7 @@ flowchart TD
 ### M14: Route mapping and geographic context
 
 **Outcome:** Licensed and clearly labeled simulated route visualization  
-**Entry:** G13 verified, with recorded evidence.  
+**Entry:** G4 accepted before dependent work.  
 **Architecture decisions:** D-004 must be resolved before applicable implementation.  
 **Exit gate:** G14, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -623,8 +724,8 @@ flowchart TD
   M14_03["M14-03: Build interactive map interface"]
   M14_04["M14-04: Verify mapped data security"]
   G14["G14: Route mapping and geographic context evidence gate"]
-  G13["G13 verified"]
-  G13 --> M14_01
+  G4["G4 accepted"]
+  G4 --> M14_01
   M14_01 --> M14_02
   M14_01 --> M14_03
   M14_02 --> M14_04
@@ -637,7 +738,7 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M14-01: Resolve map licensing and fallback** | G13 | Close D-004, choose tile licensing and offline/static fallback | Terms, attribution and rate-limit review | FR-018, NFR-001 |
+| **M14-01: Resolve map licensing and fallback** | G4 | Close D-004, choose tile licensing and offline/static fallback | Terms, attribution and rate-limit review | FR-018, NFR-001 |
 | **M14-02: Implement route visualization model** | M14-01 | Map planned route/port geography with synthetic source labels | Coordinate validity and unknown-position tests | FR-018, NFR-007 |
 | **M14-03: Build interactive map interface** | M14-01 | Add pan, zoom, selection, route and shipment drill-through | Map data selection, loading-error and navigation behavior tests | FR-018 |
 | **M14-04: Verify mapped data security** | M14-02, M14-03 | Enforce scoped locations and source provenance in map responses | Cross-organization and simulated labels matrix | FR-018, FR-002 |
@@ -647,7 +748,7 @@ flowchart TD
 ### M15: Scoped in-app notifications
 
 **Outcome:** Authorized event and incident exception messaging  
-**Entry:** G14 verified, with recorded evidence.  
+**Entry:** G11 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G15, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -658,8 +759,8 @@ flowchart TD
   M15_03["M15-03: Implement notification interface"]
   M15_04["M15-04: Verify recipient isolation"]
   G15["G15: Scoped in-app notifications evidence gate"]
-  G14["G14 verified"]
-  G14 --> M15_01
+  G11["G11 accepted"]
+  G11 --> M15_01
   M15_01 --> M15_02
   M15_01 --> M15_03
   M15_02 --> M15_04
@@ -672,7 +773,7 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M15-01: Define recipient and deduplication rules** | G14 | Map notification type to organization, membership and resources | Cross-tenant and duplicate recipient fixtures | FR-019, FR-002 |
+| **M15-01: Define recipient and deduplication rules** | G11 | Map notification type to organization, membership and resources | Cross-tenant and duplicate recipient fixtures | FR-019, FR-002 |
 | **M15-02: Implement notification persistence** | M15-01 | Store delivered/unread/ack state keyed by exception or event | Uniqueness, scoped reads and lifecycle tests | FR-019 |
 | **M15-03: Implement notification interface** | M15-01 | Show relevant alert, unread count and resource navigation | Targeted resource navigation and notification state tests | FR-019 |
 | **M15-04: Verify recipient isolation** | M15-02, M15-03 | Inject unrelated-organization faults and duplicate events | Only entitled recipients notified; dedupe proven | FR-019, FR-002 |
@@ -684,7 +785,7 @@ flowchart TD
 ### M16: Audit logging and access hardening
 
 **Outcome:** Append-only evidence and strengthened authorization  
-**Entry:** G15 verified, with recorded evidence.  
+**Entry:** G3 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G16, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -695,8 +796,8 @@ flowchart TD
   M16_03["M16-03: Harden security boundaries"]
   M16_04["M16-04: Verify security and audit matrix"]
   G16["G16: Audit logging and access hardening evidence gate"]
-  G15["G15 verified"]
-  G15 --> M16_01
+  G3["G3 accepted"]
+  G3 --> M16_01
   M16_01 --> M16_02
   M16_01 --> M16_03
   M16_02 --> M16_04
@@ -709,7 +810,7 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M16-01: Define audit schema and privacy** | G15 | Specify actor, org, resource, outcome, correlation and redaction | Audit threat/retention policy reviewed | FR-014, NFR-003 |
+| **M16-01: Define audit schema and privacy** | G3 | Specify actor, org, resource, outcome, correlation and redaction | Audit threat/retention policy reviewed | FR-014, NFR-003 |
 | **M16-02: Implement append-only audit entries** | M16-01 | Record sensitive actions, authorized denies and state changes | Tamper, integrity and omission tests | FR-014, NFR-002 |
 | **M16-03: Harden security boundaries** | M16-01 | Apply API rate limits, size limits and session escalation checks | Abuse, BOLA/BFLA, unauthorized export tests | FR-002, NFR-002 |
 | **M16-04: Verify security and audit matrix** | M16-02, M16-03 | Run two-organization role/action matrix and redaction review | Full negative test and audit evidence report | FR-014, NFR-003 |
@@ -719,7 +820,7 @@ flowchart TD
 ### M17: Observability and service health
 
 **Outcome:** Structured metrics, traces and meaningful operational alerts  
-**Entry:** G16 verified, with recorded evidence.  
+**Entry:** G3 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G17, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -730,8 +831,8 @@ flowchart TD
   M17_03["M17-03: Implement monitoring dashboards and alerts"]
   M17_04["M17-04: Verify diagnostic journey"]
   G17["G17: Observability and service health evidence gate"]
-  G16["G16 verified"]
-  G16 --> M17_01
+  G3["G3 accepted"]
+  G3 --> M17_01
   M17_01 --> M17_02
   M17_01 --> M17_03
   M17_02 --> M17_04
@@ -744,7 +845,7 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M17-01: Define telemetry signals and thresholds** | G16 | Specify API, database, worker metrics and cardinality limits | Metric/trace and confidentiality contract review | FR-015, NFR-005 |
+| **M17-01: Define telemetry signals and thresholds** | G3 | Specify API, database, worker metrics and cardinality limits | Metric/trace and confidentiality contract review | FR-015, NFR-005 |
 | **M17-02: Implement health and trace propagation** | M17-01 | Connect correlation IDs, readiness and dependent operations | Trace continuity and outage HTTP tests | FR-015, NFR-005 |
 | **M17-03: Implement monitoring dashboards and alerts** | M17-01 | Expose opt-in local dashboard and fault-driven threshold alerting | Forced failure triggers detectable signal | FR-015, NFR-001 |
 | **M17-04: Verify diagnostic journey** | M17-02, M17-03 | Follow browser failure through API, worker, database and telemetry | Correlation and redaction evidence from controlled fault | FR-015, NFR-003 |
@@ -754,7 +855,7 @@ flowchart TD
 ### M18: IT incident lifecycle and remediation
 
 **Outcome:** Actionable incident triage, notes, and closure evidence  
-**Entry:** G17 verified, with recorded evidence.  
+**Entry:** G17, G16 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G18, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -765,9 +866,11 @@ flowchart TD
   M18_03["M18-03: Implement investigation and remediation"]
   M18_04["M18-04: Verify alert-to-incident workflow"]
   G18["G18: IT incident lifecycle and remediation evidence gate"]
-  G17["G17 verified"]
+  G17["G17 accepted"]
+  G16["G16 accepted"]
   G17 --> M18_01
   M18_01 --> M18_02
+  G16 --> M18_02
   M18_01 --> M18_03
   M18_02 --> M18_04
   M18_03 --> M18_04
@@ -780,7 +883,7 @@ flowchart TD
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
 | **M18-01: Define severity and state policy** | G17 | Specify New/Triage/Investigating/Mitigated/Monitoring/Resolved/Closed and reopen | Transition matrix and role grants | FR-016, FR-020 |
-| **M18-02: Implement incident CRUD and state controls** | M18-01 | Persist incident evidence, actor, service and explicit transitions | Invalid transition and concurrency/role tests | FR-016, NFR-002 |
+| **M18-02: Implement incident CRUD and state controls** | M18-01, G16 | Persist incident evidence, actor, service and explicit transitions | Invalid transition and concurrency/role tests | FR-016, NFR-002 |
 | **M18-03: Implement investigation and remediation** | M18-01 | Add timeline activities, cause, mitigation and corrective actions | No unauthorized exposure and evidence-required closure tests | FR-020, FR-014 |
 | **M18-04: Verify alert-to-incident workflow** | M18-02, M18-03 | Detect controlled fault, create incident, investigate and resolve | Reproducible incident scenario plus Q3 disposable historical-volume compatibility checkpoint if available | FR-016, FR-020 |
 
@@ -791,7 +894,7 @@ flowchart TD
 ### M19: Database recovery and migration rehearsal
 
 **Outcome:** Verified fresh/historical upgrades and isolated restore  
-**Entry:** G18 verified, with recorded evidence.  
+**Entry:** G3 accepted before dependent work.  
 **Architecture decisions:** D-008 must be resolved before applicable implementation.  
 **Exit gate:** G19, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -802,8 +905,8 @@ flowchart TD
   M19_03["M19-03: Implement backup and isolated restore"]
   M19_04["M19-04: Verify restored integrity"]
   G19["G19: Database recovery and migration rehearsal evidence gate"]
-  G18["G18 verified"]
-  G18 --> M19_01
+  G3["G3 accepted"]
+  G3 --> M19_01
   M19_01 --> M19_02
   M19_01 --> M19_03
   M19_02 --> M19_04
@@ -816,7 +919,7 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M19-01: Define recovery targets and safeguards** | G18 | Close D-008 with demo environment RPO/RTO and retention constraints | Disaster boundaries and isolated target plan | NFR-011, NFR-012 |
+| **M19-01: Define recovery targets and safeguards** | G3 | Close D-008 with demo environment RPO/RTO and retention constraints | Disaster boundaries and isolated target plan | NFR-011, NFR-012 |
 | **M19-02: Rehearse schema upgrade paths** | M19-01 | Test fresh DB and existing historical schema migration | Versioned migration and rollback risk evidence | NFR-008, NFR-011 |
 | **M19-03: Implement backup and isolated restore** | M19-01 | Document export, permissions, disposable target and cleanup | Restore performs with no live-state overwrite | NFR-011, NFR-003 |
 | **M19-04: Verify restored integrity** | M19-02, M19-03 | Validate row counts, foreign keys, inbox/projection and representative queries | Measured restoration evidence and checksums | NFR-011, NFR-004 |
@@ -826,7 +929,7 @@ flowchart TD
 ### M20: Security assurance and dependency review
 
 **Outcome:** Adversarial regression and high-severity issue closure  
-**Entry:** G19 verified, with recorded evidence.  
+**Entry:** G3, G15, G18, G19 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G20, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -837,10 +940,16 @@ flowchart TD
   M20_03["M20-03: Run dependency and endpoint scans"]
   M20_04["M20-04: Remediate and reverify findings"]
   G20["G20: Security assurance and dependency review evidence gate"]
-  G19["G19 verified"]
-  G19 --> M20_01
+  G3["G3 accepted"]
+  G15["G15 accepted"]
+  G18["G18 accepted"]
+  G19["G19 accepted"]
+  G3 --> M20_01
   M20_01 --> M20_02
+  G15 --> M20_02
+  G18 --> M20_02
   M20_01 --> M20_03
+  G19 --> M20_03
   M20_02 --> M20_04
   M20_03 --> M20_04
   M20_01 --> G20
@@ -851,9 +960,9 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M20-01: Establish security review baseline** | G19 | Enumerate threat areas, dependency locks and secret scans | Tools, versions and findings policy recorded | NFR-002, NFR-003 |
-| **M20-02: Run permission and injection tests** | M20-01 | Exercise role bypass, object scope, malformed input and exports | Unauthorized requests denied without data disclosure | NFR-002, FR-002 |
-| **M20-03: Run dependency and endpoint scans** | M20-01 | Perform lockfile advisory checks and controlled HTTP assessment | Finding inventory with reproducible commands | NFR-003, NFR-008 |
+| **M20-01: Establish security review baseline** | G3 | Enumerate threat areas, dependency locks and secret scans | Tools, versions and findings policy recorded | NFR-002, NFR-003 |
+| **M20-02: Run permission and injection tests** | M20-01, G15, G18 | Exercise role bypass, object scope, malformed input and exports | Unauthorized requests denied without data disclosure | NFR-002, FR-002 |
+| **M20-03: Run dependency and endpoint scans** | M20-01, G19 | Perform lockfile advisory checks and controlled HTTP assessment | Finding inventory with reproducible commands | NFR-003, NFR-008 |
 | **M20-04: Remediate and reverify findings** | M20-02, M20-03 | Fix high/critical release blockers and rerun relevant regression | Zero unresolved blocker evidence or gate remains open | NFR-002, NFR-008 |
 
 **G20 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M20 recorded; acceptance pending until explicitly confirmed.
@@ -861,7 +970,7 @@ flowchart TD
 ### M21: Performance and capacity benchmarks
 
 **Outcome:** Measured latency and bounded resource behavior  
-**Entry:** G20 verified, with recorded evidence.  
+**Entry:** G9, G12, G13 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G21, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -872,12 +981,16 @@ flowchart TD
   M21_03["M21-03: Benchmark event processing and exports"]
   M21_04["M21-04: Resolve bottlenecks and record limits"]
   G21["G21: Performance and capacity benchmarks evidence gate"]
-  G20["G20 verified"]
-  G20 --> M21_01
+  G9["G9 accepted"]
+  G12["G12 accepted"]
+  G13["G13 accepted"]
+  G9 --> M21_01
   M21_01 --> M21_02
+  G12 --> M21_02
   M21_01 --> M21_03
   M21_02 --> M21_04
   M21_03 --> M21_04
+  G13 --> M21_04
   M21_01 --> G21
   M21_02 --> G21
   M21_03 --> G21
@@ -886,17 +999,17 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M21-01: Define reference benchmark workload** | G20 | Version dataset count, fixture hash, concurrency and local hardware | Reproducible p50/p95/p99 protocol documented | NFR-010 |
-| **M21-02: Benchmark shipment search** | M21-01 | Measure filtered request latency and errors on reference dataset | Observed p95 against proposed 500 ms target | NFR-010, FR-011 |
+| **M21-01: Define reference benchmark workload** | G9 | Version dataset count, fixture hash, concurrency and local hardware | Reproducible p50/p95/p99 protocol documented | NFR-010 |
+| **M21-02: Benchmark shipment search** | M21-01, G12 | Measure filtered request latency and errors on reference dataset | Observed p95 against proposed 500 ms target | NFR-010, FR-011 |
 | **M21-03: Benchmark event processing and exports** | M21-01 | Measure backlog, replay, resource pressure and large data export | Bounded worker and export behavior evidence | NFR-004, NFR-010 |
-| **M21-04: Resolve bottlenecks and record limits** | M21-02, M21-03 | Apply index/query optimizations and rerun benchmarks | Before/after evidence and documented ceiling | NFR-010, NFR-008 |
+| **M21-04: Resolve bottlenecks and record limits** | M21-02, M21-03, G13 | Apply index/query optimizations and rerun benchmarks | Before/after evidence and documented ceiling | NFR-010, NFR-008 |
 
 **G21 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M21 recorded; acceptance pending until explicitly confirmed.
 
 ### M22: Deployment portability and cost controls
 
 **Outcome:** Complete local profile and optional guarded public demo  
-**Entry:** G21 verified, with recorded evidence.  
+**Entry:** G19, G20, G21 accepted before dependent work.  
 **Architecture decisions:** D-007 must be resolved before applicable implementation.  
 **Exit gate:** G22, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -907,12 +1020,16 @@ flowchart TD
   M22_03["M22-03: Validate optional demonstration policy"]
   M22_04["M22-04: Verify deploy and rollback runbook"]
   G22["G22: Deployment portability and cost controls evidence gate"]
-  G21["G21 verified"]
-  G21 --> M22_01
+  G19["G19 accepted"]
+  G20["G20 accepted"]
+  G21["G21 accepted"]
+  G19 --> M22_01
   M22_01 --> M22_02
+  G20 --> M22_02
   M22_01 --> M22_03
   M22_02 --> M22_04
   M22_03 --> M22_04
+  G21 --> M22_04
   M22_01 --> G22
   M22_02 --> G22
   M22_03 --> G22
@@ -921,10 +1038,10 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M22-01: Finalize deployment profile and budget decision** | G21 | Close D-007 for zero-cost local baseline and optional public hosting | Quotas, credit terms, egress and shutdown plan reviewed | NFR-001, NFR-012 |
-| **M22-02: Harden local runtime profile** | M22-01 | Document secrets, volumes, startup, shutdown and configuration | Fresh-environment launch and scoped port/security tests | NFR-001, NFR-008 |
+| **M22-01: Finalize deployment profile and budget decision** | G19 | Close D-007 for zero-cost local baseline and optional public hosting | Quotas, credit terms, egress and shutdown plan reviewed | NFR-001, NFR-012 |
+| **M22-02: Harden local runtime profile** | M22-01, G20 | Document secrets, volumes, startup, shutdown and configuration | Fresh-environment launch and scoped port/security tests | NFR-001, NFR-008 |
 | **M22-03: Validate optional demonstration policy** | M22-01 | Assess public deployment only if sustainable with no mandatory charge | No public deployment required for gate; billing safeguards if used | NFR-001, NFR-003 |
-| **M22-04: Verify deploy and rollback runbook** | M22-02, M22-03 | Exercise approved local-equivalent deployment and teardown | Repeatability, integrity and safe cleanup evidence | NFR-012, NFR-011 |
+| **M22-04: Verify deploy and rollback runbook** | M22-02, M22-03, G21 | Exercise approved local-equivalent deployment and teardown | Repeatability, integrity and safe cleanup evidence | NFR-012, NFR-011 |
 
 **G22 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M22 recorded; acceptance pending until explicitly confirmed.
 
@@ -933,7 +1050,7 @@ flowchart TD
 ### M23: Interface polish and workflow consistency
 
 **Outcome:** Polished enterprise interface with complete functional workflows  
-**Entry:** G22 verified, with recorded evidence.  
+**Entry:** G3, G12, G13, G14, G15, G18 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G23, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -944,9 +1061,19 @@ flowchart TD
   M23_03["M23-03: Complete error and offline states"]
   M23_04["M23-04: Finish interface consistency review"]
   G23["G23: Interface polish and workflow consistency evidence gate"]
-  G22["G22 verified"]
-  G22 --> M23_01
+  G3["G3 accepted"]
+  G12["G12 accepted"]
+  G13["G13 accepted"]
+  G14["G14 accepted"]
+  G15["G15 accepted"]
+  G18["G18 accepted"]
+  G3 --> M23_01
   M23_01 --> M23_02
+  G12 --> M23_02
+  G13 --> M23_02
+  G14 --> M23_02
+  G15 --> M23_02
+  G18 --> M23_02
   M23_01 --> M23_03
   M23_02 --> M23_04
   M23_03 --> M23_04
@@ -958,8 +1085,8 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M23-01: Define visual system and navigation** | G22 | Standardize layout, typography, states and functional module hierarchy | Cross-page functional interaction specification | NFR-008 |
-| **M23-02: Polish operational workflows** | M23-01 | Refine forms, filters, maps, dashboard and incident entry/navigation | Browser workflow consistency and no misleading placeholders | FR-012 |
+| **M23-01: Define visual system and navigation** | G3 | Standardize layout, typography, states and functional module hierarchy | Cross-page functional interaction specification | NFR-008 |
+| **M23-02: Polish operational workflows** | M23-01, G12, G13, G14, G15, G18 | Refine forms, filters, maps, dashboard and incident entry/navigation | Browser workflow consistency and no misleading placeholders | FR-012 |
 | **M23-03: Complete error and offline states** | M23-01 | Handle loading, empty, forbidden, conflict and dependency degradation | Scenario UI screenshots and recovery interactions | NFR-005 |
 | **M23-04: Finish interface consistency review** | M23-02, M23-03 | Check final layouts and navigation states for functional consistency | Functional workflow and visual consistency review | NFR-008 |
 
@@ -968,7 +1095,7 @@ flowchart TD
 ### M24: Final release validation and acceptance
 
 **Outcome:** Complete release scenarios, final accessibility audit and acceptance evidence  
-**Entry:** G23 verified, with recorded evidence.  
+**Entry:** G22, G23 accepted before dependent work.  
 **Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G24, requiring all 4 work-package outcomes and their actual verification results.
 
@@ -979,7 +1106,9 @@ flowchart TD
   M24_03["M24-03: Audit docs and test evidence"]
   M24_04["M24-04: Run final accessibility tests and release assessment"]
   G24["G24: Final release validation and acceptance evidence gate"]
-  G23["G23 verified"]
+  G22["G22 accepted"]
+  G23["G23 accepted"]
+  G22 --> M24_01
   G23 --> M24_01
   M24_01 --> M24_02
   M24_01 --> M24_03
@@ -993,22 +1122,23 @@ flowchart TD
 
 | Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |
 | --- | --- | --- | --- | --- |
-| **M24-01: Freeze deterministic demonstration fixtures** | G23 | Pin two-organization data, route/event streams and scenario expectations | Fixture hash, count and setup reproducibility | FR-017, NFR-008 |
+| **M24-01: Freeze deterministic demonstration fixtures** | G22, G23 | Pin two-organization data, route/event streams and scenario expectations | Fixture hash, count and setup reproducibility | FR-017, NFR-008 |
 | **M24-02: Run end-to-end scenario suite** | M24-01 | Exercise shipment, delay, ordering, tenant isolation, incident and restore cases | Observed D01-D06 exact outcomes and logs | FR-017, FR-009, NFR-004 |
 | **M24-03: Audit docs and test evidence** | M24-01 | Check implementation/requirement mapping, known limits and exact commands | Documentation/evidence audit and Q4 disposable historical-volume compatibility checkpoint before the final M24-04 accessibility audit | NFR-008, NFR-003 |
 | **M24-04: Run final accessibility tests and release assessment** | M24-02, M24-03 | Execute automated and manual accessibility tests after all features and UX are complete; consolidate release readiness | Contrast, keyboard/focus, names/errors, zoom, screen-reader and full-workflow evidence; acceptance pending after G24 | NFR-008, NFR-009 |
 
 **G24 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed; include corresponding quarterly snapshot compatibility result or documented not-applicable reason.
 
-## How to execute the graph
+## How to execute the parallel dependency graph
 
-1. Select the earliest milestone with an open evidence gate. Read [Status](STATUS.md) and the milestone verification register; never infer completion from this diagram.
-2. Inspect current source and branch HEAD before changing an implementation. Deliver one graph work package at a time, or parallelize only where explicit prerequisites allow it.
-3. Execute the declared positive, negative, security, database, browser, failure and recovery checks applicable to the package. Record commands, fixtures, environment, failures and exact revision.
-4. A gate is **verified** only when every inbound package and the relevant [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) have supporting executed evidence. If required checks cannot run, the gate remains open.
-5. A verified gate has **acceptance pending** until explicit acceptance. Later milestones cannot be declared implemented or verified based on proposed dependency edges.
-6. Change priorities or milestone boundaries through the PRD, Roadmap, JSON graph, acceptance checks and Status as applicable; run `--check` before merging.
+1. Read [Status](STATUS.md) for accepted gates. The graph does not imply runtime completion.
+2. Start any package with satisfied explicit upstream acceptance gates and resolved decisions; use independent feature branches and E:-backed worktrees.
+3. Freeze shared API/authorization contracts, coordinate additive PostgreSQL migration order and avoid conflicting migrations from parallel branches.
+4. Integrate completed branches against current main; rerun related cross-track and accepted M0-M3 regression suites, database tests and security negative cases on the resulting SHA.
+5. Each gate needs full executed evidence and explicit acceptance. A verified but unaccepted gate is not an integration prerequisite.
+6. G24 requires accepted G0-G23 and final integrated release verification, including M24-04 accessibility. Keep historical-volume checks at M6, M12, M18 and M24-03.
+7. Update this JSON graph and regenerate/check the Markdown view whenever dependencies change.
 
 ## Current starting point
 
-The execution graph does not track completion. Refer to [Status](STATUS.md), [M0 verification](M0_HARDENING_VERIFICATION.md), [M1 verification](M1_IMPLEMENTATION_VERIFICATION.md), and [accepted M2 verification](M2_EXECUTED_VERIFICATION.md) for evidence and acceptance state. G0, G1 and G2 are accepted and merged; M3/G3 is next. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md) for all development and test work. Do not infer implementation from planned graph nodes.
+G0-G3 are accepted on main. M4, M5, M7, M16, M17, M19, and initial M20 and M23 packages are eligible parallel starts, not yet implemented. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).

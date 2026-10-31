@@ -20,14 +20,15 @@ function validateGraph(data,requirementContent,decisionContent) {
   for(const d of n.depends_on){
    const prior=seen.get(d);
    if(!prior)throw Error("Missing or forward dependency "+d+" -> "+n.id);
-   if(prior.node.milestone!==n.milestone && d!=="G"+(Number(n.milestone.slice(1))-1))throw Error("Cross-milestone bypass "+d+" -> "+n.id);
+   if(prior.node.milestone!==n.milestone && (!prior.node.gate || Number(prior.node.milestone.slice(1))>=Number(n.milestone.slice(1))))throw Error("Invalid cross-milestone dependency "+d+" -> "+n.id);
   }
  }
  for(let i=0;i<ms.length;i++){
   const m=ms[i],work=ns.filter(n=>n.milestone===m.id&&!n.gate),gate=ns.find(n=>n.id==="G"+i);
   if(work.length<3||work.length>6||!gate||gate.milestone!==m.id)throw Error("Invalid task/gate count "+m.id);
   if(gate.depends_on.length!==work.length||work.some(n=>!gate.depends_on.includes(n.id)))throw Error("Gate missing prerequisite "+m.id);
-  if(work[0].depends_on.join(",")!==(i?"G"+(i-1):""))throw Error("Invalid entry "+m.id);
+  if(i===0 && work[0].depends_on.length)throw Error("Unexpected M0 entry");
+  if(i>0 && !work[0].depends_on.some(d=>/^G\d+$/.test(d)))throw Error("Missing accepted-gate entry "+m.id);
   if(work.slice(1).some(n=>n.depends_on.length===0))throw Error("Orphan node "+m.id);
   for(const id of m.decisions??[])if(!decisionContent.includes("| "+id+" |") && !decisionContent.includes("### "+id+":"))throw Error("Unknown decision "+m.id+" "+id);
  }
@@ -56,16 +57,16 @@ function renderGraph(data) {
  "| --- | --- | --- |",
  ...data.phases.map(p=>"| ["+p.id+": "+p.title+"](#"+("stage-"+p.id+"-"+p.title).toLowerCase().replaceAll(/[^a-z0-9 -]/g,"").replaceAll(" ","-")+") | "+p.milestones.join(", ")+" | "+p.title+" |"),
  "",
- "## High-level stage dependency",
+ "## Full milestone dependency DAG",
  "",
  "```mermaid",
  "flowchart LR",
- ...data.phases.map((p,i)=>"  "+p.id+'["'+safe(p.title)+'"]'),
- "  "+data.phases.map(p=>p.id).join(" --> "),
+ ...data.milestones.map(m=>"  G"+m.id.slice(1)+'["'+safe(m.id+": "+m.title)+'"]'),
+ ...[...new Set(data.nodes.filter(n=>!n.gate).flatMap(n=>n.depends_on.filter(d=>/^G\d+$/.test(d)).map(d=>d+" --> G"+n.milestone.slice(1))))].map(e=>"  "+e),
  "```",
  "",
- "Gate transitions are sequential. Within a single milestone, tasks that branch from the same prerequisite may be implemented independently and then reunited at verification. Every work package is a narrow, reviewable output with specific tests.",
- "",
+ "Stages classify related workstreams and are not sequence locks. Dependency edges represent required upstream gates; work packages may run independently when their actual prerequisites are accepted.",
+ "" ,
  "## Milestone gate map",
  "",
  ...data.phases.flatMap(p=> [
@@ -74,7 +75,7 @@ function renderGraph(data) {
    "```mermaid",
    "flowchart LR",
    ...p.milestones.map(id=>"  G"+id.slice(1)+'["'+id+": "+safe(data.milestones.find(m=>m.id===id).title)+'"]'),
-   "  "+p.milestones.map(id=>"G"+id.slice(1)).join(" --> "),
+   ...[...new Set(data.nodes.filter(n=>!n.gate&&p.milestones.includes(n.milestone)).flatMap(n=>n.depends_on.filter(d=>/^G\d+$/.test(d)).map(d=>d+" --> G"+n.milestone.slice(1))))].map(e=>"  "+e),
    "```",
    ""
  ]),
@@ -87,18 +88,18 @@ function renderGraph(data) {
   lines.push("## Stage "+p.id+": "+p.title,"");
   for(const id of p.milestones){
    const m=data.milestones.find(m=>m.id===id),nodes=data.nodes.filter(n=>n.milestone===id),gate=nodes.find(n=>n.gate),tasks=nodes.filter(n=>!n.gate);
-   lines.push("### "+m.id+": "+m.title,"", "**Outcome:** "+m.outcome+"  ", "**Entry:** "+(id==="M0"?"Current M0 code assessment; no prior runtime gate.":"G"+(Number(id.slice(1))-1)+" verified, with recorded evidence.")+"  ","**Architecture decisions:** "+(m.decisions.length?m.decisions.join(", ")+" must be resolved before applicable implementation.":"No additional decisions identified for this milestone.")+"  ","**Exit gate:** "+gate.id+", requiring all "+tasks.length+" work-package outcomes and their actual verification results.","");
+   lines.push("### "+m.id+": "+m.title,"", "**Outcome:** "+m.outcome+"  ", "**Entry:** "+(id==="M0"?"Existing source assessment.": [...new Set(tasks.flatMap(n=>n.depends_on.filter(d=>/^G\d+$/.test(d))))].join(", ")+" accepted before dependent work.")+"  ","**Architecture decisions:** "+(m.decisions.length?m.decisions.join(", ")+" must be resolved before applicable implementation.":"No additional decisions identified for this milestone.")+"  ","**Exit gate:** "+gate.id+", requiring all "+tasks.length+" work-package outcomes and their actual verification results.","");
    lines.push("```mermaid","flowchart TD");
    for(const n of nodes)lines.push("  "+n.id.replaceAll("-","_")+'["'+safe(n.id+": "+n.title)+'"]');
-   const external=(tasks[0].depends_on.find(d=>d.startsWith("G")));
-   if(external)lines.push("  "+external+'["'+external+" verified\"]");
+   const external=[...new Set(tasks.flatMap(n=>n.depends_on.filter(d=>/^G\d+$/.test(d))))];
+   for(const d of external)lines.push("  "+d+'["'+d+" accepted"+'"]');
    for(const n of nodes)for(const d of n.depends_on)lines.push("  "+d.replaceAll("-","_")+" --> "+n.id.replaceAll("-","_"));
    lines.push("```","","| Work package | Prerequisites | Specific deliverable | Verification requirement | FR/NFR links |","| --- | --- | --- | --- | --- |");
    for(const n of tasks)lines.push("| **"+n.id+": "+safe(n.title)+"** | "+(n.depends_on.join(", ")||"None")+" | "+safe(n.output)+" | "+safe(n.verify)+" | "+n.requirements.join(", ")+" |");
    lines.push("","**"+gate.id+" acceptance evidence:** "+gate.verify+".","")
   }
  }
- lines.push("## How to execute the graph","","1. Select the earliest milestone with an open evidence gate. Read [Status](STATUS.md) and the milestone verification register; never infer completion from this diagram.","2. Inspect current source and branch HEAD before changing an implementation. Deliver one graph work package at a time, or parallelize only where explicit prerequisites allow it.","3. Execute the declared positive, negative, security, database, browser, failure and recovery checks applicable to the package. Record commands, fixtures, environment, failures and exact revision.","4. A gate is **verified** only when every inbound package and the relevant [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) have supporting executed evidence. If required checks cannot run, the gate remains open.","5. A verified gate has **acceptance pending** until explicit acceptance. Later milestones cannot be declared implemented or verified based on proposed dependency edges.","6. Change priorities or milestone boundaries through the PRD, Roadmap, JSON graph, acceptance checks and Status as applicable; run `--check` before merging.","","## Current starting point","","The execution graph does not track completion. Refer to [Status](STATUS.md), [M0 verification](M0_HARDENING_VERIFICATION.md), [M1 verification](M1_IMPLEMENTATION_VERIFICATION.md), and [accepted M2 verification](M2_EXECUTED_VERIFICATION.md) for evidence and acceptance state. G0, G1 and G2 are accepted and merged; M3/G3 is next. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md) for all development and test work. Do not infer implementation from planned graph nodes.","");
+ lines.push(...["## How to execute the parallel dependency graph","","1. Read [Status](STATUS.md) for accepted gates. The graph does not imply runtime completion.","2. Start any package with satisfied explicit upstream acceptance gates and resolved decisions; use independent feature branches and E:-backed worktrees.","3. Freeze shared API/authorization contracts, coordinate additive PostgreSQL migration order and avoid conflicting migrations from parallel branches.","4. Integrate completed branches against current main; rerun related cross-track and accepted M0-M3 regression suites, database tests and security negative cases on the resulting SHA.","5. Each gate needs full executed evidence and explicit acceptance. A verified but unaccepted gate is not an integration prerequisite.","6. G24 requires accepted G0-G23 and final integrated release verification, including M24-04 accessibility. Keep historical-volume checks at M6, M12, M18 and M24-03.","7. Update this JSON graph and regenerate/check the Markdown view whenever dependencies change.","","## Current starting point","","G0-G3 are accepted on main. M4, M5, M7, M16, M17, M19, and initial M20 and M23 packages are eligible parallel starts, not yet implemented. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).",""]);
  return lines.join("\n");
 }
 

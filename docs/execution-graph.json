@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "version": "2.0",
-  "date": "2026-10-30",
-  "authority": "Work-package IDs, verification intent and dependency edges. Observed progress is authoritative only in docs/STATUS.md.",
+  "version": "3.0",
+  "date": "2026-10-31",
+  "authority": "Technical-prerequisite DAG with parallel work packages and independent verification gates.",
   "previous_schema": {
     "version": "1.0",
     "milestones": "M0-M6",
@@ -642,7 +642,7 @@
       "milestone": "M5",
       "title": "Specify shipment state transitions",
       "depends_on": [
-        "G4"
+        "G3"
       ],
       "requirements": [
         "FR-004"
@@ -716,6 +716,7 @@
       "milestone": "M6",
       "title": "Define assignment invariants",
       "depends_on": [
+        "G4",
         "G5"
       ],
       "requirements": [
@@ -792,7 +793,7 @@
       "milestone": "M7",
       "title": "Pin external subset and contract",
       "depends_on": [
-        "G6"
+        "G3"
       ],
       "requirements": [
         "FR-006",
@@ -883,7 +884,8 @@
       "milestone": "M8",
       "title": "Implement receipt and event schema",
       "depends_on": [
-        "M8-01"
+        "M8-01",
+        "G6"
       ],
       "requirements": [
         "FR-006",
@@ -897,7 +899,8 @@
       "milestone": "M8",
       "title": "Implement intake transaction path",
       "depends_on": [
-        "M8-01"
+        "M8-01",
+        "G6"
       ],
       "requirements": [
         "FR-006",
@@ -1179,7 +1182,7 @@
       "milestone": "M12",
       "title": "Define search contract and pagination",
       "depends_on": [
-        "G11"
+        "G5"
       ],
       "requirements": [
         "FR-011",
@@ -1256,7 +1259,7 @@
       "milestone": "M13",
       "title": "Finalize KPI catalog and cutoffs",
       "depends_on": [
-        "G12"
+        "G11"
       ],
       "requirements": [
         "FR-012",
@@ -1270,7 +1273,8 @@
       "milestone": "M13",
       "title": "Implement aggregate query services",
       "depends_on": [
-        "M13-01"
+        "M13-01",
+        "G12"
       ],
       "requirements": [
         "FR-012",
@@ -1332,7 +1336,7 @@
       "milestone": "M14",
       "title": "Resolve map licensing and fallback",
       "depends_on": [
-        "G13"
+        "G4"
       ],
       "requirements": [
         "FR-018",
@@ -1408,7 +1412,7 @@
       "milestone": "M15",
       "title": "Define recipient and deduplication rules",
       "depends_on": [
-        "G14"
+        "G11"
       ],
       "requirements": [
         "FR-019",
@@ -1481,7 +1485,7 @@
       "milestone": "M16",
       "title": "Define audit schema and privacy",
       "depends_on": [
-        "G15"
+        "G3"
       ],
       "requirements": [
         "FR-014",
@@ -1558,7 +1562,7 @@
       "milestone": "M17",
       "title": "Define telemetry signals and thresholds",
       "depends_on": [
-        "G16"
+        "G3"
       ],
       "requirements": [
         "FR-015",
@@ -1649,7 +1653,8 @@
       "milestone": "M18",
       "title": "Implement incident CRUD and state controls",
       "depends_on": [
-        "M18-01"
+        "M18-01",
+        "G16"
       ],
       "requirements": [
         "FR-016",
@@ -1712,7 +1717,7 @@
       "milestone": "M19",
       "title": "Define recovery targets and safeguards",
       "depends_on": [
-        "G18"
+        "G3"
       ],
       "requirements": [
         "NFR-011",
@@ -1790,7 +1795,7 @@
       "milestone": "M20",
       "title": "Establish security review baseline",
       "depends_on": [
-        "G19"
+        "G3"
       ],
       "requirements": [
         "NFR-002",
@@ -1804,7 +1809,9 @@
       "milestone": "M20",
       "title": "Run permission and injection tests",
       "depends_on": [
-        "M20-01"
+        "M20-01",
+        "G15",
+        "G18"
       ],
       "requirements": [
         "NFR-002",
@@ -1818,7 +1825,8 @@
       "milestone": "M20",
       "title": "Run dependency and endpoint scans",
       "depends_on": [
-        "M20-01"
+        "M20-01",
+        "G19"
       ],
       "requirements": [
         "NFR-003",
@@ -1867,7 +1875,7 @@
       "milestone": "M21",
       "title": "Define reference benchmark workload",
       "depends_on": [
-        "G20"
+        "G9"
       ],
       "requirements": [
         "NFR-010"
@@ -1880,7 +1888,8 @@
       "milestone": "M21",
       "title": "Benchmark shipment search",
       "depends_on": [
-        "M21-01"
+        "M21-01",
+        "G12"
       ],
       "requirements": [
         "NFR-010",
@@ -1909,7 +1918,8 @@
       "title": "Resolve bottlenecks and record limits",
       "depends_on": [
         "M21-02",
-        "M21-03"
+        "M21-03",
+        "G13"
       ],
       "requirements": [
         "NFR-010",
@@ -1943,7 +1953,7 @@
       "milestone": "M22",
       "title": "Finalize deployment profile and budget decision",
       "depends_on": [
-        "G21"
+        "G19"
       ],
       "requirements": [
         "NFR-001",
@@ -1957,7 +1967,8 @@
       "milestone": "M22",
       "title": "Harden local runtime profile",
       "depends_on": [
-        "M22-01"
+        "M22-01",
+        "G20"
       ],
       "requirements": [
         "NFR-001",
@@ -1986,7 +1997,8 @@
       "title": "Verify deploy and rollback runbook",
       "depends_on": [
         "M22-02",
-        "M22-03"
+        "M22-03",
+        "G21"
       ],
       "requirements": [
         "NFR-012",
@@ -2021,7 +2033,7 @@
       "milestone": "M23",
       "title": "Define visual system and navigation",
       "depends_on": [
-        "G22"
+        "G3"
       ],
       "requirements": [
         "NFR-008"
@@ -2034,7 +2046,12 @@
       "milestone": "M23",
       "title": "Polish operational workflows",
       "depends_on": [
-        "M23-01"
+        "M23-01",
+        "G12",
+        "G13",
+        "G14",
+        "G15",
+        "G18"
       ],
       "requirements": [
         "FR-012"
@@ -2093,6 +2110,7 @@
       "milestone": "M24",
       "title": "Freeze deterministic demonstration fixtures",
       "depends_on": [
+        "G22",
         "G23"
       ],
       "requirements": [

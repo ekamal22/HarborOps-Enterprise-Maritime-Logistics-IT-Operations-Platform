@@ -84,6 +84,7 @@ export default function AuthPanel() {
         : current ? <>
           <p className="mt-4 text-slate-300">Signed in as <strong>{current.user.displayName}</strong></p>
           <p className="mt-1 text-sm text-slate-400">{current.user.email}</p>
+          <p className="mt-1 break-all text-xs text-slate-500">Account ID: {current.user.id}</p>
           <p className="mt-2 text-xs text-slate-400">Session expires {new Date(current.session.expiresAtUtc).toLocaleString()}</p>
           <div className="mt-5 flex flex-wrap gap-3">
             <button disabled={busy} onClick={() => void operation("logout")} className="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-50">Log out</button>

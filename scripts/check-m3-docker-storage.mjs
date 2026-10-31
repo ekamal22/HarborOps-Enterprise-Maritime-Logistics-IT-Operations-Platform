@@ -25,13 +25,30 @@ try {
 } catch {
   fail("Cannot read Docker Desktop settings");
 }
-const activeLocation = settings.diskImageLocation;
-if (typeof activeLocation !== "string" || !/^[A-Z]:[\\/]/i.test(activeLocation))
-  fail("Docker Desktop diskImageLocation is not explicitly configured");
+// Docker Desktop records the data location as diskImageLocation (single-disk layout) or, when the
+// WSL distributions were relocated, as CustomWslDistroDir (data image under <dir>\disk).
+const activeLocation = [settings.diskImageLocation, settings.CustomWslDistroDir]
+  .find((value) => typeof value === "string" && /^[A-Z]:[\\/]/i.test(value));
+if (!activeLocation)
+  fail("Docker Desktop diskImageLocation or CustomWslDistroDir is not explicitly configured");
 const physical = win.normalize(realpathSync.native(candidate)).toLowerCase();
 const configured = win.normalize(activeLocation).toLowerCase().replace(/[\\/]+$/, "");
 if (!physical.startsWith(configured + "\\") && physical !== configured)
   fail("The active configured image location does not contain the supplied VHDX");
+// The running docker-desktop WSL distribution must itself be registered under the configured E:
+// directory, so the data image beside it is the one the engine uses. Read-only registry query.
+const lxss = (() => {
+  try {
+    return execFileSync("reg", ["query", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Lxss", "/s"],
+      { encoding: "utf8", timeout: 15000 });
+  } catch {
+    return fail("Unable to read WSL distribution registrations");
+  }
+})();
+const distro = lxss.split(/\r?\n\r?\n/).find((block) => /DistributionName\s+REG_SZ\s+docker-desktop\s*$/m.test(block));
+const basePath = distro && /BasePath\s+REG_SZ\s+(.+)$/m.exec(distro)?.[1].trim().replace(/^\\\\\?\\/, "");
+if (!basePath || !win.normalize(basePath).toLowerCase().startsWith(configured + "\\"))
+  fail("The docker-desktop WSL distribution is not registered under the configured E: directory");
 const expectedName = win.basename(physical);
 if (expectedName !== "docker_data.vhdx")
   fail("This preflight supports the Docker Desktop WSL 2 data image only");

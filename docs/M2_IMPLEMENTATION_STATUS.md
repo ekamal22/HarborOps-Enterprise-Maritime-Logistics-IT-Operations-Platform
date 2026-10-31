@@ -4,8 +4,8 @@
 **Branch:** `feat/m2-organization-authorization`  
 **Baseline:** `a2acd64234049580c21dec49dbdd987b01030a4b` on `main`; G0 and G1 accepted  
 **Implementation state:** Source changes committed on the feature branch. **Not merged into `main`, not verified, G2 open.**  
-**Restriction:** No GitHub Actions use, workflow edits, dispatches, reruns, or checks until explicitly authorized.  
-**Verification:** Deliberately not executed for this implementation handoff.
+**Verification authorization:** M2 verification via GitHub was explicitly requested on 2026-10-31. The M2 workflow is configured on draft PR #5; results are not recorded until a completed run is reviewed.  
+**Verification:** Requested on draft PR #5. Results pending; G2 open.
 
 ## Delivered source changes
 

@@ -7,7 +7,7 @@
 
 ## Tooling and execution restriction
 
-GitHub Actions usage is prohibited until explicitly restored. No workflow editing, triggering, rerunning or checking is part of M2 planning or execution. Use explicit local testing only. This plan is a test specification, **not** evidence that any command was run.
+GitHub verification of M2 was explicitly requested on 2026-10-31. The repository's dedicated M2 verification workflow can execute the disposable-runner matrix through draft PR #5; the local-only approach remains available as an alternative. Neither a workflow definition nor a queued run constitutes passing test evidence.
 
 Use an isolated `ho-verify` Compose project or a dedicated throwaway PostgreSQL database, never the primary `harborops` project or existing local retained volume. Dispose only resources positively identified as part of that isolated project. No compatibility check against a historical user volume is due at G2; quarter-mile checkpoints remain M6, M12, M18 and M24-03. Backups and full restores remain M19. Dedicated accessibility checks remain M24-04.
 

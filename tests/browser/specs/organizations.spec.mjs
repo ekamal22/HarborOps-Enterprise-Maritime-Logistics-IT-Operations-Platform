@@ -20,7 +20,7 @@ test("active organization can be selected, reloaded, and cleared", async ({ page
   await options.selectOption({ label: "North Terminal (Administrator)" });
   await expect(page.getByText("Slug: north-terminal")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Memberships" })).toBeVisible();
-  await expect(page.getByText("operator@example.test")).toBeVisible();
+  await expect(page.getByRole("list").getByText("operator@example.test")).toBeVisible();
   await page.reload();
   await expect(page.getByText("Slug: north-terminal")).toBeVisible();
   await page.locator("#current-organization").selectOption("");

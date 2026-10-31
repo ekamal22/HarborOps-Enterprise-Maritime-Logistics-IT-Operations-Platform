@@ -44,7 +44,7 @@ Organization memberships and authorization remain M2. Historical-volume checks o
 
 ### Next milestone: M2 organizations and role isolation
 
-M2 source is implemented on the unverified `feat/m2-organization-authorization` branch, not yet merged into `main`. Its [architecture](docs/M2_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](docs/M2_VERIFICATION_PLAN.md) specify server-authoritative organization selection, membership role grants and cross-organization denials. G2 remains open and no M2 build, migration, integration, browser or security verification has run. [Implementation status](docs/M2_IMPLEMENTATION_STATUS.md) identifies committed paths and outstanding checks. No GitHub Actions usage is permitted until this restriction is explicitly lifted; M2 verification is local-only.
+M2 source is implemented on the unverified `feat/m2-organization-authorization` branch, not yet merged into `main`. Its [architecture](docs/M2_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](docs/M2_VERIFICATION_PLAN.md) specify server-authoritative organization selection, membership role grants and cross-organization denials. G2 remains open and no M2 build, migration, integration, browser or security verification has run. [Implementation status](docs/M2_IMPLEMENTATION_STATUS.md) identifies committed paths and outstanding checks. GitHub M2 verification was explicitly requested on 2026-10-31; draft PR #5 owns the verification attempt. M2 is not verified or accepted until results are recorded.
 
 ### Planned modules
 

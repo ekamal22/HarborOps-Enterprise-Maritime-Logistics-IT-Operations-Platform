@@ -58,7 +58,7 @@ OpenStreetMap data and map tile services have different rights and operational l
 
 ## M1 deployment profile and authentication storage
 
-The isolated M1 GitHub Actions verification completed on a disposable runner with no permanent hosted application or recurring infrastructure dependency. The local profile adds a named Data Protection key-ring volume and reuses the existing PostgreSQL and Docker runtime. See [M1 verification](M1_IMPLEMENTATION_VERIFICATION.md). G1 acceptance pending.
+The isolated M1 GitHub Actions verification completed on a disposable runner with no permanent hosted application or recurring infrastructure dependency. The local profile adds a named Data Protection key-ring volume and reuses the existing PostgreSQL and Docker runtime. See [M1 verification](M1_IMPLEMENTATION_VERIFICATION.md). G1 was accepted on 2026-10-31 and PR #4 merged to `main`. This does not authorize hosting.
 
 The accepted [M1 authentication design](M1_AUTHENTICATION_DESIGN.md) fits the existing no-charge React, ASP.NET Core and PostgreSQL Compose stack. It introduces no Redis, identity microservice, hosted account service or paid API. M1 needs only an additive PostgreSQL schema, an internal Nginx/Vite `/api/*` proxy and a small, durable ASP.NET Core Data Protection key-ring mount.
 

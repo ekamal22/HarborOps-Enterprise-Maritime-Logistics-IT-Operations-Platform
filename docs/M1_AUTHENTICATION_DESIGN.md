@@ -2,7 +2,7 @@
 
 **Decision:** Approved architecture. D-001 closed.  
 **Milestone:** M1-01 through M1-04, exit gate G1.  
-**Implementation:** Feature-branch source implemented. [G1 verification](M1_IMPLEMENTATION_VERIFICATION.md) passed at `fdefe052e4335ca8d1d287160a9859828d05f9d8`; acceptance pending.  
+**Implementation:** Accepted M1 source is integrated into `main`. [G1 verification](M1_IMPLEMENTATION_VERIFICATION.md) passed, acceptance was recorded on 2026-10-31 and PR #4 merged at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`.  
 **Baseline:** G0 accepted on 2026-10-31; .NET 10, EF Core 10, PostgreSQL 16, React/Vite, Nginx and Docker Compose.  
 **Related:** [D-001 decision](ADR_D001_BROWSER_SESSIONS.md), [Roadmap](ROADMAP.md), [Requirements](REQUIREMENTS.md), [API Contracts](API_CONTRACTS.md), [Security](SECURITY.md), [M1 verification plan](M1_VERIFICATION_PLAN.md).
 
@@ -62,7 +62,7 @@ Keep Domain and Application independent of HTTP and EF Core. Infrastructure impl
 | Organizations/roles | Not implemented in M1; M2 |
 | Accessibility audits | Final M24-04 only, not a G1 requirement |
 
-The timeout and hashing work factors are approved initial **design defaults**, not observed production measurements. Record benchmarked configuration before closing G1.
+The timeout and hashing work factors are approved initial **design defaults**, not observed production measurements. Benchmark work factors before non-local or production deployment; G1 accepted the tested local-first defaults.
 
 ## 4. Persistence
 
@@ -253,7 +253,7 @@ The path list above is the original design outline. Actual implementation files 
 - **M1-02:** Add additive migration, domain/application abstractions, Argon2id verifier, controlled CLI provisioning, session persistence/revocation, clock-driven unit tests. Verify a clean disposable database and a disposable M0-seeded database.
 - **M1-03:** Configure middleware, antiforgery, session validator, rate limits, keys, endpoints and logging. Test invalid/disabled users, expiry, replay, cookie security, outage and safe errors.
 - **M1-04:** Add Nginx/Vite same-origin proxy and functional React auth flow. Execute .NET, frontend, real PostgreSQL, Compose restart/outage, Chromium/Firefox/WebKit and image/dependency/secret checks. Preserve the verified G0 baseline contracts.
-- **G1:** Gather exact tested revision and evidence, then record \`verified, acceptance pending\` if successful. No automatic acceptance or merge is implied by design approval.
+- **G1:** Gather exact tested revision and evidence, then record verified evidence, followed by explicit acceptance and merge. G1 was accepted and merged on 2026-10-31.
 
 G1 needs no manual old-volume compatibility check, no early WCAG/screen-reader audit, no paid service and no real account data. Historical snapshot compatibility is at M6/M12/M18/M24-03, backup/restore at M19, accessibility at M24-04.
 

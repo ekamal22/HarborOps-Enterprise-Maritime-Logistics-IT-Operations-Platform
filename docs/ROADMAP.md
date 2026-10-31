@@ -2,7 +2,7 @@
 
 **Version:** 2.0 granular delivery baseline  
 **Date:** 2026-10-30  
-**State:** M0-M24 delivery plan integrated into `main`; G0 verified and accepted on 2026-10-31. G1 verified on the M1 feature branch, acceptance pending; G2-G24 remain open.
+**State:** M0-M24 delivery plan integrated into `main`; G0 and G1 verified and accepted on 2026-10-31. M1 merged into `main` via PR #4 at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`; G2-G24 remain open.
 
 ## Authority and rationale
 
@@ -88,7 +88,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Verify the existing source-only foundation against real runtime evidence.
 **Entry:** Existing implementation reviewed without assuming runtime correctness.
 **Required work packages:** M0-01 Assess existing M0 branch; M0-02 Build and test foundations; M0-03 Verify migration and seed; M0-04 Verify local stack and browser; M0-05 Verify failure and hygiene.
-**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1-G24 remain open.
+**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2-G24 remain open.
 **Not covered by this milestone:** Shipment and tenant business functionality.
 
 #### M1: Authentication and session lifecycle
@@ -96,13 +96,13 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Secure local account login, PostgreSQL-authoritative cookie session lifecycle, expiry, logout, logout-all, self-disablement and a functional authenticated browser shell. Full design in [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md).
 **Entry:** G0 verified and accepted. D-001 accepted; see [D-001](ADR_D001_BROWSER_SESSIONS.md) and the [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md).
 **Required work packages:** M1-01 Lock authentication contract and D-001; M1-02 Build additive identity/credential/session/event persistence; M1-03 Implement cookie auth, CSRF, login, logout and disablement endpoints; M1-04 Implement same-origin browser auth and execute [G1 verification](M1_VERIFICATION_PLAN.md).
-**Exit G1:** All applicable tasks, negative tests, runtime evidence and documentation for M1 recorded; acceptance pending until explicitly confirmed.
-**Not covered by this milestone:** Organization membership and role isolation (M2), maritime resources (M3 onward), integration tokens (M7), public registration, external SSO, historical-volume checks and accessibility audit (M24-04). **M1 implemented and verified on its feature branch; G1 acceptance pending.**
+**Exit G1:** Verified by [M1 verification evidence](M1_IMPLEMENTATION_VERIFICATION.md) and accepted on 2026-10-31. Merged via PR #4 at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. No production deployment approval is implied.
+**Not covered by this milestone:** Organization membership and role isolation (M2), maritime resources (M3 onward), integration tokens (M7), public registration, external SSO, historical-volume checks and accessibility audit (M24-04). **M1 implemented, verified, accepted and merged into `main`.**
 
 #### M2: Organizations and role isolation
 
 **Scope:** Explicit memberships, roles and organization-scoped access.
-**Entry:** G1 verified with a documented gate report.
+**Entry:** G1 verified and accepted, with documented evidence and merged source.
 **Required work packages:** M2-01 Model memberships and role grants; M2-02 Enforce permission boundary; M2-03 Implement organization selection; M2-04 Verify tenant isolation.
 **Exit G2:** All applicable tasks, negative tests, runtime evidence and documentation for M2 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Shipment domain CRUD and maritime reference data.
@@ -335,4 +335,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0 is integrated into `main` and G0 was verified by [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at `fec7429415fede121db8a4a34f0df72cd4fac609`, then **accepted** on 2026-10-31. PRs #3 and #1 are merged. M1 remains unstarted until D-001 is resolved. The next gate is G1; all other milestones remain planned.
+M0 and M1 are integrated into `main`, and both G0 and G1 were verified and explicitly accepted on 2026-10-31. G0 verification: [run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879). G1 verification: [run 41143665657](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41143665657) and [run 41144356898](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41144356898). M1 was merged via PR #4 at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. The next gate is G2; M2-M24 remain planned.

@@ -1,7 +1,7 @@
 # M1 G1 Verification Plan
 
-**State:** Approved test design executed against the M1 feature-branch source. [Execution record](M1_IMPLEMENTATION_VERIFICATION.md); acceptance pending.  
-**Gate:** G1 verification passed in [GitHub Actions run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41143665657); acceptance pending.  
+**State:** Verification executed, G1 accepted on 2026-10-31 and M1 merged into `main`. [Execution record](M1_IMPLEMENTATION_VERIFICATION.md).  
+**Gate:** G1 verified and accepted. [Source verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41143665657) and [documentation revision verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41144356898) passed.  
 **Source:** [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Roadmap](ROADMAP.md).
 
 ## Verification environment
@@ -39,4 +39,4 @@ Create synthetic users only during isolated test setup, using a non-committed te
 
 Capture branch and code SHA, database engine/schema revision, CLI command versions, hash-library version and measured settings, API/browser results, security failures or advisories, Compose restart and recovery state, and redacted logs. Report \`PASS\`, \`FAIL\`, \`BLOCKED\`, or \`NOT RUN\` separately for each mandatory check.
 
-G1 becomes **verified, acceptance pending** only when every mandatory test passes and unresolved high-severity authentication flaws are closed. Explicit acceptance and merge require a separate instruction. M1 architecture approval alone is not G1 acceptance.
+G1 required passing mandatory verification followed by explicit acceptance. Both were completed on 2026-10-31, and PR #4 was merged into `main` at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. Production deployment and future milestone acceptance remain separate decisions.

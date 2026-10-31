@@ -1,13 +1,13 @@
 # Project Status
 
 **As of:** 2026-10-31
-**Default branch:** `main` contains the accepted M0 application, runtime, tests, docs and CI workflow.
-**Baseline:** The accepted M0 engineering foundation, runtime, tests, documentation and verification workflow are integrated into `main`. PRs #1 and #3 are merged.
-**Acceptance:** G0 verified at source revision `fec7429415fede121db8a4a34f0df72cd4fac609` in [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) and **accepted** on 2026-10-31; G1 verified on the M1 feature branch, acceptance pending; G2-G24 remain open.
+**Default branch:** `main` contains accepted M0 and M1 source, runtime, tests, documentation and verification workflows.
+**Baseline:** M0 was merged via PRs #1 and #3. M1 was accepted and merged via [PR #4](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/4) at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`.
+**Acceptance:** G0 and G1 verified and explicitly accepted on 2026-10-31. M1 verification: [run 41143665657](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41143665657) and [run 41144356898](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41144356898). G2-G24 remain open.
 
-## In-progress M1 implementation branch
+## Accepted M1 integration
 
-On `feat/m1-authentication-session-lifecycle`, M1 persistence, cookie authentication, restricted account CLI, same-origin browser shell, and an initial automated test matrix are implemented in source. **G1 verified on the feature branch, acceptance pending.** [M1 verification register](M1_IMPLEMENTATION_VERIFICATION.md) records the successful execution at `fdefe052e4335ca8d1d287160a9859828d05f9d8`. `main` continues to hold the accepted M0 baseline until a separate verified integration and acceptance decision.
+G1 verified and accepted on 2026-10-31; M1 merged to `main` via PR #4 (`8f9fc0d506a9e1dc1d4f5acab936622df988f413`). Authentication remains local-first; tenant membership and role isolation are M2. The accepted M0 regressions remain covered by M1 verification. The merge and the subsequent documentation reconciliation use `[skip ci]`.
 
 ## Delivery ledger
 
@@ -16,7 +16,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | Milestone | State | Evidence |
 | --- | --- | --- |
 | **M0 Engineering baseline verification** | G0 verified and accepted | [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) passed all required .NET, clean/seeded PostgreSQL, web, functional browser, Compose recovery and final image checks on `fec7429415fede121db8a4a34f0df72cd4fac609`. |
-| **M1 Authentication and session lifecycle** | Verified on feature branch, acceptance pending | D-001 accepted; M1 identity migration, auth API, React shell, negative tests and [G1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) executed on `fdefe052e4335ca8d1d287160a9859828d05f9d8`. Not merged into `main`. |
+| **M1 Authentication and session lifecycle** | G1 verified and accepted; merged into `main` | [M1 verification register](M1_IMPLEMENTATION_VERIFICATION.md); both final CI runs passed; PR #4 merge `8f9fc0d506a9e1dc1d4f5acab936622df988f413` on 2026-10-31. |
 | **M2 Organizations and role isolation** | Planned | No verified implementation or accepted gate G2 |
 | **M3 Ports and vessels reference data** | Planned | No verified implementation or accepted gate G3 |
 | **M4 Voyages and containers reference data** | Planned | No verified implementation or accepted gate G4 |
@@ -57,7 +57,7 @@ The unchecked items below concern the complete M0-M24 product release. They do n
 - [x] Functional and non-functional requirements drafted.
 - [x] Architecture, domain model, and API boundary drafted.
 - [x] Tracking processing and security policies drafted.
-- [x] D-001 architecture approved; M1 implemented and verified on the feature branch with acceptance pending.
+- [x] D-001 architecture approved; M1 implemented, verified, accepted and merged into `main`.
 - [x] Milestone acceptance and verification approach drafted.
 - [x] Local-first cost constraints and demonstration plan drafted.
 - [ ] Implemented module architecture validated by code.
@@ -69,15 +69,11 @@ The unchecked items below concern the complete M0-M24 product release. They do n
 
 ## Verification evidence
 
-The `main` branch contains M0 application source and the verified Docker runtime. A disposable GitHub-hosted environment, not a local retained Docker volume, executed the passing G0 verification. No public or production runtime has been deployed. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+The `main` branch contains the M0 runtime and M1 authentication implementation. Disposable GitHub-hosted environments, not retained workstation Docker volumes, executed the passing G0 and G1 verifications. No public or production deployment has occurred. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) and [M1 Verification](M1_IMPLEMENTATION_VERIFICATION.md).
 
-## Open prerequisites
+## Next milestone: M2
 
-1. G0 is accepted. D-001 is now an accepted M1 architecture decision, documented in [D-001](ADR_D001_BROWSER_SESSIONS.md).
-2. M1-01 through M1-04 are implemented on the feature branch. Review [M1 verification evidence](M1_IMPLEMENTATION_VERIFICATION.md) and record acceptance separately.
-3. The [G1 Verification Plan](M1_VERIFICATION_PLAN.md) has been executed against a fixed M1 revision. Preserve its results and rerun it after material implementation changes.
-4. Keep organization membership and two-organization isolation fixtures in **M2**, container identifier decision D-003 in **M4**, and tracking source decision D-002 in **M7**. Do not expand M1 scope.
-5. G1 verification is recorded; acceptance pending. Full accessibility testing is scheduled only for M24-04; historical-volume checks remain at M6, M12, M18 and M24-03.
+G0 and G1 are accepted. M2 is the next unverified milestone: organization and membership modeling, roles, server-enforced tenant isolation and cross-organization denial tests. Follow the [roadmap](ROADMAP.md) and [execution graph](EXECUTION_GRAPH.md); do not claim G2 until its implementation and dedicated verification are complete. D-003 remains scheduled for M4, D-002 for M7. Dedicated accessibility verification remains M24-04; historical-volume compatibility stays at M6, M12, M18 and M24-03.
 
 ## Storage and residual risk
 

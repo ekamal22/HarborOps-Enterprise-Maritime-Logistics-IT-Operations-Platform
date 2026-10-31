@@ -152,7 +152,7 @@ Remaining risks: (1) the `gosu` findings are upstream and the binary only drops 
 
 ## Known limitations
 
-- The baseline record is infrastructure metadata. Shipments, authentication, events, dashboards and incidents are not implemented and belong to M1 and later.
+- The baseline record is infrastructure metadata. At the G0 checkpoint, shipments, authentication, events, dashboards and incidents were not implemented. Authentication was subsequently delivered and accepted in M1; the other product modules remain scheduled for M2 and later.
 - Real-browser verification used one embedded Chrome 152 engine only; Firefox, Safari and screen readers were not tested.
 - The CI workflow `Verify M0` has not been run and cannot be dispatched until it exists on the default branch.
 - The compose stack was verified on one Windows host with Docker Desktop.
@@ -174,4 +174,4 @@ bash scripts/check-m0-degraded.sh --confirm-local-outage
 
 ## Status rule
 
-An implemented code path is not a verified runtime behavior, and a verified gate is not an accepted milestone. The historical result was superseded by the passing hardening run. G0 was explicitly accepted on 2026-10-31; M1 remains unstarted until D-001 and its milestone work begin.
+An implemented code path is not a verified runtime behavior, and a verified gate is not an accepted milestone. The historical result was superseded by the passing hardening run. G0 was explicitly accepted on 2026-10-31; G1 was subsequently verified and accepted on 2026-10-31, and M1 was merged through PR #4 at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`.

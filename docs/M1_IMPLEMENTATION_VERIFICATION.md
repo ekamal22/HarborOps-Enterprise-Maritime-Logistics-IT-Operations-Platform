@@ -2,12 +2,12 @@
 
 **Date:** 2026-10-31  
 **Branch:** `feat/m1-authentication-session-lifecycle`  
-**Pull request:** [PR #4](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/4), draft  
+**Pull request:** [PR #4](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/4), merged 2026-10-31  
 **Verified feature revision:** `fdefe052e4335ca8d1d287160a9859828d05f9d8`  
 **Exact tested PR merge revision:** `c7fc291b9c035e731b79336f578013c0463b82b4`, merged by GitHub for testing against `main` at `fb9c04dbca13a236af0c4a7c1de33ed51ef898ef`  
-**CI run:** [Verify M1 run 41143665657](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41143665657)  
-**Outcome:** All required workflow steps passed. **G1 engineering verification passed; acceptance pending.**  
-**Integration:** Not merged to `main`; G0 remains accepted.
+**CI runs:** [41143665657](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41143665657) and [41144356898](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41144356898) both passed.  
+**Outcome:** All required workflow steps passed. **G1 verified and explicitly accepted on 2026-10-31.**  
+**Integration:** Merged into `main` via PR #4 at `8f9fc0d506a9e1dc1d4f5acab936622df988f413` on 2026-10-31. G0 remains accepted.
 
 ## Implemented M1 work packages
 
@@ -64,4 +64,4 @@ The initial workflow iterations reported authentic failures. They were corrected
 
 ## Gate decision
 
-G1 has executed and passed its current engineering verification workflow. **Acceptance pending.** No merge, release claim, deployment authorization, or progression to M2 is implied. After an explicit acceptance decision, integrate the approved branch and record the merge revision in [Project Status](STATUS.md). Any material source changes require fresh verification.
+G1 verification passed in both final M1 workflows and was explicitly accepted on 2026-10-31. PR #4 was merged into `main` at `8f9fc0d506a9e1dc1d4f5acab936622df988f413` using a merge commit containing `[skip ci]` to avoid redundant GitHub Actions execution. The acceptance covers the local-first M1 authentication and session lifecycle, not public deployment or production security certification. M2 organizations and role isolation is next; G2 remains open. Material future source changes must obtain fresh verification.

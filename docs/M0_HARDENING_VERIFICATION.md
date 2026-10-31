@@ -128,4 +128,4 @@ All accessibility verification, automated or manual, is deferred to final M24-04
 8. Functional browser results for data display, refresh, API failure and recovery in Chromium, Firefox and WebKit. Accessibility checks are not G0 requirements and are deferred entirely to M24-04.
 9. Hygiene, warnings, remaining vulnerability disposition, exact logs and result matrix.
 
-**Status:** G0 verified at `fec7429415fede121db8a4a34f0df72cd4fac609` and **accepted** on 2026-10-31. PRs #3 and #1 are merged to `main`. Public-deployment authorization is not implied. M1 remains unstarted.
+**Status:** G0 verified at `fec7429415fede121db8a4a34f0df72cd4fac609` and **accepted** on 2026-10-31. PRs #3 and #1 are merged to `main`. Public-deployment authorization is not implied. G1 was subsequently verified and accepted on 2026-10-31, and M1 was merged through PR #4 at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`.

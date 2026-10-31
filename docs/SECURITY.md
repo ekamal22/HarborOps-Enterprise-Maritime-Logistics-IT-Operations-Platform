@@ -32,9 +32,9 @@ Protect organizational boundaries, shipment data integrity, credentials, diagnos
 - Verify role changes revoke access as intended.
 - Test logout, expiry, concurrent sessions, invalid credentials, and account disablement.
 
-## Approved M1 session and credential security design
+## Accepted M1 session and credential security implementation
 
-D-001 is implemented and exercised on the M1 feature branch, with [G1 verification evidence](M1_IMPLEMENTATION_VERIFICATION.md). Acceptance pending; the branch is not merged or deployed publicly. See [D-001](ADR_D001_BROWSER_SESSIONS.md), [M1 architecture](M1_AUTHENTICATION_DESIGN.md) and [G1 tests](M1_VERIFICATION_PLAN.md).
+D-001 is implemented on `main` and G1 was verified and accepted on 2026-10-31, with [G1 verification evidence](M1_IMPLEMENTATION_VERIFICATION.md). PR #4 merged successfully. The runtime is not approved for public or production deployment. See [D-001](ADR_D001_BROWSER_SESSIONS.md), [M1 architecture](M1_AUTHENTICATION_DESIGN.md) and [G1 tests](M1_VERIFICATION_PLAN.md).
 
 - **Human login:** controlled local account provisioning, Argon2id password hashing with unique salts (initial benchmark target: 64 MiB, three iterations, one lane), minimum 15-character passphrases and local compromised/common-password checks. Restrict expensive hash concurrency and never store cleartext credentials.
 - **Browser:** ASP.NET Core protected HTTP-only cookie, same-origin React/API proxy, SameSite reviewed, HTTPS/Secure for remote usage. Local loopback HTTP is a separate development-only configuration, never an insecure remote exception. No browser JWT/refresh-token storage.
@@ -85,4 +85,4 @@ Only minimal process health and synthetic baseline metadata endpoints are expose
 
 The M0 checks do not substitute for M1 authentication or M2 organization isolation. The configured Compose profile has no HTTPS termination, should not be exposed to the internet, and received M0-specific local runtime checks, dependency advisories, secret/port checks and container-image scanning at code revision `4fb34eb`. This does not constitute a complete production security assessment. The previous M0 image scan showed 1 critical and 25 high findings in the upstream `gosu` helper; the hardened images passed fresh immutable image-ID scans in GitHub Actions run #2. M1/M2 security controls are not yet implemented. Tracking ingestion, integration secrets, authorization matrices, and audit records remain unimplemented.
 
-G0 was explicitly accepted on 2026-10-31 after the successful runtime and image verification. M1 branch authentication was separately verified; no M2 organization authorization or production security approval is implied.
+G0 was explicitly accepted on 2026-10-31 after the successful runtime and image verification. M1 authentication was verified and accepted separately; no M2 organization authorization or production security approval is implied.

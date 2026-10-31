@@ -1,6 +1,6 @@
 # D-001: Browser Authentication and Session Authority
 
-**Status:** Accepted design, implemented and verified on feature branch; G1 acceptance pending.  
+**Status:** Accepted design, implemented, G1 verified and accepted on 2026-10-31; merged to `main` at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`.  
 **Milestone:** M1, gate G1.  
 **Decision record:** D-001 in [Decisions](DECISIONS.md).  
 **Detailed design:** [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md).
@@ -38,4 +38,4 @@ Use controlled local account provisioning and administrative reset/disable comma
 
 ## Status boundaries
 
-D-001 approval establishes the architecture; M1 implementation and its executed [verification evidence](M1_IMPLEMENTATION_VERIFICATION.md) are recorded separately. G1 acceptance and merge have not occurred. D-001 can be revisited only through a separate documented decision change.
+D-001 approval establishes the architecture; M1 implementation and its executed [verification evidence](M1_IMPLEMENTATION_VERIFICATION.md) are recorded separately. G1 acceptance and PR #4 merge were completed on 2026-10-31. D-001 can be revisited only through a separate documented decision change.

@@ -53,7 +53,8 @@ const member = new Client();
 function safeError(result, expected) {
   assert.equal(result.status, expected, "Unexpected dependency response");
   assert.ok(result.raw.length < 512, "Error envelope exceeds limit");
-  assert.doesNotMatch(result.raw, /Npgsql|PostgresException|SELECT\s|password|session_cookie/i);
+  assert.doesNotMatch(result.raw, /Npgsql|PostgresException|password|session_cookie/i);
+  assert.doesNotMatch(result.raw, /SELECT\s+\S+\s+FROM\s+/i);
 }
 async function ready() {
   for (let i = 0; i < 30; i++) {

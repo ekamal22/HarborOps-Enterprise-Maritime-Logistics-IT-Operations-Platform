@@ -2,9 +2,11 @@
 
 **Authority:** This document owns atomic FR/NFR identifiers and the permission matrix. The [Product Requirements Document](PRD.md) owns product outcomes and release boundaries. [Roadmap](ROADMAP.md) assigns milestone gates, [execution-graph.json](execution-graph.json) connects work packages to requirement IDs, and [Status](STATUS.md) owns delivery evidence.
 
+The [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and version 3.0 [Execution Graph](EXECUTION_GRAPH.md) govern technical prerequisites: separate workstreams may progress independently after named accepted gates, but all cross-module security, data integrity and verification requirements remain mandatory. Requirement IDs and actual completion status are unchanged by the dependency redesign.
+
 ## Requirement status
 
-Requirements describe the intended complete product. G0, G1 and G2 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
+Requirements describe the intended complete product. G0, G1, G2 and G3 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
 
 ## Observed baseline and storage boundary
 

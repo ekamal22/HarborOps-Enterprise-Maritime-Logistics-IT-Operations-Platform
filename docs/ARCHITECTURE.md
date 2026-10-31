@@ -1,5 +1,9 @@
 # Architecture
 
+## Parallel implementation and integration contracts
+
+The established modular monolith remains the single shared architecture. Workstream parallelism changes planning prerequisites, not deployment topology or transaction ownership. Independent milestone branches must preserve accepted M0-M3 authentication, tenant isolation, API envelopes and database constraints. Shared PostgreSQL schema changes require one coordinated additive migration history and integrated regression. Event processing attaches only after the shipment and tracking contracts needed by its own dependent packages are accepted. Observability, audit foundations and recovery tooling may develop alongside business features, but G24 must recheck all integrated domains. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md).
+
 ## Baseline topology
 
 A modular monolith provides the HTTP API and transactional domain functions. A separate .NET worker handles ingestion and processing. PostgreSQL is the authoritative persistence layer. React is the user interface. Local infrastructure is orchestrated through Docker Compose.

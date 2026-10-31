@@ -90,4 +90,47 @@ for (const path of documents) {
     assert(existsSync(candidate), "Broken Markdown link: " + path + " -> " + target);
   }
 }
+assert(graph.version === "3.0", "The milestone graph must use prerequisite-based v3 DAG");
+assert(graphView.includes("## Full milestone dependency DAG"), "Parallel dependency map is absent");
+assert(!graphView.includes("Gate transitions are sequential."), "Legacy serial gate policy returned");
+assert(roadmap.includes("## Parallel execution and integration policy") &&
+  readme.includes("PARALLEL_DELIVERY_POLICY.md"), "Parallel gate policy is not linked");
+assert(existsSync(join(root, "docs/PARALLEL_DELIVERY_POLICY.md")), "Parallel policy missing");
+const graphNodes = new Map(graph.nodes.map(n => [n.id, n]));
+const requiredStarts = {
+  "M4-01": ["G3"], "M5-01": ["G3"], "M6-01": ["G4", "G5"],
+  "M7-01": ["G3"], "M12-01": ["G5"], "M16-01": ["G3"],
+  "M17-01": ["G3"], "M19-01": ["G3"], "M20-01": ["G3"],
+  "M23-01": ["G3"], "M24-01": ["G22", "G23"]
+};
+for (const [id, expected] of Object.entries(requiredStarts)) {
+  const node = graphNodes.get(id);
+  assert(node && node.depends_on.join(",") === expected.join(","),
+    "Unexpected parallel dependency on " + id);
+}
+for (const id of ["G6", "G7"]) {
+  assert(graphNodes.get("M8-02").depends_on.includes(id === "G7" ? "M8-01" : id) ||
+    id === "G7" && graphNodes.get("M8-01").depends_on.includes("G7"),
+    "Missing split M8 entry requirement: " + id);
+}
+const allPrior = new Set();
+const visit = id => {
+  if (allPrior.has(id)) return;
+  const node = graphNodes.get(id);
+  assert(node, "Missing DAG node " + id);
+  allPrior.add(id);
+  for (const dep of node.depends_on) visit(dep);
+};
+visit("G24");
+for (let i = 0; i < 24; i++)
+  assert(allPrior.has("G" + i), "Final release omits accepted prerequisite G" + i);
+for (const m of graph.milestones.slice(1)) {
+  const gates = [...new Set(graph.nodes.filter(n => n.milestone === m.id && !n.gate)
+    .flatMap(n => n.depends_on.filter(d => /^G\\d+$/.test(d))))];
+  const row = roadmap.split("\\n").find(line => line.startsWith("| **" + m.id + " "));
+  assert(row && gates.every(gate => row.includes(gate + " accepted")),
+    "Roadmap prerequisites diverged from graph " + m.id);
+}
+assert(acceptance.includes("G24 requires accepted G0-G23"),
+  "Final release gate no longer requires all earlier accepted gates");
 process.stdout.write("Planning docs are internally consistent: " + graph.milestones.length + " milestones, " + graph.nodes.length + " graph nodes, " + documents.length + " Markdown files checked.\n");

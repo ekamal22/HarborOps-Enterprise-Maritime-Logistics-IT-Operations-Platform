@@ -18,7 +18,7 @@ public sealed class MaritimeSqlInvariantTests
         return (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
     }
     private static async Task<PostgresException> CheckFailure(Func<Task<int>> operation) =>
-        await Assert.ThrowsAsync<PostgresException>(operation);
+        await Assert.ThrowsAsync<PostgresException>(async () => { await operation(); });
 
     [Fact]
     public async Task DirectSqlCannotBypassVoyageTransitionRouteVersionOrScheduleRules()

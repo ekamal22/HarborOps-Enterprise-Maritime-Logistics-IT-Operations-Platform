@@ -60,7 +60,9 @@ test("membership switching and live revocation clear protected browser state", a
     await expect(page.getByText("Role: Analyst")).toBeVisible();
 
     await admin.getByLabel("Membership state for " + memberName).selectOption("Suspended");
-    await admin.getByRole("button", { name: "Save membership" }).click();
+    await admin.getByRole("listitem").filter({
+      has: admin.getByText(memberEmail, { exact: true })
+    }).getByRole("button", { name: "Save membership" }).click();
     await expect(admin.getByLabel("Membership state for " + memberName)).toHaveValue("Suspended");
 
     await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));

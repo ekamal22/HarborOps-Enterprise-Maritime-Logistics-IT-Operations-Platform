@@ -106,8 +106,9 @@ async function ensureRecords(organizationId) {
     for (const definition of definitions) {
       let row = rows.find(value => value.referenceCode === definition.referenceCode);
       if (!row) {
-        const { archived, ...body } = definition;
-        row = await manager.call("POST", path, body);
+        const { archived, ...fields } = definition;
+        const suffix = managerOrgs.find(o => o.id === organizationId).slug === "m3-north" ? "North" : "East";
+        row = await manager.call("POST", path, { ...fields, name: fields.name + " " + suffix });
         if (archived) {
           await manager.call("DELETE", path + "/" + row.id, { expectedVersion: row.version });
         }

@@ -1,106 +1,157 @@
 #!/usr/bin/env node
-// Correlate executed scenarios with named tests. This does not grant G3 acceptance.
+// G3 evidence provenance and named test checks. This does not accept the milestone.
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 
 const root = process.argv[2];
-if (!root || !fs.existsSync(root)) throw new Error("Evidence root required");
-function paths(dir) {
-  return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
-    const full = path.join(dir, entry.name);
-    return entry.isDirectory() ? paths(full) : [full];
+if (!root || !fs.existsSync(root)) throw new Error("Run-specific evidence directory required");
+const read = file => fs.readFileSync(path.join(root, file), "utf8");
+const source = read("g3-source-sha.txt").trim();
+const current = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+if (!/^[0-9a-f]{40}$/.test(source) || source !== current ||
+    read("m3-source-sha.txt").trim() !== source)
+  throw new Error("G3 evidence source does not match the current implementation");
+const started = Date.parse(read("g3-start-utc.txt").trim());
+if (!Number.isFinite(started) || started > Date.now() + 60000 ||
+    Date.now() - started > 24 * 60 * 60 * 1000)
+  throw new Error("Invalid or stale G3 run start timestamp");
+const existsFresh = file => {
+  const name = path.join(root, file);
+  return fs.existsSync(name) && fs.statSync(name).isFile() &&
+    fs.statSync(name).size > 0 && fs.statSync(name).mtimeMs >= started - 2000;
+};
+if (existsFresh("g3-aborted.txt"))
+  throw new Error("G3 run has an abort marker");
+const expectedStages = [
+  "preflight", "postgres-image", "dotnet", "deps", "web", "docs", "stack",
+  "accounts", "organizations", "session", "setup-fixtures", "fixtures",
+  "browsers", "reference-outage", "recovery", "scan"
+];
+const stages = read("g3-stages.tsv").trim().split(/\r?\n/).map(line => line.split("\t"));
+for (const name of expectedStages) {
+  const matching = stages.filter(row => row[0] === name);
+  if (matching.length !== 1 || matching[0][1] !== source || matching[0][2] !== "0" ||
+      !existsFresh("g3-" + name + ".log"))
+    throw new Error("Missing, failed, stale or wrong-source stage: " + name);
+}
+const trxRoot = path.join(root, "trx");
+if (!fs.existsSync(trxRoot)) throw new Error("Missing .NET TRX directory");
+function recurse(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap(item => {
+    const name = path.join(dir, item.name);
+    return item.isDirectory() ? recurse(name) : [name];
   });
 }
-const trxFolder = path.join(root, "trx");
-if (!fs.existsSync(trxFolder)) throw new Error("No TRX directory");
-const files = paths(trxFolder).filter(name => name.endsWith(".trx"));
-if (!files.length) throw new Error("No executed .NET TRX files");
-const tests = new Map();
-for (const name of files) {
-  const xml = fs.readFileSync(name, "utf8");
+const trxFiles = recurse(trxRoot).filter(file =>
+  file.endsWith(".trx") && fs.statSync(file).mtimeMs >= started - 2000);
+if (!trxFiles.length) throw new Error("No fresh .NET test results");
+const cases = new Map();
+for (const file of trxFiles) {
+  const xml = fs.readFileSync(file, "utf8");
+  if (!xml.includes("<TestRun")) throw new Error("Malformed TRX: " + path.basename(file));
   for (const [tag] of xml.matchAll(/<UnitTestResult\b[^>]*>/g)) {
-    const test = /\btestName="([^"]+)"/.exec(tag)?.[1];
-    const status = /\boutcome="([^"]+)"/.exec(tag)?.[1];
-    if (!test || !status) continue;
-    const prior = tests.get(test) ?? new Set();
-    prior.add(status);
-    tests.set(test, prior);
+    const name = /\btestName="([^"]+)"/.exec(tag)?.[1];
+    const outcome = /\boutcome="([^"]+)"/.exec(tag)?.[1];
+    if (!name || !outcome) throw new Error("Incomplete TRX result");
+    const all = cases.get(name) ?? [];
+    all.push(outcome);
+    cases.set(name, all);
   }
 }
-const success = fragment => {
-  const matches = [...tests].filter(([test]) => test.includes(fragment));
-  return matches.length > 0 && matches.every(([, statuses]) =>
-    statuses.has("Passed") && !statuses.has("Failed") && !statuses.has("NotExecuted"));
+const unit = name => {
+  const matches = [...cases.entries()].filter(([test]) =>
+    test.endsWith("." + name) || test.includes("." + name + "("));
+  return matches.length > 0 && matches.every(([, outcomes]) =>
+    outcomes.length > 0 && outcomes.every(v => v === "Passed"));
 };
-const reportFile = process.env.HARBOROPS_G3_JSON_REPORT ??
-  path.join(root, "playwright-g3.json");
-if (!fs.existsSync(reportFile)) throw new Error("Missing Playwright JSON results");
-const report = JSON.parse(fs.readFileSync(reportFile, "utf8"));
-const browserTests = [];
+const browserFile = process.env.HARBOROPS_G3_JSON_REPORT || path.join(root, "playwright-g3.json");
+if (!fs.existsSync(browserFile) || fs.statSync(browserFile).mtimeMs < started - 2000)
+  throw new Error("Missing fresh Playwright JSON");
+const report = JSON.parse(fs.readFileSync(browserFile, "utf8"));
+if ((report.stats?.unexpected ?? 0) !== 0 || (report.stats?.interrupted ?? 0) !== 0 ||
+    (report.stats?.skipped ?? 0) !== 0)
+  throw new Error("Playwright run contains unexpected, interrupted or skipped tests");
+const browserCases = [];
 function walk(suites) {
   for (const suite of suites ?? []) {
-    for (const spec of suite.specs ?? [])
-      for (const item of spec.tests ?? [])
-        browserTests.push({ title: spec.title, engine: item.projectName,
-          results: (item.results ?? []).map(result => result.status) });
+    for (const spec of suite.specs ?? []) {
+      for (const test of spec.tests ?? []) {
+        browserCases.push({ title: spec.title, engine: test.projectName,
+          expectedStatus: test.expectedStatus,
+          results: (test.results ?? []).map(result => result.status) });
+      }
+    }
     walk(suite.suites);
   }
 }
 walk(report.suites);
-const browserSuccess = title => ["chromium", "firefox", "webkit"].every(engine =>
-  browserTests.some(item => item.engine === engine && item.title.includes(title) &&
-    item.results.includes("passed") && !item.results.some(s =>
-      s === "failed" || s === "skipped" || s === "timedOut")));
-const stageSuccess = stage => {
-  const name = path.join(root, "g3-" + stage + ".log");
-  return fs.existsSync(name) && fs.statSync(name).size > 0;
-};
+const browser = name => ["chromium", "firefox", "webkit"].every(engine =>
+  browserCases.some(row => row.engine === engine && row.title === name &&
+    row.expectedStatus !== "skipped" && row.results.length > 0 &&
+    row.results.every(result => result === "passed")));
+const logOk = name => existsFresh(name) &&
+  /\bPassed:|\bPassed!/.test(read(name)) && !/\bFailed:\s*[1-9]|\bSkipped:\s*[1-9]/.test(read(name));
+const scanOk = ["postgres", "api", "web"].every(name => {
+  const file = path.join(root, "trivy", name + ".json");
+  if (!fs.existsSync(file) || fs.statSync(file).mtimeMs < started - 2000) return false;
+  try {
+    const scan = JSON.parse(fs.readFileSync(file, "utf8"));
+    return Array.isArray(scan.Results) &&
+      scan.Results.every(result => !(result.Vulnerabilities ?? []).some(v =>
+        v.Severity === "HIGH" || v.Severity === "CRITICAL"));
+  } catch { return false; }
+});
 const scenarios = [
-  ["S01", ["ReferencePolicyTests.NormalizesLocalCodes", "ReferencePolicyTests.RejectsInvalidLocodes"]],
-  ["S02", ["ReferencePolicyTests.AcceptsChecksumValidImo", "ReferencePolicyTests.RejectsInvalidMmsi"]],
-  ["S03", ["ReferencePolicyTests.ReferencePermissions", "ReferenceAdversarialHttpTests.SupportAndAuditor"]],
-  ["S04", ["MigrationSnapshotTests.ModelSnapshot", "ReferenceHistoricalUpgradeTests.M2Seed"]],
-  ["S05", ["ReferenceHistoricalUpgradeTests.M2Seed"]],
-  ["S06", ["ReferenceHistoricalUpgradeTests.DirectSql"]],
+  ["S01", ["ReferencePolicyTests.NormalizesLocalCodes", "ReferencePolicyTests.RejectsInvalidLocalCodes", "ReferencePolicyTests.ValidatesOptionalLocodes", "ReferencePolicyTests.RejectsInvalidLocodes"]],
+  ["S02", ["ReferencePolicyTests.AcceptsChecksumValidImo", "ReferencePolicyTests.RejectsInvalidImo", "ReferencePolicyTests.RejectsInvalidMmsi", "ReferencePolicyTests.OptionalImoAndMmsiAreNotMandatory"]],
+  ["S03", ["ReferencePolicyTests.ReferencePermissionsAreExplicitAndDoNotEscalateOrganizationRoles", "ReferenceAdversarialHttpTests.SupportAndAuditorCannotUseAnyReferenceVerb"]],
+  ["S04", ["MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel", "MigrationSnapshotTests.Migrations_AreDiscoveredInOrder", "ReferenceHistoricalUpgradeTests.M2SeedAndAuthenticatedSessionSurviveM3UpgradeAndRepeat"]],
+  ["S05", ["ReferenceHistoricalUpgradeTests.M2SeedAndAuthenticatedSessionSurviveM3UpgradeAndRepeat"]],
+  ["S06", ["ReferenceHistoricalUpgradeTests.DirectSqlConstraintsAndIdentityTriggersRejectInvalidMutations"]],
   ["S07", [], [], ["fixtures"]],
-  ["S08", ["ReferenceBoundaryMatrixTests.EveryReferenceRouteRejectsAnonymous", "ReferenceSessionBoundaryTests.EveryReferenceVerb"]],
-  ["S09", ["ReferenceBoundaryMatrixTests.MissingSelection"]],
-  ["S10", ["ReferenceBoundaryMatrixTests.EveryReferenceRouteRejectsAnonymous"]],
-  ["S11", ["ReferenceAdversarialHttpTests.ForeignPortAndVessel"]],
-  ["S12", ["ReferenceAdversarialHttpTests.ForeignPortAndVessel"]],
-  ["S13", ["ReferenceAdversarialHttpTests.SupportAndAuditor"]],
-  ["S14", ["ReferenceAdversarialHttpTests.SecurityDowngrade", "ReferenceBoundaryMatrixTests.SuspendedMembership", "ReferenceSessionBoundaryTests.EveryReferenceVerb"]],
-  ["S15", ["ReferenceAdditionalContractTests.MalformedBodies", "ReferenceSessionBoundaryTests.ForeignOrigin"]],
-  ["S16", ["ReferenceDataHttpTests.ScopedPort"]],
-  ["S17", ["ReferenceAdditionalContractTests.VesselFull"]],
-  ["S18", ["ReferenceAdditionalContractTests.VesselFull", "ReferenceDataHttpTests.MigrationConstraints", "ReferenceConcurrencyTests.ParallelDuplicateCreates", "ReferenceConcurrencyTests.IdenticalExternalIdentifiers"]],
-  ["S19", ["ReferenceBoundaryMatrixTests.QueryBounds"]],
-  ["S20", ["ReferenceDataHttpTests.CompetingUpdates", "ReferenceConcurrencyTests.ParallelUpdateAndArchive"]],
-  ["S21", ["ReferenceAdditionalContractTests.VesselFull"]],
-  ["S22", [], ["Manager port and vessel", "Analyst can read", "scoped UI pagination", "selected organization and reference rows survive"]],
-  ["S23", [], ["delayed old-tenant", "reference list clears", "logging out during", "revocation during"]],
-  ["S24", ["OrganizationBoundaryMatrixTests.MissingAndForeignSelections"], ["Organization switch discards"], ["dotnet", "session", "recovery"]],
-  ["S25", [], [], ["postgres-image", "deps", "web", "docs", "stack", "scan"]]
+  ["S08", ["ReferenceBoundaryMatrixTests.EveryReferenceRouteRejectsAnonymousAndWrongRoles", "ReferenceSessionBoundaryTests.EveryReferenceVerbRejectsInvalidatedSession"]],
+  ["S09", ["ReferenceBoundaryMatrixTests.MissingSelectionAndTrueForeignRecordsCannotBeEnumerated"]],
+  ["S10", ["ReferenceBoundaryMatrixTests.EveryReferenceRouteRejectsAnonymousAndWrongRoles"]],
+  ["S11", ["ReferenceAdversarialHttpTests.ForeignPortAndVesselRejectEveryRecordVerbWithoutMutation"]],
+  ["S12", ["ReferenceAdversarialHttpTests.ForeignPortAndVesselRejectEveryRecordVerbWithoutMutation"]],
+  ["S13", ["ReferenceAdversarialHttpTests.SupportAndAuditorCannotUseAnyReferenceVerb", "ReferenceDataHttpTests.ScopedPortAndVesselLifecycleAndRoleMatrix"]],
+  ["S14", ["ReferenceAdversarialHttpTests.SecurityDowngradeAndSuspendedOrganizationDenyReferenceReads", "ReferenceBoundaryMatrixTests.SuspendedMembershipIsDeniedOnNextRequest", "ReferenceSessionBoundaryTests.EveryReferenceVerbRejectsInvalidatedSession"]],
+  ["S15", ["ReferenceAdditionalContractTests.MalformedBodiesUnknownPropertiesAndOversizedJsonFailWithSanitized400", "ReferenceSessionBoundaryTests.ForeignOriginRejectsMutationEvenWithRealCsrfToken"]],
+  ["S16", ["ReferenceDataHttpTests.ScopedPortAndVesselLifecycleAndRoleMatrix"]],
+  ["S17", ["ReferenceAdditionalContractTests.VesselFullLifecycleAndArchivedIdentifierReservation"]],
+  ["S18", ["ReferenceConcurrencyTests.ParallelDuplicateCreatesReturnConflictWithoutDuplicateRows", "ReferenceConcurrencyTests.IdenticalExternalIdentifiersAreAllowedAcrossOrganizations", "ReferenceDataHttpTests.MigrationConstraintsEnforceTenantOwnershipAndExternalIdentifiers"]],
+  ["S19", ["ReferenceBoundaryMatrixTests.QueryBoundsAndLiteralWildcardsProtectScopedPagination"], ["scoped UI pagination loads beyond 25 results without duplicates"]],
+  ["S20", ["ReferenceConcurrencyTests.ParallelUpdateAndArchiveProduceExactlyOneVersionTransition", "ReferenceDataHttpTests.CompetingUpdatesAndImmediateRoleRevocation", "ReferenceRevocationInterleavingTests.QueuedRoleDowngradeWinsBeforeBlockedReferenceWrite"]],
+  ["S21", ["ReferenceAdditionalContractTests.VesselFullLifecycleAndArchivedIdentifierReservation"]],
+  ["S22", [], ["Manager port and vessel create, edit, search, archive and restore", "Analyst can read M3 references but cannot create or edit", "scoped UI pagination loads beyond 25 results without duplicates", "selected organization and reference rows survive browser reload", "Manager vessel edit archive and restore"]],
+  ["S23", [], ["delayed old-tenant port response never appears after organization switch", "reference list clears on dependency failure, then recovers without cached rows", "logging out during a held reference request clears protected state", "revocation during a reference refresh clears protected rows", "revocation removes management controls", "pagination refresh clears stale busy state"]],
+  ["S24", ["OrganizationBoundaryMatrixTests.MissingAndForeignSelectionsDenyEveryVerbWithoutEnumeration"], ["Organization switch discards previous tenant reference rows"], ["reference-outage", "recovery"]],
+  ["S25", [], [], ["postgres-image", "dotnet", "deps", "web", "docs", "stack", "scan"]]
 ];
-const rows = scenarios.map(([id, unit, browser = [], stages = []]) => {
+const rows = scenarios.map(([id, required, browserNames = [], stageNames = []]) => {
   const missing = [
-    ...unit.filter(v => !success(v)).map(v => "TRX:" + v),
-    ...browser.filter(v => !browserSuccess(v)).map(v => "Browser:" + v),
-    ...stages.filter(v => !stageSuccess(v)).map(v => "Stage:" + v)
+    ...required.filter(name => !unit(name)).map(name => "TRX:" + name),
+    ...browserNames.filter(name => !browser(name)).map(name => "Browser:" + name),
+    ...stageNames.filter(name => !expectedStages.includes(name)).map(name => "Stage:" + name)
   ];
   return { id: "G3-" + id, missing };
 });
-const shaFile = path.join(root, "m3-source-sha.txt");
-const sha = fs.existsSync(shaFile) ? fs.readFileSync(shaFile, "utf8").trim() : "unrecorded";
+if (!logOk("integration-fresh.log") || !logOk("integration-repeat.log")) {
+  for (const row of rows) row.missing.push("Required fresh and repeat integration logs");
+}
+if (!scanOk) rows.find(row => row.id === "G3-S25").missing.push("Trivy high/critical scan evidence");
 const md = [
-  "# G3 Executed Evidence Index", "",
-  "Source revision: " + sha, "",
-  "This checks successful named results and stage-log presence, not full scenario acceptance.",
-  "", "| Scenario | Named evidence | Missing |", "| --- | --- | --- |",
-  ...rows.map(x => "| " + x.id + " | " + (x.missing.length ? "INCOMPLETE" : "PRESENT") +
-    " | " + (x.missing.join(", ") || "None") + " |"),
-  "", "G3 remains open until all mandatory assertions and residual risks receive review."
+  "# G3 Execution Evidence Index", "",
+  "Source revision: " + source, "",
+  "This index validates fresh run provenance, mandatory stages, named test executions and scanner output.",
+  "It does not grant G3 approval. Every requirement still needs independent evidence review.",
+  "", "| Scenario | Evidence check | Missing |", "| --- | --- | --- |",
+  ...rows.map(row => "| " + row.id + " | " +
+    (row.missing.length ? "INCOMPLETE" : "EVIDENCE PRESENT, REVIEW REQUIRED") +
+    " | " + (row.missing.join(", ") || "None") + " |"),
+  "", "G3 remains open until the completed requirements matrix is independently reviewed."
 ].join("\n");
 fs.writeFileSync(path.join(root, "G3_EXECUTION_INDEX.md"), md + "\n");
 console.log(md);
-if (rows.some(x => x.missing.length)) process.exitCode = 1;
+if (rows.some(row => row.missing.length)) process.exitCode = 1;

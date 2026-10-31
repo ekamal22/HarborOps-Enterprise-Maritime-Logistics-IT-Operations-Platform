@@ -72,4 +72,4 @@ The seven verification areas below were executed locally on `fbddc1361d79b027275
 6. Disposable Compose startup, API restart, database outage and recovery (M0, M1 and M2 scoped), image revision labels, image scans and dependency review.
 7. Failures were investigated, corrected and the complete run repeated on the final source revision.
 
-**G2 verified locally and accepted on 2026-10-31.** M2 is merged into `main` via PR #5; M3 implementation has not started. Historical retained-volume checks remain at M6/M12/M18/M24-03, and dedicated accessibility verification remains M24-04.
+**G2 verified locally and accepted on 2026-10-31.** M2 was merged into `main` via PR #5. M3 subsequently passed G3 local verification, was explicitly accepted on 2026-10-31 and integrated into `main` ([G3 evidence](M3_EXECUTED_VERIFICATION.md)). Historical retained-volume checks remain at M6/M12/M18/M24-03; dedicated accessibility verification remains M24-04.

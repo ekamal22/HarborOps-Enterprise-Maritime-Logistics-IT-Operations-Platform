@@ -5,7 +5,7 @@
 **Verified source revision:** `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` (complete local G2 execution; later documentation and acceptance-only commits did not modify the tested implementation). Merged into `main` via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`.
 **Verification method:** complete local execution on the Windows development machine, with every controllable path on E:. No GitHub Actions run was started after the local-only restriction was issued.  
 **Result:** every mandatory scenario G2-S01 through G2-S25 passed on the verified revision.  
-**Gate state:** G2 verified locally and explicitly accepted on 2026-10-31; M2 merged into `main` via PR #5. M3 remains planned and has not started.
+**Gate state at the time of G2:** G2 verified locally and explicitly accepted on 2026-10-31; M2 merged into `main` via PR #5. M3 was then planned. **Subsequent status:** M3 was later verified locally, explicitly accepted on 2026-10-31 and fast-forward integrated into `main`. See [G3 executed verification](M3_EXECUTED_VERIFICATION.md) and [current status](STATUS.md).
 
 Commits after the verified revision change documentation only. The planning consistency checks were rerun on the final documentation commit (see [Documentation commits](#documentation-commits)).
 

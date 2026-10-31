@@ -118,7 +118,7 @@ const scenarios = [
   ["S06", ["ReferenceHistoricalUpgradeTests.DirectSqlConstraintsAndIdentityTriggersRejectInvalidMutations"]],
   ["S07", [], [], ["fixtures"]],
   ["S08", ["ReferenceBoundaryMatrixTests.EveryReferenceRouteRejectsAnonymousAndWrongRoles", "ReferenceSessionBoundaryTests.EveryReferenceVerbRejectsInvalidatedSession"]],
-  ["S09", ["ReferenceBoundaryMatrixTests.MissingSelectionAndTrueForeignRecordsCannotBeEnumerated"]],
+  ["S09", ["ReferenceBoundaryMatrixTests.MissingSelectionAndTrueForeignRecordsCannotBeEnumerated", "ReferenceBoundaryMatrixTests.EveryReferenceVerbRequiresExplicitSelection"]],
   ["S10", ["ReferenceBoundaryMatrixTests.EveryReferenceRouteRejectsAnonymousAndWrongRoles"]],
   ["S11", ["ReferenceAdversarialHttpTests.ForeignPortAndVesselRejectEveryRecordVerbWithoutMutation"]],
   ["S12", ["ReferenceAdversarialHttpTests.ForeignPortAndVesselRejectEveryRecordVerbWithoutMutation"]],

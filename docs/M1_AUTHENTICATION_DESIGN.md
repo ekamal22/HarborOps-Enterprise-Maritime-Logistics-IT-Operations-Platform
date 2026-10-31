@@ -8,7 +8,7 @@
 
 ## 1. Goal and boundaries
 
-M1 establishes human identity, secure credential verification, server-authoritative session lifecycle, logout, account disablement and a functional authenticated browser flow. It introduces no organization membership, roles, shipment access, tracking-source credentials, public registration, external SSO or production deployment. M2 is responsible for organization and role isolation; M7 for integration principals. M16/M20 review more extensive security measures later without postponing core M1 security.
+M1 establishes human identity, secure credential verification, server-authoritative session lifecycle, logout, account disablement and a functional authenticated browser flow. It introduces no organization membership, roles, shipment access, tracking-source credentials, public registration, external SSO or production deployment. M2 subsequently delivered organization and role isolation and was accepted on 2026-10-31; M7 remains responsible for integration principals. M16/M20 review more extensive security measures later without postponing core M1 security.
 
 The M0 \`GET /api/v1/system/baseline\` and \`/health/live\` and \`/health/ready\` contracts remain functional; the baseline is public synthetic metadata only. All new private M1 routes require authentication unless explicitly documented as bootstrap/login routes. No organization-scoped business endpoint is created for G1.
 

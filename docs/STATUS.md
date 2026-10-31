@@ -83,7 +83,7 @@ M3 Ports and vessels reference data is planned. Entry G2 is satisfied; G3 remain
 
 ## Storage and residual risk
 
-The [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires all controllable persistent project storage on E:. The M0 host used E-drive repository, caches, evidence and Docker WSL data; operating-system temporary activity on C: may be unavoidable. The historical PostgreSQL image scan reported one critical and 25 high findings in `gosu`; the accepted rootless image, API and web images passed new high/critical Trivy scans on the verified hardening SHA. The runtime was upgraded from .NET 8 to .NET 10. Later security, backup/restore and performance gates remain planned; all accessibility testing is reserved for M24-04 immediately before the final G24 release gate.
+The [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires all controllable project storage and verification on E:, with no deliberate project writes to C:. During the earlier G2 test iterations, WSL created crash reports on C: (approximately 1.5 GB at the time of verification). The CLI crash handling and container core-dump controls were corrected; the final local G2 run created no new dumps. Preexisting crash reports were not removed and require separate authorized handling. See [G2 executed verification](M2_EXECUTED_VERIFICATION.md). The historical PostgreSQL image scan reported one critical and 25 high findings in `gosu`; the accepted rootless image, API and web images passed new high/critical Trivy scans on the verified hardening SHA. The runtime was upgraded from .NET 8 to .NET 10. Later security, backup/restore and performance gates remain planned; all accessibility testing is reserved for M24-04 immediately before the final G24 release gate.
 
 ## Status update rule
 

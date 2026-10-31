@@ -154,7 +154,7 @@ Remaining risks: (1) the `gosu` findings are upstream and the binary only drops 
 
 - The baseline record is infrastructure metadata. At G0, shipments, authentication, organizations, events, dashboards and incidents were not implemented. Authentication was subsequently delivered and accepted in M1, organization authorization in M2, and remaining maritime/operations modules are planned for M3 and later. See [Status](STATUS.md) for the current implementation state.
 - Real-browser verification used one embedded Chrome 152 engine only; Firefox, Safari and screen readers were not tested.
-- The CI workflow `Verify M0` has not been run and cannot be dispatched until it exists on the default branch.
+- At the time of the original M0 audit, `Verify M0` had not run because its workflow was not yet on the default branch. That historical limitation was closed by the later accepted [M0 hardening run #2](M0_HARDENING_VERIFICATION.md). No new GitHub Actions run is authorized.
 - The compose stack was verified on one Windows host with Docker Desktop.
 - Local Node.js is 24.20.0; the frontend tests and the container build were additionally run on Node 22.23.2.
 - Raw logs and screenshots are stored locally, not in the repository.

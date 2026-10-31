@@ -6,9 +6,9 @@
 
 ## Verification environment
 
-Use GitHub Actions on a disposable Ubuntu runner as the primary evidence environment. Reuse the accepted M0 .NET 10/Node/Compose and image-scan sequence, plus isolated PostgreSQL test databases. Start from a fresh database, and separately rehearse M0-to-M1 additive migration on a disposable M0-seeded database. No access to existing local E-drive Docker volumes is required. Do not use real user credentials or private data. Local persistent evidence and keys remain E-backed per [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
+Historical G1 verification used GitHub Actions on disposable Ubuntu runners as the evidence environment. This section records that completed approach and does not authorize any new workflow executions. It reused the M0 .NET 10/Node/Compose and image-scan sequence, plus isolated PostgreSQL test databases. Start from a fresh database, and separately rehearse M0-to-M1 additive migration on a disposable M0-seeded database. No access to existing local E-drive Docker volumes is required. Do not use real user credentials or private data. Local persistent evidence and keys remain E-backed per [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
 
-A workflow trigger must actually run on the tested branch/commit, publish redacted evidence and use narrow triggers to avoid unnecessary Actions minutes. Build/test and final image scan failures must appear separately; do not hide a security failure when an independent browser test fails.
+For the historical G1 evidence, a workflow trigger had to run on the tested branch/commit, publish redacted evidence and use narrow triggers to avoid unnecessary Actions minutes. Build/test and final image scan failures must appear separately; do not hide a security failure when an independent browser test fails.
 
 ## Mandatory test coverage
 

@@ -109,6 +109,22 @@ jobs:
           printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | docker compose -p ho-verify run --rm -T \
             -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
             --account-cli provision m2-operator@example.test "M2 Synthetic Administrator"
+      - name: Provision remaining synthetic G2 accounts
+        shell: bash
+        run: |
+          set -euo pipefail
+          for entry in \
+            "m2-second-admin@example.test|Second Administrator" \
+            "m2-outage@example.test|Outage Synthetic Member" \
+            "m2-browser-chromium@example.test|Synthetic Browser Member" \
+            "m2-browser-firefox@example.test|Synthetic Browser Member" \
+            "m2-browser-webkit@example.test|Synthetic Browser Member"; do
+            email=${entry%%|*}
+            name=${entry#*|}
+            printf '%s\\n' "$HARBOROPS_TEST_USER_PASSWORD" | docker compose -p ho-verify run --rm -T \
+              -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
+              --account-cli provision "$email" "$name"
+          done
       - name: Bootstrap synthetic organization for M2 browser verification
         shell: bash
         run: |
@@ -116,6 +132,35 @@ jobs:
           docker compose -p ho-verify run --rm -T \
             -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
             --organization-cli bootstrap north-terminal "North Terminal" m2-operator@example.test
+      - name: Bootstrap second isolated browser organization
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose -p ho-verify run --rm -T \
+            -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+            --organization-cli bootstrap east-terminal "East Terminal" m2-second-admin@example.test
+      - name: Deny non-opt-in and invalid organization bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          expect_failure() {
+            if "$@" > /dev/null 2>&1; then
+              echo "An intentionally invalid organization operation succeeded" >&2
+              exit 1
+            fi
+          }
+          expect_failure docker compose -p ho-verify run --rm -T api \
+            --organization-cli bootstrap unauthorized-terminal "Unapproved" m2-second-admin@example.test
+          expect_failure docker compose -p ho-verify run --rm -T \
+            -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+            --organization-cli bootstrap unknown-terminal "Unknown" unknown-account@example.test
+          expect_failure docker compose -p ho-verify run --rm -T \
+            -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+            --organization-cli bootstrap north-terminal "Duplicate" m2-operator@example.test
+          count=$(docker compose -p ho-verify exec -T postgres psql -U harborops -d harborops -Atc \
+            "SELECT count(*) FROM organizations WHERE slug IN ('unauthorized-terminal', 'unknown-terminal')")
+          test "$count" = "0"
+          echo "G2 restricted CLI denial and atomic bootstrap: PASS"
       - name: Persistent session restart, outage and replay
         shell: bash
         run: bash scripts/check-m1-session-recovery.sh --project ho-verify --confirm-local-outage
@@ -127,6 +172,8 @@ jobs:
       - name: Cross-browser M0, M1 and M2 functional tests
         working-directory: tests/browser
         run: npm test
+      - name: Authenticated organization outage recovery and durable revocation
+        run: node scripts/check-m2-scoped-recovery.mjs
       - name: Scan revision-labeled running images
         shell: bash
         run: |

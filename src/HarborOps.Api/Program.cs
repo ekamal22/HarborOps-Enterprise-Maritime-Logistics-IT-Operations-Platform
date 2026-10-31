@@ -70,13 +70,17 @@ app.Use(async (context, next) =>
 app.UseExceptionHandler(handler => handler.Run(async context =>
 {
     var error = context.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+    var invalidRequest = error is BadHttpRequestException;
     var dependency = error is IdentityDependencyException || (error is not null && IsDependencyFailure(error));
-    context.Response.StatusCode = dependency
-        ? StatusCodes.Status503ServiceUnavailable : StatusCodes.Status500InternalServerError;
+    context.Response.StatusCode = invalidRequest ? StatusCodes.Status400BadRequest
+        : dependency ? StatusCodes.Status503ServiceUnavailable
+        : StatusCodes.Status500InternalServerError;
     await context.Response.WriteAsJsonAsync(new
     {
-        code = dependency ? "dependency_unavailable" : "internal_error",
-        message = dependency ? "Dependency temporarily unavailable" : "An unexpected error occurred",
+        code = invalidRequest ? "invalid_request"
+            : dependency ? "dependency_unavailable" : "internal_error",
+        message = invalidRequest ? "Invalid request body"
+            : dependency ? "Dependency temporarily unavailable" : "An unexpected error occurred",
         correlationId = context.Items["CorrelationId"]
     });
 }));

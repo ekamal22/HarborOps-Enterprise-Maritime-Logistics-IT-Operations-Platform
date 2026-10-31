@@ -92,4 +92,85 @@ public sealed class ReferenceRevocationInterleavingTests
         Assert.Equal("Original", record.Name);
         Assert.Equal(1L, record.Version);
     }
+
+    [Fact]
+    public async Task QueuedSecurityVersionChangeDeniesReferenceWrite()
+    {
+        var raw = TestDatabase.ConnectionString();
+        var name = "g3-version-" + Guid.NewGuid().ToString("N");
+        using var factory = new ReferenceDataHttpTests.ApiFactory(raw);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        var root = $"/api/v1/organizations/{fixture.A}/vessels";
+        using var created = await ReferenceDataHttpTests.Send(manager, HttpMethod.Post, root,
+            new { referenceCode = "RESET-RACE", name = "Before reset" });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var id = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var user = await db.AuthUsers.AsNoTracking().SingleAsync(u =>
+            u.NormalizedEmail == IdentityStore.NormalizeEmail(fixture.ManagerEmail));
+        await using var holdConnection = new NpgsqlConnection(raw);
+        await holdConnection.OpenAsync();
+        await using var blocker = await holdConnection.BeginTransactionAsync();
+        await using (var hold = new NpgsqlCommand(
+            "SELECT id FROM users WHERE id = @id FOR UPDATE", holdConnection, blocker))
+        {
+            hold.Parameters.AddWithValue("id", user.Id);
+            Assert.Equal(user.Id, await hold.ExecuteScalarAsync());
+        }
+        Task? reset = null;
+        Task<HttpResponseMessage>? mutation = null;
+        try
+        {
+            reset = Task.Run(async () =>
+            {
+                var cfg = new NpgsqlConnectionStringBuilder(raw) { ApplicationName = name };
+                await using var connection = new NpgsqlConnection(cfg.ConnectionString);
+                await connection.OpenAsync();
+                await using var cmd = new NpgsqlCommand(
+                    "UPDATE users SET security_version = security_version + 1 WHERE id = @id",
+                    connection);
+                cmd.Parameters.AddWithValue("id", user.Id);
+                Assert.Equal(1, await cmd.ExecuteNonQueryAsync());
+            });
+            var observed = false;
+            for (var attempt = 0; attempt < 150; attempt++)
+            {
+                await Task.Delay(50);
+                await using var probe = new NpgsqlConnection(raw);
+                await probe.OpenAsync();
+                await using var cmd = new NpgsqlCommand("""
+                    SELECT count(*) FROM pg_stat_activity
+                    WHERE application_name = @app AND wait_event_type = 'Lock'
+                      AND query ILIKE '%UPDATE users%'
+                    """, probe);
+                cmd.Parameters.AddWithValue("app", name);
+                if (Convert.ToInt64(await cmd.ExecuteScalarAsync()) > 0)
+                {
+                    observed = true;
+                    break;
+                }
+            }
+            Assert.True(observed, "The security version change must be queued first");
+            mutation = ReferenceDataHttpTests.Send(manager, HttpMethod.Patch,
+                root + "/" + id, new { name = "After reset", expectedVersion = 1L });
+        }
+        finally
+        {
+            await blocker.CommitAsync();
+        }
+        Assert.NotNull(reset);
+        await reset!;
+        Assert.NotNull(mutation);
+        using var denied = await mutation!;
+        Assert.Contains(denied.StatusCode,
+            new[] { HttpStatusCode.Forbidden, HttpStatusCode.Unauthorized });
+        var record = await db.Vessels.AsNoTracking().SingleAsync(v => v.Id == id);
+        Assert.Equal("Before reset", record.Name);
+        Assert.Equal(1L, record.Version);
+    }
+
 }

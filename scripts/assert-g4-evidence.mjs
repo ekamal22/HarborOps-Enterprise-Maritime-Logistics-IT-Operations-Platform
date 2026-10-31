@@ -136,6 +136,10 @@ const scenarios = [
   ["S24",["MaritimeMigrationTests.SeededM3HistorySurvivesM4UpgradeRollbackAndReapply","ReferenceHistoricalUpgradeTests.M2SeedAndAuthenticatedSessionSurviveM3UpgradeAndRepeat"],[],["reference-outage","recovery"]],
   ["S25",["MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel"],[],["postgres-image","dotnet","deps","web","docs","stack","scan"]]
 ];
+// A complete implementation cannot pass G4 while D-003 is still a proposal.
+const decisionDoc = fs.readFileSync("docs/DECISIONS.md", "utf8");
+const d003Approved = /D-003[\s\S]*?\*\*Status:\*\*\s*Accepted/m.test(decisionDoc) &&
+  !/D-003[\s\S]{0,400}decision remains pending/i.test(decisionDoc);
 const rows = scenarios.map(([id, required, browserNames = [], stageNames = []]) => {
   const missing = [
     ...required.filter(name => !unit(name)).map(name => "TRX:" + name),
@@ -144,6 +148,7 @@ const rows = scenarios.map(([id, required, browserNames = [], stageNames = []]) 
   ];
   return { id: "G4-" + id, missing };
 });
+if (!d003Approved) rows.find(row => row.id === "G4-S01").missing.push("D-003 acceptance pending");
 if (!logOk("integration-fresh.log") || !logOk("integration-repeat.log")) {
   for (const row of rows) row.missing.push("Required fresh and repeat integration logs");
 }

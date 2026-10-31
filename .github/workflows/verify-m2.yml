@@ -59,10 +59,10 @@ jobs:
             -e POSTGRES_HOST_AUTH_METHOD=trust \
             -p 127.0.0.1:5432:5432 harborops-postgres:16.15-rootless
           for i in $(seq 1 45); do
-            if docker exec harborops-m1-ci-db pg_isready -U harborops -d harborops_integration; then exit 0; fi
+            if docker exec harborops-m2-ci-db pg_isready -U harborops -d harborops_integration; then exit 0; fi
             sleep 2
           done
-          docker logs harborops-m1-ci-db
+          docker logs harborops-m2-ci-db
           exit 1
       - name: Build .NET solution
         run: |
@@ -160,4 +160,4 @@ jobs:
         if: always()
         run: |
           docker compose -p ho-verify down --volumes --remove-orphans || true
-          docker rm -f harborops-m1-ci-db || true
+          docker rm -f harborops-m2-ci-db || true

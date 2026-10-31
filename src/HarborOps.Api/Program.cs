@@ -1,5 +1,6 @@
 using System.Data.Common;
 using HarborOps.Api.Authentication;
+using HarborOps.Api.Organizations;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net.Sockets;
 using HarborOps.Api.Health;
@@ -35,6 +36,12 @@ var app = builder.Build();
 if (args.Contains("--account-cli", StringComparer.Ordinal))
 {
     await AccountCli.RunAsync(args, app.Services);
+    return;
+}
+
+if (args.Contains("--organization-cli", StringComparer.Ordinal))
+{
+    await OrganizationCli.RunAsync(args, app.Services);
     return;
 }
 
@@ -79,6 +86,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
 app.MapAuthenticationEndpoints();
+app.MapOrganizationEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

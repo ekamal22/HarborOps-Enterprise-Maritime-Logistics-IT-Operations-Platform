@@ -179,4 +179,45 @@ public sealed class ReferenceBoundaryMatrixTests
         var body = await denied.Content.ReadAsStringAsync();
         Assert.DoesNotContain("Synthetic Page", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task EveryReferenceVerbRequiresExplicitSelection()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = f.Admin;
+        using var manager = f.Manager;
+        using var analyst = f.Analyst;
+        using var noSelection = factory.CreateClient(
+            new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(noSelection, f.ManagerEmail);
+        foreach (var kind in new[] { "ports", "vessels" })
+        {
+            var root = $"/api/v1/organizations/{f.A}/{kind}";
+            var id = Guid.NewGuid();
+            var methods = new (HttpMethod Method, string Path, object? Body)[]
+            {
+                (HttpMethod.Get, root, null),
+                (HttpMethod.Get, root + "/" + id, null),
+                (HttpMethod.Post, root, kind == "ports"
+                    ? new { referenceCode = "NO-SEL-PORT", name = "No Selection", countryCode = "US" }
+                    : (object)new { referenceCode = "NO-SEL-SHIP", name = "No Selection" }),
+                (HttpMethod.Patch, root + "/" + id,
+                    new { name = "Denied", expectedVersion = 1L }),
+                (HttpMethod.Delete, root + "/" + id, new { expectedVersion = 1L })
+            };
+            foreach (var route in methods)
+            {
+                using var result = await Send(noSelection, route.Method, route.Path, route.Body);
+                Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
+                Assert.Contains("organization_selection_required",
+                    await result.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+            }
+        }
+        await ReferenceDataHttpTests.Select(noSelection, f.A);
+        using var allowed = await noSelection.GetAsync(
+            $"/api/v1/organizations/{f.A}/ports");
+        Assert.Equal(HttpStatusCode.OK, allowed.StatusCode);
+    }
+
 }

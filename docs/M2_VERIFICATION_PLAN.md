@@ -1,13 +1,13 @@
-# G2 Organizations and Role Isolation: Local Verification Plan
+# G2 Organizations and Role Isolation: Verification Plan
 
-**Status:** Proposed verification specification, not executed  
+**Status:** Initial [GitHub verification](M2_EXECUTED_VERIFICATION.md) passed. The full adversarial matrix remains incomplete.  
 **Gate:** G2; requires separate acceptance after complete successful evidence  
 **Prerequisites:** M2-01, M2-02, M2-03 and M2-04 as defined in the [execution graph](EXECUTION_GRAPH.md)  
 **Reference:** [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation plan](M2_IMPLEMENTATION_PLAN.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Status](STATUS.md).
 
 ## Tooling and execution restriction
 
-GitHub verification of M2 was explicitly requested on 2026-10-31. The repository's dedicated M2 verification workflow can execute the disposable-runner matrix through draft PR #5; the local-only approach remains available as an alternative. Neither a workflow definition nor a queued run constitutes passing test evidence.
+GitHub verification of M2 was explicitly requested on 2026-10-31. The repository's dedicated M2 verification workflow can execute the disposable-runner matrix through draft PR #5; the local-only approach remains available as an alternative. [Run #41157387340](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41157387340) provides successful evidence for the configured tests. Unexecuted cases are identified in [M2 results](M2_EXECUTED_VERIFICATION.md).
 
 Use an isolated `ho-verify` Compose project or a dedicated throwaway PostgreSQL database, never the primary `harborops` project or existing local retained volume. Dispose only resources positively identified as part of that isolated project. No compatibility check against a historical user volume is due at G2; quarter-mile checkpoints remain M6, M12, M18 and M24-03. Backups and full restores remain M19. Dedicated accessibility checks remain M24-04.
 
@@ -115,4 +115,4 @@ Do not fabricate passing test counts or mark G2 complete based on this document.
 
 ## Current status
 
-M2 feature-branch implementation source and initial regression test files are committed, as recorded in [M2 implementation status](M2_IMPLEMENTATION_STATUS.md). This plan remains unexecuted. **G2 open.**
+M2 feature-branch implementation source and initial regression test files are committed, as recorded in [M2 implementation status](M2_IMPLEMENTATION_STATUS.md). Initial GitHub suites passed; mandatory outstanding cases remain. **G2 open.**

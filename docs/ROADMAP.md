@@ -104,8 +104,8 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Explicit memberships, roles and organization-scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) proposes additive organization/membership persistence, typed role grants, per-session organization selection and fail-closed cross-tenant authorization. The design now has a feature-branch source implementation; behavior has not been executed or verified.
 **Entry:** G1 verified and accepted, with documented evidence and merged source.
 **Required work packages:** M2-01 Model memberships and role grants; M2-02 Enforce permission boundary; M2-03 Implement organization selection; M2-04 Verify tenant isolation. See the [M2 implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](M2_VERIFICATION_PLAN.md).
-**Verification restriction:** GitHub Actions usage is prohibited until expressly restored. M2 verification is local-only with isolated disposable PostgreSQL and browser fixtures.
-**Exit G2:** Source for M2-01 through M2-03 exists on a feature branch, but the mandatory tests and [G2 verification plan](M2_VERIFICATION_PLAN.md) have not been run. [Implementation register](M2_IMPLEMENTATION_STATUS.md). G2 remains open until full executed evidence and explicit acceptance.
+**Verification:** M2 GitHub verification was explicitly requested. [Run #41157387340](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41157387340) passed its configured suites. [Results](M2_EXECUTED_VERIFICATION.md) distinguish verified checks from unexecuted adversarial cases.
+**Exit G2:** M2 source and initial GitHub verification passed, but some required [G2 checks](M2_VERIFICATION_PLAN.md) remain unexecuted. See [executed evidence](M2_EXECUTED_VERIFICATION.md). G2 open, no acceptance or merge.
 **Not covered by this milestone:** Shipment domain CRUD and maritime reference data.
 
 #### M3: Ports and vessels reference data

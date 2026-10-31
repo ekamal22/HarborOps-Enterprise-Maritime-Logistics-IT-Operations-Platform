@@ -3,9 +3,9 @@
 **Milestone:** M2 Organizations and role isolation  
 **Branch:** `feat/m2-organization-authorization`  
 **Baseline:** `a2acd64234049580c21dec49dbdd987b01030a4b` on `main`; G0 and G1 accepted  
-**Implementation state:** Source changes committed on the feature branch. **Not merged into `main`, not verified, G2 open.**  
-**Verification authorization:** M2 verification via GitHub was explicitly requested on 2026-10-31. The M2 workflow is configured on draft PR #5; results are not recorded until a completed run is reviewed.  
-**Verification:** Requested on draft PR #5. Results pending; G2 open.
+**Implementation state:** Source committed and initial GitHub automated verification passed. **Not merged to `main`; complete G2 verification unfinished and G2 open.**  
+**Verification authorization:** M2 GitHub verification was explicitly requested on 2026-10-31. [Run #41157387340](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41157387340) succeeded on draft PR #5.  
+**Verification:** [Executed record](M2_EXECUTED_VERIFICATION.md): 22 unit, 12 contract, 13 fresh/13 repeat integration, 6 frontend, 24 browser and runtime/image checks passed. Remaining G2 cases open.
 
 ## Delivered source changes
 
@@ -42,7 +42,7 @@ After applying the new migration in a controlled deployment and provisioning the
 docker compose run --rm -it -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api --organization-cli bootstrap north-terminal "North Terminal" operator@example.test
 ```
 
-This command is recorded as implemented **source**, not a demonstrated working command. It is gated by `HARBOROPS_ALLOW_ORGANIZATION_CLI=true`; no password is read or printed. Normal account provisioning remains a separate M1 operation. Run migration only on an intended disposable test database before applying it to retained data. The existing primary local database and volumes have not been touched here.
+An equivalent restricted bootstrap of a synthetic organization was executed successfully on the disposable GitHub runner. It is gated by `HARBOROPS_ALLOW_ORGANIZATION_CLI=true`; no password is read or printed. Normal account provisioning remains a separate M1 operation. Run migration only on an intended disposable test database before applying it to retained data. The existing primary local database and volumes have not been touched here.
 
 ## Security and consistency provisions in source
 
@@ -56,11 +56,11 @@ This command is recorded as implemented **source**, not a demonstrated working c
 - Scoped HTTP errors and request correlation, without passwords or raw session cookies in responses.
 - Browser context reload and protected state clearing on changes/denials.
 
-These are implementation characteristics, **not verified security claims**. No concurrency, authorization bypass, API contract, browser or migration test was executed in this handoff. Last-administrator self-disable denial is represented by a new typed failure and HTTP 409 response, without changing ordinary M1 disablement for non-administrators.
+These are source characteristics. The [executed verification](M2_EXECUTED_VERIFICATION.md) passed the included unit, integration, HTTP and browser assertions. Comprehensive two-writer and suspension tests remain unexecuted. Last-administrator self-disable denial is represented by a new typed failure and HTTP 409 response, without changing ordinary M1 disablement for non-administrators.
 
 ## Verification still required for G2
 
-All scenarios in [G2 verification plan](M2_VERIFICATION_PLAN.md) remain unrun. Required work includes:
+The [initial GitHub verification](M2_EXECUTED_VERIFICATION.md) passed. The following cases remain incomplete under the full [G2 verification plan](M2_VERIFICATION_PLAN.md):
 
 1. .NET restore, release build and all existing M0/M1 unit/contract/real PostgreSQL suites, plus new M2 source tests.
 2. EF migration discovery, model snapshot drift check, fresh disposable schema migration, and an M1-seeded-to-M2 upgrade/repeat rehearsal with retained identity and baseline data.
@@ -70,4 +70,4 @@ All scenarios in [G2 verification plan](M2_VERIFICATION_PLAN.md) remain unrun. R
 6. Safe disposable Compose startup, API restart and database outage/recovery tests, local image and dependency review, and final documentation/link review.
 7. Remediate any observed failures and record exact source SHA, commands, fixture, environment and PASS/FAIL/BLOCKED/NOT RUN evidence.
 
-**No verification was run.** G2 is neither verified nor accepted. No automatic merge to `main` or progression to M3 is authorized by this implementation commit. Historical retained-volume compatibility remains at M6/M12/M18/M24-03, and full dedicated accessibility testing stays at M24-04.
+**Initial GitHub verification passed.** G2 remains open and not accepted due to remaining negative cases. No automatic merge to `main` or progression to M3 is authorized by this implementation commit. Historical retained-volume compatibility remains at M6/M12/M18/M24-03, and full dedicated accessibility testing stays at M24-04.

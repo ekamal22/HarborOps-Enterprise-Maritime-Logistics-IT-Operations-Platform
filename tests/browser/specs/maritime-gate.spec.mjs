@@ -44,6 +44,33 @@ test("M4 container pagination preserves tenant results across multiple pages", a
   }
   await section.getByLabel("Search containers").fill(prefix);
   await expect(section.locator("ul > li")).toHaveCount(25);
+  let entered, release;
+  const delayed = new Promise(resolve => { entered = resolve; });
+  const proceed = new Promise(resolve => { release = resolve; });
+  await page.route("**/api/v1/organizations/*/containers?*", async route => {
+    if (!new URL(route.request().url()).searchParams.has("after")) return route.continue();
+    entered();
+    await proceed;
+    await route.fulfill({
+      status: 200, contentType: "application/json",
+      body: JSON.stringify({ containers: [{
+        id: "11111111-1111-4111-8111-111111111113",
+        organizationId: organization.id, referenceCode: "G4-STALE-PAGE",
+        recordStatus: "Active", sourceKind: "Synthetic", version: 1,
+        identifierKind: "Synthetic", containerIdentifier: "SYN-BOX-STALEPG",
+        equipmentType: "Dry20"
+      }], nextAfter: null })
+    });
+  });
+  await section.getByRole("button", { name: "Load more maritime records" }).click();
+  await delayed;
+  await section.getByRole("button", { name: "Voyages", exact: true }).click();
+  release();
+  await expect(page.getByText("G4-STALE-PAGE")).toHaveCount(0);
+  await page.unrouteAll({ behavior: "wait" });
+  await section.getByRole("button", { name: "Containers", exact: true }).click();
+  await section.getByLabel("Search containers").fill(prefix);
+  await expect(section.locator("ul > li")).toHaveCount(25);
   await section.getByRole("button", { name: "Load more maritime records" }).click();
   await expect(section.locator("ul > li")).toHaveCount(27);
   const codes = await section.locator("ul > li > div:first-child > div:first-child").allTextContents();

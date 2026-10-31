@@ -66,10 +66,10 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
     setProfileName("");
   }, []);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (notice = "") => {
     const serial = ++sequence.current;
     setLoading(true);
-    setError("");
+    setError(notice);
     clearProtected();
     try {
       const list = await getJson<{ organizations: OrganizationItem[] }>("/api/v1/me/organizations");
@@ -104,11 +104,18 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
     }
   }, [clearProtected]);
 
-  const onReferenceAccessInvalidated = useCallback(() => {
+  const lastInvalidation = useRef(0);
+  const onReferenceAccessInvalidated = useCallback((message: string) => {
     sequence.current += 1;
     clearProtected();
     setOrganizations([]);
-    void refresh();
+    // Reload the authoritative list once. If access is rejected again straight away, stop and
+    // leave the notice so a persistent denial cannot trigger a request loop.
+    const now = Date.now();
+    const repeated = now - lastInvalidation.current < 10_000;
+    lastInvalidation.current = now;
+    if (repeated) { setLoading(false); setError(message); return; }
+    void refresh(message);
   }, [clearProtected, refresh]);
 
   useEffect(() => {

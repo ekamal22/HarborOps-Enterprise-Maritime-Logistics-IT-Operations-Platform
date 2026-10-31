@@ -43,7 +43,7 @@ function payload(kind: ReferenceKind, form: FormState, isNew: boolean): Record<s
 export default function ReferenceDataWorkspace({ organizationId, canManage, onAccessInvalidated }: {
   organizationId: string;
   canManage: boolean;
-  onAccessInvalidated: () => void;
+  onAccessInvalidated: (message: string) => void;
 }) {
   const [kind, setKind] = useState<ReferenceKind>("ports");
   const [q, setQ] = useState("");
@@ -64,7 +64,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
     if (cause instanceof OrganizationRequestError &&
         (cause.status === 401 || cause.code === "organization_access_revoked" ||
          cause.code === "organization_selection_required" || cause.code === "access_denied"))
-      onAccessInvalidated();
+      onAccessInvalidated(organizationError(cause));
   }, [onAccessInvalidated]);
   useEffect(() => () => { mutationGeneration.current += 1; }, [organizationId, kind]);
 

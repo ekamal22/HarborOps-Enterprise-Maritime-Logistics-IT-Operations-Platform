@@ -152,6 +152,14 @@ public sealed class MaritimeHttpTests
             Root(f.A) + "/containers/" + foreignId,
             new { displayName = "Exploit", expectedVersion = 1 });
         Assert.Equal(HttpStatusCode.NotFound, modify.StatusCode);
+        using var archive = await ReferenceDataHttpTests.Send(manager, HttpMethod.Delete,
+            Root(f.A) + "/containers/" + foreignId, new { expectedVersion = 1L });
+        Assert.Equal(HttpStatusCode.NotFound, archive.StatusCode);
+        using var foreignList = await manager.GetAsync(Root(f.B) + "/containers?recordStatus=All");
+        Assert.Equal(HttpStatusCode.NotFound, foreignList.StatusCode);
+        var intact = await db.Containers.AsNoTracking().SingleAsync(x => x.Id == foreignId);
+        Assert.Equal(1L, intact.Version);
+        Assert.Equal("Active", intact.RecordStatus);
     }
 
     [Fact]

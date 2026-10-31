@@ -59,11 +59,11 @@ The implemented [M2 architecture](M2_ARCHITECTURE_DESIGN.md) adds `organizations
 
 Required invariants include unique organization slug and user/organization membership, soft removal, active-organization checks, live role revalidation, versioned updates and transactional protection against loss of the last active Administrator. The accepted M1 cookie does not carry trusted organization roles. The M2 additive migration and invariants passed fresh and repeated disposable PostgreSQL verification; see [G2 executed evidence](M2_EXECUTED_VERIFICATION.md).
 
-## M3 port and vessel reference model (feature-branch source, unverified)
+## M3 port and vessel reference model (verified and accepted)
 
 [M3 architecture](M3_ARCHITECTURE_DESIGN.md) specifies organization-owned `PortReference` and `VesselReference` tables with immutable UUID, organization ID and tenant-local `ReferenceCode`; name, optional external identifiers, Active/Archived state, provenance, optimistic version and server UTC timestamps. Port records have required country and optional matching UN/LOCODE. Vessel records have optional current-format IMO, nine-digit MMSI and flag country. Unique identifiers are enforced per organization, including archived rows. Selection and typed business-data permissions must be revalidated for every operation; an M2 Administrator has no automatic reference-data access.
 
-M3 `ports` and `vessels` entity mappings, additive migration, scoped endpoints and frontend source exist on `feat/m3-port-vessel-reference-data`. They are not deployed, migrated or verified in a runtime environment. See [implementation register](M3_IMPLEMENTATION_STATUS.md), [M3 plan](M3_IMPLEMENTATION_PLAN.md) and [G3 tests](M3_VERIFICATION_PLAN.md). M4 may later reference immutable IDs for voyages; M4 is not implemented.
+M3 `ports` and `vessels` entity mappings, additive migration, scoped endpoints and frontend are integrated into `main`. All 25 G3 scenarios passed locally at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`, with independent raw-evidence review and explicit acceptance on 2026-10-31. See [implementation register](M3_IMPLEMENTATION_STATUS.md), [executed verification](M3_EXECUTED_VERIFICATION.md) and [G3 specification](M3_VERIFICATION_PLAN.md). M4 may subsequently reference immutable port/vessel UUIDs, but M4 is not yet implemented.
 
 ## Illustrative lifecycle
 
@@ -89,6 +89,6 @@ Order primarily by trusted occurrence time when source rules permit, then by sou
 
 `bootstrap_records` is a single infrastructure status table, not a shipment-domain model. The initial EF Core migration creates `key` (80-character primary key), `dataset_version` (required, 80 characters), and `seeded_at_utc` (required UTC timestamp). The deterministic row uses key `harborops` and dataset version `m0-synthetic-v1`. The migration and seed were applied to clean PostgreSQL 16.15 databases and inspected on 2026-10-30 (see [M0 Verification](M0_VERIFICATION.md)).
 
-Organization membership and access boundaries were implemented and accepted in M2; port/vessel references and shipment/assignment invariants remain planned for M3-M6. Those later business entities have not been implemented.
+Organization membership and access boundaries were accepted in M2; organization-owned port/vessel references were accepted in M3. Voyage/container data, shipment lifecycle and assignment invariants remain planned for M4-M6.
 
 The four M1 identity tables and migration were exercised in isolated PostgreSQL integration tests, including an existing M0-seeded upgrade; G1 was accepted on 2026-10-31 and merged into `main`. M2 organization persistence and tenant isolation also passed local G2 verification, were accepted and were merged via PR #5. See [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) and [M2 evidence](M2_EXECUTED_VERIFICATION.md).

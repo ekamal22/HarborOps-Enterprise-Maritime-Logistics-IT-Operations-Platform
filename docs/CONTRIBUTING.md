@@ -69,15 +69,15 @@ Use `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platfo
 - Treat [Status](STATUS.md) and milestone evidence registers as the only source for achieved results and acceptance state.
 - When changing a node ID or requirement mapping, update affected code tasks, test evidence, gates, and references in the same change.
 
-## M3 design and local verification boundary
+## Accepted M3 implementation and local verification boundary
 
-The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [work-package plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification specification](M3_VERIFICATION_PLAN.md) govern the current feature-branch implementation. See the [source register](M3_IMPLEMENTATION_STATUS.md). Keep port and vessel data tenant-owned, avoid Administrator/Support business-data bypasses, and preserve all accepted M0-M2 regressions. Use disposable local E: storage, never run GitHub Actions and do not mark G3 verified without full executed evidence. Planning files alone are not implementation.
+The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification specification](M3_VERIFICATION_PLAN.md) govern the accepted implementation in `main`. The complete G3 matrix passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` and was explicitly accepted on 2026-10-31 ([evidence](M3_EXECUTED_VERIFICATION.md)). Keep all M0-M3 regression coverage, preserve tenant ownership and Manager/Analyst authorization, and use disposable E:-backed verification. GitHub Actions remain prohibited. M4 remains unstarted.
 
 ## Historical M1 identity implementation review boundary
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. The completed M1 pull request included schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and the historical GitHub Actions evidence in [G1 Verification](M1_VERIFICATION_PLAN.md). This does not authorize any additional workflow runs. No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.
 
-Do not conflate architecture approval with milestone acceptance. G1 was accepted on 2026-10-31 and merged via PR #4 ([M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md)). G2 tenant isolation was verified locally, explicitly accepted and merged via PR #5 ([M2 evidence](M2_EXECUTED_VERIFICATION.md)). G3 and later gates each require independent verification and acceptance. M7 integration credentials and final M24 accessibility remain outside M1 and M2.
+Do not conflate architecture approval with milestone acceptance. G0-G3 are verified and explicitly accepted; M1 merged via PR #4 ([evidence](M1_IMPLEMENTATION_VERIFICATION.md)), M2 via PR #5 ([evidence](M2_EXECUTED_VERIFICATION.md)) and M3 by fast-forward after independent G3 review ([evidence](M3_EXECUTED_VERIFICATION.md)). G4-G24 each require independent verification and acceptance. M7 integration credentials and M24 accessibility belong to later gates.
 
 ## Documentation hygiene
 

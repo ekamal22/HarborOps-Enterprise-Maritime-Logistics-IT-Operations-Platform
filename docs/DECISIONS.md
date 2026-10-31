@@ -51,9 +51,9 @@ Human browser login uses ASP.NET Core 10 cookie authentication with protected ti
 
 [ADR-005](#adr-005-secure-organization-boundaries) requires scoped access. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) implements one role per organization membership, a fixed typed permission matrix, server-stored selection in `auth_sessions`, live authorization checks, controlled local bootstrap and transactional last-Administrator protection. These implementation-level choices are now integrated into `main` via PR #5 and do not create a new global ADR. The full G2 matrix passed locally on disposable resources ([executed record](M2_EXECUTED_VERIFICATION.md)); no retained workstation database was changed. G2 accepted on 2026-10-31.
 
-## M3 reference-data design choices (proposal; approval pending)
+## M3 reference-data design choices (implemented and accepted)
 
-The proposed [M3 architecture](M3_ARCHITECTURE_DESIGN.md) keeps each port/vessel reference owned by one organization, with an immutable UUID and tenant-local reference code, optional external identifiers, optimistic versioning and soft archival. Analysts may view reference data; Managers may manage it; M2 Support, Administrator and Auditor roles do not acquire implicit business access. These choices follow accepted ADR-002/003/004/005, but remain M3-specific implementation decisions subject to design approval. The [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 tests](M3_VERIFICATION_PLAN.md) define the executable obligations. G3 is verified locally with acceptance pending ([executed verification](M3_EXECUTED_VERIFICATION.md)), and no new globally accepted ADR is asserted.
+The [M3 architecture](M3_ARCHITECTURE_DESIGN.md) implements organization-owned port/vessel references with immutable UUID and tenant-local code, optional external identifiers, optimistic versions, and soft archive. Analysts may read; Managers may manage; Support, Administrator and Auditor do not receive implicit business permissions. These M3 implementation decisions follow ADR-002/003/004/005 without changing their scope. All 25 G3 scenarios passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; G3 was explicitly accepted on 2026-10-31 ([executed verification](M3_EXECUTED_VERIFICATION.md)). D-003 container identifiers remains pending for M4.
 
 ## Open decisions
 

@@ -1,6 +1,6 @@
 # M3 Ports and Vessels Reference Data: Implementation Plan
 
-**State:** Implementation source committed on feature branch; G3 verified locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`, acceptance pending  
+**State:** M3-01 through M3-04 implemented, verified locally and accepted at G3 on 2026-10-31; integrated into `main`.
 **Entry:** G2 verified, accepted and merged into `main` through PR #5  
 **Milestone packages:** M3-01, M3-02, M3-03, M3-04  
 **Design authority:** [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [Roadmap](ROADMAP.md), [Requirements](REQUIREMENTS.md), [G3 verification plan](M3_VERIFICATION_PLAN.md), [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
@@ -33,7 +33,7 @@ M3-02 Ports schema/service/API      M3-03 Vessels schema/service/API
 M3-04 React workspace, full G3 verification and evidence
                    |
                    v
-G3 verified locally, acceptance pending
+G3 verified and accepted on 2026-10-31
 ```
 
 M3-02 and M3-03 may be implemented in separate feature branches after M3-01. Coordinate a single additive migration and shared auth helper before parallelization; do not independently regenerate competing EF migrations. Merge implementation work only after conflict-free integration and local verification on the combined revision.
@@ -147,7 +147,7 @@ M3-02 and M3-03 may be implemented in separate feature branches after M3-01. Coo
 7. Record commands, test counts, source SHA, OS/SDK/browser/database versions, fixture IDs, evidence paths and every PASS/FAIL/BLOCKED status in `docs/M3_EXECUTED_VERIFICATION.md` only after execution.
 8. Update API Contracts, Domain Model, Requirements, Security, Operations, Test Strategy, Status, Roadmap and README only with observed implemented behavior, not predictions.
 
-**M3-04 exit evidence:** Functional UI flow and all mandatory local G3 tests pass at the final implementation SHA; documentation checker passes and G3 is marked `verified locally, acceptance pending`. Do not mark G3 accepted without explicit acceptance.
+**M3-04 exit evidence:** Functional UI and every mandatory G3 scenario passed on the verified implementation SHA; the full G3 gate was explicitly accepted on 2026-10-31 ([executed verification](M3_EXECUTED_VERIFICATION.md)). No additional M4 work is claimed.
 
 ## 8. Verification strategy and execution boundary
 

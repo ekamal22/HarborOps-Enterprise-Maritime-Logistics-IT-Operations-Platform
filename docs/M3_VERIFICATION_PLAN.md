@@ -1,9 +1,9 @@
 # G3 Ports and Vessels Reference Data: Verification Plan
 
-**State:** Mandatory G3 test specification; executed in full on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`, all scenarios passed, acceptance pending ([executed verification](M3_EXECUTED_VERIFICATION.md))  
+**State:** Mandatory G3 specification executed in full at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`, 25/25 scenarios passed; explicitly accepted on 2026-10-31 ([executed verification](M3_EXECUTED_VERIFICATION.md)).
 **Gate:** G3, following M3-01 through M3-04  
 **Prerequisites:** Accepted G2, approved [M3 architecture](M3_ARCHITECTURE_DESIGN.md) and completed [M3 implementation](M3_IMPLEMENTATION_PLAN.md)  
-**Acceptance:** All mandatory scenarios pass on one final implementation revision, evidence recorded; then G3 is verified with acceptance pending. Explicit acceptance is separate.  
+**Acceptance:** All mandatory G3 scenarios passed at the final implementation SHA and evidence is recorded; explicit acceptance was given on 2026-10-31. Future changes require new verification appropriate to their scope.
 **Authority:** [Roadmap](ROADMAP.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Requirements](REQUIREMENTS.md), [M2 G2 executed record](M2_EXECUTED_VERIFICATION.md).
 
 ## 1. Local execution policy
@@ -106,6 +106,6 @@ Write `docs/M3_EXECUTED_VERIFICATION.md` only when there is real execution evide
 
 ## 7. Closure and acceptance rule
 
-G3 can be marked `verified locally; acceptance pending` only when every mandatory scenario has successful evidence at one final implementation SHA, with no unresolved security, data-integrity or isolation blocker, and synchronized repository documentation. A missing mandatory browser engine, scanner, E: storage confinement, migration proof or regression result blocks G3.
+G3 was marked verified locally when every mandatory scenario passed on the final source SHA, with no unresolved security, data-integrity or isolation blockers, and synchronized repository documentation. Explicit acceptance followed independent raw-evidence review on 2026-10-31.
 
-**G3 verified locally; acceptance pending.** All 25 scenarios passed at `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)). G3 is not accepted and M3 is not merged. Explicit G3 acceptance is a separate decision; no M4 implementation until the G3 gate is satisfied under the roadmap policy.
+**G3 verified and accepted.** All 25 scenarios passed on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)). G3 was explicitly accepted on 2026-10-31 and M3 integrated into `main`. M4 has not started; G4 remains open.

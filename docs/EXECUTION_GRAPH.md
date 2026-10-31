@@ -1011,4 +1011,4 @@ flowchart TD
 
 ## Current starting point
 
-The execution graph does not track completion. Refer to [Status](STATUS.md), [M0 verification](M0_HARDENING_VERIFICATION.md) and [accepted M1 verification](M1_IMPLEMENTATION_VERIFICATION.md) for actual evidence and acceptance state. G0 and G1 are accepted; M2/G2 is next. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md) for all development and test work. Do not infer implementation from planned graph nodes.
+The execution graph does not track completion. Refer to [Status](STATUS.md), [M0 verification](M0_HARDENING_VERIFICATION.md), [M1 verification](M1_IMPLEMENTATION_VERIFICATION.md), and [accepted M2 verification](M2_EXECUTED_VERIFICATION.md) for evidence and acceptance state. G0, G1 and G2 are accepted and merged; M3/G3 is next. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md) for all development and test work. Do not infer implementation from planned graph nodes.

@@ -152,7 +152,7 @@ Remaining risks: (1) the `gosu` findings are upstream and the binary only drops 
 
 ## Known limitations
 
-- The baseline record is infrastructure metadata. At the G0 checkpoint, shipments, authentication, events, dashboards and incidents were not implemented. Authentication was subsequently delivered and accepted in M1; the other product modules remain scheduled for M2 and later.
+- The baseline record is infrastructure metadata. At G0, shipments, authentication, organizations, events, dashboards and incidents were not implemented. Authentication was subsequently delivered and accepted in M1, organization authorization in M2, and remaining maritime/operations modules are planned for M3 and later. See [Status](STATUS.md) for the current implementation state.
 - Real-browser verification used one embedded Chrome 152 engine only; Firefox, Safari and screen readers were not tested.
 - The CI workflow `Verify M0` has not been run and cannot be dispatched until it exists on the default branch.
 - The compose stack was verified on one Windows host with Docker Desktop.

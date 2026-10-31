@@ -174,7 +174,6 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             });
         });
 
-
         modelBuilder.Ignore<MaritimeRecord>();
         modelBuilder.Entity<VoyageRecord>(entity =>
         {
@@ -219,35 +218,9 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             {
                 t.HasCheckConstraint("CK_containers_kind", "identifier_kind IN ('ISO6346','Synthetic')");
                 t.HasCheckConstraint("CK_containers_type", "equipment_type IN ('Dry20','Dry40','HighCube40','Reefer20','Reefer40','Other')");
-                t.HasCheckConstraint("CK_containers_identifier", "(identifier_kind = 'ISO6346' AND harborops_iso6346_valid(container_identifier) AND source_kind='UserProvided') OR (identifier_kind='Synthetic' AND container_identifier ~ '^SYN-BOX-[A-Z0-9]{4,16}<TEntity>(EntityTypeBuilder<TEntity> entity, string table)
-        where TEntity : ReferenceRecord
-    {
-        entity.ToTable(table, t =>
-        {
-            t.HasCheckConstraint("CK_" + table + "_status", "status IN ('Active','Archived')");
-            t.HasCheckConstraint("CK_" + table + "_source_kind", "source_kind IN ('UserProvided','Synthetic')");
-            t.HasCheckConstraint("CK_" + table + "_version", "version > 0");
-            t.HasCheckConstraint("CK_" + table + "_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*$' AND length(reference_code) BETWEEN 3 AND 32");
-            t.HasCheckConstraint("CK_" + table + "_name", "length(btrim(name)) BETWEEN 1 AND 160");
-            t.HasCheckConstraint("CK_" + table + "_time", "updated_at_utc >= created_at_utc");
-        });
-        entity.HasKey(x => x.Id);
-        entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
-        entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
-        entity.HasOne<HarborOps.Infrastructure.Organizations.Organization>().WithMany()
-            .HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
-        entity.Property(x => x.ReferenceCode).HasColumnName("reference_code").HasMaxLength(32).IsRequired();
-        entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
-        entity.HasIndex(x => new { x.OrganizationId, x.Id });
-        entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(160).IsRequired();
-        entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
-        entity.Property(x => x.SourceKind).HasColumnName("source_kind").HasMaxLength(16).IsRequired();
-        entity.Property(x => x.Version).HasColumnName("version");
-        entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
-        entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
-    }
-}
- AND source_kind='Synthetic')");
+                t.HasCheckConstraint("CK_containers_identifier",
+                    "(identifier_kind = 'ISO6346' AND harborops_iso6346_valid(container_identifier) AND source_kind='UserProvided') OR " +
+                    "(identifier_kind='Synthetic' AND container_identifier ~ '^SYN-BOX-[A-Z0-9]{4,16}$' AND source_kind='Synthetic')");
                 t.HasCheckConstraint("CK_containers_display", "display_name IS NULL OR length(btrim(display_name)) BETWEEN 1 AND 160");
             });
         });
@@ -261,35 +234,7 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             t.HasCheckConstraint("CK_" + table + "_status", "record_status IN ('Active','Archived')");
             t.HasCheckConstraint("CK_" + table + "_source", "source_kind IN ('UserProvided','Synthetic')");
             t.HasCheckConstraint("CK_" + table + "_version", "version > 0");
-            t.HasCheckConstraint("CK_" + table + "_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*<TEntity>(EntityTypeBuilder<TEntity> entity, string table)
-        where TEntity : ReferenceRecord
-    {
-        entity.ToTable(table, t =>
-        {
-            t.HasCheckConstraint("CK_" + table + "_status", "status IN ('Active','Archived')");
-            t.HasCheckConstraint("CK_" + table + "_source_kind", "source_kind IN ('UserProvided','Synthetic')");
-            t.HasCheckConstraint("CK_" + table + "_version", "version > 0");
             t.HasCheckConstraint("CK_" + table + "_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*$' AND length(reference_code) BETWEEN 3 AND 32");
-            t.HasCheckConstraint("CK_" + table + "_name", "length(btrim(name)) BETWEEN 1 AND 160");
-            t.HasCheckConstraint("CK_" + table + "_time", "updated_at_utc >= created_at_utc");
-        });
-        entity.HasKey(x => x.Id);
-        entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
-        entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
-        entity.HasOne<HarborOps.Infrastructure.Organizations.Organization>().WithMany()
-            .HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
-        entity.Property(x => x.ReferenceCode).HasColumnName("reference_code").HasMaxLength(32).IsRequired();
-        entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
-        entity.HasIndex(x => new { x.OrganizationId, x.Id });
-        entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(160).IsRequired();
-        entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
-        entity.Property(x => x.SourceKind).HasColumnName("source_kind").HasMaxLength(16).IsRequired();
-        entity.Property(x => x.Version).HasColumnName("version");
-        entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
-        entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
-    }
-}
- AND length(reference_code) BETWEEN 3 AND 32");
             t.HasCheckConstraint("CK_" + table + "_timestamp", "updated_at_utc >= created_at_utc");
         });
         entity.HasKey(x => x.Id);

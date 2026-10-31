@@ -86,6 +86,30 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
                 (m.Role == "Analyst" || m.Role == "Manager")));
     }
 
+    private async Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginReadAsync(
+        CurrentSession session, Guid orgId, CancellationToken ct)
+    {
+        var tx = await db.Database.BeginTransactionAsync(ct);
+        try
+        {
+            await db.Organizations.FromSqlInterpolated(
+                $"SELECT * FROM organizations WHERE id = {orgId} FOR SHARE")
+                .AsNoTracking().SingleOrDefaultAsync(ct);
+            await db.AuthSessions.FromSqlInterpolated(
+                $"SELECT * FROM auth_sessions WHERE id = {session.SessionId} FOR SHARE")
+                .AsNoTracking().SingleOrDefaultAsync(ct);
+            await db.AuthUsers.FromSqlInterpolated(
+                $"SELECT * FROM users WHERE id = {session.UserId} FOR SHARE")
+                .AsNoTracking().SingleOrDefaultAsync(ct);
+            return tx;
+        }
+        catch
+        {
+            await tx.DisposeAsync();
+            throw;
+        }
+    }
+
     public async Task<ReferenceResult<ReferencePage<PortReference>>> ListPortsAsync(
         CurrentSession session, Guid orgId, string? q, string status, Guid? after, int limit,
         CancellationToken ct)

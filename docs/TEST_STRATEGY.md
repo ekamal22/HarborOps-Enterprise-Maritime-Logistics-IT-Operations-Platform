@@ -36,7 +36,7 @@ M2 source, now integrated into `main` through PR #5, follows the [architecture](
 
 ## Planned M3 reference-data verification (G3 not executed)
 
-The proposed [G3 plan](M3_VERIFICATION_PLAN.md) enumerates 25 mandatory executable scenarios covering port/vessel validation, the five-role read/write permission matrix, true foreign UUID substitution, direct PostgreSQL constraints, additive M2-to-M3 migration, optimistic conflict and revocation races, archival semantics, bounded search, three-browser reference flows, and accepted M0-M2 regression. The [M3 architecture](M3_ARCHITECTURE_DESIGN.md) and [implementation plan](M3_IMPLEMENTATION_PLAN.md) are documentation only; no G3 suite has run. The future final test revision must execute locally on disposable E:-backed resources with actual dependency/image scans, then record evidence separately from this proposal. No GitHub Actions are authorized.
+The proposed [G3 plan](M3_VERIFICATION_PLAN.md) enumerates 25 mandatory executable scenarios covering port/vessel validation, the five-role read/write permission matrix, true foreign UUID substitution, direct PostgreSQL constraints, additive M2-to-M3 migration, optimistic conflict and revocation races, archival semantics, bounded search, three-browser reference flows, and accepted M0-M2 regression. M3 API/UI source, regression tests and the guarded E:-drive runner are committed as listed in [implementation register](M3_IMPLEMENTATION_STATUS.md). No G3 suite has run. The future final test revision must execute locally on disposable E:-backed resources with actual dependency/image scans, then record evidence separately from this proposal. No GitHub Actions are authorized.
 
 ## Test layers
 

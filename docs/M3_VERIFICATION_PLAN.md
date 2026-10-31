@@ -106,4 +106,4 @@ Write `docs/M3_EXECUTED_VERIFICATION.md` only when there is real execution evide
 
 G3 can be marked `verified locally; acceptance pending` only when every mandatory scenario has successful evidence at one final implementation SHA, with no unresolved security, data-integrity or isolation blocker, and synchronized repository documentation. A missing mandatory browser engine, scanner, E: storage confinement, migration proof or regression result blocks G3.
 
-**G3 is not yet verified, accepted, merged or ready for implementation.** This document defines what a future execution must prove. Explicit design approval precedes implementation; explicit G3 acceptance follows verification. No M4 implementation until the G3 gate is satisfied under the roadmap policy.
+**G3 is not yet verified, accepted or merged. Source implementation is committed on a feature branch, but runtime execution remains outstanding.** This document defines what a future execution must prove. Explicit design approval precedes implementation; explicit G3 acceptance follows verification. No M4 implementation until the G3 gate is satisfied under the roadmap policy.

@@ -47,7 +47,7 @@ M1-02 and M1-03 followed M1-01; M1-04 integrated both. M1 did not introduce orga
 
 ## M2 implementation (verified locally; G2 accepted)
 
-The [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 local verification plan](M2_VERIFICATION_PLAN.md) governed the completed M2-01 through M2-04 implementation. The full G2 matrix passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` ([executed record](M2_EXECUTED_VERIFICATION.md)); G2 was accepted on 2026-10-31 and M2 merged into `main` via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. M3 is planned and has not started.
+The [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation plan](M2_IMPLEMENTATION_PLAN.md) and [G2 local verification plan](M2_VERIFICATION_PLAN.md) governed the completed M2-01 through M2-04 implementation. The full G2 matrix passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` ([executed record](M2_EXECUTED_VERIFICATION.md)); G2 was accepted on 2026-10-31 and M2 merged into `main` via PR #5 at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. M3 source is now committed on a feature branch, but has not been built or verified.
 
 | Package | Planned change | Gate evidence |
 | --- | --- | --- |
@@ -58,9 +58,9 @@ The [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation plan](M2_IM
 
 **Execution restriction:** Do not use GitHub Actions, modify workflows, dispatch runs, or rely on remote CI until the restriction is explicitly lifted. Required verification must be executed locally with disposable resources under the E-drive storage policy.
 
-## M3 implementation (architecture proposed; work not started)
+## M3 implementation (source committed; G3 open)
 
-The [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification plan](M3_VERIFICATION_PLAN.md) define four bounded work packages: M3-01 freezes identifiers, tenant ownership, role permissions and fixtures; M3-02 adds port persistence and scoped endpoints; M3-03 adds vessel persistence and scoped endpoints; M3-04 delivers a browser reference workspace and executes G3-S01 to G3-S25. After the shared M3-01 contract, port and vessel work may proceed in parallel only with a coordinated additive migration. Design approval is pending; no M3 implementation or G3 verification has occurred. Preserve accepted M0-M2 behavior and do not use GitHub Actions.
+The [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification plan](M3_VERIFICATION_PLAN.md) define four bounded work packages: M3-01 freezes identifiers, tenant ownership, role permissions and fixtures; M3-02 adds port persistence and scoped endpoints; M3-03 adds vessel persistence and scoped endpoints; M3-04 delivers a browser reference workspace and executes G3-S01 to G3-S25. After the shared M3-01 contract, port and vessel work may proceed in parallel only with a coordinated additive migration. Implementation source and tests are committed, as recorded in [M3 implementation register](M3_IMPLEMENTATION_STATUS.md). G3 verification has not occurred and acceptance remains open. Preserve accepted M0-M2 behavior and do not use GitHub Actions.
 
 ## Local development storage
 

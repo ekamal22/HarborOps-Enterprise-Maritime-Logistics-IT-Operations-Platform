@@ -59,11 +59,11 @@ The implemented [M2 architecture](M2_ARCHITECTURE_DESIGN.md) adds `organizations
 
 Required invariants include unique organization slug and user/organization membership, soft removal, active-organization checks, live role revalidation, versioned updates and transactional protection against loss of the last active Administrator. The accepted M1 cookie does not carry trusted organization roles. The M2 additive migration and invariants passed fresh and repeated disposable PostgreSQL verification; see [G2 executed evidence](M2_EXECUTED_VERIFICATION.md).
 
-## Proposed M3 port and vessel reference model (not implemented)
+## M3 port and vessel reference model (feature-branch source, unverified)
 
 [M3 architecture](M3_ARCHITECTURE_DESIGN.md) specifies organization-owned `PortReference` and `VesselReference` tables with immutable UUID, organization ID and tenant-local `ReferenceCode`; name, optional external identifiers, Active/Archived state, provenance, optimistic version and server UTC timestamps. Port records have required country and optional matching UN/LOCODE. Vessel records have optional current-format IMO, nine-digit MMSI and flag country. Unique identifiers are enforced per organization, including archived rows. Selection and typed business-data permissions must be revalidated for every operation; an M2 Administrator has no automatic reference-data access.
 
-M3 is proposed only. No `ports` or `vessels` table, seed, HTTP endpoint or verified test result is currently claimed. [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 plan](M3_VERIFICATION_PLAN.md) describe future implementation and evidence. M4 may later reference the immutable IDs for voyages; it must not be implemented as part of M3.
+M3 `ports` and `vessels` entity mappings, additive migration, scoped endpoints and frontend source exist on `feat/m3-port-vessel-reference-data`. They are not deployed, migrated or verified in a runtime environment. See [implementation register](M3_IMPLEMENTATION_STATUS.md), [M3 plan](M3_IMPLEMENTATION_PLAN.md) and [G3 tests](M3_VERIFICATION_PLAN.md). M4 may later reference immutable IDs for voyages; M4 is not implemented.
 
 ## Illustrative lifecycle
 

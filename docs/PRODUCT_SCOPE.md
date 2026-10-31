@@ -41,9 +41,9 @@ This functionality is implemented, verified and accepted on `main` following G1 
 
 M2 introduces organization memberships, five fixed roles, per-session selected organization context, scoped organization and membership APIs, live permission evaluation and last-administrator protection. All 25 G2 scenarios passed locally on the recorded revision; G2 was accepted on 2026-10-31 and merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5). The [executed verification record](M2_EXECUTED_VERIFICATION.md) preserves the source SHA, fixtures, cases and operational evidence. Maritime reference entities begin in M3 and remain unimplemented.
 
-## Proposed M3 reference-data module
+## M3 reference-data module (unverified feature-branch source)
 
-The proposed [M3 design](M3_ARCHITECTURE_DESIGN.md) separates organization-owned port and vessel reference records from later M4 voyage/container models and M5 shipment lifecycle. Its validation accepts optional external identifiers without making official registry claims. The [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 test plan](M3_VERIFICATION_PLAN.md) are documented, but M3 implementation has not started and G3 is open.
+The proposed [M3 design](M3_ARCHITECTURE_DESIGN.md) separates organization-owned port and vessel reference records from later M4 voyage/container models and M5 shipment lifecycle. Its validation accepts optional external identifiers without making official registry claims. The [M3 implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 test plan](M3_VERIFICATION_PLAN.md) are documented and their source implementation is committed on the feature branch. Runtime testing has not occurred; G3 is open and no merge is claimed.
 
 ## Out of scope for initial release
 

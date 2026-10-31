@@ -71,7 +71,7 @@ Use `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platfo
 
 ## M3 design and local verification boundary
 
-Before implementing M3, review the proposed [architecture](M3_ARCHITECTURE_DESIGN.md), [work-package plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification specification](M3_VERIFICATION_PLAN.md), then obtain explicit design approval. Keep port and vessel data tenant-owned, avoid Administrator/Support business-data bypasses, and preserve all accepted M0-M2 regressions. Use disposable local E: storage, never run GitHub Actions and do not mark G3 verified without full executed evidence. Planning files alone are not implementation.
+The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [work-package plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification specification](M3_VERIFICATION_PLAN.md) govern the current feature-branch implementation. See the [source register](M3_IMPLEMENTATION_STATUS.md). Keep port and vessel data tenant-owned, avoid Administrator/Support business-data bypasses, and preserve all accepted M0-M2 regressions. Use disposable local E: storage, never run GitHub Actions and do not mark G3 verified without full executed evidence. Planning files alone are not implementation.
 
 ## Historical M1 identity implementation review boundary
 

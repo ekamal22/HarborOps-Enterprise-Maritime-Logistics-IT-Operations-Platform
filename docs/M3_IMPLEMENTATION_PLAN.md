@@ -1,13 +1,13 @@
 # M3 Ports and Vessels Reference Data: Implementation Plan
 
-**State:** Proposed plan; implementation has not started, G3 is open  
+**State:** Implementation source committed on feature branch; G3 local verification not executed, gate open  
 **Entry:** G2 verified, accepted and merged into `main` through PR #5  
 **Milestone packages:** M3-01, M3-02, M3-03, M3-04  
 **Design authority:** [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [Roadmap](ROADMAP.md), [Requirements](REQUIREMENTS.md), [G3 verification plan](M3_VERIFICATION_PLAN.md), [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
 
 ## 1. Scope control and implementation rules
 
-Implement only two tenant-owned reference resources, ports and vessels, with validated persistence, scoped APIs and a functional browser lookup/management flow. The M3 design is proposed and requires explicit design approval before implementation. Do not start M4, create voyage/container/shipment tables, introduce external data feeds, download a global registry as a runtime dependency, add payments, or change identity-provider architecture.
+Implement only two tenant-owned reference resources, ports and vessels, with validated persistence, scoped APIs and a functional browser lookup/management flow. The M3 design governs the implementation requested after planning. Do not treat committed source as verified behavior. Do not start M4, create voyage/container/shipment tables, introduce external data feeds, download a global registry as a runtime dependency, add payments, or change identity-provider architecture.
 
 - Preserve M0's synthetic baseline and health routes and M1's authentication/session lifecycle.
 - Preserve all accepted M2 organization/membership endpoints, role grants, last-administrator guards and session selection.
@@ -186,7 +186,7 @@ The design set consists of:
 1. [M3 architecture](M3_ARCHITECTURE_DESIGN.md): schema, API, permissions, ownership, status and future seams.
 2. This implementation plan: work-package files, dependency order, checkpoints and release boundaries.
 3. [G3 verification plan](M3_VERIFICATION_PLAN.md): mandatory executable scenario matrix and evidence requirements.
-4. [Project Status](STATUS.md): proposed design is documented, but M3 implementation not started, G3 open.
+4. [Project Status](STATUS.md) and [M3 implementation register](M3_IMPLEMENTATION_STATUS.md): implementation source is committed on a feature branch, but G3 is open and no runtime verification is claimed.
 5. [Roadmap](ROADMAP.md) and [Requirements](REQUIREMENTS.md): existing M3 allocation and cross-reference.
 
 **Next decision:** Architecture/design approval before implementation. Do not conflate this plan with implemented M3 or an accepted G3 gate.

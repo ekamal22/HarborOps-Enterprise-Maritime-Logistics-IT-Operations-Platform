@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const email = "operator@example.test";
+const email = "m2-operator@example.test";
 const password = process.env.HARBOROPS_TEST_USER_PASSWORD;
 
 async function signIn(page) {
@@ -20,7 +20,7 @@ test("active organization can be selected, reloaded, and cleared", async ({ page
   await options.selectOption({ label: "North Terminal (Administrator)" });
   await expect(page.getByText("Slug: north-terminal")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Memberships" })).toBeVisible();
-  await expect(page.getByRole("list").getByText("operator@example.test")).toBeVisible();
+  await expect(page.getByRole("list").getByText("m2-operator@example.test")).toBeVisible();
   await page.reload();
   await expect(page.getByText("Slug: north-terminal")).toBeVisible();
   await page.locator("#current-organization").selectOption("");

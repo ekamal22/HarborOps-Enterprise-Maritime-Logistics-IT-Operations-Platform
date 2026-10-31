@@ -102,13 +102,20 @@ jobs:
           printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | docker compose -p ho-verify run --rm -T \
             -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
             --account-cli provision operator@example.test "Synthetic Operator"
+      - name: Provision separate M2 browser identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\\n' "$HARBOROPS_TEST_USER_PASSWORD" | docker compose -p ho-verify run --rm -T \\
+            -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \\
+            --account-cli provision m2-operator@example.test "M2 Synthetic Administrator"
       - name: Bootstrap synthetic organization for M2 browser verification
         shell: bash
         run: |
           set -euo pipefail
           docker compose -p ho-verify run --rm -T \
             -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
-            --organization-cli bootstrap north-terminal "North Terminal" operator@example.test
+            --organization-cli bootstrap north-terminal "North Terminal" m2-operator@example.test
       - name: Persistent session restart, outage and replay
         shell: bash
         run: bash scripts/check-m1-session-recovery.sh --project ho-verify --confirm-local-outage

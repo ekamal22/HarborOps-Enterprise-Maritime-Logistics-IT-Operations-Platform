@@ -239,8 +239,7 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
             if (member.Role == "Administrator" && member.Status == "Active" &&
                 (roleName != "Administrator" || status != "Active"))
             {
-                var adminCount = await db.OrganizationMemberships.CountAsync(x =>
-                    x.OrganizationId == orgId && x.Status == "Active" && x.Role == "Administrator", ct);
+                var adminCount = await ActiveAdministratorCountAsync(orgId, ct);
                 if (adminCount <= 1) return new(null, OrganizationAccessError.Conflict);
             }
             var changed = await db.OrganizationMemberships
@@ -278,8 +277,7 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
             return OrganizationAccessError.Conflict;
         if (member.Role == "Administrator" && member.Status == "Active")
         {
-            var count = await db.OrganizationMemberships.CountAsync(x =>
-                x.OrganizationId == orgId && x.Role == "Administrator" && x.Status == "Active", ct);
+            var count = await ActiveAdministratorCountAsync(orgId, ct);
             if (count <= 1) return OrganizationAccessError.Conflict;
         }
         var changed = await db.OrganizationMemberships
@@ -294,6 +292,14 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
         await tx.CommitAsync(ct);
         return OrganizationAccessError.None;
     }
+
+    private Task<int> ActiveAdministratorCountAsync(Guid organizationId, CancellationToken ct) =>
+        (from membership in db.OrganizationMemberships.AsNoTracking()
+         join user in db.AuthUsers.AsNoTracking() on membership.UserId equals user.Id
+         where membership.OrganizationId == organizationId &&
+             membership.Role == "Administrator" && membership.Status == "Active" &&
+             user.Status == "Active"
+         select membership.Id).CountAsync(ct);
 
     private Task<int> InvalidateSelectionsAsync(Guid orgId, Guid userId, CancellationToken ct) =>
         db.AuthSessions.Where(x => x.UserId == userId && x.SelectedOrganizationId == orgId)

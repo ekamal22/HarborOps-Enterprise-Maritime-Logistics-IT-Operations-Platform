@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using HarborOps.Infrastructure.Persistence;
+using HarborOps.Infrastructure.Organizations;
 
 namespace HarborOps.Infrastructure.Identity;
+
+public sealed class LastActiveAdministratorException : Exception;
 
 public sealed record LoginOutcome(Guid UserId, Guid SessionId, long SecurityVersion,
     string Email, string DisplayName, DateTimeOffset AbsoluteExpiry);
@@ -127,6 +130,31 @@ public sealed class IdentityStore(HarborOpsDbContext db, PasswordHasher password
         if (!await passwords.VerifyAsync(password, credential.PasswordHash, ct)) return false;
         var now = clock.GetUtcNow();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        // Administrator membership mutations lock the same organization rows first.
+        // Holding these locks through account disablement prevents losing the last
+        // active administrator through a concurrent role or membership change.
+        var administeredOrganizations = await db.Organizations
+            .FromSqlInterpolated($"""
+                SELECT * FROM organizations
+                WHERE id IN (
+                    SELECT organization_id FROM organization_memberships
+                    WHERE user_id = {userId} AND role = 'Administrator' AND status = 'Active'
+                )
+                ORDER BY id FOR UPDATE
+                """)
+            .AsNoTracking().ToListAsync(ct);
+        foreach (var org in administeredOrganizations)
+        {
+            var activeAdministrators = await (
+                from member in db.OrganizationMemberships.AsNoTracking()
+                join account in db.AuthUsers.AsNoTracking() on member.UserId equals account.Id
+                where member.OrganizationId == org.Id &&
+                    member.Role == "Administrator" && member.Status == "Active" &&
+                    account.Status == "Active"
+                select member.Id).CountAsync(ct);
+            if (activeAdministrators <= 1)
+                throw new LastActiveAdministratorException();
+        }
         var updated = await db.AuthUsers.Where(x => x.Id == userId && x.Status == "Active")
             .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Status, "Disabled")
                 .SetProperty(x => x.DisabledAtUtc, now)

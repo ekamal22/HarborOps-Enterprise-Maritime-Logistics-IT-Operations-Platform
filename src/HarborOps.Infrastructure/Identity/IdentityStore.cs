@@ -4,7 +4,7 @@ using HarborOps.Infrastructure.Organizations;
 
 namespace HarborOps.Infrastructure.Identity;
 
-public sealed class LastActiveAdministratorException : Exception;
+public sealed class LastActiveAdministratorException : Exception { }
 
 public sealed record LoginOutcome(Guid UserId, Guid SessionId, long SecurityVersion,
     string Email, string DisplayName, DateTimeOffset AbsoluteExpiry);

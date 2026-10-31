@@ -106,6 +106,8 @@ public sealed class OrganizationIsolationTests
         var admin = (await identity.LoginAsync(adminEmail, Password, "org-test", CancellationToken.None))!;
         var member = (await identity.LoginAsync(memberEmail, Password, "org-test", CancellationToken.None))!;
         await store.SelectAsync(admin.UserId, admin.SessionId, org.Id, CancellationToken.None);
+        await Assert.ThrowsAsync<LastActiveAdministratorException>(() =>
+            identity.DisableSelfAsync(admin.UserId, Password, "org-test", CancellationToken.None));
 
         Assert.Equal(OrganizationAccessError.Forbidden,
             (await store.RemoveMemberAsync(admin.UserId, admin.SessionId, org.Id,

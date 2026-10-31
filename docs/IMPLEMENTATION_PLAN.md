@@ -47,7 +47,7 @@ M1-02 and M1-03 may proceed after M1-01; M1-04 integrates both. M1 did not intro
 
 ## M2 implementation source (committed on feature branch; unverified)
 
-The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation sequence](M2_IMPLEMENTATION_PLAN.md), and [G2 local test specification](M2_VERIFICATION_PLAN.md) govern this milestone. G1 is accepted. M2-01 through M2-03 source is committed on a feature branch, with [implementation evidence inventory](M2_IMPLEMENTATION_STATUS.md); M2-04 remains unexecuted and G2 open. Do not begin M3 based on source alone.
+The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation sequence](M2_IMPLEMENTATION_PLAN.md), and [G2 local test specification](M2_VERIFICATION_PLAN.md) govern this milestone. G1 is accepted. M2-01 through M2-03 source is committed on a feature branch, with [implementation evidence inventory](M2_IMPLEMENTATION_STATUS.md); M2-04's initial [GitHub suite](M2_EXECUTED_VERIFICATION.md) passed, but its full negative test specification remains incomplete. G2 open. Do not begin M3 based on source alone.
 
 | Package | Planned change | Gate evidence |
 | --- | --- | --- |

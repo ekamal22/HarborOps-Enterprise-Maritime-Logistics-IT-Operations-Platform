@@ -30,13 +30,10 @@ public static class MaritimePolicy
         for (var i = 0; i < 10; i++)
         {
             var c = text[i];
-            var val = c is >= '0' and <= '9' ? c - '0' : (c - 'A' + 10) + (c - 'A' + 10) / 11 + 1;
+            var val = c is >= '0' and <= '9' ? c - '0' : c - 'A' + 10;
             // ISO letter table skips 11, 22 and 33.
             if (c is >= 'A' and <= 'Z')
-            {
-                val = c - 'A' + 10;
                 val += (val - 1) / 10;
-            }
             sum += val * (1 << i);
         }
         if ((sum % 11) % 10 != text[10] - '0')

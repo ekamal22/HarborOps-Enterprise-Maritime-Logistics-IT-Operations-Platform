@@ -67,6 +67,20 @@ public sealed class ReferenceHistoricalUpgradeTests
             Assert.Equal(4, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(users, await db.AuthUsers.CountAsync());
             Assert.Equal(memberships, await db.OrganizationMemberships.CountAsync());
+
+            // Reverting only M3 must preserve the accepted M2 foundation,
+            // then the additive migration must be applicable again.
+            await db.Database.MigrateAsync("20261031020000_OrganizationMemberships");
+            Assert.Equal(3, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(users, await db.AuthUsers.CountAsync());
+            Assert.Equal(memberships, await db.OrganizationMemberships.CountAsync());
+            Assert.Equal(organization.Id,
+                (await db.AuthSessions.AsNoTracking().SingleAsync(s => s.Id == session.SessionId))
+                    .SelectedOrganizationId);
+            await db.Database.MigrateAsync();
+            Assert.Equal(4, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(0, await db.Ports.CountAsync());
+            Assert.Equal(0, await db.Vessels.CountAsync());
         }
         finally
         {

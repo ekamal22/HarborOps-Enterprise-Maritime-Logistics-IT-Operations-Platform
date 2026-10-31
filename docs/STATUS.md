@@ -1,6 +1,6 @@
 # Project Status
 
-**As of:** 2026-10-31
+**As of:** 2026-11-01 (M4 feature-branch state; main remains at the accepted G3 baseline)
 **Default branch:** `main` contains accepted M0, M1, M2 and M3 implementations, tests, documentation and verification records.
 **Baseline:** M0 merged via PRs #1 and #3; M1 merged via PR #4; M2 merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31.
 **Acceptance:** G0, G1, G2 and G3 explicitly accepted on 2026-10-31. G2 passed all 25 scenarios on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; [G2 evidence](M2_EXECUTED_VERIFICATION.md) remains preserved. G3 passed all 25 scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; the independent raw-evidence review found 174 successful .NET executions, 57 successful browser tests and clean HIGH/CRITICAL image scans. See [G3 executed verification](M3_EXECUTED_VERIFICATION.md). M3 is integrated into `main` by fast-forward; G4-G24 remain open.

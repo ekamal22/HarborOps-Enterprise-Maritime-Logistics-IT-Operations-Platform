@@ -58,9 +58,9 @@ public sealed class OrganizationAdversarialTests
         var second = storeB.PutMemberAsync(sb.UserId, sb.SessionId, org.Id, sa.UserId,
             "Analyst", "Active", 1, EventId, CancellationToken.None);
         var results = await Task.WhenAll(first, second).WaitAsync(TimeSpan.FromSeconds(25));
-        Assert.Single(results.Where(x => x.Error == OrganizationAccessError.None));
-        Assert.Single(results.Where(x => x.Error is OrganizationAccessError.Forbidden
-            or OrganizationAccessError.Revoked or OrganizationAccessError.Conflict));
+        Assert.Single(results, x => x.Error == OrganizationAccessError.None);
+        Assert.Single(results, x => x.Error is OrganizationAccessError.Forbidden
+            or OrganizationAccessError.Revoked or OrganizationAccessError.Conflict);
 
         var admins = await (from membership in db.OrganizationMemberships.AsNoTracking()
                             join user in db.AuthUsers.AsNoTracking() on membership.UserId equals user.Id

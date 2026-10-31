@@ -2,7 +2,7 @@
 
 **Status:** Supporting engineering guidance. This file is not an independent roadmap or authoritative dependency ledger.
 
-The [Product Requirements Document](PRD.md) defines user outcomes and release boundaries. The [Delivery Roadmap](ROADMAP.md) owns M0-M24 scope, sequencing, and gates. The [Execution Graph](EXECUTION_GRAPH.md), generated from [execution-graph.json](execution-graph.json), owns work-package IDs and dependency edges. [Status](STATUS.md) alone owns what is actually implemented and verified.
+The [Product Requirements Document](PRD.md) defines user outcomes and release boundaries. The [Delivery Roadmap](ROADMAP.md) owns M0-M24 scope and verification gates, while [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) governs concurrent workstreams and integration. The [Execution Graph](EXECUTION_GRAPH.md), generated from [execution-graph.json](execution-graph.json), owns work-package IDs and dependency edges. [Status](STATUS.md) alone owns what is actually implemented and verified.
 
 ## Work-package execution contract
 
@@ -61,6 +61,20 @@ The [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation plan](M2_IM
 ## M3 implementation (G3 accepted and merged)
 
 The [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification plan](M3_VERIFICATION_PLAN.md) define four bounded work packages: M3-01 freezes identifiers, tenant ownership, role permissions and fixtures; M3-02 adds port persistence and scoped endpoints; M3-03 adds vessel persistence and scoped endpoints; M3-04 delivers a browser reference workspace and executes G3-S01 to G3-S25. After the shared M3-01 contract, port and vessel work may proceed in parallel only with a coordinated additive migration. Implementation source and tests are committed, as recorded in [M3 implementation register](M3_IMPLEMENTATION_STATUS.md). G3-S01 to G3-S25 all passed in one complete local run on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); G3 was explicitly accepted on 2026-10-31, and the implementation is integrated into `main`. Preserve accepted M0-M3 behavior and do not use GitHub Actions.
+
+
+## Concurrent work-package implementation
+
+The canonical graph v3.0 defines technical dependencies at package level rather than forcing milestone-number order. Read the specific `depends_on` edges before allocating work. The accepted G0-G3 baseline may support several parallel streams, provided any mandatory D-IDs are resolved before affected implementation.
+
+- Begin independent work in separate named milestone branches and E:-backed worktrees; verify the base revision and explicit prerequisite acceptances.
+- Agree on shared route, permission, domain DTO, authentication and validation contracts before simultaneous integration. Never merge incompatible assumptions behind individually passing tests.
+- Coordinate all new EF Core/PostgreSQL migrations into one ordered, additive history. Rehearse both fresh and M0-M3 historical upgrades after branches converge.
+- Require local scoped evidence for each package; before gate closure, integrate upstream changes and rerun affected M0-M3 and cross-stream regressions at one final SHA.
+- Verified evidence is not explicit acceptance. Merge only after the specific gate is accepted; milestone numbering does not authorize another stream or merge.
+- G24 must revalidate the final integrated code, including security, recovery, performance, quarter checkpoints and the final M24-04 accessibility audit.
+
+See the [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) for ownership of shared contracts and detailed integration safeguards.
 
 ## Local development storage
 

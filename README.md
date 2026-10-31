@@ -50,9 +50,9 @@ M2 is merged into `main` through [PR #5](https://github.com/ekamal22/HarborOps-E
 
 M3 is implemented, locally verified, explicitly accepted on 2026-10-31 and integrated into `main` by fast-forward from `feat/m3-port-vessel-reference-data`. The additive PostgreSQL migration, scoped port/vessel APIs, React reference workspace, authorization and regression coverage all passed G3-S01 through G3-S25 on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. See the [executed verification](docs/M3_EXECUTED_VERIFICATION.md), [implementation register](docs/M3_IMPLEMENTATION_STATUS.md), [architecture](docs/M3_ARCHITECTURE_DESIGN.md), [plan](docs/M3_IMPLEMENTATION_PLAN.md) and [G3 specification](docs/M3_VERIFICATION_PLAN.md).
 
-### Next milestone: M4 voyages and containers reference data
+### Parallel-ready workstreams after G3
 
-M4 is planned and has not started. Its entry gate G3 is accepted; D-003 container identifier policy must be resolved before applicable M4 work. No M4 implementation, G4 verification or production deployment is implied. See [Roadmap](docs/ROADMAP.md) and [Decisions](docs/DECISIONS.md).
+M4 voyages/containers is one eligible next stream, not an exclusive next step. M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability and M19 recovery are also eligible based on accepted G3, alongside M20-01 security review and M23-01 design-system planning. Individual architecture decisions remain mandatory, including D-003 for M4 and D-002 for M7. No M4-M24 code has started or been approved merely through this planning change. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md), [Roadmap](docs/ROADMAP.md) and [Decisions](docs/DECISIONS.md).
 
 ### Planned modules
 

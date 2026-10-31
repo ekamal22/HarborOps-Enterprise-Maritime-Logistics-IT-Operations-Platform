@@ -135,6 +135,10 @@ The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) defines an opt-in local `--orga
 
 G2 tests use disposable databases and controlled environments. The [local G2 verification](M2_EXECUTED_VERIFICATION.md) ran `scripts/verify-m2-local.sh` against the isolated `ho-verify` Compose project with all caches and evidence on E:. Do not access or delete the primary workstation PostgreSQL volume or perform historical-volume compatibility ahead of scheduled checkpoints. A required unavailable tool or browser engine is BLOCKED, not a successful test.
 
+## Parallel development operations boundary
+
+Parallel workstreams must use distinct branches/worktrees, E:-backed output paths and disposable test Compose projects. Only a controlled migration integration may alter the canonical database schema; all branches must validate against the same accepted baseline and reconcile migration ordering before integration. Do not stop/prune primary volumes or reuse production credentials. New modules must preserve M0-M3 session/tenant security and emergency operational controls. A previously accepted recovery or scan gate does not exempt later changes from change-specific regression or final G24 release checks. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md).
+
 ## M3 reference-data operations (G3 accepted)
 
 M3 delivers accepted organization-owned port/vessel references through an additive PostgreSQL migration and same-origin scoped APIs. The [M3 architecture](M3_ARCHITECTURE_DESIGN.md) and [implementation plan](M3_IMPLEMENTATION_PLAN.md) define optimistic mutation versions and soft archive. Local G3 verification exercised startup, schema migration, real PostgreSQL outage/recovery, sanitized 503, session and role revocation, durable scope and disposable Compose cleanup; all 25 scenarios passed at `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([evidence](M3_EXECUTED_VERIFICATION.md)). G3 was explicitly accepted 2026-10-31 and M3 is in `main`. Production deployment, full backup/restore and later operational assurance remain out of scope.

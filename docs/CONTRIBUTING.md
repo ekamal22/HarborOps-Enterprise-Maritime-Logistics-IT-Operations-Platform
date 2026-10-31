@@ -57,10 +57,14 @@ Use `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platfo
 ## Scoped milestone execution
 
 - The release is split into M0-M24, each with its own G0-G24 evidence gate. The graph data contains the authoritative task dependencies.
-- Before starting a work package, identify its graph ID and verify all predecessors. Implement only its bounded output and necessary dependencies.
+- Before starting a work package, identify its graph ID and verify all **explicit** predecessors. Milestone numbers and P0-P5 stage labels are not serial prerequisites; ready packages may run concurrently. Implement only their bounded output and necessary dependencies.
 - Attach tests covering negative cases, permissions and migration implications to that specific work package, rather than deferring all verification until the final release.
-- Completion requires executed evidence. A reviewable commit, source inspection, or a successful partial test suite is insufficient to close a gate.
+- Completion requires executed evidence and explicit gate acceptance. A reviewable commit, source inspection, or successful partial test suite is insufficient to close a gate. Parallel source branches must be integrated and rerun against the merged source SHA before gate acceptance.
 - The former v1 M1-M6 node IDs are superseded. Historical task references must be mapped by deliverable and verification, not by copying IDs.
+
+## Concurrent branches and migration coordination
+
+Use one branch/worktree per independent milestone, from an accepted baseline. Establish shared API and permission contracts before integration, and coordinate additive database migrations in one canonical order. Keep caches, Docker images/data and evidence on E:. Never rebase unrelated unaccepted work into the same gate or infer that an earlier independent PASS certifies the combined result. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md). GitHub Actions remain prohibited, and commits require `[skip ci]`.
 
 ## Planning document authority
 

@@ -12,7 +12,14 @@
 - Blocked: a prerequisite or mandatory check is failing.
 - Acceptance pending: verified evidence is available, explicit acceptance not recorded.
 
-No item is accepted by implication. See STATUS.md for the current ledger.
+No item is accepted by implication. See [Status](STATUS.md) for the current ledger. Independently numbered gates may be verified and accepted in parallel when their explicit prerequisites are accepted. Milestone numbering alone is not an acceptance dependency. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md).
+
+
+## Independent gate verification and parallel integration
+
+Each gate G0-G24 retains its own full mandatory security, authorization, database, HTTP, browser, failure/recovery and documentation checks. The [Execution Graph](EXECUTION_GRAPH.md) defines which accepted gates a given work package needs. A verified-but-unaccepted gate cannot be relied upon for dependent implementation or final integration. Different milestones may close in a nonnumeric order when their actual dependencies have been satisfied.
+
+Cross-workstream integration must rerun affected previous gates' regression cases and all changed domain/API/migration/authorization contracts against the final integrated SHA. Independent branch PASS records alone do not prove the merged application. G19 recovery and G20 security outcomes require later change-specific regression checks. **G24 requires accepted G0-G23**, a complete current-system verification and final M24-04 accessibility evidence. The historical snapshot checkpoints at G6, G12, G18 and G24 remain mandatory at their named gate, not based on calendar or numeric percent. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md).
 
 ## Final-release-only accessibility gate
 

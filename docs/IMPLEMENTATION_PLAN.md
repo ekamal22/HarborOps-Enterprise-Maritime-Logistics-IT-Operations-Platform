@@ -30,7 +30,7 @@ For each work package, record:
 
 The accepted M0 implementation is integrated into `main`. It includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic database seed, an idle worker shell, a React status UI, Docker Compose, and executable test suites. The corrected source passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at `fec7429415fede121db8a4a34f0df72cd4fac609`: 1 unit, 10 contract, 5 fresh plus 5 repeat integration, 6 web and 12 functional browser tests, Compose outage/recovery, and PostgreSQL/API/web vulnerability scans. **G0 accepted** on 2026-10-31. No M1 code has started. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
-G0 evidence is recorded and accepted. D-001 is now approved as the M1 browser cookie and server-session architecture. M1 has passed verification, G1 was accepted on 2026-10-31 and PR #4 was merged into `main` at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. M2 is verified locally (G2) with Acceptance pending. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 verification record is [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) on `main`; [M0 Verification](M0_VERIFICATION.md) preserves the earlier historical run.
+G0 evidence is recorded and accepted. D-001 is now approved as the M1 browser cookie and server-session architecture. M1 has passed verification, G1 was accepted on 2026-10-31 and PR #4 was merged into `main` at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. M2 is verified locally and G2 was accepted on 2026-10-31. Execution graph v2 splits the former M1-M6 bundles into M1-M24, with narrowly scoped dependencies and acceptance gates; do not carry old milestone IDs forward without explicit remapping. The current M0 verification record is [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) on `main`; [M0 Verification](M0_VERIFICATION.md) preserves the earlier historical run.
 
 ## M1 implementation work packages (completed, G1 accepted)
 
@@ -45,9 +45,9 @@ Authoritative design: [M1 Authentication Design](M1_AUTHENTICATION_DESIGN.md), [
 
 M1-02 and M1-03 may proceed after M1-01; M1-04 integrates both. M1 did not introduce organization authorization. Its G1 verification, acceptance and merge are complete. M2 adds organization authorization on a separate branch; M2 verification and acceptance remain separate. Database compatibility with existing retained local volumes is not a G1 requirement. All formal accessibility testing remains the final M24-04 milestone.
 
-## M2 implementation (verified locally; Acceptance pending)
+## M2 implementation (verified locally; G2 accepted)
 
-The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation sequence](M2_IMPLEMENTATION_PLAN.md), and [G2 local test specification](M2_VERIFICATION_PLAN.md) govern this milestone. G1 is accepted. M2-01 through M2-04 are complete on a feature branch, with the [implementation evidence inventory](M2_IMPLEMENTATION_STATUS.md). The full G2 matrix passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` ([executed record](M2_EXECUTED_VERIFICATION.md)). G2 verified locally; Acceptance pending. Do not begin M3 or merge M2 until acceptance is recorded.
+The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation sequence](M2_IMPLEMENTATION_PLAN.md), and [G2 local test specification](M2_VERIFICATION_PLAN.md) govern this milestone. G1 is accepted. M2-01 through M2-04 are complete on a feature branch, with the [implementation evidence inventory](M2_IMPLEMENTATION_STATUS.md). The full G2 matrix passed locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` ([executed record](M2_EXECUTED_VERIFICATION.md)). G2 verified locally and accepted on 2026-10-31. M2 is not merged and M3 has not started; both need a separate decision.
 
 | Package | Planned change | Gate evidence |
 | --- | --- | --- |

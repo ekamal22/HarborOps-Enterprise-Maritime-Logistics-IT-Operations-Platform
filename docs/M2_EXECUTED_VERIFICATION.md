@@ -5,7 +5,7 @@
 **Verified source revision:** `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` (local branch `feat/harborops-m2-g2-verification-adad62`, which extends the head of [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5), `5cc296697eab23de83c3395509e1c0fd5da00629`)  
 **Verification method:** complete local execution on the Windows development machine, with every controllable path on E:. No GitHub Actions run was started after the local-only restriction was issued.  
 **Result:** every mandatory scenario G2-S01 through G2-S25 passed on the verified revision.  
-**Gate state:** G2 verified locally. Acceptance pending. PR #5 is not merged and no M3 work has started.
+**Gate state:** G2 verified locally and accepted on 2026-10-31. PR #5 is not merged and no M3 work has started.
 
 Commits after the verified revision change documentation only. The planning consistency checks were rerun on the final documentation commit (see [Documentation commits](#documentation-commits)).
 

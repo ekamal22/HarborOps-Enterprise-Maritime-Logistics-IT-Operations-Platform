@@ -42,7 +42,7 @@ Run fresh disposable PostgreSQL migration tests plus a disposable **M0-seeded-to
 
 The detailed [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation sequence](M2_IMPLEMENTATION_PLAN.md) and [G2 verification specification](M2_VERIFICATION_PLAN.md) require two-organization real-database fixtures, valid foreign organization and membership identifiers, a five-role permission matrix, explicit server-session organization selection, denied privilege escalation, suspension/revocation and last-active-Administrator concurrency tests. The verification must also preserve accepted M0 and M1 behavior.
 
-M2 source and the complete G2 regression suite are committed on the feature branch. All 25 scenarios G2-S01 through G2-S25 passed in a complete local run on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; see the [executed verification record](M2_EXECUTED_VERIFICATION.md). No retained workstation data was used. G2 verified locally; Acceptance pending.
+M2 source and the complete G2 regression suite are committed on the feature branch. All 25 scenarios G2-S01 through G2-S25 passed in a complete local run on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; see the [executed verification record](M2_EXECUTED_VERIFICATION.md). No retained workstation data was used. G2 verified locally and accepted on 2026-10-31.
 
 ## Granular milestone verification gates (v2)
 

@@ -1,6 +1,6 @@
 # M2 Organizations and Role Isolation: Implementation Plan
 
-**State:** M2-01 through M2-04 complete on the feature branch; G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; Acceptance pending.  
+**State:** M2-01 through M2-04 complete on the feature branch; G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31.  
 **Entry:** G1 verified and accepted on 2026-10-31, with M1 integrated into `main`.  
 **Scope authority:** [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [Roadmap](ROADMAP.md), [execution graph](EXECUTION_GRAPH.md), [Requirements](REQUIREMENTS.md), [G2 verification](M2_VERIFICATION_PLAN.md).
 
@@ -8,7 +8,7 @@
 
 Implement only M2-01 to M2-04. Do not modify M0/M1 applied migration history, expand to shipments/reference entities, run against the primary local PostgreSQL database or use the only retained Docker volume. G2 verification ran locally with disposable resources and every controllable path on E: (see the [executed record](M2_EXECUTED_VERIFICATION.md)); earlier GitHub runs are historical.
 
-This plan is the implementation contract. The [M2 source register](M2_IMPLEMENTATION_STATUS.md) records the committed implementation paths, and the [executed record](M2_EXECUTED_VERIFICATION.md) records the runtime tests that validated them. Verification and acceptance remain separate: G2 is verified locally and Acceptance pending.
+This plan is the implementation contract. The [M2 source register](M2_IMPLEMENTATION_STATUS.md) records the committed implementation paths, and the [executed record](M2_EXECUTED_VERIFICATION.md) records the runtime tests that validated them. Verification and acceptance remain separate: G2 is verified locally and accepted on 2026-10-31.
 
 ## M2-01: Model memberships and role grants
 
@@ -138,4 +138,4 @@ These choices are described in the design, but the documentation does not imply 
 
 ## Milestone exit
 
-M2 ends only with G2 evidence covering the full two-organization/role matrix, verified server-side isolation, migration safety, session selection, browser flow and preserved M0/M1 behavior. **Current state: M2-01 through M2-04 complete on the feature branch; G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; Acceptance pending.**
+M2 ends only with G2 evidence covering the full two-organization/role matrix, verified server-side isolation, migration safety, session selection, browser flow and preserved M0/M1 behavior. **Current state: M2-01 through M2-04 complete on the feature branch; G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31.**

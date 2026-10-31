@@ -45,7 +45,7 @@ D-001 is implemented on `main` and G1 was verified and accepted on 2026-10-31, w
 - **Events and confidentiality:** bounded `auth_events` with correlation/result codes but no plaintext passwords, hashes, cookies, CSRF tokens or raw account identifiers for unknown logins. G1 tests verify redaction.
 - **Boundary:** identity and authentication are M1. Organization memberships/roles are M2; integration credentials are M7; complete accessibility testing remains M24-04.
 
-## M2 organization authorization security implementation (verified locally; Acceptance pending)
+## M2 organization authorization security implementation (verified locally; G2 accepted)
 
 The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) introduces live PostgreSQL membership and role checks on each scoped call, server-session organization selection, a fixed permission matrix, and organization ownership predicates for every organization/member read and write. A selected organization is context, **not** a grant. Changing a role, membership status or organization status revokes access on the next protected request. No support or administrator role implies an automatic global read of business data.
 

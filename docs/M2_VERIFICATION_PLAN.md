@@ -1,6 +1,6 @@
 # G2 Organizations and Role Isolation: Verification Plan
 
-**Status:** G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; Acceptance pending. All 25 scenarios below passed in a complete local run; see the [executed record](M2_EXECUTED_VERIFICATION.md). Earlier GitHub runs are historical.  
+**Status:** G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31. All 25 scenarios below passed in a complete local run; see the [executed record](M2_EXECUTED_VERIFICATION.md). Earlier GitHub runs are historical.  
 **Gate:** G2; requires separate acceptance after complete successful evidence  
 **Prerequisites:** M2-01, M2-02, M2-03 and M2-04 as defined in the [execution graph](EXECUTION_GRAPH.md)  
 **Reference:** [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [implementation plan](M2_IMPLEMENTATION_PLAN.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Status](STATUS.md).
@@ -127,4 +127,4 @@ Do not fabricate passing test counts or mark G2 complete based on this document.
 
 ## Current status
 
-G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`: all 25 scenarios passed in one complete run (22 unit, 12 contract, 32 fresh and 32 repeated integration, 6 frontend and 24 browser tests, plus the operational and security stages). **Acceptance pending.** No merge of M2 and no M3 work until acceptance is recorded.
+G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`: all 25 scenarios passed in one complete run (22 unit, 12 contract, 32 fresh and 32 repeated integration, 6 frontend and 24 browser tests, plus the operational and security stages). **G2 accepted on 2026-10-31.** M2 is not merged and no M3 work has started.

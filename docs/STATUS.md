@@ -3,7 +3,7 @@
 **As of:** 2026-10-31
 **Default branch:** `main` contains accepted M0 and M1 source, runtime, tests, documentation and verification workflows.
 **Baseline:** M0 was merged via PRs #1 and #3. M1 was accepted and merged via [PR #4](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/4) at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`.
-**Acceptance:** G0 and G1 verified and explicitly accepted on 2026-10-31. M1 verification: [run 41143665657](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41143665657) and [run 41144356898](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41144356898). G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; Acceptance pending. G3-G24 remain open.
+**Acceptance:** G0 and G1 verified and explicitly accepted on 2026-10-31. M1 verification: [run 41143665657](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41143665657) and [run 41144356898](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41144356898). G2 verified locally on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; G2 accepted on 2026-10-31. G3-G24 remain open.
 
 ## Accepted M1 integration
 
@@ -17,7 +17,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | --- | --- | --- |
 | **M0 Engineering baseline verification** | G0 verified and accepted | [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) passed all required .NET, clean/seeded PostgreSQL, web, functional browser, Compose recovery and final image checks on `fec7429415fede121db8a4a34f0df72cd4fac609`. |
 | **M1 Authentication and session lifecycle** | G1 verified and accepted; merged into `main` | [M1 verification register](M1_IMPLEMENTATION_VERIFICATION.md); both final CI runs passed; PR #4 merge `8f9fc0d506a9e1dc1d4f5acab936622df988f413` on 2026-10-31. |
-| **M2 Organizations and role isolation** | G2 verified locally; Acceptance pending | [Executed M2 verification](M2_EXECUTED_VERIFICATION.md): complete local run of G2-S01 to G2-S25 on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` (22 unit, 12 contract, 32 fresh and 32 repeated PostgreSQL integration, 6 frontend and 24 browser tests (Chromium, Firefox, WebKit), Compose outage and recovery, M1 session recovery, authenticated organization outage recovery and three clean image scans), all on E:. Earlier GitHub runs are retained as history. [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) is not merged. |
+| **M2 Organizations and role isolation** | G2 verified locally and accepted on 2026-10-31 | [Executed M2 verification](M2_EXECUTED_VERIFICATION.md): complete local run of G2-S01 to G2-S25 on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1` (22 unit, 12 contract, 32 fresh and 32 repeated PostgreSQL integration, 6 frontend and 24 browser tests (Chromium, Firefox, WebKit), Compose outage and recovery, M1 session recovery, authenticated organization outage recovery and three clean image scans), all on E:. Earlier GitHub runs are retained as history. [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) is not merged. |
 | **M3 Ports and vessels reference data** | Planned | No verified implementation or accepted gate G3 |
 | **M4 Voyages and containers reference data** | Planned | No verified implementation or accepted gate G4 |
 | **M5 Shipment lifecycle and concurrency** | Planned | No verified implementation or accepted gate G5 |
@@ -75,7 +75,7 @@ The `main` branch contains the M0 runtime and M1 authentication implementation. 
 
 The [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 execution sequence](M2_IMPLEMENTATION_PLAN.md) and [G2 verification plan](M2_VERIFICATION_PLAN.md) govern the milestone. M2-01 through M2-04 are complete on the feature branch: the additive migration, scoped endpoints, membership service, browser controls and the full test matrix. G2 verification ran entirely on the local Windows machine with every controllable path on E: (see the storage section of the [executed record](M2_EXECUTED_VERIFICATION.md)). All 25 scenarios G2-S01 through G2-S25 passed on source revision `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. The `main` branch remains at the accepted M1 baseline and M2 is not merged.
 
-G0 and G1 are accepted. G2 is verified locally and Acceptance pending; do not merge M2 or begin M3 until acceptance is recorded. D-003 remains scheduled for M4, D-002 for M7. Dedicated accessibility verification remains M24-04; historical-volume compatibility stays at M6, M12, M18 and M24-03.
+G0 and G1 are accepted. G2 is verified locally and accepted on 2026-10-31. Merging M2 and starting M3 are separate steps that have not been taken. D-003 remains scheduled for M4, D-002 for M7. Dedicated accessibility verification remains M24-04; historical-volume compatibility stays at M6, M12, M18 and M24-03.
 
 ## Storage and residual risk
 

@@ -1,4 +1,5 @@
 using HarborOps.Domain.Organizations;
+using HarborOps.Infrastructure;
 using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.Persistence;

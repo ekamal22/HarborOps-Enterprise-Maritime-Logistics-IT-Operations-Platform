@@ -228,8 +228,10 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         if (currentSession.SelectedOrganizationId != orgId)
             return OrganizationAccessError.NotFound;
         if (org is null || org.Status != "Active") return OrganizationAccessError.Revoked;
-        var user = await db.AuthUsers.AsNoTracking()
-            .SingleOrDefaultAsync(u => u.Id == session.UserId, ct);
+        // Serialize account disablement and password resets with this write.
+        var user = await db.AuthUsers
+            .FromSqlInterpolated($"SELECT * FROM users WHERE id = {session.UserId} FOR SHARE")
+            .AsNoTracking().SingleOrDefaultAsync(ct);
         if (user is null || user.Status != "Active" ||
             user.SecurityVersion != currentSession.SecurityVersion)
             return OrganizationAccessError.Revoked;

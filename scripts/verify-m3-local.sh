@@ -117,7 +117,7 @@ setup_m3() {
 run_stage setup-fixtures setup_m3
 run_stage fixtures node scripts/prepare-m3-browser-fixtures.mjs
 export HARBOROPS_M3_FIXTURES=1
-run_stage browsers bash scripts/verify-m2-local.sh browsers
+run_stage browsers bash scripts/run-m3-browsers-local.sh
 run_stage reference-outage node scripts/check-m3-reference-outage.mjs
 run_stage recovery bash scripts/verify-m2-local.sh recovery
 run_stage scan bash scripts/verify-m2-local.sh scan

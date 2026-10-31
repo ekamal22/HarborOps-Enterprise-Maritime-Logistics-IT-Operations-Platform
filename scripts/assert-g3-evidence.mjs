@@ -65,27 +65,34 @@ const unit = name => {
   return matches.length > 0 && matches.every(([, outcomes]) =>
     outcomes.length > 0 && outcomes.every(v => v === "Passed"));
 };
-const browserFile = process.env.HARBOROPS_G3_JSON_REPORT || path.join(root, "playwright-g3.json");
-if (!fs.existsSync(browserFile) || fs.statSync(browserFile).mtimeMs < started - 2000)
-  throw new Error("Missing fresh Playwright JSON");
-const report = JSON.parse(fs.readFileSync(browserFile, "utf8"));
-if ((report.stats?.unexpected ?? 0) !== 0 || (report.stats?.interrupted ?? 0) !== 0 ||
-    (report.stats?.skipped ?? 0) !== 0)
-  throw new Error("Playwright run contains unexpected, interrupted or skipped tests");
+const browserRoot = path.join(root, "playwright");
+if (!fs.existsSync(browserRoot)) throw new Error("Missing per-spec browser reports");
+const files = fs.readdirSync(browserRoot).filter(file => file.endsWith(".json"));
+if (!files.length) throw new Error("No browser reports");
 const browserCases = [];
-function walk(suites) {
-  for (const suite of suites ?? []) {
-    for (const spec of suite.specs ?? []) {
-      for (const test of spec.tests ?? []) {
-        browserCases.push({ title: spec.title, engine: test.projectName,
-          expectedStatus: test.expectedStatus,
-          results: (test.results ?? []).map(result => result.status) });
+for (const file of files) {
+  const location = path.join(browserRoot, file);
+  if (fs.statSync(location).mtimeMs < started - 2000)
+    throw new Error("Stale browser report: " + file);
+  const report = JSON.parse(fs.readFileSync(location, "utf8"));
+  if ((report.stats?.unexpected ?? 0) !== 0 ||
+      (report.stats?.interrupted ?? 0) !== 0 ||
+      (report.stats?.skipped ?? 0) !== 0)
+    throw new Error("Browser report failed or skipped tests: " + file);
+  function walk(suites) {
+    for (const suite of suites ?? []) {
+      for (const spec of suite.specs ?? []) {
+        for (const test of spec.tests ?? []) {
+          browserCases.push({ title: spec.title, engine: test.projectName,
+            expectedStatus: test.expectedStatus,
+            results: (test.results ?? []).map(result => result.status) });
+        }
       }
+      walk(suite.suites);
     }
-    walk(suite.suites);
   }
+  walk(report.suites);
 }
-walk(report.suites);
 const browser = name => ["chromium", "firefox", "webkit"].every(engine =>
   browserCases.some(row => row.engine === engine && row.title === name &&
     row.expectedStatus !== "skipped" && row.results.length > 0 &&

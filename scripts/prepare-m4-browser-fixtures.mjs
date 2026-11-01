@@ -128,19 +128,29 @@ for (const slug of ["m3-north","m3-east"]) {
       plannedDepartureAtUtc: "2026-11-01T22:00:00Z",
       plannedArrivalAtUtc: "2026-11-02T06:00:00Z" }]
   ];
-  for (const [kind, definition] of definitions) {
-    const path = root + "/" + kind;
-    let rows = (await manager.request("GET", path + "?recordStatus=All&limit=100"))[kind];
-    let row = rows.find(x => x.referenceCode === definition.referenceCode);
-    if (!row) {
-      row = await manager.request("POST", path, definition);
-      assert.equal(row.referenceCode, definition.referenceCode);
+  async function ensureMaritimeRecords() {
+    const snapshot = [];
+    for (const [kind, definition] of definitions) {
+      const path = root + "/" + kind;
+      let rows = (await manager.request("GET", path + "?recordStatus=All&limit=100"))[kind];
+      let row = rows.find(x => x.referenceCode === definition.referenceCode);
+      if (!row) {
+        row = await manager.request("POST", path, definition);
+        assert.equal(row.referenceCode, definition.referenceCode);
+      }
+      rows = (await manager.request("GET", path + "?recordStatus=All&limit=100"))[kind];
+      const matches = rows.filter(x => x.referenceCode === definition.referenceCode);
+      assert.equal(matches.length, 1, "M4 fixture must remain unique");
+      assert.equal(matches[0].id, row.id);
+      assert.equal(matches[0].recordStatus, "Active");
+      snapshot.push([kind, matches[0].id, matches[0].referenceCode,
+        matches[0].version, matches[0].recordStatus]);
     }
-    rows = (await manager.request("GET", path + "?recordStatus=All&limit=100"))[kind];
-    const matches = rows.filter(x => x.referenceCode === definition.referenceCode);
-    assert.equal(matches.length, 1, "M4 fixture must be idempotent");
-    assert.equal(matches[0].id, row.id);
-    assert.equal(matches[0].recordStatus, "Active");
+    return snapshot;
   }
+  const firstRecords = await ensureMaritimeRecords();
+  const secondRecords = await ensureMaritimeRecords();
+  assert.deepEqual(secondRecords, firstRecords,
+    "Repeated voyage/container fixture setup must preserve identities and versions");
 }
 console.log("M4 two-tenant five-role deterministic voyage and container fixtures: PASS");

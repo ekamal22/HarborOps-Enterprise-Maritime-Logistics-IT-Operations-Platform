@@ -42,7 +42,24 @@ A repository-read audit at the remediation branch verified:
 
 **No successful build, SQL migration, Postgres direct-SQL execution, xUnit run, browser launch, Docker outage, Trivy scan, or local storage cleanup has been performed in this review.** Corrections committed to a source branch do not themselves constitute a verified result.
 
-## 4. Required next execution
+## 4. Follow-up source review
+
+At source `c2cdaf935bd4`, the shipment workspace was found to read its list row
+without requesting scoped port labels from the detail endpoint. The selection
+path now retrieves both scoped detail and manual history, retains local form
+edits and ignores stale responses. The existing Auditor browser scenario
+exercises the port labels.
+
+The G5 runner previously stopped before final evidence packaging when G5-S01
+was pending. It now records the incomplete evidence gate, seals and archives
+the technical run after verified teardown, and still returns a nonzero status.
+It does not bypass the contract decision or convert incomplete evidence into
+a passing gate.
+
+These follow-up changes are committed source corrections only. Execution and
+independent evidence review remain required.
+
+## 5. Required next execution
 
 1. Use the committed `scripts/verify-m5-local.sh` in an E:-backed Windows Git Bash context. Source and browser caches, Docker data, evidence and scratch output must remain on E:, with only safe, positively attributable C: temporary cleanup permitted.
 2. Run the complete local G5 pipeline on one final SHA. The mandatory M5-local decision at [M5 local contract](M5_LOCAL_CONTRACT_DECISION.md) is still pending. G5-S01 must not be bypassed.

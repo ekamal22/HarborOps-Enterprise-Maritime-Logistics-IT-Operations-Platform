@@ -128,8 +128,18 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     const generation = ++selectionSerial.current;
     setSelected(row); setForm(fromRow(row)); setCreating(false); setHistory([]); setConflict("");
     try {
-      const response = await shipmentHistory(organizationId, row.id);
-      if (generation === selectionSerial.current) setHistory(response.changes);
+      const [detail, response] = await Promise.all([
+        shipmentDetail(organizationId, row.id),
+        shipmentHistory(organizationId, row.id)
+      ]);
+      if (generation !== selectionSerial.current) return;
+      // Keep local form edits intact while resolving labels through the scoped detail route.
+      setSelected(current => current?.id === row.id ? {
+        ...current,
+        originPortLabel: detail.originPortLabel,
+        destinationPortLabel: detail.destinationPortLabel
+      } : current);
+      setHistory(response.changes);
     } catch (cause) {
       if (generation !== selectionSerial.current) return;
       setError(organizationError(cause)); invalidate(cause);

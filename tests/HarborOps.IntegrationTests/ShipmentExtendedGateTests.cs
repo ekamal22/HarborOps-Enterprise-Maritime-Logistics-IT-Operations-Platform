@@ -258,6 +258,7 @@ public sealed class ShipmentExtendedGateTests
     [InlineData("security",false)]
     [InlineData("membership",false)]
     [InlineData("downgrade",false)]
+    [InlineData("auditor",true)]
     [InlineData("suspension",false)]
     [InlineData("selection",false)]
     public async Task QueuedShipmentReadRechecksEveryAuthorizationDependency(
@@ -310,7 +311,11 @@ public sealed class ShipmentExtendedGateTests
             if(change=="membership")await db.OrganizationMemberships
                 .Where(x=>x.OrganizationId==f.A&&x.UserId==user.Id)
                 .ExecuteUpdateAsync(u=>u.SetProperty(x=>x.Status,"Removed"));
+            // Support has no shipment read permission; Auditor keeps it (positive control).
             if(change=="downgrade")await db.OrganizationMemberships
+                .Where(x=>x.OrganizationId==f.A&&x.UserId==user.Id)
+                .ExecuteUpdateAsync(u=>u.SetProperty(x=>x.Role,"Support"));
+            if(change=="auditor")await db.OrganizationMemberships
                 .Where(x=>x.OrganizationId==f.A&&x.UserId==user.Id)
                 .ExecuteUpdateAsync(u=>u.SetProperty(x=>x.Role,"Auditor"));
             if(change=="suspension")

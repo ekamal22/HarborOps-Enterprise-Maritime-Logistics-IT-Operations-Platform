@@ -314,10 +314,10 @@ public sealed class ShipmentBoundaryTests
             $"UPDATE shipments SET workflow_status='Completed', version=version+1 WHERE id={id}"));
         // A database failure during the status-history insert must roll back the shipment update.
         await db.Database.ExecuteSqlRawAsync("""
-            CREATE FUNCTION g5_test_abort_history() RETURNS trigger LANGUAGE plpgsql AS $
+            CREATE FUNCTION g5_test_abort_history() RETURNS trigger LANGUAGE plpgsql AS $$
             BEGIN
                 RAISE EXCEPTION 'G5 injected history failure' USING ERRCODE='23514';
-            END $;
+            END $$;
             CREATE TRIGGER g5_test_abort_history AFTER INSERT ON shipment_status_changes
                 FOR EACH ROW EXECUTE FUNCTION g5_test_abort_history();
             """);

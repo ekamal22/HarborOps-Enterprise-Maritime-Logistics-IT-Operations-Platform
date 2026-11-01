@@ -252,6 +252,27 @@ public sealed class ShipmentBoundaryTests
         var prefix = "G5PAGE" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
         for (var i = 0; i < 27; i++)
             await Seed(manager, f.A, p.A, p.B, prefix + "-" + i);
+        // Same-prefix shipments owned by the other tenant must never appear in this tenant's pages.
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            var user = await db.Shipments.AsNoTracking().Where(x => x.OrganizationId == f.A)
+                .Select(x => x.ChangedByUserId).FirstAsync();
+            var origin = new PortReference { Id = Guid.NewGuid(), OrganizationId = f.B,
+                ReferenceCode = "G5P" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant(), Name = "Other tenant origin",
+                CountryCode = "US", CreatedAtUtc = DateTimeOffset.UtcNow, UpdatedAtUtc = DateTimeOffset.UtcNow };
+            var destination = new PortReference { Id = Guid.NewGuid(), OrganizationId = f.B,
+                ReferenceCode = "G5Q" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant(), Name = "Other tenant destination",
+                CountryCode = "US", CreatedAtUtc = DateTimeOffset.UtcNow, UpdatedAtUtc = DateTimeOffset.UtcNow };
+            db.Ports.AddRange(origin, destination);
+            await db.SaveChangesAsync();
+            for (var i = 0; i < 3; i++)
+                await db.Database.ExecuteSqlInterpolatedAsync($@"
+                  INSERT INTO shipments(id,organization_id,reference_code,origin_port_id,destination_port_id,
+                    created_at_utc,updated_at_utc,changed_by_user_id)
+                  VALUES ({Guid.NewGuid()},{f.B},{prefix + "-OTHER-" + i},{origin.Id},{destination.Id},
+                    {DateTimeOffset.UtcNow},{DateTimeOffset.UtcNow},{user})");
+        }
         using var first = await manager.GetAsync(root + "?limit=25&q=" + prefix);
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         var j1 = await first.Content.ReadFromJsonAsync<JsonElement>();
@@ -264,6 +285,8 @@ public sealed class ShipmentBoundaryTests
         using var second = await manager.GetAsync(root + "?limit=25&q=" + prefix + "&after=" + after);
         var j2 = await second.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(2, j2.GetProperty("shipments").GetArrayLength());
+        Assert.All(j1.GetProperty("shipments").EnumerateArray().Concat(j2.GetProperty("shipments").EnumerateArray()),
+            item => Assert.Equal(f.A, item.GetProperty("organizationId").GetGuid()));
         Assert.All(j2.GetProperty("shipments").EnumerateArray(), item =>
             Assert.DoesNotContain(item.GetProperty("id").GetGuid(), firstIds));
         Assert.Equal(JsonValueKind.Null, j2.GetProperty("nextAfter").ValueKind);

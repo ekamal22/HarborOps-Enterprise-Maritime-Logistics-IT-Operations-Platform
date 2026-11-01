@@ -21,7 +21,7 @@ const fresh = name => fs.existsSync(file(name)) && fs.statSync(file(name)).isFil
   fs.statSync(file(name)).size > 0 && fs.statSync(file(name)).mtimeMs >= started - 2000;
 assert.ok(!fresh("g5-aborted.txt"), "G5 execution contains a current abort marker");
 const stages = [
-  "decision-unit","schema-index","preflight","postgres-image","dotnet","deps","web","docs",
+  "decision-unit","schema-index","shipment-schema","preflight","postgres-image","dotnet","deps","web","docs",
   "stack","accounts","organizations","session","setup-fixtures","fixtures","m4-fixtures",
   "m5-fixtures","browsers","reference-outage","maritime-outage","shipment-outage","recovery","scan"
 ];

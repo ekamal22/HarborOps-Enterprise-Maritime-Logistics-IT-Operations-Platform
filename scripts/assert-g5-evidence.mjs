@@ -89,7 +89,7 @@ const scanned = ["postgres","api","web"].every(name => {
     !(entry.Vulnerabilities || []).some(v => ["HIGH","CRITICAL"].includes(v.Severity)));
 });
 const decisionText = fs.readFileSync("docs/M5_LOCAL_CONTRACT_DECISION.md", "utf8");
-const contractAccepted = /^\\*\\*State:\\*\\* Accepted\\b/m.test(decisionText);
+const contractAccepted = /^\*\*State:\*\* Accepted\b/m.test(decisionText);
 const scenarios = [
   ["S01", contractAccepted && unit("ShipmentPolicyTests.WorkflowMatrix")],
   ["S02", unit("ShipmentPolicyTests.WorkflowMatrix") && unit("ShipmentPolicyTests.RejectUnknownStatus")],

@@ -46,9 +46,10 @@ for (const milestone of graph.milestones) {
   assert(acceptance.includes("| **G" + number + "** | " + milestone.id + " "), "Acceptance gate missing for " + milestone.id);
   for (const id of milestone.decisions || []) {
     const line = decisions.split("\n").find(s => s.startsWith("| " + id + " |"));
-    if (id === "D-001") {
-      assert(decisions.includes("### D-001:") && milestone.id === "M1",
-        "Approved authentication decision missing or misallocated");
+    const accepted = { "D-001": "M1", "D-003": "M4" };
+    if (Object.hasOwn(accepted, id)) {
+      assert(new RegExp("^#{2,3} " + id + ":", "m").test(decisions) && milestone.id === accepted[id],
+        "Approved decision " + id + " missing or misallocated");
     } else {
       assert(line && line.endsWith("| " + milestone.id + " |"), "Decision deadline mismatch " + id);
     }

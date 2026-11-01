@@ -30,7 +30,7 @@ function validateGraph(data,requirementContent,decisionContent) {
   if(i===0 && work[0].depends_on.length)throw Error("Unexpected M0 entry");
   if(i>0 && !work[0].depends_on.some(d=>/^G\d+$/.test(d)))throw Error("Missing accepted-gate entry "+m.id);
   if(work.slice(1).some(n=>n.depends_on.length===0))throw Error("Orphan node "+m.id);
-  for(const id of m.decisions??[])if(!decisionContent.includes("| "+id+" |") && !decisionContent.includes("### "+id+":"))throw Error("Unknown decision "+m.id+" "+id);
+  for(const id of m.decisions??[])if(!decisionContent.includes("| "+id+" |") && !new RegExp("^#{2,3} "+id+":","m").test(decisionContent))throw Error("Unknown decision "+m.id+" "+id);
  }
 }
 

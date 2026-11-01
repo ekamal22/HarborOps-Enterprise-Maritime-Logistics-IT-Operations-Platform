@@ -4,9 +4,9 @@
 
 The established modular monolith remains the single shared architecture. Workstream parallelism changes planning prerequisites, not deployment topology or transaction ownership. Independent milestone branches must preserve accepted M0-M3 authentication, tenant isolation, API envelopes and database constraints. Shared PostgreSQL schema changes require one coordinated additive migration history and integrated regression. Event processing attaches only after the shipment and tracking contracts needed by its own dependent packages are accepted. Observability, audit foundations and recovery tooling may develop alongside business features, but G24 must recheck all integrated domains. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md).
 
-## M4 proposed modular extension
+## M4 accepted modular extension
 
-M4 remains inside the accepted ASP.NET Core modular monolith, not a separate service. Planned `Voyages` and `Containers` domain policies, EF stores, scoped endpoints and React workspaces reuse M1 authentication, M2 tenant selection, M3 reference UUIDs and established JSON/CSRF conventions. [M4 architecture](M4_ARCHITECTURE_DESIGN.md) calls for composite same-tenant PostgreSQL FKs, transaction-scope authorization and UTC invariants; [M4 implementation](M4_IMPLEMENTATION_PLAN.md) coordinates one additive migration, including when workstreams execute in parallel. [D-003](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) is not approved, and no M4 runtime is implemented.
+M4 remains inside the accepted ASP.NET Core modular monolith, not a separate service. Implemented `Voyages` and `Containers` domain policies, EF stores, scoped endpoints and React workspaces reuse M1 authentication, M2 tenant selection, M3 reference UUIDs and established JSON/CSRF conventions. [M4 architecture](M4_ARCHITECTURE_DESIGN.md) calls for composite same-tenant PostgreSQL FKs, transaction-scope authorization and UTC invariants; [M4 implementation](M4_IMPLEMENTATION_PLAN.md) coordinates one additive migration, including when workstreams execute in parallel. [D-003](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) is not approved, and no M4 runtime is implemented.
 
 ## Baseline topology
 

@@ -144,16 +144,16 @@ The earlier M0-M6 delivery bundles are represented by 25 individually gated mile
 
 Each milestone is gated on real executed behavior, not merely the presence of source files. Detailed work-package IDs, dependency edges and verification expectations are authoritative in [execution-graph.json](execution-graph.json), represented in [Execution Graph](EXECUTION_GRAPH.md). Old v1 M1-M6 task IDs are superseded; [Roadmap](ROADMAP.md) documents the mapping. [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) controls overlapping branches, migrations, shared contracts and integration verification.
 
-## M4 maritime references (proposed, not implemented)
+## M4 maritime references (implemented and accepted)
 
-Accepted M3 port/vessel UUIDs provide the trusted identity foundation for planned M4 voyages and containers. The [M4 architecture](M4_ARCHITECTURE_DESIGN.md) specifies same-org voyage route/vessel, independently nullable planned/actual UTC times, explicit progression, and immutable reference identity. Container records have a recommended ISO 6346/Synthetic distinction, subject to [D-003 decision](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). The [M4 implementation plan](M4_IMPLEMENTATION_PLAN.md) allows voyage/container work in parallel after M4-01, converging at browser integration and the 25-case [G4 plan](M4_VERIFICATION_PLAN.md). M5 shipments and M6 assignments remain separate. This adds no product requirements and creates no implemented functionality.
+M4 uses accepted M3 vessel/port UUIDs for scoped voyage routes and schedules with independently nullable UTC fields and explicit progression. Containers implement accepted D-003 Option B, using distinct ISO 6346:2022 freight category U and visibly synthetic `SYN-BOX-` identifiers. The [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [implementation status](M4_IMPLEMENTATION_STATUS.md) and [executed G4 evidence](M4_EXECUTED_VERIFICATION.md) document the accepted module. Shipment lifecycle remains separate in M5 and assignment intervals remain M6.
 
 ## 10. Dependencies, risks, and decisions
 
 | Risk or decision | Owner document | Required resolution |
 | --- | --- | --- |
 | Session and integration authentication (D-001) | [Decisions](DECISIONS.md) | Before M1 session implementation |
-| Container identity policy (D-003) | [Decisions](DECISIONS.md) | Before M4 container identity validation |
+| Container identity policy (D-003) | [Accepted D-003 Option B](DECISIONS.md) | Approved 2026-11-01 and verified for M4 |
 | DCSA subset and durable queue design (D-002, D-006) | [Decisions](DECISIONS.md) | Before M7 contracts / M8 inbox processing |
 | Tile and KPI policies (D-004, D-005) | [Decisions](DECISIONS.md) | Before M14 maps / M13 KPIs |
 | Hosting budget and backup objectives (D-007, D-008) | [Decisions](DECISIONS.md) | Before M22 deployment / M19 recovery |
@@ -163,4 +163,4 @@ Accepted M3 port/vessel UUIDs provide the trusted identity foundation for planne
 
 Product-scope changes beyond PD-01 through PD-07 require updating this PRD, affected atomic requirements, the [Roadmap](ROADMAP.md) and [execution graph](EXECUTION_GRAPH.md) when sequence changes, plus acceptance criteria and decisions where applicable. Status is updated only from implementation evidence. Proposed scope expansions do not become accepted requirements merely because a branch or issue exists.
 
-**Current state:** M0-M3 are implemented, verified, explicitly accepted and integrated into `main`. G3 passed all 25 scenarios locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed evidence](M3_EXECUTED_VERIFICATION.md)). M4 voyages and containers are next but not started; G4-G24 remain open.
+**Current state:** M0-M4 are implemented, independently verified, explicitly accepted and integrated into `main`. G4 accepted on 2026-11-01 following [executed evidence review](M4_EXECUTED_VERIFICATION.md); M5-M24 and G5-G24 remain open, subject to their own prerequisites.

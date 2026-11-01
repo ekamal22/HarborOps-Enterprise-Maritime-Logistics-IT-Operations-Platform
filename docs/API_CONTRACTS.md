@@ -73,9 +73,9 @@ The [M3 architecture](M3_ARCHITECTURE_DESIGN.md) defines ten implemented and acc
 
 Port create requires tenant-local `referenceCode`, `name`, `countryCode`, optional `unLocode`. Vessel create requires local `referenceCode` and `name`, optional `imoNumber`, `mmsi` and `flagCountryCode`. All organization IDs, UUIDs, version numbers and timestamps are server-managed. `GET` lists support bounded `q`, `status`, `limit` and `after` filters. Writes require the existing CSRF/Origin protections and optimistic expected version. DELETE soft-archives rather than physically deletes. Data access must remain tenant-bound even if the caller knows a foreign UUID. See [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 negative test matrix](M3_VERIFICATION_PLAN.md) for authoritative details.
 
-## M4 proposed scoped APIs (not implemented)
+## M4 implemented scoped APIs (G4 accepted)
 
-The [M4 architecture](M4_ARCHITECTURE_DESIGN.md) defines ten `/api/v1/organizations/{organizationId}/voyages` and `/containers` endpoints: GET list/detail, POST create, PATCH versioned edit/restore, DELETE versioned soft archive. Manager read/write, Analyst read-only, and default denial for Administrator, Support and Auditor are proposed, reusing accepted M1-M3 session and scope checks. Every mutation requires CSRF/Origin validation and expectedVersion. Voyage route requires same-organization `vesselId`, `originPortId` and `destinationPortId`, with separate nullable planned and actual UTC times, `voyageStatus` and `recordStatus`. Container create requires `referenceCode`, `identifierKind`, `containerIdentifier` and `equipmentType` under [D-003 pending](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). Lists have bounded search/filter, `limit=1..100` and UUID cursor `after`. Detailed request/response and error contracts are in [M4 Architecture](M4_ARCHITECTURE_DESIGN.md). No route exists yet.
+The accepted [M4 architecture](M4_ARCHITECTURE_DESIGN.md) implements ten `/api/v1/organizations/{organizationId}/voyages` and `/containers` endpoints: GET list/detail, POST create, PATCH versioned edit/restore, DELETE versioned soft archive. Manager read/write, Analyst read-only, and default denial for Administrator, Support and Auditor are enforced, reusing accepted M1-M3 session and scope checks. Every mutation requires CSRF/Origin validation and expectedVersion. Voyage route requires same-organization `vesselId`, `originPortId` and `destinationPortId`, with separate nullable planned and actual UTC times, `voyageStatus` and `recordStatus`. Container create requires `referenceCode`, `identifierKind`, `containerIdentifier` and `equipmentType` under [D-003 pending](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). Lists have bounded search/filter, `limit=1..100` and UUID cursor `after`. Detailed request/response and error contracts are in [M4 Architecture](M4_ARCHITECTURE_DESIGN.md). No route exists yet.
 
 ## Proposed resource map
 
@@ -131,3 +131,6 @@ DCSA Track & Trace is the reference for event terminology and adapter mapping. R
 - All list queries, search filters, map responses, and error details enforce scope.
 - Integration credentials are rotated and stored outside version control.
 - Replay protection and duplicate-event response behavior are documented.
+
+
+M4 endpoint behavior, tenant/role boundaries, optimistic versions and error envelopes passed [G4 executed verification](M4_EXECUTED_VERIFICATION.md) on `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. D-003 Option B is accepted. No M5 shipment or M6 assignment endpoints are implied.

@@ -73,9 +73,9 @@ Use one branch/worktree per independent milestone, from an accepted baseline. Es
 - Treat [Status](STATUS.md) and milestone evidence registers as the only source for achieved results and acceptance state.
 - When changing a node ID or requirement mapping, update affected code tasks, test evidence, gates, and references in the same change.
 
-## Planned M4 contribution boundary
+## Accepted M4 module and contribution boundary
 
-Read the [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [implementation plan](M4_IMPLEMENTATION_PLAN.md) and [G4 matrix](M4_VERIFICATION_PLAN.md) before any implementation. Explicitly close [D-003](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) before implementing container identifiers. Voyage/container feature branches may progress in parallel, but use one coordinated EF migration order and preserve accepted M3 composite tenant identity. No GitHub Actions. Every commit uses `[skip ci]`, and G4 must be fully verified and explicitly accepted before merging implementation to `main`.
+Read the [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [implementation plan](M4_IMPLEMENTATION_PLAN.md) and [G4 matrix](M4_VERIFICATION_PLAN.md) before any implementation. [D-003 Option B](DECISIONS.md) is accepted, and [G4 evidence](M4_EXECUTED_VERIFICATION.md) was independently reviewed and accepted on 2026-11-01. Maintain the frozen identifier contract unless a new explicit decision authorizes a change. Voyage/container feature branches may progress in parallel, but use one coordinated EF migration order and preserve accepted M3 composite tenant identity. No GitHub Actions. Every commit uses `[skip ci]`, and G4 must be fully verified and explicitly accepted before merging implementation to `main`.
 
 ## Accepted M3 implementation and local verification boundary
 
@@ -85,7 +85,7 @@ The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLE
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. The completed M1 pull request included schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and the historical GitHub Actions evidence in [G1 Verification](M1_VERIFICATION_PLAN.md). This does not authorize any additional workflow runs. No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.
 
-Do not conflate architecture approval with milestone acceptance. G0-G3 are verified and explicitly accepted; M1 merged via PR #4 ([evidence](M1_IMPLEMENTATION_VERIFICATION.md)), M2 via PR #5 ([evidence](M2_EXECUTED_VERIFICATION.md)) and M3 by fast-forward after independent G3 review ([evidence](M3_EXECUTED_VERIFICATION.md)). G4-G24 each require independent verification and acceptance. M7 integration credentials and M24 accessibility belong to later gates.
+Do not conflate architecture approval with milestone acceptance. G0-G4 are verified and explicitly accepted; M1 merged via PR #4 ([evidence](M1_IMPLEMENTATION_VERIFICATION.md)), M2 via PR #5 ([evidence](M2_EXECUTED_VERIFICATION.md)) and M3 by fast-forward after independent G3 review ([evidence](M3_EXECUTED_VERIFICATION.md)). G5-G24 each require independent verification and acceptance. M7 integration credentials and M24 accessibility belong to later gates.
 
 ## Documentation hygiene
 

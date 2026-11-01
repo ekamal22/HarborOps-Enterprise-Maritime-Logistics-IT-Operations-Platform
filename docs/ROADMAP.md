@@ -2,7 +2,7 @@
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Date:** 2026-10-30  
-**State:** M0/G0 through M3/G3 verified, explicitly accepted and integrated into `main` on 2026-10-31. M3 passed all 25 scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); independently inspected raw evidence supports G3 acceptance. M4 is next and remains unstarted; D-003 remains pending. G4-G24 are open.
+**State:** M0/G0 through M4/G4 are verified, independently reviewed, explicitly accepted and integrated into `main`. G3 was accepted on 2026-10-31; G4 on 2026-11-01 following D-003 Option B approval and [executed verification](M4_EXECUTED_VERIFICATION.md) of the final `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` implementation. G5-G24 remain open.
 
 ## Authority and rationale
 
@@ -37,7 +37,7 @@ The canonical work-package DAG is [execution-graph.json](execution-graph.json), 
 - **Gate closure** requires the complete positive/negative/security/regression evidence on the integrated source revision and explicit acceptance. Verified but unaccepted gates are not substitutes for accepted prerequisites.
 - **G24 release convergence** requires G0-G23 accepted, every cross-track contract integrated, a full final-system regression, M24-03 historical compatibility and M24-04 accessibility assessment. Early G19 recovery or G20 security review must be revalidated for later schema/features at this final gate.
 
-The following workstreams become eligible immediately on accepted G3 (subject to individual decisions and separate implementation approval): M4 voyages/containers, M5 independent shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review baseline, and M23-01 design-system definition. **Eligible does not mean implemented, started, or accepted.**
+With G4 now accepted, M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain eligible under their original independent prerequisites. M6 design can use the accepted M4 reference contract, but implementation remains gated on **G5 as well as G4**. Eligibility does not imply implementation or acceptance.
 
 ## Milestone register
 
@@ -101,7 +101,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Verify the existing source-only foundation against real runtime evidence.
 **Entry:** Existing implementation reviewed without assuming runtime correctness.
 **Required work packages:** M0-01 Assess existing M0 branch; M0-02 Build and test foundations; M0-03 Verify migration and seed; M0-04 Verify local stack and browser; M0-05 Verify failure and hygiene.
-**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2 and G3 are verified locally and accepted on 2026-10-31, and G4-G24 remain open.
+**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2 and G3 are verified locally and accepted on 2026-10-31, and G5-G24 remain open.
 **Not covered by this milestone:** Shipment and tenant business functionality.
 
 #### M1: Authentication and session lifecycle
@@ -134,9 +134,9 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Validated organization-owned voyages and containers with explicit schedule/progress, checked container identity, tenant-safe persistence, versioned API and browser workflows.
 **Entry:** G3 explicitly accepted. Resolve D-003 before implementing the identifier contract.
 **Required work packages:** M4-01 finalize D-003 and freeze domain/API contracts; M4-02 voyage persistence/API; M4-03 container persistence/API in parallel after M4-01; M4-04 browser integration and G4. See [M4 architecture](M4_ARCHITECTURE_DESIGN.md) and [implementation plan](M4_IMPLEMENTATION_PLAN.md).
-**Exit G4:** All [G4-S01 through G4-S25](M4_VERIFICATION_PLAN.md) must execute on one final integrated source SHA with historical migration, security, three-browser and M0-M3 regressions. Explicit acceptance required.
-**Decision:** [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) recommends ISO6346/Synthetic kinds; not approved.
-**Status:** Proposed implementation committed only to `feat/m4-voyage-container-references`; no G4 runtime verification or acceptance. [Implementation status](M4_IMPLEMENTATION_STATUS.md) retains the source inventory and blockers. D-003 remains pending.
+**Exit G4:** Accepted 2026-11-01 after independently reviewed [executed verification](M4_EXECUTED_VERIFICATION.md). All required executable tests passed on `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`; the evidence stage returned 1 only because D-003 was pending at run time, and D-003 Option B was explicitly approved before G4 acceptance.
+**Decision:** [D-003 Option B](DECISIONS.md) accepted on 2026-11-01. ISO 6346:2022 U-only and tagged synthetic identifiers; full policy in the [decision record](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md).
+**Status:** M4-01 through M4-04 completed and accepted; M4 fast-forward integrated into `main`. [Implementation status](M4_IMPLEMENTATION_STATUS.md) and [G4 executed evidence](M4_EXECUTED_VERIFICATION.md) preserve scope and acceptance details.
 **Not covered by this milestone:** M5 shipments, M6 assignments, tracking events, external registry verification.
 
 #### M5: Shipment lifecycle and concurrency
@@ -351,4 +351,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M3/G0-G3 remain verified, accepted and integrated into `main` with the same [G3 evidence](M3_EXECUTED_VERIFICATION.md). The next authorized engineering task is to choose among multiple **eligible, unstarted parallel workstreams**: M4 (resolve D-003), M5, M7 (resolve D-002), M16, M17, M19 (resolve D-008), M20-01 and M23-01. These are independent options, not a directive to start them simultaneously. Follow the [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md), obtain acceptance for each gate, and keep G4-G24 open until verified.
+M0-M4/G0-G4 are verified, accepted and integrated into `main`. The next independently eligible engineering streams include M5, M7 (pending D-002), M16, M17, M19 (pending D-008), M20-01 and M23-01. M6 assignment integration still requires accepted G5, despite G4 acceptance. The original dependency graph permits independent starts and must not be made sequential. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md). G5-G24 remain open.

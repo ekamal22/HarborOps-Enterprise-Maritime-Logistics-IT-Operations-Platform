@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0/G0 through M3/G3 are verified, explicitly accepted and integrated into `main` as of 2026-10-31. G3 passed all 25 local scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; the independent [executed verification record](docs/M3_EXECUTED_VERIFICATION.md) preserves the test results. M4 is next, with D-003 container identifier policy unresolved. G4-G24 are open. See [Project Status](docs/STATUS.md).
+**Status:** M0/G0 through M4/G4 are implemented, independently verified, explicitly accepted and integrated into `main` as of 2026-11-01. G4 was verified on `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` and accepted after D-003 Option B approval and independent raw-evidence review. See [M4 executed verification](docs/M4_EXECUTED_VERIFICATION.md) and [Project Status](docs/STATUS.md). G5-G24 remain open.
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -52,7 +52,7 @@ M3 is implemented, locally verified, explicitly accepted on 2026-10-31 and integ
 
 ### Parallel-ready workstreams after G3
 
-M4 voyages/containers is one eligible next stream, not an exclusive next step. M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability and M19 recovery are also eligible based on accepted G3, alongside M20-01 security review and M23-01 design-system planning. Individual architecture decisions remain mandatory, including D-003 for M4 and D-002 for M7. M4 implementation and expanded tests are committed on a separate feature branch without G4 acceptance. Other M5-M24 work remains planned and may proceed independently when prerequisites are satisfied. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md), [Roadmap](docs/ROADMAP.md) and [Decisions](docs/DECISIONS.md).
+M4 voyages and containers are accepted and integrated. Other independently eligible streams include M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review, and M23-01 interface planning. M6 assignment integration requires accepted G4 **and G5**, so G5 remains its blocker. D-003 is accepted for M4; D-002 remains pending for M7. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
 
 ### Planned modules
 
@@ -78,9 +78,9 @@ M4 voyages/containers is one eligible next stream, not an exclusive next step. M
 
 A modular monolith plus a background worker is the initial architecture. Distributed services, live commercial feeds, and continuous paid infrastructure are not prerequisites.
 
-### M4 architecture and implementation planning
+### Accepted M4 voyage and container reference data
 
-M4 voyage and container reference-data planning is documented in [M4 Architecture](docs/M4_ARCHITECTURE_DESIGN.md), [M4 Implementation Plan](docs/M4_IMPLEMENTATION_PLAN.md) and [G4 Verification Plan](docs/M4_VERIFICATION_PLAN.md). The recommended identifier policy is recorded in the [D-003 proposal](docs/M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), but **D-003 is not accepted**. M4 application and tests are on `feat/m4-voyage-container-references`. The fifth local G4 run at `f1854c3fb684d576d6b16d94d5cb44113bd25f64` passed every executable stage: a zero-warning .NET Release build, 82 unit, 12 contract, 92 fresh and 92 repeated PostgreSQL integration tests, 31 browser tests in each of Chromium, Firefox and WebKit, outage and recovery, and image scans. See the [fifth correctness audit](docs/M4_FIFTH_CORRECTNESS_AUDIT.md) and the earlier [fourth correctness audit](docs/M4_FOURTH_CORRECTNESS_AUDIT.md). D-003 and G4 acceptance are pending. [M4 implementation status](docs/M4_IMPLEMENTATION_STATUS.md) and [first M4 correctness audit](docs/M4_CORRECTNESS_AUDIT.md) and [second M4 correctness audit](docs/M4_SECOND_CORRECTNESS_AUDIT.md) record expanded coverage, subsequent source fixes and outstanding local verification. M5 and other eligible workstreams remain independently parallel.
+M4 implements tenant-scoped voyage schedules and container references. D-003 Option B (ISO 6346:2022 category U or tagged synthetic identifiers) and G4 were explicitly accepted on 2026-11-01 following independent review. The final tested code revision `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` passed 82 unit, 12 contract, 92 fresh and 92 repeat PostgreSQL integration tests, and 31 browser tests in each of Chromium, Firefox and WebKit, plus outage/recovery and three clear HIGH/CRITICAL image scans. See [executed verification](docs/M4_EXECUTED_VERIFICATION.md), [architecture](docs/M4_ARCHITECTURE_DESIGN.md), [implementation record](docs/M4_IMPLEMENTATION_STATUS.md), [G4 plan](docs/M4_VERIFICATION_PLAN.md), and [D-003 decision](docs/DECISIONS.md).
 
 ### Parallel dependency-based delivery
 
@@ -129,6 +129,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M3 Implementation Plan](docs/M3_IMPLEMENTATION_PLAN.md) | M3-01 to M3-04 work packages and dependency sequence |
 | [G3 Verification Plan](docs/M3_VERIFICATION_PLAN.md) | Required G3-S01 to G3-S25 local tests, all executed and passed |
 | [M3 Implementation Register](docs/M3_IMPLEMENTATION_STATUS.md) | Accepted M3 implementation and source inventory |
+| [M4 Executed Verification](docs/M4_EXECUTED_VERIFICATION.md) | Accepted G4 evidence, D-003 closure, verified source SHA and immutable artifact hash |
 | [M3 Executed Verification](docs/M3_EXECUTED_VERIFICATION.md) | Verified G3 execution evidence, failure history and acceptance record |
 | [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Historical first-audit fixes and subsequent verified G3 outcome |
 | [Second M3 Audit Remediation](docs/M3_SECOND_CORRECTNESS_REMEDIATION.md) | Historical second-audit fixes and subsequent verified G3 outcome |
@@ -163,4 +164,4 @@ The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) pres
 
 ### Current state
 
-The default `main` branch contains accepted M0-M3 implementation, tests and documentation. G3 was independently reviewed and explicitly accepted on 2026-10-31 after the successful local run on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. Future voyages, containers, shipments, tracking, analytics and incident workflows remain planned for M4-M24. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).
+The default `main` branch contains accepted M0-M4 implementations and records. G4 was accepted on 2026-11-01 after independent local evidence review, with the verified implementation SHA preserved in [M4 executed verification](docs/M4_EXECUTED_VERIFICATION.md). Shipment lifecycle, assignments, tracking, analytics and incident workflows remain scoped to later gates. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).

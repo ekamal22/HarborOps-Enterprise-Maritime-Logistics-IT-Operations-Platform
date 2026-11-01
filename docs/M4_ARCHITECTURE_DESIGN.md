@@ -1,9 +1,9 @@
 # M4 Voyage and Container Reference Data: Architecture Design
 
 **Milestone:** M4, work packages M4-01 through M4-04; exit gate G4  
-**Status:** Proposed architecture with initial feature-branch implementation, not runtime-verified. [Implementation status](M4_IMPLEMENTATION_STATUS.md) records code paths and blockers. G4 OPEN; acceptance pending only after executed verification.  
+**Status:** Accepted and implemented. G4 explicitly accepted on 2026-11-01 after independent [executed verification](M4_EXECUTED_VERIFICATION.md) of `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`.
 **Foundation:** G0-G3 accepted on `main`; parent references and authorization supplied by accepted M2/M3  
-**Open decision:** [D-003 container identifier policy](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). Its recommendation is provisional until explicitly approved.  
+**Decision:** [D-003 Option B](DECISIONS.md) accepted on 2026-11-01, with ISO 6346:2022 freight category U or tagged synthetic identifiers.
 **Authority:** [Roadmap](ROADMAP.md), [Graph](EXECUTION_GRAPH.md), [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md), [Requirements](REQUIREMENTS.md), [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [M4 implementation plan](M4_IMPLEMENTATION_PLAN.md), [G4 verification plan](M4_VERIFICATION_PLAN.md).
 
 ## 1. Bounded capability and ownership
@@ -71,8 +71,8 @@ The SQL CHECK for temporal consistency validates `planned_departure <= planned_a
 | `Id`, `OrganizationId` | Immutable UUID and tenant owner |
 | `ReferenceCode` | Immutable normalized local reference code, unique within organization |
 | `ContainerIdentifier` | Immutable normalized external-format or visibly synthetic identifier, unique within organization, including archived rows |
-| `IdentifierKind` | Exactly one of `ISO6346` or `Synthetic`; final approval is D-003 |
-| `EquipmentType` | Required immutable catalog value: `Dry20`, `Dry40`, `HighCube40`, `Reefer20`, `Reefer40`, `Other` (tentative pending D-003 confirmation) |
+| `IdentifierKind` | Exactly one of `ISO6346` or `Synthetic`; approved under D-003 |
+| `EquipmentType` | Required immutable catalog value: `Dry20`, `Dry40`, `HighCube40`, `Reefer20`, `Reefer40`, `Other` |
 | `DisplayName` | Optional 1-160 safe characters, mutable, intended as internal label |
 | `RecordStatus` | `Active` or `Archived`, soft-archived, restorable |
 | `SourceKind` | `UserProvided` or `Synthetic`, immutable; must align with identifier kind |
@@ -80,11 +80,11 @@ The SQL CHECK for temporal consistency validates `planned_departure <= planned_a
 
 ContainerReference does not store loading status, current location, cargo weight, damage state, leasing contracts or shipment/voyage assignment. Those are later scoped operational concepts. Type labels in the proposed `EquipmentType` list are a **local UI catalog**, not an ISO size/type verification service.
 
-Recommended D-003 policy: ISO-mode `[A-Z]{3}U[0-9]{7}` plus ISO 6346 checksum; Synthetic-mode `SYN-BOX-[A-Z0-9]{4,16}`. Category J/Z is outside M4 freight-container scope. Parser must not conflate kinds or claim external registration. See the [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) for alternatives and decisions. **Do not implement M4-03 against the provisional policy until D-003 is explicitly closed.**
+Accepted D-003 policy: ISO-mode `[A-Z]{3}U[0-9]{7}` plus ISO 6346 checksum; Synthetic-mode `SYN-BOX-[A-Z0-9]{4,16}`. Category J/Z is outside M4 freight-container scope. Parser must not conflate kinds or claim external registration. See the [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) for alternatives and decisions. D-003 was explicitly closed on 2026-11-01 after the verified implementation passed the required checksum and constraint checks.
 
 ## 4. PostgreSQL schema and isolation
 
-Add one M4-specific additive EF Core 10 migration, tentatively `20261101010000_VoyageContainerReferences`, but confirm actual migration ordering with concurrently developed branches before use. This is a proposed name, not a created file. New tables: `voyages` and `containers`. Both have required `organization_id` foreign key with `ON DELETE RESTRICT`.
+Add one M4-specific additive EF Core 10 migration, as `20261101010000_VoyageContainerReferences`. Its fresh, historical-upgrade, repeat and rollback behavior was verified on the accepted source revision. Future combined migrations still require independent integration verification. New tables: `voyages` and `containers`. Both have required `organization_id` foreign key with `ON DELETE RESTRICT`.
 
 - `voyages`: UUID PK; tenant-local immutable `reference_code`; three required tenant-safe parent UUIDs; planned/actual `timestamptz` fields; voyage status and record status; source kind; positive version; UTC created/updated; unique `(organization_id,reference_code)`; indexes `(organization_id,id)`, `(organization_id,vessel_id)`, `(organization_id,origin_port_id)`, `(organization_id,destination_port_id)`, and `(organization_id,voyage_status,id)`.
 - `containers`: UUID PK; tenant-local `reference_code`; unique `(organization_id,reference_code)` and `(organization_id,container_identifier)`; identifier kind, equipment type, optional display name, record status, source kind, positive version, UTC timestamps; bounded scoped-query indexes.
@@ -158,12 +158,12 @@ The G4 plan requires a fresh database, historical seeded M3 upgrade, M4 rollback
 
 ## 9. Explicit risks and approval boundary
 
-1. **D-003 unapproved:** Identifier kind, checksum, synthetic prefix and equipment type catalog remain proposals. M4-01 must settle the selected contract before building container persistence.
+1. **D-003 resolved:** Option B, ISO 6346:2022, freight U-only, synthetic prefix and immutable equipment type catalog were accepted on 2026-11-01.
 2. **Concurrent M5 migration:** Coordinate schema order and avoid silently modifying a shared migration history.
 3. **Parent archival race:** M3 writes and M4 writes must serialize through the same organization lock and rely on composite DB FKs; never trust route UUID alone.
 4. **Nullable times vs voyage status:** Check both C# and SQL semantics, including independently missing times and terminal states.
 5. **Archive vs progress:** Separate record visibility from voyage lifecycle state, preserving historical references for M6.
 6. **External semantics:** ISO-format validity and UN/LOCODE syntax never establish official registration, physical existence, position or service schedule.
-7. **Evidence gate:** Architectural approval authorizes implementation design only. G4 must execute every mandatory check and obtain separate explicit acceptance before integration.
+7. **Evidence gate:** The independently reviewed G4 execution and explicit acceptance are recorded in [executed verification](M4_EXECUTED_VERIFICATION.md); further combined M4/M5 integration still needs its own regression.
 
-**No M4 source, migration, fixtures or verification output is claimed by this document.** Detailed work packages and acceptance sequencing appear in [M4 implementation plan](M4_IMPLEMENTATION_PLAN.md) and [G4 verification plan](M4_VERIFICATION_PLAN.md).
+**M4 source, migrations, fixtures and verified outcomes are recorded in [M4 executed verification](M4_EXECUTED_VERIFICATION.md).** Detailed work packages and acceptance sequencing appear in [M4 implementation plan](M4_IMPLEMENTATION_PLAN.md) and [G4 verification plan](M4_VERIFICATION_PLAN.md).

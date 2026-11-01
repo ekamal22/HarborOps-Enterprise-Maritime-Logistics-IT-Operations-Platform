@@ -1,13 +1,13 @@
 # M4 Implementation Plan: Voyage and Container References
 
 **Milestone:** M4, M4-01 through M4-04; exit gate G4  
-**Status:** Initial voyage/container, API, migration, UI and test source committed on a feature branch. Correctness and full G4 verification are not established. See [implementation status](M4_IMPLEMENTATION_STATUS.md). D-003 pending; G4 open.  
+**Status:** M4-01 through M4-04 delivered, independently reviewed and G4 explicitly accepted on 2026-11-01. See [executed verification](M4_EXECUTED_VERIFICATION.md). D-003 Option B accepted; M4 integrated into `main`.
 **Base:** Accepted G0-G3 implementation on `main` as of 2026-10-31.  
 **Design authority:** [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), [G4 verification plan](M4_VERIFICATION_PLAN.md), [Execution Graph](EXECUTION_GRAPH.md), [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md), [Storage Policy](LOCAL_STORAGE_POLICY.md).
 
 ## 1. Scope, dependencies and delivery method
 
-G3 is the only inbound gate for M4-01. D-003 is the unresolved decision. After M4-01 policy approval, voyage and container implementation can progress in parallel, converging at M4-04 and G4:
+G3 was the inbound gate for M4-01. D-003 was resolved by explicit Option B acceptance on 2026-11-01. After M4-01 policy approval, voyage and container implementation can progress in parallel, converging at M4-04 and G4:
 
 ```mermaid
 flowchart TD
@@ -16,7 +16,7 @@ flowchart TD
   D --> C["M4-03: Container persistence and HTTP"]
   V --> U["M4-04: Browser integration and G4"]
   C --> U
-  U --> G4["G4 verification and acceptance pending"]
+  U --> G4["G4 verified and accepted"]
 ```
 
 Do not start M5 shipment assignments inside M4. M5 shipment lifecycle may proceed independently from G3; M6 assignment integration requires accepted G4 and G5. Do not change the execution graph to make unrelated parallel milestones wait for G4.
@@ -25,7 +25,7 @@ Planning may live on `main`. Once implementation is approved, use `feat/m4-voyag
 
 ## 2. M4-01: Resolve identifier and domain contracts
 
-**Entry:** accepted G3. **Blocking decision:** D-003 still pending.
+**Entry:** accepted G3. **Decision resolved:** D-003 Option B accepted on 2026-11-01.
 
 Deliverables:
 1. Explicitly decide D-003 in [Decisions](DECISIONS.md) and [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). Compare strict ISO-only, kind-tagged ISO+Synthetic, and local free-form alternatives; record approved standard edition, U-only or broader equipment scope, synthetic prefix, checksum, normalization, uniqueness and catalog rules.
@@ -151,4 +151,4 @@ Write `docs/M4_EXECUTED_VERIFICATION.md` **only after actual execution**, with o
 | M4-04 | M4-02 and M4-03 implemented | Full multi-browser workflows and integration/regressions verified |
 | G4 | M4-01 through M4-04 complete | Every G4 scenario genuinely PASS on one final integrated SHA, evidence reviewed, explicit acceptance recorded |
 
-**Current state:** plan authored; M4 implementation, fixtures, runner and G4 runtime evidence not yet created. D-003 and approval to implement remain pending.
+**Current state:** All M4 work packages were implemented and G4 was accepted after independent review of the tested `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` source. See [executed verification](M4_EXECUTED_VERIFICATION.md); M5 remains separately gated.

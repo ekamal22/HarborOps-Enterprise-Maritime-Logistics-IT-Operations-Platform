@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 
 const root = "src/HarborOps.Infrastructure/Persistence/";
 const source = readFileSync(root + "HarborOpsDbContext.cs", "utf8").replaceAll("\r\n", "\n");
-const snapshot = readFileSync(root + "Migrations/HarborOpsDbContextModelSnapshot.cs", "utf8");
-const migration = readFileSync(root + "Migrations/20261101010000_VoyageContainerReferences.cs", "utf8");
+const snapshot = readFileSync(root + "Migrations/HarborOpsDbContextModelSnapshot.cs", "utf8").replaceAll("\r\n", "\n");
+const migration = readFileSync(root + "Migrations/20261101010000_VoyageContainerReferences.cs", "utf8").replaceAll("\r\n", "\n");
 
 for (const [property, column] of [
   ["VesselId", "vessel_id"],

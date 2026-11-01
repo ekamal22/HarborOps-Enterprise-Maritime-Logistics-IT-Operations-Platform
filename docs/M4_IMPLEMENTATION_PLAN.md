@@ -63,7 +63,7 @@ Implementation sequence:
 6. Test direct SQL constraints and true foreign object UUIDs through both query and write paths. No partial writes on error.
 7. Expose only safe same-organization reference summaries; avoid N+1 exposure, arbitrary global lookups and shared cross-tenant caching.
 
-**Exit M4-02:** isolated real PostgreSQL and actual API verification passes; voyage implementation is source-complete but G4 remains open.
+**Exit M4-02:** isolated PostgreSQL, actual API and voyage integration tests passed; final G4 acceptance was subsequently recorded on 2026-11-01.
 
 ## 4. M4-03: Container persistence, scope and API
 

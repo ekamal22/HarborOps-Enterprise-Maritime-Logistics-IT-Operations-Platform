@@ -87,3 +87,7 @@ A search of the remaining integration suite found no other global count or fixed
 ## Remaining decisions
 
 D-003 and G4 acceptance are explicit decisions and are not claimed here. M4 is not merged. No GitHub Actions were run.
+
+## Subsequent acceptance disposition (2026-11-01)
+
+The final source revision `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` and the full G4 archive were independently reviewed. All 149 file hashes in the supplied manifest matched; unit, contract, fresh/repeated integration, three browser engines, outage/recovery, image security scans and teardown evidence supported G4 closure. D-003 Option B and G4 were explicitly accepted on 2026-11-01. See [M4 executed verification](M4_EXECUTED_VERIFICATION.md). The earlier `G4 OPEN` statements above accurately describe the audit's pre-decision state and are preserved as history. M4 has since been fast-forward integrated into `main` without a GitHub Actions run.

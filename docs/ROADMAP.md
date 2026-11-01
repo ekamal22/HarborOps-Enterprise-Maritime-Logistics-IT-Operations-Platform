@@ -126,7 +126,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Validated, queryable and scoped port/vessel reference records.
 **Entry:** G2 verified, explicitly accepted and merged, with [executed evidence](M2_EXECUTED_VERIFICATION.md).
 **Required work packages:** M3-01 Specify port and vessel invariants; M3-02 Implement port persistence and endpoints; M3-03 Implement vessel persistence and endpoints; M3-04 Verify reference data browser flow. All four work packages are implemented and G3-S01 through G3-S25 passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)).
-**Exit G3:** All 25 mandatory scenarios passed on the verified M3 source revision; G3 explicitly accepted on 2026-10-31 and M3 integrated into `main` by fast-forward. G4 remains open.
+**Exit G3:** All 25 mandatory scenarios passed on the verified M3 source revision; G3 explicitly accepted on 2026-10-31 and M3 integrated into `main` by fast-forward. G4 was subsequently accepted on 2026-11-01.
 **Not covered by this milestone:** Voyage, container, shipment and tracking persistence.
 
 #### M4: Voyages and containers reference data

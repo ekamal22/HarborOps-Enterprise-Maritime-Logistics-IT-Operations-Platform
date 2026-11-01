@@ -41,7 +41,7 @@
 - [Second correctness audit](M4_SECOND_CORRECTNESS_AUDIT.md) records six additional findings and their subsequent source remediations, including isolated foreign-key cases, D-003 decision gating, complete tenant-role fixtures, independent voyage-list loading and precise runtime assertions. Full .NET/PostgreSQL/browser execution remains pending.
 - Source corrections prevent combined archive-and-edit SQL transitions, no-op container edits and stale page repaint, and load parent references beyond the first 100.
 - [Fourth correctness audit](M4_FOURTH_CORRECTNESS_AUDIT.md) records the third execution: 87/87 fresh and 86/87 repeat integration, root cause, repeatability fix, and remaining runtime gates.
-- G4 evidence index is required to fail on missing executed evidence and pending D-003, without implying acceptance.
+- The original G4 evidence index correctly recorded the then-pending D-003 policy as incomplete. D-003 Option B and G4 were subsequently explicitly accepted. See [executed verification](M4_EXECUTED_VERIFICATION.md); the historical index remains unchanged.
 
 ## Accepted G4 closure
 

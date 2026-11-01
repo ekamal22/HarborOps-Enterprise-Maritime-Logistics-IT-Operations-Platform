@@ -92,7 +92,7 @@ For future milestones, reuse this E-drive baseline and recheck disk paths before
 
 ## G4 local run storage notes
 
-The G4 runs use `E:HarborOps-Verification` for caches, temporary files, browser binaries, evidence and logs, and the E:-backed Docker Desktop data image checked by `scripts/check-m3-docker-storage.mjs`. Git Bash rewrites a leading slash inside an argument unless `MSYS_NO_PATHCONV=1` is set for that command, which previously hid a leftover disposable database container from the runner. Before and after a run, record C: and E: free space and a file manifest of the candidate C: locations, and delete only files that the manifest comparison attributes to the run. The fifth G4 audit records the method.
+The G4 runs use `E:\\HarborOps-Verification` for caches, temporary files, browser binaries, evidence and logs, and the E:-backed Docker Desktop data image checked by `scripts/check-m3-docker-storage.mjs`. Git Bash rewrites a leading slash inside an argument unless `MSYS_NO_PATHCONV=1` is set for that command, which previously hid a leftover disposable database container from the runner. Before and after a run, record C: and E: free space and a file manifest of the candidate C: locations, and delete only files that the manifest comparison attributes to the run. The fifth G4 audit records the method.
 
 ## Scope and verification
 

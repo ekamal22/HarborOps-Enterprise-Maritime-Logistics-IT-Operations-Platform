@@ -143,6 +143,11 @@ for (const slug of ["m3-north","m3-east"]) {
       assert.equal(matches.length, 1, "M4 fixture must remain unique");
       assert.equal(matches[0].id, row.id);
       assert.equal(matches[0].recordStatus, "Active");
+      // An existing row with the right code but different identity must not satisfy the fixture.
+      for (const key of ["identifierKind", "containerIdentifier", "equipmentType",
+        "vesselId", "originPortId", "destinationPortId"])
+        if (key in definition)
+          assert.equal(matches[0][key], definition[key], "M4 fixture " + key + " drifted");
       snapshot.push([kind, matches[0].id, matches[0].referenceCode,
         matches[0].version, matches[0].recordStatus]);
     }

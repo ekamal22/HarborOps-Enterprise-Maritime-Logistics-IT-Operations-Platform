@@ -62,7 +62,8 @@ for (const file of trxFiles) {
 }
 const requiredDistinctCases = new Map([
   ["MaritimeGateCoverageTests.AllTenM4RoutesRejectInvalidatedAuthentication", 5],
-  ["MaritimePolicyTests.KnownIsoChecksumVectorsAreAccepted", 7]
+  ["MaritimePolicyTests.KnownIsoChecksumVectorsAreAccepted", 7],
+  ["MaritimeRevocationInterleavingTests.QueuedMaritimeRequestsRevalidateAccessAfterTheLockIsReleased", 5]
 ]);
 const unit = name => {
   const matches = [...cases.entries()].filter(([test]) =>
@@ -129,7 +130,7 @@ const scenarios = [
   ["S11",["MaritimeConcurrencyTests.ExistingForeignVoyageUuidCannotBeReadOrMutated"]],
   ["S12",["MaritimeHttpTests.ForeignParentAndForeignRecordIdsDoNotLeak"]],
   ["S13",["MaritimePolicyTests.RoleGrantsStayWithinBusinessPermissions","MaritimeHttpTests.ManagerCreatesBothKindsAndAnalystReadsWithoutWritePermission","MaritimeBoundaryTests.NonBusinessRolesReceiveNoImplicitM4Access","MaritimeGateCoverageTests.CompleteMaritimeRoleAndVerbMatrixDeniesUnauthorizedChanges"]],
-  ["S14",["MaritimeBoundaryTests.NonBusinessRolesReceiveNoImplicitM4Access","MaritimeUpgradeAndSecurityTests.SelectedOrganizationChangeAndSuspensionFailClosedForBothResources","MaritimeRevocationInterleavingTests.QueuedAdministratorDowngradePrecedesContainerMutation"],["M4 real Manager role revocation clears browser management controls"],["maritime-outage"]],
+  ["S14",["MaritimeBoundaryTests.NonBusinessRolesReceiveNoImplicitM4Access","MaritimeUpgradeAndSecurityTests.SelectedOrganizationChangeAndSuspensionFailClosedForBothResources","MaritimeRevocationInterleavingTests.QueuedAdministratorDowngradePrecedesContainerMutation","MaritimeRevocationInterleavingTests.QueuedMaritimeRequestsRevalidateAccessAfterTheLockIsReleased"],["M4 real Manager role revocation clears browser management controls"],["maritime-outage"]],
   ["S15",["MaritimeBoundaryTests.InvalidFiltersAndMalformedPayloadsFailSafely","MaritimeGateCoverageTests.HostileMaritimeQueriesAndBodiesFailWithoutCreatingRows","MaritimeGateCoverageTests.ForeignOriginIsRejectedWithRealCsrfOnBothMaritimeResources"]],
   ["S16",["MaritimeHttpTests.VoyageProgressAndArchiveRestoreRequireExpectedVersion","MaritimeUpgradeAndSecurityTests.VoyageFilteringSchedulesArchiveAndImmutableRoutesAreScoped"],["M4 Manager voyage progress and archive restoration"]],
   ["S17",["MaritimeHttpTests.ManagerCreatesBothKindsAndAnalystReadsWithoutWritePermission"],["M4 Manager container lifecycle retains synthetic identity"]],

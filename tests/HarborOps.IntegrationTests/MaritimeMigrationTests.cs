@@ -163,7 +163,8 @@ public sealed class MaritimeMigrationTests
                 InsertVoyage(code, vesselId, fromId, toId));
             Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, denied.SqlState);
             Assert.Equal(before, await db.Voyages.CountAsync(x => x.OrganizationId == a.Id));
-            Assert.False(await db.Voyages.AnyAsync(x => x.ReferenceCode == code));
+            Assert.False(await db.Voyages.AnyAsync(x =>
+                x.OrganizationId == a.Id && x.ReferenceCode == code));
         }
         var badIsoSql = $"""
             INSERT INTO containers (id,organization_id,reference_code,identifier_kind,container_identifier,

@@ -17,7 +17,7 @@ test("M4 delayed old-tenant container response never repaints new organization",
   const select = page.locator("#current-organization");
   await select.selectOption({ label: "M3 North Terminal (Manager)" });
   const workspace = page.getByRole("heading", { name: "Voyages and containers" })
-    .locator("xpath=ancestor::section");
+    .locator("xpath=ancestor::section[1]");
   await workspace.getByRole("button", { name: "Containers", exact: true }).click();
   await expect(workspace.getByText("M4-BOX-NORTH")).toBeVisible();
   const organizations = (await (await page.request.get("/api/v1/me/organizations")).json()).organizations;
@@ -43,7 +43,7 @@ test("M4 delayed old-tenant container response never repaints new organization",
   await expect(page.getByText("OLD-TENANT-M4")).toHaveCount(0);
   await expect(page.getByText("M4-BOX-NORTH")).toHaveCount(0);
   const east = page.getByRole("heading", { name: "Voyages and containers" })
-    .locator("xpath=ancestor::section");
+    .locator("xpath=ancestor::section[1]");
   await east.getByRole("button", { name: "Containers", exact: true }).click();
   await expect(east.getByText("M4-BOX-EAST")).toBeVisible();
   await page.unrouteAll({ behavior: "wait" });
@@ -53,7 +53,7 @@ test("M4 reference rows clear on failed request and recover without cache", asyn
   await login(page, "m3-manager@example.test");
   await page.locator("#current-organization").selectOption({ label: "M3 North Terminal (Manager)" });
   const section = page.getByRole("heading", { name: "Voyages and containers" })
-    .locator("xpath=ancestor::section");
+    .locator("xpath=ancestor::section[1]");
   await section.getByRole("button", { name: "Containers", exact: true }).click();
   await expect(section.getByText("M4-BOX-NORTH")).toBeVisible();
   await page.route("**/api/v1/organizations/*/containers?*", route => route.fulfill({
@@ -121,7 +121,7 @@ test("M4 voyage list stays readable when an editable parent catalog fails", asyn
   await page.locator("#current-organization")
     .selectOption({ label: "M3 North Terminal (Manager)" });
   const section = page.getByRole("heading", { name: "Voyages and containers" })
-    .locator("xpath=ancestor::section");
+    .locator("xpath=ancestor::section[1]");
   await expect(section.getByText("M4-VOYAGE-NORTH")).toBeVisible();
   await expect(section.getByText("Voyage reference selection is unavailable")).toBeVisible();
   await expect(section.getByRole("button", { name: "Add voyage" })).toBeDisabled();

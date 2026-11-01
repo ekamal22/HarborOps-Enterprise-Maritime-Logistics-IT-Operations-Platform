@@ -20,7 +20,7 @@ test("M4 Manager container lifecycle retains synthetic identity", async ({ page 
   await page.getByRole("button", { name: "Containers", exact: true }).click();
   const code = Math.random().toString(36).slice(2,10).toUpperCase();
   await page.getByRole("button", { name: "Add container" }).click();
-  const section = page.getByRole("heading", { name: "Voyages and containers" }).locator("xpath=ancestor::section");
+  const section = page.getByRole("heading", { name: "Voyages and containers" }).locator("xpath=ancestor::section[1]");
   await section.getByLabel("Reference code").fill("M4-" + code);
   await section.getByLabel("Identifier kind").selectOption("Synthetic");
   await section.getByLabel("Container identifier").fill("SYN-BOX-" + code);
@@ -46,7 +46,7 @@ test("M4 Analyst sees maritime records without mutation controls", async ({ page
   test.skip(!enabled, "Disposable M4 fixtures required");
   await login(page, "m3-analyst@example.test");
   await page.locator("#current-organization").selectOption({ label: "M3 North Terminal (Analyst)" });
-  const section = page.getByRole("heading", { name: "Voyages and containers" }).locator("xpath=ancestor::section");
+  const section = page.getByRole("heading", { name: "Voyages and containers" }).locator("xpath=ancestor::section[1]");
   await expect(section.getByRole("button", { name: "Add voyage" })).toHaveCount(0);
   await section.getByRole("button", { name: "Containers", exact: true }).click();
   await expect(section.getByRole("button", { name: "Add container" })).toHaveCount(0);
@@ -60,7 +60,7 @@ test("M4 tenant switch drops former tenant maritime content", async ({ page }) =
   await login(page, "m3-manager@example.test");
   const select = page.locator("#current-organization");
   await select.selectOption({ label: "M3 North Terminal (Manager)" });
-  const section = page.getByRole("heading", { name: "Voyages and containers" }).locator("xpath=ancestor::section");
+  const section = page.getByRole("heading", { name: "Voyages and containers" }).locator("xpath=ancestor::section[1]");
   await section.getByRole("button", { name: "Containers", exact: true }).click();
   await expect(section).toBeVisible();
   await select.selectOption({ label: "M3 East Terminal (Manager)" });
@@ -76,7 +76,7 @@ test("M4 Manager voyage progress and archive restoration", async ({ page }) => {
   test.setTimeout(120_000);
   await login(page, "m3-manager@example.test");
   await page.locator("#current-organization").selectOption({ label: "M3 North Terminal (Manager)" });
-  const section = page.getByRole("heading", { name: "Voyages and containers" }).locator("xpath=ancestor::section");
+  const section = page.getByRole("heading", { name: "Voyages and containers" }).locator("xpath=ancestor::section[1]");
   await section.getByRole("button", { name: "Voyages", exact: true }).click();
   await section.getByRole("button", { name: "Add voyage" }).click();
   const code = "M4V-" + Math.random().toString(36).slice(2, 10).toUpperCase();

@@ -13,7 +13,7 @@ async function login(page, email = "m3-manager@example.test") {
 
 const sectionOf = page => page.getByRole("heading", {
   name: "Voyages and containers"
-}).locator("xpath=ancestor::section");
+}).locator("xpath=ancestor::section[1]");
 
 test("M4 container pagination preserves tenant results across multiple pages", async ({ page }) => {
   test.skip(!enabled, "Disposable M4 fixtures required");

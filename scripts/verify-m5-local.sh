@@ -196,5 +196,6 @@ run_stage evidence node scripts/assert-g5-evidence.mjs "$evidence"
 # Seal the live console file before computing evidence hashes.
 exec 1>&3 2>&3
 wait "$g5_console_pid"
+mkdir -p "$root/archives"
 node scripts/finalize-g5-evidence.mjs 2>&1 | tee "$root/archives/g5-finalize-console.log"
 echo "G5 executable stages and evidence bundle finished. Acceptance requires independent review."

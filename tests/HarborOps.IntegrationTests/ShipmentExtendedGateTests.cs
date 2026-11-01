@@ -93,7 +93,7 @@ public sealed class ShipmentExtendedGateTests
         using var admin=f.Admin;using var manager=f.Manager;using var analyst=f.Analyst;
         var (a,b)=await Ports(manager,f.A);
         var id=await Shipment(manager,f.A,a,b,"G5-FOREIGN-REAL");
-        var foreignRoot=Root(f.B),localRoot=Root(f.A);
+        var foreignRoot=Root(f.B);var localRoot=Root(f.A);
         foreach(var url in new[]{foreignRoot,foreignRoot+"/"+id,
             foreignRoot+"/"+id+"/status-changes"})
         {
@@ -347,8 +347,8 @@ public sealed class ShipmentExtendedGateTests
             Send(analyst,HttpMethod.Delete,url+"/"+id,new{expectedVersion=1L}));
         try
         {
-            Assert.Single(calls.Where(x=>x.StatusCode==HttpStatusCode.Conflict));
-            Assert.Single(calls.Where(x=>x.StatusCode is HttpStatusCode.OK or HttpStatusCode.NoContent));
+            Assert.Single(calls, x=>x.StatusCode==HttpStatusCode.Conflict);
+            Assert.Single(calls, x=>x.StatusCode is HttpStatusCode.OK or HttpStatusCode.NoContent);
         }
         finally {foreach(var c in calls)c.Dispose();}
         await using var scope=factory.Services.CreateAsyncScope();
@@ -373,8 +373,8 @@ public sealed class ShipmentExtendedGateTests
             Send(analyst,HttpMethod.Post,api,payload));
         try
         {
-            Assert.Single(requests.Where(x=>x.StatusCode==HttpStatusCode.Created));
-            Assert.Single(requests.Where(x=>x.StatusCode==HttpStatusCode.Conflict));
+            Assert.Single(requests, x=>x.StatusCode==HttpStatusCode.Created);
+            Assert.Single(requests, x=>x.StatusCode==HttpStatusCode.Conflict);
         }
         finally {foreach(var r in requests)r.Dispose();}
         await using var scope=factory.Services.CreateAsyncScope();
@@ -401,8 +401,8 @@ public sealed class ShipmentExtendedGateTests
             Send(analyst,HttpMethod.Patch,url+"/"+id,new{displayName="Illegal",expectedVersion=2L}));
         try
         {
-            Assert.Single(competing.Where(x=>x.StatusCode==HttpStatusCode.OK));
-            Assert.Single(competing.Where(x=>x.StatusCode==HttpStatusCode.Conflict));
+            Assert.Single(competing, x=>x.StatusCode==HttpStatusCode.OK);
+            Assert.Single(competing, x=>x.StatusCode==HttpStatusCode.Conflict);
         }finally{foreach(var item in competing)item.Dispose();}
         using(var replay=await Send(manager,HttpMethod.Patch,url+"/"+id,
             new{recordStatus="Active",expectedVersion=2L}))
@@ -429,8 +429,8 @@ public sealed class ShipmentExtendedGateTests
             Send(manager,HttpMethod.Delete,url+"/"+id,new{expectedVersion=1L}),
             Send(analyst,HttpMethod.Delete,url+"/"+id,new{expectedVersion=1L}));
         try{
-            Assert.Single(calls.Where(x=>x.StatusCode==HttpStatusCode.NoContent));
-            Assert.Single(calls.Where(x=>x.StatusCode==HttpStatusCode.Conflict));
+            Assert.Single(calls, x=>x.StatusCode==HttpStatusCode.NoContent);
+            Assert.Single(calls, x=>x.StatusCode==HttpStatusCode.Conflict);
         }finally{foreach(var item in calls)item.Dispose();}
         await using var scope=factory.Services.CreateAsyncScope();
         var db=scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();

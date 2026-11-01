@@ -160,8 +160,8 @@ public sealed class ShipmentHttpTests
                 new { workflowStatus = "Cancelled", expectedVersion = 1 }));
         try
         {
-            Assert.Single(operations.Where(x => x.StatusCode == HttpStatusCode.OK));
-            Assert.Single(operations.Where(x => x.StatusCode == HttpStatusCode.Conflict));
+            Assert.Single(operations, x => x.StatusCode == HttpStatusCode.OK);
+            Assert.Single(operations, x => x.StatusCode == HttpStatusCode.Conflict);
         }
         finally
         {

@@ -105,14 +105,20 @@ public sealed class MaritimeUpgradeAndSecurityTests
         foreach (var kind in new[] { "voyages", "containers" })
         {
             using var list = await manager.GetAsync(Root(f.A) + "/" + kind);
-            Assert.NotEqual(HttpStatusCode.OK, list.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, list.StatusCode);
+            var listError = await list.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("organization_access_revoked", listError.GetProperty("code").GetString());
+            Assert.False(string.IsNullOrWhiteSpace(listError.GetProperty("correlationId").GetString()));
             using var mutation = await ReferenceDataHttpTests.Send(manager, HttpMethod.Post,
                 Root(f.A) + "/" + kind, kind == "voyages"
                     ? (object)new { referenceCode = "SUSPENDED", vesselId = Guid.NewGuid(),
                         originPortId = Guid.NewGuid(), destinationPortId = Guid.NewGuid() }
                     : new { referenceCode = "SUSPENDED", identifierKind = "Synthetic",
                         containerIdentifier = "SYN-BOX-SUSPENDED", equipmentType = "Dry20" });
-            Assert.NotEqual(HttpStatusCode.Created, mutation.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, mutation.StatusCode);
+            var mutationError = await mutation.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("organization_access_revoked", mutationError.GetProperty("code").GetString());
+            Assert.False(string.IsNullOrWhiteSpace(mutationError.GetProperty("correlationId").GetString()));
         }
         Assert.Equal(1, await db.Containers.CountAsync(x => x.OrganizationId == f.A));
         Assert.Equal(0, await db.Voyages.CountAsync(x => x.OrganizationId == f.A));

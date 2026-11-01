@@ -96,16 +96,19 @@ for (const slug of ["m3-north","m3-east"]) {
       return [membership.userId, membership.role, membership.status, membership.version];
     });
   }
-  const existing = (await administrator.session.request("GET",
-    root + "/memberships?limit=100")).memberships;
-  for (const [userId, role] of expected) {
-    const found = existing.find(value => value.userId === userId);
-    if (found?.role === role && found?.status === "Active") continue;
-    await administrator.session.request("PUT", root + "/memberships/" + userId,
-      { role, status: "Active", expectedVersion: found?.version ?? null });
+  async function ensureRoleMemberships() {
+    const existing = (await administrator.session.request("GET",
+      root + "/memberships?limit=100")).memberships;
+    for (const [userId, role] of expected) {
+      const found = existing.find(value => value.userId === userId);
+      if (found?.role === role && found?.status === "Active") continue;
+      await administrator.session.request("PUT", root + "/memberships/" + userId,
+        { role, status: "Active", expectedVersion: found?.version ?? null });
+    }
   }
+  await ensureRoleMemberships();
   const firstMemberships = await membershipSnapshot();
-  // Re-applying the fixture contract must not mutate existing role versions.
+  await ensureRoleMemberships();
   const secondMemberships = await membershipSnapshot();
   assert.deepEqual(secondMemberships, firstMemberships,
     "Repeated role fixture inspection must preserve versions");

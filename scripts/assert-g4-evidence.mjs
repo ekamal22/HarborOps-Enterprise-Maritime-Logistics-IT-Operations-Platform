@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { isD003Accepted } from "./g4-decision-gate.mjs";
 
 const root = process.argv[2];
 if (!root || !fs.existsSync(root)) throw new Error("Run-specific evidence directory required");
@@ -143,8 +144,7 @@ const scenarios = [
 ];
 // A complete implementation cannot pass G4 while D-003 is still a proposal.
 const decisionDoc = fs.readFileSync("docs/DECISIONS.md", "utf8");
-const d003Approved = /D-003[\s\S]*?\*\*Status:\*\*\s*Accepted/m.test(decisionDoc) &&
-  !/D-003[\s\S]{0,400}decision remains pending/i.test(decisionDoc);
+const d003Approved = isD003Accepted(decisionDoc);
 const rows = scenarios.map(([id, required, browserNames = [], stageNames = []]) => {
   const missing = [
     ...required.filter(name => !unit(name)).map(name => "TRX:" + name),

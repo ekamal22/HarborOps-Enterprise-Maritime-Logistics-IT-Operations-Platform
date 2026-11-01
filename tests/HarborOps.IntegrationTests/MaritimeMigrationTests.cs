@@ -56,7 +56,7 @@ public sealed class MaritimeMigrationTests
             };
             db.Ports.Add(port); db.Vessels.Add(vessel);
             await db.SaveChangesAsync();
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261101010000_VoyageContainerReferences");
             Assert.Equal(5, (await db.Database.GetAppliedMigrationsAsync()).Count());
             var upgradedSession = await db.AuthSessions.AsNoTracking()
                 .SingleAsync(x => x.Id == session.SessionId);
@@ -68,7 +68,7 @@ public sealed class MaritimeMigrationTests
             Assert.Equal("HIST-VESSEL", (await db.Vessels.AsNoTracking().SingleAsync()).ReferenceCode);
             Assert.Empty(await db.Voyages.ToListAsync());
             Assert.Empty(await db.Containers.ToListAsync());
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261101010000_VoyageContainerReferences");
             Assert.Equal(5, (await db.Database.GetAppliedMigrationsAsync()).Count());
             await db.Database.MigrateAsync("20261031110000_PortVesselReferences");
             Assert.Equal(4, (await db.Database.GetAppliedMigrationsAsync()).Count());
@@ -76,7 +76,7 @@ public sealed class MaritimeMigrationTests
             Assert.Equal(vessel.Id, (await db.Vessels.SingleAsync()).Id);
             Assert.Equal(org.Id, (await db.AuthSessions.AsNoTracking()
                 .SingleAsync(x => x.Id == session.SessionId)).SelectedOrganizationId);
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261101010000_VoyageContainerReferences");
             Assert.Equal(5, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(1, await db.AuthUsers.CountAsync());
             Assert.Equal(1, await db.OrganizationMemberships.CountAsync());

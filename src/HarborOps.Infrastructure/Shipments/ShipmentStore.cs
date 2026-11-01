@@ -267,5 +267,5 @@ public sealed class ShipmentStore(HarborOpsDbContext db, OrganizationStore organ
             return new(null, OrganizationAccessError.Conflict);
         }
     }
-    private sealed class MissingShipmentException : Exception;
+    private sealed class MissingShipmentException : Exception { }
 }

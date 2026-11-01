@@ -59,3 +59,19 @@ M4 remains on its feature branch. G0-G3 remain the accepted baseline on `main`. 
 3. Decouple browser list loading from the parent catalogs and add failure/race cases.
 4. Close precise HTTP/status and migration preservation assertions.
 5. Run complete E:-backed local G4 verification, remediate every failure, rerun at one final SHA and independently review the raw evidence before acceptance.
+
+
+## Subsequent source remediation (2026-11-01)
+
+All six findings above were addressed in later feature-branch commits. The original findings remain preserved against audited revision `7a28e0eec6f8c2ba3d124ab4c77b69f5af32e4a6`. The changes below have not been verified by the full .NET, PostgreSQL, or three-engine browser runner.
+
+| Finding | Source remediation | Required runtime evidence |
+| --- | --- | --- |
+| M4-A2-01 | `MaritimeMigrationTests` now seeds valid local and foreign parents, executes a valid same-tenant control insert, then independently rejects foreign vessel, origin, and destination foreign keys with SQLSTATE 23503 and no partial rows. | Real PostgreSQL integration pass, including fresh and repeated tests |
+| M4-A2-02 | The G4 evidence script now calls `scripts/g4-decision-gate.mjs`, which confines checks to D-003's own section, requires explicit policy/ISO edition/category scope, and ensures D-003 is absent from the open-decisions table. Four negative/positive regression tests were added to the local runner. | 4/4 isolated Node regression tests passed; repeat in E:-backed runner |
+| M4-A2-03 | The local runner provisions a separate East Analyst, Support and Auditor; `prepare-m4-browser-fixtures.mjs` verifies Administrator, Manager, Analyst, Support and Auditor in both organizations, and reapplies membership setup to prove stable versions. | Disposable two-tenant fixture stage pass, repeated setup check |
+| M4-A2-04 | The maritime list request no longer depends on loading editable port/vessel catalogs. Parent data loads independently only for Managers, and a parent failure disables voyage creation while leaving list reads available. New browser regression covers 503 and recovery. | Chromium, Firefox and WebKit pass |
+| M4-A2-05 | G4-S14 now explicitly requires the queued role-revocation interleaving test, in addition to G4-S20. | Observed PostgreSQL lock queue and unchanged final rows |
+| M4-A2-06 | Upgrade/rollback now checks persisted authenticated session and selected organization; a new test proves the same container identifier may exist in two distinct tenants; Manager role checks and suspended-organization cases assert exact statuses and error envelopes. | Fresh/repeated integration and HTTP suite pass |
+
+**Current state:** Source corrections committed to `feat/m4-voyage-container-references`. G4-S01 to G4-S25 still require final-source runtime verification, independent raw-evidence review, and explicit acceptance. D-003 remains pending. No GitHub Actions or merge to `main` were authorized or performed.

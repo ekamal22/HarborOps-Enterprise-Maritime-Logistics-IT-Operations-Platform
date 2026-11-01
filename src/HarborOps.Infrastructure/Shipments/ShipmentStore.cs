@@ -149,6 +149,18 @@ public sealed class ShipmentStore(HarborOpsDbContext db, OrganizationStore organ
         var access = await ScopeAsync(session, org, OrganizationPermission.ViewShipmentData, false, ct);
         if (access != OrganizationAccessError.None) return new(null, access);
         var row = await Own(org).AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
+        if (row is not null)
+        {
+            var portLabels = await db.Ports.AsNoTracking().Where(p =>
+                p.OrganizationId == org && (p.Id == row.OriginPortId || p.Id == row.DestinationPortId))
+                .Select(p => new { p.Id, p.ReferenceCode, p.Name }).ToListAsync(ct);
+            foreach (var port in portLabels)
+            {
+                var label = port.ReferenceCode + " (" + port.Name + ")";
+                if (port.Id == row.OriginPortId) row.OriginPortLabel = label;
+                if (port.Id == row.DestinationPortId) row.DestinationPortLabel = label;
+            }
+        }
         await tx.CommitAsync(ct);
         return row is null ? new(null, OrganizationAccessError.NotFound) :
             new(row, OrganizationAccessError.None);

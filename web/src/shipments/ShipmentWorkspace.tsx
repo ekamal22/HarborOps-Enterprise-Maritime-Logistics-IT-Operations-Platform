@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { getJson, organizationError, OrganizationRequestError } from "../auth/organizationClient";
-import { archiveShipment, changeShipment, createShipment, listShipments, shipmentHistory,
+import { archiveShipment, changeShipment, createShipment, listShipments, shipmentHistory, shipmentDetail,
   type ShipmentChange, type ShipmentRow, type ShipmentWorkflow } from "./shipmentClient";
 import type { ReferenceRow } from "../references/referenceClient";
 
@@ -66,6 +66,9 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
   const [form, setForm] = useState<Form>(blank);
   const [ports, setPorts] = useState<ReferenceRow[]>([]);
   const [portError, setPortError] = useState("");
+  const [portRetry, setPortRetry] = useState(0);
+  const [portBusy, setPortBusy] = useState(false);
+  const [conflict, setConflict] = useState("");
   const [loading, setLoading] = useState(true);
   const [paging, setPaging] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -108,22 +111,22 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
 
   useEffect(() => {
     let active = true;
-    setPorts([]); setPortError("");
+    setPorts([]); setPortError(""); setPortBusy(canManage);
     if (canManage) {
       void loadPorts(organizationId).then(rows => {
-        if (active) setPorts(rows);
+        if (active) { setPorts(rows); setPortError(""); }
       }).catch(cause => {
         if (!active) return;
         setPortError(organizationError(cause));
         invalidate(cause);
-      });
+      }).finally(() => { if (active) setPortBusy(false); });
     }
     return () => { active = false; };
-  }, [organizationId, canManage, invalidate]);
+  }, [organizationId, canManage, invalidate, portRetry]);
 
   async function select(row: ShipmentRow) {
     const generation = ++selectionSerial.current;
-    setSelected(row); setForm(fromRow(row)); setCreating(false); setHistory([]);
+    setSelected(row); setForm(fromRow(row)); setCreating(false); setHistory([]); setConflict("");
     try {
       const response = await shipmentHistory(organizationId, row.id);
       if (generation === selectionSerial.current) setHistory(response.changes);
@@ -155,7 +158,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     event.preventDefault();
     if (!canManage || busy) return;
     const revision = requestSerial.current, mutation = mutationSerial.current;
-    setBusy(true); setError("");
+    setBusy(true); setError(""); setConflict("");
     try {
       if (creating) {
         await createShipment(organizationId, {
@@ -185,10 +188,29 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
       if (revision === requestSerial.current) await reload();
     } catch (cause) {
       if (revision !== requestSerial.current) return;
-      setError(organizationError(cause)); invalidate(cause);
-      if (cause instanceof OrganizationRequestError && cause.status === 409) await reload();
+      if (cause instanceof OrganizationRequestError && cause.status === 409) {
+        setConflict("This shipment has changed since you opened it. Your edits are preserved. Review the current version before retrying.");
+      } else {
+        setError(organizationError(cause)); invalidate(cause);
+      }
     } finally {
       if (mutation === mutationSerial.current) setBusy(false);
+    }
+  }
+  async function reviewCurrent() {
+    if (!selected || busy) return;
+    const generation = ++selectionSerial.current;
+    try {
+      const current = await shipmentDetail(organizationId, selected.id);
+      if (generation !== selectionSerial.current) return;
+      setSelected(current);
+      setConflict("Current shipment version loaded. Review your preserved edits before saving.");
+      const changes = await shipmentHistory(organizationId, current.id);
+      if (generation === selectionSerial.current) setHistory(changes.changes);
+    } catch (cause) {
+      if (generation !== selectionSerial.current) return;
+      setError(organizationError(cause));
+      invalidate(cause);
     }
   }
   async function archiveOrRestore(row: ShipmentRow) {
@@ -218,7 +240,8 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     <div className="flex items-center justify-between gap-3">
       <h4 className="font-semibold">Shipments</h4>
       <button type="button" disabled={busy || loading || paging}
-        onClick={() => void reload()} className="rounded border border-slate-600 px-3 py-2 text-sm">
+        onClick={() => { void reload(); if (canManage) setPortRetry(x => x + 1); }}
+        className="rounded border border-slate-600 px-3 py-2 text-sm">
         Refresh shipments
       </button>
     </div>
@@ -233,13 +256,22 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
           {["Active", "Archived", "All"].map(x => <option key={x}>{x}</option>)}
         </select>
       </label>
-      {canManage && <button type="button" disabled={busy || loading || Boolean(portError) || ports.length < 2}
-        onClick={() => { selectionSerial.current++; setCreating(true); setSelected(null); setHistory([]); setForm(blank); }}
+      {canManage && <button type="button" disabled={busy || loading || portBusy || Boolean(portError) || ports.length < 2}
+        onClick={() => { selectionSerial.current++; setCreating(true); setSelected(null); setHistory([]); setForm(blank); setConflict(""); }}
         className="rounded border border-cyan-500 px-3 py-2 text-sm disabled:opacity-50">Create shipment</button>}
     </div>
     {loading && <p className="mt-3 text-sm text-slate-400">Loading shipments...</p>}
     {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
-    {portError && canManage && <p className="mt-2 text-xs text-amber-300">Port selector unavailable: {portError}</p>}
+    {conflict && <div role="alert" className="mt-3 text-sm text-amber-300">{conflict}
+      {selected && <button type="button" onClick={() => void reviewCurrent()}
+        className="ml-3 rounded border border-amber-500 px-2 py-1">Load current version</button>}
+    </div>
+    {portError && canManage && <div role="alert" className="mt-2 text-xs text-amber-300">
+      Port selector unavailable: {portError}
+      <button type="button" disabled={portBusy}
+        onClick={() => setPortRetry(x => x + 1)}
+        className="ml-2 rounded border border-amber-500 px-2 py-1">Retry port catalog</button>
+    </div>}
     {!loading && items.length === 0 && <p className="mt-3 text-sm text-slate-400">No shipments match this filter.</p>}
     <ul className="mt-3 space-y-2">
       {items.map(row => <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-slate-700 p-3 text-sm">
@@ -264,7 +296,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     {(creating || selected) && <div className="mt-5 rounded-lg border border-slate-600 p-4">
       <div className="flex items-center justify-between gap-2">
         <h5 className="font-medium">{creating ? "Create shipment" : selected?.referenceCode}</h5>
-        <button type="button" onClick={() => { selectionSerial.current++; setCreating(false); setSelected(null); setHistory([]); }}
+        <button type="button" onClick={() => { selectionSerial.current++; setCreating(false); setSelected(null); setHistory([]); setConflict(""); }}
           className="rounded border border-slate-600 px-2 py-1">Close detail</button>
       </div>
       <form onSubmit={e => void save(e)} className="mt-3 grid gap-3">
@@ -282,7 +314,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
                 {ports.map(port => <option key={port.id} value={port.id}>{port.referenceCode} {port.name}</option>)}
               </select>
             </label>)}
-        </> : <p className="text-sm text-slate-400">Route: {selected?.originPortId} to {selected?.destinationPortId}</p>}
+        </> : <p className="text-sm text-slate-400">Route: {selected?.originPortLabel || selected?.originPortId} to {selected?.destinationPortLabel || selected?.destinationPortId}</p>}
         {field("plannedDepartureAtUtc", "Planned departure UTC (ISO 8601)",
           readonly || (!creating && selected?.workflowStatus !== "Draft" && selected?.workflowStatus !== "Booked"))}
         {field("plannedArrivalAtUtc", "Planned arrival UTC (ISO 8601)",

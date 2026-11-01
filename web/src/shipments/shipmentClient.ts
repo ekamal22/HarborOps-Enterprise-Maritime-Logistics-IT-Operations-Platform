@@ -14,6 +14,8 @@ export type ShipmentRow = {
   workflowStatus: ShipmentWorkflow;
   recordStatus: "Active" | "Archived";
   version: number;
+  originPortLabel?: string | null;
+  destinationPortLabel?: string | null;
   createdAtUtc: string;
   updatedAtUtc: string;
 };
@@ -32,6 +34,9 @@ export async function listShipments(org: string, q: string, recordStatus: string
   if (q.trim()) query.set("q", q.trim());
   if (after) query.set("after", after);
   return getJson<ShipmentPage>(root(org) + "?" + query);
+}
+export async function shipmentDetail(org: string, id: string) {
+  return getJson<ShipmentRow>(root(org, id));
 }
 export async function createShipment(org: string, body: object) {
   return mutate<ShipmentRow>("POST", root(org), body);

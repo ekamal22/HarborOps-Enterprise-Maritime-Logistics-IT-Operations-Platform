@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HarborOps.Infrastructure.Shipments;
 
@@ -22,6 +23,10 @@ public sealed class ShipmentRecord
     public DateTimeOffset? ArchivedAtUtc { get; set; }
     [JsonIgnore]
     public Guid ChangedByUserId { get; set; }
+    [NotMapped]
+    public string? OriginPortLabel { get; set; }
+    [NotMapped]
+    public string? DestinationPortLabel { get; set; }
 }
 
 public sealed class ShipmentStatusChange

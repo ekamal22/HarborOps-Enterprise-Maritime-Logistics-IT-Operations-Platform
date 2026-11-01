@@ -44,6 +44,10 @@ printf '%s\n' "$sha" > "$evidence/m5-source-sha.txt"
 printf '%s\n' "$sha" > "$evidence/g5-source-sha.txt"
 date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/g5-start-utc.txt"
 : > "$evidence/g5-stages.tsv"
+# Retain the complete original console stream in the E:-backed evidence directory.
+exec 3>&1
+exec > >(tee "$evidence/g5-console.log" >&3) 2>&1
+g5_console_pid=$!
 export HARBOROPS_G3_JSON_REPORT="$evidence/playwright-g5.json"
 override="$root/compose.core0.yaml"
 cat > "$override" <<'YAML'
@@ -189,5 +193,8 @@ owned=0
 run_stage storage-after node scripts/record-g5-storage.mjs "$root" after
 run_stage evidence node scripts/assert-g5-evidence.mjs "$evidence"
 # Final packaging occurs after the evidence stage closes its log.
-node scripts/finalize-g5-evidence.mjs
+# Seal the live console file before computing evidence hashes.
+exec 1>&3 2>&3
+wait "$g5_console_pid"
+node scripts/finalize-g5-evidence.mjs 2>&1 | tee "$root/archives/g5-finalize-console.log"
 echo "G5 executable stages and evidence bundle finished. Acceptance requires independent review."

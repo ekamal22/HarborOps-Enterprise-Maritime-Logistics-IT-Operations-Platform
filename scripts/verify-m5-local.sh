@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Local, disposable M4/G5 verification. Never dispatch GitHub Actions.
+# Local, disposable M5/G5 verification. Never dispatch GitHub Actions.
 set -euo pipefail
 root=$(printenv HARBOROPS_VERIFICATION_ROOT || true)
 case "$root" in
@@ -32,7 +32,7 @@ printf '%s\n' "$sha" > "$evidence/m5-source-sha.txt"
 printf '%s\n' "$sha" > "$evidence/g5-source-sha.txt"
 date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/g5-start-utc.txt"
 : > "$evidence/g5-stages.tsv"
-export HARBOROPS_G3_JSON_REPORT="$evidence/playwright-g4.json"
+export HARBOROPS_G3_JSON_REPORT="$evidence/playwright-g5.json"
 override="$root/compose.core0.yaml"
 cat > "$override" <<'YAML'
 services:
@@ -142,6 +142,7 @@ export HARBOROPS_M5_FIXTURES=1
 run_stage browsers bash scripts/run-m3-browsers-local.sh
 run_stage reference-outage node scripts/check-m3-reference-outage.mjs
 run_stage maritime-outage node scripts/check-m4-maritime-outage.mjs
+run_stage shipment-outage node scripts/check-m5-shipment-outage.mjs
 run_stage recovery bash scripts/verify-m2-local.sh recovery
 run_stage scan bash scripts/verify-m2-local.sh scan
 run_stage evidence node scripts/assert-g5-evidence.mjs "$evidence"

@@ -23,7 +23,7 @@ assert.ok(!fresh("g5-aborted.txt"), "G5 execution contains a current abort marke
 const stages = [
   "decision-unit","schema-index","preflight","postgres-image","dotnet","deps","web","docs",
   "stack","accounts","organizations","session","setup-fixtures","fixtures","m4-fixtures",
-  "m5-fixtures","browsers","reference-outage","maritime-outage","recovery","scan"
+  "m5-fixtures","browsers","reference-outage","maritime-outage","shipment-outage","recovery","scan"
 ];
 const ledger = read("g5-stages.tsv").trim().split(/\r?\n/).map(line => line.split("\t"));
 for (const stage of stages) {

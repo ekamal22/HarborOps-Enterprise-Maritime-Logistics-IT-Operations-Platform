@@ -77,6 +77,7 @@ T=(--no-build -c Release --logger "console;verbosity=normal" --logger trx --resu
 status=0
 run() {
   name="$1"; project="$2"
+  echo "Starting $name; detailed results: /cache/evidence/$name.log"
   dotnet test "$project" "${T[@]}" 2>&1 | grep -v '^{"EventId' > "/cache/evidence/$name.log"
   code=${PIPESTATUS[0]}
   echo "$name exit=$code"

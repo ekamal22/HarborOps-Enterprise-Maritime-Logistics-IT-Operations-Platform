@@ -59,6 +59,12 @@ On the authorized E:-backed Windows worktree, inspect [Local Storage Policy](LOC
 
 **Exit criterion:** G4-S01 through G4-S25 genuine PASS, independent raw-evidence review, D-003 accepted and explicit G4 acceptance. Until then M4 remains implementation in progress, unverified and not merged.
 
+## Second G4 local execution and schema correction (2026-11-01)
+
+The next E:-backed run at `fa46c86fd6e1328d54d9d37da190a8e8d42e8e9d` passed 4 decision-unit checks, preflight, rootless PostgreSQL image build, a warning-free .NET Release build, all 82 unit tests and all 12 contract tests. Both 87-case integration executions failed 86 cases at migration setup due to `PendingModelChangesWarning`. The model comparison identified exactly three omitted voyage composite-FK indexes in the M4 snapshot.
+
+The live model and migration snapshot now explicitly map the same three indexes with the exact physical names already created by the M4 SQL migration. The local runner now executes `schema-index` before .NET checks, and G4-S04/S25 require it. See [third correctness audit](M4_THIRD_CORRECTNESS_AUDIT.md) for evidence, changes and remaining checks. No corrected-SHA runtime execution or G4 acceptance is claimed.
+
 ## First G4 local execution attempt (2026-11-01)
 
 The E:-backed local run at `7d0dd3e60049d5e831dd1cee1493cb6a2d32f74c` completed the four decision-unit tests, environment preflight, and rootless PostgreSQL image build. The `dotnet` stage aborted with exit code 11 after two xUnit analyzer errors in `MaritimeRevocationInterleavingTests.cs`: `xUnit2020` at line 31 and `xUnit1030` at line 93. The errors were corrected by replacing `Assert.True(false, message)` with `Assert.Fail(message)` and removing `ConfigureAwait(false)` from the test cleanup. This source correction was committed as `34257e295888a249522574fe958f9e5d76a154de`.

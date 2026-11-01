@@ -25,7 +25,7 @@ const existsFresh = file => {
 if (existsFresh("g4-aborted.txt"))
   throw new Error("G4 run has an abort marker");
 const expectedStages = [
-  "decision-unit", "preflight", "postgres-image", "dotnet", "deps", "web", "docs", "stack",
+  "decision-unit", "schema-index", "preflight", "postgres-image", "dotnet", "deps", "web", "docs", "stack",
   "accounts", "organizations", "session", "setup-fixtures", "fixtures", "m4-fixtures",
   "browsers", "reference-outage", "maritime-outage", "recovery", "scan"
 ];
@@ -140,7 +140,7 @@ const scenarios = [
   ["S22",[],["M4 Manager container lifecycle retains synthetic identity","M4 Manager voyage progress and archive restoration","M4 Analyst sees maritime records without mutation controls","M4 container pagination preserves tenant results across multiple pages","M4 invalid container identifier is rejected and the form recovers"]],
   ["S23",[],["M4 delayed old-tenant container response never repaints new organization","M4 reference rows clear on failed request and recover without cache","M4 real Manager role revocation clears browser management controls","M4 logging out during delayed maritime response never reveals stale data","M4 voyage list stays readable when an editable parent catalog fails"]],
   ["S24",["MaritimeMigrationTests.SeededM3HistorySurvivesM4UpgradeRollbackAndReapply","ReferenceHistoricalUpgradeTests.M2SeedAndAuthenticatedSessionSurviveM3UpgradeAndRepeat"],[],["reference-outage","recovery"]],
-  ["S25",["MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel"],[],["decision-unit","postgres-image","dotnet","deps","web","docs","stack","scan"]]
+  ["S25",["MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel"],[],["decision-unit","schema-index","postgres-image","dotnet","deps","web","docs","stack","scan"]]
 ];
 // A complete implementation cannot pass G4 while D-003 is still a proposal.
 const decisionDoc = fs.readFileSync("docs/DECISIONS.md", "utf8");

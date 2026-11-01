@@ -93,12 +93,16 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
   const [form, setForm] = useState<Form>(empty);
   const [ports, setPorts] = useState<ReferenceRow[]>([]);
   const [vessels, setVessels] = useState<ReferenceRow[]>([]);
+  const [parentLoading, setParentLoading] = useState(false);
+  const [parentError, setParentError] = useState("");
+  const [referenceRefresh, setReferenceRefresh] = useState(0);
   const [loading, setLoading] = useState(false);
   const [paging, setPaging] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const generation = useRef(0);
   const pageToken = useRef(0);
+  const referenceGeneration = useRef(0);
   const mutationToken = useRef(0);
   const invalidate = useCallback((cause: unknown) => {
     if (classify(cause)) onAccessInvalidated(organizationError(cause));
@@ -110,26 +114,45 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
     ++pageToken.current;
     setPaging(false); setLoading(true); setError("");
     setItems([]); setNextAfter(null); setSelected(null); setCreating(false);
-    setPorts([]); setVessels([]);
     try {
-      const request = listMaritime(organizationId, kind, q, status);
-      if (kind === "voyages") {
-        const [allPorts, allVessels] = await Promise.all([
-          loadActiveReferences(organizationId, "ports"),
-          loadActiveReferences(organizationId, "vessels")
-        ]);
-        if (serial !== generation.current) return;
-        setPorts(allPorts); setVessels(allVessels);
-      }
-      const page = await request;
+      // The list must not wait for editable parent catalogs, especially for Analysts.
+      const page = await listMaritime(organizationId, kind, q, status);
       if (serial !== generation.current) return;
       setItems(page[kind] ?? []); setNextAfter(page.nextAfter);
     } catch (cause) {
       if (serial !== generation.current) return;
-      setItems([]); setPorts([]); setVessels([]); setNextAfter(null);
+      setItems([]); setNextAfter(null);
       setError(organizationError(cause)); invalidate(cause);
     } finally { if (serial === generation.current) setLoading(false); }
   }, [organizationId, kind, q, status, invalidate]);
+  useEffect(() => {
+    const serial = ++referenceGeneration.current;
+    setPorts([]); setVessels([]); setParentError("");
+    if (kind !== "voyages" || !canManage) {
+      setParentLoading(false);
+      return () => { referenceGeneration.current++; };
+    }
+    setParentLoading(true);
+    void (async () => {
+      try {
+        const [ports, vessels] = await Promise.all([
+          loadActiveReferences(organizationId, "ports"),
+          loadActiveReferences(organizationId, "vessels")
+        ]);
+        if (serial !== referenceGeneration.current) return;
+        setPorts(ports); setVessels(vessels);
+      } catch (cause) {
+        if (serial !== referenceGeneration.current) return;
+        setPorts([]); setVessels([]);
+        setParentError(organizationError(cause));
+        invalidate(cause);
+      } finally {
+        if (serial === referenceGeneration.current) setParentLoading(false);
+      }
+    })();
+    return () => { referenceGeneration.current++; };
+  }, [organizationId, kind, canManage, referenceRefresh, invalidate]);
+
   useEffect(() => {
     void reload();
     const visible = () => { if (document.visibilityState === "visible") void reload(); };
@@ -196,7 +219,9 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
   return <section className="mt-6 border-t border-slate-700 pt-5">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <h4 className="font-semibold">Voyages and containers</h4>
-      <button type="button" disabled={busy || loading || paging} onClick={() => void reload()}
+      <button type="button" disabled={busy || loading || paging} onClick={() => {
+        setReferenceRefresh(value => value + 1); void reload();
+      }}
         className="rounded border border-slate-600 px-3 py-2 text-sm">Refresh maritime records</button>
     </div>
     <div className="mt-3 flex flex-wrap gap-2">
@@ -220,13 +245,20 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
           {["Active", "Archived", "All"].map(v => <option key={v}>{v}</option>)}
         </select>
       </label>
-      {canManage && <button type="button" disabled={busy || paging || loading}
+      {canManage && <button type="button" disabled={busy || paging || loading ||
+        (kind === "voyages" && (parentLoading || Boolean(parentError)))}
         onClick={() => { setCreating(true); setSelected(null); setForm(empty); setError(""); }}
         className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">
         Add {kind === "voyages" ? "voyage" : "container"}
       </button>}
     </div>
     {loading && <p className="mt-3 text-sm text-slate-400">Loading {kind}...</p>}
+    {kind === "voyages" && canManage && parentLoading &&
+      <p className="mt-3 text-sm text-slate-400">Loading voyage references...</p>}
+    {kind === "voyages" && canManage && parentError &&
+      <p role="alert" className="mt-3 text-sm text-rose-300">
+        Voyage reference selection is unavailable: {parentError}
+      </p>}
     {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
     {!loading && !error && !items.length && <p className="mt-3 text-sm text-slate-400">No matching {kind}.</p>}
     <ul className="mt-4 space-y-2">

@@ -3,6 +3,7 @@ using HarborOps.Api.Authentication;
 using HarborOps.Api.Organizations;
 using HarborOps.Api.References;
 using HarborOps.Api.Maritime;
+using HarborOps.Api.Shipments;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net.Sockets;
 using HarborOps.Api.Health;
@@ -95,6 +96,7 @@ app.MapAuthenticationEndpoints();
 app.MapOrganizationEndpoints();
 app.MapReferenceEndpoints();
 app.MapMaritimeEndpoints();
+app.MapShipmentEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

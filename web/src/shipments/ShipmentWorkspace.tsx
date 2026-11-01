@@ -265,7 +265,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     {conflict && <div role="alert" className="mt-3 text-sm text-amber-300">{conflict}
       {selected && <button type="button" onClick={() => void reviewCurrent()}
         className="ml-3 rounded border border-amber-500 px-2 py-1">Load current version</button>}
-    </div>
+    </div>}
     {portError && canManage && <div role="alert" className="mt-2 text-xs text-amber-300">
       Port selector unavailable: {portError}
       <button type="button" disabled={portBusy}

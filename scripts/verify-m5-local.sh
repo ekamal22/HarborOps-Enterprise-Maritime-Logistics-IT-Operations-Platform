@@ -15,6 +15,17 @@ node scripts/check-m3-docker-storage.mjs
 [[ -z "$(git status --porcelain)" ]] || { echo "Clean source worktree required" >&2; exit 2; }
 sha="$(git rev-parse HEAD)"
 export HARBOROPS_SOURCE_SHA="$sha"
+# All controllable stores, including the PowerShell archive workspace, remain on E:.
+for name in TEMP TMP TMPDIR NPM_CONFIG_CACHE PLAYWRIGHT_BROWSERS_PATH NUGET_PACKAGES DOTNET_CLI_HOME; do
+  current="${!name:-}"
+  if [[ -z "$current" ]]; then
+    current="$root/cache/$name"
+    export "$name=$current"
+  fi
+  mkdir -p "${!name}"
+done
+export HOME="$root/cache/home"
+mkdir -p "$HOME"
 export HARBOROPS_G5_COMPOSE_PROJECT="ho-g5-verify"
 export HARBOROPS_DB_PASSWORD="$(printenv HARBOROPS_DB_PASSWORD || true)"
 if [[ -z "$HARBOROPS_DB_PASSWORD" ]]; then export HARBOROPS_DB_PASSWORD="disposable-m3-check-only"; fi
@@ -93,6 +104,7 @@ run_stage() {
   printf '%s\t%s\t%s\n' "$label" "$sha" "$rc" >> "$evidence/g5-stages.tsv"
   return "$rc"
 }
+run_stage storage-before node scripts/record-g5-storage.mjs "$root" before
 run_stage decision-unit node --test scripts/g4-decision-gate.test.mjs
 run_stage schema-index node scripts/check-g4-index-contract.mjs
 run_stage shipment-schema node scripts/check-m5-schema-contract.mjs
@@ -147,5 +159,34 @@ run_stage maritime-outage node scripts/check-m5-maritime-outage.mjs
 run_stage shipment-outage node scripts/check-m5-shipment-outage.mjs
 run_stage recovery bash scripts/verify-m5-stages-local.sh recovery
 run_stage scan bash scripts/verify-m5-stages-local.sh scan
+teardown_g5() {
+  # Preserve original service logs before disposing of G5-owned containers.
+  docker compose -p ho-g5-verify logs --no-color --timestamps > "$evidence/g5-docker-services.log" 2>&1 || true
+  docker compose -p ho-g5-verify down --volumes --remove-orphans || return 1
+  local integration
+  integration="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg
+ --filter label=harborops.g5=disposable)"
+  if [[ -n "$integration" ]]; then docker rm -f "$integration" >/dev/null || return 1; fi
+  local containers volumes database
+  containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-g5-verify)"
+  volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-g5-verify)"
+  database="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg
+)"
+  node -e '
+    const fs=require("fs");
+    const [dest,sha,c,v,d]=process.argv.slice(1);
+    fs.writeFileSync(dest,JSON.stringify({sourceSha:sha,
+      remainingContainers:c?c.split(/\\r?\\n/).length:0,
+      remainingVolumes:v?v.split(/\\r?\\n/).length:0,
+      remainingIntegrationContainers:d?d.split(/\\r?\\n/).length:0,
+      checkedAtUtc:new Date().toISOString()},null,2));
+  ' "$evidence/g5-teardown.json" "$sha" "$containers" "$volumes" "$database"
+  [[ -z "$containers" && -z "$volumes" && -z "$database" ]]
+}
+run_stage teardown teardown_g5
+owned=0
+run_stage storage-after node scripts/record-g5-storage.mjs "$root" after
 run_stage evidence node scripts/assert-g5-evidence.mjs "$evidence"
-echo "G5 executable checks finished. Review all 25 scenario records before acceptance."
+# Final packaging occurs after the evidence stage closes its log.
+node scripts/finalize-g5-evidence.mjs
+echo "G5 executable stages and evidence bundle finished. Acceptance requires independent review."

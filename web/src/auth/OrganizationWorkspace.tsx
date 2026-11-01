@@ -62,6 +62,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const sequence = useRef(0);
+  const reloads = useRef(0);
 
   const clearProtected = useCallback(() => {
     setProfile(null); setMembers([]); setNextAfter(null); setSelection(null);
@@ -70,6 +71,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
 
   const refresh = useCallback(async (notice = "") => {
     const serial = ++sequence.current;
+    reloads.current += 1;
     setLoading(true);
     setError(notice);
     clearProtected();
@@ -102,20 +104,25 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
       clearProtected();
       setError(organizationError(cause));
     } finally {
+      reloads.current -= 1;
       if (serial === sequence.current) setLoading(false);
     }
   }, [clearProtected]);
 
   const lastInvalidation = useRef(0);
   const onReferenceAccessInvalidated = useCallback((message: string) => {
-    sequence.current += 1;
-    clearProtected();
-    setOrganizations([]);
-    // Reload the authoritative list once. If access is rejected again straight away, stop and
-    // leave the notice so a persistent denial cannot trigger a request loop.
     const now = Date.now();
     const repeated = now - lastInvalidation.current < 10_000;
     lastInvalidation.current = now;
+    // Several workspaces can report the same revocation at once. The first report already
+    // started the authoritative reload; a second report must not cancel it and strand an
+    // empty organization list.
+    if (repeated && reloads.current > 0) return;
+    sequence.current += 1;
+    clearProtected();
+    setOrganizations([]);
+    // Reload the authoritative list once. If access is rejected again after that reload has
+    // finished, stop and leave the notice so a persistent denial cannot trigger a request loop.
     if (repeated) { setLoading(false); setError(message); return; }
     void refresh(message);
   }, [clearProtected, refresh]);

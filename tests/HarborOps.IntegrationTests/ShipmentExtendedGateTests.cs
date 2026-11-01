@@ -482,4 +482,57 @@ public sealed class ShipmentExtendedGateTests
             Assert.Equal(HttpStatusCode.Unauthorized,response.StatusCode);
         }
     }
+
+    [Fact]
+    public async Task CancelledQueuedShipmentMutationNeverCommitsHistory()
+    {
+        using var factory=new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f=await ReferenceDataHttpTests.Setup(factory);
+        using var admin=f.Admin;using var manager=f.Manager;using var analyst=f.Analyst;
+        var (a,b)=await Ports(manager,f.A);
+        var id=await Shipment(manager,f.A,a,b,"G5-CANCEL-WAIT");
+        using var tokenResponse=await manager.GetAsync("/api/v1/auth/csrf");
+        var token=(await tokenResponse.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("token").GetString();
+        await using var connection=new NpgsqlConnection(TestDatabase.ConnectionString());
+        await connection.OpenAsync();
+        await using var hold=await connection.BeginTransactionAsync();
+        await using(var command=new NpgsqlCommand(
+            "SELECT id FROM organizations WHERE id=@id FOR UPDATE",connection,hold))
+        {
+            command.Parameters.AddWithValue("id",f.A);
+            Assert.Equal(f.A,(Guid)(await command.ExecuteScalarAsync())!);
+        }
+        using var request=new HttpRequestMessage(HttpMethod.Patch,Root(f.A)+"/"+id);
+        request.Headers.TryAddWithoutValidation("Origin","http://localhost");
+        request.Headers.TryAddWithoutValidation("X-HarborOps-CSRF",token);
+        request.Content=JsonContent.Create(new{workflowStatus="Booked",expectedVersion=1L});
+        using var cancellation=new CancellationTokenSource();
+        var task=manager.SendAsync(request,cancellation.Token);
+        bool blocked=false;
+        await using(var observer=new NpgsqlConnection(TestDatabase.ConnectionString()))
+        {
+            await observer.OpenAsync();
+            for(int i=0;i<100;i++)
+            {
+                await using var check=new NpgsqlCommand(
+                    "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() "+
+                    "AND wait_event_type='Lock' AND query ILIKE '%organizations%'",observer);
+                if(Convert.ToInt64(await check.ExecuteScalarAsync())>0){blocked=true;break;}
+                if(task.IsCompleted) break;
+                await Task.Delay(100);
+            }
+        }
+        try
+        {
+            Assert.True(blocked,"Cancellation test must observe the blocked database writer");
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async()=>await task);
+        }
+        finally {await hold.CommitAsync();}
+        await using var scope=factory.Services.CreateAsyncScope();
+        var db=scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Equal(1L,(await db.Shipments.AsNoTracking().SingleAsync(x=>x.Id==id)).Version);
+        Assert.Equal(1,await db.ShipmentStatusChanges.CountAsync(x=>x.ShipmentId==id));
+    }
 }

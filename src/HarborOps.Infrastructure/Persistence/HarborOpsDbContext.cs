@@ -274,6 +274,7 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             entity.Property(x => x.ArchivedAtUtc).HasColumnName("archived_at_utc").HasColumnType("timestamp with time zone");
             entity.Property(x => x.ChangedByUserId).HasColumnName("changed_by_user_id");
             entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.ChangedByUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => x.ChangedByUserId).HasDatabaseName("IX_shipments_changed_by_user_id");
             entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
             entity.HasIndex(x => new { x.OrganizationId, x.ExternalReference }).IsUnique()
                 .HasFilter("external_reference IS NOT NULL");
@@ -302,6 +303,7 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             entity.Property(x => x.ChangedAtUtc).HasColumnName("changed_at_utc").HasColumnType("timestamp with time zone");
             entity.Property(x => x.ChangedByUserId).HasColumnName("changed_by_user_id");
             entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.ChangedByUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => x.ChangedByUserId).HasDatabaseName("IX_shipment_status_changes_changed_by_user_id");
             entity.HasIndex(x => new { x.OrganizationId, x.ShipmentId, x.Version }).IsUnique();
         });
     }

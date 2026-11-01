@@ -66,6 +66,7 @@ public sealed class ShipmentLifecycle : Migration
                 ON shipments(organization_id,origin_port_id);
             CREATE INDEX "IX_shipments_OrganizationId_DestinationPortId"
                 ON shipments(organization_id,destination_port_id);
+            CREATE INDEX "IX_shipments_changed_by_user_id" ON shipments(changed_by_user_id);
 
             CREATE TABLE shipment_status_changes (
                 id uuid PRIMARY KEY,
@@ -88,6 +89,8 @@ public sealed class ShipmentLifecycle : Migration
             );
             CREATE UNIQUE INDEX "IX_shipment_status_changes_OrganizationId_ShipmentId_Version"
                 ON shipment_status_changes(organization_id,shipment_id,version);
+            CREATE INDEX "IX_shipment_status_changes_changed_by_user_id"
+                ON shipment_status_changes(changed_by_user_id);
 
             CREATE FUNCTION harborops_shipment_validate() RETURNS trigger LANGUAGE plpgsql AS $$
             BEGIN

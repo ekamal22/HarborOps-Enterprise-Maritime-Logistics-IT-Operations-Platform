@@ -187,6 +187,12 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
                 .HasPrincipalKey(x => new { x.OrganizationId, x.Id }).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<PortReference>().WithMany().HasForeignKey(x => new { x.OrganizationId, x.DestinationPortId })
                 .HasPrincipalKey(x => new { x.OrganizationId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => new { x.OrganizationId, x.VesselId })
+                .HasDatabaseName("IX_voyages_OrganizationId_VesselId");
+            entity.HasIndex(x => new { x.OrganizationId, x.OriginPortId })
+                .HasDatabaseName("IX_voyages_OrganizationId_OriginPortId");
+            entity.HasIndex(x => new { x.OrganizationId, x.DestinationPortId })
+                .HasDatabaseName("IX_voyages_OrganizationId_DestinationPortId");
             entity.HasIndex(x => new { x.OrganizationId, x.VoyageStatus, x.Id });
             entity.ToTable(t =>
             {

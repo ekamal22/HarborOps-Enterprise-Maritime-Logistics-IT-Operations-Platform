@@ -85,6 +85,7 @@ run_stage() {
   return "$rc"
 }
 run_stage decision-unit node --test scripts/g4-decision-gate.test.mjs
+run_stage schema-index node scripts/check-g4-index-contract.mjs
 run_stage preflight bash scripts/verify-m2-local.sh preflight
 run_stage postgres-image docker build --build-arg "SOURCE_REVISION=$sha" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .

@@ -106,3 +106,27 @@ test("M4 real Manager role revocation clears browser management controls", async
     expect(restored.status()).toBe(200);
   } finally { await adminContext.close(); }
 });
+
+test("M4 voyage list stays readable when an editable parent catalog fails", async ({ page }) => {
+  test.skip(!enabled, "Isolated M4 fixtures required");
+  test.setTimeout(120_000);
+  await login(page, "m3-manager@example.test");
+  await page.route("**/api/v1/organizations/*/ports?*", route => route.fulfill({
+    status: 503, contentType: "application/json",
+    body: JSON.stringify({
+      code: "dependency_unavailable", message: "Dependency temporarily unavailable",
+      correlationId: "m4-parent-list-check"
+    })
+  }));
+  await page.locator("#current-organization")
+    .selectOption({ label: "M3 North Terminal (Manager)" });
+  const section = page.getByRole("heading", { name: "Voyages and containers" })
+    .locator("xpath=ancestor::section");
+  await expect(section.getByText("M4-VOYAGE-NORTH")).toBeVisible();
+  await expect(section.getByText("Voyage reference selection is unavailable")).toBeVisible();
+  await expect(section.getByRole("button", { name: "Add voyage" })).toBeDisabled();
+  await page.unrouteAll();
+  await section.getByRole("button", { name: "Refresh maritime records" }).click();
+  await expect(section.getByRole("button", { name: "Add voyage" })).toBeEnabled();
+  await expect(section.getByText("M4-VOYAGE-NORTH")).toBeVisible();
+});

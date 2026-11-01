@@ -84,6 +84,7 @@ run_stage() {
   printf '%s\t%s\t%s\n' "$label" "$sha" "$rc" >> "$evidence/g4-stages.tsv"
   return "$rc"
 }
+run_stage decision-unit node --test scripts/g4-decision-gate.test.mjs
 run_stage preflight bash scripts/verify-m2-local.sh preflight
 run_stage postgres-image docker build --build-arg "SOURCE_REVISION=$sha" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
@@ -99,7 +100,10 @@ setup_m3() {
     "m3-admin-a@example.test|M3 Synthetic North Administrator" \
     "m3-admin-b@example.test|M3 Synthetic East Administrator" \
     "m3-manager@example.test|M3 Synthetic Manager" \
-    "m3-analyst@example.test|M3 Synthetic Analyst"; do
+    "m3-analyst@example.test|M3 Synthetic Analyst" \
+    "m4-analyst-east@example.test|M4 Synthetic East Analyst" \
+    "m4-support@example.test|M4 Synthetic Support" \
+    "m4-auditor@example.test|M4 Synthetic Auditor"; do
     email="$(printf '%s' "$entry" | cut -d'|' -f1)"
     name="$(printf '%s' "$entry" | cut -d'|' -f2)"
     printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | \

@@ -48,7 +48,9 @@ export COMPOSE_FILE="compose.yaml;$(cygpath -w "$override")"
 # Do not take over an existing project, even if it shares the disposable name.
 existing_containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-verify)"
 existing_volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-verify)"
-existing_pg="$(docker ps -aq --filter name='^/ho-g2-pg$')"
+# Git Bash rewrites a leading slash inside an argument unless path conversion is disabled.
+# Without this the name filters matched nothing and a disposable database was left behind.
+existing_pg="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g2-pg$')"
 if [[ -n "$existing_containers" || -n "$existing_volumes" || -n "$existing_pg" ]]; then
   echo "Existing verification resources found. Refusing takeover." >&2
   exit 2
@@ -60,7 +62,7 @@ cleanup() {
   if [[ "$owned" == "1" ]]; then
     docker compose -p ho-verify down --volumes --remove-orphans \
       >> "$evidence/g4-cleanup.log" 2>&1 || true
-    id="$(docker ps -aq --filter name='^/ho-g2-pg$' \
+    id="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g2-pg$' \
       --filter label=harborops.g2=disposable)"
     if [[ -n "$id" ]]; then
       docker rm -f "$id" >> "$evidence/g4-cleanup.log" 2>&1 || true

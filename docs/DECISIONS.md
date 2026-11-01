@@ -74,6 +74,8 @@ Approved equipment types: `Dry20`, `Dry40`, `HighCube40`, `Reefer20`, `Reefer40`
 
 D-003 approval and G4 acceptance were explicitly provided on 2026-11-01 following [independent G4 evidence review](M4_EXECUTED_VERIFICATION.md). The final source tested on E: was `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. The evidence index's policy-only G4-S01 incompleteness at execution time is closed by this explicit decision; executable checksum and validation tests had already passed. No software functionality was modified to close the decision.
 
+See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed shipment lifecycle/permissions contract awaiting explicit confirmation. This M5-local decision is not an additional global D-number and does not change the execution graph.
+
 ## Open decisions
 
 | ID | Decision required | Default hypothesis | Required before |

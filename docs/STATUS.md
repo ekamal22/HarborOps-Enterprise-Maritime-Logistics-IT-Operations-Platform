@@ -81,6 +81,8 @@ G0 through G4 are accepted and integrated into `main`. D-003 is accepted for M4;
 
 M4-01 through M4-04 are implemented and accepted. D-003 Option B and G4 were explicitly approved on 2026-11-01 after independent review of the final E:-backed evidence archive. The tested implementation SHA is `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. The 20 executable verification stages passed; the evidence-stage exit 1 was solely due to the D-003 decision being pending at execution time, now closed. The [executed verification record](M4_EXECUTED_VERIFICATION.md) preserves full results, archive integrity, G4-S01 to G4-S25 dispositions and limitations. M4 was fast-forward integrated into `main` without GitHub Actions. Subsequent documentation-only commits are not claimed to have been runtime-tested.
 
+[M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) is proposed, not formally accepted; its approved state is a required part of G5-S01. M5 code and initial tests are committed, but do not establish acceptance.
+
 ## M5 design and implementation planning
 
 M5 domain, SQL/EF mappings and migration, tenant-scoped API, shipment-specific role permissions, React UI, automated test source and E:-rooted verification scripts are authored on the feature branch. These remain uncompiled and unexecuted. The [implementation register](M5_IMPLEMENTATION_STATUS.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) distinguish source-complete elements from incomplete adversarial coverage, runner isolation and all pending G5 execution. M5 retains G3 as its inbound gate, and M6 still requires accepted G5. Contract decision and G5 acceptance pending.

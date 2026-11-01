@@ -36,6 +36,8 @@ Existing M0-M4 migration files are unchanged. Older test expectations for the la
 
 The local runner expects an E:-backed verification root ending in `m5`, for example `E:\HarborOps-Verification\m5`. It refuses to take over existing disposable Docker resources. Review its shared `ho-verify` stage infrastructure for independent-project isolation before concurrent verification. Keep all controlled persistent data on E:, with only attributable short-lived C: temporary writes and safe cleanup.
 
+The [M5 local contract decision record](M5_LOCAL_CONTRACT_DECISION.md) remains proposed with acceptance pending. The G5-S01 evidence checker now requires its explicit Accepted state; having source code or passing unit tests alone cannot close this decision.
+
 ## Remaining decisions and governance
 
 The proposed M5-local contract was implemented as a working baseline in response to the implementation request, but its formal decision and G5 acceptance are not recorded. See [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md), [G5 scenarios](M5_VERIFICATION_PLAN.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md). M5 source is unverified and acceptance pending; no integration into `main` or GitHub Actions execution has occurred.

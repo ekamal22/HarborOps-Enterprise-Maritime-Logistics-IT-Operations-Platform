@@ -24,6 +24,8 @@
 5. G5 script modules were syntax-checked in the available JavaScript runtime. The live and snapshot shipment mapping blocks were compared and found textually identical, and the SQL migration's expected index/constraint/trigger names were checked in source.
 6. Internal shipment mutation actor identity was excluded from the public shipment record serializer, while remaining mapped for database persistence.
 
+The source evidence checker now also requires an explicit accepted [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for G5-S01. That record is currently proposed and acceptance pending.
+
 ## Mandatory execution and coverage gaps
 
 | Area | Current status | Required next action |

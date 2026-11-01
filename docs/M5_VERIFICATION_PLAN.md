@@ -6,6 +6,8 @@
 **Authorization:** [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md), [acceptance criteria](ACCEPTANCE_CRITERIA.md), [execution graph](execution-graph.json).
 **Decision:** G5 remains OPEN and acceptance pending until all executable scenarios pass, raw evidence is independently reviewed and explicit acceptance is received.
 
+**G5-S01 decision record:** [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) is presently proposed. G5-S01 is automatically incomplete until an explicit accepted decision is recorded. The rest of the G5 executable checks may still be run, but no checker success or G5 acceptance is implied.
+
 ## 1. Blocking rules
 
 All cases G5-S01 to G5-S25 require direct observed evidence on one final implementation SHA, not merely authored tests. Preserve failures, retries, skipped cases, timestamps, exact databases, image IDs, scripts and per-engine results. Repeat the complete integration suite on the **same disposable database**, with a separately initialized fresh migration case and a seeded accepted M4 upgrade/rollback/reapply case.

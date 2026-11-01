@@ -191,3 +191,18 @@ test("M5 deferred shipment response cannot cross organization switch",async ({pa
   await expect(east.getByText("M5-DEMO-EAST",{exact:true})).toBeVisible();
   await expect(east.getByText("M5-DEMO-NORTH",{exact:true})).toHaveCount(0);
 });
+
+test("M5 logout clears selected shipment details and cached rows",async ({page})=>{
+  test.skip(!enabled,"Disposable M5 fixture required");
+  await login(page,"m3-manager@example.test");
+  await page.locator("#current-organization").selectOption({label:"M3 North Terminal (Manager)"});
+  const s=sectionOf(page);
+  await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
+  await expect(s.getByText("M5-DEMO-NORTH",{exact:true})).toBeVisible();
+  await s.getByRole("button",{name:"View shipment"}).first().click();
+  await expect(s.getByText("Manual status history")).toBeVisible();
+  await page.getByRole("button",{name:"Log out",exact:true}).click();
+  await expect(page.getByLabel("Email")).toBeVisible();
+  await expect(page.getByText("Manual status history")).toHaveCount(0);
+  await expect(page.getByText("M5-DEMO-NORTH",{exact:true})).toHaveCount(0);
+});

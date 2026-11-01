@@ -52,6 +52,10 @@ The final E:-backed G4 execution on `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` p
 
 The [G3 plan](M3_VERIFICATION_PLAN.md) specified 25 mandatory scenarios spanning port/vessel validation, five-role permissions, real foreign UUID substitution, direct PostgreSQL constraints, M2-to-M3 upgrade, optimistic concurrency, archive/restore, real tenant/session races and three-browser flows. The full local G3 matrix passed at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`: 50 unit, 12 contract, 56 fresh and 56 repeated integration, 6 frontend and 19 browser tests per engine, with zero HIGH/CRITICAL findings in the three running image scans. Evidence and failure history are retained in [G3 executed verification](M3_EXECUTED_VERIFICATION.md). Independent raw-evidence review preceded explicit G3 acceptance on 2026-10-31. Preserve these suites as M4 regressions.
 
+## M5 verification contract (planned, G5 OPEN)
+
+The [25-case G5 matrix](M5_VERIFICATION_PLAN.md) covers domain transitions, tenant SQL FKs and status history, live role/session races, version conflicts, two-tenant five-role HTTP, Chromium/Firefox/WebKit, M0-M4 regressions, recovery, scans and E:-backed raw evidence. No G5 case has executed. Formal accessibility testing remains M24-04 and historical-volume checks remain M6/M12/M18/M24-03.
+
 ## Test layers
 
 | Layer | Tools | Representative assertions |

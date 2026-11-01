@@ -139,6 +139,10 @@ G2 tests use disposable databases and controlled environments. The [local G2 ver
 
 The accepted [M4 implementation](M4_IMPLEMENTATION_STATUS.md) adds the PostgreSQL `20261101010000_VoyageContainerReferences` migration after M3 with tenant-composite foreign keys and validated voyage/container records. Fresh, repeated and historical M3 upgrade/rollback scenarios, real outage/recovery, three-browser tests and E:-backed disposable cleanup passed [G4 executed verification](M4_EXECUTED_VERIFICATION.md). D-003 Option B and G4 were accepted on 2026-11-01. If M5 is developed independently, reconcile migration IDs and rerun the combined source regressions before shared integration.
 
+## M5 local verification isolation (planned)
+
+The [G5 plan](M5_VERIFICATION_PLAN.md) requires a separate E:-backed disposable stack, source SHA, raw logs, repeat tests, three-browser evidence, Docker cleanup, outage/recovery, hashes and storage records. Accepted G4 evidence must not be overwritten. Unavoidable C: temporary files may be deleted only when safely attributable after E: evidence preservation. No G5 run has occurred.
+
 ## Parallel development operations boundary
 
 Parallel workstreams must use distinct branches/worktrees, E:-backed output paths and disposable test Compose projects. Only a controlled migration integration may alter the canonical database schema; all branches must validate against the same accepted baseline and reconcile migration ordering before integration. Do not stop/prune primary volumes or reuse production credentials. New modules must preserve M0-M4 session/tenant security and emergency operational controls. A previously accepted recovery or scan gate does not exempt later changes from change-specific regression or final G24 release checks. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md).

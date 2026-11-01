@@ -8,6 +8,10 @@ The established modular monolith remains the single shared architecture. Workstr
 
 M4 remains inside the accepted ASP.NET Core modular monolith, not a separate service. Implemented `Voyages` and `Containers` domain policies, EF stores, scoped endpoints and React workspaces reuse M1 authentication, M2 tenant selection, M3 reference UUIDs and established JSON/CSRF conventions. [M4 architecture](M4_ARCHITECTURE_DESIGN.md) calls for composite same-tenant PostgreSQL FKs, transaction-scope authorization and UTC invariants; [M4 implementation](M4_IMPLEMENTATION_PLAN.md) coordinates one additive migration, including when workstreams execute in parallel. [D-003](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) is not approved, and no M4 runtime is implemented.
 
+## Proposed M5 shipment module
+
+[M5 architecture](M5_ARCHITECTURE_DESIGN.md) proposes a bounded module in the existing .NET 10 monolith with tenant-owned shipment records, manual status history, scoped API commands and a React workspace. No new service, M6 assignment, worker or tracking projection is introduced. See [implementation plan](M5_IMPLEMENTATION_PLAN.md). G5 remains open.
+
 ## Baseline topology
 
 A modular monolith provides the HTTP API and transactional domain functions. A separate .NET worker handles ingestion and processing. PostgreSQL is the authoritative persistence layer. React is the user interface. Local infrastructure is orchestrated through Docker Compose.

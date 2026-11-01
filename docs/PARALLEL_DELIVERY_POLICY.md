@@ -25,7 +25,7 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | Stream | First eligible package | Necessary boundary |
 | --- | --- | --- |
 | M4 voyage/container records | Completed | G4 accepted 2026-11-01; D-003 Option B accepted, implementation integrated |
-| M5 shipment lifecycle | M5-01 | G3 accepted; shipment records initially remain independent of container/voyage assignment |
+| M5 shipment lifecycle | M5-01 | G3 accepted; [M5 design](M5_ARCHITECTURE_DESIGN.md), [implementation](M5_IMPLEMENTATION_PLAN.md), [G5 contract](M5_VERIFICATION_PLAN.md) on separate planning branch; G5 open and assignments deferred to M6 |
 | M7 tracking source contract | M7-01 | G3 accepted; D-002 pinned contract decision required |
 | M16 audit foundations | M16-01 | G3 accepted; never weaken existing M1-M3 security |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |

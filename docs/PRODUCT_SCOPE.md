@@ -49,6 +49,10 @@ M2 introduces organization memberships, five fixed roles, per-session selected o
 
 The [M3 design](M3_ARCHITECTURE_DESIGN.md) delivers accepted organization-owned port/vessel reference records on which the accepted M4 voyage/container module depends. M3 was accepted on 2026-10-31 and M4 on 2026-11-01. Both are integrated into `main`. M5 and later assignments remain separately gated; no public deployment is implied.
 
+## Proposed M5 shipment lifecycle boundary
+
+[M5 architecture](M5_ARCHITECTURE_DESIGN.md) and [implementation plan](M5_IMPLEMENTATION_PLAN.md) allocate manual shipment lifecycle, bounded list/detail/search, archive/restore and versioned edits to M5. M6 owns container/voyage assignments; tracking projections and CSV export belong to later milestones. No M5 implementation or accepted G5 evidence exists.
+
 ## Out of scope for initial release
 
 - Commercial vessel positioning feeds and proprietary carrier system connections.

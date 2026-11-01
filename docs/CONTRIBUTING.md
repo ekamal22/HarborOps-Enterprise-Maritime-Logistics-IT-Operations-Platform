@@ -73,6 +73,10 @@ Use one branch/worktree per independent milestone, from an accepted baseline. Es
 - Treat [Status](STATUS.md) and milestone evidence registers as the only source for achieved results and acceptance state.
 - When changing a node ID or requirement mapping, update affected code tasks, test evidence, gates, and references in the same change.
 
+## M5 shipment planning boundary
+
+Read [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation](M5_IMPLEMENTATION_PLAN.md), [G5 contract](M5_VERIFICATION_PLAN.md) and [planning status](M5_IMPLEMENTATION_STATUS.md) before implementation. Freeze M5-01 first, coordinate the additive migration, preserve M0-M4, use `[skip ci]`, and avoid GitHub Actions and merges without approval. G5 acceptance pending.
+
 ## Accepted M4 module and contribution boundary
 
 Read the [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [implementation plan](M4_IMPLEMENTATION_PLAN.md) and [G4 matrix](M4_VERIFICATION_PLAN.md) before any implementation. [D-003 Option B](DECISIONS.md) is accepted, and [G4 evidence](M4_EXECUTED_VERIFICATION.md) was independently reviewed and accepted on 2026-11-01. Maintain the frozen identifier contract unless a new explicit decision authorizes a change. Voyage/container feature branches may progress in parallel, but use one coordinated EF migration order and preserve accepted M3 composite tenant identity. No GitHub Actions. Every commit uses `[skip ci]`, and G4 must be fully verified and explicitly accepted before merging implementation to `main`.

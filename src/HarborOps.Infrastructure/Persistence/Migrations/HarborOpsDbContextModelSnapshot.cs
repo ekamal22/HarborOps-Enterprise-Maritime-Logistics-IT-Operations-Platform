@@ -2,6 +2,7 @@ using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.References;
 using HarborOps.Infrastructure.Maritime;
+using HarborOps.Infrastructure.Shipments;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -224,6 +225,185 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
                     "(identifier_kind='Synthetic' AND container_identifier ~ '^SYN-BOX-[A-Z0-9]{4,16}$' AND source_kind='Synthetic')");
                 t.HasCheckConstraint("CK_containers_display", "display_name IS NULL OR length(btrim(display_name)) BETWEEN 1 AND 160");
             });
+        });
+        modelBuilder.Entity<ShipmentRecord>(entity =>
+        {
+            entity.ToTable("shipments", t =>
+            {
+                t.HasCheckConstraint("CK_shipments_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*(EntityTypeBuilder<TEntity> entity, string table)
+        where TEntity : MaritimeRecord
+    {
+        entity.ToTable(table, t =>
+        {
+            t.HasCheckConstraint("CK_" + table + "_status", "record_status IN ('Active','Archived')");
+            t.HasCheckConstraint("CK_" + table + "_source", "source_kind IN ('UserProvided','Synthetic')");
+            t.HasCheckConstraint("CK_" + table + "_version", "version > 0");
+            t.HasCheckConstraint("CK_" + table + "_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*$' AND length(reference_code) BETWEEN 3 AND 32");
+            t.HasCheckConstraint("CK_" + table + "_timestamp", "updated_at_utc >= created_at_utc");
+        });
+        entity.HasKey(x => x.Id);
+        entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+        entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+        entity.HasOne<HarborOps.Infrastructure.Organizations.Organization>().WithMany()
+            .HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+        entity.Property(x => x.ReferenceCode).HasColumnName("reference_code").HasMaxLength(32).IsRequired();
+        entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
+        entity.HasIndex(x => new { x.OrganizationId, x.Id });
+        entity.Property(x => x.RecordStatus).HasColumnName("record_status").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.SourceKind).HasColumnName("source_kind").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.Version).HasColumnName("version");
+        entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+        entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+    }
+
+    private static void ConfigureReference<TEntity>(EntityTypeBuilder<TEntity> entity, string table)
+        where TEntity : ReferenceRecord
+    {
+        entity.ToTable(table, t =>
+        {
+            t.HasCheckConstraint("CK_" + table + "_status", "status IN ('Active','Archived')");
+            t.HasCheckConstraint("CK_" + table + "_source_kind", "source_kind IN ('UserProvided','Synthetic')");
+            t.HasCheckConstraint("CK_" + table + "_version", "version > 0");
+            t.HasCheckConstraint("CK_" + table + "_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*$' AND length(reference_code) BETWEEN 3 AND 32");
+            t.HasCheckConstraint("CK_" + table + "_name", "length(btrim(name)) BETWEEN 1 AND 160");
+            t.HasCheckConstraint("CK_" + table + "_time", "updated_at_utc >= created_at_utc");
+        });
+        entity.HasKey(x => x.Id);
+        entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+        entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+        entity.HasOne<HarborOps.Infrastructure.Organizations.Organization>().WithMany()
+            .HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+        entity.Property(x => x.ReferenceCode).HasColumnName("reference_code").HasMaxLength(32).IsRequired();
+        entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
+        entity.HasIndex(x => new { x.OrganizationId, x.Id });
+        entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(160).IsRequired();
+        entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.SourceKind).HasColumnName("source_kind").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.Version).HasColumnName("version");
+        entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+        entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+    }
+}
+ AND length(reference_code) BETWEEN 3 AND 32");
+                t.HasCheckConstraint("CK_shipments_external", "external_reference IS NULL OR external_reference ~ '^[A-Z0-9._/-]{1,80}(EntityTypeBuilder<TEntity> entity, string table)
+        where TEntity : MaritimeRecord
+    {
+        entity.ToTable(table, t =>
+        {
+            t.HasCheckConstraint("CK_" + table + "_status", "record_status IN ('Active','Archived')");
+            t.HasCheckConstraint("CK_" + table + "_source", "source_kind IN ('UserProvided','Synthetic')");
+            t.HasCheckConstraint("CK_" + table + "_version", "version > 0");
+            t.HasCheckConstraint("CK_" + table + "_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*$' AND length(reference_code) BETWEEN 3 AND 32");
+            t.HasCheckConstraint("CK_" + table + "_timestamp", "updated_at_utc >= created_at_utc");
+        });
+        entity.HasKey(x => x.Id);
+        entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+        entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+        entity.HasOne<HarborOps.Infrastructure.Organizations.Organization>().WithMany()
+            .HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+        entity.Property(x => x.ReferenceCode).HasColumnName("reference_code").HasMaxLength(32).IsRequired();
+        entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
+        entity.HasIndex(x => new { x.OrganizationId, x.Id });
+        entity.Property(x => x.RecordStatus).HasColumnName("record_status").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.SourceKind).HasColumnName("source_kind").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.Version).HasColumnName("version");
+        entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+        entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+    }
+
+    private static void ConfigureReference<TEntity>(EntityTypeBuilder<TEntity> entity, string table)
+        where TEntity : ReferenceRecord
+    {
+        entity.ToTable(table, t =>
+        {
+            t.HasCheckConstraint("CK_" + table + "_status", "status IN ('Active','Archived')");
+            t.HasCheckConstraint("CK_" + table + "_source_kind", "source_kind IN ('UserProvided','Synthetic')");
+            t.HasCheckConstraint("CK_" + table + "_version", "version > 0");
+            t.HasCheckConstraint("CK_" + table + "_code", "reference_code ~ '^[A-Z0-9]+(-[A-Z0-9]+)*$' AND length(reference_code) BETWEEN 3 AND 32");
+            t.HasCheckConstraint("CK_" + table + "_name", "length(btrim(name)) BETWEEN 1 AND 160");
+            t.HasCheckConstraint("CK_" + table + "_time", "updated_at_utc >= created_at_utc");
+        });
+        entity.HasKey(x => x.Id);
+        entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+        entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+        entity.HasOne<HarborOps.Infrastructure.Organizations.Organization>().WithMany()
+            .HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+        entity.Property(x => x.ReferenceCode).HasColumnName("reference_code").HasMaxLength(32).IsRequired();
+        entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
+        entity.HasIndex(x => new { x.OrganizationId, x.Id });
+        entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(160).IsRequired();
+        entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.SourceKind).HasColumnName("source_kind").HasMaxLength(16).IsRequired();
+        entity.Property(x => x.Version).HasColumnName("version");
+        entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+        entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+    }
+}
+");
+                t.HasCheckConstraint("CK_shipments_display", "display_name IS NULL OR (length(btrim(display_name)) BETWEEN 1 AND 160 AND display_name !~ '[[:cntrl:]]')");
+                t.HasCheckConstraint("CK_shipments_route", "origin_port_id <> destination_port_id");
+                t.HasCheckConstraint("CK_shipments_times", "planned_departure_at_utc IS NULL OR planned_arrival_at_utc IS NULL OR planned_departure_at_utc < planned_arrival_at_utc");
+                t.HasCheckConstraint("CK_shipments_workflow", "workflow_status IN ('Draft','Booked','InTransit','Arrived','Completed','Cancelled')");
+                t.HasCheckConstraint("CK_shipments_status", "record_status IN ('Active','Archived')");
+                t.HasCheckConstraint("CK_shipments_source", "source_kind IN ('UserProvided','Synthetic')");
+                t.HasCheckConstraint("CK_shipments_version", "version > 0");
+                t.HasCheckConstraint("CK_shipments_archive", "(record_status='Active' AND archived_at_utc IS NULL) OR (record_status='Archived' AND archived_at_utc IS NOT NULL)");
+                t.HasCheckConstraint("CK_shipments_time", "updated_at_utc >= created_at_utc");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+            entity.Property(x => x.ReferenceCode).HasColumnName("reference_code").HasMaxLength(32).IsRequired();
+            entity.Property(x => x.ExternalReference).HasColumnName("external_reference").HasMaxLength(80);
+            entity.Property(x => x.DisplayName).HasColumnName("display_name").HasMaxLength(160);
+            entity.Property(x => x.OriginPortId).HasColumnName("origin_port_id");
+            entity.Property(x => x.DestinationPortId).HasColumnName("destination_port_id");
+            entity.HasOne<PortReference>().WithMany().HasForeignKey(x => new { x.OrganizationId, x.OriginPortId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<PortReference>().WithMany().HasForeignKey(x => new { x.OrganizationId, x.DestinationPortId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasAlternateKey(x => new { x.OrganizationId, x.Id });
+            entity.Property(x => x.PlannedDepartureAtUtc).HasColumnName("planned_departure_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.PlannedArrivalAtUtc).HasColumnName("planned_arrival_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.WorkflowStatus).HasColumnName("workflow_status").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.RecordStatus).HasColumnName("record_status").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.SourceKind).HasColumnName("source_kind").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.Version).HasColumnName("version");
+            entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ArchivedAtUtc).HasColumnName("archived_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ChangedByUserId).HasColumnName("changed_by_user_id");
+            entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.ChangedByUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => new { x.OrganizationId, x.ReferenceCode }).IsUnique();
+            entity.HasIndex(x => new { x.OrganizationId, x.ExternalReference }).IsUnique()
+                .HasFilter("external_reference IS NOT NULL");
+            entity.HasIndex(x => new { x.OrganizationId, x.RecordStatus, x.Id });
+            entity.HasIndex(x => new { x.OrganizationId, x.WorkflowStatus, x.Id });
+            entity.HasIndex(x => new { x.OrganizationId, x.OriginPortId });
+            entity.HasIndex(x => new { x.OrganizationId, x.DestinationPortId });
+        });
+        modelBuilder.Entity<ShipmentStatusChange>(entity =>
+        {
+            entity.ToTable("shipment_status_changes", t =>
+            {
+                t.HasCheckConstraint("CK_shipment_status_changes_to", "to_status IN ('Draft','Booked','InTransit','Arrived','Completed','Cancelled')");
+                t.HasCheckConstraint("CK_shipment_status_changes_from", "from_status IS NULL OR from_status IN ('Draft','Booked','InTransit','Arrived','Completed','Cancelled')");
+                t.HasCheckConstraint("CK_shipment_status_changes_version", "version > 0");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.Property(x => x.ShipmentId).HasColumnName("shipment_id");
+            entity.HasOne<ShipmentRecord>().WithMany().HasForeignKey(x => new { x.OrganizationId, x.ShipmentId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+            entity.Property(x => x.FromStatus).HasColumnName("from_status").HasMaxLength(16);
+            entity.Property(x => x.ToStatus).HasColumnName("to_status").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.Version).HasColumnName("version");
+            entity.Property(x => x.ChangedAtUtc).HasColumnName("changed_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ChangedByUserId).HasColumnName("changed_by_user_id");
+            entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.ChangedByUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => new { x.OrganizationId, x.ShipmentId, x.Version }).IsUnique();
         });
     }
 

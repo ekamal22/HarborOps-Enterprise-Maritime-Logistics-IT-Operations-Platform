@@ -71,7 +71,8 @@ public sealed class OrganizationUpgradeAndConstraintTests
                 [
                     "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions",
                     "20261031020000_OrganizationMemberships", "20261031110000_PortVesselReferences",
-                    "20261101010000_VoyageContainerReferences"
+                    "20261101010000_VoyageContainerReferences",
+                    "20261101180000_ShipmentLifecycle"
                 ],
                 (await db.Database.GetAppliedMigrationsAsync()).ToArray());
             var identity = scope.ServiceProvider.GetRequiredService<IdentityStore>();

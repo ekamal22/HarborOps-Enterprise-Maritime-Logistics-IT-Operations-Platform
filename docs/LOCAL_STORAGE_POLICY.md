@@ -90,6 +90,10 @@ M0 was verified on a Windows 11 host with its working tree under E:, project cac
 
 For future milestones, reuse this E-drive baseline and recheck disk paths before adding new tools or test frameworks. No new service, package manager, browser test runner or build pipeline may silently introduce persistent C-drive usage.
 
+## G4 local run storage notes
+
+The G4 runs use `E:HarborOps-Verification` for caches, temporary files, browser binaries, evidence and logs, and the E:-backed Docker Desktop data image checked by `scripts/check-m3-docker-storage.mjs`. Git Bash rewrites a leading slash inside an argument unless `MSYS_NO_PATHCONV=1` is set for that command, which previously hid a leftover disposable database container from the runner. Before and after a run, record C: and E: free space and a file manifest of the candidate C: locations, and delete only files that the manifest comparison attributes to the run. The fifth G4 audit records the method.
+
 ## Scope and verification
 
 This is a development-environment constraint, **not** a claim that Windows itself will never touch C:. Record observed storage paths and any unavoidable temporary exceptions in the relevant milestone evidence register. Do not claim storage compliance based solely on this policy document.

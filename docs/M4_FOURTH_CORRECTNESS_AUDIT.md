@@ -42,8 +42,8 @@ The local .NET runner also prints the start of each test batch and its per-batch
 | Runner still executes fresh and repeat integration against the same disposable PostgreSQL instance | Confirmed |
 | Runner still fails G4 on any batch error | Confirmed |
 | Database migration, domain and authorization production code changed | No |
-| Current corrected revision fresh/repeat integration result | NOT RUN |
-| Browser, outage/recovery, security and full G4 evidence result | NOT RUN |
+| Current corrected revision fresh/repeat integration result | Passed 92/92 fresh and 92/92 repeated at `f1854c3`, see [fifth audit](M4_FIFTH_CORRECTNESS_AUDIT.md) |
+| Browser, outage/recovery, security and full G4 evidence result | Executed at `f1854c3`, all passed except the D-003 gate, see [fifth audit](M4_FIFTH_CORRECTNESS_AUDIT.md) |
 
 The previous G4 run stopped in the `dotnet` stage before frontend, stack, browser, outage/recovery, scan, and final evidence stages. Its zero-resource cleanup warning is expected in that early-stop path. Do not treat that warning as a separate Docker failure.
 

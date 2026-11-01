@@ -119,7 +119,7 @@ const scenarios = [
   ["S01",["MaritimePolicyTests.KnownIsoChecksumVectorsAreAccepted","MaritimePolicyTests.IncorrectIsoIdentifiersAreRejected"]],
   ["S02",["MaritimePolicyTests.SyntheticIdentifiersCannotMasqueradeAsIso","MaritimePolicyTests.EquipmentCatalogIsClosed"],["M4 Manager container lifecycle retains synthetic identity"]],
   ["S03",["MaritimePolicyTests.VoyagesRequireConsistentNullableWindowsAndProgress","MaritimePolicyTests.TransitionGraphIsClosed","MaritimePolicyTests.UtcInputsRequireExplicitZeroOffset"]],
-  ["S04",["MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel","MigrationSnapshotTests.Migrations_AreDiscoveredInOrder","MaritimeUpgradeAndSecurityTests.FreshIsolatedSchemaRunsEveryMigrationWithoutModelDrift","MaritimeMigrationTests.SeededM3HistorySurvivesM4UpgradeRollbackAndReapply"]],
+  ["S04",["MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel","MigrationSnapshotTests.Migrations_AreDiscoveredInOrder","MaritimeUpgradeAndSecurityTests.FreshIsolatedSchemaRunsEveryMigrationWithoutModelDrift","MaritimeMigrationTests.SeededM3HistorySurvivesM4UpgradeRollbackAndReapply"],[],["schema-index"]],
   ["S05",["MaritimeMigrationTests.SeededM3HistorySurvivesM4UpgradeRollbackAndReapply"]],
   ["S06",["MaritimeMigrationTests.DirectSqlRejectsCrossTenantVoyagesBadIdentifiersAndMutatedIdentity","MaritimeSqlInvariantTests.DirectSqlCannotBypassVoyageTransitionRouteVersionOrScheduleRules","MaritimeSqlInvariantTests.DirectSqlCannotModifyArchivedContainerOrImmutableIdentifiers"]],
   ["S07",[],[],["fixtures","m4-fixtures"]],

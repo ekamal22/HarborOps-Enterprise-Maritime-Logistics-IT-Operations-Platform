@@ -164,21 +164,19 @@ teardown_g5() {
   docker compose -p ho-g5-verify logs --no-color --timestamps > "$evidence/g5-docker-services.log" 2>&1 || true
   docker compose -p ho-g5-verify down --volumes --remove-orphans || return 1
   local integration
-  integration="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg
- --filter label=harborops.g5=disposable)"
+  integration="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg$' --filter label=harborops.g5=disposable)"
   if [[ -n "$integration" ]]; then docker rm -f "$integration" >/dev/null || return 1; fi
   local containers volumes database
   containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-g5-verify)"
   volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-g5-verify)"
-  database="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg
-)"
+  database="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg$')"
   node -e '
     const fs=require("fs");
     const [dest,sha,c,v,d]=process.argv.slice(1);
     fs.writeFileSync(dest,JSON.stringify({sourceSha:sha,
-      remainingContainers:c?c.split(/\\r?\\n/).length:0,
-      remainingVolumes:v?v.split(/\\r?\\n/).length:0,
-      remainingIntegrationContainers:d?d.split(/\\r?\\n/).length:0,
+      remainingContainers:c?c.split(/\r?\n/).length:0,
+      remainingVolumes:v?v.split(/\r?\n/).length:0,
+      remainingIntegrationContainers:d?d.split(/\r?\n/).length:0,
       checkedAtUtc:new Date().toISOString()},null,2));
   ' "$evidence/g5-teardown.json" "$sha" "$containers" "$volumes" "$database"
   [[ -z "$containers" && -z "$volumes" && -z "$database" ]]

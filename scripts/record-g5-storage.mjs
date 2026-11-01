@@ -23,8 +23,9 @@ for(const name of roots){
 const report={phase,time:new Date().toISOString(),
   sourceSha:process.env.HARBOROPS_SOURCE_SHA,drives,
   controlledPaths:Object.fromEntries(roots.map(x=>[x,process.env[x]])),
-  cTaskTemporaryFiles:[],
-  cCleanup:"No task-owned C: paths are permitted; unrelated operating-system files are not removed"};
+  controlledCWritesAllowed:false,
+  cAttribution:"Only paths explicitly recorded as created by this run can be treated as task-owned. Operating-system and Docker Desktop log activity is not automatically attributable.",
+  cCleanup:"No controlled task writes to C:. Do not remove system or unrelated temporary files without positive ownership evidence."};
 fs.mkdirSync(path.join(root,"evidence"),{recursive:true});
 fs.writeFileSync(path.join(root,"evidence","g5-storage-"+phase+".json"),
   JSON.stringify(report,null,2));

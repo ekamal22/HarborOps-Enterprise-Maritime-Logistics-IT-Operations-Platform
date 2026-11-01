@@ -5,6 +5,8 @@
 **Source authority:** [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [M4 implementation](M4_IMPLEMENTATION_PLAN.md), [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md), [M3 executed verification](M3_EXECUTED_VERIFICATION.md).  
 **Entry:** G3 already accepted; M4-01 must resolve D-003 before relevant identifier code is implemented.
 
+**Observed third G4 execution (2026-11-01):** At `bbb672a5b0ab094c1ae2c21d50ec5faf0101cbee`, decision tests, schema index, preflight, PostgreSQL image, clean .NET Release build, 82 unit, 12 contract and 87 fresh integration tests passed. Repeated integration failed one of 87 tests: `IdenticalContainerIdentifierIsAllowedInDifferentOrganizations` matched retained records from both runs due to a hardcoded identifier. A fresh identifier per invocation now preserves the cross-tenant semantics without stale-record interference. See [fourth correctness audit](M4_FOURTH_CORRECTNESS_AUDIT.md). The corrected source has not been rerun, browser/outage/recovery/scans remain unexecuted, D-003 is pending, G4 OPEN.
+
 ## 1. Gate rules
 
 Every one of G4-S01 through G4-S25 is mandatory. The evidence matrix must identify named executed tests, commands, runtime environment, test counts, positive and negative assertions, exact tested SHA and any blockers. A compiled project, authored test or successful partial runner is not a PASS. No scenario may be skipped merely because its state seems unlikely.

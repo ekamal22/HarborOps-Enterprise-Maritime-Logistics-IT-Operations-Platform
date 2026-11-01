@@ -122,6 +122,17 @@ public sealed class ShipmentSqlMatrixTests
             .CountAsync(x=>x.ExternalReference=="EXTERNAL/1"));
         Assert.Equal(1,await db.ShipmentStatusChanges.AsNoTracking()
             .CountAsync(x=>x.OrganizationId==f.B && x.ShipmentId==foreignId));
+        using(var detail=await manager.GetAsync(api+"/"+foreignId))
+            Assert.Equal(HttpStatusCode.NotFound,detail.StatusCode);
+        using(var history=await manager.GetAsync(api+"/"+foreignId+"/status-changes"))
+            Assert.Equal(HttpStatusCode.NotFound,history.StatusCode);
+        using(var patch=await Send(manager,HttpMethod.Patch,api+"/"+foreignId,
+            new{workflowStatus="Booked",expectedVersion=1L}))
+            Assert.Equal(HttpStatusCode.NotFound,patch.StatusCode);
+        using(var archive=await Send(manager,HttpMethod.Delete,api+"/"+foreignId,
+            new{expectedVersion=1L}))
+            Assert.Equal(HttpStatusCode.NotFound,archive.StatusCode);
+        Assert.Equal("Draft",(await db.Shipments.AsNoTracking().SingleAsync(x=>x.Id==foreignId)).WorkflowStatus);
     }
 
     [Fact]

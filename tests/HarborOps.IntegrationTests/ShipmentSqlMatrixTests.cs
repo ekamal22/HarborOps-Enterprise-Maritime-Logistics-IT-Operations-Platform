@@ -163,8 +163,11 @@ public sealed class ShipmentSqlMatrixTests
             origin_port_id,destination_port_id,created_at_utc,updated_at_utc,changed_by_user_id)
           VALUES ({foreignId},{f.B},{"G5-EXT-ONE"},{"EXTERNAL/1"},
             {foreignA.Id},{foreignB.Id},{DateTimeOffset.UtcNow},{DateTimeOffset.UtcNow},{user})");
-        Assert.Equal(2,await db.Shipments.AsNoTracking()
-            .CountAsync(x=>x.ExternalReference=="EXTERNAL/1"));
+        // Scope to this test's organizations so a repeated run on the same database stays valid.
+        Assert.Equal(1,await db.Shipments.AsNoTracking()
+            .CountAsync(x=>x.OrganizationId==f.A && x.ExternalReference=="EXTERNAL/1"));
+        Assert.Equal(1,await db.Shipments.AsNoTracking()
+            .CountAsync(x=>x.OrganizationId==f.B && x.ExternalReference=="EXTERNAL/1"));
         Assert.Equal(1,await db.ShipmentStatusChanges.AsNoTracking()
             .CountAsync(x=>x.OrganizationId==f.B && x.ShipmentId==foreignId));
         using(var detail=await manager.GetAsync(api+"/"+foreignId))

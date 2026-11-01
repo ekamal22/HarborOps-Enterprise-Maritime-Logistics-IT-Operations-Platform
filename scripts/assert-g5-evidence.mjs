@@ -13,6 +13,8 @@ assert.match(sha,/^[0-9a-f]{40}$/);
 assert.equal(read("m5-source-sha.txt").trim(),sha);
 assert.equal(execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),sha);
 const started=Date.parse(read("g5-start-utc.txt").trim());
+const ended=Date.parse(read("g5-end-utc.txt").trim());
+assert.ok(Number.isFinite(ended) && ended>=started,"Missing valid G5 teardown timestamp");
 assert.ok(Number.isFinite(started) && started<=Date.now() &&
   Date.now()-started < 24*3600*1000,"Invalid G5 source execution timestamp");
 const fresh=p=>fs.existsSync(at(p)) && fs.statSync(at(p)).size>0 &&
@@ -161,7 +163,7 @@ const cases=[
 ["S20",integration("ShipmentExtendedGateTests.ConcurrentArchiveAndStatusEditProduceOneVersionWinner")&&integration("ShipmentExtendedGateTests.DuplicateConcurrentCreationCommitsExactlyOneShipment")&&integration("ShipmentHttpTests.CompetingExpectedVersionUpdatesHaveOneWinnerAndOneHistoryRecord")&&integration("ShipmentExtendedGateTests.ArchivedRestoreAndStaleEditCannotBothCommit")&&integration("ShipmentExtendedGateTests.DuplicateArchiveAttemptsCannotBothCommit")],
 ["S21",integration("ShipmentBoundaryTests.FailedTransitionLeavesNoPartialHistory")],
 ["S22",browser("M5 Analyst creates and advances a scoped shipment")&&browser("M5 Manager advances terminal workflows and retains manual history")&&browser("M5 stale edit displays conflict and retains entered values")],
-["S23",browser("M5 Auditor shipment view does not grant M4 management")&&browser("M5 tenant change invalidates prior shipment list")&&browser("M5 deferred shipment response cannot cross organization switch")&&browser("M5 failed parent catalog retries without suppressing shipment list")],
+["S23",browser("M5 Auditor shipment view does not grant M4 management")&&browser("M5 tenant change invalidates prior shipment list")&&browser("M5 deferred shipment response cannot cross organization switch")&&browser("M5 failed parent catalog retries without suppressing shipment list")&&browser("M5 logout clears selected shipment details and cached rows")],
 ["S24",unit("MaritimePolicyTests.RoleGrantsStayWithinBusinessPermissions")&&integration("ReferenceDataHttpTests.ScopedPortAndVesselLifecycleAndRoleMatrix")&&
   reports["contract"].length>0&&browsers.length>=engines.length*declared.length],
 ["S25",scans&&requiredStages.every(stage=>ledger.some(row=>row[0]===stage&&row[2]==="0"))&&

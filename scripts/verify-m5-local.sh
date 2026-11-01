@@ -86,7 +86,9 @@ cleanup() {
       docker rm -f "$id" >> "$evidence/g5-cleanup.log" 2>&1 || true
     fi
   fi
-  date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/g5-end-utc.txt"
+  if [[ ! -s "$evidence/g5-end-utc.txt" ]]; then
+    date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/g5-end-utc.txt"
+  fi
   if (( rc != 0 )); then
     printf 'G5 run failed, exit=%s\n' "$rc" > "$evidence/g5-aborted.txt"
   fi
@@ -179,7 +181,8 @@ teardown_g5() {
       remainingIntegrationContainers:d?d.split(/\r?\n/).length:0,
       checkedAtUtc:new Date().toISOString()},null,2));
   ' "$evidence/g5-teardown.json" "$sha" "$containers" "$volumes" "$database"
-  [[ -z "$containers" && -z "$volumes" && -z "$database" ]]
+  [[ -z "$containers" && -z "$volumes" && -z "$database" ]] || return 1
+  date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/g5-end-utc.txt"
 }
 run_stage teardown teardown_g5
 owned=0

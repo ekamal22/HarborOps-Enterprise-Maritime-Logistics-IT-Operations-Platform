@@ -69,6 +69,10 @@ M3 `ports` and `vessels` entity mappings, additive migration, scoped endpoints a
 
 The implemented [M4 architecture](M4_ARCHITECTURE_DESIGN.md) separates planned and actual UTC voyage timestamps, `Planned|Underway|Arrived|Cancelled` progress and `Active|Archived` record visibility. Same-tenant composite foreign keys bind vessel and port UUIDs. Canonical container identifiers and immutable kind, equipment type, source classification and version follow accepted D-003 Option B: ISO 6346:2022 freight category U or visibly tagged Synthetic. M5 shipment state and M6 assignment intervals remain outside the accepted M4 module. See [G4 executed verification](M4_EXECUTED_VERIFICATION.md).
 
+## M5 proposed shipment aggregate (not implemented)
+
+[M5 architecture](M5_ARCHITECTURE_DESIGN.md) proposes immutable tenant-owned shipment references, two same-tenant M3 ports, nullable planned UTC windows, Draft/Booked/InTransit/Arrived/Completed/Cancelled manual progress, archive state, optimistic version and append-only status changes. It does not assert physical tracking events or M6 container/voyage assignment links. The [G5 contract](M5_VERIFICATION_PLAN.md) and implementation acceptance remain pending.
+
 ## Illustrative lifecycle
 
     Draft -> Booked -> In Transit -> Arrived -> Completed

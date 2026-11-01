@@ -20,7 +20,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | **M2 Organizations and role isolation** | G2 verified locally, accepted and merged into `main` | [Executed M2 verification](M2_EXECUTED_VERIFICATION.md): all G2-S01 to G2-S25 scenarios passed on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) merged as `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31. |
 | **M3 Ports and vessels reference data** | **G3 verified locally, accepted and integrated into `main`** | [G3 executed verification](M3_EXECUTED_VERIFICATION.md) records the 25/25 passing matrix at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`. Independent review of 63 raw evidence files confirmed 174 passing .NET executions, 57 passing browser tests across three engines and 0 HIGH/CRITICAL findings in three image scans. Accepted 2026-10-31; fast-forward integration from `feat/m3-port-vessel-reference-data`. [Implementation register](M3_IMPLEMENTATION_STATUS.md) and historical [first](M3_CORRECTNESS_AUDIT.md)/[second](M3_SECOND_CORRECTNESS_AUDIT.md) audits retain provenance. |
 | **M4 Voyages and containers reference data** | **G4 verified, independently reviewed, explicitly accepted on 2026-11-01; integrated into `main`** | [M4 executed verification](M4_EXECUTED_VERIFICATION.md): verified source `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`; 82 unit, 12 contract, 92 fresh and 92 repeat integration, 31 browser tests per engine, M3/M4 outage and recovery, and three clear HIGH/CRITICAL image scans. The evidence-stage exit 1 at execution was the pending D-003 decision, subsequently explicitly approved as Option B alongside G4 acceptance. Evidence archive SHA-256 and review conditions recorded in the executed register. No production deployment. |
-| **M5 Shipment lifecycle and concurrency** | Planned | No verified implementation or accepted gate G5 |
+| **M5 Shipment lifecycle and concurrency** | Architecture and implementation planned on separate feature branch; no implementation started | [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation](M5_IMPLEMENTATION_PLAN.md), [G5 contract](M5_VERIFICATION_PLAN.md) and [planning status](M5_IMPLEMENTATION_STATUS.md). All G5 cases NOT RUN, acceptance pending. |
 | **M6 Container and voyage assignments** | Planned | No verified implementation or accepted gate G6 |
 | **M7 Tracking contracts and source authentication** | Planned | No verified implementation or accepted gate G7 |
 | **M8 Durable event inbox and immutable history** | Planned | No verified implementation or accepted gate G8 |
@@ -80,6 +80,10 @@ G0 through G4 are accepted and integrated into `main`. D-003 is accepted for M4;
 ## Accepted milestone: M4
 
 M4-01 through M4-04 are implemented and accepted. D-003 Option B and G4 were explicitly approved on 2026-11-01 after independent review of the final E:-backed evidence archive. The tested implementation SHA is `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. The 20 executable verification stages passed; the evidence-stage exit 1 was solely due to the D-003 decision being pending at execution time, now closed. The [executed verification record](M4_EXECUTED_VERIFICATION.md) preserves full results, archive integrity, G4-S01 to G4-S25 dispositions and limitations. M4 was fast-forward integrated into `main` without GitHub Actions. Subsequent documentation-only commits are not claimed to have been runtime-tested.
+
+## M5 design and implementation planning
+
+M5-01 through M5-04 and the 25-case [G5 verification contract](M5_VERIFICATION_PLAN.md) are now specified. The proposed lifecycle, typed shipment permissions, SQL invariants and browser journey are not implemented or verified. M5 retains G3 as its inbound gate, and M6 still requires accepted G5. Contract approval and G5 acceptance pending.
 
 ## Next eligible parallel workstreams
 

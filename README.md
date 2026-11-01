@@ -82,6 +82,10 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 M4 implements tenant-scoped voyage schedules and container references. D-003 Option B (ISO 6346:2022 category U or tagged synthetic identifiers) and G4 were explicitly accepted on 2026-11-01 following independent review. The final tested code revision `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` passed 82 unit, 12 contract, 92 fresh and 92 repeat PostgreSQL integration tests, and 31 browser tests in each of Chromium, Firefox and WebKit, plus outage/recovery and three clear HIGH/CRITICAL image scans. See [executed verification](docs/M4_EXECUTED_VERIFICATION.md), [architecture](docs/M4_ARCHITECTURE_DESIGN.md), [implementation record](docs/M4_IMPLEMENTATION_STATUS.md), [G4 plan](docs/M4_VERIFICATION_PLAN.md), and [D-003 decision](docs/DECISIONS.md).
 
+### M5 shipment lifecycle planning
+
+[M5 architecture](docs/M5_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M5_IMPLEMENTATION_PLAN.md), [G5 verification plan](docs/M5_VERIFICATION_PLAN.md) and [planning status](docs/M5_IMPLEMENTATION_STATUS.md) define a proposed scoped shipment lifecycle with versioned CRUD and three-browser verification. The design is committed on `feat/m5-shipment-lifecycle`; no M5 implementation or G5 execution is claimed.
+
 ### Parallel dependency-based delivery
 
 M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone IDs are not execution order: independently ready workstreams may run in parallel after their named upstream gates are accepted. The graph v3.0 defines work-package-level hard and integration dependencies; see [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md). Current delivery status remains exclusive to [Project Status](docs/STATUS.md).
@@ -129,6 +133,10 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M3 Implementation Plan](docs/M3_IMPLEMENTATION_PLAN.md) | M3-01 to M3-04 work packages and dependency sequence |
 | [G3 Verification Plan](docs/M3_VERIFICATION_PLAN.md) | Required G3-S01 to G3-S25 local tests, all executed and passed |
 | [M3 Implementation Register](docs/M3_IMPLEMENTATION_STATUS.md) | Accepted M3 implementation and source inventory |
+| [M5 Architecture](docs/M5_ARCHITECTURE_DESIGN.md) | Planned shipment domain, database and HTTP contracts |
+| [M5 Implementation Plan](docs/M5_IMPLEMENTATION_PLAN.md) | Four work packages and integration strategy |
+| [G5 Verification Plan](docs/M5_VERIFICATION_PLAN.md) | 25 mandatory scenarios and evidence |
+| [M5 Planning Status](docs/M5_IMPLEMENTATION_STATUS.md) | Planning only, G5 open |
 | [M4 Executed Verification](docs/M4_EXECUTED_VERIFICATION.md) | Accepted G4 evidence, D-003 closure, verified source SHA and immutable artifact hash |
 | [M3 Executed Verification](docs/M3_EXECUTED_VERIFICATION.md) | Verified G3 execution evidence, failure history and acceptance record |
 | [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Historical first-audit fixes and subsequent verified G3 outcome |

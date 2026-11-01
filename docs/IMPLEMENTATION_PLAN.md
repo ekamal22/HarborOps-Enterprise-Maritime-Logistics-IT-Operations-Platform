@@ -67,6 +67,10 @@ The [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLE
 
 M4-01 through M4-04 were implemented and G4 was explicitly accepted on 2026-11-01 after D-003 Option B approval and independent review of [executed evidence](M4_EXECUTED_VERIFICATION.md). The accepted implementation includes tenant-scoped voyages/containers, additive PostgreSQL migration, React workspaces and all three browser engines. The final tested implementation SHA was `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. M5 shipment lifecycle remains independently eligible; M6 assignment integration requires both accepted G4 and G5.
 
+## M5 shipment lifecycle design (not implemented)
+
+The [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md), [G5 matrix](M5_VERIFICATION_PLAN.md) and [planning status](M5_IMPLEMENTATION_STATUS.md) define the bounded shipment module. After M5-01 contract approval, M5-02 and M5-03 may proceed in parallel; M5-04 follows both. M5 has no implementation or accepted G5 evidence, and M6 remains blocked pending G5 acceptance.
+
 ## Concurrent work-package implementation
 
 The canonical graph v3.0 defines technical dependencies at package level rather than forcing milestone-number order. Read the specific `depends_on` edges before allocating work. The accepted G0-G3 baseline may support several parallel streams, provided any mandatory D-IDs are resolved before affected implementation.

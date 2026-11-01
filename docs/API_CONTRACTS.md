@@ -77,6 +77,10 @@ Port create requires tenant-local `referenceCode`, `name`, `countryCode`, option
 
 The accepted [M4 architecture](M4_ARCHITECTURE_DESIGN.md) implements ten `/api/v1/organizations/{organizationId}/voyages` and `/containers` endpoints: GET list/detail, POST create, PATCH versioned edit/restore, DELETE versioned soft archive. Manager read/write, Analyst read-only, and default denial for Administrator, Support and Auditor are enforced, reusing accepted M1-M3 session and scope checks. Every mutation requires CSRF/Origin validation and expectedVersion. Voyage route requires same-organization `vesselId`, `originPortId` and `destinationPortId`, with separate nullable planned and actual UTC times, `voyageStatus` and `recordStatus`. Container create requires `referenceCode`, `identifierKind`, `containerIdentifier` and `equipmentType` under [D-003 pending](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). Lists have bounded search/filter, `limit=1..100` and UUID cursor `after`. Detailed request/response and error contracts are in [M4 Architecture](M4_ARCHITECTURE_DESIGN.md). No route exists yet.
 
+## Proposed M5 shipment API (not implemented)
+
+[M5 architecture](M5_ARCHITECTURE_DESIGN.md) specifies scoped shipment GET list/detail/status changes, POST Draft creation, PATCH exact-version edits/transitions/restore and DELETE soft archive. M5 supplies bounded search, while M12 owns advanced search and CSV. `containerIds` and `voyageId` from older sample payloads are excluded until M6 assignments. Five-role permissions, CSRF/Origin and sanitized errors require [G5](M5_VERIFICATION_PLAN.md).
+
 ## Proposed resource map
 
 | Method | Route | Purpose | Access |

@@ -143,8 +143,8 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** Create, edit, search and archive organizational shipments.
 **Entry:** G3 accepted before respective dependent work packages.
-**Required work packages:** M5-01 Specify shipment state transitions; M5-02 Implement shipment schema and commands; M5-03 Implement optimistic concurrency; M5-04 Verify shipment CRUD browser journey.
-**Exit G5:** All applicable tasks, negative tests, runtime evidence and documentation for M5 recorded; acceptance pending until explicitly confirmed.
+**Required work packages:** M5-01 freeze domain, lifecycle and roles; M5-02 implement schema and tenant-scoped commands; M5-03 implement optimistic concurrency and revocation races (parallel after M5-01); M5-04 verify full three-browser CRUD. Assignments remain M6. See [M5 plan](M5_IMPLEMENTATION_PLAN.md).
+**Exit G5:** All [G5-S01 through G5-S25](M5_VERIFICATION_PLAN.md) must execute on one final source SHA with independently reviewed raw evidence and explicit acceptance. The [M5 architecture](M5_ARCHITECTURE_DESIGN.md) and [implementation plan](M5_IMPLEMENTATION_PLAN.md) are authored; no M5 source or tests have executed. Acceptance pending.
 **Not covered by this milestone:** Container/voyage assignment and event processing.
 
 #### M6: Container and voyage assignments

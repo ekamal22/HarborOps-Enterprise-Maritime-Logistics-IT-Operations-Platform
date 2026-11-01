@@ -143,4 +143,4 @@ for (const slug of ["m3-north","m3-east"]) {
     assert.equal(matches[0].recordStatus, "Active");
   }
 }
-console.log("M4 two-tenant deterministic voyage and container fixtures: PASS");
+console.log("M4 two-tenant five-role deterministic voyage and container fixtures: PASS");

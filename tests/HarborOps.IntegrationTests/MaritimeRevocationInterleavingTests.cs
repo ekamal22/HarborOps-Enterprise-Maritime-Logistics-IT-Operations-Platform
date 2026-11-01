@@ -28,7 +28,7 @@ public sealed class MaritimeRevocationInterleavingTests
             if (waiting >= count) return;
             await Task.Delay(25);
         }
-        Assert.True(false, $"Expected {count} blocked organization operations before releasing the transaction");
+        Assert.Fail($"Expected {count} blocked organization operations before releasing the transaction");
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public sealed class MaritimeRevocationInterleavingTests
         finally
         {
             // Safe when committed, and ensures no stranded lock if a waiter assertion fails.
-            if (!committed) await tx.RollbackAsync().ConfigureAwait(false);
+            if (!committed) await tx.RollbackAsync();
         }
     }
 }

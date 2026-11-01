@@ -19,6 +19,8 @@ test("M4 delayed old-tenant container response never repaints new organization",
   const workspace = page.getByRole("heading", { name: "Voyages and containers" })
     .locator("xpath=ancestor::section[1]");
   await workspace.getByRole("button", { name: "Containers", exact: true }).click();
+  // Other specs add containers, so the fixture is found by search rather than by list position.
+  await workspace.getByLabel("Search containers").fill("M4-BOX-NORTH");
   await expect(workspace.getByText("M4-BOX-NORTH")).toBeVisible();
   const organizations = (await (await page.request.get("/api/v1/me/organizations")).json()).organizations;
   const north = organizations.find(x => x.slug === "m3-north");
@@ -55,6 +57,8 @@ test("M4 reference rows clear on failed request and recover without cache", asyn
   const section = page.getByRole("heading", { name: "Voyages and containers" })
     .locator("xpath=ancestor::section[1]");
   await section.getByRole("button", { name: "Containers", exact: true }).click();
+  // Other specs add containers, so the fixture is found by search rather than by list position.
+  await section.getByLabel("Search containers").fill("M4-BOX-NORTH");
   await expect(section.getByText("M4-BOX-NORTH")).toBeVisible();
   await page.route("**/api/v1/organizations/*/containers?*", route => route.fulfill({
     status: 503, contentType: "application/json",
@@ -85,9 +89,15 @@ test("M4 real Manager role revocation clears browser management controls", async
   try {
     const administrator = await adminContext.newPage();
     await login(administrator, "m3-admin-a@example.test");
+    // The selection is stored server-side; wait for it before calling organization-scoped APIs.
+    const selected = administrator.waitForResponse(response =>
+      response.request().method() === "PUT" &&
+      new URL(response.url()).pathname === "/api/v1/auth/session/organization");
     await administrator.locator("#current-organization")
       .selectOption({ label: organization + " (Administrator)" });
+    expect((await selected).status()).toBe(200);
     const roster = await administrator.request.get(root + "/memberships?limit=100");
+    expect(roster.status()).toBe(200);
     const member = (await roster.json()).memberships.find(x => x.userId === userId);
     expect(member?.role).toBe("Manager");
     const csrf = (await (await administrator.request.get("/api/v1/auth/csrf")).json()).token;
@@ -129,4 +139,34 @@ test("M4 voyage list stays readable when an editable parent catalog fails", asyn
   await section.getByRole("button", { name: "Refresh maritime records" }).click();
   await expect(section.getByRole("button", { name: "Add voyage" })).toBeEnabled();
   await expect(section.getByText("M4-VOYAGE-NORTH")).toBeVisible();
+});
+
+test("M4 choosing the already active tab during the first load never strands the list", async ({ page }) => {
+  test.skip(!enabled, "Isolated M4 fixtures required");
+  test.setTimeout(120_000);
+  await login(page, "m3-manager@example.test");
+  let entered, release;
+  const held = new Promise(resolve => { entered = resolve; });
+  const permit = new Promise(resolve => { release = resolve; });
+  let first = true;
+  await page.route("**/api/v1/organizations/*/voyages?*", async route => {
+    if (!first) return route.continue();
+    first = false;
+    entered();
+    await permit;
+    await route.continue();
+  });
+  await page.locator("#current-organization")
+    .selectOption({ label: "M3 North Terminal (Manager)" });
+  const section = page.getByRole("heading", { name: "Voyages and containers" })
+    .locator("xpath=ancestor::section[1]");
+  await held;
+  await expect(section.getByText("Loading voyages...")).toBeVisible();
+  // Voyages is already the active tab; choosing it again must not abandon the pending load.
+  await section.getByRole("button", { name: "Voyages", exact: true }).click();
+  release();
+  await expect(section.getByText("M4-VOYAGE-NORTH")).toBeVisible();
+  await expect(section.getByText("Loading voyages...")).toHaveCount(0);
+  await expect(section.getByRole("button", { name: "Refresh maritime records" })).toBeEnabled();
+  await page.unrouteAll({ behavior: "wait" });
 });

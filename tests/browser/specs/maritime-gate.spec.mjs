@@ -11,6 +11,23 @@ async function login(page, email = "m3-manager@example.test") {
   await expect(page.getByRole("heading", { name: "Organization workspace" })).toBeVisible();
 }
 
+// Independent ISO 6346 construction (letter values skip multiples of 11). Each call yields a new
+// valid identifier plus the same body with a wrong check digit, so repeated runs against the same
+// disposable database never collide on the per-organization unique identifier.
+function isoIdentifiers() {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const pick = () => letters[Math.floor(Math.random() * letters.length)];
+  const body = pick() + pick() + pick() + "U" +
+    String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0");
+  const value = {};
+  let next = 10;
+  for (const letter of letters) { if (next % 11 === 0) next++; value[letter] = next++; }
+  const sum = [...body].reduce((total, c, i) =>
+    total + (/[0-9]/.test(c) ? Number(c) : value[c]) * 2 ** i, 0);
+  const check = (sum % 11) % 10;
+  return { valid: body + check, invalid: body + ((check + 1) % 10) };
+}
+
 const sectionOf = page => page.getByRole("heading", {
   name: "Voyages and containers"
 }).locator("xpath=ancestor::section[1]");
@@ -87,6 +104,8 @@ test("M4 logging out during delayed maritime response never reveals stale data",
     .selectOption({ label: "M3 North Terminal (Manager)" });
   const section = sectionOf(page);
   await section.getByRole("button", { name: "Containers", exact: true }).click();
+  // Other specs add containers, so the fixture is found by search rather than by list position.
+  await section.getByLabel("Search containers").fill("M4-BOX-NORTH");
   await expect(section.getByText("M4-BOX-NORTH")).toBeVisible();
   let arrived, release;
   const waiting = new Promise(resolve => { arrived = resolve; });
@@ -130,16 +149,19 @@ test("M4 invalid container identifier is rejected and the form recovers", async 
   await section.getByRole("button", { name: "Containers", exact: true }).click();
   await section.getByRole("button", { name: "Add container" }).click();
   const nonce = Date.now().toString(36).toUpperCase();
+  const { valid, invalid } = isoIdentifiers();
   await section.getByLabel("Reference code").fill("G4-ISO-" + nonce);
   await section.getByLabel("Identifier kind").selectOption("ISO6346");
-  await section.getByLabel("Container identifier").fill("CSQU3054382");
+  await section.getByLabel("Container identifier").fill(invalid);
   await section.getByRole("button", { name: "Create record" }).click();
   await expect(section.getByRole("alert")).toBeVisible();
-  await expect(section.getByText("CSQU3054382")).toHaveCount(0);
+  await expect(section.getByText(invalid)).toHaveCount(0);
   await section.getByRole("button", { name: "Add container" }).click();
   await section.getByLabel("Reference code").fill("G4-ISO-" + nonce);
   await section.getByLabel("Identifier kind").selectOption("ISO6346");
-  await section.getByLabel("Container identifier").fill("CSQU3054383");
+  await section.getByLabel("Container identifier").fill(valid);
   await section.getByRole("button", { name: "Create record" }).click();
-  await expect(section.getByText("CSQU3054383")).toBeVisible();
+  // The list is ordered by record id, so find the new record by its identifier.
+  await section.getByLabel("Search containers").fill(valid);
+  await expect(section.getByText(valid)).toBeVisible();
 });

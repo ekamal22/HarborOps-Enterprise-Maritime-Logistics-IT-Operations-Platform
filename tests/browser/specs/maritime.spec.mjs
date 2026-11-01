@@ -27,7 +27,7 @@ test("M4 Manager container lifecycle retains synthetic identity", async ({ page 
   await section.getByLabel("Equipment type").selectOption("Reefer40");
   await section.getByLabel("Display name").fill("Synthetic M4 box");
   await section.getByRole("button", { name: "Create record" }).click();
-  await expect(section.getByText("SYN-BOX-" + code)).toBeVisible();
+  // The list is ordered by record id, so the new record is found by search, not by position.
   await section.getByLabel("Search containers").fill(code);
   await expect(section.getByText("SYN-BOX-" + code)).toBeVisible();
   await section.getByRole("button", { name: "View or edit" }).first().click();
@@ -88,8 +88,8 @@ test("M4 Manager voyage progress and archive restoration", async ({ page }) => {
   await origin.selectOption({ index: 1 });
   await dest.selectOption({ index: 2 });
   await section.getByRole("button", { name: "Create record" }).click();
-  await expect(section.getByText(code)).toBeVisible();
   await section.getByLabel("Search voyages").fill(code);
+  await expect(section.getByText(code)).toBeVisible();
   await section.getByRole("button", { name: "View or edit" }).first().click();
   await section.getByLabel("Voyage progress").selectOption("Underway");
   await section.getByLabel("Actual departure UTC (ISO 8601)").fill("2026-11-01T21:00:00Z");

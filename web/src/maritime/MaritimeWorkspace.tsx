@@ -227,6 +227,9 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
     <div className="mt-3 flex flex-wrap gap-2">
       {(["voyages", "containers"] as const).map(value =>
         <button key={value} type="button" onClick={() => {
+          // Choosing the active tab changes no state, so no new load would replace the
+          // pending one this handler would otherwise abandon by advancing the generation.
+          if (value === kind) return;
           generation.current++; mutationToken.current++; setBusy(false); setKind(value);
           setQ(""); setStatus("Active"); setItems([]); setSelected(null); setCreating(false);
         }} className={"rounded px-3 py-2 text-sm " +

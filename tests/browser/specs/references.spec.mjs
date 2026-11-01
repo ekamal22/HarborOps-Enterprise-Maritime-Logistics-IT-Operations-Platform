@@ -15,6 +15,19 @@ async function login(page, email) {
   await expect(page.getByRole("heading", { name: "Organization workspace" })).toBeVisible();
 }
 
+// A search issues a new list load that discards any selection made while the previous list is
+// still shown, so wait until the filtered list is the only content before acting on a row.
+async function searchOnly(page, label, code) {
+  const section = page.getByRole("heading", { name: "Reference data" })
+    .locator("xpath=ancestor::section[1]");
+  const filtered = page.waitForResponse(response =>
+    response.request().method() === "GET" && new URL(response.url()).searchParams.get("q") === code);
+  await page.getByLabel(label).fill(code);
+  await filtered;
+  await expect(section.locator("ul > li")).toHaveCount(1);
+  return section;
+}
+
 test("Manager port and vessel create, edit, search, archive and restore", async ({ page }) => {
   test.setTimeout(120_000);
   test.skip(!password || !fixtures, "Requires isolated M3 local verification fixtures");
@@ -30,9 +43,9 @@ test("Manager port and vessel create, edit, search, archive and restore", async 
   await page.getByLabel("UN/LOCODE (optional)").fill("");
   await page.getByRole("button", { name: "Create reference" }).click();
   await expect(page.getByText("Synthetic Test Port " + nonce)).toBeVisible();
-  await page.getByLabel("Search ports").fill(code);
+  const portList = await searchOnly(page, "Search ports", code);
   await expect(page.getByText("Synthetic Test Port " + nonce)).toBeVisible();
-  await page.getByRole("button", { name: "View or edit" }).first().click();
+  await portList.getByRole("button", { name: "View or edit" }).click();
   await page.getByLabel("Name", { exact: true }).fill("Updated Synthetic Port " + nonce);
   await page.getByRole("button", { name: "Save reference" }).click();
   await expect(page.getByText("Updated Synthetic Port " + nonce)).toBeVisible();
@@ -105,9 +118,9 @@ test("Manager vessel edit archive and restore", async ({ page }) => {
   await page.getByLabel("Name", { exact: true }).fill("Synthetic UI Vessel " + nonce);
   await page.getByRole("button", { name: "Create reference" }).click();
   await expect(page.getByText("Synthetic UI Vessel " + nonce)).toBeVisible();
-  await page.getByLabel("Search vessels").fill(code);
+  const vesselList = await searchOnly(page, "Search vessels", code);
   await expect(page.getByText("Synthetic UI Vessel " + nonce)).toBeVisible();
-  await page.getByRole("button", { name: "View or edit" }).first().click();
+  await vesselList.getByRole("button", { name: "View or edit" }).click();
   await page.getByLabel("Name", { exact: true }).fill("Updated UI Vessel " + nonce);
   await page.getByRole("button", { name: "Save reference" }).click();
   await expect(page.getByText("Updated UI Vessel " + nonce)).toBeVisible();

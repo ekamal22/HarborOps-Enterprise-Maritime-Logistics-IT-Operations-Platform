@@ -2,7 +2,7 @@
 # Run every browser spec in each engine, independently and without shared
 # login-rate-limit state. Playwright JSON evidence remains on E:.
 # A failing spec no longer hides the specs that follow it: every spec in every engine
-# runs, and the stage fails at the end if any of them failed.
+# runs, and the stage fails at the end if any of them failed. Failure artifacts are copied to E:.
 set -euo pipefail
 root=$(printenv HARBOROPS_VERIFICATION_ROOT || true)
 case "$root" in
@@ -22,6 +22,11 @@ for engine in chromium firefox webkit; do
     export HARBOROPS_G3_JSON_REPORT="$out/$engine-$basename.json"
     if ! npx playwright test "$spec" --project="$engine" --workers=1; then
       failed+=("$engine/$basename")
+    fi
+    # Failure screenshots, traces and error context are overwritten by the next spec, so keep them.
+    if [[ -d test-results/artifacts ]] && [[ -n "$(ls -A test-results/artifacts)" ]]; then
+      mkdir -p "$out/artifacts/$engine-$basename"
+      cp -r test-results/artifacts/. "$out/artifacts/$engine-$basename/"
     fi
   done
 done

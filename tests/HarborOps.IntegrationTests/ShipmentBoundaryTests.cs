@@ -256,12 +256,41 @@ public sealed class ShipmentBoundaryTests
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         var j1 = await first.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(25, j1.GetProperty("shipments").GetArrayLength());
+        var firstIds = j1.GetProperty("shipments").EnumerateArray()
+            .Select(x => x.GetProperty("id").GetGuid()).ToHashSet();
+        Assert.Equal(25, firstIds.Count);
         var after = j1.GetProperty("nextAfter").GetString();
         Assert.False(string.IsNullOrEmpty(after));
         using var second = await manager.GetAsync(root + "?limit=25&q=" + prefix + "&after=" + after);
         var j2 = await second.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(2, j2.GetProperty("shipments").GetArrayLength());
+        Assert.All(j2.GetProperty("shipments").EnumerateArray(), item =>
+            Assert.DoesNotContain(item.GetProperty("id").GetGuid(), firstIds));
         Assert.Equal(JsonValueKind.Null, j2.GetProperty("nextAfter").ValueKind);
+        using (var lower = await manager.GetAsync(root + "?q=" + prefix.ToLowerInvariant()))
+        {
+            Assert.Equal(HttpStatusCode.OK, lower.StatusCode);
+            Assert.Equal(25, (await lower.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("shipments").GetArrayLength());
+        }
+        using (var percent = await manager.GetAsync(root + "?q=%25"))
+        {
+            Assert.Equal(HttpStatusCode.OK, percent.StatusCode);
+            Assert.Empty((await percent.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("shipments").EnumerateArray());
+        }
+        using (var booked = await manager.GetAsync(root + "?q=" + prefix + "&workflowStatus=Booked"))
+        {
+            Assert.Equal(HttpStatusCode.OK, booked.StatusCode);
+            Assert.Empty((await booked.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("shipments").EnumerateArray());
+        }
+        using (var archived = await manager.GetAsync(root + "?q=" + prefix + "&recordStatus=Archived"))
+        {
+            Assert.Equal(HttpStatusCode.OK, archived.StatusCode);
+            Assert.Empty((await archived.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("shipments").EnumerateArray());
+        }
         using var foreign = await analyst.GetAsync(Root(f.B) + "?q=" + prefix);
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
     }

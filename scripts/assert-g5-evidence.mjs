@@ -1,126 +1,174 @@
 #!/usr/bin/env node
-// G5 evidence indexing is a review input, never an acceptance decision.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 
-const root = process.argv[2];
-assert.ok(root && fs.existsSync(root), "Run-specific G5 evidence directory required");
-const file = name => path.join(root, name);
-const read = name => fs.readFileSync(file(name), "utf8");
-const source = read("g5-source-sha.txt").trim();
-const current = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-assert.match(source, /^[0-9a-f]{40}$/);
-assert.equal(source, current, "Current source does not match G5 execution");
-assert.equal(read("m5-source-sha.txt").trim(), source);
-const started = Date.parse(read("g5-start-utc.txt").trim());
-assert.ok(Number.isFinite(started) && Date.now() - started >= 0 &&
-  Date.now() - started < 24 * 3600 * 1000, "Invalid G5 execution start");
-const fresh = name => fs.existsSync(file(name)) && fs.statSync(file(name)).isFile() &&
-  fs.statSync(file(name)).size > 0 && fs.statSync(file(name)).mtimeMs >= started - 2000;
-assert.ok(!fresh("g5-aborted.txt"), "G5 execution contains a current abort marker");
-const stages = [
-  "decision-unit","schema-index","shipment-schema","preflight","postgres-image","dotnet","deps","web","docs",
-  "stack","accounts","organizations","session","setup-fixtures","fixtures","m4-fixtures",
-  "m5-fixtures","browsers","reference-outage","maritime-outage","shipment-outage","recovery","scan"
+const dir = process.argv[2];
+assert.ok(dir && fs.existsSync(dir),"Current G5 evidence directory required");
+const at = p=>path.join(dir,p);
+const read=p=>fs.readFileSync(at(p),"utf8");
+const sha=read("g5-source-sha.txt").trim();
+assert.match(sha,/^[0-9a-f]{40}$/);
+assert.equal(read("m5-source-sha.txt").trim(),sha);
+assert.equal(execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),sha);
+const started=Date.parse(read("g5-start-utc.txt").trim());
+assert.ok(Number.isFinite(started) && started<=Date.now() &&
+  Date.now()-started < 24*3600*1000,"Invalid G5 source execution timestamp");
+const fresh=p=>fs.existsSync(at(p)) && fs.statSync(at(p)).size>0 &&
+  fs.statSync(at(p)).mtimeMs >= started-2000;
+assert.ok(!fs.existsSync(at("g5-aborted.txt")),"Aborted run cannot satisfy G5");
+
+const requiredStages=[
+  "storage-before","decision-unit","schema-index","shipment-schema","preflight","postgres-image",
+  "dotnet","deps","web","docs","stack","accounts","organizations","session",
+  "setup-fixtures","fixtures","m4-fixtures","m5-fixtures","browsers",
+  "reference-outage","maritime-outage","shipment-outage","recovery","scan","teardown","storage-after"
 ];
-const ledger = read("g5-stages.tsv").trim().split(/\r?\n/).map(line => line.split("\t"));
-for (const stage of stages) {
-  const rows = ledger.filter(x => x[0] === stage);
-  assert.equal(rows.length, 1, "Missing/duplicate G5 stage " + stage);
-  assert.equal(rows[0][1], source, "Wrong source: " + stage);
-  assert.equal(rows[0][2], "0", "Failed G5 stage " + stage);
-  assert.ok(fresh("g5-" + stage + ".log"), "Missing stage log " + stage);
+const ledger=read("g5-stages.tsv").trim().split(/\r?\n/).map(line=>line.split("\t"));
+for(const name of requiredStages){
+  const rows=ledger.filter(row=>row[0]===name);
+  assert.equal(rows.length,1,"Missing or duplicate G5 stage "+name);
+  assert.equal(rows[0][1],sha,"Wrong stage source "+name);
+  assert.equal(rows[0][2],"0","Failed required stage "+name);
+  assert.ok(fresh("g5-"+name+".log"),"Missing current G5 stage log "+name);
 }
-function recurse(dir) {
-  return fs.readdirSync(dir, { withFileTypes: true }).flatMap(ent =>
-    ent.isDirectory() ? recurse(path.join(dir, ent.name)) : [path.join(dir, ent.name)]);
+const cleanup=JSON.parse(read("g5-teardown.json"));
+assert.equal(cleanup.sourceSha,sha);
+for(const property of ["remainingContainers","remainingVolumes","remainingIntegrationContainers"])
+  assert.equal(cleanup[property],0,"G5 teardown left resources: "+property);
+assert.ok(fresh("g5-docker-services.log"),"Missing raw G5 service logs");
+const before=JSON.parse(read("g5-storage-before.json"));
+const after=JSON.parse(read("g5-storage-after.json"));
+for(const entry of [before,after]){
+  assert.equal(entry.sourceSha,sha);
+  assert.equal(entry.drives?.length,2);
+  for(const key of ["TEMP","TMP","TMPDIR","NPM_CONFIG_CACHE","PLAYWRIGHT_BROWSERS_PATH",
+    "NUGET_PACKAGES","DOTNET_CLI_HOME"])
+    assert.match(entry.controlledPaths[key].replaceAll("\\","/"),/^(?:[Ee]:\/|\/e\/)/);
 }
-const trxRoot = file("trx");
-assert.ok(fs.existsSync(trxRoot), "No TRX directory");
-const results = new Map();
-for (const candidate of recurse(trxRoot).filter(p => p.endsWith(".trx"))) {
-  assert.ok(fs.statSync(candidate).mtimeMs >= started - 2000, "Stale TRX: " + candidate);
-  const xml = fs.readFileSync(candidate, "utf8");
-  assert.ok(xml.includes("<TestRun"), "Invalid TRX file");
-  for (const [tag] of xml.matchAll(/<UnitTestResult\b[^>]*>/g)) {
-    const name = /\btestName="([^"]+)"/.exec(tag)?.[1];
-    const outcome = /\boutcome="([^"]+)"/.exec(tag)?.[1];
-    assert.ok(name && outcome, "Malformed TRX test case");
-    const all = results.get(name) || [];
-    all.push(outcome);
-    results.set(name, all);
-    assert.equal(outcome, "Passed", "Unexpected .NET test result: " + name);
+const fixture=JSON.parse(read("g5-fixtures.json"));
+assert.equal(fixture.sourceSha,sha);
+assert.equal(fixture.idempotent,true);
+assert.equal(fixture.organizations.length,2);
+assert.equal(new Set(fixture.organizations.map(x=>x.organizationId)).size,2);
+const north=fixture.organizations.find(x=>x.slug==="m3-north");
+assert.equal(Object.keys(north.verifiedRoles||{}).length,5);
+for(const org of fixture.organizations){
+  const rows=org.shipments;
+  assert.ok(rows.length>=4 && rows.some(x=>x.recordStatus==="Archived") &&
+    rows.some(x=>x.workflowStatus==="Booked") &&
+    rows.some(x=>x.workflowStatus==="InTransit"));
+  assert.equal(new Set(rows.map(x=>x.id)).size,rows.length);
+}
+const shared=fixture.organizations.map(x=>x.shipments.find(y=>y.referenceCode==="M5-SHARED-REF"));
+assert.ok(shared.every(Boolean));
+assert.notEqual(shared[0].id,shared[1].id);
+assert.notEqual(shared[0].externalReference,shared[1].externalReference);
+
+const reports={};
+for(const phase of ["unit","contract","integration-fresh","integration-repeat"]){
+  const name="trx/"+phase+".trx";
+  assert.ok(fresh(name),"Missing independent .NET TRX phase "+phase);
+  const xml=read(name);
+  assert.match(xml,/<TestRun\b/);
+  const list=[];
+  for(const [tag] of xml.matchAll(/<UnitTestResult\b[^>]*>/g)){
+    const result=/\boutcome="([^"]+)"/.exec(tag)?.[1];
+    const name=/\btestName="([^"]+)"/.exec(tag)?.[1];
+    assert.ok(name && result,"Incomplete TRX result");
+    assert.equal(result,"Passed","Unexpected "+phase+" test "+name);
+    list.push(name);
   }
+  assert.ok(list.length>0,"No passed test outcomes in "+phase);
+  reports[phase]=list;
 }
-assert.ok(results.size > 0, "No .NET test outcomes");
-const unit = token => [...results].some(([name, outcomes]) =>
-  name.includes(token) && outcomes.length > 0 && outcomes.every(x => x === "Passed"));
-const reports = [];
-const browserRoot = file("playwright");
-assert.ok(fs.existsSync(browserRoot), "Browser reports missing");
-for (const name of fs.readdirSync(browserRoot).filter(x => x.endsWith(".json"))) {
-  const candidate = path.join(browserRoot, name);
-  assert.ok(fs.statSync(candidate).mtimeMs >= started - 2000, "Stale browser report " + name);
-  const report = JSON.parse(fs.readFileSync(candidate, "utf8"));
-  assert.equal(report.stats?.unexpected ?? 0, 0, "Unexpected browser tests");
-  assert.equal(report.stats?.skipped ?? 0, 0, "Skipped browser tests");
-  assert.equal(report.stats?.interrupted ?? 0, 0, "Interrupted browser tests");
-  function walk(suites) {
-    for (const suite of suites ?? []) {
-      for (const spec of suite.specs ?? [])
-        for (const test of spec.tests ?? [])
-          reports.push({ engine: test.projectName, title: spec.title,
-            results: (test.results ?? []).map(x => x.status) });
-      walk(suite.suites);
+assert.equal(reports["integration-fresh"].length,reports["integration-repeat"].length,
+  "Fresh/repeat integration result totals differ");
+assert.deepEqual([...reports["integration-fresh"]].sort(),
+  [...reports["integration-repeat"]].sort(),"Fresh/repeat executed tests differ");
+const testRows=(phase,name)=>{
+  const expression=new RegExp("(?:^|\\.)"+name.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(?:\\(|$)");
+  return reports[phase].filter(x=>expression.test(x));
+};
+const unit=(name,count=1)=>testRows("unit",name).length>=count;
+const integration=(name,count=1)=>
+  ["integration-fresh","integration-repeat"].every(phase=>testRows(phase,name).length>=count);
+
+const browsers=[];
+const browserRoot=at("playwright");
+assert.ok(fs.existsSync(browserRoot));
+for(const file of fs.readdirSync(browserRoot).filter(x=>x.endsWith(".json"))){
+  const p=path.join(browserRoot,file);
+  assert.ok(fs.statSync(p).mtimeMs>=started-2000);
+  const report=JSON.parse(fs.readFileSync(p,"utf8"));
+  for(const key of ["unexpected","skipped","interrupted"])
+    assert.equal(report.stats?.[key]??0,0,"Browser report "+file+" has "+key);
+  function visit(suites){
+    for(const suite of suites||[]){
+      for(const spec of suite.specs||[])
+        for(const item of spec.tests||[]){
+          assert.ok(item.projectName && item.results?.length,"Malformed browser test result");
+          assert.ok(item.results.every(x=>x.status==="passed"),
+            "Nonpassing browser test: "+spec.title);
+          browsers.push({engine:item.projectName,title:spec.title});
+        }
+      visit(suite.suites);
     }
   }
-  walk(report.suites);
+  visit(report.suites);
 }
-const browser = (title, engine) => reports.some(r => r.title === title && r.engine === engine &&
-  r.results.length > 0 && r.results.every(x => x === "passed"));
-const allBrowser = title => ["chromium","firefox","webkit"].every(e => browser(title,e));
-const scanned = ["postgres","api","web"].every(name => {
-  const fn = file("trivy/" + name + ".json");
-  if (!fs.existsSync(fn) || fs.statSync(fn).mtimeMs < started - 2000) return false;
-  const scan = JSON.parse(fs.readFileSync(fn, "utf8"));
-  return Array.isArray(scan.Results) && scan.Results.every(entry =>
-    !(entry.Vulnerabilities || []).some(v => ["HIGH","CRITICAL"].includes(v.Severity)));
+const engines=["chromium","firefox","webkit"];
+const browser=title=>engines.every(engine=>
+  browsers.some(x=>x.title===title&&x.engine===engine));
+// Every declared shipment browser spec must have at least one result per engine.
+const browserSource=fs.readFileSync("tests/browser/specs/shipment.spec.mjs","utf8");
+const declared=[...browserSource.matchAll(/\btest\("([^"]+)"/g)].map(x=>x[1]);
+assert.ok(declared.length>=7,"Missing shipment browser scenarios");
+for(const name of declared)
+  assert.ok(browser(name),"Missing browser engine/spec result "+name);
+const scans=["postgres","api","web"].every(name=>{
+  const file="trivy/"+name+".json";
+  if(!fresh(file))return false;
+  const scan=JSON.parse(read(file));
+  return Boolean(scan.ArtifactName) && Array.isArray(scan.Results) &&
+    scan.Results.every(entry=>
+      !(entry.Vulnerabilities||[]).some(v=>["HIGH","CRITICAL"].includes(v.Severity)));
 });
-const decisionText = fs.readFileSync("docs/M5_LOCAL_CONTRACT_DECISION.md", "utf8");
-const contractAccepted = /^\*\*State:\*\* Accepted\b/m.test(decisionText);
-const scenarios = [
-  ["S01", contractAccepted && unit("ShipmentPolicyTests.WorkflowMatrix")],
-  ["S02", unit("ShipmentPolicyTests.WorkflowMatrix") && unit("ShipmentPolicyTests.RejectUnknownStatus")],
-  ["S03", unit("ShipmentPolicyTests.ReferencesAndUtcAreStrict")],
-  ["S04", unit("MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel") &&
-    unit("MigrationSnapshotTests.Migrations_AreDiscoveredInOrder")],
-  ["S05", unit("ShipmentMigrationTests.SeededM4HistorySurvivesM5UpgradeRollbackAndReapply")],
-  ["S06", unit("ShipmentHttpTests.DirectSqlCannotDeleteShipmentOrForgeStatusChange")],
-  ["S07", stages.includes("m5-fixtures")],
-  ["S08", unit("ShipmentBoundaryTests.AllShipmentRoutesRejectInvalidatedAuthentication")],
-  ["S09", unit("ShipmentBoundaryTests.SelectedOrganizationAndRoleChangesFailClosed")],
-  ["S10", unit("ShipmentHttpTests.DuplicateArchivedReferenceAndCrossTenantIdentityStayScoped")],
-  ["S11", unit("ShipmentBoundaryTests.ForeignAndArchivedPortsRejectShipmentCreation")],
-  ["S12", unit("ShipmentBoundaryTests.FullFiveRoleShipmentMatrix")],
-  ["S13", unit("ShipmentBoundaryTests.QueuedShipmentWriteRechecksSessionRevocation")],
-  ["S14", unit("ShipmentBoundaryTests.InvalidPayloadOriginAndCsrfAreRejected")],
-  ["S15", unit("ShipmentHttpTests.DuplicateArchivedReferenceAndCrossTenantIdentityStayScoped")],
-  ["S16", unit("ShipmentHttpTests.AnalystCreatesTransitionsArchivesRestoresAndReadsImmutableHistory")],
-  ["S17", unit("ShipmentHttpTests.AnalystCreatesTransitionsArchivesRestoresAndReadsImmutableHistory")],
-  ["S18", unit("ShipmentHttpTests.AnalystCreatesTransitionsArchivesRestoresAndReadsImmutableHistory")],
-  ["S19", unit("ShipmentBoundaryTests.PaginationAndFiltersStayTenantScoped")],
-  ["S20", unit("ShipmentHttpTests.CompetingExpectedVersionUpdatesHaveOneWinnerAndOneHistoryRecord")],
-  ["S21", unit("ShipmentBoundaryTests.FailedTransitionLeavesNoPartialHistory")],
-  ["S22", allBrowser("M5 Analyst creates and advances a scoped shipment")],
-  ["S23", allBrowser("M5 Auditor shipment view does not grant M4 management") &&
-    allBrowser("M5 tenant change invalidates prior shipment list")],
-  ["S24", unit("MaritimePolicyTests.RoleGrantsStayWithinBusinessPermissions") &&
-    unit("ReferenceDataHttpTests.ScopedPortAndVesselLifecycleAndRoleMatrix")],
-  ["S25", scanned]
+const decision=fs.readFileSync("docs/M5_LOCAL_CONTRACT_DECISION.md","utf8");
+const accepted=/^\*\*State:\*\* Accepted\b/m.test(decision);
+
+const cases=[
+["S01",accepted&&unit("ShipmentPolicyTests.FullWorkflowMatrix",36)],
+["S02",unit("ShipmentPolicyTests.FullWorkflowMatrix",36)&&unit("ShipmentPolicyTests.RejectUnknownStatus",3)],
+["S03",unit("ShipmentPolicyTests.ReferencesAndUtcAreStrict")&&integration("ShipmentExtendedGateTests.InvalidJsonContentAndVersionMatrix")],
+["S04",integration("MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel")&&integration("MigrationSnapshotTests.Migrations_AreDiscoveredInOrder")],
+["S05",integration("ShipmentMigrationTests.SeededM4HistorySurvivesM5UpgradeRollbackAndReapply")],
+["S06",integration("ShipmentSqlMatrixTests.CompositePortsAndImmutableFieldsRejectIndependentSqlMutations")],
+["S07",fixture.organizations.length===2&&Boolean(north.verifiedRoles)],
+["S08",integration("ShipmentBoundaryTests.AllShipmentRoutesRejectInvalidatedAuthentication",5)],
+["S09",integration("ShipmentExtendedGateTests.MissingSelectionAndForeignActualShipmentNeverDiscloseData")],
+["S10",integration("ShipmentHttpTests.DuplicateArchivedReferenceAndCrossTenantIdentityStayScoped")&&integration("ShipmentExtendedGateTests.MissingSelectionAndForeignActualShipmentNeverDiscloseData")],
+["S11",integration("ShipmentBoundaryTests.ForeignAndArchivedPortsRejectShipmentCreation")&&integration("ShipmentSqlMatrixTests.CompositePortsAndImmutableFieldsRejectIndependentSqlMutations")],
+["S12",integration("ShipmentExtendedGateTests.FullSixRouteFiveRolePermissions")&&unit("ShipmentPolicyTests.ShipmentRolesAreIndependentOfM4")],
+["S13",integration("ShipmentExtendedGateTests.QueuedShipmentWriteRechecksEveryAuthorizationDependency",7)],
+["S14",integration("ShipmentExtendedGateTests.InvalidJsonContentAndVersionMatrix")&&integration("ShipmentBoundaryTests.InvalidPayloadOriginAndCsrfAreRejected")],
+["S15",integration("ShipmentSqlMatrixTests.ExternalIdentifiersReserveArchivedValuesButPermitCrossTenantReuse")&&integration("ShipmentExtendedGateTests.DuplicateConcurrentCreationCommitsExactlyOneShipment")],
+["S16",integration("ShipmentHttpTests.AnalystCreatesTransitionsArchivesRestoresAndReadsImmutableHistory")&&integration("ShipmentSqlMatrixTests.StatusNeutralEditAndArchiveNeverFabricateHistory")],
+["S17",integration("ShipmentSqlMatrixTests.StatusNeutralEditAndArchiveNeverFabricateHistory")&&integration("ShipmentBoundaryTests.FailedTransitionLeavesNoPartialHistory")],
+["S18",integration("ShipmentHttpTests.AnalystCreatesTransitionsArchivesRestoresAndReadsImmutableHistory")&&integration("ShipmentExtendedGateTests.ConcurrentArchiveAndStatusEditProduceOneVersionWinner")],
+["S19",integration("ShipmentBoundaryTests.PaginationAndFiltersStayTenantScoped")],
+["S20",integration("ShipmentExtendedGateTests.ConcurrentArchiveAndStatusEditProduceOneVersionWinner")&&integration("ShipmentExtendedGateTests.DuplicateConcurrentCreationCommitsExactlyOneShipment")&&integration("ShipmentHttpTests.CompetingExpectedVersionUpdatesHaveOneWinnerAndOneHistoryRecord")],
+["S21",integration("ShipmentBoundaryTests.FailedTransitionLeavesNoPartialHistory")],
+["S22",browser("M5 Analyst creates and advances a scoped shipment")&&browser("M5 Manager advances terminal workflows and retains manual history")&&browser("M5 stale edit displays conflict and retains entered values")],
+["S23",browser("M5 Auditor shipment view does not grant M4 management")&&browser("M5 tenant change invalidates prior shipment list")&&browser("M5 deferred shipment response cannot cross organization switch")&&browser("M5 failed parent catalog retries without suppressing shipment list")],
+["S24",unit("MaritimePolicyTests.RoleGrantsStayWithinBusinessPermissions")&&integration("ReferenceDataHttpTests.ScopedPortAndVesselLifecycleAndRoleMatrix")&&
+  reports["contract"].length>0&&browsers.length>=engines.length*declared.length],
+["S25",scans&&requiredStages.every(stage=>ledger.some(row=>row[0]===stage&&row[2]==="0"))&&
+  fresh("g5-docker-services.log")&&fresh("g5-teardown.json")&&fresh("g5-storage-after.json")]
 ];
-for (const [id, passed] of scenarios)
-  console.log("G5-" + id + ": " + (passed ? "EVIDENCE PRESENT, REVIEW REQUIRED" : "INCOMPLETE"));
-assert.ok(scenarios.every(([, passed]) => passed), "Incomplete mandatory G5 evidence");
-console.log("G5 evidence index complete for review, no acceptance implied.");
+const missing=cases.filter(([,ok])=>!ok).map(([id])=>"G5-"+id);
+for(const [id,ok] of cases)
+  console.log("G5-"+id+": "+(ok?"EVIDENCE PRESENT, REVIEW REQUIRED":"INCOMPLETE"));
+assert.deepEqual(missing,[],"Missing required G5 evidence: "+missing.join(", "));
+console.log("All 25 scenario mappings have executable evidence, independent review required.");

@@ -161,9 +161,11 @@ export HARBOROPS_M3_FIXTURES=1
 export HARBOROPS_M4_FIXTURES=1
 export HARBOROPS_M5_FIXTURES=1
 run_stage browsers bash scripts/run-m5-browsers-local.sh
+# The reference and maritime outage checks end by downgrading the shared Manager account, so the
+# shipment outage check, which needs that Manager, must run before them.
+run_stage shipment-outage node scripts/check-m5-shipment-outage.mjs
 run_stage reference-outage node scripts/check-m5-reference-outage.mjs
 run_stage maritime-outage node scripts/check-m5-maritime-outage.mjs
-run_stage shipment-outage node scripts/check-m5-shipment-outage.mjs
 run_stage recovery bash scripts/verify-m5-stages-local.sh recovery
 run_stage scan bash scripts/verify-m5-stages-local.sh scan
 teardown_g5() {

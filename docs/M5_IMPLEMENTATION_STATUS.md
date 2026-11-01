@@ -1,37 +1,43 @@
-# M5 Shipment Lifecycle: Planning and Implementation Status
+# M5 Shipment Lifecycle: Implementation Status
 
-**As of:** 2026-11-01
-**Milestone:** M5, G5
-**State:** Architecture and implementation planning authored on `feat/m5-shipment-lifecycle`. Implementation has **not started**. G5 remains OPEN and acceptance pending.
-**Baseline:** G0-G4 accepted and integrated into `main` at `18d00e6710097e4e31a87190be8edb65337d1b50`.
-**Dependencies:** M5-01 requires accepted G3. M5-02 and M5-03 follow M5-01 and can proceed in parallel; M5-04 requires both. M6 requires **both G4 and G5**.
+**As of:** 2026-11-01  
+**Milestone:** M5-01 through M5-04; G5 evidence gate  
+**Branch:** `feat/m5-shipment-lifecycle`  
+**Base:** Accepted G0-G4 `main`, at `18d00e6710097e4e31a87190be8edb65337d1b50`  
+**State:** Implementation source and initial tests committed on feature branch. No complete compilation/runtime verification. G5 OPEN, acceptance pending.
 
-## Approved baseline and planned scope
+## Implemented source inventory
 
-M4 supplies validated voyages and containers but M5 does **not** assign them to shipments. The M5 module is intended to own scoped shipment CRUD, manual lifecycle transitions, concurrency control, searchable records, archival, and append-only manual workflow status changes. Accepted M0-M4 identity, organization, port and maritime contracts remain unchanged.
-
-| Work package | Planned deliverable | Current state |
+| Work package | Committed work | Remaining before G5 |
 | --- | --- | --- |
-| M5-01 | Freeze shipment lifecycle, identifiers, UTC rules, role matrix and HTTP contract | Proposed, approval pending |
-| M5-02 | Additive shipment/transition schema, typed scoped CRUD and strict database invariants | Not implemented |
-| M5-03 | Exact-version updates, observed SQL lock/revocation races and replay safety | Not implemented |
-| M5-04 | Two-tenant browser CRUD/detail/archive/history and full G5 local verification | Not implemented |
-| G5 | G5-S01 to G5-S25 reviewed raw evidence and explicit milestone acceptance | NOT RUN, acceptance pending |
+| M5-01 | Shipment domain policy: references, explicit UTC, closed manual workflow and role permissions; unit tests | Compile, execute, and confirm M5-local contract decision |
+| M5-02 | Additive `ShipmentLifecycle` migration, EF model/snapshot, scoped shipment API/list/detail/history, versioned archive/restore and DB-generated manual status changes | Execute actual PostgreSQL migration, enforce all direct SQL invariants, audit API response/contracts |
+| M5-03 | Organization/session/user revalidation, exact version, concurrent write tests and one queued-revocation regression | Execute deterministic races; expand queued account/organization/member invalidation matrix and replays |
+| M5-04 | React shipment workspace, typed API client, two-tenant fixture preparer, Chromium/Firefox/WebKit specs, M5 verification runner/outage checker and 25-case evidence index | Run/repair full browser matrix, fixture idempotency, request races and isolated G5 pipeline |
+| G5 | Scenario matrix and source-level audit authored | All 25 scenarios need observed execution, independent raw-evidence review, explicit acceptance |
 
-## Planning documents
+## Key implementation paths
 
-- [M5 architecture](M5_ARCHITECTURE_DESIGN.md): bounded scope, table/field/invariant contracts, permission matrix, API, UI and M6 boundaries.
-- [M5 implementation plan](M5_IMPLEMENTATION_PLAN.md): files, delivery sequence, lock-order strategy, migration coordination, tests, operational risk and completion criteria.
-- [G5 verification plan](M5_VERIFICATION_PLAN.md): 25 named mandatory scenarios, expected raw outputs and acceptance conditions.
-- [Execution graph](EXECUTION_GRAPH.md): authoritative dependency edges remain unchanged; planning does not imply a G5 pass.
-- [Local storage policy](LOCAL_STORAGE_POLICY.md): E: for all controllable project and verification output, only attributable short-lived C: temporary writes with safe cleanup.
+- `src/HarborOps.Domain/Shipments/ShipmentPolicy.cs`
+- `src/HarborOps.Infrastructure/Shipments/ShipmentRecord.cs` and `ShipmentStore.cs`
+- `src/HarborOps.Infrastructure/Persistence/Migrations/20261101180000_ShipmentLifecycle.cs`
+- `src/HarborOps.Api/Shipments/ShipmentEndpoints.cs`
+- `web/src/shipments/ShipmentWorkspace.tsx` and `shipmentClient.ts`
+- `tests/HarborOps.UnitTests/ShipmentPolicyTests.cs`
+- `tests/HarborOps.IntegrationTests/ShipmentHttpTests.cs`, `ShipmentBoundaryTests.cs` and `ShipmentMigrationTests.cs`
+- `tests/browser/specs/shipment.spec.mjs`
+- `scripts/verify-m5-local.sh`, `scripts/assert-g5-evidence.mjs`, `scripts/check-m5-schema-contract.mjs`, `scripts/check-m5-shipment-outage.mjs` and `scripts/prepare-m5-browser-fixtures.mjs`.
 
-## Contract choices awaiting approval
+Existing M0-M4 migration files are unchanged. Older test expectations for the latest migration count were reconciled on this feature branch. No M6 assignments, tracking events, derived projections or CSV exports were added.
 
-The proposed M5-local contract uses a Draft/Booked/InTransit/Arrived/Completed/Cancelled manual workflow, required active same-organization origin/destination ports, nullable UTC planned windows, immutable shipment identity and reference values, a narrowly scoped Auditor read permission, and append-only manual status history. This is not a new global D-number. Publication does **not** approve these choices automatically; see [architecture section 7](M5_ARCHITECTURE_DESIGN.md#7-decisions-to-confirm-before-implementation).
+## Source-level correctness assessment
 
-## Verification and integration boundaries
+[The M5 source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) records the corrections made, observed source checks and mandatory runtime/coverage gaps. The added JavaScript modules passed syntactic parsing and the shipment EF model/snapshot blocks matched textually. **No .NET 10 build, actual EF model comparison, database migration, HTTP run, Playwright run, outage or scan was executed** in the current environment. These are not G5 evidence.
 
-No M5 migrations, implementation source, tests, fixtures, raw results, execution evidence, or acceptance record are claimed by this planning milestone. Do not create `M5_EXECUTED_VERIFICATION.md` until actual G5 verification has been completed.
+The local runner expects an E:-backed verification root ending in `m5`, for example `E:\HarborOps-Verification\m5`. It refuses to take over existing disposable Docker resources. Review its shared `ho-verify` stage infrastructure for independent-project isolation before concurrent verification. Keep all controlled persistent data on E:, with only attributable short-lived C: temporary writes and safe cleanup.
 
-No GitHub Actions or merges are authorized by these documents. Keep M0-M4 accepted implementation stable and never rewrite its applied migration history. If an independent M5 branch is integrated with other concurrent work, rerun the combined migration/auth/tenant/browser regression matrix at the resulting source SHA. Dedicated accessibility testing remains at M24-04; quarterly existing-volume compatibility remains at M6/M12/M18/M24-03.
+## Remaining decisions and governance
+
+The proposed M5-local contract was implemented as a working baseline in response to the implementation request, but its formal decision and G5 acceptance are not recorded. See [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md), [G5 scenarios](M5_VERIFICATION_PLAN.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md). M5 source is unverified and acceptance pending; no integration into `main` or GitHub Actions execution has occurred.
+
+The accepted graph still makes M5-01 depend on G3. M6 remains gated on both G4 and G5, with the dedicated historical-volume checkpoint at G6; formal accessibility testing stays at M24-04.

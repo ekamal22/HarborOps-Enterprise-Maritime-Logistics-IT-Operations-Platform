@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace HarborOps.Infrastructure.Shipments;
 
 public sealed class ShipmentRecord
@@ -18,6 +20,7 @@ public sealed class ShipmentRecord
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
     public DateTimeOffset? ArchivedAtUtc { get; set; }
+    [JsonIgnore]
     public Guid ChangedByUserId { get; set; }
 }
 

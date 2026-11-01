@@ -22,6 +22,11 @@ Existing OS and tool installations on C: are not instructions to reinstall or re
 
 This policy does **not** authorize wiping, relocating, pruning or deleting existing data on either drive.
 
+### Unavoidable short-lived C: writes
+
+Unavoidable temporary writes by Windows or a required tool are permitted only when short-lived and attributable to the current task. Record the exact task-specific paths and C: free-space baseline before execution. Redirect controllable caches, logs, build outputs, browser profiles, Docker/WSL data and test artifacts to E:. After completing the job and preserving relevant logs on E:, stop the task's processes, delete only temporary files proven to have been created for that job, and record any remaining paths and before/after measurements. Never broadly clear Windows or user temp directories, installer caches, crash dumps, Docker images, other applications' caches, or unrelated files. If safe attribution or deletion cannot be established, record the blocker rather than deleting unverified data. Persistent project-specific storage on C: remains prohibited.
+
+
 ## PowerShell session setup
 
 In a **new terminal** before development or test commands:

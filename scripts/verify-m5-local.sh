@@ -114,6 +114,7 @@ run_stage storage-before node scripts/record-g5-storage.mjs "$root" before
 run_stage decision-unit node --test scripts/g4-decision-gate.test.mjs
 run_stage schema-index node scripts/check-g4-index-contract.mjs
 run_stage shipment-schema node scripts/check-m5-schema-contract.mjs
+run_stage coverage-source node scripts/check-g5-source-coverage.mjs
 run_stage preflight bash scripts/verify-m5-stages-local.sh preflight
 run_stage postgres-image docker build --build-arg "SOURCE_REVISION=$sha" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .

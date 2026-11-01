@@ -22,7 +22,7 @@ const fresh=p=>fs.existsSync(at(p)) && fs.statSync(at(p)).size>0 &&
 assert.ok(!fs.existsSync(at("g5-aborted.txt")),"Aborted run cannot satisfy G5");
 
 const requiredStages=[
-  "storage-before","decision-unit","schema-index","shipment-schema","preflight","postgres-image",
+  "storage-before","decision-unit","schema-index","shipment-schema","coverage-source","preflight","postgres-image",
   "dotnet","deps","web","docs","stack","accounts","organizations","session",
   "setup-fixtures","fixtures","m4-fixtures","m5-fixtures","browsers",
   "reference-outage","maritime-outage","shipment-outage","recovery","scan","teardown","storage-after"

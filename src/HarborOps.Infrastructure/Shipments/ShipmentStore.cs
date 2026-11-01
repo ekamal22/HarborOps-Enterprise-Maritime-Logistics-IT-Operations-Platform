@@ -227,29 +227,46 @@ public sealed class ShipmentStore(HarborOpsDbContext db, OrganizationStore organ
                 {
                     if (input.Has("recordStatus"))
                         return new(null, OrganizationAccessError.Conflict);
+                    var changed = false;
                     if (input.Has("displayName"))
                     {
-                        var next = ShipmentPolicy.Name(input.Get("displayName"));
-                        if (next == row.DisplayName) return new(null, OrganizationAccessError.Invalid);
-                        row.DisplayName = next;
+                        var nextName = ShipmentPolicy.Name(input.Get("displayName"));
+                        if (nextName != row.DisplayName)
+                        {
+                            row.DisplayName = nextName;
+                            changed = true;
+                        }
                     }
                     if (input.Has("plannedDepartureAtUtc") || input.Has("plannedArrivalAtUtc"))
                     {
                         if (row.WorkflowStatus is not ("Draft" or "Booked"))
                             return new(null, OrganizationAccessError.Conflict);
                         if (input.Has("plannedDepartureAtUtc"))
-                            row.PlannedDepartureAtUtc = ShipmentPolicy.Utc(input.Get("plannedDepartureAtUtc"));
+                        {
+                            var next = ShipmentPolicy.Utc(input.Get("plannedDepartureAtUtc"));
+                            if (next != row.PlannedDepartureAtUtc)
+                            {
+                                row.PlannedDepartureAtUtc = next;
+                                changed = true;
+                            }
+                        }
                         if (input.Has("plannedArrivalAtUtc"))
-                            row.PlannedArrivalAtUtc = ShipmentPolicy.Utc(input.Get("plannedArrivalAtUtc"));
+                        {
+                            var next = ShipmentPolicy.Utc(input.Get("plannedArrivalAtUtc"));
+                            if (next != row.PlannedArrivalAtUtc)
+                            {
+                                row.PlannedArrivalAtUtc = next;
+                                changed = true;
+                            }
+                        }
                     }
                     var nextStatus = input.Has("workflowStatus")
                         ? ShipmentPolicy.Workflow(input.Get("workflowStatus")) : row.WorkflowStatus;
                     if (!ShipmentPolicy.CanTransition(row.WorkflowStatus, nextStatus))
                         return new(null, OrganizationAccessError.Conflict);
                     ShipmentPolicy.ValidateTimes(row.PlannedDepartureAtUtc, row.PlannedArrivalAtUtc);
-                    if (nextStatus == row.WorkflowStatus &&
-                        input.Changed == 1 && input.Has("workflowStatus"))
-                        return new(null, OrganizationAccessError.Invalid);
+                    if (nextStatus != row.WorkflowStatus) changed = true;
+                    if (!changed) return new(null, OrganizationAccessError.Invalid);
                     row.WorkflowStatus = nextStatus;
                 }
                 row.Version++;

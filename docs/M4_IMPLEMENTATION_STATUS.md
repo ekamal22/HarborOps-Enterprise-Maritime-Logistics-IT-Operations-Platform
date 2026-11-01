@@ -37,6 +37,7 @@
 - Runner: `scripts/verify-m4-local.sh`, `scripts/check-m4-maritime-outage.mjs`, `scripts/assert-g4-evidence.mjs`
 - Existing M0-M3 migration regression test expectations updated for the fifth migration.
 - [M4 correctness audit](M4_CORRECTNESS_AUDIT.md) records eleven source findings and the 25-case unexecuted test trace.
+- [Second correctness audit](M4_SECOND_CORRECTNESS_AUDIT.md) records six additional findings and their subsequent source remediations, including isolated foreign-key cases, D-003 decision gating, complete tenant-role fixtures, independent voyage-list loading and precise runtime assertions. Full .NET/PostgreSQL/browser execution remains pending.
 - Source corrections prevent combined archive-and-edit SQL transitions, no-op container edits and stale page repaint, and load parent references beyond the first 100.
 - G4 evidence index is required to fail on missing executed evidence and pending D-003, without implying acceptance.
 

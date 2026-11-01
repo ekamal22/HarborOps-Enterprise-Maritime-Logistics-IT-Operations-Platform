@@ -39,11 +39,76 @@ class Session {
 const manager = new Session();
 await manager.login("m3-manager@example.test");
 const orgs = (await manager.request("GET", "/api/v1/me/organizations")).organizations;
+const additional = [
+  ["m4-analyst-east@example.test", "Analyst"],
+  ["m4-support@example.test", "Support"],
+  ["m4-auditor@example.test", "Auditor"]
+];
+const accounts = new Map();
+for (const [email, role] of additional) {
+  const session = new Session();
+  await session.login(email);
+  const identity = await session.request("GET", "/api/v1/auth/session");
+  assert.ok(identity?.user?.id, "Missing disposable account identity for " + role);
+  accounts.set(role === "Analyst" ? "EastAnalyst" : role, identity.user.id);
+}
+const northAnalyst = new Session();
+await northAnalyst.login("m3-analyst@example.test");
+accounts.set("NorthAnalyst",
+  (await northAnalyst.request("GET", "/api/v1/auth/session")).user.id);
+const managerId = (await manager.request("GET", "/api/v1/auth/session")).user.id;
+const admins = new Map();
+for (const [slug, email] of [
+  ["m3-north", "m3-admin-a@example.test"],
+  ["m3-east", "m3-admin-b@example.test"]
+]) {
+  const session = new Session();
+  await session.login(email);
+  admins.set(slug, {
+    session,
+    id: (await session.request("GET", "/api/v1/auth/session")).user.id
+  });
+}
 for (const slug of ["m3-north","m3-east"]) {
   const org = orgs.find(x => x.slug === slug && x.role === "Manager");
   assert.ok(org, "Missing M4 isolated test tenant " + slug);
   await manager.choose(org.id);
   const root = "/api/v1/organizations/" + org.id;
+  const administrator = admins.get(slug);
+  assert.ok(administrator, "Missing administrator session");
+  await administrator.session.choose(org.id);
+  const expected = new Map([
+    [administrator.id, "Administrator"],
+    [managerId, "Manager"],
+    [accounts.get(slug === "m3-north" ? "NorthAnalyst" : "EastAnalyst"), "Analyst"],
+    [accounts.get("Support"), "Support"],
+    [accounts.get("Auditor"), "Auditor"]
+  ]);
+  assert.equal(expected.size, 5, "Each M4 tenant must have five distinct roles");
+  async function membershipSnapshot() {
+    const list = (await administrator.session.request("GET",
+      root + "/memberships?limit=100")).memberships;
+    return [...expected].map(([userId, role]) => {
+      const membership = list.find(value => value.userId === userId);
+      assert.ok(membership, "Missing M4 membership for " + role + " in " + slug);
+      assert.equal(membership.role, role);
+      assert.equal(membership.status, "Active");
+      return [membership.userId, membership.role, membership.status, membership.version];
+    });
+  }
+  const existing = (await administrator.session.request("GET",
+    root + "/memberships?limit=100")).memberships;
+  for (const [userId, role] of expected) {
+    const found = existing.find(value => value.userId === userId);
+    if (found?.role === role && found?.status === "Active") continue;
+    await administrator.session.request("PUT", root + "/memberships/" + userId,
+      { role, status: "Active", expectedVersion: found?.version ?? null });
+  }
+  const firstMemberships = await membershipSnapshot();
+  // Re-applying the fixture contract must not mutate existing role versions.
+  const secondMemberships = await membershipSnapshot();
+  assert.deepEqual(secondMemberships, firstMemberships,
+    "Repeated role fixture inspection must preserve versions");
   const ports = (await manager.request("GET", root + "/ports?limit=100&status=Active")).ports;
   const vessels = (await manager.request("GET", root + "/vessels?limit=100&status=Active")).vessels;
   const portA = ports.find(x => x.referenceCode === "DEMO-PORT-1");

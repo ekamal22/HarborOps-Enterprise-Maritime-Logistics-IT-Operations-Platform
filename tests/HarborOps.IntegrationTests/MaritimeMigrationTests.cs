@@ -35,6 +35,14 @@ public sealed class MaritimeMigrationTests
             var org = await organizations.BootstrapAsync(
                 "g4-upgrade-" + Guid.NewGuid().ToString("N")[..12],
                 "M4 Upgrade Organization", email, CancellationToken.None);
+            var session = (await identities.LoginAsync(email,
+                "Synthetic-G4-strong-test-password-123", "g4-historical-upgrade",
+                CancellationToken.None))!;
+            Assert.NotNull((await organizations.SelectAsync(session.UserId, session.SessionId,
+                org.Id, CancellationToken.None)).Value);
+            var beforeSession = await db.AuthSessions.AsNoTracking()
+                .SingleAsync(x => x.Id == session.SessionId);
+            Assert.Equal(org.Id, beforeSession.SelectedOrganizationId);
             var now = DateTimeOffset.UtcNow;
             var port = new PortReference {
                 Id = Guid.NewGuid(), OrganizationId = org.Id, ReferenceCode = "HIST-PORT",
@@ -50,6 +58,12 @@ public sealed class MaritimeMigrationTests
             await db.SaveChangesAsync();
             await db.Database.MigrateAsync();
             Assert.Equal(5, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            var upgradedSession = await db.AuthSessions.AsNoTracking()
+                .SingleAsync(x => x.Id == session.SessionId);
+            Assert.Equal(beforeSession.UserId, upgradedSession.UserId);
+            Assert.Equal(beforeSession.SelectedOrganizationId, upgradedSession.SelectedOrganizationId);
+            Assert.Equal(beforeSession.SecurityVersion, upgradedSession.SecurityVersion);
+            Assert.Null(upgradedSession.RevokedAtUtc);
             Assert.Equal("HIST-PORT", (await db.Ports.AsNoTracking().SingleAsync()).ReferenceCode);
             Assert.Equal("HIST-VESSEL", (await db.Vessels.AsNoTracking().SingleAsync()).ReferenceCode);
             Assert.Empty(await db.Voyages.ToListAsync());
@@ -60,10 +74,15 @@ public sealed class MaritimeMigrationTests
             Assert.Equal(4, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(port.Id, (await db.Ports.SingleAsync()).Id);
             Assert.Equal(vessel.Id, (await db.Vessels.SingleAsync()).Id);
+            Assert.Equal(org.Id, (await db.AuthSessions.AsNoTracking()
+                .SingleAsync(x => x.Id == session.SessionId)).SelectedOrganizationId);
             await db.Database.MigrateAsync();
             Assert.Equal(5, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(1, await db.AuthUsers.CountAsync());
             Assert.Equal(1, await db.OrganizationMemberships.CountAsync());
+            Assert.Equal(org.Id, (await db.AuthSessions.AsNoTracking()
+                .SingleAsync(x => x.Id == session.SessionId)).SelectedOrganizationId);
+            Assert.Equal(1, await db.AuthSessions.CountAsync(x => x.UserId == session.UserId));
         }
         finally
         {

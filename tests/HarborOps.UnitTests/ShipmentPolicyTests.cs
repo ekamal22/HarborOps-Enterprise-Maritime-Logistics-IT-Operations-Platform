@@ -6,6 +6,25 @@ namespace HarborOps.UnitTests;
 
 public sealed class ShipmentPolicyTests
 {
+    public static IEnumerable<object[]> AllWorkflowPairs()
+    {
+        var states = new[] { "Draft", "Booked", "InTransit", "Arrived", "Completed", "Cancelled" };
+        foreach (var from in states)
+            foreach (var to in states)
+            {
+                var valid = from == to ||
+                    from == "Draft" && to is "Booked" or "Cancelled" ||
+                    from == "Booked" && to is "InTransit" or "Cancelled" ||
+                    from == "InTransit" && to is "Arrived" or "Cancelled" ||
+                    from == "Arrived" && to == "Completed";
+                yield return new object[] { from, to, valid };
+            }
+    }
+    [Theory]
+    [MemberData(nameof(AllWorkflowPairs))]
+    public void FullWorkflowMatrix(string from, string to, bool valid) =>
+        Assert.Equal(valid, ShipmentPolicy.CanTransition(from, to));
+
     [Theory]
     [InlineData("Draft", "Booked", true)]
     [InlineData("Draft", "Cancelled", true)]

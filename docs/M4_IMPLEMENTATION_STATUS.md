@@ -11,7 +11,7 @@
 | Work package | Implemented source | Verification status |
 | --- | --- | --- |
 | M4-01 | Maritime policy for ISO checksum, synthetic IDs, equipment types, voyage time/progression; new M4 permissions | Proposed policy, tests authored, D-003 not accepted |
-| M4-02 | `VoyageRecord`, tenant-composite vessel/port foreign keys, UTC planned/actual windows, progress, scoped API, optimistic version, archive/restore | Source committed, .NET/SQL/HTTP execution not performed |
+| M4-02 | `VoyageRecord`, tenant-composite vessel/port foreign keys, UTC planned/actual windows, progress, scoped API, optimistic version, archive/restore | Source committed; initial .NET build failed on test analyzer diagnostics, SQL/HTTP execution not reached |
 | M4-03 | `ContainerRecord`, ISO and synthetic validation, PostgreSQL checksum function, format/uniqueness checks, scoped API and archive/restore | Source committed, .NET/SQL/HTTP execution not performed |
 | M4-04 | `MaritimeWorkspace` React UI, selected organization integration, parent selection, filter/cursor, three-engine browser specs, E:-scoped runner and evidence index | Source committed, browser execution not performed |
 
@@ -28,7 +28,7 @@
 - `web/src/maritime/maritimeClient.ts` and `MaritimeWorkspace.tsx`
 - `web/src/auth/OrganizationWorkspace.tsx`
 
-## Tests and local verification authored, not executed
+## Tests authored and local verification partially attempted
 
 - Unit: `MaritimePolicyTests.cs`
 - Integration: `MaritimeHttpTests.cs`, `MaritimeBoundaryTests.cs`, `MaritimeMigrationTests.cs`, `MaritimeConcurrencyTests.cs`, `MaritimeGateCoverageTests.cs`, `MaritimeUpgradeAndSecurityTests.cs`, `MaritimeSqlInvariantTests.cs`, `MaritimeRevocationInterleavingTests.cs`
@@ -58,3 +58,9 @@
 On the authorized E:-backed Windows worktree, inspect [Local Storage Policy](LOCAL_STORAGE_POLICY.md), confirm the active Docker Desktop backing storage is E:, and run `bash scripts/verify-m4-local.sh` after the environment variables and disposable project are configured. Do not dispatch GitHub Actions. The runner is not certified as complete until all mandatory scenario subcases are mapped to real results, errors repaired and the entire matrix rerun on the final source SHA.
 
 **Exit criterion:** G4-S01 through G4-S25 genuine PASS, independent raw-evidence review, D-003 accepted and explicit G4 acceptance. Until then M4 remains implementation in progress, unverified and not merged.
+
+## First G4 local execution attempt (2026-11-01)
+
+The E:-backed local run at `7d0dd3e60049d5e831dd1cee1493cb6a2d32f74c` completed the four decision-unit tests, environment preflight, and rootless PostgreSQL image build. The `dotnet` stage aborted with exit code 11 after two xUnit analyzer errors in `MaritimeRevocationInterleavingTests.cs`: `xUnit2020` at line 31 and `xUnit1030` at line 93. The errors were corrected by replacing `Assert.True(false, message)` with `Assert.Fail(message)` and removing `ConfigureAwait(false)` from the test cleanup. This source correction was committed as `34257e295888a249522574fe958f9e5d76a154de`.
+
+The run stopped before full .NET build success, PostgreSQL integration execution, browser runs, recovery checks, scans, and G4 evidence indexing. Its raw console and stage logs remain in the local `E:\\HarborOps-Verification\\evidence` and `logs` directories. A complete fresh verification at the corrected final SHA is still required. G4 remains OPEN, acceptance pending.

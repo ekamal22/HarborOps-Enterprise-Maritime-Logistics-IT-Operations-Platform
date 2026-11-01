@@ -168,13 +168,16 @@ test("M5 deferred shipment response cannot cross organization switch",async ({pa
   test.skip(!enabled,"Disposable M5 fixture required");
   await login(page,"m3-manager@example.test");
   const selection=page.locator("#current-organization");
+  const northId=await selection.locator("option",{hasText:"M3 North Terminal (Manager)"})
+    .getAttribute("value");
+  expect(northId).toBeTruthy();
   let release;
   const held=new Promise(resolve=>{release=resolve;});
   let waiting;
   const entered=new Promise(resolve=>{waiting=resolve;});
   let intercepted=false;
   await page.route("**/api/v1/organizations/*/shipments?*",async route=>{
-    if(!intercepted && route.request().url().includes("m3-north")===false &&
+    if(!intercepted && route.request().url().includes("/"+northId+"/shipments?") &&
       route.request().method()==="GET"){
       intercepted=true;waiting();
       await held;

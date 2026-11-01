@@ -69,7 +69,7 @@ M4-01 through M4-04 were implemented and G4 was explicitly accepted on 2026-11-0
 
 ## M5 shipment lifecycle design (not implemented)
 
-The [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md), [G5 matrix](M5_VERIFICATION_PLAN.md) and [planning status](M5_IMPLEMENTATION_STATUS.md) define the bounded shipment module. After M5-01 contract approval, M5-02 and M5-03 may proceed in parallel; M5-04 follows both. M5 has no implementation or accepted G5 evidence, and M6 remains blocked pending G5 acceptance.
+The [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md), [G5 matrix](M5_VERIFICATION_PLAN.md) and [planning status](M5_IMPLEMENTATION_STATUS.md) define the bounded shipment module. After M5-01 contract approval, M5-02 and M5-03 may proceed in parallel; M5-04 follows both. M5 source and initial automated tests are committed on its feature branch, but no compile/runtime evidence or G5 acceptance exists. Review [M5 implementation status](M5_IMPLEMENTATION_STATUS.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) for remaining validation and coverage. M6 remains blocked pending G5 acceptance.
 
 ## Concurrent work-package implementation
 

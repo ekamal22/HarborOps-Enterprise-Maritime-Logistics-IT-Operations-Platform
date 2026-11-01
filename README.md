@@ -84,7 +84,7 @@ M4 implements tenant-scoped voyage schedules and container references. D-003 Opt
 
 ### M5 shipment lifecycle planning
 
-[M5 architecture](docs/M5_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M5_IMPLEMENTATION_PLAN.md), [G5 verification plan](docs/M5_VERIFICATION_PLAN.md) and [planning status](docs/M5_IMPLEMENTATION_STATUS.md) define a proposed scoped shipment lifecycle with versioned CRUD and three-browser verification. The design is committed on `feat/m5-shipment-lifecycle`; no M5 implementation or G5 execution is claimed.
+[M5 architecture](docs/M5_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M5_IMPLEMENTATION_PLAN.md), [G5 verification plan](docs/M5_VERIFICATION_PLAN.md) and [planning status](docs/M5_IMPLEMENTATION_STATUS.md) define a proposed scoped shipment lifecycle with versioned CRUD and three-browser verification. The shipment domain, migration, scoped API, React workspace, initial tests and verification scripts are committed on `feat/m5-shipment-lifecycle`. None has passed a .NET build or end-to-end runtime verification. See [M5 implementation status](docs/M5_IMPLEMENTATION_STATUS.md) and [M5 source audit](docs/M5_SOURCE_CORRECTNESS_AUDIT.md). G5 acceptance pending.
 
 ### Parallel dependency-based delivery
 
@@ -136,6 +136,8 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M5 Architecture](docs/M5_ARCHITECTURE_DESIGN.md) | Planned shipment domain, database and HTTP contracts |
 | [M5 Implementation Plan](docs/M5_IMPLEMENTATION_PLAN.md) | Four work packages and integration strategy |
 | [G5 Verification Plan](docs/M5_VERIFICATION_PLAN.md) | 25 mandatory scenarios and evidence |
+| [M5 Source Audit](docs/M5_SOURCE_CORRECTNESS_AUDIT.md) | Source corrections and remaining real-runtime / adversarial verification gaps |
+
 | [M5 Planning Status](docs/M5_IMPLEMENTATION_STATUS.md) | Planning only, G5 open |
 | [M4 Executed Verification](docs/M4_EXECUTED_VERIFICATION.md) | Accepted G4 evidence, D-003 closure, verified source SHA and immutable artifact hash |
 | [M3 Executed Verification](docs/M3_EXECUTED_VERIFICATION.md) | Verified G3 execution evidence, failure history and acceptance record |

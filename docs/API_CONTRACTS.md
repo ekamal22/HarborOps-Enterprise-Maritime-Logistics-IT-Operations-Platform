@@ -81,6 +81,8 @@ The accepted [M4 architecture](M4_ARCHITECTURE_DESIGN.md) implements ten `/api/v
 
 [M5 architecture](M5_ARCHITECTURE_DESIGN.md) specifies scoped shipment GET list/detail/status changes, POST Draft creation, PATCH exact-version edits/transitions/restore and DELETE soft archive. M5 supplies bounded search, while M12 owns advanced search and CSV. `containerIds` and `voyageId` from older sample payloads are excluded until M6 assignments. Five-role permissions, CSRF/Origin and sanitized errors require [G5](M5_VERIFICATION_PLAN.md).
 
+M5 shipment Minimal API source now maps the six documented routes on its feature branch, using the existing M1-M4 auth and CSRF pipeline. These endpoints are **not compiled or runtime verified**. See [implementation status](M5_IMPLEMENTATION_STATUS.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md). The prose contract remains provisional until G5 verification.
+
 ## Proposed resource map
 
 | Method | Route | Purpose | Access |

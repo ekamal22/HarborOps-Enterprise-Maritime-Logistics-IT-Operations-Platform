@@ -1,7 +1,7 @@
 # M5 Shipment Lifecycle and Concurrency: Architecture Design
 
 **Milestone:** M5-01 to M5-04, G5
-**State:** Proposed implementation architecture, not implemented or verified
+**State:** Working design implemented in source on the M5 feature branch. Formal contract decision and G5 execution/acceptance remain pending. See [implementation register](M5_IMPLEMENTATION_STATUS.md) and [source correctness audit](M5_SOURCE_CORRECTNESS_AUDIT.md).
 **Baseline:** Accepted `main` at `18d00e6710097e4e31a87190be8edb65337d1b50` (G0-G4 accepted)
 **Entry gate:** G3 accepted. G4 is also accepted, but M5 retains its independent G3 dependency.
 **Authority:** [Roadmap](ROADMAP.md), [execution graph](execution-graph.json), [FR-004 and authorization requirements](REQUIREMENTS.md), [M4 accepted model](M4_EXECUTED_VERIFICATION.md), [M5 implementation plan](M5_IMPLEMENTATION_PLAN.md), [G5 verification plan](M5_VERIFICATION_PLAN.md).
@@ -138,4 +138,4 @@ This architecture introduces no new global D-number in the accepted execution gr
 4. Immutable tenant-local and external references, record archival with independent workflow status, and append-only manual status changes.
 5. Simple search/pagination in M5; advanced export and tracking projections deferred.
 
-These choices are proposed, **not accepted** by publication of this document. G5 remains unverified and acceptance pending. Consult the [implementation plan](M5_IMPLEMENTATION_PLAN.md) and [G5 verification plan](M5_VERIFICATION_PLAN.md) before beginning implementation.
+These choices formed the initial implementation contract in source following the implementation request, but they have not received a separate formal design-decision entry or G5 acceptance. Full end-to-end execution and independent evidence remain mandatory. See [M5 implementation status](M5_IMPLEMENTATION_STATUS.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md). Consult the [implementation plan](M5_IMPLEMENTATION_PLAN.md) and [G5 verification plan](M5_VERIFICATION_PLAN.md) before beginning implementation.

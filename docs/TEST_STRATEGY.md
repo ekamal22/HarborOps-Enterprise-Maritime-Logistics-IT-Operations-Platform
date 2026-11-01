@@ -54,7 +54,7 @@ The [G3 plan](M3_VERIFICATION_PLAN.md) specified 25 mandatory scenarios spanning
 
 ## M5 verification contract (planned, G5 OPEN)
 
-The [25-case G5 matrix](M5_VERIFICATION_PLAN.md) covers domain transitions, tenant SQL FKs and status history, live role/session races, version conflicts, two-tenant five-role HTTP, Chromium/Firefox/WebKit, M0-M4 regressions, recovery, scans and E:-backed raw evidence. No G5 case has executed. Formal accessibility testing remains M24-04 and historical-volume checks remain M6/M12/M18/M24-03.
+The [25-case G5 matrix](M5_VERIFICATION_PLAN.md) covers domain transitions, tenant SQL FKs and status history, live role/session races, version conflicts, two-tenant five-role HTTP, Chromium/Firefox/WebKit, M0-M4 regressions, recovery, scans and E:-backed raw evidence. No G5 case has executed; M5 test source, fixtures and the E:-rooted runner are committed but require actual .NET/PostgreSQL/browser execution and coverage reconciliation. See [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md). Formal accessibility testing remains M24-04 and historical-volume checks remain M6/M12/M18/M24-03.
 
 ## Test layers
 

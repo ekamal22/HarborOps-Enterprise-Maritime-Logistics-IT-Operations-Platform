@@ -1,6 +1,6 @@
 # M5 Shipment Lifecycle: Implementation Plan
 
-**Status:** Planning complete for review; implementation not started; G5 acceptance pending
+**Status:** Domain, SQL/EF persistence, API, React UI and initial tests authored and committed. End-to-end build/runtime verification and some mandatory adversarial subcases remain incomplete. G5 acceptance pending.
 **Feature branch:** `feat/m5-shipment-lifecycle`
 **Accepted base:** `main` at `18d00e6710097e4e31a87190be8edb65337d1b50`
 **Work packages:** M5-01, M5-02, M5-03, M5-04, then G5
@@ -140,4 +140,4 @@ Author `scripts/verify-m5-local.sh`, `scripts/assert-g5-evidence.mjs`, `scripts/
 | M5-04 | Two-tenant five-role fixtures and all three browser engines with correct error/race behavior |
 | G5 | 25/25 scenario evidence independently reviewed, fresh/repeat regressions, clean scans, cleanup, explicit acceptance |
 
-**Current status:** Planning document committed only. No M5 source, migration, fixture, test run, G5 gate result, or merge is asserted. Approval of the plan does not itself approve implementation, verification or acceptance.
+**Current status:** Source files, migration, tests, browser fixtures, outage script and G5 runner are committed on the M5 branch. No successful build, real migration, local browser matrix or 25-case raw evidence is available. [M5 implementation status](M5_IMPLEMENTATION_STATUS.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) enumerate remaining runtime and test-coverage work. Neither G5 acceptance nor merge is implied.

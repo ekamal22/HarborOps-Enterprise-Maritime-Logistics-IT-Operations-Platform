@@ -1,7 +1,7 @@
 # G5 Shipment Lifecycle: Verification Plan
 
 **Milestone:** M5, shipment lifecycle and concurrency
-**Status:** Proposed mandatory verification contract; no M5 tests have executed
+**Status:** Mandatory G5 contract. Test source and local runner have been authored, but no M5 .NET, PostgreSQL, HTTP or browser test has executed. G5 OPEN, acceptance pending.
 **Entry:** M5-01 through M5-04 implemented, current branch SHA fixed, disposable E:-backed verification environment
 **Authorization:** [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md), [acceptance criteria](ACCEPTANCE_CRITERIA.md), [execution graph](execution-graph.json).
 **Decision:** G5 remains OPEN and acceptance pending until all executable scenarios pass, raw evidence is independently reviewed and explicit acceptance is received.
@@ -74,4 +74,4 @@ Preserve each prior run under its **own** source SHA, not the incoming revision.
 6. Request explicit G5 acceptance. Before then mark every unfinished required case `NOT RUN`, `FAILED`, `BLOCKED` or `EVIDENCE PRESENT, REVIEW REQUIRED`, not `ACCEPTED`.
 7. Fast-forward merge to `main` only after approval and a clean base/branch comparison. Do not trigger GitHub Actions. Reconcile documentation without claiming an execution on a later documentation-only SHA.
 
-**G5 outcome today:** Design and verification contract only. All 25 cases are NOT RUN and **acceptance pending**.
+**G5 outcome today:** Implementation and initial test code committed, but full adversarial subcase coverage and real execution remain unfinished. All 25 cases are NOT RUN and **acceptance pending**. See [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md).

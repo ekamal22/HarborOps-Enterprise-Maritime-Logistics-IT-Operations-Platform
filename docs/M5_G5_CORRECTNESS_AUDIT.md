@@ -150,3 +150,7 @@ These are source observations, not evidence of executed correctness.
 5. Independently review the raw evidence. G5-S01 stays incomplete until the M5-local contract is explicitly accepted. Only then evaluate G5 acceptance; no merge or GitHub Actions are authorized by this audit.
 
 **Acceptance recommendation:** Do **not** approve G5 or merge M5 on this baseline. The findings require implementation and verification corrections, followed by a new audit and full observed execution.
+
+## Subsequent source remediation (2026-11-01)
+
+The eleven findings above describe the original audited revision. All have since received corrective implementation/test changes on the M5 feature branch. The full disposition and exact source paths are in [M5/G5 remediation status](M5_G5_REMEDIATION_STATUS.md). The original failure analysis is preserved here as history. No .NET/PostgreSQL/browser/Docker verification has executed, the M5-local contract is not accepted, and G5 remains OPEN.

@@ -52,6 +52,10 @@ The final E:-backed G4 execution on `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` p
 
 The [G3 plan](M3_VERIFICATION_PLAN.md) specified 25 mandatory scenarios spanning port/vessel validation, five-role permissions, real foreign UUID substitution, direct PostgreSQL constraints, M2-to-M3 upgrade, optimistic concurrency, archive/restore, real tenant/session races and three-browser flows. The full local G3 matrix passed at `b72025d35d62d0a8a45b466986a0b3bd89eebadb`: 50 unit, 12 contract, 56 fresh and 56 repeated integration, 6 frontend and 19 browser tests per engine, with zero HIGH/CRITICAL findings in the three running image scans. Evidence and failure history are retained in [G3 executed verification](M3_EXECUTED_VERIFICATION.md). Independent raw-evidence review preceded explicit G3 acceptance on 2026-10-31. Preserve these suites as M4 regressions.
 
+## M5/G5 correctness remediation (not yet executed)
+
+The [M5/G5 remediation ledger](M5_G5_REMEDIATION_STATUS.md) tracks the eleven source findings and their corrections. The dedicated G5 runner now uses `ho-verify-g5`, requires exact per-phase TRX and all declared browser cases, checks teardown before evaluating evidence and packages raw E:-backed SHA-256 artifacts. Expanded direct SQL, role/session, historical migration and queued race tests have been authored. These are **not executed results**, and G5-S01 remains blocked by the pending local contract decision.
+
 ## M5 verification contract (planned, G5 OPEN)
 
 The [25-case G5 matrix](M5_VERIFICATION_PLAN.md) covers domain transitions, tenant SQL FKs and status history, live role/session races, version conflicts, two-tenant five-role HTTP, Chromium/Firefox/WebKit, M0-M4 regressions, recovery, scans and E:-backed raw evidence. No G5 case has executed; M5 test source, fixtures and the E:-rooted runner are committed but require actual .NET/PostgreSQL/browser execution and coverage reconciliation. See [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md). Formal accessibility testing remains M24-04 and historical-volume checks remain M6/M12/M18/M24-03.

@@ -4,7 +4,7 @@
 **Milestone:** M5-01 through M5-04; G5 evidence gate  
 **Branch:** `feat/m5-shipment-lifecycle`  
 **Base:** Accepted G0-G4 `main`, at `18d00e6710097e4e31a87190be8edb65337d1b50`  
-**State:** Implementation source and initial tests committed on feature branch. No complete compilation/runtime verification. G5 OPEN, acceptance pending.
+**State:** Implementation, correctness remediation and expanded G5 verification source committed on the feature branch. No complete compilation/runtime verification. G5 OPEN, acceptance pending. See [M5/G5 remediation](M5_G5_REMEDIATION_STATUS.md).
 
 ## Implemented source inventory
 
@@ -12,8 +12,8 @@
 | --- | --- | --- |
 | M5-01 | Shipment domain policy: references, explicit UTC, closed manual workflow and role permissions; unit tests | Compile, execute, and confirm M5-local contract decision |
 | M5-02 | Additive `ShipmentLifecycle` migration, EF model/snapshot, scoped shipment API/list/detail/history, versioned archive/restore and DB-generated manual status changes | Execute actual PostgreSQL migration, enforce all direct SQL invariants, audit API response/contracts |
-| M5-03 | Organization/session/user revalidation, exact version, concurrent write tests and one queued-revocation regression | Execute deterministic races; expand queued account/organization/member invalidation matrix and replays |
-| M5-04 | React shipment workspace, typed API client, two-tenant fixture preparer, Chromium/Firefox/WebKit specs, M5 verification runner/outage checker and 25-case evidence index | Run/repair full browser matrix, fixture idempotency, request races and isolated G5 pipeline |
+| M5-03 | Organization/session/user revalidation, exact version, queued read/write account, security-version, membership, role, session and organization-state tests; duplicate create, archive, restore and cancellation races | Execute, inspect and repair deterministic PostgreSQL and HTTP races on E: |
+| M5-04 | React shipment workspace, typed API client, idempotent two-tenant fixtures, eight shipment browser specs, independent G5 Compose/SDK/browser/outage stages, SHA-256 archive and 25-case checker | Run/repair full browser matrix and raw E:-backed G5 pipeline; independent review pending |
 | G5 | Scenario matrix and source-level audit authored | All 25 scenarios need observed execution, independent raw-evidence review, explicit acceptance |
 
 ## Key implementation paths
@@ -29,6 +29,12 @@
 - `scripts/verify-m5-local.sh`, `scripts/assert-g5-evidence.mjs`, `scripts/check-m5-schema-contract.mjs`, `scripts/check-m5-shipment-outage.mjs` and `scripts/prepare-m5-browser-fixtures.mjs`.
 
 Existing M0-M4 migration files are unchanged. Older test expectations for the latest migration count were reconciled on this feature branch. No M6 assignments, tracking events, derived projections or CSV exports were added.
+
+## Remediation following the M5/G5 correctness audit
+
+All eleven original source audit findings have committed corrections, including isolated `ho-verify-g5` verification resources, explicit TRX and browser matrix requirements, pre/post storage and teardown proof, raw ZIP hashing, extensive SQL/role/tenant/concurrency tests, port-catalog recovery, conflict preservation and Auditor port descriptors. See [remediation ledger](M5_G5_REMEDIATION_STATUS.md).
+
+These modifications are **source-level only** and have not been compiled, run against PostgreSQL, executed in browsers or accepted. G5-S01's M5-local decision is still pending, and all runtime G5 evidence remains NOT RUN.
 
 ## Source-level correctness assessment
 

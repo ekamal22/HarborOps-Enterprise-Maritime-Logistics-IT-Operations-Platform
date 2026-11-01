@@ -83,6 +83,10 @@ M4-01 through M4-04 are implemented and accepted. D-003 Option B and G4 were exp
 
 [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) is proposed, not formally accepted; its approved state is a required part of G5-S01. M5 code and initial tests are committed, but do not establish acceptance.
 
+## M5 G5 audit remediation (unverified)
+
+The eleven findings from [M5/G5 audit](M5_G5_CORRECTNESS_AUDIT.md) have matching source and test corrections on `feat/m5-shipment-lifecycle`. The [remediation register](M5_G5_REMEDIATION_STATUS.md) covers G5 resource isolation, exact test/fixture/evidence checks, packaging and teardown plus the shipment UI repairs. **These source changes have not been compiled or executed.** All 25 G5 cases remain NOT RUN; G5-S01 requires explicit local contract acceptance. M5 has not been merged.
+
 ## M5 design and implementation planning
 
 M5 domain, SQL/EF mappings and migration, tenant-scoped API, shipment-specific role permissions, React UI, automated test source and E:-rooted verification scripts are authored on the feature branch. These remain uncompiled and unexecuted. The [implementation register](M5_IMPLEMENTATION_STATUS.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) distinguish source-complete elements from incomplete adversarial coverage, runner isolation and all pending G5 execution. M5 retains G3 as its inbound gate, and M6 still requires accepted G5. Contract decision and G5 acceptance pending.

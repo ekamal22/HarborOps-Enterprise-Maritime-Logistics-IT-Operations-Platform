@@ -94,6 +94,10 @@ For future milestones, reuse this E-drive baseline and recheck disk paths before
 
 The G4 runs use `E:\\HarborOps-Verification` for caches, temporary files, browser binaries, evidence and logs, and the E:-backed Docker Desktop data image checked by `scripts/check-m3-docker-storage.mjs`. Git Bash rewrites a leading slash inside an argument unless `MSYS_NO_PATHCONV=1` is set for that command, which previously hid a leftover disposable database container from the runner. Before and after a run, record C: and E: free space and a file manifest of the candidate C: locations, and delete only files that the manifest comparison attributes to the run. The fifth G4 audit records the method.
 
+## G5 verification storage and cleanup (implementation pending)
+
+The G5 local runner checks an E:-backed `HARBOROPS_VERIFICATION_ROOT` ending in `m5`, enforces E:-rooted controllable temporary/cache paths, uses a separate `ho-verify-g5` Compose project, records C:/E: free space before and after, and saves the evidence log and ZIP/hash manifest to E:. Temporary files on C: may be removed only when attributable to the current task and safe to delete. Never delete Docker Desktop, Windows or unrelated application logs on the basis of timestamps alone. These are implemented safeguards, **not** evidence of a completed run.
+
 ## Scope and verification
 
 This is a development-environment constraint, **not** a claim that Windows itself will never touch C:. Record observed storage paths and any unavoidable temporary exceptions in the relevant milestone evidence register. Do not claim storage compliance based solely on this policy document.

@@ -8,6 +8,10 @@
 
 **G5-S01 decision record:** [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) is presently proposed. G5-S01 is automatically incomplete until an explicit accepted decision is recorded. The rest of the G5 executable checks may still be run, but no checker success or G5 acceptance is implied.
 
+## Remediation implementation status
+
+The [M5/G5 remediation register](M5_G5_REMEDIATION_STATUS.md) records source changes for all eleven audit findings: full scenario identifiers, exact fresh/repeat TRX checks, eight browser cases in each engine, two-tenant five-role lifecycle fixtures, isolated `ho-verify-g5` resource ownership and E:-resident raw evidence/hashes. These require actual execution at a final SHA and independent raw-evidence review. G5-S01 remains formally incomplete until the M5-local contract is explicitly accepted. Do not mark G5 accepted based on source completeness.
+
 ## 1. Blocking rules
 
 All cases G5-S01 to G5-S25 require direct observed evidence on one final implementation SHA, not merely authored tests. Preserve failures, retries, skipped cases, timestamps, exact databases, image IDs, scripts and per-engine results. Repeat the complete integration suite on the **same disposable database**, with a separately initialized fresh migration case and a seeded accepted M4 upgrade/rollback/reapply case.

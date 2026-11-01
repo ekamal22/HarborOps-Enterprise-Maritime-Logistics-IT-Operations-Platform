@@ -103,6 +103,10 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 - Rotate and revoke integration credentials.
 - Deactivate hosted demonstration resources.
 
+## Dedicated G5 operational verification (pending execution)
+
+The M5 feature branch carries a G5-only Compose/SDK/browser/recovery stack under project `ho-verify-g5`, with `ho-g5-pg` and E:-backed cache and evidence roots. Its runner stores console and service logs, drive snapshots, TRX per pass, browser JSON, dependency scans, zero-resource teardown proof, SHA-256 file hashes and a final ZIP/digest. Existing `ho-verify` resources are never taken over. See [M5/G5 remediation](M5_G5_REMEDIATION_STATUS.md). Nothing here is a claim that the operational pipeline has run.
+
 ## Storage and evidence handling
 
 Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Keep the repository, caches, PostgreSQL/Docker/WSL data, logs, screenshots and build outputs on E:. The verified local setup used `E:\\APP IDEAS\\harborops-m0-cache` for dependency caches and evidence. Do not introduce persistent C-drive project storage; system temporary writes are permitted only when unavoidable. No global disk relocation, pruning or data deletion is authorized by this runbook.

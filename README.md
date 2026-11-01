@@ -136,6 +136,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M5 Architecture](docs/M5_ARCHITECTURE_DESIGN.md) | Planned shipment domain, database and HTTP contracts |
 | [M5 Implementation Plan](docs/M5_IMPLEMENTATION_PLAN.md) | Four work packages and integration strategy |
 | [G5 Verification Plan](docs/M5_VERIFICATION_PLAN.md) | 25 mandatory scenarios and evidence |
+| [M5/G5 Remediation](docs/M5_G5_REMEDIATION_STATUS.md) | Corrective source changes for all eleven findings; runtime evidence pending |
 | [M5 Source Audit](docs/M5_SOURCE_CORRECTNESS_AUDIT.md) | Source corrections and remaining real-runtime / adversarial verification gaps |
 
 | [M5 Planning Status](docs/M5_IMPLEMENTATION_STATUS.md) | Planning only, G5 open |

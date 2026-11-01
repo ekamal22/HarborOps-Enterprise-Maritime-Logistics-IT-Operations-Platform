@@ -5,7 +5,7 @@ import { execFileSync } from "node:child_process";
 const password = process.env.HARBOROPS_TEST_USER_PASSWORD;
 assert.ok(password && password.length >= 20, "Disposable M5 credential required");
 const base = "http://127.0.0.1:5173";
-const project = "ho-verify";
+const project = "ho-g5-verify";
 const docker = (...args) => execFileSync("docker", args, {
   encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000
 }).trim();

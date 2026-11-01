@@ -15,6 +15,7 @@ node scripts/check-m3-docker-storage.mjs
 [[ -z "$(git status --porcelain)" ]] || { echo "Clean source worktree required" >&2; exit 2; }
 sha="$(git rev-parse HEAD)"
 export HARBOROPS_SOURCE_SHA="$sha"
+export HARBOROPS_G5_COMPOSE_PROJECT="ho-g5-verify"
 export HARBOROPS_DB_PASSWORD="$(printenv HARBOROPS_DB_PASSWORD || true)"
 if [[ -z "$HARBOROPS_DB_PASSWORD" ]]; then export HARBOROPS_DB_PASSWORD="disposable-m3-check-only"; fi
 mkdir -p "$root"
@@ -52,11 +53,11 @@ YAML
 export COMPOSE_PATH_SEPARATOR=";"
 export COMPOSE_FILE="compose.yaml;$(cygpath -w "$override")"
 # Do not take over an existing project, even if it shares the disposable name.
-existing_containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-verify)"
-existing_volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-verify)"
+existing_containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-g5-verify)"
+existing_volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-g5-verify)"
 # Git Bash rewrites a leading slash inside an argument unless path conversion is disabled.
 # Without this the name filters matched nothing and a disposable database was left behind.
-existing_pg="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g2-pg$')"
+existing_pg="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg$')"
 if [[ -n "$existing_containers" || -n "$existing_volumes" || -n "$existing_pg" ]]; then
   echo "Existing verification resources found. Refusing takeover." >&2
   exit 2
@@ -66,10 +67,10 @@ cleanup() {
   rc=$?
   trap - EXIT
   if [[ "$owned" == "1" ]]; then
-    docker compose -p ho-verify down --volumes --remove-orphans \
+    docker compose -p ho-g5-verify down --volumes --remove-orphans \
       >> "$evidence/g5-cleanup.log" 2>&1 || true
-    id="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g2-pg$' \
-      --filter label=harborops.g2=disposable)"
+    id="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg$' \
+      --filter label=harborops.g5=disposable)"
     if [[ -n "$id" ]]; then
       docker rm -f "$id" >> "$evidence/g5-cleanup.log" 2>&1 || true
     fi
@@ -95,11 +96,11 @@ run_stage() {
 run_stage decision-unit node --test scripts/g4-decision-gate.test.mjs
 run_stage schema-index node scripts/check-g4-index-contract.mjs
 run_stage shipment-schema node scripts/check-m5-schema-contract.mjs
-run_stage preflight bash scripts/verify-m2-local.sh preflight
+run_stage preflight bash scripts/verify-m5-stages-local.sh preflight
 run_stage postgres-image docker build --build-arg "SOURCE_REVISION=$sha" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
 for stage in dotnet deps web docs stack accounts organizations session; do
-  run_stage "$stage" bash scripts/verify-m2-local.sh "$stage"
+  run_stage "$stage" bash scripts/verify-m5-stages-local.sh "$stage"
 done
 # The accepted local runner generated the synthetic password in an E: file.
 export HARBOROPS_TEST_USER_PASSWORD
@@ -117,18 +118,18 @@ setup_m3() {
     email="$(printf '%s' "$entry" | cut -d'|' -f1)"
     name="$(printf '%s' "$entry" | cut -d'|' -f2)"
     printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | \
-      docker compose -p ho-verify run --rm -T \
+      docker compose -p ho-g5-verify run --rm -T \
         -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
         --account-cli provision "$email" "$name" || return 1
   done
-  docker compose -p ho-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+  docker compose -p ho-g5-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
     --organization-cli bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test || return 1
-  docker compose -p ho-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+  docker compose -p ho-g5-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
     --organization-cli bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test || return 1
-  docker compose -p ho-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+  docker compose -p ho-g5-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
     --organization-cli bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test || return 1
   for engine in chromium firefox webkit; do
-    docker compose -p ho-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+    docker compose -p ho-g5-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
       --organization-cli bootstrap "m3-revocation-$engine" "M3 Revocation $engine" \
       m3-admin-a@example.test || return 1
   done
@@ -140,11 +141,11 @@ run_stage m5-fixtures node scripts/prepare-m5-browser-fixtures.mjs
 export HARBOROPS_M3_FIXTURES=1
 export HARBOROPS_M4_FIXTURES=1
 export HARBOROPS_M5_FIXTURES=1
-run_stage browsers bash scripts/run-m3-browsers-local.sh
-run_stage reference-outage node scripts/check-m3-reference-outage.mjs
-run_stage maritime-outage node scripts/check-m4-maritime-outage.mjs
+run_stage browsers bash scripts/run-m5-browsers-local.sh
+run_stage reference-outage node scripts/check-m5-reference-outage.mjs
+run_stage maritime-outage node scripts/check-m5-maritime-outage.mjs
 run_stage shipment-outage node scripts/check-m5-shipment-outage.mjs
-run_stage recovery bash scripts/verify-m2-local.sh recovery
-run_stage scan bash scripts/verify-m2-local.sh scan
+run_stage recovery bash scripts/verify-m5-stages-local.sh recovery
+run_stage scan bash scripts/verify-m5-stages-local.sh scan
 run_stage evidence node scripts/assert-g5-evidence.mjs "$evidence"
 echo "G5 executable checks finished. Review all 25 scenario records before acceptance."

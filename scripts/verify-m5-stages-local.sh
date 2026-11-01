@@ -56,8 +56,12 @@ stage_preflight() {
 stage_dotnet() {
   winroot=$(cygpath -w "$root")
   repo=$(pwd -W)
-  # The verification runner owns this name exclusively; refuse takeover.
-  if MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg --name ho-g5-pg --label harborops.g5=disposable --ulimit core=0 \
+  # A foreign or earlier run must never be removed by this stage.
+  if MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg$' | grep -q .; then
+    echo "G5 integration database already exists; refusing takeover" >&2
+    exit 2
+  fi
+  docker run -d --name ho-g5-pg --label harborops.g5=disposable --ulimit core=0 \
     --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 --cap-drop ALL \
     --security-opt no-new-privileges -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops \
     -e POSTGRES_HOST_AUTH_METHOD=trust harborops-postgres:16.15-rootless >/dev/null
@@ -73,12 +77,12 @@ dotnet --version
 dotnet restore HarborOps.sln -v q || exit 10
 dotnet build HarborOps.sln -c Release --no-restore 2>&1 | tail -6
 test "${PIPESTATUS[0]}" -eq 0 || exit 11
-T=(--no-build -c Release --logger "console;verbosity=normal" --logger "trx;LogFileName=${name}.trx" --results-directory /cache/evidence/trx)
+T=(--no-build -c Release --logger "console;verbosity=normal" --results-directory /cache/evidence/trx)
 status=0
 run() {
   name="$1"; project="$2"
   echo "Starting $name; detailed results: /cache/evidence/$name.log"
-  dotnet test "$project" "${T[@]}" 2>&1 | grep -v '^{"EventId' > "/cache/evidence/$name.log"
+  dotnet test "$project" "${T[@]}" --logger "trx;LogFileName=${name}.trx" 2>&1 | grep -v '^{"EventId' > "/cache/evidence/$name.log"
   code=${PIPESTATUS[0]}
   echo "$name exit=$code"
   grep -E "Total tests|Passed:|Failed:|Skipped:" "/cache/evidence/$name.log" || true

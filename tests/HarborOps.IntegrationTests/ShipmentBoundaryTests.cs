@@ -283,6 +283,28 @@ public sealed class ShipmentBoundaryTests
         var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         await Assert.ThrowsAsync<PostgresException>(() => db.Database.ExecuteSqlInterpolatedAsync(
             $"UPDATE shipments SET workflow_status='Completed', version=version+1 WHERE id={id}"));
+        // A database failure during the status-history insert must roll back the shipment update.
+        await db.Database.ExecuteSqlRawAsync("""
+            CREATE FUNCTION g5_test_abort_history() RETURNS trigger LANGUAGE plpgsql AS $
+            BEGIN
+                RAISE EXCEPTION 'G5 injected history failure' USING ERRCODE='23514';
+            END $;
+            CREATE TRIGGER g5_test_abort_history AFTER INSERT ON shipment_status_changes
+                FOR EACH ROW EXECUTE FUNCTION g5_test_abort_history();
+            """);
+        try
+        {
+            using var failed = await Send(manager, HttpMethod.Patch, Root(f.A) + "/" + id,
+                new { workflowStatus = "Booked", expectedVersion = 1L });
+            Assert.Equal(HttpStatusCode.Conflict, failed.StatusCode);
+        }
+        finally
+        {
+            await db.Database.ExecuteSqlRawAsync("""
+                DROP TRIGGER IF EXISTS g5_test_abort_history ON shipment_status_changes;
+                DROP FUNCTION IF EXISTS g5_test_abort_history();
+                """);
+        }
         var row = await db.Shipments.AsNoTracking().SingleAsync(x => x.Id == id);
         Assert.Equal("Draft", row.WorkflowStatus);
         Assert.Equal(1L, row.Version);

@@ -138,7 +138,13 @@ public sealed class MaritimeGateCoverageTests
             foreach (var (method, path, body, read) in Routes(f.A, kind))
             {
                 using var allowed = await Send(manager, method, path, body);
-                Assert.NotEqual(HttpStatusCode.Forbidden, allowed.StatusCode);
+                // Existing collection, nonexistent detail, valid container creation,
+                // and nonexistent parent/record mutations have distinct exact results.
+                var expected = read
+                    ? (path.EndsWith(kind) ? HttpStatusCode.OK : HttpStatusCode.NotFound)
+                    : method == HttpMethod.Post && kind == "containers"
+                        ? HttpStatusCode.Created : HttpStatusCode.NotFound;
+                Assert.Equal(expected, allowed.StatusCode);
                 using var reader = await Send(analyst, method, path, body);
                 Assert.Equal(read ? (path.EndsWith(kind) ? HttpStatusCode.OK : HttpStatusCode.NotFound)
                     : HttpStatusCode.Forbidden, reader.StatusCode);
@@ -341,4 +347,45 @@ public sealed class MaritimeGateCoverageTests
         Assert.Equal(0, await db.Containers.CountAsync(x => x.OrganizationId == f.A));
         Assert.Equal(0, await db.Voyages.CountAsync(x => x.OrganizationId == f.A));
     }
+
+    [Fact]
+    public async Task IdenticalContainerIdentifierIsAllowedInDifferentOrganizations()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = f.Admin;
+        using var analyst = f.Analyst;
+        using var manager = f.Manager;
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var now = DateTimeOffset.UtcNow;
+        const string sharedIdentifier = "SYN-BOX-SHAREDG4";
+        db.Containers.AddRange(
+            new ContainerRecord {
+                Id = Guid.NewGuid(), OrganizationId = f.A, ReferenceCode = "SAME-ID-A",
+                IdentifierKind = "Synthetic", ContainerIdentifier = sharedIdentifier,
+                SourceKind = "Synthetic", EquipmentType = "Dry20",
+                CreatedAtUtc = now, UpdatedAtUtc = now
+            },
+            new ContainerRecord {
+                Id = Guid.NewGuid(), OrganizationId = f.B, ReferenceCode = "SAME-ID-B",
+                IdentifierKind = "Synthetic", ContainerIdentifier = sharedIdentifier,
+                SourceKind = "Synthetic", EquipmentType = "Dry40",
+                CreatedAtUtc = now, UpdatedAtUtc = now
+            }
+        );
+        await db.SaveChangesAsync();
+        var rows = await db.Containers.AsNoTracking()
+            .Where(x => x.ContainerIdentifier == sharedIdentifier)
+            .Select(x => new { x.OrganizationId, x.Version }).ToListAsync();
+        Assert.Equal(2, rows.Count);
+        Assert.Contains(rows, x => x.OrganizationId == f.A && x.Version == 1L);
+        Assert.Contains(rows, x => x.OrganizationId == f.B && x.Version == 1L);
+        var local = await manager.GetFromJsonAsync<JsonElement>(Root(f.A, "containers") +
+            "?q=SHAREDG4&recordStatus=All");
+        Assert.Single(local.GetProperty("containers").EnumerateArray());
+        Assert.Equal(f.A, local.GetProperty("containers")[0]
+            .GetProperty("organizationId").GetGuid());
+    }
+
 }

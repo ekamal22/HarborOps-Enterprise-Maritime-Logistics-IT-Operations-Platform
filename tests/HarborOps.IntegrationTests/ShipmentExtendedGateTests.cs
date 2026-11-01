@@ -175,6 +175,7 @@ public sealed class ShipmentExtendedGateTests
     [InlineData("membership",false)]
     [InlineData("downgrade",false)]
     [InlineData("suspension",false)]
+    [InlineData("selection",false)]
     public async Task QueuedShipmentWriteRechecksEveryAuthorizationDependency(
         string change,bool expectedSuccess)
     {
@@ -215,6 +216,8 @@ public sealed class ShipmentExtendedGateTests
             var db=scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
             var user=await db.AuthUsers.AsNoTracking().SingleAsync(x=>
                 x.NormalizedEmail==IdentityStore.NormalizeEmail(f.ManagerEmail));
+            if(change=="selection")await db.AuthSessions.Where(x=>x.UserId==user.Id)
+                .ExecuteUpdateAsync(u=>u.SetProperty(s=>s.SelectedOrganizationId,(Guid?)f.B));
             if(change=="session")await db.AuthSessions.Where(x=>x.UserId==user.Id)
                 .ExecuteUpdateAsync(u=>u.SetProperty(s=>s.RevokedAtUtc,DateTimeOffset.UtcNow));
             if(change=="account")await db.AuthUsers.Where(x=>x.Id==user.Id)
@@ -238,12 +241,95 @@ public sealed class ShipmentExtendedGateTests
         finally { await hold.CommitAsync(); }
         using var result=await queued;
         if(expectedSuccess) Assert.Equal(HttpStatusCode.OK,result.StatusCode);
-        else Assert.True(result.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden);
+        else Assert.True(result.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden or HttpStatusCode.NotFound);
         await using var verify=factory.Services.CreateAsyncScope();
         var store=verify.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         var row=await store.Shipments.AsNoTracking().SingleAsync(x=>x.Id==id);
         Assert.Equal(expectedSuccess?2L:1L,row.Version);
         Assert.Equal(expectedSuccess?2:1,await store.ShipmentStatusChanges
+            .CountAsync(x=>x.ShipmentId==id));
+    }
+
+
+    [Theory]
+    [InlineData("none",true)]
+    [InlineData("session",false)]
+    [InlineData("account",false)]
+    [InlineData("security",false)]
+    [InlineData("membership",false)]
+    [InlineData("downgrade",false)]
+    [InlineData("suspension",false)]
+    [InlineData("selection",false)]
+    public async Task QueuedShipmentReadRechecksEveryAuthorizationDependency(
+        string change,bool expectedSuccess)
+    {
+        using var factory=new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f=await ReferenceDataHttpTests.Setup(factory);
+        using var admin=f.Admin;using var manager=f.Manager;using var analyst=f.Analyst;
+        var (a,b)=await Ports(manager,f.A);
+        var id=await Shipment(manager,f.A,a,b,"G5-QUEUE-"+change.ToUpperInvariant());
+        await using var dbLock=new NpgsqlConnection(TestDatabase.ConnectionString());
+        await dbLock.OpenAsync();
+        await using var hold=await dbLock.BeginTransactionAsync();
+        await using(var cmd=new NpgsqlCommand(
+            "SELECT id FROM organizations WHERE id=@id FOR UPDATE",dbLock,hold))
+        {
+            cmd.Parameters.AddWithValue("id",f.A);
+            Assert.Equal(f.A,(Guid)(await cmd.ExecuteScalarAsync())!);
+        }
+        var queued=manager.GetAsync(Root(f.A)+"/"+id);
+        bool observed=false;
+        await using(var observer=new NpgsqlConnection(TestDatabase.ConnectionString()))
+        {
+            await observer.OpenAsync();
+            for(int i=0;i<100;i++)
+            {
+                await using var cmd=new NpgsqlCommand(
+                    "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() "+
+                    "AND wait_event_type='Lock' AND query ILIKE '%organizations%'",observer);
+                if(Convert.ToInt64(await cmd.ExecuteScalarAsync())>0){observed=true;break;}
+                if(queued.IsCompleted) break;
+                await Task.Delay(100);
+            }
+        }
+        try
+        {
+            Assert.True(observed,"G5 shipment request must wait on the held organization lock");
+            await using var scope=factory.Services.CreateAsyncScope();
+            var db=scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            var user=await db.AuthUsers.AsNoTracking().SingleAsync(x=>
+                x.NormalizedEmail==IdentityStore.NormalizeEmail(f.ManagerEmail));
+            if(change=="selection")await db.AuthSessions.Where(x=>x.UserId==user.Id)
+                .ExecuteUpdateAsync(u=>u.SetProperty(s=>s.SelectedOrganizationId,(Guid?)f.B));
+            if(change=="session")await db.AuthSessions.Where(x=>x.UserId==user.Id)
+                .ExecuteUpdateAsync(u=>u.SetProperty(s=>s.RevokedAtUtc,DateTimeOffset.UtcNow));
+            if(change=="account")await db.AuthUsers.Where(x=>x.Id==user.Id)
+                .ExecuteUpdateAsync(u=>u.SetProperty(x=>x.Status,"Disabled"));
+            if(change=="security")await db.AuthUsers.Where(x=>x.Id==user.Id)
+                .ExecuteUpdateAsync(u=>u.SetProperty(x=>x.SecurityVersion,x=>x.SecurityVersion+1));
+            if(change=="membership")await db.OrganizationMemberships
+                .Where(x=>x.OrganizationId==f.A&&x.UserId==user.Id)
+                .ExecuteUpdateAsync(u=>u.SetProperty(x=>x.Status,"Removed"));
+            if(change=="downgrade")await db.OrganizationMemberships
+                .Where(x=>x.OrganizationId==f.A&&x.UserId==user.Id)
+                .ExecuteUpdateAsync(u=>u.SetProperty(x=>x.Role,"Auditor"));
+            if(change=="suspension")
+            {
+                await using var update=new NpgsqlCommand(
+                    "UPDATE organizations SET status='Suspended' WHERE id=@id",dbLock,hold);
+                update.Parameters.AddWithValue("id",f.A);
+                Assert.Equal(1,await update.ExecuteNonQueryAsync());
+            }
+        }
+        finally { await hold.CommitAsync(); }
+        using var result=await queued;
+        if(expectedSuccess) Assert.Equal(HttpStatusCode.OK,result.StatusCode);
+        else Assert.True(result.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden or HttpStatusCode.NotFound);
+        await using var verify=factory.Services.CreateAsyncScope();
+        var store=verify.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var row=await store.Shipments.AsNoTracking().SingleAsync(x=>x.Id==id);
+        Assert.Equal(1L,row.Version);
+        Assert.Equal(1,await store.ShipmentStatusChanges
             .CountAsync(x=>x.ShipmentId==id));
     }
 

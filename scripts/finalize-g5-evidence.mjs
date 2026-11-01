@@ -33,7 +33,9 @@ const manifest=["path,sha256,bytes",...files.map(p=>{
 })].join("\n")+"\n";
 fs.writeFileSync(path.join(dir,"g5-file-hashes.csv"),manifest);
 fs.mkdirSync(archiveRoot,{recursive:true});
-const filename="G5-final-"+new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+Z$/,"Z")+
+const gateComplete=!fs.existsSync(path.join(dir,"g5-gate-incomplete.txt"));
+const prefix=gateComplete?"G5-final-":"G5-incomplete-";
+const filename=prefix+new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+Z$/,"Z")+
   "-"+source.slice(0,12)+".zip";
 const destination=path.join(archiveRoot,filename);
 const from=dir.replaceAll("'","''"),to=destination.replaceAll("'","''");
@@ -44,6 +46,7 @@ execFileSync("powershell.exe",["-NoProfile","-NonInteractive","-Command",
 assert.ok(fs.existsSync(destination) && fs.statSync(destination).size>1000,"Archive creation failed");
 const zipHash=hash(destination);
 const output={sourceSha:source,archive:destination,sha256:zipHash,
+  evidenceGate:gateComplete?"complete":"incomplete",
   files:files.length,manifest:path.join(dir,"g5-file-hashes.csv"),createdAtUtc:new Date().toISOString()};
 fs.writeFileSync(path.join(archiveRoot,filename+".json"),JSON.stringify(output,null,2));
 const check=fs.readFileSync(output.manifest,"utf8").trim().split(/\r?\n/).slice(1);

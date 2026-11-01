@@ -135,13 +135,17 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     const generation = ++selectionSerial.current;
     setSelected(row); setForm(fromRow(row)); setCreating(false); setHistory([]); setConflict("");
     try {
-      // The list rows carry no port descriptors; the scoped detail does, so Auditors can read
-      // the route without any port catalog access.
       const [detail, response] = await Promise.all([
-        shipmentDetail(organizationId, row.id), shipmentHistory(organizationId, row.id)]);
+        shipmentDetail(organizationId, row.id),
+        shipmentHistory(organizationId, row.id)
+      ]);
       if (generation !== selectionSerial.current) return;
-      setSelected(detail);
-      if (detail.version !== row.version) setForm(fromRow(detail));
+      // Keep local form edits intact while resolving labels through the scoped detail route.
+      setSelected(current => current?.id === row.id ? {
+        ...current,
+        originPortLabel: detail.originPortLabel,
+        destinationPortLabel: detail.destinationPortLabel
+      } : current);
       setHistory(response.changes);
     } catch (cause) {
       if (generation !== selectionSerial.current) return;

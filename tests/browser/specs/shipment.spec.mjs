@@ -115,9 +115,10 @@ test("M5 failed parent catalog retries without suppressing shipment list", async
   test.skip(!enabled,"Disposable M5 fixture required");
   await login(page,"m3-manager@example.test");
   let attempts=0;
+  let recovered=false;
   await page.route("**/api/v1/organizations/*/ports?*",async route=>{
     attempts++;
-    if(attempts===1) await route.fulfill({status:503,contentType:"application/json",
+    if(!recovered) await route.fulfill({status:503,contentType:"application/json",
       body:JSON.stringify({code:"dependency_unavailable",message:"Database temporarily unavailable"})});
     else await route.continue();
   });
@@ -126,6 +127,7 @@ test("M5 failed parent catalog retries without suppressing shipment list", async
   await expect(s.getByText("M5-DEMO-NORTH",{exact:true})).toBeVisible();
   await expect(s.getByRole("button",{name:"Retry port catalog"})).toBeVisible();
   await expect(s.getByRole("button",{name:"Create shipment"})).toBeDisabled();
+  recovered=true;
   await s.getByRole("button",{name:"Retry port catalog"}).click();
   await expect(s.getByRole("button",{name:"Create shipment"})).toBeEnabled();
   await expect(s.getByRole("button",{name:"Retry port catalog"})).toHaveCount(0);

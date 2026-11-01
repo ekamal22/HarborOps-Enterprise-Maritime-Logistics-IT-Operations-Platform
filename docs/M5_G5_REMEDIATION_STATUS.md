@@ -56,6 +56,12 @@ the technical run after verified teardown, and still returns a nonzero status.
 It does not bypass the contract decision or convert incomplete evidence into
 a passing gate.
 
+The browser runner also required absolute Compose paths after changing into
+`tests/browser`, and the JSON reporter needed the shared Playwright
+configuration's actual environment variable. Both are corrected so per-spec,
+per-engine JSON files are retained under the G5 evidence directory. Incomplete
+evidence bundles now carry an explicit incomplete archive prefix and metadata.
+
 These follow-up changes are committed source corrections only. Execution and
 independent evidence review remain required.
 

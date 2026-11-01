@@ -11,6 +11,11 @@ case "$root" in
 esac
 out="$root/evidence/playwright"
 mkdir -p "$out"
+# Compose files must stay rooted at the checkout after entering tests/browser.
+repo_compose="$(cygpath -w "$(pwd)/compose.yaml")"
+core_override="$(cygpath -w "$root/compose.core0.yaml")"
+export COMPOSE_PATH_SEPARATOR=";"
+export COMPOSE_FILE="$repo_compose;$core_override"
 cd tests/browser
 npm ci --no-audit --no-fund
 npx playwright install chromium firefox webkit
@@ -19,7 +24,8 @@ for engine in chromium firefox webkit; do
   for spec in specs/*.spec.mjs; do
     basename="$(basename "$spec" .spec.mjs)"
     docker compose -p ho-verify-g5 restart api
-    export HARBOROPS_G5_JSON_REPORT="$out/$engine-$basename.json"
+    # The shared Playwright reporter consumes HARBOROPS_G3_JSON_REPORT.
+    export HARBOROPS_G3_JSON_REPORT="$out/$engine-$basename.json"
     if ! npx playwright test "$spec" --project="$engine" --workers=1; then
       failed+=("$engine/$basename")
     fi

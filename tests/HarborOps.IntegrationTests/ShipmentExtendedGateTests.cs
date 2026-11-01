@@ -384,4 +384,102 @@ public sealed class ShipmentExtendedGateTests
         Assert.Single(rows);
         Assert.Equal(1,await db.ShipmentStatusChanges.CountAsync(x=>x.ShipmentId==rows[0].Id));
     }
+
+    [Fact]
+    public async Task ArchivedRestoreAndStaleEditCannotBothCommit()
+    {
+        using var factory=new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f=await ReferenceDataHttpTests.Setup(factory);
+        using var admin=f.Admin;using var manager=f.Manager;using var analyst=f.Analyst;
+        var(a,b)=await Ports(manager,f.A);
+        var url=Root(f.A);
+        var id=await Shipment(manager,f.A,a,b,"G5-RESTORE-RACE");
+        using(var archive=await Send(manager,HttpMethod.Delete,url+"/"+id,new{expectedVersion=1L}))
+            Assert.Equal(HttpStatusCode.NoContent,archive.StatusCode);
+        var competing=await Task.WhenAll(
+            Send(manager,HttpMethod.Patch,url+"/"+id,new{recordStatus="Active",expectedVersion=2L}),
+            Send(analyst,HttpMethod.Patch,url+"/"+id,new{displayName="Illegal",expectedVersion=2L}));
+        try
+        {
+            Assert.Single(competing.Where(x=>x.StatusCode==HttpStatusCode.OK));
+            Assert.Single(competing.Where(x=>x.StatusCode==HttpStatusCode.Conflict));
+        }finally{foreach(var item in competing)item.Dispose();}
+        using(var replay=await Send(manager,HttpMethod.Patch,url+"/"+id,
+            new{recordStatus="Active",expectedVersion=2L}))
+            Assert.Equal(HttpStatusCode.Conflict,replay.StatusCode);
+        await using var scope=factory.Services.CreateAsyncScope();
+        var db=scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var row=await db.Shipments.AsNoTracking().SingleAsync(x=>x.Id==id);
+        Assert.Equal(3L,row.Version);
+        Assert.Equal("Active",row.RecordStatus);
+        Assert.Null(row.DisplayName);
+        Assert.Equal(1,await db.ShipmentStatusChanges.CountAsync(x=>x.ShipmentId==id));
+    }
+
+    [Fact]
+    public async Task DuplicateArchiveAttemptsCannotBothCommit()
+    {
+        using var factory=new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f=await ReferenceDataHttpTests.Setup(factory);
+        using var admin=f.Admin;using var manager=f.Manager;using var analyst=f.Analyst;
+        var(a,b)=await Ports(manager,f.A);
+        var url=Root(f.A);
+        var id=await Shipment(manager,f.A,a,b,"G5-DUP-ARCHIVE");
+        var calls=await Task.WhenAll(
+            Send(manager,HttpMethod.Delete,url+"/"+id,new{expectedVersion=1L}),
+            Send(analyst,HttpMethod.Delete,url+"/"+id,new{expectedVersion=1L}));
+        try{
+            Assert.Single(calls.Where(x=>x.StatusCode==HttpStatusCode.NoContent));
+            Assert.Single(calls.Where(x=>x.StatusCode==HttpStatusCode.Conflict));
+        }finally{foreach(var item in calls)item.Dispose();}
+        await using var scope=factory.Services.CreateAsyncScope();
+        var db=scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var row=await db.Shipments.AsNoTracking().SingleAsync(x=>x.Id==id);
+        Assert.Equal(2L,row.Version);
+        Assert.Equal("Archived",row.RecordStatus);
+        Assert.Single(await db.ShipmentStatusChanges.AsNoTracking()
+            .Where(x=>x.ShipmentId==id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task SameParentAndUnknownPortsRejectCreation()
+    {
+        using var factory=new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f=await ReferenceDataHttpTests.Setup(factory);
+        using var admin=f.Admin;using var manager=f.Manager;using var analyst=f.Analyst;
+        var(a,b)=await Ports(manager,f.A);
+        using(var same=await Send(analyst,HttpMethod.Post,Root(f.A),new{
+            referenceCode="G5-SAME-PORT",originPortId=a,destinationPortId=a}))
+            Assert.Equal(HttpStatusCode.BadRequest,same.StatusCode);
+        using(var unknown=await Send(analyst,HttpMethod.Post,Root(f.A),new{
+            referenceCode="G5-UNKNOWN-PORT",originPortId=Guid.NewGuid(),destinationPortId=b}))
+            Assert.Equal(HttpStatusCode.NotFound,unknown.StatusCode);
+    }
+
+    [Fact]
+    public async Task AnonymousAllSixShipmentRoutesRejectAccess()
+    {
+        using var factory=new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f=await ReferenceDataHttpTests.Setup(factory);
+        using var admin=f.Admin;using var manager=f.Manager;using var analyst=f.Analyst;
+        var(a,b)=await Ports(manager,f.A);
+        var id=await Shipment(manager,f.A,a,b,"G5-ANON");
+        using var anonymous=factory.CreateClient();
+        var url=Root(f.A);
+        foreach(var target in new[]{url,url+"/"+id,url+"/"+id+"/status-changes"})
+        {
+            using var response=await anonymous.GetAsync(target);
+            Assert.Equal(HttpStatusCode.Unauthorized,response.StatusCode);
+        }
+        foreach(var action in new[]{HttpMethod.Post,HttpMethod.Patch,HttpMethod.Delete})
+        {
+            var target=action==HttpMethod.Post?url:url+"/"+id;
+            using var request=new HttpRequestMessage(action,target);
+            request.Headers.TryAddWithoutValidation("Origin","http://localhost");
+            request.Content=JsonContent.Create(new{referenceCode="G5-ANON-NEW",
+                originPortId=a,destinationPortId=b,expectedVersion=1L});
+            using var response=await anonymous.SendAsync(request);
+            Assert.Equal(HttpStatusCode.Unauthorized,response.StatusCode);
+        }
+    }
 }

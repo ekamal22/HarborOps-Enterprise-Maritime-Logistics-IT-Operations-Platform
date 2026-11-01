@@ -6,7 +6,7 @@ The [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and version 3.0 [Exe
 
 ## Requirement status
 
-Requirements describe the intended complete product. G0, G1, G2 and G3 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
+Requirements describe the intended complete product. G0, G1, G2, G3 and G4 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
 
 ## Observed baseline and storage boundary
 
@@ -51,11 +51,11 @@ FR-002 and NFR-002 were implemented in M2-01 through M2-04 with live server-side
 
 ## M3 port and vessel reference-data allocation (G3 accepted)
 
-FR-003 covers accepted M3 port/vessel reference data and planned M4 voyage records. The [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification plan](M3_VERIFICATION_PLAN.md) govern tenant-owned immutable UUID/local-code references, optional syntax-checked UN/LOCODE/IMO/MMSI, Manager-only writes, Analyst reads and denial by default for all other M2 roles. NFR-002, NFR-003, NFR-006, NFR-007, NFR-008 and NFR-012 were exercised across migration, API, security and browser testing. All 25 G3 scenarios passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); G3 accepted 2026-10-31 and M3 integrated into `main`. Official registry validation and M4 models are excluded.
+FR-003 covers accepted M3 port/vessel and M4 voyage reference records. The M4 voyage slice implements tenant-scoped route and UTC window invariants, with independent migration, API, security and browser verification. [G4 executed evidence](M4_EXECUTED_VERIFICATION.md) is the M4 completion authority. Official registry validation remains out of scope.
 
-## M4 requirement allocation (planning only)
+## M4 requirement allocation (implemented and G4 accepted)
 
-FR-003's remaining voyage slice is assigned to M4-02: same-organization vessel and port route, optional planned/actual UTC windows, explicit voyage status and immutable reference identity. FR-005's container reference slice is M4-03: canonical identifier, tenant uniqueness and soft archive under unresolved D-003. Shipment-to-container/voyage temporal assignments remain M6 after G4 and G5. FR-017 governs deterministic synthetic fixtures. NFR-002/003/006/007/008 govern authorization, safe errors, UTC, repeatability and executed tests. The [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [implementation plan](M4_IMPLEMENTATION_PLAN.md) and [G4 matrix](M4_VERIFICATION_PLAN.md) are proposals, not completed requirements.
+FR-003's voyage slice was implemented under M4-02: same-organization vessel and port route, nullable planned/actual UTC windows, explicit voyage status and immutable reference identity. FR-005's container reference slice was implemented under M4-03, with D-003 Option B accepted on 2026-11-01. FR-017 synthetic fixtures and the relevant NFR authorization, error, UTC, repeatability and evidence requirements were exercised. Shipment assignment intervals remain M6, after separately accepted G5 plus G4. See [M4 executed verification](M4_EXECUTED_VERIFICATION.md).
 
 ## Non-functional requirements
 

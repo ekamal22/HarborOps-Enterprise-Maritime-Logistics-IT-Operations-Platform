@@ -135,13 +135,13 @@ The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) defines an opt-in local `--orga
 
 G2 tests use disposable databases and controlled environments. The [local G2 verification](M2_EXECUTED_VERIFICATION.md) ran `scripts/verify-m2-local.sh` against the isolated `ho-verify` Compose project with all caches and evidence on E:. Do not access or delete the primary workstation PostgreSQL volume or perform historical-volume compatibility ahead of scheduled checkpoints. A required unavailable tool or browser engine is BLOCKED, not a successful test.
 
-## Planned M4 migration and operations boundary
+## Accepted M4 migration and operations boundary
 
-[M4 implementation](M4_IMPLEMENTATION_PLAN.md) requires an additive PostgreSQL migration after accepted M3 with voyage/container tables and tenant-composite FKs back to M3 ports/vessels. The migration must preserve M0-M3 data and may not rewrite existing applied schema or seed primary databases. [G4 verification](M4_VERIFICATION_PLAN.md) requires fresh and historical M3-to-M4 migration, rollback/reapply, real outage/recovery, three browsers, Release build, scans and disposable E:-only cleanup. If M5 develops in parallel, reconcile migration identifiers and test the combined schema. D-003 remains pending and no M4 migration has run.
+The accepted [M4 implementation](M4_IMPLEMENTATION_STATUS.md) adds the PostgreSQL `20261101010000_VoyageContainerReferences` migration after M3 with tenant-composite foreign keys and validated voyage/container records. Fresh, repeated and historical M3 upgrade/rollback scenarios, real outage/recovery, three-browser tests and E:-backed disposable cleanup passed [G4 executed verification](M4_EXECUTED_VERIFICATION.md). D-003 Option B and G4 were accepted on 2026-11-01. If M5 is developed independently, reconcile migration IDs and rerun the combined source regressions before shared integration.
 
 ## Parallel development operations boundary
 
-Parallel workstreams must use distinct branches/worktrees, E:-backed output paths and disposable test Compose projects. Only a controlled migration integration may alter the canonical database schema; all branches must validate against the same accepted baseline and reconcile migration ordering before integration. Do not stop/prune primary volumes or reuse production credentials. New modules must preserve M0-M3 session/tenant security and emergency operational controls. A previously accepted recovery or scan gate does not exempt later changes from change-specific regression or final G24 release checks. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md).
+Parallel workstreams must use distinct branches/worktrees, E:-backed output paths and disposable test Compose projects. Only a controlled migration integration may alter the canonical database schema; all branches must validate against the same accepted baseline and reconcile migration ordering before integration. Do not stop/prune primary volumes or reuse production credentials. New modules must preserve M0-M4 session/tenant security and emergency operational controls. A previously accepted recovery or scan gate does not exempt later changes from change-specific regression or final G24 release checks. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md).
 
 ## M3 reference-data operations (G3 accepted)
 

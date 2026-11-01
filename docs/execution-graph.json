@@ -634,7 +634,7 @@
         "NFR-007"
       ],
       "output": "Verified, organization-scoped voyage and container reference module without M5 shipments or M6 assignment state",
-      "verify": "All 25 mandatory scenarios in M4_VERIFICATION_PLAN.md genuinely pass on one integrated SHA; D-003 accepted, independent evidence reviewed and explicit G4 acceptance pending",
+      "verify": "Require all 25 mandatory G4 scenarios on one integrated SHA, accepted D-003, independent evidence review and explicit gate acceptance; completed evidence in M4_EXECUTED_VERIFICATION.md",
       "gate": true
     },
     {

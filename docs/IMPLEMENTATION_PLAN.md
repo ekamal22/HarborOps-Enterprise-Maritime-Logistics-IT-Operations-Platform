@@ -63,9 +63,9 @@ The [M2 architecture](M2_ARCHITECTURE_DESIGN.md), [M2 implementation plan](M2_IM
 The [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification plan](M3_VERIFICATION_PLAN.md) define four bounded work packages: M3-01 freezes identifiers, tenant ownership, role permissions and fixtures; M3-02 adds port persistence and scoped endpoints; M3-03 adds vessel persistence and scoped endpoints; M3-04 delivers a browser reference workspace and executes G3-S01 to G3-S25. After the shared M3-01 contract, port and vessel work may proceed in parallel only with a coordinated additive migration. Implementation source and tests are committed, as recorded in [M3 implementation register](M3_IMPLEMENTATION_STATUS.md). G3-S01 to G3-S25 all passed in one complete local run on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([executed verification](M3_EXECUTED_VERIFICATION.md)); G3 was explicitly accepted on 2026-10-31, and the implementation is integrated into `main`. Preserve accepted M0-M3 behavior and do not use GitHub Actions.
 
 
-## M4 architecture and implementation proposal
+## M4 accepted implementation
 
-M4 is planned, not implemented. See [Architecture](M4_ARCHITECTURE_DESIGN.md), [Implementation Plan](M4_IMPLEMENTATION_PLAN.md), [G4 Plan](M4_VERIFICATION_PLAN.md) and [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). M4-01 must resolve D-003 and freeze contracts; M4-02 voyages and M4-03 containers may then progress in parallel, coordinated through a single additive PostgreSQL migration, before M4-04 browser integration and full G4. M5 remains an independently eligible shipment stream and M6 requires G4+G5. No M4 source or runtime evidence is authorized by this documentation alone.
+M4-01 through M4-04 were implemented and G4 was explicitly accepted on 2026-11-01 after D-003 Option B approval and independent review of [executed evidence](M4_EXECUTED_VERIFICATION.md). The accepted implementation includes tenant-scoped voyages/containers, additive PostgreSQL migration, React workspaces and all three browser engines. The final tested implementation SHA was `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. M5 shipment lifecycle remains independently eligible; M6 assignment integration requires both accepted G4 and G5.
 
 ## Concurrent work-package implementation
 

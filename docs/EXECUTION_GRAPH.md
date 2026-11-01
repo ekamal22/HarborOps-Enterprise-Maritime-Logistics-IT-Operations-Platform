@@ -382,7 +382,7 @@ flowchart TD
 | **M4-03: Implement container persistence** | M4-01 | Implement approved kind-tagged container identifiers and equipment references, canonical ISO/synthetic validation, SQL checksum and immutability, scoped API, archive/restore | Pass ISO checksum, synthetic label/kind, identifier reservation, direct SQL, role/tenant/version, duplicate-race and archive tests in the G4 plan | FR-005, FR-003 |
 | **M4-04: Verify voyage and container workflows** | M4-02, M4-03 | Integrate voyage/container browser workspaces, deterministic E:-backed fixtures and complete G4 local verification across three browsers | Execute G4-S01 through G4-S25, including historical M3 upgrade, accepted M0-M3 regressions, outage/recovery, Trivy and reviewable source-SHA evidence | FR-003, FR-005 |
 
-**G4 acceptance evidence:** All 25 mandatory scenarios in M4_VERIFICATION_PLAN.md genuinely pass on one integrated SHA; D-003 accepted, independent evidence reviewed and explicit G4 acceptance pending.
+**G4 acceptance evidence:** Require all 25 mandatory G4 scenarios on one integrated SHA, accepted D-003, independent evidence review and explicit gate acceptance; completed evidence in M4_EXECUTED_VERIFICATION.md.
 
 ### M5: Shipment lifecycle and concurrency
 
@@ -1134,11 +1134,11 @@ flowchart TD
 1. Read [Status](STATUS.md) for accepted gates. The graph does not imply runtime completion.
 2. Start any package with satisfied explicit upstream acceptance gates and resolved decisions; use independent feature branches and E:-backed worktrees.
 3. Freeze shared API/authorization contracts, coordinate additive PostgreSQL migration order and avoid conflicting migrations from parallel branches.
-4. Integrate completed branches against current main; rerun related cross-track and accepted M0-M3 regression suites, database tests and security negative cases on the resulting SHA.
+4. Integrate completed branches against current main; rerun related cross-track and accepted M0-M4 regression suites, database tests and security negative cases on the resulting SHA.
 5. Each gate needs full executed evidence and explicit acceptance. A verified but unaccepted gate is not an integration prerequisite.
 6. G24 requires accepted G0-G23 and final integrated release verification, including M24-04 accessibility. Keep historical-volume checks at M6, M12, M18 and M24-03.
 7. Update this JSON graph and regenerate/check the Markdown view whenever dependencies change.
 
 ## Current starting point
 
-G0-G3 are accepted on main. M4, M5, M7, M16, M17, M19, and initial M20 and M23 packages are eligible parallel starts, not yet implemented. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
+G0-G4 are accepted and integrated into main. M5, M7, M16, M17, M19, and initial M20 and M23 packages are eligible independent starts; M6 integration still requires G5. Status is authoritative for executed work. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).

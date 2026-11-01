@@ -26,7 +26,7 @@ for name in TEMP TMP TMPDIR NPM_CONFIG_CACHE PLAYWRIGHT_BROWSERS_PATH NUGET_PACK
 done
 export HOME="$root/cache/home"
 mkdir -p "$HOME"
-export HARBOROPS_G5_COMPOSE_PROJECT="ho-g5-verify"
+export HARBOROPS_G5_COMPOSE_PROJECT="ho-verify-g5"
 export HARBOROPS_DB_PASSWORD="$(printenv HARBOROPS_DB_PASSWORD || true)"
 if [[ -z "$HARBOROPS_DB_PASSWORD" ]]; then export HARBOROPS_DB_PASSWORD="disposable-m3-check-only"; fi
 mkdir -p "$root"
@@ -64,8 +64,8 @@ YAML
 export COMPOSE_PATH_SEPARATOR=";"
 export COMPOSE_FILE="compose.yaml;$(cygpath -w "$override")"
 # Do not take over an existing project, even if it shares the disposable name.
-existing_containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-g5-verify)"
-existing_volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-g5-verify)"
+existing_containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-verify-g5)"
+existing_volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-verify-g5)"
 # Git Bash rewrites a leading slash inside an argument unless path conversion is disabled.
 # Without this the name filters matched nothing and a disposable database was left behind.
 existing_pg="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg$')"
@@ -78,7 +78,7 @@ cleanup() {
   rc=$?
   trap - EXIT
   if [[ "$owned" == "1" ]]; then
-    docker compose -p ho-g5-verify down --volumes --remove-orphans \
+    docker compose -p ho-verify-g5 down --volumes --remove-orphans \
       >> "$evidence/g5-cleanup.log" 2>&1 || true
     id="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg$' \
       --filter label=harborops.g5=disposable)"
@@ -130,18 +130,18 @@ setup_m3() {
     email="$(printf '%s' "$entry" | cut -d'|' -f1)"
     name="$(printf '%s' "$entry" | cut -d'|' -f2)"
     printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | \
-      docker compose -p ho-g5-verify run --rm -T \
+      docker compose -p ho-verify-g5 run --rm -T \
         -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
         --account-cli provision "$email" "$name" || return 1
   done
-  docker compose -p ho-g5-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+  docker compose -p ho-verify-g5 run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
     --organization-cli bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test || return 1
-  docker compose -p ho-g5-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+  docker compose -p ho-verify-g5 run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
     --organization-cli bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test || return 1
-  docker compose -p ho-g5-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+  docker compose -p ho-verify-g5 run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
     --organization-cli bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test || return 1
   for engine in chromium firefox webkit; do
-    docker compose -p ho-g5-verify run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+    docker compose -p ho-verify-g5 run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
       --organization-cli bootstrap "m3-revocation-$engine" "M3 Revocation $engine" \
       m3-admin-a@example.test || return 1
   done
@@ -161,14 +161,14 @@ run_stage recovery bash scripts/verify-m5-stages-local.sh recovery
 run_stage scan bash scripts/verify-m5-stages-local.sh scan
 teardown_g5() {
   # Preserve original service logs before disposing of G5-owned containers.
-  docker compose -p ho-g5-verify logs --no-color --timestamps > "$evidence/g5-docker-services.log" 2>&1 || true
-  docker compose -p ho-g5-verify down --volumes --remove-orphans || return 1
+  docker compose -p ho-verify-g5 logs --no-color --timestamps > "$evidence/g5-docker-services.log" 2>&1 || true
+  docker compose -p ho-verify-g5 down --volumes --remove-orphans || return 1
   local integration
   integration="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg$' --filter label=harborops.g5=disposable)"
   if [[ -n "$integration" ]]; then docker rm -f "$integration" >/dev/null || return 1; fi
   local containers volumes database
-  containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-g5-verify)"
-  volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-g5-verify)"
+  containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-verify-g5)"
+  volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-verify-g5)"
   database="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g5-pg$')"
   node -e '
     const fs=require("fs");

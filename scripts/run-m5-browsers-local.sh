@@ -18,7 +18,7 @@ failed=()
 for engine in chromium firefox webkit; do
   for spec in specs/*.spec.mjs; do
     basename="$(basename "$spec" .spec.mjs)"
-    docker compose -p ho-g5-verify restart api
+    docker compose -p ho-verify-g5 restart api
     export HARBOROPS_G5_JSON_REPORT="$out/$engine-$basename.json"
     if ! npx playwright test "$spec" --project="$engine" --workers=1; then
       failed+=("$engine/$basename")

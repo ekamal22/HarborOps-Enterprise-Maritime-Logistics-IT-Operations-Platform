@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 
-const project = "ho-g5-verify";
+const project = "ho-verify-g5";
 const password = process.env.HARBOROPS_TEST_USER_PASSWORD;
 assert.ok(password && password.length >= 20, "Disposable test credential is required");
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8",

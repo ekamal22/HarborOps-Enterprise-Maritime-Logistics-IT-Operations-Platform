@@ -2,15 +2,16 @@
 
 **Branch:** `feat/m4-voyage-container-references`  
 **Base:** Accepted M0-M3 on `main`; G3 accepted  
-**State:** M4 application source and G4 tests are committed. All executable local G4 checks passed at `f1854c3fb684d576d6b16d94d5cb44113bd25f64` (see the fifth execution section). Independent evidence review, D-003 acceptance and G4 acceptance remain pending. G4 OPEN, acceptance pending.  
-**Decision:** D-003 remains a proposal. The branch temporarily implements the tagged `ISO6346`/`Synthetic` option described in [D-003 proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md), without asserting that option is accepted.  
-**No merge:** M4 remains on the feature branch, not `main`.
+**State:** M4-01 through M4-04 implemented, independently verified and accepted on 2026-11-01, integrated into `main`.
+**Decision:** D-003 Option B accepted (ISO 6346:2022, freight U, tagged synthetic identifiers).
+**Verification:** Final tested revision `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`; [executed G4 evidence](M4_EXECUTED_VERIFICATION.md).
+**Integration:** Fast-forward into `main`, with later documentation-only acceptance commits.
 
 ## Scope committed
 
 | Work package | Implemented source | Verification status |
 | --- | --- | --- |
-| M4-01 | Maritime policy for ISO checksum, synthetic IDs, equipment types, voyage time/progression; new M4 permissions | Proposed policy, tests authored, D-003 not accepted |
+| M4-01 | Maritime policy for ISO checksum, synthetic IDs, equipment types, voyage time/progression; new M4 permissions | D-003 Option B accepted; domain and checksum tests passed |
 | M4-02 | `VoyageRecord`, tenant-composite vessel/port foreign keys, UTC planned/actual windows, progress, scoped API, optimistic version, archive/restore | Executed at `f1854c3`: zero-warning build, 92/92 fresh and 92/92 repeated integration, voyage browser workflows in three engines, outage and recovery. Acceptance pending |
 | M4-03 | `ContainerRecord`, ISO and synthetic validation, PostgreSQL checksum function, format/uniqueness checks, scoped API and archive/restore | Executed at `f1854c3`: fresh and repeated integration 92/92 including the per-invocation identifier correction, container browser workflows in three engines. Acceptance pending |
 | M4-04 | `MaritimeWorkspace` React UI, selected organization integration, parent selection, filter/cursor, three-engine browser specs, E:-scoped runner and evidence index | Executed at `f1854c3`: production build and 31/31 browser tests in each of Chromium, Firefox and WebKit. Acceptance pending |
@@ -28,7 +29,7 @@
 - `web/src/maritime/maritimeClient.ts` and `MaritimeWorkspace.tsx`
 - `web/src/auth/OrganizationWorkspace.tsx`
 
-## Tests authored and local verification partially attempted
+## Implemented tests and executed local verification
 
 - Unit: `MaritimePolicyTests.cs`
 - Integration: `MaritimeHttpTests.cs`, `MaritimeBoundaryTests.cs`, `MaritimeMigrationTests.cs`, `MaritimeConcurrencyTests.cs`, `MaritimeGateCoverageTests.cs`, `MaritimeUpgradeAndSecurityTests.cs`, `MaritimeSqlInvariantTests.cs`, `MaritimeRevocationInterleavingTests.cs`
@@ -42,19 +43,11 @@
 - [Fourth correctness audit](M4_FOURTH_CORRECTNESS_AUDIT.md) records the third execution: 87/87 fresh and 86/87 repeat integration, root cause, repeatability fix, and remaining runtime gates.
 - G4 evidence index is required to fail on missing executed evidence and pending D-003, without implying acceptance.
 
-## Outstanding blockers and limitations
+## Accepted G4 closure
 
-1. **D-003 open:** The ISO 6346 and synthetic kind policy is a provisional implementation assumption. It must be explicitly accepted or revised before G4. The evidence index fails G4-S01 until then, by design.
-2. **Independent review pending:** All stages passed locally, but the 25 scenario records and raw evidence have not been independently reviewed.
-3. **G4 acceptance pending:** Not granted. M4 is not merged and no GitHub Actions run.
-4. **Parallel migrations:** Confirm the chosen migration number does not collide with an independently implemented M5 workstream before integrating, and rerun the combined matrix if it does.
-5. **Final revision:** Any source change after `f1854c3` requires another complete run. The evidence bundle on E: records the source SHA of the last complete run and the SHA-256 of every file.
+All executable G4 stages passed on `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`; the evidence-stage nonzero exit at execution time was solely the pending D-003 policy decision, subsequently approved. The independent review verified source provenance, 149 listed hashes, fresh/repeated .NET results, browser engines, operational recovery, scans and cleanup. The [executed verification record](M4_EXECUTED_VERIFICATION.md) is authoritative for the gate closure.
 
-## Safe next execution
-
-On the authorized E:-backed Windows worktree, inspect [Local Storage Policy](LOCAL_STORAGE_POLICY.md), confirm the active Docker Desktop backing storage is E:, and run `bash scripts/verify-m4-local.sh` after the environment variables and disposable project are configured. Do not dispatch GitHub Actions. The runner is not certified as complete until all mandatory scenario subcases are mapped to real results, errors repaired and the entire matrix rerun on the final source SHA.
-
-**Exit criterion:** G4-S01 through G4-S25 genuine PASS, independent raw-evidence review, D-003 accepted and explicit G4 acceptance. Until then M4 remains implementation in progress, unverified and not merged.
+No M5 shipment state was added to M4. A future independently integrated M5 schema requires combined regression before M6 work. Retain historical failed run notes below as investigation history, not current blockers.
 
 ## Fifth G4 local execution (2026-11-01)
 

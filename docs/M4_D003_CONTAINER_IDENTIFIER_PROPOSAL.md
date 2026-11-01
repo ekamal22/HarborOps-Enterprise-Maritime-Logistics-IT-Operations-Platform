@@ -1,8 +1,8 @@
-# D-003 Container Identifier Policy: Decision Proposal
+# D-003 Container Identifier Policy: Accepted Decision
 
 **Decision ID:** D-003  
 **Milestone:** M4-01  
-**State:** Proposed, decision pending. No implementation authorization or accepted decision recorded.  
+**State:** Accepted on 2026-11-01. Option B was approved with the scope, format, equipment catalog and immutability rules below.  
 **Basis:** [Roadmap](ROADMAP.md), [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [Requirements](REQUIREMENTS.md), [Decisions](DECISIONS.md).
 
 ## Context
@@ -25,7 +25,7 @@ The referenced standard edition, owner-code registry and permitted equipment cat
 | B: Tagged real-format and synthetic | Distinct `ISO6346` and `Synthetic` kinds, with separate mutually exclusive parsers | Strong demo honesty, offline support, unambiguous identifiers | Requires kind column and two validation paths |
 | C: Free-form local identifier | Arbitrary normalized tenant-local ID, no ISO validation | Easy data entry | Loses useful equipment-ID validation and risks confusing demo strings with actual registered boxes |
 
-## Recommended option: B, pending decision
+## Accepted option: B
 
 1. Every container receives immutable server-generated UUID `id` and immutable tenant-local `reference_code`, independent of external or demonstration identifiers.
 2. The mutually exclusive `identifier_kind` is either `ISO6346` or `Synthetic`. This classification is immutable. Supply one required `container_identifier` and validate using the selected kind.
@@ -45,14 +45,14 @@ For the ten-character `owner+U+serial` prefix:
 - Compute total modulo 11, then modulo 10; compare with the eleventh character.
 - Document and test valid known check-digit vectors, invalid checks, leading-zero serials, prohibited category and wrong-length values. Do not auto-correct a user-supplied invalid checksum.
 
-The exact equivalence to the pinned normative standard must be verified before implementation acceptance; this proposal is not an approved parser specification.
+The standard edition for this decision is ISO 6346:2022; independent checksum vectors and the corresponding PostgreSQL validation passed in the accepted G4 evidence. Format validation is not proof of BIC registration.
 
-## Decisions required before M4 implementation
+## Recorded acceptance details
 
-- Accept option B or explicitly choose A/C with documented trade-offs.
-- Pin the ISO 6346 edition and decide whether M4 covers freight containers only (recommended U only).
-- Approve the canonical synthetic prefix, allowed length, and whether storage/response fields are `containerIdentifier` and `identifierKind`.
-- Confirm type-catalog minimum for M4: `Dry20`, `Dry40`, `HighCube40`, `Reefer20`, `Reefer40`, `Other`; these are local equipment categories and are not asserted to be ISO size-type codes.
-- Approve ownership-scoped uniqueness and immutable physical identifier; cross-organization duplicate numbers are intentionally allowed.
+- **Approved:** Option B, disjoint ISO6346 and Synthetic modes. Options A and C were considered but not selected.
+- **Approved:** ISO 6346:2022, freight-container category U only; exclude J/Z from M4.
+- **Approved:** `SYN-BOX-[A-Z0-9]{4,16}`, with `containerIdentifier` and `identifierKind` fields.
+- **Approved:** `Dry20`, `Dry40`, `HighCube40`, `Reefer20`, `Reefer40`, `Other` as local equipment categories, not ISO size-type assertions.
+- **Approved:** Immutable identity, uniqueness within each organization across active and archived records; cross-organization duplicates allowed.
 
-**Decision is pending.** This proposal does not close D-003, start M4-02/M4-03, or satisfy G4. Record explicit acceptance and update [Decisions](DECISIONS.md), [M4 architecture](M4_ARCHITECTURE_DESIGN.md), validation tests and migration design when a choice is made.
+**Decision accepted:** Option B was explicitly approved on 2026-11-01, with ISO 6346:2022 category U, the tagged synthetic namespace, the six equipment types, organization-scoped archival-safe uniqueness, and immutable identity. G4 received separate explicit acceptance following independent review of the verified `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` execution. See [Decisions](DECISIONS.md) and [M4 executed verification](M4_EXECUTED_VERIFICATION.md).

@@ -1,6 +1,6 @@
 # Architecture Decisions
 
-This document records accepted baseline decisions and outstanding decisions that affect implementation.
+This document records accepted architecture decisions and outstanding choices. D-003 was explicitly accepted on 2026-11-01 alongside G4 after independent evidence review.
 
 ## Local storage constraint
 
@@ -53,22 +53,32 @@ Human browser login uses ASP.NET Core 10 cookie authentication with protected ti
 
 ## Decision deadlines under parallel delivery
 
-Each D-number belongs to the first applicable implementing work package and must be resolved before that package, even when another milestone proceeds independently. D-003 for M4, D-002 for M7, D-006 for M8, D-005 for M13, D-004 for M14, D-008 for M19, and D-007 for M22 remain milestone-specific; parallel execution does not permit bypassing these decisions. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md). Accepted M0-M3 decisions are unchanged.
+Each D-number belongs to the first applicable implementing work package and must be resolved before that package, even when another milestone proceeds independently. D-003 (accepted for M4), D-002 for M7, D-006 for M8, D-005 for M13, D-004 for M14, D-008 for M19, and D-007 for M22 remain milestone-specific; parallel execution does not permit bypassing these decisions. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md). Accepted M0-M3 decisions are unchanged.
 
 ## M3 reference-data design choices (implemented and accepted)
 
-The [M3 architecture](M3_ARCHITECTURE_DESIGN.md) implements organization-owned port/vessel references with immutable UUID and tenant-local code, optional external identifiers, optimistic versions, and soft archive. Analysts may read; Managers may manage; Support, Administrator and Auditor do not receive implicit business permissions. These M3 implementation decisions follow ADR-002/003/004/005 without changing their scope. All 25 G3 scenarios passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; G3 was explicitly accepted on 2026-10-31 ([executed verification](M3_EXECUTED_VERIFICATION.md)). D-003 container identifiers remains pending for M4.
+The [M3 architecture](M3_ARCHITECTURE_DESIGN.md) implements organization-owned port/vessel references with immutable UUID and tenant-local code, optional external identifiers, optimistic versions, and soft archive. Analysts may read; Managers may manage; Support, Administrator and Auditor do not receive implicit business permissions. These M3 implementation decisions follow ADR-002/003/004/005 without changing their scope. All 25 G3 scenarios passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; G3 was explicitly accepted on 2026-10-31 ([executed verification](M3_EXECUTED_VERIFICATION.md)). D-003 container identifiers was subsequently accepted for M4 on 2026-11-01.
 
-## Proposed D-003 decision for M4
+## D-003: Container identifier format
 
-[M4 container identifier proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) compares ISO-only, tagged ISO+Synthetic and free-form local alternatives. The recommended option is not accepted. Explicit decision is required on the edition, category U scope, checksum, prefix, equipment type and immutability before implementing the container identifier policy. [M4 architecture](M4_ARCHITECTURE_DESIGN.md) and [implementation](M4_IMPLEMENTATION_PLAN.md) are proposals; G4 remains open.
+**Status:** Accepted
+**Decision date:** 2026-11-01
+**Identifier policy:** Option B, tagged ISO6346 and Synthetic identifier kinds with disjoint validation
+**Standard edition:** ISO 6346:2022
+**Category scope:** U freight containers only. J and Z equipment are excluded from M4.
+**Implementation:** M4-01 to M4-04, accepted after independently reviewed G4 evidence.
+
+The [D-003 decision record](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) compares the alternatives and records the approved rules. ISO-formatted identifiers normalize documented presentation spaces and case, require `[A-Z]{3}U[0-9]{7}`, and must pass the weighted ISO check digit. This checks syntax, not registration, equipment ownership, or physical existence. Synthetic identifiers require `SYN-BOX-[A-Z0-9]{4,16}` and are distinctly labeled; no silent conversion between identifier kinds is permitted.
+
+Approved equipment types: `Dry20`, `Dry40`, `HighCube40`, `Reefer20`, `Reefer40`, `Other`. Container UUID, tenant-local reference code, external/synthetic identifier, identifier kind, equipment type and source classification are immutable after creation. Identifiers remain reserved across archival within an organization; the same identifier may exist in different organizations. No BIC or other external registry validation is claimed or required.
+
+D-003 approval and G4 acceptance were explicitly provided on 2026-11-01 following [independent G4 evidence review](M4_EXECUTED_VERIFICATION.md). The final source tested on E: was `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. The evidence index's policy-only G4-S01 incompleteness at execution time is closed by this explicit decision; executable checksum and validation tests had already passed. No software functionality was modified to close the decision.
 
 ## Open decisions
 
 | ID | Decision required | Default hypothesis | Required before |
 | --- | --- | --- | --- |
 | D-002 | DCSA reference release/subset | Pin one version with a documented field mapping | M7 |
-| D-003 | Container identifier format | [Proposal](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md): distinct ISO6346/Synthetic kinds, freight-container U only, checksum and explicit synthetic labels. Decision pending. | M4 |
 | D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
 | D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M13 |
 | D-006 | Error queue and worker durability detail | PostgreSQL inbox/dead-letter tables | M8 |

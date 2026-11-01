@@ -359,7 +359,10 @@ public sealed class MaritimeGateCoverageTests
         await using var scope = factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         var now = DateTimeOffset.UtcNow;
-        const string sharedIdentifier = "SYN-BOX-SHAREDG4";
+        // Each test invocation owns a unique identifier so the repeated integration
+        // batch can execute against the same disposable database without counting
+        // records created by the preceding batch.
+        var sharedIdentifier = "SYN-BOX-" + Guid.NewGuid().ToString("N")[..16].ToUpperInvariant();
         db.Containers.AddRange(
             new ContainerRecord {
                 Id = Guid.NewGuid(), OrganizationId = f.A, ReferenceCode = "SAME-ID-A",
@@ -379,13 +382,16 @@ public sealed class MaritimeGateCoverageTests
             .Where(x => x.ContainerIdentifier == sharedIdentifier)
             .Select(x => new { x.OrganizationId, x.Version }).ToListAsync();
         Assert.Equal(2, rows.Count);
+        Assert.Equal(2, rows.Select(x => x.OrganizationId).Distinct().Count());
         Assert.Contains(rows, x => x.OrganizationId == f.A && x.Version == 1L);
         Assert.Contains(rows, x => x.OrganizationId == f.B && x.Version == 1L);
         var local = await manager.GetFromJsonAsync<JsonElement>(Root(f.A, "containers") +
-            "?q=SHAREDG4&recordStatus=All");
+            "?q=" + Uri.EscapeDataString(sharedIdentifier) + "&recordStatus=All");
         Assert.Single(local.GetProperty("containers").EnumerateArray());
         Assert.Equal(f.A, local.GetProperty("containers")[0]
             .GetProperty("organizationId").GetGuid());
+        Assert.Equal(sharedIdentifier, local.GetProperty("containers")[0]
+            .GetProperty("containerIdentifier").GetString());
     }
 
 }

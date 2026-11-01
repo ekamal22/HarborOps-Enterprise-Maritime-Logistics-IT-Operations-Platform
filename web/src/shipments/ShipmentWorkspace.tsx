@@ -105,9 +105,16 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     document.addEventListener("visibilitychange", visible);
     return () => {
       requestSerial.current++; pageSerial.current++; selectionSerial.current++;
-      mutationSerial.current++; document.removeEventListener("visibilitychange", visible);
+      document.removeEventListener("visibilitychange", visible);
     };
   }, [reload]);
+
+  // A filter change must not orphan an in-flight mutation: only unmounting (organization or
+  // role change remounts this component) invalidates it, and the refresh always uses the
+  // latest filters.
+  const reloadLatest = useRef(reload);
+  useEffect(() => { reloadLatest.current = reload; }, [reload]);
+  useEffect(() => () => { mutationSerial.current++; }, []);
 
   useEffect(() => {
     let active = true;
@@ -128,8 +135,14 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     const generation = ++selectionSerial.current;
     setSelected(row); setForm(fromRow(row)); setCreating(false); setHistory([]); setConflict("");
     try {
-      const response = await shipmentHistory(organizationId, row.id);
-      if (generation === selectionSerial.current) setHistory(response.changes);
+      // The list rows carry no port descriptors; the scoped detail does, so Auditors can read
+      // the route without any port catalog access.
+      const [detail, response] = await Promise.all([
+        shipmentDetail(organizationId, row.id), shipmentHistory(organizationId, row.id)]);
+      if (generation !== selectionSerial.current) return;
+      setSelected(detail);
+      if (detail.version !== row.version) setForm(fromRow(detail));
+      setHistory(response.changes);
     } catch (cause) {
       if (generation !== selectionSerial.current) return;
       setError(organizationError(cause)); invalidate(cause);
@@ -157,7 +170,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
   async function save(event: FormEvent) {
     event.preventDefault();
     if (!canManage || busy) return;
-    const revision = requestSerial.current, mutation = mutationSerial.current;
+    const mutation = mutationSerial.current;
     setBusy(true); setError(""); setConflict("");
     try {
       if (creating) {
@@ -185,9 +198,9 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
         if (Object.keys(patch).length === 1) return;
         await changeShipment(organizationId, selected.id, patch);
       }
-      if (revision === requestSerial.current) await reload();
+      if (mutation === mutationSerial.current) await reloadLatest.current();
     } catch (cause) {
-      if (revision !== requestSerial.current) return;
+      if (mutation !== mutationSerial.current) return;
       if (cause instanceof OrganizationRequestError && cause.status === 409) {
         setConflict("This shipment has changed since you opened it. Your edits are preserved. Review the current version before retrying.");
       } else {
@@ -216,15 +229,15 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
   async function archiveOrRestore(row: ShipmentRow) {
     if (!canManage || busy) return;
     if (row.recordStatus === "Active" && !window.confirm("Archive this shipment?")) return;
-    const revision = requestSerial.current, mutation = mutationSerial.current;
+    const mutation = mutationSerial.current;
     setBusy(true); setError("");
     try {
       if (row.recordStatus === "Active") await archiveShipment(organizationId, row.id, row.version);
       else await changeShipment(organizationId, row.id,
         { recordStatus: "Active", expectedVersion: row.version });
-      if (revision === requestSerial.current) await reload();
+      if (mutation === mutationSerial.current) await reloadLatest.current();
     } catch (cause) {
-      if (revision !== requestSerial.current) return;
+      if (mutation !== mutationSerial.current) return;
       setError(organizationError(cause)); invalidate(cause);
     } finally { if (mutation === mutationSerial.current) setBusy(false); }
   }

@@ -89,22 +89,63 @@ public sealed class MaritimeMigrationTests
         var a = await organizations.BootstrapAsync("g4-sql-a-" + nonce[..10], "M4 SQL A", emailA, CancellationToken.None);
         var b = await organizations.BootstrapAsync("g4-sql-b-" + nonce[..10], "M4 SQL B", emailB, CancellationToken.None);
         var now = DateTimeOffset.UtcNow;
-        var p = new PortReference {
-            Id = Guid.NewGuid(), OrganizationId = a.Id, ReferenceCode = "SQL-PORT-A", Name = "Port A",
-            CountryCode = "US", SourceKind = "Synthetic", CreatedAtUtc = now, UpdatedAtUtc = now
+        var portA = new PortReference {
+            Id = Guid.NewGuid(), OrganizationId = a.Id, ReferenceCode = "SQL-PORT-A",
+            Name = "Port A", CountryCode = "US", SourceKind = "Synthetic",
+            CreatedAtUtc = now, UpdatedAtUtc = now
         };
-        var v = new VesselReference {
-            Id = Guid.NewGuid(), OrganizationId = b.Id, ReferenceCode = "SQL-VESSEL-B", Name = "Vessel B",
-            SourceKind = "Synthetic", CreatedAtUtc = now, UpdatedAtUtc = now
+        var portA2 = new PortReference {
+            Id = Guid.NewGuid(), OrganizationId = a.Id, ReferenceCode = "SQL-PORT-A2",
+            Name = "Port A2", CountryCode = "US", SourceKind = "Synthetic",
+            CreatedAtUtc = now, UpdatedAtUtc = now
         };
-        db.Ports.Add(p); db.Vessels.Add(v); await db.SaveChangesAsync();
-        var crossSql = $"""
-            INSERT INTO voyages (id,organization_id,reference_code,vessel_id,origin_port_id,destination_port_id,
-              voyage_status,record_status,source_kind,version,created_at_utc,updated_at_utc)
-            VALUES ('{Guid.NewGuid()}','{a.Id}','SQL-FOREIGN','{v.Id}','{p.Id}','{Guid.NewGuid()}',
-              'Planned','Active','Synthetic',1,now(),now())
-            """;
-        await Assert.ThrowsAsync<PostgresException>(() => db.Database.ExecuteSqlRawAsync(crossSql));
+        var portB = new PortReference {
+            Id = Guid.NewGuid(), OrganizationId = b.Id, ReferenceCode = "SQL-PORT-B",
+            Name = "Port B", CountryCode = "US", SourceKind = "Synthetic",
+            CreatedAtUtc = now, UpdatedAtUtc = now
+        };
+        var vesselA = new VesselReference {
+            Id = Guid.NewGuid(), OrganizationId = a.Id, ReferenceCode = "SQL-VESSEL-A",
+            Name = "Vessel A", SourceKind = "Synthetic",
+            CreatedAtUtc = now, UpdatedAtUtc = now
+        };
+        var vesselB = new VesselReference {
+            Id = Guid.NewGuid(), OrganizationId = b.Id, ReferenceCode = "SQL-VESSEL-B",
+            Name = "Vessel B", SourceKind = "Synthetic",
+            CreatedAtUtc = now, UpdatedAtUtc = now
+        };
+        db.Ports.AddRange(portA, portA2, portB);
+        db.Vessels.AddRange(vesselA, vesselB);
+        await db.SaveChangesAsync();
+
+        Task<int> InsertVoyage(string code, Guid vesselId, Guid fromId, Guid toId) =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO voyages (id,organization_id,reference_code,vessel_id,
+                  origin_port_id,destination_port_id,voyage_status,record_status,
+                  source_kind,version,created_at_utc,updated_at_utc)
+                VALUES ({Guid.NewGuid()},{a.Id},{code},{vesselId},{fromId},{toId},
+                  'Planned','Active','Synthetic',1,now(),now())
+                """);
+
+        // Positive control: the same insert succeeds when all three references belong to A.
+        Assert.Equal(1, await InsertVoyage("SQL-VALID-ROUTE",
+            vesselA.Id, portA.Id, portA2.Id));
+        var before = await db.Voyages.CountAsync(x => x.OrganizationId == a.Id);
+        Assert.Equal(1, before);
+
+        // Each foreign parent is existing and valid in B; exactly one FK differs per case.
+        foreach (var (code, vesselId, fromId, toId) in new[] {
+            ("SQL-FOREIGN-VESSEL", vesselB.Id, portA.Id, portA2.Id),
+            ("SQL-FOREIGN-ORIGIN", vesselA.Id, portB.Id, portA2.Id),
+            ("SQL-FOREIGN-DEST", vesselA.Id, portA.Id, portB.Id)
+        })
+        {
+            var denied = await Assert.ThrowsAsync<PostgresException>(() =>
+                InsertVoyage(code, vesselId, fromId, toId));
+            Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, denied.SqlState);
+            Assert.Equal(before, await db.Voyages.CountAsync(x => x.OrganizationId == a.Id));
+            Assert.False(await db.Voyages.AnyAsync(x => x.ReferenceCode == code));
+        }
         var badIsoSql = $"""
             INSERT INTO containers (id,organization_id,reference_code,identifier_kind,container_identifier,
               equipment_type,record_status,source_kind,version,created_at_utc,updated_at_utc)

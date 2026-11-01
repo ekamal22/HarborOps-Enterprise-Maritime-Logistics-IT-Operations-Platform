@@ -17,7 +17,9 @@ mkdir -p "$root"
 # Archive rather than reuse test results from an older source revision.
 if [[ -d "$root/evidence" ]]; then
   mkdir -p "$root/archives"
-  archive="$root/archives/g4-$(date -u +%Y%m%dT%H%M%SZ)-$sha-$$"
+  # Name the archive after the revision whose evidence it holds, not the revision about to run.
+  previous="$(tr -d '\r\n' < "$root/evidence/g4-source-sha.txt" 2>/dev/null || true)"
+  archive="$root/archives/g4-$(date -u +%Y%m%dT%H%M%SZ)-${previous:-unknown-revision}-$$"
   mv "$root/evidence" "$archive"
 fi
 evidence="$root/evidence"

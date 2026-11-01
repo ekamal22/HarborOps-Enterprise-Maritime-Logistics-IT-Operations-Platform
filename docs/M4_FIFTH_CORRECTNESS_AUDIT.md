@@ -3,7 +3,7 @@
 **Date:** 2026-11-01  
 **Branch:** `feat/m4-voyage-container-references`  
 **Starting revision:** `5b8ceeb555e0bc586cff3fc39df33aabc4841120` (remote tip after the fourth audit)  
-**Executed source revision:** `f1854c3fb684d576d6b16d94d5cb44113bd25f64` (later commits on the branch change documentation and the evidence mapping only, and the final complete run is recorded in the evidence bundle on E:)  
+**First all-green revision:** `f1854c3fb684d576d6b16d94d5cb44113bd25f64`. A second complete run at documentation commit `fd31958ec5017050dab58a329d65b4afb300eb60` reproduced every stage result. Later commits change documentation, the evidence mapping and the runner's archive naming only, and a third complete run on the final revision is recorded in the evidence bundle on E: (its `g4-source-sha.txt` and hash manifest name the exact revision).  
 **Gate:** G4 OPEN, acceptance pending. D-003 acceptance pending.
 
 ## Result summary
@@ -48,6 +48,7 @@ The evidence checker exits non-zero by design while D-003 is pending. That exit 
 | F5-09 | Coverage | G4-S14 had no case where account disable, security version change, organization suspension or member removal lands while a mutation is already queued | Only the administrator downgrade was exercised under queueing | `QueuedMaritimeRequestsRevalidateAccessAfterTheLockIsReleased` covers all four with a no-revocation control, against both resources. Required by the evidence checker, together with the F5-02 browser test in G4-S23 |
 | F5-10 | Test | A voyage code lookup in the SQL isolation test was global | Unscoped `AnyAsync` on a fixed code | Scoped to the organization under test |
 | F5-11 | Fixture | `prepare-m4-browser-fixtures.mjs` accepted an existing row with the right code but a different identity | It matched on reference code only | It now compares identifier kind, identifier, equipment type, vessel and ports |
+| F5-12 | Harness | Archived evidence directories carried the wrong revision in their names | The runner named the archive of the previous run after the revision about to run | The archive is named after the revision recorded in the evidence it moves. Directories created before this fix are identified by the `g4-source-sha.txt` inside each, not by name |
 
 ## Effectiveness of the corrected tests (mutation checks)
 

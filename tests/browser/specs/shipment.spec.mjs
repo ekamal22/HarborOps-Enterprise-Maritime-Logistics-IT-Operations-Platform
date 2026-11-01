@@ -27,12 +27,14 @@ test("M5 Analyst creates and advances a scoped shipment", async ({ page }) => {
   await s.getByLabel("Origin port").selectOption({ index: 1 });
   await s.getByLabel("Destination port").selectOption({ index: 2 });
   await s.getByRole("button", { name: "Save new shipment" }).click();
+  await expect(s.getByRole("button",{name:"Close detail"})).toHaveCount(0);
   await s.getByLabel("Search shipments").fill(code);
   await expect(s.getByText(code, { exact: true })).toBeVisible();
   await s.getByRole("button", { name: "View shipment" }).first().click();
   await expect(s.getByText("Manual status history")).toBeVisible();
   await s.getByLabel("Shipment workflow").selectOption("Booked");
   await s.getByRole("button", { name: "Save shipment changes" }).click();
+  await expect(s.getByRole("button",{name:"Close detail"})).toHaveCount(0);
   await s.getByLabel("Search shipments").fill(code);
   await expect(s.getByText("Booked", { exact: false })).toBeVisible();
   page.once("dialog", dialog => dialog.accept());
@@ -86,12 +88,14 @@ test("M5 Manager advances terminal workflows and retains manual history", async 
   await s.getByLabel("Origin port").selectOption({index:1});
   await s.getByLabel("Destination port").selectOption({index:2});
   await s.getByRole("button",{name:"Save new shipment"}).click();
+  await expect(s.getByRole("button",{name:"Close detail"})).toHaveCount(0);
   await s.getByLabel("Search shipments").fill(code);
   for(const state of ["Booked","InTransit","Arrived","Completed"]){
     await expect(s.getByText(code,{exact:true})).toBeVisible();
     await s.getByRole("button",{name:"View shipment"}).first().click();
     await s.getByLabel("Shipment workflow").selectOption(state);
     await s.getByRole("button",{name:"Save shipment changes"}).click();
+    await expect(s.getByRole("button",{name:"Close detail"})).toHaveCount(0);
   }
   await s.getByRole("button",{name:"View shipment"}).first().click();
   await expect(s.getByRole("button",{name:"Save shipment changes"})).toBeVisible();
@@ -104,10 +108,12 @@ test("M5 Manager advances terminal workflows and retains manual history", async 
   await s.getByLabel("Origin port").selectOption({index:1});
   await s.getByLabel("Destination port").selectOption({index:2});
   await s.getByRole("button",{name:"Save new shipment"}).click();
+  await expect(s.getByRole("button",{name:"Close detail"})).toHaveCount(0);
   await s.getByLabel("Search shipments").fill(cancelCode);
   await s.getByRole("button",{name:"View shipment"}).first().click();
   await s.getByLabel("Shipment workflow").selectOption("Cancelled");
   await s.getByRole("button",{name:"Save shipment changes"}).click();
+  await expect(s.getByRole("button",{name:"Close detail"})).toHaveCount(0);
   await s.getByRole("button",{name:"View shipment"}).first().click();
   await expect(s.getByLabel("Shipment workflow").locator("option")).toHaveCount(1);
 });
@@ -145,6 +151,7 @@ test("M5 stale edit displays conflict and retains entered values",async ({page,c
   await first.getByLabel("Origin port").selectOption({index:1});
   await first.getByLabel("Destination port").selectOption({index:2});
   await first.getByRole("button",{name:"Save new shipment"}).click();
+  await expect(first.getByRole("button",{name:"Close detail"})).toHaveCount(0);
   await first.getByLabel("Search shipments").fill(code);
   await first.getByRole("button",{name:"View shipment"}).first().click();
   const secondPage=await context.newPage();
@@ -157,12 +164,14 @@ test("M5 stale edit displays conflict and retains entered values",async ({page,c
     await second.getByRole("button",{name:"View shipment"}).first().click();
     await first.getByLabel("Shipment display name").fill("First writer");
     await first.getByRole("button",{name:"Save shipment changes"}).click();
+    await expect(first.getByRole("button",{name:"Close detail"})).toHaveCount(0);
     await second.getByLabel("Shipment display name").fill("Preserved second edit");
     await second.getByRole("button",{name:"Save shipment changes"}).click();
     await expect(second.getByRole("button",{name:"Load current version"})).toBeVisible();
     await expect(second.getByLabel("Shipment display name")).toHaveValue("Preserved second edit");
     await second.getByRole("button",{name:"Load current version"}).click();
     await second.getByRole("button",{name:"Save shipment changes"}).click();
+    await expect(second.getByRole("button",{name:"Close detail"})).toHaveCount(0);
     await expect(second.getByText(code,{exact:true})).toBeVisible();
   }finally{await secondPage.close();}
 });

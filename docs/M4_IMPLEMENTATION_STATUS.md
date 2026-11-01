@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | M4-01 | Maritime policy for ISO checksum, synthetic IDs, equipment types, voyage time/progression; new M4 permissions | Proposed policy, tests authored, D-003 not accepted |
 | M4-02 | `VoyageRecord`, tenant-composite vessel/port foreign keys, UTC planned/actual windows, progress, scoped API, optimistic version, archive/restore | Source committed; initial .NET build failed on test analyzer diagnostics, SQL/HTTP execution not reached |
-| M4-03 | `ContainerRecord`, ISO and synthetic validation, PostgreSQL checksum function, format/uniqueness checks, scoped API and archive/restore | Source committed, .NET/SQL/HTTP execution not performed |
+| M4-03 | `ContainerRecord`, ISO and synthetic validation, PostgreSQL checksum function, format/uniqueness checks, scoped API and archive/restore | Source committed; first .NET build failed on two xUnit analyzer errors, SQL/HTTP execution not reached |
 | M4-04 | `MaritimeWorkspace` React UI, selected organization integration, parent selection, filter/cursor, three-engine browser specs, E:-scoped runner and evidence index | Source committed, browser execution not performed |
 
 ## Source inventory
@@ -43,10 +43,10 @@
 
 ## Outstanding blockers and limitations
 
-1. **No .NET build:** Current execution environment lacks the .NET 10 SDK. Compile-time correctness of the newly added C# services, mappings, API handlers and tests has not been established.
-2. **No PostgreSQL/Docker execution:** Fresh and historical upgrades, rollback, real SQL constraints, migrations and outage/recovery have not been executed. The accepted M3 databases have not been touched.
+1. **No successful .NET build:** The first E:-backed build failed on two xUnit analyzer errors, now corrected in source. A new build on the corrected revision is still required.
+2. **No PostgreSQL integration execution:** The disposable PostgreSQL image built, but migrations, real SQL constraints, historical upgrades, rollback, and outage/recovery did not execute. The accepted M3 databases have not been touched.
 3. **No browser build/runtime:** React TypeScript compilation, actual browser workflows and concurrency are not verified. Chromium, Firefox and WebKit results have not been produced.
-4. **G4 scenario coverage incomplete:** The expanded but unexecuted test suite still requires full scenario/subcase reconciliation against the 25-case [G4 verification contract](M4_VERIFICATION_PLAN.md), including comprehensive hostile-input fuzzing and every timing-sensitive browser/data race. Absolute expiry and a lock-observed queued-write test have been authored, but have not executed. Existing coverage is not equivalent to 25/25 PASS.
+4. **G4 scenario coverage incomplete:** The expanded .NET/integration/browser test suite has not executed successfully and still requires full scenario/subcase reconciliation against the 25-case [G4 verification contract](M4_VERIFICATION_PLAN.md), including comprehensive hostile-input fuzzing and every timing-sensitive browser/data race. Absolute expiry and a lock-observed queued-write test have been authored, but have not executed. Existing coverage is not equivalent to 25/25 PASS.
 5. **D-003 open:** The ISO 6346 and synthetic kind policy is a provisional implementation assumption; it must be explicitly accepted or revised before G4.
 6. **Parallel migrations:** Confirm the chosen migration number does not collide with an independently implemented M5 workstream before integrating.
 7. **Runtime source SHA:** The final integrated revision must pass fresh/repeat M4, accepted M0-M3 regressions, three browsers, live PostgreSQL outage and security/dependency scans on disposable E:-backed storage.

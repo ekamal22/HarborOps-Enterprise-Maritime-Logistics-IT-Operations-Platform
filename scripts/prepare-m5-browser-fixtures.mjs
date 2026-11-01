@@ -96,6 +96,26 @@ for (const slug of ["m3-north", "m3-east"]) {
   summary.push({ organizationId:org.id,slug,roles:["Administrator","Manager","Analyst","Auditor","Support"],
     shipments:first });
 }
+const admin=new Session();
+await admin.call("POST","/api/v1/auth/login",{email:"m3-admin-a@example.test",password});
+const north=summary.find(x=>x.slug==="m3-north");
+assert.ok(north);
+await admin.call("PUT","/api/v1/auth/session/organization",{organizationId:north.organizationId});
+const members=(await admin.call("GET","/api/v1/organizations/"+
+  north.organizationId+"/memberships?limit=100")).memberships;
+const expectedRoles={
+  "m3-admin-a@example.test":"Administrator",
+  "m3-manager@example.test":"Manager",
+  "m3-analyst@example.test":"Analyst",
+  "m4-auditor@example.test":"Auditor",
+  "m4-support@example.test":"Support"
+};
+for(const [email,role] of Object.entries(expectedRoles)){
+  const member=members.find(x=>x.email===email);
+  assert.ok(member && member.status==="Active" && member.role===role,
+    "Missing active G5 role fixture "+role);
+}
+north.verifiedRoles=expectedRoles;
 const shared = summary.map(x=>x.shipments.find(s=>s.referenceCode==="M5-SHARED-REF"));
 assert.equal(shared.length,2);
 assert.equal(shared[0].referenceCode, shared[1].referenceCode);

@@ -1,6 +1,6 @@
 # M6 Implementation Plan: Shipment Container and Voyage Assignments
 
-**Status:** Source implementation authored and committed on the feature branch under this plan. Runtime verification NOT RUN; full G6 acceptance and local contract decision pending. See [implementation status](M6_IMPLEMENTATION_STATUS.md).
+**Status:** Source implementation committed on the feature branch under this plan and executed locally on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` (see [executed verification](M6_EXECUTED_VERIFICATION.md)). Full G6 acceptance and the local contract decision are pending. See [implementation status](M6_IMPLEMENTATION_STATUS.md).
 **Prepared:** 2026-11-02
 **Branch:** `feat/m6-container-voyage-assignments`
 **Accepted upstream:** G4 and G5 on `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`

@@ -4,7 +4,7 @@
 **Milestone:** M6 container and voyage assignments
 **Planning branch:** `feat/m6-container-voyage-assignments`
 **Accepted implementation baseline:** `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`, G0-G5 accepted
-**State:** Initial M6 implementation, API, persistence, React, tests and local verification harness authored on the feature branch. Build/runtime G6 NOT RUN; M6-local contract acceptance pending. Nothing merged into `main`. See [implementation register](M6_IMPLEMENTATION_STATUS.md).
+**State:** M6 implementation, API, persistence, React, tests and local verification harness committed on the feature branch and executed locally on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`; technical evidence is complete except G6-S01. M6-local contract and G6 acceptance pending. Nothing merged into `main`. See [executed verification](M6_EXECUTED_VERIFICATION.md) and the [implementation register](M6_IMPLEMENTATION_STATUS.md).
 
 ## Planning deliverables
 

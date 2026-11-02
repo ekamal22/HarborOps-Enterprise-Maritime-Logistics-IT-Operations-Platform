@@ -26,7 +26,7 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | --- | --- | --- |
 | M4 voyage/container records | Completed | G4 accepted 2026-11-01; D-003 Option B accepted, implementation integrated |
 | M5 shipment lifecycle | Completed | G5 accepted 2026-11-02 and integrated into `main` after independent evidence review |
-| M6 shipment assignments | Initial source authored on feature branch | G4 and G5 accepted; [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) proposed, [architecture](M6_ARCHITECTURE_DESIGN.md), [implementation status](M6_IMPLEMENTATION_STATUS.md), [implementation plan](M6_IMPLEMENTATION_PLAN.md), and [G6 matrix](M6_VERIFICATION_PLAN.md). Runtime verification NOT RUN; contract and G6 acceptance pending; no merge. |
+| M6 shipment assignments | Initial source authored on feature branch | G4 and G5 accepted; [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) proposed, [architecture](M6_ARCHITECTURE_DESIGN.md), [implementation status](M6_IMPLEMENTATION_STATUS.md), [implementation plan](M6_IMPLEMENTATION_PLAN.md), and [G6 matrix](M6_VERIFICATION_PLAN.md). Executed locally on `a94d7cd` ([executed verification](M6_EXECUTED_VERIFICATION.md)); contract and G6 acceptance pending; no merge. |
 | M7 tracking source contract | M7-01 | G3 accepted; D-002 pinned contract decision required |
 | M16 audit foundations | M16-01 | G3 accepted; never weaken existing M1-M3 security |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |

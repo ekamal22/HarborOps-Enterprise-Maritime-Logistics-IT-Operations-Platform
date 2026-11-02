@@ -4,7 +4,7 @@
 **Milestone:** M6-01 through M6-04; G6
 **Branch:** `feat/m6-container-voyage-assignments`
 **Accepted base:** `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`, G0-G5 accepted
-**Implementation state:** Assignment domain, additive PostgreSQL migration, API, React workspace, expanded adversarial tests, security mutation runner, historical snapshot restore and extracted-archive verification authored and committed. Runtime build, PostgreSQL migration, three-browser execution, complete G6 verification and acceptance are **NOT RUN**. No M6 integration into `main`.
+**Implementation state:** Assignment domain, additive PostgreSQL migration, API, React workspace, adversarial tests, security mutation runner, historical snapshot restore and extracted-archive verification committed and executed locally. On `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` all 33 executable pipeline stages passed; the evidence assertion reports only G6-S01 (contract approval) incomplete. See [executed verification](M6_EXECUTED_VERIFICATION.md). G6 acceptance is pending. No M6 integration into `main`.
 **Decision state:** [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) proposed, acceptance pending; do not mark G6-S01 complete.
 
 ## Implemented source
@@ -86,9 +86,9 @@ Harness changes made in the same period: a warnings-as-errors compile gate and t
 
 ## Verification limits and outstanding work
 
-**No successful local build or runtime test result exists for this revision.** The repository connector permits source changes but does not execute .NET 10, Docker Desktop, PostgreSQL 16, Windows E:-backed fixtures, Playwright browsers or the G6 local pipeline. Source authorship is not proof of passing the gate.
+**Runtime results exist for `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`.** They were produced by the local E:-backed pipeline and are summarized in [M6 executed verification](M6_EXECUTED_VERIFICATION.md); the raw evidence bundle is outside the repository. Earlier revisions failed (Release build, two integration tests and one browser scenario) and those runs are preserved separately. Technical results are not acceptance.
 
-Before G6 acceptance, run the full G6-S01 through G6-S25 matrix on a pinned SHA, inspect raw assertions and actual SQL migrations, and fix every failure. The current evidence validator intentionally reports several uncovered gates as incomplete. The twelve-rule M6 contract has not been approved. Do not bypass or weaken the validator to report success.
+Before G6 acceptance, an independent reviewer inspects the raw assertions, SQL migrations and the G6-S10 snapshot disposition. The evidence validator reports G6-S01 incomplete because the twelve-rule M6 contract has not been approved. Do not bypass or weaken the validator to report success.
 
 Known items requiring adversarial execution or further source strengthening:
 1. PostgreSQL `btree_gist` provisioning and GiST exclusion behavior under two simultaneous real connections.

@@ -1,6 +1,6 @@
 # G6 Shipment Assignment Verification Plan
 
-**Status:** PLANNED, NOT EXECUTED; G6 OPEN, acceptance pending
+**Status:** EXECUTED LOCALLY on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`; technical evidence complete except G6-S01; G6 OPEN, acceptance pending ([executed verification](M6_EXECUTED_VERIFICATION.md))
 **Prepared:** 2026-11-02
 **Milestone:** M6-01 through M6-04, shipment-container and shipment-voyage interval assignments
 **Branch:** `feat/m6-container-voyage-assignments`
@@ -89,7 +89,7 @@ The committed G6-specific Playwright inventory contains ten per-engine scenarios
 
 ## 4. Local G6 pipeline and ownership
 
-The E:-backed runner `scripts/verify-m6-local.sh`, stage and three-browser launchers, `scripts/assert-g6-evidence.mjs`, `scripts/check-g6-schema-contract.mjs`, `scripts/check-m6-assignment-outage.mjs`, `scripts/run-g6-mutations.mjs`, `scripts/check-g6-snapshot.mjs`, and `scripts/finalize-g6-evidence.mjs` are **authored and committed, NOT EXECUTED**. The evidence checker requires nonempty TRX suites, complete per-browser inventories, four killed mutations, the conditional historical-backup disposition, the exact source SHA, and complete owned-resource teardown. A technical PASS never constitutes independent acceptance.
+The E:-backed runner `scripts/verify-m6-local.sh`, stage and three-browser launchers, `scripts/assert-g6-evidence.mjs`, `scripts/check-g6-schema-contract.mjs`, `scripts/check-m6-assignment-outage.mjs`, `scripts/run-g6-mutations.mjs`, `scripts/check-g6-snapshot.mjs`, and `scripts/finalize-g6-evidence.mjs` are **authored, committed and executed locally** (see [executed verification](M6_EXECUTED_VERIFICATION.md)). The evidence checker requires nonempty TRX suites, complete per-browser inventories, four killed mutations, the conditional historical-backup disposition, the exact source SHA, and complete owned-resource teardown. A technical PASS never constitutes independent acceptance.
 
 - Windows checkout: `E:\APP IDEAS\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`.
 - Verification root: `E:\HarborOps-Verification\m6`; `evidence`, `archives`, `cache`, browser profiles and scratch beneath it.

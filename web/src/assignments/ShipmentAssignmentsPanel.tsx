@@ -10,9 +10,10 @@ const label = (kind: AssignmentKind) => kind === "container-assignments" ? "Cont
 const catalog = (kind: AssignmentKind): MaritimeKind =>
   kind === "container-assignments" ? "containers" : "voyages";
 
-function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated }: {
+function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated, revision, onUpdated }: {
   org: string; shipment: ShipmentRow; kind: AssignmentKind; canManage: boolean;
   onAccessInvalidated: (message: string) => void;
+  revision: number; onUpdated: () => void;
 }) {
   const [items, setItems] = useState<Assignment[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -52,7 +53,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated }:
       setError(organizationError(cause)); invalidated(cause);
     }).finally(() => { if (active.current && at === seq.current) setLoading(false); });
     return () => { active.current = false; ++seq.current; };
-  }, [org, shipment.id, kind, refreshToken, invalidated]);
+  }, [org, shipment.id, kind, refreshToken, revision, invalidated]);
 
   useEffect(() => {
     if (!canManage || shipment.recordStatus !== "Active") return;
@@ -94,7 +95,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated }:
     setBusy(true); setError("");
     try {
       await addAssignment(org, shipment.id, kind, target, start.trim(), end.trim() || null);
-      setTarget(""); setStart(""); setEnd(""); refresh();
+      setTarget(""); setStart(""); setEnd(""); onUpdated();
     } catch (cause) {
       setError(organizationError(cause)); invalidated(cause);
     } finally { setBusy(false); }
@@ -106,7 +107,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated }:
     setBusy(true); setError("");
     try {
       await closeAssignment(org, shipment.id, kind, row.id, row.version, closeAt.trim());
-      setClosingId(""); setCloseAt(""); refresh();
+      setClosingId(""); setCloseAt(""); onUpdated();
     } catch (cause) {
       setError(organizationError(cause)); invalidated(cause);
     } finally { setBusy(false); }
@@ -194,15 +195,82 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated }:
   </div>;
 }
 
+// A voyage association displayed for a container is contextual through the shipment.
+// It must never be described as physical vessel loading or an equipment interchange event.
+function intersects(a: Assignment, b: Assignment): boolean {
+  const left = Date.parse(a.startsAtUtc), right = Date.parse(b.startsAtUtc);
+  const aEnd = a.endsAtUtc === null ? Infinity : Date.parse(a.endsAtUtc);
+  const bEnd = b.endsAtUtc === null ? Infinity : Date.parse(b.endsAtUtc);
+  return left < bEnd && right < aEnd;
+}
+
 export default function ShipmentAssignmentsPanel({ organizationId, shipment,
   canManage, onAccessInvalidated }: {
   organizationId: string; shipment: ShipmentRow; canManage: boolean;
   onAccessInvalidated: (message: string) => void;
 }) {
+  const [revision, setRevision] = useState(0);
+  const [context, setContext] = useState<{ containers: Assignment[]; voyages: Assignment[] } | null>(null);
+  const [contextError, setContextError] = useState("");
+  const changed = useCallback(() => setRevision(n => n + 1), []);
+  useEffect(() => {
+    const visible = () => {
+      if (document.visibilityState === "visible") changed();
+    };
+    document.addEventListener("visibilitychange", visible);
+    return () => document.removeEventListener("visibilitychange", visible);
+  }, [changed]);
+  useEffect(() => {
+    let active = true;
+    async function collect(kind: AssignmentKind): Promise<Assignment[]> {
+      const rows: Assignment[] = [], cursors = new Set<string>();
+      let after: string | undefined;
+      for (let pageCount = 0; pageCount < 200; pageCount++) {
+        const page = await listAssignments(organizationId, shipment.id, kind, after);
+        rows.push(...page.assignments);
+        if (!page.nextAfter) return rows;
+        if (cursors.has(page.nextAfter) || page.assignments.length === 0)
+          throw new Error("Allocation pagination did not finish safely");
+        cursors.add(page.nextAfter);
+        after = page.nextAfter;
+      }
+      throw new Error("Allocation history exceeds display limit");
+    }
+    setContextError("");
+    void Promise.all([collect("container-assignments"), collect("voyage-assignments")])
+      .then(([containers, voyages]) => { if (active) setContext({ containers, voyages }); })
+      .catch(error => {
+        if (!active) return;
+        setContext(null);
+        setContextError(organizationError(error));
+        if (error instanceof OrganizationRequestError && (error.status === 401 ||
+          error.status === 403 || error.code === "organization_selection_required"))
+          onAccessInvalidated(organizationError(error));
+      });
+    return () => { active = false; };
+  }, [organizationId, shipment.id, revision, onAccessInvalidated]);
+
   return <section aria-label="Shipment allocations" className="mt-4">
     <h6 className="font-semibold">Shipment allocations</h6>
     <p className="mt-1 text-xs text-slate-400">Administrative allocations only. No physical loading or tracking event is implied.</p>
-    {kinds.map(kind => <AllocationList key={kind} org={organizationId} shipment={shipment}
-      kind={kind} canManage={canManage} onAccessInvalidated={onAccessInvalidated} />)}
+    {kinds.map(kind => <AllocationList key={organizationId + ":" + shipment.id + ":" + kind}
+      org={organizationId} shipment={shipment} kind={kind} canManage={canManage}
+      onAccessInvalidated={onAccessInvalidated} revision={revision} onUpdated={changed} />)}
+    <div className="mt-4 rounded border border-slate-700 p-3">
+      <h6 className="font-medium">Contextual container and voyage intervals</h6>
+      <p className="text-xs text-slate-400">Shared shipment allocations during intersecting intervals only. This is not evidence of physical loading.</p>
+      {contextError && <p role="alert" className="text-sm text-amber-300">{contextError}</p>}
+      {context && <ul className="mt-2 space-y-1 text-xs">
+        {context.containers.flatMap(container => context.voyages
+          .filter(voyage => intersects(container, voyage))
+          .map(voyage => <li key={container.id + ":" + voyage.id}>
+            {container.targetLabel ?? container.containerId} with {voyage.targetLabel ?? voyage.voyageId},
+            interval intersection
+          </li>))}
+      </ul>}
+      {context && !context.containers.some(container =>
+        context.voyages.some(voyage => intersects(container, voyage))) &&
+        <p className="text-xs text-slate-400">No overlapping allocation intervals.</p>}
+    </div>
   </section>;
 }

@@ -183,6 +183,8 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
   backgroundRef.current = backgroundRefresh;
 
   useEffect(() => { void loadList(); }, [loadList]);
+  const loadListRef = useRef(loadList);
+  loadListRef.current = loadList;
 
   useEffect(() => {
     const visible = () => { if (document.visibilityState === "visible") backgroundRef.current(); };
@@ -283,7 +285,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
         if (Object.keys(patch).length === 1) return;
         await changeShipment(organizationId, selected.id, patch);
       }
-      if (mutation === mutationSerial.current) { closePanel(); await loadList(); }
+      if (mutation === mutationSerial.current) { closePanel(); await loadListRef.current(); }
     } catch (cause) {
       if (mutation !== mutationSerial.current) return;
       if (cause instanceof OrganizationRequestError && cause.status === 409) {
@@ -338,7 +340,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
       if (mutation === mutationSerial.current) {
         // Only the shipment that changed loses its panel; a draft on another row is untouched.
         if (selectedRef.current?.id === row.id) closePanel();
-        await loadList();
+        await loadListRef.current();
       }
     } catch (cause) {
       if (mutation !== mutationSerial.current) return;

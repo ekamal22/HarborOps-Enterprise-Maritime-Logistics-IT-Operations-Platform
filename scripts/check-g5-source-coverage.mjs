@@ -26,7 +26,7 @@ for(const [kind,pattern,files] of [
       "No source method for G5 "+kind+" "+full);
   }
 }
-const browser=read("tests/browser/specs/shipment.spec.mjs");
+const browser=read("tests/browser/specs/shipment.spec.mjs")+"\n"+read("tests/browser/specs/shipment-draft.spec.mjs");
 const declared=new Set([...browser.matchAll(/\btest\("([^"]+)"/g)].map(x=>x[1]));
 const required=[...checker.matchAll(/\bbrowser\("([^"]+)"/g)].map(x=>x[1]);
 assert.ok(required.length>=8,"G5 browser evidence too narrow");

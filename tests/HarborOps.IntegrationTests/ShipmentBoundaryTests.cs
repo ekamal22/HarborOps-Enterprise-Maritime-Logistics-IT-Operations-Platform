@@ -339,7 +339,11 @@ public sealed class ShipmentBoundaryTests
         await db.Database.ExecuteSqlRawAsync("""
             CREATE FUNCTION g5_test_abort_history() RETURNS trigger LANGUAGE plpgsql AS $$
             BEGIN
-                RAISE EXCEPTION 'G5 injected history failure' USING ERRCODE='23514';
+                -- Scoped to this test's shipment so parallel tests sharing the database are unaffected.
+                IF (SELECT reference_code FROM shipments WHERE id = NEW.shipment_id) = 'G5-ATOMIC' THEN
+                    RAISE EXCEPTION 'G5 injected history failure' USING ERRCODE='23514';
+                END IF;
+                RETURN NULL;
             END $$;
             CREATE TRIGGER g5_test_abort_history AFTER INSERT ON shipment_status_changes
                 FOR EACH ROW EXECUTE FUNCTION g5_test_abort_history();

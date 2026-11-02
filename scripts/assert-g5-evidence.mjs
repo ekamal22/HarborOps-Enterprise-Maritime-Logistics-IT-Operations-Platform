@@ -124,7 +124,8 @@ const engines=["chromium","firefox","webkit"];
 const browser=title=>engines.every(engine=>
   browsers.some(x=>x.title===title&&x.engine===engine));
 // Every declared shipment browser spec must have at least one result per engine.
-const browserSource=fs.readFileSync("tests/browser/specs/shipment.spec.mjs","utf8");
+const browserSource=["shipment.spec.mjs","shipment-draft.spec.mjs"]
+  .map(file=>fs.readFileSync("tests/browser/specs/"+file,"utf8")).join("\n");
 const declared=[...browserSource.matchAll(/\btest\("([^"]+)"/g)].map(x=>x[1]);
 assert.ok(declared.length>=7,"Missing shipment browser scenarios");
 for(const name of declared)
@@ -140,6 +141,10 @@ const scans=["postgres","api","web"].every(name=>{
 const decision=fs.readFileSync("docs/M5_LOCAL_CONTRACT_DECISION.md","utf8");
 const accepted=/^\*\*State:\*\* Accepted\b/m.test(decision);
 
+// The pure draft-merge rules are exercised by the web unit tests that run in the web stage.
+const webLog=fs.existsSync(at("g5-web.log"))?read("g5-web.log"):"";
+const webDraftTests=/ℹ fail 0/.test(webLog) && Number(/ℹ tests (\d+)/.exec(webLog)?.[1]??0)>=18 &&
+  webLog.includes("an edit to a field the server also changed is a reported collision");
 const cases=[
 ["S01",accepted&&unit("ShipmentPolicyTests.FullWorkflowMatrix",36)],
 ["S02",unit("ShipmentPolicyTests.FullWorkflowMatrix",36)&&unit("ShipmentPolicyTests.RejectUnknownStatus",3)],
@@ -161,9 +166,24 @@ const cases=[
 ["S18",integration("ShipmentHttpTests.AnalystCreatesTransitionsArchivesRestoresAndReadsImmutableHistory")&&integration("ShipmentExtendedGateTests.ConcurrentArchiveAndStatusEditProduceOneVersionWinner")&&integration("ShipmentExtendedGateTests.ArchivedRestoreAndStaleEditCannotBothCommit")],
 ["S19",integration("ShipmentBoundaryTests.PaginationAndFiltersStayTenantScoped")],
 ["S20",integration("ShipmentExtendedGateTests.ConcurrentArchiveAndStatusEditProduceOneVersionWinner")&&integration("ShipmentExtendedGateTests.DuplicateConcurrentCreationCommitsExactlyOneShipment")&&integration("ShipmentHttpTests.CompetingExpectedVersionUpdatesHaveOneWinnerAndOneHistoryRecord")&&integration("ShipmentExtendedGateTests.ArchivedRestoreAndStaleEditCannotBothCommit")&&integration("ShipmentExtendedGateTests.DuplicateArchiveAttemptsCannotBothCommit")],
-["S21",integration("ShipmentBoundaryTests.FailedTransitionLeavesNoPartialHistory")&&integration("ShipmentExtendedGateTests.CancelledQueuedShipmentMutationNeverCommitsHistory")],
-["S22",browser("M5 Analyst creates and advances a scoped shipment")&&browser("M5 Manager advances terminal workflows and retains manual history")&&browser("M5 stale edit displays conflict and retains entered values")],
-["S23",browser("M5 Auditor shipment view does not grant M4 management")&&browser("M5 tenant change invalidates prior shipment list")&&browser("M5 deferred shipment response cannot cross organization switch")&&browser("M5 failed parent catalog retries without suppressing shipment list")&&browser("M5 logout clears selected shipment details and cached rows")],
+["S21",integration("ShipmentBoundaryTests.FailedTransitionLeavesNoPartialHistory")&&integration("ShipmentExtendedGateTests.CancelledQueuedShipmentMutationNeverCommitsHistory")&&
+  integration("ShipmentInterruptionTests.TerminatedDatabaseConnectionMidTransitionRollsBackAndRecovers")&&
+  integration("ShipmentInterruptionTests.TerminatedDatabaseConnectionMidCreateLeavesNoShipmentOrHistory")&&
+  integration("ShipmentInterruptionTests.CancelledRequestMidTransitionRollsBackAndRecovers")&&
+  integration("ShipmentInterruptionTests.CommandTimeoutMidTransitionRollsBackWithSanitizedFailure")&&
+  integration("ShipmentInterruptionTests.KilledApplicationProcessMidTransitionCommitsNothing")&&
+  integration("ShipmentInterruptionTests.LostResponseAfterCommitIsDistinguishableFromRollbackAndRetrySafe")],
+["S22",browser("M5 Analyst creates and advances a scoped shipment")&&browser("M5 Manager advances terminal workflows and retains manual history")&&browser("M5 stale edit displays conflict and retains entered values")&&
+  browser("M5 unsaved shipment edits survive leaving and returning to the tab")&&
+  browser("M5 server change while away keeps the local draft and merges only on request")&&
+  browser("M5 stale save after a server change keeps the exact local draft")&&
+  browser("M5 archive and restore leave a draft on another shipment untouched")],
+["S23",browser("M5 Auditor shipment view does not grant M4 management")&&browser("M5 tenant change invalidates prior shipment list")&&browser("M5 deferred shipment response cannot cross organization switch")&&browser("M5 failed parent catalog retries without suppressing shipment list")&&browser("M5 logout clears selected shipment details and cached rows")&&
+  browser("M5 unsaved edits survive a background refresh that is still in flight")&&
+  browser("M5 organization switch drops the open shipment and its draft")&&
+  browser("M5 real access revocation removes the open shipment and its draft")&&
+  browser("M5 logout after unsaved edits leaves no shipment state behind")&&
+  webDraftTests],
 ["S24",unit("MaritimePolicyTests.RoleGrantsStayWithinBusinessPermissions")&&integration("ReferenceDataHttpTests.ScopedPortAndVesselLifecycleAndRoleMatrix")&&
   reports["contract"].length>0&&browsers.length>=engines.length*declared.length],
 ["S25",scans&&requiredStages.every(stage=>ledger.some(row=>row[0]===stage&&row[2]==="0"))&&

@@ -4,7 +4,6 @@
 The archive is never published by this program. All outputs must be on E:.
 """
 import hashlib
-import io
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -45,6 +44,7 @@ def main():
         sys.exit("Use an E:-backed repository and E:-backed output directory.")
     if shutil.which("git") is None or shutil.which("gitleaks") is None:
         sys.exit("The Git and Gitleaks executables are required.")
+    os.umask(0o077)
     root = Path(sys.argv[1])
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()):
@@ -95,6 +95,22 @@ def main():
         output.writestr("README.md", overview)
         manifest.append({"path": "README.md", "size": len(overview),
                          "sha256": hashlib.sha256(overview).hexdigest()})
+
+    # Review the exact candidate bytes before they can be considered for export.
+    stage = root / "scan-tree"
+    stage.mkdir()
+    with zipfile.ZipFile(archive, "r") as candidate:
+        candidate.extractall(stage)
+    results = root / "gitleaks.json"
+    scan = subprocess.run([
+        "gitleaks", "dir", "--redact", "--report-format", "json",
+        "--report-path", str(results), str(stage)
+    ], capture_output=True, text=True)
+    if scan.returncode != 0:
+        print("Snapshot secret scan did not pass. Do not distribute this archive.")
+        print("Inspect the protected evidence directory for findings.")
+        return 1
+    shutil.rmtree(stage)
 
     report = root / "snapshot-manifest.json"
     report.write_text(json.dumps({"source_sha": head, "file_count": len(manifest),

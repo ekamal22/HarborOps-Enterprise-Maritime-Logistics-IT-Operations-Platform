@@ -475,6 +475,8 @@ public sealed class ShipmentExtendedGateTests
         {
             using var response=await anonymous.GetAsync(target);
             Assert.Equal(HttpStatusCode.Unauthorized,response.StatusCode);
+            // Framework-generated challenges are never cacheable either.
+            Assert.Contains("no-store",response.Headers.CacheControl?.ToString()??"");
         }
         foreach(var action in new[]{HttpMethod.Post,HttpMethod.Patch,HttpMethod.Delete})
         {
@@ -485,6 +487,7 @@ public sealed class ShipmentExtendedGateTests
                 originPortId=a,destinationPortId=b,expectedVersion=1L});
             using var response=await anonymous.SendAsync(request);
             Assert.Equal(HttpStatusCode.Unauthorized,response.StatusCode);
+            Assert.Contains("no-store",response.Headers.CacheControl?.ToString()??"");
         }
     }
 

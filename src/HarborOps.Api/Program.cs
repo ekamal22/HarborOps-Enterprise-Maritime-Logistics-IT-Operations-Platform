@@ -62,6 +62,15 @@ app.Use(async (context, next) =>
     var correlationId = Guid.NewGuid().ToString("N");
     context.Items["CorrelationId"] = correlationId;
     context.Response.Headers["X-Correlation-ID"] = correlationId;
+    // Handlers set no-store themselves; this also covers responses produced by the framework
+    // (authentication challenges, rate limiting, the exception handler) on every API route.
+    if (context.Request.Path.StartsWithSegments("/api"))
+        context.Response.OnStarting(() =>
+        {
+            if (!context.Response.Headers.ContainsKey("Cache-Control"))
+                context.Response.Headers.CacheControl = "no-store";
+            return Task.CompletedTask;
+        });
     using var scope = context.RequestServices.GetRequiredService<ILoggerFactory>()
         .CreateLogger("HarborOps.Request").BeginScope(new Dictionary<string, object>
         {

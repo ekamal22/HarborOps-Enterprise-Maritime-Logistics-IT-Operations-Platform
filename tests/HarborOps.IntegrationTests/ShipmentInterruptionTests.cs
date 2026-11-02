@@ -276,6 +276,7 @@ public sealed class ShipmentInterruptionTests
     private static async Task AssertSanitizedUnavailable(HttpResponseMessage response)
     {
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.Contains("no-store", response.Headers.CacheControl?.ToString() ?? "");
         var raw = await response.Content.ReadAsStringAsync();
         var json = JsonDocument.Parse(raw).RootElement;
         Assert.Equal("dependency_unavailable", json.GetProperty("code").GetString());

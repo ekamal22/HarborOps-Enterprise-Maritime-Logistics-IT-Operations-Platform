@@ -130,6 +130,8 @@ test("M5 failed parent catalog retries without suppressing shipment list", async
   });
   await page.locator("#current-organization").selectOption({label:"M3 North Terminal (Manager)"});
   const s=sectionOf(page);
+  // Search for the fixture row: the unfiltered first page depends on how many shipments exist.
+  await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
   await expect(s.getByText("M5-DEMO-NORTH",{exact:true})).toBeVisible();
   await expect(s.getByRole("button",{name:"Retry port catalog"})).toBeVisible();
   await expect(s.getByRole("button",{name:"Create shipment"})).toBeDisabled();

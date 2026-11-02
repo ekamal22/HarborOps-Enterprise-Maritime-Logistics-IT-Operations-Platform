@@ -64,6 +64,8 @@ test("M4 tenant switch drops former tenant maritime content", async ({ page }) =
   await section.getByRole("button", { name: "Containers", exact: true }).click();
   await expect(section).toBeVisible();
   await select.selectOption({ label: "M3 East Terminal (Manager)" });
+  // The server-side switch is asynchronous; assert the former tenant only after it has applied.
+  await expect(page.getByText("Slug: east-terminal")).toBeVisible();
   const orgs = (await (await page.request.get("/api/v1/me/organizations")).json()).organizations;
   const north = orgs.find(o => o.slug === "m3-north");
   const east = orgs.find(o => o.slug === "m3-east");

@@ -1,7 +1,7 @@
 # G5-S01: M5 Local Contract Compliance Matrix
 
 **Purpose:** Show, rule by rule, that the implementation and tests match the [M5 local contract](M5_LOCAL_CONTRACT_DECISION.md) and the [M5 architecture](M5_ARCHITECTURE_DESIGN.md), so the contract can be accepted or rejected on evidence.
-**Contract state:** Proposed, acceptance pending. This audit does not record acceptance.
+**Contract state:** Accepted 2026-11-02; see [decision record](M5_LOCAL_CONTRACT_DECISION.md).
 **Audited source:** the revision named in [M5 executed verification](M5_EXECUTED_VERIFICATION.md). Line numbers below are for that revision.
 **How to read the evidence column:** each test named here ran in the fresh and repeated PostgreSQL integration passes, the unit pass or the three-engine browser pass of the final run. Per-test row counts are in the evidence package index (`reports/G5_EVIDENCE_INDEX.md`).
 
@@ -81,7 +81,7 @@ Discrepancies: none.
 
 ## 2. Documentation inconsistencies corrected
 
-- The architecture state line and section 7 still described the design as unexecuted. They now describe the executed state and keep acceptance pending.
+- The architecture state line and section 7 initially described the design as unexecuted. They now describe the accepted implementation.
 - The trigger description in architecture section 3 now matches the implementation.
 - Architecture section 6 now specifies draft preservation, background refresh and conflict merging for the workspace.
 
@@ -90,6 +90,6 @@ Discrepancies: none.
 - The accepted M3 reference and M4 maritime workspaces still reload their own lists when the tab becomes visible, and that reload closes their open edit forms. This is the defect the shipment workspace had. It is accepted M3/M4 behavior outside the M5 scope, so it was left unchanged and is recorded as a residual risk and a candidate follow-up that would need its own verification of the affected milestones.
 - The M5 workflow history records creation and workflow transitions only, as the contract states. It is not a general audit log (M16).
 
-## 4. Decision requested
+## 4. Accepted decision
 
-The contract has six rules. All six are implemented and tested as described. The decision is to accept or reject the complete contract as written in the [decision record](M5_LOCAL_CONTRACT_DECISION.md). Acceptance pending.
+All six contract rules were explicitly accepted as written on 2026-11-02, closing G5-S01. Full G5 was also separately accepted after independent review, as recorded in [gate closure](M5_G5_GATE_CLOSURE.md).

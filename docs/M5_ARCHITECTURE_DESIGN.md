@@ -1,7 +1,7 @@
 # M5 Shipment Lifecycle and Concurrency: Architecture Design
 
 **Milestone:** M5-01 to M5-04, G5
-**State:** Implemented and locally verified on the M5 feature branch; the contract decision and G5 acceptance remain pending. See [executed verification](M5_EXECUTED_VERIFICATION.md), the [contract compliance matrix](M5_G5_S01_CONTRACT_COMPLIANCE.md) and the [implementation register](M5_IMPLEMENTATION_STATUS.md).
+**State:** Implemented and locally verified at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`; contract and G5 independently reviewed and explicitly accepted on 2026-11-02. See [closure](M5_G5_GATE_CLOSURE.md).
 **Baseline:** Accepted `main` at `18d00e6710097e4e31a87190be8edb65337d1b50` (G0-G4 accepted)
 **Entry gate:** G3 accepted. G4 is also accepted, but M5 retains its independent G3 dependency.
 **Authority:** [Roadmap](ROADMAP.md), [execution graph](execution-graph.json), [FR-004 and authorization requirements](REQUIREMENTS.md), [M4 accepted model](M4_EXECUTED_VERIFICATION.md), [M5 implementation plan](M5_IMPLEMENTATION_PLAN.md), [G5 verification plan](M5_VERIFICATION_PLAN.md).
@@ -130,9 +130,9 @@ Reset selection, pending mutations, page cursors and cached rows on organization
 
 The formal keyboard, contrast, screen-reader and accessibility assessment remains at M24-04. G5 tests functional browser state and authorization, not a dedicated accessibility gate.
 
-## 7. Decisions to confirm before implementation
+## 7. Accepted local contract
 
-This architecture introduces no new global D-number in the accepted execution graph. Before code is written, approve or revise these **M5-local** contract choices as one implementation design decision:
+This architecture introduces no new global D-number. The **M5-local** contract choices below were approved together on 2026-11-02:
 
 1. Manual `Draft -> Booked -> InTransit -> Arrived -> Completed` lifecycle, with cancellation from Draft/Booked/InTransit.
 2. Required origin/destination active M3 ports and independently nullable planned UTC dates; no M4 voyage/container assignment.
@@ -140,4 +140,4 @@ This architecture introduces no new global D-number in the accepted execution gr
 4. Immutable tenant-local and external references, record archival with independent workflow status, and append-only manual status changes.
 5. Simple search/pagination in M5; advanced export and tracking projections deferred.
 
-These choices formed the initial implementation contract in source and have been executed and audited (see the [compliance matrix](M5_G5_S01_CONTRACT_COMPLIANCE.md)), but they have not received a separate formal design-decision entry or G5 acceptance. Independent review of the evidence and the explicit decision remain required. See [M5 implementation status](M5_IMPLEMENTATION_STATUS.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md). Consult the [implementation plan](M5_IMPLEMENTATION_PLAN.md) and [G5 verification plan](M5_VERIFICATION_PLAN.md) before beginning implementation.
+These choices formed the implemented and tested local contract and received explicit acceptance on 2026-11-02. See [six-rule decision](M5_LOCAL_CONTRACT_DECISION.md), [compliance matrix](M5_G5_S01_CONTRACT_COMPLIANCE.md), [executed verification](M5_EXECUTED_VERIFICATION.md) and [G5 closure](M5_G5_GATE_CLOSURE.md).

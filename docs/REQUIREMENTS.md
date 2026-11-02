@@ -57,9 +57,13 @@ FR-003 covers accepted M3 port/vessel and M4 voyage reference records. The M4 vo
 
 FR-003's voyage slice was implemented under M4-02: same-organization vessel and port route, nullable planned/actual UTC windows, explicit voyage status and immutable reference identity. FR-005's container reference slice was implemented under M4-03, with D-003 Option B accepted on 2026-11-01. FR-017 synthetic fixtures and the relevant NFR authorization, error, UTC, repeatability and evidence requirements were exercised. Shipment assignment intervals remain M6, after separately accepted G5 plus G4. See [M4 executed verification](M4_EXECUTED_VERIFICATION.md).
 
-## M5 FR-004 allocation (design only)
+## M5 FR-004 allocation (implemented and G5 accepted)
 
-M5-01 through M5-04 propose scoped shipment CRUD and exact-version concurrency under FR-004 and FR-002. Analyst/Manager shipment read/write and narrowly typed Auditor read-only rights differ from M3/M4 reference permission. See [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation](M5_IMPLEMENTATION_PLAN.md) and [G5 matrix](M5_VERIFICATION_PLAN.md). FR-005 assignments remain M6, tracking histories later M7-M10, advanced shipment search/export M12. No G5 tests have run.
+M5-01 through M5-04 implement organization-scoped shipment CRUD and exact-version concurrency under FR-004 and FR-002. The accepted six-rule M5 local contract gives Analyst/Manager read-write, Auditor narrowly typed read-only and no implicit Administrator/Support business access. The full G5 matrix passed 601 executed tests and was explicitly accepted on 2026-11-02. See [M5 closure](M5_G5_GATE_CLOSURE.md), [architecture](M5_ARCHITECTURE_DESIGN.md) and [verification](M5_EXECUTED_VERIFICATION.md).
+
+## M6 FR-005 allocation (source authored, not yet verified)
+
+FR-005 shipment-container and shipment-voyage assignments are scoped to M6. The proposed [M6 contract](M6_LOCAL_CONTRACT_DECISION.md) and [architecture](M6_ARCHITECTURE_DESIGN.md) define immutable tenant-owned associations with UTC half-open intervals, PostgreSQL overlap exclusions, versioned closure, safe parent archival and strict voyage route compatibility. M6-02 and M6-03 may be built in parallel after M6-01 contract approval. [G6-S01 through G6-S25](M6_VERIFICATION_PLAN.md) include a conditional Q1 historical-volume checkpoint. **M6 source code and tests are authored on the feature branch but no build or G6 verification has run.** See [implementation status](M6_IMPLEMENTATION_STATUS.md). Event ingestion stays M7-M10 and advanced search/export M12.
 
 ## Non-functional requirements
 

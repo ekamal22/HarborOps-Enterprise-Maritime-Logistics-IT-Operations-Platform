@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace HarborOps.Domain.Organizations;
 
 public enum OrganizationRole { Analyst, Manager, Support, Administrator, Auditor }
-public enum OrganizationPermission { ViewOrganization, ViewMemberships, ManageMemberships, UpdateOrganization, ViewReferenceData, ManageReferenceData, ViewVoyageData, ManageVoyageData, ViewContainerData, ManageContainerData, ViewShipmentData, ManageShipmentData }
+public enum OrganizationPermission { ViewOrganization, ViewMemberships, ManageMemberships, UpdateOrganization, ViewReferenceData, ManageReferenceData, ViewVoyageData, ManageVoyageData, ViewContainerData, ManageContainerData, ViewShipmentData, ManageShipmentData, ViewShipmentAssignments, ManageShipmentAssignments }
 
 public static class OrganizationPolicy
 {
@@ -39,6 +39,8 @@ public static class OrganizationPolicy
 
     public static bool Allows(OrganizationRole role, OrganizationPermission permission) =>
         permission == OrganizationPermission.ViewOrganization ||
+        (permission == OrganizationPermission.ViewShipmentAssignments && role is (OrganizationRole.Analyst or OrganizationRole.Manager or OrganizationRole.Auditor)) ||
+        (permission == OrganizationPermission.ManageShipmentAssignments && role is (OrganizationRole.Analyst or OrganizationRole.Manager)) ||
         (permission == OrganizationPermission.ViewShipmentData && role is
             (OrganizationRole.Analyst or OrganizationRole.Manager or OrganizationRole.Auditor)) ||
         (permission == OrganizationPermission.ManageShipmentData && role is

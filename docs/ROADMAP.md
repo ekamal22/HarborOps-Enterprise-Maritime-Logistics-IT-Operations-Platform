@@ -151,8 +151,8 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** Temporal and organization-safe shipment assignments.
 **Entry:** G4 accepted, G5 accepted before respective dependent work packages.
-**Required work packages:** M6-01 Define assignment invariants; M6-02 Implement shipment-container links; M6-03 Implement shipment-voyage links; M6-04 Verify complete allocation journey.
-**Exit G6:** All applicable tasks, negative tests, runtime evidence and documentation for M6 recorded; acceptance pending until explicitly confirmed.
+**Required work packages:** M6-01 define and approve assignment invariants, M6-02 implement shipment-container links and M6-03 implement shipment-voyage links in parallel after M6-01, M6-04 integrate the complete allocation journey. See [architecture](M6_ARCHITECTURE_DESIGN.md) and [implementation plan](M6_IMPLEMENTATION_PLAN.md).
+**Exit G6:** The complete [G6-S01 to G6-S25 verification contract](M6_VERIFICATION_PLAN.md) requires actual database, HTTP, browser, security and recovery execution at one final SHA, independent raw evidence review, explicit [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) approval and separate G6 acceptance. M6 initial implementation source is committed on its feature branch; build, G6 execution and formal acceptance have not occurred. See [implementation status](M6_IMPLEMENTATION_STATUS.md).
 **Q1 snapshot checkpoint:** Verify a disposable copy of a retained historical PostgreSQL volume if available; otherwise record NOT APPLICABLE. This is a milestone checkpoint, not a per-commit test.
 **Not covered by this milestone:** Tracking intake or analytics.
 

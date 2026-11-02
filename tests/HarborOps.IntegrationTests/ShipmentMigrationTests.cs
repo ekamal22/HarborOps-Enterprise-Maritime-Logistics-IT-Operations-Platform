@@ -81,7 +81,7 @@ public sealed class ShipmentMigrationTests
             Assert.Equal(5,beforeApplied.Length);
             var before = await db.AuthSessions.AsNoTracking()
                 .SingleAsync(s => s.Id == session.SessionId);
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261101180000_ShipmentLifecycle");
             Assert.Equal(6, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.False(db.Database.HasPendingModelChanges());
             Assert.Equal(org.Id, (await db.AuthSessions.AsNoTracking()
@@ -116,7 +116,7 @@ public sealed class ShipmentMigrationTests
             Assert.Equal(vessel.Id, (await db.Vessels.AsNoTracking().SingleAsync()).Id);
             Assert.Equal(org.Id, (await db.AuthSessions.AsNoTracking()
                 .SingleAsync(s => s.Id == session.SessionId)).SelectedOrganizationId);
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261101180000_ShipmentLifecycle");
             Assert.Equal(6, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Empty(await db.Shipments.AsNoTracking().ToListAsync());
             Assert.Equal(2, await db.Ports.AsNoTracking().CountAsync());

@@ -35,9 +35,13 @@ Before a storage-format or breaking database change is deployed against existing
 
 G4 was explicitly accepted on 2026-11-01 following independent raw-evidence review and D-003 Option B approval. The [G4 executed verification record](M4_EXECUTED_VERIFICATION.md) documents completion of all 25 scenario requirements: tenant, role, migration, temporal/identity constraints, archival uniqueness, concurrent parent/revocation cases, three browsers, M0-M3 regressions, outage/recovery and security scans. M5 shipment CRUD, M6 assignments, formal accessibility and historical-volume compatibility remain separate milestones.
 
-## G5 exit contract (planning only)
+## G5 exit contract (verified and accepted)
 
-All [G5-S01 through G5-S25](M5_VERIFICATION_PLAN.md) require execution on one final M5 implementation SHA, independently reviewed raw evidence and explicit acceptance. Authored code/tests or a partially green suite do not suffice. [M5 architecture](M5_ARCHITECTURE_DESIGN.md) remains a proposal; G5 OPEN, acceptance pending. M6 remains blocked until G5 is accepted.
+All [G5-S01 through G5-S25](M5_VERIFICATION_PLAN.md) were independently reviewed on the final tested M5 source and explicitly accepted on 2026-11-02, including the separately approved six-rule local contract. See [G5 gate closure](M5_G5_GATE_CLOSURE.md). M6 is eligible to plan because G4 and G5 are accepted.
+
+## G6 exit contract (initial implementation authored, not executed)
+
+The [G6-S01 through G6-S25 plan](M6_VERIFICATION_PLAN.md) requires direct interval-exclusion SQL tests, scoped composite foreign keys, session/tenant isolation, parent archive/status races, no partial writes, Chromium/Firefox/WebKit, M0-M5 regressions, security mutation proofs, raw E:-backed evidence, and the Q1 historical-volume checkpoint or explicit `NOT APPLICABLE` with reason. The [twelve-rule M6-local contract](M6_LOCAL_CONTRACT_DECISION.md) must be separately approved; only after executed evidence review may G6 be accepted and integration into `main` authorized. M6 source implementation is authored on the feature branch; G6 execution, complete evidence review and acceptance remain NOT STARTED. See [M6 implementation status](M6_IMPLEMENTATION_STATUS.md).
 
 ## Recorded M0 verification state
 
@@ -71,7 +75,7 @@ The detailed product release checks below remain in force. The [Roadmap](ROADMAP
 | **G3** | M3 Ports and vessels reference data | Port/vessel identifiers and uniqueness, tenant/role-scoped CRUD, cross-tenant and race denials, migration preservation and three-browser lookup, plus full M0-M2 regression; [G3 local plan](M3_VERIFICATION_PLAN.md). Executed and passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([record](M3_EXECUTED_VERIFICATION.md)); G3 explicitly accepted on 2026-10-31 and integrated into `main`. |
 | **G4** | M4 Voyages and containers reference data | Execute all [G4-S01 through G4-S25](M4_VERIFICATION_PLAN.md): approved D-003, time/identity constraints, live tenant/role/race matrix, M3 upgrade preservation, three browsers, M0-M3 regressions, E:-only evidence, explicit acceptance |
 | **G5** | M5 Shipment lifecycle and concurrency | [G5-S01 to G5-S25](M5_VERIFICATION_PLAN.md): status and identity, tenant FKs, archived references, history atomicity, concurrent writes, two tenants/five roles, three browsers, M0-M4 regressions, recovery and raw evidence review |
-| **G6** | M6 Container and voyage assignments | Temporal assignment/overlap prevention and end-to-end linked shipment flow; quarterly snapshot check or NOT APPLICABLE |
+| **G6** | M6 Container and voyage assignments | All [G6-S01 to G6-S25](M6_VERIFICATION_PLAN.md): UTC half-open intervals, database overlap exclusions, scoped container/voyage associations, route and parent guards, race/role matrix, end-to-end three-browser flow, M0-M5 regressions and the Q1 snapshot check or documented NOT APPLICABLE; explicit acceptance |
 | **G7** | M7 Tracking contracts and source authentication | Pinned source schema, source authorization, oversized/forged/unsupported payload tests |
 | **G8** | M8 Durable event inbox and immutable history | Durable receipt, collision, uniqueness and restart-preserved immutable history tests |
 | **G9** | M9 Idempotent worker and reconciliation | Worker concurrency, bounded retry, dead-letter and crash-window effect-once tests |

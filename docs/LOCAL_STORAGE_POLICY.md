@@ -7,8 +7,8 @@
 
 | Category | Approved location |
 | --- | --- |
-| Git working tree | `E:\APP IDEAS\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform` |
-| Project-specific dependency caches and evidence | Historical M0: `E:\APP IDEAS\harborops-m0-cache`; locally verified G2: `E:\HarborOps-Verification` (caches, temporary files, Playwright and evidence); future milestones: explicit E:-backed project directories |
+| Git working tree | Configured E:-backed workspace path |
+| Project-specific dependency caches and evidence | Configured E:-backed paths for caches, temporary files, browser assets and evidence |
 | .NET and frontend build outputs | Inside the repository or an explicitly configured E-drive output directory |
 | Package downloads and compilation scratch | E-drive scoped cache and temporary directories |
 | Database integration-test data | Disposable local PostgreSQL instance, with data held on E or in disposable memory-backed storage |
@@ -32,7 +32,10 @@ Unavoidable temporary writes by Windows or a required tool are permitted only wh
 In a **new terminal** before development or test commands:
 
 ```powershell
-$Workspace = 'E:\APP IDEAS'
+$Workspace = $env:HARBOROPS_WORKSPACE_ROOT
+if ([string]::IsNullOrWhiteSpace($Workspace) -or $Workspace -notmatch '^[Ee]:\\') {
+    throw 'Set HARBOROPS_WORKSPACE_ROOT to an E:-backed working directory'
+}
 $Repo = Join-Path $Workspace 'HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform'
 $Cache = Join-Path $Workspace 'harborops-m0-cache'
 
@@ -82,21 +85,21 @@ Create test users only inside disposable PostgreSQL databases; never seed an act
 
 ## M2 local verification and future milestones
 
-G2 passed through `scripts/verify-m2-local.sh` using disposable PostgreSQL/Compose resources and E:-backed caches, browser binaries and evidence under `E:\HarborOps-Verification`. The recorded source is `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; see [G2 executed verification](M2_EXECUTED_VERIFICATION.md). Earlier test iterations caused WSL crash reports to be written by the operating system under C:; corrected command failure handling and container core-dump controls prevented new crash files in the final G2 run. Existing crash reports were not modified. Never deliberately initiate project storage or dumps on C:, and stop if a tool cannot be constrained to E:.
+G2 passed through `scripts/verify-m2-local.sh` using disposable PostgreSQL/Compose resources and E:-backed caches, browser binaries and evidence under `the configured E:-backed verification root`. The recorded source is `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; see [G2 executed verification](M2_EXECUTED_VERIFICATION.md). Earlier test iterations caused WSL crash reports to be written by the operating system under C:; corrected command failure handling and container core-dump controls prevented new crash files in the final G2 run. Existing crash reports were not modified. Never deliberately initiate project storage or dumps on C:, and stop if a tool cannot be constrained to E:.
 
 ## M0 baseline and historical context
 
-M0 was verified on a Windows 11 host with its working tree under E:, project caches under `E:\APP IDEAS\harborops-m0-cache`, and Docker Desktop's WSL data on E:. [M0 Verification](M0_VERIFICATION.md) preserves historical evidence, while [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) records the accepted G0 CI run. Both are available on `main`.
+M0 was verified on a Windows 11 host with its working tree under E:, project caches under `the configured E:-backed M0 cache`, and Docker Desktop's WSL data on E:. [M0 Verification](M0_VERIFICATION.md) preserves historical evidence, while [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) records the accepted G0 CI run. Both are available on `main`.
 
 For future milestones, reuse this E-drive baseline and recheck disk paths before adding new tools or test frameworks. No new service, package manager, browser test runner or build pipeline may silently introduce persistent C-drive usage.
 
 ## G4 local run storage notes
 
-The G4 runs use `E:\\HarborOps-Verification` for caches, temporary files, browser binaries, evidence and logs, and the E:-backed Docker Desktop data image checked by `scripts/check-m3-docker-storage.mjs`. Git Bash rewrites a leading slash inside an argument unless `MSYS_NO_PATHCONV=1` is set for that command, which previously hid a leftover disposable database container from the runner. Before and after a run, record C: and E: free space and a file manifest of the candidate C: locations, and delete only files that the manifest comparison attributes to the run. The fifth G4 audit records the method.
+The G4 runs use `the configured E:-backed verification root` for caches, temporary files, browser binaries, evidence and logs, and the E:-backed Docker Desktop data image checked by `scripts/check-m3-docker-storage.mjs`. Git Bash rewrites a leading slash inside an argument unless `MSYS_NO_PATHCONV=1` is set for that command, which previously hid a leftover disposable database container from the runner. Before and after a run, record C: and E: free space and a file manifest of the candidate C: locations, and delete only files that the manifest comparison attributes to the run. The fifth G4 audit records the method.
 
 ## G5 verification storage and cleanup (executed)
 
-The G5 local runner checks an E:-backed `HARBOROPS_VERIFICATION_ROOT` ending in `m5`, enforces E:-rooted controllable temporary/cache paths, uses a separate `ho-verify-g5` Compose project, records C:/E: free space before and after, and saves the evidence log and ZIP/hash manifest to E:. Temporary files on C: may be removed only when attributable to the current task and safe to delete. Never delete Docker Desktop, Windows or unrelated application logs on the basis of timestamps alone. The G5 runs kept all controllable storage on E:. Before and after C: and E: records, a file-level C: comparison and a cleanup report are in each evidence package described in [M5 executed verification](M5_EXECUTED_VERIFICATION.md). For the current package (source `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`), C: free space is 109,891,584 bytes lower than at the pre-work baseline and E: free space is 7,073,542,144 bytes lower; the tracked C: directories gained 47 files (27 MB) and changed 17, none under a path controlled by the task, so none was deleted. The unexplained remainder of the C: change is unattributed; a wider C: scan was not performed.
+The G5 local runner checks an E:-backed `HARBOROPS_VERIFICATION_ROOT` ending in `m5`, enforces E:-rooted controllable temporary/cache paths, uses a separate `ho-verify-g5` Compose project, records C:/E: free space before and after, and saves the evidence log and ZIP/hash manifest to E:. Temporary files on C: may be removed only when attributable to the current task and safe to delete. Never delete Docker Desktop, Windows or unrelated application logs on the basis of timestamps alone. The G5 runs kept all controllable storage on E:. Before and after C: and E: records, a file-level C: comparison and a cleanup report are in each evidence package described in [M5 executed verification](M5_EXECUTED_VERIFICATION.md). The precise before/after disk measurements and unattributed differences are retained in the accepted G5 evidence register. No broad cleanup was conducted.
 
 ## Scope and verification
 

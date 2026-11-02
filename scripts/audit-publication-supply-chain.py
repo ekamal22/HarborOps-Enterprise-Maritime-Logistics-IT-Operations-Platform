@@ -9,6 +9,11 @@ import subprocess
 import sys
 
 
+def resolved(arguments):
+    """Resolve the executable through PATH so Windows .cmd wrappers (npm, pinned scanner images) work."""
+    return [shutil.which(arguments[0]) or arguments[0], *arguments[1:]]
+
+
 def on_e(path):
     path = str(path).replace("\\", "/").lower()
     return path.startswith(("e:/", "/mnt/e/", "/e/"))
@@ -16,7 +21,7 @@ def on_e(path):
 
 def run(command, destination, env):
     with destination.open("wb") as output:
-        result = subprocess.run(command, stdout=output, stderr=subprocess.PIPE, env=env)
+        result = subprocess.run(resolved(command), stdout=output, stderr=subprocess.PIPE, env=env)
     if result.stderr:
         destination.with_suffix(destination.suffix + ".stderr").write_bytes(result.stderr)
     return result.returncode

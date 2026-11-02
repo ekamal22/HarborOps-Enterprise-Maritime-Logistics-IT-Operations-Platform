@@ -30,6 +30,11 @@ EMAIL = re.compile(rb"[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})", re.I)
 ALLOWED_DOMAINS = {"example.test", "host.test", "example.com", "example.org", "example.net"}
 
 
+def resolved(arguments):
+    """Resolve the executable through PATH so Windows .cmd wrappers work."""
+    return [shutil.which(arguments[0]) or arguments[0], *arguments[1:]]
+
+
 def e_drive(path):
     value = str(path).replace("\\", "/").lower()
     return value.startswith(("e:/", "/mnt/e/", "/e/"))
@@ -102,10 +107,10 @@ def main():
     with zipfile.ZipFile(archive, "r") as candidate:
         candidate.extractall(stage)
     results = root / "gitleaks.json"
-    scan = subprocess.run([
+    scan = subprocess.run(resolved([
         "gitleaks", "dir", "--redact", "--report-format", "json",
         "--report-path", str(results), str(stage)
-    ], capture_output=True, text=True)
+    ]), capture_output=True, text=True)
     if scan.returncode != 0:
         print("Snapshot secret scan did not pass. Do not distribute this archive.")
         print("Inspect the protected evidence directory for findings.")

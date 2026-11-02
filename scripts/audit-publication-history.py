@@ -11,14 +11,19 @@ import sys
 REPOSITORY = "ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform"
 
 
+def resolved(arguments):
+    """Resolve the executable through PATH so Windows .cmd wrappers (npm, pinned scanner images) work."""
+    return [shutil.which(arguments[0]) or arguments[0], *arguments[1:]]
+
+
 def execute(arguments, output=None, check=True, env=None):
     with open(output, "wb") if output is not None else open(os.devnull, "wb") as sink:
-        return subprocess.run(arguments, stdout=sink, stderr=subprocess.PIPE,
+        return subprocess.run(resolved(arguments), stdout=sink, stderr=subprocess.PIPE,
                               check=check, env=env)
 
 
 def capture(arguments, env=None):
-    return subprocess.check_output(arguments, stderr=subprocess.PIPE, text=True, env=env)
+    return subprocess.check_output(resolved(arguments), stderr=subprocess.PIPE, text=True, env=env)
 
 
 def is_e_drive(value):

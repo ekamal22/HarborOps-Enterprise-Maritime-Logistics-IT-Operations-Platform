@@ -33,6 +33,7 @@ def main():
         if not shutil.which(tool):
             sys.exit("Missing required tool: " + tool)
 
+    os.umask(0o077)
     root = Path(sys.argv[1])
     history = root / "history"
     runs = root / "runs"
@@ -50,6 +51,21 @@ def main():
     if actual != REPOSITORY:
         sys.exit("Repository mismatch: " + actual)
 
+    incomplete = []
+    if capture(["git", "rev-parse", "--is-shallow-repository"], env).strip() == "true":
+        incomplete.append("repository is shallow; complete history is not present")
+    try:
+        remote_refs = capture(["git", "ls-remote", "--heads", "--tags", "origin"], env)
+        (history / "remote-refs.txt").write_text(remote_refs)
+        for line in remote_refs.splitlines():
+            commit = line.split()[0]
+            probe = subprocess.run(["git", "cat-file", "-e", commit + "^{object}"],
+                                   capture_output=True, env=env)
+            if probe.returncode:
+                incomplete.append("remote ref object unavailable: " + commit)
+    except subprocess.CalledProcessError:
+        incomplete.append("remote refs could not be inventoried")
+
     (history / "source-sha.txt").write_text(capture(["git", "rev-parse", "HEAD"], env))
     inventories = {
         "refs.txt": ["git", "for-each-ref", "--format=%(refname) %(objectname)"],
@@ -58,7 +74,6 @@ def main():
         "all-commits.txt": ["git", "log", "--all", "--format=%H %aI %cI %s"],
         "unreachable.txt": ["git", "fsck", "--full", "--no-reflogs", "--unreachable"],
     }
-    incomplete = []
     for name, arguments in inventories.items():
         result = execute(arguments, history / name, check=False, env=env)
         if result.returncode:
@@ -121,7 +136,11 @@ def main():
     hashes = []
     for path in sorted(root.rglob("*")):
         if path.is_file() and path.name != "file-hashes.txt":
-            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            checksum = hashlib.sha256()
+            with path.open("rb") as source:
+                for block in iter(lambda: source.read(1024 * 1024), b""):
+                    checksum.update(block)
+            digest = checksum.hexdigest()
             hashes.append(digest + "  " + str(path.relative_to(root)))
     (root / "file-hashes.txt").write_text("\n".join(hashes) + "\n")
     summary = {

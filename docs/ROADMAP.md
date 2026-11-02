@@ -2,7 +2,7 @@
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Date:** 2026-10-30  
-**State:** M0/G0 through M4/G4 are verified, independently reviewed, explicitly accepted and integrated into `main`. G3 was accepted on 2026-10-31; G4 on 2026-11-01 following D-003 Option B approval and [executed verification](M4_EXECUTED_VERIFICATION.md) of the final `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` implementation. G5-G24 remain open.
+**State:** M0/G0 through M5/G5 are locally verified and explicitly accepted. G5 and its six-rule contract were approved 2026-11-02 after [raw evidence review](M5_EXECUTED_VERIFICATION.md), [compliance audit](M5_G5_S01_CONTRACT_COMPLIANCE.md) and [gate closure](M5_G5_GATE_CLOSURE.md). M5 integrated into `main`; G6-G24 remain open.
 
 ## Authority and rationale
 
@@ -37,7 +37,7 @@ The canonical work-package DAG is [execution-graph.json](execution-graph.json), 
 - **Gate closure** requires the complete positive/negative/security/regression evidence on the integrated source revision and explicit acceptance. Verified but unaccepted gates are not substitutes for accepted prerequisites.
 - **G24 release convergence** requires G0-G23 accepted, every cross-track contract integrated, a full final-system regression, M24-03 historical compatibility and M24-04 accessibility assessment. Early G19 recovery or G20 security review must be revalidated for later schema/features at this final gate.
 
-With G4 now accepted, M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain eligible under their original independent prerequisites. M6 design can use the accepted M4 reference contract, but implementation remains gated on **G5 as well as G4**. Eligibility does not imply implementation or acceptance.
+With G4 and G5 accepted, M6 shipment assignments, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain eligible under their original independent prerequisites. M6 implementation is now eligible because both G4 and G5 are accepted. G6 still requires its own verification and acceptance. Eligibility does not imply implementation or acceptance.
 
 ## Milestone register
 
@@ -144,7 +144,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Create, edit, search and archive organizational shipments.
 **Entry:** G3 accepted before respective dependent work packages.
 **Required work packages:** M5-01 freeze domain, lifecycle and roles; M5-02 implement schema and tenant-scoped commands; M5-03 implement optimistic concurrency and revocation races (parallel after M5-01); M5-04 verify full three-browser CRUD. Assignments remain M6. See [M5 plan](M5_IMPLEMENTATION_PLAN.md).
-**Exit G5:** All [G5-S01 through G5-S25](M5_VERIFICATION_PLAN.md) must execute on one final source SHA with independently reviewed raw evidence and explicit acceptance. The [M5 implementation register](M5_IMPLEMENTATION_STATUS.md) records committed domain, schema, API, UI and test source. No M5 .NET build, PostgreSQL migration or G5 runtime test has executed. Remaining adversarial subcases and evidence are listed in the [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md). Acceptance pending.
+**Exit G5:** Accepted on 2026-11-02, based on the complete six-rule local contract and independently reviewed run 13 source `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`. All 25 scenarios closed, 601 test executions passed, all 26 executable stages passed, and Trivy HIGH/CRITICAL findings were zero. The two derived report corrections changed no raw evidence or tested source. See [gate closure](M5_G5_GATE_CLOSURE.md).
 **Not covered by this milestone:** Container/voyage assignment and event processing.
 
 #### M6: Container and voyage assignments
@@ -351,4 +351,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M4/G0-G4 are verified, accepted and integrated into `main`. The next independently eligible engineering streams include M5, M7 (pending D-002), M16, M17, M19 (pending D-008), M20-01 and M23-01. M6 assignment integration still requires accepted G5, despite G4 acceptance. The original dependency graph permits independent starts and must not be made sequential. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md). G5-G24 remain open.
+M0-M5/G0-G5 are verified, explicitly accepted and integrated into `main`. Eligible work includes M6, M7 (pending D-002), M16, M17, M19 (pending D-008), M20-01 and M23-01. M6 now has accepted G4 and G5 prerequisites but still needs separate G6 verification. The original dependency graph remains unchanged. G6-G24 remain open.

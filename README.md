@@ -52,7 +52,7 @@ M3 is implemented, locally verified, explicitly accepted on 2026-10-31 and integ
 
 ### Parallel-ready workstreams after G3
 
-M4 voyages and containers are accepted and integrated. Other independently eligible streams include M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review, and M23-01 interface planning. M6 assignment integration requires G4 **and G5**, both now accepted. D-003 is accepted for M4; D-002 remains pending for M7. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
+M4 voyages and containers are accepted and integrated. Other independently eligible streams include M6 shipment assignments, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review, and M23-01 interface planning. M6 assignment integration requires G4 **and G5**, both now accepted. D-003 is accepted for M4; D-002 remains pending for M7. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
 
 ### Planned modules
 
@@ -177,4 +177,4 @@ The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) pres
 
 ### Current state
 
-M0-M5 are explicitly accepted. M5 integration into `main` was authorized on 2026-11-02; the tested implementation SHA is preserved in [G5 verification](docs/M5_EXECUTED_VERIFICATION.md). Shipment assignments, tracking, analytics and incident workflows remain scoped to later gates. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).
+M0-M5 are explicitly accepted. M5 was fast-forward integrated into `main` on 2026-11-02; the tested implementation SHA is preserved in [G5 verification](docs/M5_EXECUTED_VERIFICATION.md). Shipment assignments, tracking, analytics and incident workflows remain scoped to later gates. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).

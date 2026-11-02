@@ -19,6 +19,8 @@ mkdir -p "$root/dev"
 action="${1:?up|run|down}"
 export HARBOROPS_SOURCE_SHA="$(git rev-parse HEAD)"
 export COMPOSE_PROJECT_NAME="$project"
+# Same synthetic default as the gate runner; the database is disposable.
+export HARBOROPS_DB_PASSWORD="${HARBOROPS_DB_PASSWORD:-disposable-m3-check-only}"
 export COMPOSE_PATH_SEPARATOR=";"
 export COMPOSE_FILE="compose.yaml;$(cygpath -w "$root/compose.core0.yaml")"
 

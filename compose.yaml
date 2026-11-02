@@ -71,6 +71,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       Identity__AllowInsecureLoopbackHttp: "true"
+      Identity__TrustedLocalHttpPeers: "172.30.254.1,172.30.254.10"
       Identity__KeyRingPath: "/keys"
       ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
       Cors__AllowedOrigins__0: "http://localhost:5173"
@@ -94,7 +95,9 @@ services:
     depends_on:
       api:
         condition: service_started
-    networks: [internal]
+    networks:
+      internal:
+        ipv4_address: 172.30.254.10
 
 volumes:
   harborops-postgres:
@@ -103,3 +106,6 @@ volumes:
 networks:
   internal:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.254.0/24

@@ -86,6 +86,10 @@ M4 implements tenant-scoped voyage schedules and container references. D-003 Opt
 
 M5 supports tenant-scoped shipment create, edit, search, archive and restore, a manual workflow with immutable history, scoped permissions and exact-version concurrency. The six-rule [M5 local contract](docs/M5_LOCAL_CONTRACT_DECISION.md) and G5 were explicitly accepted 2026-11-02. Local run 13 at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91` passed 601 test executions, including 47 browser scenarios per engine in Chromium, Firefox and WebKit, with independently reviewed evidence. See [G5 closure](docs/M5_G5_GATE_CLOSURE.md), [verification](docs/M5_EXECUTED_VERIFICATION.md) and [implementation status](docs/M5_IMPLEMENTATION_STATUS.md). M6 owns shipment assignment links.
 
+### M6 shipment assignments planning
+
+M6 is planned on `feat/m6-container-voyage-assignments`, based on accepted G4 and G5. The proposed [M6 local contract](docs/M6_LOCAL_CONTRACT_DECISION.md), [architecture](docs/M6_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M6_IMPLEMENTATION_PLAN.md) and [G6 verification matrix](docs/M6_VERIFICATION_PLAN.md) cover tenant-owned time intervals, database exclusion constraints, reference archival guards and the G6 Q1 historical-snapshot checkpoint. **No M6 implementation or G6 execution is claimed; contract approval and milestone acceptance are pending.** See [M6 planning status](docs/M6_PLANNING_STATUS.md).
+
 ### Parallel dependency-based delivery
 
 M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone IDs are not execution order: independently ready workstreams may run in parallel after their named upstream gates are accepted. The graph v3.0 defines work-package-level hard and integration dependencies; see [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md). Current delivery status remains exclusive to [Project Status](docs/STATUS.md).
@@ -142,6 +146,11 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M5 Source Audit](docs/M5_SOURCE_CORRECTNESS_AUDIT.md) | Source corrections and remaining real-runtime / adversarial verification gaps |
 
 | [M5 Planning Status](docs/M5_IMPLEMENTATION_STATUS.md) | Implemented, verified and accepted, G5 closed |
+| [M6 Local Contract](docs/M6_LOCAL_CONTRACT_DECISION.md) | Proposed twelve-rule assignment contract, acceptance pending |
+| [M6 Architecture](docs/M6_ARCHITECTURE_DESIGN.md) | Shipment-to-container and shipment-to-voyage temporal association architecture |
+| [M6 Implementation Plan](docs/M6_IMPLEMENTATION_PLAN.md) | M6-01 through M6-04 delivery ownership, sequencing and source inventory |
+| [G6 Verification Plan](docs/M6_VERIFICATION_PLAN.md) | 25 mandatory scenarios and the Q1 snapshot checkpoint, not executed |
+| [M6 Planning Status](docs/M6_PLANNING_STATUS.md) | Planning-only state, upstream gates and outstanding decisions |
 | [M4 Executed Verification](docs/M4_EXECUTED_VERIFICATION.md) | Accepted G4 evidence, D-003 closure, verified source SHA and immutable artifact hash |
 | [M3 Executed Verification](docs/M3_EXECUTED_VERIFICATION.md) | Verified G3 execution evidence, failure history and acceptance record |
 | [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Historical first-audit fixes and subsequent verified G3 outcome |

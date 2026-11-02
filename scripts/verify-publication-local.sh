@@ -113,8 +113,8 @@ soft_stage scan bash $stages scan
 # (see docs/PUBLICATION_REMEDIATION_STATUS.md); skipped, and reported as such, when they are not.
 if [[ -f "$root/bin/trivy.cmd" ]]; then
   supply_chain() {
-    PATH="$root/bin:$PATH" TRIVY_CACHE_DIR="$(cygpath -m "$root/trivy-cache")"       COMPOSE_PROJECT_NAME=ho-verify-g6 bash -c '
-        dotnet restore HarborOps.sln >/dev/null &&
+    PATH="$(cygpath -u "$root")/bin:$PATH" TRIVY_CACHE_DIR="$(cygpath -m "$root/trivy-cache")"       COMPOSE_PROJECT_NAME=ho-verify-g6 bash -c '
+        dotnet.cmd restore HarborOps.sln >/dev/null &&
         python scripts/audit-publication-supply-chain.py "$1"' _ "$(cygpath -m "$evidence/supply-chain")"
   }
   soft_stage supply-chain supply_chain

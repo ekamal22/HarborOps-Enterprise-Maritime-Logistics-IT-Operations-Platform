@@ -65,6 +65,25 @@ The M6 feature branch includes successive correctness remediation rounds. These 
 | HTTP and voyage matrices | Named executable tests verify five-role permissions, malformed request handling, shared voyage/adjacent reassignment and direct SQL terminal guards. |
 | Q1 snapshot | `scripts/check-g6-snapshot.mjs` restores and migrates a representative E:-backed backup in a disposable PostgreSQL container, or records justified NOT APPLICABLE when none is present. |
 
+## Runtime-discovered defects (local execution before the full G6 run)
+
+Local execution found the following defects that source review had not. Each was corrected on the feature branch with `[skip ci]` commits and re-verified in isolation before the full G6 run. These are development rehearsal results, not gate evidence; the gate run is recorded separately once it completes.
+
+| Finding | Root cause | Correction |
+| --- | --- | --- |
+| Release build failed (EF1003) | The assignment list cursor query concatenated a table name into `FromSqlRaw` | Per-table `FromSqlInterpolated` queries in `AssignmentStore` |
+| Integration test projects did not compile | An invalid `DBNull` pattern and a shadowed local named `actor` | Corrected pattern and renamed local |
+| Accepted M5 test `CompositePortsAndImmutableFieldsRejectIndependentSqlMutations` failed | The M6 parent guard triggers sorted before the accepted `shipments_validate` trigger and replaced its delete rejection message | Guards renamed `zz_m6_guard_*` so the accepted validators run first; the M5 assertion is unchanged |
+| `QueuedAllocationAndParentArchiveCannotCommitInconsistentState` errored in cleanup | The test rolled back a transaction it had already committed | A committed flag guards the rollback |
+| Fixture generator rejected container identifiers | Synthetic identifier suffixes were longer than the 16 character limit | Short engine tags in the identifiers |
+| Five assignment browser specs failed in Chromium and Firefox, five in WebKit | Direct API calls ran before the server-side organization selection and the controlled select value were visible; an unawaited promise was concatenated into a URL; a label match was ambiguous; the CSRF origin omitted the port | `selectOrganization` helper that waits for the PUT and a non-empty value, awaited lookup, exact label match, correct origin |
+| Outage checks failed with ENOBUFS | The API log credential scan exceeded the default process buffer after the browser stage | Larger buffer in the outage and recovery scripts |
+| Reference and maritime outage checks failed with HTTP 429 | Back-to-back checks shared account logins and exhausted the login limiter | The runner restarts the API before each outage and recovery check |
+| Mutation runner could not extract its source export | GNU tar read the drive letter as a host and a backslash before `t` as an escape | Cache-relative forward-slash paths |
+| Leftover disposable database after a failed build | The cleanup trap did not run under errexit | EXIT trap in the .NET stage |
+
+Harness changes made in the same period: a warnings-as-errors compile gate and the disposable-database suites now run before the Compose stages, each stage records its duration, ownership checks cover every `ho-g6-` container, mutation failure messages and a ZIP SHA-256 sidecar are retained, and a read-only restore of a retained historical Docker volume is supported by the Q1 snapshot check. Development-only rehearsal scripts (`scripts/dev-m6-targeted.sh`, `scripts/dev-m6-browsers.sh`) write outside the evidence directory and never count as gate evidence.
+
 ## Verification limits and outstanding work
 
 **No successful local build or runtime test result exists for this revision.** The repository connector permits source changes but does not execute .NET 10, Docker Desktop, PostgreSQL 16, Windows E:-backed fixtures, Playwright browsers or the G6 local pipeline. Source authorship is not proof of passing the gate.

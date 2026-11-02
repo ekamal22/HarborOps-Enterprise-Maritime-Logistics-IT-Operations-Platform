@@ -101,6 +101,9 @@ The E:-backed runner `scripts/verify-m6-local.sh`, stage and three-browser launc
 - Final G6 validator checks each scenario, per-engine JSON, no skipped required tests, complete TRX, exact SHA, owned teardown, storage and hashes. If S01 is pending, it may package incomplete technical evidence but must not claim gate PASS or acceptance.
 - Every failed run is retained separately with its source revision. No old G5 evidence is overwritten.
 - Explicitly **forbid GitHub Actions** and use `[skip ci]` on every commit.
+- Stage order is fail-fast: static checks, image build, a warnings-as-errors compile gate, dependency review, web build, planning documents, the .NET suites, the security mutations and the Q1 snapshot checkpoint run before the Compose browser and outage stages. Every stage row records the source SHA, exit status and duration in seconds.
+- Targeted rehearsals (`scripts/dev-m6-targeted.sh`, `scripts/dev-m6-browsers.sh`) use disposable resources, write under `dev/` and are never accepted as gate evidence. The gate itself always runs every mandatory stage once on one pinned SHA.
+- The Q1 checkpoint can restore a retained historical Docker volume when `HARBOROPS_G6_HISTORICAL_VOLUME` names it. The source volume is mounted read-only only, its file fingerprint is taken before and after, and the copy, container and volume are disposable.
 
 ## 5. Exit and acceptance
 

@@ -1,15 +1,15 @@
 # M6 Local Assignment Contract: Decision Record
 
-**State:** Proposed, acceptance pending
+**State:** Accepted on 2026-11-02; G6-S01 closed by explicit decision
 **Milestone:** M6-01; mandatory G6-S01 decision
 **Prepared:** 2026-11-02
 **Planning branch:** `feat/m6-container-voyage-assignments`
 **Accepted base:** `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`; G4 and G5 accepted
 **Scope:** Organization-safe, time-bounded shipment to container and shipment to voyage associations
 
-This is a proposed local contract, not an accepted decision. Approving the architecture for implementation and accepting the full G6 gate are separate decisions. No new global D-number or dependency graph edge is proposed.
+All twelve rules were explicitly accepted with M6/G6 on 2026-11-02. No new global D-number or dependency graph edge is introduced. See [gate closure](M6_G6_GATE_CLOSURE.md).
 
-## Contract decisions to approve
+## Accepted contract decisions
 
 1. **Association model:** M6 creates two independent, durable histories: `shipment_container_assignments` and `shipment_voyage_assignments`. A shipment may have multiple containers, but a container may belong to at most one shipment during any overlapping assignment interval within an organization. A shipment has at most one voyage association during any overlapping interval. Multiple shipments may be associated with one voyage. M6 does not create an independent container-to-voyage contract: a voyage association shown for a container is contextual through its shipment and only for intersecting assignment intervals. No assertion that a container physically boarded a vessel is implied.
 2. **Time representation:** Every assignment has an immutable, explicitly UTC `startsAtUtc` and an optional `endsAtUtc`. Interpret the interval as half-open `[start,end)`, with a null end treated as unbounded future. End must be strictly greater than start; equal endpoints and reversed windows are rejected. Adjacent windows do not overlap. Historical and future-dated records are permitted and do not automatically transition based on the wall clock.
@@ -24,15 +24,15 @@ This is a proposed local contract, not an accepted decision. Approving the archi
 11. **Audit semantics and future milestones:** Retain immutable assignment history, actor and UTC timestamps. It is M6 operational allocation history, not M8 tracking-event history, M10 status projection or M16 generalized audit. Do not add event ingestion, automatic tracking updates, independent equipment interchange, registry ownership claims, advanced exports or multi-leg planning.
 12. **Verification and Q1 checkpoint:** G6 requires real .NET/PostgreSQL/HTTP/browser verification, mutation and concurrency probes, M0-M5 regressions, scans, outage/recovery, isolated E:-backed evidence and independently reviewed raw results on one exact source SHA. At G6 only, attempt a read-only clone/restore of a representative retained historical PostgreSQL snapshot in disposable storage. If none exists, record `NOT APPLICABLE` with the discovery method and reason. Never touch the only retained volume. Dedicated accessibility testing stays at M24-04.
 
-## Alternatives and boundaries requiring explicit agreement
+## Accepted alternatives and boundaries
 
-- **Direct vs multi-leg voyage:** This proposal accepts exact single-leg route matching in M6. Leg-sequenced itineraries require a separate future design, not an implicit relaxation.
-- **Closing vs deletion:** This proposal preserves associations after closure and never permits physical deletion. Historical correction uses a new record, not rewriting old rows.
+- **Direct vs multi-leg voyage:** This contract accepts exact single-leg route matching in M6. Leg-sequenced itineraries require a separate future design, not an implicit relaxation.
+- **Closing vs deletion:** This contract preserves associations after closure and never permits physical deletion. Historical correction uses a new record, not rewriting old rows.
 - **Container-voyage semantics:** A container's displayed voyage follows the intersecting shipment association. Do not add a separate authoritative container-voyage table without revising this contract and its consistency rules.
-- **Parent terminal policy:** This proposal requires explicit closure before a terminal/archival operation. No automatic closure or inferred timestamps.
+- **Parent terminal policy:** This contract requires explicit closure before a terminal/archival operation. No automatic closure or inferred timestamps.
 
 ## Decision and G6 impact
 
-**Decision authority:** The complete twelve-rule contract must be expressly approved or revised before M6-02/M6-03 implementation is treated as contract-complete. Until approval, G6-S01 is `INCOMPLETE` and G6 remains `OPEN, acceptance pending`, regardless of how many technical tests run. The implementation plan and verification gate do not constitute acceptance.
+**Accepted decision:** The complete twelve-rule M6-local contract was explicitly accepted on 2026-11-02. G6-S01 is closed. The limited M0-only snapshot and the separately passed populated M5-to-M6 migration test were acknowledged at acceptance. The original evidence assertion remains an archived exit 1 because acceptance followed execution. See [gate closure](M6_G6_GATE_CLOSURE.md).
 
 See [M6 architecture](M6_ARCHITECTURE_DESIGN.md), [implementation plan](M6_IMPLEMENTATION_PLAN.md), [G6 verification plan](M6_VERIFICATION_PLAN.md), and [planning status](M6_PLANNING_STATUS.md).

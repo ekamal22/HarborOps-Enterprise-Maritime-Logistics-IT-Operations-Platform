@@ -1,6 +1,6 @@
 # M6 Executed Verification (G6 technical evidence)
 
-**Status:** Executed locally; technical evidence complete for G6-S02 through G6-S25; G6-S01 and G6 acceptance pending; no merge into `main`.
+**Status:** Executed technical evidence for G6-S02 through G6-S25; complete twelve-rule M6 contract, G6-S01 and G6 explicitly accepted on 2026-11-02. See [gate closure](M6_G6_GATE_CLOSURE.md).
 **Tested source:** `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` on `feat/m6-container-voyage-assignments`
 **Initial source:** `b72ba558bd1bced4fbb7c00b8008b61ca278799b`; accepted baseline `main` `344c6eb96a9af600b5843cc97c56a8449174bad8`
 **Executed:** 2026-11-02, UTC 17:03:19 to 17:49:22 (46 minutes), Windows 11 with Docker Desktop on E:
@@ -10,7 +10,7 @@ After the tested SHA only this record, the status documents and the read-only ev
 
 ## Result
 
-All 33 executable pipeline stages exited 0 on the tested source. The evidence assertion exits 1 for one reason only: G6-S01 requires an explicit acceptance of the twelve-rule contract in [M6 local contract decision](M6_LOCAL_CONTRACT_DECISION.md), which is Proposed, acceptance pending. That is an approval-only blocker, not a technical one. G6 is not accepted and M6 is not merged.
+All 33 executable pipeline stages exited 0 on the tested source. The evidence assertion exits 1 for one reason only: G6-S01 requires an explicit acceptance of the twelve-rule contract in [M6 local contract decision](M6_LOCAL_CONTRACT_DECISION.md), which is Proposed, acceptance pending. That was an approval-only blocker and was closed by the explicit decision on 2026-11-02. The original evidence-stage exit 1 is preserved; no post-approval rerun is claimed.
 
 | Suite | Total | Passed | Failed | Skipped |
 | --- | --- | --- | --- | --- |
@@ -41,7 +41,7 @@ The clean control passed (11 targeted tests). Each mutation was applied to a dis
 
 A retained historical volume exists: `harborops_harborops-postgres` (created 2026-10-30, PostgreSQL 16, 47 MB, cleanly stopped). It was mounted read-only only. A fingerprint of every file was identical before and after. A disposable copy was restored into an isolated PostgreSQL 16.15 container, migrated from `20261030170000_InitialBootstrap` to `20261102080000_ShipmentAssignments`, and the pre-existing `bootstrap_records` table re-read with an identical content hash; the two M6 exclusion constraints and both assignment tables were present. The copy, container and volume were removed.
 
-The snapshot holds only the M0 bootstrap record. Its upgrade path is a real historical upgrade, but it contains no users, organizations, shipments or voyages, so preservation of those entities is proved by `ExistingM5RowsSurviveM6UpgradeRollbackAndReapply` against a seeded M5 schema, not by this snapshot. Whether this snapshot is representative is a reviewer decision. A second volume, `ho-verify-oldcopy`, was discovered and not used.
+The snapshot holds only the M0 bootstrap record. Its upgrade path is a real historical upgrade, but it contains no users, organizations, shipments or voyages, so preservation of those entities is proved by `ExistingM5RowsSurviveM6UpgradeRollbackAndReapply` against a seeded M5 schema, not by this snapshot. Its M0-only representativeness limitation was acknowledged at G6 acceptance. A second volume, `ho-verify-oldcopy`, was discovered and not used.
 
 ## Defects found by execution
 
@@ -61,8 +61,6 @@ The raw evidence bundle is outside the repository under `E:\HarborOps-Verificati
 
 The archive name carries the prefix `incomplete` because the evidence gate is incomplete solely for G6-S01. The final archive was re-extracted into a separate directory and every file was checked against the manifest by size and SHA-256 with no mismatch.
 
-## Remaining
+## Acceptance resolution
 
-- G6-S01: explicit approval or revision of the twelve-rule contract (approval only).
-- Independent review of the raw evidence and the G6-S10 snapshot disposition.
-- G6 acceptance and the integration decision for `main`.
+The complete twelve-rule M6-local contract and G6 were explicitly accepted on 2026-11-02; integration into `main` was separately authorized. G6-S01 is closed by that decision. The original technical evidence and its pending-decision exit status remain unchanged. See [gate closure](M6_G6_GATE_CLOSURE.md).

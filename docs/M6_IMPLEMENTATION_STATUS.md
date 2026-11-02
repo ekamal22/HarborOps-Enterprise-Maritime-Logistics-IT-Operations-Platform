@@ -4,8 +4,8 @@
 **Milestone:** M6-01 through M6-04; G6
 **Branch:** `feat/m6-container-voyage-assignments`
 **Accepted base:** `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`, G0-G5 accepted
-**Implementation state:** Assignment domain, additive PostgreSQL migration, API, React workspace, adversarial tests, security mutation runner, historical snapshot restore and extracted-archive verification committed and executed locally. On `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` all 33 executable pipeline stages passed; the evidence assertion reports only G6-S01 (contract approval) incomplete. See [executed verification](M6_EXECUTED_VERIFICATION.md). G6 acceptance is pending. No M6 integration into `main`.
-**Decision state:** [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) proposed, acceptance pending; do not mark G6-S01 complete.
+**Implementation state:** Assignment domain, additive PostgreSQL migration, API, React workspace, adversarial tests, security mutation runner, historical snapshot restore and extracted-archive verification committed and executed locally. On `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` all 33 executable pipeline stages passed; the evidence assertion reports only G6-S01 (contract approval) incomplete. See [executed verification](M6_EXECUTED_VERIFICATION.md). G6 and the complete twelve-rule contract were explicitly accepted on 2026-11-02; integration into `main` authorized. See [gate closure](M6_G6_GATE_CLOSURE.md).
+**Decision state:** [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) accepted; G6-S01 closed by explicit decision after the technical run. G6 accepted.
 
 ## Implemented source
 
@@ -84,23 +84,14 @@ Local execution found the following defects that source review had not. Each was
 
 Harness changes made in the same period: a warnings-as-errors compile gate and the disposable-database suites now run before the Compose stages, each stage records its duration, ownership checks cover every `ho-g6-` container, mutation failure messages and a ZIP SHA-256 sidecar are retained, and a read-only restore of a retained historical Docker volume is supported by the Q1 snapshot check. Development-only rehearsal scripts (`scripts/dev-m6-targeted.sh`, `scripts/dev-m6-browsers.sh`) write outside the evidence directory and never count as gate evidence.
 
-## Verification limits and outstanding work
+## Verification disposition
 
-**Runtime results exist for `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`.** They were produced by the local E:-backed pipeline and are summarized in [M6 executed verification](M6_EXECUTED_VERIFICATION.md); the raw evidence bundle is outside the repository. Earlier revisions failed (Release build, two integration tests and one browser scenario) and those runs are preserved separately. Technical results are not acceptance.
+The source-locked G6 runtime evidence was executed on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` and passed all 33 executable stages, including 706 test executions across .NET, PostgreSQL and the three browsers, four effective security mutations, dependency/image scanning, recovery and resource teardown. The original evidence assertion exited 1 solely because G6-S01 contract approval was pending. Explicit approval on 2026-11-02 closed G6-S01 and accepted full G6 without changing the original raw evidence.
 
-Before G6 acceptance, an independent reviewer inspects the raw assertions, SQL migrations and the G6-S10 snapshot disposition. The evidence validator reports G6-S01 incomplete because the twelve-rule M6 contract has not been approved. Do not bypass or weaken the validator to report success.
-
-Known items requiring adversarial execution or further source strengthening:
-1. PostgreSQL `btree_gist` provisioning and GiST exclusion behavior under two simultaneous real connections.
-2. Direct-SQL parent change and assignment insertion lock interleavings, including deadlock retry outcomes, unchanged M4/M5 behavior and incomplete transaction rollback.
-3. Execute and inspect the ten M6 browser scenarios on Chromium, Firefox and WebKit, including role downgrade, shipment identity changes, held responses and contextual data isolation; expand any uncovered mandatory journey before acceptance.
-4. Full SQL/EF migration and model snapshot comparison; historical upgrade/rollback; M0-M5 accepted regressions.
-5. Execute and independently review the expanded cancellation/timeout/interruption/lost-response tests and the Q1 historical snapshot, or its documented NOT APPLICABLE disposition.
-6. Execute four isolated security mutations and prove their named tests fail while the unmodified control passes.
-7. Full G6 evidence mapping, raw test logs, image scans, E:/C: storage accounting and teardown integrity.
+The G6-S10 retained snapshot contains only an M0 bootstrap row. A separately seeded M5-to-M6 upgrade covered populated data. This distinction was expressly acknowledged at acceptance. See [executed verification](M6_EXECUTED_VERIFICATION.md) and [gate closure](M6_G6_GATE_CLOSURE.md).
 
 ## Governance
 
-No GitHub Actions may be dispatched or triggered. Use `[skip ci]` for commits. Build/test/container resources and archives belong on E:, with isolated `ho-verify-g6` names and strict cleanup of only owned disposable resources. Never consume persistent C: storage, rewrite M0-M5 migrations, discard historical evidence, force-push or merge the feature branch into `main` before explicit G6 acceptance and integration approval. Formal accessibility testing remains at M24-04.
+No GitHub Actions may be dispatched or triggered. Use `[skip ci]` for commits. Build/test/container resources and archives belong on E:, with isolated `ho-verify-g6` names and strict cleanup of only owned disposable resources. Never consume persistent C: storage, rewrite M0-M5 migrations, discard historical evidence or force-push. Explicit G6 acceptance and integration authorization were granted on 2026-11-02. Formal accessibility testing remains at M24-04.
 
-**Exit:** Implementation source authored, runtime verification pending, G6 open, acceptance pending. These statements are not an assertion of full end-to-end acceptance.
+**Exit:** M6 implementation and G6 accepted on 2026-11-02. This does not imply production deployment, public hosting or G24 release approval.

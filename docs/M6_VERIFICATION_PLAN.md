@@ -1,6 +1,6 @@
 # G6 Shipment Assignment Verification Plan
 
-**Status:** EXECUTED LOCALLY on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`; technical evidence complete except G6-S01; G6 OPEN, acceptance pending ([executed verification](M6_EXECUTED_VERIFICATION.md))
+**Status:** Executed on the pinned implementation SHA; G6-S02 to G6-S25 evidence accepted, G6-S01 subsequently closed by explicit twelve-rule contract acceptance, and full G6 accepted on 2026-11-02. See [gate closure](M6_G6_GATE_CLOSURE.md).
 **Prepared:** 2026-11-02
 **Milestone:** M6-01 through M6-04, shipment-container and shipment-voyage interval assignments
 **Branch:** `feat/m6-container-voyage-assignments`
@@ -109,4 +109,4 @@ The E:-backed runner `scripts/verify-m6-local.sh`, stage and three-browser launc
 
 The complete test matrix must execute on a final pinned M6 source revision; any correction requires full rerun on a new revision. Publish raw evidence archive and standalone SHA-256 checksum, with independent review of actual assertions, SQL concurrency/proofs and S01/S10 dispositions. Do not label S01 Accepted until the M6-local contract is expressly approved. Technical evidence and acceptance are separate. Do not merge M6 into `main` without explicit G6 and integration approval.
 
-**Current disposition:** M6 implementation and corrective test/harness source are committed on the feature branch; no .NET, PostgreSQL, browser, snapshot or complete G6 local execution has run in this session. G6-S01 through G6-S25 remain NOT RUN, with the twelve-rule contract awaiting explicit approval. See [M6 implementation status](M6_IMPLEMENTATION_STATUS.md).
+**Final disposition:** G6-S02 through G6-S25 executed at `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` and independently reviewed. G6-S01 closed via explicit contract acceptance on 2026-11-02 after the original technical run. G6 accepted, with original evidence-stage exit 1 preserved as historical fact. See [gate closure](M6_G6_GATE_CLOSURE.md).

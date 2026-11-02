@@ -1,34 +1,25 @@
-# M6 Assignment Planning Status
+# M6 Planning and Delivery Status
 
 **As of:** 2026-11-02
-**Milestone:** M6 container and voyage assignments
-**Planning branch:** `feat/m6-container-voyage-assignments`
-**Accepted implementation baseline:** `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`, G0-G5 accepted
-**State:** M6 implementation, API, persistence, React, tests and local verification harness committed on the feature branch and executed locally on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`; technical evidence is complete except G6-S01. M6-local contract and G6 acceptance pending. Nothing merged into `main`. See [executed verification](M6_EXECUTED_VERIFICATION.md) and the [implementation register](M6_IMPLEMENTATION_STATUS.md).
+**Milestone:** M6-01 through M6-04 and G6
+**State:** Implemented, technically verified and explicitly accepted on 2026-11-02; integration into `main` authorized.
 
-## Planning deliverables
+The feature branch `feat/m6-container-voyage-assignments` was developed from the accepted M4/G4 and M5/G5 baseline. The tested application source is `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`. All mandatory executable G6 stages passed. The original evidence checker returned exit 1 only for G6-S01, the then-pending contract decision. That decision was explicitly resolved by accepting the complete twelve-rule contract and G6 on 2026-11-02. No post-approval runtime rerun is claimed.
 
-| Record | Scope | Disposition |
-| --- | --- | --- |
-| [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) | 12 explicit choices covering interval, route, permissions, archive, history and acceptance | Proposed, awaiting decision |
-| [M6 architecture](M6_ARCHITECTURE_DESIGN.md) | Two association entities, GiST exclusion, scoped FKs, parent guards, eight routes, React integration | Proposed |
-| [M6 implementation plan](M6_IMPLEMENTATION_PLAN.md) | M6-01 policy; container/voyage source; M6-04 workflow and verification requirements | Source authored; not executed |
-| [M6 implementation status](M6_IMPLEMENTATION_STATUS.md) | Concrete source files, tests, schema and outstanding G6 verification | Committed; runtime unverified |
-| [G6 verification plan](M6_VERIFICATION_PLAN.md) | G6-S01 to G6-S25, direct SQL, concurrency, three-browser regression, raw evidence and Q1 snapshot checkpoint | Planned, not executed |
-| [Execution graph](execution-graph.json) | G4/G5 -> M6-01 -> parallel M6-02/M6-03 -> M6-04 -> G6 | Unchanged |
+## Final records
 
-## Confirmed prerequisites
+- [G6 gate closure](M6_G6_GATE_CLOSURE.md)
+- [Accepted M6 local contract](M6_LOCAL_CONTRACT_DECISION.md)
+- [G6 executed verification](M6_EXECUTED_VERIFICATION.md)
+- [G6 scenario plan](M6_VERIFICATION_PLAN.md)
+- [M6 implementation status](M6_IMPLEMENTATION_STATUS.md)
+- [Architecture](M6_ARCHITECTURE_DESIGN.md) and [implementation plan](M6_IMPLEMENTATION_PLAN.md)
+- [Execution graph](execution-graph.json), which encodes prerequisites rather than observed milestone status
 
-G4, D-003 Option B, the M5 local contract and G5 are accepted on the baseline. G6 is a separate gate and is not implied by acceptance of its parents. M6 owns FR-005 and the connected shipment allocation journey. M8 ingestion and M12 search/export remain outside M6.
+## Historical snapshot limitation
 
-## Technical decisions requiring approval
+The G6-S10 snapshot is a genuine M0-era retained PostgreSQL 16 data directory containing only a bootstrap record. The M5 populated-data upgrade was verified separately. This limitation was accepted without overstating historical dataset coverage.
 
-The proposed contract needs agreement on half-open UTC intervals and immutable association history, `btree_gist` exclusions, exactly route-matched single-leg voyage association, explicit parent closure before terminal/archival operations, and assignment-specific Analyst/Manager write plus Auditor read rights. These are not recorded as accepted. Concurrency and direct-SQL parent-guard design must be experimentally proven at M6-01, especially SQL lock-order inversions.
+## Next work
 
-## Required G6 evidence
-
-The future technical gate must run full M0-M5 regressions, fresh/repeat PostgreSQL tests, historical M5 upgrade/rollback/reapply, role/tenant matrix, adversarial overlapping writes, three browsers, dependency/image scans and recovery. Raw results belong under `E:\HarborOps-Verification\m6`, with isolated `ho-verify-g6` resources, SHA-256 integrity and independent review. The Q1 retained historical volume check happens at G6 if a representative snapshot exists; otherwise document `NOT APPLICABLE` with reason. No GitHub Actions and no persistent C: storage are authorized.
-
-## Next action
-
-Review and explicitly approve or revise [the M6-local contract](M6_LOCAL_CONTRACT_DECISION.md). The requested initial implementation is now authored on the feature branch, but none of its tests, migration or browser suites has executed. Complete the mandatory E:-backed G6 verification and independent raw evidence review before requesting separate G6 acceptance and merge authorization.
+M7, G7 and later gates remain separate. M8 still requires the applicable G7 and D-006 decisions. No hosted CI, production release or dedicated accessibility gate is implied by this acceptance.

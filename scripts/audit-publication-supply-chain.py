@@ -28,6 +28,7 @@ def main():
     for name in ("git", "dotnet", "npm", "docker", "trivy"):
         if shutil.which(name) is None:
             sys.exit("Missing scanner prerequisite: " + name)
+    os.umask(0o077)
     root = Path(sys.argv[1])
     root.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
@@ -84,7 +85,9 @@ def main():
             for package in framework.get(group, [])
             if package.get("vulnerabilities")
         ]
-        if vulnerable:
+        if not projects or not any(project.get("frameworks") for project in projects):
+            results["dotnet"] = "no usable package inventory"
+        elif vulnerable:
             results["dotnet"] = "vulnerable packages reported"
     except (OSError, ValueError, AttributeError, TypeError):
         results["dotnet"] = "unreadable scanner output"

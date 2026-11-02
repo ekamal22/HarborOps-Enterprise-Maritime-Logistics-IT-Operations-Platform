@@ -33,6 +33,7 @@ public sealed class AssignmentConcurrencyTests
         var incoming = ReferenceDataHttpTests.Send(analyst, HttpMethod.Post, route,
             new { containerId = seed.Container, startsAtUtc = "2036-01-02T10:00:00Z" });
         var observed = false;
+        var committed = false;
         var deadline = DateTime.UtcNow.AddSeconds(35);
         while (DateTime.UtcNow < deadline)
         {
@@ -56,6 +57,7 @@ public sealed class AssignmentConcurrencyTests
                 "/api/v1/organizations/" + f.A + "/containers/" + seed.Container,
                 new { expectedVersion = 1L });
             await transaction.CommitAsync();
+            committed = true;
             using var created = await incoming;
             using var denied = await archive;
             Assert.Equal(HttpStatusCode.Created,created.StatusCode);
@@ -69,7 +71,7 @@ public sealed class AssignmentConcurrencyTests
         }
         finally
         {
-            if(transaction.Connection is not null) await transaction.RollbackAsync();
+            if (!committed) await transaction.RollbackAsync();
         }
     }
 

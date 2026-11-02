@@ -236,11 +236,11 @@ public sealed class ShipmentAssignments : Migration
                 END IF;
                 RETURN NEW;
             END $fn$;
-            CREATE TRIGGER m6_guard_shipment BEFORE UPDATE OR DELETE ON shipments
+            CREATE TRIGGER zz_m6_guard_shipment BEFORE UPDATE OR DELETE ON shipments
                 FOR EACH ROW EXECUTE FUNCTION m6_guard_parent();
-            CREATE TRIGGER m6_guard_container BEFORE UPDATE OR DELETE ON containers
+            CREATE TRIGGER zz_m6_guard_container BEFORE UPDATE OR DELETE ON containers
                 FOR EACH ROW EXECUTE FUNCTION m6_guard_parent();
-            CREATE TRIGGER m6_guard_voyage BEFORE UPDATE OR DELETE ON voyages
+            CREATE TRIGGER zz_m6_guard_voyage BEFORE UPDATE OR DELETE ON voyages
                 FOR EACH ROW EXECUTE FUNCTION m6_guard_parent();
             """);
     }
@@ -248,9 +248,9 @@ public sealed class ShipmentAssignments : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""
-            DROP TRIGGER m6_guard_shipment ON shipments;
-            DROP TRIGGER m6_guard_container ON containers;
-            DROP TRIGGER m6_guard_voyage ON voyages;
+            DROP TRIGGER zz_m6_guard_shipment ON shipments;
+            DROP TRIGGER zz_m6_guard_container ON containers;
+            DROP TRIGGER zz_m6_guard_voyage ON voyages;
             DROP FUNCTION m6_guard_parent();
             DROP TABLE shipment_voyage_assignments;
             DROP TABLE shipment_container_assignments;

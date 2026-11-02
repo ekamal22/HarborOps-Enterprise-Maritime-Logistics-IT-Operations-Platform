@@ -21,6 +21,9 @@ const run=(cmd,args,options={})=>{
 const expectOk=(cmd,args)=>{const result=run(cmd,args);assert.equal(result.status,0,
   cmd+" failed: "+(result.stderr||result.stdout||"").slice(-600));return result.stdout||"";};
 expectOk("git",["archive","--format=tar","--output",sourceTar,sha]);
+// Development rehearsal only: HARBOROPS_G6_MUTATION_SUBSET=overlap,parent-guard runs just those variants.
+const subset=process.env.HARBOROPS_G6_MUTATION_SUBSET?.split(",");
+assert.ok(!subset||process.env.HARBOROPS_G6_MUTATION_SUBSET_DEV==="1","Subset runs are development only");
 const variants=[
   ["control",null,"ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant|QueuedAssignmentWriteRechecksEveryAuthorizationDependency|OverlapMutationRequiresBehavioralExclusionRejection|ParentGuardMutationRequiresBehavioralArchiveRejection"],
   ["tenant-read","ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant","ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant"],
@@ -35,11 +38,13 @@ const name="ho-g6-mutant-pg";
 assert.equal(expectOk("docker",["ps","-aq","--filter","name=^/"+name+"$"]).trim(),"",
   "Existing mutant database container found");
 try{
- for(const [variant,expected,testExpression] of variants){
+ for(const [variant,expected,testExpression] of variants.filter(v=>!subset||subset.includes(v[0]))){
    const work=path.join(exported,variant);
    fs.mkdirSync(work,{recursive:true});
    // GNU tar reads "E:\..." as a remote host:path, so extract with paths relative to the cache.
-   const relativeTar=path.relative(cache,sourceTar),relativeWork=path.relative(cache,work);
+   // Forward slashes only: a backslash followed by "t" in a variant name was read as an escape.
+   const relativeTar=path.relative(cache,sourceTar).split(path.sep).join("/");
+   const relativeWork=path.relative(cache,work).split(path.sep).join("/");
    const extract=run("tar",["-xf",relativeTar,"-C",relativeWork],{cwd:cache});
    assert.equal(extract.status,0,"tar failed: "+(extract.stderr||extract.stdout||"").slice(-600));
    if(expected)expectOk("node",["scripts/apply-g6-mutation.mjs",variant,work]);
@@ -110,7 +115,7 @@ try{
      if(owned)expectOk("docker",["rm","-f",name]);
    }
  }
- assert.equal(summary.mutants.length,4,"All four meaningful mutations required");
+ if(!subset)assert.equal(summary.mutants.length,4,"All four meaningful mutations required");
  save();console.log("G6 controlled security mutation proofs: PASS");
 }finally{
  // Only the source export created under this verification root is disposable.

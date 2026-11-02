@@ -68,12 +68,12 @@ independent evidence review remain required.
 ## 5. Required next execution
 
 1. Use the committed `scripts/verify-m5-local.sh` in an E:-backed Windows Git Bash context. Source and browser caches, Docker data, evidence and scratch output must remain on E:, with only safe, positively attributable C: temporary cleanup permitted.
-2. Run the complete local G5 pipeline on one final SHA. The mandatory M5-local decision at [M5 local contract](M5_LOCAL_CONTRACT_DECISION.md) is still pending. G5-S01 must not be bypassed.
+2. Run the complete local G5 pipeline on one final SHA. At execution time the M5-local contract decision was pending, so G5-S01 correctly remained incomplete until explicitly accepted on 2026-11-02. The historical checker result is preserved.
 3. Repair any actual compile/runtime failures or flaky/false-positive tests, commit fixes with `[skip ci]`, audit again and rerun at the changed SHA.
 4. Preserve the original stage logs, TRX, JSON browser reports, service/outage logs, zero-resource teardown, hash manifest and final E: ZIP. Review the original raw evidence rather than only a runner summary.
 5. Request explicit G5 acceptance before merging M5 into `main`. No GitHub Actions have been authorized or triggered.
 
-**Gate outcome:** G5 OPEN, acceptance pending. M6 integration remains dependent on G5.
+**Gate outcome:** G5 accepted on 2026-11-02 following independent evidence review and explicit approval of the six-rule contract. M6 has its G4 and G5 prerequisites satisfied, but requires separate G6 acceptance.
 
 ## 5. Execution update
 

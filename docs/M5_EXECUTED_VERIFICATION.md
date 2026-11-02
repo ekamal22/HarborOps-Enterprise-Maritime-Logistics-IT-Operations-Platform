@@ -37,7 +37,7 @@ Documentation commits made after a run are documentation only. They do not chang
 - The Release build had 0 warnings and 0 errors with analyzers as errors.
 - All 26 executable pipeline stages exited 0, including dependency review, documentation checks, M3, M4 and M5 fixtures, the three outage and recovery checks, and Trivy (HIGH and CRITICAL findings: 0 for postgres, api and web).
 - Teardown proof: 0 remaining containers, volumes or integration database containers for the G5 project.
-- The evidence stage exited 1 only because G5-S01 is incomplete. It reports EVIDENCE PRESENT, REVIEW REQUIRED for G5-S02 through G5-S25.
+- **Historical run 13 evidence result:** the evidence stage exited 1 only because G5-S01 was incomplete when executed. Its original S02-S25 dispositions were EVIDENCE PRESENT, REVIEW REQUIRED; these were independently reviewed and accepted on 2026-11-02.
 
 ## 2. Scenario dispositions
 
@@ -153,7 +153,7 @@ Commits `38717c2` and `bb22a3b` were made on the same branch by a parallel sessi
 - Manifest: `SHA256SUMS.csv` at the root of the package (185 files). After packaging the ZIP was extracted and all 185 files re-hashed with 0 mismatches.
 - Contents: original console stream, stage ledger and stage logs, TRX, Playwright JSON, traces and artifacts, Trivy JSON, migration and SQL test results, outage and recovery output, Docker service logs, teardown proof, storage records, scenario index (`reports/G5_EVIDENCE_INDEX.md`), interruption proof (`reports/G5_S21_INTERRUPTION_PROOF.md`), visibility probe output (`probes/`), mutation proofs and their harness (`mutation-proof/`, with the earlier rounds), source identity, the skipped, failed and incomplete report and the C: cleanup report.
 - The package for the first verified revision, `G5-final-package-c143e67906d3.zip` (SHA-256 `D7386AED6F06A652FAD1653D00140330D74533E9A45941F351DB496397D7DBC8`), is unchanged and remains read-only.
-- The pipeline's own bundle for run 13 is `G5-incomplete-20261102T044514Z-3e57af490d9a.zip` in the same directory, named incomplete because G5-S01 is pending.
+- The pipeline's own historical run 13 bundle is `G5-incomplete-20261102T044514Z-3e57af490d9a.zip` in the same directory. Its original name records that G5-S01 was pending before explicit acceptance on 2026-11-02.
 - Earlier failed and superseded runs are preserved unmodified as directories in `E:\HarborOps-Verification\m5\archives` and listed in the skipped, failed and incomplete report in the package.
 
 ## 10. Known limitations and residual risks
@@ -167,4 +167,4 @@ Commits `38717c2` and `bb22a3b` were made on the same branch by a parallel sessi
 
 ## 11. Recorded acceptance
 
-The six-rule M5 local contract and G5-S01, G5-S21, G5-S23 with the documented simulated-visibility test limitation, and full G5 were explicitly accepted on 2026-11-02. Fast-forward M5 integration into `main` was authorized. Run 13's original evidence-stage exit 1 records the historically pending S01 decision and is not reclassified as a passing run-time stage. See [G5 gate closure](M5_G5_GATE_CLOSURE.md).
+The six-rule M5 local contract and G5-S01, G5-S21, G5-S23 with the documented simulated-visibility test limitation, and full G5 were explicitly accepted on 2026-11-02. M5 was fast-forward integrated into `main` following the explicit authorization. Run 13's original evidence-stage exit 1 records the historically pending S01 decision and is not reclassified as a passing run-time stage. See [G5 gate closure](M5_G5_GATE_CLOSURE.md).

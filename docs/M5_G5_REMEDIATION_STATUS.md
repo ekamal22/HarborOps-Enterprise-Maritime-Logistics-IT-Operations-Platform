@@ -3,7 +3,7 @@
 **Date:** 2026-11-01  
 **Branch:** `feat/m5-shipment-lifecycle`  
 **Original audit:** [M5/G5 correctness audit](M5_G5_CORRECTNESS_AUDIT.md) at source revision `7c85c3271e481fd460d533f08940c6bd4211d4cc`  
-**Disposition:** All eleven reported findings have code or verification-source corrections committed. These corrections have **not** been compiled or runtime verified. G5 OPEN, acceptance pending.
+**Disposition:** All eleven reported findings have code or verification-source corrections committed. These corrections were first written without compilation. They have since been compiled and executed; see the execution update at the end of this record. G5 OPEN, acceptance pending.
 
 ## 1. Remediation ledger
 
@@ -74,3 +74,7 @@ independent evidence review remain required.
 5. Request explicit G5 acceptance before merging M5 into `main`. No GitHub Actions have been authorized or triggered.
 
 **Gate outcome:** G5 OPEN, acceptance pending. M6 integration remains dependent on G5.
+
+## 5. Execution update
+
+The corrections above were executed at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67`. Execution found and fixed further defects that this register did not anticipate (a corrupted EF mapping, a snapshot index mismatch, a frontend busy-state defect, an access-denial reload race, test races and harness ordering problems); they are listed with commits in [M5 executed verification](M5_EXECUTED_VERIFICATION.md). Results: Executed locally at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67`: 138 unit, 12 contract, 139 fresh and 139 repeated PostgreSQL integration tests and 117 browser runs (39 each in Chromium, Firefox and WebKit) all passed with none skipped; Trivy HIGH/CRITICAL 0; teardown left no resources. G5-S02 to G5-S25 have evidence present for independent review. G5-S01 is incomplete until the M5 local contract is accepted. Sections 1 to 4 above are preserved as the historical record of the original remediation.

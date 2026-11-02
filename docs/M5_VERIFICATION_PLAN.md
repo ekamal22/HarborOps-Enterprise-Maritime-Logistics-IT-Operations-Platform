@@ -1,7 +1,7 @@
 # G5 Shipment Lifecycle: Verification Plan
 
 **Milestone:** M5, shipment lifecycle and concurrency
-**Status:** Mandatory G5 contract. Test source and local runner have been authored, but no M5 .NET, PostgreSQL, HTTP or browser test has executed. G5 OPEN, acceptance pending.
+**Status:** Mandatory G5 contract. Executed locally at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67`; see [M5 executed verification](M5_EXECUTED_VERIFICATION.md). G5 OPEN, acceptance pending.
 **Entry:** M5-01 through M5-04 implemented, current branch SHA fixed, disposable E:-backed verification environment
 **Authorization:** [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md), [acceptance criteria](ACCEPTANCE_CRITERIA.md), [execution graph](execution-graph.json).
 **Decision:** G5 remains OPEN and acceptance pending until all executable scenarios pass, raw evidence is independently reviewed and explicit acceptance is received.
@@ -10,7 +10,7 @@
 
 ## Remediation implementation status
 
-The [M5/G5 remediation register](M5_G5_REMEDIATION_STATUS.md) records source changes for all eleven audit findings: full scenario identifiers, exact fresh/repeat TRX checks, eight browser cases in each engine, two-tenant five-role lifecycle fixtures, isolated `ho-verify-g5` resource ownership and E:-resident raw evidence/hashes. These require actual execution at a final SHA and independent raw-evidence review. G5-S01 remains formally incomplete until the M5-local contract is explicitly accepted. Do not mark G5 accepted based on source completeness.
+The [M5/G5 remediation register](M5_G5_REMEDIATION_STATUS.md) records source changes for all eleven audit findings: full scenario identifiers, exact fresh/repeat TRX checks, eight browser cases in each engine, two-tenant five-role lifecycle fixtures, isolated `ho-verify-g5` resource ownership and E:-resident raw evidence/hashes. These were executed at the final SHA (see [M5 executed verification](M5_EXECUTED_VERIFICATION.md)) and still require independent raw-evidence review. G5-S01 remains formally incomplete until the M5-local contract is explicitly accepted. Do not mark G5 accepted based on source completeness.
 
 ## 1. Blocking rules
 
@@ -80,4 +80,4 @@ Preserve each prior run under its **own** source SHA, not the incoming revision.
 6. Request explicit G5 acceptance. Before then mark every unfinished required case `NOT RUN`, `FAILED`, `BLOCKED` or `EVIDENCE PRESENT, REVIEW REQUIRED`, not `ACCEPTED`.
 7. Fast-forward merge to `main` only after approval and a clean base/branch comparison. Do not trigger GitHub Actions. Reconcile documentation without claiming an execution on a later documentation-only SHA.
 
-**G5 outcome today:** Implementation and initial test code committed, but full adversarial subcase coverage and real execution remain unfinished. All 25 cases are NOT RUN and **acceptance pending**. See [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md).
+**G5 outcome today:** Executed locally at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67`: 138 unit, 12 contract, 139 fresh and 139 repeated PostgreSQL integration tests and 117 browser runs (39 each in Chromium, Firefox and WebKit) all passed with none skipped; Trivy HIGH/CRITICAL 0; teardown left no resources. G5-S02 to G5-S25 have evidence present for independent review. G5-S01 is incomplete until the M5 local contract is accepted. Security mutation proofs were also executed (control, tenant predicate and post-lock revalidation removed). **Acceptance pending.** See [executed verification](M5_EXECUTED_VERIFICATION.md); the original [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) is retained as history.

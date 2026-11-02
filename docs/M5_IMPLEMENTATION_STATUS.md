@@ -4,7 +4,7 @@
 **Milestone:** M5-01 through M5-04; G5 evidence gate  
 **Branch:** `feat/m5-shipment-lifecycle`  
 **Base:** Accepted G0-G4 `main`, at `18d00e6710097e4e31a87190be8edb65337d1b50`  
-**State:** Implementation, correctness remediation and expanded G5 verification source committed on the feature branch. No complete compilation/runtime verification. G5 OPEN, acceptance pending. See [M5/G5 remediation](M5_G5_REMEDIATION_STATUS.md).
+**State:** Implemented and locally verified on the feature branch at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67` (see [M5 executed verification](M5_EXECUTED_VERIFICATION.md)). G5 OPEN, acceptance pending. See [M5/G5 remediation](M5_G5_REMEDIATION_STATUS.md).
 
 ## Implemented source inventory
 
@@ -34,13 +34,13 @@ Existing M0-M4 migration files are unchanged. Older test expectations for the la
 
 All eleven original source audit findings have committed corrections, including isolated `ho-verify-g5` verification resources, explicit TRX and browser matrix requirements, pre/post storage and teardown proof, raw ZIP hashing, extensive SQL/role/tenant/concurrency tests, port-catalog recovery, conflict preservation and Auditor port descriptors. See [remediation ledger](M5_G5_REMEDIATION_STATUS.md).
 
-These modifications are **source-level only** and have not been compiled, run against PostgreSQL, executed in browsers or accepted. G5-S01's M5-local decision is still pending, and all runtime G5 evidence remains NOT RUN.
+These modifications were compiled and executed (history: they were source-level when first written). Executed locally at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67`: 138 unit, 12 contract, 139 fresh and 139 repeated PostgreSQL integration tests and 117 browser runs (39 each in Chromium, Firefox and WebKit) all passed with none skipped; Trivy HIGH/CRITICAL 0; teardown left no resources. G5-S02 to G5-S25 have evidence present for independent review. G5-S01 is incomplete until the M5 local contract is accepted.
 
 ## Source-level correctness assessment
 
-[The M5 source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) records the corrections made, observed source checks and mandatory runtime/coverage gaps. The added JavaScript modules passed syntactic parsing and the shipment EF model/snapshot blocks matched textually. **No .NET 10 build, actual EF model comparison, database migration, HTTP run, Playwright run, outage or scan was executed** in the current environment. These are not G5 evidence.
+[The M5 source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) records the corrections made, observed source checks and mandatory runtime/coverage gaps. The added JavaScript modules passed syntactic parsing and the shipment EF model/snapshot blocks matched textually. That statement describes the environment of the original source review. The build, EF comparison, migrations, HTTP and browser runs, outage checks and scans have since been executed; their results are in [M5 executed verification](M5_EXECUTED_VERIFICATION.md).
 
-The local runner expects an E:-backed verification root ending in `m5`, for example `E:\HarborOps-Verification\m5`. It refuses to take over existing disposable Docker resources. Review its shared `ho-verify` stage infrastructure for independent-project isolation before concurrent verification. Keep all controlled persistent data on E:, with only attributable short-lived C: temporary writes and safe cleanup.
+The local runner expects an E:-backed verification root ending in `m5`, for example `E:\HarborOps-Verification\m5`. It refuses to take over existing disposable Docker resources. Its resources are isolated under the `ho-verify-g5` project and the `ho-g5-pg` and `ho-g5-sdk` containers; the final run left none behind. Keep all controlled persistent data on E:, with only attributable short-lived C: temporary writes and safe cleanup.
 
 The [M5 local contract decision record](M5_LOCAL_CONTRACT_DECISION.md) remains proposed with acceptance pending. The G5-S01 evidence checker now requires its explicit Accepted state; having source code or passing unit tests alone cannot close this decision.
 

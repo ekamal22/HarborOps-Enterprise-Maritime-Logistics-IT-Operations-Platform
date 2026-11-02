@@ -146,7 +146,7 @@ public sealed class AssignmentSqlTests
         await using (var scope = factory.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
-            var actor = await db.Shipments.AsNoTracking().Where(x => x.Id == seed.Shipment)
+            var parentActor = await db.Shipments.AsNoTracking().Where(x => x.Id == seed.Shipment)
                 .Select(x => x.ChangedByUserId).SingleAsync();
             var now = DateTimeOffset.UtcNow;
             var portA = new HarborOps.Infrastructure.References.PortReference {
@@ -179,7 +179,7 @@ public sealed class AssignmentSqlTests
             var shipment = new HarborOps.Infrastructure.Shipments.ShipmentRecord {
                 Id = Guid.NewGuid(), OrganizationId = f.B,
                 ReferenceCode = "G6-FK-SHIPMENT", OriginPortId = portA.Id,
-                DestinationPortId = portB.Id, ChangedByUserId = actor,
+                DestinationPortId = portB.Id, ChangedByUserId = parentActor,
                 CreatedAtUtc = now, UpdatedAtUtc = now
             };
             db.Ports.AddRange(portA, portB);

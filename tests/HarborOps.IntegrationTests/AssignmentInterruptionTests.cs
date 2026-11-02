@@ -60,7 +60,7 @@ public sealed class AssignmentInterruptionTests(ITestOutputHelper output)
                     """, ddl);
                 observation.Parameters.AddWithValue("key", (long)key);
                 var observed = await observation.ExecuteScalarAsync();
-                if (observed is not null && not DBNull)
+                if (observed is not null and not DBNull)
                 {
                     pid = Convert.ToInt32(observed);
                     break;

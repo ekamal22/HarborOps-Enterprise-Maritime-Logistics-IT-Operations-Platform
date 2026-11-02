@@ -151,12 +151,16 @@ public sealed class AssignmentStore(HarborOpsDbContext db, OrganizationStore org
         IQueryable<T> query;
         if (after.HasValue)
         {
-            var table = typeof(T) == typeof(ShipmentContainerAssignment)
-                ? "shipment_container_assignments" : "shipment_voyage_assignments";
-            query = db.Set<T>().FromSqlRaw(
-                "SELECT * FROM " + table +
-                " WHERE organization_id = {0} AND shipment_id = {1} AND id > {2}",
-                org, shipment, after.Value).AsNoTracking();
+            var cursor = after.Value;
+            query = (typeof(T) == typeof(ShipmentContainerAssignment)
+                ? db.Set<T>().FromSqlInterpolated($"""
+                    SELECT * FROM shipment_container_assignments
+                    WHERE organization_id = {org} AND shipment_id = {shipment} AND id > {cursor}
+                    """)
+                : db.Set<T>().FromSqlInterpolated($"""
+                    SELECT * FROM shipment_voyage_assignments
+                    WHERE organization_id = {org} AND shipment_id = {shipment} AND id > {cursor}
+                    """)).AsNoTracking();
         }
         else
             query = db.Set<T>().AsNoTracking()

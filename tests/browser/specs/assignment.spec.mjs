@@ -190,7 +190,7 @@ test("G6 conflicting container allocation shows an actionable error and preserve
     "/containers?recordStatus=Active&limit=100");
   const data=await list.json();
   const target=data.containers.find(x=>x.referenceCode===
-    "G6-BOX-"+testInfo.project.name.toUpperCase());
+    "G6-CONFLICT-"+testInfo.project.name.toUpperCase());
   expect(target).toBeTruthy();
   await boxes.getByLabel("Assign container").selectOption(target.id);
   await boxes.getByLabel("Start Container assignment UTC").fill("2035-01-01T12:00:00Z");
@@ -291,4 +291,75 @@ test("G6 live membership downgrade invalidates the open allocation workspace",
       }
     }
   }finally{await adminContext.close();}
+});
+
+
+test("G6 shipment switch discards prior contextual links and late responses",
+  async ({page}, testInfo) => {
+  test.skip(!enabled,"Disposable M6 fixture required");
+  await login(page,"manager");
+  const org=await page.locator("#current-organization").inputValue();
+  const root="/api/v1/organizations/"+org;
+  const voyageList=await (await page.request.get(root+
+    "/voyages?recordStatus=Active&limit=100")).json();
+  const voyage=voyageList.voyages.find(v=>v.voyageStatus==="Planned"&&
+    v.originPortId&&v.destinationPortId);
+  expect(voyage).toBeTruthy();
+  const containerList=await (await page.request.get(root+
+    "/containers?recordStatus=Active&limit=100")).json();
+  const isolated=containerList.containers.find(c=>c.referenceCode===
+    "G6-ISOLATE-"+testInfo.project.name.toUpperCase());
+  expect(isolated).toBeTruthy();
+  const s=section(page);
+  async function createShipment(code) {
+    await s.getByRole("button",{name:"Create shipment"}).click();
+    await s.getByLabel("Shipment reference code").fill(code);
+    await s.getByLabel("Origin port").selectOption(voyage.originPortId);
+    await s.getByLabel("Destination port").selectOption(voyage.destinationPortId);
+    await s.getByRole("button",{name:"Save new shipment"}).click();
+    await s.getByLabel("Search shipments").fill(code);
+    await expect(s.getByText(code,{exact:true})).toBeVisible();
+  }
+  const suffix=randomUUID().slice(0,8).toUpperCase();
+  const first="G6-CTX-A-"+suffix, second="G6-CTX-B-"+suffix;
+  await createShipment(first);
+  await createShipment(second);
+  await s.getByLabel("Search shipments").fill(first);
+  await expect(s.getByText(first,{exact:true})).toBeVisible();
+  await s.getByRole("button",{name:"View shipment"}).first().click();
+  const container=assignment(page,"Container");
+  await container.getByLabel("Assign container").selectOption(isolated.id);
+  await container.getByLabel("Start Container assignment UTC").fill("2040-01-01T10:00:00Z");
+  await container.getByRole("button",{name:"Attach container"}).click();
+  await expect(container.getByText(/From 2040-01-01T10:00:00/)).toBeVisible();
+  const voyagePanel=assignment(page,"Voyage");
+  await voyagePanel.getByLabel("Assign voyage").selectOption(voyage.id);
+  await voyagePanel.getByLabel("Start Voyage assignment UTC").fill("2040-01-01T10:00:00Z");
+  await voyagePanel.getByRole("button",{name:"Attach voyage"}).click();
+  const contextual=page.getByRole("heading",{name:"Contextual container and voyage intervals"})
+    .locator("xpath=ancestor::div[contains(@class,'rounded')][1]");
+  await expect(contextual.getByText(/G6-ISOLATE-/)).toBeVisible();
+
+  let release;
+  const gate=new Promise(resolve=>{release=resolve;});
+  let seen;
+  const entered=new Promise(resolve=>{seen=resolve;});
+  let held=false;
+  await page.route("**/container-assignments*",async route=>{
+    if(!held&&route.request().method()==="GET"){
+      held=true;seen();await gate;
+    }
+    await route.continue();
+  });
+  try {
+    await container.getByRole("button",{name:"Refresh assignments"}).click();
+    await Promise.race([entered,new Promise((_,reject)=>
+      setTimeout(()=>reject(Error("Held source shipment request was not observed")),8000))]);
+    await s.getByLabel("Search shipments").fill(second);
+    await expect(s.getByText(second,{exact:true})).toBeVisible();
+    await s.getByRole("button",{name:"View shipment"}).first().click();
+    await expect(contextual.getByText(/G6-ISOLATE-/)).toHaveCount(0);
+  }finally{release?.();}
+  await expect(contextual.getByText(/G6-ISOLATE-/)).toHaveCount(0);
+  await expect(contextual.getByText("No overlapping allocation intervals.")).toBeVisible();
 });

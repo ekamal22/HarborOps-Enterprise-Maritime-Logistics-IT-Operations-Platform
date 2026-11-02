@@ -84,6 +84,41 @@ public sealed class AssignmentSecurityTests
     }
 
     [Fact]
+    public async Task CompetingVoyagesForOneShipmentCommitAtMostOneAssignment()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var manager = f.Manager; using var analyst = f.Analyst; using var admin = f.Admin;
+        var seed = await AssignmentHttpTests.Seed(f);
+        var prefix = "/api/v1/organizations/" + f.A;
+        using var first = await manager.GetAsync(prefix + "/voyages/" + seed.Voyage);
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        var row = await first.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+        using var other = await ReferenceDataHttpTests.Send(manager,HttpMethod.Post,
+            prefix + "/voyages",new {
+                referenceCode="G6-RACE-"+Guid.NewGuid().ToString("N")[..8].ToUpperInvariant(),
+                vesselId=row.GetProperty("vesselId").GetGuid(),
+                originPortId=row.GetProperty("originPortId").GetGuid(),
+                destinationPortId=row.GetProperty("destinationPortId").GetGuid()
+            });
+        Assert.Equal(HttpStatusCode.Created,other.StatusCode);
+        var otherVoyage=(await other.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>())
+            .GetProperty("id").GetGuid();
+        var url=seed.Root+"/"+seed.Shipment+"/voyage-assignments";
+        var firstWrite=ReferenceDataHttpTests.Send(manager,HttpMethod.Post,url,
+            new{voyageId=seed.Voyage,startsAtUtc="2040-10-01T10:00:00Z"});
+        var secondWrite=ReferenceDataHttpTests.Send(analyst,HttpMethod.Post,url,
+            new{voyageId=otherVoyage,startsAtUtc="2040-10-01T10:00:00Z"});
+        using var a=await firstWrite;using var b=await secondWrite;
+        Assert.Equal(new[]{HttpStatusCode.Created,HttpStatusCode.Conflict}.Order(),
+            new[]{a.StatusCode,b.StatusCode}.Order());
+        await using var scope=factory.Services.CreateAsyncScope();
+        var db=scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Equal(1,await db.ShipmentVoyageAssignments.AsNoTracking()
+            .CountAsync(x=>x.OrganizationId==f.A && x.ShipmentId==seed.Shipment));
+    }
+
+    [Fact]
     public async Task LiveMembershipDowngradeImmediatelyRevokesAssignmentAccess()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

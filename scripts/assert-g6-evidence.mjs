@@ -159,7 +159,7 @@ const assertChecks=[
  ["G6-S16",requires(fresh,"ContainerAndVoyageEndToEndEnforceOverlapClosureAndParentGuards")],
  ["G6-S17",requires(fresh,"VoyageAllowsManyShipmentsAndSequentialReassignmentWithoutWorkflowChanges","ReverseRouteAndKnownDisjointSchedulesRejectVoyageAssignment")],
  ["G6-S18",requires(fresh,"QueuedAllocationAndParentArchiveCannotCommitInconsistentState","VoyageCancellationAndAllocationCannotBothCommit","DirectSqlVoyageCancellationAndShipmentCancellationCannotBypassOpenLinks")],
- ["G6-S19",requires(fresh,"CompetingSameContainerWritesCommitAtMostOneAssignment","QueuedAllocationAndParentArchiveCannotCommitInconsistentState","QueuedAssignmentWriteRechecksEveryAuthorizationDependency")],
+ ["G6-S19",requires(fresh,"CompetingSameContainerWritesCommitAtMostOneAssignment","CompetingVoyagesForOneShipmentCommitAtMostOneAssignment","QueuedAllocationAndParentArchiveCannotCommitInconsistentState","QueuedAssignmentWriteRechecksEveryAuthorizationDependency")],
  ["G6-S20",requires(fresh,"TerminatingBackendAfterAssignmentInsertRollsBackWithoutOrphanHistory","CancelledAfterWriteAssignmentClosureRollsBack","TimedOutAfterWriteAssignmentClosureRollsBack","LostResponseAfterAssignmentCommitDoesNotDuplicateClosure")],
  ["G6-S21",expected.every(x=>browser.get("chromium").has(x))],
  ["G6-S22",expected.every(x=>browser.get("firefox").has(x)&&browser.get("webkit").has(x))],

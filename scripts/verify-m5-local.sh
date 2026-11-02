@@ -118,7 +118,8 @@ run_stage coverage-source node scripts/check-g5-source-coverage.mjs
 run_stage preflight bash scripts/verify-m5-stages-local.sh preflight
 run_stage postgres-image docker build --build-arg "SOURCE_REVISION=$sha" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
-for stage in dotnet deps web docs stack accounts organizations session; do
+# Fail fast: the flaky browser and outage stages run before the long, stable .NET stage.
+for stage in deps web docs stack accounts organizations session; do
   run_stage "$stage" bash scripts/verify-m5-stages-local.sh "$stage"
 done
 # The accepted local runner generated the synthetic password in an E: file.
@@ -168,6 +169,8 @@ run_stage reference-outage node scripts/check-m5-reference-outage.mjs
 run_stage maritime-outage node scripts/check-m5-maritime-outage.mjs
 run_stage recovery bash scripts/verify-m5-stages-local.sh recovery
 run_stage scan bash scripts/verify-m5-stages-local.sh scan
+# The .NET suites use their own disposable database container and do not need the compose stack.
+run_stage dotnet bash scripts/verify-m5-stages-local.sh dotnet
 teardown_g5() {
   # Preserve original service logs before disposing of G5-owned containers.
   docker compose -p ho-verify-g5 logs --no-color --timestamps > "$evidence/g5-docker-services.log" 2>&1 || true

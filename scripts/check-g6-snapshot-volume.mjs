@@ -67,7 +67,7 @@ export async function runVolumeSnapshot({ volume, database, cwd, root, report, s
     const migrations = () => sql('SELECT "MigrationId" FROM "__EFMigrationsHistory" ORDER BY 1').split(/\r?\n/);
     const before = { migrations: migrations(), tables: snapshotTables() };
     docker(["run", "--rm", "--ulimit", "core=0", "--network", "container:" + containerName,
-      "-v", cwd + ":/src", "-v", path.join(root, "cache") + ":/cache", "-w", "/src",
+      "-v", cwd + ":/src", "-v", root + ":/cache", "-w", "/src",
       "-e", "ConnectionStrings__HarborOps=Host=127.0.0.1;Port=5432;Database=" + database + ";Username=harborops",
       "-e", "NUGET_PACKAGES=/cache/nuget/packages", "-e", "DOTNET_CLI_HOME=/cache/dotnet-home",
       "-e", "HOME=/cache/dotnet-home", "-e", "TMPDIR=/cache/tmp", "-e", "DOTNET_NOLOGO=1",

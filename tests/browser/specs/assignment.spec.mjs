@@ -74,6 +74,18 @@ test("G6 Analyst attaches container and voyage and retains the shipment draft", 
   await voyages.getByLabel("End Voyage assignment UTC").fill("2035-01-01T11:00:00Z");
   await voyages.getByRole("button", { name: "Confirm closure" }).click();
   await expect(voyages.getByText(/to 2035-01-01T11:00:00/)).toBeVisible();
+
+  // Half-open adjacency permits a new durable allocation immediately after closure.
+  await boxes.getByLabel("Assign container").selectOption(container.id);
+  await boxes.getByLabel("Start Container assignment UTC").fill("2035-01-01T11:00:00Z");
+  await boxes.getByLabel("Optional end Container assignment UTC").fill("2035-01-01T12:00:00Z");
+  await boxes.getByRole("button",{name:"Attach container"}).click();
+  await expect(boxes.getByText(/From 2035-01-01T11:00:00/)).toBeVisible();
+  await voyages.getByLabel("Assign voyage").selectOption(voyage.id);
+  await voyages.getByLabel("Start Voyage assignment UTC").fill("2035-01-01T11:00:00Z");
+  await voyages.getByLabel("Optional end Voyage assignment UTC").fill("2035-01-01T12:00:00Z");
+  await voyages.getByRole("button",{name:"Attach voyage"}).click();
+  await expect(voyages.getByText(/From 2035-01-01T11:00:00/)).toBeVisible();
   await expect(s.getByLabel("Shipment display name")).toHaveValue("Unsaved G6 edit");
 });
 

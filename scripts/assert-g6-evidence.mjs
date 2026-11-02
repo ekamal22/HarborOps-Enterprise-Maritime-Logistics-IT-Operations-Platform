@@ -137,7 +137,12 @@ const snapshotDisposition=
    snapshot.reason?.length>20 && !snapshot.candidates?.length) ||
   (snapshot.outcome==="PASS" && snapshot.evidence?.before &&
    snapshot.evidence?.after && snapshot.evidence.m6Exclusions===2 &&
-   JSON.stringify(snapshot.evidence.before)===JSON.stringify(snapshot.evidence.after));
+   JSON.stringify(snapshot.evidence.before)===JSON.stringify(snapshot.evidence.after)) ||
+  (snapshot.outcome==="PASS" && snapshot.sourceUnmodified===true && snapshot.sourceVolume?.name &&
+   snapshot.evidence?.m6Exclusions===2 &&
+   Object.keys(snapshot.evidence.before?.tables??{}).length>0 &&
+   Object.keys(snapshot.evidence.before.tables).length===snapshot.evidence.after?.preservedTables &&
+   snapshot.evidence.addedTables?.includes("shipment_container_assignments"));
 const decision=fs.readFileSync("docs/M6_LOCAL_CONTRACT_DECISION.md","utf8");
 const contractApproved=/\*\*State:\*\*\s*Accepted\b/i.test(decision);
 const assertChecks=[

@@ -10,7 +10,7 @@ const evidence=path.join(root,"evidence");
 fs.mkdirSync(evidence,{recursive:true});
 const configured=process.env.HARBOROPS_G6_HISTORICAL_SNAPSHOT;
 const locations=[path.join(root,"historical"),path.join(path.dirname(root),"historical-snapshots"),
-  path.join(path.dirname(root),"backups")];
+  path.join(path.dirname(root),"backups"),path.join(path.dirname(root),"dumps")];
 const candidates=[];
 for(const folder of locations){
   if(!fs.existsSync(folder))continue;
@@ -24,8 +24,30 @@ const report={sourceSha:process.env.HARBOROPS_SOURCE_SHA,
   configuredSnapshot:configured||null,candidates:[...new Set(candidates)],
   outcome:"NOT APPLICABLE",reason:"No representative historical backup in checked E: locations",
   evidence:null};
+// Docker volume metadata only (names, creation time, labels); nothing is mounted during discovery.
+const dockerVolumes=[];
+try{
+  const names=execFileSync("docker",["volume","ls","-q"],{encoding:"utf8",timeout:30000})
+    .split(/\r?\n/).filter(x=>/^(harborops[_-]|ho-verify-)/.test(x)&&!/^ho-(verify-g6|g6)/.test(x));
+  for(const name of names){
+    const meta=JSON.parse(execFileSync("docker",["volume","inspect",name],{encoding:"utf8",timeout:30000}))[0];
+    dockerVolumes.push({name,createdAt:meta.CreatedAt,labels:meta.Labels??{}});
+  }
+}catch(error){report.dockerDiscoveryError=String(error.message).slice(0,200);}
+report.dockerVolumeCandidates=dockerVolumes;
+const configuredVolume=process.env.HARBOROPS_G6_HISTORICAL_VOLUME;
+report.configuredVolume=configuredVolume||null;
 const reportPath=path.join(evidence,"g6-snapshot.json");
 const save=()=>fs.writeFileSync(reportPath,JSON.stringify(report,null,2));
+if(configuredVolume){
+  assert.ok(dockerVolumes.some(x=>x.name===configuredVolume),"Configured volume is not a discovered candidate");
+  const { runVolumeSnapshot }=await import("./check-g6-snapshot-volume.mjs");
+  await runVolumeSnapshot({volume:configuredVolume,
+    database:process.env.HARBOROPS_G6_HISTORICAL_DATABASE||"harborops",
+    cwd:process.cwd(),root,report,save});
+  console.log("G6 historical volume upgrade and preservation: PASS");
+  process.exit(0);
+}
 if(configured){
   assert.match(configured.replaceAll("\\","/"),/^(?:[Ee]:\/|\/e\/)/);
   if(!fs.existsSync(configured)){

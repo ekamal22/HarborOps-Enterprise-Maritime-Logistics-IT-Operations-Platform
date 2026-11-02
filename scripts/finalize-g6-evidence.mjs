@@ -49,11 +49,38 @@ const output={sourceSha:source,archive:destination,sha256:zipHash,
   evidenceGate:gateComplete?"complete":"incomplete",
   files:files.length,manifest:path.join(dir,"g6-file-hashes.csv"),createdAtUtc:new Date().toISOString()};
 fs.writeFileSync(path.join(archiveRoot,filename+".json"),JSON.stringify(output,null,2));
-const check=fs.readFileSync(output.manifest,"utf8").trim().split(/\r?\n/).slice(1);
+
+const verifyRoot=path.join(root,"cache","g6-archive-verify-"+source.slice(0,12));
+assert.ok(!fs.existsSync(verifyRoot),"G6 archive verification directory already exists");
+fs.mkdirSync(verifyRoot,{recursive:true});
+execFileSync("powershell.exe",["-NoProfile","-NonInteractive","-Command",
+  "Expand-Archive -LiteralPath '"+to+"' -DestinationPath '"+verifyRoot.replaceAll("'","''")+"'"],{
+  stdio:"pipe",timeout:120000
+});
+const extracted=fs.existsSync(path.join(verifyRoot,"g6-file-hashes.csv"))
+  ? verifyRoot : path.join(verifyRoot,"evidence");
+const extractedManifest=path.join(extracted,"g6-file-hashes.csv");
+assert.ok(fs.existsSync(extractedManifest),"ZIP does not contain the manifest");
+assert.equal(hash(extractedManifest),hash(output.manifest),
+  "ZIP manifest differs from generated manifest");
+const check=fs.readFileSync(extractedManifest,"utf8").trim().split(/\r?\n/).slice(1);
+const names=new Set();
 for(const line of check){
   const [name,digest,bytes]=line.split(",");
-  const p=path.join(dir,name);
-  assert.equal(hash(p),digest,"Evidence hash mismatch: "+name);
-  assert.equal(fs.statSync(p).size,Number(bytes),"Evidence size mismatch");
+  assert.ok(name && digest && bytes && !name.includes("..") &&
+    !name.startsWith("/") && !names.has(name),"Invalid or duplicate ZIP path");
+  names.add(name);
+  const p=path.resolve(extracted,name);
+  assert.ok(p.startsWith(path.resolve(extracted)+path.sep),"ZIP path escape");
+  assert.ok(fs.existsSync(p),"ZIP entry missing: "+name);
+  assert.equal(hash(p),digest,"ZIP checksum mismatch: "+name);
+  assert.equal(fs.statSync(p).size,Number(bytes),"ZIP byte count mismatch: "+name);
 }
+const members=walk(extracted).map(p=>path.relative(extracted,p).replaceAll("\\","/"))
+  .filter(x=>x!=="g6-file-hashes.csv");
+assert.deepEqual(members.sort(),[...names].sort(),"ZIP extra or missing entries");
+assert.equal(names.size,files.length,"ZIP evidence count mismatch");
+output.extractedVerified=true;
+output.verifiedMembers=members.length+1;
+fs.writeFileSync(path.join(archiveRoot,filename+".json"),JSON.stringify(output,null,2));
 console.log(JSON.stringify(output,null,2));

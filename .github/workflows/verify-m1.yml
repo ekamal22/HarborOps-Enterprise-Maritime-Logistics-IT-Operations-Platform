@@ -1,6 +1,8 @@
 name: Verify M1
+# Manual only. Hosted verification is prohibited until separately authorized.
 on:
   workflow_dispatch:
+
 permissions:
   contents: read
 concurrency:

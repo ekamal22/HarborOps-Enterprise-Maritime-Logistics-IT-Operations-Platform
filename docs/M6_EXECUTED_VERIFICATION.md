@@ -10,7 +10,7 @@ After the tested SHA only this record, the status documents and the read-only ev
 
 ## Result
 
-All 33 executable pipeline stages exited 0 on the tested source. The evidence assertion exits 1 for one reason only: G6-S01 requires an explicit acceptance of the twelve-rule contract in [M6 local contract decision](M6_LOCAL_CONTRACT_DECISION.md), which is Proposed, acceptance pending. That was an approval-only blocker and was closed by the explicit decision on 2026-11-02. The original evidence-stage exit 1 is preserved; no post-approval rerun is claimed.
+All 33 executable pipeline stages exited 0 on the tested source. The evidence assertion exits 1 for one reason only: G6-S01 requires an explicit acceptance of the twelve-rule contract in [M6 local contract decision](M6_LOCAL_CONTRACT_DECISION.md), which was Proposed, acceptance pending during execution. That was an approval-only blocker and was closed by the explicit decision on 2026-11-02. The original evidence-stage exit 1 is preserved; no post-approval rerun is claimed.
 
 | Suite | Total | Passed | Failed | Skipped |
 | --- | --- | --- | --- | --- |

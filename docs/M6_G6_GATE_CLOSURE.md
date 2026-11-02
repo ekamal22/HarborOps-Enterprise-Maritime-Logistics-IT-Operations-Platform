@@ -2,7 +2,7 @@
 
 **Decision date:** 2026-11-02
 **Decision:** M6-01 through M6-04, the complete twelve-rule M6-local contract, and G6 are explicitly accepted.
-**Integration authorization:** Merge `feat/m6-container-voyage-assignments` into `main` with `[skip ci]`.
+**Integration:** M6 merged into `main` on 2026-11-02 at `2aa0b9e941adeaff22ff07e2f5d401dadc2030f1` with `[skip ci]`.
 **Verified application SHA:** `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`
 **Post-verification head:** `9265ca971e6d6abde7d5025616eb250f9a8f5d66` (documentation and read-only evidence summarization only).
 

@@ -4,7 +4,7 @@
 **Milestone:** M6-01 through M6-04; G6
 **Branch:** `feat/m6-container-voyage-assignments`
 **Accepted base:** `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`, G0-G5 accepted
-**Implementation state:** Assignment domain, additive PostgreSQL migration, API, React workspace, adversarial tests, security mutation runner, historical snapshot restore and extracted-archive verification committed and executed locally. On `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` all 33 executable pipeline stages passed; the evidence assertion reports only G6-S01 (contract approval) incomplete. See [executed verification](M6_EXECUTED_VERIFICATION.md). G6 and the complete twelve-rule contract were explicitly accepted on 2026-11-02; integration into `main` authorized. See [gate closure](M6_G6_GATE_CLOSURE.md).
+**Implementation state:** Assignment domain, additive PostgreSQL migration, API, React workspace, adversarial tests, security mutation runner, historical snapshot restore and extracted-archive verification committed and executed locally. On `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` all 33 executable pipeline stages passed; the evidence assertion reports only G6-S01 (contract approval) incomplete. See [executed verification](M6_EXECUTED_VERIFICATION.md). G6 and the complete twelve-rule contract were explicitly accepted on 2026-11-02; integrated into `main` on 2026-11-02 (merge `2aa0b9e941adeaff22ff07e2f5d401dadc2030f1`). See [gate closure](M6_G6_GATE_CLOSURE.md).
 **Decision state:** [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) accepted; G6-S01 closed by explicit decision after the technical run. G6 accepted.
 
 ## Implemented source
@@ -37,15 +37,15 @@
 - `AssignmentSqlTests.cs`: real alternate-tenant parent fixtures and separate behavioral exclusion and archive guard mutation controls.
 - `tests/browser/specs/assignment.spec.mjs`: Chromium/Firefox/WebKit source for allocation and tenant-switch behaviors.
 - Existing full-latest-migration expectations updated to seven migrations; historical M5 tests are pinned to their actual M5 version rather than being silently reinterpreted as M6.
-- `scripts/verify-m6-local.sh`, stage/browser/fixture/recovery scripts, schema/source validators, snapshot restore, mutation controls, manifest/re-extracted archive integrity, and scenario evidence mapping are authored. They must execute on E: before any G6 claims.
+- `scripts/verify-m6-local.sh`, stage/browser/fixture/recovery scripts, schema/source validators, snapshot restore, mutation controls, manifest/re-extracted archive integrity, and scenario evidence mapping are authored. They executed on the E:-backed pinned G6 source SHA.
 
 ## Correctness-remediation register
 
-The M6 feature branch includes successive correctness remediation rounds. These are **authored source and test changes, not verified runtime passes**:
+The M6 feature branch includes successive correctness remediation rounds. These remediations were exercised by the pinned G6 runtime run:
 
 | Audit concern | Source remediation and evidence requirement |
 | --- | --- |
-| G6 gate hard-coded incomplete | `scripts/assert-g6-evidence.mjs` now maps 25 scenarios to actual TRX, Playwright reports, stage proofs, executed security mutants and snapshot results. G6-S01 remains incomplete until the contract is approved. |
+| G6 gate hard-coded incomplete | `scripts/assert-g6-evidence.mjs` now maps 25 scenarios to actual TRX, Playwright reports, stage proofs, executed security mutants and snapshot results. G6-S01 was closed by explicit contract acceptance on 2026-11-02. |
 | Composite FK proof | `AssignmentSqlTests.CompositeForeignKeysRejectCrossTenantParentsWithoutValidationTrigger` disables only the custom validation trigger transactionally, demands PostgreSQL `23503` and the exact FK constraint name, then rolls back the test transaction. |
 | Browser inventory | Ten M6 specs per engine cover Analyst allocation and adjacent reassignment, organization change, Auditor, Support, visibility return, logout, independent duplicate conflicts, delayed responses, membership downgrade and switching between different shipments. Separate per-engine container fixtures prevent overlap interference. |
 | Security mutation evidence | `scripts/run-g6-mutations.mjs` exports disposable source copies, builds each variant and requires baseline PASS plus named failures for tenant read, post-lock authorization, exclusion and parent guard mutations. |

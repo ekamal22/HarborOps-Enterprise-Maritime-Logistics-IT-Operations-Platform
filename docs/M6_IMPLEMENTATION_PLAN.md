@@ -1,6 +1,6 @@
 # M6 Implementation Plan: Shipment Container and Voyage Assignments
 
-**Status:** Source implementation committed on the feature branch under this plan and executed locally on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` (see [executed verification](M6_EXECUTED_VERIFICATION.md)). Full G6 acceptance and the local contract decision are pending. See [implementation status](M6_IMPLEMENTATION_STATUS.md).
+**Status:** Source implementation committed on the feature branch under this plan and executed locally on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` (see [executed verification](M6_EXECUTED_VERIFICATION.md)). The twelve-rule contract and G6 were explicitly accepted on 2026-11-02; M6 was merged into `main`. See [implementation status](M6_IMPLEMENTATION_STATUS.md).
 **Prepared:** 2026-11-02
 **Branch:** `feat/m6-container-voyage-assignments`
 **Accepted upstream:** G4 and G5 on `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`
@@ -21,7 +21,7 @@ flowchart TD
 
 M6-02 and M6-03 are parallelizable **only after** the local contract has been approved and shared API, migration ownership, parent guard and lock-order designs have been frozen. They may independently author domain/store/endpoint/tests, but must not concurrently edit `HarborOpsDbContext`, the model snapshot, a shared migration, `Program.cs`, shared organization policy or shipment workspace. One integration coordinator owns shared edits. Do not change the accepted graph to imply M6 waits for unrelated milestones.
 
-Implementation source was expressly requested after planning and is committed separately from `main` against the proposed local contract. The contract itself has not yet received formal acceptance. Do not infer G6 acceptance or merge authorization from authored source or tests.
+Implementation source was expressly requested after planning and is committed separately from `main` against the proposed local contract. The contract and G6 were subsequently explicitly accepted on 2026-11-02. Merge authorization was separately granted and integration completed.
 
 ## 2. M6-01: Freeze invariant and integration contract
 
@@ -138,7 +138,7 @@ Security mutation controls must demonstrate that removing an effective tenant pr
 
 The mandatory [G6-S01 to G6-S25](M6_VERIFICATION_PLAN.md) matrix must be executed on **one final source SHA**. If a test fails, fix the underlying defect, audit correctness and rerun full verification at the new SHA. Preserve prior failed runs under their own identifiers.
 
-**Acceptance sequence:** implementation finished, local technical evidence green, raw ZIP and hashes independently reviewed, M6-local contract explicitly accepted, G6 explicitly accepted, then seek separate permission to fast-forward merge M6 into `main`. Do not merge because tests passed.
+**Acceptance outcome:** The implementation and technical evidence were completed, the entire twelve-rule M6 contract and G6 were explicitly accepted on 2026-11-02, and M6 was merged into `main` under separate authorization. See [gate closure](M6_G6_GATE_CLOSURE.md).
 
 ## 8. Failure-mode and correctness audit checklist
 
@@ -159,4 +159,4 @@ The mandatory [G6-S01 to G6-S25](M6_VERIFICATION_PLAN.md) matrix must be execute
 
 ## 9. Deliverables and reporting
 
-At implementation handoff provide: source branch and base SHA, accepted M6-local contract, final migrations/EF snapshot and endpoint contracts, conflict/lock model, test source, per-engine browser results, execution gate index, Q1 snapshot finding, source SHA, final evidence archive SHA-256, storage before/after and teardown. Report every unresolved behavior and skipped case. No code implementation, test execution or G6 acceptance is claimed by this planning document.
+At implementation handoff provide: source branch and base SHA, accepted M6-local contract, final migrations/EF snapshot and endpoint contracts, conflict/lock model, test source, per-engine browser results, execution gate index, Q1 snapshot finding, source SHA, final evidence archive SHA-256, storage before/after and teardown. Report every unresolved behavior and skipped case. Implementation, executed verification and acceptance are recorded in [M6 executed verification](M6_EXECUTED_VERIFICATION.md) and [gate closure](M6_G6_GATE_CLOSURE.md).

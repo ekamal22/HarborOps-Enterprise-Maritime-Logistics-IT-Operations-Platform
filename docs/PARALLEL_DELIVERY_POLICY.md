@@ -8,7 +8,7 @@
 
 HarborOps milestones M0-M24 retain 101 work packages and 25 separately verified, explicitly accepted gates. Milestone numbering and P0-P5 topic groupings do not impose sequential implementation. `execution-graph.json` version 3.0 is the sole dependency-edge authority. The generated Markdown graph must be regenerated after changing dependencies; never hand-edit it.
 
-The accepted baseline is G0-G5 on `main` as of 2026-11-02. A future milestone is **eligible**, not started, merely because its prerequisites are accepted.
+The accepted baseline is G0-G6 on `main` as of 2026-11-02. A future milestone is **eligible**, not started, merely because its prerequisites are accepted.
 
 ## Dependency contracts
 
@@ -20,13 +20,13 @@ The accepted baseline is G0-G5 on `main` as of 2026-11-02. A future milestone is
 
 The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a dependency on `G(x-1)` unless the graph explicitly specifies it.
 
-## Eligible parallel development after accepted G5
+## Eligible parallel development after accepted G6
 
 | Stream | First eligible package | Necessary boundary |
 | --- | --- | --- |
 | M4 voyage/container records | Completed | G4 accepted 2026-11-01; D-003 Option B accepted, implementation integrated |
 | M5 shipment lifecycle | Completed | G5 accepted 2026-11-02 and integrated into `main` after independent evidence review |
-| M6 shipment assignments | Initial source authored on feature branch | G4 and G5 accepted; [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) proposed, [architecture](M6_ARCHITECTURE_DESIGN.md), [implementation status](M6_IMPLEMENTATION_STATUS.md), [implementation plan](M6_IMPLEMENTATION_PLAN.md), and [G6 matrix](M6_VERIFICATION_PLAN.md). Executed locally on `a94d7cd` ([executed verification](M6_EXECUTED_VERIFICATION.md)); contract and G6 acceptance pending; no merge. |
+| M6 shipment assignments | Accepted and merged | G4/G5 prerequisites were accepted; the [twelve-rule M6 contract](M6_LOCAL_CONTRACT_DECISION.md) and full G6 were accepted 2026-11-02, then integrated into `main`. [Gate closure](M6_G6_GATE_CLOSURE.md) preserves evidence provenance and snapshot limitations. |
 | M7 tracking source contract | M7-01 | G3 accepted; D-002 pinned contract decision required |
 | M16 audit foundations | M16-01 | G3 accepted; never weaken existing M1-M3 security |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |
@@ -34,7 +34,7 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M20 security assurance | M20-01 | Baseline review begins after G3; attack matrix waits for G15/G18, scanners for G19 |
 | M23 UI system | M23-01 | Visual-system definitions begin after G3; operational polish waits for G12/G13/G14/G15/G18 |
 
-M6 requires both G4 and G5, accepted by 2026-11-02. After its M6-01 local contract is approved, M6-02 and M6-03 can be implemented in parallel only with a single migration/snapshot coordinator. M8 may design its inbox contract after G7, but the receipt and intake implementation also requires G6. M13 KPI definitions can start after G11; aggregate integration requires G12. M18 incident policy can start after G17; CRUD integration requires G16. M21 can define benchmark workloads after G9 but needs G12/G13 for complete results. M22 may plan deployment after G19 but cannot close until G20/G21 integration. D-003 was accepted for M4. Nothing authorizes bypassing remaining D-002, D-004, D-005, D-006, D-007 or D-008.
+M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and integrated. The parallel migration and shared-file ownership rule remains documented as historical guidance. M8 may design its inbox contract after G7, but the receipt and intake implementation also requires G6. M13 KPI definitions can start after G11; aggregate integration requires G12. M18 incident policy can start after G17; CRUD integration requires G16. M21 can define benchmark workloads after G9 but needs G12/G13 for complete results. M22 may plan deployment after G19 but cannot close until G20/G21 integration. D-003 was accepted for M4. Nothing authorizes bypassing remaining D-002, D-004, D-005, D-006, D-007 or D-008.
 
 ## Branches and source of truth
 
@@ -53,7 +53,7 @@ M6 requires both G4 and G5, accepted by 2026-11-02. After its M6-01 local contra
 - When parallel branches converge, run their combined tests on the merged candidate, including auth/tenant boundary races and migration rehearsals. Earlier per-branch PASS results alone do not establish integration correctness.
 - G19 recovery can be implemented early, but any later migration requires appropriate upgrade/recovery testing. G20 assurance similarly does not waive security checks on later modules.
 - G24 requires all G0-G23 gates explicitly accepted and a fresh complete-system verification on the final code and images. M24-04 remains the **only formal dedicated accessibility audit**; M6, M12, M18, and M24-03 retain historical-volume compatibility checkpoints. These milestone-bound checks remain required even if streams finish out of numeric order.
-- No release, production deployment or M6-M24 implementation is implied by updating planning documents. The [Status](STATUS.md) ledger alone records what was actually executed and accepted.
+- No release, production deployment or M7-M24 implementation is implied by updating planning documents. The [Status](STATUS.md) ledger alone records what was actually executed and accepted.
 
 ## Graph maintenance
 

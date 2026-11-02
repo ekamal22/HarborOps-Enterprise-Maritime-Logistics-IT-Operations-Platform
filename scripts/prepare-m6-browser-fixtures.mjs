@@ -120,10 +120,12 @@ fs.writeFileSync(path.join(root,"evidence","g6-fixtures.json"),JSON.stringify(ou
 await request("PUT","/api/v1/auth/session/organization",{organizationId:org.id});
 const url="/api/v1/organizations/"+org.id+"/containers";
 for(const engine of ["CHROMIUM","FIREFOX","WEBKIT"]){
+  // The synthetic identifier suffix is limited to 16 characters, so use a short engine tag.
+  const tag={CHROMIUM:"CHR",FIREFOX:"FFX",WEBKIT:"WBK"}[engine];
   for(const [purpose,code,identifier] of [
-    ["BOX","G6-BOX-"+engine,"SYN-BOX-G6"+engine],
-    ["CONFLICT","G6-CONFLICT-"+engine,"SYN-BOX-G6CONFLICT"+engine],
-    ["ISOLATE","G6-ISOLATE-"+engine,"SYN-BOX-G6ISOLATE"+engine]
+    ["BOX","G6-BOX-"+engine,"SYN-BOX-G6BOX"+tag],
+    ["CONFLICT","G6-CONFLICT-"+engine,"SYN-BOX-G6CONFLICT"+tag],
+    ["ISOLATE","G6-ISOLATE-"+engine,"SYN-BOX-G6ISOLATE"+tag]
   ]){
     const rowsBefore=(await request("GET",url+"?recordStatus=All&limit=100")).containers;
     if(!rowsBefore.some(row=>row.referenceCode===code)){

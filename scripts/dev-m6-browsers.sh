@@ -45,7 +45,15 @@ case "$action" in
   run)
     [[ -s "$marker" ]] || { echo "Run 'up' first" >&2; exit 2; }
     engine="${2:?engine}"; spec="${3:?spec file name}"; repeat="${4:-1}"; grep_arg="${5:-}"
-    [[ "$(cat "$marker")" == "$HARBOROPS_SOURCE_SHA" ]] || { echo "Stack was built for another revision" >&2; exit 2; }
+    built="$(cat "$marker")"
+    if [[ "$built" != "$HARBOROPS_SOURCE_SHA" ]]; then
+      # Reuse the running images only when nothing they are built from has changed since.
+      if git diff --quiet "$built" HEAD -- src web docker compose.yaml Directory.Build.props global.json; then
+        printf '%s\n' "$HARBOROPS_SOURCE_SHA" > "$marker"
+      else
+        echo "Runtime sources changed since the stack was built; run 'down' then 'up'" >&2; exit 2
+      fi
+    fi
     export HARBOROPS_M3_FIXTURES=1 HARBOROPS_M4_FIXTURES=1 HARBOROPS_M5_FIXTURES=1 HARBOROPS_M6_FIXTURES=1
     stamp=$(date -u +%Y%m%dT%H%M%SZ)
     out="$root/dev/browser-$stamp-$engine-${spec%.spec.mjs}"

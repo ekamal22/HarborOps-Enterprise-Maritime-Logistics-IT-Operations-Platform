@@ -47,12 +47,14 @@ assert.ok(fs.existsSync(destination) && fs.statSync(destination).size>1000,"Arch
 const zipHash=hash(destination);
 const output={sourceSha:source,archive:destination,sha256:zipHash,
   evidenceGate:gateComplete?"complete":"incomplete",
-  files:files.length,manifest:path.join(dir,"g6-file-hashes.csv"),createdAtUtc:new Date().toISOString()};
+  files:files.length,manifest:path.join(dir,"g6-file-hashes.csv"),createdAtUtc:new Date().toISOString(),
+  integrityVerified:false};
 fs.writeFileSync(path.join(archiveRoot,filename+".json"),JSON.stringify(output,null,2));
 
 const verifyRoot=path.join(root,"cache","g6-archive-verify-"+source.slice(0,12));
 assert.ok(!fs.existsSync(verifyRoot),"G6 archive verification directory already exists");
 fs.mkdirSync(verifyRoot,{recursive:true});
+try {
 execFileSync("powershell.exe",["-NoProfile","-NonInteractive","-Command",
   "Expand-Archive -LiteralPath '"+to+"' -DestinationPath '"+verifyRoot.replaceAll("'","''")+"'"],{
   stdio:"pipe",timeout:120000
@@ -81,9 +83,12 @@ const members=walk(extracted).map(p=>path.relative(extracted,p).replaceAll("\\",
 assert.deepEqual(members.sort(),[...names].sort(),"ZIP extra or missing entries");
 assert.equal(names.size,files.length,"ZIP evidence count mismatch");
 output.extractedVerified=true;
+output.integrityVerified=true;
 output.verifiedMembers=members.length+1;
 fs.writeFileSync(path.join(archiveRoot,filename+".json"),JSON.stringify(output,null,2));
-// Only the dedicated, newly extracted ZIP-verification directory is disposable.
-assert.equal(path.dirname(verifyRoot),path.join(root,"cache"));
-fs.rmSync(verifyRoot,{recursive:true,force:true});
+} finally {
+  // Clean only the verification-specific extraction directory, also on failure.
+  assert.equal(path.dirname(verifyRoot),path.join(root,"cache"));
+  fs.rmSync(verifyRoot,{recursive:true,force:true});
+}
 console.log(JSON.stringify(output,null,2));

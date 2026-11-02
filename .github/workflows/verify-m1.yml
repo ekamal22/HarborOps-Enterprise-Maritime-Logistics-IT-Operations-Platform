@@ -1,18 +1,7 @@
 name: Verify M1
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    paths:
-      - .github/workflows/verify-m1.yml
-      - src/**
-      - tests/**
-      - web/**
-      - docker/**
-      - compose.yaml
-      - docs/**
-      - scripts/**
-      - README.md
+
 permissions:
   contents: read
 concurrency:

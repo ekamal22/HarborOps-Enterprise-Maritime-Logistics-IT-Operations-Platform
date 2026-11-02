@@ -15,8 +15,8 @@ public sealed class ShipmentAssignments : Migration
         migrationBuilder.Sql("""
             CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-            CREATE UNIQUE INDEX "AK_containers_OrganizationId_Id" ON containers(organization_id,id);
-            CREATE UNIQUE INDEX "AK_voyages_OrganizationId_Id" ON voyages(organization_id,id);
+            ALTER TABLE containers ADD CONSTRAINT "AK_containers_OrganizationId_Id" UNIQUE (organization_id,id);
+            ALTER TABLE voyages ADD CONSTRAINT "AK_voyages_OrganizationId_Id" UNIQUE (organization_id,id);
 
             CREATE TABLE shipment_container_assignments (
                 id uuid PRIMARY KEY,
@@ -255,8 +255,8 @@ public sealed class ShipmentAssignments : Migration
             DROP TABLE shipment_voyage_assignments;
             DROP TABLE shipment_container_assignments;
             DROP FUNCTION m6_validate_assignment();
-            DROP INDEX "AK_containers_OrganizationId_Id";
-            DROP INDEX "AK_voyages_OrganizationId_Id";
+            ALTER TABLE containers DROP CONSTRAINT "AK_containers_OrganizationId_Id";
+            ALTER TABLE voyages DROP CONSTRAINT "AK_voyages_OrganizationId_Id";
             -- Do not drop shared btree_gist; other schemas may depend on it.
             """);
     }

@@ -109,6 +109,18 @@ soft_stage reference-outage outage_check scripts/check-m6-reference-outage.mjs
 soft_stage maritime-outage outage_check scripts/check-m6-maritime-outage.mjs
 soft_stage recovery bash -c "bash $stages restart_api && bash $stages recovery"
 soft_stage scan bash $stages scan
+# Source-locked advisory and image review through the pinned scanner wrappers when present
+# (see docs/PUBLICATION_REMEDIATION_STATUS.md); skipped, and reported as such, when they are not.
+if [[ -f "$root/bin/trivy.cmd" ]]; then
+  supply_chain() {
+    PATH="$root/bin:$PATH" TRIVY_CACHE_DIR="$(cygpath -m "$root/trivy-cache")"       COMPOSE_PROJECT_NAME=ho-verify-g6 bash -c '
+        dotnet restore HarborOps.sln >/dev/null &&
+        python scripts/audit-publication-supply-chain.py "$1"' _ "$(cygpath -m "$evidence/supply-chain")"
+  }
+  soft_stage supply-chain supply_chain
+else
+  echo "supply-chain stage not executed: scanner wrappers missing" | tee "$evidence/supply-chain.log"
+fi
 teardown() {
   docker compose -p ho-verify-g6 logs --no-color --timestamps > "$evidence/docker-services.log" 2>&1 || true
   docker compose -p ho-verify-g6 down --volumes --remove-orphans || return 1

@@ -107,6 +107,28 @@ for(const variant of ["tenant-read","post-lock","overlap","parent-guard"]){
  assert.ok(proof.failedTests.some(x=>x.includes(proof.expectedFailure)),
    "Mutation failed for an unrelated reason: "+variant);
 }
+const fixture=JSON.parse(read("g6-fixtures.json"));
+assert.equal(fixture.sourceSha,sha,"Fixture source SHA mismatch");
+assert.equal(fixture.tenantCount,2,"G6 requires two-tenant allocation fixtures");
+assert.equal(fixture.replayVerified,true,"G6 fixture replay is not idempotent");
+assert.deepEqual([...fixture.expectedRoles].sort(),
+  ["Administrator","Manager","Analyst","Auditor","Support"].sort());
+assert.equal(fixture.organizations.length,2);
+assert.notEqual(fixture.organizations[0].organizationId,
+  fixture.organizations[1].organizationId);
+assert.notEqual(fixture.organizations[0].shipmentId,
+  fixture.organizations[1].shipmentId);
+for(const org of fixture.organizations){
+  assert.equal(org.containerIds.length,2);
+  assert.notEqual(org.containerIds[0],org.containerIds[1]);
+  assert.equal(org.links.length,3);
+  assert.deepEqual(org.links.map(x=>x.end===null),[false,true,true]);
+  assert.deepEqual(org.links.map(x=>x.kind),
+    ["container-assignments","container-assignments","voyage-assignments"]);
+  assert.ok(org.links.every(x=>x.id&&x.targetId&&x.version===1));
+  assert.ok(org.route.originPortId!==org.route.destinationPortId);
+}
+const fixtureDisposition=true;
 const snapshot=JSON.parse(read("g6-snapshot.json"));
 assert.equal(snapshot.sourceSha,sha);
 const snapshotDisposition=
@@ -122,27 +144,29 @@ const assertChecks=[
  ["G6-S01",contractApproved,"Explicit twelve-rule M6 contract approval"],
  ["G6-S02",requires(unit,"HalfOpenWindowsAllowAdjacencyButNotOverlap","AcceptsExplicitUtc","RejectsNonUtcAndAmbiguousInstants")],
  ["G6-S03",requires(fresh,"ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory")],
- ["G6-S04",requires(fresh,"ContainerAndVoyageEndToEndEnforceOverlapClosureAndParentGuards")],
- ["G6-S05",requires(fresh,"CompositeForeignKeysRejectCrossTenantParentsWithoutValidationTrigger")],
- ["G6-S06",requires(unit,"RouteAndKnownScheduleMustMatch")],
+ ["G6-S04",requires(fresh,"ContainerAndVoyageEndToEndEnforceOverlapClosureAndParentGuards","VoyageAllowsManyShipmentsAndSequentialReassignmentWithoutWorkflowChanges")],
+ ["G6-S05",requires(fresh,"CompositeForeignKeysRejectCrossTenantParentsWithoutValidationTrigger","RealForeignTenantParentFailsCompositeFk")],
+ ["G6-S06",requires(unit,"RouteAndKnownScheduleMustMatch")&&requires(fresh,"ReverseRouteAndKnownDisjointSchedulesRejectVoyageAssignment")],
  ["G6-S07",requires(fresh,"ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory")],
  ["G6-S08",requires(fresh,"ExistingM5RowsSurviveM6UpgradeRollbackAndReapply")],
  ["G6-S09",requires(fresh,"ExistingM5RowsSurviveM6UpgradeRollbackAndReapply")],
  ["G6-S10",snapshotDisposition,"Historical backup restore or documented absence"],
- ["G6-S11",fs.statSync(at("g6-m6-fixtures.log")).size>0],
- ["G6-S12",requires(fresh,"AuditorCanReadAssignmentsButCannotMutateOrReadMaritimeCatalog")&&requires(unit,"AssignmentPermissionsAreNarrow")],
+ ["G6-S11",fixtureDisposition,"Two-tenant and five-role idempotent bounded/open container and voyage fixtures"],
+ ["G6-S12",requires(fresh,"EveryAssignmentEndpointHonorsFiveRoleMatrixForBothKinds","AuditorCanReadAssignmentsButCannotMutateOrReadMaritimeCatalog")&&requires(unit,"AssignmentPermissionsAreNarrow")],
  ["G6-S13",requires(fresh,"LiveMembershipDowngradeImmediatelyRevokesAssignmentAccess","QueuedAssignmentReadRechecksEveryAuthorizationDependency","QueuedAssignmentWriteRechecksEveryAuthorizationDependency")],
  ["G6-S14",requires(fresh,"ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant","RealForeignTenantParentFailsCompositeFk")],
- ["G6-S15",requires(fresh,"MalformedAndCrossOriginWritesCannotChangeAssignments")],
+ ["G6-S15",requires(fresh,"MalformedAndCrossOriginWritesCannotChangeAssignments","MalformedJsonHeadersVersionsAndMutationsFailClosedWithoutSideEffects")],
  ["G6-S16",requires(fresh,"ContainerAndVoyageEndToEndEnforceOverlapClosureAndParentGuards")],
- ["G6-S17",requires(fresh,"ContainerAndVoyageEndToEndEnforceOverlapClosureAndParentGuards")],
- ["G6-S18",requires(fresh,"QueuedAllocationAndParentArchiveCannotCommitInconsistentState","VoyageCancellationAndAllocationCannotBothCommit")],
+ ["G6-S17",requires(fresh,"VoyageAllowsManyShipmentsAndSequentialReassignmentWithoutWorkflowChanges","ReverseRouteAndKnownDisjointSchedulesRejectVoyageAssignment")],
+ ["G6-S18",requires(fresh,"QueuedAllocationAndParentArchiveCannotCommitInconsistentState","VoyageCancellationAndAllocationCannotBothCommit","DirectSqlVoyageCancellationAndShipmentCancellationCannotBypassOpenLinks")],
  ["G6-S19",requires(fresh,"CompetingSameContainerWritesCommitAtMostOneAssignment","QueuedAllocationAndParentArchiveCannotCommitInconsistentState","QueuedAssignmentWriteRechecksEveryAuthorizationDependency")],
  ["G6-S20",requires(fresh,"TerminatingBackendAfterAssignmentInsertRollsBackWithoutOrphanHistory","CancelledAfterWriteAssignmentClosureRollsBack","TimedOutAfterWriteAssignmentClosureRollsBack","LostResponseAfterAssignmentCommitDoesNotDuplicateClosure")],
  ["G6-S21",expected.every(x=>browser.get("chromium").has(x))],
  ["G6-S22",expected.every(x=>browser.get("firefox").has(x)&&browser.get("webkit").has(x))],
  ["G6-S23",fresh.size>=139 && unit.size>=138 && contract.size>=12],
- ["G6-S24",mutation.mutants?.length>=4],
+ ["G6-S24",mutation.mutants?.length===4 &&
+    requires(fresh,"OverlapMutationRequiresBehavioralExclusionRejection",
+      "ParentGuardMutationRequiresBehavioralArchiveRejection")],
  ["G6-S25",teardown.remainingContainers===0&&teardown.remainingVolumes===0]
 ];
 assert.equal(assertChecks.length,25);

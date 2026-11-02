@@ -70,6 +70,26 @@ public sealed class AssignmentAdditionalFailureTests
             }
             throw new TimeoutException("Assignment closure never reached the after-write SQL barrier");
         }
+        public async Task AssertTransactionSettledBeforeRelease(int pid)
+        {
+            await using var observer = new NpgsqlConnection(cs);
+            await observer.OpenAsync();
+            var deadline = DateTime.UtcNow.AddSeconds(20);
+            while (DateTime.UtcNow < deadline)
+            {
+                // A disconnected backend or a backend with no active write XID has
+                // settled its transaction. This must happen while the lock is held.
+                await using var query = new NpgsqlCommand("""
+                    SELECT count(*) FROM pg_stat_activity
+                    WHERE pid=@pid AND backend_xid IS NOT NULL
+                    """, observer);
+                query.Parameters.AddWithValue("pid", pid);
+                if ((long)(await query.ExecuteScalarAsync())! == 0) return;
+                await Task.Delay(100);
+            }
+            throw new TimeoutException(
+                "Cancellation was acknowledged by the HTTP client, but the database write transaction is still active");
+        }
         public async Task Release()
         {
             if(released)return;
@@ -139,10 +159,17 @@ public sealed class AssignmentAdditionalFailureTests
         await using var barrier=await Barrier.Install(cs,seed.Id);
         using var cancel=new CancellationTokenSource();
         var request=Close(manager,seed.Path,cancel.Token);
-        await barrier.WaitForInFlight();
-        cancel.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async()=>await request);
-        await barrier.Release();
+        var blockedPid = await barrier.WaitForInFlight();
+        try
+        {
+            cancel.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async()=>await request);
+            await barrier.AssertTransactionSettledBeforeRelease(blockedPid);
+        }
+        finally
+        {
+            await barrier.Release();
+        }
         var result=await Row(cs,seed.Id);
         Assert.Equal(1L,result.Version);
         Assert.Null(result.End);

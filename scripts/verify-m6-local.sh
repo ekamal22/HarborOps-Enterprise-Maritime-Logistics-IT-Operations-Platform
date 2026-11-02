@@ -148,11 +148,16 @@ export HARBOROPS_M6_FIXTURES=1
 run_stage browsers bash scripts/run-m6-browsers-local.sh
 # The reference and maritime outage checks end by downgrading the shared Manager account, so the
 # shipment outage check, which needs that Manager, must run before them.
-run_stage assignment-outage node scripts/check-m6-assignment-outage.mjs
-run_stage shipment-outage node scripts/check-m6-shipment-outage.mjs
-run_stage reference-outage node scripts/check-m6-reference-outage.mjs
-run_stage maritime-outage node scripts/check-m6-maritime-outage.mjs
-run_stage recovery bash scripts/verify-m6-stages-local.sh recovery
+# Each check logs in with shared accounts. A fresh API process resets the in-memory login limiter, so a
+# check is not rejected with 429 by the attempts of the check before it.
+outage_check() {
+  bash scripts/verify-m6-stages-local.sh restart_api && node "$1"
+}
+run_stage assignment-outage outage_check scripts/check-m6-assignment-outage.mjs
+run_stage shipment-outage outage_check scripts/check-m6-shipment-outage.mjs
+run_stage reference-outage outage_check scripts/check-m6-reference-outage.mjs
+run_stage maritime-outage outage_check scripts/check-m6-maritime-outage.mjs
+run_stage recovery bash -c 'bash scripts/verify-m6-stages-local.sh restart_api && bash scripts/verify-m6-stages-local.sh recovery'
 run_stage scan bash scripts/verify-m6-stages-local.sh scan
 teardown_g6() {
   # Preserve original service logs before disposing of G6-owned containers.

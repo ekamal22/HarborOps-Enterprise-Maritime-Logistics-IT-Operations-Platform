@@ -2,7 +2,7 @@
 # Local G2 verification stages for the isolated ho-verify-g6 Compose project.
 # Every cache, temporary file and evidence path stays under HARBOROPS_VERIFICATION_ROOT on E:.
 # Usage: bash scripts/verify-m2-local.sh <stage> [<stage>...]
-#   stages: preflight build dotnet deps web docs stack accounts organizations session setup_fixtures browsers recovery scan down
+#   stages: preflight build dotnet deps web docs stack accounts organizations session setup_fixtures browsers recovery scan down restart_api
 set -euo pipefail
 
 root="${HARBOROPS_VERIFICATION_ROOT:-}"
@@ -213,6 +213,16 @@ stage_setup_fixtures() {
   for engine in chromium firefox webkit; do
     bootstrap_org "m3-revocation-$engine" "M3 Revocation $engine" m3-admin-a@example.test
   done
+}
+
+stage_restart_api() {
+  "${compose[@]}" restart api
+  for _ in $(seq 1 60); do
+    if curl --silent --fail --max-time 5 http://127.0.0.1:5173/health/ready >/dev/null; then return 0; fi
+    sleep 1
+  done
+  echo "API did not become ready after restart" >&2
+  return 1
 }
 
 stage_recovery() {

@@ -67,6 +67,74 @@ public sealed class AssignmentSqlTests
     }
 
     [Fact]
+    public async Task OverlapMutationRequiresBehavioralExclusionRejection()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var manager = f.Manager; using var analyst = f.Analyst; using var admin = f.Admin;
+        var seed = await AssignmentHttpTests.Seed(f);
+        var path = seed.Root + "/" + seed.Shipment + "/container-assignments";
+        using (var created = await ReferenceDataHttpTests.Send(manager, HttpMethod.Post, path,
+            new { containerId = seed.Container, startsAtUtc = "2038-06-01T10:00:00Z" }))
+            Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        await using var sql = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await sql.OpenAsync();
+        Guid actor;
+        await using (var cmd = new NpgsqlCommand(
+            "SELECT changed_by_user_id FROM shipments WHERE id=@id", sql))
+        {
+            cmd.Parameters.AddWithValue("id", seed.OtherShipment);
+            actor = (Guid)(await cmd.ExecuteScalarAsync())!;
+        }
+        await using var collision = new NpgsqlCommand("""
+            INSERT INTO shipment_container_assignments
+              (id,organization_id,shipment_id,container_id,starts_at_utc,
+               created_at_utc,updated_at_utc,created_by_user_id)
+            VALUES (@id,@org,@ship,@box,@start,@now,@now,@actor)
+            """, sql);
+        collision.Parameters.AddWithValue("id", Guid.NewGuid());
+        collision.Parameters.AddWithValue("org", f.A);
+        collision.Parameters.AddWithValue("ship", seed.OtherShipment);
+        collision.Parameters.AddWithValue("box", seed.Container);
+        collision.Parameters.AddWithValue("start", DateTimeOffset.Parse("2038-06-01T10:30:00Z"));
+        collision.Parameters.AddWithValue("now", DateTimeOffset.UtcNow);
+        collision.Parameters.AddWithValue("actor", actor);
+        var denial = await Assert.ThrowsAsync<PostgresException>(
+            async () => await collision.ExecuteNonQueryAsync());
+        Assert.Equal(PostgresErrorCodes.ExclusionViolation, denial.SqlState);
+        Assert.Equal("ex_m6_container_overlap", denial.ConstraintName);
+    }
+
+    [Fact]
+    public async Task ParentGuardMutationRequiresBehavioralArchiveRejection()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var manager = f.Manager; using var analyst = f.Analyst; using var admin = f.Admin;
+        var seed = await AssignmentHttpTests.Seed(f);
+        var path = seed.Root + "/" + seed.Shipment + "/container-assignments";
+        using (var created = await ReferenceDataHttpTests.Send(manager, HttpMethod.Post, path,
+            new { containerId = seed.Container, startsAtUtc = "2038-07-01T10:00:00Z" }))
+            Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        await using var sql = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await sql.OpenAsync();
+        await using var archive = new NpgsqlCommand("""
+            UPDATE containers SET record_status='Archived', version=version+1,
+              updated_at_utc=NOW()
+            WHERE organization_id=@org AND id=@box
+            """, sql);
+        archive.Parameters.AddWithValue("org", f.A);
+        archive.Parameters.AddWithValue("box", seed.Container);
+        var denial = await Assert.ThrowsAsync<PostgresException>(
+            async () => await archive.ExecuteNonQueryAsync());
+        Assert.Equal(PostgresErrorCodes.CheckViolation, denial.SqlState);
+        await using var current = new NpgsqlCommand(
+            "SELECT record_status FROM containers WHERE id=@box", sql);
+        current.Parameters.AddWithValue("box", seed.Container);
+        Assert.Equal("Active", (string)(await current.ExecuteScalarAsync())!);
+    }
+
+    [Fact]
     public async Task CompositeForeignKeysRejectCrossTenantParentsWithoutValidationTrigger()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

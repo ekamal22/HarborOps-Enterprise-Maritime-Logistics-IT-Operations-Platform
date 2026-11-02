@@ -4,14 +4,23 @@ import { expect, test } from "@playwright/test";
 const enabled = process.env.HARBOROPS_M6_FIXTURES === "1" &&
   Boolean(process.env.HARBOROPS_TEST_USER_PASSWORD);
 
+// The select value changes before the server-side organization selection completes. Wait for the
+// PUT so a following direct API call is made in the selected organization.
+async function selectOrganization(page, label) {
+  const saved = page.waitForResponse(r => r.request().method() === "PUT" &&
+    new URL(r.url()).pathname === "/api/v1/auth/session/organization");
+  await page.locator("#current-organization").selectOption({ label });
+  expect((await saved).ok()).toBeTruthy();
+}
+
 async function login(page, role = "analyst") {
   await page.goto("/");
   await page.getByLabel("Email").fill("m3-" + role + "@example.test");
   await page.getByLabel("Password", { exact: true }).fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("heading", { name: "Organization workspace" })).toBeVisible();
-  await page.locator("#current-organization")
-    .selectOption({ label: "M3 North Terminal (" + (role === "analyst" ? "Analyst" : "Manager") + ")" });
+  await selectOrganization(page,
+    "M3 North Terminal (" + (role === "analyst" ? "Analyst" : "Manager") + ")");
 }
 const section = page => page.getByRole("heading", { name: "Shipments", exact: true })
   .locator("xpath=ancestor::section[1]");
@@ -110,7 +119,7 @@ test("G6 Auditor reads scoped assignment histories without catalog or mutation a
   await page.getByLabel("Email").fill("m4-auditor@example.test");
   await page.getByLabel("Password",{exact:true}).fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
   await page.getByRole("button",{name:"Sign in"}).click();
-  await page.locator("#current-organization").selectOption({label:"M3 North Terminal (Auditor)"});
+  await selectOrganization(page,"M3 North Terminal (Auditor)");
   const s=section(page);
   await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
   await expect(s.getByText("M5-DEMO-NORTH",{exact:true})).toBeVisible();
@@ -134,7 +143,7 @@ test("G6 Support cannot open typed shipment assignment history", async ({ page }
   await page.getByLabel("Email").fill("m4-support@example.test");
   await page.getByLabel("Password",{exact:true}).fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
   await page.getByRole("button",{name:"Sign in"}).click();
-  await page.locator("#current-organization").selectOption({label:"M3 North Terminal (Support)"});
+  await selectOrganization(page,"M3 North Terminal (Support)");
   const org=await page.locator("#current-organization").inputValue();
   const response=await page.request.get("/api/v1/organizations/"+org+
     "/shipments/00000000-0000-0000-0000-000000000001/container-assignments");
@@ -272,8 +281,7 @@ test("G6 live membership downgrade invalidates the open allocation workspace",
     await adminPage.getByLabel("Password",{exact:true})
       .fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
     await adminPage.getByRole("button",{name:"Sign in"}).click();
-    await adminPage.locator("#current-organization")
-      .selectOption({label:"M3 North Terminal (Administrator)"});
+    await selectOrganization(adminPage,"M3 North Terminal (Administrator)");
     const base="/api/v1/organizations/"+org+"/memberships/";
     const listing=await (await adminPage.request.get(
       "/api/v1/organizations/"+org+"/memberships?limit=100")).json();

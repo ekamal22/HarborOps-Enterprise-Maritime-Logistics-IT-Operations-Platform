@@ -100,14 +100,15 @@ cleanup() {
 }
 trap cleanup EXIT
 run_stage() {
-  local label="$1" rc=0
+  local label="$1" rc=0 began=$SECONDS
   shift
   if "$@" 2>&1 | tee "$evidence/g6-$label.log"; then
     rc=0
   else
     rc=$?
   fi
-  printf '%s\t%s\t%s\n' "$label" "$sha" "$rc" >> "$evidence/g6-stages.tsv"
+  # Fourth column is the stage duration in seconds; the evidence checker reads only the first three.
+  printf '%s\t%s\t%s\t%s\n' "$label" "$sha" "$rc" "$((SECONDS - began))" >> "$evidence/g6-stages.tsv"
   return "$rc"
 }
 run_stage storage-before node scripts/record-g6-storage.mjs "$root" before

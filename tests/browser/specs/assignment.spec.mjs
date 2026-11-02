@@ -162,6 +162,7 @@ test("G6 tab return refresh preserves allocation input and shipment draft", asyn
   await login(page,"manager");
   const s=section(page);
   await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
+  await expect(s.getByText("M5-DEMO-NORTH",{exact:true})).toBeVisible();
   await s.getByRole("button",{name:"View shipment"}).first().click();
   const boxes=assignment(page,"Container");
   await expect(boxes.getByRole("button",{name:"Refresh assignments"})).toBeVisible();
@@ -187,6 +188,7 @@ test("G6 logout disposes allocation views and context projections", async ({ pag
   await login(page,"manager");
   const s=section(page);
   await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
+  await expect(s.getByText("M5-DEMO-NORTH",{exact:true})).toBeVisible();
   await s.getByRole("button",{name:"View shipment"}).first().click();
   await expect(s.getByRole("heading",{name:"Contextual container and voyage intervals"}))
     .toBeVisible();
@@ -238,6 +240,7 @@ test("G6 deferred allocation response cannot cross organization switch",async ({
   const org=await selector.inputValue();
   const s=section(page);
   await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
+  await expect(s.getByText("M5-DEMO-NORTH",{exact:true})).toBeVisible();
   await s.getByRole("button",{name:"View shipment"}).first().click();
   const boxes=assignment(page,"Container");
   await expect(boxes.getByRole("button",{name:"Refresh assignments"})).toBeVisible();
@@ -277,6 +280,7 @@ test("G6 live membership downgrade invalidates the open allocation workspace",
   expect(managerId).toBeTruthy();
   const s=section(page);
   await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
+  await expect(s.getByText("M5-DEMO-NORTH",{exact:true})).toBeVisible();
   await s.getByRole("button",{name:"View shipment"}).first().click();
   await expect(s.getByRole("heading",{name:"Shipment allocations"})).toBeVisible();
   const adminContext=await browser.newContext();

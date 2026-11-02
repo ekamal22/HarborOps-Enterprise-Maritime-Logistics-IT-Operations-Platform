@@ -379,8 +379,8 @@ test("M5 archive and restore leave a draft on another shipment untouched", async
   await s.getByLabel("Search shipments").fill(prefix);
   await expect(s.getByText(draftCode, { exact: true })).toBeVisible();
   await expect(s.getByText(archiveCode, { exact: true })).toBeVisible();
-  const draftItem = s.getByRole("listitem").filter({ has: s.getByText(draftCode, { exact: true }) });
-  const archiveItem = s.getByRole("listitem").filter({ has: s.getByText(archiveCode, { exact: true }) });
+  const draftItem = s.getByRole("listitem").filter({ has: page.getByText(draftCode, { exact: true }) });
+  const archiveItem = s.getByRole("listitem").filter({ has: page.getByText(archiveCode, { exact: true }) });
   await draftItem.getByRole("button", { name: "View shipment" }).click();
   await expect(s.getByText("Manual status history")).toBeVisible();
   await typeDraft(s);
@@ -390,7 +390,7 @@ test("M5 archive and restore leave a draft on another shipment untouched", async
   await expectDraft(s);
   await s.getByLabel("Shipment record status").selectOption("Archived");
   await expect(s.getByText(archiveCode, { exact: true })).toBeVisible();
-  await s.getByRole("listitem").filter({ has: s.getByText(archiveCode, { exact: true }) })
+  await s.getByRole("listitem").filter({ has: page.getByText(archiveCode, { exact: true }) })
     .getByRole("button", { name: "Restore shipment" }).click();
   await s.getByLabel("Shipment record status").selectOption("Active");
   await expect(s.getByText(archiveCode, { exact: true })).toBeVisible();

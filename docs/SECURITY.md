@@ -67,7 +67,7 @@ M5 implements typed shipment permissions, session and tenant revalidation, statu
 
 ## Public repository and deployment readiness
 
-The [public repository security and disclosure review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) records confirmed configuration risks, incomplete historical-secret and workflow-log review, current-file scans, and explicit public-release gates. **The existing repository is not cleared for publication or internet hosting.** The full history and three divergent branch lines require review even when current source-file scans are clean. No GitHub Actions are authorized.
+The [public repository security and disclosure review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) preserves the original findings. The [remediation register](PUBLICATION_REMEDIATION_STATUS.md) tracks the security changes, independent verification requirements and remaining public-release gates. **The existing repository is not cleared for publication or internet hosting.** The full history and three divergent branch lines require review even when current source-file scans are clean. No GitHub Actions are authorized.
 
 ## Data protection
 

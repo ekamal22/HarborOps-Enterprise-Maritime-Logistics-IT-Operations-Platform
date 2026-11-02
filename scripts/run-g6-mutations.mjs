@@ -22,11 +22,11 @@ const expectOk=(cmd,args)=>{const result=run(cmd,args);assert.equal(result.statu
   cmd+" failed: "+(result.stderr||result.stdout||"").slice(-600));return result.stdout||"";};
 expectOk("git",["archive","--format=tar","--output",sourceTar,sha]);
 const variants=[
-  ["control",null,"ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant|QueuedAssignmentWriteRechecksEveryAuthorizationDependency|ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory"],
+  ["control",null,"ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant|QueuedAssignmentWriteRechecksEveryAuthorizationDependency|OverlapMutationRequiresBehavioralExclusionRejection|ParentGuardMutationRequiresBehavioralArchiveRejection"],
   ["tenant-read","ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant","ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant"],
   ["post-lock","QueuedAssignmentWriteRechecksEveryAuthorizationDependency","QueuedAssignmentWriteRechecksEveryAuthorizationDependency"],
-  ["overlap","ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory","ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory"],
-  ["parent-guard","ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory","ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory"]
+  ["overlap","OverlapMutationRequiresBehavioralExclusionRejection","OverlapMutationRequiresBehavioralExclusionRejection"],
+  ["parent-guard","ParentGuardMutationRequiresBehavioralArchiveRejection","ParentGuardMutationRequiresBehavioralArchiveRejection"]
 ];
 const summary={sourceSha:sha,checkedAtUtc:new Date().toISOString(),control:null,mutants:[]};
 const report=path.join(root,"evidence","g6-mutations.json");

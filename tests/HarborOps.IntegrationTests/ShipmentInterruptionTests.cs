@@ -460,7 +460,7 @@ public sealed class ShipmentInterruptionTests
             var ready = false;
             for (var i = 0; i < 120 && !ready && !child.HasExited; i++)
             {
-                try { using var r = await client.GetAsync("/health/ready"); ready = r.IsSuccessStatusCode; }
+                try { using var r = await client.GetAsync("/health/live"); ready = r.IsSuccessStatusCode; }
                 catch (HttpRequestException) { }
                 if (!ready) await Task.Delay(500);
             }

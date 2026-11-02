@@ -121,6 +121,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
       if (!nameEdited) setProfileName(org.displayName);
       setMembers(roster?.memberships ?? []);
       setNextAfter(roster?.nextAfter ?? null);
+      if (quiet) setError("");
     } catch (cause) {
       if (serial !== sequence.current) return;
       if (!transient(cause)) clearProtected();

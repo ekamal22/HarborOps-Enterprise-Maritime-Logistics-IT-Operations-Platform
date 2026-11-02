@@ -61,7 +61,8 @@ const expected=[
  "G6 tab return refresh preserves allocation input and shipment draft",
  "G6 logout disposes allocation views and context projections",
  "G6 conflicting container allocation shows an actionable error and preserves inputs",
- "G6 deferred allocation response cannot cross organization switch"
+ "G6 deferred allocation response cannot cross organization switch",
+ "G6 live membership downgrade invalidates the open allocation workspace"
 ];
 function walk(suite,names){
  for(const spec of suite.specs||[]){

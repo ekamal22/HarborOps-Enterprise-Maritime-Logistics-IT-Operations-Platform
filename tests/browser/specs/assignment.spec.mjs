@@ -238,3 +238,57 @@ test("G6 deferred allocation response cannot cross organization switch",async ({
   await expect(east.getByText("M5-DEMO-EAST",{exact:true})).toBeVisible();
   await expect(east.getByText("M5-DEMO-NORTH",{exact:true})).toHaveCount(0);
 });
+
+
+test("G6 live membership downgrade invalidates the open allocation workspace",
+  async ({page,browser}) => {
+  test.skip(!enabled,"Disposable M6 fixture required");
+  await login(page,"manager");
+  const org=await page.locator("#current-organization").inputValue();
+  const session=await (await page.request.get("/api/v1/auth/session")).json();
+  const managerId=session.user?.id;
+  expect(managerId).toBeTruthy();
+  const s=section(page);
+  await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
+  await s.getByRole("button",{name:"View shipment"}).first().click();
+  await expect(s.getByRole("heading",{name:"Shipment allocations"})).toBeVisible();
+  const adminContext=await browser.newContext();
+  try{
+    const adminPage=await adminContext.newPage();
+    await adminPage.goto("/");
+    await adminPage.getByLabel("Email").fill("m3-admin-a@example.test");
+    await adminPage.getByLabel("Password",{exact:true})
+      .fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
+    await adminPage.getByRole("button",{name:"Sign in"}).click();
+    await adminPage.locator("#current-organization")
+      .selectOption({label:"M3 North Terminal (Administrator)"});
+    const base="/api/v1/organizations/"+org+"/memberships/";
+    const listing=await (await adminPage.request.get(
+      "/api/v1/organizations/"+org+"/memberships?limit=100")).json();
+    const member=listing.memberships.find(x=>x.userId===managerId);
+    expect(member).toBeTruthy();
+    async function setRole(role,version){
+      const csrf=(await (await adminPage.request.get("/api/v1/auth/csrf")).json()).token;
+      const result=await adminPage.request.put(base+managerId,{
+        headers:{Origin:"http://localhost","X-HarborOps-CSRF":csrf},
+        data:{role,status:"Active",expectedVersion:version}
+      });
+      expect(result.status()).toBe(200);
+      return result.json();
+    }
+    let changed=false;
+    try{
+      const update=await setRole("Support",member.version);
+      changed=true;
+      await s.getByRole("button",{name:"Refresh assignments"}).first().click();
+      await expect(s.getByRole("heading",{name:"Shipment allocations"})).toHaveCount(0);
+    }finally{
+      if(changed){
+        const listingAgain=await (await adminPage.request.get(
+          "/api/v1/organizations/"+org+"/memberships?limit=100")).json();
+        const current=listingAgain.memberships.find(x=>x.userId===managerId);
+        if(current?.role==="Support")await setRole("Manager",current.version);
+      }
+    }
+  }finally{await adminContext.close();}
+});

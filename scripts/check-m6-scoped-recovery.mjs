@@ -6,7 +6,8 @@ const project = "ho-verify-g6";
 const password = process.env.HARBOROPS_TEST_USER_PASSWORD;
 assert.ok(password && password.length >= 20, "Disposable test credential is required");
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"], timeout: 30000 }).trim();
+  stdio: ["ignore", "pipe", "pipe"], timeout: 30000,
+  maxBuffer: 512 * 1024 * 1024 }).trim();
 const host = process.env.DOCKER_HOST ||
   docker("context", "inspect", "--format", "{{ (index .Endpoints \"docker\").Host }}");
 assert.match(host, /^(unix:\/\/|npipe:\/\/|tcp:\/\/(?:localhost|127\.0\.0\.1):)/,

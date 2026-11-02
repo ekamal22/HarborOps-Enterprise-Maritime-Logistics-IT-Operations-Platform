@@ -7,7 +7,8 @@ assert.ok(password && password.length >= 20, "Synthetic E:-drive credential is r
 const project = "ho-verify-g6";
 const base = "http://127.0.0.1:5173";
 const docker = (...args) => execFileSync("docker", args, {
-  encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000
+  encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000,
+  maxBuffer: 512 * 1024 * 1024
 }).trim();
 // An E:-confined DOCKER_CONFIG has no named contexts, so accept the pinned Docker Desktop pipe.
 assert.ok(docker("context", "show") === "desktop-linux" ||

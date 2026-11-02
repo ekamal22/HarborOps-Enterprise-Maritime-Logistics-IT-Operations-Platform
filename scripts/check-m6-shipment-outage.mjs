@@ -7,7 +7,8 @@ assert.ok(password && password.length >= 20, "Disposable M5 credential required"
 const base = "http://127.0.0.1:5173";
 const project = "ho-verify-g6";
 const docker = (...args) => execFileSync("docker", args, {
-  encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000
+  encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000,
+  maxBuffer: 512 * 1024 * 1024
 }).trim();
 assert.ok(docker("context", "show") === "desktop-linux" ||
   process.env.DOCKER_HOST === "npipe:////./pipe/dockerDesktopLinuxEngine");

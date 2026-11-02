@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.RateLimiting;
@@ -111,13 +112,32 @@ public static class AuthenticationSetup
         return services;
     }
 
-    public static bool IsLoopback(HttpContext context) =>
+    private static bool LocalHost(HttpContext context) =>
         context.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
         context.Request.Host.Host == "127.0.0.1" || context.Request.Host.Host == "[::1]";
 
+    public static bool IsLoopback(HttpContext context) =>
+        context.Connection.RemoteIpAddress is { } remote && IPAddress.IsLoopback(remote);
+
+    private static bool IsTrustedLocalPeer(HttpContext context, IConfiguration configuration)
+    {
+        var remote = context.Connection.RemoteIpAddress;
+        if (remote is null) return false;
+        var configured = configuration["Identity:TrustedLocalHttpPeers"] ?? "";
+        foreach (var item in configured.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (IPAddress.TryParse(item, out var peer) &&
+                peer.MapToIPv6().Equals(remote.MapToIPv6()))
+                return true;
+        }
+        return false;
+    }
+
     public static bool IsAllowedTransport(HttpContext context, IConfiguration configuration) =>
         context.Request.IsHttps ||
-        (configuration.GetValue<bool>("Identity:AllowInsecureLoopbackHttp") && IsLoopback(context));
+        (configuration.GetValue<bool>("Identity:AllowInsecureLoopbackHttp") &&
+         LocalHost(context) &&
+         (IsLoopback(context) || IsTrustedLocalPeer(context, configuration)));
 
     public static bool IsSameOrigin(HttpContext context)
     {

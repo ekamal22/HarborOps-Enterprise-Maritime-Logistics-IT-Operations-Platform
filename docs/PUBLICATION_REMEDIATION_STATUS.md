@@ -91,3 +91,11 @@ The exporter excludes `.git`, all branch and commit metadata, `.github`, local d
 - Execute current-source NuGet/npm, image and license reviews locally, with pinned evidence hashes, and record unresolved findings.
 - Confirm active repository settings from read-only administrative endpoints, not merely tracked workflow YAML.
 - Do not expose API authentication or change repository visibility until the corresponding independent approval has been recorded.
+
+### Historical Actions disclosure inspection, November 2, 2026
+
+A read-only review inventoried 35 hosted workflow runs. Two cancelled runs had no available job logs; the other 33 job logs were screened for recognizable private keys, provider tokens, private email domains and long credential assignments, with no matches for those patterns.
+
+All 17 retained downloadable workflow artifact archives were retrieved for inspection. They contained 34 nested browser trace ZIPs, source and reporter assets, synthetic test output and binary screenshots. Pattern-based scanning and targeted inspection found **52 serialized authentication-cookie-value matches** in three artifact archives: `13026999079`, `13027355828`, and `13027499753`. These appear to be disposable test-session values. No live-production use is established, but the contents are security-sensitive and must not be exposed in a public repository or portfolio package. Exact cookie values were not copied into this register. The binary screenshots were not individually reviewed, and a full historical Git-object scan remains outstanding.
+
+**Publication gate:** Preserve the original artifacts in this private repository for accepted gate traceability. Do not publish, link, export or redistribute the original trace archives as part of a public release. An explicitly approved separate history-free source export excludes them. Any proposal to remove retained GitHub artifacts or rewrite history requires a separate evidence-preservation decision and confirmation that no active credential depends on the historical tokens.

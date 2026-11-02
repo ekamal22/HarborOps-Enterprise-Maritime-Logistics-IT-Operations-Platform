@@ -175,6 +175,7 @@ run_stage recovery bash scripts/verify-m6-stages-local.sh recovery
 run_stage scan bash scripts/verify-m6-stages-local.sh scan
 # The .NET suites use their own disposable database container and do not need the compose stack.
 run_stage dotnet bash scripts/verify-m6-stages-local.sh dotnet
+run_stage mutation node scripts/run-g6-mutations.mjs "$root"
 run_stage snapshot node scripts/check-g6-snapshot.mjs "$root"
 teardown_g6() {
   # Preserve original service logs before disposing of G6-owned containers.

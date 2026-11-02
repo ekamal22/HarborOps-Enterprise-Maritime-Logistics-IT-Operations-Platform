@@ -85,15 +85,16 @@ async function makeFixture(slug) {
   for(const [kind,id,field,start,end] of expected){
     const url=shipments+"/"+shipment.id+"/"+kind;
     let listing=(await request("GET",url)).assignments;
-    let link=listing.find(x=>x[field]===id&&x.startsAtUtc===start);
+    let link=listing.find(x=>x[field]===id&&Date.parse(x.startsAtUtc)===Date.parse(start));
     if(!link){
       link=await request("POST",url,{[field]:id,startsAtUtc:start,endsAtUtc:end});
     }
     assert.equal(link.organizationId,tenant.id);
     assert.equal(link.shipmentId,shipment.id);
     assert.equal(link[field],id);
-    assert.equal(link.startsAtUtc,start);
-    assert.equal(link.endsAtUtc,end);
+    assert.equal(Date.parse(link.startsAtUtc),Date.parse(start));
+    assert.equal(link.endsAtUtc===null?null:Date.parse(link.endsAtUtc),
+      end===null?null:Date.parse(end));
     links.push({kind,id:link.id,targetId:id,start,end,version:link.version});
   }
   assert.equal(new Set(links.map(x=>x.id)).size,3);

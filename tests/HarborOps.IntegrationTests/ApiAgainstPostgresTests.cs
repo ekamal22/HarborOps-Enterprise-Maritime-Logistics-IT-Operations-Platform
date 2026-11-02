@@ -14,6 +14,7 @@ public sealed class ApiAgainstPostgresTests
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            LocalPeerTestServer.Configure(builder);
             builder.UseEnvironment("Production");
             builder.UseSetting("ConnectionStrings:HarborOps", connectionString);
             builder.UseSetting("Identity:AllowInsecureLoopbackHttp", "true");

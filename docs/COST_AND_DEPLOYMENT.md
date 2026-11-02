@@ -29,7 +29,7 @@ Credits, free limits, verification requirements, and student entitlements change
 
 ## Mandatory local storage and capacity guardrail
 
-The project working tree resides at `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`, with project caches and M0 test evidence under `E:\\APP IDEAS\\harborops-m0-cache`. Docker Desktop/WSL persistent data is E-backed in the verified setup. All controlled persistent project storage must remain on E:, including database volumes, browser test output and future tools. C: may be used only for unavoidable, short-lived Windows temporary writes. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md) and verify actual paths before introducing a new tool or service. Do not move installed tools or delete existing files without approval.
+The development working tree, dependency caches and verification evidence use configured E:-backed directories. Docker Desktop/WSL persistent data is E-backed in the verified setup. All controlled persistent project storage must remain on E:, including database volumes, browser test output and future tools. C: may be used only for unavoidable, short-lived Windows temporary writes. Follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md) and verify actual paths before introducing a new tool or service. Do not move installed tools or delete existing files without approval.
 
 ## Deployment profiles
 

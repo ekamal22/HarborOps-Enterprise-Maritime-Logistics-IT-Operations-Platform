@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0/G0 through M4/G4 are implemented, independently verified, explicitly accepted and integrated into `main` as of 2026-11-01. G4 was verified on `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` and accepted after D-003 Option B approval and independent raw-evidence review. See [M4 executed verification](docs/M4_EXECUTED_VERIFICATION.md) and [Project Status](docs/STATUS.md). G5-G24 remain open.
+**Status:** M0/G0 through M5/G5 accepted following independent local verification as of 2026-11-02. M5 verified source `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91` passed 601 tests; see [G5 closure](docs/M5_G5_GATE_CLOSURE.md). No production deployment; G6-G24 remain open.
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
@@ -52,7 +52,7 @@ M3 is implemented, locally verified, explicitly accepted on 2026-10-31 and integ
 
 ### Parallel-ready workstreams after G3
 
-M4 voyages and containers are accepted and integrated. Other independently eligible streams include M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review, and M23-01 interface planning. M6 assignment integration requires accepted G4 **and G5**, so G5 remains its blocker. D-003 is accepted for M4; D-002 remains pending for M7. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
+M4 voyages and containers are accepted and integrated. Other independently eligible streams include M5 shipment lifecycle, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review, and M23-01 interface planning. M6 assignment integration requires G4 **and G5**, both now accepted. D-003 is accepted for M4; D-002 remains pending for M7. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
 
 ### Planned modules
 
@@ -82,9 +82,9 @@ A modular monolith plus a background worker is the initial architecture. Distrib
 
 M4 implements tenant-scoped voyage schedules and container references. D-003 Option B (ISO 6346:2022 category U or tagged synthetic identifiers) and G4 were explicitly accepted on 2026-11-01 following independent review. The final tested code revision `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6` passed 82 unit, 12 contract, 92 fresh and 92 repeat PostgreSQL integration tests, and 31 browser tests in each of Chromium, Firefox and WebKit, plus outage/recovery and three clear HIGH/CRITICAL image scans. See [executed verification](docs/M4_EXECUTED_VERIFICATION.md), [architecture](docs/M4_ARCHITECTURE_DESIGN.md), [implementation record](docs/M4_IMPLEMENTATION_STATUS.md), [G4 plan](docs/M4_VERIFICATION_PLAN.md), and [D-003 decision](docs/DECISIONS.md).
 
-### M5 shipment lifecycle planning
+### Accepted M5 shipment lifecycle
 
-[M5 architecture](docs/M5_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M5_IMPLEMENTATION_PLAN.md), [G5 verification plan](docs/M5_VERIFICATION_PLAN.md) and [planning status](docs/M5_IMPLEMENTATION_STATUS.md) define a proposed scoped shipment lifecycle with versioned CRUD and three-browser verification. The shipment domain, migration, scoped API, React workspace, initial tests and verification scripts are committed on `feat/m5-shipment-lifecycle`. None has passed a .NET build or end-to-end runtime verification. See [M5 implementation status](docs/M5_IMPLEMENTATION_STATUS.md) and [M5 source audit](docs/M5_SOURCE_CORRECTNESS_AUDIT.md). G5 acceptance pending.
+M5 supports tenant-scoped shipment create, edit, search, archive and restore, a manual workflow with immutable history, scoped permissions and exact-version concurrency. The six-rule [M5 local contract](docs/M5_LOCAL_CONTRACT_DECISION.md) and G5 were explicitly accepted 2026-11-02. Local run 13 at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91` passed 601 test executions, including 47 browser scenarios per engine in Chromium, Firefox and WebKit, with independently reviewed evidence. See [G5 closure](docs/M5_G5_GATE_CLOSURE.md), [verification](docs/M5_EXECUTED_VERIFICATION.md) and [implementation status](docs/M5_IMPLEMENTATION_STATUS.md). M6 owns shipment assignment links.
 
 ### Parallel dependency-based delivery
 
@@ -136,12 +136,12 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M5 Architecture](docs/M5_ARCHITECTURE_DESIGN.md) | Planned shipment domain, database and HTTP contracts |
 | [M5 Implementation Plan](docs/M5_IMPLEMENTATION_PLAN.md) | Four work packages and integration strategy |
 | [G5 Verification Plan](docs/M5_VERIFICATION_PLAN.md) | 25 mandatory scenarios and evidence |
-| [M5 Contract Compliance](docs/M5_G5_S01_CONTRACT_COMPLIANCE.md) | Rule-by-rule audit of the M5 local contract for G5-S01; acceptance pending |
-| [M5 Executed Verification](docs/M5_EXECUTED_VERIFICATION.md) | Local G5 results, defects fixed, evidence package; acceptance pending |
+| [M5 Contract Compliance](docs/M5_G5_S01_CONTRACT_COMPLIANCE.md) | Rule-by-rule audit of the accepted M5 contract and G5-S01 |
+| [M5 Executed Verification](docs/M5_EXECUTED_VERIFICATION.md) | Accepted G5 execution, evidence and limitations |
 | [M5/G5 Remediation](docs/M5_G5_REMEDIATION_STATUS.md) | Corrective source changes for all eleven findings, with execution update |
 | [M5 Source Audit](docs/M5_SOURCE_CORRECTNESS_AUDIT.md) | Source corrections and remaining real-runtime / adversarial verification gaps |
 
-| [M5 Planning Status](docs/M5_IMPLEMENTATION_STATUS.md) | Planning only, G5 open |
+| [M5 Planning Status](docs/M5_IMPLEMENTATION_STATUS.md) | Implemented, verified and accepted, G5 closed |
 | [M4 Executed Verification](docs/M4_EXECUTED_VERIFICATION.md) | Accepted G4 evidence, D-003 closure, verified source SHA and immutable artifact hash |
 | [M3 Executed Verification](docs/M3_EXECUTED_VERIFICATION.md) | Verified G3 execution evidence, failure history and acceptance record |
 | [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Historical first-audit fixes and subsequent verified G3 outcome |
@@ -177,4 +177,4 @@ The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) pres
 
 ### Current state
 
-The default `main` branch contains accepted M0-M4 implementations and records. G4 was accepted on 2026-11-01 after independent local evidence review, with the verified implementation SHA preserved in [M4 executed verification](docs/M4_EXECUTED_VERIFICATION.md). Shipment lifecycle, assignments, tracking, analytics and incident workflows remain scoped to later gates. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).
+M0-M5 are explicitly accepted. M5 integration into `main` was authorized on 2026-11-02; the tested implementation SHA is preserved in [G5 verification](docs/M5_EXECUTED_VERIFICATION.md). Shipment assignments, tracking, analytics and incident workflows remain scoped to later gates. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).

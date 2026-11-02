@@ -1,11 +1,11 @@
 # M5 Executed Verification (G5)
 
 **Milestone:** M5, shipment lifecycle and concurrency
-**Gate state:** G5 OPEN, acceptance pending. G5-S01 is incomplete until the M5 local contract decision is accepted. Evidence for G5-S02 through G5-S25 is present on the current revision and requires independent review.
+**Gate state:** G5 ACCEPTED 2026-11-02. All G5-S01 through G5-S25 accepted after independent review and explicit M5 local contract approval. See [gate closure](M5_G5_GATE_CLOSURE.md).
 **Current verified source:** `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91` on `feat/m5-shipment-lifecycle` (run 13)
 **Previously verified source:** `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67` (run 11), described in section 8. Its evidence package was independently reviewed and is retained unmodified.
 **Execution:** local runs of the dedicated `ho-verify-g5` pipeline, Windows Git Bash, Docker Desktop with its data image on E:. No GitHub Actions were run.
-**Baseline:** accepted `main` at `18d00e6710097e4e31a87190be8edb65337d1b50`. Nothing was merged.
+**Baseline at verification:** accepted `main` at `18d00e6710097e4e31a87190be8edb65337d1b50`. Fast-forward integration was authorized on 2026-11-02. No new runtime verification is claimed for later documentation-only revisions.
 
 Documentation commits made after a run are documentation only. They do not change the verified source, and no run is claimed for a later revision.
 
@@ -16,9 +16,9 @@ Documentation commits made after a run are documentation only. They do not chang
 | Implemented | The behavior exists in source on the feature branch |
 | Tested | An automated test asserts it and passed in the final run at the verified revision |
 | Evidence present | The raw results are in the evidence package and the checker maps them to the scenario |
-| Independently reviewed | A person other than the implementer inspected the raw evidence. Only the run 11 package has been reviewed; the run 13 package is pending review |
+| Independently reviewed | A person other than the implementer inspected the raw evidence. The run 11 and run 13 packages were independently reviewed |
 | Acceptance pending | The decision is with the project and has not been given |
-| Accepted | Recorded only when an explicit decision is given. Nothing in M5 is accepted |
+| Accepted | Recorded only when an explicit decision is given. M5/G5 accepted by explicit approval on 2026-11-02 |
 
 ## 1. Results at the current verified revision (run 13)
 
@@ -45,8 +45,8 @@ The per-scenario mapping to executed tests, with row counts taken from the raw T
 
 | Case | Disposition |
 | --- | --- |
-| G5-S01 | INCOMPLETE. The [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) is proposed, acceptance pending. The [compliance matrix](M5_G5_S01_CONTRACT_COMPLIANCE.md) shows all six rules implemented and tested |
-| G5-S02 to G5-S25 | EVIDENCE PRESENT, REVIEW REQUIRED |
+| G5-S01 | ACCEPTED 2026-11-02 by explicit approval of the [six-rule M5 local contract](M5_LOCAL_CONTRACT_DECISION.md). The original run correctly recorded INCOMPLETE before this decision. |
+| G5-S02 to G5-S25 | ACCEPTED 2026-11-02 following independent raw-evidence review; S21/S23 accepted with documented limitations. |
 
 No case is marked accepted.
 
@@ -147,8 +147,9 @@ Commits `38717c2` and `bb22a3b` were made on the same branch by a parallel sessi
 
 ## 9. Evidence package for the current revision
 
-- Package: `E:\HarborOps-Verification\m5\archives\G5-final-package-3e57af490d9a.zip`
-- SHA-256: `76AB98D7134E5A2482E73772C0FAA9E69EE5C02BCF3A9616889084D5D389AD89` (also in `G5-final-package-3e57af490d9a.zip.sha256`)
+- Original, unmodified package: `E:\HarborOps-Verification\m5\archives\G5-final-package-3e57af490d9a.zip`
+- Original SHA-256: `76AB98D7134E5A2482E73772C0FAA9E69EE5C02BCF3A9616889084D5D389AD89`.
+- Corrected evidence copy: `G5-final-package-3e57af490d9a-corrected.zip`, SHA-256 `DBC6F4935A087173AEF0CE113DC8661F9BFF62FB1E325F50740C76221261026C`. Eight per-browser result labels and the S21 test-observation mapping were corrected, then the 185-member manifest was rehashed with zero mismatches. Raw test evidence is unchanged. This separate copy has not been written to the Windows E: archive directory.
 - Manifest: `SHA256SUMS.csv` at the root of the package (185 files). After packaging the ZIP was extracted and all 185 files re-hashed with 0 mismatches.
 - Contents: original console stream, stage ledger and stage logs, TRX, Playwright JSON, traces and artifacts, Trivy JSON, migration and SQL test results, outage and recovery output, Docker service logs, teardown proof, storage records, scenario index (`reports/G5_EVIDENCE_INDEX.md`), interruption proof (`reports/G5_S21_INTERRUPTION_PROOF.md`), visibility probe output (`probes/`), mutation proofs and their harness (`mutation-proof/`, with the earlier rounds), source identity, the skipped, failed and incomplete report and the C: cleanup report.
 - The package for the first verified revision, `G5-final-package-c143e67906d3.zip` (SHA-256 `D7386AED6F06A652FAD1653D00140330D74533E9A45941F351DB496397D7DBC8`), is unchanged and remains read-only.
@@ -164,8 +165,6 @@ Commits `38717c2` and `bb22a3b` were made on the same branch by a parallel sessi
 - Several browser failures during verification were timing races; each fix makes a precondition explicit and does not reduce assertions.
 - Disk space on C: is low and outside the control of this work.
 
-## 11. Decisions awaiting acceptance
+## 11. Recorded acceptance
 
-1. Acceptance of the [M5 local contract](M5_LOCAL_CONTRACT_DECISION.md), which closes G5-S01.
-2. G5 acceptance after independent review of the current evidence package.
-3. Integration of `feat/m5-shipment-lifecycle` into `main`, only after the above.
+The six-rule M5 local contract and G5-S01, G5-S21, G5-S23 with the documented simulated-visibility test limitation, and full G5 were explicitly accepted on 2026-11-02. Fast-forward M5 integration into `main` was authorized. Run 13's original evidence-stage exit 1 records the historically pending S01 decision and is not reclassified as a passing run-time stage. See [G5 gate closure](M5_G5_GATE_CLOSURE.md).

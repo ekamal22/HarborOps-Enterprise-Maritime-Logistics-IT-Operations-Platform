@@ -94,7 +94,8 @@ run integration-repeat tests/HarborOps.IntegrationTests/HarborOps.IntegrationTes
 exit $status
 INNER
   # A failed build or test run must still dispose of the owned database container.
-  trap 'docker rm -f ho-g6-pg >/dev/null 2>&1 || true' RETURN
+  # EXIT, not RETURN: errexit ends the shell without running a function RETURN trap.
+  trap 'docker rm -f ho-g6-pg >/dev/null 2>&1 || true' EXIT
   MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 --name ho-g6-sdk --network container:ho-g6-pg -v "$repo:/src" -v "$winroot:/cache" \
     -w /src -e DOTNET_NOLOGO=1 -e DOTNET_CLI_TELEMETRY_OPTOUT=1 -e NUGET_PACKAGES=/cache/nuget/packages \
     -e NUGET_HTTP_CACHE_PATH=/cache/nuget/http-cache -e DOTNET_CLI_HOME=/cache/dotnet-home \

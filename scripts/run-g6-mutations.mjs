@@ -93,12 +93,11 @@ try{
          "Mutation did not fail intended regression: "+variant);
        // Keep the assertion text so a reviewer can confirm each test failed for the intended reason.
        const messages={};
-       for(const block of xml.matchAll(/<UnitTestResult([^>]*?)>([sS]*?)</UnitTestResult>/g)){
+       for(const block of xml.matchAll(/<UnitTestResult\b([^>]*?)>([\s\S]*?)<\/UnitTestResult>/g)){
          const testName=/testName="([^"]+)"/.exec(block[1])?.[1];
          if(!testName||!/outcome="Failed"/.test(block[1]))continue;
-         const text=/<Message>([sS]*?)</Message>/.exec(block[2])?.[1]||"";
-         messages[testName]=text.replace(/&#xD;|&#xA;||
-/g," ").slice(0,600);
+         const text=/<Message>([\s\S]*?)<\/Message>/.exec(block[2])?.[1]||"";
+         messages[testName]=text.replace(/&#xD;|&#xA;|\r|\n/g," ").slice(0,600);
        }
        summary.mutants.push({variant,status:"KILLED",expectedFailure:expected,
          failedTests:failed.map(x=>x.name),failureMessages:messages,total:rows.length});

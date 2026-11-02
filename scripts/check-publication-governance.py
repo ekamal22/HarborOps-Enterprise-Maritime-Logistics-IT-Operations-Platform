@@ -10,8 +10,8 @@ REPOSITORY = "ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Pla
 
 
 def github(resource):
-    result = subprocess.run(["gh", "api", "repos/" + REPOSITORY + "/" + resource],
-                            text=True, capture_output=True)
+    path = "repos/" + REPOSITORY + ("/" + resource if resource else "")
+    result = subprocess.run(["gh", "api", path], text=True, capture_output=True)
     if result.returncode:
         return None
     try:

@@ -13,7 +13,9 @@ namespace HarborOps.IntegrationTests;
 
 public sealed class IdentityLifecycleTests
 {
-    private const string Password = "Synthetic-integration-passphrase-123";
+    // Generated per run so no credential-like literal is committed.
+    private static readonly string Password =
+        "Synthetic-" + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
     private sealed class IdentityApiFactory(string connection) : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)

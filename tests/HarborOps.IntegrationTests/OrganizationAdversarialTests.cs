@@ -12,7 +12,9 @@ namespace HarborOps.IntegrationTests;
 
 public sealed class OrganizationAdversarialTests
 {
-    private const string Password = "Synthetic-g2-adversarial-passphrase-123";
+    // Generated per run so no credential-like literal is committed.
+    private static readonly string Password =
+        "Synthetic-" + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
     private const string EventId = "g2-adversarial";
 
     private static ServiceProvider Provider() =>

@@ -47,7 +47,10 @@ const name="ho-g6-snapshot-pg";
 assert.equal(run("ps","-aq","--filter","name=^/"+name+"$"),"",
   "Existing snapshot container cannot be reused");
 report.sourceFile=backup;
-report.sha256=crypto.createHash("sha256").update(fs.readFileSync(backup)).digest("hex").toUpperCase();
+const digest=crypto.createHash("sha256");
+for await (const chunk of fs.createReadStream(backup,{highWaterMark:1024*1024}))
+  digest.update(chunk);
+report.sha256=digest.digest("hex").toUpperCase();
 report.bytes=fs.statSync(backup).size;
 let owned=false;
 try{

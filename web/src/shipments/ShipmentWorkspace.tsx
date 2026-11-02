@@ -463,6 +463,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
         </button>}
       </form>
       {!creating && selected && <ShipmentAssignmentsPanel
+        key={`${organizationId}:${selected.id}`}
         organizationId={organizationId} shipment={selected} canManage={canManage}
         onAccessInvalidated={onAccessInvalidated} />}
       {!creating && selected && <div className="mt-4">

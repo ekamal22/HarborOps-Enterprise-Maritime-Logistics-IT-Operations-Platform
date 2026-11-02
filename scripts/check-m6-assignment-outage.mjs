@@ -89,8 +89,17 @@ if(!shipment){
 }
 const containers=await manager.call("GET",root+"/containers?recordStatus=Active&limit=100");
 assert.equal(containers.status,200);
-const target=containers.body.containers?.[0];
-assert.ok(target,"M4 container fixture not found");
+const marker="G6-OUTAGE-BOX";
+let target=containers.body.containers?.find(row=>row.referenceCode===marker);
+if(!target){
+  const created=await manager.call("POST",root+"/containers",{
+    referenceCode:marker,identifierKind:"Synthetic",containerIdentifier:"SYN-BOX-G6OUTAGE",
+    equipmentType:"Dry20",displayName:"Isolated G6 outage container"
+  });
+  assert.equal(created.status,201);
+  target=created.body;
+}
+assert.ok(target&&target.recordStatus==="Active","Dedicated G6 outage fixture unavailable");
 const assignments=shipments+"/"+shipment.id+"/container-assignments";
 let before=await manager.call("GET",assignments);
 assert.equal(before.status,200);

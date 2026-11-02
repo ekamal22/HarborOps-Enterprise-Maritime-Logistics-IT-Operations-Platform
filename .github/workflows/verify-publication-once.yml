@@ -24,15 +24,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Record candidate identity
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "d9bc2aba875039bcd84b1212e023cb8cd9f4e319"
+          security_source="d9bc2aba875039bcd84b1212e023cb8cd9f4e319"
+          git merge-base --is-ancestor "$security_source" HEAD
+          unexpected=$(git diff --name-only "$security_source" HEAD | grep -Ev "^\.github/workflows/verify-publication-once\.yml$" || true)
+          if [ -n "$unexpected" ]; then
+            echo "Verification branch includes unexpected source changes" >&2
+            exit 1
+          fi
           echo "Verification commit: $(git rev-parse HEAD)"
-          echo "Security source commit: $(git rev-parse HEAD^)"
+          echo "Security source commit: $security_source"
           echo "HARBOROPS_SOURCE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           credential="$(openssl rand -hex 32)"
           echo "::add-mask::$credential"
@@ -173,4 +179,7 @@ jobs:
         run: |
           docker compose -p ho-verify-pub down --volumes --remove-orphans || true
           docker rm -f harborops-publication-test-db || true
-          rm -rf tests/browser/test-results .verification
+          # The Trivy container creates root-owned cache files on the mounted volume.
+          # Limit privileged cleanup to this disposable checkout's known paths.
+          sudo rm -rf -- tests/browser/test-results .verification
+          test ! -e .verification

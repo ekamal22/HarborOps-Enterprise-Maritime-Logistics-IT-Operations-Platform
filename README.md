@@ -189,7 +189,7 @@ The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) pres
 
 ### Public source and deployment security
 
-The [public repository security and disclosure review](docs/PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) documents the current security findings, outstanding Git-history review, automatic workflow triggers, deployment hardening and release criteria. The repository is **not yet cleared for public visibility or internet-facing deployment**. M6 acceptance covers the local engineering gate, not public-release approval.
+The [public repository security and disclosure review](docs/PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) preserves the original findings. The [publication remediation register](docs/PUBLICATION_REMEDIATION_STATUS.md) tracks the source changes and outstanding evidence on the dedicated security branch. The repository is **not yet cleared for public visibility or internet-facing deployment**. M6 acceptance covers the local engineering gate, not public-release approval.
 
 ### Current state
 

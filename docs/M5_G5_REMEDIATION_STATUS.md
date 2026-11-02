@@ -3,7 +3,7 @@
 **Date:** 2026-11-01  
 **Branch:** `feat/m5-shipment-lifecycle`  
 **Original audit:** [M5/G5 correctness audit](M5_G5_CORRECTNESS_AUDIT.md) at source revision `7c85c3271e481fd460d533f08940c6bd4211d4cc`  
-**Disposition:** All eleven reported findings have code or verification-source corrections committed. These corrections were first written without compilation. They have since been compiled and executed; see the execution update at the end of this record. G5 OPEN, acceptance pending.
+**Disposition:** All eleven reported findings have code or verification-source corrections committed. These corrections were first written without compilation. They have since been compiled and executed; see the execution update at the end of this record. G5 accepted 2026-11-02.
 
 ## 1. Remediation ledger
 
@@ -85,8 +85,8 @@ An independent review of the first execution package raised three items. They we
 
 | Item | Result | Where |
 | --- | --- | --- |
-| G5-S01 contract compliance | All six contract rules mapped to source, tests and evidence; one discrepancy (no-store on framework-generated responses) corrected; the contract remains proposed, acceptance pending | [compliance matrix](M5_G5_S01_CONTRACT_COMPLIANCE.md) |
+| G5-S01 contract compliance | All six contract rules mapped to source, tests and evidence; one discrepancy (no-store on framework-generated responses) corrected; the contract was explicitly accepted on 2026-11-02 | [compliance matrix](M5_G5_S01_CONTRACT_COMPLIANCE.md) |
 | G5-S23 unsaved edits lost on tab return | Shipment and organization workspaces reworked; eight three-engine browser cases and 12 web unit cases added | [executed verification](M5_EXECUTED_VERIFICATION.md) section 3 |
 | G5-S21 crash and timeout atomicity | Seven interruption scenarios, six with observed backend state recorded in the TRX and the lost-response case asserting committed state; the evidence checker requires the recorded observations | [executed verification](M5_EXECUTED_VERIFICATION.md) section 4 |
 
-Status: implemented and tested at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`; evidence present for G5-S02 to G5-S25; not independently reviewed for this revision; G5-S01 incomplete; acceptance pending.
+Status: implemented and tested at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`; raw run 13 evidence independently reviewed; the six-rule contract, G5-S01 and full G5 explicitly accepted on 2026-11-02. The separately corrected evidence archive fixes only derived S21/S23 reports and the manifest. See [closure](M5_G5_GATE_CLOSURE.md).

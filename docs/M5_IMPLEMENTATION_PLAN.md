@@ -1,6 +1,6 @@
 # M5 Shipment Lifecycle: Implementation Plan
 
-**Status:** Domain, SQL/EF persistence, API, React UI and initial tests authored and committed. End-to-end build/runtime verification and some mandatory adversarial subcases remain incomplete. G5 acceptance pending.
+**Status:** Fully implemented and verified at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`. M5/G5 accepted 2026-11-02 and fast-forward integrated into `main`. Historical implementation steps below are retained; see [G5 closure](M5_G5_GATE_CLOSURE.md).
 **Feature branch:** `feat/m5-shipment-lifecycle`
 **Accepted base:** `main` at `18d00e6710097e4e31a87190be8edb65337d1b50`
 **Work packages:** M5-01, M5-02, M5-03, M5-04, then G5
@@ -20,9 +20,9 @@ flowchart TD
   D --> G5
 ```
 
-The accepted graph deliberately makes **M5 depend on G3, not G4**. Accepted G4 supplies reusable maritime conventions but is not added as a prerequisite. M5-02 and M5-03 can be implemented in parallel after M5-01 with coordinated API, migration ownership and test contracts. M6 remains blocked until both G4 and G5 are accepted. Do not rewrite the execution graph into a serial milestone chain.
+The accepted graph deliberately makes **M5 depend on G3, not G4**. Accepted G4 supplies reusable maritime conventions but is not added as a prerequisite. M5-02 and M5-03 can be implemented in parallel after M5-01 with coordinated API, migration ownership and test contracts. G4 and G5 are now accepted, so M6 may proceed with its own separate G6 verification requirements. Do not rewrite the execution graph into a serial milestone chain.
 
-Do not merge or run GitHub Actions without explicit authorization. Keep implementation on the named M5 feature branch; use `[skip ci]` commits. Local G5 verification requires disposable E:-backed resources and independently reviewed evidence before acceptance.
+G5 and fast-forward M5 integration were explicitly authorized on 2026-11-02. The accepted work is on `main` without GitHub Actions. Local run 13 evidence is preserved against its exact source SHA; documentation-only commits use `[skip ci]`.
 
 ## 2. M5-01: Freeze shipment lifecycle contract
 

@@ -3,6 +3,7 @@ using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.References;
 using HarborOps.Infrastructure.Maritime;
 using HarborOps.Infrastructure.Shipments;
+using HarborOps.Infrastructure.Assignments;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +24,8 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
     public DbSet<ContainerRecord> Containers => Set<ContainerRecord>();
     public DbSet<ShipmentRecord> Shipments => Set<ShipmentRecord>();
     public DbSet<ShipmentStatusChange> ShipmentStatusChanges => Set<ShipmentStatusChange>();
+    public DbSet<ShipmentContainerAssignment> ShipmentContainerAssignments => Set<ShipmentContainerAssignment>();
+    public DbSet<ShipmentVoyageAssignment> ShipmentVoyageAssignments => Set<ShipmentVoyageAssignment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -233,6 +236,39 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
                 t.HasCheckConstraint("CK_containers_display", "display_name IS NULL OR length(btrim(display_name)) BETWEEN 1 AND 160");
             });
         });
+        modelBuilder.Ignore<AssignmentRecord>();
+        modelBuilder.Entity<ContainerRecord>().HasAlternateKey(x => new { x.OrganizationId, x.Id });
+        modelBuilder.Entity<VoyageRecord>().HasAlternateKey(x => new { x.OrganizationId, x.Id });
+        modelBuilder.Entity<ShipmentContainerAssignment>(entity =>
+        {
+            ConfigureAssignment(entity, "shipment_container_assignments");
+            entity.Property(x => x.ContainerId).HasColumnName("container_id");
+            entity.HasOne<ContainerRecord>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.ContainerId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => new { x.OrganizationId, x.ContainerId, x.StartsAtUtc, x.Id })
+                .HasDatabaseName("IX_m6_container_target");
+            entity.HasIndex(x => new { x.OrganizationId, x.ShipmentId, x.StartsAtUtc, x.Id })
+                .HasDatabaseName("IX_m6_container_shipment");
+            entity.HasIndex(x => x.CreatedByUserId).HasDatabaseName("IX_m6_container_created_by");
+            entity.HasIndex(x => x.ClosedByUserId).HasDatabaseName("IX_m6_container_closed_by");
+        });
+        modelBuilder.Entity<ShipmentVoyageAssignment>(entity =>
+        {
+            ConfigureAssignment(entity, "shipment_voyage_assignments");
+            entity.Property(x => x.VoyageId).HasColumnName("voyage_id");
+            entity.HasOne<VoyageRecord>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.VoyageId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => new { x.OrganizationId, x.VoyageId, x.StartsAtUtc, x.Id })
+                .HasDatabaseName("IX_m6_voyage_target");
+            entity.HasIndex(x => new { x.OrganizationId, x.ShipmentId, x.StartsAtUtc, x.Id })
+                .HasDatabaseName("IX_m6_voyage_shipment");
+            entity.HasIndex(x => x.CreatedByUserId).HasDatabaseName("IX_m6_voyage_created_by");
+            entity.HasIndex(x => x.ClosedByUserId).HasDatabaseName("IX_m6_voyage_closed_by");
+        });
         modelBuilder.Entity<ShipmentRecord>(entity =>
         {
             entity.ToTable("shipments", t =>
@@ -306,6 +342,48 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             entity.HasIndex(x => x.ChangedByUserId).HasDatabaseName("IX_shipment_status_changes_changed_by_user_id");
             entity.HasIndex(x => new { x.OrganizationId, x.ShipmentId, x.Version }).IsUnique();
         });
+    }
+
+    private static void ConfigureAssignment<TEntity>(EntityTypeBuilder<TEntity> entity, string table)
+        where TEntity : AssignmentRecord
+    {
+        entity.ToTable(table, t =>
+        {
+            t.HasCheckConstraint(table == "shipment_container_assignments"
+                ? "CK_m6_container_window" : "CK_m6_voyage_window",
+                "ends_at_utc IS NULL OR ends_at_utc > starts_at_utc");
+            t.HasCheckConstraint(table == "shipment_container_assignments"
+                ? "CK_m6_container_version" : "CK_m6_voyage_version",
+                "version > 0 AND updated_at_utc >= created_at_utc");
+            t.HasCheckConstraint(table == "shipment_container_assignments"
+                ? "CK_m6_container_closure" : "CK_m6_voyage_closure",
+                "(ends_at_utc IS NULL AND closed_by_user_id IS NULL) OR ends_at_utc IS NOT NULL");
+        });
+        entity.HasKey(x => x.Id);
+        entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+        entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+        entity.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
+        entity.Property(x => x.ShipmentId).HasColumnName("shipment_id");
+        entity.HasOne<ShipmentRecord>().WithMany()
+            .HasForeignKey(x => new { x.OrganizationId, x.ShipmentId })
+            .HasPrincipalKey(x => new { x.OrganizationId, x.Id })
+            .OnDelete(DeleteBehavior.Restrict);
+        entity.Property(x => x.StartsAtUtc).HasColumnName("starts_at_utc")
+            .HasColumnType("timestamp with time zone");
+        entity.Property(x => x.EndsAtUtc).HasColumnName("ends_at_utc")
+            .HasColumnType("timestamp with time zone");
+        entity.Property(x => x.Version).HasColumnName("version");
+        entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc")
+            .HasColumnType("timestamp with time zone");
+        entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc")
+            .HasColumnType("timestamp with time zone");
+        entity.Property(x => x.CreatedByUserId).HasColumnName("created_by_user_id");
+        entity.Property(x => x.ClosedByUserId).HasColumnName("closed_by_user_id");
+        entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        entity.HasOne<AuthUser>().WithMany().HasForeignKey(x => x.ClosedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureMaritime<TEntity>(EntityTypeBuilder<TEntity> entity, string table)

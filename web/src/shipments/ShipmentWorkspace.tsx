@@ -4,6 +4,7 @@ import { archiveShipment, changeShipment, createShipment, listShipments, shipmen
   type ShipmentChange, type ShipmentRow, type ShipmentWorkflow } from "./shipmentClient";
 import type { ReferenceRow } from "../references/referenceClient";
 import { isDirty, mergeLatest, scheduleEditable, serverChanged, workflowOptions } from "../lib/shipmentDraft.mjs";
+import ShipmentAssignmentsPanel from "../assignments/ShipmentAssignmentsPanel";
 
 type Form = {
   referenceCode: string; externalReference: string; displayName: string;
@@ -461,6 +462,9 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
           {creating ? "Save new shipment" : "Save shipment changes"}
         </button>}
       </form>
+      {!creating && selected && <ShipmentAssignmentsPanel
+        organizationId={organizationId} shipment={selected} canManage={canManage}
+        onAccessInvalidated={onAccessInvalidated} />}
       {!creating && selected && <div className="mt-4">
         <h6 className="font-medium">Manual status history</h6>
         {history.length === 0 ? <p className="text-xs text-slate-400">No status changes loaded.</p> :

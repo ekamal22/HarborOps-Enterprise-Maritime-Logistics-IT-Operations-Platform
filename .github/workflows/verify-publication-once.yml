@@ -1,11 +1,7 @@
 name: Publication Security Verification
 
 on:
-  push:
-    branches:
-      - verify/publication-security-20261103-r3-once
-    paths:
-      - .github/workflows/verify-publication-once.yml
+  workflow_dispatch:
 
 permissions:
   contents: read

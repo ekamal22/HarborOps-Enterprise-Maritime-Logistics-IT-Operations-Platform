@@ -3,7 +3,7 @@ import { getJson, mutate } from "../auth/organizationClient";
 export type AssignmentKind = "container-assignments" | "voyage-assignments";
 export type Assignment = {
   id: string; organizationId: string; shipmentId: string;
-  containerId?: string; voyageId?: string;
+  containerId?: string; voyageId?: string; targetLabel?: string | null;
   startsAtUtc: string; endsAtUtc: string | null;
   version: number; createdAtUtc: string; updatedAtUtc: string;
 };

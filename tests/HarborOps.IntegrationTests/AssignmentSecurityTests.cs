@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +43,14 @@ public sealed class AssignmentSecurityTests
         await ReferenceDataHttpTests.Login(auditor, email);
         await ReferenceDataHttpTests.Select(auditor, f.A);
         using (var read = await auditor.GetAsync(route))
+        {
             Assert.Equal(HttpStatusCode.OK, read.StatusCode);
+            var detail = await read.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+            var assignments = detail.GetProperty("assignments");
+            Assert.Single(assignments.EnumerateArray());
+            var label = assignments[0].GetProperty("targetLabel").GetString();
+            Assert.Contains("G6-BOX-", label);
+        }
         using (var catalog = await auditor.GetAsync("/api/v1/organizations/" + f.A + "/containers"))
             Assert.Equal(HttpStatusCode.Forbidden, catalog.StatusCode);
         using (var denied = await ReferenceDataHttpTests.Send(auditor, HttpMethod.Post, route,

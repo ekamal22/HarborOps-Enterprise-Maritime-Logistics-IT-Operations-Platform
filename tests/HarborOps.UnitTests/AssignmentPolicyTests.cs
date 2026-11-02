@@ -29,6 +29,7 @@ public sealed class AssignmentPolicyTests
         var first = AssignmentPolicy.Utc("2026-11-03T10:00:00Z");
         var mid = first.AddHours(1);
         var end = mid.AddHours(1);
+        AssignmentPolicy.Window(first, null);
         AssignmentPolicy.Window(first, mid);
         AssignmentPolicy.Window(mid, end);
         Assert.False(AssignmentPolicy.Overlaps(first, mid, mid, end));

@@ -102,6 +102,39 @@ public sealed class AssignmentStore(HarborOpsDbContext db, OrganizationStore org
         return resolved.Value is null ? resolved.Error : OrganizationAccessError.None;
     }
 
+    // Project only current-tenant business reference labels. Auditor access to assignments
+    // never authorizes an M4 catalog route or an unscoped resource query.
+    private async Task PopulateLabelsAsync<T>(Guid org, IReadOnlyList<T> rows,
+        CancellationToken ct) where T : AssignmentRecord
+    {
+        if (rows.Count == 0) return;
+        if (typeof(T) == typeof(ShipmentContainerAssignment))
+        {
+            var assignments = rows.Cast<ShipmentContainerAssignment>().ToArray();
+            var ids = assignments.Select(x => x.ContainerId).Distinct().ToArray();
+            var targets = await db.Containers.AsNoTracking().Where(x =>
+                x.OrganizationId == org && ids.Contains(x.Id))
+                .Select(x => new { x.Id, x.ReferenceCode, x.ContainerIdentifier })
+                .ToListAsync(ct);
+            var labels = targets.ToDictionary(x => x.Id,
+                x => x.ReferenceCode + " (" + x.ContainerIdentifier + ")");
+            foreach (var row in assignments)
+                row.TargetLabel = labels.GetValueOrDefault(row.ContainerId);
+        }
+        else if (typeof(T) == typeof(ShipmentVoyageAssignment))
+        {
+            var assignments = rows.Cast<ShipmentVoyageAssignment>().ToArray();
+            var ids = assignments.Select(x => x.VoyageId).Distinct().ToArray();
+            var targets = await db.Voyages.AsNoTracking().Where(x =>
+                x.OrganizationId == org && ids.Contains(x.Id))
+                .Select(x => new { x.Id, x.ReferenceCode })
+                .ToListAsync(ct);
+            var labels = targets.ToDictionary(x => x.Id, x => x.ReferenceCode);
+            foreach (var row in assignments)
+                row.TargetLabel = labels.GetValueOrDefault(row.VoyageId);
+        }
+    }
+
     public async Task<AssignmentResult<AssignmentPage<T>>> ListAsync<T>(CurrentSession session,
         Guid org, Guid shipment, Guid? after, int limit, CancellationToken ct)
         where T : AssignmentRecord
@@ -132,6 +165,7 @@ public sealed class AssignmentStore(HarborOpsDbContext db, OrganizationStore org
         var rows = await query.OrderBy(x => x.Id).Take(limit + 1).ToListAsync(ct);
         var more = rows.Count > limit;
         if (more) rows.RemoveAt(limit);
+        await PopulateLabelsAsync(org, rows, ct);
         await tx.CommitAsync(ct);
         return new(new AssignmentPage<T>(rows, more ? rows[^1].Id : null),
             OrganizationAccessError.None);
@@ -146,6 +180,7 @@ public sealed class AssignmentStore(HarborOpsDbContext db, OrganizationStore org
         if (access != OrganizationAccessError.None) return new(null, access);
         var row = await db.Set<T>().AsNoTracking().SingleOrDefaultAsync(x =>
             x.OrganizationId == org && x.ShipmentId == shipment && x.Id == id, ct);
+        if (row is not null) await PopulateLabelsAsync(org, new[] { row }, ct);
         await tx.CommitAsync(ct);
         return row is null ? new(null, OrganizationAccessError.NotFound) :
             new(row, OrganizationAccessError.None);

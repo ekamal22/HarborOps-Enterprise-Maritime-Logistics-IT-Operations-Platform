@@ -12,6 +12,8 @@ public abstract class AssignmentRecord
     public DateTimeOffset UpdatedAtUtc { get; set; }
     public Guid CreatedByUserId { get; set; }
     public Guid? ClosedByUserId { get; set; }
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public string? TargetLabel { get; set; }
 }
 
 public sealed class ShipmentContainerAssignment : AssignmentRecord

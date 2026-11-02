@@ -17,7 +17,7 @@ public static class AssignmentPolicy
 
     public static void Window(DateTimeOffset start, DateTimeOffset? end)
     {
-        if (start.Offset != TimeSpan.Zero || end?.Offset != TimeSpan.Zero ||
+        if (start.Offset != TimeSpan.Zero || end.HasValue && end.Value.Offset != TimeSpan.Zero ||
             end.HasValue && end.Value <= start)
             throw new ArgumentException("Invalid half-open UTC assignment interval");
     }

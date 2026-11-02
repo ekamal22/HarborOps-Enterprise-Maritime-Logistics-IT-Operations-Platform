@@ -136,7 +136,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated }:
     {error && <p role="alert" className="mt-2 text-sm text-rose-300">{error}</p>}
     <ul className="mt-2 space-y-2">
       {items.map(row => <li key={row.id} className="rounded bg-slate-900 p-2 text-xs">
-        <div className="break-all">{label(kind)}: {row.containerId ?? row.voyageId}</div>
+        <div className="break-all">{label(kind)}: {row.targetLabel ?? row.containerId ?? row.voyageId}</div>
         <div>From {row.startsAtUtc} to {row.endsAtUtc ?? "open"} | version {row.version}</div>
         {canManage && row.endsAtUtc === null &&
           (closingId === row.id

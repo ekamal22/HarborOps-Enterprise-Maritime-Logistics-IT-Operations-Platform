@@ -69,6 +69,7 @@ export async function runVolumeSnapshot({ volume, database, cwd, root, report, s
     docker(["run", "--rm", "--ulimit", "core=0", "--network", "container:" + containerName,
       "-v", cwd + ":/src", "-v", root + ":/cache", "-w", "/src",
       "-e", "ConnectionStrings__HarborOps=Host=127.0.0.1;Port=5432;Database=" + database + ";Username=harborops",
+      "-e", "Identity__AllowInsecureLoopbackHttp=true", "-e", "Identity__KeyRingPath=/tmp/keys",
       "-e", "NUGET_PACKAGES=/cache/nuget/packages", "-e", "DOTNET_CLI_HOME=/cache/dotnet-home",
       "-e", "HOME=/cache/dotnet-home", "-e", "TMPDIR=/cache/tmp", "-e", "DOTNET_NOLOGO=1",
       "mcr.microsoft.com/dotnet/sdk:10.0", "dotnet", "run", "--project", "src/HarborOps.Api/HarborOps.Api.csproj",

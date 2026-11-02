@@ -1134,11 +1134,11 @@ flowchart TD
 1. Read [Status](STATUS.md) for accepted gates. The graph does not imply runtime completion.
 2. Start any package with satisfied explicit upstream acceptance gates and resolved decisions; use independent feature branches and E:-backed worktrees.
 3. Freeze shared API/authorization contracts, coordinate additive PostgreSQL migration order and avoid conflicting migrations from parallel branches.
-4. Integrate completed branches against current main; rerun related cross-track and accepted M0-M4 regression suites, database tests and security negative cases on the resulting SHA.
+4. Integrate completed branches against current main; rerun related cross-track and accepted M0-M5 regression suites, database tests and security negative cases on the resulting SHA.
 5. Each gate needs full executed evidence and explicit acceptance. A verified but unaccepted gate is not an integration prerequisite.
 6. G24 requires accepted G0-G23 and final integrated release verification, including M24-04 accessibility. Keep historical-volume checks at M6, M12, M18 and M24-03.
 7. Update this JSON graph and regenerate/check the Markdown view whenever dependencies change.
 
 ## Current starting point
 
-G0-G4 are accepted and integrated into main. M5, M7, M16, M17, M19, and initial M20 and M23 packages are eligible independent starts; M6 integration still requires G5. Status is authoritative for executed work. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
+G0-G5 are accepted and integrated into main. M6, M7, M16, M17, M19, and initial M20 and M23 packages are eligible independent starts; M6 still requires its own G6 verification. Status is authoritative for executed work. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).

@@ -22,9 +22,9 @@ const expectOk=(cmd,args)=>{const result=run(cmd,args);assert.equal(result.statu
   cmd+" failed: "+(result.stderr||result.stdout||"").slice(-600));return result.stdout||"";};
 expectOk("git",["archive","--format=tar","--output",sourceTar,sha]);
 const variants=[
-  ["control",null,"ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant|LiveMembershipDowngradeImmediatelyRevokesAssignmentAccess|ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory"],
+  ["control",null,"ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant|QueuedAssignmentWriteRechecksEveryAuthorizationDependency|ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory"],
   ["tenant-read","ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant","ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant"],
-  ["post-lock","LiveMembershipDowngradeImmediatelyRevokesAssignmentAccess","LiveMembershipDowngradeImmediatelyRevokesAssignmentAccess"],
+  ["post-lock","QueuedAssignmentWriteRechecksEveryAuthorizationDependency","QueuedAssignmentWriteRechecksEveryAuthorizationDependency"],
   ["overlap","ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory","ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory"],
   ["parent-guard","ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory","ExclusionConstraintsAndDirectSqlGuardsProtectAllocationHistory"]
 ];

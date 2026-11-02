@@ -3,6 +3,7 @@ import { getJson, organizationError, OrganizationRequestError } from "../auth/or
 import { archiveShipment, changeShipment, createShipment, listShipments, shipmentHistory, shipmentDetail,
   type ShipmentChange, type ShipmentRow, type ShipmentWorkflow } from "./shipmentClient";
 import type { ReferenceRow } from "../references/referenceClient";
+import { isDirty, mergeLatest, scheduleEditable, serverChanged, workflowOptions } from "../lib/shipmentDraft.mjs";
 
 type Form = {
   referenceCode: string; externalReference: string; displayName: string;
@@ -15,13 +16,6 @@ const blank: Form = {
   originPortId: "", destinationPortId: "", plannedDepartureAtUtc: "",
   plannedArrivalAtUtc: "", workflowStatus: "Draft"
 };
-const allowed: Record<ShipmentWorkflow, ShipmentWorkflow[]> = {
-  Draft: ["Booked", "Cancelled"],
-  Booked: ["InTransit", "Cancelled"],
-  InTransit: ["Arrived", "Cancelled"],
-  Arrived: ["Completed"],
-  Completed: [], Cancelled: []
-};
 const fromRow = (r: ShipmentRow): Form => ({
   referenceCode: r.referenceCode, externalReference: r.externalReference ?? "",
   displayName: r.displayName ?? "", originPortId: r.originPortId,
@@ -30,6 +24,11 @@ const fromRow = (r: ShipmentRow): Form => ({
   plannedArrivalAtUtc: r.plannedArrivalAtUtc ?? "",
   workflowStatus: r.workflowStatus
 });
+const fieldLabel: Record<string, string> = {
+  displayName: "display name", plannedDepartureAtUtc: "planned departure",
+  plannedArrivalAtUtc: "planned arrival", workflowStatus: "workflow status"
+};
+const labels = (keys: string[]) => keys.map(key => fieldLabel[key] ?? key).join(", ");
 function denied(error: unknown): boolean {
   return error instanceof OrganizationRequestError &&
     (error.status === 401 || error.code === "access_denied" ||
@@ -60,61 +59,140 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
   const [status, setStatus] = useState<"Active" | "Archived" | "All">("Active");
   const [items, setItems] = useState<ShipmentRow[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
+  // `selected` is the server snapshot the open form started from; `form` is the user's draft.
   const [selected, setSelected] = useState<ShipmentRow | null>(null);
+  const [remote, setRemote] = useState<ShipmentRow | null>(null);
   const [history, setHistory] = useState<ShipmentChange[]>([]);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState<Form>(blank);
+  const [form, setFormState] = useState<Form>(blank);
   const [ports, setPorts] = useState<ReferenceRow[]>([]);
   const [portError, setPortError] = useState("");
   const [portRetry, setPortRetry] = useState(0);
   const [portBusy, setPortBusy] = useState(false);
   const [conflict, setConflict] = useState("");
+  const [reviewable, setReviewable] = useState(false);
+  const [stale, setStale] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [paging, setPaging] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const requestSerial = useRef(0);
+  // Serials: a list reset (initial load, filter change), a background refresh, paging, the open
+  // selection and mutations each have their own, so none can strand another's loading flag.
+  const listSerial = useRef(0);
+  const backgroundSerial = useRef(0);
   const pageSerial = useRef(0);
   const selectionSerial = useRef(0);
   const mutationSerial = useRef(0);
+  const formRef = useRef<Form>(blank);
+  const selectedRef = useRef<ShipmentRow | null>(null);
+  const creatingRef = useRef(false);
+  const loadingRef = useRef(true);
+  const setForm = useCallback((next: Form | ((old: Form) => Form)) => {
+    const value = typeof next === "function" ? next(formRef.current) : next;
+    formRef.current = value;
+    setFormState(value);
+  }, []);
+  selectedRef.current = selected;
+  creatingRef.current = creating;
+  loadingRef.current = loading;
   const invalidate = useCallback((cause: unknown) => {
     if (denied(cause)) onAccessInvalidated(organizationError(cause));
   }, [onAccessInvalidated]);
 
-  const reload = useCallback(async () => {
-    const version = ++requestSerial.current;
+  const dirty = creating
+    ? isDirty(blank, form)
+    : Boolean(selected) && isDirty(fromRow(selected as ShipmentRow), form);
+  const dirtyRef = useRef(false);
+  dirtyRef.current = dirty;
+  const confirmDiscard = () =>
+    !dirtyRef.current || window.confirm("Discard unsaved shipment changes?");
+
+  const closePanel = useCallback(() => {
+    selectionSerial.current++;
+    setSelected(null); setRemote(null); setHistory([]); setCreating(false);
+    setConflict(""); setReviewable(false); setForm(blank);
+  }, [setForm]);
+
+  // Initial load and filter changes. Never touches the open shipment or its draft.
+  const loadList = useCallback(async () => {
+    const version = ++listSerial.current;
+    ++backgroundSerial.current;
     ++pageSerial.current;
-    ++selectionSerial.current;
-    setLoading(true); setPaging(false); setError("");
-    setItems([]); setCursor(null); setSelected(null); setHistory([]); setCreating(false);
+    setLoading(true); setRefreshing(false); setPaging(false); setError(""); setStale("");
+    setItems([]); setCursor(null);
     try {
       const page = await listShipments(organizationId, q, status);
-      if (version !== requestSerial.current) return;
+      if (version !== listSerial.current) return;
       setItems(page.shipments); setCursor(page.nextAfter);
     } catch (cause) {
-      if (version !== requestSerial.current) return;
+      if (version !== listSerial.current) return;
       setError(organizationError(cause)); invalidate(cause);
     } finally {
-      if (version === requestSerial.current) setLoading(false);
+      if (version === listSerial.current) setLoading(false);
     }
   }, [organizationId, q, status, invalidate]);
 
+  // Background list refresh: keeps the rows on screen, never clears them on failure, and is
+  // discarded if a list reset started in the meantime.
+  const refreshList = useCallback(async () => {
+    if (loadingRef.current) return;
+    const reset = listSerial.current;
+    const version = ++backgroundSerial.current;
+    setRefreshing(true);
+    try {
+      const page = await listShipments(organizationId, q, status);
+      if (reset !== listSerial.current || version !== backgroundSerial.current) return;
+      ++pageSerial.current;
+      setPaging(false);
+      setItems(page.shipments); setCursor(page.nextAfter); setStale("");
+    } catch (cause) {
+      if (reset !== listSerial.current || version !== backgroundSerial.current) return;
+      if (denied(cause)) invalidate(cause);
+      else setStale("Could not refresh shipments. The list shown may be out of date.");
+    } finally {
+      if (version === backgroundSerial.current) setRefreshing(false);
+    }
+  }, [organizationId, q, status, invalidate]);
+
+  // Background check of the open shipment. A newer server version is held aside as `remote`
+  // and never applied to the form on its own.
+  const refreshSelected = useCallback(async () => {
+    const base = selectedRef.current;
+    if (!base || creatingRef.current) return;
+    const generation = selectionSerial.current;
+    try {
+      const detail = await shipmentDetail(organizationId, base.id);
+      if (generation !== selectionSerial.current || selectedRef.current?.id !== base.id) return;
+      if (serverChanged(base, detail)) { setRemote(detail); setReviewable(true); }
+      else setSelected(current => current?.id === detail.id ? {
+        ...current, originPortLabel: detail.originPortLabel, destinationPortLabel: detail.destinationPortLabel
+      } : current);
+    } catch (cause) {
+      if (generation !== selectionSerial.current) return;
+      if (denied(cause)) invalidate(cause);
+      else setStale("Could not refresh the open shipment. The values shown may be out of date.");
+    }
+  }, [organizationId, invalidate]);
+
+  const backgroundRefresh = useCallback(() => {
+    void refreshList();
+    void refreshSelected();
+  }, [refreshList, refreshSelected]);
+  const backgroundRef = useRef(backgroundRefresh);
+  backgroundRef.current = backgroundRefresh;
+
+  useEffect(() => { void loadList(); }, [loadList]);
+
   useEffect(() => {
-    void reload();
-    const visible = () => { if (document.visibilityState === "visible") void reload(); };
+    const visible = () => { if (document.visibilityState === "visible") backgroundRef.current(); };
     document.addEventListener("visibilitychange", visible);
     return () => {
-      requestSerial.current++; pageSerial.current++; selectionSerial.current++;
       document.removeEventListener("visibilitychange", visible);
+      listSerial.current++; backgroundSerial.current++; pageSerial.current++;
+      selectionSerial.current++; mutationSerial.current++;
     };
-  }, [reload]);
-
-  // A filter change must not orphan an in-flight mutation: only unmounting (organization or
-  // role change remounts this component) invalidates it, and the refresh always uses the
-  // latest filters.
-  const reloadLatest = useRef(reload);
-  useEffect(() => { reloadLatest.current = reload; }, [reload]);
-  useEffect(() => () => { mutationSerial.current++; }, []);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -132,20 +210,22 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
   }, [organizationId, canManage, invalidate, portRetry]);
 
   async function select(row: ShipmentRow) {
+    if (!creating && selected?.id === row.id) return;
+    if (!confirmDiscard()) return;
     const generation = ++selectionSerial.current;
-    setSelected(row); setForm(fromRow(row)); setCreating(false); setHistory([]); setConflict("");
+    setSelected(row); setForm(fromRow(row)); setCreating(false); setHistory([]);
+    setConflict(""); setReviewable(false); setRemote(null);
     try {
       const [detail, response] = await Promise.all([
         shipmentDetail(organizationId, row.id),
         shipmentHistory(organizationId, row.id)
       ]);
       if (generation !== selectionSerial.current) return;
-      // Keep local form edits intact while resolving labels through the scoped detail route.
-      setSelected(current => current?.id === row.id ? {
-        ...current,
-        originPortLabel: detail.originPortLabel,
-        destinationPortLabel: detail.destinationPortLabel
-      } : current);
+      // The list row can be older than the detail. Merge anything typed meanwhile instead of
+      // replacing it.
+      const merged = mergeLatest(fromRow(row), formRef.current, fromRow(detail));
+      setSelected(detail);
+      setForm(merged.draft as Form);
       setHistory(response.changes);
     } catch (cause) {
       if (generation !== selectionSerial.current) return;
@@ -155,15 +235,15 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
 
   async function more() {
     if (!cursor || paging || loading || busy) return;
-    const revision = requestSerial.current, page = ++pageSerial.current;
+    const revision = listSerial.current, page = ++pageSerial.current;
     setPaging(true);
     try {
       const next = await listShipments(organizationId, q, status, cursor);
-      if (revision !== requestSerial.current || page !== pageSerial.current) return;
+      if (revision !== listSerial.current || page !== pageSerial.current) return;
       setItems(old => [...old, ...next.shipments.filter(r => !old.some(x => x.id === r.id))]);
       setCursor(next.nextAfter);
     } catch (cause) {
-      if (revision !== requestSerial.current || page !== pageSerial.current) return;
+      if (revision !== listSerial.current || page !== pageSerial.current) return;
       setError(organizationError(cause)); setItems([]); setCursor(null);
       invalidate(cause);
     } finally {
@@ -175,38 +255,40 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     event.preventDefault();
     if (!canManage || busy) return;
     const mutation = mutationSerial.current;
-    setBusy(true); setError(""); setConflict("");
+    const draft = formRef.current;
+    setBusy(true); setError(""); setConflict(""); setReviewable(false);
     try {
       if (creating) {
         await createShipment(organizationId, {
-          referenceCode: form.referenceCode.trim(),
-          externalReference: form.externalReference.trim() || null,
-          displayName: form.displayName.trim() || null,
-          originPortId: form.originPortId,
-          destinationPortId: form.destinationPortId,
-          plannedDepartureAtUtc: form.plannedDepartureAtUtc.trim() || null,
-          plannedArrivalAtUtc: form.plannedArrivalAtUtc.trim() || null
+          referenceCode: draft.referenceCode.trim(),
+          externalReference: draft.externalReference.trim() || null,
+          displayName: draft.displayName.trim() || null,
+          originPortId: draft.originPortId,
+          destinationPortId: draft.destinationPortId,
+          plannedDepartureAtUtc: draft.plannedDepartureAtUtc.trim() || null,
+          plannedArrivalAtUtc: draft.plannedArrivalAtUtc.trim() || null
         });
       } else if (selected) {
         const patch: Record<string, string | number | null> = {
           expectedVersion: selected.version
         };
-        if ((form.displayName.trim() || null) !== selected.displayName)
-          patch.displayName = form.displayName.trim() || null;
+        if ((draft.displayName.trim() || null) !== selected.displayName)
+          patch.displayName = draft.displayName.trim() || null;
         for (const key of ["plannedDepartureAtUtc", "plannedArrivalAtUtc"] as const) {
-          if ((form[key].trim() || null) !== selected[key])
-            patch[key] = form[key].trim() || null;
+          if ((draft[key].trim() || null) !== selected[key])
+            patch[key] = draft[key].trim() || null;
         }
-        if (form.workflowStatus !== selected.workflowStatus)
-          patch.workflowStatus = form.workflowStatus;
+        if (draft.workflowStatus !== selected.workflowStatus)
+          patch.workflowStatus = draft.workflowStatus;
         if (Object.keys(patch).length === 1) return;
         await changeShipment(organizationId, selected.id, patch);
       }
-      if (mutation === mutationSerial.current) await reloadLatest.current();
+      if (mutation === mutationSerial.current) { closePanel(); await loadList(); }
     } catch (cause) {
       if (mutation !== mutationSerial.current) return;
       if (cause instanceof OrganizationRequestError && cause.status === 409) {
         setConflict("This shipment has changed since you opened it. Your edits are preserved. Review the current version before retrying.");
+        setReviewable(true);
       } else {
         setError(organizationError(cause)); invalidate(cause);
       }
@@ -214,37 +296,56 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
       if (mutation === mutationSerial.current) setBusy(false);
     }
   }
+
+  // Load the newest server version and merge the draft into it: untouched fields follow the
+  // server, edited fields keep the user's value, and collisions are reported, not resolved.
   async function reviewCurrent() {
-    if (!selected || busy) return;
+    const base = selectedRef.current;
+    if (!base || busy) return;
     const generation = ++selectionSerial.current;
     try {
-      const current = await shipmentDetail(organizationId, selected.id);
+      const [latest, changes] = await Promise.all([
+        shipmentDetail(organizationId, base.id), shipmentHistory(organizationId, base.id)]);
       if (generation !== selectionSerial.current) return;
-      setSelected(current);
-      setConflict("Current shipment version loaded. Review your preserved edits before saving.");
-      const changes = await shipmentHistory(organizationId, current.id);
-      if (generation === selectionSerial.current) setHistory(changes.changes);
+      const merged = mergeLatest(fromRow(base), formRef.current, fromRow(latest));
+      setSelected(latest); setForm(merged.draft as Form); setHistory(changes.changes);
+      setRemote(null); setReviewable(false);
+      const notes = ["Current version " + latest.version + " loaded."];
+      if (merged.kept.length) notes.push("Your unsaved changes to " + labels(merged.kept) + " were kept.");
+      if (merged.collisions.length)
+        notes.push("The server also changed " + labels(merged.collisions) + ". Your value is shown and saving will replace the server's.");
+      if (merged.discarded.length)
+        notes.push("Your changes to " + labels(merged.discarded) + " can no longer be applied and were not kept.");
+      setConflict(notes.join(" "));
     } catch (cause) {
       if (generation !== selectionSerial.current) return;
       setError(organizationError(cause));
       invalidate(cause);
     }
   }
+
   async function archiveOrRestore(row: ShipmentRow) {
     if (!canManage || busy) return;
-    if (row.recordStatus === "Active" && !window.confirm("Archive this shipment?")) return;
+    if (row.recordStatus === "Active" && !window.confirm(
+      selected?.id === row.id && dirtyRef.current
+        ? "Archive this shipment? Your unsaved changes to it will be lost." : "Archive this shipment?")) return;
     const mutation = mutationSerial.current;
     setBusy(true); setError("");
     try {
       if (row.recordStatus === "Active") await archiveShipment(organizationId, row.id, row.version);
       else await changeShipment(organizationId, row.id,
         { recordStatus: "Active", expectedVersion: row.version });
-      if (mutation === mutationSerial.current) await reloadLatest.current();
+      if (mutation === mutationSerial.current) {
+        // Only the shipment that changed loses its panel; a draft on another row is untouched.
+        if (selectedRef.current?.id === row.id) closePanel();
+        await loadList();
+      }
     } catch (cause) {
       if (mutation !== mutationSerial.current) return;
       setError(organizationError(cause)); invalidate(cause);
     } finally { if (mutation === mutationSerial.current) setBusy(false); }
   }
+
   const field = (key: keyof Form, label: string, locked = false) => (
     <label key={key} className="block text-sm">{label}
       <input aria-label={label} value={form[key]} disabled={locked || !canManage}
@@ -253,11 +354,16 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     </label>
   );
   const readonly = !canManage || (!creating && selected?.recordStatus === "Archived");
+  const scheduleLocked = readonly || (!creating && selected !== null && !scheduleEditable(selected.workflowStatus));
+  const remoteNote = remote && selected
+    ? "This shipment changed on the server (now version " + remote.version + "; you opened version " +
+      selected.version + "). Your unsaved edits are preserved." : "";
+  const banner = conflict || remoteNote;
   return <section className="mt-6 border-t border-slate-700 pt-5">
     <div className="flex items-center justify-between gap-3">
       <h4 className="font-semibold">Shipments</h4>
       <button type="button" disabled={busy || loading || paging}
-        onClick={() => { void reload(); if (canManage) setPortRetry(x => x + 1); }}
+        onClick={() => { backgroundRefresh(); if (canManage) setPortRetry(x => x + 1); }}
         className="rounded border border-slate-600 px-3 py-2 text-sm">
         Refresh shipments
       </button>
@@ -274,13 +380,19 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
         </select>
       </label>
       {canManage && <button type="button" disabled={busy || loading || portBusy || Boolean(portError) || ports.length < 2}
-        onClick={() => { selectionSerial.current++; setCreating(true); setSelected(null); setHistory([]); setForm(blank); setConflict(""); }}
+        onClick={() => {
+          if (creating || !confirmDiscard()) return;
+          selectionSerial.current++; setCreating(true); setSelected(null); setRemote(null);
+          setHistory([]); setForm(blank); setConflict(""); setReviewable(false);
+        }}
         className="rounded border border-cyan-500 px-3 py-2 text-sm disabled:opacity-50">Create shipment</button>}
     </div>
     {loading && <p className="mt-3 text-sm text-slate-400">Loading shipments...</p>}
+    {refreshing && !loading && <p role="status" className="mt-3 text-xs text-slate-400">Updating list...</p>}
+    {stale && <p role="status" className="mt-3 text-xs text-amber-300">{stale}</p>}
     {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
-    {conflict && <div role="alert" className="mt-3 text-sm text-amber-300">{conflict}
-      {selected && <button type="button" onClick={() => void reviewCurrent()}
+    {banner && <div role="alert" className="mt-3 text-sm text-amber-300">{banner}
+      {selected && reviewable && <button type="button" onClick={() => void reviewCurrent()}
         className="ml-3 rounded border border-amber-500 px-2 py-1">Load current version</button>}
     </div>}
     {portError && canManage && <div role="alert" className="mt-2 text-xs text-amber-300">
@@ -313,7 +425,8 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     {(creating || selected) && <div className="mt-5 rounded-lg border border-slate-600 p-4">
       <div className="flex items-center justify-between gap-2">
         <h5 className="font-medium">{creating ? "Create shipment" : selected?.referenceCode}</h5>
-        <button type="button" onClick={() => { selectionSerial.current++; setCreating(false); setSelected(null); setHistory([]); setConflict(""); }}
+        {dirty && <span role="status" className="text-xs text-amber-300">Unsaved changes</span>}
+        <button type="button" onClick={() => { if (confirmDiscard()) closePanel(); }}
           className="rounded border border-slate-600 px-2 py-1">Close detail</button>
       </div>
       <form onSubmit={e => void save(e)} className="mt-3 grid gap-3">
@@ -332,15 +445,13 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
               </select>
             </label>)}
         </> : <p className="text-sm text-slate-400">Route: {selected?.originPortLabel || selected?.originPortId} to {selected?.destinationPortLabel || selected?.destinationPortId}</p>}
-        {field("plannedDepartureAtUtc", "Planned departure UTC (ISO 8601)",
-          readonly || (!creating && selected?.workflowStatus !== "Draft" && selected?.workflowStatus !== "Booked"))}
-        {field("plannedArrivalAtUtc", "Planned arrival UTC (ISO 8601)",
-          readonly || (!creating && selected?.workflowStatus !== "Draft" && selected?.workflowStatus !== "Booked"))}
+        {field("plannedDepartureAtUtc", "Planned departure UTC (ISO 8601)", scheduleLocked)}
+        {field("plannedArrivalAtUtc", "Planned arrival UTC (ISO 8601)", scheduleLocked)}
         {!creating && selected && <label className="text-sm">Shipment workflow
           <select aria-label="Shipment workflow" value={form.workflowStatus} disabled={readonly}
             onChange={e => setForm(old => ({ ...old, workflowStatus: e.target.value as ShipmentWorkflow }))}
             className="mt-1 block w-full rounded bg-slate-950 p-2">
-            {[selected.workflowStatus, ...allowed[selected.workflowStatus]].map(x => <option key={x}>{x}</option>)}
+            {workflowOptions(selected.workflowStatus).map((x: string) => <option key={x}>{x}</option>)}
           </select>
         </label>}
         {!readonly && <button type="submit" disabled={busy}

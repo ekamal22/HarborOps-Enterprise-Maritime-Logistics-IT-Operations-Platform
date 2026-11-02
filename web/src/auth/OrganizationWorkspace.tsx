@@ -3,7 +3,7 @@ import ReferenceDataWorkspace from "../references/ReferenceDataWorkspace";
 import MaritimeWorkspace from "../maritime/MaritimeWorkspace";
 import ShipmentWorkspace from "../shipments/ShipmentWorkspace";
 import {
-  getJson, mutate, organizationError,
+  getJson, mutate, organizationError, OrganizationRequestError,
   type Membership, type OrganizationItem, type OrganizationProfile
 } from "./organizationClient";
 
@@ -63,18 +63,32 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
   const [busy, setBusy] = useState(false);
   const sequence = useRef(0);
   const reloads = useRef(0);
+  const selectionRef = useRef<OrganizationItem | null>(null);
+  const profileRef = useRef<OrganizationProfile | null>(null);
+  const profileNameRef = useRef("");
+  selectionRef.current = selection;
+  profileRef.current = profile;
+  profileNameRef.current = profileName;
 
   const clearProtected = useCallback(() => {
     setProfile(null); setMembers([]); setNextAfter(null); setSelection(null);
     setProfileName("");
   }, []);
 
-  const refresh = useCallback(async (notice = "") => {
+  // A quiet refresh (tab becomes visible again) revalidates access without unmounting the open
+  // workspaces, so unsaved work survives. It still fails closed: if the selected organization or
+  // role is gone or changed, or access is rejected, protected state is cleared exactly as before.
+  // Only a transient service outage leaves the current view in place.
+  const refresh = useCallback(async (notice = "", quiet = false) => {
     const serial = ++sequence.current;
     reloads.current += 1;
-    setLoading(true);
-    setError(notice);
-    clearProtected();
+    const transient = (cause: unknown) =>
+      quiet && cause instanceof OrganizationRequestError && cause.status === 503;
+    if (!quiet) {
+      setLoading(true);
+      setError(notice);
+      clearProtected();
+    }
     try {
       const list = await getJson<{ organizations: OrganizationItem[] }>("/api/v1/me/organizations");
       if (serial !== sequence.current) return;
@@ -83,25 +97,33 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
       try {
         context = await getJson<SessionSelection>("/api/v1/me/organization-context");
       } catch (cause) {
-        if (serial === sequence.current) setError(organizationError(cause));
+        if (serial === sequence.current) {
+          if (quiet && !transient(cause)) clearProtected();
+          setError(organizationError(cause));
+        }
         return;
       }
       if (serial !== sequence.current) return;
       const selected = context.selected &&
         list.organizations.find(item => item.id === context.selected?.id);
-      if (!selected) return;
+      if (!selected) { if (quiet) clearProtected(); return; }
       const org = await getJson<OrganizationProfile>("/api/v1/organizations/" + selected.id);
       const roster = selected.role === "Administrator"
         ? await getJson<MembershipList>("/api/v1/organizations/" + selected.id + "/memberships?limit=25")
         : null;
       if (serial !== sequence.current) return;
+      const unchanged = quiet && selectionRef.current?.id === selected.id &&
+        selectionRef.current.role === selected.role;
+      const nameEdited = unchanged && profileRef.current !== null &&
+        profileNameRef.current !== profileRef.current.displayName;
       setSelection(selected);
-      setProfile(org); setProfileName(org.displayName);
+      setProfile(org);
+      if (!nameEdited) setProfileName(org.displayName);
       setMembers(roster?.memberships ?? []);
       setNextAfter(roster?.nextAfter ?? null);
     } catch (cause) {
       if (serial !== sequence.current) return;
-      clearProtected();
+      if (!transient(cause)) clearProtected();
       setError(organizationError(cause));
     } finally {
       reloads.current -= 1;
@@ -130,7 +152,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
   useEffect(() => {
     void refresh();
     function onVisible() {
-      if (document.visibilityState === "visible") void refresh();
+      if (document.visibilityState === "visible") void refresh("", true);
     }
     document.addEventListener("visibilitychange", onVisible);
     return () => { sequence.current += 1; document.removeEventListener("visibilitychange", onVisible); };

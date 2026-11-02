@@ -38,7 +38,10 @@ try{
  for(const [variant,expected,testExpression] of variants){
    const work=path.join(exported,variant);
    fs.mkdirSync(work,{recursive:true});
-   expectOk("tar",["-xf",sourceTar,"-C",work]);
+   // GNU tar reads "E:\..." as a remote host:path, so extract with paths relative to the cache.
+   const relativeTar=path.relative(cache,sourceTar),relativeWork=path.relative(cache,work);
+   const extract=run("tar",["-xf",relativeTar,"-C",relativeWork],{cwd:cache});
+   assert.equal(extract.status,0,"tar failed: "+(extract.stderr||extract.stdout||"").slice(-600));
    if(expected)expectOk("node",["scripts/apply-g6-mutation.mjs",variant,work]);
    const results=path.join(evidence,variant);
    fs.mkdirSync(results,{recursive:true});

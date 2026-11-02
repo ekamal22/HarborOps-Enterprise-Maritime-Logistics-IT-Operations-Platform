@@ -91,8 +91,17 @@ try{
        const failed=rows.filter(x=>x.outcome==="Failed");
        assert.ok(failed.some(x=>(x.name||"").includes(expected)),
          "Mutation did not fail intended regression: "+variant);
+       // Keep the assertion text so a reviewer can confirm each test failed for the intended reason.
+       const messages={};
+       for(const block of xml.matchAll(/<UnitTestResult([^>]*?)>([sS]*?)</UnitTestResult>/g)){
+         const testName=/testName="([^"]+)"/.exec(block[1])?.[1];
+         if(!testName||!/outcome="Failed"/.test(block[1]))continue;
+         const text=/<Message>([sS]*?)</Message>/.exec(block[2])?.[1]||"";
+         messages[testName]=text.replace(/&#xD;|&#xA;||
+/g," ").slice(0,600);
+       }
        summary.mutants.push({variant,status:"KILLED",expectedFailure:expected,
-         failedTests:failed.map(x=>x.name),total:rows.length});
+         failedTests:failed.map(x=>x.name),failureMessages:messages,total:rows.length});
      }
      save();
    }finally{

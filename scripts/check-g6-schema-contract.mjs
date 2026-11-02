@@ -38,8 +38,8 @@ const required=["CREATE EXTENSION IF NOT EXISTS btree_gist",
   "ex_m6_container_overlap","ex_m6_voyage_overlap",
   "tstzrange(starts_at_utc,ends_at_utc,'[)')",
   "FK_m6_container_target","FK_m6_voyage_target","FK_m6_voyage_shipment",
-  "m6_validate_assignment","m6_guard_parent","m6_guard_shipment",
-  "m6_guard_container","m6_guard_voyage"];
+  "m6_validate_assignment","m6_guard_parent","zz_m6_guard_shipment",
+  "zz_m6_guard_container","zz_m6_guard_voyage"];
 for(const term of required) assert.ok(migration.includes(term),"Migration missing "+term);
 assert.ok(!migration.includes("DROP EXTENSION"),"Do not drop potentially shared btree_gist");
 const names=[...fs.readdirSync("src/HarborOps.Infrastructure/Persistence/Migrations")

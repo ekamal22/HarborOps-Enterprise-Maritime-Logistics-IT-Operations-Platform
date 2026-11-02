@@ -20,7 +20,7 @@ const rules={
   },
   "parent-guard":{
     path:"src/HarborOps.Infrastructure/Persistence/Migrations/20261102080000_ShipmentAssignments.cs",
-    from:"CREATE TRIGGER m6_guard_container BEFORE UPDATE OR DELETE ON containers\n                FOR EACH ROW EXECUTE FUNCTION m6_guard_parent();",
+    from:"CREATE TRIGGER zz_m6_guard_container BEFORE UPDATE OR DELETE ON containers\n                FOR EACH ROW EXECUTE FUNCTION m6_guard_parent();",
     to:"-- container archival trigger intentionally absent in disposable mutation"
   }
 };

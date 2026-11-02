@@ -72,7 +72,7 @@ existing_containers="$(docker ps -aq --filter label=com.docker.compose.project=h
 existing_volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-verify-g6)"
 # Git Bash rewrites a leading slash inside an argument unless path conversion is disabled.
 # Without this the name filters matched nothing and a disposable database was left behind.
-existing_pg="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g6-pg$')"
+existing_pg="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g6-')"
 if [[ -n "$existing_containers" || -n "$existing_volumes" || -n "$existing_pg" ]]; then
   echo "Existing verification resources found. Refusing takeover." >&2
   exit 2
@@ -84,7 +84,7 @@ cleanup() {
   if [[ "$owned" == "1" ]]; then
     docker compose -p ho-verify-g6 down --volumes --remove-orphans \
       >> "$evidence/g6-cleanup.log" 2>&1 || true
-    id="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g6-pg$' \
+    id="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g6-' \
       --filter label=harborops.g6=disposable)"
     if [[ -n "$id" ]]; then
       docker rm -f "$id" >> "$evidence/g6-cleanup.log" 2>&1 || true
@@ -119,43 +119,24 @@ run_stage coverage-source node scripts/check-g6-source-coverage.mjs
 run_stage preflight bash scripts/verify-m6-stages-local.sh preflight
 run_stage postgres-image docker build --build-arg "SOURCE_REVISION=$sha" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
-# Fail fast: the flaky browser and outage stages run before the long, stable .NET stage.
-for stage in deps web docs stack accounts organizations session; do
+# Fail-fast order: cheap compile and unit-level gates, then the independent disposable-database
+# suites (.NET, mutations, snapshot), and only then the long Compose browser and outage stages.
+run_stage build bash scripts/verify-m6-stages-local.sh build
+for stage in deps web docs; do
+  run_stage "$stage" bash scripts/verify-m6-stages-local.sh "$stage"
+done
+# The .NET suites use their own disposable database container and do not need the compose stack.
+run_stage dotnet bash scripts/verify-m6-stages-local.sh dotnet
+run_stage mutation node scripts/run-g6-mutations.mjs "$root"
+run_stage snapshot node scripts/check-g6-snapshot.mjs "$root"
+for stage in stack accounts organizations session; do
   run_stage "$stage" bash scripts/verify-m6-stages-local.sh "$stage"
 done
 # The accepted local runner generated the synthetic password in an E: file.
 export HARBOROPS_TEST_USER_PASSWORD
 HARBOROPS_TEST_USER_PASSWORD="$(cat "$root/test-user-password.txt")"
 test -n "$HARBOROPS_TEST_USER_PASSWORD"
-setup_m3() {
-  for entry in \
-    "m3-admin-a@example.test|M3 Synthetic North Administrator" \
-    "m3-admin-b@example.test|M3 Synthetic East Administrator" \
-    "m3-manager@example.test|M3 Synthetic Manager" \
-    "m3-analyst@example.test|M3 Synthetic Analyst" \
-    "m4-analyst-east@example.test|M4 Synthetic East Analyst" \
-    "m4-support@example.test|M4 Synthetic Support" \
-    "m4-auditor@example.test|M4 Synthetic Auditor"; do
-    email="$(printf '%s' "$entry" | cut -d'|' -f1)"
-    name="$(printf '%s' "$entry" | cut -d'|' -f2)"
-    printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | \
-      docker compose -p ho-verify-g6 run --rm -T \
-        -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
-        --account-cli provision "$email" "$name" || return 1
-  done
-  docker compose -p ho-verify-g6 run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
-    --organization-cli bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test || return 1
-  docker compose -p ho-verify-g6 run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
-    --organization-cli bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test || return 1
-  docker compose -p ho-verify-g6 run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
-    --organization-cli bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test || return 1
-  for engine in chromium firefox webkit; do
-    docker compose -p ho-verify-g6 run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
-      --organization-cli bootstrap "m3-revocation-$engine" "M3 Revocation $engine" \
-      m3-admin-a@example.test || return 1
-  done
-}
-run_stage setup-fixtures setup_m3
+run_stage setup-fixtures bash scripts/verify-m6-stages-local.sh setup_fixtures
 run_stage fixtures node scripts/prepare-m3-browser-fixtures.mjs
 run_stage m4-fixtures node scripts/prepare-m4-browser-fixtures.mjs
 run_stage m5-fixtures node scripts/prepare-m5-browser-fixtures.mjs
@@ -173,21 +154,17 @@ run_stage reference-outage node scripts/check-m6-reference-outage.mjs
 run_stage maritime-outage node scripts/check-m6-maritime-outage.mjs
 run_stage recovery bash scripts/verify-m6-stages-local.sh recovery
 run_stage scan bash scripts/verify-m6-stages-local.sh scan
-# The .NET suites use their own disposable database container and do not need the compose stack.
-run_stage dotnet bash scripts/verify-m6-stages-local.sh dotnet
-run_stage mutation node scripts/run-g6-mutations.mjs "$root"
-run_stage snapshot node scripts/check-g6-snapshot.mjs "$root"
 teardown_g6() {
   # Preserve original service logs before disposing of G6-owned containers.
   docker compose -p ho-verify-g6 logs --no-color --timestamps > "$evidence/g6-docker-services.log" 2>&1 || true
   docker compose -p ho-verify-g6 down --volumes --remove-orphans || return 1
   local integration
-  integration="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g6-pg$' --filter label=harborops.g6=disposable)"
+  integration="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g6-' --filter label=harborops.g6=disposable)"
   if [[ -n "$integration" ]]; then docker rm -f "$integration" >/dev/null || return 1; fi
   local containers volumes database
   containers="$(docker ps -aq --filter label=com.docker.compose.project=ho-verify-g6)"
   volumes="$(docker volume ls -q --filter label=com.docker.compose.project=ho-verify-g6)"
-  database="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g6-pg$')"
+  database="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter name='^/ho-g6-')"
   node -e '
     const fs=require("fs");
     const [dest,sha,c,v,d]=process.argv.slice(1);

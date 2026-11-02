@@ -50,6 +50,7 @@ const output={sourceSha:source,archive:destination,sha256:zipHash,
   files:files.length,manifest:path.join(dir,"g6-file-hashes.csv"),createdAtUtc:new Date().toISOString(),
   integrityVerified:false};
 fs.writeFileSync(path.join(archiveRoot,filename+".json"),JSON.stringify(output,null,2));
+fs.writeFileSync(path.join(archiveRoot,filename+".sha256"),zipHash+"  "+filename+"\n");
 
 const verifyRoot=path.join(root,"cache","g6-archive-verify-"+source.slice(0,12));
 assert.ok(!fs.existsSync(verifyRoot),"G6 archive verification directory already exists");

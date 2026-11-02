@@ -12,11 +12,11 @@ assert.equal(read("m6-source-sha.txt").trim(),sha);
 const lines=read("g6-stages.tsv").trim().split(/\r?\n/).map(x=>x.split("\t"));
 const stages=[
  "storage-before","decision-unit","schema-index","shipment-schema","assignment-schema",
- "coverage-source","preflight","postgres-image","deps","web","docs","stack",
- "accounts","organizations","session","setup-fixtures","fixtures",
+ "coverage-source","preflight","postgres-image","build","deps","web","docs","dotnet",
+ "mutation","snapshot","stack","accounts","organizations","session","setup-fixtures","fixtures",
  "m4-fixtures","m5-fixtures","m6-fixtures","browsers",
  "assignment-outage","shipment-outage","reference-outage","maritime-outage",
- "recovery","scan","dotnet","mutation","snapshot","teardown","storage-after"
+ "recovery","scan","teardown","storage-after"
 ];
 for(const stage of stages){
  const matching=lines.filter(row=>row[0]===stage);

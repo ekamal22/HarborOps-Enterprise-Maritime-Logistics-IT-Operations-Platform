@@ -2,7 +2,7 @@
 # Local G2 verification stages for the isolated ho-verify-g6 Compose project.
 # Every cache, temporary file and evidence path stays under HARBOROPS_VERIFICATION_ROOT on E:.
 # Usage: bash scripts/verify-m2-local.sh <stage> [<stage>...]
-#   stages: preflight dotnet deps web docs stack accounts organizations session browsers recovery scan down
+#   stages: preflight build dotnet deps web docs stack accounts organizations session setup_fixtures browsers recovery scan down
 set -euo pipefail
 
 root="${HARBOROPS_VERIFICATION_ROOT:-}"
@@ -93,13 +93,22 @@ run integration-fresh tests/HarborOps.IntegrationTests/HarborOps.IntegrationTest
 run integration-repeat tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj
 exit $status
 INNER
+  # A failed build or test run must still dispose of the owned database container.
+  trap 'docker rm -f ho-g6-pg >/dev/null 2>&1 || true' RETURN
   MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 --name ho-g6-sdk --network container:ho-g6-pg -v "$repo:/src" -v "$winroot:/cache" \
     -w /src -e DOTNET_NOLOGO=1 -e DOTNET_CLI_TELEMETRY_OPTOUT=1 -e NUGET_PACKAGES=/cache/nuget/packages \
     -e NUGET_HTTP_CACHE_PATH=/cache/nuget/http-cache -e DOTNET_CLI_HOME=/cache/dotnet-home \
     -e HOME=/cache/dotnet-home -e TMPDIR=/cache/tmp \
     -e HARBOROPS_TEST_DB="Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops" \
     mcr.microsoft.com/dotnet/sdk:10.0 bash /cache/run-dotnet.sh
-  docker rm -f ho-g6-pg >/dev/null 2>&1 || true
+}
+
+# Cheap compile gate. Restores and builds the solution in Release with warnings as errors (see
+# Directory.Build.props) so a compile defect fails the run before any long stage starts.
+stage_build() {
+  winroot=$(cygpath -w "$root")
+  repo=$(pwd -W)
+  MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 -v "$repo:/src" -v "$winroot:/cache" -w /src -e DOTNET_NOLOGO=1     -e NUGET_PACKAGES=/cache/nuget/packages -e NUGET_HTTP_CACHE_PATH=/cache/nuget/http-cache     -e DOTNET_CLI_HOME=/cache/dotnet-home -e HOME=/cache/dotnet-home -e TMPDIR=/cache/tmp     mcr.microsoft.com/dotnet/sdk:10.0 bash -c     'set -o pipefail; dotnet --version; dotnet restore HarborOps.sln -v q && dotnet build HarborOps.sln -c Release --no-restore -warnaserror'
 }
 
 # G2-S25: dependency review with the NuGet advisory feed and npm audit.
@@ -187,6 +196,22 @@ stage_session() {
 
 stage_browsers() {
   (cd tests/browser && npm ci --no-audit --no-fund && npx playwright install chromium firefox webkit && npm test)
+}
+
+# Accounts, organizations and M3 browser tenants shared by every browser fixture generator.
+stage_setup_fixtures() {
+  for entry in     "m3-admin-a@example.test|M3 Synthetic North Administrator"     "m3-admin-b@example.test|M3 Synthetic East Administrator"     "m3-manager@example.test|M3 Synthetic Manager"     "m3-analyst@example.test|M3 Synthetic Analyst"     "m4-analyst-east@example.test|M4 Synthetic East Analyst"     "m4-support@example.test|M4 Synthetic Support"     "m4-auditor@example.test|M4 Synthetic Auditor"; do
+    provision "${entry%%|*}" "${entry#*|}"
+  done
+  bootstrap_org() {
+    "${compose[@]}" run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api       --organization-cli bootstrap "$1" "$2" "$3"
+  }
+  bootstrap_org m3-north "M3 North Terminal" m3-admin-a@example.test
+  bootstrap_org m3-east "M3 East Terminal" m3-admin-b@example.test
+  bootstrap_org m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test
+  for engine in chromium firefox webkit; do
+    bootstrap_org "m3-revocation-$engine" "M3 Revocation $engine" m3-admin-a@example.test
+  done
 }
 
 stage_recovery() {

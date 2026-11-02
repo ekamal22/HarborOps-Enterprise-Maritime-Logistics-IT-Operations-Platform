@@ -11,6 +11,8 @@ async function selectOrganization(page, label) {
     new URL(r.url()).pathname === "/api/v1/auth/session/organization");
   await page.locator("#current-organization").selectOption({ label });
   expect((await saved).ok()).toBeTruthy();
+  // The controlled select re-renders after the PUT resolves; WebKit can still report "" until then.
+  await expect(page.locator("#current-organization")).not.toHaveValue("");
 }
 
 async function login(page, role = "analyst") {
@@ -75,12 +77,12 @@ test("G6 Analyst attaches container and voyage and retains the shipment draft", 
   await expect(s.getByLabel("Shipment display name")).toHaveValue("Unsaved G6 edit");
 
   await boxes.getByRole("button", { name: "Close assignment" }).click();
-  await boxes.getByLabel("End Container assignment UTC").fill("2035-01-01T11:00:00Z");
+  await boxes.getByLabel("End Container assignment UTC", { exact: true }).fill("2035-01-01T11:00:00Z");
   await boxes.getByRole("button", { name: "Confirm closure" }).click();
   await expect(boxes.getByText(/to 2035-01-01T11:00:00/)).toBeVisible();
 
   await voyages.getByRole("button", { name: "Close assignment" }).click();
-  await voyages.getByLabel("End Voyage assignment UTC").fill("2035-01-01T11:00:00Z");
+  await voyages.getByLabel("End Voyage assignment UTC", { exact: true }).fill("2035-01-01T11:00:00Z");
   await voyages.getByRole("button", { name: "Confirm closure" }).click();
   await expect(voyages.getByText(/to 2035-01-01T11:00:00/)).toBeVisible();
 
@@ -131,10 +133,14 @@ test("G6 Auditor reads scoped assignment histories without catalog or mutation a
   const org=await page.locator("#current-organization").inputValue();
   const denied=await page.request.get("/api/v1/organizations/"+org+"/containers?limit=25");
   expect(denied.status()).toBe(403);
-  const assignmentList=await page.request.get("/api/v1/organizations/"+org+"/shipments/"+
-    (await page.request.get("/api/v1/organizations/"+org+"/shipments?q=M5-DEMO-NORTH"))
-      .json().then(x=>x.shipments[0].id)+"/container-assignments");
-  expect(assignmentList.ok()).toBeTruthy();
+  const shipments=await (await page.request.get(
+    "/api/v1/organizations/"+org+"/shipments?q=M5-DEMO-NORTH")).json();
+  const shipmentId=shipments.shipments[0].id;
+  for(const kind of ["container-assignments","voyage-assignments"]){
+    const assignmentList=await page.request.get(
+      "/api/v1/organizations/"+org+"/shipments/"+shipmentId+"/"+kind);
+    expect(assignmentList.status(),kind).toBe(200);
+  }
 });
 
 test("G6 Support cannot open typed shipment assignment history", async ({ page }) => {
@@ -290,7 +296,7 @@ test("G6 live membership downgrade invalidates the open allocation workspace",
     async function setRole(role,version){
       const csrf=(await (await adminPage.request.get("/api/v1/auth/csrf")).json()).token;
       const result=await adminPage.request.put(base+managerId,{
-        headers:{Origin:"http://localhost","X-HarborOps-CSRF":csrf},
+        headers:{Origin:"http://localhost:5173","X-HarborOps-CSRF":csrf},
         data:{role,status:"Active",expectedVersion:version}
       });
       expect(result.status()).toBe(200);

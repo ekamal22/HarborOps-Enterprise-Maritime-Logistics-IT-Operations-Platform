@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HarborOps.IntegrationTests;
 
@@ -20,8 +21,11 @@ namespace HarborOps.IntegrationTests;
 // the shipment row and its history row have been written inside the open transaction, so the
 // interruption always lands between "work done" and "commit". The barrier is observed through
 // pg_locks and pg_stat_activity rather than inferred from elapsed time.
-public sealed class ShipmentInterruptionTests
+public sealed class ShipmentInterruptionTests(ITestOutputHelper output)
 {
+    // Observed facts are written to the test output so the TRX records the interruption point,
+    // the database state at that moment and the state after recovery.
+    private void Note(string message) => output.WriteLine("[interruption] " + message);
     private static string Root(Guid org) => $"/api/v1/organizations/{org}/shipments";
     private static readonly string[] Forbidden =
     {
@@ -29,7 +33,7 @@ public sealed class ShipmentInterruptionTests
         "SELECT ", "UPDATE ", "INSERT ", "   at ", "shipment_status_changes", "Exception"
     };
 
-    private sealed record Row(long Version, string Workflow, DateTime UpdatedAt);
+    private sealed record Row(long Version, string Workflow, DateTime UpdatedAt, string Record);
     private sealed record Change(long Version, string? From, string To);
     private sealed record Backend(bool Exists, bool HasTransactionId, string? WaitType, string? WaitEvent);
 
@@ -40,11 +44,11 @@ public sealed class ShipmentInterruptionTests
         public async Task<Row?> Shipment(Guid id)
         {
             await using var cmd = source.CreateCommand(
-                "SELECT version, workflow_status, updated_at_utc FROM shipments WHERE id = @id");
+                "SELECT version, workflow_status, updated_at_utc, record_status FROM shipments WHERE id = @id");
             cmd.Parameters.AddWithValue("id", id);
             await using var reader = await cmd.ExecuteReaderAsync();
             return await reader.ReadAsync()
-                ? new Row(reader.GetInt64(0), reader.GetString(1), reader.GetDateTime(2)) : null;
+                ? new Row(reader.GetInt64(0), reader.GetString(1), reader.GetDateTime(2), reader.GetString(3)) : null;
         }
 
         public async Task<List<Change>> History(Guid id)
@@ -140,7 +144,7 @@ public sealed class ShipmentInterruptionTests
 
         private Barrier(string connection) => this.connection = connection;
 
-        public static async Task<Barrier> Install(string connection, string reference)
+        public static async Task<Barrier> Install(string connection, string reference, bool onShipments = false)
         {
             var barrier = new Barrier(connection);
             barrier.holder = new NpgsqlConnection(connection);
@@ -150,11 +154,15 @@ public sealed class ShipmentInterruptionTests
             barrier.held = true;
             await using var ddl = new NpgsqlConnection(connection);
             await ddl.OpenAsync();
+            var condition = onShipments
+                ? "NEW.reference_code = '" + reference + "'"
+                : "(SELECT reference_code FROM shipments WHERE id = NEW.shipment_id) = '" + reference + "'";
+            var target = onShipments ? "AFTER UPDATE ON shipments" : "AFTER INSERT ON shipment_status_changes";
             var sql = "CREATE FUNCTION " + barrier.name + "() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN " +
-                "IF (SELECT reference_code FROM shipments WHERE id = NEW.shipment_id) = '" + reference + "' THEN " +
+                "IF " + condition + " THEN " +
                 "PERFORM pg_advisory_lock(" + barrier.Key + "); PERFORM pg_advisory_unlock(" + barrier.Key + "); END IF; " +
                 "RETURN NULL; END $$; " +
-                "CREATE TRIGGER " + barrier.name + " AFTER INSERT ON shipment_status_changes " +
+                "CREATE TRIGGER " + barrier.name + " " + target + " " +
                 "FOR EACH ROW EXECUTE FUNCTION " + barrier.name + "();";
             await using var create = new NpgsqlCommand(sql, ddl);
             await create.ExecuteNonQueryAsync();
@@ -195,7 +203,8 @@ public sealed class ShipmentInterruptionTests
             await using var ddl = new NpgsqlConnection(connection);
             await ddl.OpenAsync();
             await using var drop = new NpgsqlCommand(
-                "DROP TRIGGER IF EXISTS " + name + " ON shipment_status_changes; DROP FUNCTION IF EXISTS " + name + "();", ddl);
+                "DROP TRIGGER IF EXISTS " + name + " ON shipment_status_changes; " +
+                "DROP TRIGGER IF EXISTS " + name + " ON shipments; DROP FUNCTION IF EXISTS " + name + "();", ddl);
             await drop.ExecuteNonQueryAsync();
         }
     }
@@ -250,10 +259,15 @@ public sealed class ShipmentInterruptionTests
         return new Seeded(f, origin, destination, id, reference, row, history);
     }
 
-    private static async Task AssertUnchanged(Probe probe, Seeded seeded)
+    private async Task AssertUnchanged(Probe probe, Seeded seeded)
     {
         var now = await probe.Shipment(seeded.Id);
         Assert.NotNull(now);
+        var seen = await probe.History(seeded.Id);
+        Note("committed state seen by another session: version=" + now.Version + " workflow=" + now.Workflow +
+            " record=" + now.Record + " history_rows=" + seen.Count + " (before: version=" + seeded.Before.Version +
+            " workflow=" + seeded.Before.Workflow + " record=" + seeded.Before.Record + " history_rows=" + seeded.BeforeHistory.Count + ")");
+        Assert.Equal(seeded.Before.Record, now.Record);
         Assert.Equal(seeded.Before.Version, now.Version);
         Assert.Equal(seeded.Before.Workflow, now.Workflow);
         Assert.Equal(seeded.Before.UpdatedAt, now.UpdatedAt);
@@ -261,20 +275,24 @@ public sealed class ShipmentInterruptionTests
     }
 
     // Proof that the transaction really was open, with writes, when the interruption happened.
-    private static async Task AssertInFlight(Probe probe, int pid, Seeded seeded)
+    private async Task AssertInFlight(Probe probe, int pid, Seeded seeded)
     {
         var backend = await probe.Inspect(pid);
+        var locked = await probe.RowLockedByAnotherTransaction(seeded.Id);
+        Note("interruption point reached: backend pid=" + pid + " has_write_transaction_id=" + backend.HasTransactionId +
+            " waiting_on=" + backend.WaitType + "/" + backend.WaitEvent + " shipment_row_locked_by_open_transaction=" + locked);
         Assert.True(backend.Exists);
         Assert.True(backend.HasTransactionId, "the blocked transaction has not written yet");
         Assert.Equal("Lock", backend.WaitType);
         Assert.Equal("advisory", backend.WaitEvent);
-        Assert.True(await probe.RowLockedByAnotherTransaction(seeded.Id), "the shipment row is not locked by the open transaction");
+        Assert.True(locked, "the shipment row is not locked by the open transaction");
         // Uncommitted changes are invisible to every other session.
         await AssertUnchanged(probe, seeded);
     }
 
-    private static async Task AssertSanitizedUnavailable(HttpResponseMessage response)
+    private async Task AssertSanitizedUnavailable(HttpResponseMessage response)
     {
+        Note("client response: status=" + (int)response.StatusCode + " cache_control=" + response.Headers.CacheControl);
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.Contains("no-store", response.Headers.CacheControl?.ToString() ?? "");
         var raw = await response.Content.ReadAsStringAsync();
@@ -288,7 +306,7 @@ public sealed class ShipmentInterruptionTests
 
     // After any precommit interruption: the service accepts a valid request, the retry of the
     // interrupted request commits exactly once, and replaying it cannot duplicate history.
-    private static async Task AssertRecoveryAndSafeRetry(ReferenceDataHttpTests.Fixture f, Probe probe, Seeded seeded)
+    private async Task AssertRecoveryAndSafeRetry(ReferenceDataHttpTests.Fixture f, Probe probe, Seeded seeded)
     {
         using (var read = await f.Manager.GetAsync(seeded.Url))
             Assert.Equal(HttpStatusCode.OK, read.StatusCode);
@@ -308,6 +326,9 @@ public sealed class ShipmentInterruptionTests
             Assert.Equal(HttpStatusCode.Conflict, skipped.StatusCode);
         Assert.Equal(history, await probe.History(seeded.Id));
         Assert.Equal(2L, (await probe.Shipment(seeded.Id))!.Version);
+        Note("recovery: retry of the interrupted request committed once (version=2, history=" +
+            string.Join(",", history.Select(h => "v" + h.Version + ":" + (h.From ?? "none") + ">" + h.To)) +
+            "); replay and skipped-version retries returned 409 and changed nothing");
     }
 
     [Fact]
@@ -350,6 +371,9 @@ public sealed class ShipmentInterruptionTests
         var inflight = SendAsync(f.Manager, HttpMethod.Post, Root(f.A), body);
         var pid = await barrier.WaitForBlockedBackend(TimeSpan.FromSeconds(30));
         var backend = await probe.Inspect(pid);
+        Note("create interruption point reached: backend pid=" + pid + " has_write_transaction_id=" + backend.HasTransactionId +
+            " waiting_on=" + backend.WaitType + "/" + backend.WaitEvent +
+            " committed rows visible for the reference (shipments,history)=" + await probe.ByReference(f.A, reference));
         Assert.True(backend.HasTransactionId, "creation had not written yet");
         // The new shipment and its history row exist only inside the open transaction.
         Assert.Equal((0L, 0L), await probe.ByReference(f.A, reference));
@@ -359,6 +383,7 @@ public sealed class ShipmentInterruptionTests
         await AssertSanitizedUnavailable(response);
         Assert.True(await probe.WaitUntilGone(pid, TimeSpan.FromSeconds(10)));
         Assert.Equal((0L, 0L), await probe.ByReference(f.A, reference));
+        Note("after termination: shipments and history rows for the reference = " + await probe.ByReference(f.A, reference));
 
         await barrier.Release();
         // The reference was never reserved, so the retry creates exactly one shipment and one history row.
@@ -368,6 +393,48 @@ public sealed class ShipmentInterruptionTests
         using (var duplicate = await SendAsync(f.Manager, HttpMethod.Post, Root(f.A), body))
             Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
         Assert.Equal((1L, 1L), await probe.ByReference(f.A, reference));
+        Note("recovery: retried create committed one shipment and one history row; a duplicate create returned 409 and added nothing");
+    }
+
+    [Fact]
+    public async Task TerminatedDatabaseConnectionMidArchiveLeavesShipmentActive()
+    {
+        var connection = TestDatabase.ConnectionString();
+        using var factory = new ReferenceDataHttpTests.ApiFactory(connection);
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = f.Admin; using var manager = f.Manager; using var analyst = f.Analyst;
+        await using var probe = new Probe(connection);
+        var seeded = await Seed(f, probe);
+        // Archiving writes no history row, so the fault point sits on the shipment update itself.
+        await using var barrier = await Barrier.Install(connection, seeded.Reference, onShipments: true);
+        var inflight = SendAsync(f.Manager, HttpMethod.Delete, seeded.Url, new { expectedVersion = 1L });
+        var pid = await barrier.WaitForBlockedBackend(TimeSpan.FromSeconds(30));
+        await AssertInFlight(probe, pid, seeded);
+
+        await probe.Terminate(pid);
+        using var response = await inflight;
+        await AssertSanitizedUnavailable(response);
+        Assert.True(await probe.WaitUntilGone(pid, TimeSpan.FromSeconds(10)));
+        await AssertUnchanged(probe, seeded);
+        Assert.Equal("Active", (await probe.Shipment(seeded.Id))!.Record);
+
+        await barrier.Release();
+        using (var archive = await SendAsync(f.Manager, HttpMethod.Delete, seeded.Url, new { expectedVersion = 1L }))
+            Assert.Equal(HttpStatusCode.NoContent, archive.StatusCode);
+        var archived = await probe.Shipment(seeded.Id);
+        Assert.Equal(2L, archived!.Version);
+        Assert.Equal("Archived", archived.Record);
+        Assert.Equal(seeded.BeforeHistory, await probe.History(seeded.Id));
+        using (var replay = await SendAsync(f.Manager, HttpMethod.Delete, seeded.Url, new { expectedVersion = 1L }))
+            Assert.Equal(HttpStatusCode.Conflict, replay.StatusCode);
+        using (var restore = await SendAsync(f.Manager, HttpMethod.Patch, seeded.Url,
+            new { recordStatus = "Active", expectedVersion = 2L }))
+            Assert.Equal(HttpStatusCode.OK, restore.StatusCode);
+        var restored = await probe.Shipment(seeded.Id);
+        Assert.Equal(3L, restored!.Version);
+        Assert.Equal("Active", restored.Record);
+        Assert.Equal(seeded.BeforeHistory, await probe.History(seeded.Id));
+        Note("recovery: the retried archive committed once (version=2, record=Archived), a replay returned 409, restore gave version=3; archive and restore wrote no history row");
     }
 
     [Fact]

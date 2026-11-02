@@ -141,6 +141,16 @@ const scans=["postgres","api","web"].every(name=>{
 const decision=fs.readFileSync("docs/M5_LOCAL_CONTRACT_DECISION.md","utf8");
 const accepted=/^\*\*State:\*\* Accepted\b/m.test(decision);
 
+// S21 requires the observed interruption points, not only passing outcomes: each integration pass must
+// have recorded the in-flight backend state and the recovery for every interruption scenario.
+const interruptionProof=["integration-fresh","integration-repeat"].every(phase=>{
+  const xml=read("trx/"+phase+".trx");
+  const count=pattern=>(xml.match(pattern)||[]).length;
+  return count(/\[interruption\] interruption point reached: backend pid=\d+ has_write_transaction_id=True waiting_on=Lock\/advisory/g)>=5 &&
+    count(/\[interruption\] create interruption point reached: backend pid=\d+ has_write_transaction_id=True/g)>=1 &&
+    count(/\[interruption\] recovery:/g)>=6 &&
+    count(/\[interruption\] client response: status=503/g)>=4;
+});
 // The pure draft-merge rules are exercised by the web unit tests that run in the web stage.
 const webLog=fs.existsSync(at("g5-web.log"))?read("g5-web.log"):"";
 const webDraftTests=/ℹ fail 0/.test(webLog) && Number(/ℹ tests (\d+)/.exec(webLog)?.[1]??0)>=18 &&
@@ -169,6 +179,8 @@ const cases=[
 ["S21",integration("ShipmentBoundaryTests.FailedTransitionLeavesNoPartialHistory")&&integration("ShipmentExtendedGateTests.CancelledQueuedShipmentMutationNeverCommitsHistory")&&
   integration("ShipmentInterruptionTests.TerminatedDatabaseConnectionMidTransitionRollsBackAndRecovers")&&
   integration("ShipmentInterruptionTests.TerminatedDatabaseConnectionMidCreateLeavesNoShipmentOrHistory")&&
+  integration("ShipmentInterruptionTests.TerminatedDatabaseConnectionMidArchiveLeavesShipmentActive")&&
+  interruptionProof&&
   integration("ShipmentInterruptionTests.CancelledRequestMidTransitionRollsBackAndRecovers")&&
   integration("ShipmentInterruptionTests.CommandTimeoutMidTransitionRollsBackWithSanitizedFailure")&&
   integration("ShipmentInterruptionTests.KilledApplicationProcessMidTransitionCommitsNothing")&&

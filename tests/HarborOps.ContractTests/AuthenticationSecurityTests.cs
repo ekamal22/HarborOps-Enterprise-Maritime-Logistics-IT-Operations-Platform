@@ -1,4 +1,6 @@
 using System.Net;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using System.Net.Http.Json;
 using HarborOps.Api.Authentication;
 using Xunit;
@@ -12,6 +14,48 @@ public sealed class AuthenticationSecurityTests
         private DateTimeOffset value = DateTimeOffset.UtcNow;
         public override DateTimeOffset GetUtcNow() => value;
         public void Advance(TimeSpan delta) => value = value.Add(delta);
+    }
+
+    [Theory]
+    [InlineData("127.0.0.1", "localhost", true)]
+    [InlineData("::1", "localhost", true)]
+    [InlineData("172.30.254.10", "localhost", true)]
+    [InlineData("172.30.254.1", "127.0.0.1", true)]
+    [InlineData("198.51.100.5", "localhost", false)]
+    [InlineData("198.51.100.5", "127.0.0.1", false)]
+    [InlineData("172.30.254.99", "localhost", false)]
+    [InlineData("172.30.254.10", "external.example", false)]
+    public void InsecureLocalHttpRequiresAnActualTrustedNetworkPeer(
+        string remote, string host, bool expected)
+    {
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = IPAddress.Parse(remote);
+        context.Request.Host = new HostString(host);
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(
+            new Dictionary<string, string?>
+            {
+                ["Identity:AllowInsecureLoopbackHttp"] = "true",
+                ["Identity:TrustedLocalHttpPeers"] = "172.30.254.1,172.30.254.10"
+            }).Build();
+
+        Assert.Equal(expected, AuthenticationSetup.IsAllowedTransport(context, configuration));
+        if (!expected)
+        {
+            context.Request.Scheme = "https";
+            Assert.True(AuthenticationSetup.IsAllowedTransport(context, configuration));
+        }
+    }
+
+    [Fact]
+    public void LocalHttpIsDeniedWhenExceptionDisabled()
+    {
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = IPAddress.Loopback;
+        context.Request.Host = new HostString("localhost");
+        Assert.False(AuthenticationSetup.IsAllowedTransport(context,
+            new ConfigurationBuilder().AddInMemoryCollection(
+                new Dictionary<string, string?> { ["Identity:AllowInsecureLoopbackHttp"] = "false" })
+                .Build()));
     }
 
     [Fact]

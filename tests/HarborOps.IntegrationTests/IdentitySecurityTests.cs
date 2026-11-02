@@ -26,6 +26,7 @@ public sealed class IdentitySecurityTests
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            LocalPeerTestServer.Configure(builder);
             builder.UseEnvironment("Development");
             builder.UseSetting("ConnectionStrings:HarborOps", connection);
             builder.UseSetting("Identity:AllowInsecureLoopbackHttp", "true");

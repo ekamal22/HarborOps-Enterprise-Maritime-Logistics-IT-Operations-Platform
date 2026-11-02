@@ -31,19 +31,23 @@
 - `AssignmentInterruptionTests.cs`: PostgreSQL advisory-lock barrier, terminated backend before commit, rollback and successful retry.
 - `AssignmentAdditionalFailureTests.cs`: after-write cancellation, command timeout and lost committed response, with explicit retry assertions.
 - `AssignmentQueuedSecurityTests.cs`: lock-observed assignment read/write requests with live session, account, membership, role, organization and selected-organization changes.
+- `AssignmentPermissionMatrixTests.cs`: five-role, two-resource, list/detail/create/close authorization matrix.
+- `AssignmentHttpValidationMatrixTests.cs`: malformed JSON, wrong MIME, duplicate/unknown fields, CSRF/Origin, invalid closure, no-store/correlation and unchanged state.
+- `AssignmentVoyageMatrixTests.cs`: shared voyage, sequential voyage reassignment, reverse route, disjoint planning and direct SQL parent lifecycle constraints.
+- `AssignmentSqlTests.cs`: real alternate-tenant parent fixtures and separate behavioral exclusion and archive guard mutation controls.
 - `tests/browser/specs/assignment.spec.mjs`: Chromium/Firefox/WebKit source for allocation and tenant-switch behaviors.
 - Existing full-latest-migration expectations updated to seven migrations; historical M5 tests are pinned to their actual M5 version rather than being silently reinterpreted as M6.
 - `scripts/verify-m6-local.sh`, stage/browser/fixture/recovery scripts, schema/source validators, snapshot restore, mutation controls, manifest/re-extracted archive integrity, and scenario evidence mapping are authored. They must execute on E: before any G6 claims.
 
 ## Correctness-remediation register
 
-The current source contains fixes for the first M6 correctness audit. These are **authored remediations, not verified runtime passes**:
+The M6 feature branch includes successive correctness remediation rounds. These are **authored source and test changes, not verified runtime passes**:
 
 | Audit concern | Source remediation and evidence requirement |
 | --- | --- |
 | G6 gate hard-coded incomplete | `scripts/assert-g6-evidence.mjs` now maps 25 scenarios to actual TRX, Playwright reports, stage proofs, executed security mutants and snapshot results. G6-S01 remains incomplete until the contract is approved. |
 | Composite FK proof | `AssignmentSqlTests.CompositeForeignKeysRejectCrossTenantParentsWithoutValidationTrigger` disables only the custom validation trigger transactionally, demands PostgreSQL `23503` and the exact FK constraint name, then rolls back the test transaction. |
-| Browser inventory | Nine M6 specs per engine cover Analyst allocation, organization change, Auditor, Support, visibility return, logout, duplicate conflict, delayed response and live membership downgrade. Separate per-engine container fixtures prevent overlap interference. |
+| Browser inventory | Ten M6 specs per engine cover Analyst allocation and adjacent reassignment, organization change, Auditor, Support, visibility return, logout, independent duplicate conflicts, delayed responses, membership downgrade and switching between different shipments. Separate per-engine container fixtures prevent overlap interference. |
 | Security mutation evidence | `scripts/run-g6-mutations.mjs` exports disposable source copies, builds each variant and requires baseline PASS plus named failures for tenant read, post-lock authorization, exclusion and parent guard mutations. |
 | Interruption proof | `AssignmentAdditionalFailureTests.cs` adds after-write request cancellation, command timeout and post-commit response loss to the existing real connection-termination proof. |
 | ZIP integrity | `scripts/finalize-g6-evidence.mjs` re-extracts the ZIP and checks every path, SHA-256 hash and byte length, with scoped temporary cleanup. |
@@ -51,6 +55,14 @@ The current source contains fixes for the first M6 correctness audit. These are 
 | Deterministic archive race | `AssignmentConcurrencyTests.QueuedAllocationAndParentArchiveCannotCommitInconsistentState` observes a PostgreSQL lock before releasing the parent transaction and validates the committed invariant. |
 | Tab visibility | Allocation lists refresh on visibility return without wiping assignment input or the unsaved M5 shipment draft. |
 | Contextual voyage display | The shipment UI intersects container/voyage allocation intervals and labels the result as administrative context, not loading evidence. |
+| Second-round isolation | Shipment allocation panel is keyed by organization and shipment; browser regression holds a source shipment response while switching to another shipment. |
+| FK provenance | Foreign-tenant shipment, container and voyage records are real, with each probe designed to violate exactly one named composite key. |
+| Mutation effectiveness | G6 mutation runner targets isolated SQL overlap and parent archival behavior tests, not combined schema-count assertions. |
+| Cancellation settlement | After request cancellation, PostgreSQL backend transaction state must settle while the barrier is still held, before durable row assertions. |
+| Outage fixture | Dedicated G6-OUTAGE-BOX prevents reuse of a previously allocated M4 or browser container. |
+| Snapshot resource use | Historical backup SHA-256 calculation streams rather than reading the whole backup into memory. |
+| Fixture evidence | G6 fixture generator verifies two organizations, five role memberships, matching M4 voyages, past bounded and future open allocations, and idempotent replay; validator consumes the structured report. |
+| HTTP and voyage matrices | Named executable tests verify five-role permissions, malformed request handling, shared voyage/adjacent reassignment and direct SQL terminal guards. |
 | Q1 snapshot | `scripts/check-g6-snapshot.mjs` restores and migrates a representative E:-backed backup in a disposable PostgreSQL container, or records justified NOT APPLICABLE when none is present. |
 
 ## Verification limits and outstanding work
@@ -62,7 +74,7 @@ Before G6 acceptance, run the full G6-S01 through G6-S25 matrix on a pinned SHA,
 Known items requiring adversarial execution or further source strengthening:
 1. PostgreSQL `btree_gist` provisioning and GiST exclusion behavior under two simultaneous real connections.
 2. Direct-SQL parent change and assignment insertion lock interleavings, including deadlock retry outcomes, unchanged M4/M5 behavior and incomplete transaction rollback.
-3. Execute and inspect the nine M6 browser scenarios on Chromium, Firefox and WebKit, including live membership downgrade and cache invalidation; extend assertions if the raw G6 matrix exposes missed states.
+3. Execute and inspect the ten M6 browser scenarios on Chromium, Firefox and WebKit, including role downgrade, shipment identity changes, held responses and contextual data isolation; expand any uncovered mandatory journey before acceptance.
 4. Full SQL/EF migration and model snapshot comparison; historical upgrade/rollback; M0-M5 accepted regressions.
 5. Execute and independently review the expanded cancellation/timeout/interruption/lost-response tests and the Q1 historical snapshot, or its documented NOT APPLICABLE disposition.
 6. Execute four isolated security mutations and prove their named tests fail while the unmodified control passes.

@@ -73,6 +73,57 @@ public sealed class AssignmentSqlTests
         var f = await ReferenceDataHttpTests.Setup(factory);
         using var manager = f.Manager; using var analyst = f.Analyst; using var admin = f.Admin;
         var seed = await AssignmentHttpTests.Seed(f);
+        // Build actual B-tenant parents so every probe violates exactly one FK.
+        Guid foreignShipment, foreignContainer, foreignVoyage;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            var actor = await db.Shipments.AsNoTracking().Where(x => x.Id == seed.Shipment)
+                .Select(x => x.ChangedByUserId).SingleAsync();
+            var now = DateTimeOffset.UtcNow;
+            var portA = new HarborOps.Infrastructure.References.PortReference {
+                Id = Guid.NewGuid(), OrganizationId = f.B,
+                ReferenceCode = "G6-FK-A", Name = "Foreign FK origin", CountryCode = "US",
+                CreatedAtUtc = now, UpdatedAtUtc = now
+            };
+            var portB = new HarborOps.Infrastructure.References.PortReference {
+                Id = Guid.NewGuid(), OrganizationId = f.B,
+                ReferenceCode = "G6-FK-B", Name = "Foreign FK destination", CountryCode = "US",
+                CreatedAtUtc = now, UpdatedAtUtc = now
+            };
+            var vessel = new HarborOps.Infrastructure.References.VesselReference {
+                Id = Guid.NewGuid(), OrganizationId = f.B,
+                ReferenceCode = "G6-FK-VESSEL", Name = "Foreign FK vessel",
+                CreatedAtUtc = now, UpdatedAtUtc = now
+            };
+            var container = new HarborOps.Infrastructure.Maritime.ContainerRecord {
+                Id = Guid.NewGuid(), OrganizationId = f.B,
+                ReferenceCode = "G6-FK-CONTAINER", ContainerIdentifier = "SYN-BOX-G6FK",
+                IdentifierKind = "Synthetic", EquipmentType = "Dry20", SourceKind = "Synthetic",
+                CreatedAtUtc = now, UpdatedAtUtc = now
+            };
+            var voyage = new HarborOps.Infrastructure.Maritime.VoyageRecord {
+                Id = Guid.NewGuid(), OrganizationId = f.B,
+                ReferenceCode = "G6-FK-VOYAGE", VesselId = vessel.Id,
+                OriginPortId = portA.Id, DestinationPortId = portB.Id,
+                CreatedAtUtc = now, UpdatedAtUtc = now
+            };
+            var shipment = new HarborOps.Infrastructure.Shipments.ShipmentRecord {
+                Id = Guid.NewGuid(), OrganizationId = f.B,
+                ReferenceCode = "G6-FK-SHIPMENT", OriginPortId = portA.Id,
+                DestinationPortId = portB.Id, ChangedByUserId = actor,
+                CreatedAtUtc = now, UpdatedAtUtc = now
+            };
+            db.Ports.AddRange(portA, portB);
+            db.Vessels.Add(vessel);
+            db.Containers.Add(container);
+            db.Voyages.Add(voyage);
+            db.Shipments.Add(shipment);
+            await db.SaveChangesAsync();
+            foreignShipment = shipment.Id;
+            foreignContainer = container.Id;
+            foreignVoyage = voyage.Id;
+        }
         await using var connection = new NpgsqlConnection(TestDatabase.ConnectionString());
         await connection.OpenAsync();
         await using var transaction = await connection.BeginTransactionAsync();
@@ -123,15 +174,15 @@ public sealed class AssignmentSqlTests
                 await rollback.ExecuteNonQueryAsync();
             }
         }
-        // Foreign tenant shipment and valid own target.
-        await Probe("shipment_container_assignments", f.B, seed.Shipment,
+        // Exactly one composite FK fails on each write. All IDs exist in their own tenant.
+        await Probe("shipment_container_assignments", f.A, foreignShipment,
             seed.Container, "FK_m6_container_shipment");
         await Probe("shipment_container_assignments", f.A, seed.Shipment,
-            Guid.NewGuid(), "FK_m6_container_target");
-        await Probe("shipment_voyage_assignments", f.B, seed.Shipment,
+            foreignContainer, "FK_m6_container_target");
+        await Probe("shipment_voyage_assignments", f.A, foreignShipment,
             seed.Voyage, "FK_m6_voyage_shipment");
         await Probe("shipment_voyage_assignments", f.A, seed.Shipment,
-            Guid.NewGuid(), "FK_m6_voyage_target");
+            foreignVoyage, "FK_m6_voyage_target");
         await transaction.RollbackAsync();
     }
 

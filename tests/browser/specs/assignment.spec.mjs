@@ -168,3 +168,73 @@ test("G6 logout disposes allocation views and context projections", async ({ pag
   await expect(page.getByRole("heading",{name:"Shipment allocations"})).toHaveCount(0);
   await expect(page.getByText("M5-DEMO-NORTH",{exact:true})).toHaveCount(0);
 });
+
+
+test("G6 conflicting container allocation shows an actionable error and preserves inputs",
+  async ({ page }, testInfo) => {
+  test.skip(!enabled,"Disposable M6 fixture required");
+  await login(page,"manager");
+  const s=section(page);
+  const code="G6-CONF-"+randomUUID().slice(0,8).toUpperCase();
+  await s.getByRole("button",{name:"Create shipment"}).click();
+  await s.getByLabel("Shipment reference code").fill(code);
+  await s.getByLabel("Origin port").selectOption({index:1});
+  await s.getByLabel("Destination port").selectOption({index:2});
+  await s.getByRole("button",{name:"Save new shipment"}).click();
+  await s.getByLabel("Search shipments").fill(code);
+  await expect(s.getByText(code,{exact:true})).toBeVisible();
+  await s.getByRole("button",{name:"View shipment"}).first().click();
+  const boxes=assignment(page,"Container");
+  const org=await page.locator("#current-organization").inputValue();
+  const list=await page.request.get("/api/v1/organizations/"+org+
+    "/containers?recordStatus=Active&limit=100");
+  const data=await list.json();
+  const target=data.containers.find(x=>x.referenceCode===
+    "G6-BOX-"+testInfo.project.name.toUpperCase());
+  expect(target).toBeTruthy();
+  await boxes.getByLabel("Assign container").selectOption(target.id);
+  await boxes.getByLabel("Start Container assignment UTC").fill("2035-01-01T12:00:00Z");
+  await boxes.getByRole("button",{name:"Attach container"}).click();
+  await expect(boxes.getByText(/From 2035-01-01T12:00:00/)).toBeVisible();
+  await boxes.getByLabel("Assign container").selectOption(target.id);
+  await boxes.getByLabel("Start Container assignment UTC").fill("2035-01-01T12:30:00Z");
+  await boxes.getByRole("button",{name:"Attach container"}).click();
+  await expect(boxes.getByRole("alert")).toContainText("record changed");
+  await expect(boxes.getByLabel("Start Container assignment UTC"))
+    .toHaveValue("2035-01-01T12:30:00Z");
+});
+
+test("G6 deferred allocation response cannot cross organization switch",async ({page})=>{
+  test.skip(!enabled,"Disposable M6 fixture required");
+  await login(page,"manager");
+  const selector=page.locator("#current-organization");
+  const org=await selector.inputValue();
+  const s=section(page);
+  await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
+  await s.getByRole("button",{name:"View shipment"}).first().click();
+  const boxes=assignment(page,"Container");
+  await expect(boxes.getByRole("button",{name:"Refresh assignments"})).toBeVisible();
+  let released;
+  const held=new Promise(resolve=>{released=resolve;});
+  let entered;
+  const seen=new Promise(resolve=>{entered=resolve;});
+  let once=false;
+  await page.route("**/api/v1/organizations/*/shipments/*/container-assignments*",async route=>{
+    if(!once && route.request().method()==="GET" &&
+      route.request().url().includes("/"+org+"/")){
+      once=true;entered();
+      await held;
+    }
+    await route.continue();
+  });
+  try{
+    await boxes.getByRole("button",{name:"Refresh assignments"}).click();
+    await Promise.race([seen,new Promise((_,reject)=>
+      setTimeout(()=>reject(Error("Delayed allocation read not observed")),8000))]);
+    await selector.selectOption({label:"M3 East Terminal (Manager)"});
+  }finally{released?.();}
+  const east=section(page);
+  await east.getByLabel("Search shipments").fill("M5-DEMO-EAST");
+  await expect(east.getByText("M5-DEMO-EAST",{exact:true})).toBeVisible();
+  await expect(east.getByText("M5-DEMO-NORTH",{exact:true})).toHaveCount(0);
+});

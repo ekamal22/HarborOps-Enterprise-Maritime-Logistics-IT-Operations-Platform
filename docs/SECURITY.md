@@ -61,9 +61,13 @@ The accepted [M4 architecture](M4_ARCHITECTURE_DESIGN.md) implements typed voyag
 
 The accepted [M3 architecture](M3_ARCHITECTURE_DESIGN.md) provides tenant-owned port/vessel references on top of M2 sessions and organizations. Typed `ViewReferenceData` permits Analyst and Manager reads; `ManageReferenceData` permits Manager writes. Support, Administrator and Auditor have no implicit business-data access. Reads revalidate current tenant/session/role scope; writes revalidate transactionally and enforce optimistic versions, tenant ownership and identifier retention after archival. The G3 security matrix exercised foreign UUIDs, revoked/suspended memberships, CSRF/Origin denial, identifier collisions, concurrency and PostgreSQL outage/recovery with real HTTP and database tests. All 25 scenarios passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` ([evidence](M3_EXECUTED_VERIFICATION.md)); G3 was explicitly accepted on 2026-10-31 and integrated into `main`. Syntax-valid UN/LOCODE/IMO/MMSI fields do not establish official registration. This is local gate evidence, not independent production security certification.
 
-## M5 proposed security boundary (not verified)
+## M5 and M6 accepted security boundaries (local verification)
 
-Shipment-only `ViewShipmentData` and `ManageShipmentData` grant Analyst/Manager read/write and Auditor read-only access; Administrator/Support gain no business-data bypass. Active user/session/membership/organization, post-lock revalidation, CSRF/Origin, tenant-composite port FKs and version guards are mandatory. [G5](M5_VERIFICATION_PLAN.md) requires real foreign UUID and queued revocation tests. This design is not implemented or independently verified.
+M5 implements typed shipment permissions, session and tenant revalidation, status history and versioned changes. M6 adds typed allocation permissions, tenant-scoped container and voyage histories, PostgreSQL interval exclusions, post-lock authorization, parent guards and immutable history. Their local gates G5 and G6 were explicitly accepted 2026-11-02. [M5 closure](M5_G5_GATE_CLOSURE.md) and [M6/G6 closure](M6_G6_GATE_CLOSURE.md) retain execution evidence and limitations. Neither gate constitutes internet-hosting or production certification.
+
+## Public repository and deployment readiness
+
+The [public repository security and disclosure review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) records confirmed configuration risks, incomplete historical-secret and workflow-log review, current-file scans, and explicit public-release gates. **The existing repository is not cleared for publication or internet hosting.** The full history and three divergent branch lines require review even when current source-file scans are clean. No GitHub Actions are authorized.
 
 ## Data protection
 

@@ -187,6 +187,10 @@ HarborOps is an independent demonstration platform. It does not claim affiliatio
 
 The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) preserves the complete 2026-10-31 G0 evidence. The successful GitHub Actions run covered 1 unit, 10 contract, 5 fresh and 5 repeat integration, 6 web and 12 browser tests, Compose fault/recovery and three high/critical image scans. Existing local Docker volumes are not M0 gate requirements. Accessibility testing occurs only at M24-04.
 
+### Public source and deployment security
+
+The [public repository security and disclosure review](docs/PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) documents the current security findings, outstanding Git-history review, automatic workflow triggers, deployment hardening and release criteria. The repository is **not yet cleared for public visibility or internet-facing deployment**. M6 acceptance covers the local engineering gate, not public-release approval.
+
 ### Current state
 
 M0-M6 are explicitly accepted and integrated into `main` as of 2026-11-02. M6 evidence is preserved in [G6 verification](docs/M6_EXECUTED_VERIFICATION.md). Tracking, analytics and incident workflows remain scoped to later gates. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).

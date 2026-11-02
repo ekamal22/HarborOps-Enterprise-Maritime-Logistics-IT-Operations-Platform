@@ -9,6 +9,72 @@ namespace HarborOps.IntegrationTests;
 public sealed class AssignmentConcurrencyTests
 {
     [Fact]
+    public async Task QueuedAllocationAndParentArchiveCannotCommitInconsistentState()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var manager = f.Manager; using var analyst = f.Analyst; using var admin = f.Admin;
+        var seed = await AssignmentHttpTests.Seed(f);
+        await using var blocker = new Npgsql.NpgsqlConnection(TestDatabase.ConnectionString());
+        await using var probe = new Npgsql.NpgsqlConnection(TestDatabase.ConnectionString());
+        await blocker.OpenAsync();
+        await probe.OpenAsync();
+        await using var transaction = await blocker.BeginTransactionAsync();
+        await using (var lockRow = new Npgsql.NpgsqlCommand(
+            "SELECT id FROM containers WHERE organization_id=@org AND id=@id FOR UPDATE",
+            blocker, transaction))
+        {
+            lockRow.Parameters.AddWithValue("org", f.A);
+            lockRow.Parameters.AddWithValue("id", seed.Container);
+            Assert.Equal(seed.Container,(Guid)(await lockRow.ExecuteScalarAsync())!);
+        }
+
+        var route = seed.Root + "/" + seed.Shipment + "/container-assignments";
+        var incoming = ReferenceDataHttpTests.Send(analyst, HttpMethod.Post, route,
+            new { containerId = seed.Container, startsAtUtc = "2036-01-02T10:00:00Z" });
+        var observed = false;
+        var deadline = DateTime.UtcNow.AddSeconds(35);
+        while (DateTime.UtcNow < deadline)
+        {
+            await using var observation = new Npgsql.NpgsqlCommand("""
+                SELECT count(*) FROM pg_stat_activity
+                WHERE pid<>pg_backend_pid() AND wait_event_type='Lock'
+                  AND state='active' AND query ILIKE '%containers%'
+                  AND query ILIKE '%FOR SHARE%'
+                """,probe);
+            if ((long)(await observation.ExecuteScalarAsync())! > 0)
+            {
+                observed=true;break;
+            }
+            await Task.Delay(50);
+        }
+        try
+        {
+            Assert.True(observed,
+                "Assignment insert did not reach the observed parent row lock");
+            var archive = ReferenceDataHttpTests.Send(manager, HttpMethod.Delete,
+                "/api/v1/organizations/" + f.A + "/containers/" + seed.Container,
+                new { expectedVersion = 1L });
+            await transaction.CommitAsync();
+            using var created = await incoming;
+            using var denied = await archive;
+            Assert.Equal(HttpStatusCode.Created,created.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict,denied.StatusCode);
+            await using var scope = factory.Services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            Assert.Equal("Active",(await db.Containers.AsNoTracking()
+                .SingleAsync(x => x.Id==seed.Container)).RecordStatus);
+            Assert.Equal(1,await db.ShipmentContainerAssignments.AsNoTracking()
+                .CountAsync(x=>x.OrganizationId==f.A&&x.ContainerId==seed.Container&&x.EndsAtUtc==null));
+        }
+        finally
+        {
+            if(transaction.Connection is not null) await transaction.RollbackAsync();
+        }
+    }
+
+
+    [Fact]
     public async Task ContainerArchiveAndAllocationCannotBothCommit()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

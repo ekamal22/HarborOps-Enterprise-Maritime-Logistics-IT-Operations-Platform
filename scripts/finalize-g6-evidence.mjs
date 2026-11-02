@@ -83,4 +83,7 @@ assert.equal(names.size,files.length,"ZIP evidence count mismatch");
 output.extractedVerified=true;
 output.verifiedMembers=members.length+1;
 fs.writeFileSync(path.join(archiveRoot,filename+".json"),JSON.stringify(output,null,2));
+// Only the dedicated, newly extracted ZIP-verification directory is disposable.
+assert.equal(path.dirname(verifyRoot),path.join(root,"cache"));
+fs.rmSync(verifyRoot,{recursive:true,force:true});
 console.log(JSON.stringify(output,null,2));

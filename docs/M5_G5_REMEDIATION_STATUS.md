@@ -77,4 +77,16 @@ independent evidence review remain required.
 
 ## 5. Execution update
 
-The corrections above were executed at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67`. Execution found and fixed further defects that this register did not anticipate (a corrupted EF mapping, a snapshot index mismatch, a frontend busy-state defect, an access-denial reload race, test races and harness ordering problems); they are listed with commits in [M5 executed verification](M5_EXECUTED_VERIFICATION.md). Results: Executed locally at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67`: 138 unit, 12 contract, 139 fresh and 139 repeated PostgreSQL integration tests and 117 browser runs (39 each in Chromium, Firefox and WebKit) all passed with none skipped; Trivy HIGH/CRITICAL 0; teardown left no resources. G5-S02 to G5-S25 have evidence present for independent review. G5-S01 is incomplete until the M5 local contract is accepted. Sections 1 to 4 above are preserved as the historical record of the original remediation.
+The corrections above were executed at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`. Execution found and fixed further defects that this register did not anticipate (a corrupted EF mapping, a snapshot index mismatch, a frontend busy-state defect, an access-denial reload race, test races and harness ordering problems); they are listed with commits in [M5 executed verification](M5_EXECUTED_VERIFICATION.md). Results: Executed locally at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`: 138 unit, 12 contract, 146 fresh and 146 repeated PostgreSQL integration tests, 18 web unit tests and 141 browser runs (47 each in Chromium, Firefox and WebKit) all passed with none skipped; Trivy HIGH/CRITICAL 0; teardown left no resources. G5-S02 to G5-S25 have evidence present for review of this revision (the earlier revision `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91` with 139 integration tests and 117 browser runs was independently reviewed). G5-S01 is incomplete until the M5 local contract is accepted. Sections 1 to 4 above are preserved as the historical record of the original remediation.
+
+## 6. Second assignment: S01 audit, S23 edit preservation, S21 interruption evidence
+
+An independent review of the first execution package raised three items. They were addressed on the same branch and the full pipeline was rerun on the final revision `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`.
+
+| Item | Result | Where |
+| --- | --- | --- |
+| G5-S01 contract compliance | All six contract rules mapped to source, tests and evidence; one discrepancy (no-store on framework-generated responses) corrected; the contract remains proposed, acceptance pending | [compliance matrix](M5_G5_S01_CONTRACT_COMPLIANCE.md) |
+| G5-S23 unsaved edits lost on tab return | Shipment and organization workspaces reworked; eight three-engine browser cases and 12 web unit cases added | [executed verification](M5_EXECUTED_VERIFICATION.md) section 3 |
+| G5-S21 crash and timeout atomicity | Seven interruption scenarios, six with observed backend state recorded in the TRX and the lost-response case asserting committed state; the evidence checker requires the recorded observations | [executed verification](M5_EXECUTED_VERIFICATION.md) section 4 |
+
+Status: implemented and tested at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`; evidence present for G5-S02 to G5-S25; not independently reviewed for this revision; G5-S01 incomplete; acceptance pending.

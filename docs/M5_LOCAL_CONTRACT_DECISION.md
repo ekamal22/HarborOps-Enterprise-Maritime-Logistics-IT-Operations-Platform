@@ -18,4 +18,6 @@ The M5 code is authored against the provisional choices below. Implementing or c
 
 **Decision authority:** Requires explicit confirmation of this local contract before G5-S01 closure. [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation status](M5_IMPLEMENTATION_STATUS.md), [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) and [verification plan](M5_VERIFICATION_PLAN.md) remain the authoritative technical records. No new global D-number or dependency graph edge is introduced.
 
+**Compliance audit:** the [contract compliance matrix](M5_G5_S01_CONTRACT_COMPLIANCE.md) maps each of the six rules to source, tests and executed evidence. The audit does not change the state of this record, which remains proposed with acceptance pending.
+
 **Verification impact:** The G5 checker must report G5-S01 incomplete until this record has an explicit accepted state. Other functional tests may execute without rewriting this historical decision record. G5 acceptance remains separate.

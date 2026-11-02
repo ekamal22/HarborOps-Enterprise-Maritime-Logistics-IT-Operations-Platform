@@ -4,7 +4,7 @@
 **Milestone:** M5-01 through M5-04; G5 evidence gate  
 **Branch:** `feat/m5-shipment-lifecycle`  
 **Base:** Accepted G0-G4 `main`, at `18d00e6710097e4e31a87190be8edb65337d1b50`  
-**State:** Implemented and locally verified on the feature branch at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67` (see [M5 executed verification](M5_EXECUTED_VERIFICATION.md)). G5 OPEN, acceptance pending. See [M5/G5 remediation](M5_G5_REMEDIATION_STATUS.md).
+**State:** Implemented and locally verified on the feature branch at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91` (see [M5 executed verification](M5_EXECUTED_VERIFICATION.md) and the [contract compliance matrix](M5_G5_S01_CONTRACT_COMPLIANCE.md)). G5 OPEN, acceptance pending.
 
 ## Implemented source inventory
 
@@ -34,7 +34,7 @@ Existing M0-M4 migration files are unchanged. Older test expectations for the la
 
 All eleven original source audit findings have committed corrections, including isolated `ho-verify-g5` verification resources, explicit TRX and browser matrix requirements, pre/post storage and teardown proof, raw ZIP hashing, extensive SQL/role/tenant/concurrency tests, port-catalog recovery, conflict preservation and Auditor port descriptors. See [remediation ledger](M5_G5_REMEDIATION_STATUS.md).
 
-These modifications were compiled and executed (history: they were source-level when first written). Executed locally at `c143e67906d3a9e0c1ab5f4b259ad1e5befd2a67`: 138 unit, 12 contract, 139 fresh and 139 repeated PostgreSQL integration tests and 117 browser runs (39 each in Chromium, Firefox and WebKit) all passed with none skipped; Trivy HIGH/CRITICAL 0; teardown left no resources. G5-S02 to G5-S25 have evidence present for independent review. G5-S01 is incomplete until the M5 local contract is accepted.
+These modifications were compiled and executed (history: they were source-level when first written). Executed locally at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`: 138 unit, 12 contract, 146 fresh and 146 repeated PostgreSQL integration tests, 18 web unit tests and 141 browser runs (47 each in Chromium, Firefox and WebKit) all passed with none skipped; Trivy HIGH/CRITICAL 0; teardown left no resources. G5-S02 to G5-S25 have evidence present for review of this revision (the earlier revision `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91` with 139 integration tests and 117 browser runs was independently reviewed). G5-S01 is incomplete until the M5 local contract is accepted.
 
 ## Source-level correctness assessment
 

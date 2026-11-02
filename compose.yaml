@@ -72,6 +72,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       Identity__AllowInsecureLoopbackHttp: "true"
       Identity__TrustedLocalHttpPeers: "172.30.254.1,172.30.254.10"
+      ReverseProxy__KnownProxies__0: "172.30.254.10"
       Identity__KeyRingPath: "/keys"
       ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
       Cors__AllowedOrigins__0: "http://localhost:5173"

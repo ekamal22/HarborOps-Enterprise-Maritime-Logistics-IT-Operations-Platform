@@ -35,7 +35,7 @@ for(const phase of ["before","after"]){
 }
 const unit=new Set(),contract=new Set(),fresh=new Set(),repeat=new Set();
 const suites=[["unit",unit,138],["contract",contract,12],
- ["integration-fresh",fresh,139],["integration-repeat",repeat,139]];
+ ["integration-fresh",fresh,146],["integration-repeat",repeat,146]];
 for(const [phase,names,minimum] of suites){
  const trx=read("trx/"+phase+".trx");
  const rows=[...trx.matchAll(/<UnitTestResult\b([^>]*?)\/?>/g)];
@@ -89,7 +89,7 @@ for(const engine of ["chromium","firefox","webkit"]){
    const doc=JSON.parse(fs.readFileSync(path.join(folder,file),"utf8"));
    for(const suite of doc.suites||[])walk(suite,names);
  }
- assert.ok(names.size>=45,"Baseline browser tests missing for "+engine);
+ assert.ok(names.size>=57,"Accepted G5 browser baseline plus ten M6 tests missing for "+engine);
  for(const scenario of expected)
    assert.ok(names.has(scenario),"Missing required "+engine+" scenario: "+scenario);
  browser.set(engine,names);
@@ -163,7 +163,7 @@ const assertChecks=[
  ["G6-S20",requires(fresh,"TerminatingBackendAfterAssignmentInsertRollsBackWithoutOrphanHistory","CancelledAfterWriteAssignmentClosureRollsBack","TimedOutAfterWriteAssignmentClosureRollsBack","LostResponseAfterAssignmentCommitDoesNotDuplicateClosure")],
  ["G6-S21",expected.every(x=>browser.get("chromium").has(x))],
  ["G6-S22",expected.every(x=>browser.get("firefox").has(x)&&browser.get("webkit").has(x))],
- ["G6-S23",fresh.size>=139 && unit.size>=138 && contract.size>=12],
+ ["G6-S23",fresh.size>=146 && repeat.size>=146 && unit.size>=138 && contract.size>=12],
  ["G6-S24",mutation.mutants?.length===4 &&
     requires(fresh,"OverlapMutationRequiresBehavioralExclusionRejection",
       "ParentGuardMutationRequiresBehavioralArchiveRejection")],

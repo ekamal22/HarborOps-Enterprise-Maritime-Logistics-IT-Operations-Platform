@@ -5,9 +5,17 @@
 **Baseline:** `main` at `4d26514caee5cc835f6eef230e0433141291374e`  
 **Publication decision:** NOT CLEARED  
 **Internet-hosting decision:** NOT CLEARED  
-**Verification state:** Source changes prepared; current-source local verification and historical disclosure review not executed.
+**Verification state:** Isolated hosted regression stages passed at `7145ec24a8ac289dfcf6f02644f54f35f4744c8a`; overall run failed during root-owned Trivy cache cleanup. Independent E:-backed verification, historical Git-object review and publication approval remain outstanding.
 
 This register tracks remediation after the [original security review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md). Do not alter the prior review's observations or reinterpret accepted M0 through M6 test evidence.
+
+## Latest isolated verification evidence
+
+[Run 41534507638](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41534507638) tested exact checkout `7145ec24a8ac289dfcf6f02644f54f35f4744c8a`, whose parent was security source `d9bc2aba875039bcd84b1212e023cb8cd9f4e319`. All substantive stages completed successfully: 149 unit, 21 contract, 187 PostgreSQL integration, 18 frontend and 18 browser tests, plus Compose, Nginx, local HTTP probes, NuGet/npm advisories and three exact-revision HIGH/CRITICAL image scans. The job conclusion is **failure**, because Trivy's root-owned cache files could not be removed by the unprivileged final cleanup step. The disposable Compose stack, volumes and PostgreSQL container were removed. No downloadable artifacts were uploaded.
+
+The isolated manual-only workflow was corrected at `8cf9fffef3cc41823d367e7a54d3e40f5678e242` with scoped cleanup and a source guard that works after additional verification commits. This correction has not been executed; no further Actions run was launched. The workflow remains manual-only. [Publication Safety Status](PUBLICATION_SAFETY_STATUS.md) contains the attempt-by-attempt results and outstanding blockers.
+
+The hosted run does not replace E:-backed local verification, complete historical Git-object and retained-artifact disclosure review, governance enforcement, approved source snapshot review, licensing decision, or real-host TLS validation. Accepted G6 evidence remains intact. Neither publication nor hosting is cleared.
 
 ## Findings and closure requirements
 

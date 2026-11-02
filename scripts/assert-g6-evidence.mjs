@@ -112,8 +112,8 @@ const snapshotDisposition=
   (snapshot.outcome==="PASS" && snapshot.evidence?.before &&
    snapshot.evidence?.after && snapshot.evidence.m6Exclusions===2 &&
    JSON.stringify(snapshot.evidence.before)===JSON.stringify(snapshot.evidence.after));
-const contract=fs.readFileSync("docs/M6_LOCAL_CONTRACT_DECISION.md","utf8");
-const contractApproved=/\*\*State:\*\*\s*Accepted\b/i.test(contract);
+const decision=fs.readFileSync("docs/M6_LOCAL_CONTRACT_DECISION.md","utf8");
+const contractApproved=/\*\*State:\*\*\s*Accepted\b/i.test(decision);
 const assertChecks=[
  ["G6-S01",contractApproved,"Explicit twelve-rule M6 contract approval"],
  ["G6-S02",requires(unit,"HalfOpenWindowsAllowAdjacencyButNotOverlap","AcceptsExplicitUtc","RejectsNonUtcAndAmbiguousInstants")],
@@ -137,13 +137,10 @@ const assertChecks=[
  ["G6-S20",requires(fresh,"TerminatingBackendAfterAssignmentInsertRollsBackWithoutOrphanHistory")],
  ["G6-S21",expected.every(x=>browser.get("chromium").has(x))],
  ["G6-S22",expected.every(x=>browser.get("firefox").has(x)&&browser.get("webkit").has(x))],
- ["G6-S23",fresh.size>=139 && unit.size>=138 && contract.size===undefined],
+ ["G6-S23",fresh.size>=139 && unit.size>=138 && contract.size>=12],
  ["G6-S24",mutation.mutants?.length>=4],
  ["G6-S25",teardown.remainingContainers===0&&teardown.remainingVolumes===0]
 ];
-// Correct the G6-S23 check: the original accepted contract suite is present in TRX.
-assertChecks[22][1]=fresh.size>=139 && unit.size>=138 &&
-  suites[1][1].size>=12;
 assert.equal(assertChecks.length,25);
 const report=["# G6 source-locked executed scenario index","","Source: "+sha,"",
   "Scenario evidence is pending independent review even when executable tests pass.","",

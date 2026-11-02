@@ -1,6 +1,6 @@
 # Publication Safety Status
 
-**Updated:** 2026-11-02  
+**Updated:** 2026-11-03  
 **Repository visibility:** Private  
 **Publication clearance:** NOT CLEARED  
 **Public application hosting:** NOT CLEARED
@@ -18,6 +18,14 @@ This is the current decision register. Earlier security reviews remain historica
 | PS-07 License | Restrictive `LICENSE` now exists on `main`. | Confirm licensing intent before any public source distribution. |
 | HS-01 HTTP transport | Source hardening and regression tests are prepared on `fix/publication-security-readiness`. | E:-backed local build, contract, integration and proxy verification, followed by independent acceptance. |
 | HS-02 Browser headers and TLS | Browser-response policy and hosted TLS configuration template are prepared on the security branch. | E:-backed browser tests, verified certificates, trusted proxy configuration and controlled hosted deployment acceptance. |
+
+## Publication verification attempt 1, November 3, 2026
+
+- GitHub Actions run [41526406931](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41526406931) completed with **failure**. The tested revision was `d19be42e79f20c472d8a655dab125cab4ac11a4d`, on the isolated verification branch. This does not clear publication or hosting.
+- The single `security` job completed its source checkout, script syntax checks, disposable PostgreSQL setup, solution build, and unit and contract tests. The integration step failed: 161 failed, 26 passed, 187 total. The failure stopped frontend tests, package advisories, Compose smoke, browser regressions, and image vulnerability scans. Cleanup completed. No run artifacts were published.
+- Repeated integration failures occur in the shared test helper at `ReferenceDataHttpTests.Send` while obtaining `/api/v1/auth/csrf`, which returns HTTP 400. The hardened transport gate requires an actual loopback or explicitly trusted network peer. The original in-memory `WebApplicationFactory` requests have no socket peer, so the test harness did not provide the required peer identity. This is a test-host setup regression, not evidence that the hardened production transport check should be weakened.
+- The security work branch now contains a test-only `LocalPeerTestServer` startup filter, applied to integration factories, to provide a loopback peer when the in-memory request has no remote IP. The filter registers a concrete instance rather than relying on a service activator. The production transport check remains unchanged. The fix has not yet passed a complete hosted regression; its effectiveness is pending verification.
+- A subsequent run must test its exact checkout SHA and complete every required stage, including PostgreSQL integration, frontend, advisory scans, Compose, three browser engines, and image scans. No historical disclosure, repository governance, licensing, hosting, or publication blocker is waived by a successful test run.
 
 ## Historical artifact disclosure
 

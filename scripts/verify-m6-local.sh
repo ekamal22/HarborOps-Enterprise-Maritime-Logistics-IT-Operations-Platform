@@ -159,6 +159,7 @@ run_stage setup-fixtures setup_m3
 run_stage fixtures node scripts/prepare-m3-browser-fixtures.mjs
 run_stage m4-fixtures node scripts/prepare-m4-browser-fixtures.mjs
 run_stage m5-fixtures node scripts/prepare-m5-browser-fixtures.mjs
+run_stage m6-fixtures node scripts/prepare-m6-browser-fixtures.mjs
 export HARBOROPS_M3_FIXTURES=1
 export HARBOROPS_M4_FIXTURES=1
 export HARBOROPS_M5_FIXTURES=1

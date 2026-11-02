@@ -86,9 +86,9 @@ M4 implements tenant-scoped voyage schedules and container references. D-003 Opt
 
 M5 supports tenant-scoped shipment create, edit, search, archive and restore, a manual workflow with immutable history, scoped permissions and exact-version concurrency. The six-rule [M5 local contract](docs/M5_LOCAL_CONTRACT_DECISION.md) and G5 were explicitly accepted 2026-11-02. Local run 13 at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91` passed 601 test executions, including 47 browser scenarios per engine in Chromium, Firefox and WebKit, with independently reviewed evidence. See [G5 closure](docs/M5_G5_GATE_CLOSURE.md), [verification](docs/M5_EXECUTED_VERIFICATION.md) and [implementation status](docs/M5_IMPLEMENTATION_STATUS.md). M6 owns shipment assignment links.
 
-### M6 shipment assignments planning
+### M6 shipment assignments implementation (verification pending)
 
-M6 is planned on `feat/m6-container-voyage-assignments`, based on accepted G4 and G5. The proposed [M6 local contract](docs/M6_LOCAL_CONTRACT_DECISION.md), [architecture](docs/M6_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M6_IMPLEMENTATION_PLAN.md) and [G6 verification matrix](docs/M6_VERIFICATION_PLAN.md) cover tenant-owned time intervals, database exclusion constraints, reference archival guards and the G6 Q1 historical-snapshot checkpoint. **No M6 implementation or G6 execution is claimed; contract approval and milestone acceptance are pending.** See [M6 planning status](docs/M6_PLANNING_STATUS.md).
+M6 source is authored on `feat/m6-container-voyage-assignments`, based on accepted G4 and G5: [domain and schema architecture](docs/M6_ARCHITECTURE_DESIGN.md), PostgreSQL temporal exclusivity, scoped allocation API, React shipment allocation panels and initial tests. The proposed [M6 local contract](docs/M6_LOCAL_CONTRACT_DECISION.md) and [G6 verification matrix](docs/M6_VERIFICATION_PLAN.md) cover parent guards and the Q1 snapshot checkpoint. **Runtime build and tests have NOT RUN, G6 is open and contract acceptance is pending.** See [M6 implementation status](docs/M6_IMPLEMENTATION_STATUS.md) and [implementation plan](docs/M6_IMPLEMENTATION_PLAN.md).
 
 ### Parallel dependency-based delivery
 
@@ -150,7 +150,8 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M6 Architecture](docs/M6_ARCHITECTURE_DESIGN.md) | Shipment-to-container and shipment-to-voyage temporal association architecture |
 | [M6 Implementation Plan](docs/M6_IMPLEMENTATION_PLAN.md) | M6-01 through M6-04 delivery ownership, sequencing and source inventory |
 | [G6 Verification Plan](docs/M6_VERIFICATION_PLAN.md) | 25 mandatory scenarios and the Q1 snapshot checkpoint, not executed |
-| [M6 Planning Status](docs/M6_PLANNING_STATUS.md) | Planning-only state, upstream gates and outstanding decisions |
+| [M6 Planning Status](docs/M6_PLANNING_STATUS.md) | Initial design and pending approvals |
+| [M6 Implementation Status](docs/M6_IMPLEMENTATION_STATUS.md) | Authored source files, tests, verification blockers and decision gates |
 | [M4 Executed Verification](docs/M4_EXECUTED_VERIFICATION.md) | Accepted G4 evidence, D-003 closure, verified source SHA and immutable artifact hash |
 | [M3 Executed Verification](docs/M3_EXECUTED_VERIFICATION.md) | Verified G3 execution evidence, failure history and acceptance record |
 | [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Historical first-audit fixes and subsequent verified G3 outcome |

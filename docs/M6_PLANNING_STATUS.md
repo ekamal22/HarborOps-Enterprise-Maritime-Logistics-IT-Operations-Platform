@@ -4,7 +4,7 @@
 **Milestone:** M6 container and voyage assignments
 **Planning branch:** `feat/m6-container-voyage-assignments`
 **Accepted implementation baseline:** `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`, G0-G5 accepted
-**State:** Architecture and implementation strategy prepared. M6 implementation NOT STARTED; G6 NOT RUN; M6-local contract acceptance pending. Nothing merged into `main` for M6.
+**State:** Initial M6 implementation, API, persistence, React, tests and local verification harness authored on the feature branch. Build/runtime G6 NOT RUN; M6-local contract acceptance pending. Nothing merged into `main`. See [implementation register](M6_IMPLEMENTATION_STATUS.md).
 
 ## Planning deliverables
 
@@ -12,7 +12,8 @@
 | --- | --- | --- |
 | [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) | 12 explicit choices covering interval, route, permissions, archive, history and acceptance | Proposed, awaiting decision |
 | [M6 architecture](M6_ARCHITECTURE_DESIGN.md) | Two association entities, GiST exclusion, scoped FKs, parent guards, eight routes, React integration | Proposed |
-| [M6 implementation plan](M6_IMPLEMENTATION_PLAN.md) | M6-01 policy; parallel M6-02/M6-03; M6-04 convergence; ownership and source inventory | Planned |
+| [M6 implementation plan](M6_IMPLEMENTATION_PLAN.md) | M6-01 policy; container/voyage source; M6-04 workflow and verification requirements | Source authored; not executed |
+| [M6 implementation status](M6_IMPLEMENTATION_STATUS.md) | Concrete source files, tests, schema and outstanding G6 verification | Committed; runtime unverified |
 | [G6 verification plan](M6_VERIFICATION_PLAN.md) | G6-S01 to G6-S25, direct SQL, concurrency, three-browser regression, raw evidence and Q1 snapshot checkpoint | Planned, not executed |
 | [Execution graph](execution-graph.json) | G4/G5 -> M6-01 -> parallel M6-02/M6-03 -> M6-04 -> G6 | Unchanged |
 
@@ -30,4 +31,4 @@ The future technical gate must run full M0-M5 regressions, fresh/repeat PostgreS
 
 ## Next action
 
-Review and explicitly approve or revise [the M6-local contract](M6_LOCAL_CONTRACT_DECISION.md), then separately authorize implementation if desired. Do not begin M6-02/M6-03 assuming acceptance. No M6 source, migration, test runner, browser spec or executable evidence is claimed as completed by this plan.
+Review and explicitly approve or revise [the M6-local contract](M6_LOCAL_CONTRACT_DECISION.md). The requested initial implementation is now authored on the feature branch, but none of its tests, migration or browser suites has executed. Complete the mandatory E:-backed G6 verification and independent raw evidence review before requesting separate G6 acceptance and merge authorization.

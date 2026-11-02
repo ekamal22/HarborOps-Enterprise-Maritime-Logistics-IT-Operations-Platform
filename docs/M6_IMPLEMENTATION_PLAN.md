@@ -1,6 +1,6 @@
 # M6 Implementation Plan: Shipment Container and Voyage Assignments
 
-**Status:** Detailed implementation plan prepared, NOT IMPLEMENTED, G6 NOT RUN, acceptance pending
+**Status:** Source implementation authored and committed on the feature branch under this plan. Runtime verification NOT RUN; full G6 acceptance and local contract decision pending. See [implementation status](M6_IMPLEMENTATION_STATUS.md).
 **Prepared:** 2026-11-02
 **Branch:** `feat/m6-container-voyage-assignments`
 **Accepted upstream:** G4 and G5 on `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`
@@ -21,7 +21,7 @@ flowchart TD
 
 M6-02 and M6-03 are parallelizable **only after** the local contract has been approved and shared API, migration ownership, parent guard and lock-order designs have been frozen. They may independently author domain/store/endpoint/tests, but must not concurrently edit `HarborOpsDbContext`, the model snapshot, a shared migration, `Program.cs`, shared organization policy or shipment workspace. One integration coordinator owns shared edits. Do not change the accepted graph to imply M6 waits for unrelated milestones.
 
-Planning is committed separately from `main`. Do not start code implementation without a distinct implementation instruction and the M6-01 local contract decision. No G6 acceptance or merge is implied by this plan.
+Implementation source was expressly requested after planning and is committed separately from `main` against the proposed local contract. The contract itself has not yet received formal acceptance. Do not infer G6 acceptance or merge authorization from authored source or tests.
 
 ## 2. M6-01: Freeze invariant and integration contract
 

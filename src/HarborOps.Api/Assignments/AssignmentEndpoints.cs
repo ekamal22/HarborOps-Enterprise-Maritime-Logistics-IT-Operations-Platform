@@ -113,7 +113,7 @@ public static class AssignmentEndpoints
             if (input is null) return Error(ctx, OrganizationAccessError.Invalid);
             var result = await store.WriteAsync<T>(Session(ctx), org, shipment, null, input, ct);
             return result.Value is null ? Error(ctx, result.Error) :
-                Results.Created(ctx.Request.Path + "/" + result.Value.Id, result.Value);
+                Results.Created($"{ctx.Request.Path}/{result.Value.Id}", result.Value);
         });
         group.MapPatch("/" + name + "/{assignmentId}", async (string organizationId, string shipmentId,
             string assignmentId, HttpContext ctx, IAntiforgery antiforgery, AssignmentStore store,

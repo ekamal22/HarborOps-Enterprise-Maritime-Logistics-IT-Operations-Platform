@@ -39,9 +39,9 @@ G4 was explicitly accepted on 2026-11-01 following independent raw-evidence revi
 
 All [G5-S01 through G5-S25](M5_VERIFICATION_PLAN.md) were independently reviewed on the final tested M5 source and explicitly accepted on 2026-11-02, including the separately approved six-rule local contract. See [G5 gate closure](M5_G5_GATE_CLOSURE.md). M6 is eligible to plan because G4 and G5 are accepted.
 
-## G6 exit contract (planning, not executed)
+## G6 exit contract (initial implementation authored, not executed)
 
-The [G6-S01 through G6-S25 plan](M6_VERIFICATION_PLAN.md) requires direct interval-exclusion SQL tests, scoped composite foreign keys, session/tenant isolation, parent archive/status races, no partial writes, Chromium/Firefox/WebKit, M0-M5 regressions, security mutation proofs, raw E:-backed evidence, and the Q1 historical-volume checkpoint or explicit `NOT APPLICABLE` with reason. The [twelve-rule M6-local contract](M6_LOCAL_CONTRACT_DECISION.md) must be separately approved; only after executed evidence review may G6 be accepted and integration into `main` authorized. M6 implementation and G6 remain NOT STARTED.
+The [G6-S01 through G6-S25 plan](M6_VERIFICATION_PLAN.md) requires direct interval-exclusion SQL tests, scoped composite foreign keys, session/tenant isolation, parent archive/status races, no partial writes, Chromium/Firefox/WebKit, M0-M5 regressions, security mutation proofs, raw E:-backed evidence, and the Q1 historical-volume checkpoint or explicit `NOT APPLICABLE` with reason. The [twelve-rule M6-local contract](M6_LOCAL_CONTRACT_DECISION.md) must be separately approved; only after executed evidence review may G6 be accepted and integration into `main` authorized. M6 source implementation is authored on the feature branch; G6 execution, complete evidence review and acceptance remain NOT STARTED. See [M6 implementation status](M6_IMPLEMENTATION_STATUS.md).
 
 ## Recorded M0 verification state
 

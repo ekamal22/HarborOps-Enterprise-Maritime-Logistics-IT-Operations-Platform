@@ -166,6 +166,7 @@ export HARBOROPS_M6_FIXTURES=1
 run_stage browsers bash scripts/run-m6-browsers-local.sh
 # The reference and maritime outage checks end by downgrading the shared Manager account, so the
 # shipment outage check, which needs that Manager, must run before them.
+run_stage assignment-outage node scripts/check-m6-assignment-outage.mjs
 run_stage shipment-outage node scripts/check-m6-shipment-outage.mjs
 run_stage reference-outage node scripts/check-m6-reference-outage.mjs
 run_stage maritime-outage node scripts/check-m6-maritime-outage.mjs

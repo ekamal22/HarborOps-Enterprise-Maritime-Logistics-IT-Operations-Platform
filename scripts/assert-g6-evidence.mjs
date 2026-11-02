@@ -13,7 +13,7 @@ const mandatory=[
   "storage-before","decision-unit","schema-index","shipment-schema","assignment-schema",
   "coverage-source","preflight","postgres-image","deps","web","docs","stack",
   "accounts","organizations","session","setup-fixtures","fixtures",
-  "m4-fixtures","m5-fixtures","browsers","shipment-outage","reference-outage",
+  "m4-fixtures","m5-fixtures","browsers","assignment-outage","shipment-outage","reference-outage",
   "maritime-outage","recovery","scan","dotnet","snapshot","teardown","storage-after"
 ];
 for(const name of mandatory){

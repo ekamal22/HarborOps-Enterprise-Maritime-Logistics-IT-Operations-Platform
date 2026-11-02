@@ -1,6 +1,6 @@
 # M6 Shipment Container and Voyage Assignments: Architecture Design
 
-**State:** Detailed design proposed, acceptance pending; implementation NOT STARTED
+**State:** Design implemented in source on the feature branch; compilation, migration, G6 verification and local contract acceptance pending. See [implementation status](M6_IMPLEMENTATION_STATUS.md).
 **Prepared:** 2026-11-02
 **Planning branch:** `feat/m6-container-voyage-assignments`
 **Base:** Accepted G0-G5 `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`
@@ -183,4 +183,4 @@ M6 Q1 is the first historical-volume compatibility checkpoint: discover a repres
 
 Unresolved until demonstrated in implementation: trigger/organization lock inversion; actual GiST extension privileges/operator classes; route/window constraints when a voyage's planned schedule is later edited; policy for independent container/voyage historical interval intersections; native headed browser visibility events beyond M5's documented simulated visibility tests. These are concrete test requirements, not permission to silently relax constraints.
 
-**Acceptance:** Architecture and local contract are proposed; source implementation, executed G6 evidence and G6 acceptance are all pending.
+**Acceptance:** Application, migration, UI, and initial test source are committed on the M6 feature branch. Runtime build and G6 execution have NOT RUN. The local contract and gate acceptance remain pending; no M6 merge is authorized. See [implementation status](M6_IMPLEMENTATION_STATUS.md).

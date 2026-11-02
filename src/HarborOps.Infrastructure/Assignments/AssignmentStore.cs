@@ -62,7 +62,7 @@ public sealed class AssignmentStore(HarborOpsDbContext db, OrganizationStore org
     {
         for (Exception? e = ex; e is not null; e = e.InnerException)
             if (e is PostgresException p && p.SqlState is
-                ("23P01" or "23505" or "23514" or "23503" or "P0001"))
+                ("23P01" or "23505" or "23514" or "23503" or "P0001" or "40P01" or "40001" or "55P03"))
                 return true;
         return false;
     }

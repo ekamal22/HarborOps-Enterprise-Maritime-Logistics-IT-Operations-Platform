@@ -61,9 +61,9 @@ FR-003's voyage slice was implemented under M4-02: same-organization vessel and 
 
 M5-01 through M5-04 implement organization-scoped shipment CRUD and exact-version concurrency under FR-004 and FR-002. The accepted six-rule M5 local contract gives Analyst/Manager read-write, Auditor narrowly typed read-only and no implicit Administrator/Support business access. The full G5 matrix passed 601 executed tests and was explicitly accepted on 2026-11-02. See [M5 closure](M5_G5_GATE_CLOSURE.md), [architecture](M5_ARCHITECTURE_DESIGN.md) and [verification](M5_EXECUTED_VERIFICATION.md).
 
-## M6 FR-005 allocation (planned only)
+## M6 FR-005 allocation (source authored, not yet verified)
 
-FR-005 shipment-container and shipment-voyage assignments are scoped to M6. The proposed [M6 contract](M6_LOCAL_CONTRACT_DECISION.md) and [architecture](M6_ARCHITECTURE_DESIGN.md) define immutable tenant-owned associations with UTC half-open intervals, PostgreSQL overlap exclusions, versioned closure, safe parent archival and strict voyage route compatibility. M6-02 and M6-03 may be built in parallel after M6-01 contract approval. [G6-S01 through G6-S25](M6_VERIFICATION_PLAN.md) include a conditional Q1 historical-volume checkpoint. **No M6 code or verification has run.** Event ingestion stays M7-M10 and advanced search/export M12.
+FR-005 shipment-container and shipment-voyage assignments are scoped to M6. The proposed [M6 contract](M6_LOCAL_CONTRACT_DECISION.md) and [architecture](M6_ARCHITECTURE_DESIGN.md) define immutable tenant-owned associations with UTC half-open intervals, PostgreSQL overlap exclusions, versioned closure, safe parent archival and strict voyage route compatibility. M6-02 and M6-03 may be built in parallel after M6-01 contract approval. [G6-S01 through G6-S25](M6_VERIFICATION_PLAN.md) include a conditional Q1 historical-volume checkpoint. **M6 source code and tests are authored on the feature branch but no build or G6 verification has run.** See [implementation status](M6_IMPLEMENTATION_STATUS.md). Event ingestion stays M7-M10 and advanced search/export M12.
 
 ## Non-functional requirements
 

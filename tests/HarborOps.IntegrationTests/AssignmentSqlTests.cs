@@ -48,7 +48,7 @@ public sealed class AssignmentSqlTests
         Assert.Equal("23514", delete.SqlState);
         var guard = await Assert.ThrowsAsync<PostgresException>(() =>
             db.Database.ExecuteSqlInterpolatedAsync($"""
-            UPDATE containers SET record_status={'A' + "rchived"},version=version+1,
+            UPDATE containers SET record_status={"Archived"},version=version+1,
               updated_at_utc={now.AddMinutes(1)}
             WHERE organization_id={f.A} AND id={seed.Container}
             """));
@@ -61,7 +61,7 @@ public sealed class AssignmentSqlTests
         var sql = await db.Database.SqlQueryRaw<int>("""
             SELECT count(*)::int AS "Value" FROM pg_constraint
             WHERE conname IN ('ex_m6_container_overlap','ex_m6_voyage_overlap')
-                AND contype='x'
+                AND contype='x' AND connamespace=current_schema()::regnamespace
             """).SingleAsync();
         Assert.Equal(2, sql);
     }

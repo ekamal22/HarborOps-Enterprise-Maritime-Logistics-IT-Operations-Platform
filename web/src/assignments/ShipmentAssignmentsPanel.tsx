@@ -26,6 +26,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated }:
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [catalogError, setCatalogError] = useState("");
+  const [catalogRetry, setCatalogRetry] = useState(0);
   const [refreshToken, setRefreshToken] = useState(0);
   const seq = useRef(0);
   const active = useRef(true);
@@ -83,7 +84,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated }:
     });
     return () => { active = false; };
   }, [org, kind, canManage, shipment.id, shipment.originPortId,
-    shipment.destinationPortId, shipment.recordStatus, invalidated]);
+    shipment.destinationPortId, shipment.recordStatus, catalogRetry, invalidated]);
 
   const refresh = () => setRefreshToken(x => x + 1);
 
@@ -187,7 +188,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated }:
       </form>
       {catalogError && <p role="alert" className="mt-2 text-xs text-amber-300">
         Catalog unavailable: {catalogError}
-        <button type="button" className="ml-2 underline" onClick={refresh}>Retry assignments</button>
+        <button type="button" className="ml-2 underline" onClick={() => setCatalogRetry(x => x + 1)}>Retry catalog</button>
       </p>}
     </>}
   </div>;

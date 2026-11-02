@@ -110,9 +110,11 @@ public sealed class ShipmentAssignments : Migration
                        NEW.created_at_utc IS DISTINCT FROM OLD.created_at_utc OR
                        NEW.created_by_user_id IS DISTINCT FROM OLD.created_by_user_id OR
                        (TG_TABLE_NAME = 'shipment_container_assignments' AND
-                          NEW.container_id IS DISTINCT FROM OLD.container_id) OR
+                          to_jsonb(NEW)->>'container_id' IS DISTINCT FROM
+                          to_jsonb(OLD)->>'container_id') OR
                        (TG_TABLE_NAME = 'shipment_voyage_assignments' AND
-                          NEW.voyage_id IS DISTINCT FROM OLD.voyage_id) THEN
+                          to_jsonb(NEW)->>'voyage_id' IS DISTINCT FROM
+                          to_jsonb(OLD)->>'voyage_id') THEN
                         RAISE EXCEPTION 'Immutable assignment identity' USING ERRCODE='23514';
                     END IF;
                     IF OLD.ends_at_utc IS NOT NULL OR NEW.ends_at_utc IS NULL OR

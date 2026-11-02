@@ -113,9 +113,22 @@ public sealed class AssignmentStore(HarborOpsDbContext db, OrganizationStore org
         if (!await db.Shipments.AsNoTracking().AnyAsync(s =>
             s.OrganizationId == org && s.Id == shipment, ct))
             return new(null, OrganizationAccessError.NotFound);
-        var query = db.Set<T>().AsNoTracking()
-            .Where(x => x.OrganizationId == org && x.ShipmentId == shipment);
-        if (after.HasValue) query = query.Where(x => x.Id.CompareTo(after.Value) > 0);
+        // PostgreSQL UUID ordering is authoritative for the cursor; never rely on
+        // a CLR Guid comparison being translated identically by the EF provider.
+        IQueryable<T> query;
+        if (after.HasValue)
+        {
+            var table = typeof(T) == typeof(ShipmentContainerAssignment)
+                ? "shipment_container_assignments" : "shipment_voyage_assignments";
+            query = db.Set<T>().FromSqlRaw(
+                "SELECT * FROM " + table +
+                " WHERE organization_id = {0} AND shipment_id = {1} AND id > {2}",
+                org, shipment, after.Value).AsNoTracking();
+        }
+        else
+            query = db.Set<T>().AsNoTracking()
+                .Where(x => x.OrganizationId == org && x.ShipmentId == shipment);
+        query = query.Where(x => x.OrganizationId == org && x.ShipmentId == shipment);
         var rows = await query.OrderBy(x => x.Id).Take(limit + 1).ToListAsync(ct);
         var more = rows.Count > limit;
         if (more) rows.RemoveAt(limit);

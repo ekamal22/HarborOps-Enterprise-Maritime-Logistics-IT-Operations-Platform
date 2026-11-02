@@ -130,6 +130,14 @@ def main():
                      runs / "gitleaks-output.txt", check=False, env=env)
     if result.returncode:
         incomplete.append("historical run findings or scanner error")
+
+    artifact_review = execute(
+        [sys.executable, str(Path(__file__).with_name("audit-publication-artifacts.py")),
+         str(runs), str(root / "artifact-findings.json")],
+        root / "artifact-review-output.txt", check=False, env=env)
+    if artifact_review.returncode:
+        incomplete.append("historical trace contents require review")
+
     if (history / "unreachable.txt").stat().st_size:
         incomplete.append("unreachable objects require separate review")
 

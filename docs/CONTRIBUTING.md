@@ -52,7 +52,7 @@ A change is done only when:
 
 ## Mandatory local disk policy
 
-Use `E:\\APP IDEAS\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform` for the working tree and E-backed locations for caches, build/test output, Docker/WSL state and logs. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Never configure persistent project storage on C:. Unavoidable system temporary use may occur. Inspect effective paths before introducing additional tools. Do not prune or relocate existing storage without specific approval.
+Use the configured E:-backed workspace root for the working tree and E-backed locations for caches, build/test output, Docker/WSL state and logs. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Never configure persistent project storage on C:. Unavoidable system temporary use may occur. Inspect effective paths before introducing additional tools. Do not prune or relocate existing storage without specific approval.
 
 ## Scoped milestone execution
 

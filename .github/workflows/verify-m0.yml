@@ -2,14 +2,9 @@ name: Verify M0
 
 # The pull request path filter permits a single requested verification run
 # when this workflow changes, without recurring runs on unrelated commits.
+# Manual only. Hosted verification is prohibited until separately authorized.
 on:
   workflow_dispatch:
-  pull_request:
-    types: [synchronize]
-    branches:
-      - feat/m0-engineering-baseline
-    paths:
-      - .github/workflows/verify-m0.yml
 
 permissions:
   contents: read

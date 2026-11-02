@@ -30,16 +30,22 @@ assert.ok(org,"M6 North fixture missing");
 await request("PUT","/api/v1/auth/session/organization",{organizationId:org.id});
 const url="/api/v1/organizations/"+org.id+"/containers";
 for(const engine of ["CHROMIUM","FIREFOX","WEBKIT"]){
-  const referenceCode="G6-BOX-"+engine;
-  const current=(await request("GET",url+"?recordStatus=All&limit=100")).containers
-    .find(x=>x.referenceCode===referenceCode);
-  if(!current)await request("POST",url,{
-    referenceCode,identifierKind:"Synthetic",containerIdentifier:"SYN-BOX-G6"+engine,
-    equipmentType:"Dry20",displayName:"G6 "+engine+" allocation"
-  });
-  const rows=(await request("GET",url+"?recordStatus=All&limit=100")).containers
-    .filter(x=>x.referenceCode===referenceCode);
-  assert.equal(rows.length,1);
-  assert.equal(rows[0].recordStatus,"Active");
+  for(const [purpose,code,identifier] of [
+    ["BOX","G6-BOX-"+engine,"SYN-BOX-G6"+engine],
+    ["CONFLICT","G6-CONFLICT-"+engine,"SYN-BOX-G6CONFLICT"+engine],
+    ["ISOLATE","G6-ISOLATE-"+engine,"SYN-BOX-G6ISOLATE"+engine]
+  ]){
+    const rowsBefore=(await request("GET",url+"?recordStatus=All&limit=100")).containers;
+    if(!rowsBefore.some(row=>row.referenceCode===code)){
+      await request("POST",url,{
+        referenceCode:code,identifierKind:"Synthetic",containerIdentifier:identifier,
+        equipmentType:"Dry20",displayName:"G6 "+purpose+" "+engine
+      });
+    }
+    const matches=(await request("GET",url+"?recordStatus=All&limit=100")).containers
+      .filter(row=>row.referenceCode===code);
+    assert.equal(matches.length,1,"Fixture must remain idempotent: "+code);
+    assert.equal(matches[0].recordStatus,"Active");
+  }
 }
-console.log("G6 per-engine disposable container fixtures: PASS");
+console.log("G6 per-engine isolated allocation, conflict and switch fixtures: PASS");

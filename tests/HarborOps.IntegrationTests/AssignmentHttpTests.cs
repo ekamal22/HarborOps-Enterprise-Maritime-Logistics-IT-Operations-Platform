@@ -111,6 +111,23 @@ public sealed class AssignmentHttpTests
     }
 
     [Fact]
+    public async Task ForeignAssignmentIdsReturnNotFoundInsideSelectedTenant()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var manager = f.Manager; using var analyst = f.Analyst; using var admin = f.Admin;
+        var seed = await Seed(f);
+        var origin = seed.Root + "/" + seed.Shipment + "/container-assignments";
+        var assignment = await Create(analyst, origin,
+            new { containerId = seed.Container, startsAtUtc = "2035-02-01T10:00:00Z" });
+        var otherShipment = seed.Root + "/" + seed.OtherShipment + "/container-assignments/" + assignment;
+        using (var hidden = await analyst.GetAsync(otherShipment))
+            Assert.Equal(HttpStatusCode.NotFound, hidden.StatusCode);
+        using (var own = await analyst.GetAsync(origin + "/" + assignment))
+            Assert.Equal(HttpStatusCode.OK, own.StatusCode);
+    }
+
+    [Fact]
     public async Task MalformedAndCrossOriginWritesCannotChangeAssignments()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

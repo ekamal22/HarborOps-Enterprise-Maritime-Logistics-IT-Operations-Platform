@@ -87,7 +87,7 @@ S01 and S10 have decision/conditional semantics; never make them silent executab
 
 ## 4. Local G6 pipeline and ownership
 
-Proposed runner: `scripts/verify-m6-local.sh`, helper `scripts/verify-m6-stages-local.sh`, browser launcher `scripts/run-m6-browsers-local.sh`, evidence validator `scripts/assert-g6-evidence.mjs`, `scripts/check-m6-schema-contract.mjs`, `scripts/check-m6-assignment-outage.mjs`, and `scripts/finalize-g6-evidence.mjs`. These are **planned files, not present/executed**.
+The E:-backed runner `scripts/verify-m6-local.sh`, stage and three-browser launchers, `scripts/assert-g6-evidence.mjs`, `scripts/check-g6-schema-contract.mjs`, `scripts/check-m6-assignment-outage.mjs`, `scripts/run-g6-mutations.mjs`, `scripts/check-g6-snapshot.mjs`, and `scripts/finalize-g6-evidence.mjs` are **authored and committed, NOT EXECUTED**. The evidence checker requires nonempty TRX suites, complete per-browser inventories, four killed mutations, the conditional historical-backup disposition, the exact source SHA, and complete owned-resource teardown. A technical PASS never constitutes independent acceptance.
 
 - Windows checkout: `E:\APP IDEAS\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`.
 - Verification root: `E:\HarborOps-Verification\m6`; `evidence`, `archives`, `cache`, browser profiles and scratch beneath it.
@@ -104,4 +104,4 @@ Proposed runner: `scripts/verify-m6-local.sh`, helper `scripts/verify-m6-stages-
 
 The complete test matrix must execute on a final pinned M6 source revision; any correction requires full rerun on a new revision. Publish raw evidence archive and standalone SHA-256 checksum, with independent review of actual assertions, SQL concurrency/proofs and S01/S10 dispositions. Do not label S01 Accepted until the M6-local contract is expressly approved. Technical evidence and acceptance are separate. Do not merge M6 into `main` without explicit G6 and integration approval.
 
-**Current disposition:** G6-S01 through G6-S25 NOT RUN (S01 decision pending); the Q1 historical-volume check has not been assessed; no M6 implementation is authored or verified.
+**Current disposition:** M6 implementation and corrective test/harness source are committed on the feature branch; no .NET, PostgreSQL, browser, snapshot or complete G6 local execution has run in this session. G6-S01 through G6-S25 remain NOT RUN, with the twelve-rule contract awaiting explicit approval. See [M6 implementation status](M6_IMPLEMENTATION_STATUS.md).

@@ -88,7 +88,7 @@ M5 supports tenant-scoped shipment create, edit, search, archive and restore, a 
 
 ### M6 shipment assignments implementation (verification pending)
 
-M6 source is authored on `feat/m6-container-voyage-assignments`, based on accepted G4 and G5: [domain and schema architecture](docs/M6_ARCHITECTURE_DESIGN.md), PostgreSQL temporal exclusivity, scoped allocation API, React shipment allocation panels and initial tests. The proposed [M6 local contract](docs/M6_LOCAL_CONTRACT_DECISION.md) and [G6 verification matrix](docs/M6_VERIFICATION_PLAN.md) cover parent guards and the Q1 snapshot checkpoint. **Runtime build and tests have NOT RUN, G6 is open and contract acceptance is pending.** See [M6 implementation status](docs/M6_IMPLEMENTATION_STATUS.md) and [implementation plan](docs/M6_IMPLEMENTATION_PLAN.md).
+M6 source is authored on `feat/m6-container-voyage-assignments`, based on accepted G4 and G5: [domain and schema architecture](docs/M6_ARCHITECTURE_DESIGN.md), PostgreSQL temporal exclusivity, scoped allocation API, React shipment allocation panels and expanded adversarial test source, including SQL FK proofs, lock-observed parent races, after-write interruption tests and three-engine browser cases. The proposed [M6 local contract](docs/M6_LOCAL_CONTRACT_DECISION.md) and [G6 verification matrix](docs/M6_VERIFICATION_PLAN.md) cover parent guards and the Q1 snapshot checkpoint. **Runtime build and tests have NOT RUN, G6 is open and contract acceptance is pending.** See [M6 implementation status](docs/M6_IMPLEMENTATION_STATUS.md) and [implementation plan](docs/M6_IMPLEMENTATION_PLAN.md).
 
 ### Parallel dependency-based delivery
 

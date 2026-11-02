@@ -93,7 +93,7 @@ M5 domain, SQL/EF mappings and migration, tenant-scoped API, shipment-specific r
 
 ## M6 assignment implementation (runtime verification pending)
 
-M6 assignment domain, new additive PostgreSQL migration, eight scoped API routes, React panels and initial unit/SQL/HTTP/concurrency/browser tests are authored on `feat/m6-container-voyage-assignments`, based on accepted `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`. The twelve-rule [local assignment contract](M6_LOCAL_CONTRACT_DECISION.md) remains proposed, acceptance pending. The [25-case G6 plan](M6_VERIFICATION_PLAN.md) and local E:-backed harness are authored but NOT RUN; independent evidence and G6 acceptance remain pending. The Q1 historical snapshot checkpoint is pending. See [implementation register](M6_IMPLEMENTATION_STATUS.md). No GitHub Actions or merges occurred for M6.
+M6 assignment domain, new additive PostgreSQL migration, eight scoped API routes, React panels and expanded SQL/HTTP/concurrency/interruption/browser tests plus the G6 mutation and snapshot harness are authored on `feat/m6-container-voyage-assignments`, based on accepted `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`. The twelve-rule [local assignment contract](M6_LOCAL_CONTRACT_DECISION.md) remains proposed, acceptance pending. The [25-case G6 plan](M6_VERIFICATION_PLAN.md) and local E:-backed harness are authored but NOT RUN; independent evidence and G6 acceptance remain pending. The Q1 historical snapshot checkpoint is pending. See [implementation register](M6_IMPLEMENTATION_STATUS.md). No GitHub Actions or merges occurred for M6.
 
 ## Next eligible parallel workstreams
 

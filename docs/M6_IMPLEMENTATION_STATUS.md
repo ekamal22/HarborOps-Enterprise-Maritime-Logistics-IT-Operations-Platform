@@ -4,7 +4,7 @@
 **Milestone:** M6-01 through M6-04; G6
 **Branch:** `feat/m6-container-voyage-assignments`
 **Accepted base:** `main` at `344c6eb96a9af600b5843cc97c56a8449174bad8`, G0-G5 accepted
-**Implementation state:** Assignment domain, additive PostgreSQL migration, API, React workspace and initial tests authored and committed. Runtime build, PostgreSQL migration, three-browser execution, complete G6 verification and acceptance are **NOT RUN**. No M6 integration into `main`.
+**Implementation state:** Assignment domain, additive PostgreSQL migration, API, React workspace, expanded adversarial tests, security mutation runner, historical snapshot restore and extracted-archive verification authored and committed. Runtime build, PostgreSQL migration, three-browser execution, complete G6 verification and acceptance are **NOT RUN**. No M6 integration into `main`.
 **Decision state:** [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) proposed, acceptance pending; do not mark G6-S01 complete.
 
 ## Implemented source
@@ -31,7 +31,25 @@
 - `AssignmentInterruptionTests.cs`: PostgreSQL advisory-lock barrier, terminated backend before commit, rollback and successful retry.
 - `tests/browser/specs/assignment.spec.mjs`: Chromium/Firefox/WebKit source for allocation and tenant-switch behaviors.
 - Existing full-latest-migration expectations updated to seven migrations; historical M5 tests are pinned to their actual M5 version rather than being silently reinterpreted as M6.
-- `scripts/verify-m6-local.sh`, related G6 stage/browser/fixture/recovery scripts, schema/source validators, snapshot checkpoint, manifest/archive generation, and evidence mapping were authored. They must be executed on E: before any G6 claims.
+- `scripts/verify-m6-local.sh`, stage/browser/fixture/recovery scripts, schema/source validators, snapshot restore, mutation controls, manifest/re-extracted archive integrity, and scenario evidence mapping are authored. They must execute on E: before any G6 claims.
+
+## Correctness-remediation register
+
+The current source contains fixes for the first M6 correctness audit. These are **authored remediations, not verified runtime passes**:
+
+| Audit concern | Source remediation and evidence requirement |
+| --- | --- |
+| G6 gate hard-coded incomplete | `scripts/assert-g6-evidence.mjs` now maps 25 scenarios to actual TRX, Playwright reports, stage proofs, executed security mutants and snapshot results. G6-S01 remains incomplete until the contract is approved. |
+| Composite FK proof | `AssignmentSqlTests.CompositeForeignKeysRejectCrossTenantParentsWithoutValidationTrigger` disables only the custom validation trigger transactionally, demands PostgreSQL `23503` and the exact FK constraint name, then rolls back the test transaction. |
+| Browser inventory | Eight M6 specs per engine cover Analyst allocation, organization change, Auditor, Support, visibility return, logout, duplicate conflict and delayed response. Separate per-engine container fixtures prevent overlap interference. |
+| Security mutation evidence | `scripts/run-g6-mutations.mjs` exports disposable source copies, builds each variant and requires baseline PASS plus named failures for tenant read, post-lock authorization, exclusion and parent guard mutations. |
+| Interruption proof | `AssignmentAdditionalFailureTests.cs` adds after-write request cancellation, command timeout and post-commit response loss to the existing real connection-termination proof. |
+| ZIP integrity | `scripts/finalize-g6-evidence.mjs` re-extracts the ZIP and checks every path, SHA-256 hash and byte length, with scoped temporary cleanup. |
+| Browser evidence inventory | The G6 checker rejects missing/empty tests, skipped/failed attempts and inconsistent engine inventories. |
+| Deterministic archive race | `AssignmentConcurrencyTests.QueuedAllocationAndParentArchiveCannotCommitInconsistentState` observes a PostgreSQL lock before releasing the parent transaction and validates the committed invariant. |
+| Tab visibility | Allocation lists refresh on visibility return without wiping assignment input or the unsaved M5 shipment draft. |
+| Contextual voyage display | The shipment UI intersects container/voyage allocation intervals and labels the result as administrative context, not loading evidence. |
+| Q1 snapshot | `scripts/check-g6-snapshot.mjs` restores and migrates a representative E:-backed backup in a disposable PostgreSQL container, or records justified NOT APPLICABLE when none is present. |
 
 ## Verification limits and outstanding work
 
@@ -42,10 +60,10 @@ Before G6 acceptance, run the full G6-S01 through G6-S25 matrix on a pinned SHA,
 Known items requiring adversarial execution or further source strengthening:
 1. PostgreSQL `btree_gist` provisioning and GiST exclusion behavior under two simultaneous real connections.
 2. Direct-SQL parent change and assignment insertion lock interleavings, including deadlock retry outcomes, unchanged M4/M5 behavior and incomplete transaction rollback.
-3. End-to-end browser catalog fixtures, all role/tenant states, safe labels for Auditor and no stale state after session/organization changes.
+3. Execute and inspect the eight M6 browser scenarios on Chromium, Firefox and WebKit; extend assertions if the raw G6 matrix exposes missed role or session races.
 4. Full SQL/EF migration and model snapshot comparison; historical upgrade/rollback; M0-M5 accepted regressions.
-5. G6 interruption/recovery subcases beyond the initial backend-termination test, actual Q1 snapshot compatibility or documented NOT APPLICABLE.
-6. Independent security mutation proofs against tenant scoping, exclusion constraints, parent guards and post-lock authorization.
+5. Execute and independently review the expanded cancellation/timeout/interruption/lost-response tests and the Q1 historical snapshot, or its documented NOT APPLICABLE disposition.
+6. Execute four isolated security mutations and prove their named tests fail while the unmodified control passes.
 7. Full G6 evidence mapping, raw test logs, image scans, E:/C: storage accounting and teardown integrity.
 
 ## Governance

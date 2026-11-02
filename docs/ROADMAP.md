@@ -2,7 +2,7 @@
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Date:** 2026-10-30  
-**State:** M0/G0 through M5/G5 are locally verified and explicitly accepted. G5 and its six-rule contract were approved 2026-11-02 after [raw evidence review](M5_EXECUTED_VERIFICATION.md), [compliance audit](M5_G5_S01_CONTRACT_COMPLIANCE.md) and [gate closure](M5_G5_GATE_CLOSURE.md). M5 integrated into `main`; G6-G24 remain open.
+**State:** M0/G0 through M6/G6 are locally verified, explicitly accepted and integrated into `main` as of 2026-11-02. The twelve-rule M6 contract and G6-S10 snapshot limitation are documented in [gate closure](M6_G6_GATE_CLOSURE.md). G7-G24 remain open.
 
 ## Authority and rationale
 
@@ -37,7 +37,7 @@ The canonical work-package DAG is [execution-graph.json](execution-graph.json), 
 - **Gate closure** requires the complete positive/negative/security/regression evidence on the integrated source revision and explicit acceptance. Verified but unaccepted gates are not substitutes for accepted prerequisites.
 - **G24 release convergence** requires G0-G23 accepted, every cross-track contract integrated, a full final-system regression, M24-03 historical compatibility and M24-04 accessibility assessment. Early G19 recovery or G20 security review must be revalidated for later schema/features at this final gate.
 
-With G4 and G5 accepted, M6 shipment assignments, M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain eligible under their original independent prerequisites. M6 implementation is now eligible because both G4 and G5 are accepted. G6 still requires its own verification and acceptance. Eligibility does not imply implementation or acceptance.
+M6/G6 are complete and integrated. M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain independently eligible. M8's G6 prerequisite is satisfied, but G7 and D-006 still apply where required. Eligibility never implies acceptance.
 
 ## Milestone register
 
@@ -101,7 +101,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Verify the existing source-only foundation against real runtime evidence.
 **Entry:** Existing implementation reviewed without assuming runtime correctness.
 **Required work packages:** M0-01 Assess existing M0 branch; M0-02 Build and test foundations; M0-03 Verify migration and seed; M0-04 Verify local stack and browser; M0-05 Verify failure and hygiene.
-**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2 and G3 were verified locally and accepted on 2026-10-31. G5 was subsequently accepted on 2026-11-02; G6-G24 remain open.
+**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2 and G3 were verified locally and accepted on 2026-10-31. G5 and G6 were subsequently accepted on 2026-11-02; G7-G24 remain open.
 **Not covered by this milestone:** Shipment and tenant business functionality.
 
 #### M1: Authentication and session lifecycle
@@ -152,7 +152,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Temporal and organization-safe shipment assignments.
 **Entry:** G4 accepted, G5 accepted before respective dependent work packages.
 **Required work packages:** M6-01 define and approve assignment invariants, M6-02 implement shipment-container links and M6-03 implement shipment-voyage links in parallel after M6-01, M6-04 integrate the complete allocation journey. See [architecture](M6_ARCHITECTURE_DESIGN.md) and [implementation plan](M6_IMPLEMENTATION_PLAN.md).
-**Exit G6:** The complete [G6-S01 to G6-S25 verification contract](M6_VERIFICATION_PLAN.md) requires actual database, HTTP, browser, security and recovery execution at one final SHA, independent raw evidence review, explicit [M6 local contract](M6_LOCAL_CONTRACT_DECISION.md) approval and separate G6 acceptance. M6 initial implementation source is committed on its feature branch; build, G6 execution and formal acceptance have not occurred. See [implementation status](M6_IMPLEMENTATION_STATUS.md).
+**Exit G6:** Accepted and integrated into `main` on 2026-11-02. Executable G6-S02 through G6-S25 passed on source `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`; G6-S01 closed by explicit approval of the [twelve-rule contract](M6_LOCAL_CONTRACT_DECISION.md). The original evidence stage exit 1 is retained as historical fact. The M0-only snapshot limitation and populated M5 upgrade proof are documented in [G6 closure](M6_G6_GATE_CLOSURE.md).
 **Q1 snapshot checkpoint:** Verify a disposable copy of a retained historical PostgreSQL volume if available; otherwise record NOT APPLICABLE. This is a milestone checkpoint, not a per-commit test.
 **Not covered by this milestone:** Tracking intake or analytics.
 

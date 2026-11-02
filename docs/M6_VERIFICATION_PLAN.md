@@ -79,6 +79,8 @@ S01 and S10 have decision/conditional semantics; never make them silent executab
 
 ### Chromium, Firefox and WebKit
 
+The committed G6-specific Playwright inventory contains nine per-engine scenarios, including permission downgrade, scoped read-only views, conflict recovery, delayed cross-organization responses, logout and visibility revalidation. These scenarios have not yet been executed.
+
 - End-to-end workflow from real authenticated Analyst tenant selection to shipment creation, container attach and voyage attach, view and close.
 - Second tenant same reference names, foreign UUID denial, logout/role change clearing selected assignment rows.
 - Cancelled/stale in-flight read, double-click/duplicate request, visible optimistic-conflict handling, port/voyage catalog retry and parent archived/terminal error presentation.

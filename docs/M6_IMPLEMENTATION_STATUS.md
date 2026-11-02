@@ -29,6 +29,8 @@
 - `AssignmentSecurityTests.cs`: Auditor view-only, Manager/Analyst writes, revocation after membership downgrade and concurrent container allocation.
 - `AssignmentConcurrencyTests.cs`: parent archive/cancellation versus allocation.
 - `AssignmentInterruptionTests.cs`: PostgreSQL advisory-lock barrier, terminated backend before commit, rollback and successful retry.
+- `AssignmentAdditionalFailureTests.cs`: after-write cancellation, command timeout and lost committed response, with explicit retry assertions.
+- `AssignmentQueuedSecurityTests.cs`: lock-observed assignment read/write requests with live session, account, membership, role, organization and selected-organization changes.
 - `tests/browser/specs/assignment.spec.mjs`: Chromium/Firefox/WebKit source for allocation and tenant-switch behaviors.
 - Existing full-latest-migration expectations updated to seven migrations; historical M5 tests are pinned to their actual M5 version rather than being silently reinterpreted as M6.
 - `scripts/verify-m6-local.sh`, stage/browser/fixture/recovery scripts, schema/source validators, snapshot restore, mutation controls, manifest/re-extracted archive integrity, and scenario evidence mapping are authored. They must execute on E: before any G6 claims.
@@ -41,7 +43,7 @@ The current source contains fixes for the first M6 correctness audit. These are 
 | --- | --- |
 | G6 gate hard-coded incomplete | `scripts/assert-g6-evidence.mjs` now maps 25 scenarios to actual TRX, Playwright reports, stage proofs, executed security mutants and snapshot results. G6-S01 remains incomplete until the contract is approved. |
 | Composite FK proof | `AssignmentSqlTests.CompositeForeignKeysRejectCrossTenantParentsWithoutValidationTrigger` disables only the custom validation trigger transactionally, demands PostgreSQL `23503` and the exact FK constraint name, then rolls back the test transaction. |
-| Browser inventory | Eight M6 specs per engine cover Analyst allocation, organization change, Auditor, Support, visibility return, logout, duplicate conflict and delayed response. Separate per-engine container fixtures prevent overlap interference. |
+| Browser inventory | Nine M6 specs per engine cover Analyst allocation, organization change, Auditor, Support, visibility return, logout, duplicate conflict, delayed response and live membership downgrade. Separate per-engine container fixtures prevent overlap interference. |
 | Security mutation evidence | `scripts/run-g6-mutations.mjs` exports disposable source copies, builds each variant and requires baseline PASS plus named failures for tenant read, post-lock authorization, exclusion and parent guard mutations. |
 | Interruption proof | `AssignmentAdditionalFailureTests.cs` adds after-write request cancellation, command timeout and post-commit response loss to the existing real connection-termination proof. |
 | ZIP integrity | `scripts/finalize-g6-evidence.mjs` re-extracts the ZIP and checks every path, SHA-256 hash and byte length, with scoped temporary cleanup. |
@@ -60,7 +62,7 @@ Before G6 acceptance, run the full G6-S01 through G6-S25 matrix on a pinned SHA,
 Known items requiring adversarial execution or further source strengthening:
 1. PostgreSQL `btree_gist` provisioning and GiST exclusion behavior under two simultaneous real connections.
 2. Direct-SQL parent change and assignment insertion lock interleavings, including deadlock retry outcomes, unchanged M4/M5 behavior and incomplete transaction rollback.
-3. Execute and inspect the eight M6 browser scenarios on Chromium, Firefox and WebKit; extend assertions if the raw G6 matrix exposes missed role or session races.
+3. Execute and inspect the nine M6 browser scenarios on Chromium, Firefox and WebKit, including live membership downgrade and cache invalidation; extend assertions if the raw G6 matrix exposes missed states.
 4. Full SQL/EF migration and model snapshot comparison; historical upgrade/rollback; M0-M5 accepted regressions.
 5. Execute and independently review the expanded cancellation/timeout/interruption/lost-response tests and the Q1 historical snapshot, or its documented NOT APPLICABLE disposition.
 6. Execute four isolated security mutations and prove their named tests fail while the unmodified control passes.

@@ -11,7 +11,7 @@ internal static class LocalPeerTestServer
     public static void Configure(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
-            services.AddSingleton<IStartupFilter, LoopbackPeerStartupFilter>());
+            services.AddSingleton<IStartupFilter>(new LoopbackPeerStartupFilter()));
     }
 
     private sealed class LoopbackPeerStartupFilter : IStartupFilter

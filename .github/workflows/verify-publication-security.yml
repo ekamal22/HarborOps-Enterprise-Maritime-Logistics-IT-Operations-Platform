@@ -1,0 +1,339 @@
+name: Publication Security Verification
+
+# Manual only. This workflow has no push, pull_request or schedule trigger and must stay that way.
+# Run it only after explicit approval, against a full 40-character commit that is already pushed.
+# The repository-level Actions setting must also permit the run; this file does not enable Actions.
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full 40-character commit SHA of the corrected security source to verify
+        required: true
+        type: string
+      approval:
+        description: Type RUN to confirm that this dispatch was explicitly approved
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: harborops-publication-verification
+  cancel-in-progress: false
+
+env:
+  SOURCE_SHA: ${{ inputs.source_sha }}
+  HARBOROPS_DB_PASSWORD: disposable-publication-test-only
+  HARBOROPS_TEST_DB: Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops
+
+# Every job is independent (no `needs` between them), so one failing suite never prevents the
+# unrelated security scans from running. The summary job reports each result separately.
+# Nothing is uploaded as an artifact: Playwright traces and screenshots can contain session and
+# antiforgery cookies, so they stay on the disposable runner and are removed in cleanup steps.
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require explicit approval and a full commit SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ inputs.approval }}" = "RUN"
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+
+  static:
+    needs: gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out the exact source commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - name: Confirm checked-out revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "Verified source commit: $SOURCE_SHA"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+      - name: Validate publication scripts and planning documents
+        shell: bash
+        run: |
+          set -euo pipefail
+          for script in scripts/audit-publication-history.py scripts/audit-publication-artifacts.py scripts/audit-publication-supply-chain.py scripts/prepare-public-source-snapshot.py scripts/check-publication-governance.py; do
+            python -I -c 'import ast,sys;ast.parse(open(sys.argv[1],encoding="utf-8").read())' "$script"
+          done
+          node --check scripts/verify-publication-http.mjs
+          node --check scripts/verify-publication-hosted.mjs
+          node scripts/render-execution-graph.mjs --check
+          node scripts/check-planning-docs.mjs
+      - name: Confirm no automatic workflow triggers exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -En '^\s*(push|pull_request|pull_request_target|schedule|workflow_run):' .github/workflows/*.yml; then
+            echo "Automatic workflow trigger found" >&2
+            exit 1
+          fi
+
+  dotnet:
+    needs: gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out the exact source commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - name: Confirm checked-out revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "Verified source commit: $SOURCE_SHA"
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          global-json-file: global.json
+      - name: Build PostgreSQL test image
+        run: docker build --build-arg SOURCE_REVISION="$SOURCE_SHA" -t harborops-postgres:16.15-rootless -f docker/postgres/Dockerfile .
+      - name: Start disposable test database
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name harborops-publication-test-db \
+            --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 \
+            --cap-drop ALL --security-opt no-new-privileges \
+            -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops \
+            -e POSTGRES_HOST_AUTH_METHOD=trust \
+            -p 127.0.0.1:5432:5432 harborops-postgres:16.15-rootless
+          for n in $(seq 1 45); do
+            if docker exec harborops-publication-test-db pg_isready -U harborops -d harborops_integration; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Restore and compile solution
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet restore HarborOps.sln
+          dotnet build HarborOps.sln -c Release --no-restore -warnaserror
+      - name: Unit tests
+        run: dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-build
+      - name: API contract and transport hardening tests
+        run: dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --no-build
+      - name: PostgreSQL integration and authorization regressions
+        run: dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build
+      - name: Remove disposable database
+        if: always()
+        run: docker rm -f harborops-publication-test-db || true
+
+  frontend:
+    needs: gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out the exact source commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - name: Confirm checked-out revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "Verified source commit: $SOURCE_SHA"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+      - name: Frontend tests and production build
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --prefix web --no-fund --no-audit
+          npm test --prefix web
+          npm run build --prefix web
+
+  dependencies:
+    needs: gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out the exact source commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - name: Confirm checked-out revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "Verified source commit: $SOURCE_SHA"
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+      - name: NuGet and npm advisories
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/advisories"
+          dotnet restore HarborOps.sln
+          dotnet list HarborOps.sln package --vulnerable --include-transitive --format json > "$RUNNER_TEMP/advisories/dotnet.json"
+          python - "$RUNNER_TEMP/advisories/dotnet.json" <<'PY'
+          import json, sys
+          packages = json.load(open(sys.argv[1])).get('projects', [])
+          if not packages: raise SystemExit('Missing NuGet audit inventory')
+          issues = [p for project in packages for f in project.get('frameworks', [])
+                    for key in ('topLevelPackages', 'transitivePackages')
+                    for p in f.get(key, []) if p.get('vulnerabilities')]
+          print('NuGet reported vulnerable dependencies:', len(issues))
+          if issues: raise SystemExit(1)
+          PY
+          npm ci --prefix web --no-fund --no-audit
+          npm audit --prefix web --audit-level=low
+          npm ci --prefix tests/browser --no-fund --no-audit
+          npm audit --prefix tests/browser --audit-level=low
+
+  compose-browsers:
+    needs: gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      COMPOSE_PROJECT_NAME: ho-verify-pub
+      HARBOROPS_COMPOSE_PROJECT: ho-verify-pub
+    steps:
+      - name: Check out the exact source commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - name: Confirm checked-out revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "Verified source commit: $SOURCE_SHA"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+      - name: Generate masked synthetic credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          credential="$(openssl rand -hex 32)"
+          echo "::add-mask::$credential"
+          echo "HARBOROPS_TEST_USER_PASSWORD=$credential" >> "$GITHUB_ENV"
+      - name: Build and smoke test disposable Compose stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HARBOROPS_SOURCE_SHA="$SOURCE_SHA"
+          bash scripts/smoke-compose.sh --project ho-verify-pub --confirm-disposable
+      - name: Transport, Host, forwarded-header and security-header checks
+        shell: bash
+        run: bash scripts/verify-publication-stages-local.sh transport
+      - name: Provision isolated synthetic browser account
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" |
+            docker compose -p ho-verify-pub run --rm -T -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
+              --account-cli provision operator@example.test "Synthetic Operator"
+      - name: Three-engine browser authentication and baseline regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd tests/browser
+          npm ci --no-fund --no-audit
+          npx playwright install --with-deps chromium firefox webkit
+          npx playwright test specs/auth.spec.mjs specs/baseline.spec.mjs specs/regression.spec.mjs --workers=1
+      - name: Clean isolated verification resources
+        if: always()
+        shell: bash
+        run: |
+          docker compose -p ho-verify-pub down --volumes --remove-orphans || true
+          rm -rf tests/browser/test-results tests/browser/playwright-report
+
+  images:
+    needs: gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      COMPOSE_PROJECT_NAME: ho-verify-pub-scan
+      HARBOROPS_DB_PASSWORD: disposable-publication-test-only
+    steps:
+      - name: Check out the exact source commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - name: Confirm checked-out revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "Verified source commit: $SOURCE_SHA"
+      - name: Build revision-labelled images
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HARBOROPS_SOURCE_SHA="$SOURCE_SHA"
+          docker compose -p ho-verify-pub-scan build
+          docker compose -p ho-verify-pub-scan pull --ignore-buildable 2>/dev/null || true
+      - name: Scan exact revision container images
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/trivy" "$RUNNER_TEMP/reports"
+          while read -r image; do
+            test -n "$image"
+            revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
+            test "$revision" = "$SOURCE_SHA"
+            report="$(echo "$image" | tr '/:' '__')"
+            docker run --rm               -v /var/run/docker.sock:/var/run/docker.sock               -v "$RUNNER_TEMP/trivy:/root/.cache/trivy"               -v "$RUNNER_TEMP/reports:/reports"               aquasec/trivy@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c               image --image-src docker --scanners vuln               --severity HIGH,CRITICAL --exit-code 1               --format json --output "/reports/$report.json" "$image"
+            echo "$image vulnerability scan: PASS"
+          done < <(docker compose -p ho-verify-pub-scan config --images | sort -u)
+      - name: Remove built images
+        if: always()
+        run: docker compose -p ho-verify-pub-scan down --rmi local --volumes --remove-orphans || true
+
+  summary:
+    if: always()
+    needs: [gate, static, dotnet, frontend, dependencies, compose-browsers, images]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Report each independent result
+        shell: bash
+        run: |
+          {
+            echo "## Publication security verification"
+            echo
+            echo "Source commit: \`$SOURCE_SHA\`"
+            echo
+            echo "| Job | Result |"
+            echo "| --- | --- |"
+            echo "| gate | ${{ needs.gate.result }} |"
+            echo "| static | ${{ needs.static.result }} |"
+            echo "| dotnet | ${{ needs.dotnet.result }} |"
+            echo "| frontend | ${{ needs.frontend.result }} |"
+            echo "| dependencies | ${{ needs.dependencies.result }} |"
+            echo "| compose-browsers | ${{ needs.compose-browsers.result }} |"
+            echo "| images | ${{ needs.images.result }} |"
+            echo
+            echo "Hosted HTTPS checks against a real domain, historical disclosure review and governance settings are not performed by this workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
+          for result in "${{ needs.gate.result }}" "${{ needs.static.result }}" "${{ needs.dotnet.result }}" "${{ needs.frontend.result }}" "${{ needs.dependencies.result }}" "${{ needs.compose-browsers.result }}" "${{ needs.images.result }}"; do
+            test "$result" = "success"
+          done

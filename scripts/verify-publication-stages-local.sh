@@ -6,7 +6,7 @@
 # project's own network. Nothing here touches the application's real Compose project or volumes.
 set -euo pipefail
 
-project="ho-verify-g6"
+project="${HARBOROPS_COMPOSE_PROJECT:-ho-verify-g6}"
 network="${project}_internal"
 api="http://127.0.0.1:8080"
 web="http://127.0.0.1:5173"

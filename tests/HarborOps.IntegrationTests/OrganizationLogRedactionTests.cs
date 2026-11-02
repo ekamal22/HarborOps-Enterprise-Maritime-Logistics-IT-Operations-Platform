@@ -47,6 +47,7 @@ public sealed class OrganizationLogRedactionTests
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            LocalPeerTestServer.Configure(builder);
             builder.UseEnvironment("Development");
             builder.UseSetting("ConnectionStrings:HarborOps", connection);
             builder.UseSetting("Identity:AllowInsecureLoopbackHttp", "true");

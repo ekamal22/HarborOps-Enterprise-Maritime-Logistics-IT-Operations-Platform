@@ -6,8 +6,8 @@ test("integration route is proxied and rejects requests without source credentia
     headers: { "X-HarborOps-Tracking-Profile": "tnt-2.2-harborops-v1" },
     data: {
       sourceEventId: "browser-1",
-      family: "Equipment",
-      code: "GTIN",
+      eventFamily: "Equipment",
+      eventCode: "GTIN",
       classifier: "ACT",
       occurredAtUtc: "2026-11-02T10:00:00Z",
       equipmentReference: "SYN-BOX-ABCD",

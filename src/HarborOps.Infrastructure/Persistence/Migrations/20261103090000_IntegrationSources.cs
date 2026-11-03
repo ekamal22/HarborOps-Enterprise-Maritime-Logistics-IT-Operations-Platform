@@ -26,6 +26,8 @@ public sealed class IntegrationSources : Migration
                 CONSTRAINT "AK_integration_sources_organization_id_id" UNIQUE (organization_id,id),
                 CONSTRAINT "UQ_m7_source_code" UNIQUE (organization_id,source_code),
                 CONSTRAINT "CK_m7_source_status" CHECK (status IN ('Active','Disabled')),
+                CONSTRAINT "CK_m7_source_name" CHECK (length(btrim(display_name)) BETWEEN 1 AND 160 AND
+                    display_name = btrim(display_name) AND display_name !~ '[[:cntrl:]]'),
                 CONSTRAINT "CK_m7_source_code" CHECK (source_code ~ '^[a-z][a-z0-9_-]{2,79}$' AND
                     source_code !~ '[[:cntrl:]]'),
                 CONSTRAINT "CK_m7_source_version" CHECK (version > 0 AND updated_at_utc >= created_at_utc),

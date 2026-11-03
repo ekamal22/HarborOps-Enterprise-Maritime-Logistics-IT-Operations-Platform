@@ -2,7 +2,7 @@
 
 ## M7 source-locked verification boundary
 
-The M7 feature branch contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 was accepted on 2026-11-03; the pinned reference snapshots are checked by `scripts/verify-dcsa-reference.mjs` and the M7 contract tests; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
+The accepted M7 implementation contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 was accepted on 2026-11-03; the pinned reference snapshots are checked by `scripts/verify-dcsa-reference.mjs` and the M7 contract tests; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
 
 ## Philosophy
 
@@ -68,9 +68,9 @@ The [25-case G5 matrix](M5_VERIFICATION_PLAN.md) covers domain transitions, tena
 
 The accepted [M6 local assignment contract](M6_LOCAL_CONTRACT_DECISION.md), [architecture](M6_ARCHITECTURE_DESIGN.md) and [implementation plan](M6_IMPLEMENTATION_PLAN.md) define two tenant-owned UTC half-open allocation histories. The G6 technical verification at the pinned source passed 149 unit, 12 contract, 187 fresh and 187 repeat integration tests, and 57 browser tests in each engine, alongside four effective security mutations, historical migration, outage/recovery and clean scans. The original evidence assertion exited 1 solely for pending G6-S01 contract acceptance. The twelve-rule contract and full G6 were explicitly accepted on 2026-11-02. See [gate closure](M6_G6_GATE_CLOSURE.md).
 
-## M7/G7 verification contract (technical run executed, acceptance pending)
+## M7/G7 verification contract (accepted 2026-11-03)
 
-The [G7-S01 through G7-S25 plan](M7_VERIFICATION_PLAN.md) requires pinned D-002 source artifacts, direct two-tenant bearer-authentication checks, credential lifecycle/revocation races, exact JSON limits, HTTPS and trusted-proxy denial, a `503 intake_unavailable` no-ack proof, M6-to-M7 migration preservation, affected accepted M0-M6 regressions and source-locked E:-backed evidence. The suites were executed locally on one revision. The original run passed 21 of 25 scenarios; after the G7-S06 operator supplement, the G7-S25 evidence reconciliation and the D-002 reference verification, all 25 pass. See the [executed verification record](M7_EXECUTED_VERIFICATION.md). G7 is not accepted. GitHub Actions stays disabled.
+The [G7-S01 through G7-S25 plan](M7_VERIFICATION_PLAN.md) requires pinned D-002 source artifacts, direct two-tenant bearer-authentication checks, credential lifecycle/revocation races, exact JSON limits, HTTPS and trusted-proxy denial, a `503 intake_unavailable` no-ack proof, M6-to-M7 migration preservation, affected accepted M0-M6 regressions and source-locked E:-backed evidence. The suites were executed locally on one revision. The original run passed 21 of 25 scenarios; after the G7-S06 operator supplement, the G7-S25 evidence reconciliation and the D-002 reference verification, all 25 pass. See the [executed verification record](M7_EXECUTED_VERIFICATION.md). G7 was explicitly accepted 2026-11-03 after supplemental review; see [G7 closure](M7_G7_GATE_CLOSURE.md). Original runner outcomes remain unchanged. GitHub Actions stays disabled.
 
 ## Publication security verification (executed locally)
 

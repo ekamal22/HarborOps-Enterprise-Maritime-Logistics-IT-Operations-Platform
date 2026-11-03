@@ -1,12 +1,12 @@
 # M7 Planning Status
 
 **As of:** 2026-11-03
-**State:** Architecture and implementation plan drafted, acceptance pending.
+**State:** M7 planning and implementation completed; G7 accepted on 2026-11-03 and integrated into `main` through PR #10 and PR #11. See [closure](M7_G7_GATE_CLOSURE.md).
 **Baseline:** `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`
 **Working branch:** `plan/m7-tracking-contracts-source-auth`
 **Implementation:** Committed on `feat/m7-tracking-source-validation`; technical verification executed (see [executed verification](M7_EXECUTED_VERIFICATION.md))
-**G7 verification:** Technical run executed on `7b87f3250aba677b1f4aeef4350803d9ca7b6880`; original run 21 PASS, 3 BLOCKED, 1 NOT EXECUTED; all 25 PASS after three supplements; acceptance pending
-**G7 acceptance:** PENDING
+**G7 verification:** Technical run executed on `7b87f3250aba677b1f4aeef4350803d9ca7b6880`; original run 21 PASS, 3 BLOCKED, 1 NOT EXECUTED; all 25 PASS after three supplements; accepted 2026-11-03
+**G7 acceptance:** ACCEPTED 2026-11-03
 **D-002:** Accepted 2026-11-03, Option A (DCSA Track & Trace 2.2.0 as the reference baseline for the narrower HarborOps profile, pinned as local snapshots).
 
 ## Scope and authorities
@@ -27,12 +27,12 @@ M7 defines the versioned tracking adapter contract, source/tenant credentials an
 4. Integrate M7-04 HTTP contract and run all G7-S01 to G7-S25 cases locally with isolated E:-backed evidence.
 5. Obtain independent G7 technical review and explicit acceptance before merging the M7 implementation.
 
-The planning PR itself contains no application changes. The separate implementation branch contains source, tests and a migration, and the executed verification record, but no accepted G7 evidence. See [implementation register](M7_IMPLEMENTATION_STATUS.md). Its approval is separate from the D-002 decision, which is recorded. Accepted M0-G0 through M6-G6 remain unchanged; D-006 for M8 remains open.
+The planning PR contained no application changes. The implementation PR delivered source, tests and the migration, and the executed verification record plus supplements underpin the accepted G7 decision. See [implementation register](M7_IMPLEMENTATION_STATUS.md). Its approval is separate from the D-002 decision, which is recorded. Accepted M0-G0 through M6-G6 remain unchanged; D-006 for M8 remains open.
 
 ## Operating constraints
 
 The source repository is public, `main` is protected and GitHub Actions is disabled. Use pull requests and `[skip ci]` commits. All controlled local verification and Docker/cache/evidence storage must remain on E:, with no persistent use of C:. Do not host the application or publish credentials. Accessibility testing remains deferred to M24-04.
 
-## Next state
+## Closed state
 
-**M7 architecture review: D-002 accepted 2026-11-03 (Option A); G7 acceptance pending.**
+**D-002 Option A, M7 and G7 accepted 2026-11-03; M7 merged.** The separate M8 D-006 decision and G8 gate remain outstanding; see [M7/G7 closure](M7_G7_GATE_CLOSURE.md).

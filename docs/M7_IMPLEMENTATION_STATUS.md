@@ -1,9 +1,9 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Register
 
-**State:** Correctness-audit and execution remediation committed; gate evidence run executed; D-002 accepted; G7 acceptance pending.
+**State:** M7 and G7 explicitly accepted on 2026-11-03 and integrated into `main` through PR #10 and PR #11. D-002 Option A accepted. See [G7 closure](M7_G7_GATE_CLOSURE.md).
 **Working branch:** `feat/m7-tracking-source-validation`
 **Baseline:** Accepted G0-G6 and M7 planning branch.
-**G7:** Technical run executed on one revision ([executed verification](M7_EXECUTED_VERIFICATION.md)); acceptance pending.
+**G7:** Accepted 2026-11-03 after one source-locked run and three verified supplements; original pre-decision outcomes preserved in [executed verification](M7_EXECUTED_VERIFICATION.md).
 **D-002:** Accepted 2026-11-03 (Option A). The checked-in subset is the accepted subset, pinned to the [Track & Trace 2.2.0 reference snapshots](../third_party/dcsa-track-and-trace/README.md), which are not official immutable DCSA releases.
 **Deployment:** Local-only. No public hosting or successful tracking-event intake.
 
@@ -39,6 +39,6 @@ Development runs on the E:-backed workstation found and corrected the defects li
 
 The local runner schedules the full gate: source-locked .NET build and tests with a repeat integration run, five controlled security mutations in a disposable E:-backed export, dependency advisories, web build, an isolated G7 network, browser fixtures, three-engine regression, source outage and recovery, exact-image scans, a per-scenario evidence summary and hashed teardown evidence. The protected interactive operator CLI lifecycle was performed separately by the operator and verified against the database (G7-S06 supplement). The D-002 reference snapshots were pinned, license-reviewed and checked in a separate supplement (G7-S01 and G7-S17); see the [executed verification](M7_EXECUTED_VERIFICATION.md).
 
-**Required next gate:** Complete the G7-S01 through G7-S25 matrix on one exact source revision using disposable E:-backed resources, review the raw evidence, address any failures, then request explicit G7 acceptance before merging into `main`.
+**Next milestone:** G7 is closed. M8-01 inbox contract work is eligible, but D-006, durable intake implementation, G8 verification and acceptance remain pending. G7 retains the HTTP 503 barrier until M8 has an atomic receipt.
 
-All prior accepted G0-G6 source and gate records remain unchanged. No GitHub Actions are authorized.
+All prior accepted G0-G6 source and gate records remain unchanged by M7 integration. No GitHub Actions are authorized.

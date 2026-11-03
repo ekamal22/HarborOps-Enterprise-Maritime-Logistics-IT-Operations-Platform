@@ -1,12 +1,12 @@
 # M7 Executed G7 Verification Record
 
-**State:** Technical verification executed on one source revision, with three supplements. G7 is **acceptance pending**. D-002 is **accepted** (Option A, 2026-11-03). M7 is not merged into `main`.
+**State:** Technical verification executed on one source revision with three supplements. G7 and M7 were **explicitly accepted** on 2026-11-03 and merged into `main` through PR #10 and PR #11. D-002 Option A is accepted. See [G7 gate closure](M7_G7_GATE_CLOSURE.md).
 **Tested revision:** `7b87f3250aba677b1f4aeef4350803d9ca7b6880` on the M7 feature branch. Commits after it (`git log 7b87f32..HEAD`) change documentation, the pinned reference files under `third_party/dcsa-track-and-trace`, the reference verification script and its tests, and a contract-test assertion; no product, migration, runner or integration test code differs.
 **Runner:** `scripts/verify-m7-local.sh`, one complete run, exit status 2 by design because the open-gate register is not empty.
 **Evidence root:** `E:\HarborOps-Verification\m7`. Final package: `E:\HarborOps-Verification\m7\archives\g7-7b87f3250aba677b1f4aeef4350803d9ca7b6880-final-package.tar.gz`, SHA-256 `257f4d66608b17396187a324a76a5fc35c6fbc7fa802762ee12d90b3b56c0dbc` in the adjacent `.sha256` file. The runner's own archive and manifest sit beside it.
 **Contracts:** [Verification plan](M7_VERIFICATION_PLAN.md), [remediation register](M7_CORRECTNESS_REMEDIATION.md), [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [implementation register](M7_IMPLEMENTATION_STATUS.md).
 
-This record does not accept G7 or D-002. No GitHub Actions run was started. All storage, caches, Docker data and evidence are on E:.
+The original runner and supplements do not themselves constitute formal acceptance. D-002 and G7 were subsequently explicitly accepted on 2026-11-03; see [gate closure](M7_G7_GATE_CLOSURE.md). No GitHub Actions run was started. All storage, caches, Docker data and evidence are on E:.
 
 ## Results by stage
 
@@ -98,7 +98,7 @@ Scope: G7-S01 and G7-S17 pass on the evidence above. The product code was not re
 | BLOCKED | 0 | none |
 | NOT EXECUTED | 0 | none |
 
-The original 21 PASS, 3 BLOCKED, 1 NOT EXECUTED result is unchanged in the original evidence. The reconciled totals depend on the three supplements and are reported as such. All 25 scenarios passing does not accept G7; acceptance and any merge into `main` remain separate explicit decisions.
+The original 21 PASS, 3 BLOCKED, 1 NOT EXECUTED result is unchanged in the original evidence. The reconciled totals depend on the three supplements and are reported as such. The reconciled 25/25 technical result preceded, and is separate from, the explicit G7 acceptance on 2026-11-03 and subsequent PR #10/#11 merges.
 
 ## Defects found by execution
 
@@ -119,9 +119,10 @@ Accepted on 2026-11-03 as Option A with the conditions recorded in section 8 of 
 - The evidence-summary stage cannot see the teardown file, so teardown is verified in the integrity report in the evidence supplement.
 - Accessibility remains M24-04.
 
-## Items needing a decision
+## Independent G7-S06 review and acceptance reconciliation
 
-1. Independent review of the G7-S06 supplement archive, which is being arranged and precedes any G7 acceptance decision.
-2. Explicit G7 acceptance, and then a separate decision to merge into `main`. Neither has been given.
+An independent review of the G7-S06 protected-terminal supplement was completed on 2026-11-03. The archive SHA-256 `0fd0562840b170a5185c586907b07b8b45b6f30f6f4dac5eed3e671f9358fd13` and all 33 of 33 manifest entries were verified. The reviewed evidence contained no bearer credential patterns. The operator exit 0, disabled source, two revoked credentials, zero active credentials, seven rejected SQL mutation probes and disposable resource cleanup were consistent with the recorded lifecycle. G7-S06 remains PASS.
+
+The original 21 PASS, 3 BLOCKED, 1 NOT EXECUTED stage record is unchanged; all 25 are reconciled as PASS via the supplements. M7 and G7 were explicitly accepted on 2026-11-03, and planning and implementation were merged into `main` through PR #10 and PR #11. See [G7 gate closure](M7_G7_GATE_CLOSURE.md).
 
 The 14 reference verification tests and the 9 contract-script tests pass and the planning-document checks pass on the final head.

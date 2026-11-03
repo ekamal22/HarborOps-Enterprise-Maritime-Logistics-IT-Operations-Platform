@@ -15,7 +15,7 @@ The workspace, caches and test artifacts must follow [Local Storage Policy](LOCA
 - Base path: /api/v1
 - Content type: application/json
 - Transport: HTTPS when remotely accessible
-- Authentication: approved D-001 server-authoritative protected browser cookie (M1), with machine-source credentials implemented in M7 and technically verified locally (acceptance pending). [Decision](ADR_D001_BROWSER_SESSIONS.md).
+- Authentication: approved D-001 server-authoritative protected browser cookie (M1), with machine-source credentials implemented, verified and accepted in M7 (2026-11-03). [Decision](ADR_D001_BROWSER_SESSIONS.md).
 - Organization context: derived from authorized membership and explicitly selected organization
 - Timestamps: ISO 8601 UTC
 - Pagination: bounded limit, continuation token where useful
@@ -77,11 +77,11 @@ Port create requires tenant-local `referenceCode`, `name`, `countryCode`, option
 
 The accepted [M4 architecture](M4_ARCHITECTURE_DESIGN.md) implements ten `/api/v1/organizations/{organizationId}/voyages` and `/containers` endpoints: GET list/detail, POST create, PATCH versioned edit/restore, DELETE versioned soft archive. Manager read/write, Analyst read-only, and default denial for Administrator, Support and Auditor are enforced, reusing accepted M1-M3 session and scope checks. Every mutation requires CSRF/Origin validation and expectedVersion. Voyage route requires same-organization `vesselId`, `originPortId` and `destinationPortId`, with separate nullable planned and actual UTC times, `voyageStatus` and `recordStatus`. Container create requires `referenceCode`, `identifierKind`, `containerIdentifier` and `equipmentType` under [D-003 pending](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md). Lists have bounded search/filter, `limit=1..100` and UUID cursor `after`. Detailed request/response and error contracts are in [M4 Architecture](M4_ARCHITECTURE_DESIGN.md). No route exists yet.
 
-## Proposed M5 shipment API (not implemented)
+## Accepted M5 shipment API
 
 [M5 architecture](M5_ARCHITECTURE_DESIGN.md) specifies scoped shipment GET list/detail/status changes, POST Draft creation, PATCH exact-version edits/transitions/restore and DELETE soft archive. M5 supplies bounded search, while M12 owns advanced search and CSV. `containerIds` and `voyageId` from older sample payloads are excluded until M6 assignments. Five-role permissions, CSRF/Origin and sanitized errors require [G5](M5_VERIFICATION_PLAN.md).
 
-M5 shipment Minimal API source now maps the six documented routes on its feature branch, using the existing M1-M4 auth and CSRF pipeline. These endpoints are **not compiled or runtime verified**. See [implementation status](M5_IMPLEMENTATION_STATUS.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md). The prose contract remains provisional until G5 verification.
+The M5 shipment Minimal API implements the documented routes and was verified and accepted on 2026-11-02. See [G5 closure](M5_G5_GATE_CLOSURE.md) and [implementation status](M5_IMPLEMENTATION_STATUS.md).
 
 ## Proposed resource map
 
@@ -126,9 +126,9 @@ Responses should include: stable machine-readable error code, message suitable f
 
 Suggested statuses: 400 invalid input, 401 unauthenticated, 403 forbidden, 404 not visible or absent, 409 version/state conflict, 422 domain violation, 429 rate limit, and 5xx unexpected dependency/server failures.
 
-## M7 source-authenticated intake contract (technical verification executed)
+## Accepted M7 source-authenticated intake contract
 
-The [M7 implementation](M7_IMPLEMENTATION_STATUS.md), exercised by the [executed verification](M7_EXECUTED_VERIFICATION.md), adds a HarborOps-specific `POST /integrations/v1/tracking-events` using opaque, tenant-bound bearer credentials, an exact tracking profile, strict JSON limits, UTC occurrence timestamps and server-derived source identity. A parsed/valid event is **not** a durable receipt. Until M8 provides an atomic inbox transaction, even an authenticated valid event must return `503 intake_unavailable` with `Retry-After`, not HTTP 200/201/202. The canonical JSON uses `eventFamily` and `eventCode` with source and tenant identity derived only from the authenticated credential. D-002 is accepted (Option A, 2026-11-03) and G7 acceptance is pending (see the [G7 verification matrix](M7_VERIFICATION_PLAN.md)). This route is not a claim of standard DCSA publisher API conformance. The profile `tnt-2.2-harborops-v1` is derived from DCSA Track & Trace 2.2.0 but is deliberately narrower and **not DCSA conformant**: it omits the required upstream fields `eventCreatedDateTime` and `emptyIndicatorCode`, reduces `transportCall` to `transportReference`, requires UTC and accepts only Equipment `GTIN`/`GTOT`, Transport `ARRI`/`DEPA` and classifier `ACT`. Events in the DCSA wire format cannot be consumed directly; a translation layer is required. The pinned upstream definitions are local snapshots, not official immutable DCSA releases, limited to the reviewed HarborOps subset and not a complete transitive DCSA schema snapshot; see [`third_party/dcsa-track-and-trace`](../third_party/dcsa-track-and-trace/README.md).
+The [M7 implementation](M7_IMPLEMENTATION_STATUS.md), exercised by the [executed verification](M7_EXECUTED_VERIFICATION.md), adds a HarborOps-specific `POST /integrations/v1/tracking-events` using opaque, tenant-bound bearer credentials, an exact tracking profile, strict JSON limits, UTC occurrence timestamps and server-derived source identity. A parsed/valid event is **not** a durable receipt. Until M8 provides an atomic inbox transaction, even an authenticated valid event must return `503 intake_unavailable` with `Retry-After`, not HTTP 200/201/202. The canonical JSON uses `eventFamily` and `eventCode` with source and tenant identity derived only from the authenticated credential. D-002 is accepted (Option A, 2026-11-03) and G7 was accepted on 2026-11-03 (see [G7 closure](M7_G7_GATE_CLOSURE.md) and [verification matrix](M7_VERIFICATION_PLAN.md)). This route is not a claim of standard DCSA publisher API conformance. The profile `tnt-2.2-harborops-v1` is derived from DCSA Track & Trace 2.2.0 but is deliberately narrower and **not DCSA conformant**: it omits the required upstream fields `eventCreatedDateTime` and `emptyIndicatorCode`, reduces `transportCall` to `transportReference`, requires UTC and accepts only Equipment `GTIN`/`GTOT`, Transport `ARRI`/`DEPA` and classifier `ACT`. Events in the DCSA wire format cannot be consumed directly; a translation layer is required. The pinned upstream definitions are local snapshots, not official immutable DCSA releases, limited to the reviewed HarborOps subset and not a complete transitive DCSA schema snapshot; see [`third_party/dcsa-track-and-trace`](../third_party/dcsa-track-and-trace/README.md).
 
 ## Compatibility and standards
 

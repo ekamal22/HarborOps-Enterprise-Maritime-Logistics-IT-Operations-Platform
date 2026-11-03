@@ -105,9 +105,9 @@ A backup is not considered viable until a clean restore test passes. Create a ru
 - Rotate and revoke integration credentials.
 - Deactivate hosted demonstration resources.
 
-## Dedicated G5 operational verification (pending execution)
+## Accepted G5 operational verification
 
-The M5 feature branch carries a G5-only Compose/SDK/browser/recovery stack under project `ho-verify-g5`, with `ho-g5-pg` and E:-backed cache and evidence roots. Its runner stores console and service logs, drive snapshots, TRX per pass, browser JSON, dependency scans, zero-resource teardown proof, SHA-256 file hashes and a final ZIP/digest. Existing `ho-verify` resources are never taken over. See [M5/G5 remediation](M5_G5_REMEDIATION_STATUS.md). Nothing here is a claim that the operational pipeline has run.
+The dedicated E:-backed G5 stack completed source-locked regression, browser, recovery and evidence checks and G5 was explicitly accepted 2026-11-02. See [G5 executed verification](M5_EXECUTED_VERIFICATION.md) and [closure](M5_G5_GATE_CLOSURE.md). This record is historical; G5 resources must not be reused for newer gates.
 
 ## Storage and evidence handling
 
@@ -145,9 +145,13 @@ G2 tests use disposable databases and controlled environments. The [local G2 ver
 
 The accepted [M4 implementation](M4_IMPLEMENTATION_STATUS.md) adds the PostgreSQL `20261101010000_VoyageContainerReferences` migration after M3 with tenant-composite foreign keys and validated voyage/container records. Fresh, repeated and historical M3 upgrade/rollback scenarios, real outage/recovery, three-browser tests and E:-backed disposable cleanup passed [G4 executed verification](M4_EXECUTED_VERIFICATION.md). D-003 Option B and G4 were accepted on 2026-11-01. If M5 is developed independently, reconcile migration IDs and rerun the combined source regressions before shared integration.
 
-## M5 local verification isolation (planned)
+## Accepted M5, M6 and M7 verification isolation
 
-The [G5 plan](M5_VERIFICATION_PLAN.md) requires a separate E:-backed disposable stack, source SHA, raw logs, repeat tests, three-browser evidence, Docker cleanup, outage/recovery, hashes and storage records. Accepted G4 evidence must not be overwritten. Unavoidable C: temporary files may be deleted only when safely attributable after E: evidence preservation. No G5 run has occurred.
+[G5](M5_G5_GATE_CLOSURE.md), [G6](M6_G6_GATE_CLOSURE.md) and [G7](M7_G7_GATE_CLOSURE.md) were accepted after separate E:-backed disposable verification and independent evidence review. Original runner records and limitations are preserved. Do not rerun historical gates against retained workstation volumes or claim later commits were automatically reverified.
+
+## M7 restricted integration-source operations
+
+The M7 API implements a local operator-only source CLI for create, rotate, revoke, disable and redacted inspect. Source issuance requires explicit opt-in and a protected interactive terminal. Never put bearer values in arguments, logs, source control or shareable evidence. Rotate and revoke against the correct organization; ensure no credential remains active after source disablement. The accepted G7-S06 operator supplement verified the lifecycle, revocation and cleanup. Until M8, even valid authenticated tracking events receive HTTP 503 `intake_unavailable`; do not configure production publishers expecting durable receipt or a 2xx acknowledgment. See [G7 closure](M7_G7_GATE_CLOSURE.md).
 
 ## Parallel development operations boundary
 

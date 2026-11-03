@@ -71,13 +71,13 @@ M4-01 through M4-04 were implemented and G4 was explicitly accepted on 2026-11-0
 
 The [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md) and [G5 closure](M5_G5_GATE_CLOSURE.md) record the accepted shipment lifecycle. The [M6 architecture](M6_ARCHITECTURE_DESIGN.md), [implementation plan](M6_IMPLEMENTATION_PLAN.md) and [G6 closure](M6_G6_GATE_CLOSURE.md) record accepted shipment-container and shipment-voyage association histories. Both milestones are integrated into `main`; G5 and G6 were accepted on 2026-11-02. Preserve their authorization, interval and concurrency rules in later implementation.
 
-## M7 proposed tracking contract implementation
+## M7 accepted tracking contract implementation
 
-The [M7 architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md), [D-002 proposal and decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the tracking-source contract scope. D-002 was accepted on 2026-11-03 (Option A) with pinned local reference snapshots. The M7 implementation is committed on `feat/m7-tracking-source-validation` and technically verified locally (see [executed verification](M7_EXECUTED_VERIFICATION.md)); G7 acceptance is pending. See [implementation register](M7_IMPLEMENTATION_STATUS.md). M8, not M7, supplies durable intake and receipt acknowledgment.
+The [M7 architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md), [D-002 proposal and decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the tracking-source contract scope. D-002 was accepted on 2026-11-03 (Option A) with pinned local reference snapshots. M7 was technically verified on `feat/m7-tracking-source-validation`, explicitly accepted with G7 on 2026-11-03 and merged via PR #10 and PR #11. See [executed verification](M7_EXECUTED_VERIFICATION.md), [gate closure](M7_G7_GATE_CLOSURE.md) and [implementation register](M7_IMPLEMENTATION_STATUS.md). See [implementation register](M7_IMPLEMENTATION_STATUS.md). M8, not M7, supplies durable intake and receipt acknowledgment.
 
 ## Concurrent work-package implementation
 
-The canonical graph v3.0 defines technical dependencies at package level rather than forcing milestone-number order. Read the specific `depends_on` edges before allocating work. The accepted G0-G6 baseline may support several parallel streams, provided any mandatory D-IDs are resolved before affected implementation.
+The canonical graph v3.0 defines technical dependencies at package level rather than forcing milestone-number order. Read the specific `depends_on` edges before allocating work. The accepted G0-G7 baseline may support several parallel streams, provided any mandatory D-IDs are resolved before affected implementation.
 
 - Begin independent work in separate named milestone branches and E:-backed worktrees; verify the base revision and explicit prerequisite acceptances.
 - Agree on shared route, permission, domain DTO, authentication and validation contracts before simultaneous integration. Never merge incompatible assumptions behind individually passing tests.

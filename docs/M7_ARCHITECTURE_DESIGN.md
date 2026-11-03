@@ -1,8 +1,8 @@
 # M7 Tracking Contracts and Source Authentication: Architecture
 
-**State:** Proposed architecture, not implemented or verified. D-002 acceptance pending.
+**State:** Implemented on a separate feature branch and technically verified locally ([executed verification](M7_EXECUTED_VERIFICATION.md)); D-002 accepted 2026-11-03 (Option A); G7 acceptance pending.
 **Prepared:** 2026-11-03
-**Planning branch:** `plan/m7-tracking-contracts-source-auth`
+**Planning branch:** `plan/m7-tracking-contracts-source-auth`. **Implementation branch:** `feat/m7-tracking-source-validation`
 **Accepted base:** `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`, G0-G6 accepted
 **Work packages:** M7-01 reference contract, M7-02 source entitlements, M7-03 payload validation, M7-04 integration contract verification; G7 follows explicit acceptance
 **Authorities:** [Roadmap](ROADMAP.md), [execution graph](execution-graph.json), [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [FR-002/006/007 and NFR-002/003/006/007](REQUIREMENTS.md), [API contracts](API_CONTRACTS.md), [Security](SECURITY.md), [G7 plan](M7_VERIFICATION_PLAN.md), [accepted G6](M6_G6_GATE_CLOSURE.md).
@@ -13,7 +13,7 @@ M7 establishes an organization-scoped integration-source identity, provisioned a
 
 **M7 does not accept or persist tracking events.** The M8 gate owns the transactional inbox receipt, immutable provenance, collision and deduplication storage, and source-specific event key uniqueness. M9 owns worker claims, retry and dead-letter processing. M10 owns temporal projections and corrections. M7 must never return HTTP 200/201/202 for an event if no durable receipt was written. A valid and authenticated intake request returns a structured HTTP 503 `intake_unavailable` with `Retry-After` until M8 integrates and verifies the durable receipt transaction. Invalid requests are rejected before that response. The source and validation path can be verified without claiming delivery.
 
-The HTTP endpoint is a HarborOps-specific adapter route, not an unmodified DCSA publisher interface. A proposed public DCSA 2.2.0 mapping profile is recorded in [D-002](M7_D002_TRACKING_REFERENCE_PROPOSAL.md); it requires approval and a pinned upstream artifact before implementation. External partner credentials, paid data feeds, live AIS, dashboards, projection timelines, notification delivery, a hosted TLS deployment and M24 accessibility auditing are excluded.
+The HTTP endpoint is a HarborOps-specific adapter route, not an unmodified DCSA publisher interface. The DCSA 2.2.0 mapping profile was accepted under [D-002](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) (Option A, 2026-11-03) as a narrower, non-conformant HarborOps profile pinned to local snapshots of upstream content. External partner credentials, paid data feeds, live AIS, dashboards, projection timelines, notification delivery, a hosted TLS deployment and M24 accessibility auditing are excluded.
 
 ## 2. Dependency architecture
 
@@ -22,7 +22,7 @@ Accepted G3 reference-data foundation
              |
  M7-01 reference review and contract proposal
              |
-  D-002 explicit acceptance and contract freeze
+  D-002 accepted 2026-11-03 (Option A) and contract frozen
           /       \
  M7-02 source    M7-03 bounded
  identity        contract validation
@@ -34,7 +34,7 @@ Accepted G3 reference-data foundation
        M8 contract and durable intake
 ```
 
-M7-01 can prepare the pinned reference and mapping for the D-002 decision after G3. M7-02 and M7-03 may be developed independently only after M7-01 has frozen the approved schema and D-002 has been explicitly accepted. No new graph edges are required. Accepted G6 is available for regression and future M8 prerequisites but is not an artificial prerequisite for M7-01. M8 additionally needs D-006 and a durable database transaction before any successful ingestion acknowledgment.
+M7-01 can prepare the pinned reference and mapping for the D-002 decision after G3. M7-02 and M7-03 may be developed independently only after M7-01 has frozen the approved schema and D-002 has been explicitly accepted (done, 2026-11-03). No new graph edges are required. Accepted G6 is available for regression and future M8 prerequisites but is not an artificial prerequisite for M7-01. M8 additionally needs D-006 and a durable database transaction before any successful ingestion acknowledgment.
 
 ## 3. Module boundaries and data flow
 
@@ -62,7 +62,7 @@ Place source credential and entitlement entities in `HarborOps.Infrastructure/In
 
 ## 4. Source identity and tenancy
 
-### 4.1 M7 tables, proposed additive migration
+### 4.1 M7 tables, additive implementation candidate
 
 `integration_sources`:
 - `id uuid PRIMARY KEY`; `organization_id uuid NOT NULL` with restrictive FK to `organizations(id)`.
@@ -71,9 +71,9 @@ Place source credential and entitlement entities in `HarborOps.Infrastructure/In
 - `created_at_utc timestamptz`, `updated_at_utc timestamptz`, `disabled_at_utc timestamptz NULL`, server-controlled.
 - Unique `(organization_id,id)` for future tenant-bound foreign keys. Index on `(organization_id,status,source_code)`. No hard-delete endpoint.
 
-`integration_source_credentials`:
+`integration_credentials`:
 - `id uuid PRIMARY KEY`; `organization_id uuid NOT NULL`; `source_id uuid NOT NULL` with composite `(organization_id,source_id)` FK to `integration_sources(organization_id,id)` and `ON DELETE RESTRICT`.
-- `secret_digest bytea NOT NULL`, fixed 32 bytes, unique `credential_id` lookup; never store a bearer secret. `key_version varchar(24)` identifies digest format only.
+- `secret_digest bytea NOT NULL`, fixed 32 bytes, unique `id` lookup; never store a bearer secret. `key_version varchar(24)` identifies digest format only.
 - `not_before_utc timestamptz`, `expires_at_utc timestamptz`, `revoked_at_utc timestamptz NULL`, `created_at_utc timestamptz`, `last_used_at_utc timestamptz NULL`; `CHECK(expires_at_utc > not_before_utc)`.
 - Explicit indexes `(organization_id,source_id,revoked_at_utc)`, `(expires_at_utc)`. Test fail-closed under unique-constraint and FK races.
 
@@ -101,9 +101,9 @@ One M7 source belongs to exactly one organization. No shared global credential o
 ### 5.1 Versioning and shape
 
 - Route: `POST /integrations/v1/tracking-events`. `v1` is the HarborOps inbound protocol revision.
-- Media type: `application/json`; document UTF-8 behavior and reject unsupported charset or media types with 415. Explicit `X-HarborOps-Tracking-Profile: tnt-2.2-harborops-v1` header when D-002 is accepted; unknown/missing profile rejected with stable `unsupported_tracking_profile`.
+- Media type: `application/json`; document UTF-8 behavior and reject unsupported charset or media types with 415. Explicit `X-HarborOps-Tracking-Profile: tnt-2.2-harborops-v1` header (D-002 accepted); unknown/missing profile rejected with stable `unsupported_tracking_profile`.
 - One event per request, object root only. Proposed **16 KiB maximum raw body**, enforced while streaming even without Content-Length, maximum JSON depth 12, no duplicate keys, no unknown keys, no comments/trailing commas, no invalid UTF-8, no NaN/infinity, no Unicode control characters in identifiers.
-- Candidate wire object (final names and code values require D-002 approval):
+- Wire object (names and code values as accepted under D-002 Option A):
 
 ```json
 {
@@ -176,4 +176,4 @@ Do not introduce these storage, retry or projection features into M7 by convenie
 
 ## 9. Acceptance boundary
 
-M7 planning may be reviewed now; D-002 is not accepted by this architecture document. Implementation proceeds only after D-002's exact public artifact, initial subset and profile mapping are accepted. The [G7 matrix](M7_VERIFICATION_PLAN.md) requires a source-locked local run, complete negative authentication, transport, tenant, payload and upgrade checks, and explicit acceptance before merging implementation into protected `main`. No GitHub Actions run, public hosting, or publication-license change is authorized.
+D-002 was accepted on 2026-11-03 as Option A: Track & Trace 2.2.0 is the reference baseline for a deliberately narrower, HarborOps-specific, non-conformant adapter profile, pinned as local snapshots in [`third_party/dcsa-track-and-trace`](../third_party/dcsa-track-and-trace/README.md) that are not official immutable DCSA releases. Events in the DCSA wire format cannot be consumed directly; a translation layer is required. The profile omits the required upstream fields `eventCreatedDateTime` and `emptyIndicatorCode` and reduces `transportCall` to `transportReference`. The pin is deliberately limited to the reviewed HarborOps subset. It is not a complete transitive DCSA schema snapshot: `EVENT_DOMAIN` 1.0.4 also references `DOCUMENTATION_DOMAIN` 1.0.4 and `LOCATION_DOMAIN` 1.0.3, which are not retrieved, pinned or reviewed. The [G7 matrix](M7_VERIFICATION_PLAN.md) requires a source-locked local run, complete negative authentication, transport, tenant, payload and upgrade checks, and explicit acceptance before merging implementation into protected `main`. No GitHub Actions run, public hosting, or publication-license change is authorized.

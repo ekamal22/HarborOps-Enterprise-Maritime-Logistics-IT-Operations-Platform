@@ -67,7 +67,7 @@ FR-005 shipment-container and shipment-voyage assignments were implemented under
 
 ## M7 FR-007 source contract allocation (planned, not implemented)
 
-M7-01 to M7-04 are proposed to satisfy the **validation and source-authentication** portion of FR-007 and the applicable FR-002, NFR-002, NFR-003, NFR-006 and NFR-007 boundaries. [M7 architecture](M7_ARCHITECTURE_DESIGN.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the intended source-tenant credential and bounded payload behavior. FR-006 immutable durable event history, FR-008 idempotent processing and accepted-event acknowledgment are **not** delivered in M7: M8 introduces receipt persistence under D-006, followed by M9 and M10. D-002 acceptance, M7 implementation and G7 verification remain pending.
+M7-01 to M7-04 satisfy the **validation and source-authentication** portion of FR-007 and the applicable FR-002, NFR-002, NFR-003, NFR-006 and NFR-007 boundaries. [M7 architecture](M7_ARCHITECTURE_DESIGN.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the intended source-tenant credential and bounded payload behavior. FR-006 immutable durable event history, FR-008 idempotent processing and accepted-event acknowledgment are **not** delivered in M7: M8 introduces receipt persistence under D-006, followed by M9 and M10. D-002 is accepted (2026-11-03, Option A) and M7 is implemented and technically verified locally; G7 acceptance remains pending.
 
 ## Non-functional requirements
 

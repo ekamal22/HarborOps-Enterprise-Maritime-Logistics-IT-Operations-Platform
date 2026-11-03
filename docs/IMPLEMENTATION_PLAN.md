@@ -73,7 +73,7 @@ The [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLE
 
 ## M7 proposed tracking contract implementation
 
-The [M7 architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md), [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the next tracking-source contract scope. M7-01 must pin and obtain acceptance for D-002 before M7-02/M7-03, which may proceed independently before M7-04 integration. No M7 code or verification has started. M8, not M7, supplies durable intake and receipt acknowledgment.
+The [M7 architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md), [D-002 proposal and decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the tracking-source contract scope. D-002 was accepted on 2026-11-03 (Option A) with pinned local reference snapshots. The M7 implementation is committed on `feat/m7-tracking-source-validation` and technically verified locally (see [executed verification](M7_EXECUTED_VERIFICATION.md)); G7 acceptance is pending. See [implementation register](M7_IMPLEMENTATION_STATUS.md). M8, not M7, supplies durable intake and receipt acknowledgment.
 
 ## Concurrent work-package implementation
 

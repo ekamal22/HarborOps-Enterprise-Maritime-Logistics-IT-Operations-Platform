@@ -1,10 +1,10 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Plan
 
-**State:** Planned, no M7 production code implemented or verification executed.
+**State:** Implemented and technically verified locally ([executed verification](M7_EXECUTED_VERIFICATION.md)); D-002 accepted 2026-11-03 (Option A); G7 acceptance pending.
 **Prepared:** 2026-11-03
-**Branch:** `plan/m7-tracking-contracts-source-auth` for planning; use a separate implementation branch after D-002 acceptance
+**Branches:** Planning `plan/m7-tracking-contracts-source-auth`; implementation candidate `feat/m7-tracking-source-validation`
 **Starting baseline:** `main` `97b67739cf1dad543bf25fa56326fb4702990f41` with G0-G6 accepted
-**Decision gate:** [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), acceptance pending
+**Decision gate:** [D-002 proposal and decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), accepted 2026-11-03 (Option A)
 **Design:** [M7 architecture](M7_ARCHITECTURE_DESIGN.md)
 **Verification:** [G7 test matrix](M7_VERIFICATION_PLAN.md)
 **Dependencies:** [Execution graph](execution-graph.json), [Roadmap](ROADMAP.md), [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md)
@@ -19,7 +19,7 @@ Preserve existing authorization, schema and accepted M0-M6 behavior. Implement a
 
 | Work package | Depends on | Outputs | Complete when |
 | --- | --- | --- | --- |
-| **M7-01** Pin external subset and canonical contract | Accepted G3; D-002 approval closes this work package before downstream implementation | Immutable upstream reference, schema profile, mapping register, representative allowlisted fixtures, error contract | Every supported/unsupported field and code is grounded in pinned reference, hashes recorded and decision explicitly accepted |
+| **M7-01** Pin external subset and canonical contract | Accepted G3; D-002 approval (2026-11-03, Option A) closed this work package | Immutable upstream reference, schema profile, mapping register, representative allowlisted fixtures, error contract | Every supported/unsupported field and code is grounded in pinned reference, hashes recorded and decision explicitly accepted |
 | **M7-02** Implement source entitlements | M7-01 | Additive source/credential migration, provisioning/rotation/revoke CLI, server-side bearer verification, source/tenant scope and limiters | Live database auth, expiry, rotation, disabled org, forged source and concurrent revoke tests pass |
 | **M7-03** Implement strict payload validation | M7-01 | Canonical DTO, exact-profile JSON parser, bounded body/depth, UTC and identifier policies, supported event mapping and safe errors | Deterministic positive parse and exhaustive invalid/unsupported/over-limit negative matrix pass |
 | **M7-04** Verify integration contracts | M7-02 and M7-03 | HTTP composition, 503 no-ack behavior, full G7 matrix, migration/tenant regression, evidence and docs | All G7 required cases executed and recorded against one source SHA; no critical unresolved defects |
@@ -29,12 +29,12 @@ M7-02 and M7-03 may proceed in parallel after M7-01 is frozen. Use different bra
 
 ## 3. M7-01: contract and reference freeze
 
-1. Fetch the exact public DCSA TNT 2.2.0 reference OpenAPI or normative schema from a reviewed official source. Record immutable upstream identity, version, hash, license and retrieval date. If inaccessible, stop D-002 acceptance and do not substitute a vendor schema without recording the variance.
+1. Fetch the exact public DCSA TNT 2.2.0 reference OpenAPI or normative schema from a reviewed official source. Record immutable upstream identity, version, hash, license and retrieval date. If inaccessible, stop D-002 acceptance and do not substitute a vendor schema without recording the variance. Outcome: the hosted SwaggerHub definitions were retrieved on 2026-11-03 and pinned as local snapshots; no tagged release exists.
 2. Record an explicit supported subset by family, event code, classifier, mandatory reference fields and timestamp representation; maintain a table for unsupported family/code/field combinations.
 3. Freeze `harborops-tracking-v1` wire DTO, `tnt-2.2-harborops-v1` profile name and transport/response error contract. Keep upstream and internal models separate.
 4. Create checked-in JSON Schema or equivalent validator schema and curated synthetic positive/negative fixtures under `contracts/tracking/v1/` and `tests/fixtures/tracking/`. Include licensing/attribution for any redistributed upstream material; write original synthetic examples when rights are uncertain.
-5. Resolve whether the proposed default event-date policy (2000-01-01 UTC to now + 24 hours) and the candidate first event codes precisely match the pinned reference and the desired business scope.
-6. Obtain explicit D-002 acceptance before M7-02/M7-03 feature implementation.
+5. Resolve whether the proposed default event-date policy (2000-01-01 UTC to now + 24 hours) and the candidate first event codes precisely match the pinned reference and the desired business scope. Resolved: the first event codes and the classifier are confirmed in the pinned upstream enumerations, and the event-date window is a HarborOps profile rule that the D-002 decision did not change.
+6. D-002 was accepted on 2026-11-03 (Option A) and the implementation was reconciled against the pinned reference; the supported subset is unchanged.
 
 **Artifacts:** `docs/M7_D002_TRACKING_REFERENCE_PROPOSAL.md`, `docs/M7_ARCHITECTURE_DESIGN.md`, `docs/API_CONTRACTS.md`, contract schema and fixture manifest.
 
@@ -42,7 +42,7 @@ M7-02 and M7-03 may proceed in parallel after M7-01 is frozen. Use different bra
 
 ### Proposed file work
 
-- `src/HarborOps.Infrastructure/Integrations/IntegrationSource.cs`: source and credential entities and lifecycle state.
+- `src/HarborOps.Infrastructure/Integrations/IntegrationEntities.cs`: source and credential entities and lifecycle state.
 - `src/HarborOps.Infrastructure/Integrations/IntegrationSourceStore.cs`: tenant-bound credential issuance, validation, rotation, revocation and source disablement. Use typed result errors and cancellation tokens.
 - `src/HarborOps.Domain/Tracking/IntegrationSourcePolicy.cs`: pure source/credential lifecycle rules, clock window, rotation overlap and capability policy.
 - `src/HarborOps.Api/Integrations/SourceCli.cs`: restricted local-only opt-in provisioning, rotation, revocation, inspect and disable.
@@ -120,7 +120,7 @@ Run only locally. GitHub Actions remains disabled. A new manual-only workflow is
 
 | Priority | Risk | Mitigation and proof |
 | --- | --- | --- |
-| Blocking | D-002 public artifact or subset not pinned | Require exact upstream SHA/rights and explicit acceptance before code |
+| Resolved | D-002 public artifact or subset not pinned | Pinned by SHA-256 as local snapshots and accepted 2026-11-03 (Option A); one artifact is published and three are withheld for want of a confirmed license |
 | High | Event accepted before durable storage exists | Always return 503 before M8 and assert absence of event writes |
 | High | Source credential cross-tenant use | Immutable organization-bound credential FK, server-derived scope, two-tenant adversarial tests |
 | High | Revocation or rotation race | Lock and transaction discipline, direct DB validation, concurrent barrier cases |
@@ -134,8 +134,8 @@ Run only locally. GitHub Actions remains disabled. A new manual-only workflow is
 
 ## 8. Planned handoff and acceptance
 
-M7 source implementation, schema migrations, automation fixtures and verification are all **NOT STARTED** in this planning PR. D-002 acceptance is pending. G7 needs actual source-locked local evidence and explicit acceptance before implementation merge.
+M7 source, schema migration, contract fixtures and tests are committed on the separate implementation branch and were executed in a source-locked local run recorded in the [executed verification](M7_EXECUTED_VERIFICATION.md). D-002 is accepted (2026-11-03, Option A). Explicit G7 acceptance is pending and is required before implementation merge.
 
-The detailed [G7-S01 through G7-S25](M7_VERIFICATION_PLAN.md) specification is the future evidence index authority. M8 remains blocked on G7, its accepted G6 prerequisite and its own D-006 decision; do not imply M8 readiness from M7 contract-only work.
+The detailed [G7-S01 through G7-S25](M7_VERIFICATION_PLAN.md) specification is the evidence index authority. M8 remains blocked on G7, its accepted G6 prerequisite and its own D-006 decision; do not imply M8 readiness from M7 contract-only work.
 
 Use feature branches and pull requests because `main` is protected. Do not run GitHub Actions, do not consume persistent C: storage, do not alter accepted G0-G6 evidence, and do not claim hosted application readiness.

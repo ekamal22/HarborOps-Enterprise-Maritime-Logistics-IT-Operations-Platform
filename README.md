@@ -54,7 +54,7 @@ M3 is implemented, locally verified, explicitly accepted on 2026-10-31 and integ
 
 ### Parallel-ready workstreams after G3
 
-M4 maritime records, M5 shipments and M6 assignments are accepted and integrated. Independently eligible future streams include M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 interface planning. D-003 is accepted for M4; D-002 remains pending for M7. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
+M4 maritime records, M5 shipments and M6 assignments are accepted and integrated. Independently eligible future streams include M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 interface planning. D-003 is accepted for M4; D-002 is accepted for M7 (Option A, 2026-11-03). See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
 
 ### Planned modules
 
@@ -92,9 +92,9 @@ M5 supports tenant-scoped shipment create, edit, search, archive and restore, a 
 
 M6 implements tenant-safe shipment-container and shipment-voyage allocation history, UTC half-open intervals, PostgreSQL overlap exclusions, versioned closure, parent lifecycle guards, scoped APIs and a React allocation workspace. Source-locked verification on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` passed 706 tests with zero failures or skips and four effective security mutations. G6-S01 was subsequently closed by approval of the complete [twelve-rule contract](docs/M6_LOCAL_CONTRACT_DECISION.md) and G6 on 2026-11-02. The original evidence assertion exit 1 remains preserved; the M0-only historical snapshot limitation is documented. See [G6 gate closure](docs/M6_G6_GATE_CLOSURE.md) and [executed verification](docs/M6_EXECUTED_VERIFICATION.md).
 
-### M7 tracking contract planning (not implemented)
+### M7 tracking contract implementation (technical verification executed, acceptance pending)
 
-The proposed [M7 architecture](docs/M7_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M7_IMPLEMENTATION_PLAN.md), [D-002 reference proposal](docs/M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 verification matrix](docs/M7_VERIFICATION_PLAN.md) define secure source credentials and a bounded, versioned tracking-event adapter. [M7 planning status](docs/M7_PLANNING_STATUS.md) records D-002 acceptance pending, no M7 runtime implementation and no G7 executed verification. Durable event receipt is M8, not M7; no successful intake acknowledgment is permitted without persistence.
+The [M7 architecture](docs/M7_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M7_IMPLEMENTATION_PLAN.md), [D-002 reference proposal](docs/M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 verification matrix](docs/M7_VERIFICATION_PLAN.md) define secure source credentials and a bounded, versioned tracking-event adapter, implemented on the feature branch `feat/m7-tracking-source-validation`. The [executed verification record](docs/M7_EXECUTED_VERIFICATION.md) documents a complete local run on `7b87f3250aba677b1f4aeef4350803d9ca7b6880`: 189 unit, 39 contract and 210 fresh plus 210 repeated PostgreSQL integration tests, 58 browser tests in each of Chromium, Firefox and WebKit, five effective security mutations and no HIGH or CRITICAL image findings. After supplements for the protected-terminal source lifecycle (G7-S06), evidence reconciliation (G7-S25) and the D-002 reference verification (G7-S01 and G7-S17), all 25 scenarios pass. D-002 is accepted as Option A: Track & Trace 2.2.0 is the reference baseline for a deliberately narrower HarborOps-specific profile that is not DCSA conformant, pinned as [local snapshots](third_party/dcsa-track-and-trace/README.md) that are not official immutable DCSA releases; DCSA-format events need a translation layer. G7 acceptance is pending, no event is ever acknowledged before M8 durable receipt, and M7 is not integrated into `main`. See the [correctness remediation register](docs/M7_CORRECTNESS_REMEDIATION.md) for the defects that execution found.
 
 ### Parallel dependency-based delivery
 

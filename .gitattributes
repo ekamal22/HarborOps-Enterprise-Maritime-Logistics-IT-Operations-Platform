@@ -1,3 +1,6 @@
 * text=auto eol=lf
 *.sh text eol=lf
 *.png binary
+
+# Third-party snapshots are stored byte for byte; never normalize line endings.
+third_party/dcsa-track-and-trace/snapshots/** -text

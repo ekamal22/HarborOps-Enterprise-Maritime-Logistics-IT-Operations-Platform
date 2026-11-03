@@ -4,6 +4,7 @@ using HarborOps.Infrastructure.References;
 using HarborOps.Infrastructure.Maritime;
 using HarborOps.Infrastructure.Shipments;
 using HarborOps.Infrastructure.Assignments;
+using HarborOps.Infrastructure.Integrations;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,8 +28,69 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
     public DbSet<ShipmentContainerAssignment> ShipmentContainerAssignments => Set<ShipmentContainerAssignment>();
     public DbSet<ShipmentVoyageAssignment> ShipmentVoyageAssignments => Set<ShipmentVoyageAssignment>();
 
+    public DbSet<IntegrationSource> IntegrationSources => Set<IntegrationSource>();
+    public DbSet<IntegrationCredential> IntegrationCredentials => Set<IntegrationCredential>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<IntegrationSource>(entity =>
+        {
+            entity.ToTable("integration_sources", t =>
+            {
+                t.HasCheckConstraint("CK_m7_source_status", "status IN ('Active','Disabled')");
+                t.HasCheckConstraint("CK_m7_source_name", "length(btrim(display_name)) BETWEEN 1 AND 160 AND display_name = btrim(display_name) AND display_name !~ '[[:cntrl:]]'");
+                t.HasCheckConstraint("CK_m7_source_code", "source_code ~ '^[a-z][a-z0-9_-]{2,79}$' AND source_code !~ '[[:cntrl:]]'");
+                t.HasCheckConstraint("CK_m7_source_version", "version > 0 AND updated_at_utc >= created_at_utc");
+                t.HasCheckConstraint("CK_m7_source_disabled", "(status = 'Active' AND disabled_at_utc IS NULL) OR (status = 'Disabled' AND disabled_at_utc IS NOT NULL)");
+                t.HasCheckConstraint("CK_m7_source_capability", "capability = 'tracking_event_validate'");
+            });
+            entity.HasKey(x => x.Id);
+            entity.HasAlternateKey(x => new { x.OrganizationId, x.Id })
+                .HasName("AK_integration_sources_organization_id_id");
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.Property(x => x.SourceCode).HasColumnName("source_code").HasMaxLength(80).IsRequired();
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceCode }).IsUnique().HasDatabaseName("UQ_m7_source_code");
+            entity.HasIndex(x => new { x.OrganizationId, x.Status, x.SourceCode }).HasDatabaseName("IX_m7_source_status");
+            entity.Property(x => x.DisplayName).HasColumnName("display_name").HasMaxLength(160).IsRequired();
+            entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.Capability).HasColumnName("capability").HasMaxLength(40).IsRequired();
+            entity.Property(x => x.Version).HasColumnName("version");
+            entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.DisabledAtUtc).HasColumnName("disabled_at_utc").HasColumnType("timestamp with time zone");
+        });
+        modelBuilder.Entity<IntegrationCredential>(entity =>
+        {
+            entity.ToTable("integration_credentials", t =>
+            {
+                t.HasCheckConstraint("CK_m7_digest", "octet_length(secret_digest) = 32");
+                t.HasCheckConstraint("CK_m7_version", "key_version = 'v1'");
+                t.HasCheckConstraint("CK_m7_credential_window", "expires_at_utc > not_before_utc AND expires_at_utc <= not_before_utc + interval '90 days' AND created_at_utc <= not_before_utc AND (revoked_at_utc IS NULL OR revoked_at_utc >= created_at_utc)");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.Property(x => x.SourceId).HasColumnName("source_id");
+            entity.HasOne<IntegrationSource>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.SourceId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m7_credential_source");
+            entity.Property(x => x.SecretDigest).HasColumnName("secret_digest").IsRequired();
+            entity.Property(x => x.KeyVersion).HasColumnName("key_version").HasMaxLength(24).IsRequired();
+            entity.Property(x => x.NotBeforeUtc).HasColumnName("not_before_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ExpiresAtUtc).HasColumnName("expires_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.RevokedAtUtc).HasColumnName("revoked_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.LastUsedAtUtc).HasColumnName("last_used_at_utc").HasColumnType("timestamp with time zone");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.RevokedAtUtc }).HasDatabaseName("IX_m7_credential_scope");
+            entity.HasIndex(x => x.ExpiresAtUtc).HasDatabaseName("IX_m7_credential_expiry");
+        });
+
         modelBuilder.Entity<BootstrapRecord>(entity =>
         {
             entity.ToTable("bootstrap_records");

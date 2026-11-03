@@ -2,11 +2,11 @@
 
 ## Contract status
 
-M0 provides public synthetic status and health routes. M1 implements accepted protected authentication endpoints. M2 organization and membership routes are implemented on `main` following accepted G2 and merged PR #5, verified locally for supported endpoint, verb, role and foreign-identifier scenarios (see [executed evidence](M2_EXECUTED_VERIFICATION.md)). M3-M6 maritime, shipment and assignment APIs are now implemented and accepted; full public OpenAPI generation and M7 integration-source intake remain planned.
+M0 provides public synthetic status and health routes. M1 implements accepted protected authentication endpoints. M2 organization and membership routes are implemented on `main` following accepted G2 and merged PR #5, verified locally for supported endpoint, verb, role and foreign-identifier scenarios (see [executed evidence](M2_EXECUTED_VERIFICATION.md)). M3-M6 maritime, shipment and assignment APIs are now implemented and accepted; full public OpenAPI generation remains planned; M7 integration-source intake has an unverified candidate implementation on a separate branch.
 
 ## Observed M0 contract verification
 
-At code revision `4fb34eb`, the API was tested against real PostgreSQL and through the HTTP pipeline. A local database outage produced controlled 503 responses from readiness and baseline endpoints, with liveness remaining HTTP 200 and a correlation identifier included in the baseline error/log. The tests verified the four-field synthetic status contract. The corrected .NET 10 runtime was subsequently verified in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md), with G0 **accepted** on 2026-10-31. The `4fb34eb` check remains historical. That M0 statement is historical: identity, maritime, shipment and assignment resources were subsequently implemented and accepted under G1-G6; M7 tracking intake remains planned.
+At code revision `4fb34eb`, the API was tested against real PostgreSQL and through the HTTP pipeline. A local database outage produced controlled 503 responses from readiness and baseline endpoints, with liveness remaining HTTP 200 and a correlation identifier included in the baseline error/log. The tests verified the four-field synthetic status contract. The corrected .NET 10 runtime was subsequently verified in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md), with G0 **accepted** on 2026-10-31. The `4fb34eb` check remains historical. That M0 statement is historical: identity, maritime, shipment and assignment resources were subsequently implemented and accepted under G1-G6; M7 tracking intake remains unverified and unmerged.
 
 The workspace, caches and test artifacts must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md), using E: for all controlled persistent project storage. Only unavoidable short-lived Windows temporary activity on C: is permitted.
 
@@ -15,7 +15,7 @@ The workspace, caches and test artifacts must follow [Local Storage Policy](LOCA
 - Base path: /api/v1
 - Content type: application/json
 - Transport: HTTPS when remotely accessible
-- Authentication: approved D-001 server-authoritative protected browser cookie (M1), with scoped integration credentials deferred to M7. [Decision](ADR_D001_BROWSER_SESSIONS.md).
+- Authentication: approved D-001 server-authoritative protected browser cookie (M1), with machine-source credentials implemented in M7 and technically verified locally (acceptance pending). [Decision](ADR_D001_BROWSER_SESSIONS.md).
 - Organization context: derived from authorized membership and explicitly selected organization
 - Timestamps: ISO 8601 UTC
 - Pagination: bounded limit, continuation token where useful
@@ -126,9 +126,9 @@ Responses should include: stable machine-readable error code, message suitable f
 
 Suggested statuses: 400 invalid input, 401 unauthenticated, 403 forbidden, 404 not visible or absent, 409 version/state conflict, 422 domain violation, 429 rate limit, and 5xx unexpected dependency/server failures.
 
-## M7 source-authenticated intake contract (proposed, not implemented)
+## M7 source-authenticated intake contract (technical verification executed)
 
-The [M7 architecture](M7_ARCHITECTURE_DESIGN.md) proposes a HarborOps-specific `POST /integrations/v1/tracking-events` using opaque, tenant-bound bearer credentials, an exact tracking profile, strict JSON limits, UTC occurrence timestamps and server-derived source identity. A parsed/valid event is **not** a durable receipt. Until M8 provides an atomic inbox transaction, even an authenticated valid event must return `503 intake_unavailable` with `Retry-After`, not HTTP 200/201/202. D-002 reference/subset acceptance and the full [G7 verification matrix](M7_VERIFICATION_PLAN.md) are still pending; this route is not a claim of standard DCSA publisher API conformance.
+The [M7 implementation](M7_IMPLEMENTATION_STATUS.md), exercised by the [executed verification](M7_EXECUTED_VERIFICATION.md), adds a HarborOps-specific `POST /integrations/v1/tracking-events` using opaque, tenant-bound bearer credentials, an exact tracking profile, strict JSON limits, UTC occurrence timestamps and server-derived source identity. A parsed/valid event is **not** a durable receipt. Until M8 provides an atomic inbox transaction, even an authenticated valid event must return `503 intake_unavailable` with `Retry-After`, not HTTP 200/201/202. The canonical JSON uses `eventFamily` and `eventCode` with source and tenant identity derived only from the authenticated credential. D-002 is accepted (Option A, 2026-11-03) and G7 acceptance is pending (see the [G7 verification matrix](M7_VERIFICATION_PLAN.md)). This route is not a claim of standard DCSA publisher API conformance. The profile `tnt-2.2-harborops-v1` is derived from DCSA Track & Trace 2.2.0 but is deliberately narrower and **not DCSA conformant**: it omits the required upstream fields `eventCreatedDateTime` and `emptyIndicatorCode`, reduces `transportCall` to `transportReference`, requires UTC and accepts only Equipment `GTIN`/`GTOT`, Transport `ARRI`/`DEPA` and classifier `ACT`. Events in the DCSA wire format cannot be consumed directly; a translation layer is required. The pinned upstream definitions are local snapshots, not official immutable DCSA releases, limited to the reviewed HarborOps subset and not a complete transitive DCSA schema snapshot; see [`third_party/dcsa-track-and-trace`](../third_party/dcsa-track-and-trace/README.md).
 
 ## Compatibility and standards
 

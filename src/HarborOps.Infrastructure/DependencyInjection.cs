@@ -6,6 +6,7 @@ using HarborOps.Infrastructure.References;
 using HarborOps.Infrastructure.Maritime;
 using HarborOps.Infrastructure.Shipments;
 using HarborOps.Infrastructure.Assignments;
+using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<MaritimeStore>();
         services.AddScoped<ShipmentStore>();
         services.AddScoped<AssignmentStore>();
+        services.AddScoped<IntegrationSourceStore>();
         return services;
     }
 }

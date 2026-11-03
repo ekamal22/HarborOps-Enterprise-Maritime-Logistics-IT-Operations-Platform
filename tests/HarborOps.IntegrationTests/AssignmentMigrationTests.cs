@@ -78,9 +78,10 @@ public sealed class AssignmentMigrationTests
             Assert.Single(await db.ShipmentStatusChanges.AsNoTracking()
                 .Where(x => x.ShipmentId == shipment.Id).ToListAsync());
 
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261102080000_ShipmentAssignments");
             Assert.Equal(7, (await db.Database.GetAppliedMigrationsAsync()).Count());
-            Assert.Empty(await db.Database.GetPendingMigrationsAsync());
+            Assert.Contains("20261103090000_IntegrationSources",
+                await db.Database.GetPendingMigrationsAsync());
             Assert.False(db.Database.HasPendingModelChanges());
             Assert.Equal(shipment.Id, (await db.Shipments.AsNoTracking().SingleAsync()).Id);
             Assert.Equal(container.Id, (await db.Containers.AsNoTracking().SingleAsync()).Id);
@@ -98,7 +99,7 @@ public sealed class AssignmentMigrationTests
             Assert.Equal(6, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(shipment.Id, (await db.Shipments.AsNoTracking().SingleAsync()).Id);
             Assert.Equal(1, await db.ShipmentStatusChanges.AsNoTracking().CountAsync());
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261102080000_ShipmentAssignments");
             Assert.Equal(7, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Empty(await db.ShipmentContainerAssignments.AsNoTracking().ToListAsync());
             Assert.Equal(voyage.Id, (await db.Voyages.AsNoTracking().SingleAsync()).Id);

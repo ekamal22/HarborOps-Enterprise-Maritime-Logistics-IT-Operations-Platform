@@ -53,7 +53,7 @@ Human browser login uses ASP.NET Core 10 cookie authentication with protected ti
 
 ## Decision deadlines under parallel delivery
 
-Each D-number belongs to the first applicable implementing work package and must be resolved before that package, even when another milestone proceeds independently. D-003 (accepted for M4), D-002 for M7, D-006 for M8, D-005 for M13, D-004 for M14, D-008 for M19, and D-007 for M22 remain milestone-specific; parallel execution does not permit bypassing these decisions. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md). Accepted M0-M3 decisions are unchanged.
+Each D-number belongs to the first applicable implementing work package and must be resolved before that package, even when another milestone proceeds independently. D-003 (accepted for M4), D-002 (accepted for M7), D-006 for M8, D-005 for M13, D-004 for M14, D-008 for M19, and D-007 for M22 remain milestone-specific; parallel execution does not permit bypassing these decisions. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md). Accepted M0-M3 decisions are unchanged.
 
 ## M3 reference-data design choices (implemented and accepted)
 
@@ -80,7 +80,7 @@ See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed
 
 | ID | Decision required | Default hypothesis | Required before |
 | --- | --- | --- | --- |
-| D-002 | DCSA reference release/subset | [Proposed public 2.2.0 subset](M7_D002_TRACKING_REFERENCE_PROPOSAL.md); immutable upstream artifact, mapping and explicit acceptance pending | M7 |
+| D-002 | DCSA reference release/subset | Accepted 2026-11-03, Option A: DCSA Track & Trace 2.2.0 as the reference baseline for the deliberately narrower, HarborOps-specific, non-conformant profile `tnt-2.2-harborops-v1`, pinned by SHA-256 as local snapshots (not official immutable releases); the supported subset is unchanged. See the [decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [reference snapshots](../third_party/dcsa-track-and-trace/README.md) | M7 |
 | D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
 | D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M13 |
 | D-006 | Error queue and worker durability detail | PostgreSQL inbox/dead-letter tables | M8 |

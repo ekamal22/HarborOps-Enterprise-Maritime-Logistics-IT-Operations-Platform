@@ -36,11 +36,12 @@ public sealed class MaritimeUpgradeAndSecurityTests
                 .UseNpgsql(cs.ConnectionString).Options;
             await using var db = new HarborOpsDbContext(options);
             Assert.Empty(await db.Database.GetAppliedMigrationsAsync());
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261102080000_ShipmentAssignments");
             var applied = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
             Assert.Equal(7, applied.Length);
             Assert.Equal("20261102080000_ShipmentAssignments", applied[^1]);
-            Assert.Empty(await db.Database.GetPendingMigrationsAsync());
+            Assert.Contains("20261103090000_IntegrationSources",
+                await db.Database.GetPendingMigrationsAsync());
             Assert.False(db.Database.HasPendingModelChanges());
             await using var conn = new NpgsqlConnection(cs.ConnectionString);
             await conn.OpenAsync();
@@ -57,7 +58,7 @@ public sealed class MaritimeUpgradeAndSecurityTests
             Assert.True(read.GetBoolean(0));
             Assert.False(read.GetBoolean(1));
             await read.CloseAsync();
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261102080000_ShipmentAssignments");
             Assert.Equal(7, (await db.Database.GetAppliedMigrationsAsync()).Count());
         }
         finally

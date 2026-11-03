@@ -19,6 +19,7 @@ for var in TEMP TMP NPM_CONFIG_CACHE PLAYWRIGHT_BROWSERS_PATH NUGET_PACKAGES DOT
 done
 export TMPDIR="$root/cache/TMPDIR" HOME="$root/cache/HOME"
 mkdir -p "$TMPDIR" "$HOME"
+mkdir -p "$root/cache/nuget/packages" "$root/cache/nuget/http" "$root/cache/dotnet-home" "$root/cache/tmp"
 export USERPROFILE="$(cygpath -w "$HOME")"
 export DOCKER_HOST="npipe:////./pipe/dockerDesktopLinuxEngine"
 export DOTNET_NOLOGO=1 DOTNET_CLI_TELEMETRY_OPTOUT=1

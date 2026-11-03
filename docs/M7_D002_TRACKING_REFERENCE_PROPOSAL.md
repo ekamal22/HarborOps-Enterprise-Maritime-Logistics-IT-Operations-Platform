@@ -91,3 +91,34 @@ SHA-256 of the content fetched on 2026-11-03 (JSON as served, retained in the E:
 | `ERROR_DOMAIN` 1.0.0 | `15fcd4c9d3b5e529a8c170ca941ca9ec8a957df356322b38e41d25d022ca54e5` |
 
 Remaining before acceptance: a decision on whether a hash of mutable hosted content is an acceptable pin or a tagged repository release must be located, redistribution review of the fixtures, the field-by-field mapping review, and the explicit decision itself. Until then G7-S01 is BLOCKED, G7-S17 is BLOCKED for the upstream-mapping part, and the standard version and supported subset are unchanged.
+
+## 7. Recommendation on pinning the retrieved artifacts
+
+This section is advice for the pending decision. It does not accept D-002 and changes neither the supported subset nor the profile.
+
+**Can the exact retrieved artifacts be pinned locally by SHA-256?** Yes, as a local snapshot. The four JSON files in section 6 can be stored with their hashes and a drift check that fetches them again and compares the hashes. That records exactly what was reviewed. It does not make the source immutable: SwaggerHub serves a mutable hosted version, no tagged or signed release exists, and the repositories that the upstream descriptions link for code lists (`DCSA-Information-Model`) were not found. A hash proves what was reviewed, not that DCSA still publishes the same content.
+
+**Licensing.** The 2.2.0 definition declares Apache 2.0 in its `info.license` and the reference site states the same license. That permits storing copies with notice. It is the publisher's own declaration, not an independent legal review, so the redistribution question in section 5 still needs your decision. If copies are not wanted in the public repository, keep only the hashes and the fetch URLs in the repository and the files in the E: verification root.
+
+**Field-level review still needed.** The retrieved definitions show that the HarborOps profile is an adapter, not a DCSA-shaped payload:
+
+| Upstream (2.2.0 with `EVENT_DOMAIN` 1.0.4) | HarborOps profile `tnt-2.2-harborops-v1` | Review needed |
+| --- | --- | --- |
+| `eventID` | `sourceEventId` (source-local identifier) | Upstream identifier type and format against the accepted local rules |
+| `eventType` and `equipmentEventTypeCode` or `transportEventTypeCode` | `eventFamily` and `eventCode` | Name and value mapping; only `GTIN`, `GTOT`, `ARRI`, `DEPA` accepted locally |
+| `eventClassifierCode` (`ACT`, `PLN`, `EST`) | `classifier` (`ACT` only) | Whether excluding `PLN` and `EST` is the intended scope |
+| `eventDateTime` | `occurredAtUtc` | Upstream accepts an offset date-time; the profile requires UTC |
+| `eventCreatedDateTime` (required upstream) | Not accepted | Whether the profile must carry it |
+| `emptyIndicatorCode` (required upstream for equipment events) | Not accepted | Required upstream and absent locally, so the profile cannot claim conformance as written |
+| `equipmentReference` | `equipmentReference` (D-003 syntax) | Upstream equipment reference rules against the synthetic and ISO forms |
+| `transportCall` (required upstream for transport events) | `transportReference` | A single reference is a reduction of the upstream call object |
+| `ISOEquipmentCode`, `eventLocation`, `documentReferences`, `delayReasonCode` | Rejected as unknown fields | Confirm rejection is intended |
+
+**Implications of accepting the local-snapshot approach.**
+
+1. HarborOps would claim a documented, hash-pinned adapter profile derived from DCSA 2.2.0, and no DCSA conformance. The two required upstream fields noted above are absent from the profile, so a conformance claim would currently be wrong.
+2. A later upstream change would not alter behavior silently, because the profile is versioned and the drift check would report the difference.
+3. Moving to a tagged release or to Track & Trace 3.0.0 later is a new adapter version with new fixtures, as section 5 already requires.
+4. Acceptance requires three explicit decisions from you: accept a local hash pin of mutable hosted content as the reference, decide whether the two required upstream fields must be added to the profile, and decide the redistribution choice.
+
+Until those decisions are made, D-002 stays acceptance pending, G7-S01 stays BLOCKED, and the supported subset is unchanged.

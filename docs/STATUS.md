@@ -1,13 +1,13 @@
 # Project Status
 
-**As of:** 2026-11-02 (G5 accepted; M5 fast-forward integrated into `main`)
-**Default branch:** `main` contains accepted M0-M5 implementations and verification records.
+**As of:** 2026-11-03 (G0-G6 accepted, publication cleanup complete, source repository public)
+**Default branch:** Protected `main` contains accepted M0-M6 implementations and verification records.
 **Baseline:** M0 merged via PRs #1 and #3; M1 merged via PR #4; M2 merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31.
 **Acceptance:** G0, G1, G2 and G3 explicitly accepted on 2026-10-31. G2 passed all 25 scenarios on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; [G2 evidence](M2_EXECUTED_VERIFICATION.md) remains preserved. G3 passed all 25 scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; the independent raw-evidence review found 174 successful .NET executions, 57 successful browser tests and clean HIGH/CRITICAL image scans. See [G3 executed verification](M3_EXECUTED_VERIFICATION.md). M3 through M6 are integrated into `main`; G6 was explicitly accepted 2026-11-02. G7-G24 remain open.
 
 ## Publication security review, November 3, 2026
 
-The publication-security work was merged into `main` through PR #6 (merge commit `474b83837d45312e155f2c2d220af28d927fc1b3`) after the complete local E:-backed regression run passed: 149 unit, 39 contract, 187 integration (twice), 18 frontend and 57 per-engine browser tests, nine transport probes, clean dependency audits and three clean image scans. The post-merge cleanup is recorded in the [publication safety status](PUBLICATION_SAFETY_STATUS.md) and the [remediation register](PUBLICATION_REMEDIATION_STATUS.md): `main` is branch-protected, GitHub Actions is disabled, four retained Actions artifacts holding synthetic session material were deleted and verified absent. All security cleanup requirements are met; the repository remains private until a final visibility authorization is given. Accepted G0-G6 evidence is unchanged. Acceptance pending.
+The publication-security work was merged into `main` through PR #6 (merge commit `474b83837d45312e155f2c2d220af28d927fc1b3`) after the complete local E:-backed regression run passed: 149 unit, 39 contract, 187 integration (twice), 18 frontend and 57 per-engine browser tests, nine transport probes, clean dependency audits and three clean image scans. The post-merge cleanup is recorded in the [publication safety status](PUBLICATION_SAFETY_STATUS.md) and the [remediation register](PUBLICATION_REMEDIATION_STATUS.md): `main` is branch-protected, GitHub Actions is disabled, four retained Actions artifacts holding synthetic session material were deleted and verified absent. All identified publication cleanup requirements are complete; the repository became public for source inspection on 2026-11-03, with the restrictive LICENSE retained. Internet-facing application hosting and full-product G24 release acceptance remain outstanding. Accepted G0-G6 evidence is unchanged.
 
 ## Accepted M1 integration
 

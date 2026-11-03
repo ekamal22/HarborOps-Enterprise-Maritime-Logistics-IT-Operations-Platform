@@ -4,9 +4,9 @@
 **Implementation source:** `fix/publication-security-readiness`, merged to `main` through PR #6  
 **Baseline:** `main` at `4d26514caee5cc835f6eef230e0433141291374e`  
 **Merged implementation:** `474b83837d45312e155f2c2d220af28d927fc1b3` (verified source with documentation updates)  
-**Publication decision:** NOT CLEARED  
+**Publication decision:** CLEARED FOR SOURCE VISIBILITY (repository public since 2026-11-03)  
 **Internet-hosting decision:** NOT CLEARED  
-**Verification state:** Complete local E:-backed regression run passed at `b9adaa8ae0fc5f2df9deb5e4f090695d5048d672` (see below), after the isolated hosted run at `7145ec24a8ac289dfcf6f02644f54f35f4744c8a` passed every test stage and failed only in cleanup. Historical disclosure review, repository governance, licensing and publication approval remain outstanding.
+**Verification state:** Complete local E:-backed regression run passed at `b9adaa8ae0fc5f2df9deb5e4f090695d5048d672`, followed by current-source package and container audits. Historical disclosure review and artifact disposition were completed, protected-branch governance was enforced, and public source visibility was approved. Internet-facing application hosting remains unapproved.
 
 This register tracks remediation after the [original security review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md). Do not alter the prior review's observations or reinterpret accepted M0 through M6 test evidence.
 
@@ -61,13 +61,13 @@ The failure of hosted run 41526406931 (161 of 187 integration tests, HTTP 400 fr
 
 Hosted HTTPS checks (`scripts/verify-publication-hosted.mjs`) require an actual approved domain and certificates and were **not executed**. Accessibility verification remains deferred to the final designated release stage. No GitHub Actions run was started by this verification, and the corrected `verify-publication-security.yml` has not been dispatched.
 
-### Publication scripts
+### Initial publication scripts and historical findings
 
 `audit-publication-history.py` inventoried 26 refs, 4,797 reachable objects and 38 workflow runs, and does **not** clear: three remote branch tips were not present in the local object store at audit time, five unreachable objects need separate review, and the scanner reported three credential-like test constants (since removed from the current tree, still present in old commits), nine non-credential matches in historical logs and failure snapshots (image digests and synthetic page-snapshot text), and serialized synthetic session cookie values inside nested browser trace archives of three historical runs. Raw outputs are retained in a private, access-restricted location and are not part of any shareable package. `prepare-public-source-snapshot.py` produced a 189-file history-free candidate that passed its secret scan; an independent extraction contained no personal, workstation, assistant-attribution or non-synthetic email content, built with zero warnings and passed all 149 unit tests. It remains a review candidate, not an approved release. `check-publication-governance.py` confirms the repository is private and Actions is disabled, and that `main` has no branch protection and no rulesets; that setting requires administrative action.
 
 ## Post-merge cleanup, November 3, 2026
 
-PR #6 is merged. The cleanup, its verification and the remaining decision are recorded in the [publication safety status](PUBLICATION_SAFETY_STATUS.md#publication-cleanup-november-3-2026). In short: `main` is branch-protected and enforced, Actions is disabled, four retained artifacts with synthetic session cookie values are deleted and verified, no workflow log needed deletion, the five unreachable Git objects were reviewed and are local only, and the restrictive license is retained. The repository stays private pending the final visibility authorization.
+PR #6 is merged. The cleanup, its verification and the remaining decision are recorded in the [publication safety status](PUBLICATION_SAFETY_STATUS.md#publication-cleanup-november-3-2026). In short: `main` is branch-protected and enforced, Actions is disabled, four retained artifacts with synthetic session cookie values are deleted and verified, no workflow log needed deletion, the five unreachable Git objects were reviewed and are local only, and the restrictive license is retained. The repository became public on 2026-11-03 after final visibility authorization; internet-facing deployment remains unapproved.
 
 ## Findings and closure requirements
 
@@ -142,9 +142,11 @@ The publication-safe alternative is a **new repository with a fresh initial comm
 
 `python scripts/prepare-public-source-snapshot.py E:/security-evidence/publication/snapshot`
 
-The exporter excludes `.git`, all branch and commit metadata, `.github`, local development scripts, and historical `docs/` evidence. It uses explicit source-path allowlists and a redacted secret scan, fails on recognized private paths and non-synthetic email domains, and never publishes or changes repository visibility. The archive remains a review candidate until its contents, dependency licenses and relevant security controls have been independently approved. Preserve this private repository and the original gate evidence without rewriting or deleting history.
+The exporter excludes `.git`, all branch and commit metadata, `.github`, local development scripts, and historical `docs/` evidence. It uses explicit source-path allowlists and a redacted secret scan, fails on recognized private paths and non-synthetic email domains, and never publishes or changes repository visibility. The archive remains a review candidate until its contents, dependency licenses and relevant security controls have been independently approved. Retain the original gate evidence in controlled private storage without rewriting the published repository history.
 
-### Remaining release requirements
+### Historical release checklist (source-publication gate closed)
+
+The checks below describe the original pre-publication plan. Their source-visibility requirements were completed and recorded in [Publication Safety Status](PUBLICATION_SAFETY_STATUS.md). Hosted TLS and full-product release gates remain separate.
 
 - Execute the existing local contract, unit, PostgreSQL integration and cross-browser regression suites, and new Host/proxy response checks on E: against the exact candidate SHA.
 - Review all available historical workflow jobs and retained artifacts as well as Git branches, tags, pull-request refs and deleted Git objects, even when current-tree secret scans are clean.
@@ -158,4 +160,4 @@ A read-only review inventoried 35 hosted workflow runs. Two cancelled runs had n
 
 All 17 retained downloadable workflow artifact archives were retrieved for inspection. They contained 34 nested browser trace ZIPs, source and reporter assets, synthetic test output and binary screenshots. Pattern-based scanning and targeted inspection found **52 serialized authentication-cookie-value matches** in three artifact archives: `13026999079`, `13027355828`, and `13027499753`. These appear to be disposable test-session values. No live-production use is established, but the contents are security-sensitive and must not be exposed in a public repository or portfolio package. Exact cookie values were not copied into this register. The binary screenshots were not individually reviewed, and a full historical Git-object scan remains outstanding.
 
-**Publication gate:** Preserve the original artifacts in this private repository for accepted gate traceability. Do not publish, link, export or redistribute the original trace archives as part of a public release. An explicitly approved separate history-free source export excludes them. Any proposal to remove retained GitHub artifacts or rewrite history requires a separate evidence-preservation decision and confirmation that no active credential depends on the historical tokens.
+**Historical gate (2026-11-02):** This was an initial disclosure restriction before source publication. Four affected historical artifacts were subsequently removed after evidence preservation, and public source visibility was approved on 2026-11-03. Retained private evidence must remain protected; further artifact deletion and Git history rewriting are not authorized.

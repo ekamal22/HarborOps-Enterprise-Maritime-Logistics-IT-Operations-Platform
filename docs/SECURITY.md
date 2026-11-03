@@ -71,7 +71,7 @@ Authenticated and state-changing routes require HTTPS, except when `Identity:All
 
 ## Public repository and deployment readiness
 
-The [public repository security and disclosure review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) preserves the original findings. The [remediation register](PUBLICATION_REMEDIATION_STATUS.md) tracks the security changes, independent verification requirements and remaining public-release gates. **The existing repository is not cleared for publication or internet hosting.** The full history and three divergent branch lines require review even when current source-file scans are clean. No GitHub Actions are authorized.
+The [original repository security review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) preserves its historical findings. The [remediation register](PUBLICATION_REMEDIATION_STATUS.md) and [publication safety status](PUBLICATION_SAFETY_STATUS.md) document the completed security changes, successful local verification, artifact disposition and branch governance. **The repository is public for source inspection as of 2026-11-03, but internet-facing application hosting is not cleared.** Historical Git content is visible, the LICENSE restricts reuse, and GitHub Actions remains disabled.
 
 ## Data protection
 

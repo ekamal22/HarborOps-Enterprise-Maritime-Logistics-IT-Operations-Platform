@@ -1,9 +1,9 @@
 # Project Status
 
-**As of:** 2026-11-03 (G0-G6 accepted, publication cleanup complete, source repository public)
-**Default branch:** Protected `main` contains accepted M0-M6 implementations and verification records.
+**As of:** 2026-11-03 (G0-G7 accepted, publication cleanup complete, source repository public)
+**Default branch:** Protected `main` contains accepted M0-M7 implementations and verification records.
 **Baseline:** M0 merged via PRs #1 and #3; M1 merged via PR #4; M2 merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31.
-**Acceptance:** G0, G1, G2 and G3 explicitly accepted on 2026-10-31. G2 passed all 25 scenarios on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; [G2 evidence](M2_EXECUTED_VERIFICATION.md) remains preserved. G3 passed all 25 scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; the independent raw-evidence review found 174 successful .NET executions, 57 successful browser tests and clean HIGH/CRITICAL image scans. See [G3 executed verification](M3_EXECUTED_VERIFICATION.md). M3 through M6 are integrated into `main`; G6 was explicitly accepted 2026-11-02. G7-G24 remain open.
+**Acceptance:** G0, G1, G2 and G3 explicitly accepted on 2026-10-31. G2 passed all 25 scenarios on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; [G2 evidence](M2_EXECUTED_VERIFICATION.md) remains preserved. G3 passed all 25 scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; the independent raw-evidence review found 174 successful .NET executions, 57 successful browser tests and clean HIGH/CRITICAL image scans. See [G3 executed verification](M3_EXECUTED_VERIFICATION.md). M3 through M6 are integrated into `main`; G6 was explicitly accepted 2026-11-02. G7 accepted 2026-11-03 after three verification supplements and independent review; G8-G24 remain open.
 
 ## Publication security review, November 3, 2026
 
@@ -26,7 +26,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | **M4 Voyages and containers reference data** | **G4 verified, independently reviewed, explicitly accepted on 2026-11-01; integrated into `main`** | [M4 executed verification](M4_EXECUTED_VERIFICATION.md): verified source `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`; 82 unit, 12 contract, 92 fresh and 92 repeat integration, 31 browser tests per engine, M3/M4 outage and recovery, and three clear HIGH/CRITICAL image scans. The evidence-stage exit 1 at execution was the pending D-003 decision, subsequently explicitly approved as Option B alongside G4 acceptance. Evidence archive SHA-256 and review conditions recorded in the executed register. No production deployment. |
 | **M5 Shipment lifecycle and concurrency** | **G5 verified, independently reviewed and explicitly accepted 2026-11-02; integrated into `main`** | [G5 gate closure](M5_G5_GATE_CLOSURE.md), [executed verification](M5_EXECUTED_VERIFICATION.md) and [accepted contract](M5_LOCAL_CONTRACT_DECISION.md). Run 13 at `3e57af490d9a28dd1f0c482b6d20cd44f8a9fc91`: 601 tests passed, 26 executable stages passed, 0 HIGH/CRITICAL scans, 185/185 evidence files verified. G5-S01 separately accepted; G5-S21 and G5-S23 approved with documented limitations. No production deployment. |
 | **M6 Container and voyage assignments** | **G6 accepted on 2026-11-02 and merged into `main`** | Tested implementation `a94d7cd` passed 706 test executions; G6-S01 closed by approval of the complete [local contract](M6_LOCAL_CONTRACT_DECISION.md). [Gate closure](M6_G6_GATE_CLOSURE.md) preserves G6-S10 M0-only snapshot limitation and evidence provenance. Merge `2aa0b9e941adeaff22ff07e2f5d401dadc2030f1`. |
-| **M7 Tracking contracts and source authentication** | Implemented on feature branch and technically verified locally; D-002 accepted, G7 acceptance pending | [Implementation register](M7_IMPLEMENTATION_STATUS.md), [second correctness audit](M7_SECOND_CORRECTNESS_AUDIT.md), [planning status](M7_PLANNING_STATUS.md), [G7 matrix](M7_VERIFICATION_PLAN.md), [executed verification](M7_EXECUTED_VERIFICATION.md); technical G7 run executed on `7b87f3250aba677b1f4aeef4350803d9ca7b6880` with all 25 scenarios passing after three supplements (G7-S06 operator lifecycle, G7-S25 evidence reconciliation, D-002 reference verification), G7 acceptance pending, not integrated into `main` |
+| **M7 Tracking contracts and source authentication** | **G7 verified, independently reviewed, explicitly accepted 2026-11-03; merged into `main`** | [G7 closure](M7_G7_GATE_CLOSURE.md) and [executed verification](M7_EXECUTED_VERIFICATION.md). Tested runtime `7b87f3250aba677b1f4aeef4350803d9ca7b6880`; 22 technical stages passed, 822 test executions, five effective security mutations, 25/25 G7 scenarios reconciled after three supplements. Original 21 PASS, 3 BLOCKED, 1 NOT EXECUTED and wrapper exit 2 remain preserved. Integrated via [PR #10](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/10) and [PR #11](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/11). Valid events return 503 until M8 durable intake. |
 | **M8 Durable event inbox and immutable history** | Planned | No verified implementation or accepted gate G8 |
 | **M9 Idempotent worker and reconciliation** | Planned | No verified implementation or accepted gate G9 |
 | **M10 Event timeline and projection rebuild** | Planned | No verified implementation or accepted gate G10 |
@@ -73,13 +73,13 @@ The unchecked items below concern the complete M0-M24 product release. They do n
 
 ## Verification evidence
 
-The `main` branch includes M0 runtime, M1 authentication and M2 organization authorization. G0 and G1 used disposable GitHub-hosted verification; G2 used disposable local database, Compose and browser resources on E:. None of these milestone acceptances constitutes public or production deployment. See [M0 evidence](M0_HARDENING_VERIFICATION.md), [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) and [M2 evidence](M2_EXECUTED_VERIFICATION.md).
+The `main` branch includes the accepted M0-M7 capabilities. G0 and G1 used disposable GitHub-hosted verification; G2 used disposable local database, Compose and browser resources on E:. None of these milestone acceptances constitutes public or production deployment. See [M0 evidence](M0_HARDENING_VERIFICATION.md), [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) and [M2 evidence](M2_EXECUTED_VERIFICATION.md).
 
 ## Accepted milestone: M2
 
 M2-01 through M2-04 and all G2-S01 through G2-S25 scenarios are complete. The locally verified source revision is `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`. G2 was explicitly accepted on 2026-10-31 and [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) merged the accepted work into `main` at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562`. See [architecture](M2_ARCHITECTURE_DESIGN.md), [implementation record](M2_IMPLEMENTATION_STATUS.md), [G2 verification plan](M2_VERIFICATION_PLAN.md) and [executed evidence](M2_EXECUTED_VERIFICATION.md).
 
-G0 through G6 are accepted and merged into `main` as of 2026-11-02. D-003 is accepted for M4; D-002 is accepted for M7 (2026-11-03, Option A). Historical-volume compatibility remains at M6, M12, M18 and M24-03; dedicated accessibility verification remains M24-04.
+G0 through G7 are accepted and merged into `main` as of 2026-11-03. D-003 is accepted for M4; D-002 is accepted for M7 (2026-11-03, Option A). Historical-volume compatibility remains at M6, M12, M18 and M24-03; dedicated accessibility verification remains M24-04.
 
 ## Accepted milestone: M4
 
@@ -99,9 +99,13 @@ M5 domain, SQL/EF mappings and migration, tenant-scoped API, shipment-specific r
 
 The M6 domain, additive PostgreSQL migration, scoped API, React allocation workspace and verification tests are integrated into `main`. All 33 executable G6 stages passed on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6`, including 706 test executions. The original evidence assertion returned exit 1 solely for then-pending contract acceptance. Approval of all twelve local rules and G6 on 2026-11-02 closed G6-S01. The M0-only historical snapshot limitation is accepted and supplemented by a seeded populated M5 upgrade test. See [G6 closure](M6_G6_GATE_CLOSURE.md).
 
+## Accepted M7 tracking source contracts
+
+M7-01 through M7-04 and G7 were accepted on 2026-11-03 after the 25-scenario reconciled verification, independent review of the protected-terminal G7-S06 supplement and D-002 Option A reference checks. The G7-S06 review confirmed 33/33 manifest entries, no exposed bearer material, credential revocation and teardown. The runtime run was source-locked to `7b87f3250aba677b1f4aeef4350803d9ca7b6880`; later commits only updated documentation, pinned references and their verification logic. [Gate closure](M7_G7_GATE_CLOSURE.md) preserves the original pre-decision evidence and accepted limitations. Durable intake, worker processing and timeline projections remain M8-M10.
+
 ## Next eligible parallel workstreams
 
-M3-01 through M3-04 are implemented, G3 is accepted and M3 has been fast-forward integrated into `main`. The E:-backed G3 run at `b72025d35d62d0a8a45b466986a0b3bd89eebadb` passed 50 unit, 12 contract, 56 fresh and 56 repeated PostgreSQL integration tests plus 19 browser tests in each of Chromium, Firefox and WebKit. [Executed verification](M3_EXECUTED_VERIFICATION.md) and [implementation status](M3_IMPLEMENTATION_STATUS.md) record the evidence. **M4, M5 and M6 are accepted; M7-M24 remain separate future milestones.** The v3.0 dependency graph allows eligible parallel tracks from accepted G3, including M6 implementation now that G4 and G5 are accepted, M7 (D-002), M16, M17, M19 (D-008), M20-01 and M23-01. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md). G6 is accepted; G7-G24 gates remain open and no production deployment is authorized.
+Accepted G7 allows M8-01 inbox contract work. M8 also requires D-006 and separate G8 verification and acceptance. M16 audit foundations, M17 observability, M19 recovery foundations and eligible preparatory M20/M23 work can proceed in parallel under the [execution graph](EXECUTION_GRAPH.md). G8-G24 remain open; no public application hosting or production deployment is authorized.
 
 ## Storage and residual risk
 

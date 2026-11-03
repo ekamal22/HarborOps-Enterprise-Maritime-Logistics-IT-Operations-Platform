@@ -2,7 +2,7 @@
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Date:** 2026-10-30  
-**State:** M0/G0 through M6/G6 are locally verified, explicitly accepted and integrated into `main` as of 2026-11-02. The twelve-rule M6 contract and G6-S10 snapshot limitation are documented in [gate closure](M6_G6_GATE_CLOSURE.md). G7-G24 remain open.
+**State:** M0/G0 through M7/G7 are locally verified, explicitly accepted and integrated into `main` as of 2026-11-03. The twelve-rule M6 contract and G6-S10 snapshot limitation are documented in [gate closure](M6_G6_GATE_CLOSURE.md). G8-G24 remain open.
 
 ## Authority and rationale
 
@@ -163,7 +163,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Versioned and authenticated event interface.
 **Entry:** G3 accepted before respective dependent work packages. D-002 is accepted (2026-11-03, Option A).
 **Required work packages:** M7-01 Pin external subset and contract; M7-02 Implement source entitlements; M7-03 Implement strict payload validation; M7-04 Verify ingestion contract tests. [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the solution; the implementation is recorded in [M7 status](M7_IMPLEMENTATION_STATUS.md) and its local technical verification in [M7 executed verification](M7_EXECUTED_VERIFICATION.md); acceptance is pending.
-**Exit G7:** All applicable tasks, negative tests, runtime evidence and documentation for M7 recorded; acceptance pending until explicitly confirmed.
+**Exit G7:** Explicitly accepted 2026-11-03 after 25/25 reconciled scenarios, independent supplement review and D-002 Option A. Integrated via PR #10 and PR #11; original run and supplements are preserved separately in [G7 closure](M7_G7_GATE_CLOSURE.md).
 **Not covered by this milestone:** Inbox persistence and background processing.
 
 #### M8: Durable event inbox and immutable history

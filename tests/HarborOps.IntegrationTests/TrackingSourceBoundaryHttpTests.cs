@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -46,11 +45,12 @@ public sealed class TrackingSourceBoundaryHttpTests
         {
             Assert.Equal(expected, response.StatusCode);
             Assert.Contains("no-store", response.Headers.CacheControl?.ToString());
-            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+            var text = await response.Content.ReadAsStringAsync();
+            using var document = JsonDocument.Parse(text);
+            var json = document.RootElement;
             Assert.Equal(code, json.GetProperty("code").GetString());
             Assert.False(string.IsNullOrWhiteSpace(json.GetProperty("correlationId").GetString()));
-            Assert.DoesNotContain("exception", await response.Content.ReadAsStringAsync(),
-                StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("exception", text, StringComparison.OrdinalIgnoreCase);
         }
     }
 

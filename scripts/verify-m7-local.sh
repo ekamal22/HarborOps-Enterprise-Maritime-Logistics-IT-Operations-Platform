@@ -7,7 +7,7 @@ root_input="$(printenv HARBOROPS_VERIFICATION_ROOT || true)"
 case "$root_input" in [Ee]:[/\\]*|/e/*) ;; *) echo "E: verification root required" >&2; exit 2 ;; esac
 root="$(cygpath -u "$root_input")"
 case "$root" in /e/*/m7) ;; *) echo "Dedicated E: path ending in /m7 required" >&2; exit 2 ;; esac
-export HARBOROPS_VERIFICATION_ROOT="$root"
+export HARBOROPS_VERIFICATION_ROOT="$(cygpath -w "$root")"
 case "$(pwd -W)" in [Ee]:[/\\]*) ;; *) echo "Checkout must be on E:" >&2; exit 2 ;; esac
 [[ -z "$(git status --porcelain)" ]] || { echo "Clean checkout required" >&2; exit 2; }
 repo_win="$(pwd -W)"

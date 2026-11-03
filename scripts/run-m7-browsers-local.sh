@@ -5,6 +5,7 @@
 # runs, and the stage fails at the end if any of them failed. Failure artifacts are copied to E:.
 set -euo pipefail
 root=$(printenv HARBOROPS_VERIFICATION_ROOT || true)
+if command -v cygpath >/dev/null; then root=$(cygpath -u "$root"); fi
 case "$root" in
   [Ee]:[/\\]*|/e/*) ;;
   *) echo "E:-backed verification root required" >&2; exit 2 ;;

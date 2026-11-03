@@ -38,6 +38,14 @@ public sealed class TrackingSourceSqlTests
             db.Database.ExecuteSqlInterpolatedAsync(
                 $"UPDATE integration_sources SET source_code = {"renamed"} WHERE id = {issued.Id}"));
         Assert.Equal(PostgresErrorCodes.CheckViolation, sourceCodeChange.SqlState);
+        var badName = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE integration_sources
+                SET display_name = {"  "}, version = version + 1, updated_at_utc = {DateTimeOffset.UtcNow}
+                WHERE id = {issued.Id}
+                """));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, badName.SqlState);
+
         var after = await db.IntegrationCredentials.AsNoTracking()
             .SingleAsync(x => x.Id == issued.CredentialId);
         Assert.Equal(original.SecretDigest, after.SecretDigest);

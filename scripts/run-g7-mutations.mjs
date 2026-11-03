@@ -76,11 +76,12 @@ try{
      const command=["run","--rm","--ulimit","core=0","--network","container:"+name,
        "-v",work+":/src","-v",root+":/cache","-w","/src",
        "-e","HARBOROPS_TEST_DB=Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops",
-       "-e","NUGET_PACKAGES=/cache/nuget/packages",
-       "-e","NUGET_HTTP_CACHE_PATH=/cache/nuget/http-cache",
-       "-e","DOTNET_CLI_HOME=/cache/dotnet-home","-e","TMPDIR=/cache/tmp",
+       "-e","NUGET_PACKAGES=/cache/cache/nuget/packages",
+       "-e","NUGET_HTTP_CACHE_PATH=/cache/cache/nuget/http",
+       "-e","DOTNET_CLI_HOME=/cache/cache/dotnet-home","-e","HOME=/cache/cache/dotnet-home",
+       "-e","DOTNET_NOLOGO=1","-e","TMPDIR=/cache/cache/tmp",
        "mcr.microsoft.com/dotnet/sdk:10.0","bash","-lc",shell];
-     const executed=run("docker",command,{timeout:600000});
+     const executed=run("docker",command,{timeout:1200000});
      fs.writeFileSync(path.join(results,"console.log"),
        (executed.stdout||"")+"\n"+(executed.stderr||""));
      const trx=path.join(results,"results.trx");

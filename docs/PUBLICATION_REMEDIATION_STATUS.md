@@ -1,6 +1,6 @@
 # Publication and Hosted Security Remediation Register
 
-**Date:** 2026-11-02  
+**Date:** 2026-11-03  
 **Implementation source:** `fix/publication-security-readiness`, merged to `main` through PR #6  
 **Baseline:** `main` at `4d26514caee5cc835f6eef230e0433141291374e`  
 **Merged implementation:** `474b83837d45312e155f2c2d220af28d927fc1b3` (verified source with documentation updates)  
@@ -64,6 +64,10 @@ Hosted HTTPS checks (`scripts/verify-publication-hosted.mjs`) require an actual 
 ### Publication scripts
 
 `audit-publication-history.py` inventoried 26 refs, 4,797 reachable objects and 38 workflow runs, and does **not** clear: three remote branch tips were not present in the local object store at audit time, five unreachable objects need separate review, and the scanner reported three credential-like test constants (since removed from the current tree, still present in old commits), nine non-credential matches in historical logs and failure snapshots (image digests and synthetic page-snapshot text), and serialized synthetic session cookie values inside nested browser trace archives of three historical runs. Raw outputs are retained in a private, access-restricted location and are not part of any shareable package. `prepare-public-source-snapshot.py` produced a 189-file history-free candidate that passed its secret scan; an independent extraction contained no personal, workstation, assistant-attribution or non-synthetic email content, built with zero warnings and passed all 149 unit tests. It remains a review candidate, not an approved release. `check-publication-governance.py` confirms the repository is private and Actions is disabled, and that `main` has no branch protection and no rulesets; that setting requires administrative action.
+
+## Post-merge cleanup, November 3, 2026
+
+PR #6 is merged. The cleanup, its verification and the remaining decision are recorded in the [publication safety status](PUBLICATION_SAFETY_STATUS.md#publication-cleanup-november-3-2026). In short: `main` is branch-protected and enforced, Actions is disabled, three retained artifacts with synthetic session cookie values are deleted and verified, no workflow log needed deletion, the five unreachable Git objects were reviewed and are local only, and the restrictive license is retained. The repository stays private; one more retained artifact needs a deletion decision.
 
 ## Findings and closure requirements
 

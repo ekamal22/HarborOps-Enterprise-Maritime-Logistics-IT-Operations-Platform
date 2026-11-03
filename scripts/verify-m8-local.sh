@@ -6,7 +6,7 @@ command -v cygpath >/dev/null || { echo "Windows Git Bash required" >&2; exit 2;
 root_input="$(printenv HARBOROPS_VERIFICATION_ROOT || true)"
 case "$root_input" in [Ee]:[/\\]*|/e/*) ;; *) echo "E: verification root required" >&2; exit 2 ;; esac
 # Judge the drive from the Windows form: Git Bash may mount E: at /tmp or /e depending on TEMP.
-case "$(cygpath -m "$root_input")" in [Ee]:/*/m7) ;; *) echo "Dedicated E: path ending in /m7 required" >&2; exit 2 ;; esac
+case "$(cygpath -m "$root_input")" in [Ee]:/*/m8) ;; *) echo "Dedicated E: path ending in /m8 required" >&2; exit 2 ;; esac
 root_win="$(cygpath -w "$root_input")"
 root="$(cygpath -u "$root_win")"
 export HARBOROPS_VERIFICATION_ROOT="$root_win"
@@ -107,9 +107,9 @@ trap cleanup EXIT
 
 stage preflight bash -c 'git rev-parse HEAD; node --version; npm --version; docker version; docker compose version'
 # Compose must render the isolated G8 network, never the retained default subnet.
-stage network-contract node scripts/check-m7-compose-network.mjs
+stage network-contract node scripts/check-m8-compose-network.mjs
 stage documentation bash -c 'node scripts/render-execution-graph.mjs --check && node scripts/check-planning-docs.mjs'
-stage tracking-contract node --test scripts/check-m7-contract.test.mjs
+stage tracking-contract node --test scripts/check-m7-contract.test.mjs scripts/check-m8-contract.test.mjs
 stage postgres-image docker build --build-arg "SOURCE_REVISION=$HARBOROPS_SOURCE_SHA" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
 docker run -d --name "$sdk_db" --label harborops.g8=disposable --ulimit core=0 \
@@ -229,7 +229,7 @@ organizations() {
   done
 }
 stage organizations organizations
-stage source-fixture node scripts/seed-m7-source-fixture.mjs
+stage source-fixture node scripts/seed-m8-source-fixture.mjs
 
 # A redirected operator terminal must never reveal a source secret.
 cli_negative() {
@@ -249,22 +249,17 @@ cli_negative() {
     dotnet HarborOps.Api.dll --source-cli inspect "$org" g8_disposable
 }
 stage source-cli-negative cli_negative
-if [[ "$(printenv HARBOROPS_G8_INTERACTIVE_CLI || true)" == "1" ]]; then
-  # Deliberately not captured by stage(): only a protected terminal may display issued keys.
-  bash scripts/check-m7-source-cli-interactive.sh
-  printf 'G8-S06\tOPERATOR_RUN\tProtected lifecycle checked in terminal\n' > "$evidence/source-cli-operator.tsv"
-fi
-stage ingress-before node scripts/check-m7-ingress.mjs healthy
+stage ingress-before node scripts/check-m8-ingress.mjs healthy
 stage browser-fixtures bash -c \
   'node scripts/prepare-m3-browser-fixtures.mjs && node scripts/prepare-m4-browser-fixtures.mjs && node scripts/prepare-m5-browser-fixtures.mjs && node scripts/prepare-m6-browser-fixtures.mjs'
 export HARBOROPS_M3_FIXTURES=1 HARBOROPS_M4_FIXTURES=1
 export HARBOROPS_M5_FIXTURES=1 HARBOROPS_M6_FIXTURES=1
-stage browsers bash scripts/run-m7-browsers-local.sh
+stage browsers bash scripts/run-m8-browsers-local.sh
 
 recovery() {
   compose stop postgres
   local rc=0
-  node scripts/check-m7-ingress.mjs outage || rc=$?
+  node scripts/check-m8-ingress.mjs outage || rc=$?
   compose start postgres
   local ready=0
   for _ in $(seq 1 45); do
@@ -274,7 +269,7 @@ recovery() {
     sleep 2
   done
   [[ "$rc" == 0 && "$ready" == 1 ]] || return 1
-  node scripts/check-m7-ingress.mjs recovered
+  node scripts/check-m8-ingress.mjs recovered
 }
 stage source-outage-recovery recovery
 

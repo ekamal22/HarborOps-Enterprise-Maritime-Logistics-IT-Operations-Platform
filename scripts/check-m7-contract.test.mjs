@@ -116,9 +116,13 @@ test("G7 technical runner uses isolated resources and controlled mutation checks
   for (const marker of [
     "check-m3-docker-storage.mjs", "check-m7-compose-network.mjs",
     "stage security-mutations", "stage dotnet-regressions", "stage browsers",
-    "stage source-outage-recovery", "stage image-scans", "ho-verify-g7",
-    "trap cleanup EXIT", "D-002 acceptance and upstream pin pending"
+    "stage source-outage-recovery", "stage image-scans", "stage evidence-summary", "ho-verify-g7",
+    "trap cleanup EXIT"
   ]) assert.ok(runner.includes(marker), "G7 stage missing: "+marker);
+  const summary = readFileSync("scripts/summarize-g7-evidence.mjs", "utf8");
+  assert.ok(summary.includes("D-002 acceptance pending"), "D-002 block must stay recorded");
+  for (let i = 1; i <= 25; i++)
+    assert.ok(summary.includes("G7-S" + String(i).padStart(2, "0")), "Summary scenario missing: " + i);
   assert.ok(network.includes("172.30.253.0/24"));
   for(const name of ["digest","suspension","revocation","size","credential-guard"])
     assert.ok(mutation.includes('"'+name+'"'), "Security mutant missing: "+name);

@@ -85,6 +85,8 @@ What was done and executed:
 - **Tests:** 14 unit tests of the verification logic (tampered or substituted snapshot, unlisted file, withheld artifact committed, missing license declaration, conformance claim, changed fixture, unsupported code or classifier, drift outcomes) and one contract test that ties the manifest to the policy source. The 8 existing contract-script tests still pass.
 - **Documented differences:** the profile omits the required upstream fields `eventCreatedDateTime` and `emptyIndicatorCode` and reduces `transportCall` to `transportReference`. Events in the DCSA wire format cannot be consumed directly; a translation layer is required.
 
+Evidence: `E:\HarborOps-Verification\m7\d002-supplement` (checks run on a fresh clean checkout of `407601f42b598f6d64de0e64aa906aa54a962bcd`, license review, retained artifact hashes, result record and manifest), archive `E:\HarborOps-Verification\m7\d002-archives\g7-d002-407601f42b598f6d64de0e64aa906aa54a962bcd-supplement.tar.gz`, SHA-256 `5520cbd3d3bc0d28e35b7ecffe7548c6676e1f66c3ec88f32d7f318445d251f1`. A one-byte change to the snapshot and an added withheld artifact each made the verification fail with exit 1 and restoring them returned it to pass.
+
 Scope: G7-S01 and G7-S17 pass on the evidence above. The product code was not re-run for this supplement because it is unchanged from the tested revision; the supported-subset parsing tests of the original run (`ParsesOnlyExplicitSupportedSubset`, `CanonicalEventBindsOnlyValidatedServerIdentity`, `RejectsUnsupportedFamilyAndCodes`) are the original run's evidence. The pins are not an official immutable release, which the decision accepts.
 
 ## Reconciled matrix

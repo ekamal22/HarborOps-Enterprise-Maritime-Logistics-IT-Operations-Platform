@@ -36,6 +36,10 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 
 M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and integrated. The parallel migration and shared-file ownership rule remains documented as historical guidance. M8-01 inbox contract work is now eligible after accepted G7; receipt and intake implementation also require accepted G6 and the separate D-006 decision. M13 KPI definitions can start after G11; aggregate integration requires G12. M18 incident policy can start after G17; CRUD integration requires G16. M21 can define benchmark workloads after G9 but needs G12/G13 for complete results. M22 may plan deployment after G19 but cannot close until G20/G21 integration. D-003 was accepted for M4. Nothing authorizes bypassing remaining D-004, D-005, D-006, D-007 or D-008; D-002 is accepted for the pinned M7 profile.
 
+## M8 parallel implementation boundary (planned)
+
+M8-01 contract design is eligible after accepted G7. The [M8 planning package](M8_IMPLEMENTATION_PLAN.md) recommends D-006 Option A but **does not accept** the decision. After an explicit D-006 contract freeze, M8-02 schema and M8-03 transactional route work can progress in separate E:-backed branches from the same accepted baseline. Assign one coordinator for the EF model/migration and one for the M7 tracking endpoint/final bearer revalidation, then integrate both before M8-04 and a single source-locked G8 run. Do not merge the implementation merely because planning passes. The source-scoped uniqueness, lock order and Pending work-state schema must remain compatible with the future M9 worker, with no changed execution-graph dependencies. See [M8 architecture](M8_ARCHITECTURE_DESIGN.md) and [D-006 proposal](M8_D006_DURABILITY_PROPOSAL.md).
+
 ## Branches and source of truth
 
 1. Use one named feature branch or worktree per concurrently developed milestone, based on an accepted `main` revision. Record the exact base SHA and upstream contract versions.

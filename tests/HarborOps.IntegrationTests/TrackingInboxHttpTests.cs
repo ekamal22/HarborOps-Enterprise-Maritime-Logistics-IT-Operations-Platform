@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using HarborOps.Domain.Tracking;
 using System.Text;
 using System.Text.Json;
 using HarborOps.Infrastructure.Integrations;
@@ -136,6 +138,37 @@ public sealed class TrackingInboxHttpTests
         Assert.Equal(HttpStatusCode.Accepted, allowed.StatusCode);
         var replay = await allowed.Content.ReadFromJsonAsync<JsonElement>();
         Assert.True(replay.GetProperty("duplicate").GetBoolean());
+    }
+
+    [Fact]
+    public async Task FinalTransactionAuthorizationRejectsWrongDigestAndForeignSource()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var scope = factory.Services.CreateAsyncScope();
+        var sourceStore = scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
+        var a = await sourceStore.CreateAsync(fixture.A, "m8_final_a", "Final A",
+            CancellationToken.None);
+        var b = await sourceStore.CreateAsync(fixture.A, "m8_final_b", "Final B",
+            CancellationToken.None);
+        var bytes = Encoding.UTF8.GetBytes(Payload(id: "final-reauth"));
+        var parsed = TrackingEventPolicy.Parse(bytes, TimeProvider.System.GetUtcNow());
+        Assert.NotNull(parsed.Value);
+        var bound = parsed.Value!.Bind(a.Id, fixture.A);
+        var intake = scope.ServiceProvider.GetRequiredService<TrackingInboxStore>();
+        var forged = IntegrationSourceStore.FormatBearer(a.CredentialId,
+            RandomNumberGenerator.GetBytes(32));
+        var wrongDigest = await intake.ReceiveAsync(bound, forged, bytes, "final-digest",
+            CancellationToken.None);
+        Assert.Equal(TrackingReceiptOutcome.AccessDenied, wrongDigest.Outcome);
+        var foreignSource = await intake.ReceiveAsync(bound, b.Bearer, bytes, "final-source",
+            CancellationToken.None);
+        Assert.Equal(TrackingReceiptOutcome.AccessDenied, foreignSource.Outcome);
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Equal(0, await db.TrackingInboxReceipts.CountAsync(x => x.SourceId == a.Id));
     }
 
     [Fact]

@@ -134,5 +134,6 @@ test("G7 documents all required cases without claiming acceptance", () => {
   for(let i=1;i<=25;i++)
     assert.ok(plan.includes("G7-S"+String(i).padStart(2,"0")),
       "G7 gate case missing: "+i);
-  assert.ok(status.includes("G7:** Not executed or accepted."));
+  const g7Line = status.split("\n").find(line => line.startsWith("**G7:**")) ?? "";
+  assert.ok(g7Line.includes("acceptance pending"), "G7 must not be recorded as accepted");
 });

@@ -2,7 +2,7 @@
 
 **State:** Confirmed defects remediated on the M7 feature branch. Source review only. Executable G7 evidence is not yet available.
 **Scope:** Re-audit of the post-remediation M7 branch, including source lifecycle, EF Core, SQL guards, HTTP boundaries, fixture completeness, Compose isolation, rate limiting and local G7 evidence.
-**G7:** Not executed or accepted. **D-002:** Acceptance pending. **Main:** Unchanged.
+**G7:** Not executed at the time of this audit; see the [executed verification](M7_EXECUTED_VERIFICATION.md). **D-002:** Acceptance pending. **Main:** Unchanged.
 
 ## Confirmed defects and remediation
 

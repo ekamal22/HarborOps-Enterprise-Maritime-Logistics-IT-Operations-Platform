@@ -4,6 +4,7 @@
 **Prepared:** 2026-11-03
 **Milestone:** M7-01 through M7-04 and gate G7
 **Base:** Accepted G0-G6 `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`
+**Executed record:** [M7 executed verification](M7_EXECUTED_VERIFICATION.md).
 **Contracts:** [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [M7 architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md), [Roadmap](ROADMAP.md), [requirements](REQUIREMENTS.md).
 
 ## 1. Non-negotiable gate rules

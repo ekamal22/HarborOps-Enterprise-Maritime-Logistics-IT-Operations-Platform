@@ -3,7 +3,7 @@
 **State:** Correctness-audit and execution remediation committed; gate evidence run and acceptance pending.
 **Working branch:** `feat/m7-tracking-source-validation`
 **Baseline:** Accepted G0-G6 and M7 planning branch.
-**G7:** Not executed or accepted.
+**G7:** Technical run executed on one revision ([executed verification](M7_EXECUTED_VERIFICATION.md)); acceptance pending.
 **D-002:** Acceptance pending. The currently checked-in subset is provisional and may change after the exact upstream normative reference is pinned and reviewed.
 **Deployment:** Local-only. No public hosting or successful tracking-event intake.
 

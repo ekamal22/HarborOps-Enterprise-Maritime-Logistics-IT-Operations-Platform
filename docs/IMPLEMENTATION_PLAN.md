@@ -73,7 +73,11 @@ The [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLE
 
 ## M7 accepted tracking contract implementation
 
-The [M7 architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md), [D-002 proposal and decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the tracking-source contract scope. D-002 was accepted on 2026-11-03 (Option A) with pinned local reference snapshots. M7 was technically verified on `feat/m7-tracking-source-validation`, explicitly accepted with G7 on 2026-11-03 and merged via PR #10 and PR #11. See [executed verification](M7_EXECUTED_VERIFICATION.md), [gate closure](M7_G7_GATE_CLOSURE.md) and [implementation register](M7_IMPLEMENTATION_STATUS.md). See [implementation register](M7_IMPLEMENTATION_STATUS.md). M8, not M7, supplies durable intake and receipt acknowledgment.
+The [M7 architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md), [D-002 proposal and decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the tracking-source contract scope. D-002 was accepted on 2026-11-03 (Option A) with pinned local reference snapshots. M7 was technically verified on `feat/m7-tracking-source-validation`, explicitly accepted with G7 on 2026-11-03 and merged via PR #10 and PR #11. See [executed verification](M7_EXECUTED_VERIFICATION.md), [gate closure](M7_G7_GATE_CLOSURE.md) and [implementation register](M7_IMPLEMENTATION_STATUS.md). M8, not M7, supplies durable intake and receipt acknowledgment.
+
+## M8 proposed durable receipt implementation
+
+With G6 and G7 accepted, [M8 architecture](M8_ARCHITECTURE_DESIGN.md), [implementation plan](M8_IMPLEMENTATION_PLAN.md), [G8 matrix](M8_VERIFICATION_PLAN.md) and [D-006 proposal](M8_D006_DURABILITY_PROPOSAL.md) define the planned immutable receipt/event, Pending work state, source-scoped replay key, transaction-locked bearer revalidation and post-commit-only HTTP 202. **D-006 acceptance pending; no M8 code or G8 evidence exists.** Worker retries and dead-letter dispatch remain M9; shipment projection remains M10. See [planning status](M8_PLANNING_STATUS.md).
 
 ## Concurrent work-package implementation
 

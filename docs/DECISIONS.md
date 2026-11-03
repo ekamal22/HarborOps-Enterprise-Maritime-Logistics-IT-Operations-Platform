@@ -83,7 +83,7 @@ See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed
 | D-002 | DCSA reference release/subset | Accepted 2026-11-03, Option A: DCSA Track & Trace 2.2.0 as the reference baseline for the deliberately narrower, HarborOps-specific, non-conformant profile `tnt-2.2-harborops-v1`, pinned by SHA-256 as local snapshots (not official immutable releases); the supported subset is unchanged. See the [decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [reference snapshots](../third_party/dcsa-track-and-trace/README.md) | M7 |
 | D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
 | D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M13 |
-| D-006 | Error queue and worker durability detail | PostgreSQL inbox/dead-letter tables | M8 |
+| D-006 | Transactional inbox, source-key replay, collision, pending cap, retention and future worker/dead-letter durability | **Acceptance pending.** [M8 D-006 proposal](M8_D006_DURABILITY_PROPOSAL.md) recommends Option A: PostgreSQL immutable receipt/event records and separate Pending work state in M8; worker/retry/dead-letter transitions in M9. No decision is implied. | M8-01 and M9 |
 | D-007 | Hosting account and budget ceiling | Local only until credit and spending restrictions checked | M22 |
 | D-008 | Backup retention and recovery objectives | Define measurable targets based on demo environment | M19 |
 

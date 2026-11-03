@@ -73,6 +73,10 @@ The implemented [M4 architecture](M4_ARCHITECTURE_DESIGN.md) separates planned a
 
 [M5 architecture](M5_ARCHITECTURE_DESIGN.md) defines the implemented shipment aggregate: immutable tenant-owned shipment identifiers, two same-tenant M3 ports, nullable planned UTC windows, Draft/Booked/InTransit/Arrived/Completed/Cancelled manual progress, archive state, optimistic versions and append-only status changes. [G5](M5_G5_GATE_CLOSURE.md) was explicitly accepted on 2026-11-02. [M6 architecture](M6_ARCHITECTURE_DESIGN.md) adds organization-scoped shipment/container and shipment/voyage association histories with half-open UTC intervals, database overlap exclusions, versioned closure and parent lifecycle guards; [G6](M6_G6_GATE_CLOSURE.md) was accepted on 2026-11-02. Neither milestone asserts live tracking-event ingestion. M7 adds restricted source credentials and strict validation while returning 503 instead of acknowledging receipt. See [G7 closure](M7_G7_GATE_CLOSURE.md).
 
+## Proposed M8 receipt and immutable event model (not implemented)
+
+The proposed `TrackingInboxReceipt` permanently reserves a unique organization/source/profile/source-event key with canonical digest and server-proven provenance; `TrackingAcceptedEvent` stores one immutable normalized event and bounded accepted raw bytes; `TrackingInboxWorkItem` holds separate Pending processing state; `TrackingReceiptConflict` records bounded first-seen collision metadata without conflicting raw payload. SQL append-only constraints protect receipt/event history while M9 may later advance work state. No M8 table is implemented yet. The schema and HTTP contract require D-006 acceptance and later source-locked G8 verification. See [M8 architecture](M8_ARCHITECTURE_DESIGN.md).
+
 ## Illustrative lifecycle
 
     Draft -> Booked -> In Transit -> Arrived -> Completed

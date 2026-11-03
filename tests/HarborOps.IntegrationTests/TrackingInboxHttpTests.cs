@@ -200,6 +200,147 @@ public sealed class TrackingInboxHttpTests
     }
 
     [Fact]
+    public async Task ConcurrentConflictingDeliveryKeepsFirstCommittedPayload()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        ProvisionedIntegrationSource source;
+        await using (var setup = factory.Services.CreateAsyncScope())
+            source = await setup.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+                .CreateAsync(fixture.A, "m8_compete", "Competing Intake", CancellationToken.None);
+
+        var outcomes = await Task.WhenAll(Enumerable.Range(0, 16).Select(async index =>
+        {
+            using var client = factory.CreateClient();
+            var code = index % 2 == 0 ? "GTIN" : "GTOT";
+            using var response = await Post(client, source.Bearer,
+                Payload(id: "m8-competing", code: code));
+            return response.StatusCode;
+        }));
+        Assert.Contains(HttpStatusCode.Accepted, outcomes);
+        Assert.Contains(HttpStatusCode.Conflict, outcomes);
+        Assert.All(outcomes, status =>
+            Assert.True(status is HttpStatusCode.Accepted or HttpStatusCode.Conflict));
+        await using var verify = factory.Services.CreateAsyncScope();
+        var db = verify.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var receipt = await db.TrackingInboxReceipts.AsNoTracking()
+            .SingleAsync(x => x.SourceId == source.Id && x.SourceEventId == "m8-competing");
+        Assert.Equal(1, await db.TrackingAcceptedEvents.CountAsync(x => x.ReceiptId == receipt.Id));
+        Assert.Equal(1, await db.TrackingInboxWorkItems.CountAsync(x => x.ReceiptId == receipt.Id));
+        Assert.Equal(1, await db.TrackingReceiptConflicts.CountAsync(x => x.ReceiptId == receipt.Id));
+    }
+
+    [Fact]
+    public async Task RevocationBeforeFinalAuthorizationIsRejected()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var scope = factory.Services.CreateAsyncScope();
+        var sources = scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
+        var source = await sources.CreateAsync(fixture.A, "m8_midrev", "Revocation Case",
+            CancellationToken.None);
+        var input = Encoding.UTF8.GetBytes(Payload(id: "m8-revoked-inflight"));
+        var parsed = TrackingEventPolicy.Parse(input, TimeProvider.System.GetUtcNow());
+        Assert.NotNull(parsed.Value);
+        var bound = parsed.Value!.Bind(source.Id, fixture.A);
+        Assert.NotNull(await sources.AuthenticateAsync(source.Bearer, CancellationToken.None));
+        await sources.RevokeAsync(fixture.A, "m8_midrev", source.CredentialId, CancellationToken.None);
+        var outcome = await scope.ServiceProvider.GetRequiredService<TrackingInboxStore>()
+            .ReceiveAsync(bound, source.Bearer, input, "revoked-after-parse", CancellationToken.None);
+        Assert.Equal(TrackingReceiptOutcome.AccessDenied, outcome.Outcome);
+        Assert.Equal(0, await scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>()
+            .TrackingInboxReceipts.CountAsync(x => x.SourceId == source.Id));
+    }
+
+    [Fact]
+    public async Task SyntacticallyValidUnknownReferenceIsReceivedWithoutShipmentMutation()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        using var client = factory.CreateClient();
+        await using var scope = factory.Services.CreateAsyncScope();
+        var issued = await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+            .CreateAsync(fixture.A, "m8_unknown", "Unknown Reference", CancellationToken.None);
+        var payload = Payload(id: "unknown-equip").Replace("SYN-BOX-ABCD",
+            "SYN-BOX-UNKNOWNEQUIP", StringComparison.Ordinal);
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var before = await db.Shipments.CountAsync(x => x.OrganizationId == fixture.A);
+        using var response = await Post(client, issued.Bearer, payload);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        Assert.Equal(before, await db.Shipments.CountAsync(x => x.OrganizationId == fixture.A));
+        var receipt = await db.TrackingInboxReceipts.AsNoTracking()
+            .SingleAsync(x => x.SourceId == issued.Id);
+        Assert.Equal("Pending", (await db.TrackingInboxWorkItems.AsNoTracking()
+            .SingleAsync(x => x.ReceiptId == receipt.Id)).State);
+        Assert.Equal("SYN-BOX-UNKNOWNEQUIP",
+            (await db.TrackingAcceptedEvents.AsNoTracking()
+                .SingleAsync(x => x.ReceiptId == receipt.Id)).EquipmentReference);
+    }
+
+    [Fact]
+    public async Task CancelledReceiptTransactionDoesNotAcknowledge()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var scope = factory.Services.CreateAsyncScope();
+        var source = await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+            .CreateAsync(fixture.A, "m8_cancel", "Cancelled Intake", CancellationToken.None);
+        var bytes = Encoding.UTF8.GetBytes(Payload(id: "cancel-before-write"));
+        var valid = TrackingEventPolicy.Parse(bytes, TimeProvider.System.GetUtcNow()).Value!;
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            scope.ServiceProvider.GetRequiredService<TrackingInboxStore>()
+                .ReceiveAsync(valid.Bind(source.Id, fixture.A), source.Bearer,
+                    bytes, "cancelled", cancellation.Token));
+        Assert.Equal(0, await scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>()
+            .TrackingInboxReceipts.CountAsync(x => x.SourceId == source.Id));
+    }
+
+    [Fact]
+    public async Task ReceiptErrorsDoNotExposeCredentialsOrPayload()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString(),
+            pendingLimit: 1);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var scope = factory.Services.CreateAsyncScope();
+        var source = await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+            .CreateAsync(fixture.A, "m8_redact", "Redacted Errors", CancellationToken.None);
+        using var client = factory.CreateClient();
+        using var initial = await Post(client, source.Bearer, Payload(id: "first-secret"));
+        Assert.Equal(HttpStatusCode.Accepted, initial.StatusCode);
+        using var collision = await Post(client, source.Bearer,
+            Payload(id: "first-secret", code: "GTOT"));
+        using var full = await Post(client, source.Bearer, Payload(id: "next-secret"));
+        Assert.Equal(HttpStatusCode.Conflict, collision.StatusCode);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, full.StatusCode);
+        foreach (var response in new[] { collision, full })
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Contains("correlationId", body);
+            Assert.DoesNotContain(source.Bearer, body);
+            Assert.DoesNotContain("SYN-BOX-ABCD", body);
+            Assert.DoesNotContain("GTOT", body);
+            Assert.Contains("no-store", response.Headers.CacheControl?.ToString());
+        }
+    }
+
+    [Fact]
     public async Task ConcurrentDuplicateIntakeCreatesExactlyOneReceipt()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

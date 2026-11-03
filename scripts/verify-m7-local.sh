@@ -103,4 +103,5 @@ fi
 # Browser, proxy, image-composition and outage checks require the dedicated full-stack G7
 # matrix. No acceptance is inferred from this targeted runner.
 echo -e "browser-proxy-recovery\t$sha\tNOT_EXECUTED" >> "$evidence/stages.tsv"
-echo "G7 targeted checks completed. Full G7 verification and acceptance remain pending."
+echo "G7 targeted stages completed. Mandatory browser/proxy/recovery and independent review are NOT EXECUTED." >&2
+exit 2

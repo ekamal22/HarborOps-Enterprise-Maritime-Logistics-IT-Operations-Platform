@@ -13,7 +13,7 @@
 
 M7 defines the versioned tracking adapter contract, source/tenant credentials and strict payload rejection while deliberately returning 503 for otherwise valid events until M8 implements durable intake.
 
-- [D-002 proposed reference](M7_D002_TRACKING_REFERENCE_PROPOSAL.md): public baseline, alternatives, upstream pin, fixture and subset decision requirements.
+- [D-002 reference proposal and decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md): public baseline, alternatives, upstream pin, fixture and subset decision requirements.
 - [M7 architecture](M7_ARCHITECTURE_DESIGN.md): trust boundaries, source lifecycle, tenant binding, schema, errors, migration and M8 handoff.
 - [M7 implementation plan](M7_IMPLEMENTATION_PLAN.md): M7-01 contract; M7-02 entitlements; M7-03 validator; M7-04 integration and G7 gate.
 - [G7 verification plan](M7_VERIFICATION_PLAN.md): G7-S01 to G7-S25 local, source-locked evidence obligations.

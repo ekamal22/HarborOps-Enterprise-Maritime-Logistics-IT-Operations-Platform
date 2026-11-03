@@ -6,8 +6,22 @@ This directory holds the pinned third-party reference for the HarborOps tracking
 
 - They are **immutable local snapshots of upstream content retrieved on 2026-11-03**. The bytes are stored exactly as downloaded and pinned by SHA-256.
 - They are **not official immutable DCSA releases**. The upstream definitions are hosted on SwaggerHub, which serves mutable versions; no tagged or signed release was found. The pins record what was reviewed, not that DCSA still publishes identical content. Accepting this limitation was part of the D-002 decision for M7.
+- The snapshot is **deliberately limited to the reviewed HarborOps subset**. It is **not a complete transitive DCSA schema snapshot** (see the scope section below).
 - The HarborOps profile is a **deliberately narrower, HarborOps-specific adapter**. It is **not DCSA conformant** and makes no conformance claim.
 - **Events in the DCSA wire format cannot be consumed directly.** A translation layer is required, because the profile renames fields, restricts values and omits required upstream fields (see below).
+
+## Scope of the snapshot
+
+The four pinned artifacts are the definitions that the reviewed HarborOps subset needs: the Track & Trace 2.2.0 definition and the event, common and error domains it references. Following references further is outside the reviewed subset:
+
+| Not pinned | Version | Referenced by | Shapes it defines that the 2.2.0 and event definitions use |
+| --- | --- | --- | --- |
+| `DOCUMENTATION_DOMAIN` | 1.0.4 | `EVENT_DOMAIN` 1.0.4 (6 references) | `references`, `seals`, `partyNoID`, `vessel` |
+| `LOCATION_DOMAIN` | 1.0.3 | `EVENT_DOMAIN` 1.0.4 (4 references) | `location`, `geoLocation` |
+
+These two domains were not retrieved, hashed, reviewed or license-checked, and they are not part of this reference. The pinned files therefore still contain external references that cannot be resolved from the snapshot alone, and the snapshot cannot be used to regenerate the complete upstream schema.
+
+The approved mapping does not depend on them. The HarborOps profile accepts none of those shapes: it rejects `documentReferences`, `eventLocation` and the other fields in the difference table as unknown fields, and it reduces the upstream `transportCall` object to the single `transportReference`. Adding any of those fields later is a new D-002 decision with an explicit adapter version, as described under "Changing a pin".
 
 ## Artifacts
 

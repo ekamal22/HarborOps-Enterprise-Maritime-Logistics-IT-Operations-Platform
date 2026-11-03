@@ -70,7 +70,7 @@ The accepted [M6 local assignment contract](M6_LOCAL_CONTRACT_DECISION.md), [arc
 
 ## M7/G7 verification contract (technical run executed, acceptance pending)
 
-The proposed [G7-S01 through G7-S25 plan](M7_VERIFICATION_PLAN.md) requires pinned D-002 source artifacts, direct two-tenant bearer-authentication checks, credential lifecycle/revocation races, exact JSON limits, HTTPS and trusted-proxy denial, a `503 intake_unavailable` no-ack proof, M6-to-M7 migration preservation, affected accepted M0-M6 regressions and source-locked E:-backed evidence. The suites were executed locally on one revision. The original run passed 21 of 25 scenarios; after the G7-S06 operator supplement, the G7-S25 evidence reconciliation and the D-002 reference verification, all 25 pass. See the [executed verification record](M7_EXECUTED_VERIFICATION.md). G7 is not accepted. GitHub Actions stays disabled.
+The [G7-S01 through G7-S25 plan](M7_VERIFICATION_PLAN.md) requires pinned D-002 source artifacts, direct two-tenant bearer-authentication checks, credential lifecycle/revocation races, exact JSON limits, HTTPS and trusted-proxy denial, a `503 intake_unavailable` no-ack proof, M6-to-M7 migration preservation, affected accepted M0-M6 regressions and source-locked E:-backed evidence. The suites were executed locally on one revision. The original run passed 21 of 25 scenarios; after the G7-S06 operator supplement, the G7-S25 evidence reconciliation and the D-002 reference verification, all 25 pass. See the [executed verification record](M7_EXECUTED_VERIFICATION.md). G7 is not accepted. GitHub Actions stays disabled.
 
 ## Publication security verification (executed locally)
 

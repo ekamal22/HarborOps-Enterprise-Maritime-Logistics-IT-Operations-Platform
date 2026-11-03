@@ -83,9 +83,10 @@ What was done and executed:
 - **External check** (`--external-dir` with the retained copies): all four artifacts match their pinned hashes and sizes, and every supported code (`GTIN`, `GTOT`, `ARRI`, `DEPA`) and the classifier `ACT` exist in the pinned upstream enumerations.
 - **Upstream drift check** (`--upstream`): the four hosted versions matched the pins on the run date. The check does not write files or change pins.
 - **Tests:** 14 unit tests of the verification logic (tampered or substituted snapshot, unlisted file, withheld artifact committed, missing license declaration, conformance claim, changed fixture, unsupported code or classifier, drift outcomes) and one contract test that ties the manifest to the policy source. The 8 existing contract-script tests still pass.
+- **Scope of the pin:** the four artifacts are limited to the reviewed HarborOps subset, not a complete transitive DCSA schema snapshot. `DOCUMENTATION_DOMAIN` 1.0.4 and `LOCATION_DOMAIN` 1.0.3, referenced by `EVENT_DOMAIN` 1.0.4, are not pinned and were not reviewed; the approved mapping does not depend on them.
 - **Documented differences:** the profile omits the required upstream fields `eventCreatedDateTime` and `emptyIndicatorCode` and reduces `transportCall` to `transportReference`. Events in the DCSA wire format cannot be consumed directly; a translation layer is required.
 
-Evidence: `E:\HarborOps-Verification\m7\d002-supplement` (checks run on a fresh clean checkout of `407601f42b598f6d64de0e64aa906aa54a962bcd`, license review, retained artifact hashes, result record and manifest), archive `E:\HarborOps-Verification\m7\d002-archives\g7-d002-407601f42b598f6d64de0e64aa906aa54a962bcd-supplement.tar.gz`, SHA-256 `5520cbd3d3bc0d28e35b7ecffe7548c6676e1f66c3ec88f32d7f318445d251f1`. A one-byte change to the snapshot and an added withheld artifact each made the verification fail with exit 1 and restoring them returned it to pass.
+Evidence: `E:\HarborOps-Verification\m7\d002-supplement` (checks run on a fresh clean checkout of `407601f42b598f6d64de0e64aa906aa54a962bcd`, license review, retained artifact hashes, result record and manifest), archive `E:\HarborOps-Verification\m7\d002-archives\g7-d002-407601f42b598f6d64de0e64aa906aa54a962bcd-supplement.tar.gz`, SHA-256 `5520cbd3d3bc0d28e35b7ecffe7548c6676e1f66c3ec88f32d7f318445d251f1`. A one-byte change to the snapshot and an added withheld artifact each made the verification fail with exit 1 and restoring them returned it to pass. The D-002 evidence package has since passed an independent integrity and reference-content review.
 
 Scope: G7-S01 and G7-S17 pass on the evidence above. The product code was not re-run for this supplement because it is unchanged from the tested revision; the supported-subset parsing tests of the original run (`ParsesOnlyExplicitSupportedSubset`, `CanonicalEventBindsOnlyValidatedServerIdentity`, `RejectsUnsupportedFamilyAndCodes`) are the original run's evidence. The pins are not an official immutable release, which the decision accepts.
 
@@ -120,6 +121,7 @@ Accepted on 2026-11-03 as Option A with the conditions recorded in section 8 of 
 
 ## Items needing a decision
 
-1. Explicit G7 acceptance, and then a separate decision to merge into `main`.
+1. Independent review of the G7-S06 supplement archive, which is being arranged and precedes any G7 acceptance decision.
+2. Explicit G7 acceptance, and then a separate decision to merge into `main`. Neither has been given.
 
 The 14 reference verification tests and the 9 contract-script tests pass and the planning-document checks pass on the final head.

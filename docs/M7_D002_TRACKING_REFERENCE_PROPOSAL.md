@@ -5,6 +5,7 @@
 **Base:** Accepted M0-G0 through M6-G6 on `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`
 **Decision authority:** [Decisions](DECISIONS.md), [Roadmap](ROADMAP.md), [M7 architecture](M7_ARCHITECTURE_DESIGN.md)
 **Implementation gate:** Satisfied by the decision recorded in section 8.
+**Reading guide:** Sections 1 to 7 were written before the decision and describe the options, the retrieved artifacts and the recommendation. Section 8 is the decision record and governs where they differ.
 
 ## 1. Decision to make
 
@@ -18,13 +19,13 @@ Sources:
 - DCSA reference entry: https://dcsa.org/standards/track-and-trace
 - DCSA GitHub organization: https://github.com/dcsaorg (the repository `dcsaorg/DCSA-OpenAPI` named in the first draft of this proposal does not exist; see section 6)
 
-Before D-002 acceptance, obtain an immutable upstream 2.2.0 OpenAPI or canonical reference artifact, confirm its exact version, upstream URL, commit/tag or release identifier, SHA-256, redistribution terms, and field/code semantics. A moving documentation URL or an unreviewed vendor variant is not a pinned normative artifact. If the exact public 2.2.0 artifact cannot be independently obtained and hashed, **D-002 remains blocked** rather than substituting a guessed schema.
+Before D-002 acceptance, obtain an immutable upstream 2.2.0 OpenAPI or canonical reference artifact, confirm its exact version, upstream URL, commit/tag or release identifier, SHA-256, redistribution terms, and field/code semantics. A moving documentation URL or an unreviewed vendor variant is not a pinned normative artifact. If the exact public 2.2.0 artifact cannot be independently obtained and hashed, **D-002 remains blocked** rather than substituting a guessed schema. (Outcome: no tagged or immutable release exists, so the decision in section 8 accepted hash-pinned local snapshots of the hosted definitions, with that limitation stated.)
 
 ## 2. Alternatives
 
 | Option | Benefits | Costs and decision |
 | --- | --- | --- |
-| DCSA Track & Trace 2.2.0, bounded adapter profile | Public documentation and existing implementation guidance; implementable without paid credentials | **Recommended**, pending exact artifact and explicit acceptance |
+| DCSA Track & Trace 2.2.0, bounded adapter profile | Public documentation and existing implementation guidance; implementable without paid credentials | **Recommended; accepted 2026-11-03** (section 8) |
 | DCSA Track & Trace 3.0.0 | Newer IoT/reefer and correction semantics | General-public availability is staged; licensing and artifact access must be verified; **defer** |
 | Fully proprietary HarborOps-only vocabulary | Simplest short-term implementation | Loses traceable external event mapping and violates the intent of D-002; reject as sole reference |
 | Entire 2.2 surface | Broadest conceptual coverage | Unnecessary scope, ambiguous conformance claims, more implementation risk; reject for M7 |
@@ -78,7 +79,7 @@ These are observations made during G7 execution. They do not accept D-002.
 | Public release listing | `reference.dcsa.org` lists Track & Trace v3 only; 2.2 is described by the public implementation guide |
 | Candidate 2.2.0 definition | SwaggerHub API `dcsaorg/DCSA_TNT` version 2.2.0, OpenAPI 3.0.3, license declared as Apache 2.0, `last-modified` 2021-10-28 |
 | Shared event definitions | Event code lists are in SwaggerHub domain `dcsaorg/EVENT_DOMAIN` version 1.0.4, which the 2.2.0 definition references; it also references `DCSA_DOMAIN` 1.0.3 and `ERROR_DOMAIN` 1.0.0 |
-| Codes in the provisional subset | Equipment `GTIN` and `GTOT`, transport `ARRI` and `DEPA`, and classifier `ACT` are all present in `EVENT_DOMAIN` 1.0.4. `EVENT_DOMAIN` also defines further codes and classifiers (for example `PLN`, `EST`) that the provisional subset does not accept |
+| Codes in the supported subset (as proposed) | Equipment `GTIN` and `GTOT`, transport `ARRI` and `DEPA`, and classifier `ACT` are all present in `EVENT_DOMAIN` 1.0.4. `EVENT_DOMAIN` also defines further codes and classifiers (for example `PLN`, `EST`) that the provisional subset does not accept |
 | Immutability | SwaggerHub versions are not content addressed, and no signed or tagged release was found. A hash pins only the content observed on the day it was fetched |
 
 SHA-256 of the content fetched on 2026-11-03 (JSON as served, retained in the E: verification root):
@@ -94,7 +95,7 @@ Open at the time of writing (resolved by the decision in section 8): a decision 
 
 ## 7. Recommendation
 
-This section is advice for the pending decision. It does not accept D-002 and changes neither the supported subset nor the profile `tnt-2.2-harborops-v1`.
+This section is the advice given before the decision, which is recorded in section 8. Neither the advice nor the decision changes the supported subset or the profile `tnt-2.2-harborops-v1`.
 
 **Recommended decision (option A):** accept DCSA Track & Trace 2.2.0 as the reference the HarborOps profile is derived from, pinned locally by SHA-256 of the four retrieved definitions, with the profile remaining a deliberately narrower HarborOps-specific interface and with no DCSA conformance claim.
 
@@ -179,3 +180,4 @@ At the time of writing, D-002 was acceptance pending and G7-S01 and G7-S17 were 
 2. Events in the DCSA wire format cannot be consumed directly; a translation layer is required. The profile renames fields, accepts a restricted value set, requires UTC and omits two required upstream fields, so a DCSA-format event would be rejected as an unknown or incomplete HarborOps event.
 3. A change to a pin, to the supported subset or to the required fields needs a new D-002 decision with an explicit adapter version, new fixtures and a new verification record. A drift report alone changes nothing.
 4. The withheld artifacts' redistribution status can be revisited if DCSA publishes an explicit license for them.
+5. **Scope of the pin.** The four artifacts are deliberately limited to the reviewed HarborOps subset. They are not a complete transitive DCSA schema snapshot. `EVENT_DOMAIN` 1.0.4 also references `DOCUMENTATION_DOMAIN` 1.0.4 (which defines `references`, `seals`, `partyNoID` and `vessel`) and `LOCATION_DOMAIN` 1.0.3 (which defines `location` and `geoLocation`). Neither domain was retrieved, pinned, reviewed or license-checked. The approved mapping does not depend on them, because the profile accepts none of those shapes and reduces `transportCall` to `transportReference`. Pinning them would be a new decision.

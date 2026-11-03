@@ -1,10 +1,10 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Plan
 
-**State:** Implemented and technically verified locally ([executed verification](M7_EXECUTED_VERIFICATION.md)); D-002 and G7 acceptance pending.
+**State:** Implemented and technically verified locally ([executed verification](M7_EXECUTED_VERIFICATION.md)); D-002 accepted 2026-11-03 (Option A); G7 acceptance pending.
 **Prepared:** 2026-11-03
 **Branches:** Planning `plan/m7-tracking-contracts-source-auth`; implementation candidate `feat/m7-tracking-source-validation`
 **Starting baseline:** `main` `97b67739cf1dad543bf25fa56326fb4702990f41` with G0-G6 accepted
-**Decision gate:** [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), acceptance pending
+**Decision gate:** [D-002 proposal and decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), accepted 2026-11-03 (Option A)
 **Design:** [M7 architecture](M7_ARCHITECTURE_DESIGN.md)
 **Verification:** [G7 test matrix](M7_VERIFICATION_PLAN.md)
 **Dependencies:** [Execution graph](execution-graph.json), [Roadmap](ROADMAP.md), [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md)
@@ -33,7 +33,7 @@ M7-02 and M7-03 may proceed in parallel after M7-01 is frozen. Use different bra
 2. Record an explicit supported subset by family, event code, classifier, mandatory reference fields and timestamp representation; maintain a table for unsupported family/code/field combinations.
 3. Freeze `harborops-tracking-v1` wire DTO, `tnt-2.2-harborops-v1` profile name and transport/response error contract. Keep upstream and internal models separate.
 4. Create checked-in JSON Schema or equivalent validator schema and curated synthetic positive/negative fixtures under `contracts/tracking/v1/` and `tests/fixtures/tracking/`. Include licensing/attribution for any redistributed upstream material; write original synthetic examples when rights are uncertain.
-5. Resolve whether the proposed default event-date policy (2000-01-01 UTC to now + 24 hours) and the candidate first event codes precisely match the pinned reference and the desired business scope.
+5. Resolve whether the proposed default event-date policy (2000-01-01 UTC to now + 24 hours) and the candidate first event codes precisely match the pinned reference and the desired business scope. Resolved: the first event codes and the classifier are confirmed in the pinned upstream enumerations, and the event-date window is a HarborOps profile rule that the D-002 decision did not change.
 6. D-002 was accepted on 2026-11-03 (Option A) and the implementation was reconciled against the pinned reference; the supported subset is unchanged.
 
 **Artifacts:** `docs/M7_D002_TRACKING_REFERENCE_PROPOSAL.md`, `docs/M7_ARCHITECTURE_DESIGN.md`, `docs/API_CONTRACTS.md`, contract schema and fixture manifest.
@@ -134,7 +134,7 @@ Run only locally. GitHub Actions remains disabled. A new manual-only workflow is
 
 ## 8. Planned handoff and acceptance
 
-M7 source, schema migration, contract fixtures and tests are committed on the separate implementation branch and were executed in a source-locked local run recorded in the [executed verification](M7_EXECUTED_VERIFICATION.md). D-002 acceptance and explicit G7 acceptance are pending and are required before implementation merge.
+M7 source, schema migration, contract fixtures and tests are committed on the separate implementation branch and were executed in a source-locked local run recorded in the [executed verification](M7_EXECUTED_VERIFICATION.md). D-002 is accepted (2026-11-03, Option A). Explicit G7 acceptance is pending and is required before implementation merge.
 
 The detailed [G7-S01 through G7-S25](M7_VERIFICATION_PLAN.md) specification is the evidence index authority. M8 remains blocked on G7, its accepted G6 prerequisite and its own D-006 decision; do not imply M8 readiness from M7 contract-only work.
 

@@ -27,7 +27,7 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.ToTable("integration_sources", t =>
             {
                 t.HasCheckConstraint("CK_m7_source_status", "status IN ('Active','Disabled')");
-                t.HasCheckConstraint("CK_m7_source_code", "source_code ~ '^[a-z][a-z0-9_-]{2,79}$'");
+                t.HasCheckConstraint("CK_m7_source_code", "source_code ~ '^[a-z][a-z0-9_-]{2,79}$' AND source_code !~ '[[:cntrl:]]'");
                 t.HasCheckConstraint("CK_m7_source_version", "version > 0 AND updated_at_utc >= created_at_utc");
                 t.HasCheckConstraint("CK_m7_source_disabled", "(status = 'Active' AND disabled_at_utc IS NULL) OR (status = 'Disabled' AND disabled_at_utc IS NOT NULL)");
                 t.HasCheckConstraint("CK_m7_source_capability", "capability = 'tracking_event_validate'");

@@ -284,8 +284,8 @@ scan_images() {
     [[ "$revision" == "$HARBOROPS_SOURCE_SHA" ]] || return 1
     MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 \
       -v /var/run/docker.sock:/var/run/docker.sock \
-      -v "$(cygpath -w "$root")/cache/trivy:/root/.cache/trivy" \
-      -v "$(cygpath -w "$evidence")/trivy:/reports" \
+      -v "$(cygpath -w "$root/cache/trivy"):/root/.cache/trivy" \
+      -v "$(cygpath -w "$evidence/trivy"):/reports" \
       aquasec/trivy:0.76.1 image --image-src docker --scanners vuln \
       --severity HIGH,CRITICAL --exit-code 1 --format json \
       --output "/reports/$service.json" "$image"

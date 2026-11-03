@@ -1,6 +1,6 @@
 # G7 Tracking Contracts and Source Authentication: Verification Plan
 
-**State:** Gate evidence run executed on `7b87f3250aba677b1f4aeef4350803d9ca7b6880` (21 PASS, 3 BLOCKED, 1 NOT EXECUTED); three supplements (G7-S06, G7-S25, and the D-002 reference verification for G7-S01 and G7-S17) bring the reconciled result to 25 PASS. See the [executed verification](M7_EXECUTED_VERIFICATION.md). G7 acceptance is pending.
+**State:** Gate evidence run executed on `7b87f3250aba677b1f4aeef4350803d9ca7b6880` (21 PASS, 3 BLOCKED, 1 NOT EXECUTED); three supplements (G7-S06, G7-S25, and the D-002 reference verification for G7-S01 and G7-S17) bring the reconciled result to 25 PASS. See the [executed verification](M7_EXECUTED_VERIFICATION.md). G7 was explicitly accepted on 2026-11-03, after independent supplement review; see [gate closure](M7_G7_GATE_CLOSURE.md).
 **Prepared:** 2026-11-03
 **Milestone:** M7-01 through M7-04 and gate G7
 **Base:** Accepted G0-G6 `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`
@@ -77,4 +77,4 @@ Required evidence files: stage manifest, source revision, environment versions, 
 - **Medium:** Unsupported variant mapping ambiguity, missing independent provenance for reference fixtures, missing optional browser regression when shared middleware changes.
 - **Administrative:** Unavailable externally hosted TLS domain does not block local source-contract G7 if local transport trust is demonstrably verified; hosted deployment is a separate release gate.
 
-G7 is not eligible for closure while any mandatory scenario is unresolved. Following a fully executed verification report and independent review, G7 stays **acceptance pending** until explicitly approved. Only then may the implementation be merged through a PR to protected `main`. M8 separately requires accepted D-006 and G7 before durable receipt semantics can be introduced.
+G7 closure required all mandatory scenarios reconciled as PASS, independent review and explicit acceptance. These conditions were met on 2026-11-03 through the original technical run and its supplements. M7/G7 were accepted and merged into protected `main`, with the original pre-decision scenario statuses retained. See [G7 closure](M7_G7_GATE_CLOSURE.md). M8 still requires its separate D-006 decision, durable intake implementation and G8 gate.

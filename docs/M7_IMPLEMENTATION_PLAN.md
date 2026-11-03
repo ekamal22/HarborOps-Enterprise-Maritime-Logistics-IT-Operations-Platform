@@ -1,6 +1,6 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Plan
 
-**State:** Implemented and technically verified locally ([executed verification](M7_EXECUTED_VERIFICATION.md)); D-002 accepted 2026-11-03 (Option A); G7 acceptance pending.
+**State:** Implemented, source-locked verified and explicitly accepted with G7 on 2026-11-03; integrated into `main` via PR #10 and PR #11. D-002 Option A accepted. See [closure](M7_G7_GATE_CLOSURE.md).
 **Prepared:** 2026-11-03
 **Branches:** Planning `plan/m7-tracking-contracts-source-auth`; implementation candidate `feat/m7-tracking-source-validation`
 **Starting baseline:** `main` `97b67739cf1dad543bf25fa56326fb4702990f41` with G0-G6 accepted
@@ -134,8 +134,8 @@ Run only locally. GitHub Actions remains disabled. A new manual-only workflow is
 
 ## 8. Planned handoff and acceptance
 
-M7 source, schema migration, contract fixtures and tests are committed on the separate implementation branch and were executed in a source-locked local run recorded in the [executed verification](M7_EXECUTED_VERIFICATION.md). D-002 is accepted (2026-11-03, Option A). Explicit G7 acceptance is pending and is required before implementation merge.
+M7 source, schema migration, fixtures and tests were verified in a source-locked local run recorded in the [executed verification](M7_EXECUTED_VERIFICATION.md). D-002 Option A and G7 were accepted on 2026-11-03, and implementation was integrated through PR #10/#11. Original historical run results and supplements remain separate; see [closure](M7_G7_GATE_CLOSURE.md).
 
-The detailed [G7-S01 through G7-S25](M7_VERIFICATION_PLAN.md) specification is the evidence index authority. M8 remains blocked on G7, its accepted G6 prerequisite and its own D-006 decision; do not imply M8 readiness from M7 contract-only work.
+The detailed [G7-S01 through G7-S25](M7_VERIFICATION_PLAN.md) specification is the evidence index authority. G7 and G6 prerequisites are accepted, so M8-01 inbox contract work is eligible. The separate D-006 decision, durable receipt implementation and G8 acceptance are outstanding; M7 acceptance alone does not provide durable ingestion.
 
 Use feature branches and pull requests because `main` is protected. Do not run GitHub Actions, do not consume persistent C: storage, do not alter accepted G0-G6 evidence, and do not claim hosted application readiness.

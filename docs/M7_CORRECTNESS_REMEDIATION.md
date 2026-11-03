@@ -1,8 +1,8 @@
 # M7 Correctness Audit Remediation
 
-**State:** Source and execution-time corrections committed; G7 acceptance pending.
+**State:** Source and execution-time corrections committed and verified; M7/G7 accepted 2026-11-03 and merged into `main` ([closure](M7_G7_GATE_CLOSURE.md)).
 **Implementation branch:** `feat/m7-tracking-source-validation`.
-**Decision boundary:** D-002 accepted 2026-11-03 (Option A); see the [decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md). G7 acceptance pending.
+**Decision boundary:** D-002 accepted 2026-11-03 (Option A); see the [decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md). G7 accepted 2026-11-03.
 **Deployment boundary:** Local only. No durable tracking-event receipt or successful ingestion response until M8.
 
 The [second correctness audit](M7_SECOND_CORRECTNESS_AUDIT.md) records follow-up fixes, including EF tracked-state refresh, migration fixtures, capped limiter partitions, future credential revocation timing, security mutations and verification-network isolation.
@@ -54,6 +54,6 @@ The G7 runner is `scripts/verify-m7-local.sh`. It requires a clean E:-backed che
 
 No GitHub Actions, retained Docker volume, retained database or C: persistent storage may be used. Only isolated G7-labeled resources can be torn down. Dedicated accessibility verification remains M24-04.
 
-## Remaining G7 acceptance work
+## G7 gate closure
 
-D-002 was accepted as Option A (hash-pinned local snapshots, not official immutable releases). Every G7-S01 through G7-S25 scenario must receive an executed result, including concurrent mutation effectiveness and independent review of logs, coverage, image digests and E:-backed cleanup evidence. A completed technical runner is not by itself an accepted gate. G7 acceptance and any merge into `main` require an explicit subsequent decision.
+D-002 Option A was accepted with the recorded hash-pinned local snapshot limitation. The complete technical run, security mutations and three supplements reconciled G7-S01 through G7-S25 to 25 PASS, independently reviewed including G7-S06's 33/33 manifest entries. Explicit M7/G7 acceptance and merging into `main` followed on 2026-11-03. Original runner statuses remain unchanged. See [gate closure](M7_G7_GATE_CLOSURE.md).

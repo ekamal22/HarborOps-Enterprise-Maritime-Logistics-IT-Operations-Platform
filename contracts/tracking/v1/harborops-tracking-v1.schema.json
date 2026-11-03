@@ -4,21 +4,97 @@
   "title": "HarborOps tracking input, provisional M7 subset",
   "type": "object",
   "additionalProperties": false,
-  "required": ["sourceEventId", "eventFamily", "eventCode", "classifier", "occurredAtUtc", "externalSchemaVersion"],
+  "required": [
+    "sourceEventId",
+    "eventFamily",
+    "eventCode",
+    "classifier",
+    "occurredAtUtc",
+    "externalSchemaVersion"
+  ],
   "properties": {
-    "sourceEventId": {"type":"string","minLength":1,"maxLength":128,"pattern":"^[A-Za-z0-9._:-]+$"},
-    "eventFamily": {"enum":["Equipment","Transport"]},
-    "eventCode": {"enum":["GTIN","GTOT","ARRI","DEPA"]},
-    "classifier": {"const":"ACT"},
-    "occurredAtUtc": {"type":"string","pattern":"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,7})?(Z|\\+00:00)$"},
-    "equipmentReference": {"type":"string"},
-    "transportReference": {"type":"string"},
-    "externalSchemaVersion": {"const":"2.2.0"}
+    "sourceEventId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]{1,128}(?![\\s\\S])"
+    },
+    "eventFamily": {
+      "enum": [
+        "Equipment",
+        "Transport"
+      ]
+    },
+    "eventCode": {
+      "enum": [
+        "GTIN",
+        "GTOT",
+        "ARRI",
+        "DEPA"
+      ]
+    },
+    "classifier": {
+      "const": "ACT"
+    },
+    "occurredAtUtc": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,7})?(Z|\\+00:00)(?![\\s\\S])"
+    },
+    "equipmentReference": {
+      "type": "string",
+      "minLength": 11,
+      "maxLength": 32
+    },
+    "transportReference": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_-]{2,79}(?![\\s\\S])"
+    },
+    "externalSchemaVersion": {
+      "const": "2.2.0"
+    }
   },
   "oneOf": [
-    {"properties":{"eventFamily":{"const":"Equipment"},"eventCode":{"enum":["GTIN","GTOT"]}},
-     "required":["equipmentReference"],"not":{"required":["transportReference"]}},
-    {"properties":{"eventFamily":{"const":"Transport"},"eventCode":{"enum":["ARRI","DEPA"]}},
-     "required":["transportReference"],"not":{"required":["equipmentReference"]}}
+    {
+      "properties": {
+        "eventFamily": {
+          "const": "Equipment"
+        },
+        "eventCode": {
+          "enum": [
+            "GTIN",
+            "GTOT"
+          ]
+        }
+      },
+      "required": [
+        "equipmentReference"
+      ],
+      "not": {
+        "required": [
+          "transportReference"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "eventFamily": {
+          "const": "Transport"
+        },
+        "eventCode": {
+          "enum": [
+            "ARRI",
+            "DEPA"
+          ]
+        }
+      },
+      "required": [
+        "transportReference"
+      ],
+      "not": {
+        "required": [
+          "equipmentReference"
+        ]
+      }
+    }
   ]
 }

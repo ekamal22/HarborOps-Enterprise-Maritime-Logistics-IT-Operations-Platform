@@ -58,8 +58,19 @@ services:
     ulimits: { core: 0 }
   api:
     ulimits: { core: 0 }
+    environment:
+      Identity__TrustedLocalHttpPeers: "172.30.253.1,172.30.253.10"
+      ReverseProxy__KnownProxies__0: "172.30.253.10"
   web:
     ulimits: { core: 0 }
+    networks:
+      internal:
+        ipv4_address: 172.30.253.10
+networks:
+  internal:
+    ipam:
+      config:
+        - subnet: 172.30.253.0/24
 YAML
 export COMPOSE_PATH_SEPARATOR=";"
 export COMPOSE_FILE="$(cygpath -w "$(pwd)/compose.yaml");$(cygpath -w "$override")"
@@ -114,6 +125,8 @@ cleanup() {
 trap cleanup EXIT
 
 stage preflight bash -c 'git rev-parse HEAD; node --version; npm --version; docker version; docker compose version'
+# Compose must render the isolated G7 network, never the retained default subnet.
+stage network-contract node scripts/check-m7-compose-network.mjs
 stage documentation bash -c 'node scripts/render-execution-graph.mjs --check && node scripts/check-planning-docs.mjs'
 stage tracking-contract node --test scripts/check-m7-contract.test.mjs
 stage postgres-image docker build --build-arg "SOURCE_REVISION=$HARBOROPS_SOURCE_SHA" \

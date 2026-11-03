@@ -1,13 +1,13 @@
 # M8 Planning Status
 
 **As of:** 2026-11-03
-**State:** Architecture, implementation work packages, D-006 recommendation and G8 verification plan drafted. **Planning only.**
+**State:** Planning package completed; an M8 implementation candidate now exists on `feat/m8-durable-event-inbox`. **D-006 acceptance pending and G8 not executed.**
 **Branch:** `plan/m8-durable-inbox-immutable-history`.
 **Accepted base:** Protected `main` `47f030f9fa4b588d589f3ae082d03b3d5b94736a`, M0/G0 through M7/G7 accepted.
 **D-006:** Option A recommended; **acceptance pending**.
-**M8 implementation:** Not started.
+**M8 implementation:** Source candidate committed on `feat/m8-durable-event-inbox`; see [implementation status](M8_IMPLEMENTATION_STATUS.md).
 **G8:** Not executed; acceptance pending.
-**Runtime/deployment:** M7 behavior remains unchanged. No public application hosting or GitHub Actions permitted.
+**Runtime/deployment:** Protected `main` remains accepted M7. The candidate changes valid-intake behavior only in its feature branch; there is no verified runtime, public hosting or GitHub Actions authorization.
 
 ## Planning deliverables
 

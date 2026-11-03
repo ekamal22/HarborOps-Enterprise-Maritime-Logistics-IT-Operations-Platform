@@ -1,6 +1,6 @@
 # M8 Architecture: Durable Event Inbox and Immutable History
 
-**State:** Architecture proposed; D-006 acceptance pending. No M8 implementation or G8 verification is claimed.
+**State:** Architecture implemented as a source candidate on `feat/m8-durable-event-inbox`, pending compile/runtime validation, D-006 approval and G8 acceptance. See [implementation register](M8_IMPLEMENTATION_STATUS.md). No verified M8 runtime is claimed.
 **Prepared:** 2026-11-03
 **Planning baseline:** Protected `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`, M0/G0 through M7/G7 accepted.
 **Work packages:** M8-01 specification, M8-02 persistence schema, M8-03 HTTP receipt transaction, M8-04 integrated verification.

@@ -1,6 +1,6 @@
 # M8 Implementation Plan: Durable Event Inbox and Immutable History
 
-**State:** Planned only. D-006 acceptance pending; no M8 code or executed G8 evidence.
+**State:** M8-02/M8-03 implementation candidate and M8-04 test/runner source committed on `feat/m8-durable-event-inbox`. D-006 acceptance pending; no executable G8 evidence or gate acceptance. See [implementation register](M8_IMPLEMENTATION_STATUS.md).
 **Prepared:** 2026-11-03
 **Base:** Accepted M0-G0 through M7-G7 `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`.
 **Planning branch:** `plan/m8-durable-inbox-immutable-history`.

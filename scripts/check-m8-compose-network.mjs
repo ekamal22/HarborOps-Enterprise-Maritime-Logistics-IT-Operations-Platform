@@ -11,7 +11,7 @@ const expectedPorts = {postgres:55438,api:8088,web:5178};
 for(const [service,port] of Object.entries(expectedPorts)){
   const declared = config.services?.[service]?.ports ?? [];
   assert.equal(declared.length,1, service + " must expose exactly one test-only port");
-  assert.equal(declared[0].published, String(port));
+  assert.equal(String(declared[0].published), String(port));
   assert.equal(declared[0].host_ip,"127.0.0.1");
 }
 const actual = config.networks?.internal?.ipam?.config?.[0]?.subnet;

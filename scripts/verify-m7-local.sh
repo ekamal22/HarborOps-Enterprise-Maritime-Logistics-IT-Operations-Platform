@@ -171,8 +171,8 @@ case "$1" in
   nuget)
     dotnet list HarborOps.sln package --vulnerable --include-transitive \
       > /cache/evidence/nuget-vulnerable.log
-    if grep -q "has the following vulnerable packages" /cache/evidence/nuget-vulnerable.log; then
-      echo "NuGet vulnerabilities found" >&2; exit 1
+    if grep -Eiq "has the following vulnerable packages|NU1900|NU1301|Unable to load the service index|failed to retrieve|advisory.+unavailable" /cache/evidence/nuget-vulnerable.log; then
+      echo "NuGet vulnerability findings or an unavailable advisory source" >&2; exit 1
     fi
     ;;
   *) exit 2 ;;
@@ -255,6 +255,10 @@ cli_negative() {
     > "$evidence/source-cli-rejected.txt" 2>&1 || rc=$?
   [[ "$rc" == 1 ]] || return 1
   if grep -qi "Bearer (displayed once)" "$evidence/source-cli-rejected.txt"; then return 1; fi
+  local denied=0
+  compose exec -T api dotnet HarborOps.Api.dll --source-cli inspect "$org" g7_disposable \
+    > "$evidence/source-cli-no-optin.txt" 2>&1 || denied=$?
+  [[ "$denied" == 1 ]] || return 1
   compose exec -T -e HARBOROPS_ALLOW_SOURCE_CLI=true api \
     dotnet HarborOps.Api.dll --source-cli inspect "$org" g7_disposable
 }
@@ -296,6 +300,7 @@ scan_images() {
     image=$(docker inspect --format '{{.Image}}' "$container")
     revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
     [[ "$revision" == "$HARBOROPS_SOURCE_SHA" ]] || return 1
+    printf '%s\t%s\t%s\n' "$service" "$image" "$revision" >> "$evidence/image-ids.tsv"
     MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 \
       -v /var/run/docker.sock:/var/run/docker.sock \
       -v "$(cygpath -w "$root/cache/trivy"):/root/.cache/trivy" \

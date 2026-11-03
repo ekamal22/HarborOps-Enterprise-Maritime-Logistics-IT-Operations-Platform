@@ -59,6 +59,91 @@ public sealed class IntegrationSources : Migration
             CREATE INDEX "IX_m7_credential_scope" ON integration_credentials
                 (organization_id,source_id,revoked_at_utc);
             CREATE INDEX "IX_m7_credential_expiry" ON integration_credentials(expires_at_utc);
+
+            CREATE FUNCTION m7_guard_source() RETURNS trigger LANGUAGE plpgsql AS $fn$
+            BEGIN
+                IF TG_OP = 'DELETE' THEN
+                    RAISE EXCEPTION 'Integration source history cannot be deleted' USING ERRCODE='23514';
+                END IF;
+                IF TG_OP = 'INSERT' THEN
+                    IF NEW.status <> 'Active' OR NEW.disabled_at_utc IS NOT NULL OR NEW.version <> 1 THEN
+                        RAISE EXCEPTION 'Invalid source creation' USING ERRCODE='23514';
+                    END IF;
+                    RETURN NEW;
+                END IF;
+                IF NEW.id IS DISTINCT FROM OLD.id OR
+                   NEW.organization_id IS DISTINCT FROM OLD.organization_id OR
+                   NEW.source_code IS DISTINCT FROM OLD.source_code OR
+                   NEW.capability IS DISTINCT FROM OLD.capability OR
+                   NEW.created_at_utc IS DISTINCT FROM OLD.created_at_utc OR
+                   NEW.version <> OLD.version + 1 OR
+                   NEW.updated_at_utc < OLD.updated_at_utc OR
+                   (OLD.status = 'Disabled' AND NEW.status <> 'Disabled') OR
+                   (OLD.status = 'Active' AND NEW.status = 'Disabled' AND NEW.disabled_at_utc IS NULL) OR
+                   (NEW.status = 'Active' AND NEW.disabled_at_utc IS NOT NULL) OR
+                   (OLD.disabled_at_utc IS NOT NULL AND NEW.disabled_at_utc IS DISTINCT FROM OLD.disabled_at_utc)
+                THEN
+                    RAISE EXCEPTION 'Invalid integration source update' USING ERRCODE='23514';
+                END IF;
+                RETURN NEW;
+            END $fn$;
+            CREATE TRIGGER m7_source_guard BEFORE INSERT OR UPDATE OR DELETE ON integration_sources
+                FOR EACH ROW EXECUTE FUNCTION m7_guard_source();
+
+            CREATE FUNCTION m7_guard_credential() RETURNS trigger LANGUAGE plpgsql AS $fn$
+            DECLARE overlapping_count bigint;
+            BEGIN
+                IF TG_OP = 'DELETE' THEN
+                    RAISE EXCEPTION 'Integration credential history cannot be deleted' USING ERRCODE='23514';
+                END IF;
+                IF TG_OP = 'INSERT' THEN
+                    -- Serialize even direct SQL issuance on the same source row.
+                    PERFORM 1 FROM integration_sources
+                     WHERE id = NEW.source_id AND organization_id = NEW.organization_id
+                     FOR UPDATE;
+                    IF NOT FOUND THEN
+                        RAISE EXCEPTION 'Source not found' USING ERRCODE='23503';
+                    END IF;
+                    IF NOT EXISTS (
+                        SELECT 1 FROM integration_sources s
+                        JOIN organizations o ON o.id = s.organization_id
+                        WHERE s.id = NEW.source_id AND s.organization_id = NEW.organization_id
+                          AND s.status='Active' AND o.status='Active'
+                    ) OR NEW.revoked_at_utc IS NOT NULL OR
+                       NEW.not_before_utc <> NEW.created_at_utc THEN
+                        RAISE EXCEPTION 'Invalid credential issuance' USING ERRCODE='23514';
+                    END IF;
+                    SELECT count(*) INTO overlapping_count
+                      FROM integration_credentials c
+                     WHERE c.source_id=NEW.source_id
+                       AND c.organization_id=NEW.organization_id
+                       AND c.revoked_at_utc IS NULL
+                       AND c.not_before_utc < NEW.expires_at_utc
+                       AND c.expires_at_utc > NEW.not_before_utc;
+                    IF overlapping_count >= 2 THEN
+                        RAISE EXCEPTION 'Credential overlap limit exceeded' USING ERRCODE='23514';
+                    END IF;
+                    RETURN NEW;
+                END IF;
+                IF NEW.id IS DISTINCT FROM OLD.id OR
+                   NEW.organization_id IS DISTINCT FROM OLD.organization_id OR
+                   NEW.source_id IS DISTINCT FROM OLD.source_id OR
+                   NEW.secret_digest IS DISTINCT FROM OLD.secret_digest OR
+                   NEW.key_version IS DISTINCT FROM OLD.key_version OR
+                   NEW.not_before_utc IS DISTINCT FROM OLD.not_before_utc OR
+                   NEW.created_at_utc IS DISTINCT FROM OLD.created_at_utc OR
+                   NEW.expires_at_utc > OLD.expires_at_utc OR
+                   (OLD.revoked_at_utc IS NOT NULL AND NEW.revoked_at_utc IS DISTINCT FROM OLD.revoked_at_utc) OR
+                   (OLD.last_used_at_utc IS NOT NULL AND
+                       (NEW.last_used_at_utc IS NULL OR NEW.last_used_at_utc < OLD.last_used_at_utc))
+                THEN
+                    RAISE EXCEPTION 'Immutable credential identity or invalid lifecycle transition'
+                        USING ERRCODE='23514';
+                END IF;
+                RETURN NEW;
+            END $fn$;
+            CREATE TRIGGER m7_credential_guard BEFORE INSERT OR UPDATE OR DELETE ON integration_credentials
+                FOR EACH ROW EXECUTE FUNCTION m7_guard_credential();
             """);
     }
 
@@ -67,6 +152,8 @@ public sealed class IntegrationSources : Migration
         migrationBuilder.Sql("""
             DROP TABLE integration_credentials;
             DROP TABLE integration_sources;
+            DROP FUNCTION m7_guard_credential();
+            DROP FUNCTION m7_guard_source();
             """);
     }
 }

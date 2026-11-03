@@ -20,9 +20,9 @@ The HTTP endpoint is a HarborOps-specific adapter route, not an unmodified DCSA 
 ```text
 Accepted G3 reference-data foundation
              |
-       D-002 accepted
+ M7-01 reference review and contract proposal
              |
- M7-01 pinned subset and canonical contract
+  D-002 explicit acceptance and contract freeze
           /       \
  M7-02 source    M7-03 bounded
  identity        contract validation
@@ -34,7 +34,7 @@ Accepted G3 reference-data foundation
        M8 contract and durable intake
 ```
 
-M7-02 and M7-03 may be developed independently after M7-01 freezes the schema and security contract. No new graph edges are required. Accepted G6 is available for regression and future M8 prerequisites but is not an artificial prerequisite for M7-01. M8 additionally needs D-006 and a durable database transaction before any successful ingestion acknowledgment.
+M7-01 can prepare the pinned reference and mapping for the D-002 decision after G3. M7-02 and M7-03 may be developed independently only after M7-01 has frozen the approved schema and D-002 has been explicitly accepted. No new graph edges are required. Accepted G6 is available for regression and future M8 prerequisites but is not an artificial prerequisite for M7-01. M8 additionally needs D-006 and a durable database transaction before any successful ingestion acknowledgment.
 
 ## 3. Module boundaries and data flow
 

@@ -2,15 +2,15 @@
 
 ## Parallel implementation and integration contracts
 
-The established modular monolith remains the single shared architecture. Workstream parallelism changes planning prerequisites, not deployment topology or transaction ownership. Independent milestone branches must preserve accepted M0-M3 authentication, tenant isolation, API envelopes and database constraints. Shared PostgreSQL schema changes require one coordinated additive migration history and integrated regression. Event processing attaches only after the shipment and tracking contracts needed by its own dependent packages are accepted. Observability, audit foundations and recovery tooling may develop alongside business features, but G24 must recheck all integrated domains. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md).
+The established modular monolith remains the single shared architecture. Workstream parallelism changes planning prerequisites, not deployment topology or transaction ownership. Independent milestone branches must preserve accepted M0-M6 authentication, tenant isolation, API envelopes, persistence constraints, shipment and allocation behavior. Shared PostgreSQL schema changes require one coordinated additive migration history and integrated regression. Event processing attaches only after the shipment and tracking contracts needed by its own dependent packages are accepted. Observability, audit foundations and recovery tooling may develop alongside business features, but G24 must recheck all integrated domains. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md).
 
 ## M4 accepted modular extension
 
-M4 remains inside the accepted ASP.NET Core modular monolith, not a separate service. Implemented `Voyages` and `Containers` domain policies, EF stores, scoped endpoints and React workspaces reuse M1 authentication, M2 tenant selection, M3 reference UUIDs and established JSON/CSRF conventions. [M4 architecture](M4_ARCHITECTURE_DESIGN.md) calls for composite same-tenant PostgreSQL FKs, transaction-scope authorization and UTC invariants; [M4 implementation](M4_IMPLEMENTATION_PLAN.md) coordinates one additive migration, including when workstreams execute in parallel. [D-003](M4_D003_CONTAINER_IDENTIFIER_PROPOSAL.md) is not approved, and no M4 runtime is implemented.
+M4 remains inside the accepted ASP.NET Core modular monolith, not a separate service. Implemented `Voyages` and `Containers` domain policies, EF stores, scoped endpoints and React workspaces reuse M1 authentication, M2 tenant selection, M3 reference UUIDs and established JSON/CSRF conventions. [M4 architecture](M4_ARCHITECTURE_DESIGN.md) calls for composite same-tenant PostgreSQL FKs, transaction-scope authorization and UTC invariants; [M4 implementation](M4_IMPLEMENTATION_PLAN.md) coordinates one additive migration, including when workstreams execute in parallel. [D-003 Option B](DECISIONS.md) was explicitly approved and the M4 runtime was implemented, independently verified and accepted on 2026-11-01.
 
-## Proposed M5 shipment module
+## Accepted M5 shipment and M6 allocation modules
 
-[M5 architecture](M5_ARCHITECTURE_DESIGN.md) proposes a bounded module in the existing .NET 10 monolith with tenant-owned shipment records, manual status history, scoped API commands and a React workspace. No new service, M6 assignment, worker or tracking projection is introduced. See [implementation plan](M5_IMPLEMENTATION_PLAN.md). G5 remains open.
+[M5 architecture](M5_ARCHITECTURE_DESIGN.md) defines a bounded module in the .NET 10 monolith with tenant-owned shipment records, manual status history, scoped API commands and a React workspace. [M6 architecture](M6_ARCHITECTURE_DESIGN.md) adds versioned, tenant-scoped shipment-container and shipment-voyage association histories and PostgreSQL temporal integrity constraints. Both modules are integrated into `main`; G5 and G6 were accepted on 2026-11-02. Neither milestone introduces production tracking ingestion, a new service or external integrations.
 
 ## Baseline topology
 
@@ -150,7 +150,7 @@ The source, build outputs, dependency caches, PostgreSQL/Docker Desktop data and
 
 ## Verified M0 runtime modernization
 
-The hardening branch targets .NET 10 and EF Core 10 while preserving the original PostgreSQL 16 on-disk format and immutable bootstrap migration. The PostgreSQL container runs under the built-in non-root account with the `gosu` binary removed. The modernized runtime passed full GitHub Actions verification at exact commit `fec7429415fede121db8a4a34f0df72cd4fac609`; subsequent code changes require a new run. The detailed test matrix is in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+The accepted M0 hardening baseline uses .NET 10 and EF Core 10 while preserving the original PostgreSQL 16 on-disk format and immutable bootstrap migration. The PostgreSQL container runs under the built-in non-root account with the `gosu` binary removed. The modernized runtime passed historical GitHub Actions verification at exact commit `fec7429415fede121db8a4a34f0df72cd4fac609`. Subsequent changes require scoped local E:-backed verification; GitHub Actions remains disabled. The detailed test matrix is in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
 ## M0 implemented boundaries
 

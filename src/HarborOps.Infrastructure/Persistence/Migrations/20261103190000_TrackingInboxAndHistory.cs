@@ -51,7 +51,7 @@ public sealed class TrackingInboxAndHistory : Migration
 
             CREATE TABLE tracking_accepted_events (
                 id uuid PRIMARY KEY,
-                receipt_id uuid NOT NULL UNIQUE,
+                receipt_id uuid NOT NULL CONSTRAINT "UQ_m8_event_receipt" UNIQUE,
                 organization_id uuid NOT NULL,
                 source_id uuid NOT NULL,
                 event_family varchar(16) NOT NULL,
@@ -104,7 +104,7 @@ public sealed class TrackingInboxAndHistory : Migration
 
             CREATE TABLE tracking_receipt_conflicts (
                 id uuid PRIMARY KEY,
-                receipt_id uuid NOT NULL UNIQUE,
+                receipt_id uuid NOT NULL CONSTRAINT "UQ_m8_conflict_receipt" UNIQUE,
                 organization_id uuid NOT NULL,
                 source_id uuid NOT NULL,
                 attempted_digest bytea NOT NULL,

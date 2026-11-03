@@ -105,6 +105,9 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
         var connection = db.Database.GetDbConnection();
         var current = transaction.GetDbTransaction();
 
+        await ExecuteAsync(connection, current,
+            "SET LOCAL lock_timeout = '15s'; SET LOCAL statement_timeout = '30s'", ct);
+
         // Lock the organization first. This serializes capacity checks across
         // sources and prevents suspension from committing mid-receipt.
         await using (var lockCommand = Command(connection, current,
@@ -116,8 +119,6 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
                 return new(TrackingReceiptOutcome.AccessDenied);
         }
 
-        await ExecuteAsync(connection, current,
-            "SET LOCAL lock_timeout = '15s'; SET LOCAL statement_timeout = '30s'", ct);
         var now = clock.GetUtcNow();
         var credentialId = await ReauthorizeAsync(connection, current, bearer, value, now, ct);
         if (credentialId == Guid.Empty)

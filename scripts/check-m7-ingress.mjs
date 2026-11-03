@@ -28,17 +28,22 @@ async function send(token, data=body, profile="tnt-2.2-harborops-v1", headers={}
   const content = await result.text();
   let parsed;
   try { parsed = JSON.parse(content); } catch { parsed = {}; }
-  assert.equal(typeof parsed.code, "string");
+  assert.ok(typeof parsed.code === "string" || parsed.status === "received");
   assert.ok(parsed.correlationId);
   assert.match(result.headers.get("cache-control") || "", /no-store/);
-  return { status:result.status, code:parsed.code, retry:result.headers.get("retry-after") };
+  return { status:result.status, code:parsed.code, receiptId:parsed.receiptId,
+    duplicate:parsed.duplicate, retry:result.headers.get("retry-after") };
 }
 if (mode === "healthy") {
   const missing = await send(null);
   assert.deepEqual([missing.status,missing.code], [401,"invalid_source_credentials"]);
   const valid = await send(bearer);
-  assert.deepEqual([valid.status,valid.code], [503,"intake_unavailable"]);
-  assert.ok(valid.retry);
+  assert.equal(valid.status, 202);
+  assert.ok(valid.receiptId);
+  const replay = await send(bearer);
+  assert.equal(replay.status, 202);
+  assert.equal(replay.receiptId, valid.receiptId);
+  assert.equal(replay.duplicate, true);
   const unsupported = await send(bearer,body,"unapproved");
   assert.deepEqual([unsupported.status,unsupported.code],[422,"unsupported_tracking_profile"]);
   const spoofed = await send(bearer,
@@ -53,6 +58,7 @@ if (mode === "healthy") {
   assert.deepEqual([offline.status,offline.code],[503,"dependency_unavailable"]);
 } else {
   const resumed = await send(bearer);
-  assert.deepEqual([resumed.status,resumed.code],[503,"intake_unavailable"]);
+  assert.equal(resumed.status,202);
+  assert.ok(resumed.receiptId);
 }
 console.log("G7 source-bound ingress " + mode + ": PASS");

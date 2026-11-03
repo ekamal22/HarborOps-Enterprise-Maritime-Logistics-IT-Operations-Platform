@@ -18,6 +18,7 @@
 | Proxy integration | `web/nginx.conf`, `web/nginx.hosted.conf.template`, `tests/browser/specs/tracking-ingress.spec.mjs` | Proxy the integration route to the API, preserve trusted forwarding and reject unauthenticated browser requests |
 | Integration API | `TrackingEndpoints.cs`, `IntegrationRequestLimiter.cs`, `Program.cs` | Source-bound bearer authorization, secure transport reuse, anonymous and authenticated limits, no-store envelopes, valid event returns 503 |
 | Fixtures and tests | `tests/fixtures/tracking/`, `TrackingEventPolicyTests.cs`, `TrackingSourceHttpTests.cs`, `TrackingSourceMigrationTests.cs` | Source and tenant cases, negative parsing, migration upgrade, concurrency and no-acknowledgment assertions |
+| Historical regression compatibility | Existing migration upgrade suites | Pin M6-specific migration tests to their accepted target and extend latest-schema assertions for M7 |
 | Local runner | `scripts/verify-m7-local.sh` | E:-only preflight, isolated database, source-locked checks, test reports, audit stages, teardown and manifest |
 
 ## Contract boundaries

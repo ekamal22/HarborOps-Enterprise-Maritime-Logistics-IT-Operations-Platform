@@ -1,8 +1,9 @@
 # Publication and Hosted Security Remediation Register
 
 **Date:** 2026-11-02  
-**Work branch:** `fix/publication-security-readiness`  
+**Implementation source:** `fix/publication-security-readiness`, merged to `main` through PR #6  
 **Baseline:** `main` at `4d26514caee5cc835f6eef230e0433141291374e`  
+**Merged implementation:** `474b83837d45312e155f2c2d220af28d927fc1b3` (verified source with documentation updates)  
 **Publication decision:** NOT CLEARED  
 **Internet-hosting decision:** NOT CLEARED  
 **Verification state:** Complete local E:-backed regression run passed at `b9adaa8ae0fc5f2df9deb5e4f090695d5048d672` (see below), after the isolated hosted run at `7145ec24a8ac289dfcf6f02644f54f35f4744c8a` passed every test stage and failed only in cleanup. Historical disclosure review, repository governance, licensing and publication approval remain outstanding.

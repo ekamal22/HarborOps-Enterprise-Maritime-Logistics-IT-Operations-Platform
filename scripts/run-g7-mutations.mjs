@@ -21,15 +21,15 @@ const run=(cmd,args,options={})=>{
 const expectOk=(cmd,args)=>{const result=run(cmd,args);assert.equal(result.status,0,
   cmd+" failed: "+(result.stderr||result.stdout||"").slice(-600));return result.stdout||"";};
 expectOk("git",["archive","--format=tar","--output",sourceTar,sha]);
-// Development rehearsal only: HARBOROPS_G7_MUTATION_SUBSET=overlap,parent-guard runs just those variants.
+// Development rehearsal only: HARBOROPS_G7_MUTATION_SUBSET=digest,suspension runs just those variants.
 const subset=process.env.HARBOROPS_G7_MUTATION_SUBSET?.split(",");
 assert.ok(!subset||process.env.HARBOROPS_G7_MUTATION_SUBSET_DEV==="1","Subset runs are development only");
 const variants=[
-  ["control", null, "AuthenticationFailuresAreThrottledBeforeExcessiveDatabaseWork|ValidCredentialDeniedAfterSourceDisableOrOrganizationSuspension|AuthenticatedSourceValidatesButNeverAcknowledgesEvent|AppliesStrictBodyBoundIncludingInvalidUtf8|DatabasePreventsCredentialIdentityMutationAndHistoryDeletion"],
+  ["control", null, "AuthenticationFailuresAreThrottledBeforeExcessiveDatabaseWork|ValidCredentialDeniedAfterSourceDisableOrOrganizationSuspension|AuthenticatedSourceValidatesButNeverAcknowledgesEvent|MediaProfilesSizeAndMethodRejectSafely|DatabasePreventsCredentialIdentityMutationAndHistoryDeletion"],
   ["digest", "AuthenticationFailuresAreThrottledBeforeExcessiveDatabaseWork", "AuthenticationFailuresAreThrottledBeforeExcessiveDatabaseWork"],
   ["suspension", "ValidCredentialDeniedAfterSourceDisableOrOrganizationSuspension", "ValidCredentialDeniedAfterSourceDisableOrOrganizationSuspension"],
   ["revocation", "AuthenticatedSourceValidatesButNeverAcknowledgesEvent", "AuthenticatedSourceValidatesButNeverAcknowledgesEvent"],
-  ["size", "AppliesStrictBodyBoundIncludingInvalidUtf8", "AppliesStrictBodyBoundIncludingInvalidUtf8"],
+  ["size", "MediaProfilesSizeAndMethodRejectSafely", "MediaProfilesSizeAndMethodRejectSafely"],
   ["credential-guard", "DatabasePreventsCredentialIdentityMutationAndHistoryDeletion", "DatabasePreventsCredentialIdentityMutationAndHistoryDeletion"]
 ];
 const summary={sourceSha:sha,checkedAtUtc:new Date().toISOString(),control:null,mutants:[]};
@@ -94,6 +94,9 @@ try{
      if(variant==="control"){
        assert.equal(executed.status,0,"Unmodified source control must pass");
        assert.ok(rows.every(x=>x.outcome==="Passed"),"Unmodified control has failed/skipped tests");
+       for(const expectedName of testExpression.split("|"))
+         assert.ok(rows.some(x=>(x.name||"").includes(expectedName)),
+           "Required control test not discovered: "+expectedName);
        summary.control={status:"PASS",testNames:rows.map(x=>x.name),passed:rows.length};
      }else{
        assert.notEqual(executed.status,0,"Mutation survived: "+variant);

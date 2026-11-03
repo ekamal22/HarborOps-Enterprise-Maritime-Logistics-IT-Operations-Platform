@@ -191,6 +191,7 @@ sdk() {
 }
 stage build sdk build
 stage dotnet-regressions sdk tests
+stage security-mutations node scripts/run-g7-mutations.mjs "$HARBOROPS_VERIFICATION_ROOT"
 stage nuget-advisories sdk nuget
 stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build'
 stage npm-advisories bash -c 'npm --prefix web audit --audit-level=high && npm --prefix tests/browser audit --audit-level=high'
@@ -313,7 +314,9 @@ printf 'G7-S01\tBLOCKED\tD-002 acceptance and upstream pin pending\n' > "$eviden
 if [[ ! -s "$evidence/source-cli-operator.tsv" ]]; then
   printf 'G7-S06\tMANUAL_PENDING\tProtected terminal lifecycle not executed\n' >> "$evidence/open-gates.tsv"
 fi
-printf 'G7-S24\tREVIEW_PENDING\tIndependent mutation and security review pending\n' >> "$evidence/open-gates.tsv"
+if [[ ! -s "$evidence/g7-mutations.json" ]]; then
+  printf 'G7-S24\tBLOCKED\tSecurity mutation evidence missing\n' >> "$evidence/open-gates.tsv"
+fi
 printf 'G7-S25\tREVIEW_PENDING\tIndependent raw-evidence review pending\n' >> "$evidence/open-gates.tsv"
 echo "Technical stages completed. G7 remains blocked on the open-gate register." >&2
 exit 2

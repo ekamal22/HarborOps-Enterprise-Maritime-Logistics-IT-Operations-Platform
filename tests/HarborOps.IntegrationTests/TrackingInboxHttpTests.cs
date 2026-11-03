@@ -139,6 +139,34 @@ public sealed class TrackingInboxHttpTests
     }
 
     [Fact]
+    public async Task PendingCapacityReturnsRetryable503ButReplaysOriginalReceipt()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString(),
+            pendingLimit: 1);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        using var client = factory.CreateClient();
+        await using var scope = factory.Services.CreateAsyncScope();
+        var source = await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+            .CreateAsync(fixture.A, "m8_capacity", "Capacity Test", CancellationToken.None);
+        using var first = await Post(client, source.Bearer, Payload(id: "capacity-1"));
+        Assert.Equal(HttpStatusCode.Accepted, first.StatusCode);
+        using var blocked = await Post(client, source.Bearer, Payload(id: "capacity-2"));
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, blocked.StatusCode);
+        Assert.NotNull(blocked.Headers.RetryAfter);
+        var error = await blocked.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("intake_capacity_exceeded", error.GetProperty("code").GetString());
+        using var replay = await Post(client, source.Bearer, Payload(id: "capacity-1"));
+        Assert.Equal(HttpStatusCode.Accepted, replay.StatusCode);
+        Assert.True((await replay.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("duplicate").GetBoolean());
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Equal(1, await db.TrackingInboxReceipts.CountAsync(x => x.SourceId == source.Id));
+    }
+
+    [Fact]
     public async Task ConcurrentDuplicateIntakeCreatesExactlyOneReceipt()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

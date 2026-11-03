@@ -25,9 +25,24 @@ public sealed record TrackingReceiptResult(TrackingReceiptOutcome Outcome,
 /// All write and replay decisions run under the organization lock, including the
 /// final credential check. No 202 can be sent until CommitAsync succeeds.
 /// </summary>
-public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock)
+public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock,
+    Microsoft.Extensions.Configuration.IConfiguration configuration)
 {
     public const int MaximumPendingPerOrganization = 10_000;
+
+    private int PendingLimit
+    {
+        get
+        {
+            var configured = configuration["M8:PendingLimit"];
+            if (string.IsNullOrEmpty(configured)) return MaximumPendingPerOrganization;
+            if (!int.TryParse(configured, System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out var limit) ||
+                limit < 1 || limit > MaximumPendingPerOrganization)
+                throw new InvalidOperationException("M8 pending admission limit must be between 1 and 10000");
+            return limit;
+        }
+    }
 
     private static DbCommand Command(DbConnection connection, DbTransaction tx, string sql,
         params (string Name, object? Value)[] values)
@@ -173,7 +188,7 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
             WHERE organization_id = @organization AND state = 'Pending'
             """, ("organization", value.OrganizationId)))
             pending = Convert.ToInt64(await count.ExecuteScalarAsync(ct));
-        if (pending >= MaximumPendingPerOrganization)
+        if (pending >= PendingLimit)
             return new(TrackingReceiptOutcome.CapacityExceeded);
 
         var receipt = Guid.NewGuid();

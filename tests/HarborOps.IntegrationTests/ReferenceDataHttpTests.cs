@@ -16,13 +16,16 @@ public sealed class ReferenceDataHttpTests
 {
     private const string Password = "Synthetic-reference-integration-passphrase-123";
 
-    internal sealed class ApiFactory(string connection) : WebApplicationFactory<Program>
+    internal sealed class ApiFactory(string connection, int? pendingLimit = null) : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             LocalPeerTestServer.Configure(builder);
             builder.UseEnvironment("Development");
             builder.UseSetting("ConnectionStrings:HarborOps", connection);
+            if (pendingLimit.HasValue)
+                builder.UseSetting("M8:PendingLimit", pendingLimit.Value.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture));
             builder.UseSetting("Identity:AllowInsecureLoopbackHttp", "true");
             builder.UseSetting("Identity:KeyRingPath",
                 Path.Combine(Directory.GetCurrentDirectory(), ".identity-keys"));

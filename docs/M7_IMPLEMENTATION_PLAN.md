@@ -19,7 +19,7 @@ Preserve existing authorization, schema and accepted M0-M6 behavior. Implement a
 
 | Work package | Depends on | Outputs | Complete when |
 | --- | --- | --- | --- |
-| **M7-01** Pin external subset and canonical contract | Accepted G3 and explicit D-002 | Immutable upstream reference, schema profile, mapping register, representative allowlisted fixtures, error contract | Every supported/unsupported field and code is grounded in pinned reference, hashes recorded and decision explicitly accepted |
+| **M7-01** Pin external subset and canonical contract | Accepted G3; D-002 approval closes this work package before downstream implementation | Immutable upstream reference, schema profile, mapping register, representative allowlisted fixtures, error contract | Every supported/unsupported field and code is grounded in pinned reference, hashes recorded and decision explicitly accepted |
 | **M7-02** Implement source entitlements | M7-01 | Additive source/credential migration, provisioning/rotation/revoke CLI, server-side bearer verification, source/tenant scope and limiters | Live database auth, expiry, rotation, disabled org, forged source and concurrent revoke tests pass |
 | **M7-03** Implement strict payload validation | M7-01 | Canonical DTO, exact-profile JSON parser, bounded body/depth, UTC and identifier policies, supported event mapping and safe errors | Deterministic positive parse and exhaustive invalid/unsupported/over-limit negative matrix pass |
 | **M7-04** Verify integration contracts | M7-02 and M7-03 | HTTP composition, 503 no-ack behavior, full G7 matrix, migration/tenant regression, evidence and docs | All G7 required cases executed and recorded against one source SHA; no critical unresolved defects |

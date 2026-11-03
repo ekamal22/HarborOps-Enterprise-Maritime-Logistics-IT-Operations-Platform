@@ -1,6 +1,6 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Register
 
-**State:** Implementation candidate committed; verification and acceptance pending.
+**State:** Correctness-audit remediation candidate committed; runtime verification and acceptance pending.
 **Working branch:** `feat/m7-tracking-source-validation`
 **Baseline:** Accepted G0-G6 and M7 planning branch.
 **G7:** Not executed or accepted.
@@ -12,14 +12,15 @@
 | Area | Files | Behavior |
 | --- | --- | --- |
 | Integration-source schema | `IntegrationEntities.cs`, `20261103090000_IntegrationSources.cs`, `HarborOpsDbContext.cs` and snapshot | Tenant-bound source and credential tables, composite foreign keys, constraints and indexes |
-| Credential lifecycle | `IntegrationSourceStore.cs`, `IntegrationSourcePolicy.cs` | Random 256-bit secrets, SHA-256 digests, one-time bearer generation, active organization checks, rotation overlap, immediate revocation and disablement |
+| Database lifecycle enforcement | M7 migration source and credential triggers | Immutable credential identity/digests, non-deletable records, two-overlap limit, monotonic revocation and source transitions |
+| Credential lifecycle | `IntegrationSourceStore.cs`, `IntegrationSourcePolicy.cs` | Random 256-bit secrets, SHA-256 digests, one-time bearer generation, organization-first transactional locks, one-query locked bearer validation, constrained rotation, immediate revocation and disablement |
 | Restricted operations | `SourceCli.cs` | Explicit local operator opt-in and interactive create/rotate, with revoke, disable and redacted inspect |
-| Event validation | `TrackingEventPolicy.cs`, `harborops-tracking-v1.schema.json` | Provisional equipment and transport subset, strict JSON, identifiers, explicit UTC, D-003 equipment syntax and bounded body |
+| Event validation | `TrackingEventPolicy.cs`, `harborops-tracking-v1.schema.json` | Provisional equipment and transport subset, canonical eventFamily/eventCode JSON, absolute-end identifiers, explicit UTC, source-bound identity, D-003 equipment syntax and bounded body |
 | Proxy integration | `web/nginx.conf`, `web/nginx.hosted.conf.template`, `tests/browser/specs/tracking-ingress.spec.mjs` | Proxy the integration route to the API, preserve trusted forwarding and reject unauthenticated browser requests |
 | Integration API | `TrackingEndpoints.cs`, `IntegrationRequestLimiter.cs`, `Program.cs` | Source-bound bearer authorization, secure transport reuse, anonymous and authenticated limits, no-store envelopes, valid event returns 503 |
-| Fixtures and tests | `tests/fixtures/tracking/`, `TrackingEventPolicyTests.cs`, `TrackingSourceHttpTests.cs`, `TrackingSourceMigrationTests.cs` | Source and tenant cases, negative parsing, migration upgrade, concurrency and no-acknowledgment assertions |
+| Fixtures and tests | `tests/fixtures/tracking/`, `TrackingEventPolicyTests.cs`, `TrackingSourceHttpTests.cs`, `TrackingSourceMigrationTests.cs`, `TrackingSourceSqlTests.cs`, `TrackingSourceBoundaryHttpTests.cs` | Expanded HTTP and source tests, populated M6 preservation, SQL immutability, overlap and tenant checks, concurrency and no-acknowledgment assertions |
 | Historical regression compatibility | Existing migration upgrade suites | Pin M6-specific migration tests to their accepted target and extend latest-schema assertions for M7 |
-| Local runner | `scripts/verify-m7-local.sh` | E:-only preflight, isolated database, source-locked checks, test reports, audit stages, teardown and manifest |
+| Local runner | `scripts/verify-m7-local.sh` | E:-only preflight, disposable SDK/PostgreSQL, source-locked .NET tests, browser fixtures, three-engine regression, source outage/recovery, image audits and hashed teardown evidence |
 
 ## Contract boundaries
 
@@ -32,9 +33,9 @@
 
 ## Verification boundaries
 
-The implementation has been committed and its source layout reviewed. No .NET compilation, PostgreSQL migration execution, Docker/Playwright run, dependency/image scan or independent G7 evidence review is claimed here.
+The implementation has been committed and reviewed statically. The EF mapping corruption has been repaired and model/snapshot mapping equality checked. No .NET compilation, PostgreSQL migration execution, Docker/Playwright run, dependency/image scan or independent G7 evidence review is claimed here.
 
-The focused local runner does not by itself satisfy all G7 scenarios. In particular, browser/proxy/recovery tests, operator CLI interactive verification, source mutation checks and a complete evidence package require a full isolated G7 session. G7-S01 additionally requires D-002 acceptance and a pinned reference artifact.
+The local runner now schedules browser/proxy/recovery checks and full accepted-source regressions, but has not been executed. Protected interactive operator CLI issuance, decision-specific source mutations, pinned upstream fixture review, and independent evidence assessment remain outside automatic G7 closure. G7-S01 additionally requires D-002 acceptance and a pinned reference artifact.
 
 **Required next gate:** Complete the G7-S01 through G7-S25 matrix on one exact source revision using disposable E:-backed resources, review the raw evidence, address any failures, then request explicit G7 acceptance before merging into `main`.
 

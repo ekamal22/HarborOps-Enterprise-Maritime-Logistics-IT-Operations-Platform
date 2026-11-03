@@ -75,7 +75,7 @@ Authenticated and state-changing routes require HTTPS, except when `Identity:All
 
 ## Proposed M7 source-authentication security boundary
 
-M7 will introduce separate machine-source bearer identities, DB-backed organization entitlements, immediate revocation and expiry, strict TLS/peer trust, bounded event JSON and generic redacted errors. Human session cookies do not authorize machine intake. No event may receive a success acknowledgment until M8 durably records it. [M7 architecture](M7_ARCHITECTURE_DESIGN.md) and [G7 security matrix](M7_VERIFICATION_PLAN.md) are plans, not verified controls; D-002 and G7 acceptance remain pending.
+The unverified M7 implementation candidate adds separate machine-source bearers, organization-first lifecycle locks, a joined credential/source/organization authorization query with row locks, database immutability guards, pre-authentication limits, strict TLS/peer trust, bounded JSON and safe error envelopes. Human session cookies do not authorize machine intake. No event may receive a success acknowledgment until M8 durably records it. [M7 architecture](M7_ARCHITECTURE_DESIGN.md) and [G7 security matrix](M7_VERIFICATION_PLAN.md) are plans, not verified controls; D-002 and G7 acceptance remain pending.
 
 ## Public repository and deployment readiness
 

@@ -1,8 +1,8 @@
 # M7 Tracking Contracts and Source Authentication: Architecture
 
-**State:** Proposed architecture, not implemented or verified. D-002 acceptance pending.
+**State:** Implementation candidate committed on a separate feature branch; D-002 and G7 acceptance pending. No runtime verification has been executed.
 **Prepared:** 2026-11-03
-**Planning branch:** `plan/m7-tracking-contracts-source-auth`
+**Planning branch:** `plan/m7-tracking-contracts-source-auth`. **Implementation branch:** `feat/m7-tracking-source-validation`
 **Accepted base:** `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`, G0-G6 accepted
 **Work packages:** M7-01 reference contract, M7-02 source entitlements, M7-03 payload validation, M7-04 integration contract verification; G7 follows explicit acceptance
 **Authorities:** [Roadmap](ROADMAP.md), [execution graph](execution-graph.json), [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [FR-002/006/007 and NFR-002/003/006/007](REQUIREMENTS.md), [API contracts](API_CONTRACTS.md), [Security](SECURITY.md), [G7 plan](M7_VERIFICATION_PLAN.md), [accepted G6](M6_G6_GATE_CLOSURE.md).
@@ -13,7 +13,7 @@ M7 establishes an organization-scoped integration-source identity, provisioned a
 
 **M7 does not accept or persist tracking events.** The M8 gate owns the transactional inbox receipt, immutable provenance, collision and deduplication storage, and source-specific event key uniqueness. M9 owns worker claims, retry and dead-letter processing. M10 owns temporal projections and corrections. M7 must never return HTTP 200/201/202 for an event if no durable receipt was written. A valid and authenticated intake request returns a structured HTTP 503 `intake_unavailable` with `Retry-After` until M8 integrates and verifies the durable receipt transaction. Invalid requests are rejected before that response. The source and validation path can be verified without claiming delivery.
 
-The HTTP endpoint is a HarborOps-specific adapter route, not an unmodified DCSA publisher interface. A proposed public DCSA 2.2.0 mapping profile is recorded in [D-002](M7_D002_TRACKING_REFERENCE_PROPOSAL.md); it requires approval and a pinned upstream artifact before implementation. External partner credentials, paid data feeds, live AIS, dashboards, projection timelines, notification delivery, a hosted TLS deployment and M24 accessibility auditing are excluded.
+The HTTP endpoint is a HarborOps-specific adapter route, not an unmodified DCSA publisher interface. A proposed public DCSA 2.2.0 mapping profile is recorded in [D-002](M7_D002_TRACKING_REFERENCE_PROPOSAL.md); formal D-002 closure still requires approval and a pinned upstream artifact. The unverified source candidate does not constitute an accepted reference mapping. External partner credentials, paid data feeds, live AIS, dashboards, projection timelines, notification delivery, a hosted TLS deployment and M24 accessibility auditing are excluded.
 
 ## 2. Dependency architecture
 
@@ -62,7 +62,7 @@ Place source credential and entitlement entities in `HarborOps.Infrastructure/In
 
 ## 4. Source identity and tenancy
 
-### 4.1 M7 tables, proposed additive migration
+### 4.1 M7 tables, additive implementation candidate
 
 `integration_sources`:
 - `id uuid PRIMARY KEY`; `organization_id uuid NOT NULL` with restrictive FK to `organizations(id)`.
@@ -71,9 +71,9 @@ Place source credential and entitlement entities in `HarborOps.Infrastructure/In
 - `created_at_utc timestamptz`, `updated_at_utc timestamptz`, `disabled_at_utc timestamptz NULL`, server-controlled.
 - Unique `(organization_id,id)` for future tenant-bound foreign keys. Index on `(organization_id,status,source_code)`. No hard-delete endpoint.
 
-`integration_source_credentials`:
+`integration_credentials`:
 - `id uuid PRIMARY KEY`; `organization_id uuid NOT NULL`; `source_id uuid NOT NULL` with composite `(organization_id,source_id)` FK to `integration_sources(organization_id,id)` and `ON DELETE RESTRICT`.
-- `secret_digest bytea NOT NULL`, fixed 32 bytes, unique `credential_id` lookup; never store a bearer secret. `key_version varchar(24)` identifies digest format only.
+- `secret_digest bytea NOT NULL`, fixed 32 bytes, unique `id` lookup; never store a bearer secret. `key_version varchar(24)` identifies digest format only.
 - `not_before_utc timestamptz`, `expires_at_utc timestamptz`, `revoked_at_utc timestamptz NULL`, `created_at_utc timestamptz`, `last_used_at_utc timestamptz NULL`; `CHECK(expires_at_utc > not_before_utc)`.
 - Explicit indexes `(organization_id,source_id,revoked_at_utc)`, `(expires_at_utc)`. Test fail-closed under unique-constraint and FK races.
 

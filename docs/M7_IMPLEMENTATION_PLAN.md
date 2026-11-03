@@ -1,8 +1,8 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Plan
 
-**State:** Planned, no M7 production code implemented or verification executed.
+**State:** Implementation candidate committed, no G7 runtime verification executed or acceptance granted.
 **Prepared:** 2026-11-03
-**Branch:** `plan/m7-tracking-contracts-source-auth` for planning; use a separate implementation branch after D-002 acceptance
+**Branches:** Planning `plan/m7-tracking-contracts-source-auth`; implementation candidate `feat/m7-tracking-source-validation`
 **Starting baseline:** `main` `97b67739cf1dad543bf25fa56326fb4702990f41` with G0-G6 accepted
 **Decision gate:** [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), acceptance pending
 **Design:** [M7 architecture](M7_ARCHITECTURE_DESIGN.md)
@@ -34,7 +34,7 @@ M7-02 and M7-03 may proceed in parallel after M7-01 is frozen. Use different bra
 3. Freeze `harborops-tracking-v1` wire DTO, `tnt-2.2-harborops-v1` profile name and transport/response error contract. Keep upstream and internal models separate.
 4. Create checked-in JSON Schema or equivalent validator schema and curated synthetic positive/negative fixtures under `contracts/tracking/v1/` and `tests/fixtures/tracking/`. Include licensing/attribution for any redistributed upstream material; write original synthetic examples when rights are uncertain.
 5. Resolve whether the proposed default event-date policy (2000-01-01 UTC to now + 24 hours) and the candidate first event codes precisely match the pinned reference and the desired business scope.
-6. Obtain explicit D-002 acceptance before M7-02/M7-03 feature implementation.
+6. Obtain explicit D-002 acceptance before freezing the provisional implementation and accepting G7. The implementation candidate must be reconciled against the pinned normative reference.
 
 **Artifacts:** `docs/M7_D002_TRACKING_REFERENCE_PROPOSAL.md`, `docs/M7_ARCHITECTURE_DESIGN.md`, `docs/API_CONTRACTS.md`, contract schema and fixture manifest.
 
@@ -42,7 +42,7 @@ M7-02 and M7-03 may proceed in parallel after M7-01 is frozen. Use different bra
 
 ### Proposed file work
 
-- `src/HarborOps.Infrastructure/Integrations/IntegrationSource.cs`: source and credential entities and lifecycle state.
+- `src/HarborOps.Infrastructure/Integrations/IntegrationEntities.cs`: source and credential entities and lifecycle state.
 - `src/HarborOps.Infrastructure/Integrations/IntegrationSourceStore.cs`: tenant-bound credential issuance, validation, rotation, revocation and source disablement. Use typed result errors and cancellation tokens.
 - `src/HarborOps.Domain/Tracking/IntegrationSourcePolicy.cs`: pure source/credential lifecycle rules, clock window, rotation overlap and capability policy.
 - `src/HarborOps.Api/Integrations/SourceCli.cs`: restricted local-only opt-in provisioning, rotation, revocation, inspect and disable.
@@ -134,7 +134,7 @@ Run only locally. GitHub Actions remains disabled. A new manual-only workflow is
 
 ## 8. Planned handoff and acceptance
 
-M7 source implementation, schema migrations, automation fixtures and verification are all **NOT STARTED** in this planning PR. D-002 acceptance is pending. G7 needs actual source-locked local evidence and explicit acceptance before implementation merge.
+M7 source, schema migration, contract fixtures, and executable test candidates are committed on the separate implementation branch. No G7 runtime results or acceptance are recorded. D-002 acceptance is pending. G7 needs actual source-locked local evidence and explicit acceptance before implementation merge.
 
 The detailed [G7-S01 through G7-S25](M7_VERIFICATION_PLAN.md) specification is the future evidence index authority. M8 remains blocked on G7, its accepted G6 prerequisite and its own D-006 decision; do not imply M8 readiness from M7 contract-only work.
 

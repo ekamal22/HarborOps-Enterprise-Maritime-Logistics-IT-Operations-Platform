@@ -72,6 +72,12 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         return source;
     }
 
+    private DateTimeOffset NextUpdateTime(IntegrationSource source)
+    {
+        var now = clock.GetUtcNow();
+        return now < source.UpdatedAtUtc ? source.UpdatedAtUtc : now;
+    }
+
     private static IntegrationCredential NewCredential(IntegrationSource source, byte[] secret, DateTimeOffset now) =>
         new()
         {
@@ -119,7 +125,7 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         var source = await LockSourceAsync(organizationId, code, ct);
         if (organization.Status != "Active" || source.Status != "Active")
             throw new InvalidOperationException("Active source and organization required");
-        var now = clock.GetUtcNow();
+        var now = NextUpdateTime(source);
         var active = await db.IntegrationCredentials
             .Where(c => c.OrganizationId == organizationId && c.SourceId == source.Id &&
                 c.RevokedAtUtc == null && c.NotBeforeUtc <= now && c.ExpiresAtUtc > now)
@@ -155,7 +161,7 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         await db.Entry(credential).ReloadAsync(ct);
         if (credential.RevokedAtUtc is null)
         {
-            var now = clock.GetUtcNow();
+            var now = NextUpdateTime(source);
             credential.RevokedAtUtc = now < credential.CreatedAtUtc ? credential.CreatedAtUtc : now;
             source.Version++;
             source.UpdatedAtUtc = now;
@@ -171,7 +177,7 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         var source = await LockSourceAsync(organizationId, code, ct);
         if (source.Status == "Active")
         {
-            var now = clock.GetUtcNow();
+            var now = NextUpdateTime(source);
             source.Status = "Disabled";
             source.DisabledAtUtc = now;
             source.Version++;

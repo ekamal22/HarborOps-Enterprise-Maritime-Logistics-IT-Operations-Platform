@@ -5,9 +5,11 @@ cd "$(dirname "$0")/.."
 command -v cygpath >/dev/null || { echo "Windows Git Bash required" >&2; exit 2; }
 root_input="$(printenv HARBOROPS_VERIFICATION_ROOT || true)"
 case "$root_input" in [Ee]:[/\\]*|/e/*) ;; *) echo "E: verification root required" >&2; exit 2 ;; esac
-root="$(cygpath -u "$root_input")"
-case "$root" in /e/*/m7) ;; *) echo "Dedicated E: path ending in /m7 required" >&2; exit 2 ;; esac
-export HARBOROPS_VERIFICATION_ROOT="$(cygpath -w "$root")"
+# Judge the drive from the Windows form: Git Bash may mount E: at /tmp or /e depending on TEMP.
+case "$(cygpath -m "$root_input")" in [Ee]:/*/m7) ;; *) echo "Dedicated E: path ending in /m7 required" >&2; exit 2 ;; esac
+root_win="$(cygpath -w "$root_input")"
+root="$(cygpath -u "$root_win")"
+export HARBOROPS_VERIFICATION_ROOT="$root_win"
 case "$(pwd -W)" in [Ee]:[/\\]*) ;; *) echo "Checkout must be on E:" >&2; exit 2 ;; esac
 [[ -z "$(git status --porcelain)" ]] || { echo "Clean checkout required" >&2; exit 2; }
 repo_win="$(pwd -W)"

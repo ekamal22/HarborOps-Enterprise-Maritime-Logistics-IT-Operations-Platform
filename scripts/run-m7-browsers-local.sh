@@ -5,11 +5,12 @@
 # runs, and the stage fails at the end if any of them failed. Failure artifacts are copied to E:.
 set -euo pipefail
 root=$(printenv HARBOROPS_VERIFICATION_ROOT || true)
-if command -v cygpath >/dev/null; then root=$(cygpath -u "$root"); fi
+# Judge the drive before translating: Git Bash may mount E: at /tmp or /e depending on TEMP.
 case "$root" in
   [Ee]:[/\\]*|/e/*) ;;
   *) echo "E:-backed verification root required" >&2; exit 2 ;;
 esac
+if command -v cygpath >/dev/null; then root=$(cygpath -u "$root"); fi
 out="$root/evidence/playwright"
 mkdir -p "$out"
 # Compose files must stay rooted at the checkout after entering tests/browser.

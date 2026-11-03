@@ -5,7 +5,7 @@
 **Baseline:** `main` at `4d26514caee5cc835f6eef230e0433141291374e`  
 **Publication decision:** NOT CLEARED  
 **Internet-hosting decision:** NOT CLEARED  
-**Verification state:** Complete local E:-backed regression run passed at `efe90439e5453ef5fde3e327be9de7f3cf06775a` (see below), after the isolated hosted run at `7145ec24a8ac289dfcf6f02644f54f35f4744c8a` passed every test stage and failed only in cleanup. Historical disclosure review, repository governance, licensing and publication approval remain outstanding.
+**Verification state:** Complete local E:-backed regression run passed at `b9adaa8ae0fc5f2df9deb5e4f090695d5048d672` (see below), after the isolated hosted run at `7145ec24a8ac289dfcf6f02644f54f35f4744c8a` passed every test stage and failed only in cleanup. Historical disclosure review, repository governance, licensing and publication approval remain outstanding.
 
 This register tracks remediation after the [original security review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md). Do not alter the prior review's observations or reinterpret accepted M0 through M6 test evidence.
 
@@ -19,9 +19,9 @@ The hosted run does not replace E:-backed local verification, complete historica
 
 ## Local E:-backed verification, November 3, 2026
 
-A complete local regression run executed on the disposable `ho-verify-g6` Compose project and a throwaway PostgreSQL container, with every cache, temporary file, browser binary and report on E:. The runner is `scripts/verify-publication-local.sh`; it reuses the accepted M6 stage implementations and adds the publication stages in `scripts/verify-publication-stages-local.sh`. It does not repeat the accepted G6 mutation or historical-snapshot gates: no migration or schema file changed on this branch, so those accepted results are not invalidated and remain the reference for that evidence.
+A complete local regression run (executed as commit `efe9043` before a rebase onto three documentation-only upstream commits, which produced the identical source tree at `b9adaa8ae0fc5f2df9deb5e4f090695d5048d672`) executed on the disposable `ho-verify-g6` Compose project and a throwaway PostgreSQL container, with every cache, temporary file, browser binary and report on E:. The runner is `scripts/verify-publication-local.sh`; it reuses the accepted M6 stage implementations and adds the publication stages in `scripts/verify-publication-stages-local.sh`. It does not repeat the accepted G6 mutation or historical-snapshot gates: no migration or schema file changed on this branch, so those accepted results are not invalidated and remain the reference for that evidence.
 
-| Area | Result at source `efe90439e5453ef5fde3e327be9de7f3cf06775a` |
+| Area | Result at source `b9adaa8ae0fc5f2df9deb5e4f090695d5048d672` |
 | --- | --- |
 | Release build with warnings as errors | Passed |
 | Unit tests | 149 of 149 passed |
@@ -35,7 +35,7 @@ A complete local regression run executed on the disposable `ho-verify-g6` Compos
 | Assignment, shipment, reference and maritime outage checks and scoped recovery | Passed |
 | Trivy HIGH and CRITICAL scans of the postgres, api and web images, labelled with the source revision | No findings |
 
-Commits after `efe9043` change documentation and `scripts/audit-publication-supply-chain.py` only; `src`, `tests`, `web`, `docker` and `compose.yaml` are byte-identical to the verified source. The source-locked supply-chain audit was then run against a freshly built stack at `6726983a18a4b7e9b539c86f636ac20d8682e630`: NuGet, both npm audits and all three image scans passed.
+Commits after `b9adaa8` change documentation and `scripts/audit-publication-supply-chain.py` only; `src`, `tests`, `web`, `docker` and `compose.yaml` are byte-identical to the verified source. The source-locked supply-chain audit was then run against a freshly built stack at `6726983a18a4b7e9b539c86f636ac20d8682e630`: NuGet, both npm audits and all three image scans passed.
 
 ### Original integration failure
 

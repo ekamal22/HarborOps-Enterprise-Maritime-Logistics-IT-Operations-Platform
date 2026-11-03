@@ -176,3 +176,73 @@ stage nuget-advisories sdk nuget
 stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build'
 stage npm-advisories bash -c 'npm --prefix web audit --audit-level=high && npm --prefix tests/browser audit --audit-level=high'
 
+# Only this project's newly created resources may be stopped or destroyed.
+owned_stack=1
+stage compose bash scripts/smoke-compose.sh --project "$project" --confirm-disposable
+password_file="$root/private/test-user-password.txt"
+node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))' > "$password_file"
+chmod 600 "$password_file"
+export HARBOROPS_TEST_USER_PASSWORD="$(cat "$password_file")"
+provision() {
+  printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | compose run --rm -T \
+    -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision "$1" "$2"
+}
+accounts() {
+  for entry in \
+    "operator@example.test|Synthetic Operator" \
+    "m2-operator@example.test|Synthetic Administrator" \
+    "m2-second-admin@example.test|Second Administrator" \
+    "m2-outage@example.test|Outage Member" \
+    "m2-browser-chromium@example.test|Browser Chromium Member" \
+    "m2-browser-firefox@example.test|Browser Firefox Member" \
+    "m2-browser-webkit@example.test|Browser Webkit Member" \
+    "m3-admin-a@example.test|M3 North Administrator" \
+    "m3-admin-b@example.test|M3 East Administrator" \
+    "m3-manager@example.test|M3 Manager" \
+    "m3-analyst@example.test|M3 Analyst" \
+    "m4-analyst-east@example.test|East Analyst" \
+    "m4-support@example.test|Support" \
+    "m4-auditor@example.test|Auditor"; do
+    IFS='|' read -r email display <<< "$entry"
+    provision "$email" "$display"
+  done
+}
+stage accounts accounts
+bootstrap() {
+  compose run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+    --organization-cli bootstrap "$1" "$2" "$3"
+}
+organizations() {
+  bootstrap north-terminal "North Terminal" m2-operator@example.test
+  bootstrap east-terminal "East Terminal" m2-second-admin@example.test
+  bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test
+  bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test
+  bootstrap m3-pagination "M3 Pagination" m3-admin-a@example.test
+  for engine in chromium firefox webkit; do
+    bootstrap "m3-revocation-$engine" "M3 Revocation $engine" m3-admin-a@example.test
+  done
+}
+stage organizations organizations
+stage source-fixture node scripts/seed-m7-source-fixture.mjs
+
+# A redirected operator terminal must never reveal a source secret.
+cli_negative() {
+  local org rc=0
+  org=$(compose exec -T postgres psql -U harborops -d harborops -Atc \
+    "SELECT id FROM organizations WHERE slug='north-terminal'")
+  compose exec -T -e HARBOROPS_ALLOW_SOURCE_CLI=true api \
+    dotnet HarborOps.Api.dll --source-cli create "$org" refused_cli "Refused" \
+    > "$evidence/source-cli-rejected.txt" 2>&1 || rc=$?
+  [[ "$rc" == 1 ]] || return 1
+  if grep -qi "Bearer (displayed once)" "$evidence/source-cli-rejected.txt"; then return 1; fi
+  compose exec -T -e HARBOROPS_ALLOW_SOURCE_CLI=true api \
+    dotnet HarborOps.Api.dll --source-cli inspect "$org" g7_disposable
+}
+stage source-cli-negative cli_negative
+stage ingress-before node scripts/check-m7-ingress.mjs healthy
+stage browser-fixtures bash -c \
+  'node scripts/prepare-m3-browser-fixtures.mjs && node scripts/prepare-m4-browser-fixtures.mjs && node scripts/prepare-m5-browser-fixtures.mjs && node scripts/prepare-m6-browser-fixtures.mjs'
+export HARBOROPS_M3_FIXTURES=1 HARBOROPS_M4_FIXTURES=1
+export HARBOROPS_M5_FIXTURES=1 HARBOROPS_M6_FIXTURES=1
+stage browsers bash scripts/run-m7-browsers-local.sh
+

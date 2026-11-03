@@ -97,4 +97,77 @@ public sealed class TrackingEventPolicyTests
         Assert.True(IntegrationSourcePolicy.IsValidWindow(Now, Now.AddDays(90), Now));
         Assert.False(IntegrationSourcePolicy.IsValidWindow(Now, Now.AddDays(91), Now));
     }
+
+    [Theory]
+    [InlineData("event-1\\n", "invalid_source_event_id")]
+    [InlineData("event-1\\r", "invalid_source_event_id")]
+    [InlineData("event-1\\t", "invalid_source_event_id")]
+    [InlineData("event 1", "invalid_source_event_id")]
+    public void EventIdentityRejectsWhitespaceAndDecodedControls(string escaped, string expected)
+    {
+        var value = Valid().Replace("event-1", escaped, StringComparison.Ordinal);
+        Assert.Equal(expected, Parse(value).Code);
+    }
+
+    [Theory]
+    [InlineData("VOYAGE-12\\n")]
+    [InlineData("VOYAGE-12\\r")]
+    [InlineData("VOYAGE-12\\t")]
+    [InlineData("voyage-12")]
+    [InlineData("V")]
+    public void TransportReferenceRejectsMalformedValues(string escaped)
+    {
+        var json = Valid("Transport", "ARRI", "\"transportReference\":\"" + escaped + "\"");
+        Assert.Equal("invalid_tracking_reference", Parse(json).Code);
+    }
+
+    [Fact]
+    public void RejectsLegacyWireNamesAndReplayedFields()
+    {
+        Assert.Equal(422, Parse(Valid().Replace("\"eventFamily\":", "\"family\":",
+            StringComparison.Ordinal)).Status);
+        Assert.Equal(422, Parse(Valid().Replace("\"eventCode\":", "\"code\":",
+            StringComparison.Ordinal)).Status);
+        Assert.Equal(400, Parse(Valid().Replace("\"eventFamily\":\"Equipment\"",
+            "\"eventFamily\":\"Equipment\",\"eventFamily\":\"Transport\"",
+            StringComparison.Ordinal)).Status);
+    }
+
+    [Fact]
+    public void ValidJsonAtExactBodyLimitIsAcceptedAndOneExtraByteIsRejected()
+    {
+        var original = Valid();
+        var body = original + new string(' ', TrackingEventPolicy.MaximumBodyBytes -
+            Encoding.UTF8.GetByteCount(original));
+        Assert.NotNull(Parse(body).Value);
+        Assert.Equal(413, Parse(body + " ").Status);
+    }
+
+    [Fact]
+    public void TimestampPolicyUsesAbsoluteEndAndStrictUtc()
+    {
+        var atCutoff = Valid().Replace("2026-11-03T09:00:00Z",
+            "2026-11-04T10:00:00Z", StringComparison.Ordinal);
+        Assert.NotNull(Parse(atCutoff).Value);
+        Assert.Equal("invalid_occurrence_time", Parse(atCutoff.Replace(
+            "2026-11-04T10:00:00Z", "2026-11-04T10:00:00Z\\n",
+            StringComparison.Ordinal)).Code);
+        var invalidLeap = Valid().Replace("2026-11-03T09:00:00Z",
+            "2026-02-29T10:00:00Z", StringComparison.Ordinal);
+        Assert.Equal("invalid_occurrence_time", Parse(invalidLeap).Code);
+    }
+
+    [Fact]
+    public void CanonicalEventBindsOnlyValidatedServerIdentity()
+    {
+        var original = Parse(Valid()).Value!;
+        Assert.Equal(Guid.Empty, original.OrganizationId);
+        var sourceId = Guid.NewGuid();
+        var organizationId = Guid.NewGuid();
+        var bound = original.Bind(sourceId, organizationId);
+        Assert.Equal(sourceId, bound.SourceId);
+        Assert.Equal(organizationId, bound.OrganizationId);
+        Assert.Equal(Guid.Empty, original.SourceId);
+        Assert.Throws<ArgumentException>(() => original.Bind(Guid.Empty, organizationId));
+    }
 }

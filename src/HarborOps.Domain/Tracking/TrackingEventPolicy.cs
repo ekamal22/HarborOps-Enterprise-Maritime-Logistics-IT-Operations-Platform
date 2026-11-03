@@ -37,7 +37,7 @@ public static class TrackingEventPolicy
     private static readonly Regex EventId = new(@"\A[A-Za-z0-9._:-]{1,128}\z", RegexOptions.CultureInvariant);
     private static readonly Regex TransportId = new(@"\A[A-Z0-9][A-Z0-9_-]{2,79}\z", RegexOptions.CultureInvariant);
     private static readonly Regex Timestamp = new(
-        @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|\+00:00)$",
+        @"\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|\+00:00)\z",
         RegexOptions.CultureInvariant);
 
     public static TrackingValidation Parse(ReadOnlyMemory<byte> bytes, DateTimeOffset now)

@@ -86,6 +86,9 @@ public static class TrackingEventPolicy
                 if (!Get(root, "equipmentReference", out equipment) ||
                     root.TryGetProperty("transportReference", out _))
                     return TrackingValidation.Fail(422, "invalid_tracking_reference");
+                if (equipment.Length > 32 || equipment.Any(char.IsControl) ||
+                    !string.Equals(equipment, equipment.Trim(), StringComparison.Ordinal))
+                    return TrackingValidation.Fail(422, "invalid_tracking_reference");
                 try
                 {
                     equipment = MaritimePolicy.Identifier(equipment.StartsWith("SYN-BOX-", StringComparison.Ordinal)

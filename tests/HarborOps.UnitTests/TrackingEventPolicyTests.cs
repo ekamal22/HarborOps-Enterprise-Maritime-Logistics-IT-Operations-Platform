@@ -157,6 +157,18 @@ public sealed class TrackingEventPolicyTests
         Assert.Equal("invalid_occurrence_time", Parse(invalidLeap).Code);
     }
 
+    [Theory]
+    [InlineData("SYN-BOX-ABCD\\n")]
+    [InlineData("SYN-BOX-ABCD\\t")]
+    [InlineData("SYN-BOX-ABCD ")]
+    [InlineData(" SYN-BOX-ABCD")]
+    public void EquipmentReferencesDoNotSilentlyTrimControlCharacters(string reference)
+    {
+        var value = Valid("Equipment", "GTIN",
+            "\"equipmentReference\":\"" + reference + "\"");
+        Assert.Equal("invalid_tracking_reference", Parse(value).Code);
+    }
+
     [Fact]
     public void CanonicalEventBindsOnlyValidatedServerIdentity()
     {

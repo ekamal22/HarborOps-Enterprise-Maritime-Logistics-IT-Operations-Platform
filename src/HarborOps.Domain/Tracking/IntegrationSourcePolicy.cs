@@ -7,7 +7,7 @@ public static class IntegrationSourcePolicy
     public const string Capability = "tracking_event_validate";
     public static readonly TimeSpan MaximumLifetime = TimeSpan.FromDays(90);
     public static readonly TimeSpan MaximumOverlap = TimeSpan.FromHours(24);
-    private static readonly Regex SourceCode = new("^[a-z][a-z0-9_-]{2,79}$", RegexOptions.CultureInvariant);
+    private static readonly Regex SourceCode = new(@"\A[a-z][a-z0-9_-]{2,79}\z", RegexOptions.CultureInvariant);
 
     public static string NormalizeCode(string value)
     {

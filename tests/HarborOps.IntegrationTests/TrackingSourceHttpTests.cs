@@ -14,7 +14,7 @@ namespace HarborOps.IntegrationTests;
 public sealed class TrackingSourceHttpTests
 {
     private static string Event() =>
-        "{\"sourceEventId\":\"test-1\",\"family\":\"Equipment\",\"code\":\"GTIN\"," +
+        "{\"sourceEventId\":\"test-1\",\"eventFamily\":\"Equipment\",\"eventCode\":\"GTIN\"," +
         "\"classifier\":\"ACT\",\"occurredAtUtc\":\"2026-11-02T10:00:00Z\"," +
         "\"equipmentReference\":\"SYN-BOX-ABCD\",\"externalSchemaVersion\":\"2.2.0\"}";
 

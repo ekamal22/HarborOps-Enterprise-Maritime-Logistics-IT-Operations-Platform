@@ -16,8 +16,13 @@ public static class TrackingEndpoints
             if (!AuthenticationSetup.IsAllowedTransport(context, app.Configuration))
                 return Fail(context, 400, "invalid_transport", "Secure transport required");
 
-            var auth = context.Request.Headers.Authorization;
             var peer = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            // Reject excessive traffic before any database query or credential lookup.
+            if (!limiter.Allow("preauth:" + peer, 120)) return Throttled(context);
+            var origin = context.Request.Headers.Origin;
+            if (origin.Count > 0 && !AuthenticationSetup.IsSameOrigin(context))
+                return Fail(context, 403, "origin_denied", "Origin not permitted");
+            var auth = context.Request.Headers.Authorization;
             if (auth.Count != 1 || auth[0] is not { } raw || raw.Length > 160 ||
                 !raw.StartsWith("Bearer ", StringComparison.Ordinal) ||
                 raw.Length == 7 || raw[7..].Contains(' '))
@@ -25,16 +30,18 @@ public static class TrackingEndpoints
                 if (!limiter.Allow("peer:" + peer, 10)) return Throttled(context);
                 return Fail(context, 401, "invalid_source_credentials", "Source credentials required");
             }
-            ValidatedIntegrationSource? source;
+            IntegrationAuthentication authentication;
             try
             {
-                source = await store.ValidateAsync(raw[7..], ct);
+                authentication = await store.AuthenticateAsync(raw[7..], ct);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
                 return Results.StatusCode(499);
             }
-            if (source is null)
+            if (authentication.Forbidden)
+                return Fail(context, 403, "source_access_denied", "Source access denied");
+            if (authentication.Source is not { } source)
             {
                 if (!limiter.Allow("peer:" + peer, 10)) return Throttled(context);
                 return Fail(context, 401, "invalid_source_credentials", "Source credentials required");
@@ -72,6 +79,10 @@ public static class TrackingEndpoints
             if (validation.Value is null)
                 return Fail(context, validation.Status, validation.Code, "Invalid or unsupported tracking event");
 
+            // Bind identity from the validated credential, never the request body.
+            var normalized = validation.Value.Bind(source.Id, source.OrganizationId);
+            if (normalized.SourceId != source.Id || normalized.OrganizationId != source.OrganizationId)
+                return Fail(context, 403, "source_access_denied", "Source access denied");
             // No persistent receipt exists until M8. Validation must never be a success acknowledgment.
             context.Response.Headers.RetryAfter = "60";
             return Fail(context, 503, "intake_unavailable", "Durable event intake is not available");

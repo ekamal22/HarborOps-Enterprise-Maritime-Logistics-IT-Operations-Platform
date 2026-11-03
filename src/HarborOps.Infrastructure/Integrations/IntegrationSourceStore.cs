@@ -29,7 +29,13 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         try
         {
             var bytes = Convert.FromBase64String(encoded.Replace('-', '+').Replace('_', '/') + "=");
-            return bytes.Length == 32 ? bytes : null;
+            if (bytes.Length != 32) return null;
+            if (FormatBearer(id, bytes) != token)
+            {
+                CryptographicOperations.ZeroMemory(bytes);
+                return null;
+            }
+            return bytes;
         }
         catch (FormatException) { return null; }
     }

@@ -4,11 +4,11 @@
   "title": "HarborOps tracking input, provisional M7 subset",
   "type": "object",
   "additionalProperties": false,
-  "required": ["sourceEventId", "family", "code", "classifier", "occurredAtUtc", "externalSchemaVersion"],
+  "required": ["sourceEventId", "eventFamily", "eventCode", "classifier", "occurredAtUtc", "externalSchemaVersion"],
   "properties": {
     "sourceEventId": {"type":"string","minLength":1,"maxLength":128,"pattern":"^[A-Za-z0-9._:-]+$"},
-    "family": {"enum":["Equipment","Transport"]},
-    "code": {"enum":["GTIN","GTOT","ARRI","DEPA"]},
+    "eventFamily": {"enum":["Equipment","Transport"]},
+    "eventCode": {"enum":["GTIN","GTOT","ARRI","DEPA"]},
     "classifier": {"const":"ACT"},
     "occurredAtUtc": {"type":"string","pattern":"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,7})?(Z|\\+00:00)$"},
     "equipmentReference": {"type":"string"},
@@ -16,9 +16,9 @@
     "externalSchemaVersion": {"const":"2.2.0"}
   },
   "oneOf": [
-    {"properties":{"family":{"const":"Equipment"},"code":{"enum":["GTIN","GTOT"]}},
+    {"properties":{"eventFamily":{"const":"Equipment"},"eventCode":{"enum":["GTIN","GTOT"]}},
      "required":["equipmentReference"],"not":{"required":["transportReference"]}},
-    {"properties":{"family":{"const":"Transport"},"code":{"enum":["ARRI","DEPA"]}},
+    {"properties":{"eventFamily":{"const":"Transport"},"eventCode":{"enum":["ARRI","DEPA"]}},
      "required":["transportReference"],"not":{"required":["equipmentReference"]}}
   ]
 }

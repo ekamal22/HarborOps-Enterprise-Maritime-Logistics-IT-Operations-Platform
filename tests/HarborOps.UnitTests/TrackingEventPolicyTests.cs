@@ -11,8 +11,8 @@ public sealed class TrackingEventPolicyTests
 
     private static string Valid(string family = "Equipment", string code = "GTIN",
         string reference = "\"equipmentReference\":\"SYN-BOX-ABCD\"") =>
-        "{\"sourceEventId\":\"event-1\",\"family\":\"" + family +
-        "\",\"code\":\"" + code +
+        "{\"sourceEventId\":\"event-1\",\"eventFamily\":\"" + family +
+        "\",\"eventCode\":\"" + code +
         "\",\"classifier\":\"ACT\",\"occurredAtUtc\":\"2026-11-03T09:00:00Z\"," +
         reference + ",\"externalSchemaVersion\":\"2.2.0\"}";
 
@@ -28,8 +28,8 @@ public sealed class TrackingEventPolicyTests
     {
         var result = Parse(Valid(family, code, reference));
         Assert.NotNull(result.Value);
-        Assert.Equal(family, result.Value!.Family);
-        Assert.Equal(code, result.Value.Code);
+        Assert.Equal(family, result.Value!.EventFamily);
+        Assert.Equal(code, result.Value.EventCode);
         Assert.Equal(TimeSpan.Zero, result.Value.OccurredAtUtc.Offset);
     }
 

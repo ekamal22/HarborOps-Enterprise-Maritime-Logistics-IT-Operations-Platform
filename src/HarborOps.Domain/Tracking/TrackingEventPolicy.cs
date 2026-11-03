@@ -5,8 +5,19 @@ using HarborOps.Domain.Maritime;
 
 namespace HarborOps.Domain.Tracking;
 
-public sealed record TrackingEvent(string SourceEventId, string Family, string Code, string Classifier,
-    DateTimeOffset OccurredAtUtc, string? EquipmentReference, string? TransportReference, string ExternalSchemaVersion);
+public sealed record TrackingEvent(string SourceEventId, string EventFamily, string EventCode, string Classifier,
+    DateTimeOffset OccurredAtUtc, string? EquipmentReference, string? TransportReference, string ExternalSchemaVersion)
+{
+    public Guid SourceId { get; init; }
+    public Guid OrganizationId { get; init; }
+
+    public TrackingEvent Bind(Guid sourceId, Guid organizationId)
+    {
+        if (sourceId == Guid.Empty || organizationId == Guid.Empty)
+            throw new ArgumentException("Authenticated source and organization required");
+        return this with { SourceId = sourceId, OrganizationId = organizationId };
+    }
+}
 
 public sealed record TrackingValidation(TrackingEvent? Value, int Status, string Code)
 {
@@ -20,11 +31,11 @@ public static class TrackingEventPolicy
     public const string Profile = "tnt-2.2-harborops-v1";
     private static readonly HashSet<string> Fields = new(StringComparer.Ordinal)
     {
-        "sourceEventId", "family", "code", "classifier", "occurredAtUtc",
+        "sourceEventId", "eventFamily", "eventCode", "classifier", "occurredAtUtc",
         "equipmentReference", "transportReference", "externalSchemaVersion"
     };
-    private static readonly Regex EventId = new("^[A-Za-z0-9._:-]{1,128}$", RegexOptions.CultureInvariant);
-    private static readonly Regex TransportId = new("^[A-Z0-9][A-Z0-9_-]{2,79}$", RegexOptions.CultureInvariant);
+    private static readonly Regex EventId = new(@"\A[A-Za-z0-9._:-]{1,128}\z", RegexOptions.CultureInvariant);
+    private static readonly Regex TransportId = new(@"\A[A-Z0-9][A-Z0-9_-]{2,79}\z", RegexOptions.CultureInvariant);
     private static readonly Regex Timestamp = new(
         @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|\+00:00)$",
         RegexOptions.CultureInvariant);
@@ -51,7 +62,7 @@ public static class TrackingEventPolicy
             }
             if (!Get(root, "sourceEventId", out var id) || !EventId.IsMatch(id))
                 return TrackingValidation.Fail(422, "invalid_source_event_id");
-            if (!Get(root, "family", out var family) || !Get(root, "code", out var code) ||
+            if (!Get(root, "eventFamily", out var family) || !Get(root, "eventCode", out var code) ||
                 !Get(root, "classifier", out var classifier) || classifier != "ACT")
                 return TrackingValidation.Fail(422, "unsupported_tracking_variant");
             if (!Get(root, "externalSchemaVersion", out var externalVersion) || externalVersion != "2.2.0")
@@ -63,9 +74,7 @@ public static class TrackingEventPolicy
                 return TrackingValidation.Fail(422, "unsupported_tracking_variant");
 
             if (!Get(root, "occurredAtUtc", out var rawTime) || !Timestamp.IsMatch(rawTime) ||
-                !DateTimeOffset.TryParseExact(rawTime,
-                    new[] { "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", "yyyy-MM-dd'T'HH:mm:ssK" },
-                    CultureInfo.InvariantCulture, DateTimeStyles.None, out var time) ||
+                !DateTimeOffset.TryParse(rawTime, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time) ||
                 time.Offset != TimeSpan.Zero || time < new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero) ||
                 time > now.AddHours(24))
                 return TrackingValidation.Fail(422, "invalid_occurrence_time");

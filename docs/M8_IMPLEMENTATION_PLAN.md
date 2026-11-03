@@ -97,7 +97,7 @@ The repository graph defines M8-02 and M8-03 after M8-01 and accepted G6; this p
 
 - `tests/HarborOps.IntegrationTests/TrackingInbox*Tests.cs`, unit/contract suites and M7 regression tests.
 - `tests/browser/specs/tracking-ingress.spec.mjs` updated for 202/409 and existing invalid-event denial; three browser engines if shared routing changed.
-- `scripts/verify-m8-local.sh`, `scripts/check-m8-schema-contract.mjs`, `scripts/run-g8-mutations.mjs`, `scripts/summarize-g8-evidence.mjs`, isolated M8 browser and fault/recovery scripts (all new, proposed).
+- Authored: `scripts/verify-m8-local.sh`, `scripts/check-m8-contract.test.mjs`, `scripts/run-g8-mutations.mjs`, `scripts/summarize-g8-evidence.mjs`, `scripts/check-m8-ingress.mjs`, `scripts/run-m8-browsers-local.sh` and `compose.g8.verify.yaml`. These remain unexecuted.
 - `docs/M8_IMPLEMENTATION_STATUS.md` and `docs/M8_EXECUTED_VERIFICATION.md` only when real execution evidence exists.
 
 **Work:**

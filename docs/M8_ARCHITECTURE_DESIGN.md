@@ -49,7 +49,7 @@ The M7 `IntegrationSourceStore.AuthenticateAsync` currently commits its own `FOR
 
 ## 3. Proposed additive PostgreSQL persistence
 
-The names and fields below are a schema proposal, not current tables. Use an additive `20261104..._TrackingInboxAndHistory` migration after `20261103090000_IntegrationSources`, coordinating the final unique timestamp and EF snapshot during implementation.
+The source candidate now contains `20261103190000_TrackingInboxAndHistory` after accepted M7 `20261103090000_IntegrationSources`. Its four tables, constraints and EF mappings are authored but have not been compiled or tested against a PostgreSQL server. D-006 is acceptance pending; the schema remains provisional until approved.
 
 | Table | Minimum fields | Constraints and security |
 | --- | --- | --- |

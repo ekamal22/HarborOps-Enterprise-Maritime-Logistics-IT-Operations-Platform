@@ -41,6 +41,6 @@ No M9 retry/worker claim/dead-letter execution, no M10 projection, no public rec
 
 ## Execution and acceptance boundary
 
-Run the future G8 verification on a clean E:-backed checkout with a uniquely owned isolated Compose project, after confirming `HARBOROPS_DOCKER_VHDX` and storage policy. The proposed script is `bash scripts/verify-m8-local.sh` with `HARBOROPS_VERIFICATION_ROOT` pointing to `E:\\HarborOps-Verification\\m8`. The runner must fail closed if D-006, missing runtime scenarios, security mutations or independent review are unproven. Preserve exact raw evidence and separate supplement findings rather than rewriting original runs.
+Run the future G8 verification on a clean E:-backed checkout with a uniquely owned isolated Compose project, after confirming `HARBOROPS_DOCKER_VHDX` and storage policy. The proposed script is `bash scripts/verify-m8-local.sh` with `HARBOROPS_VERIFICATION_ROOT` pointing to `E:\\HarborOps-Verification\\m8`. The scenario register must leave D-006 and missing runtime scenarios blocked. Independent review follows the run and cannot be inferred from generated evidence. Preserve exact raw evidence and separate supplement findings rather than rewriting original runs.
 
 **Next decision:** D-006 Option A acceptance or an explicit alternative. **Next executable gate:** G8, acceptance pending. **Merge:** Only after independent evidence review and explicit G8 acceptance.

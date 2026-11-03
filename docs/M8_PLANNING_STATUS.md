@@ -19,14 +19,14 @@
 
 ## Verified baseline versus planned work
 
-M7's `POST /integrations/v1/tracking-events` authenticates source credentials, validates the bounded tracking contract and deliberately returns `503 intake_unavailable` for otherwise valid events. It has **no durable accepted event**. M8 proposes changing only successful receipt behavior after atomic PostgreSQL commit. All M8 tables, response variants, scripts and tests in the plan are **proposed, not existing**.
+M7's `POST /integrations/v1/tracking-events` authenticates source credentials, validates the bounded tracking contract and deliberately returns `503 intake_unavailable` for otherwise valid events. It has **no durable accepted event**. The unverified M8 source candidate implements a commit-before-202 receipt transaction, four new tables and locally executable test/runner source. These changes exist only on the feature branch, not on accepted `main`, and are not G8 evidence.
 
-After a D-006 decision, implementation may proceed in a separately named feature branch and disposable E:-backed worktree. Keep a single coordinated EF migration, preserve source locks and G0-G7 accepted invariants. Run complete G8 verification and request explicit acceptance before merging implementation to `main`. Do not turn a documentation merge into D-006 acceptance or an executed G8 PASS.
+The provisional source implementation already exists in a separately named feature branch under D-006 Option A; the decision itself is still acceptance pending. Verify the coordinated EF migration, source locks and accepted G0-G7 invariants in disposable E:-backed resources. Run complete G8 verification and request explicit acceptance before merging implementation to `main`. Do not turn a documentation merge into D-006 acceptance or an executed G8 PASS.
 
 ## Open acceptance dependencies
 
 1. D-006 Option A or an explicitly revised alternative: source-key identity, canonical replay, first collision record, 202/409/503 responses, 10,000-pending per-org admission cap, immutable retention and future worker/dead-letter state.
-2. M8-02 and M8-03 implementation after D-006 decision, then integrated M8-04 with real PostgreSQL concurrency and failure recovery.
+2. Reconcile the provisional M8-02/M8-03 source with the accepted D-006 decision, compile and run M8-04 against real PostgreSQL, including concurrency and failure recovery.
 3. Raw G8-S01 through G8-S25 evidence, independent review and explicit G8 acceptance before implementation merge.
 
 G8, G9 and G10 do not become accepted through this plan. M16/M17/M19 preparatory work remains separately eligible under its own prerequisites.

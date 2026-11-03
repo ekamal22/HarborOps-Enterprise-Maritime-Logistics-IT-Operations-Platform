@@ -44,16 +44,24 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         ReadOnlySpan<byte> secret) =>
         new(source.Id, source.SourceCode, credential.Id, FormatBearer(credential.Id, secret));
 
-    private async Task<Organization> LockOrganizationAsync(Guid id, CancellationToken ct) =>
-        await db.Organizations.FromSqlInterpolated(
+    private async Task<Organization> LockOrganizationAsync(Guid id, CancellationToken ct)
+    {
+        var organization = await db.Organizations.FromSqlInterpolated(
             $"SELECT * FROM organizations WHERE id = {id} FOR UPDATE").SingleAsync(ct);
+        // A tracked instance may predate an administrator's update in another context.
+        // Refresh it while holding the row lock before deciding active entitlement.
+        await db.Entry(organization).ReloadAsync(ct);
+        return organization;
+    }
 
     private async Task<IntegrationSource> LockSourceAsync(Guid organizationId, string code, CancellationToken ct)
     {
         var normalized = IntegrationSourcePolicy.NormalizeCode(code);
-        return await db.IntegrationSources.FromSqlInterpolated(
+        var source = await db.IntegrationSources.FromSqlInterpolated(
             $"SELECT * FROM integration_sources WHERE organization_id = {organizationId} AND source_code = {normalized} FOR UPDATE")
             .SingleAsync(ct);
+        await db.Entry(source).ReloadAsync(ct);
+        return source;
     }
 
     private static IntegrationCredential NewCredential(IntegrationSource source, byte[] secret, DateTimeOffset now) =>
@@ -136,6 +144,7 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         var credential = await db.IntegrationCredentials.SingleOrDefaultAsync(
             x => x.OrganizationId == organizationId && x.SourceId == source.Id && x.Id == credentialId, ct)
             ?? throw new InvalidOperationException("Credential not found");
+        await db.Entry(credential).ReloadAsync(ct);
         if (credential.RevokedAtUtc is null)
         {
             var now = clock.GetUtcNow();

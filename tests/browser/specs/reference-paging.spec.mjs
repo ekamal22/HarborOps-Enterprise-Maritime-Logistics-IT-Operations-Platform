@@ -20,7 +20,7 @@ test("scoped UI pagination loads beyond 25 results without duplicates", async ({
   if (!org) throw new Error("Missing isolated pagination tenant");
   const prefix = "/api/v1/organizations/" + org.id + "/ports";
   const csrf = (await (await page.request.get("/api/v1/auth/csrf")).json()).token;
-  const headers = { Origin: "http://localhost:5173", "X-HarborOps-CSRF": csrf };
+  const headers = { Origin: (process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173"), "X-HarborOps-CSRF": csrf };
   const nonce = Math.random().toString(36).slice(2, 10).toUpperCase();
   const created = [];
   try {

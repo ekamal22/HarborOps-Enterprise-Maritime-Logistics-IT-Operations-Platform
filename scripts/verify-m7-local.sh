@@ -62,7 +62,7 @@ services:
     ulimits: { core: 0 }
 YAML
 export COMPOSE_PATH_SEPARATOR=";"
-export COMPOSE_FILE="$repo_win/compose.yaml;$(cygpath -w "$override")"
+export COMPOSE_FILE="$(cygpath -w "$(pwd)/compose.yaml");$(cygpath -w "$override")"
 owned_stack=0
 owned_sdk=0
 stage() {

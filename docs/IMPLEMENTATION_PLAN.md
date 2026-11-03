@@ -28,7 +28,7 @@ For each work package, record:
 
 ## M0 checkpoint
 
-The accepted M0 implementation is integrated into `main`. It includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic database seed, an idle worker shell, a React status UI, Docker Compose, and executable test suites. The corrected source passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at `fec7429415fede121db8a4a34f0df72cd4fac609`: 1 unit, 10 contract, 5 fresh plus 5 repeat integration, 6 web and 12 functional browser tests, Compose outage/recovery, and PostgreSQL/API/web vulnerability scans. **G0 accepted** on 2026-10-31. No M1 code has started. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
+The accepted M0 implementation is integrated into `main`. It includes .NET 10, PostgreSQL 16, a read-only baseline API, deterministic database seed, an idle worker shell, a React status UI, Docker Compose, and executable test suites. The corrected source passed [GitHub Actions run #2](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/41134743879) at `fec7429415fede121db8a4a34f0df72cd4fac609`: 1 unit, 10 contract, 5 fresh plus 5 repeat integration, 6 web and 12 functional browser tests, Compose outage/recovery, and PostgreSQL/API/web vulnerability scans. **G0 accepted** on 2026-10-31. This paragraph preserves the M0 checkpoint; M1-M6 have since been accepted and integrated into `main`. See [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md).
 
 G0 evidence is recorded and accepted. D-001 is now approved as the M1 browser cookie and server-session architecture. M1 has passed verification, G1 was accepted on 2026-10-31 and PR #4 was merged into `main` at `8f9fc0d506a9e1dc1d4f5acab936622df988f413`. M2 is verified locally and G2 was accepted on 2026-10-31. Execution graph v2 split the former M1-M6 bundles into M1-M24; graph v3.0 preserves those scoped packages and gates while replacing the automatic sequential chain with explicit parallel technical prerequisites. Do not carry old milestone IDs forward without remapping. The current M0 verification record is [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md) on `main`; [M0 Verification](M0_VERIFICATION.md) preserves the earlier historical run.
 
@@ -65,20 +65,20 @@ The [M3 architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLE
 
 ## M4 accepted implementation
 
-M4-01 through M4-04 were implemented and G4 was explicitly accepted on 2026-11-01 after D-003 Option B approval and independent review of [executed evidence](M4_EXECUTED_VERIFICATION.md). The accepted implementation includes tenant-scoped voyages/containers, additive PostgreSQL migration, React workspaces and all three browser engines. The final tested implementation SHA was `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. M5 shipment lifecycle remains independently eligible; M6 assignment integration requires both accepted G4 and G5.
+M4-01 through M4-04 were implemented and G4 was explicitly accepted on 2026-11-01 after D-003 Option B approval and independent review of [executed evidence](M4_EXECUTED_VERIFICATION.md). The accepted implementation includes tenant-scoped voyages/containers, additive PostgreSQL migration, React workspaces and all three browser engines. The final tested implementation SHA was `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. M5 shipment lifecycle and M6 allocation history were subsequently verified, accepted on 2026-11-02 and integrated into `main`.
 
-## M5 shipment lifecycle design (not implemented)
+## M5 and M6 accepted implementation
 
-The [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md), [G5 matrix](M5_VERIFICATION_PLAN.md) and [planning status](M5_IMPLEMENTATION_STATUS.md) define the bounded shipment module. After M5-01 contract approval, M5-02 and M5-03 may proceed in parallel; M5-04 follows both. M5 source and initial automated tests are committed on its feature branch, but no compile/runtime evidence or G5 acceptance exists. Review [M5 implementation status](M5_IMPLEMENTATION_STATUS.md) and [source audit](M5_SOURCE_CORRECTNESS_AUDIT.md) for remaining validation and coverage. M6 remains blocked pending G5 acceptance.
+The [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md) and [G5 closure](M5_G5_GATE_CLOSURE.md) record the accepted shipment lifecycle. The [M6 architecture](M6_ARCHITECTURE_DESIGN.md), [implementation plan](M6_IMPLEMENTATION_PLAN.md) and [G6 closure](M6_G6_GATE_CLOSURE.md) record accepted shipment-container and shipment-voyage association histories. Both milestones are integrated into `main`; G5 and G6 were accepted on 2026-11-02. Preserve their authorization, interval and concurrency rules in later implementation.
 
 ## Concurrent work-package implementation
 
-The canonical graph v3.0 defines technical dependencies at package level rather than forcing milestone-number order. Read the specific `depends_on` edges before allocating work. The accepted G0-G3 baseline may support several parallel streams, provided any mandatory D-IDs are resolved before affected implementation.
+The canonical graph v3.0 defines technical dependencies at package level rather than forcing milestone-number order. Read the specific `depends_on` edges before allocating work. The accepted G0-G6 baseline may support several parallel streams, provided any mandatory D-IDs are resolved before affected implementation.
 
 - Begin independent work in separate named milestone branches and E:-backed worktrees; verify the base revision and explicit prerequisite acceptances.
 - Agree on shared route, permission, domain DTO, authentication and validation contracts before simultaneous integration. Never merge incompatible assumptions behind individually passing tests.
-- Coordinate all new EF Core/PostgreSQL migrations into one ordered, additive history. Rehearse both fresh and M0-M3 historical upgrades after branches converge.
-- Require local scoped evidence for each package; before gate closure, integrate upstream changes and rerun affected M0-M3 and cross-stream regressions at one final SHA.
+- Coordinate all new EF Core/PostgreSQL migrations into one ordered, additive history. Rehearse both fresh and relevant accepted M0-M6 historical upgrades after branches converge.
+- Require local scoped evidence for each package; before gate closure, integrate upstream changes and rerun affected M0-M6 and cross-stream regressions at one final SHA.
 - Verified evidence is not explicit acceptance. Merge only after the specific gate is accepted; milestone numbering does not authorize another stream or merge.
 - G24 must revalidate the final integrated code, including security, recovery, performance, quarter checkpoints and the final M24-04 accessibility audit.
 

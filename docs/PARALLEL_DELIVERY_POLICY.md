@@ -49,7 +49,7 @@ M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and in
 ## Verification and gate acceptance
 
 - Each gate retains its full established positive/negative, security, tenant-isolation, migration, recovery and browser evidence obligations. Gate numbers are identifiers, not execution slots.
-- Verify the integrated source revision and retain commands, fixtures, results, timestamps, tool versions, and missing/blocked cases. Existing accepted M0-M5 regressions remain mandatory where a change touches those contracts.
+- Verify the integrated source revision and retain commands, fixtures, results, timestamps, tool versions, and missing/blocked cases. Existing accepted M0-M6 regressions remain mandatory where a change touches those contracts.
 - When parallel branches converge, run their combined tests on the merged candidate, including auth/tenant boundary races and migration rehearsals. Earlier per-branch PASS results alone do not establish integration correctness.
 - G19 recovery can be implemented early, but any later migration requires appropriate upgrade/recovery testing. G20 assurance similarly does not waive security checks on later modules.
 - G24 requires all G0-G23 gates explicitly accepted and a fresh complete-system verification on the final code and images. M24-04 remains the **only formal dedicated accessibility audit**; M6, M12, M18, and M24-03 retain historical-volume compatibility checkpoints. These milestone-bound checks remain required even if streams finish out of numeric order.

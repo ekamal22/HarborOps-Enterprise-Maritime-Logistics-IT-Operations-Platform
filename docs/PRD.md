@@ -167,4 +167,4 @@ M4 uses accepted M3 vessel/port UUIDs for scoped voyage routes and schedules wit
 
 Product-scope changes beyond PD-01 through PD-07 require updating this PRD, affected atomic requirements, the [Roadmap](ROADMAP.md) and [execution graph](EXECUTION_GRAPH.md) when sequence changes, plus acceptance criteria and decisions where applicable. Status is updated only from implementation evidence. Proposed scope expansions do not become accepted requirements merely because a branch or issue exists.
 
-**Current state:** M0-M4 are implemented, independently verified, explicitly accepted and integrated into `main`. G4 accepted on 2026-11-01 following [executed evidence review](M4_EXECUTED_VERIFICATION.md); M5-M24 and G5-G24 remain open, subject to their own prerequisites.
+**Current state:** M0-M6 are implemented, independently verified, explicitly accepted and integrated into `main`. G4 was accepted on 2026-11-01, and G5 and G6 were accepted on 2026-11-02. [Status](STATUS.md) records the accepted evidence. M7-M24 and G7-G24 remain open, subject to their own prerequisites. The source repository is public; application hosting is not approved.

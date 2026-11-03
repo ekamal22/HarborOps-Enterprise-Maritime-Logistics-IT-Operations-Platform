@@ -69,9 +69,9 @@ M3 `ports` and `vessels` entity mappings, additive migration, scoped endpoints a
 
 The implemented [M4 architecture](M4_ARCHITECTURE_DESIGN.md) separates planned and actual UTC voyage timestamps, `Planned|Underway|Arrived|Cancelled` progress and `Active|Archived` record visibility. Same-tenant composite foreign keys bind vessel and port UUIDs. Canonical container identifiers and immutable kind, equipment type, source classification and version follow accepted D-003 Option B: ISO 6346:2022 freight category U or visibly tagged Synthetic. M5 shipment state and M6 assignment intervals remain outside the accepted M4 module. See [G4 executed verification](M4_EXECUTED_VERIFICATION.md).
 
-## M5 proposed shipment aggregate (not implemented)
+## M5 implemented shipment aggregate and M6 assignment histories
 
-[M5 architecture](M5_ARCHITECTURE_DESIGN.md) proposes immutable tenant-owned shipment references, two same-tenant M3 ports, nullable planned UTC windows, Draft/Booked/InTransit/Arrived/Completed/Cancelled manual progress, archive state, optimistic version and append-only status changes. It does not assert physical tracking events or M6 container/voyage assignment links. The [G5 contract](M5_VERIFICATION_PLAN.md) and implementation acceptance remain pending.
+[M5 architecture](M5_ARCHITECTURE_DESIGN.md) defines the implemented shipment aggregate: immutable tenant-owned shipment identifiers, two same-tenant M3 ports, nullable planned UTC windows, Draft/Booked/InTransit/Arrived/Completed/Cancelled manual progress, archive state, optimistic versions and append-only status changes. [G5](M5_G5_GATE_CLOSURE.md) was explicitly accepted on 2026-11-02. [M6 architecture](M6_ARCHITECTURE_DESIGN.md) adds organization-scoped shipment/container and shipment/voyage association histories with half-open UTC intervals, database overlap exclusions, versioned closure and parent lifecycle guards; [G6](M6_G6_GATE_CLOSURE.md) was accepted on 2026-11-02. Neither milestone asserts live tracking-event ingestion or external maritime integrations.
 
 ## Illustrative lifecycle
 

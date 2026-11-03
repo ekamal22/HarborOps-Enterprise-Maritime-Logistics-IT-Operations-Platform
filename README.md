@@ -5,6 +5,8 @@ HarborOps is a modular enterprise platform for shipment and container management
 
 **Status:** M0/G0 through M6/G6 explicitly accepted and integrated into `main` as of 2026-11-02. M6 verified source `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` passed 706 test executions; G6-S01 was subsequently closed by explicit contract acceptance. See [G6 closure](docs/M6_G6_GATE_CLOSURE.md). No production deployment; G7-G24 remain open.
 
+**Source availability:** Public since 2026-11-03 under the [inspection-only license](LICENSE). Public source code is not a hosted service. GitHub Actions is disabled and `main` is protected. See [Publication Safety Status](docs/PUBLICATION_SAFETY_STATUS.md).
+
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
 ### Planning source of truth
@@ -189,8 +191,8 @@ The [M0 Hardening Verification register](docs/M0_HARDENING_VERIFICATION.md) pres
 
 ### Public source and deployment security
 
-The [public repository security and disclosure review](docs/PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) preserves the original findings. The [publication remediation register](docs/PUBLICATION_REMEDIATION_STATUS.md) tracks the source changes and outstanding evidence on the dedicated security branch. The repository is **not yet cleared for public visibility or internet-facing deployment**. M6 acceptance covers the local engineering gate, not public-release approval.
+The [original security review](docs/PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) preserves the initial findings. The [publication remediation register](docs/PUBLICATION_REMEDIATION_STATUS.md) and [publication safety status](docs/PUBLICATION_SAFETY_STATUS.md) record merged security hardening, successful local verification, completed artifact cleanup and public source visibility. This repository is public for source inspection only; **internet-facing application hosting is not approved**. The original Git history is visible. GitHub Actions remains disabled; no workflow runs are authorized.
 
 ### Current state
 
-M0-M6 are explicitly accepted and integrated into `main` as of 2026-11-02. M6 evidence is preserved in [G6 verification](docs/M6_EXECUTED_VERIFICATION.md). Tracking, analytics and incident workflows remain scoped to later gates. No public or production deployment is claimed. See [Project Status](docs/STATUS.md).
+M0-M6 are explicitly accepted and integrated into `main` as of 2026-11-02. M6 evidence is preserved in [G6 verification](docs/M6_EXECUTED_VERIFICATION.md). Tracking, analytics and incident workflows remain scoped to later gates. The source repository is public, but the application has not been publicly hosted or deployed to production. See [Project Status](docs/STATUS.md).

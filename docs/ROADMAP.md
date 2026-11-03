@@ -351,4 +351,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M5/G0-G5 are verified, explicitly accepted and integrated into `main`. Eligible work includes M6, M7 (pending D-002), M16, M17, M19 (pending D-008), M20-01 and M23-01. M6 now has accepted G4 and G5 prerequisites but still needs separate G6 verification. The original dependency graph remains unchanged. G6-G24 remain open.
+M0-M6/G0-G6 are verified, explicitly accepted and integrated into `main`. Eligible next work includes M7 (pending D-002), M16, M17, M19 (pending D-008), M20-01 and M23-01, subject to the per-package prerequisites in the execution graph. The original dependency graph remains unchanged. G7-G24 remain open. Public source visibility is complete and separate from delivery-gate or production-hosting acceptance.

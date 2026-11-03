@@ -73,23 +73,23 @@ Use one branch/worktree per independent milestone, from an accepted baseline. Es
 - Treat [Status](STATUS.md) and milestone evidence registers as the only source for achieved results and acceptance state.
 - When changing a node ID or requirement mapping, update affected code tasks, test evidence, gates, and references in the same change.
 
-## M5 shipment planning boundary
+## Accepted M5 shipment module
 
-Read [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation](M5_IMPLEMENTATION_PLAN.md), [G5 contract](M5_VERIFICATION_PLAN.md) and [planning status](M5_IMPLEMENTATION_STATUS.md) before implementation. Freeze M5-01 first, coordinate the additive migration, preserve M0-M4, use `[skip ci]`, and avoid GitHub Actions and merges without approval. G5 acceptance pending.
+The M5 shipment implementation and [G5 acceptance](M5_G5_GATE_CLOSURE.md) are integrated into `main`. Preserve its tenant-scoped state history, optimistic concurrency and authorization behavior in later work. M6 allocations are also integrated and [G6 accepted](M6_G6_GATE_CLOSURE.md). Use local E:-backed verification, `[skip ci]` commits and pull requests to protected `main`; keep GitHub Actions disabled.
 
 ## Accepted M4 module and contribution boundary
 
-Read the [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [implementation plan](M4_IMPLEMENTATION_PLAN.md) and [G4 matrix](M4_VERIFICATION_PLAN.md) before any implementation. [D-003 Option B](DECISIONS.md) is accepted, and [G4 evidence](M4_EXECUTED_VERIFICATION.md) was independently reviewed and accepted on 2026-11-01. Maintain the frozen identifier contract unless a new explicit decision authorizes a change. Voyage/container feature branches may progress in parallel, but use one coordinated EF migration order and preserve accepted M3 composite tenant identity. No GitHub Actions. Every commit uses `[skip ci]`, and G4 must be fully verified and explicitly accepted before merging implementation to `main`.
+Read the [M4 architecture](M4_ARCHITECTURE_DESIGN.md), [implementation plan](M4_IMPLEMENTATION_PLAN.md) and [G4 matrix](M4_VERIFICATION_PLAN.md) before any implementation. [D-003 Option B](DECISIONS.md) is accepted, and [G4 evidence](M4_EXECUTED_VERIFICATION.md) was independently reviewed and accepted on 2026-11-01. Maintain the frozen identifier contract unless a new explicit decision authorizes a change. Voyage/container feature branches may progress in parallel, but use one coordinated EF migration order and preserve accepted M3 composite tenant identity. No GitHub Actions. Every commit uses `[skip ci]`, and the accepted G4 behavior must be preserved during later integration.
 
 ## Accepted M3 implementation and local verification boundary
 
-The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification specification](M3_VERIFICATION_PLAN.md) govern the accepted implementation in `main`. The complete G3 matrix passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` and was explicitly accepted on 2026-10-31 ([evidence](M3_EXECUTED_VERIFICATION.md)). Keep all M0-M3 regression coverage, preserve tenant ownership and Manager/Analyst authorization, and use disposable E:-backed verification. GitHub Actions remain prohibited. M4 remains unstarted.
+The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLEMENTATION_PLAN.md) and [G3 verification specification](M3_VERIFICATION_PLAN.md) govern the accepted implementation in `main`. The complete G3 matrix passed locally on `b72025d35d62d0a8a45b466986a0b3bd89eebadb` and was explicitly accepted on 2026-10-31 ([evidence](M3_EXECUTED_VERIFICATION.md)). Keep all M0-M3 regression coverage, preserve tenant ownership and Manager/Analyst authorization, and use disposable E:-backed verification. GitHub Actions remain prohibited. M4 was accepted and integrated into `main` on 2026-11-01.
 
 ## Historical M1 identity implementation review boundary
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. The completed M1 pull request included schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and the historical GitHub Actions evidence in [G1 Verification](M1_VERIFICATION_PLAN.md). This does not authorize any additional workflow runs. No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.
 
-Do not conflate architecture approval with milestone acceptance. G0-G4 are verified and explicitly accepted; M1 merged via PR #4 ([evidence](M1_IMPLEMENTATION_VERIFICATION.md)), M2 via PR #5 ([evidence](M2_EXECUTED_VERIFICATION.md)) and M3 by fast-forward after independent G3 review ([evidence](M3_EXECUTED_VERIFICATION.md)). G5-G24 each require independent verification and acceptance. M7 integration credentials and M24 accessibility belong to later gates.
+Do not conflate architecture approval with milestone acceptance. G0-G6 are verified and explicitly accepted. M1 merged via PR #4 ([evidence](M1_IMPLEMENTATION_VERIFICATION.md)), M2 via PR #5 ([evidence](M2_EXECUTED_VERIFICATION.md)), M3 by fast-forward ([evidence](M3_EXECUTED_VERIFICATION.md)), and M4-M6 are integrated with accepted gate closure records. G7-G24 each require independent verification and acceptance. M7 integration credentials and M24 accessibility belong to later gates.
 
 ## Documentation hygiene
 

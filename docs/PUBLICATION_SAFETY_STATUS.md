@@ -1,11 +1,11 @@
 # Publication Safety Status
 
 **Updated:** 2026-11-03  
-**Repository visibility:** Private  
-**Publication clearance:** NOT CLEARED  
+**Repository visibility:** Public since 2026-11-03  
+**Publication clearance:** CLEARED FOR SOURCE VISIBILITY  
 **Public application hosting:** NOT CLEARED
 
-This is the current decision register. Earlier security reviews remain historical records of the exact revisions they examined. No entry here changes accepted M0-G0 through M6-G6 evidence.
+This is the current decision register. The existing repository is public for source inspection, with its original history and the restrictive LICENSE retained. Application hosting remains unapproved. GitHub Actions is disabled and the protected `main` branch requires pull requests. Earlier security reviews and verification attempts remain historical records of the exact revisions they examined. No entry here changes accepted M0-G0 through M6-G6 evidence.
 
 | Finding | Current state | Remaining condition |
 | --- | --- | --- |
@@ -39,7 +39,7 @@ This is the current decision register. Earlier security reviews remain historica
 
 The complete local regression run passed at source `b9adaa8ae0fc5f2df9deb5e4f090695d5048d672` (149 unit, 39 contract, 187 integration twice, 18 frontend, 57 browser tests per engine on Chromium, Firefox and WebKit, transport probes, outage and recovery checks, current advisory audits and three image scans). The original HTTP 400 integration failure was reproduced and traced to in-memory test requests having no remote address; the production transport check was not weakened. The source-locked supply-chain audit passed at `6726983a18a4b7e9b539c86f636ac20d8682e630`. Details, corrected defects and items not executed are in the [remediation register](PUBLICATION_REMEDIATION_STATUS.md#local-e-backed-verification-november-3-2026).
 
-Still open: complete historical disclosure review (unreachable Git objects, serialized synthetic cookie values in retained trace archives, manual review of binary screenshots), enforced `main` branch rules (the repository currently reports none), licensing intent, approval of the history-free snapshot as a new repository, and hosted TLS validation against a real domain. HS-01 and HS-02 local verification is complete for the source above; neither publication nor hosting is cleared.
+At the time of this local verification, historical disclosure review, retained-artifact disposition and branch protection were still open. The subsequent cleanup section below records their closure. Hosted TLS verification against a real domain remains unexecuted, and application hosting is not cleared.
 
 ## Publication cleanup, November 3, 2026
 
@@ -49,14 +49,14 @@ Still open: complete historical disclosure review (unreachable Git objects, seri
 - **Fourth artifact:** a broader rescan found the same kind of material (cookie values in header and JSON form, snapshot password text) in artifact `13025197745` (run `41156878431`). After explicit approval it was deleted the same way: identity and run confirmed, private copy of 30 files verified against recorded hashes, GitHub returns 404, and the artifact list went from 14 to 13 with nothing else changed.
 - **Unreachable Git objects:** five objects (one blob and four trees) form a superseded local snapshot from M6 development; the blob is an earlier `ShipmentWorkspace.tsx` without secrets, and the trees contain only already-reachable content plus that blob. None exists on GitHub. Later local rebase leftovers were also local only. A rejected enforcement-probe push uploaded one empty-change commit object to GitHub that is not referenced by any branch; its tree is identical to `main`.
 - **Synthetic test passwords:** 14 historical test constants and the `disposable-*-check-only` database passwords cannot reach a real account or service: no source seeds an account, account provisioning is a restricted CLI behind an environment flag, integration tests refuse any database except a local disposable one, and compose files have no default password.
-- **Visibility:** unchanged, private. Publication still needs a final explicit authorization.
+- **Visibility at cleanup:** private, until the final source-publication decision; changed to public on 2026-11-03 after closure of the artifact and governance gates.
 
 ## Historical artifact disclosure
 
-The 17 retained downloadable Actions archives contain nested browser trace files. The read-only review found 52 serialized authentication cookie-value occurrences across artifacts `13026999079`, `13027355828` and `13027499753`. These are understood to be disposable synthetic-session credentials; no active production compromise has been demonstrated. Nevertheless, the original trace archives are not suitable for public release. They remain preserved in the private repository for gate evidence. No credential values are reproduced here.
+The initial review found 17 downloadable Actions archives and 52 serialized authentication cookie-value occurrences across artifacts `13026999079`, `13027355828` and `13027499753`. A subsequent broader review identified a fourth affected artifact, `13025197745`. All four were removed from GitHub after verified private evidence preservation; 13 retained artifacts were subsequently screened without identified session material. The affected archives are not part of the public release. No credential values are reproduced here.
 
 ## Acceptance and publication boundary
 
-The publication-security implementation was merged through pull request #6 into `main` at `474b83837d45312e155f2c2d220af28d927fc1b3`. Branch protection is enforced and Actions is disabled. All security cleanup requirements are met. The publication decision stays **NOT CLEARED** only because the final explicit visibility authorization has not been given; the repository stays private until then. The history-free snapshot route remains available as an alternative but is no longer the only supported route.
+The publication-security implementation was merged through pull request #6 into `main` at `474b83837d45312e155f2c2d220af28d927fc1b3`. Cleanup documentation was integrated through PRs #7 and #8. Branch protection is enforced, GitHub Actions is disabled and the four identified sensitive artifacts have been removed. Source-publication clearance was completed and the existing repository became public on 2026-11-03. Historical workstation paths and the original Git history remain visible by design; the inspection-only license does not grant general reuse rights.
 
-No GitHub Actions, public hosting, source publication, branch history rewrite or further evidence deletion is authorized by this document.
+Public source visibility is approved and in effect. This does not authorize GitHub Actions, internet-facing application hosting, Git history rewriting, or further evidence deletion.

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-const base="http://127.0.0.1:5173";
+const base=process.env.HARBOROPS_BROWSER_BASE_URL || "http://127.0.0.1:5173";
 const password=process.env.HARBOROPS_TEST_USER_PASSWORD;
 assert.ok(password && password.length>=20,"G6 fixture password missing");
 const cookies=new Map();

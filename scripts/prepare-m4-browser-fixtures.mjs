@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-const base = "http://localhost:5173";
+const base = process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173";
 const password = process.env.HARBOROPS_TEST_USER_PASSWORD;
 assert.ok(password && password.length >= 20, "Disposable M4 credential is required");
 class Session {

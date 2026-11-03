@@ -14,7 +14,7 @@ export default defineConfig({
   ],
   outputDir: "test-results/artifacts",
   use: {
-    baseURL: "http://localhost:5173",
+    baseURL: process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173",
     trace: "retain-on-failure",
     screenshot: "only-on-failure"
   },

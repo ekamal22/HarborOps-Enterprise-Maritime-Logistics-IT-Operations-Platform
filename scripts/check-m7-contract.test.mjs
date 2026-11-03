@@ -70,6 +70,7 @@ test("Database has tenant constraints and lifecycle guards", () => {
     "REFERENCES organizations(id) ON DELETE RESTRICT",
     "UNIQUE (organization_id,source_code)",
     "FOREIGN KEY (organization_id,source_id)",
+    "CK_m7_source_name",
     "CREATE FUNCTION m7_guard_source()",
     "CREATE FUNCTION m7_guard_credential()",
     "CREATE TRIGGER m7_source_guard",
@@ -89,4 +90,45 @@ test("Authenticated intake cannot acknowledge without durable M8 receipt", () =>
   assert.ok(!endpoint.includes("Results.Accepted("));
   assert.ok(!endpoint.includes("Results.Created("));
   assert.match(endpoint, /Bind\(source.Id, source.OrganizationId\)/);
+});
+
+
+test("Source authentication is refreshed under lock and rate limiter stays bounded", () => {
+  const source = readFileSync("src/HarborOps.Infrastructure/Integrations/IntegrationSourceStore.cs", "utf8");
+  const limiter = readFileSync("src/HarborOps.Api/Integrations/IntegrationRequestLimiter.cs", "utf8");
+  for(const marker of [
+    "FOR UPDATE", "ReloadAsync(ct)", "FOR SHARE OF c, s, o",
+    "CryptographicOperations.FixedTimeEquals", "source.Version++",
+    "MaximumOverlap", "BeginTransactionAsync"
+  ]) assert.ok(source.includes(marker), "Lifecycle invariant missing: " + marker);
+  assert.ok(!source.includes("FOR UPDATE\").SingleAsync("),
+    "Do not compose SingleAsync over a locking query");
+  assert.ok(limiter.includes("MaximumPartitions = 4096"),
+    "Remote partition allocation needs an explicit capacity limit");
+  assert.ok(limiter.includes("windows.Count >= MaximumPartitions"),
+    "Partition cap must reject unbounded entries");
+});
+
+test("G7 technical runner uses isolated resources and controlled mutation checks", () => {
+  const runner = readFileSync("scripts/verify-m7-local.sh", "utf8");
+  const mutation = readFileSync("scripts/run-g7-mutations.mjs", "utf8");
+  const network = readFileSync("scripts/check-m7-compose-network.mjs", "utf8");
+  for (const marker of [
+    "check-m3-docker-storage.mjs", "check-m7-compose-network.mjs",
+    "stage security-mutations", "stage dotnet-regressions", "stage browsers",
+    "stage source-outage-recovery", "stage image-scans", "ho-verify-g7",
+    "trap cleanup EXIT", "D-002 acceptance and upstream pin pending"
+  ]) assert.ok(runner.includes(marker), "G7 stage missing: "+marker);
+  assert.ok(network.includes("172.30.253.0/24"));
+  for(const name of ["digest","suspension","revocation","size","credential-guard"])
+    assert.ok(mutation.includes('"'+name+'"'), "Security mutant missing: "+name);
+});
+
+test("G7 documents all required cases without claiming acceptance", () => {
+  const plan = readFileSync("docs/M7_VERIFICATION_PLAN.md", "utf8");
+  const status = readFileSync("docs/M7_IMPLEMENTATION_STATUS.md", "utf8");
+  for(let i=1;i<=25;i++)
+    assert.ok(plan.includes("G7-S"+String(i).padStart(2,"0")),
+      "G7 gate case missing: "+i);
+  assert.ok(status.includes("G7:** Not executed or accepted."));
 });

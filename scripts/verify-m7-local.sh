@@ -1,107 +1,109 @@
 #!/usr/bin/env bash
-# Run M7 source-locked local checks using disposable resources and E: storage.
+# Disposable source-locked G7 technical verification, local E: storage only.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-root="${HARBOROPS_VERIFICATION_ROOT:-}"
-case "$root" in
-  [Ee]:[/\\]*|/e/*) ;;
-  *) echo "HARBOROPS_VERIFICATION_ROOT must point to E: .../m7" >&2; exit 2 ;;
-esac
-case "$root" in
-  *[/\\]m7) ;;
-  *) echo "Use a dedicated E: verification folder ending in m7" >&2; exit 2 ;;
-esac
-command -v cygpath >/dev/null || { echo "Windows Git Bash is required" >&2; exit 2; }
-case "$(pwd -W)" in
-  [Ee]:[/\\]*) ;;
-  *) echo "The repository must be on E:" >&2; exit 2 ;;
-esac
-[[ -z "$(git status --porcelain)" ]] || { echo "Clean worktree required" >&2; exit 2; }
-node scripts/check-m3-docker-storage.mjs
-sha="$(git rev-parse HEAD)"
-export HARBOROPS_SOURCE_SHA="$sha"
-for var in TEMP TMP TMPDIR NPM_CONFIG_CACHE NUGET_PACKAGES DOTNET_CLI_HOME PLAYWRIGHT_BROWSERS_PATH PYTHONPYCACHEPREFIX; do
-  export "$var=$root/cache/$var"
-  mkdir -p "${!var}"
+command -v cygpath >/dev/null || { echo "Windows Git Bash required" >&2; exit 2; }
+root_input="$(printenv HARBOROPS_VERIFICATION_ROOT || true)"
+case "$root_input" in [Ee]:[/\\]*|/e/*) ;; *) echo "E: verification root required" >&2; exit 2 ;; esac
+root="$(cygpath -u "$root_input")"
+case "$root" in /e/*/m7) ;; *) echo "Dedicated E: path ending in /m7 required" >&2; exit 2 ;; esac
+export HARBOROPS_VERIFICATION_ROOT="$root"
+case "$(pwd -W)" in [Ee]:[/\\]*) ;; *) echo "Checkout must be on E:" >&2; exit 2 ;; esac
+[[ -z "$(git status --porcelain)" ]] || { echo "Clean checkout required" >&2; exit 2; }
+repo_win="$(pwd -W)"
+mkdir -p "$root"
+for var in TEMP TMP NPM_CONFIG_CACHE PLAYWRIGHT_BROWSERS_PATH NUGET_PACKAGES DOTNET_CLI_HOME DOCKER_CONFIG XDG_CACHE_HOME; do
+  folder="$root/cache/$var"
+  mkdir -p "$folder"
+  export "$var=$(cygpath -w "$folder")"
 done
-export HOME="$root/cache/HOME"
-mkdir -p "$HOME"
-evidence="$root/evidence-$sha"
-mkdir -p "$evidence"
-echo "$sha" > "$evidence/source-sha.txt"
+export TMPDIR="$root/cache/TMPDIR" HOME="$root/cache/HOME"
+mkdir -p "$TMPDIR" "$HOME"
+export DOCKER_HOST="npipe:////./pipe/dockerDesktopLinuxEngine"
+export DOTNET_NOLOGO=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
+node scripts/check-m3-docker-storage.mjs
+export HARBOROPS_SOURCE_SHA="$(git rev-parse HEAD)"
+[[ "$HARBOROPS_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
+export HARBOROPS_DB_PASSWORD="$(printenv HARBOROPS_DB_PASSWORD || true)"
+[[ -n "$HARBOROPS_DB_PASSWORD" ]] || export HARBOROPS_DB_PASSWORD="disposable-g7-only"
+project="ho-verify-g7"
+sdk_db="ho-g7-pg"
+compose() { docker compose -p "$project" "$@"; }
+if [[ -n "$(docker ps -aq --filter "label=com.docker.compose.project=$project")" ||
+      -n "$(docker volume ls -q --filter "label=com.docker.compose.project=$project")" ||
+      -n "$(MSYS_NO_PATHCONV=1 docker ps -aq --filter "name=^/$sdk_db$")" ]]; then
+  echo "Existing G7 resources detected, refusing takeover" >&2; exit 2
+fi
+if [[ -e "$root/private/source-bearer.txt" || -e "$root/private/test-user-password.txt" ]]; then
+  echo "Existing private fixture detected, refusing overwrite" >&2; exit 2
+fi
+mkdir -p "$root/archives"
+if [[ -d "$root/evidence" ]]; then
+  old=$(cat "$root/evidence/source-sha.txt" 2>/dev/null || echo unknown)
+  mv "$root/evidence" "$root/archives/g7-prior-$(date -u +%Y%m%dT%H%M%SZ)-$old-$$"
+fi
+evidence="$root/evidence"
+mkdir -p "$evidence/trx" "$evidence/trivy" "$root/private"
+printf '%s\n' "$HARBOROPS_SOURCE_SHA" > "$evidence/source-sha.txt"
 date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/started-utc.txt"
 : > "$evidence/stages.tsv"
-export HARBOROPS_DB_PASSWORD="${HARBOROPS_DB_PASSWORD:-disposable-g7-db-only}"
-project="ho-verify-g7"
-postgres="ho-g7-postgres"
-owned=0
+override="$root/compose.core0.yaml"
+cat > "$override" <<'YAML'
+services:
+  postgres:
+    ulimits: { core: 0 }
+  migrator:
+    ulimits: { core: 0 }
+  api:
+    ulimits: { core: 0 }
+  web:
+    ulimits: { core: 0 }
+YAML
+export COMPOSE_PATH_SEPARATOR=";"
+export COMPOSE_FILE="$repo_win/compose.yaml;$(cygpath -w "$override")"
+owned_stack=0
+owned_sdk=0
 stage() {
-  label="$1"; shift
-  echo "START $label"
-  set +e
-  "$@" > "$evidence/$label.log" 2>&1
-  code=$?
-  set -e
-  printf '%s\t%s\t%s\n' "$label" "$sha" "$code" >> "$evidence/stages.tsv"
-  cat "$evidence/$label.log"
-  return "$code"
+  local label="$1" rc=0 start=$SECONDS
+  shift
+  echo "Starting G7 stage $label"
+  if "$@" > "$evidence/$label.log" 2>&1; then rc=0; else rc=$?; fi
+  printf '%s\t%s\t%s\t%s\n' "$label" "$HARBOROPS_SOURCE_SHA" "$rc" "$((SECONDS-start))" >> "$evidence/stages.tsv"
+  if [[ "$rc" != 0 ]]; then
+    echo "Stage $label failed; see E:-backed $label.log" >&2
+    tail -45 "$evidence/$label.log" >&2 || true
+  fi
+  return "$rc"
 }
 cleanup() {
-  rc=$?
+  local rc=$?
   trap - EXIT
-  if [[ "$owned" == 1 ]]; then
-    docker rm -f "$postgres" >> "$evidence/cleanup.log" 2>&1 || true
-    docker compose -p "$project" down --volumes --remove-orphans >> "$evidence/cleanup.log" 2>&1 || true
+  if [[ "$owned_stack" == 1 ]]; then
+    compose logs --no-color --timestamps > "$evidence/compose.log" 2>&1 || true
+    compose down --volumes --remove-orphans >> "$evidence/cleanup.log" 2>&1 || rc=1
   fi
+  if [[ "$owned_sdk" == 1 ]]; then
+    docker rm -f "$sdk_db" >> "$evidence/cleanup.log" 2>&1 || rc=1
+  fi
+  if [[ -f "$root/private/source-bearer.txt" ]]; then
+    if grep -R -F -q -- "$(cat "$root/private/source-bearer.txt")" "$evidence"; then
+      echo "Source credential detected in evidence" >&2; rc=1
+    fi
+    rm -f "$root/private/source-bearer.txt"
+  fi
+  rm -f "$root/private/test-user-password.txt"
+  local leftover vols pg
+  leftover=$(docker ps -aq --filter "label=com.docker.compose.project=$project" || true)
+  vols=$(docker volume ls -q --filter "label=com.docker.compose.project=$project" || true)
+  pg=$(MSYS_NO_PATHCONV=1 docker ps -aq --filter "name=^/$sdk_db$" || true)
+  [[ -z "$leftover" && -z "$vols" && -z "$pg" ]] || rc=1
+  printf '%s\n' "containers=$leftover volumes=$vols database=$pg" > "$evidence/teardown.txt"
   date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/ended-utc.txt"
   printf '%s\n' "$rc" > "$evidence/exit-code.txt"
-  find "$evidence" -type f -print0 | sort -z | xargs -0 sha256sum > "$root/manifest-$sha.sha256"
+  (cd "$evidence" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+    > "$root/archives/g7-$HARBOROPS_SOURCE_SHA-manifest.sha256" || rc=1
+  tar -czf "$root/archives/g7-$HARBOROPS_SOURCE_SHA-evidence.tar.gz" -C "$root" evidence || rc=1
   exit "$rc"
 }
 trap cleanup EXIT
-if [[ -n "$(docker ps -aq --filter name="^/$postgres$")" ||
-      -n "$(docker ps -aq --filter label="com.docker.compose.project=$project")" ||
-      -n "$(docker volume ls -q --filter label="com.docker.compose.project=$project")" ]]; then
-  echo "Existing G7 resources detected; refusing takeover" >&2; exit 2
-fi
-stage preflight bash -c 'git rev-parse HEAD; dotnet --info; docker info; node --version; npm --version'
-stage docs node scripts/check-planning-docs.mjs
-stage graph node scripts/render-execution-graph.mjs --check
-stage restore dotnet restore HarborOps.sln --verbosity quiet
-stage build dotnet build HarborOps.sln -c Release --no-restore
-stage unit dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-build --logger "trx;LogFileName=g7-unit.trx" --results-directory "$evidence"
-stage contracts dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --no-build --logger "trx;LogFileName=g7-contract.trx" --results-directory "$evidence"
-stage frontend npm --prefix web ci
-stage web-build npm --prefix web run build
-stage web-unit npm --prefix web test
-stage pg-image docker build --build-arg "SOURCE_REVISION=$sha" -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
-docker run -d --name "$postgres" --label harborops.g7=disposable \
-  --ulimit core=0 --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 \
-  --cap-drop ALL --security-opt no-new-privileges \
-  -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops \
-  -e POSTGRES_HOST_AUTH_METHOD=trust -p 127.0.0.1:55417:5432 \
-  harborops-postgres:16.15-rootless > "$evidence/postgres-id.txt"
-owned=1
-ready=0
-for _ in $(seq 1 45); do
-  if docker exec "$postgres" pg_isready -U harborops -d harborops_integration >/dev/null 2>&1; then
-    ready=1; break
-  fi
-  sleep 2
-done
-[[ "$ready" == 1 ]] || { echo "G7 disposable database not ready" >&2; exit 1; }
-export HARBOROPS_TEST_DB="Host=127.0.0.1;Port=55417;Database=harborops_integration;Username=harborops;Password=disposable;Trust Server Certificate=true"
-stage integration dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --logger "trx;LogFileName=g7-integration.trx" --results-directory "$evidence"
-stage integration-repeat dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --logger "trx;LogFileName=g7-integration-repeat.trx" --results-directory "$evidence"
-stage nuget-audit dotnet package list HarborOps.sln --vulnerable --include-transitive
-stage npm-audit npm --prefix web audit --audit-level=high
-if command -v trivy >/dev/null; then
-  stage pg-scan trivy image --exit-code 1 --severity HIGH,CRITICAL harborops-postgres:16.15-rootless
-else
-  echo "Required image scanner unavailable" >&2; exit 2
-fi
-# Browser, proxy, image-composition and outage checks require the dedicated full-stack G7
-# matrix. No acceptance is inferred from this targeted runner.
-echo -e "browser-proxy-recovery\t$sha\tNOT_EXECUTED" >> "$evidence/stages.tsv"
-echo "G7 targeted stages completed. Mandatory browser/proxy/recovery and independent review are NOT EXECUTED." >&2
-exit 2
+

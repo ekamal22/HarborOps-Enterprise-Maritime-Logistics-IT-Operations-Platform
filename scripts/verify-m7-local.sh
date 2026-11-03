@@ -216,19 +216,19 @@ provision() {
 accounts() {
   for entry in \
     "operator@example.test|Synthetic Operator" \
-    "m2-operator@example.test|Synthetic Administrator" \
+    "m2-operator@example.test|M2 Synthetic Administrator" \
     "m2-second-admin@example.test|Second Administrator" \
-    "m2-outage@example.test|Outage Member" \
-    "m2-browser-chromium@example.test|Browser Chromium Member" \
-    "m2-browser-firefox@example.test|Browser Firefox Member" \
-    "m2-browser-webkit@example.test|Browser Webkit Member" \
-    "m3-admin-a@example.test|M3 North Administrator" \
-    "m3-admin-b@example.test|M3 East Administrator" \
-    "m3-manager@example.test|M3 Manager" \
-    "m3-analyst@example.test|M3 Analyst" \
-    "m4-analyst-east@example.test|East Analyst" \
-    "m4-support@example.test|Support" \
-    "m4-auditor@example.test|Auditor"; do
+    "m2-outage@example.test|Outage Synthetic Member" \
+    "m2-browser-chromium@example.test|Synthetic Browser Chromium Member" \
+    "m2-browser-firefox@example.test|Synthetic Browser Firefox Member" \
+    "m2-browser-webkit@example.test|Synthetic Browser Webkit Member" \
+    "m3-admin-a@example.test|M3 Synthetic North Administrator" \
+    "m3-admin-b@example.test|M3 Synthetic East Administrator" \
+    "m3-manager@example.test|M3 Synthetic Manager" \
+    "m3-analyst@example.test|M3 Synthetic Analyst" \
+    "m4-analyst-east@example.test|M4 Synthetic East Analyst" \
+    "m4-support@example.test|M4 Synthetic Support" \
+    "m4-auditor@example.test|M4 Synthetic Auditor"; do
     IFS='|' read -r email display <<< "$entry"
     provision "$email" "$display"
   done
@@ -243,7 +243,7 @@ organizations() {
   bootstrap east-terminal "East Terminal" m2-second-admin@example.test
   bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test
   bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test
-  bootstrap m3-pagination "M3 Pagination" m3-admin-a@example.test
+  bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test
   for engine in chromium firefox webkit; do
     bootstrap "m3-revocation-$engine" "M3 Revocation $engine" m3-admin-a@example.test
   done

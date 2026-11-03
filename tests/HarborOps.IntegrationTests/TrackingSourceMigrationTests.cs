@@ -189,4 +189,91 @@ public sealed class TrackingSourceMigrationTests
         Assert.Equal(2, await db.IntegrationCredentials.CountAsync(x => x.SourceId == sourceId &&
             x.RevokedAtUtc == null && x.ExpiresAtUtc > now));
     }
+
+    [Fact]
+    public async Task DisableAndRotationRaceCannotLeaveUsableCredentials()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        ProvisionedIntegrationSource first;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            first = await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+                .CreateAsync(fixture.A, "race_disable", "Disable Race", CancellationToken.None);
+        }
+
+        async Task<ProvisionedIntegrationSource?> Rotate()
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            var store = scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
+            try { return await store.RotateAsync(fixture.A, "race_disable", CancellationToken.None); }
+            catch (InvalidOperationException) { return null; }
+        }
+
+        async Task Disable()
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+                .DisableAsync(fixture.A, "race_disable", CancellationToken.None);
+        }
+
+        var rotated = Rotate();
+        var disabled = Disable();
+        await Task.WhenAll(rotated, disabled).WaitAsync(TimeSpan.FromSeconds(30));
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var db = verification.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var storeAfter = verification.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
+        Assert.Null(await storeAfter.ValidateAsync(first.Bearer, CancellationToken.None));
+        if (rotated.Result is not null)
+            Assert.Null(await storeAfter.ValidateAsync(rotated.Result.Bearer, CancellationToken.None));
+        var source = await db.IntegrationSources.AsNoTracking().SingleAsync(
+            x => x.OrganizationId == fixture.A && x.SourceCode == "race_disable");
+        Assert.Equal("Disabled", source.Status);
+        Assert.Equal(0, await db.IntegrationCredentials.AsNoTracking().CountAsync(
+            x => x.SourceId == source.Id && x.RevokedAtUtc == null));
+    }
+
+    [Fact]
+    public async Task RevocationInvalidatesAllSubsequentAuthenticationsAcrossRequests()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        ProvisionedIntegrationSource issued;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            issued = await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+                .CreateAsync(fixture.A, "race_revoke", "Revoke Race", CancellationToken.None);
+        }
+
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        async Task Validate()
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            var store = scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
+            started.TrySetResult();
+            await store.ValidateAsync(issued.Bearer, cancellation.Token);
+        }
+        var validation = Task.Run(Validate, cancellation.Token);
+        await started.Task.WaitAsync(cancellation.Token);
+        await using (var revokeScope = factory.Services.CreateAsyncScope())
+        {
+            await revokeScope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+                .RevokeAsync(fixture.A, "race_revoke", issued.CredentialId, cancellation.Token);
+        }
+        await validation.WaitAsync(cancellation.Token);
+        for (var i = 0; i < 3; i++)
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            Assert.Null(await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+                .ValidateAsync(issued.Bearer, cancellation.Token));
+        }
+    }
 }

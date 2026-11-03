@@ -1,0 +1,9 @@
+{
+  "sourceEventId": "test-1",
+  "family": "Equipment",
+  "code": "GTIN",
+  "classifier": "ACT",
+  "occurredAtUtc": "2026-11-02T10:00:00Z",
+  "equipmentReference": "SYN-BOX-ABCD",
+  "externalSchemaVersion": "2.2.0"
+}

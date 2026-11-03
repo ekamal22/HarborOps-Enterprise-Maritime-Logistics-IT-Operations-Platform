@@ -1,0 +1,9 @@
+{
+  "sourceEventId": "test-2",
+  "family": "Transport",
+  "code": "ARRI",
+  "classifier": "ACT",
+  "occurredAtUtc": "2026-11-02T10:00:00Z",
+  "transportReference": "VOYAGE-12",
+  "externalSchemaVersion": "2.2.0"
+}

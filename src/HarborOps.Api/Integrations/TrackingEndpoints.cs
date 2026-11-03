@@ -1,7 +1,6 @@
 using HarborOps.Api.Authentication;
 using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
-using Microsoft.Extensions.Primitives;
 
 namespace HarborOps.Api.Integrations;
 
@@ -45,8 +44,8 @@ public static class TrackingEndpoints
             if (context.Request.Headers.ContentEncoding.Count > 0 ||
                 !IsJsonContentType(context.Request.ContentType))
                 return Fail(context, 415, "unsupported_media_type", "JSON UTF-8 required");
-            if (context.Request.Headers["X-HarborOps-Tracking-Profile"] is not StringValues profile ||
-                profile.Count != 1 || profile[0] != TrackingEventPolicy.Profile)
+            var profile = context.Request.Headers["X-HarborOps-Tracking-Profile"];
+            if (profile.Count != 1 || profile[0] != TrackingEventPolicy.Profile)
                 return Fail(context, 422, "unsupported_tracking_profile", "Unsupported tracking profile");
             if (context.Request.ContentLength > TrackingEventPolicy.MaximumBodyBytes)
                 return Fail(context, 413, "body_too_large", "Request body exceeds the limit");

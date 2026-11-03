@@ -90,7 +90,9 @@ def main():
             for package in framework.get(group, [])
             if package.get("vulnerabilities")
         ]
-        if not projects or not any(project.get("frameworks") for project in projects):
+        # NuGet omits the "frameworks" key for a project that has no vulnerable packages, so an empty
+        # list is a clean result; an unrestorable project makes the command itself fail instead.
+        if not projects:
             results["dotnet"] = "no usable package inventory"
         elif vulnerable:
             results["dotnet"] = "vulnerable packages reported"

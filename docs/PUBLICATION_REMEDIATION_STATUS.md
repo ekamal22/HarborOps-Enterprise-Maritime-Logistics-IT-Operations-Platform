@@ -5,7 +5,7 @@
 **Baseline:** `main` at `4d26514caee5cc835f6eef230e0433141291374e`  
 **Publication decision:** NOT CLEARED  
 **Internet-hosting decision:** NOT CLEARED  
-**Verification state:** Isolated hosted regression stages passed at `7145ec24a8ac289dfcf6f02644f54f35f4744c8a`; overall run failed during root-owned Trivy cache cleanup. Independent E:-backed verification, historical Git-object review and publication approval remain outstanding.
+**Verification state:** Complete local E:-backed regression run passed at `efe90439e5453ef5fde3e327be9de7f3cf06775a` (see below), after the isolated hosted run at `7145ec24a8ac289dfcf6f02644f54f35f4744c8a` passed every test stage and failed only in cleanup. Historical disclosure review, repository governance, licensing and publication approval remain outstanding.
 
 This register tracks remediation after the [original security review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md). Do not alter the prior review's observations or reinterpret accepted M0 through M6 test evidence.
 
@@ -16,6 +16,53 @@ This register tracks remediation after the [original security review](PUBLIC_REP
 The isolated manual-only workflow was corrected at `8cf9fffef3cc41823d367e7a54d3e40f5678e242` with scoped cleanup and a source guard that works after additional verification commits. This correction has not been executed; no further Actions run was launched. The workflow remains manual-only. [Publication Safety Status](PUBLICATION_SAFETY_STATUS.md) contains the attempt-by-attempt results and outstanding blockers.
 
 The hosted run does not replace E:-backed local verification, complete historical Git-object and retained-artifact disclosure review, governance enforcement, approved source snapshot review, licensing decision, or real-host TLS validation. Accepted G6 evidence remains intact. Neither publication nor hosting is cleared.
+
+## Local E:-backed verification, November 3, 2026
+
+A complete local regression run executed on the disposable `ho-verify-g6` Compose project and a throwaway PostgreSQL container, with every cache, temporary file, browser binary and report on E:. The runner is `scripts/verify-publication-local.sh`; it reuses the accepted M6 stage implementations and adds the publication stages in `scripts/verify-publication-stages-local.sh`. It does not repeat the accepted G6 mutation or historical-snapshot gates: no migration or schema file changed on this branch, so those accepted results are not invalidated and remain the reference for that evidence.
+
+| Area | Result at source `efe90439e5453ef5fde3e327be9de7f3cf06775a` |
+| --- | --- |
+| Release build with warnings as errors | Passed |
+| Unit tests | 149 of 149 passed |
+| API contract tests, including 18 new end-to-end transport cases | 39 of 39 passed |
+| PostgreSQL integration tests, fresh database and repeat on the migrated database | 187 of 187 passed, both passes |
+| Frontend tests and production build | 18 of 18 passed, build succeeded |
+| NuGet and npm advisories (web and browser projects) | No vulnerable packages |
+| Compose build, migration, startup, readiness, degraded-mode and session recovery | Passed |
+| Transport probes (`nginx -t`, local header and Host checks, untrusted Docker peer with a localhost Host header, spoofed forwarded address through and around the proxy, unexpected Host) | 9 of 9 passed |
+| Chromium, Firefox and WebKit, all 15 specs per engine | 57 of 57 per engine passed; no failed, flaky or skipped tests |
+| Assignment, shipment, reference and maritime outage checks and scoped recovery | Passed |
+| Trivy HIGH and CRITICAL scans of the postgres, api and web images, labelled with the source revision | No findings |
+
+Commits after `efe9043` change documentation and `scripts/audit-publication-supply-chain.py` only; `src`, `tests`, `web`, `docker` and `compose.yaml` are byte-identical to the verified source. The source-locked supply-chain audit was then run against a freshly built stack at `6726983a18a4b7e9b539c86f636ac20d8682e630`: NuGet, both npm audits and all three image scans passed.
+
+### Original integration failure
+
+The failure of hosted run 41526406931 (161 of 187 integration tests, HTTP 400 from `GET /api/v1/auth/csrf`) was reproduced on the source before the test-host fix, where the first test in `IdentityLifecycleTests` failed with a 400 from that endpoint. ASP.NET Core `TestServer` requests carry no remote socket address, so the hardened transport check correctly rejected them. `LocalPeerTestServer` supplies `127.0.0.1` only when the remote address is absent, runs before forwarded-header handling and transport validation, and does not alter production code. All 187 tests pass with it.
+
+### Defects found and corrected during verification
+
+| Defect | Correction |
+| --- | --- |
+| `scripts/check-planning-docs.mjs` required the workstation folder name that the disclosure reduction intentionally removed | The check now requires the generic E:-backed wording and rejects the folder name |
+| Firefox `maritime-gate` container pagination spec failed once in a full run | The workspace is keyed by organization and role and can remount after an organization switch, resetting the tab. The spec now waits for the organization request and retries the tab click until the Containers view is visible. No assertion was weakened and no retries were enabled globally. 30 of 30 isolated runs passed across the three engines afterwards |
+| Publication Python scripts launched tools by bare name, which fails on Windows for `.cmd` wrappers and `npm` | Executables are resolved through `PATH` first |
+| `check-publication-governance.py` built an invalid repository URL | Fixed |
+| `audit-publication-supply-chain.py` treated a vulnerability-free NuGet audit as having no inventory, and passed a bare image ID that the Docker daemon rejects | A listed project with no `frameworks` key is a clean result, and images are scanned as `sha256:` references |
+| Three integration tests committed credential-like password constants flagged by the secret scanner | Those three values are generated per run |
+
+### Transport regression coverage
+
+`tests/HarborOps.ContractTests/TransportHardeningHttpTests.cs` drives the real pipeline with an explicit socket peer: loopback over local HTTP, a missing remote address (rejected as `invalid_transport`), a remote attacker with a forged `localhost` or `127.0.0.1` Host, an untrusted Docker peer, the configured gateway and proxy peers, forwarded address and scheme from a trusted proxy and from an untrusted peer (ignored), unexpected Host values (rejected by host filtering), plain HTTP rejected and HTTPS accepted when the local HTTP exception is disabled, hosted mode refusing to start without a key protection certificate, and Secure, HttpOnly, SameSite=Strict antiforgery cookies in hosted mode.
+
+### Not executed
+
+Hosted HTTPS checks (`scripts/verify-publication-hosted.mjs`) require an actual approved domain and certificates and were **not executed**. Accessibility verification remains deferred to the final designated release stage. No GitHub Actions run was started by this verification, and the corrected `verify-publication-security.yml` has not been dispatched.
+
+### Publication scripts
+
+`audit-publication-history.py` inventoried 26 refs, 4,797 reachable objects and 38 workflow runs, and does **not** clear: three remote branch tips were not present in the local object store at audit time, five unreachable objects need separate review, and the scanner reported three credential-like test constants (since removed from the current tree, still present in old commits), nine non-credential matches in historical logs and failure snapshots (image digests and synthetic page-snapshot text), and serialized synthetic session cookie values inside nested browser trace archives of three historical runs. Raw outputs are retained in a private, access-restricted location and are not part of any shareable package. `prepare-public-source-snapshot.py` produced a 189-file history-free candidate that passed its secret scan; an independent extraction contained no personal, workstation, assistant-attribution or non-synthetic email content, built with zero warnings and passed all 149 unit tests. It remains a review candidate, not an approved release. `check-publication-governance.py` confirms the repository is private and Actions is disabled, and that `main` has no branch protection and no rulesets; that setting requires administrative action.
 
 ## Findings and closure requirements
 

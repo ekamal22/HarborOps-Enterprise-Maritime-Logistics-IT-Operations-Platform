@@ -64,6 +64,10 @@ The [25-case G5 matrix](M5_VERIFICATION_PLAN.md) covers domain transitions, tena
 
 The accepted [M6 local assignment contract](M6_LOCAL_CONTRACT_DECISION.md), [architecture](M6_ARCHITECTURE_DESIGN.md) and [implementation plan](M6_IMPLEMENTATION_PLAN.md) define two tenant-owned UTC half-open allocation histories. The G6 technical verification at the pinned source passed 149 unit, 12 contract, 187 fresh and 187 repeat integration tests, and 57 browser tests in each engine, alongside four effective security mutations, historical migration, outage/recovery and clean scans. The original evidence assertion exited 1 solely for pending G6-S01 contract acceptance. The twelve-rule contract and full G6 were explicitly accepted on 2026-11-02. See [gate closure](M6_G6_GATE_CLOSURE.md).
 
+## Publication security verification (executed locally)
+
+`scripts/verify-publication-local.sh` runs the regression suites that the publication security changes can affect on disposable E:-backed resources: build, unit, contract (including `TransportHardeningHttpTests`), PostgreSQL integration on a fresh and a repeat database, frontend, dependency audits, Compose, transport probes through and around the Nginx proxy, three-engine browser specs, outage and recovery checks, image scans and the source-locked supply-chain audit. It never dispatches GitHub Actions. Accepted G6 mutation and historical-snapshot evidence is referenced, not repeated, because this work changes no migration or schema. Hosted HTTPS checks need a real approved domain and are recorded as not executed until one exists. The manual-only `verify-publication-security.yml` workflow checks out an exact commit, runs independent jobs and uploads no artifacts, because browser traces can contain session cookies.
+
 ## Test layers
 
 | Layer | Tools | Representative assertions |

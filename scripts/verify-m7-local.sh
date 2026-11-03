@@ -170,7 +170,7 @@ case "$1" in
     ;;
   nuget)
     dotnet list HarborOps.sln package --vulnerable --include-transitive \
-      > /cache/evidence/nuget-vulnerable.log
+      > /cache/evidence/nuget-vulnerable.log 2>&1
     if grep -Eiq "has the following vulnerable packages|NU1900|NU1301|Unable to load the service index|failed to retrieve|advisory.+unavailable" /cache/evidence/nuget-vulnerable.log; then
       echo "NuGet vulnerability findings or an unavailable advisory source" >&2; exit 1
     fi
@@ -191,6 +191,10 @@ sdk() {
 }
 stage build sdk build
 stage dotnet-regressions sdk tests
+if [[ -n "${HARBOROPS_G7_MUTATION_SUBSET:-}" ]]; then
+  echo "Full G7 cannot use a reduced mutation subset" >&2
+  exit 2
+fi
 stage security-mutations node scripts/run-g7-mutations.mjs "$HARBOROPS_VERIFICATION_ROOT"
 stage nuget-advisories sdk nuget
 stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build'

@@ -176,7 +176,8 @@ const scenarios = [
     allBrowsers()].every(Boolean)],
   ["G7-S23", "Compose and browser integration", () => [stage("compose"), stage("accounts"),
     stage("organizations"), stage("source-cli-negative"), stage("ingress-before"), allBrowsers(),
-    stage("source-outage-recovery"), read("teardown.txt").trim() === "containers= volumes= database="].every(Boolean)],
+    stage("source-outage-recovery")].every(Boolean),
+    { note: "Teardown is written after this summary; the integrity report verifies teardown.txt" }],
   ["G7-S24", "Security effectiveness and scans", () => [stage("security-mutations"), mutationsOk(),
     stage("nuget-advisories"), stage("npm-advisories"), stage("image-scans"), trivyClean()].every(Boolean)],
   ["G7-S25", "Reproducible evidence and independent review", () => false,
@@ -187,12 +188,15 @@ const rows = scenarios.map(([id, title, check, extra]) => {
   problems.length = 0;
   let executed = false;
   try { executed = check(); } catch (error) { problems.push(String(error.message ?? error)); }
+  if (!executed && problems.length === 0 && !extra?.blocked && !extra?.notExecuted)
+    problems.push("a required check failed without a recorded reason");
   let status;
   if (extra?.blocked && (extra.always || !executed)) status = "BLOCKED";
   else if (executed) status = "PASS";
   else if (extra?.notExecuted && problems.every(x => !/not passed|exit/.test(x)) && !operatorCli) status = "NOT EXECUTED";
   else status = problems.some(x => /not passed|exit|not clean/.test(x)) ? "FAIL" : "NOT EXECUTED";
-  const note = extra?.blocked ?? (status === "NOT EXECUTED" ? extra?.notExecuted : undefined);
+  const note = extra?.blocked ?? (status === "NOT EXECUTED" ? extra?.notExecuted : undefined) ??
+    (status === "PASS" ? extra?.note : undefined);
   return { id, title, sourceSha: sha, status, gaps: [...new Set(problems)], note: note ?? "" };
 });
 

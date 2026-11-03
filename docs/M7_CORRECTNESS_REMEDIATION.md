@@ -42,6 +42,8 @@ Running the committed work on a Windows E:-backed workstation exposed defects th
 | No test that cancellation never succeeds or consumes a credential | Coverage gap against G7-S21 | `CancelledAuthenticationNeverSucceedsOrAcknowledges` | Boundary HTTP suite |
 | No per-scenario result file and no scanner database identity | Coverage gap against G7-S24 and G7-S25 | `scripts/summarize-g7-evidence.mjs` derives each scenario outcome from raw results, Trivy version and database identity are recorded, and the web stage fails if a source credential pattern reaches the built frontend | Evidence summary stage |
 
+Runtime library warning: every CLI command and the API process print `Cannot load library libgssapi_krb5.so.2` once. It is emitted by the .NET runtime's native security library when the PostgreSQL client probes GSS encryption, the runtime image does not ship the Kerberos library, and no behavior is degraded; appending `GSS Encryption Mode=Disable` to the connection string removes it with identical results. It is not a defect and no change was made to the tested revision. Details are in the G7-S06 supplement assessment.
+
 Known limit: the `499` response for a client that disconnects mid-request is implemented in the endpoint but is not driven end to end through HTTP, because the test client cannot observe a response it has abandoned. The store-level cancellation test and source review cover it.
 
 ## Verification state

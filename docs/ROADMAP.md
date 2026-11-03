@@ -162,7 +162,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** Versioned and authenticated event interface.
 **Entry:** G3 accepted before respective dependent work packages. Resolve D-002 before applicable feature implementation.
-**Required work packages:** M7-01 Pin external subset and contract; M7-02 Implement source entitlements; M7-03 Implement strict payload validation; M7-04 Verify ingestion contract tests. [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md) and [planned G7 matrix](M7_VERIFICATION_PLAN.md) define the solution; an implementation candidate is recorded in [M7 status](M7_IMPLEMENTATION_STATUS.md), with no executed verification or acceptance.
+**Required work packages:** M7-01 Pin external subset and contract; M7-02 Implement source entitlements; M7-03 Implement strict payload validation; M7-04 Verify ingestion contract tests. [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md) and [planned G7 matrix](M7_VERIFICATION_PLAN.md) define the solution; the implementation is recorded in [M7 status](M7_IMPLEMENTATION_STATUS.md) and its local technical verification in [M7 executed verification](M7_EXECUTED_VERIFICATION.md); acceptance is pending.
 **Exit G7:** All applicable tasks, negative tests, runtime evidence and documentation for M7 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Inbox persistence and background processing.
 

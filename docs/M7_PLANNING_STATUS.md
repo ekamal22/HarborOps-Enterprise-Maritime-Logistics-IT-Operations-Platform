@@ -4,8 +4,8 @@
 **State:** Architecture and implementation plan drafted, acceptance pending.
 **Baseline:** `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`
 **Working branch:** `plan/m7-tracking-contracts-source-auth`
-**Implementation:** Candidate code committed on `feat/m7-tracking-source-validation`; runtime verification pending
-**G7 verification:** NOT EXECUTED
+**Implementation:** Committed on `feat/m7-tracking-source-validation`; technical verification executed (see [executed verification](M7_EXECUTED_VERIFICATION.md))
+**G7 verification:** Technical run executed on `7b87f3250aba677b1f4aeef4350803d9ca7b6880`; 23 PASS, 2 BLOCKED on D-002 after supplements
 **G7 acceptance:** PENDING
 **D-002:** Proposed public DCSA TNT 2.2.0 reference/subset; exact upstream artifact and approved field/code profile pending.
 
@@ -27,7 +27,7 @@ M7 defines the versioned tracking adapter contract, source/tenant credentials an
 4. Integrate M7-04 HTTP contract and run all G7-S01 to G7-S25 cases locally with isolated E:-backed evidence.
 5. Obtain independent G7 technical review and explicit acceptance before merging the M7 implementation.
 
-The planning PR itself contains no application changes. The separate implementation branch contains source, tests and a migration, but no executed verification or accepted G7 evidence. See [implementation register](M7_IMPLEMENTATION_STATUS.md). Its approval should not be conflated with D-002 acceptance unless that decision is explicitly included. Accepted M0-G0 through M6-G6 remain unchanged; D-006 for M8 remains open.
+The planning PR itself contains no application changes. The separate implementation branch contains source, tests and a migration, and the executed verification record, but no accepted G7 evidence. See [implementation register](M7_IMPLEMENTATION_STATUS.md). Its approval should not be conflated with D-002 acceptance unless that decision is explicitly included. Accepted M0-G0 through M6-G6 remain unchanged; D-006 for M8 remains open.
 
 ## Operating constraints
 

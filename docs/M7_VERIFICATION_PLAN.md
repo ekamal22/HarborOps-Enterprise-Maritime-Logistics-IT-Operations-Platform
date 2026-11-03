@@ -1,6 +1,6 @@
 # G7 Tracking Contracts and Source Authentication: Verification Plan
 
-**State:** Execution harness committed and exercised in development runs. The gate evidence run and acceptance are pending; no G7 scenario is accepted.
+**State:** Gate evidence run executed on `7b87f3250aba677b1f4aeef4350803d9ca7b6880` (21 PASS, 3 BLOCKED, 1 NOT EXECUTED); supplements bring the reconciled result to 23 PASS and 2 BLOCKED on D-002. See the [executed verification](M7_EXECUTED_VERIFICATION.md). G7 acceptance is pending.
 **Prepared:** 2026-11-03
 **Milestone:** M7-01 through M7-04 and gate G7
 **Base:** Accepted G0-G6 `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`

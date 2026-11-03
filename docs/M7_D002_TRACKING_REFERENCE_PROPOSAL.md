@@ -92,33 +92,64 @@ SHA-256 of the content fetched on 2026-11-03 (JSON as served, retained in the E:
 
 Remaining before acceptance: a decision on whether a hash of mutable hosted content is an acceptable pin or a tagged repository release must be located, redistribution review of the fixtures, the field-by-field mapping review, and the explicit decision itself. Until then G7-S01 is BLOCKED, G7-S17 is BLOCKED for the upstream-mapping part, and the standard version and supported subset are unchanged.
 
-## 7. Recommendation on pinning the retrieved artifacts
+## 7. Recommendation
 
-This section is advice for the pending decision. It does not accept D-002 and changes neither the supported subset nor the profile.
+This section is advice for the pending decision. It does not accept D-002 and changes neither the supported subset nor the profile `tnt-2.2-harborops-v1`.
 
-**Can the exact retrieved artifacts be pinned locally by SHA-256?** Yes, as a local snapshot. The four JSON files in section 6 can be stored with their hashes and a drift check that fetches them again and compares the hashes. That records exactly what was reviewed. It does not make the source immutable: SwaggerHub serves a mutable hosted version, no tagged or signed release exists, and the repositories that the upstream descriptions link for code lists (`DCSA-Information-Model`) were not found. A hash proves what was reviewed, not that DCSA still publishes the same content.
+**Recommended decision (option A):** accept DCSA Track & Trace 2.2.0 as the reference the HarborOps profile is derived from, pinned locally by SHA-256 of the four retrieved definitions, with the profile remaining a deliberately narrower HarborOps-specific interface and with no DCSA conformance claim.
 
-**Licensing.** The 2.2.0 definition declares Apache 2.0 in its `info.license` and the reference site states the same license. That permits storing copies with notice. It is the publisher's own declaration, not an independent legal review, so the redistribution question in section 5 still needs your decision. If copies are not wanted in the public repository, keep only the hashes and the fetch URLs in the repository and the files in the E: verification root.
+### 7.1 Exact upstream version and artifacts
 
-**Field-level review still needed.** The retrieved definitions show that the HarborOps profile is an adapter, not a DCSA-shaped payload:
+| Artifact | Version | URL | SHA-256 |
+| --- | --- | --- | --- |
+| Track & Trace API definition | 2.2.0 | `https://api.swaggerhub.com/apis/dcsaorg/DCSA_TNT/2.2.0` | `b3c02f97f19833b3dca8edd95a328b1d6c0c2cacb1a0606d882a12d0f698c127` |
+| Event domain (event and code definitions) | 1.0.4 | `https://api.swaggerhub.com/domains/dcsaorg/EVENT_DOMAIN/1.0.4` | `5b9efaba91ea6ea9d855a59ae0670e252fc472eba5d3e9419962b9b5bcbc644c` |
+| Common domain | 1.0.3 | `https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/1.0.3` | `b6ed1f10185df3e680d20a5c5aee63da26cc76e49da33616400f517aa7ffb5e4` |
+| Error domain | 1.0.0 | `https://api.swaggerhub.com/domains/dcsaorg/ERROR_DOMAIN/1.0.0` | `15fcd4c9d3b5e529a8c170ca941ca9ec8a957df356322b38e41d25d022ca54e5` |
 
-| Upstream (2.2.0 with `EVENT_DOMAIN` 1.0.4) | HarborOps profile `tnt-2.2-harborops-v1` | Review needed |
+The files were fetched on 2026-11-03 and are retained in the E: verification root with their response headers.
+
+### 7.2 Pinning and its limits
+
+The hashes can be pinned locally, for example as a manifest in the repository with a verification step that fetches the four URLs and compares the hashes. That records exactly what was reviewed and detects change. It does not make the reference immutable: SwaggerHub serves mutable hosted versions, no tagged or signed release exists, and the repositories linked from the upstream descriptions for code lists (`DCSA-Information-Model`) were not found. A hash proves what was reviewed, not that DCSA still publishes the same content or that the content is the authoritative release.
+
+### 7.3 License and redistribution
+
+The 2.2.0 definition declares Apache 2.0 in `info.license`, and the DCSA reference site states the same license. That permits storing copies with notice. It is the publisher's own declaration, not an independent legal review. If copies are not wanted in the public repository, keep only the manifest of URLs and hashes in the repository and the files in the verification root.
+
+### 7.4 Field-by-field differences
+
+| Upstream (2.2.0 with `EVENT_DOMAIN` 1.0.4) | HarborOps profile | Difference |
 | --- | --- | --- |
-| `eventID` | `sourceEventId` (source-local identifier) | Upstream identifier type and format against the accepted local rules |
-| `eventType` and `equipmentEventTypeCode` or `transportEventTypeCode` | `eventFamily` and `eventCode` | Name and value mapping; only `GTIN`, `GTOT`, `ARRI`, `DEPA` accepted locally |
-| `eventClassifierCode` (`ACT`, `PLN`, `EST`) | `classifier` (`ACT` only) | Whether excluding `PLN` and `EST` is the intended scope |
+| `eventID` | `sourceEventId` | Source-local identifier; upstream identifier format not adopted |
+| `eventType` with `equipmentEventTypeCode` or `transportEventTypeCode` | `eventFamily` with `eventCode` | Renamed and combined; only `GTIN`, `GTOT`, `ARRI`, `DEPA` accepted (upstream equipment codes also include LOAD, DISC, STUF, STRP, PICK, DROP, INSP, RSEA, RMVD) |
+| `eventClassifierCode` (`ACT`, `PLN`, `EST`) | `classifier` | `ACT` only |
 | `eventDateTime` | `occurredAtUtc` | Upstream accepts an offset date-time; the profile requires UTC |
-| `eventCreatedDateTime` (required upstream) | Not accepted | Whether the profile must carry it |
-| `emptyIndicatorCode` (required upstream for equipment events) | Not accepted | Required upstream and absent locally, so the profile cannot claim conformance as written |
-| `equipmentReference` | `equipmentReference` (D-003 syntax) | Upstream equipment reference rules against the synthetic and ISO forms |
-| `transportCall` (required upstream for transport events) | `transportReference` | A single reference is a reduction of the upstream call object |
-| `ISOEquipmentCode`, `eventLocation`, `documentReferences`, `delayReasonCode` | Rejected as unknown fields | Confirm rejection is intended |
+| `eventCreatedDateTime` (required upstream, all events) | not accepted | **Required upstream field absent** |
+| `emptyIndicatorCode` (required upstream, equipment events) | not accepted | **Required upstream field absent** |
+| `transportCall` (required upstream, transport events) | `transportReference` | A single reference replaces the upstream call object; reduction, not an equivalent |
+| `equipmentReference` | `equipmentReference` | Same name; value rules follow D-003 (synthetic and ISO forms) |
+| `ISOEquipmentCode`, `eventLocation`, `documentReferences`, `delayReasonCode`, `transportCallID` | rejected as unknown fields | Intentional narrowing |
+| none | `externalSchemaVersion` | HarborOps field that records the reference version |
 
-**Implications of accepting the local-snapshot approach.**
+### 7.5 Questions answered
 
-1. HarborOps would claim a documented, hash-pinned adapter profile derived from DCSA 2.2.0, and no DCSA conformance. The two required upstream fields noted above are absent from the profile, so a conformance claim would currently be wrong.
-2. A later upstream change would not alter behavior silently, because the profile is versioned and the drift check would report the difference.
-3. Moving to a tagged release or to Track & Trace 3.0.0 later is a new adapter version with new fixtures, as section 5 already requires.
-4. Acceptance requires three explicit decisions from you: accept a local hash pin of mutable hosted content as the reference, decide whether the two required upstream fields must be added to the profile, and decide the redistribution choice.
+- **Can the current adapter remain a deliberately narrower HarborOps interface?** Yes. `POST /integrations/v1/tracking-events` is already a HarborOps-specific route, not a DCSA publisher endpoint. A documented narrowing is coherent as long as it is described as such.
+- **Can D-002 be accepted without claiming full DCSA conformance?** Yes. The decision would pin a reference the profile is derived from and list the two absent required fields and the reduced `transportCall` as known differences. As written, a conformance claim would be wrong because the profile omits two fields upstream requires.
+- **Does option A require implementation changes?** No wire or code change. It needs a hash manifest with a drift check, documentation wording that states derivation and non-conformance, and a fixture provenance note. No new G7 evidence is needed for documentation alone.
 
-Until those decisions are made, D-002 stays acceptance pending, G7-S01 stays BLOCKED, and the supported subset is unchanged.
+### 7.6 Alternatives
+
+| Option | Effect | Cost |
+| --- | --- | --- |
+| A (recommended) | Accept the local hash pin and the narrower profile, no conformance claim | Manifest and documentation only |
+| B | Extend the profile to carry `eventCreatedDateTime`, `emptyIndicatorCode` and a `transportCall` object | New adapter version, schema, parser, fixtures and tests, a new source revision and a new G7 run; conformance still needs a separate review |
+| C | Defer until a tagged release is located or adopt Track & Trace 3.0.0 when public | Delays M8; 3.0.0 is not publicly released and is not backward compatible |
+
+### 7.7 Decisions needed
+
+1. Accept or reject a local SHA-256 pin of mutable hosted content as the D-002 reference (option A), or choose B or C.
+2. Decide whether stored copies of the definitions may live in the public repository, or only the URL and hash manifest.
+3. Confirm the intended scope of the narrowing (`ACT` only, four codes).
+
+Until these decisions are made, D-002 stays acceptance pending, G7-S01 and G7-S17 stay BLOCKED, and the supported subset is unchanged.

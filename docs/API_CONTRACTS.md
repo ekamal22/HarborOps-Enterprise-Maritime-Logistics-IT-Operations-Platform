@@ -15,7 +15,7 @@ The workspace, caches and test artifacts must follow [Local Storage Policy](LOCA
 - Base path: /api/v1
 - Content type: application/json
 - Transport: HTTPS when remotely accessible
-- Authentication: approved D-001 server-authoritative protected browser cookie (M1), with machine-source credentials implemented only as an unverified M7 candidate. [Decision](ADR_D001_BROWSER_SESSIONS.md).
+- Authentication: approved D-001 server-authoritative protected browser cookie (M1), with machine-source credentials implemented in M7 and technically verified locally (acceptance pending). [Decision](ADR_D001_BROWSER_SESSIONS.md).
 - Organization context: derived from authorized membership and explicitly selected organization
 - Timestamps: ISO 8601 UTC
 - Pagination: bounded limit, continuation token where useful
@@ -126,9 +126,9 @@ Responses should include: stable machine-readable error code, message suitable f
 
 Suggested statuses: 400 invalid input, 401 unauthenticated, 403 forbidden, 404 not visible or absent, 409 version/state conflict, 422 domain violation, 429 rate limit, and 5xx unexpected dependency/server failures.
 
-## M7 source-authenticated intake contract (implementation candidate)
+## M7 source-authenticated intake contract (technical verification executed)
 
-The unverified [M7 implementation](M7_IMPLEMENTATION_STATUS.md) adds a HarborOps-specific `POST /integrations/v1/tracking-events` using opaque, tenant-bound bearer credentials, an exact tracking profile, strict JSON limits, UTC occurrence timestamps and server-derived source identity. A parsed/valid event is **not** a durable receipt. Until M8 provides an atomic inbox transaction, even an authenticated valid event must return `503 intake_unavailable` with `Retry-After`, not HTTP 200/201/202. The canonical JSON uses `eventFamily` and `eventCode` with source and tenant identity derived only from the authenticated credential. D-002 reference/subset acceptance and the full [G7 verification matrix](M7_VERIFICATION_PLAN.md) are still pending; this route is not a claim of standard DCSA publisher API conformance.
+The [M7 implementation](M7_IMPLEMENTATION_STATUS.md), exercised by the [executed verification](M7_EXECUTED_VERIFICATION.md), adds a HarborOps-specific `POST /integrations/v1/tracking-events` using opaque, tenant-bound bearer credentials, an exact tracking profile, strict JSON limits, UTC occurrence timestamps and server-derived source identity. A parsed/valid event is **not** a durable receipt. Until M8 provides an atomic inbox transaction, even an authenticated valid event must return `503 intake_unavailable` with `Retry-After`, not HTTP 200/201/202. The canonical JSON uses `eventFamily` and `eventCode` with source and tenant identity derived only from the authenticated credential. D-002 reference/subset acceptance and G7 acceptance are still pending (see the [G7 verification matrix](M7_VERIFICATION_PLAN.md)); this route is not a claim of standard DCSA publisher API conformance.
 
 ## Compatibility and standards
 

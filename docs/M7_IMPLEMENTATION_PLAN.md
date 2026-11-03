@@ -1,6 +1,6 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Plan
 
-**State:** Implementation candidate committed, no G7 runtime verification executed or acceptance granted.
+**State:** Implemented and technically verified locally ([executed verification](M7_EXECUTED_VERIFICATION.md)); D-002 and G7 acceptance pending.
 **Prepared:** 2026-11-03
 **Branches:** Planning `plan/m7-tracking-contracts-source-auth`; implementation candidate `feat/m7-tracking-source-validation`
 **Starting baseline:** `main` `97b67739cf1dad543bf25fa56326fb4702990f41` with G0-G6 accepted
@@ -134,8 +134,8 @@ Run only locally. GitHub Actions remains disabled. A new manual-only workflow is
 
 ## 8. Planned handoff and acceptance
 
-M7 source, schema migration, contract fixtures, and executable test candidates are committed on the separate implementation branch. No G7 runtime results or acceptance are recorded. D-002 acceptance is pending. G7 needs actual source-locked local evidence and explicit acceptance before implementation merge.
+M7 source, schema migration, contract fixtures and tests are committed on the separate implementation branch and were executed in a source-locked local run recorded in the [executed verification](M7_EXECUTED_VERIFICATION.md). D-002 acceptance and explicit G7 acceptance are pending and are required before implementation merge.
 
-The detailed [G7-S01 through G7-S25](M7_VERIFICATION_PLAN.md) specification is the future evidence index authority. M8 remains blocked on G7, its accepted G6 prerequisite and its own D-006 decision; do not imply M8 readiness from M7 contract-only work.
+The detailed [G7-S01 through G7-S25](M7_VERIFICATION_PLAN.md) specification is the evidence index authority. M8 remains blocked on G7, its accepted G6 prerequisite and its own D-006 decision; do not imply M8 readiness from M7 contract-only work.
 
 Use feature branches and pull requests because `main` is protected. Do not run GitHub Actions, do not consume persistent C: storage, do not alter accepted G0-G6 evidence, and do not claim hosted application readiness.

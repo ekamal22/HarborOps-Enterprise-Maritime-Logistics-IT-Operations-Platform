@@ -1,6 +1,6 @@
 # M7 Tracking Contracts and Source Authentication: Architecture
 
-**State:** Implementation candidate committed on a separate feature branch; D-002 and G7 acceptance pending. No runtime verification has been executed.
+**State:** Implemented on a separate feature branch and technically verified locally ([executed verification](M7_EXECUTED_VERIFICATION.md)); D-002 and G7 acceptance pending.
 **Prepared:** 2026-11-03
 **Planning branch:** `plan/m7-tracking-contracts-source-auth`. **Implementation branch:** `feat/m7-tracking-source-validation`
 **Accepted base:** `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`, G0-G6 accepted

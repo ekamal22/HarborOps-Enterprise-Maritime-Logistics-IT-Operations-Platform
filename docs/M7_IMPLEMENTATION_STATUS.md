@@ -1,6 +1,6 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Register
 
-**State:** Correctness-audit and execution remediation committed; gate evidence run and acceptance pending.
+**State:** Correctness-audit and execution remediation committed; gate evidence run executed; D-002 and G7 acceptance pending.
 **Working branch:** `feat/m7-tracking-source-validation`
 **Baseline:** Accepted G0-G6 and M7 planning branch.
 **G7:** Technical run executed on one revision ([executed verification](M7_EXECUTED_VERIFICATION.md)); acceptance pending.
@@ -35,9 +35,9 @@ The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) and [secon
 
 ## Verification boundaries
 
-Development runs on the E:-backed workstation have compiled the solution, run the unit, contract and PostgreSQL integration suites, run the five controlled security mutations, and exercised the Compose, browser, outage and image-scan stages. These runs found and corrected the defects listed in the [remediation register](M7_CORRECTNESS_REMEDIATION.md). Development runs are not gate evidence.
+Development runs on the E:-backed workstation found and corrected the defects listed in the [remediation register](M7_CORRECTNESS_REMEDIATION.md). They are not gate evidence. The gate evidence is the single complete run on `7b87f3250aba677b1f4aeef4350803d9ca7b6880` recorded in the [executed verification](M7_EXECUTED_VERIFICATION.md), with supplements for G7-S06 and G7-S25.
 
-The local runner schedules the full gate: source-locked .NET build and tests with a repeat integration run, five controlled security mutations in a disposable E:-backed export, dependency advisories, web build, an isolated G7 network, browser fixtures, three-engine regression, source outage and recovery, exact-image scans, a per-scenario evidence summary and hashed teardown evidence. Protected interactive operator CLI issuance, pinned upstream fixture review and independent evidence assessment remain outside automatic G7 closure. G7-S01 additionally requires D-002 acceptance and a pinned reference artifact.
+The local runner schedules the full gate: source-locked .NET build and tests with a repeat integration run, five controlled security mutations in a disposable E:-backed export, dependency advisories, web build, an isolated G7 network, browser fixtures, three-engine regression, source outage and recovery, exact-image scans, a per-scenario evidence summary and hashed teardown evidence. The protected interactive operator CLI lifecycle was performed separately by the operator and verified against the database (G7-S06 supplement). Pinned upstream fixture review remains outside automatic G7 closure; G7-S01 and G7-S17 require D-002 acceptance and a pinned reference artifact.
 
 **Required next gate:** Complete the G7-S01 through G7-S25 matrix on one exact source revision using disposable E:-backed resources, review the raw evidence, address any failures, then request explicit G7 acceptance before merging into `main`.
 

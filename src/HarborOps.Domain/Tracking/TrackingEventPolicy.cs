@@ -57,8 +57,8 @@ public static class TrackingEventPolicy
             if (!Get(root, "externalSchemaVersion", out var externalVersion) || externalVersion != "2.2.0")
                 return TrackingValidation.Fail(422, "unsupported_tracking_variant");
 
-            var isEquipment = family == "Equipment" && code is "GTIN" or "GTOT";
-            var isTransport = family == "Transport" && code is "ARRI" or "DEPA";
+            var isEquipment = family == "Equipment" && (code is "GTIN" or "GTOT");
+            var isTransport = family == "Transport" && (code is "ARRI" or "DEPA");
             if (!isEquipment && !isTransport)
                 return TrackingValidation.Fail(422, "unsupported_tracking_variant");
 

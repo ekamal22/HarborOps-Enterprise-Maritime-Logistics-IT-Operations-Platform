@@ -41,7 +41,7 @@ public static class TrackingEndpoints
             }
             if (!limiter.Allow("source:" + source.Id.ToString("N"), 60)) return Throttled(context);
 
-            if (context.Request.Headers.ContentEncoding.Count > 0 ||
+            if (context.Request.Headers["Content-Encoding"].Count > 0 ||
                 !IsJsonContentType(context.Request.ContentType))
                 return Fail(context, 415, "unsupported_media_type", "JSON UTF-8 required");
             var profile = context.Request.Headers["X-HarborOps-Tracking-Profile"];

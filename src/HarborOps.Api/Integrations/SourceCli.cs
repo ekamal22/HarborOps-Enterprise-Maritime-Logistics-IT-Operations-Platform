@@ -15,9 +15,9 @@ public static class SourceCli
             throw new InvalidOperationException("Unsupported source operation");
         if (action == "create" && args.Length != 5 ||
             action == "revoke" && args.Length != 5 ||
-            action is "rotate" or "disable" or "inspect" && args.Length != 4)
+            (action is "rotate" or "disable" or "inspect") && args.Length != 4)
             throw new InvalidOperationException("Invalid source operation arguments");
-        if (action is "create" or "rotate" && Console.IsOutputRedirected)
+        if ((action is "create" or "rotate") && Console.IsOutputRedirected)
             throw new InvalidOperationException("Provisioning requires a protected interactive terminal");
 
         using var scope = services.CreateScope();

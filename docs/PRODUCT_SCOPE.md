@@ -51,7 +51,7 @@ The [M3 design](M3_ARCHITECTURE_DESIGN.md) delivers accepted organization-owned 
 
 ## Accepted M5/M6 shipment and assignment boundary
 
-[M5 architecture](M5_ARCHITECTURE_DESIGN.md) and [implementation plan](M5_IMPLEMENTATION_PLAN.md) allocate manual shipment lifecycle, bounded list/detail/search, archive/restore and versioned edits to M5. M6 owns container/voyage assignments; tracking projections and CSV export belong to later milestones. [G5](M5_G5_GATE_CLOSURE.md) and [G6](M6_G6_GATE_CLOSURE.md) were accepted on 2026-11-02 and integrated into `main`. The next [M7 source contract plan](M7_ARCHITECTURE_DESIGN.md) deliberately excludes M8 durable event intake, M9 processing and M10 projection.
+[M5 architecture](M5_ARCHITECTURE_DESIGN.md) and [implementation plan](M5_IMPLEMENTATION_PLAN.md) allocate manual shipment lifecycle, bounded list/detail/search, archive/restore and versioned edits to M5. M6 owns container/voyage assignments; tracking projections and CSV export belong to later milestones. [G5](M5_G5_GATE_CLOSURE.md) and [G6](M6_G6_GATE_CLOSURE.md) were accepted on 2026-11-02 and integrated into `main`. The accepted [M7 source contract](M7_ARCHITECTURE_DESIGN.md) supplies source identity and payload validation without success acknowledgment. [G7](M7_G7_GATE_CLOSURE.md) was accepted 2026-11-03. M8 durable receipt, M9 processing and M10 projections remain separate milestones.
 
 ## Out of scope for initial release
 

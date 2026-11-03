@@ -6,7 +6,7 @@ The [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and version 3.0 [Exe
 
 ## Requirement status
 
-Requirements describe the intended complete product. G0, G1, G2, G3 and G4 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
+Requirements describe the intended complete product. G0 through G7 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
 
 ## Observed baseline and storage boundary
 
@@ -43,7 +43,7 @@ All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_PO
 
 ## M1 identity requirement allocation
 
-[The accepted M1 design](M1_AUTHENTICATION_DESIGN.md) addresses `FR-001`, `NFR-002` and `NFR-003` for identity, credentials, cookies, keys and logs. Organization and role authorization is `FR-002`, implemented and accepted in M2; integration source authentication remains M7. Human browser sessions use protected cookies, not browser JWT/refresh-token storage. D-001/G1 and G2 are accepted. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) and [executed G2 verification](M2_EXECUTED_VERIFICATION.md) record the completed tenant-isolation implementation on `main`.
+[The accepted M1 design](M1_AUTHENTICATION_DESIGN.md) addresses `FR-001`, `NFR-002` and `NFR-003` for identity, credentials, cookies, keys and logs. Organization and role authorization is `FR-002`, implemented and accepted in M2; integration source authentication was implemented and accepted in M7. Human browser sessions use protected cookies, not browser JWT/refresh-token storage. D-001/G1 and G2 are accepted. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) and [executed G2 verification](M2_EXECUTED_VERIFICATION.md) record the completed tenant-isolation implementation on `main`.
 
 ## M2 organization authorization allocation (implemented, verified and accepted)
 
@@ -63,11 +63,11 @@ M5-01 through M5-04 implement organization-scoped shipment CRUD and exact-versio
 
 ## M6 FR-005 allocation (implemented, verified and accepted)
 
-FR-005 shipment-container and shipment-voyage assignments were implemented under the accepted [twelve-rule contract](M6_LOCAL_CONTRACT_DECISION.md). M6 provides tenant-owned UTC half-open intervals, PostgreSQL overlap exclusions, versioned closure, parent guards, route constraints and scoped allocation history. All G6 executable checks passed on the tested source; contract approval subsequently closed G6-S01. M6/G6 were explicitly accepted and merged on 2026-11-02. See [G6 closure](M6_G6_GATE_CLOSURE.md). Event ingestion remains M7-M10 and advanced export remains M12.
+FR-005 shipment-container and shipment-voyage assignments were implemented under the accepted [twelve-rule contract](M6_LOCAL_CONTRACT_DECISION.md). M6 provides tenant-owned UTC half-open intervals, PostgreSQL overlap exclusions, versioned closure, parent guards, route constraints and scoped allocation history. All G6 executable checks passed on the tested source; contract approval subsequently closed G6-S01. M6/G6 were explicitly accepted and merged on 2026-11-02. See [G6 closure](M6_G6_GATE_CLOSURE.md). Durable event intake and processing remain M8-M10 and advanced export remains M12; M7 source validation is accepted.
 
-## M7 FR-007 source contract allocation (planned, not implemented)
+## Accepted M7 FR-007 source contract allocation
 
-M7-01 to M7-04 satisfy the **validation and source-authentication** portion of FR-007 and the applicable FR-002, NFR-002, NFR-003, NFR-006 and NFR-007 boundaries. [M7 architecture](M7_ARCHITECTURE_DESIGN.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the intended source-tenant credential and bounded payload behavior. FR-006 immutable durable event history, FR-008 idempotent processing and accepted-event acknowledgment are **not** delivered in M7: M8 introduces receipt persistence under D-006, followed by M9 and M10. D-002 is accepted (2026-11-03, Option A) and M7 is implemented and technically verified locally; G7 acceptance remains pending.
+M7-01 to M7-04 satisfy the **validation and source-authentication** portion of FR-007 and the applicable FR-002, NFR-002, NFR-003, NFR-006 and NFR-007 boundaries. [M7 architecture](M7_ARCHITECTURE_DESIGN.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the intended source-tenant credential and bounded payload behavior. FR-006 immutable durable event history, FR-008 idempotent processing and accepted-event acknowledgment are **not** delivered in M7: M8 introduces receipt persistence under D-006, followed by M9 and M10. D-002 Option A and M7/G7 were accepted 2026-11-03 following source-locked evidence and independently reviewed supplements. See [G7 closure](M7_G7_GATE_CLOSURE.md).
 
 ## Non-functional requirements
 

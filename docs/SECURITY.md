@@ -65,9 +65,9 @@ The accepted [M3 architecture](M3_ARCHITECTURE_DESIGN.md) provides tenant-owned 
 
 M5 implements typed shipment permissions, session and tenant revalidation, status history and versioned changes. M6 adds typed allocation permissions, tenant-scoped container and voyage histories, PostgreSQL interval exclusions, post-lock authorization, parent guards and immutable history. Their local gates G5 and G6 were explicitly accepted 2026-11-02. [M5 closure](M5_G5_GATE_CLOSURE.md) and [M6/G6 closure](M6_G6_GATE_CLOSURE.md) retain execution evidence and limitations. Neither gate constitutes internet-hosting or production certification.
 
-## M7 integration-source implementation (technical verification executed)
+## Accepted M7 integration-source implementation
 
-A separate feature branch adds organization-bound opaque bearer credentials, digest-only storage, direct database revocation checks and independent tracking-event authorization. The source passed a complete local technical run (see [executed verification](M7_EXECUTED_VERIFICATION.md)) and is not integrated into `main`. The endpoint never acknowledges receipt without M8 durable storage. See [M7 implementation status](M7_IMPLEMENTATION_STATUS.md). G7 acceptance remains pending; D-002 is accepted (Option A).
+M7 adds organization-bound opaque bearer credentials, digest-only storage, direct database revocation checks and independent tracking-event authorization. The source passed a complete local technical run (see [executed verification](M7_EXECUTED_VERIFICATION.md)), G7 was accepted 2026-11-03 and the implementation is integrated into `main`. The endpoint never acknowledges receipt without M8 durable storage. See [M7 implementation status](M7_IMPLEMENTATION_STATUS.md). G7 and D-002 Option A are accepted (2026-11-03); see [gate closure](M7_G7_GATE_CLOSURE.md).
 
 ## Transport trust model
 
@@ -75,7 +75,7 @@ Authenticated and state-changing routes require HTTPS, except when `Identity:All
 
 ## M7 source-authentication security boundary
 
-The M7 implementation adds separate machine-source bearers, organization-first lifecycle locks with tracked-state refresh, a joined credential/source/organization authorization query with row locks, database immutability guards, bounded pre-authentication rate-limiter state, strict TLS/peer trust, bounded JSON and safe error envelopes. The G7 run isolated the proxy network and killed five source-security mutations (digest check, status checks, revocation, body bound, database lifecycle guard); its recorded limits include the end-to-end `499` path and the unexercised hosted TLS deployment. Human session cookies do not authorize machine intake. No event may receive a success acknowledgment until M8 durably records it. The controls are exercised by the [G7 security matrix](M7_VERIFICATION_PLAN.md) results in the [executed verification](M7_EXECUTED_VERIFICATION.md); G7 acceptance remains pending; D-002 is accepted (Option A).
+The M7 implementation adds separate machine-source bearers, organization-first lifecycle locks with tracked-state refresh, a joined credential/source/organization authorization query with row locks, database immutability guards, bounded pre-authentication rate-limiter state, strict TLS/peer trust, bounded JSON and safe error envelopes. The G7 run isolated the proxy network and killed five source-security mutations (digest check, status checks, revocation, body bound, database lifecycle guard); its recorded limits include the end-to-end `499` path and the unexercised hosted TLS deployment. Human session cookies do not authorize machine intake. No event may receive a success acknowledgment until M8 durably records it. The controls are exercised by the [G7 security matrix](M7_VERIFICATION_PLAN.md) results in the [executed verification](M7_EXECUTED_VERIFICATION.md); G7 and D-002 Option A are accepted (2026-11-03); see [gate closure](M7_G7_GATE_CLOSURE.md).
 
 ## Public repository and deployment readiness
 

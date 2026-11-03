@@ -4,7 +4,7 @@
 
 Transform third-party or simulated maritime tracking signals into a trustworthy, inspectable shipment timeline while preserving the original source record.
 
-**Milestone boundary:** [M7](M7_ARCHITECTURE_DESIGN.md) establishes source authentication and strict contract validation without a durable event receipt. Valid M7 requests must return `503 intake_unavailable` until M8 implements transactional inbox persistence. This document describes the complete M7-M15 target pipeline, not functionality already implemented in M7; M8 owns immutable receipts, M9 worker processing and M10 projections.
+**Milestone boundary:** [M7](M7_ARCHITECTURE_DESIGN.md) and G7 were accepted 2026-11-03 and integrated into `main` ([closure](M7_G7_GATE_CLOSURE.md)). M7 establishes source authentication and strict contract validation without a durable event receipt. Valid M7 requests must return `503 intake_unavailable` until M8 implements transactional inbox persistence. This document describes the complete M7-M15 target pipeline, not functionality already implemented in M7; M8 owns immutable receipts, M9 worker processing and M10 projections.
 
 ## Processing pipeline
 

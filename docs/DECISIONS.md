@@ -1,6 +1,6 @@
 # Architecture Decisions
 
-This document records accepted architecture decisions and outstanding choices. D-003 was explicitly accepted on 2026-11-01 alongside G4 after independent evidence review.
+This document records accepted architecture decisions and outstanding choices. D-003 was explicitly accepted on 2026-11-01 alongside G4 after independent evidence review. D-002 Option A and M7/G7 were accepted on 2026-11-03; see [G7 closure](M7_G7_GATE_CLOSURE.md). D-006 for M8 remains open.
 
 ## Local storage constraint
 
@@ -45,7 +45,7 @@ The [granular roadmap](ROADMAP.md) assigns earlier decision deadlines to narrowe
 ### D-001: Human browser authentication and server-side session authority
 **Status:** Accepted architecture; M1 implemented, verified and accepted on 2026-10-31, integrated into `main` via PR #4 (`8f9fc0d506a9e1dc1d4f5acab936622df988f413`).
 
-Human browser login uses ASP.NET Core 10 cookie authentication with protected tickets, PostgreSQL-backed authoritative session validation on every authenticated request, Argon2id password hashes, antiforgery protection, same-origin React/API routing and persistent Data Protection keys. Account disablement or password reset invalidates sessions immediately. Integration-scoped tokens remain deferred to M7, while organization roles/isolation begin in M2. The approved detailed record is [D-001](ADR_D001_BROWSER_SESSIONS.md), with [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 test plan](M1_VERIFICATION_PLAN.md). This decision approval is distinct from the [executed M1 runtime verification](M1_IMPLEMENTATION_VERIFICATION.md) and from G1 acceptance, which was explicitly recorded on 2026-10-31.
+Human browser login uses ASP.NET Core 10 cookie authentication with protected tickets, PostgreSQL-backed authoritative session validation on every authenticated request, Argon2id password hashes, antiforgery protection, same-origin React/API routing and persistent Data Protection keys. Account disablement or password reset invalidates sessions immediately. Integration-scoped tokens were implemented and accepted in M7, while organization roles/isolation begin in M2. The approved detailed record is [D-001](ADR_D001_BROWSER_SESSIONS.md), with [M1 design](M1_AUTHENTICATION_DESIGN.md) and [G1 test plan](M1_VERIFICATION_PLAN.md). This decision approval is distinct from the [executed M1 runtime verification](M1_IMPLEMENTATION_VERIFICATION.md) and from G1 acceptance, which was explicitly recorded on 2026-10-31.
 
 ## M2 implementation choices (verified locally; not a new global decision)
 
@@ -76,7 +76,7 @@ D-003 approval and G4 acceptance were explicitly provided on 2026-11-01 followin
 
 See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed shipment lifecycle/permissions contract awaiting explicit confirmation. This M5-local decision is not an additional global D-number and does not change the execution graph.
 
-## Open decisions
+## Milestone decisions (accepted and open)
 
 | ID | Decision required | Default hypothesis | Required before |
 | --- | --- | --- | --- |

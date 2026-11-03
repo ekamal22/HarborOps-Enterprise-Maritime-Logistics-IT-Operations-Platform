@@ -1,3 +1,4 @@
+using System.Data.Common;
 using HarborOps.Api.Authentication;
 using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
@@ -9,8 +10,8 @@ public static class TrackingEndpoints
     public static void MapTrackingEndpoints(this WebApplication app)
     {
         app.MapPost("/integrations/v1/tracking-events", async (
-            HttpContext context, IntegrationSourceStore store, IntegrationRequestLimiter limiter,
-            TimeProvider clock, CancellationToken ct) =>
+            HttpContext context, IntegrationSourceStore store, TrackingInboxStore inbox,
+            IntegrationRequestLimiter limiter, TimeProvider clock, CancellationToken ct) =>
         {
             context.Response.Headers.CacheControl = "no-store";
             if (!AuthenticationSetup.IsAllowedTransport(context, app.Configuration))
@@ -83,9 +84,51 @@ public static class TrackingEndpoints
             var normalized = validation.Value.Bind(source.Id, source.OrganizationId);
             if (normalized.SourceId != source.Id || normalized.OrganizationId != source.OrganizationId)
                 return Fail(context, 403, "source_access_denied", "Source access denied");
-            // No persistent receipt exists until M8. Validation must never be a success acknowledgment.
-            context.Response.Headers.RetryAfter = "60";
-            return Fail(context, 503, "intake_unavailable", "Durable event intake is not available");
+            // Only a completed receipt transaction can produce HTTP 202.
+            // The original bearer is checked again under the write transaction locks.
+            try
+            {
+                var result = await inbox.ReceiveAsync(normalized, raw[7..],
+                    bytes.AsMemory(0, count), context.Items["CorrelationId"]?.ToString() ?? "", ct);
+                switch (result.Outcome)
+                {
+                    case TrackingReceiptOutcome.Received:
+                    case TrackingReceiptOutcome.Replayed:
+                        return Results.Json(new
+                        {
+                            receiptId = result.ReceiptId,
+                            status = "received",
+                            duplicate = result.Outcome == TrackingReceiptOutcome.Replayed,
+                            receivedAtUtc = result.ReceivedAtUtc,
+                            correlationId = context.Items["CorrelationId"]
+                        }, statusCode: StatusCodes.Status202Accepted);
+                    case TrackingReceiptOutcome.Collision:
+                        return Fail(context, 409, "source_event_collision",
+                            "Source event identifier conflicts with an earlier receipt");
+                    case TrackingReceiptOutcome.AccessDenied:
+                        return Fail(context, 403, "source_access_denied", "Source access denied");
+                    case TrackingReceiptOutcome.CapacityExceeded:
+                        context.Response.Headers.RetryAfter = "60";
+                        return Fail(context, 503, "intake_capacity_exceeded",
+                            "Durable intake is temporarily at capacity");
+                    default:
+                        throw new InvalidOperationException("Unknown tracking receipt outcome");
+                }
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                return Results.StatusCode(499);
+            }
+            catch (DbException)
+            {
+                context.Response.Headers.RetryAfter = "60";
+                return Fail(context, 503, "receipt_unavailable", "Durable receipt temporarily unavailable");
+            }
+            catch (TimeoutException)
+            {
+                context.Response.Headers.RetryAfter = "60";
+                return Fail(context, 503, "receipt_unavailable", "Durable receipt temporarily unavailable");
+            }
         }).AllowAnonymous();
     }
 

@@ -20,7 +20,7 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
             Convert.ToBase64String(secret).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 
-    private static byte[]? ParseSecret(string token, out Guid id)
+    internal static byte[]? ParseSecret(string token, out Guid id)
     {
         id = Guid.Empty;
         if (token.Length != 83 || !token.StartsWith("hop_v1_", StringComparison.Ordinal) ||

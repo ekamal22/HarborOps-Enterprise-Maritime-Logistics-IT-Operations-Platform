@@ -11,7 +11,9 @@ namespace HarborOps.IntegrationTests;
 
 public sealed class OrganizationIsolationTests
 {
-    private const string Password = "Synthetic-organization-test-passphrase-123";
+    // Generated per run so no credential-like literal is committed.
+    private static readonly string Password =
+        "Synthetic-" + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
 
     [Fact]
     public async Task TwoOrganizationsHaveIndependentSelectionsAndLiveRoleChanges()

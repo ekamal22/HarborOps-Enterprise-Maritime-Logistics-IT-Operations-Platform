@@ -3,6 +3,27 @@ import { expect, test } from "@playwright/test";
 const enabled = process.env.HARBOROPS_M4_FIXTURES === "1" &&
   Boolean(process.env.HARBOROPS_TEST_USER_PASSWORD);
 
+// The select value changes before the server-side organization selection completes, and the
+// workspace re-renders (resetting the active tab) when the PUT resolves. Wait for both before any
+// further interaction, otherwise a tab click made in between is lost.
+async function selectOrganization(page, label) {
+  const saved = page.waitForResponse(r => r.request().method() === "PUT" &&
+    new URL(r.url()).pathname === "/api/v1/auth/session/organization");
+  await page.locator("#current-organization").selectOption({ label });
+  expect((await saved).ok()).toBeTruthy();
+  await expect(page.locator("#current-organization")).not.toHaveValue("");
+}
+
+// The workspace is keyed by organization and role, so it can remount (and fall back to the Voyages
+// tab) shortly after an organization switch settles. Repeat the click until the Containers view is
+// actually shown instead of assuming that the first click survived the remount.
+async function showContainers(section) {
+  await expect(async () => {
+    await section.getByRole("button", { name: "Containers", exact: true }).click();
+    await expect(section.getByLabel("Search containers")).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+}
+
 async function login(page, email = "m3-manager@example.test") {
   await page.goto("/");
   await page.getByLabel("Email").fill(email);
@@ -36,10 +57,9 @@ test("M4 container pagination preserves tenant results across multiple pages", a
   test.skip(!enabled, "Disposable M4 fixtures required");
   test.setTimeout(180_000);
   await login(page);
-  await page.locator("#current-organization")
-    .selectOption({ label: "M3 North Terminal (Manager)" });
+  await selectOrganization(page, "M3 North Terminal (Manager)");
   const section = sectionOf(page);
-  await section.getByRole("button", { name: "Containers", exact: true }).click();
+  await showContainers(section);
   const organizations = (await (await page.request.get("/api/v1/me/organizations")).json()).organizations;
   const organization = organizations.find(item => item.slug === "m3-north");
   expect(organization?.id).toBeTruthy();
@@ -100,10 +120,9 @@ test("M4 logging out during delayed maritime response never reveals stale data",
   test.skip(!enabled, "Disposable M4 fixtures required");
   test.setTimeout(120_000);
   await login(page);
-  await page.locator("#current-organization")
-    .selectOption({ label: "M3 North Terminal (Manager)" });
+  await selectOrganization(page, "M3 North Terminal (Manager)");
   const section = sectionOf(page);
-  await section.getByRole("button", { name: "Containers", exact: true }).click();
+  await showContainers(section);
   // Other specs add containers, so the fixture is found by search rather than by list position.
   await section.getByLabel("Search containers").fill("M4-BOX-NORTH");
   await expect(section.getByText("M4-BOX-NORTH")).toBeVisible();
@@ -143,10 +162,9 @@ test("M4 invalid container identifier is rejected and the form recovers", async 
   test.skip(!enabled, "Disposable M4 fixtures required");
   test.setTimeout(120_000);
   await login(page);
-  await page.locator("#current-organization")
-    .selectOption({ label: "M3 North Terminal (Manager)" });
+  await selectOrganization(page, "M3 North Terminal (Manager)");
   const section = sectionOf(page);
-  await section.getByRole("button", { name: "Containers", exact: true }).click();
+  await showContainers(section);
   await section.getByRole("button", { name: "Add container" }).click();
   const nonce = Date.now().toString(36).toUpperCase();
   const { valid, invalid } = isoIdentifiers();

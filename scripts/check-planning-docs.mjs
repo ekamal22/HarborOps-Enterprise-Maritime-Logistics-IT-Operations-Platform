@@ -20,7 +20,10 @@ function assert(ok, message) {
 
 assert(graph.schema_version === 2, "Expected version 2 execution graph");
 assert(storagePolicy.includes("Persistent project-specific writes to C: are prohibited"), "E-drive storage policy missing its persistent-storage prohibition");
-assert(storagePolicy.includes("APP IDEAS"), "E-drive workspace root missing from storage policy");
+// The policy names the E: requirement generically; a workstation-specific folder name is
+// deliberately absent so shared documentation does not disclose local machine layout.
+assert(storagePolicy.includes("Configured E:-backed workspace path"), "E-drive workspace requirement missing from storage policy");
+assert(!storagePolicy.includes("APP IDEAS"), "Storage policy must not name the workstation folder");
 for (const [name, content] of [
   ["README", readme],
   ["Status", status],

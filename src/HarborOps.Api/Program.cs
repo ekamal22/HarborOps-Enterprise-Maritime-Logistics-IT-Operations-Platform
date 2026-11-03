@@ -6,7 +6,9 @@ using HarborOps.Api.Maritime;
 using HarborOps.Api.Shipments;
 using HarborOps.Api.Assignments;
 using Microsoft.AspNetCore.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
+using Microsoft.AspNetCore.HttpOverrides;
 using HarborOps.Api.Health;
 using HarborOps.Application.Baseline;
 using HarborOps.Infrastructure;
@@ -25,6 +27,18 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 builder.Services.AddHarborOpsPersistence(connectionString);
 builder.Services.AddHarborOpsAuthentication(builder.Configuration);
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;
+    var known = builder.Configuration.GetSection("ReverseProxy:KnownProxies").Get<string[]>() ?? [];
+    foreach (var address in known)
+    {
+        if (!IPAddress.TryParse(address, out var parsed))
+            throw new InvalidOperationException("Invalid trusted reverse-proxy address");
+        options.KnownProxies.Add(parsed);
+    }
+});
 builder.Services.AddHealthChecks()
     .AddCheck<DatabaseReadinessCheck>("database", tags: ["ready"]);
 
@@ -57,6 +71,8 @@ if (args.Contains("--migrate", StringComparer.Ordinal))
     await BootstrapSeeder.SeedAsync(database, CancellationToken.None);
     return;
 }
+
+app.UseForwardedHeaders();
 
 app.Use(async (context, next) =>
 {

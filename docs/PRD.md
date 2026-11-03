@@ -83,13 +83,15 @@ M3 delivers the first accepted organization-owned maritime reference module afte
 
 An authenticated, authorized analyst selects an active organization and creates a shipment from validated reference records. Container and voyage assignments must respect temporal and ownership invariants. Edits use concurrency protection. Search and detail requests include the same server-side organization boundary; archive prevents casual deletion of referenced history. See FR-001 through FR-005 and [Domain Model](DOMAIN_MODEL.md).
 
-### 5.1.1 Proposed M5 shipment lifecycle
+### 5.1.1 Accepted M5 shipment lifecycle
 
-The [M5 architecture](M5_ARCHITECTURE_DESIGN.md) and [G5 plan](M5_VERIFICATION_PLAN.md) specify operator-entered shipment progress, scoped CRUD, status history, concurrency and archival. This differs from tracking-derived movement and from container/voyage assignments in M6. Planning is committed but M5 is not yet implemented or accepted.
+The [M5 architecture](M5_ARCHITECTURE_DESIGN.md) and [G5 plan](M5_VERIFICATION_PLAN.md) specify operator-entered shipment progress, scoped CRUD, status history, concurrency and archival. This differs from tracking-derived movement and from container/voyage assignments in M6. M5 was implemented and accepted on 2026-11-02; its manual status history is separate from tracking-derived movement and [M6 assignments](M6_G6_GATE_CLOSURE.md). See [G5 closure](M5_G5_GATE_CLOSURE.md).
 
 ### 5.2 Event lifecycle
 
 An entitled source submits a bounded, versioned event. The system durably records receipt, authenticates and validates it, resolves identity, and applies at most one business effect per source-specific event key. Unknown, conflicting, malformed, corrected, late, and reordered events have inspectable outcomes. Accepted history is immutable and projections are reproducibly rebuildable. A worker restart or database outage must not silently discard accepted receipts. See FR-006 through FR-010 and [Event Processing](EVENT_PROCESSING.md).
+
+The current [M7 proposal](M7_ARCHITECTURE_DESIGN.md) covers source authentication and bounded event validation only. It must not acknowledge successful event receipt before M8 durable storage, and it does not implement this end-to-end event lifecycle yet.
 
 ### 5.3 Analytics, map, and notifications
 

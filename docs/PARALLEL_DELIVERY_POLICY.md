@@ -27,7 +27,7 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M4 voyage/container records | Completed | G4 accepted 2026-11-01; D-003 Option B accepted, implementation integrated |
 | M5 shipment lifecycle | Completed | G5 accepted 2026-11-02 and integrated into `main` after independent evidence review |
 | M6 shipment assignments | Accepted and merged | G4/G5 prerequisites were accepted; the [twelve-rule M6 contract](M6_LOCAL_CONTRACT_DECISION.md) and full G6 were accepted 2026-11-02, then integrated into `main`. [Gate closure](M6_G6_GATE_CLOSURE.md) preserves evidence provenance and snapshot limitations. |
-| M7 tracking source contract | M7-01 | G3 accepted; D-002 pinned contract decision required |
+| M7 tracking source contract | M7-01 | G3 accepted; [D-002 proposed](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), explicit pin and acceptance required before implementation; [M7 work packages](M7_IMPLEMENTATION_PLAN.md) permit M7-02/M7-03 parallel work after M7-01 |
 | M16 audit foundations | M16-01 | G3 accepted; never weaken existing M1-M3 security |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |
 | M19 recovery foundations | M19-01 | G3 accepted; D-008 and safe isolated backups before risky operations |

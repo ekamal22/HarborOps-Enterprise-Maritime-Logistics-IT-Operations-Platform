@@ -64,6 +64,10 @@ The [25-case G5 matrix](M5_VERIFICATION_PLAN.md) covers domain transitions, tena
 
 The accepted [M6 local assignment contract](M6_LOCAL_CONTRACT_DECISION.md), [architecture](M6_ARCHITECTURE_DESIGN.md) and [implementation plan](M6_IMPLEMENTATION_PLAN.md) define two tenant-owned UTC half-open allocation histories. The G6 technical verification at the pinned source passed 149 unit, 12 contract, 187 fresh and 187 repeat integration tests, and 57 browser tests in each engine, alongside four effective security mutations, historical migration, outage/recovery and clean scans. The original evidence assertion exited 1 solely for pending G6-S01 contract acceptance. The twelve-rule contract and full G6 were explicitly accepted on 2026-11-02. See [gate closure](M6_G6_GATE_CLOSURE.md).
 
+## Proposed M7/G7 verification contract (not executed)
+
+The proposed [G7-S01 through G7-S25 plan](M7_VERIFICATION_PLAN.md) requires pinned D-002 source artifacts, direct two-tenant bearer-authentication checks, credential lifecycle/revocation races, exact JSON limits, HTTPS and trusted-proxy denial, a `503 intake_unavailable` no-ack proof, M6-to-M7 migration preservation, affected accepted M0-M6 regressions and source-locked E:-backed evidence. No M7 suite has been executed or accepted. GitHub Actions stays disabled.
+
 ## Publication security verification (executed locally)
 
 The repository became publicly viewable on 2026-11-03 after branch protection and historical artifact cleanup. Source visibility does not authorize public application hosting. GitHub Actions remains disabled; new verification uses approved, isolated E:-backed local resources. See [Publication Safety Status](PUBLICATION_SAFETY_STATUS.md) for the final disclosure and governance disposition.

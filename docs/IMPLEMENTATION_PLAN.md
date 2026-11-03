@@ -71,6 +71,10 @@ M4-01 through M4-04 were implemented and G4 was explicitly accepted on 2026-11-0
 
 The [M5 architecture](M5_ARCHITECTURE_DESIGN.md), [implementation plan](M5_IMPLEMENTATION_PLAN.md) and [G5 closure](M5_G5_GATE_CLOSURE.md) record the accepted shipment lifecycle. The [M6 architecture](M6_ARCHITECTURE_DESIGN.md), [implementation plan](M6_IMPLEMENTATION_PLAN.md) and [G6 closure](M6_G6_GATE_CLOSURE.md) record accepted shipment-container and shipment-voyage association histories. Both milestones are integrated into `main`; G5 and G6 were accepted on 2026-11-02. Preserve their authorization, interval and concurrency rules in later implementation.
 
+## M7 proposed tracking contract implementation
+
+The [M7 architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md), [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the next tracking-source contract scope. M7-01 must pin and obtain acceptance for D-002 before M7-02/M7-03, which may proceed independently before M7-04 integration. No M7 code or verification has started. M8, not M7, supplies durable intake and receipt acknowledgment.
+
 ## Concurrent work-package implementation
 
 The canonical graph v3.0 defines technical dependencies at package level rather than forcing milestone-number order. Read the specific `depends_on` edges before allocating work. The accepted G0-G6 baseline may support several parallel streams, provided any mandatory D-IDs are resolved before affected implementation.

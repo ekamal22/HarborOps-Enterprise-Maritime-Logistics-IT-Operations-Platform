@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -53,6 +54,20 @@ public sealed class TrackingSourceBoundaryHttpTests
         }
     }
 
+    // An unknown Content-Length forces the request body to be streamed.
+    private sealed class UnknownLengthContent(byte[] bytes) : HttpContent
+    {
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
+        }
+
+        protected override Task SerializeToStreamAsync(Stream stream,
+            System.Net.TransportContext? context) =>
+            stream.WriteAsync(bytes).AsTask();
+    }
+
     [Fact]
     public async Task MediaProfilesSizeAndMethodRejectSafely()
     {
@@ -91,7 +106,7 @@ public sealed class TrackingSourceBoundaryHttpTests
         using (var req = Request(token))
         {
             var bytes = Encoding.UTF8.GetBytes(new string(' ', 16385));
-            req.Content = new StreamContent(new MemoryStream(bytes));
+            req.Content = new UnknownLengthContent(bytes);
             req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             await AssertError(await client.SendAsync(req),
                 HttpStatusCode.RequestEntityTooLarge, "body_too_large");

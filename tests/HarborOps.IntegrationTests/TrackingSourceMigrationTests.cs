@@ -105,6 +105,13 @@ public sealed class TrackingSourceMigrationTests
             db.Voyages.Add(voyage);
             db.Shipments.Add(shipment);
             await db.SaveChangesAsync();
+            // M5 status history is an independent table, not an EF insertion side effect.
+            db.ShipmentStatusChanges.Add(new ShipmentStatusChange
+            {
+                Id = Guid.NewGuid(), OrganizationId = org.Id, ShipmentId = shipment.Id,
+                FromStatus = null, ToStatus = "Draft", Version = 1,
+                ChangedAtUtc = now, ChangedByUserId = session.UserId
+            });
             db.ShipmentContainerAssignments.Add(new ShipmentContainerAssignment
             {
                 Id = Guid.NewGuid(), OrganizationId = org.Id, ShipmentId = shipment.Id,

@@ -92,9 +92,9 @@ M5 supports tenant-scoped shipment create, edit, search, archive and restore, a 
 
 M6 implements tenant-safe shipment-container and shipment-voyage allocation history, UTC half-open intervals, PostgreSQL overlap exclusions, versioned closure, parent lifecycle guards, scoped APIs and a React allocation workspace. Source-locked verification on `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` passed 706 tests with zero failures or skips and four effective security mutations. G6-S01 was subsequently closed by approval of the complete [twelve-rule contract](docs/M6_LOCAL_CONTRACT_DECISION.md) and G6 on 2026-11-02. The original evidence assertion exit 1 remains preserved; the M0-only historical snapshot limitation is documented. See [G6 gate closure](docs/M6_G6_GATE_CLOSURE.md) and [executed verification](docs/M6_EXECUTED_VERIFICATION.md).
 
-### M7 tracking contract planning (not implemented)
+### M7 tracking contract implementation candidate (not verified)
 
-The proposed [M7 architecture](docs/M7_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M7_IMPLEMENTATION_PLAN.md), [D-002 reference proposal](docs/M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 verification matrix](docs/M7_VERIFICATION_PLAN.md) define secure source credentials and a bounded, versioned tracking-event adapter. [M7 planning status](docs/M7_PLANNING_STATUS.md) records D-002 acceptance pending, no M7 runtime implementation and no G7 executed verification. Durable event receipt is M8, not M7; no successful intake acknowledgment is permitted without persistence.
+The proposed [M7 architecture](docs/M7_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M7_IMPLEMENTATION_PLAN.md), [D-002 reference proposal](docs/M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [G7 verification matrix](docs/M7_VERIFICATION_PLAN.md) define secure source credentials and a bounded, versioned tracking-event adapter. [M7 implementation status](docs/M7_IMPLEMENTATION_STATUS.md) records the source and test candidate on a separate branch. D-002 acceptance, runtime verification and G7 acceptance remain pending; M7 is not integrated into `main`. Durable event receipt is M8, not M7; no successful intake acknowledgment is permitted without persistence.
 
 ### Parallel dependency-based delivery
 

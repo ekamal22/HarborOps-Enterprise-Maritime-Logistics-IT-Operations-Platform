@@ -126,9 +126,9 @@ Responses should include: stable machine-readable error code, message suitable f
 
 Suggested statuses: 400 invalid input, 401 unauthenticated, 403 forbidden, 404 not visible or absent, 409 version/state conflict, 422 domain violation, 429 rate limit, and 5xx unexpected dependency/server failures.
 
-## M7 source-authenticated intake contract (proposed, not implemented)
+## M7 source-authenticated intake contract (implementation candidate)
 
-The [M7 architecture](M7_ARCHITECTURE_DESIGN.md) proposes a HarborOps-specific `POST /integrations/v1/tracking-events` using opaque, tenant-bound bearer credentials, an exact tracking profile, strict JSON limits, UTC occurrence timestamps and server-derived source identity. A parsed/valid event is **not** a durable receipt. Until M8 provides an atomic inbox transaction, even an authenticated valid event must return `503 intake_unavailable` with `Retry-After`, not HTTP 200/201/202. D-002 reference/subset acceptance and the full [G7 verification matrix](M7_VERIFICATION_PLAN.md) are still pending; this route is not a claim of standard DCSA publisher API conformance.
+The unverified [M7 implementation](M7_IMPLEMENTATION_STATUS.md) adds a HarborOps-specific `POST /integrations/v1/tracking-events` using opaque, tenant-bound bearer credentials, an exact tracking profile, strict JSON limits, UTC occurrence timestamps and server-derived source identity. A parsed/valid event is **not** a durable receipt. Until M8 provides an atomic inbox transaction, even an authenticated valid event must return `503 intake_unavailable` with `Retry-After`, not HTTP 200/201/202. D-002 reference/subset acceptance and the full [G7 verification matrix](M7_VERIFICATION_PLAN.md) are still pending; this route is not a claim of standard DCSA publisher API conformance.
 
 ## Compatibility and standards
 

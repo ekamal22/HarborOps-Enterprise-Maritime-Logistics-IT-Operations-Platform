@@ -246,3 +246,48 @@ export HARBOROPS_M3_FIXTURES=1 HARBOROPS_M4_FIXTURES=1
 export HARBOROPS_M5_FIXTURES=1 HARBOROPS_M6_FIXTURES=1
 stage browsers bash scripts/run-m7-browsers-local.sh
 
+recovery() {
+  compose stop postgres
+  local rc=0
+  node scripts/check-m7-ingress.mjs outage || rc=$?
+  compose start postgres
+  local ready=0
+  for _ in $(seq 1 45); do
+    if curl --silent --fail --max-time 5 http://127.0.0.1:8080/health/ready >/dev/null; then
+      ready=1; break
+    fi
+    sleep 2
+  done
+  [[ "$rc" == 0 && "$ready" == 1 ]] || return 1
+  node scripts/check-m7-ingress.mjs recovered
+}
+stage source-outage-recovery recovery
+
+scan_images() {
+  for service in postgres api web; do
+    local container image revision
+    container=$(compose ps -q "$service")
+    [[ -n "$container" ]] || return 1
+    image=$(docker inspect --format '{{.Image}}' "$container")
+    revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
+    [[ "$revision" == "$HARBOROPS_SOURCE_SHA" ]] || return 1
+    MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v "$(cygpath -w "$root")/cache/trivy:/root/.cache/trivy" \
+      -v "$(cygpath -w "$evidence")/trivy:/reports" \
+      aquasec/trivy:0.76.1 image --image-src docker --scanners vuln \
+      --severity HIGH,CRITICAL --exit-code 1 --format json \
+      --output "/reports/$service.json" "$image"
+  done
+}
+mkdir -p "$root/cache/trivy"
+stage image-scans scan_images
+
+# G7 acceptance requires normative D-002 references and independent raw-evidence review.
+# The source credential is never packaged; protected interactive CLI issuance is a separate check.
+printf 'G7-S01\tBLOCKED\tD-002 acceptance and upstream pin pending\n' > "$evidence/open-gates.tsv"
+printf 'G7-S06\tMANUAL_PENDING\tOne-time protected CLI terminal review pending\n' >> "$evidence/open-gates.tsv"
+printf 'G7-S24\tREVIEW_PENDING\tIndependent mutation and security review pending\n' >> "$evidence/open-gates.tsv"
+printf 'G7-S25\tREVIEW_PENDING\tIndependent raw-evidence review pending\n' >> "$evidence/open-gates.tsv"
+echo "Technical stages completed. G7 remains blocked on the open-gate register." >&2
+exit 2

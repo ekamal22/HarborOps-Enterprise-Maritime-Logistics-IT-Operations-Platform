@@ -56,7 +56,7 @@ public sealed class IntegrationSources : Migration
                 CONSTRAINT "CK_m7_credential_window" CHECK
                     (expires_at_utc > not_before_utc AND
                      expires_at_utc <= not_before_utc + interval '90 days' AND
-                     created_at_utc <= expires_at_utc AND
+                     created_at_utc <= not_before_utc AND
                      (revoked_at_utc IS NULL OR revoked_at_utc >= created_at_utc))
             );
             CREATE INDEX "IX_m7_credential_scope" ON integration_credentials
@@ -69,7 +69,8 @@ public sealed class IntegrationSources : Migration
                     RAISE EXCEPTION 'Integration source history cannot be deleted' USING ERRCODE='23514';
                 END IF;
                 IF TG_OP = 'INSERT' THEN
-                    IF NEW.status <> 'Active' OR NEW.disabled_at_utc IS NOT NULL OR NEW.version <> 1 THEN
+                    IF NEW.status <> 'Active' OR NEW.disabled_at_utc IS NOT NULL OR NEW.version <> 1 OR
+                       NEW.created_at_utc > clock_timestamp() + interval '5 minutes' THEN
                         RAISE EXCEPTION 'Invalid source creation' USING ERRCODE='23514';
                     END IF;
                     RETURN NEW;
@@ -113,7 +114,8 @@ public sealed class IntegrationSources : Migration
                         WHERE s.id = NEW.source_id AND s.organization_id = NEW.organization_id
                           AND s.status='Active' AND o.status='Active'
                     ) OR NEW.revoked_at_utc IS NOT NULL OR
-                       NEW.not_before_utc <> NEW.created_at_utc THEN
+                       NEW.not_before_utc < NEW.created_at_utc OR
+                       NEW.created_at_utc > clock_timestamp() + interval '5 minutes' THEN
                         RAISE EXCEPTION 'Invalid credential issuance' USING ERRCODE='23514';
                     END IF;
                     SELECT count(*) INTO overlapping_count

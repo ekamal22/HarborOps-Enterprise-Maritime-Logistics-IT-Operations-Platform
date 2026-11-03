@@ -114,6 +114,7 @@ public sealed class TrackingSourceSqlTests
         var store = scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
         var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         var source = await store.CreateAsync(fixture.A, "window_a", "Window Source", CancellationToken.None);
+        var now = DateTimeOffset.UtcNow;
         async Task<string> Add(DateTimeOffset from, DateTimeOffset until)
         {
             var secret = RandomNumberGenerator.GetBytes(32);
@@ -124,15 +125,17 @@ public sealed class TrackingSourceSqlTests
                 (id,organization_id,source_id,secret_digest,key_version,
                  not_before_utc,expires_at_utc,created_at_utc)
                 VALUES ({id}, {fixture.A}, {source.Id}, {digest}, {"v1"},
-                        {from}, {until}, {from})
+                        {from}, {until}, {from <= now ? from : now})
                 """);
             return IntegrationSourceStore.FormatBearer(id, secret);
         }
-        var now = DateTimeOffset.UtcNow;
         var expired = await Add(now.AddDays(-5), now.AddDays(-4));
         var future = await Add(now.AddDays(3), now.AddDays(4));
         Assert.Null(await store.ValidateAsync(expired, CancellationToken.None));
         Assert.Null(await store.ValidateAsync(future, CancellationToken.None));
         Assert.NotNull(await store.ValidateAsync(source.Bearer, CancellationToken.None));
+        await store.DisableAsync(fixture.A, "window_a", CancellationToken.None);
+        Assert.Null(await store.ValidateAsync(source.Bearer, CancellationToken.None));
+        Assert.Null(await store.ValidateAsync(future, CancellationToken.None));
     }
 }

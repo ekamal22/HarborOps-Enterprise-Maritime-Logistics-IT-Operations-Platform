@@ -156,7 +156,7 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         if (credential.RevokedAtUtc is null)
         {
             var now = clock.GetUtcNow();
-            credential.RevokedAtUtc = now;
+            credential.RevokedAtUtc = now < credential.CreatedAtUtc ? credential.CreatedAtUtc : now;
             source.Version++;
             source.UpdatedAtUtc = now;
             await db.SaveChangesAsync(ct);
@@ -178,7 +178,8 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
             source.UpdatedAtUtc = now;
             await db.IntegrationCredentials.Where(x => x.OrganizationId == organizationId &&
                 x.SourceId == source.Id && x.RevokedAtUtc == null)
-                .ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAtUtc, now), ct);
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAtUtc,
+                    x => x.CreatedAtUtc > now ? x.CreatedAtUtc : now), ct);
             await db.SaveChangesAsync(ct);
         }
         await tx.CommitAsync(ct);

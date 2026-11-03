@@ -68,7 +68,7 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             {
                 t.HasCheckConstraint("CK_m7_digest", "octet_length(secret_digest) = 32");
                 t.HasCheckConstraint("CK_m7_version", "key_version = 'v1'");
-                t.HasCheckConstraint("CK_m7_credential_window", "expires_at_utc > not_before_utc AND expires_at_utc <= not_before_utc + interval '90 days' AND created_at_utc <= expires_at_utc AND (revoked_at_utc IS NULL OR revoked_at_utc >= created_at_utc)");
+                t.HasCheckConstraint("CK_m7_credential_window", "expires_at_utc > not_before_utc AND expires_at_utc <= not_before_utc + interval '90 days' AND created_at_utc <= not_before_utc AND (revoked_at_utc IS NULL OR revoked_at_utc >= created_at_utc)");
             });
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();

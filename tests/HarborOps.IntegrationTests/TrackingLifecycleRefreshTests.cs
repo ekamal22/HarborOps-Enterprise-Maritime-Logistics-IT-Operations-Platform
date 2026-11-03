@@ -99,7 +99,24 @@ public sealed class TrackingLifecycleRefreshTests
                 .ValidateAsync(issued.Bearer, CancellationToken.None);
         });
         await started.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        await Task.Delay(150);
+        // Prove that validation actually reached the row lock before the revocation commits.
+        await using var probe = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await probe.OpenAsync();
+        var blocked = false;
+        for (var i = 0; i < 50; i++)
+        {
+            await using var check = new NpgsqlCommand("""
+                SELECT EXISTS (
+                    SELECT 1 FROM pg_stat_activity
+                    WHERE pid <> pg_backend_pid() AND wait_event_type = 'Lock'
+                      AND query LIKE '%FOR SHARE OF c, s, o%'
+                )
+                """, probe);
+            blocked = (bool)(await check.ExecuteScalarAsync())!;
+            if (blocked) break;
+            await Task.Delay(100);
+        }
+        Assert.True(blocked, "Authentication never reached the blocked PostgreSQL row lock");
         Assert.False(validation.IsCompleted);
         await tx.CommitAsync();
         Assert.Null(await validation.WaitAsync(TimeSpan.FromSeconds(15)));

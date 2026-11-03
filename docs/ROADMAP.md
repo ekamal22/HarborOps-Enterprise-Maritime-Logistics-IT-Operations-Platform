@@ -37,7 +37,7 @@ The canonical work-package DAG is [execution-graph.json](execution-graph.json), 
 - **Gate closure** requires the complete positive/negative/security/regression evidence on the integrated source revision and explicit acceptance. Verified but unaccepted gates are not substitutes for accepted prerequisites.
 - **G24 release convergence** requires G0-G23 accepted, every cross-track contract integrated, a full final-system regression, M24-03 historical compatibility and M24-04 accessibility assessment. Early G19 recovery or G20 security review must be revalidated for later schema/features at this final gate.
 
-M6/G6 are complete and integrated. M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain independently eligible. M8's G6 prerequisite is satisfied, but G7 and D-006 still apply where required. Eligibility never implies acceptance.
+M6/G6 and M7/G7 are complete and integrated. M8-01 inbox contract design, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition are independently eligible under their work-package prerequisites. M8 requires the separate D-006 decision before applicable durable intake implementation. Eligibility never implies acceptance.
 
 ## Milestone register
 
@@ -101,7 +101,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Verify the existing source-only foundation against real runtime evidence.
 **Entry:** Existing implementation reviewed without assuming runtime correctness.
 **Required work packages:** M0-01 Assess existing M0 branch; M0-02 Build and test foundations; M0-03 Verify migration and seed; M0-04 Verify local stack and browser; M0-05 Verify failure and hygiene.
-**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2 and G3 were verified locally and accepted on 2026-10-31. G5 and G6 were subsequently accepted on 2026-11-02; G7-G24 remain open.
+**Exit G0:** Verified by GitHub Actions run #2 at `fec7429415fede121db8a4a34f0df72cd4fac609` and explicitly accepted on 2026-10-31. M0 was merged into `main`. G1 was subsequently verified, accepted and merged into `main` via PR #4; G2 and G3 were verified locally and accepted on 2026-10-31. G5 and G6 were subsequently accepted on 2026-11-02, and G7 was accepted on 2026-11-03; G8-G24 remain open.
 **Not covered by this milestone:** Shipment and tenant business functionality.
 
 #### M1: Authentication and session lifecycle
@@ -351,4 +351,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M6/G0-G6 are verified, explicitly accepted and integrated into `main`. Eligible next work includes M7 (D-002 accepted, G7 acceptance pending), M16, M17, M19 (pending D-008), M20-01 and M23-01, subject to the per-package prerequisites in the execution graph. The original dependency graph remains unchanged. G7-G24 remain open. Public source visibility is complete and separate from delivery-gate or production-hosting acceptance.
+M0-M7/G0-G7 are verified, explicitly accepted and integrated into `main`. Eligible next work includes M8-01 (D-006 pending before applicable implementation), M16, M17, M19 (D-008 pending), M20-01 and M23-01, subject to per-package prerequisites in the execution graph. The dependency graph remains unchanged. G8-G24 remain open. Public source visibility is separate from production-hosting acceptance.

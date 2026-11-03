@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0/G0 through M6/G6 explicitly accepted and integrated into `main` as of 2026-11-02. M6 verified source `a94d7cd406a93806527d28ba7d2ce2d6ba3307b6` passed 706 test executions; G6-S01 was subsequently closed by explicit contract acceptance. See [G6 closure](docs/M6_G6_GATE_CLOSURE.md). No production deployment; G7-G24 remain open.
+**Status:** M0/G0 through M7/G7 explicitly accepted and integrated into protected `main` as of 2026-11-03. M7 verification reconciled 25/25 scenarios through the original source-locked run and three reviewed supplements; see [G7 closure](docs/M7_G7_GATE_CLOSURE.md). The tracking route does not acknowledge receipt until M8 provides durable intake. No production deployment; G8-G24 remain open.
 
 **Source availability:** Public since 2026-11-03 under the [inspection-only license](LICENSE). Public source code is not a hosted service. GitHub Actions is disabled and `main` is protected. See [Publication Safety Status](docs/PUBLICATION_SAFETY_STATUS.md).
 

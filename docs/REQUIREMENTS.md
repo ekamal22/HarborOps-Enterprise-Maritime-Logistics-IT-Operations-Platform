@@ -65,6 +65,10 @@ M5-01 through M5-04 implement organization-scoped shipment CRUD and exact-versio
 
 FR-005 shipment-container and shipment-voyage assignments were implemented under the accepted [twelve-rule contract](M6_LOCAL_CONTRACT_DECISION.md). M6 provides tenant-owned UTC half-open intervals, PostgreSQL overlap exclusions, versioned closure, parent guards, route constraints and scoped allocation history. All G6 executable checks passed on the tested source; contract approval subsequently closed G6-S01. M6/G6 were explicitly accepted and merged on 2026-11-02. See [G6 closure](M6_G6_GATE_CLOSURE.md). Event ingestion remains M7-M10 and advanced export remains M12.
 
+## M7 FR-007 source contract allocation (planned, not implemented)
+
+M7-01 to M7-04 are proposed to satisfy the **validation and source-authentication** portion of FR-007 and the applicable FR-002, NFR-002, NFR-003, NFR-006 and NFR-007 boundaries. [M7 architecture](M7_ARCHITECTURE_DESIGN.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the intended source-tenant credential and bounded payload behavior. FR-006 immutable durable event history, FR-008 idempotent processing and accepted-event acknowledgment are **not** delivered in M7: M8 introduces receipt persistence under D-006, followed by M9 and M10. D-002 acceptance, M7 implementation and G7 verification remain pending.
+
 ## Non-functional requirements
 
 | ID | Area | Proposed target and verification |

@@ -80,7 +80,7 @@ See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed
 
 | ID | Decision required | Default hypothesis | Required before |
 | --- | --- | --- | --- |
-| D-002 | DCSA reference release/subset | Pin one version with a documented field mapping | M7 |
+| D-002 | DCSA reference release/subset | [Proposed public 2.2.0 subset](M7_D002_TRACKING_REFERENCE_PROPOSAL.md); immutable upstream artifact, mapping and explicit acceptance pending | M7 |
 | D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
 | D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M13 |
 | D-006 | Error queue and worker durability detail | PostgreSQL inbox/dead-letter tables | M8 |

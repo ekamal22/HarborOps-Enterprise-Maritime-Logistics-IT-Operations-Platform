@@ -2,11 +2,11 @@
 
 ## Contract status
 
-M0 provides public synthetic status and health routes. M1 implements accepted protected authentication endpoints. M2 organization and membership routes are implemented on `main` following accepted G2 and merged PR #5, verified locally for supported endpoint, verb, role and foreign-identifier scenarios (see [executed evidence](M2_EXECUTED_VERIFICATION.md)). Maritime resources, shipment business APIs and full OpenAPI generation remain planned.
+M0 provides public synthetic status and health routes. M1 implements accepted protected authentication endpoints. M2 organization and membership routes are implemented on `main` following accepted G2 and merged PR #5, verified locally for supported endpoint, verb, role and foreign-identifier scenarios (see [executed evidence](M2_EXECUTED_VERIFICATION.md)). M3-M6 maritime, shipment and assignment APIs are now implemented and accepted; full public OpenAPI generation and M7 integration-source intake remain planned.
 
 ## Observed M0 contract verification
 
-At code revision `4fb34eb`, the API was tested against real PostgreSQL and through the HTTP pipeline. A local database outage produced controlled 503 responses from readiness and baseline endpoints, with liveness remaining HTTP 200 and a correlation identifier included in the baseline error/log. The tests verified the four-field synthetic status contract. The corrected .NET 10 runtime was subsequently verified in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md), with G0 **accepted** on 2026-10-31. The `4fb34eb` check remains historical. All shipment, identity and tracking resources below remain planned.
+At code revision `4fb34eb`, the API was tested against real PostgreSQL and through the HTTP pipeline. A local database outage produced controlled 503 responses from readiness and baseline endpoints, with liveness remaining HTTP 200 and a correlation identifier included in the baseline error/log. The tests verified the four-field synthetic status contract. The corrected .NET 10 runtime was subsequently verified in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md), with G0 **accepted** on 2026-10-31. The `4fb34eb` check remains historical. That M0 statement is historical: identity, maritime, shipment and assignment resources were subsequently implemented and accepted under G1-G6; M7 tracking intake remains planned.
 
 The workspace, caches and test artifacts must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md), using E: for all controlled persistent project storage. Only unavoidable short-lived Windows temporary activity on C: is permitted.
 
@@ -125,6 +125,10 @@ Use a formal schema and integration tests before treating these as stable public
 Responses should include: stable machine-readable error code, message suitable for clients, correlation ID, optional field validation details. Never expose credentials, internal stack traces, SQL statements, or unrestricted raw upstream payloads.
 
 Suggested statuses: 400 invalid input, 401 unauthenticated, 403 forbidden, 404 not visible or absent, 409 version/state conflict, 422 domain violation, 429 rate limit, and 5xx unexpected dependency/server failures.
+
+## M7 source-authenticated intake contract (proposed, not implemented)
+
+The [M7 architecture](M7_ARCHITECTURE_DESIGN.md) proposes a HarborOps-specific `POST /integrations/v1/tracking-events` using opaque, tenant-bound bearer credentials, an exact tracking profile, strict JSON limits, UTC occurrence timestamps and server-derived source identity. A parsed/valid event is **not** a durable receipt. Until M8 provides an atomic inbox transaction, even an authenticated valid event must return `503 intake_unavailable` with `Retry-After`, not HTTP 200/201/202. D-002 reference/subset acceptance and the full [G7 verification matrix](M7_VERIFICATION_PLAN.md) are still pending; this route is not a claim of standard DCSA publisher API conformance.
 
 ## Compatibility and standards
 

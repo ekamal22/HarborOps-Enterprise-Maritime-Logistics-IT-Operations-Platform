@@ -7,7 +7,7 @@
 **D-002:** Acceptance pending. The currently checked-in subset is provisional and may change after the exact upstream normative reference is pinned and reviewed.
 **Deployment:** Local-only. No public hosting or successful tracking-event intake.
 
-The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) tracks the implementation defects, fixes and unresolved runtime checks.
+The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) and [second correctness audit](M7_SECOND_CORRECTNESS_AUDIT.md) track implementation defects, corrections and unresolved runtime evidence.
 
 ## Implemented source
 
@@ -22,7 +22,7 @@ The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) tracks the
 | Integration API | `TrackingEndpoints.cs`, `IntegrationRequestLimiter.cs`, `Program.cs` | Source-bound bearer authorization, secure transport reuse, anonymous and authenticated limits, no-store envelopes, valid event returns 503 |
 | Fixtures and tests | `tests/fixtures/tracking/`, `TrackingEventPolicyTests.cs`, `TrackingSourceHttpTests.cs`, `TrackingSourceMigrationTests.cs`, `TrackingSourceSqlTests.cs`, `TrackingSourceBoundaryHttpTests.cs` | Expanded HTTP and source tests, populated M6 preservation, SQL immutability, overlap and tenant checks, concurrency and no-acknowledgment assertions |
 | Historical regression compatibility | Existing migration upgrade suites | Pin M6-specific migration tests to their accepted target and extend latest-schema assertions for M7 |
-| Local runner | `scripts/verify-m7-local.sh`, `scripts/check-m7-source-cli-interactive.sh` | E:-only preflight, disposable SDK/PostgreSQL, source-locked .NET tests, browser fixtures, three-engine regression, source outage/recovery, image audits and hashed teardown evidence |
+| Local runner | `scripts/verify-m7-local.sh`, `scripts/check-m7-source-cli-interactive.sh` | E:-only preflight, disposable SDK/PostgreSQL, source-locked .NET tests, five security mutations, isolated G7 network, browser fixtures, three-engine regression, source outage/recovery, image audits and hashed teardown evidence |
 
 ## Contract boundaries
 
@@ -37,7 +37,7 @@ The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) tracks the
 
 The implementation has been committed and reviewed statically. The EF mapping corruption has been repaired and model/snapshot mapping equality checked. No .NET compilation, PostgreSQL migration execution, Docker/Playwright run, dependency/image scan or independent G7 evidence review is claimed here.
 
-The local runner now schedules browser/proxy/recovery checks and full accepted-source regressions, but has not been executed. Protected interactive operator CLI issuance, decision-specific source mutations, pinned upstream fixture review, and independent evidence assessment remain outside automatic G7 closure. G7-S01 additionally requires D-002 acceptance and a pinned reference artifact.
+The local runner schedules browser/proxy/recovery checks, accepted-source regressions and five controlled security mutations in a disposable E:-backed export. It has not been executed. Protected interactive operator CLI issuance, pinned upstream fixture review, per-scenario evidence mapping and independent evidence assessment remain outside automatic G7 closure. G7-S01 additionally requires D-002 acceptance and a pinned reference artifact.
 
 **Required next gate:** Complete the G7-S01 through G7-S25 matrix on one exact source revision using disposable E:-backed resources, review the raw evidence, address any failures, then request explicit G7 acceptance before merging into `main`.
 

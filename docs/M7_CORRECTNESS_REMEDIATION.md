@@ -5,6 +5,8 @@
 **Decision boundary:** D-002 upstream artifact, checksum, license and exact mapping acceptance pending.
 **Deployment boundary:** Local only. No durable tracking-event receipt or successful ingestion response until M8.
 
+The [second correctness audit](M7_SECOND_CORRECTNESS_AUDIT.md) records follow-up fixes, including EF tracked-state refresh, migration fixtures, capped limiter partitions and verification-network isolation.
+
 ## Remediation register
 
 | Finding | Implemented correction | Required execution evidence |

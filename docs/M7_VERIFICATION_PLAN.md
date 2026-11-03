@@ -60,7 +60,7 @@ The positive contract fixture must demonstrate that an approved event can be par
 
 ## 4. Execution stages and commands to implement
 
-The implementation branch includes `scripts/verify-m7-local.sh`, a source-locked E:-backed technical runner covering build, .NET regression, web, migrations, browser/proxy, credential checks, controlled outage, image scans and evidence teardown. G7 remains blocked until every G7-S01 to G7-S25 scenario is independently checked. The full required stage taxonomy remains:
+The implementation branch includes `scripts/verify-m7-local.sh`, a source-locked E:-backed technical runner covering build, .NET regression, five isolated security mutations, web, migrations, browser/proxy, credential checks, controlled outage, image scans and evidence teardown. G7 remains blocked until every G7-S01 to G7-S25 scenario is independently checked. The full required stage taxonomy remains:
 `preflight dotnet contracts db migration auth parser http transport compose browsers recovery scans evidence teardown`. Some boundaries currently run inside combined stages; per-scenario outcome reporting and manual operator evidence remain mandatory.
 
 Each stage must write its command, environment and source identity before running. Define unambiguous success/failure exit codes. Do not copy G6 scripts without reviewing their current stage dependencies, resource names and evidence output. Do not start a primary Compose stack or change retained production-like volumes.

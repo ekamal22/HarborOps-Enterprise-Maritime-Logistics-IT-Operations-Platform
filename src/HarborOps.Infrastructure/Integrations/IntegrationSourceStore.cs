@@ -1,9 +1,14 @@
+using System.Data.Common;
 using System.Security.Cryptography;
 using HarborOps.Domain.Tracking;
+using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HarborOps.Infrastructure.Integrations;
+
+public sealed record IntegrationAuthentication(ValidatedIntegrationSource? Source, bool Forbidden = false);
 
 public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider clock)
 {
@@ -30,7 +35,12 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
     }
 
     private static ProvisionedIntegrationSource Issue(IntegrationSource source, IntegrationCredential credential,
-        ReadOnlySpan<byte> secret) => new(source.Id, source.SourceCode, credential.Id, FormatBearer(credential.Id, secret));
+        ReadOnlySpan<byte> secret) =>
+        new(source.Id, source.SourceCode, credential.Id, FormatBearer(credential.Id, secret));
+
+    private async Task<Organization> LockOrganizationAsync(Guid id, CancellationToken ct) =>
+        await db.Organizations.FromSqlInterpolated(
+            $"SELECT * FROM organizations WHERE id = {id} FOR UPDATE").SingleAsync(ct);
 
     private async Task<IntegrationSource> LockSourceAsync(Guid organizationId, string code, CancellationToken ct)
     {
@@ -40,15 +50,23 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
             .SingleAsync(ct);
     }
 
+    private static IntegrationCredential NewCredential(IntegrationSource source, byte[] secret, DateTimeOffset now) =>
+        new()
+        {
+            Id = Guid.NewGuid(), OrganizationId = source.OrganizationId, SourceId = source.Id,
+            KeyVersion = "v1", SecretDigest = SHA256.HashData(secret),
+            NotBeforeUtc = now, ExpiresAtUtc = now + IntegrationSourcePolicy.MaximumLifetime,
+            CreatedAtUtc = now
+        };
+
     public async Task<ProvisionedIntegrationSource> CreateAsync(Guid organizationId, string code,
         string name, CancellationToken ct)
     {
         var normalized = IntegrationSourcePolicy.NormalizeCode(code);
         var display = IntegrationSourcePolicy.ValidateName(name);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
-        var org = await db.Organizations.FromSqlInterpolated(
-            $"SELECT * FROM organizations WHERE id = {organizationId} FOR UPDATE").SingleOrDefaultAsync(ct);
-        if (org?.Status != "Active") throw new InvalidOperationException("Active organization required");
+        var organization = await LockOrganizationAsync(organizationId, ct);
+        if (organization.Status != "Active") throw new InvalidOperationException("Active organization required");
         if (await db.IntegrationSources.AnyAsync(x => x.OrganizationId == organizationId &&
             x.SourceCode == normalized, ct)) throw new InvalidOperationException("Source code already reserved");
         var now = clock.GetUtcNow();
@@ -71,41 +89,35 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         finally { CryptographicOperations.ZeroMemory(secret); }
     }
 
-    private static IntegrationCredential NewCredential(IntegrationSource source, byte[] secret, DateTimeOffset now) =>
-        new()
-        {
-            Id = Guid.NewGuid(), OrganizationId = source.OrganizationId, SourceId = source.Id,
-            KeyVersion = "v1", SecretDigest = SHA256.HashData(secret), NotBeforeUtc = now,
-            ExpiresAtUtc = now + IntegrationSourcePolicy.MaximumLifetime, CreatedAtUtc = now
-        };
-
-    public async Task<ProvisionedIntegrationSource> RotateAsync(Guid organizationId, string code, CancellationToken ct)
+    public async Task<ProvisionedIntegrationSource> RotateAsync(Guid organizationId, string code,
+        CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        var organization = await LockOrganizationAsync(organizationId, ct);
         var source = await LockSourceAsync(organizationId, code, ct);
-        var orgActive = await db.Organizations.AsNoTracking().AnyAsync(
-            o => o.Id == organizationId && o.Status == "Active", ct);
-        if (!orgActive || source.Status != "Active")
-            throw new InvalidOperationException("Active source required");
+        if (organization.Status != "Active" || source.Status != "Active")
+            throw new InvalidOperationException("Active source and organization required");
         var now = clock.GetUtcNow();
         var active = await db.IntegrationCredentials
             .Where(c => c.OrganizationId == organizationId && c.SourceId == source.Id &&
                 c.RevokedAtUtc == null && c.NotBeforeUtc <= now && c.ExpiresAtUtc > now)
             .OrderBy(c => c.CreatedAtUtc).ToListAsync(ct);
         if (active.Count >= 2) throw new InvalidOperationException("Rotation overlap limit reached");
-        foreach (var credential in active)
-            if (credential.ExpiresAtUtc > now + IntegrationSourcePolicy.MaximumOverlap)
-                credential.ExpiresAtUtc = now + IntegrationSourcePolicy.MaximumOverlap;
+        foreach (var previous in active)
+        {
+            var cutoff = now + IntegrationSourcePolicy.MaximumOverlap;
+            if (previous.ExpiresAtUtc > cutoff) previous.ExpiresAtUtc = cutoff;
+        }
         var secret = RandomNumberGenerator.GetBytes(32);
         try
         {
-            var issued = NewCredential(source, secret, now);
-            db.IntegrationCredentials.Add(issued);
+            var credential = NewCredential(source, secret, now);
+            db.IntegrationCredentials.Add(credential);
             source.Version++;
             source.UpdatedAtUtc = now;
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
-            return Issue(source, issued, secret);
+            return Issue(source, credential, secret);
         }
         finally { CryptographicOperations.ZeroMemory(secret); }
     }
@@ -113,6 +125,7 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
     public async Task RevokeAsync(Guid organizationId, string code, Guid credentialId, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await LockOrganizationAsync(organizationId, ct);
         var source = await LockSourceAsync(organizationId, code, ct);
         var credential = await db.IntegrationCredentials.SingleOrDefaultAsync(
             x => x.OrganizationId == organizationId && x.SourceId == source.Id && x.Id == credentialId, ct)
@@ -131,6 +144,7 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
     public async Task DisableAsync(Guid organizationId, string code, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await LockOrganizationAsync(organizationId, ct);
         var source = await LockSourceAsync(organizationId, code, ct);
         if (source.Status == "Active")
         {
@@ -152,40 +166,76 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         var normalized = IntegrationSourcePolicy.NormalizeCode(code);
         var source = await db.IntegrationSources.AsNoTracking().SingleAsync(
             x => x.OrganizationId == organizationId && x.SourceCode == normalized, ct);
+        var now = clock.GetUtcNow();
         var count = await db.IntegrationCredentials.CountAsync(
             x => x.OrganizationId == organizationId && x.SourceId == source.Id &&
-                x.RevokedAtUtc == null && x.ExpiresAtUtc > clock.GetUtcNow(), ct);
+                x.RevokedAtUtc == null && x.NotBeforeUtc <= now && x.ExpiresAtUtc > now, ct);
         return $"Source {source.Id} code={source.SourceCode} status={source.Status} active_credentials={count} version={source.Version}";
     }
 
-    public async Task<ValidatedIntegrationSource?> ValidateAsync(string token, CancellationToken ct)
+    public async Task<IntegrationAuthentication> AuthenticateAsync(string token, CancellationToken ct)
     {
         var secret = ParseSecret(token, out var credentialId);
-        if (secret is null) return null;
+        if (secret is null) return new(null);
         try
         {
-            var credential = await db.IntegrationCredentials.AsNoTracking()
-                .SingleOrDefaultAsync(x => x.Id == credentialId && x.KeyVersion == "v1", ct);
-            if (credential is null || credential.SecretDigest.Length != 32) return null;
-            var digest = SHA256.HashData(secret);
-            try
+            // One database statement selects and locks the credential, source and organization
+            // within a consistent authorization boundary. Revocation and suspension updates
+            // cannot commit during the lookup. M8 must repeat this check in its receipt transaction.
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            await using var command = db.Database.GetDbConnection().CreateCommand();
+            command.Transaction = transaction.GetDbTransaction();
+            command.CommandText = """
+                SELECT c.secret_digest, s.id, s.organization_id, s.status, s.capability, o.status
+                FROM integration_credentials AS c
+                JOIN integration_sources AS s
+                  ON s.id = c.source_id AND s.organization_id = c.organization_id
+                JOIN organizations AS o ON o.id = s.organization_id
+                WHERE c.id = @credential_id AND c.key_version = 'v1'
+                  AND c.revoked_at_utc IS NULL
+                  AND c.not_before_utc <= @checked_at AND c.expires_at_utc > @checked_at
+                FOR SHARE OF c, s, o
+                """;
+            var id = command.CreateParameter();
+            id.ParameterName = "credential_id";
+            id.Value = credentialId;
+            command.Parameters.Add(id);
+            var checkedAt = command.CreateParameter();
+            checkedAt.ParameterName = "checked_at";
+            checkedAt.Value = clock.GetUtcNow();
+            command.Parameters.Add(checkedAt);
+
+            IntegrationAuthentication outcome = new(null);
+            await using (var reader = await command.ExecuteReaderAsync(ct))
             {
-                if (!CryptographicOperations.FixedTimeEquals(digest, credential.SecretDigest)) return null;
+                if (await reader.ReadAsync(ct))
+                {
+                    var expected = reader.GetFieldValue<byte[]>(0);
+                    var digest = SHA256.HashData(secret);
+                    try
+                    {
+                        if (expected.Length == 32 && CryptographicOperations.FixedTimeEquals(expected, digest))
+                        {
+                            var sourceId = reader.GetGuid(1);
+                            var organizationId = reader.GetGuid(2);
+                            var allowed = reader.GetString(3) == "Active" &&
+                                reader.GetString(4) == IntegrationSourcePolicy.Capability &&
+                                reader.GetString(5) == "Active";
+                            outcome = allowed
+                                ? new(new ValidatedIntegrationSource(sourceId, organizationId))
+                                : new(null, Forbidden: true);
+                        }
+                    }
+                    finally { CryptographicOperations.ZeroMemory(digest); }
+                }
             }
-            finally { CryptographicOperations.ZeroMemory(digest); }
-            var now = clock.GetUtcNow();
-            if (credential.RevokedAtUtc != null || credential.NotBeforeUtc > now ||
-                credential.ExpiresAtUtc <= now) return null;
-            var valid = await (from source in db.IntegrationSources.AsNoTracking()
-                               join org in db.Organizations.AsNoTracking() on source.OrganizationId equals org.Id
-                               where source.Id == credential.SourceId &&
-                                     source.OrganizationId == credential.OrganizationId &&
-                                     source.Status == "Active" && org.Status == "Active" &&
-                                     source.Capability == IntegrationSourcePolicy.Capability
-                               select new ValidatedIntegrationSource(source.Id, source.OrganizationId))
-                .SingleOrDefaultAsync(ct);
-            return valid;
+            await transaction.CommitAsync(ct);
+            return outcome;
         }
         finally { CryptographicOperations.ZeroMemory(secret); }
     }
+
+    // Safe compatibility method for tests and internal callers that only need permitted sources.
+    public async Task<ValidatedIntegrationSource?> ValidateAsync(string token, CancellationToken ct) =>
+        (await AuthenticateAsync(token, ct)).Source;
 }

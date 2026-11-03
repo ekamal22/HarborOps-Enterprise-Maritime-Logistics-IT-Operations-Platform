@@ -12,9 +12,13 @@ public sealed record IntegrationAuthentication(ValidatedIntegrationSource? Sourc
 
 public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider clock)
 {
-    public static string FormatBearer(Guid credentialId, ReadOnlySpan<byte> secret) =>
-        "hop_v1_" + credentialId.ToString("N") + "_" +
-        Convert.ToBase64String(secret).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    public static string FormatBearer(Guid credentialId, ReadOnlySpan<byte> secret)
+    {
+        if (credentialId == Guid.Empty || secret.Length != 32)
+            throw new ArgumentException("A nonempty credential ID and 256-bit secret are required");
+        return "hop_v1_" + credentialId.ToString("N") + "_" +
+            Convert.ToBase64String(secret).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    }
 
     private static byte[]? ParseSecret(string token, out Guid id)
     {
@@ -29,7 +33,11 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         try
         {
             var bytes = Convert.FromBase64String(encoded.Replace('-', '+').Replace('_', '/') + "=");
-            if (bytes.Length != 32) return null;
+            if (bytes.Length != 32)
+            {
+                CryptographicOperations.ZeroMemory(bytes);
+                return null;
+            }
             if (FormatBearer(id, bytes) != token)
             {
                 CryptographicOperations.ZeroMemory(bytes);

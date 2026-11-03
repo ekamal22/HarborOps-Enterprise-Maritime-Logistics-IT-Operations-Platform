@@ -1,6 +1,6 @@
 # G7 Tracking Contracts and Source Authentication: Verification Plan
 
-**State:** Execution harness and test candidates committed. No G7 scenario has been executed or accepted.
+**State:** Execution harness committed and exercised in development runs. The gate evidence run and acceptance are pending; no G7 scenario is accepted.
 **Prepared:** 2026-11-03
 **Milestone:** M7-01 through M7-04 and gate G7
 **Base:** Accepted G0-G6 `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`
@@ -61,11 +61,11 @@ The positive contract fixture must demonstrate that an approved event can be par
 ## 4. Execution stages and commands to implement
 
 The implementation branch includes `scripts/verify-m7-local.sh`, a source-locked E:-backed technical runner covering build, .NET regression, five isolated security mutations, web, migrations, browser/proxy, credential checks, controlled outage, image scans and evidence teardown. G7 remains blocked until every G7-S01 to G7-S25 scenario is independently checked. The full required stage taxonomy remains:
-`preflight dotnet contracts db migration auth parser http transport compose browsers recovery scans evidence teardown`. Some boundaries currently run inside combined stages; per-scenario outcome reporting and manual operator evidence remain mandatory.
+`preflight dotnet contracts db migration auth parser http transport compose browsers recovery scans evidence teardown`. Some boundaries run inside combined stages, so `scripts/summarize-g7-evidence.mjs` derives each G7-S01 to G7-S25 outcome from the raw TRX files, stage records, browser reports, mutation report and scan reports, and writes `g7-scenarios.json` and `g7-scenarios.md`. A scenario is PASS only when every listed test, stage and report exists and passed on the same source revision. Manual operator evidence remains mandatory for G7-S06.
 
 Each stage must write its command, environment and source identity before running. Define unambiguous success/failure exit codes. Do not copy G6 scripts without reviewing their current stage dependencies, resource names and evidence output. Do not start a primary Compose stack or change retained production-like volumes.
 
-The proposed evidence location is `E:\HarborOps-Verification\evidence\g7-<UTC timestamp>` and a separately hashed final ZIP in `E:\HarborOps-Verification\archives`. Sanitize raw secrets and test credential values before producing a shareable evidence package; keep restricted originals private if necessary.
+The runner writes evidence to `E:\HarborOps-Verification\m7\evidence` and a hashed archive and manifest to `E:\HarborOps-Verification\m7\archives`. Sanitize raw secrets and test credential values before producing a shareable evidence package; keep restricted originals private if necessary.
 
 Required evidence files: stage manifest, source revision, environment versions, official DCSA reference identity/hash, supported mapping manifest, executed test counts, per-case G7 results, SQL/upgrade evidence, CLI and proxy logs sanitized, no-ack receipts, advisory and image scan JSON, after-state Docker resource inventory, E:/C: accounting, SHA-256 manifest, and acceptance report.
 

@@ -47,6 +47,6 @@ The 17 retained downloadable Actions archives contain nested browser trace files
 
 ## Acceptance and publication boundary
 
-The development changes and local audit runners are maintained on `fix/publication-security-readiness`, with draft pull request #6. Acceptance pending. Do not merge unverified transport changes or make the repository public. A source-only portfolio should be created from a separately approved, scanned snapshot with **no imported historical Git metadata, branches, Actions archives or internal development evidence**.
+The publication-security implementation and local audit runners were merged through pull request #6 into `main` at `474b83837d45312e155f2c2d220af28d927fc1b3` following the recorded successful local verification. Historical disclosure review, repository governance and source-publication acceptance remain pending. Keep the repository private until these are cleared. A source-only portfolio should be created from a separately approved, scanned snapshot with **no imported historical Git metadata, branches, Actions archives or internal development evidence**.
 
 No GitHub Actions, public hosting, source publication, branch history rewrite or evidence deletion is authorized by this document.

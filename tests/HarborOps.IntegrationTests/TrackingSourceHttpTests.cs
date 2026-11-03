@@ -116,9 +116,12 @@ public sealed class TrackingSourceHttpTests
         await using var scope = factory.Services.CreateAsyncScope();
         var store = scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
         var a = await store.CreateAsync(fixture.A, "feeder_1", "Feeder", CancellationToken.None);
+        var b = await store.CreateAsync(fixture.B, "feeder_1", "Foreign Feeder", CancellationToken.None);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             store.CreateAsync(fixture.A, "feeder_1", "Duplicate", CancellationToken.None));
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             store.RevokeAsync(fixture.B, "feeder_1", a.CredentialId, CancellationToken.None));
+        Assert.NotNull(await store.ValidateAsync(b.Bearer, CancellationToken.None));
+        Assert.NotNull(await store.ValidateAsync(a.Bearer, CancellationToken.None));
     }
 }

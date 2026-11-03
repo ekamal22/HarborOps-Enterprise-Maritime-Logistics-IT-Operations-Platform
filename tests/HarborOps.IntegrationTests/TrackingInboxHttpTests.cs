@@ -249,7 +249,7 @@ public sealed class TrackingInboxHttpTests
         var parsed = TrackingEventPolicy.Parse(input, TimeProvider.System.GetUtcNow());
         Assert.NotNull(parsed.Value);
         var bound = parsed.Value!.Bind(source.Id, fixture.A);
-        Assert.NotNull(await sources.AuthenticateAsync(source.Bearer, CancellationToken.None));
+        Assert.NotNull((await sources.AuthenticateAsync(source.Bearer, CancellationToken.None)).Source);
         await sources.RevokeAsync(fixture.A, "m8_midrev", source.CredentialId, CancellationToken.None);
         var outcome = await scope.ServiceProvider.GetRequiredService<TrackingInboxStore>()
             .ReceiveAsync(bound, source.Bearer, input, "revoked-after-parse", CancellationToken.None);
@@ -338,6 +338,47 @@ public sealed class TrackingInboxHttpTests
             Assert.DoesNotContain("GTOT", body);
             Assert.Contains("no-store", response.Headers.CacheControl?.ToString());
         }
+    }
+
+    [Fact]
+    public async Task AcceptedReceiptSurvivesConnectionAndApiRestart()
+    {
+        var connection = TestDatabase.ConnectionString();
+        string bearer;
+        Guid sourceId;
+        Guid receiptId;
+        using (var firstFactory = new ReferenceDataHttpTests.ApiFactory(connection))
+        {
+            var fixture = await ReferenceDataHttpTests.Setup(firstFactory);
+            using var admin = fixture.Admin;
+            using var manager = fixture.Manager;
+            using var analyst = fixture.Analyst;
+            await using var scope = firstFactory.Services.CreateAsyncScope();
+            var source = await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+                .CreateAsync(fixture.A, "m8_restart", "Restart Receipt", CancellationToken.None);
+            bearer = source.Bearer;
+            sourceId = source.Id;
+            using var client = firstFactory.CreateClient();
+            using var response = await Post(client, bearer, Payload(id: "m8-restart"));
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+            receiptId = (await response.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("receiptId").GetGuid();
+        }
+
+        // A new HTTP host and a new EF connection can only replay the
+        // receipt if the transaction committed to the shared database.
+        using var secondFactory = new ReferenceDataHttpTests.ApiFactory(connection);
+        using var secondClient = secondFactory.CreateClient();
+        using var replay = await Post(secondClient, bearer, Payload(id: "m8-restart"));
+        Assert.Equal(HttpStatusCode.Accepted, replay.StatusCode);
+        var body = await replay.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(body.GetProperty("duplicate").GetBoolean());
+        Assert.Equal(receiptId, body.GetProperty("receiptId").GetGuid());
+        await using var verify = secondFactory.Services.CreateAsyncScope();
+        var db = verify.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Equal(1, await db.TrackingInboxReceipts.CountAsync(x => x.Id == receiptId));
+        Assert.Equal(1, await db.TrackingAcceptedEvents.CountAsync(x => x.SourceId == sourceId));
+        Assert.Equal(1, await db.TrackingInboxWorkItems.CountAsync(x => x.SourceId == sourceId));
     }
 
     [Fact]

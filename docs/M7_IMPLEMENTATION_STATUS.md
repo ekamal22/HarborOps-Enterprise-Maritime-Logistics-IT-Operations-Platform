@@ -7,6 +7,8 @@
 **D-002:** Acceptance pending. The currently checked-in subset is provisional and may change after the exact upstream normative reference is pinned and reviewed.
 **Deployment:** Local-only. No public hosting or successful tracking-event intake.
 
+The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) tracks the implementation defects, fixes and unresolved runtime checks.
+
 ## Implemented source
 
 | Area | Files | Behavior |
@@ -20,7 +22,7 @@
 | Integration API | `TrackingEndpoints.cs`, `IntegrationRequestLimiter.cs`, `Program.cs` | Source-bound bearer authorization, secure transport reuse, anonymous and authenticated limits, no-store envelopes, valid event returns 503 |
 | Fixtures and tests | `tests/fixtures/tracking/`, `TrackingEventPolicyTests.cs`, `TrackingSourceHttpTests.cs`, `TrackingSourceMigrationTests.cs`, `TrackingSourceSqlTests.cs`, `TrackingSourceBoundaryHttpTests.cs` | Expanded HTTP and source tests, populated M6 preservation, SQL immutability, overlap and tenant checks, concurrency and no-acknowledgment assertions |
 | Historical regression compatibility | Existing migration upgrade suites | Pin M6-specific migration tests to their accepted target and extend latest-schema assertions for M7 |
-| Local runner | `scripts/verify-m7-local.sh` | E:-only preflight, disposable SDK/PostgreSQL, source-locked .NET tests, browser fixtures, three-engine regression, source outage/recovery, image audits and hashed teardown evidence |
+| Local runner | `scripts/verify-m7-local.sh`, `scripts/check-m7-source-cli-interactive.sh` | E:-only preflight, disposable SDK/PostgreSQL, source-locked .NET tests, browser fixtures, three-engine regression, source outage/recovery, image audits and hashed teardown evidence |
 
 ## Contract boundaries
 

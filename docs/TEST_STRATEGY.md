@@ -1,5 +1,9 @@
 # Test and Verification Strategy
 
+## M7 source-locked verification boundary
+
+The M7 feature branch contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and G7 Compose project, plus controlled source outage and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 acceptance, full G7-S01 to G7-S25 execution and independent evidence review remain pending; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
+
 ## Philosophy
 
 Test domain invariants, integration boundaries, security boundaries, and operational recovery before investing in visual polish. All results must be reproducible and linked to an exact commit, environment, and dataset seed.

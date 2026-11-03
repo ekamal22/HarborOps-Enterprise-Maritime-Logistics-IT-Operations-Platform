@@ -15,6 +15,7 @@
 | Credential lifecycle | `IntegrationSourceStore.cs`, `IntegrationSourcePolicy.cs` | Random 256-bit secrets, SHA-256 digests, one-time bearer generation, active organization checks, rotation overlap, immediate revocation and disablement |
 | Restricted operations | `SourceCli.cs` | Explicit local operator opt-in and interactive create/rotate, with revoke, disable and redacted inspect |
 | Event validation | `TrackingEventPolicy.cs`, `harborops-tracking-v1.schema.json` | Provisional equipment and transport subset, strict JSON, identifiers, explicit UTC, D-003 equipment syntax and bounded body |
+| Proxy integration | `web/nginx.conf`, `web/nginx.hosted.conf.template`, `tests/browser/specs/tracking-ingress.spec.mjs` | Proxy the integration route to the API, preserve trusted forwarding and reject unauthenticated browser requests |
 | Integration API | `TrackingEndpoints.cs`, `IntegrationRequestLimiter.cs`, `Program.cs` | Source-bound bearer authorization, secure transport reuse, anonymous and authenticated limits, no-store envelopes, valid event returns 503 |
 | Fixtures and tests | `tests/fixtures/tracking/`, `TrackingEventPolicyTests.cs`, `TrackingSourceHttpTests.cs`, `TrackingSourceMigrationTests.cs` | Source and tenant cases, negative parsing, migration upgrade, concurrency and no-acknowledgment assertions |
 | Local runner | `scripts/verify-m7-local.sh` | E:-only preflight, isolated database, source-locked checks, test reports, audit stages, teardown and manifest |

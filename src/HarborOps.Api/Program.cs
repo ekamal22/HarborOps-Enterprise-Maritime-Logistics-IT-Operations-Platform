@@ -89,7 +89,8 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-Correlation-ID"] = correlationId;
     // Handlers set no-store themselves; this also covers responses produced by the framework
     // (authentication challenges, rate limiting, the exception handler) on every API route.
-    if (context.Request.Path.StartsWithSegments("/api"))
+    if (context.Request.Path.StartsWithSegments("/api") ||
+        context.Request.Path.StartsWithSegments("/integrations"))
         context.Response.OnStarting(() =>
         {
             if (!context.Response.Headers.ContainsKey("Cache-Control"))

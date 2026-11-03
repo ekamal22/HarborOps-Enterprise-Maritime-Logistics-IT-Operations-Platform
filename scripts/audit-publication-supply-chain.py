@@ -75,10 +75,13 @@ def main():
         if revision.returncode != 0 or revision.stdout.strip() != sha:
             results["image-" + service] = "image revision does not match checked source"
             continue
+        # The Docker daemon rejects a bare 64-character hexadecimal reference when Trivy exports the
+        # image, so scan it by its full content-addressed name.
+        reference = image_id if ":" in image_id else "sha256:" + image_id
         results["image-" + service] = run(
             ["trivy", "image", "--scanners", "vuln", "--severity", "HIGH,CRITICAL",
              "--exit-code", "1", "--format", "json", "--output",
-             str(root / ("trivy-" + service + ".json")), image_id],
+             str(root / ("trivy-" + service + ".json")), reference],
             root / ("trivy-" + service + ".log"), env)
 
     # A successful dotnet command must also have empty vulnerability lists.

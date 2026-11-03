@@ -66,6 +66,8 @@ The accepted [M6 local assignment contract](M6_LOCAL_CONTRACT_DECISION.md), [arc
 
 ## Publication security verification (executed locally)
 
+The repository became publicly viewable on 2026-11-03 after branch protection and historical artifact cleanup. Source visibility does not authorize public application hosting. GitHub Actions remains disabled; new verification uses approved, isolated E:-backed local resources. See [Publication Safety Status](PUBLICATION_SAFETY_STATUS.md) for the final disclosure and governance disposition.
+
 `scripts/verify-publication-local.sh` runs the regression suites that the publication security changes can affect on disposable E:-backed resources: build, unit, contract (including `TransportHardeningHttpTests`), PostgreSQL integration on a fresh and a repeat database, frontend, dependency audits, Compose, transport probes through and around the Nginx proxy, three-engine browser specs, outage and recovery checks, image scans and the source-locked supply-chain audit. It never dispatches GitHub Actions. Accepted G6 mutation and historical-snapshot evidence is referenced, not repeated, because this work changes no migration or schema. Hosted HTTPS checks need a real approved domain and are recorded as not executed until one exists. The manual-only `verify-publication-security.yml` workflow checks out an exact commit, runs independent jobs and uploads no artifacts, because browser traces can contain session cookies.
 
 ## Test layers

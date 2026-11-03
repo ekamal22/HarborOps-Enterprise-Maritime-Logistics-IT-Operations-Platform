@@ -6,6 +6,8 @@
 - Demonstration: disposable cloud environment activated only when required.
 - Production: not in scope for initial milestone acceptance.
 
+**Source publication:** The repository is public for inspection under the restrictive LICENSE, but that does not create a hosted application or approve production operations. `main` is protected, GitHub Actions is disabled, and all controllable verification and operational evidence must remain on E:. Any internet-facing deployment requires separate TLS, secrets, reverse-proxy and operational clearance; see [Publication Safety Status](PUBLICATION_SAFETY_STATUS.md) and [Security](SECURITY.md).
+
 M0 local Compose infrastructure was started on a clean volume and verified on Windows 11 at code revision `4fb34eb`. The stack was stopped after testing, and no hosted service is running. The configured stack contains PostgreSQL, one-shot database migration/seed, HTTP API, and static frontend. New M0 hardening verification is recorded separately in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The worker shell is intentionally not part of the running stack until tracking processing is implemented.
 
 ## Observability requirements

@@ -117,6 +117,50 @@ public sealed class TrackingSourceBoundaryHttpTests
     }
 
     [Fact]
+    public async Task SourceBearerCannotAuthenticateHumanScopedEndpoints()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var scope = factory.Services.CreateAsyncScope();
+        var bearer = (await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+            .CreateAsync(fixture.A, "http_human", "Human Endpoint Denial", CancellationToken.None)).Bearer;
+        using var client = factory.CreateClient();
+        foreach (var path in new[]
+        {
+            "/api/v1/auth/session", "/api/v1/me/organizations",
+            "/api/v1/organizations/" + fixture.A + "/ports"
+        })
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, path);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearer);
+            using var response = await client.SendAsync(request);
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task CancelledAuthenticationNeverSucceedsOrAcknowledges()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var scope = factory.Services.CreateAsyncScope();
+        var store = scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
+        var issued = await store.CreateAsync(fixture.A, "http_cancel", "Cancellation", CancellationToken.None);
+        using var cancelled = new CancellationTokenSource();
+        await cancelled.CancelAsync();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => store.AuthenticateAsync(issued.Bearer, cancelled.Token));
+        // The same credential still validates afterwards: cancellation neither consumed nor revoked it.
+        Assert.NotNull(await store.ValidateAsync(issued.Bearer, CancellationToken.None));
+    }
+
+    [Fact]
     public async Task BrowserSessionIsNotMachineAuthenticationAndCrossOriginIsDenied()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

@@ -199,7 +199,8 @@ if [[ -n "${HARBOROPS_G7_MUTATION_SUBSET:-}" ]]; then
 fi
 stage security-mutations node scripts/run-g7-mutations.mjs "$HARBOROPS_VERIFICATION_ROOT"
 stage nuget-advisories sdk nuget
-stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build'
+# The built frontend must never contain a machine-source credential pattern.
+stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build && ! grep -R -l "hop_v1_" web/dist'
 stage npm-advisories bash -c 'npm --prefix web audit --audit-level=high && npm --prefix tests/browser audit --audit-level=high'
 
 # Only this project's newly created resources may be stopped or destroyed.
@@ -299,6 +300,10 @@ recovery() {
 stage source-outage-recovery recovery
 
 scan_images() {
+  # Record scanner and advisory database identity so a stale or missing database is visible.
+  MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 \
+    -v "$(cygpath -w "$root/cache/trivy"):/root/.cache/trivy" \
+    aquasec/trivy:0.76.1 version > "$evidence/trivy/version.txt" 2>&1
   for service in postgres api web; do
     local container image revision
     container=$(compose ps -q "$service")
@@ -321,13 +326,12 @@ stage image-scans scan_images
 
 # G7 acceptance requires normative D-002 references and independent raw-evidence review.
 # The source credential is never packaged; protected interactive CLI issuance is a separate check.
-printf 'G7-S01\tBLOCKED\tD-002 acceptance and upstream pin pending\n' > "$evidence/open-gates.tsv"
-if [[ ! -s "$evidence/source-cli-operator.tsv" ]]; then
-  printf 'G7-S06\tMANUAL_PENDING\tProtected terminal lifecycle not executed\n' >> "$evidence/open-gates.tsv"
-fi
-if [[ ! -s "$evidence/g7-mutations.json" ]]; then
-  printf 'G7-S24\tBLOCKED\tSecurity mutation evidence missing\n' >> "$evidence/open-gates.tsv"
-fi
-printf 'G7-S25\tREVIEW_PENDING\tIndependent raw-evidence review pending\n' >> "$evidence/open-gates.tsv"
+stage evidence-summary node scripts/summarize-g7-evidence.mjs "$evidence"
+node -e '
+const s = JSON.parse(require("node:fs").readFileSync(process.argv[1] + "/g7-scenarios.json", "utf8"));
+const rows = s.scenarios.filter(x => x.status !== "PASS")
+  .map(x => [x.id, x.status, [x.note, ...x.gaps].filter(Boolean).join("; ")].join("\t"));
+require("node:fs").writeFileSync(process.argv[1] + "/open-gates.tsv", rows.join("\n") + "\n");
+' "$evidence"
 echo "Technical stages completed. G7 remains blocked on the open-gate register." >&2
 exit 2

@@ -5,6 +5,7 @@ using HarborOps.Api.References;
 using HarborOps.Api.Maritime;
 using HarborOps.Api.Shipments;
 using HarborOps.Api.Assignments;
+using HarborOps.Api.Integrations;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -27,6 +28,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 builder.Services.AddHarborOpsPersistence(connectionString);
 builder.Services.AddHarborOpsAuthentication(builder.Configuration);
+builder.Services.AddSingleton<IntegrationRequestLimiter>();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -60,6 +62,12 @@ if (args.Contains("--account-cli", StringComparer.Ordinal))
 if (args.Contains("--organization-cli", StringComparer.Ordinal))
 {
     Environment.ExitCode = await RunCommandAsync(() => OrganizationCli.RunAsync(args, app.Services));
+    return;
+}
+
+if (args.Contains("--source-cli", StringComparer.Ordinal))
+{
+    Environment.ExitCode = await RunCommandAsync(() => SourceCli.RunAsync(args, app.Services));
     return;
 }
 
@@ -124,6 +132,7 @@ app.MapReferenceEndpoints();
 app.MapMaritimeEndpoints();
 app.MapShipmentEndpoints();
 app.MapAssignmentEndpoints();
+app.MapTrackingEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

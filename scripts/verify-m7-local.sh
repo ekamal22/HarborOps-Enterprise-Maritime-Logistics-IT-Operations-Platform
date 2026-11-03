@@ -107,3 +107,72 @@ cleanup() {
 }
 trap cleanup EXIT
 
+stage preflight bash -c 'git rev-parse HEAD; node --version; npm --version; docker version; docker compose version'
+stage documentation bash -c 'node scripts/render-execution-graph.mjs --check && node scripts/check-planning-docs.mjs'
+stage tracking-contract node --test scripts/check-m7-contract.test.mjs
+stage postgres-image docker build --build-arg "SOURCE_REVISION=$HARBOROPS_SOURCE_SHA" \
+  -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
+docker run -d --name "$sdk_db" --label harborops.g7=disposable --ulimit core=0 \
+  --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 \
+  --cap-drop ALL --security-opt no-new-privileges \
+  -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops \
+  -e POSTGRES_HOST_AUTH_METHOD=trust harborops-postgres:16.15-rootless \
+  > "$evidence/sdk-postgres-container-id.txt"
+owned_sdk=1
+ready=0
+for _ in $(seq 1 45); do
+  if docker exec "$sdk_db" pg_isready -U harborops -d harborops_integration >/dev/null 2>&1; then
+    ready=1; break
+  fi
+  sleep 2
+done
+[[ "$ready" == 1 ]] || { echo "Disposable PostgreSQL not ready" >&2; exit 1; }
+cat > "$root/run-dotnet-g7.sh" <<'INNER'
+set -euo pipefail
+cd /src
+case "$1" in
+  build)
+    dotnet restore HarborOps.sln --verbosity minimal
+    dotnet build HarborOps.sln -c Release --no-restore -warnaserror
+    ;;
+  tests)
+    for kind in Unit Contract Integration; do
+      case "$kind" in
+        Unit) file=tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj ;;
+        Contract) file=tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj ;;
+        Integration) file=tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj ;;
+      esac
+      dotnet test "$file" -c Release --no-build --logger "trx;LogFileName=g7-$kind.trx" \
+        --results-directory /cache/evidence/trx
+    done
+    dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
+      -c Release --no-build --logger "trx;LogFileName=g7-Integration-repeat.trx" \
+      --results-directory /cache/evidence/trx
+    ;;
+  nuget)
+    dotnet list HarborOps.sln package --vulnerable --include-transitive \
+      > /cache/evidence/nuget-vulnerable.log
+    if grep -q "has the following vulnerable packages" /cache/evidence/nuget-vulnerable.log; then
+      echo "NuGet vulnerabilities found" >&2; exit 1
+    fi
+    ;;
+  *) exit 2 ;;
+esac
+INNER
+sdk() {
+  MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 --network "container:$sdk_db" \
+    -v "$repo_win:/src" -v "$(cygpath -w "$root"):/cache" -w /src \
+    -e DOTNET_NOLOGO=1 -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    -e NUGET_PACKAGES=/cache/cache/nuget/packages \
+    -e NUGET_HTTP_CACHE_PATH=/cache/cache/nuget/http \
+    -e DOTNET_CLI_HOME=/cache/cache/dotnet-home \
+    -e HOME=/cache/cache/dotnet-home -e TMPDIR=/cache/cache/tmp \
+    -e HARBOROPS_TEST_DB="Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops" \
+    mcr.microsoft.com/dotnet/sdk:10.0 bash /cache/run-dotnet-g7.sh "$1"
+}
+stage build sdk build
+stage dotnet-regressions sdk tests
+stage nuget-advisories sdk nuget
+stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build'
+stage npm-advisories bash -c 'npm --prefix web audit --audit-level=high && npm --prefix tests/browser audit --audit-level=high'
+

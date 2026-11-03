@@ -20,10 +20,12 @@
 | Medium | Bearer formatting accepted a non-256-bit caller-supplied secret and rejected decoded data was not always cleared | Require a nonempty credential ID and exactly 32 secret bytes; clear invalid decoded bytes | Bearer parsing/entropy tests |
 | High for G7 evidence | The G7 runner did not prove security tests would detect disabled controls | Add an isolated E:-backed five-variant security mutation stage with passing unmodified controls | Run all mutants and verify intended failures from raw TRX |
 | Medium | The revocation race test could pass before the validation query reached the row lock | Poll PostgreSQL lock-wait state before committing the revocation, then verify denial | Real concurrent PostgreSQL sessions |
+| High | The credential schema admitted future creation timestamps while source disable used the current time as the revocation timestamp | Require coherent created/not-before ordering, bound future creation skew, use monotonic source timestamps and a revocation timestamp no earlier than creation | Future-not-before, early disable, revocation and SQL-check tests |
+| Medium | The advisory and image scanning stages did not fully distinguish missing advisory data or identify every scanned image | Fail on NuGet advisory-service errors, record scanned image digests, and include explicit CLI opt-in denial | E:-backed dependency and image scan records |
 
 ## Audit methodology and limits
 
-Repository code, migration SQL, EF model declarations, synthetic fixtures, test methods and verification scripts were inspected. Source-level static checks are different from a compiler, PostgreSQL database engine or browser execution. This audit does not claim successful .NET compilation, database migrations, browser tests, controlled outage, dependency/image scans, or mutation execution.
+Repository code, migration SQL, EF model declarations, synthetic fixtures, test methods and verification scripts were inspected. Eight source-contract checks passed in a script-level evaluation; this is not an application build or G7 runtime pass. Source-level static checks are different from a compiler, PostgreSQL database engine or browser execution. This audit does not claim successful .NET compilation, database migrations, browser tests, controlled outage, dependency/image scans, or mutation execution.
 
 Every G7-S01 through G7-S25 check remains subject to execution and independently reviewed, commit-bound evidence. Some checks, including protected operator-terminal issuance and upstream DCSA reference approval, require separate recorded action.
 

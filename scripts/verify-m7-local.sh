@@ -244,6 +244,11 @@ cli_negative() {
     dotnet HarborOps.Api.dll --source-cli inspect "$org" g7_disposable
 }
 stage source-cli-negative cli_negative
+if [[ "$(printenv HARBOROPS_G7_INTERACTIVE_CLI || true)" == "1" ]]; then
+  # Deliberately not captured by stage(): only a protected terminal may display issued keys.
+  bash scripts/check-m7-source-cli-interactive.sh
+  printf 'G7-S06\tOPERATOR_RUN\tProtected lifecycle checked in terminal\n' > "$evidence/source-cli-operator.tsv"
+fi
 stage ingress-before node scripts/check-m7-ingress.mjs healthy
 stage browser-fixtures bash -c \
   'node scripts/prepare-m3-browser-fixtures.mjs && node scripts/prepare-m4-browser-fixtures.mjs && node scripts/prepare-m5-browser-fixtures.mjs && node scripts/prepare-m6-browser-fixtures.mjs'
@@ -291,7 +296,9 @@ stage image-scans scan_images
 # G7 acceptance requires normative D-002 references and independent raw-evidence review.
 # The source credential is never packaged; protected interactive CLI issuance is a separate check.
 printf 'G7-S01\tBLOCKED\tD-002 acceptance and upstream pin pending\n' > "$evidence/open-gates.tsv"
-printf 'G7-S06\tMANUAL_PENDING\tOne-time protected CLI terminal review pending\n' >> "$evidence/open-gates.tsv"
+if [[ ! -s "$evidence/source-cli-operator.tsv" ]]; then
+  printf 'G7-S06\tMANUAL_PENDING\tProtected terminal lifecycle not executed\n' >> "$evidence/open-gates.tsv"
+fi
 printf 'G7-S24\tREVIEW_PENDING\tIndependent mutation and security review pending\n' >> "$evidence/open-gates.tsv"
 printf 'G7-S25\tREVIEW_PENDING\tIndependent raw-evidence review pending\n' >> "$evidence/open-gates.tsv"
 echo "Technical stages completed. G7 remains blocked on the open-gate register." >&2

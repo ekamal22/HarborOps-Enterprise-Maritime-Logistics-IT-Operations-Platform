@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { verifyManifest } from "./verify-dcsa-reference.mjs";
 
 const source = name => readFileSync(name, "utf8");
 const schema = JSON.parse(source("contracts/tracking/v1/harborops-tracking-v1.schema.json"));
@@ -136,4 +137,25 @@ test("G7 documents all required cases without claiming acceptance", () => {
       "G7 gate case missing: "+i);
   const g7Line = status.split("\n").find(line => line.startsWith("**G7:**")) ?? "";
   assert.ok(g7Line.includes("acceptance pending"), "G7 must not be recorded as accepted");
+});
+
+test("D-002 reference snapshots are pinned, withheld artifacts stay out and the profile matches the policy", () => {
+  const manifest = JSON.parse(source("third_party/dcsa-track-and-trace/MANIFEST.json"));
+  const io = {
+    read: rel => (existsSync(rel) ? readFileSync(rel) : null),
+    list: rel => (existsSync(rel) ? readdirSync(rel) : [])
+  };
+  assert.deepEqual(verifyManifest(manifest, io), []);
+  assert.equal(manifest.reference.conformanceClaim, "none");
+  const policy = source("src/HarborOps.Domain/Tracking/TrackingEventPolicy.cs");
+  assert.ok(policy.includes('Profile = "' + manifest.profile.id + '"'), "profile id must match the policy");
+  for (const code of [...manifest.profile.supportedCodes.Equipment, ...manifest.profile.supportedCodes.Transport])
+    assert.ok(policy.includes('"' + code + '"'), "supported code missing from the policy: " + code);
+  assert.deepEqual(manifest.profile.classifiers, ["ACT"]);
+  assert.ok(policy.includes('classifier != "ACT"'), "classifier restriction must match the manifest");
+  const published = manifest.artifacts.filter(a => a.redistribution === "published");
+  assert.deepEqual(published.map(a => a.id), ["DCSA_TNT-2.2.0"]);
+  const readme = source("third_party/dcsa-track-and-trace/README.md");
+  for (const phrase of ["not official immutable DCSA releases", "not DCSA conformant", "translation layer"])
+    assert.ok(readme.includes(phrase), "provenance statement missing: " + phrase);
 });

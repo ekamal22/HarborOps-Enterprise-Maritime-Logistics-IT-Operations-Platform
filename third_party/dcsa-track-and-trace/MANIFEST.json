@@ -1,0 +1,89 @@
+{
+  "manifestVersion": 1,
+  "reference": {
+    "name": "DCSA Track & Trace",
+    "version": "2.2.0",
+    "decision": "D-002 Option A, accepted 2026-11-03",
+    "nature": "Local immutable snapshots of previously retrieved upstream content. They are not official immutable DCSA releases.",
+    "conformanceClaim": "none"
+  },
+  "profile": {
+    "id": "tnt-2.2-harborops-v1",
+    "wire": "harborops-tracking-v1",
+    "supportedCodes": {
+      "Equipment": ["GTIN", "GTOT"],
+      "Transport": ["ARRI", "DEPA"]
+    },
+    "classifiers": ["ACT"],
+    "upstreamEnums": {
+      "Equipment": { "codes": "equipmentEventTypeCode", "classifier": "baseEquipmentEvent" },
+      "Transport": { "codes": "transportEventTypeCode", "classifier": "baseTransportEvent" }
+    }
+  },
+  "artifacts": [
+    {
+      "id": "DCSA_TNT-2.2.0",
+      "name": "DCSA OpenAPI specification for Track & Trace",
+      "version": "2.2.0",
+      "upstreamUrl": "https://api.swaggerhub.com/apis/dcsaorg/DCSA_TNT/2.2.0",
+      "retrievedDate": "2026-11-03",
+      "upstreamLastModified": "Thu, 28 Oct 2021 13:40:40 UTC",
+      "sha256": "b3c02f97f19833b3dca8edd95a328b1d6c0c2cacb1a0606d882a12d0f698c127",
+      "bytes": 19889,
+      "declaredLicense": "Apache-2.0",
+      "licenseEvidence": "info.license of the artifact: name Apache 2.0, url http://www.apache.org/licenses/LICENSE-2.0.html; info.contact: Digital Container Shipping Association (DCSA)",
+      "redistribution": "published",
+      "localPath": "snapshots/swaggerhub-DCSA_TNT-2.2.0.json"
+    },
+    {
+      "id": "EVENT_DOMAIN-1.0.4",
+      "name": "DCSA Event Components",
+      "version": "1.0.4",
+      "upstreamUrl": "https://api.swaggerhub.com/domains/dcsaorg/EVENT_DOMAIN/1.0.4",
+      "retrievedDate": "2026-11-03",
+      "sha256": "5b9efaba91ea6ea9d855a59ae0670e252fc472eba5d3e9419962b9b5bcbc644c",
+      "bytes": 41249,
+      "declaredLicense": null,
+      "licenseEvidence": "The artifact declares no license, copyright or contact; the hosting metadata names an owner but no license.",
+      "redistribution": "withheld",
+      "localPath": null,
+      "externalName": "swaggerhub-domain-EVENT_DOMAIN-1.0.4.json",
+      "withheldReason": "Redistribution permission could not be confirmed for this artifact."
+    },
+    {
+      "id": "DCSA_DOMAIN-1.0.3",
+      "name": "DCSA Components",
+      "version": "1.0.3",
+      "upstreamUrl": "https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/1.0.3",
+      "retrievedDate": "2026-11-03",
+      "sha256": "b6ed1f10185df3e680d20a5c5aee63da26cc76e49da33616400f517aa7ffb5e4",
+      "bytes": 34259,
+      "declaredLicense": null,
+      "licenseEvidence": "The artifact declares no license, copyright or contact; the hosting metadata names an owner but no license.",
+      "redistribution": "withheld",
+      "localPath": null,
+      "externalName": "swaggerhub-domain-DCSA_DOMAIN-1.0.3.json",
+      "withheldReason": "Redistribution permission could not be confirmed for this artifact."
+    },
+    {
+      "id": "ERROR_DOMAIN-1.0.0",
+      "name": "DCSA Error Domain",
+      "version": "1.0.0",
+      "upstreamUrl": "https://api.swaggerhub.com/domains/dcsaorg/ERROR_DOMAIN/1.0.0",
+      "retrievedDate": "2026-11-03",
+      "sha256": "15fcd4c9d3b5e529a8c170ca941ca9ec8a957df356322b38e41d25d022ca54e5",
+      "bytes": 1330,
+      "declaredLicense": null,
+      "licenseEvidence": "The artifact declares no license, copyright or contact; the hosting metadata names an owner but no license.",
+      "redistribution": "withheld",
+      "localPath": null,
+      "externalName": "swaggerhub-domain-ERROR_DOMAIN-1.0.0.json",
+      "withheldReason": "Redistribution permission could not be confirmed for this artifact."
+    }
+  ],
+  "profileFixtures": [
+    { "path": "tests/fixtures/tracking/invalid-tenant-spoof.json", "sha256": "ed4ee427bb35e42c19398ffa1a0db8dd6fd27396378151c7a5a63a941c34dfc1" },
+    { "path": "tests/fixtures/tracking/valid-equipment.json", "sha256": "c8354de123d10b06a00fe1d1bbd4a24942373535ecfca902340691372f34d224" },
+    { "path": "tests/fixtures/tracking/valid-transport.json", "sha256": "8d99e404f7c8dcd733ef94558e402211a8ac11b716a896a98655fbfc357a6af4" }
+  ]
+}

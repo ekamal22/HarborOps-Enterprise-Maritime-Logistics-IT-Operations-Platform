@@ -1,6 +1,6 @@
 # G7 Tracking Contracts and Source Authentication: Verification Plan
 
-**State:** Gate evidence run executed on `7b87f3250aba677b1f4aeef4350803d9ca7b6880` (21 PASS, 3 BLOCKED, 1 NOT EXECUTED); supplements bring the reconciled result to 23 PASS and 2 BLOCKED on D-002. See the [executed verification](M7_EXECUTED_VERIFICATION.md). G7 acceptance is pending.
+**State:** Gate evidence run executed on `7b87f3250aba677b1f4aeef4350803d9ca7b6880` (21 PASS, 3 BLOCKED, 1 NOT EXECUTED); three supplements (G7-S06, G7-S25, and the D-002 reference verification for G7-S01 and G7-S17) bring the reconciled result to 25 PASS. See the [executed verification](M7_EXECUTED_VERIFICATION.md). G7 acceptance is pending.
 **Prepared:** 2026-11-03
 **Milestone:** M7-01 through M7-04 and gate G7
 **Base:** Accepted G0-G6 `main` at `97b67739cf1dad543bf25fa56326fb4702990f41`
@@ -9,7 +9,7 @@
 
 ## 1. Non-negotiable gate rules
 
-1. D-002 must be explicitly accepted with an immutable upstream 2.2.0 reference and an exact supported adapter subset before executable G7 acceptance.
+1. D-002 must be explicitly accepted with a pinned upstream 2.2.0 reference and an exact supported adapter subset before executable G7 acceptance. Accepted 2026-11-03 (Option A) with hash-pinned local snapshots that are not official immutable releases.
 2. Every required G7-S01 to G7-S25 case must be executed against a single source SHA; authored test methods and source inspection alone are not passing evidence.
 3. M7 must not return 200, 201 or 202 for tracking-event intake while it has no durable receipt. Positive auth and payload tests expect valid processing **followed by** HTTP 503 `intake_unavailable` and no persistence. A real success acknowledgment belongs to M8.
 4. Unit, contract, real PostgreSQL fresh/repeat integration, current-to-M7 upgrade, source CLI, concurrency, proxy/transport, controlled outage and existing accepted regressions must be covered. Three-browser regressions are required if shared routing/auth changes affect browser behavior, without introducing a new M7 UI or early accessibility audit.
@@ -62,7 +62,7 @@ The positive contract fixture must demonstrate that an approved event can be par
 ## 4. Execution stages and commands to implement
 
 The implementation branch includes `scripts/verify-m7-local.sh`, a source-locked E:-backed technical runner covering build, .NET regression, five isolated security mutations, web, migrations, browser/proxy, credential checks, controlled outage, image scans and evidence teardown. G7 remains blocked until every G7-S01 to G7-S25 scenario is independently checked. The full required stage taxonomy remains:
-`preflight dotnet contracts db migration auth parser http transport compose browsers recovery scans evidence teardown`. Some boundaries run inside combined stages, so `scripts/summarize-g7-evidence.mjs` derives each G7-S01 to G7-S25 outcome from the raw TRX files, stage records, browser reports, mutation report and scan reports, and writes `g7-scenarios.json` and `g7-scenarios.md`. A scenario is PASS only when every listed test, stage and report exists and passed on the same source revision. Manual operator evidence remains mandatory for G7-S06.
+`preflight dotnet contracts db migration auth parser http transport compose browsers recovery scans evidence teardown`. Some boundaries run inside combined stages, so `scripts/summarize-g7-evidence.mjs` derives each G7-S01 to G7-S25 outcome from the raw TRX files, stage records, browser reports, mutation report and scan reports, and writes `g7-scenarios.json` and `g7-scenarios.md`. A scenario is PASS only when every listed test, stage and report exists and passed on the same source revision. The summarizer and runner still encode the gating that applied before the D-002 decision, so a new full run reports G7-S01 as BLOCKED and G7-S17 as BLOCKED until they are updated; the D-002 reference check (`scripts/verify-dcsa-reference.mjs`) is executed and recorded separately and is also enforced by the M7 contract tests. Manual operator evidence remains mandatory for G7-S06.
 
 Each stage must write its command, environment and source identity before running. Define unambiguous success/failure exit codes. Do not copy G6 scripts without reviewing their current stage dependencies, resource names and evidence output. Do not start a primary Compose stack or change retained production-like volumes.
 

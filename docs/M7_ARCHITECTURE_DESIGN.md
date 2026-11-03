@@ -22,7 +22,7 @@ Accepted G3 reference-data foundation
              |
  M7-01 reference review and contract proposal
              |
-  D-002 explicit acceptance and contract freeze
+  D-002 accepted 2026-11-03 (Option A) and contract frozen
           /       \
  M7-02 source    M7-03 bounded
  identity        contract validation
@@ -34,7 +34,7 @@ Accepted G3 reference-data foundation
        M8 contract and durable intake
 ```
 
-M7-01 can prepare the pinned reference and mapping for the D-002 decision after G3. M7-02 and M7-03 may be developed independently only after M7-01 has frozen the approved schema and D-002 has been explicitly accepted. No new graph edges are required. Accepted G6 is available for regression and future M8 prerequisites but is not an artificial prerequisite for M7-01. M8 additionally needs D-006 and a durable database transaction before any successful ingestion acknowledgment.
+M7-01 can prepare the pinned reference and mapping for the D-002 decision after G3. M7-02 and M7-03 may be developed independently only after M7-01 has frozen the approved schema and D-002 has been explicitly accepted (done, 2026-11-03). No new graph edges are required. Accepted G6 is available for regression and future M8 prerequisites but is not an artificial prerequisite for M7-01. M8 additionally needs D-006 and a durable database transaction before any successful ingestion acknowledgment.
 
 ## 3. Module boundaries and data flow
 
@@ -101,9 +101,9 @@ One M7 source belongs to exactly one organization. No shared global credential o
 ### 5.1 Versioning and shape
 
 - Route: `POST /integrations/v1/tracking-events`. `v1` is the HarborOps inbound protocol revision.
-- Media type: `application/json`; document UTF-8 behavior and reject unsupported charset or media types with 415. Explicit `X-HarborOps-Tracking-Profile: tnt-2.2-harborops-v1` header when D-002 is accepted; unknown/missing profile rejected with stable `unsupported_tracking_profile`.
+- Media type: `application/json`; document UTF-8 behavior and reject unsupported charset or media types with 415. Explicit `X-HarborOps-Tracking-Profile: tnt-2.2-harborops-v1` header (D-002 accepted); unknown/missing profile rejected with stable `unsupported_tracking_profile`.
 - One event per request, object root only. Proposed **16 KiB maximum raw body**, enforced while streaming even without Content-Length, maximum JSON depth 12, no duplicate keys, no unknown keys, no comments/trailing commas, no invalid UTF-8, no NaN/infinity, no Unicode control characters in identifiers.
-- Candidate wire object (final names and code values require D-002 approval):
+- Wire object (names and code values as accepted under D-002 Option A):
 
 ```json
 {
@@ -176,4 +176,4 @@ Do not introduce these storage, retry or projection features into M7 by convenie
 
 ## 9. Acceptance boundary
 
-M7 planning may be reviewed now; D-002 is not accepted by this architecture document. Implementation proceeds only after D-002's exact public artifact, initial subset and profile mapping are accepted. The [G7 matrix](M7_VERIFICATION_PLAN.md) requires a source-locked local run, complete negative authentication, transport, tenant, payload and upgrade checks, and explicit acceptance before merging implementation into protected `main`. No GitHub Actions run, public hosting, or publication-license change is authorized.
+D-002 was accepted on 2026-11-03 as Option A: Track & Trace 2.2.0 is the reference baseline for a deliberately narrower, HarborOps-specific, non-conformant adapter profile, pinned as local snapshots in [`third_party/dcsa-track-and-trace`](../third_party/dcsa-track-and-trace/README.md) that are not official immutable DCSA releases. Events in the DCSA wire format cannot be consumed directly; a translation layer is required. The profile omits the required upstream fields `eventCreatedDateTime` and `emptyIndicatorCode` and reduces `transportCall` to `transportReference`. The [G7 matrix](M7_VERIFICATION_PLAN.md) requires a source-locked local run, complete negative authentication, transport, tenant, payload and upgrade checks, and explicit acceptance before merging implementation into protected `main`. No GitHub Actions run, public hosting, or publication-license change is authorized.

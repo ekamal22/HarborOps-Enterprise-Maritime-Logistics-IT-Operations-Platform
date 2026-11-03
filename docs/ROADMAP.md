@@ -50,7 +50,7 @@ M6/G6 are complete and integrated. M7 tracking contracts, M16 audit foundations,
 | **M4 Voyages and containers reference data** | Validated voyage schedules and container identity models | G3 accepted; D-003 resolved before applicable implementation | G4 |
 | **M5 Shipment lifecycle and concurrency** | Create, edit, search and archive organizational shipments | G3 accepted | G5 |
 | **M6 Container and voyage assignments** | Temporal and organization-safe shipment assignments | G4 accepted, G5 accepted | G6 |
-| **M7 Tracking contracts and source authentication** | Versioned and authenticated event interface | G3 accepted; D-002 resolved before applicable implementation | G7 |
+| **M7 Tracking contracts and source authentication** | Versioned and authenticated event interface | G3 accepted; D-002 accepted 2026-11-03 | G7 |
 | **M8 Durable event inbox and immutable history** | Transactional receipt persistence and accepted event provenance | G7 accepted, G6 accepted; D-006 resolved before applicable implementation | G8 |
 | **M9 Idempotent worker and reconciliation** | At-least-once processing with effect-once business outcomes | G8 accepted | G9 |
 | **M10 Event timeline and projection rebuild** | Ordered history, current status and explicit correction handling | G9 accepted | G10 |
@@ -161,7 +161,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 #### M7: Tracking contracts and source authentication
 
 **Scope:** Versioned and authenticated event interface.
-**Entry:** G3 accepted before respective dependent work packages. Resolve D-002 before applicable feature implementation.
+**Entry:** G3 accepted before respective dependent work packages. D-002 is accepted (2026-11-03, Option A).
 **Required work packages:** M7-01 Pin external subset and contract; M7-02 Implement source entitlements; M7-03 Implement strict payload validation; M7-04 Verify ingestion contract tests. [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md) and [planned G7 matrix](M7_VERIFICATION_PLAN.md) define the solution; the implementation is recorded in [M7 status](M7_IMPLEMENTATION_STATUS.md) and its local technical verification in [M7 executed verification](M7_EXECUTED_VERIFICATION.md); acceptance is pending.
 **Exit G7:** All applicable tasks, negative tests, runtime evidence and documentation for M7 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Inbox persistence and background processing.
@@ -351,4 +351,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M6/G0-G6 are verified, explicitly accepted and integrated into `main`. Eligible next work includes M7 (pending D-002), M16, M17, M19 (pending D-008), M20-01 and M23-01, subject to the per-package prerequisites in the execution graph. The original dependency graph remains unchanged. G7-G24 remain open. Public source visibility is complete and separate from delivery-gate or production-hosting acceptance.
+M0-M6/G0-G6 are verified, explicitly accepted and integrated into `main`. Eligible next work includes M7 (D-002 accepted, G7 acceptance pending), M16, M17, M19 (pending D-008), M20-01 and M23-01, subject to the per-package prerequisites in the execution graph. The original dependency graph remains unchanged. G7-G24 remain open. Public source visibility is complete and separate from delivery-gate or production-hosting acceptance.

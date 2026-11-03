@@ -1,7 +1,7 @@
 # M7 Executed G7 Verification Record
 
-**State:** Technical verification executed on one source revision, with two supplements. G7 is **acceptance pending**. D-002 is **acceptance pending**. M7 is not merged into `main`.
-**Tested revision:** `7b87f3250aba677b1f4aeef4350803d9ca7b6880` on the M7 feature branch. Commits after it (`git log 7b87f32..HEAD`) change documentation and one documentation-guard assertion in `scripts/check-m7-contract.test.mjs`; no product, migration, runner or integration test code differs.
+**State:** Technical verification executed on one source revision, with three supplements. G7 is **acceptance pending**. D-002 is **accepted** (Option A, 2026-11-03). M7 is not merged into `main`.
+**Tested revision:** `7b87f3250aba677b1f4aeef4350803d9ca7b6880` on the M7 feature branch. Commits after it (`git log 7b87f32..HEAD`) change documentation, the pinned reference files under `third_party/dcsa-track-and-trace`, the reference verification script and its tests, and a contract-test assertion; no product, migration, runner or integration test code differs.
 **Runner:** `scripts/verify-m7-local.sh`, one complete run, exit status 2 by design because the open-gate register is not empty.
 **Evidence root:** `E:\HarborOps-Verification\m7`. Final package: `E:\HarborOps-Verification\m7\archives\g7-7b87f3250aba677b1f4aeef4350803d9ca7b6880-final-package.tar.gz`, SHA-256 `257f4d66608b17396187a324a76a5fc35c6fbc7fa802762ee12d90b3b56c0dbc` in the adjacent `.sha256` file. The runner's own archive and manifest sit beside it.
 **Contracts:** [Verification plan](M7_VERIFICATION_PLAN.md), [remediation register](M7_CORRECTNESS_REMEDIATION.md), [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [implementation register](M7_IMPLEMENTATION_STATUS.md).
@@ -46,11 +46,11 @@ Outcomes come from `g7-scenarios.json` in the evidence root, derived from the ra
 
 | Scenario | Outcome | Basis |
 | --- | --- | --- |
-| G7-S01 | **BLOCKED** | D-002 acceptance pending; see below |
+| G7-S01 | **BLOCKED** | D-002 acceptance pending when the original run executed; see Supplement C |
 | G7-S02 to G7-S05 | PASS | Policy, credential storage, fresh schema and EF snapshot, populated M6 to M7 upgrade with rollback and reapply |
 | G7-S06 | **NOT EXECUTED** | The protected-terminal create, rotate, revoke and disable lifecycle needs an operator terminal; the redirected-output refusal and opt-in denial passed in `source-cli-negative` |
 | G7-S07 to G7-S16 | PASS | Authentication matrix, concurrency, tenant isolation, browser identity separation, transport trust, limits, media contract, parser, identity and UTC rules |
-| G7-S17 | **BLOCKED** | Fixture tests passed; the recorded upstream mapping and fixture pins depend on D-002 |
+| G7-S17 | **BLOCKED** | Fixture tests passed; the recorded upstream mapping and fixture pins depended on D-002 when the original run executed; see Supplement C |
 | G7-S18 to G7-S24 | PASS | Unsupported variants, envelope, no durable acknowledgment, outage and cancellation, accepted regressions, Compose and browser integration, mutations and scans |
 | G7-S25 | **BLOCKED** | Independent raw-evidence review pending |
 
@@ -72,15 +72,30 @@ The lifecycle printed `Cannot load library libgssapi_krb5.so.2`. The message com
 - Scope of the PASS: archive integrity and the recorded outcomes. The live Windows and Docker environment claims (for example the E: storage placement and the state of the machine during the run) are supported by the archived logs and checks but were not independently reproduced.
 - The original `evidence-summary` stage could not mark G7-S25 because the archive is written after it; the reconciliation is recorded in the S06 supplement as `g7-scenarios-reconciled.md`.
 
+## Supplement C: D-002 decision and reference verification (G7-S01 and G7-S17 PASS)
+
+D-002 was accepted on 2026-11-03 as Option A: DCSA Track & Trace 2.2.0 is the reference baseline for the deliberately narrower, HarborOps-specific profile `tnt-2.2-harborops-v1`, pinned by SHA-256 as local snapshots that are not official immutable DCSA releases. The decision record is section 8 of the [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md). The tracking contract and supported subset are unchanged.
+
+What was done and executed:
+
+- **Redistribution review.** Of the four retrieved artifacts, only the Track & Trace 2.2.0 definition declares a license inside the artifact (Apache 2.0, DCSA contact). It is published unmodified under [`third_party/dcsa-track-and-trace`](../third_party/dcsa-track-and-trace/README.md) with the Apache 2.0 text and an attribution notice. The `EVENT_DOMAIN` 1.0.4, `DCSA_DOMAIN` 1.0.3 and `ERROR_DOMAIN` 1.0.0 definitions declare no license, so they are **not published**; their exact bytes remain in the verification evidence on E:, and their URLs and hashes are pinned. This is a technical reading of the declarations, not a legal opinion.
+- **Offline hash verification** (`scripts/verify-dcsa-reference.mjs`): the committed snapshot, the Apache text and the three profile fixtures match their pins, no withheld artifact is in the repository, and nothing unlisted is in the snapshots directory.
+- **External check** (`--external-dir` with the retained copies): all four artifacts match their pinned hashes and sizes, and every supported code (`GTIN`, `GTOT`, `ARRI`, `DEPA`) and the classifier `ACT` exist in the pinned upstream enumerations.
+- **Upstream drift check** (`--upstream`): the four hosted versions matched the pins on the run date. The check does not write files or change pins.
+- **Tests:** 14 unit tests of the verification logic (tampered or substituted snapshot, unlisted file, withheld artifact committed, missing license declaration, conformance claim, changed fixture, unsupported code or classifier, drift outcomes) and one contract test that ties the manifest to the policy source. The 8 existing contract-script tests still pass.
+- **Documented differences:** the profile omits the required upstream fields `eventCreatedDateTime` and `emptyIndicatorCode` and reduces `transportCall` to `transportReference`. Events in the DCSA wire format cannot be consumed directly; a translation layer is required.
+
+Scope: G7-S01 and G7-S17 pass on the evidence above. The product code was not re-run for this supplement because it is unchanged from the tested revision; the supported-subset parsing tests of the original run (`ParsesOnlyExplicitSupportedSubset`, `CanonicalEventBindsOnlyValidatedServerIdentity`, `RejectsUnsupportedFamilyAndCodes`) are the original run's evidence. The pins are not an official immutable release, which the decision accepts.
+
 ## Reconciled matrix
 
 | Result | Count | Scenarios |
 | --- | --- | --- |
-| PASS | 23 | G7-S02 to G7-S16 (including G7-S06 by Supplement A), G7-S18 to G7-S25 (including G7-S25 by Supplement B) |
-| BLOCKED | 2 | G7-S01 and G7-S17, both on D-002 |
+| PASS | 25 | G7-S01 (Supplement C), G7-S02 to G7-S05, G7-S06 (Supplement A), G7-S07 to G7-S16, G7-S17 (Supplement C), G7-S18 to G7-S24, G7-S25 (Supplement B) |
+| BLOCKED | 0 | none |
 | NOT EXECUTED | 0 | none |
 
-The original 21 PASS, 3 BLOCKED, 1 NOT EXECUTED result is unchanged in the original evidence. The reconciled totals depend on the two supplements and are reported as such.
+The original 21 PASS, 3 BLOCKED, 1 NOT EXECUTED result is unchanged in the original evidence. The reconciled totals depend on the three supplements and are reported as such. All 25 scenarios passing does not accept G7; acceptance and any merge into `main` remain separate explicit decisions.
 
 ## Defects found by execution
 
@@ -88,19 +103,21 @@ Detailed in the [remediation register](M7_CORRECTNESS_REMEDIATION.md): an integr
 
 ## D-002
 
-The upstream SwaggerHub Track & Trace 2.2.0 definition and its event domain were fetched, hashed and retained in the evidence supplement. The five provisional codes exist upstream, but no tagged or content-addressed release was found and the repository named in the first draft does not exist. No change was made to the standard version or the supported subset, and no DCSA conformance is claimed. See section 6 of the [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md).
+Accepted on 2026-11-03 as Option A with the conditions recorded in section 8 of the [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md). The upstream SwaggerHub definitions are pinned as local snapshots, not official immutable releases; one is published and three are withheld for want of a confirmed license. No DCSA conformance is claimed and the supported subset is unchanged.
 
 ## Known limits
 
 - G7-S06 was one operator execution and the operator transcript is not retained by design.
+- The D-002 pins are hash-pinned local snapshots of mutable hosted content. The drift check reports change; it cannot make the upstream immutable.
+- Redistribution was judged from the declarations inside the artifacts. It is not a legal opinion.
+- The runner and evidence summarizer were not changed and still encode the pre-decision gating for G7-S01 and G7-S17; Supplement C is the evidence for those two scenarios.
 - The `499` response for a client disconnecting mid-request is covered by a store-level cancellation test and source review, not by an end-to-end HTTP test.
 - NuGet and Trivy advisory data were available; a missing advisory source would have failed the stage, not reported zero findings.
 - The evidence-summary stage cannot see the teardown file, so teardown is verified in the integrity report in the evidence supplement.
 - Accessibility remains M24-04.
 
-## Items needing a decision or an operator
+## Items needing a decision
 
-1. D-002: accept, amend or reject the proposal; the recommendation is in section 7 of the [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md).
-2. Explicit G7 acceptance, and then a separate decision to merge into `main`.
+1. Explicit G7 acceptance, and then a separate decision to merge into `main`.
 
-The guard assertion change was rerun on its own (8 of 8 script tests pass) and the planning-document checks pass on the final head.
+The 14 reference verification tests and the 9 contract-script tests pass and the planning-document checks pass on the final head.

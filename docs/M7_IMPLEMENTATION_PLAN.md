@@ -19,7 +19,7 @@ Preserve existing authorization, schema and accepted M0-M6 behavior. Implement a
 
 | Work package | Depends on | Outputs | Complete when |
 | --- | --- | --- | --- |
-| **M7-01** Pin external subset and canonical contract | Accepted G3; D-002 approval closes this work package before downstream implementation | Immutable upstream reference, schema profile, mapping register, representative allowlisted fixtures, error contract | Every supported/unsupported field and code is grounded in pinned reference, hashes recorded and decision explicitly accepted |
+| **M7-01** Pin external subset and canonical contract | Accepted G3; D-002 approval (2026-11-03, Option A) closed this work package | Immutable upstream reference, schema profile, mapping register, representative allowlisted fixtures, error contract | Every supported/unsupported field and code is grounded in pinned reference, hashes recorded and decision explicitly accepted |
 | **M7-02** Implement source entitlements | M7-01 | Additive source/credential migration, provisioning/rotation/revoke CLI, server-side bearer verification, source/tenant scope and limiters | Live database auth, expiry, rotation, disabled org, forged source and concurrent revoke tests pass |
 | **M7-03** Implement strict payload validation | M7-01 | Canonical DTO, exact-profile JSON parser, bounded body/depth, UTC and identifier policies, supported event mapping and safe errors | Deterministic positive parse and exhaustive invalid/unsupported/over-limit negative matrix pass |
 | **M7-04** Verify integration contracts | M7-02 and M7-03 | HTTP composition, 503 no-ack behavior, full G7 matrix, migration/tenant regression, evidence and docs | All G7 required cases executed and recorded against one source SHA; no critical unresolved defects |
@@ -29,12 +29,12 @@ M7-02 and M7-03 may proceed in parallel after M7-01 is frozen. Use different bra
 
 ## 3. M7-01: contract and reference freeze
 
-1. Fetch the exact public DCSA TNT 2.2.0 reference OpenAPI or normative schema from a reviewed official source. Record immutable upstream identity, version, hash, license and retrieval date. If inaccessible, stop D-002 acceptance and do not substitute a vendor schema without recording the variance.
+1. Fetch the exact public DCSA TNT 2.2.0 reference OpenAPI or normative schema from a reviewed official source. Record immutable upstream identity, version, hash, license and retrieval date. If inaccessible, stop D-002 acceptance and do not substitute a vendor schema without recording the variance. Outcome: the hosted SwaggerHub definitions were retrieved on 2026-11-03 and pinned as local snapshots; no tagged release exists.
 2. Record an explicit supported subset by family, event code, classifier, mandatory reference fields and timestamp representation; maintain a table for unsupported family/code/field combinations.
 3. Freeze `harborops-tracking-v1` wire DTO, `tnt-2.2-harborops-v1` profile name and transport/response error contract. Keep upstream and internal models separate.
 4. Create checked-in JSON Schema or equivalent validator schema and curated synthetic positive/negative fixtures under `contracts/tracking/v1/` and `tests/fixtures/tracking/`. Include licensing/attribution for any redistributed upstream material; write original synthetic examples when rights are uncertain.
 5. Resolve whether the proposed default event-date policy (2000-01-01 UTC to now + 24 hours) and the candidate first event codes precisely match the pinned reference and the desired business scope.
-6. Obtain explicit D-002 acceptance before freezing the provisional implementation and accepting G7. The implementation candidate must be reconciled against the pinned normative reference.
+6. D-002 was accepted on 2026-11-03 (Option A) and the implementation was reconciled against the pinned reference; the supported subset is unchanged.
 
 **Artifacts:** `docs/M7_D002_TRACKING_REFERENCE_PROPOSAL.md`, `docs/M7_ARCHITECTURE_DESIGN.md`, `docs/API_CONTRACTS.md`, contract schema and fixture manifest.
 
@@ -120,7 +120,7 @@ Run only locally. GitHub Actions remains disabled. A new manual-only workflow is
 
 | Priority | Risk | Mitigation and proof |
 | --- | --- | --- |
-| Blocking | D-002 public artifact or subset not pinned | Require exact upstream SHA/rights and explicit acceptance before code |
+| Resolved | D-002 public artifact or subset not pinned | Pinned by SHA-256 as local snapshots and accepted 2026-11-03 (Option A); one artifact is published and three are withheld for want of a confirmed license |
 | High | Event accepted before durable storage exists | Always return 503 before M8 and assert absence of event writes |
 | High | Source credential cross-tenant use | Immutable organization-bound credential FK, server-derived scope, two-tenant adversarial tests |
 | High | Revocation or rotation race | Lock and transaction discipline, direct DB validation, concurrent barrier cases |

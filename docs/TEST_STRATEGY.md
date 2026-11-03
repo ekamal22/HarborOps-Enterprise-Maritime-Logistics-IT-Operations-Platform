@@ -2,7 +2,7 @@
 
 ## M7 source-locked verification boundary
 
-The M7 feature branch contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 acceptance, full G7-S01 to G7-S25 execution and independent evidence review remain pending; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
+The M7 feature branch contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 was accepted on 2026-11-03; the pinned reference snapshots are checked by `scripts/verify-dcsa-reference.mjs` and the M7 contract tests; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
 
 ## Philosophy
 
@@ -70,7 +70,7 @@ The accepted [M6 local assignment contract](M6_LOCAL_CONTRACT_DECISION.md), [arc
 
 ## M7/G7 verification contract (technical run executed, acceptance pending)
 
-The proposed [G7-S01 through G7-S25 plan](M7_VERIFICATION_PLAN.md) requires pinned D-002 source artifacts, direct two-tenant bearer-authentication checks, credential lifecycle/revocation races, exact JSON limits, HTTPS and trusted-proxy denial, a `503 intake_unavailable` no-ack proof, M6-to-M7 migration preservation, affected accepted M0-M6 regressions and source-locked E:-backed evidence. The suites were executed locally on one revision. The original run passed 21 of 25 scenarios; after the G7-S06 operator supplement and G7-S25 evidence reconciliation, 23 pass and G7-S01 and G7-S17 remain blocked on D-002. See the [executed verification record](M7_EXECUTED_VERIFICATION.md). G7 is not accepted. GitHub Actions stays disabled.
+The proposed [G7-S01 through G7-S25 plan](M7_VERIFICATION_PLAN.md) requires pinned D-002 source artifacts, direct two-tenant bearer-authentication checks, credential lifecycle/revocation races, exact JSON limits, HTTPS and trusted-proxy denial, a `503 intake_unavailable` no-ack proof, M6-to-M7 migration preservation, affected accepted M0-M6 regressions and source-locked E:-backed evidence. The suites were executed locally on one revision. The original run passed 21 of 25 scenarios; after the G7-S06 operator supplement, the G7-S25 evidence reconciliation and the D-002 reference verification, all 25 pass. See the [executed verification record](M7_EXECUTED_VERIFICATION.md). G7 is not accepted. GitHub Actions stays disabled.
 
 ## Publication security verification (executed locally)
 

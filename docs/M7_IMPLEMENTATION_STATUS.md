@@ -1,10 +1,10 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Register
 
-**State:** Correctness-audit and execution remediation committed; gate evidence run executed; D-002 and G7 acceptance pending.
+**State:** Correctness-audit and execution remediation committed; gate evidence run executed; D-002 accepted; G7 acceptance pending.
 **Working branch:** `feat/m7-tracking-source-validation`
 **Baseline:** Accepted G0-G6 and M7 planning branch.
 **G7:** Technical run executed on one revision ([executed verification](M7_EXECUTED_VERIFICATION.md)); acceptance pending.
-**D-002:** Acceptance pending. The currently checked-in subset is provisional and may change after the exact upstream normative reference is pinned and reviewed.
+**D-002:** Accepted 2026-11-03 (Option A). The checked-in subset is the accepted subset, pinned to the [Track & Trace 2.2.0 reference snapshots](../third_party/dcsa-track-and-trace/README.md), which are not official immutable DCSA releases.
 **Deployment:** Local-only. No public hosting or successful tracking-event intake.
 
 The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) and [second correctness audit](M7_SECOND_CORRECTNESS_AUDIT.md) track implementation defects, corrections and unresolved runtime evidence.
@@ -28,8 +28,8 @@ The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) and [secon
 
 - `POST /integrations/v1/tracking-events` is a HarborOps-specific inbound interface, not the public DCSA publisher API.
 - Accepted source credentials are never browser sessions and cannot select another tenant through input.
-- Provisional profile: `tnt-2.2-harborops-v1`, protocol `harborops-tracking-v1`.
-- Provisional supported events: Equipment GTIN/GTOT and Transport ARRI/DEPA with ACT classification; shipment, IoT, reefer and unknown variants fail closed.
+- Profile: `tnt-2.2-harborops-v1`, protocol `harborops-tracking-v1`, HarborOps-specific and not DCSA conformant. Events in the DCSA wire format cannot be consumed directly; a translation layer is required.
+- Supported events (accepted under D-002): Equipment GTIN/GTOT and Transport ARRI/DEPA with ACT classification; shipment, IoT, reefer and unknown variants fail closed.
 - No M7 event table, durable receipt, worker processing, idempotent acknowledgment or projection exists.
 - A valid authenticated event returns `503 intake_unavailable` and `Retry-After`. M8 owns durable receipt and D-006.
 
@@ -37,7 +37,7 @@ The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) and [secon
 
 Development runs on the E:-backed workstation found and corrected the defects listed in the [remediation register](M7_CORRECTNESS_REMEDIATION.md). They are not gate evidence. The gate evidence is the single complete run on `7b87f3250aba677b1f4aeef4350803d9ca7b6880` recorded in the [executed verification](M7_EXECUTED_VERIFICATION.md), with supplements for G7-S06 and G7-S25.
 
-The local runner schedules the full gate: source-locked .NET build and tests with a repeat integration run, five controlled security mutations in a disposable E:-backed export, dependency advisories, web build, an isolated G7 network, browser fixtures, three-engine regression, source outage and recovery, exact-image scans, a per-scenario evidence summary and hashed teardown evidence. The protected interactive operator CLI lifecycle was performed separately by the operator and verified against the database (G7-S06 supplement). Pinned upstream fixture review remains outside automatic G7 closure; G7-S01 and G7-S17 require D-002 acceptance and a pinned reference artifact.
+The local runner schedules the full gate: source-locked .NET build and tests with a repeat integration run, five controlled security mutations in a disposable E:-backed export, dependency advisories, web build, an isolated G7 network, browser fixtures, three-engine regression, source outage and recovery, exact-image scans, a per-scenario evidence summary and hashed teardown evidence. The protected interactive operator CLI lifecycle was performed separately by the operator and verified against the database (G7-S06 supplement). The D-002 reference snapshots were pinned, license-reviewed and checked in a separate supplement (G7-S01 and G7-S17); see the [executed verification](M7_EXECUTED_VERIFICATION.md).
 
 **Required next gate:** Complete the G7-S01 through G7-S25 matrix on one exact source revision using disposable E:-backed resources, review the raw evidence, address any failures, then request explicit G7 acceptance before merging into `main`.
 

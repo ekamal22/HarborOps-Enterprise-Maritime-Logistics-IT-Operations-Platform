@@ -2,7 +2,7 @@
 
 **State:** Source and execution-time corrections committed; G7 acceptance pending.
 **Implementation branch:** `feat/m7-tracking-source-validation`.
-**Decision boundary:** D-002 upstream artifact, checksum, license and exact mapping acceptance pending.
+**Decision boundary:** D-002 accepted 2026-11-03 (Option A); see the [decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md). G7 acceptance pending.
 **Deployment boundary:** Local only. No durable tracking-event receipt or successful ingestion response until M8.
 
 The [second correctness audit](M7_SECOND_CORRECTNESS_AUDIT.md) records follow-up fixes, including EF tracked-state refresh, migration fixtures, capped limiter partitions, future credential revocation timing, security mutations and verification-network isolation.
@@ -56,4 +56,4 @@ No GitHub Actions, retained Docker volume, retained database or C: persistent st
 
 ## Remaining G7 acceptance work
 
-D-002 requires an immutable normative 2.2.0 reference, hash, license check and approved mapping. Every G7-S01 through G7-S25 scenario must receive an executed result, including concurrent mutation effectiveness and independent review of logs, coverage, image digests and E:-backed cleanup evidence. A completed technical runner is not by itself an accepted gate. G7 acceptance and any merge into `main` require an explicit subsequent decision.
+D-002 was accepted as Option A (hash-pinned local snapshots, not official immutable releases). Every G7-S01 through G7-S25 scenario must receive an executed result, including concurrent mutation effectiveness and independent review of logs, coverage, image digests and E:-backed cleanup evidence. A completed technical runner is not by itself an accepted gate. G7 acceptance and any merge into `main` require an explicit subsequent decision.

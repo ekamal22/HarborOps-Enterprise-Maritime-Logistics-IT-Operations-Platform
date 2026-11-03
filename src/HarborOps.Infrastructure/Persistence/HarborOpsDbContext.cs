@@ -33,7 +33,6 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-
         modelBuilder.Entity<IntegrationSource>(entity =>
         {
             entity.ToTable("integration_sources", t =>

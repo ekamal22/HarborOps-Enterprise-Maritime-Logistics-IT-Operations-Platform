@@ -26,7 +26,7 @@ for engine in chromium firefox webkit; do
     basename="$(basename "$spec" .spec.mjs)"
     docker compose -p ho-verify-g7 restart api
     # The shared Playwright reporter consumes HARBOROPS_G3_JSON_REPORT.
-    export HARBOROPS_G3_JSON_REPORT="$out/$engine-$basename.json"
+    export HARBOROPS_G3_JSON_REPORT="$(cygpath -w "$out/$engine-$basename.json")"
     if ! npx playwright test "$spec" --project="$engine" --workers=1; then
       failed+=("$engine/$basename")
     fi

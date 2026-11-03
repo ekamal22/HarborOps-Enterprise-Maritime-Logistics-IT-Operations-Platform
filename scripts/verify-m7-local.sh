@@ -19,6 +19,7 @@ for var in TEMP TMP NPM_CONFIG_CACHE PLAYWRIGHT_BROWSERS_PATH NUGET_PACKAGES DOT
 done
 export TMPDIR="$root/cache/TMPDIR" HOME="$root/cache/HOME"
 mkdir -p "$TMPDIR" "$HOME"
+export USERPROFILE="$(cygpath -w "$HOME")"
 export DOCKER_HOST="npipe:////./pipe/dockerDesktopLinuxEngine"
 export DOTNET_NOLOGO=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
 node scripts/check-m3-docker-storage.mjs
@@ -90,6 +91,10 @@ cleanup() {
       echo "Source credential detected in evidence" >&2; rc=1
     fi
     rm -f "$root/private/source-bearer.txt"
+  fi
+  if [[ -f "$root/private/test-user-password.txt" ]] &&
+     grep -R -F -q -- "$(cat "$root/private/test-user-password.txt")" "$evidence"; then
+    echo "Fixture password detected in evidence" >&2; rc=1
   fi
   rm -f "$root/private/test-user-password.txt"
   local leftover vols pg

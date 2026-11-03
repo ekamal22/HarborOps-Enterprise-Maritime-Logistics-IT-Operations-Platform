@@ -54,8 +54,8 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
 
     private async Task<Organization> LockOrganizationAsync(Guid id, CancellationToken ct)
     {
-        var organization = await db.Organizations.FromSqlInterpolated(
-            $"SELECT * FROM organizations WHERE id = {id} FOR UPDATE").SingleAsync(ct);
+        var organization = (await db.Organizations.FromSqlInterpolated(
+            $"SELECT * FROM organizations WHERE id = {id} FOR UPDATE").ToListAsync(ct)).Single();
         // A tracked instance may predate an administrator's update in another context.
         // Refresh it while holding the row lock before deciding active entitlement.
         await db.Entry(organization).ReloadAsync(ct);
@@ -65,9 +65,9 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
     private async Task<IntegrationSource> LockSourceAsync(Guid organizationId, string code, CancellationToken ct)
     {
         var normalized = IntegrationSourcePolicy.NormalizeCode(code);
-        var source = await db.IntegrationSources.FromSqlInterpolated(
+        var source = (await db.IntegrationSources.FromSqlInterpolated(
             $"SELECT * FROM integration_sources WHERE organization_id = {organizationId} AND source_code = {normalized} FOR UPDATE")
-            .SingleAsync(ct);
+            .ToListAsync(ct)).Single();
         await db.Entry(source).ReloadAsync(ct);
         return source;
     }

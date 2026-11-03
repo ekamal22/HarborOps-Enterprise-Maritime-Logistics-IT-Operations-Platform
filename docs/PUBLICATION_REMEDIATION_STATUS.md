@@ -67,7 +67,7 @@ Hosted HTTPS checks (`scripts/verify-publication-hosted.mjs`) require an actual 
 
 ## Post-merge cleanup, November 3, 2026
 
-PR #6 is merged. The cleanup, its verification and the remaining decision are recorded in the [publication safety status](PUBLICATION_SAFETY_STATUS.md#publication-cleanup-november-3-2026). In short: `main` is branch-protected and enforced, Actions is disabled, three retained artifacts with synthetic session cookie values are deleted and verified, no workflow log needed deletion, the five unreachable Git objects were reviewed and are local only, and the restrictive license is retained. The repository stays private; one more retained artifact needs a deletion decision.
+PR #6 is merged. The cleanup, its verification and the remaining decision are recorded in the [publication safety status](PUBLICATION_SAFETY_STATUS.md#publication-cleanup-november-3-2026). In short: `main` is branch-protected and enforced, Actions is disabled, four retained artifacts with synthetic session cookie values are deleted and verified, no workflow log needed deletion, the five unreachable Git objects were reviewed and are local only, and the restrictive license is retained. The repository stays private pending the final visibility authorization.
 
 ## Findings and closure requirements
 

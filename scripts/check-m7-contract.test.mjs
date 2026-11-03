@@ -83,14 +83,21 @@ test("Database has tenant constraints and lifecycle guards", () => {
   ]) assert.ok(migration.includes(marker), "Missing migration invariant: " + marker);
 });
 
-test("Authenticated intake cannot acknowledge without durable M8 receipt", () => {
+test("M8 intake acknowledges only after receipt transaction commit", () => {
+  const inbox = source("src/HarborOps.Infrastructure/Integrations/TrackingInboxStore.cs");
+  const schema = source("src/HarborOps.Infrastructure/Persistence/Migrations/20261103190000_TrackingInboxAndHistory.cs");
   assert.match(endpoint, /AuthenticateAsync/);
   assert.match(endpoint, /preauth:/);
-  assert.match(endpoint, /intake_unavailable/);
-  assert.ok(endpoint.includes("503"));
-  assert.ok(!endpoint.includes("Results.Accepted("));
-  assert.ok(!endpoint.includes("Results.Created("));
   assert.match(endpoint, /Bind\(source.Id, source.OrganizationId\)/);
+  assert.match(endpoint, /ReceiveAsync/);
+  assert.match(endpoint, /Status202Accepted/);
+  assert.match(inbox, /ReauthorizeAsync/);
+  assert.match(inbox, /FOR UPDATE/);
+  assert.match(inbox, /CommitAsync/);
+  assert.ok(inbox.indexOf("CommitAsync(ct)") < inbox.lastIndexOf("TrackingReceiptOutcome.Received"));
+  for (const item of ["tracking_inbox_receipts", "tracking_accepted_events",
+      "tracking_inbox_work_items", "m8_receipt_complete", "m8_guard_append_only"])
+    assert.ok(schema.includes(item), "Missing durable M8 boundary: " + item);
 });
 
 
@@ -129,14 +136,14 @@ test("G7 technical runner uses isolated resources and controlled mutation checks
     assert.ok(mutation.includes('"'+name+'"'), "Security mutant missing: "+name);
 });
 
-test("G7 documents all required cases without claiming acceptance", () => {
+test("G7 retains historical evidence and accepted gate disposition", () => {
   const plan = readFileSync("docs/M7_VERIFICATION_PLAN.md", "utf8");
   const status = readFileSync("docs/M7_IMPLEMENTATION_STATUS.md", "utf8");
   for(let i=1;i<=25;i++)
     assert.ok(plan.includes("G7-S"+String(i).padStart(2,"0")),
       "G7 gate case missing: "+i);
   const g7Line = status.split("\n").find(line => line.startsWith("**G7:**")) ?? "";
-  assert.ok(g7Line.includes("acceptance pending"), "G7 must not be recorded as accepted");
+  assert.ok(g7Line.includes("Accepted") || g7Line.includes("accepted"), "G7 acceptance record missing");
 });
 
 test("D-002 reference snapshots are pinned, withheld artifacts stay out and the profile matches the policy", () => {

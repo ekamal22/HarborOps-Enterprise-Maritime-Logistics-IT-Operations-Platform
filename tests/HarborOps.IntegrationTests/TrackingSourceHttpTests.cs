@@ -31,7 +31,7 @@ public sealed class TrackingSourceHttpTests
     }
 
     [Fact]
-    public async Task AuthenticatedSourceValidatesButNeverAcknowledgesEvent()
+    public async Task AuthenticatedSourceCommitsAndAcknowledgesEvent()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
         var fixture = await ReferenceDataHttpTests.Setup(factory);
@@ -45,12 +45,14 @@ public sealed class TrackingSourceHttpTests
             CancellationToken.None);
         using (var valid = await Send(client, token.Bearer, Event()))
         {
-            Assert.Equal(HttpStatusCode.ServiceUnavailable, valid.StatusCode);
+            Assert.Equal(HttpStatusCode.Accepted, valid.StatusCode);
             Assert.Equal("no-store", valid.Headers.CacheControl?.ToString());
             var body = await valid.Content.ReadFromJsonAsync<JsonElement>();
-            Assert.Equal("intake_unavailable", body.GetProperty("code").GetString());
+            Assert.Equal("received", body.GetProperty("status").GetString());
+            Assert.False(body.GetProperty("duplicate").GetBoolean());
+            Assert.NotEqual(Guid.Empty, body.GetProperty("receiptId").GetGuid());
             Assert.True(body.TryGetProperty("correlationId", out _));
-            Assert.True(valid.Headers.RetryAfter is not null);
+            Assert.Null(valid.Headers.RetryAfter);
         }
         using (var missing = await Send(client, null, Event()))
             Assert.Equal(HttpStatusCode.Unauthorized, missing.StatusCode);
@@ -71,8 +73,9 @@ public sealed class TrackingSourceHttpTests
 
         var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         Assert.Equal(1, await db.IntegrationCredentials.CountAsync(x => x.SourceId == token.Id));
-        Assert.DoesNotContain(db.Model.GetEntityTypes(),
-            t => t.GetTableName() is "tracking_events" or "event_inbox" or "outbox");
+        Assert.Equal(1, await db.TrackingInboxReceipts.CountAsync(x => x.SourceId == token.Id));
+        Assert.Equal(1, await db.TrackingAcceptedEvents.CountAsync(x => x.SourceId == token.Id));
+        Assert.Equal(1, await db.TrackingInboxWorkItems.CountAsync(x => x.SourceId == token.Id));
 
         await store.RevokeAsync(fixture.A, "terminal_a", token.CredentialId, CancellationToken.None);
         using (var revoked = await Send(client, token.Bearer, Event()))

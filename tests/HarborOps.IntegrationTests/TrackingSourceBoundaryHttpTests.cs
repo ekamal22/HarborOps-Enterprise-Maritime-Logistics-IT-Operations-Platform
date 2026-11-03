@@ -181,8 +181,9 @@ public sealed class TrackingSourceBoundaryHttpTests
         using (var request = Request(token))
         {
             request.Headers.TryAddWithoutValidation("Origin", "http://localhost");
-            await AssertError(await manager.SendAsync(request),
-                HttpStatusCode.ServiceUnavailable, "intake_unavailable");
+            using var valid = await manager.SendAsync(request);
+            Assert.Equal(HttpStatusCode.Accepted, valid.StatusCode);
+            Assert.Contains("no-store", valid.Headers.CacheControl?.ToString());
         }
         using var denied = await factory.CreateClient().GetAsync(
             "/api/v1/organizations/" + fixture.A + "/ports");
@@ -207,8 +208,8 @@ public sealed class TrackingSourceBoundaryHttpTests
             await AssertError(await Send(client, malformed), HttpStatusCode.Unauthorized,
                 "invalid_source_credentials");
         await AssertError(await Send(client, malformed), HttpStatusCode.TooManyRequests, "rate_limited");
-        await AssertError(await Send(client, issued.Bearer), HttpStatusCode.ServiceUnavailable,
-            "intake_unavailable");
+        using var valid = await Send(client, issued.Bearer);
+        Assert.Equal(HttpStatusCode.Accepted, valid.StatusCode);
     }
 
     [Fact]

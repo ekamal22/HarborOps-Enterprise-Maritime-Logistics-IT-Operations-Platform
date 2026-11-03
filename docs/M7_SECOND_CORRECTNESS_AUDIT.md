@@ -32,3 +32,7 @@ Every G7-S01 through G7-S25 check remains subject to execution and independently
 ## Required next actions
 
 Run the clean E:-backed `scripts/verify-m7-local.sh` against one exact implementation SHA. Do not use GitHub Actions or retained volumes. Inspect every failure and apply fixes on the M7 feature branch. Review the source-locked technical evidence, complete the D-002 reference decision, resolve pending scenario outcomes and request explicit G7 acceptance before merging. No tracking event may receive a 2xx intake response until M8 implements durable receipt.
+
+## Correction recorded during G7 execution
+
+The finding that the populated M6 migration test "expected a shipment status-history record without inserting one" was itself mistaken. The accepted M5 `shipments_status_history` trigger records the initial transition on insert, and the `status_history_immutable` trigger rejects direct inserts into `shipment_status_changes`. The test was corrected to rely on the trigger, not to seed a row. See the [remediation register](M7_CORRECTNESS_REMEDIATION.md) for the other defects found by execution.

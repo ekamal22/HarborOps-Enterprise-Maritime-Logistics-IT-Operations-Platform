@@ -1,6 +1,6 @@
 # M7 Tracking Contracts and Source Authentication: Implementation Register
 
-**State:** Correctness-audit remediation candidate committed; runtime verification and acceptance pending.
+**State:** Correctness-audit and execution remediation committed; gate evidence run and acceptance pending.
 **Working branch:** `feat/m7-tracking-source-validation`
 **Baseline:** Accepted G0-G6 and M7 planning branch.
 **G7:** Not executed or accepted.
@@ -35,9 +35,9 @@ The [correctness remediation register](M7_CORRECTNESS_REMEDIATION.md) and [secon
 
 ## Verification boundaries
 
-The implementation has been committed and reviewed statically. The EF mapping corruption has been repaired and model/snapshot mapping equality checked. No .NET compilation, PostgreSQL migration execution, Docker/Playwright run, dependency/image scan or independent G7 evidence review is claimed here.
+Development runs on the E:-backed workstation have compiled the solution, run the unit, contract and PostgreSQL integration suites, run the five controlled security mutations, and exercised the Compose, browser, outage and image-scan stages. These runs found and corrected the defects listed in the [remediation register](M7_CORRECTNESS_REMEDIATION.md). Development runs are not gate evidence.
 
-The local runner schedules browser/proxy/recovery checks, accepted-source regressions and five controlled security mutations in a disposable E:-backed export. It has not been executed. Protected interactive operator CLI issuance, pinned upstream fixture review, per-scenario evidence mapping and independent evidence assessment remain outside automatic G7 closure. G7-S01 additionally requires D-002 acceptance and a pinned reference artifact.
+The local runner schedules the full gate: source-locked .NET build and tests with a repeat integration run, five controlled security mutations in a disposable E:-backed export, dependency advisories, web build, an isolated G7 network, browser fixtures, three-engine regression, source outage and recovery, exact-image scans, a per-scenario evidence summary and hashed teardown evidence. Protected interactive operator CLI issuance, pinned upstream fixture review and independent evidence assessment remain outside automatic G7 closure. G7-S01 additionally requires D-002 acceptance and a pinned reference artifact.
 
 **Required next gate:** Complete the G7-S01 through G7-S25 matrix on one exact source revision using disposable E:-backed resources, review the raw evidence, address any failures, then request explicit G7 acceptance before merging into `main`.
 

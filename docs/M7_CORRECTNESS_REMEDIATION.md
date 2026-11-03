@@ -1,6 +1,6 @@
 # M7 Correctness Audit Remediation
 
-**State:** Source corrections committed, no G7 execution or acceptance recorded.
+**State:** Source and execution-time corrections committed; G7 acceptance pending.
 **Implementation branch:** `feat/m7-tracking-source-validation`.
 **Decision boundary:** D-002 upstream artifact, checksum, license and exact mapping acceptance pending.
 **Deployment boundary:** Local only. No durable tracking-event receipt or successful ingestion response until M8.
@@ -25,9 +25,28 @@ The [second correctness audit](M7_SECOND_CORRECTNESS_AUDIT.md) records follow-up
 | Canonical event lacked trusted tenant identity | Validated in-memory event is bound to the authenticated database source and organization | Positive source-bound parse and spoofed-tenant rejection |
 | Incomplete G7 runner | Added source-locked SDK build/test container, disposable PostgreSQL, cross-browser regression, source-specific outage, security scans, hashed evidence and resource cleanup | Real Windows E:-backed end-to-end execution and independent evidence review |
 
+## G7 execution findings
+
+Running the committed work on a Windows E:-backed workstation exposed defects that source review did not find. Each was reproduced from raw output, corrected at its cause and covered by a rerun.
+
+| Finding | Root cause | Correction | Evidence |
+| --- | --- | --- | --- |
+| Integration test project did not compile (CS8361) | A conditional expression was written inside an interpolated SQL string in the credential-window test | The value is computed before the interpolation | Release build with warnings as errors |
+| Two xUnit analyzer errors (xUnit2031, xUnit1031) in the rotation race tests | `Assert.Single` over a filtered sequence, and blocking `Task.Result` reads in an async test | `Assert.Single` with a predicate, and `await` of the completed task | Release build with warnings as errors |
+| `Migrations_AreDiscoveredInOrder` failed | The expected migration list ended at the M6 migration | The M7 migration `20261103090000_IntegrationSources` is listed | Focused rerun and the full integration run |
+| Populated M6 upgrade test failed with `Shipment status history immutable` | The earlier audit assumed the test must seed a status-history row. The accepted M5 trigger already records the initial transition and rejects direct inserts, which is a security property | The test no longer inserts history and asserts the trigger-created `Draft` row is preserved across upgrade, rollback and reapply | Focused rerun and the full integration run |
+| Mutation runner used a different cache layout from the main runner | NuGet, SDK home and temporary paths pointed outside the G7 cache tree, so packages would be fetched into a second location | Paths match the cache tree created by the main runner, and the per-variant time limit is raised | Controlled mutation run |
+| Runner rejected a valid E: root | Git Bash mounts E: at `/tmp` when `TEMP` is the drive root, so the posix-form `/e/*/m7` check failed | The drive is judged from the Windows form of the path before translation | Runner preflight |
+| Revocation and pagination browser specs failed in all three engines | The runner provisioned shorter account and organization display names than the accepted G6 fixtures, and both specs select options by label | Names match the accepted fixtures exactly | Targeted browser rerun, then the full browser stage |
+| No test that a source bearer is refused by human-scoped endpoints | Coverage gap against G7-S10 | `SourceBearerCannotAuthenticateHumanScopedEndpoints` | Boundary HTTP suite |
+| No test that cancellation never succeeds or consumes a credential | Coverage gap against G7-S21 | `CancelledAuthenticationNeverSucceedsOrAcknowledges` | Boundary HTTP suite |
+| No per-scenario result file and no scanner database identity | Coverage gap against G7-S24 and G7-S25 | `scripts/summarize-g7-evidence.mjs` derives each scenario outcome from raw results, Trivy version and database identity are recorded, and the web stage fails if a source credential pattern reaches the built frontend | Evidence summary stage |
+
+Known limit: the `499` response for a client that disconnects mid-request is implemented in the endpoint but is not driven end to end through HTTP, because the test client cannot observe a response it has abandoned. The store-level cancellation test and source review cover it.
+
 ## Verification state
 
-The authored tests and runner are not executed evidence. A source-level inspection verifies that the EF mapping and snapshot have matching M7 declarations and that checked-in JSON fixtures parse. No workstation-local .NET build, PostgreSQL migration, Docker/Playwright run, dependency scan or CLI lifecycle execution is claimed.
+Development runs on the E:-backed workstation compiled the solution, ran the unit, contract and PostgreSQL integration suites, ran the five controlled security mutations and exercised the Compose, browser, outage and image-scan stages. Development runs are not gate evidence. Gate evidence is one complete run of `scripts/verify-m7-local.sh` on one final revision, recorded in the executed verification record.
 
 The G7 runner is `scripts/verify-m7-local.sh`. It requires a clean E:-backed checkout, `HARBOROPS_VERIFICATION_ROOT` on E: ending in `m7`, and an E:-backed Docker Desktop image verified by `HARBOROPS_DOCKER_VHDX`. It creates disposable resources under a unique `ho-verify-g7` Compose project and preserves evidence under the configured E: root. The source CLI interactive stage requires `HARBOROPS_G7_INTERACTIVE_CLI=1` and an unredirected private terminal. It displays source credentials once and does not record them in the evidence archive.
 

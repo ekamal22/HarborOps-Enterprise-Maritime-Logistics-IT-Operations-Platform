@@ -120,12 +120,13 @@ public sealed class TrackingSourceSqlTests
             var secret = RandomNumberGenerator.GetBytes(32);
             var id = Guid.NewGuid();
             var digest = SHA256.HashData(secret);
+            var created = from <= now ? from : now;
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT INTO integration_credentials
                 (id,organization_id,source_id,secret_digest,key_version,
                  not_before_utc,expires_at_utc,created_at_utc)
                 VALUES ({id}, {fixture.A}, {source.Id}, {digest}, {"v1"},
-                        {from}, {until}, {from <= now ? from : now})
+                        {from}, {until}, {created})
                 """);
             return IntegrationSourceStore.FormatBearer(id, secret);
         }

@@ -105,13 +105,7 @@ public sealed class TrackingSourceMigrationTests
             db.Voyages.Add(voyage);
             db.Shipments.Add(shipment);
             await db.SaveChangesAsync();
-            // M5 status history is an independent table, not an EF insertion side effect.
-            db.ShipmentStatusChanges.Add(new ShipmentStatusChange
-            {
-                Id = Guid.NewGuid(), OrganizationId = org.Id, ShipmentId = shipment.Id,
-                FromStatus = null, ToStatus = "Draft", Version = 1,
-                ChangedAtUtc = now, ChangedByUserId = session.UserId
-            });
+            // The accepted M5 trigger records the initial transition; direct history inserts are rejected.
             db.ShipmentContainerAssignments.Add(new ShipmentContainerAssignment
             {
                 Id = Guid.NewGuid(), OrganizationId = org.Id, ShipmentId = shipment.Id,
@@ -125,8 +119,9 @@ public sealed class TrackingSourceMigrationTests
                 CreatedByUserId = session.UserId, CreatedAtUtc = now, UpdatedAtUtc = now
             });
             await db.SaveChangesAsync();
-            Assert.Single(await db.ShipmentStatusChanges.AsNoTracking().Where(
-                x => x.ShipmentId == shipment.Id).ToListAsync());
+            var history = await db.ShipmentStatusChanges.AsNoTracking().Where(
+                x => x.ShipmentId == shipment.Id).ToListAsync();
+            Assert.Equal("Draft", Assert.Single(history).ToStatus);
             var before = await SnapshotAsync(scoped.ConnectionString);
             Assert.Contains("G7-SHIPMENT", before["shipments"]);
             Assert.Contains("G7-CONT", before["containers"]);
@@ -187,7 +182,7 @@ public sealed class TrackingSourceMigrationTests
             catch (InvalidOperationException) { return false; }
         }
         var outcomes = await Task.WhenAll(Rotate(), Rotate());
-        Assert.Single(outcomes.Where(x => x));
+        Assert.Single(outcomes, x => x);
         await using var verify = factory.Services.CreateAsyncScope();
         var db = verify.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         var sourceId = await db.IntegrationSources.Where(x => x.OrganizationId == fixture.A &&
@@ -235,8 +230,9 @@ public sealed class TrackingSourceMigrationTests
         var db = verification.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         var storeAfter = verification.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
         Assert.Null(await storeAfter.ValidateAsync(first.Bearer, CancellationToken.None));
-        if (rotated.Result is not null)
-            Assert.Null(await storeAfter.ValidateAsync(rotated.Result.Bearer, CancellationToken.None));
+        var rotatedSource = await rotated;
+        if (rotatedSource is not null)
+            Assert.Null(await storeAfter.ValidateAsync(rotatedSource.Bearer, CancellationToken.None));
         var source = await db.IntegrationSources.AsNoTracking().SingleAsync(
             x => x.OrganizationId == fixture.A && x.SourceCode == "race_disable");
         Assert.Equal("Disabled", source.Status);

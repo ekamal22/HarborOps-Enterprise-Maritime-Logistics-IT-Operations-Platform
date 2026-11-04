@@ -573,8 +573,11 @@ public sealed class TrackingWorkerG9ScenarioTests
         await using var blocker = new NpgsqlConnection(connection);
         await blocker.OpenAsync();
         await using var blockerTx = await blocker.BeginTransactionAsync();
+        // FOR KEY SHARE conflicts with the FOR UPDATE that capacity and claim transactions must take,
+        // but not with the foreign-key checks of ordinary inserts. An intake or claim that skips the
+        // organization lock therefore completes instead of waiting, and this test fails.
         await using (var hold = new NpgsqlCommand(
-            "SELECT id FROM organizations WHERE id=@o FOR UPDATE", blocker, blockerTx))
+            "SELECT id FROM organizations WHERE id=@o FOR KEY SHARE", blocker, blockerTx))
         {
             hold.Parameters.AddWithValue("o", fixture.A);
             Assert.Equal(fixture.A, await hold.ExecuteScalarAsync());

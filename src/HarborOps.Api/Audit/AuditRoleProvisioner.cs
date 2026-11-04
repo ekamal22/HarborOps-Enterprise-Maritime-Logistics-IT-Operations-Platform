@@ -32,8 +32,23 @@ public static class AuditRoleProvisioner
                 GRANT CONNECT ON DATABASE harborops TO harborops_api, harborops_worker;
                 GRANT USAGE ON SCHEMA public TO harborops_api, harborops_worker;
 
-                -- The HTTP runtime requires ordinary app table operations, never DDL.
-                GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO harborops_api;
+                -- The HTTP runtime can read app data and modify only currently
+                -- implemented mutable resources. No general DELETE, DDL or role grants.
+                REVOKE ALL ON ALL TABLES IN SCHEMA public FROM harborops_api;
+                GRANT SELECT ON ALL TABLES IN SCHEMA public TO harborops_api;
+                GRANT INSERT ON users, user_credentials, auth_sessions, auth_events,
+                    organizations, organization_memberships, ports, vessels, voyages,
+                    containers, shipments, shipment_status_changes,
+                    shipment_container_assignments, shipment_voyage_assignments,
+                    integration_sources, integration_credentials,
+                    tracking_inbox_receipts, tracking_accepted_events,
+                    tracking_inbox_work_items, tracking_receipt_conflicts
+                    TO harborops_api;
+                GRANT UPDATE ON users, user_credentials, auth_sessions,
+                    organizations, organization_memberships, ports, vessels, voyages,
+                    containers, shipments, shipment_container_assignments,
+                    shipment_voyage_assignments, integration_sources,
+                    integration_credentials, tracking_inbox_work_items TO harborops_api;
                 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO harborops_api;
                 REVOKE ALL ON TABLE audit_entries FROM harborops_api;
                 GRANT SELECT ON TABLE audit_entries TO harborops_api;

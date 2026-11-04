@@ -1,0 +1,26 @@
+# Isolated local G9 verification resources only. Never point at the retained primary database.
+name: ho-verify-g9
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:55439:5432"
+  api:
+    ports:
+      - "127.0.0.1:8089:8080"
+    environment:
+      Identity__TrustedLocalHttpPeers: "172.30.249.1,172.30.249.10"
+      ReverseProxy__KnownProxies__0: "172.30.249.10"
+      Cors__AllowedOrigins__0: "http://localhost:5179"
+  web:
+    ports:
+      - "127.0.0.1:5179:80"
+    networks:
+      internal:
+        ipv4_address: 172.30.249.10
+  worker:
+    profiles: ["worker"]
+networks:
+  internal:
+    ipam:
+      config:
+        - subnet: 172.30.249.0/24

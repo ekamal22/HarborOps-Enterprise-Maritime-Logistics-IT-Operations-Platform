@@ -67,6 +67,21 @@ public static class AuditEndpoints
         return result.Error;
     }
 
+    private static async Task<IResult> AuditUnavailableAsync(
+        HttpContext ctx, OrganizationStore organizations, Guid organizationId, CancellationToken ct)
+    {
+        // Permission may genuinely have been revoked between authorization and
+        // audit recording. Only return a revocation code if the current policy
+        // recheck confirms it; otherwise treat audit persistence as unavailable.
+        try
+        {
+            var access = await AccessAsync(ctx, organizations, organizationId, ct);
+            if (access != OrganizationAccessError.None) return Denied(ctx, access);
+        }
+        catch (Npgsql.NpgsqlException) { }
+        return Problem(ctx, 503, "audit_unavailable", "Audit events are temporarily unavailable");
+    }
+
     public static void MapAuditEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/organizations/{organizationId}/audit-events")
@@ -95,14 +110,26 @@ public static class AuditEndpoints
             var pageText = ctx.Request.Query["page"].ToString();
             var limitText = ctx.Request.Query["limit"].ToString();
             if (pageText.Length > 0 && (!int.TryParse(pageText, out var parsedPage) ||
-                parsedPage is < 1 or > 1000))
+                parsedPage != 1))
                 return Problem(ctx, 400, "invalid_request", "Invalid page");
             if (limitText.Length > 0 && (!int.TryParse(limitText, out var parsedLimit) ||
                 parsedLimit is < 1 or > 100))
                 return Problem(ctx, 400, "invalid_request", "Invalid limit");
             var page = pageText.Length == 0 ? 1 : int.Parse(pageText);
             var limit = limitText.Length == 0 ? 25 : int.Parse(limitText);
-            var result = await reader.ListAsync(orgId, session.UserId, session.SessionId, page, limit, ct);
+            var cursor = ctx.Request.Query["cursor"].ToString();
+            if (cursor.Length > 160)
+                return Problem(ctx, 400, "invalid_request", "Invalid cursor");
+            AuditPage result;
+            try
+            {
+                result = await reader.ListAsync(orgId, session.UserId, session.SessionId,
+                    page, limit, ct, cursor.Length == 0 ? null : cursor);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(ctx, 400, "invalid_request", "Invalid cursor");
+            }
             var checkedAgain = await AccessAsync(ctx, organizations, orgId, ct);
             if (checkedAgain != OrganizationAccessError.None)
             {
@@ -114,12 +141,12 @@ public static class AuditEndpoints
                 await recorder.RecordAsync(orgId, session.UserId, session.SessionId,
                     null, ctx.Items["CorrelationId"]?.ToString(), true, ct);
             }
-            catch (Npgsql.PostgresException error) when (error.SqlState == "42501")
+            catch (Npgsql.NpgsqlException)
             {
-                return Denied(ctx, OrganizationAccessError.Revoked);
+                return await AuditUnavailableAsync(ctx, organizations, orgId, ct);
             }
             return Results.Ok(new { entries = result.Entries.Select(Entry).ToArray(),
-                page, limit, nextPage = result.NextPage });
+                page, limit, nextPage = (int?)null, nextCursor = result.NextCursor });
         });
 
         group.MapGet("/{auditId}", async (string organizationId, string auditId,
@@ -152,9 +179,9 @@ public static class AuditEndpoints
                 await recorder.RecordAsync(orgId, session.UserId, session.SessionId,
                     id, ctx.Items["CorrelationId"]?.ToString(), true, ct);
             }
-            catch (Npgsql.PostgresException error) when (error.SqlState == "42501")
+            catch (Npgsql.NpgsqlException)
             {
-                return Denied(ctx, OrganizationAccessError.Revoked);
+                return await AuditUnavailableAsync(ctx, organizations, orgId, ct);
             }
             return Results.Ok(Entry(entry));
         });

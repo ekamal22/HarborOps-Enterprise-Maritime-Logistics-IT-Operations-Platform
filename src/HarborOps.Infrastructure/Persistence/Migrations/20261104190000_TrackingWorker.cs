@@ -200,6 +200,13 @@ public sealed class TrackingWorker : Migration
                 IF OLD.state = 'Processed' THEN
                     RAISE EXCEPTION 'Processed work is terminal' USING ERRCODE='23514';
                 END IF;
+                -- The scoped service role cannot bypass the Manager-only redrive path.
+                IF session_user = 'harborops_worker' AND
+                   OLD.state IN ('DeadLetter','NeedsReconciliation') AND
+                   NEW.state = 'Pending' THEN
+                    RAISE EXCEPTION 'Worker role cannot perform manual redrive'
+                        USING ERRCODE='23514';
+                END IF;
 
                 IF OLD.state IN ('Pending','RetryWaiting') AND NEW.state = 'Leased' THEN
                     allowed := OLD.available_at_utc <= at_utc AND

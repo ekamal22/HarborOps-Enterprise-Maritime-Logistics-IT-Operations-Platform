@@ -382,6 +382,74 @@ public sealed class TrackingInboxHttpTests
     }
 
     [Fact]
+    public async Task TenSequentialCanonicalReplaysKeepOriginalIdentity()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var scope = factory.Services.CreateAsyncScope();
+        var source = await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
+            .CreateAsync(fixture.A, "m8_ten_replays", "Sequential Replay", CancellationToken.None);
+        using var client = factory.CreateClient();
+        Guid originalId = Guid.Empty;
+        DateTimeOffset originalTime = default;
+        for (var index = 0; index < 11; index++)
+        {
+            using var response = await Post(client, source.Bearer,
+                Payload(id: "m8-ten-replays", timestamp:
+                    index % 2 == 0 ? "2026-11-03T10:00:00Z" : "2026-11-03T10:00:00+00:00"));
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            var id = body.GetProperty("receiptId").GetGuid();
+            var at = body.GetProperty("receivedAtUtc").GetDateTimeOffset();
+            if (index == 0)
+            {
+                originalId = id;
+                originalTime = at;
+            }
+            else
+            {
+                Assert.Equal(originalId, id);
+                Assert.Equal(originalTime, at);
+            }
+            Assert.Equal(index != 0, body.GetProperty("duplicate").GetBoolean());
+        }
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Equal(1, await db.TrackingInboxReceipts.CountAsync(x => x.SourceId == source.Id));
+        Assert.Equal(1, await db.TrackingAcceptedEvents.CountAsync(x => x.SourceId == source.Id));
+        Assert.Equal(1, await db.TrackingInboxWorkItems.CountAsync(x => x.SourceId == source.Id));
+    }
+
+    [Fact]
+    public async Task SameOrganizationDifferentSourcesReuseExternalKeyWithoutCollision()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var scope = factory.Services.CreateAsyncScope();
+        var sources = scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
+        var first = await sources.CreateAsync(fixture.A, "m8_same_a", "Same Tenant A", CancellationToken.None);
+        var second = await sources.CreateAsync(fixture.A, "m8_same_b", "Same Tenant B", CancellationToken.None);
+        using var client = factory.CreateClient();
+        using var a = await Post(client, first.Bearer, Payload(id: "shared-same-org"));
+        using var b = await Post(client, second.Bearer, Payload(id: "shared-same-org"));
+        Assert.Equal(HttpStatusCode.Accepted, a.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, b.StatusCode);
+        var one = await a.Content.ReadFromJsonAsync<JsonElement>();
+        var two = await b.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.NotEqual(one.GetProperty("receiptId").GetGuid(), two.GetProperty("receiptId").GetGuid());
+        Assert.False(one.GetProperty("duplicate").GetBoolean());
+        Assert.False(two.GetProperty("duplicate").GetBoolean());
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Equal(2, await db.TrackingInboxReceipts
+            .CountAsync(x => x.OrganizationId == fixture.A && x.SourceEventId == "shared-same-org"));
+    }
+
+    [Fact]
     public async Task ConcurrentDuplicateIntakeCreatesExactlyOneReceipt()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

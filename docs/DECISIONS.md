@@ -95,6 +95,12 @@ See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed
 
 PostgreSQL atomically persists one immutable receipt, accepted event and separate Pending work row. The scoped replay key is permanently reserved by a PostgreSQL unique index, with canonical digest, deterministic duplicate identity and bounded 409 collision metadata. The original bearer is reauthorized under organization/source/credential transaction locks before post-commit-only 202. The configurable 10,000 Pending per-organization default is accepted for the demonstrator, not certified production throughput. No immutable accepted-history deletion is authorized. M9 must add a separately reviewed migration permitting lease/retry/Processed/DeadLetter work-state transitions and preserve receipt/event immutability. See [D-006 contract](M8_D006_DURABILITY_PROPOSAL.md) and [M8/G8 closure](M8_G8_GATE_CLOSURE.md).
 
+## M16 approved local audit and access policy (2026-11-04)
+
+All five M16-local decisions are approved: **M16-D01** selected-organization Auditor-only audit visibility; **M16-D02** 365-day online retention followed by controlled archival with no automatic purge before verification; **M16-D03** transactionally atomic fail-closed audit entries for sensitive successful mutations while denied requests remain denied if separate denial logging fails; **M16-D04** least-privilege separation of PostgreSQL migration, API and worker identities; **M16-D05** append-only database protection with external cryptographic anchoring deferred. These local decision IDs do not replace D-001 through D-008 or alter the outstanding D-004, D-005, D-007 and D-008 decisions.
+
+See [accepted M16 policy](M16_POLICY_DECISIONS.md), [architecture](M16_ARCHITECTURE_DESIGN.md), [privacy policy](M16_AUDIT_PRIVACY_POLICY.md), [implementation plan](M16_IMPLEMENTATION_PLAN.md) and [G16 verification](M16_VERIFICATION_PLAN.md). Architecture and policy approval is not M16 implementation, G16 execution or G16 acceptance. **G16 acceptance pending.**
+
 ## Decision change protocol
 
 Each material reversal records: context, alternatives, trade-offs, chosen approach, impact on requirements and tests, migration needs, and acceptance status. A change is not adopted solely because a new library or service is available.

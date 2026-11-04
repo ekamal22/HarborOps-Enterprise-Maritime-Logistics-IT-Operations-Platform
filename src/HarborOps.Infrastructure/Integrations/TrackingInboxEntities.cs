@@ -62,6 +62,8 @@ public sealed class TrackingWorkAttemptEvent
     public long LeaseEpoch { get; set; }
     public string EventKind { get; set; } = "";
     public string? ReasonCode { get; set; }
+    public Guid? ActorUserId { get; set; }
+    public string? RedriveReason { get; set; }
     public DateTimeOffset OccurredAtUtc { get; set; }
 }
 

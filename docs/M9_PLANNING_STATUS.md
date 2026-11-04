@@ -1,5 +1,7 @@
 # M9 Planning Status
 
+**Historical snapshot:** This records the initial M9 planning phase. Later source implementation on `feat/m9-worker-reconciliation` is separately documented in [M9 implementation status](M9_IMPLEMENTATION_STATUS.md). It is unverified, and the original M9-01 contract remains acceptance pending.
+
 **Prepared:** 2026-11-04  
 **Planning branch:** `plan/m9-idempotent-worker-reconciliation`  
 **Accepted baseline:** protected `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`, G0-G8 accepted.  

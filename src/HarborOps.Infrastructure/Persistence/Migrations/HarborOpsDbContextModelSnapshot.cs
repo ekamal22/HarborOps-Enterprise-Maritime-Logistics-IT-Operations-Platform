@@ -154,7 +154,8 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
         {
             entity.ToTable("tracking_inbox_work_items", t =>
             {
-                t.HasCheckConstraint("CK_m8_work_state", "state = 'Pending' AND attempt_count = 0 AND updated_at_utc >= created_at_utc");
+                t.HasCheckConstraint("CK_m9_work_state",
+                    "state IN ('Pending','Leased','RetryWaiting','NeedsReconciliation','Processed','DeadLetter') AND attempt_count BETWEEN 0 AND 5 AND lease_epoch >= 0 AND redrive_generation BETWEEN 0 AND 3 AND updated_at_utc >= created_at_utc AND (last_error_code IS NULL OR length(last_error_code) BETWEEN 1 AND 40) AND ((state = 'Leased' AND lease_token IS NOT NULL AND lease_expires_at_utc IS NOT NULL) OR (state <> 'Leased' AND lease_token IS NULL AND lease_expires_at_utc IS NULL)) AND (state <> 'Processed' OR (completed_at_utc IS NOT NULL AND resolution_kind = 'ReferenceResolved')) AND (state <> 'Pending' OR (attempt_count = 0 AND last_error_code IS NULL)) AND (state <> 'RetryWaiting' OR attempt_count BETWEEN 1 AND 4) AND (state <> 'Leased' OR attempt_count BETWEEN 1 AND 5)");
             });
             entity.HasKey(x => x.ReceiptId);
             entity.Property(x => x.ReceiptId).HasColumnName("receipt_id").ValueGeneratedNever();
@@ -168,10 +169,88 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.Property(x => x.AttemptCount).HasColumnName("attempt_count");
             entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
             entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.LeaseToken).HasColumnName("lease_token");
+            entity.Property(x => x.LeaseEpoch).HasColumnName("lease_epoch");
+            entity.Property(x => x.LeaseExpiresAtUtc).HasColumnName("lease_expires_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.AvailableAtUtc).HasColumnName("available_at_utc")
+                .HasColumnType("timestamp with time zone").HasDefaultValueSql("clock_timestamp()");
+            entity.Property(x => x.RedriveGeneration).HasColumnName("redrive_generation");
+            entity.Property(x => x.LastErrorCode).HasColumnName("last_error_code").HasMaxLength(40);
+            entity.Property(x => x.CompletedAtUtc).HasColumnName("completed_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ResolutionKind).HasColumnName("resolution_kind").HasMaxLength(32);
+            entity.HasIndex(x => new { x.OrganizationId, x.AvailableAtUtc, x.CreatedAtUtc, x.ReceiptId })
+                .HasFilter("state IN ('Pending','RetryWaiting')").HasDatabaseName("IX_m9_work_due");
+            entity.HasIndex(x => new { x.OrganizationId, x.LeaseExpiresAtUtc, x.ReceiptId })
+                .HasFilter("state = 'Leased'").HasDatabaseName("IX_m9_work_expired");
+            entity.HasIndex(x => new { x.OrganizationId, x.State, x.ReceiptId })
+                .HasDatabaseName("IX_m9_work_queue");
             entity.HasIndex(x => new { x.OrganizationId, x.State, x.CreatedAtUtc })
                 .HasDatabaseName("IX_m8_work_pending");
             entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
                 .HasDatabaseName("IX_m8_work_scope");
+        });
+
+        modelBuilder.Entity<TrackingWorkAttemptEvent>(entity =>
+        {
+            entity.ToTable("tracking_work_attempt_events", t =>
+            {
+                t.HasCheckConstraint("CK_m9_attempt_kind",
+                    "event_kind IN ('Claimed','LeaseRecovered','Retried','ReconciliationRequired','DeadLettered','Processed','Redriven','LeaseBudgetExhausted')");
+                t.HasCheckConstraint("CK_m9_attempt_counter",
+                    "generation BETWEEN 0 AND 3 AND attempt_count BETWEEN 0 AND 5 AND lease_epoch >= 0");
+                t.HasCheckConstraint("CK_m9_attempt_reason",
+                    "reason_code IS NULL OR length(reason_code) BETWEEN 1 AND 40");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.ReceiptId).HasColumnName("receipt_id");
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.Property(x => x.SourceId).HasColumnName("source_id");
+            entity.HasOne<TrackingInboxReceipt>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.SourceId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m9_attempt_receipt");
+            entity.Property(x => x.Generation).HasColumnName("generation");
+            entity.Property(x => x.AttemptCount).HasColumnName("attempt_count");
+            entity.Property(x => x.LeaseEpoch).HasColumnName("lease_epoch");
+            entity.Property(x => x.EventKind).HasColumnName("event_kind").HasMaxLength(32).IsRequired();
+            entity.Property(x => x.ReasonCode).HasColumnName("reason_code").HasMaxLength(40);
+            entity.Property(x => x.OccurredAtUtc).HasColumnName("occurred_at_utc")
+                .HasColumnType("timestamp with time zone").HasDefaultValueSql("clock_timestamp()");
+            entity.HasIndex(x => new { x.OrganizationId, x.ReceiptId, x.OccurredAtUtc, x.Id })
+                .HasDatabaseName("IX_m9_attempt_receipt");
+        });
+        modelBuilder.Entity<TrackingProcessingEffect>(entity =>
+        {
+            entity.ToTable("tracking_processing_effects", t =>
+            {
+                t.HasCheckConstraint("CK_m9_effect_kind", "resolution_kind = 'ReferenceResolved'");
+                t.HasCheckConstraint("CK_m9_effect_policy", "resolution_policy = 'm9-reference-v1'");
+            });
+            entity.HasKey(x => x.ReceiptId);
+            entity.Property(x => x.ReceiptId).HasColumnName("receipt_id").ValueGeneratedNever();
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.Property(x => x.SourceId).HasColumnName("source_id");
+            entity.HasOne<TrackingInboxReceipt>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.SourceId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m9_effect_receipt");
+            entity.Property(x => x.ResolutionKind).HasColumnName("resolution_kind").HasMaxLength(32).IsRequired();
+            entity.Property(x => x.ResolutionPolicy).HasColumnName("resolution_policy").HasMaxLength(48).IsRequired();
+            entity.Property(x => x.ContainerId).HasColumnName("container_id");
+            entity.HasOne<ContainerRecord>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.ContainerId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m9_effect_container");
+            entity.Property(x => x.ShipmentId).HasColumnName("shipment_id");
+            entity.HasOne<ShipmentRecord>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.ShipmentId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m9_effect_shipment");
+            entity.Property(x => x.ResolvedAtUtc).HasColumnName("resolved_at_utc")
+                .HasColumnType("timestamp with time zone").HasDefaultValueSql("clock_timestamp()");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasDatabaseName("IX_m9_effect_tenant");
         });
         modelBuilder.Entity<TrackingReceiptConflict>(entity =>
         {

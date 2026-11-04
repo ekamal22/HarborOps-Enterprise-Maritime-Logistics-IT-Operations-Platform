@@ -64,6 +64,19 @@ assert.ok(existsSync(safetyLog) &&
 assert.ok(existsSync(archive) && existsSync(manifest),
   "Archived raw evidence and hashes are required");
 const digest = bytes => createHash("sha256").update(bytes).digest("hex");
+// The current scenario and technical-status bytes must match the archived
+// immutable manifest, not merely separate review-supplied hash strings.
+const manifestRows = readFileSync(manifest, "utf8").split("\n").filter(Boolean);
+const manifestMap = new Map(manifestRows.map(line => {
+  const match = /^([a-f0-9]{64})\s\s(.+)$/.exec(line);
+  assert.ok(match, "Malformed run manifest entry");
+  return [match[2], match[1]];
+}));
+for (const name of ["source-sha.txt", "run-id.txt", "g8-scenarios.json",
+                    "g8-technical-status.json", "g8-formal-gate-status.json"]) {
+  assert.equal(manifestMap.get("./" + name), digest(file(name)),
+    "Current evidence differs from archived manifest: " + name);
+}
 const actual = {
   sourceSha: sha,
   scenarioReportSha256: digest(reportBytes),

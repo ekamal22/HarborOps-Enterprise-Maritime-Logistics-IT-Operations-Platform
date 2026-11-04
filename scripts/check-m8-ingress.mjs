@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
@@ -109,9 +110,24 @@ if (mode === "healthy") {
   const recovered = snapshotReceipt(resumed.receiptId);
   assert.deepEqual(recovered, initial,
     "PostgreSQL recovery must preserve exact raw bytes, canonical digest, receipt and Pending state");
+  // Digest-only public evidence permits independent integrity comparison
+  // without preserving raw publisher bytes outside the private run directory.
+  const digest = hex => createHash("sha256").update(Buffer.from(hex, "hex")).digest("hex");
+  const before = {
+    raw: digest(initial.rawAcceptedPayload),
+    canonical: digest(initial.canonicalPayload),
+    receiptDigest: digest(initial.canonicalDigest)
+  };
+  const after = {
+    raw: digest(recovered.rawAcceptedPayload),
+    canonical: digest(recovered.canonicalPayload),
+    receiptDigest: digest(recovered.canonicalDigest)
+  };
+  assert.deepEqual(after, before);
   writeFileSync(join(root, "evidence", "g8-restart-integrity.json"),
     JSON.stringify({
       sourceSha: process.env.HARBOROPS_SOURCE_SHA,
+      beforeSha256:before, afterSha256:after,
       runId: readFileSync(join(root, "evidence", "run-id.txt"), "utf8").trim(),
       receiptId: resumed.receiptId, status:"PASS",
       rawBytesUnchanged:true, canonicalDigestUnchanged:true,

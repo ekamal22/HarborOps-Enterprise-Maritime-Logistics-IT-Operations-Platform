@@ -89,7 +89,12 @@ const requiredMutants = [
 const restartIntegrity = () => {
   try {
     const proof = JSON.parse(read("g8-restart-integrity.json"));
-    return proof.sourceSha === sha && proof.runId === read("run-id.txt").trim() &&
+    const keys = ["raw", "canonical", "receiptDigest"];
+    const digestsValid = keys.every(key =>
+      /^[a-f0-9]{64}$/.test(proof.beforeSha256?.[key]) &&
+      proof.afterSha256?.[key] === proof.beforeSha256[key]);
+    return digestsValid && proof.sourceSha === sha &&
+      proof.runId === read("run-id.txt").trim() &&
       /^[a-f0-9-]{36}$/i.test(proof.receiptId) && proof.status === "PASS" &&
       proof.rawBytesUnchanged === true && proof.canonicalDigestUnchanged === true &&
       proof.canonicalEventUnchanged === true && proof.pendingWorkUnchanged === true;

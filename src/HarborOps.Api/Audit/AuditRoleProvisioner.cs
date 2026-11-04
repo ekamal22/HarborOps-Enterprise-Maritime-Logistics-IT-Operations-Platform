@@ -33,7 +33,13 @@ public static class AuditRoleProvisioner
             await EnsureRoleAsync(connection, "harborops_worker", workerSecret, ct);
             await ExecuteAsync(connection, """
                 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
-                GRANT CONNECT ON DATABASE harborops TO harborops_api, harborops_worker;
+                DO $connect$
+                BEGIN
+                    -- The database name is not fixed: the migration target may be a renamed
+                    -- or disposable verification database.
+                    EXECUTE format('GRANT CONNECT ON DATABASE %I TO harborops_api, harborops_worker',
+                        current_database());
+                END $connect$;
                 GRANT USAGE ON SCHEMA public TO harborops_api, harborops_worker;
 
                 -- The HTTP runtime can read app data and modify only currently

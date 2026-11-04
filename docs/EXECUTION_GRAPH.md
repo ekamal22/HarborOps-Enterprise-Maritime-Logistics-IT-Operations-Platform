@@ -786,7 +786,7 @@ flowchart TD
 
 **Outcome:** Append-only evidence and strengthened authorization  
 **Entry:** G3 accepted before dependent work.  
-**Architecture decisions:** M16-D01 through M16-D05 approved 2026-11-04. See [policy](M16_POLICY_DECISIONS.md), [architecture](M16_ARCHITECTURE_DESIGN.md), [privacy](M16_AUDIT_PRIVACY_POLICY.md) and [implementation plan](M16_IMPLEMENTATION_PLAN.md). No dependency-edge change.  
+**Architecture decisions:** No additional decisions identified for this milestone.  
 **Exit gate:** G16, requiring all 4 work-package outcomes and their actual verification results.
 
 ```mermaid
@@ -815,7 +815,7 @@ flowchart TD
 | **M16-03: Harden security boundaries** | M16-01 | Apply API rate limits, size limits and session escalation checks | Abuse, BOLA/BFLA, unauthorized export tests | FR-002, NFR-002 |
 | **M16-04: Verify security and audit matrix** | M16-02, M16-03 | Run two-organization role/action matrix and redaction review | Full negative test and audit evidence report | FR-014, NFR-003 |
 
-**G16 acceptance evidence:** Execute the complete [G16-S01 through G16-S30](M16_VERIFICATION_PLAN.md) source-locked matrix, including append-only PostgreSQL/role probes, audit-business atomicity, Auditor-only authorization, redaction, throttling and M8/M9 regression. Independently review raw local evidence before explicit G16 acceptance. Approval of the M16 architecture and policy does not close G16; acceptance pending.
+**G16 acceptance evidence:** All applicable tasks, negative tests, runtime evidence and documentation for M16 recorded; acceptance pending until explicitly confirmed.
 
 ### M17: Observability and service health
 

@@ -15,6 +15,19 @@ async function login(page, email) {
     .toBeVisible({ timeout: 30_000 });
 }
 
+async function selectOrganization(page, organizationId, label) {
+  // Wait for the persisted selection response, not just the UI select change.
+  // Otherwise the following API request can race the selection PUT.
+  const selected = page.waitForResponse(response =>
+    response.request().method() === "PUT" &&
+    new URL(response.url()).pathname === "/api/v1/auth/session/organization");
+  await page.locator("#current-organization")
+    .selectOption({ label }).catch(async () => {
+      await page.locator("#current-organization").selectOption(organizationId);
+    });
+  expect((await selected).status()).toBe(200);
+}
+
 test("auditor may read only the selected tenant's audit entries", async ({ page }) => {
   test.setTimeout(90_000);
   test.skip(!password, "Disposable synthetic user password required");
@@ -24,10 +37,7 @@ test("auditor may read only the selected tenant's audit entries", async ({ page 
   const east = organizations.organizations.find(x => x.slug === "m3-east");
   expect(north?.role).toBe("Auditor");
   expect(east?.role).toBe("Auditor");
-  await page.locator("#current-organization")
-    .selectOption({ label: "M3 North Terminal (Auditor)" }).catch(async () => {
-      await page.locator("#current-organization").selectOption(north.id);
-    });
+  await selectOrganization(page, north.id, "M3 North Terminal (Auditor)");
   const root = "/api/v1/organizations/" + north.id + "/audit-events";
   const response = await page.request.get(root + "?limit=25");
   expect(response.status()).toBe(200);
@@ -55,7 +65,7 @@ test("administrator is not entitled to audit reads", async ({ page }) => {
   const organizations = await (await page.request.get("/api/v1/me/organizations")).json();
   const north = organizations.organizations.find(x => x.slug === "m3-north");
   expect(north?.role).toBe("Administrator");
-  await page.locator("#current-organization").selectOption(north.id);
+  await selectOrganization(page, north.id, "M3 North Terminal (Administrator)");
   const blocked = await page.request.get(
     "/api/v1/organizations/" + north.id + "/audit-events");
   expect(blocked.status()).toBe(403);

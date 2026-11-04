@@ -82,6 +82,8 @@ public sealed class AuditEntries : Migration
                 audit_corr varchar(64);
                 audit_role varchar(24);
                 operation_code text;
+                safe_fields text[];
+                changed_fields text[] := ARRAY[]::text[];
             BEGIN
                 IF TG_OP = 'UPDATE' AND to_jsonb(OLD) = to_jsonb(NEW) THEN
                     RETURN NEW;
@@ -89,6 +91,30 @@ public sealed class AuditEntries : Migration
                 row_data := CASE WHEN TG_OP = 'DELETE'
                     THEN to_jsonb(OLD) ELSE to_jsonb(NEW) END;
                 operation_code := lower(TG_OP);
+                -- Only names on this fixed allowlist can enter audit metadata.
+                -- No column values, credentials or unrestricted payloads are stored.
+                safe_fields := CASE TG_TABLE_NAME
+                    WHEN 'users' THEN ARRAY['status','security_version']
+                    WHEN 'user_credentials' THEN ARRAY['status']
+                    WHEN 'organizations' THEN ARRAY['display_name','status']
+                    WHEN 'organization_memberships' THEN ARRAY['role','status']
+                    WHEN 'ports' THEN ARRAY['name','code','status']
+                    WHEN 'vessels' THEN ARRAY['name','status']
+                    WHEN 'voyages' THEN ARRAY['status','departure_at_utc','arrival_at_utc']
+                    WHEN 'containers' THEN ARRAY['status']
+                    WHEN 'shipments' THEN ARRAY['status']
+                    WHEN 'shipment_container_assignments' THEN ARRAY['status']
+                    WHEN 'shipment_voyage_assignments' THEN ARRAY['status']
+                    WHEN 'integration_sources' THEN ARRAY['status','display_name','source_code']
+                    WHEN 'integration_credentials' THEN ARRAY['status','revoked_at_utc']
+                    ELSE ARRAY[]::text[]
+                END;
+                IF TG_OP = 'UPDATE' THEN
+                    SELECT COALESCE(array_agg(field_name ORDER BY field_name), ARRAY[]::text[])
+                      INTO changed_fields
+                      FROM unnest(safe_fields) AS allowed(field_name)
+                     WHERE to_jsonb(OLD)->field_name IS DISTINCT FROM to_jsonb(NEW)->field_name;
+                END IF;
                 audit_org := CASE WHEN TG_TABLE_NAME = 'organizations'
                     THEN NULLIF(row_data->>'id', '')::uuid
                     ELSE NULLIF(row_data->>'organization_id', '')::uuid END;
@@ -105,7 +131,9 @@ public sealed class AuditEntries : Migration
                 audit_role := NULLIF(left(current_setting('harborops.audit_actor_role', true), 24), '');
                 audit_kind := COALESCE(
                     NULLIF(current_setting('harborops.audit_actor_kind', true), ''),
-                    CASE WHEN TG_TABLE_NAME IN ('integration_sources','integration_credentials')
+                    CASE WHEN TG_TABLE_NAME = 'tracking_accepted_events'
+                        THEN 'IntegrationSource'
+                        WHEN TG_TABLE_NAME IN ('integration_sources','integration_credentials')
                         THEN 'OperatorCli'
                         WHEN TG_TABLE_NAME = 'auth_events'
                              AND row_data->>'user_id' IS NOT NULL THEN 'Human'
@@ -114,6 +142,19 @@ public sealed class AuditEntries : Migration
                     audit_type := left('auth.' || COALESCE(row_data->>'event_type','unknown'), 96);
                     audit_actor := COALESCE(audit_actor, NULLIF(row_data->>'user_id','')::uuid);
                     audit_session := COALESCE(audit_session, NULLIF(row_data->>'session_id','')::uuid);
+                ELSIF TG_TABLE_NAME = 'tracking_accepted_events' THEN
+                    audit_type := 'integration.tracking_accepted';
+                ELSIF TG_TABLE_NAME = 'organization_memberships' AND TG_OP = 'UPDATE' THEN
+                    audit_type := CASE
+                        WHEN 'role' = ANY(changed_fields) THEN 'membership.role_changed'
+                        WHEN 'status' = ANY(changed_fields) THEN 'membership.status_changed'
+                        ELSE 'membership.updated' END;
+                ELSIF TG_TABLE_NAME = 'integration_sources' AND TG_OP = 'UPDATE'
+                    AND 'status' = ANY(changed_fields) THEN
+                    audit_type := 'integration.source_status_changed';
+                ELSIF TG_TABLE_NAME = 'integration_credentials' AND TG_OP = 'UPDATE'
+                    AND 'status' = ANY(changed_fields) THEN
+                    audit_type := 'integration.credential_status_changed';
                 ELSE
                     audit_type := left(TG_TABLE_NAME || '.' || operation_code, 96);
                 END IF;
@@ -133,10 +174,12 @@ public sealed class AuditEntries : Migration
                               AND row_data->>'result_code' NOT IN ('success','succeeded','ok')
                          THEN 'Failed' ELSE 'Succeeded' END,
                     audit_kind, audit_actor, audit_session,
-                    CASE WHEN TG_TABLE_NAME IN ('integration_sources','integration_credentials')
+                    CASE WHEN TG_TABLE_NAME IN ('integration_sources','integration_credentials',
+                                                  'tracking_accepted_events')
                          THEN NULLIF(row_data->>'source_id','')::uuid ELSE NULL END,
                     audit_role, TG_TABLE_NAME, audit_resource, audit_corr,
-                    statement_timestamp(), jsonb_build_object('operation', operation_code);
+                    statement_timestamp(), jsonb_build_object(
+                        'operation', operation_code, 'changedFields', changed_fields);
                 IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
                 RETURN NEW;
             END $audit$;
@@ -173,6 +216,12 @@ public sealed class AuditEntries : Migration
             CREATE TRIGGER m16_sources_audit AFTER INSERT OR UPDATE OR DELETE ON integration_sources
                 FOR EACH ROW EXECUTE FUNCTION m16_audit_capture();
             CREATE TRIGGER m16_integration_credentials_audit AFTER INSERT OR UPDATE OR DELETE ON integration_credentials
+                FOR EACH ROW EXECUTE FUNCTION m16_audit_capture();
+
+            -- Source identity is validated by M8 before an accepted event is
+            -- persisted. Capture only the source identifier and a fixed outcome,
+            -- never the raw or canonical tracking payload.
+            CREATE TRIGGER m16_tracking_accepted_audit AFTER INSERT ON tracking_accepted_events
                 FOR EACH ROW EXECUTE FUNCTION m16_audit_capture();
 
             CREATE FUNCTION m16_record_audit_access(
@@ -261,6 +310,7 @@ public sealed class AuditEntries : Migration
             DROP TRIGGER m16_voyage_assignments_audit ON shipment_voyage_assignments;
             DROP TRIGGER m16_sources_audit ON integration_sources;
             DROP TRIGGER m16_integration_credentials_audit ON integration_credentials;
+            DROP TRIGGER m16_tracking_accepted_audit ON tracking_accepted_events;
             DROP FUNCTION m16_audit_capture();
             DROP TABLE audit_entries;
             DROP FUNCTION m16_audit_guard();

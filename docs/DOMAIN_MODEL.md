@@ -22,7 +22,7 @@
 | ShipmentProjection | ShipmentId, computed status, ETA, version | Derived, rebuildable read model |
 | ShipmentException | Id, shipment, rule, severity, state | Investigable exception |
 | Notification | Id, recipient scope, type, status | Derived from authorization-aware rules |
-| AuditRecord | Id, actor, action, resource, timestamp, metadata | Append-only sensitive action record |
+| AuditEntry (M16 planned) | Id, nullable OrganizationId, event type/version, outcome, actor kind/refs, resource, correlation ID, UTC and allowlisted metadata | Separate append-only audit store; not M1 auth_events or M8 accepted event history |
 | ServiceIncident | Id, priority, state, title, cause, timestamps | Infrastructure and application investigations |
 | IncidentActivity | Id, incident, actor, timestamp, note/type | Chronological incident history |
 
@@ -40,6 +40,10 @@
 10. Unknown events do not silently advance or reverse the shipment state.
 11. Audit records capture actor, organization scope, resource, action, outcome, and correlation ID, with sensitive values redacted.
 12. Deleting an operational entity is restricted when history depends on it; use archival or tombstones where applicable.
+
+## M16 audit model contract (approved design, not implemented)
+
+[M16-D01 through M16-D05](M16_POLICY_DECISIONS.md) require active selected-organization Auditor-only reads, 365-day online retention with controlled archival, transactional fail-closed sensitive mutation audit, separate migration/API/worker DB identities and database-backed append-only guards. The [architecture](M16_ARCHITECTURE_DESIGN.md) proposes `audit_entries` with server-proven actor/organization context, typed bounded metadata, correlation and UTC. No automatic purge or privileged global audit reader is approved. Existing M1 `auth_events` and M8 immutable accepted tracking history remain separate. [G16 verification](M16_VERIFICATION_PLAN.md) has not executed.
 
 ## M1 identity persistence and invariants (accepted in main)
 

@@ -4,17 +4,17 @@
 
 Transform third-party or simulated maritime tracking signals into a trustworthy, inspectable shipment timeline while preserving the original source record.
 
-**Milestone boundary:** [M7](M7_ARCHITECTURE_DESIGN.md) and G7 were accepted 2026-11-03 and integrated into `main` ([closure](M7_G7_GATE_CLOSURE.md)). M7 establishes source authentication and strict contract validation without a durable event receipt. Valid M7 requests must return `503 intake_unavailable` until M8 implements transactional inbox persistence. This document describes the complete M7-M15 target pipeline, not functionality already implemented in M7; M8 owns immutable receipts, M9 worker processing and M10 projections.
+**Milestone boundary:** [M7](M7_ARCHITECTURE_DESIGN.md) and G7 were accepted 2026-11-03 and integrated into `main` ([closure](M7_G7_GATE_CLOSURE.md)). M7 establishes source authentication and strict contract validation without a durable event receipt. Valid M7 requests must return `503 intake_unavailable` until M8 implements transactional inbox persistence. This document describes the M7-M15 target pipeline, not functionality already implemented in M7. M8 owns accepted immutable receipts; M9 has unverified worker source on a separate branch; M10 owns projections.
 
 ## M8 receipt transition (accepted G8)
 
 [M8 architecture](M8_ARCHITECTURE_DESIGN.md) proposes one atomic acceptance transaction containing immutable receipt, immutable accepted event and separate Pending work state. The [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md) defines permanent source-scoped identity, canonical replay digest, 202 only after commit and 409 for changed-payload collision. **M8, D-006 Option A and G8 were accepted 2026-11-04 after source-locked technical verification and independent evidence review.** Historical M7-only valid requests returned 503 before M8 intake was integrated. M9 later adds worker claims, retries and dead-letter behavior, and M10 projection rebuild; a receipt means stored for future processing, not business reconciliation. See [M8 planning status](M8_PLANNING_STATUS.md).
 
-## Proposed M9 worker transition (not implemented)
+## M9 worker transition (feature-branch candidate, unverified)
 
 The [M9 architecture](M9_ARCHITECTURE_DESIGN.md) separates the M8 immutable receipt/event history from a mutable, lease-fenced work row and an append-only receipt-unique processing-resolution effect. A separate .NET worker claims due Pending/RetryWaiting or expired leases under PostgreSQL locks, classifies outcomes and commits resolution effects atomically with terminal state. Unknown equipment/transport/shipment associations remain NeedsReconciliation instead of being guessed. Bounded transient failure retries end in DeadLetter, with explicit scoped redrive and immutable attempt evidence. A worker's Processed state means durable reference resolution, not M10 timeline/projection updates.
 
-The [M9 local contract](M9_LOCAL_CONTRACT_PROPOSAL.md) must be frozen before code changes because M8's 10,000 Pending admission cap needs an explicit policy for leased/retry/unresolved backlog. G9 verification and acceptance are pending; do not describe this proposed worker as running. The existing M8 ingestion API stays the accepted contract. See the [implementation plan](M9_IMPLEMENTATION_PLAN.md) and [G9 evidence matrix](M9_VERIFICATION_PLAN.md).
+The [M9 local contract](M9_LOCAL_CONTRACT_PROPOSAL.md) still awaits explicit acceptance of the six local choices, including unresolved backlog admission. The corrected [M9 source candidate](M9_IMPLEMENTATION_STATUS.md) contains work migration, worker and scoped operator API, but is not on accepted `main` and has no executed G9 evidence. G9 verification and acceptance are pending. The existing M8 ingestion API stays the accepted contract. See the [implementation plan](M9_IMPLEMENTATION_PLAN.md) and [G9 evidence matrix](M9_VERIFICATION_PLAN.md).
 
 ## Processing pipeline
 

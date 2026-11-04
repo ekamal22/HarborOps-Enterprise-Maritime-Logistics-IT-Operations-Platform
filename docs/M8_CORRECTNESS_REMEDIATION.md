@@ -21,6 +21,19 @@
 
 Additional hardening: credentials now evaluate not-before and expiry **after** obtaining the final source/credential row locks, preventing stale pre-lock timestamps from authorizing an event.
 
+## First-execution findings
+
+The first compile and database execution of the M8 source candidate exposed the following defects. Each was corrected on the feature branch and re-tested narrowly before the complete source-locked run. These were found in development rehearsals, which are not gate evidence.
+
+| ID | Finding | Correction | Regression coverage |
+| --- | --- | --- | --- |
+| **M8-X01** | The API entry point referenced `TrackingInboxStore` without importing its namespace, so the solution did not compile. | Added the missing namespace import. | Release build with warnings as errors |
+| **M8-X02** | `TrackingInboxQuotaConfigurationTests` used a configuration builder type that the unit test project does not reference. `TrackingCommitSocketProxy` assigned a nullable host to a non-nullable field. | Replaced the builder with a minimal configuration stub and rejected a missing host explicitly. No package was added. | Release build with warnings as errors; `TrackingInboxQuotaConfigurationTests` |
+| **M8-X03** | The EF model creates a conventional foreign-key index for `FK_m8_receipt_credential` that the model snapshot (built without conventions) and the migration did not contain, so EF reported pending model changes and 51 of 54 tracking integration tests failed. | Declared `IX_m8_receipt_credential` explicitly in the model, the snapshot and the migration. A direct model differ comparison reports zero differences. | `M8DatabaseIndexesMatchRelationalModel`, all tracking integration tests |
+| **M8-X04** | The first accepted response reported `receivedAtUtc` at 100 ns precision while PostgreSQL stores microseconds, so a replay returned a different value from the original acceptance. | The intake timestamp is truncated to microseconds before it is stored or returned. | `TenSequentialCanonicalReplaysKeepOriginalIdentity` |
+| **M8-X05** | `IntegrationSourceStore.AuthenticateAsync`, introduced for M7, locked credential, source and organization with one `FOR SHARE OF c, s, o` join. Locks were taken in planner order, while revocation locks organization, source and credential. An overlapping revocation and authentication could deadlock (PostgreSQL 40P01). M8 intake already locks the organization first and was not affected. | Authentication now takes its shared locks as organization, then source, then credential, and re-checks all mutable state under those locks. Accepted G7 evidence is unchanged; this is recorded as a correction to the source. | New `TrackingAuthenticationLockOrderTests` (fails with 40P01 against the previous implementation); `RevocationInvalidatesAllSubsequentAuthenticationsAcrossRequests` |
+| **M8-X06** | The planning check required the D-006 "Required before" cell to equal `M8`, but the decision register correctly reads `M8-01 and M9`. | The check now requires the owning milestone token in that cell. | `node scripts/check-planning-docs.mjs` |
+
 ## Mandatory G8 completion boundary
 
 The remediation fixes are **not test results**. Real .NET 10 compilation, EF migration on fresh and populated PostgreSQL, both integration passes, 20-way concurrency, actual lock waits, fault-window injections, 10,000-item admission, 11 effective mutants, all browser engines, dependency and image scans, source/receipt hashes and sanitized evidence must still execute from E:. In particular, deterministic callback-based lost acknowledgment covers application semantics but is not a substitute for independently reviewing actual database/network failure-window artifacts.

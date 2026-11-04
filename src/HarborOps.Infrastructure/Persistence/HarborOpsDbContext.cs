@@ -132,6 +132,8 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
                 .IsUnique().HasDatabaseName("UQ_m8_receipt_key");
             entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.ReceivedAtUtc })
                 .HasDatabaseName("IX_m8_receipt_chronology");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.CredentialId })
+                .HasDatabaseName("IX_m8_receipt_credential");
         });
         modelBuilder.Entity<TrackingAcceptedEvent>(entity =>
         {

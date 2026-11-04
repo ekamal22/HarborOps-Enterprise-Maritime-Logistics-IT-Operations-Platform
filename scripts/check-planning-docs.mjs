@@ -83,7 +83,9 @@ for (const milestone of graph.milestones) {
       assert(new RegExp("^#{2,3} " + id + ":", "m").test(decisions) && milestone.id === accepted[id],
         "Approved decision " + id + " missing or misallocated");
     } else {
-      assert(line && line.endsWith("| " + milestone.id + " |"), "Decision deadline mismatch " + id);
+      // The final cell may name a work package ("M8-01 and M9"); it must reference the owning milestone.
+      const requiredBefore = line ? line.replace(/\s*\|\s*$/, "").split("|").pop() : "";
+      assert(new RegExp("\\b" + milestone.id + "\\b").test(requiredBefore), "Decision deadline mismatch " + id);
     }
   }
 }

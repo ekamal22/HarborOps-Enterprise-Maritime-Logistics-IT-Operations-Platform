@@ -143,7 +143,10 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
         var credentialId = await ReauthorizeAsync(connection, current, bearer, value, clock, ct);
         if (credentialId == Guid.Empty)
             return new(TrackingReceiptOutcome.AccessDenied);
-        var now = clock.GetUtcNow();
+        // PostgreSQL timestamptz stores microseconds. Truncate here so the first response and every
+        // replay of the stored receipt report an identical receivedAtUtc.
+        var observed = clock.GetUtcNow();
+        var now = new DateTimeOffset(observed.UtcTicks - observed.UtcTicks % 10, TimeSpan.Zero);
 
         Guid originalReceipt = Guid.Empty;
         DateTimeOffset originalTime = default;

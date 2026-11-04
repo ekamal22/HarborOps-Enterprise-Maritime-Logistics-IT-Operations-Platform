@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using HarborOps.Api.Health;
 using HarborOps.Application.Baseline;
 using HarborOps.Infrastructure;
+using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;

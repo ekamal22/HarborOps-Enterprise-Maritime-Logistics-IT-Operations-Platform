@@ -27,7 +27,7 @@ public sealed class TrackingCommitSocketProxy : IAsyncDisposable
     public TrackingCommitSocketProxy(string originalConnection, CutPoint cutPoint)
     {
         var original = new NpgsqlConnectionStringBuilder(originalConnection);
-        targetHost = original.Host;
+        targetHost = original.Host ?? throw new ArgumentException("A database host is required", nameof(originalConnection));
         targetPort = original.Port;
         cut = cutPoint;
         listener.Start();

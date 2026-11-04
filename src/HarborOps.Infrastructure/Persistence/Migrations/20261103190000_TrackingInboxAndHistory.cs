@@ -48,6 +48,8 @@ public sealed class TrackingInboxAndHistory : Migration
                 ON tracking_inbox_receipts (organization_id, source_id, profile, source_event_id);
             CREATE INDEX "IX_m8_receipt_chronology"
                 ON tracking_inbox_receipts(organization_id, source_id, received_at_utc);
+            CREATE INDEX "IX_m8_receipt_credential"
+                ON tracking_inbox_receipts(organization_id, source_id, credential_id);
 
             CREATE TABLE tracking_accepted_events (
                 id uuid PRIMARY KEY,

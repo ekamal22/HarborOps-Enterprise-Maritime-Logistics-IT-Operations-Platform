@@ -1,12 +1,12 @@
 # M8 Implementation Status
 
-**As of:** 2026-11-04 (first and second correctness audit remediations committed; runtime verification pending)
+**As of:** 2026-11-04 (technical G8 verification executed on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6`; acceptance pending)
 **Source branch:** `feat/m8-durable-event-inbox`
 **Planning branch:** `plan/m8-durable-inbox-immutable-history` (draft PR #13)
 **Accepted baseline:** `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`, G0-G7 accepted.
-**Status:** M8-02 persistence and M8-03 intake implementation candidates committed. M8-04 tests and a dedicated G8 runner authored. **No local .NET/PostgreSQL/Compose/Playwright verification has been executed.**
+**Status:** M8-02 persistence, M8-03 intake, M8-04 tests and the dedicated G8 runner are committed. One complete source-locked local run passed all 24 stages with 23 of 23 technical scenarios passing (see the [executed verification record](M8_EXECUTED_VERIFICATION.md)). Earlier attempts and development rehearsals found eleven defects, all corrected and registered in the [remediation register](M8_CORRECTNESS_REMEDIATION.md).
 **D-006:** Option A used as a provisional implementation contract. **Acceptance pending.**
-**G8:** Not executed and not accepted; 25 required scenarios remain subject to raw evidence and independent review.
+**G8:** Technical evidence executed; **not accepted.** G8-S01 (D-006 approval) and G8-S25 (independent evidence review) remain BLOCKED pending decisions. 23 technical scenarios PASS.
 **Integration:** Not merged into accepted `main`; GitHub Actions disabled.
 **Deployment:** None. No internet-facing hosting or accepted event processing.
 

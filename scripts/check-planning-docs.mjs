@@ -43,13 +43,13 @@ for (const [name, content] of [
 assert(status.includes("G0 verified") && status.includes("accepted"), "Status ledger must reflect accepted G0");
 for (const [name,body,needle] of [
   ["README",readme,"M8 implementation is committed"],
-  ["Status",status,"G8 not executed"],
+  ["Status",status,"technical G8 run executed"],
   ["Roadmap",roadmap,"G8-G24 remain open"],
   ["Contributors",contributors,"G0-G7 are verified, explicitly accepted"],
   ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],
-  ["Implementation plan",implementationPlan,"M8 implemented candidate, verification pending"],
+  ["Implementation plan",implementationPlan,"M8 technically verified candidate, acceptance pending"],
   ["G8 plan",m8Plan,"11 committed, source-isolated security mutation variants"],
-  ["M8 status",m8Status,"No local .NET/PostgreSQL/Compose/Playwright verification has been executed"],
+  ["M8 status",m8Status,"One complete source-locked local run passed all 24 stages"],
   ["Second remediation",secondRemediation,"Five findings patched in source"],
   ["Verification runbook",runbook,"G8 technical verification"]
 ]) assert(body.includes(needle), name + " contains stale or missing M8 status");
@@ -62,7 +62,7 @@ for (const [name,body] of [
     "Superseded milestone statement returned in " + name);
 }
 assert(status.includes("D-006") && status.includes("acceptance pending"), "Status must keep D-006 pending");
-assert(m8Status.includes("G8") && m8Status.includes("Not executed and not accepted"), "G8 cannot be treated as accepted without evidence");
+assert(m8Status.includes("G8") && m8Status.includes("Technical evidence executed; **not accepted.**"), "G8 cannot be treated as accepted without evidence");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");
 assert(roadmap.includes("## Legacy milestone mapping"), "Missing version migration map");

@@ -1,6 +1,6 @@
 # G8 Local Verification Runbook
 
-**State:** M8 source candidate committed, not executed. D-006 acceptance pending; G8 acceptance pending.  
+**State:** Technical run executed on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6` (see the [executed verification record](M8_EXECUTED_VERIFICATION.md)). D-006 acceptance pending; independent review pending; G8 acceptance pending.  
 **Accepted baseline:** G0-G7 integrated into protected `main`.  
 **Source:** Clean, exact HEAD of `feat/m8-durable-event-inbox`, draft PR #14.  
 **Storage:** Every G8 attempt requires a new E:-backed verification root ending in `/m8`.  

@@ -16,7 +16,7 @@ mkdir -p "$out"
 # Compose files must stay rooted at the checkout after entering tests/browser.
 export COMPOSE_FILE="$(cygpath -w "$(pwd)/compose.g8.verify.yaml")"
 export COMPOSE_PROJECT_DIRECTORY="$(cygpath -w "$(pwd)")"
-export HARBOROPS_BROWSER_BASE_URL="http://127.0.0.1:5178"
+export HARBOROPS_BROWSER_BASE_URL="http://localhost:5178"
 cd tests/browser
 npm ci --no-audit --no-fund
 npx playwright install chromium firefox webkit

@@ -54,7 +54,7 @@ date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/started-utc.txt"
 # G8 has its own complete Compose file with distinct ports and network.
 export COMPOSE_FILE="$(cygpath -w "$(pwd)/compose.g8.verify.yaml")"
 export COMPOSE_PROJECT_DIRECTORY="$(cygpath -w "$(pwd)")"
-export HARBOROPS_BROWSER_BASE_URL="http://127.0.0.1:5178"
+export HARBOROPS_BROWSER_BASE_URL="http://localhost:5178"
 owned_stack=0
 owned_sdk=0
 stage() {

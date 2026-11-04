@@ -17,7 +17,7 @@ const sectionOf = page => page.getByRole("heading", { name: "Shipments", exact: 
 // Headless engines never change document.visibilityState on a tab switch (probe evidence is kept
 // with the G5 evidence). The tests therefore bring a genuine second page to the front and then
 // drive visibility the way the app reads it: the state property plus the browser event.
-const apiOrigin = "http://localhost:5173";
+const apiOrigin = process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173";
 const draftDeparture = "2026-12-01T00:00:00Z";
 const draftArrival = "2026-12-05T00:00:00Z";
 const departureLabel = "Planned departure UTC (ISO 8601)";

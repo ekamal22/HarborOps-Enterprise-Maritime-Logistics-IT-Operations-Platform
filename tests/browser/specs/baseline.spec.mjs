@@ -25,7 +25,7 @@ test("unavailable API response is displayed and later refresh recovers", async (
   await page.route(api, route => route.fulfill({
     status: 503,
     contentType: "application/json",
-    headers: { "Access-Control-Allow-Origin": "http://localhost:5173" },
+    headers: { "Access-Control-Allow-Origin": process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173" },
     body: JSON.stringify({ code: "dependency_unavailable", message: "Service unavailable" })
   }));
   await page.goto("/");

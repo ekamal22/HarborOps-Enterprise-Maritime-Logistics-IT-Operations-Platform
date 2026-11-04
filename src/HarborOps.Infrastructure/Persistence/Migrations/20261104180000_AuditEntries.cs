@@ -129,15 +129,24 @@ public sealed class AuditEntries : Migration
                         THEN NULLIF(row_data->>'correlation_id', '') ELSE NULL END,
                     'database'), 64);
                 audit_role := NULLIF(left(current_setting('harborops.audit_actor_role', true), 24), '');
-                audit_kind := COALESCE(
-                    NULLIF(current_setting('harborops.audit_actor_kind', true), ''),
-                    CASE WHEN TG_TABLE_NAME = 'tracking_accepted_events'
+                audit_kind := CASE
+                    WHEN TG_TABLE_NAME = 'tracking_accepted_events'
                         THEN 'IntegrationSource'
-                        WHEN TG_TABLE_NAME IN ('integration_sources','integration_credentials')
-                        THEN 'OperatorCli'
-                        WHEN TG_TABLE_NAME = 'auth_events'
-                             AND row_data->>'user_id' IS NOT NULL THEN 'Human'
-                        ELSE 'System' END);
+                    ELSE COALESCE(
+                        NULLIF(current_setting('harborops.audit_actor_kind', true), ''),
+                        CASE WHEN TG_TABLE_NAME IN ('integration_sources','integration_credentials')
+                            THEN 'OperatorCli'
+                            WHEN TG_TABLE_NAME = 'auth_events'
+                                 AND row_data->>'user_id' IS NOT NULL THEN 'Human'
+                            ELSE 'System' END)
+                    END;
+                IF TG_TABLE_NAME = 'tracking_accepted_events' THEN
+                    -- A source-backed event must not inherit a human or CLI
+                    -- context even if its connection has an unrelated setting.
+                    audit_actor := NULL;
+                    audit_session := NULL;
+                    audit_role := NULL;
+                END IF;
                 IF TG_TABLE_NAME = 'auth_events' THEN
                     audit_type := left('auth.' || COALESCE(row_data->>'event_type','unknown'), 96);
                     audit_actor := COALESCE(audit_actor, NULLIF(row_data->>'user_id','')::uuid);

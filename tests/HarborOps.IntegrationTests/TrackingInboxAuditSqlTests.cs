@@ -64,6 +64,10 @@ public sealed class TrackingInboxAuditSqlTests
             var rejected = await Assert.ThrowsAsync<PostgresException>(() =>
                 db.Database.MigrateAsync("20261103090000_IntegrationSources"));
             Assert.Equal(PostgresErrorCodes.CheckViolation, rejected.SqlState);
+            // The empty M9 layer can roll back first; the retained M8 receipt blocks
+            // the subsequent M8 downgrade without rewriting its immutable history.
+            Assert.Equal(9, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            await db.Database.MigrateAsync();
             Assert.Equal(10, (await db.Database.GetAppliedMigrationsAsync()).Count());
             var persisted = await db.TrackingInboxReceipts.AsNoTracking()
                 .SingleAsync(x => x.Id == received.ReceiptId);

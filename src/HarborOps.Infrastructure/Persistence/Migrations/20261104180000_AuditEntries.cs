@@ -114,13 +114,17 @@ public sealed class AuditEntries : Migration
                     audit_type := left(TG_TABLE_NAME || '.' || operation_code, 96);
                 END IF;
 
-                INSERT INTO audit_entries (
-                    id, organization_id, event_type, event_schema_version, outcome,
-                    actor_kind, actor_user_id, actor_session_id, actor_source_id,
-                    actor_role, resource_type, resource_id, correlation_id,
-                    occurred_at_utc, metadata
-                ) VALUES (
-                    gen_random_uuid(), audit_org, audit_type, 1,
+                -- Explicitly target the audited table's own schema. Isolated
+                -- migration rehearsals use disposable schemas before public.
+                EXECUTE format(
+                    'INSERT INTO %I.audit_entries
+                     (id, organization_id, event_type, event_schema_version, outcome,
+                      actor_kind, actor_user_id, actor_session_id, actor_source_id,
+                      actor_role, resource_type, resource_id, correlation_id,
+                      occurred_at_utc, metadata)
+                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)',
+                    TG_TABLE_SCHEMA)
+                USING gen_random_uuid(), audit_org, audit_type, 1,
                     CASE WHEN TG_TABLE_NAME = 'auth_events'
                               AND row_data->>'result_code' NOT IN ('success','succeeded','ok')
                          THEN 'Failed' ELSE 'Succeeded' END,
@@ -128,8 +132,7 @@ public sealed class AuditEntries : Migration
                     CASE WHEN TG_TABLE_NAME IN ('integration_sources','integration_credentials')
                          THEN NULLIF(row_data->>'source_id','')::uuid ELSE NULL END,
                     audit_role, TG_TABLE_NAME, audit_resource, audit_corr,
-                    statement_timestamp(), jsonb_build_object('operation', operation_code)
-                );
+                    statement_timestamp(), jsonb_build_object('operation', operation_code);
                 RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
             END $audit$;
 

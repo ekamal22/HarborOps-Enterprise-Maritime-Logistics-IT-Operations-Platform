@@ -54,16 +54,21 @@ cleanup() {
     (cd "$evidence" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
       > "$root/evidence-manifest.sha256" || result=1
     printf '%s\n' "$result" > "$root/technical-exit-code.txt"
+    # Technical outcome and gate completeness are reported separately. Exit 0 means every
+    # development stage passed and is NOT a G9 result. Exit 1 means a stage or teardown failed.
+    # Exit 2 is reserved for refused preconditions. gate-status.txt records the explicit state.
     if [[ "$result" == 0 ]]; then
-        echo "M9 development checks completed. Full G9 scenarios, fault injection, scans,"
-        echo "independent evidence review and acceptance are still pending."
-        exit 2
+        printf 'DEVELOPMENT_STAGES=PASS\nG9_SCENARIOS=NOT_EXECUTED_BY_THIS_RUNNER\nG9_ACCEPTANCE=PENDING\n' > "$root/gate-status.txt"
+        echo "M9 development stages passed (technical exit 0). This is not a G9 result: full G9"
+        echo "scenarios, fault injection, scans, independent review and acceptance remain pending."
+        exit 0
     fi
-    echo "M9 development checks failed. Inspect E:-backed evidence; do not claim G9 PASS." >&2
+    printf 'DEVELOPMENT_STAGES=FAIL\nG9_SCENARIOS=NOT_EXECUTED_BY_THIS_RUNNER\nG9_ACCEPTANCE=PENDING\n' > "$root/gate-status.txt"
+    echo "M9 development stages failed. Inspect E:-backed evidence; do not claim G9 PASS." >&2
     exit 1
 }
 trap cleanup EXIT
-stage preflight bash -c 'git rev-parse HEAD; node --version; docker version; docker compose version'
+stage preflight bash -c 'git rev-parse HEAD; node --version; docker version; docker compose version; docker image inspect --format "sdk image {{.Id}} {{.RepoDigests}}" mcr.microsoft.com/dotnet/sdk:10.0'
 stage storage node scripts/check-m3-docker-storage.mjs
 stage scripts bash -c 'bash -n scripts/verify-m9-local.sh && node --check scripts/check-m9-contract.test.mjs'
 stage graph bash -c 'node scripts/render-execution-graph.mjs --check && node scripts/check-planning-docs.mjs'
@@ -103,5 +108,6 @@ stage unit-tests sdk 'dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.
 stage contract-tests sdk 'dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --logger "trx;LogFileName=m9-contract.trx" --results-directory /evidence/evidence/trx'
 stage integration-tests sdk 'dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --logger "trx;LogFileName=m9-integration.trx" --results-directory /evidence/evidence/trx'
 stage integration-repeat sdk 'dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --logger "trx;LogFileName=m9-integration-repeat.trx" --results-directory /evidence/evidence/trx'
+stage trx-summary node scripts/summarize-m9-trx.mjs "$evidence/trx"
 stage frontend bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build'
 echo "Development stages completed; local full G9 campaign remains separate."

@@ -87,3 +87,14 @@ test("manual redrive rechecks the session security epoch and schema pins its loc
     assert.match(workerMigration, /%1\$I\.organizations/);
     assert.match(workerMigration, /CK_m9_effect_reference/);
 });
+
+test("development runner reports technical success and gate incompleteness separately", () => {
+    const runner = read("scripts/verify-m9-local.sh");
+    assert.doesNotMatch(runner, /^ {8}exit 2$/m);
+    assert.match(runner, /DEVELOPMENT_STAGES=PASS/);
+    assert.match(runner, /G9_ACCEPTANCE=PENDING/);
+    assert.match(runner, /summarize-m9-trx\.mjs/);
+    const summary = read("scripts/summarize-m9-trx.mjs");
+    assert.match(summary, /notExecuted === 0/);
+    assert.match(summary, /row\.failed === 0/);
+});

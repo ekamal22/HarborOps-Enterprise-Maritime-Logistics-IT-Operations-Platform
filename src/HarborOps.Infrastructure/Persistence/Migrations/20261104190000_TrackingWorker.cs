@@ -75,6 +75,9 @@ public sealed class TrackingWorker : Migration
             );
             CREATE INDEX "IX_m9_attempt_receipt"
                 ON tracking_work_attempt_events(organization_id,receipt_id,occurred_at_utc,id);
+            CREATE UNIQUE INDEX "UQ_m9_redrive_generation"
+                ON tracking_work_attempt_events(receipt_id,generation)
+                WHERE event_kind='Redriven';
 
             CREATE TABLE tracking_processing_effects (
                 receipt_id uuid PRIMARY KEY,
@@ -203,18 +206,22 @@ public sealed class TrackingWorker : Migration
                         NEW.attempt_count = OLD.attempt_count + 1 AND NEW.attempt_count <= 5 AND
                         NEW.redrive_generation = OLD.redrive_generation AND
                         NEW.lease_epoch = OLD.lease_epoch + 1 AND NEW.lease_token IS NOT NULL AND
-                        NEW.lease_expires_at_utc > at_utc AND NEW.completed_at_utc IS NULL;
+                        NEW.lease_expires_at_utc > at_utc AND
+                        NEW.lease_expires_at_utc <= at_utc + interval '10 minutes' AND
+                        NEW.completed_at_utc IS NULL;
                 ELSIF OLD.state = 'Leased' AND NEW.state = 'Leased' THEN
                     allowed := NEW.redrive_generation = OLD.redrive_generation AND
                         ((OLD.lease_expires_at_utc > at_utc AND
                           NEW.lease_token = OLD.lease_token AND NEW.lease_epoch = OLD.lease_epoch AND
                           NEW.attempt_count = OLD.attempt_count AND
-                          NEW.lease_expires_at_utc > OLD.lease_expires_at_utc)
+                          NEW.lease_expires_at_utc > OLD.lease_expires_at_utc AND
+                          NEW.lease_expires_at_utc <= at_utc + interval '10 minutes')
                          OR (OLD.lease_expires_at_utc <= at_utc AND
                           NEW.lease_token IS DISTINCT FROM OLD.lease_token AND
                           NEW.lease_epoch = OLD.lease_epoch + 1 AND
                           NEW.attempt_count = OLD.attempt_count + 1 AND
-                          NEW.attempt_count <= 5 AND NEW.lease_expires_at_utc > at_utc));
+                          NEW.attempt_count <= 5 AND NEW.lease_expires_at_utc > at_utc AND
+                          NEW.lease_expires_at_utc <= at_utc + interval '10 minutes'));
                 ELSIF OLD.state = 'Leased' AND NEW.state = 'DeadLetter' AND
                     OLD.lease_expires_at_utc <= at_utc AND OLD.attempt_count >= 5 THEN
                     allowed := NEW.attempt_count = OLD.attempt_count AND
@@ -236,6 +243,14 @@ public sealed class TrackingWorker : Migration
                         NEW.completed_at_utc IS NULL AND NEW.resolution_kind IS NULL AND
                         NEW.last_error_code IS NULL;
                 END IF;
+                IF OLD.state = 'Leased' AND NEW.state = 'Leased' AND
+                   (NEW.available_at_utc IS DISTINCT FROM OLD.available_at_utc OR
+                    NEW.last_error_code IS DISTINCT FROM OLD.last_error_code OR
+                    NEW.completed_at_utc IS DISTINCT FROM OLD.completed_at_utc OR
+                    NEW.resolution_kind IS DISTINCT FROM OLD.resolution_kind) THEN
+                    RAISE EXCEPTION 'Lease renewal cannot mutate processing outcome'
+                        USING ERRCODE='23514';
+                END IF;
                 IF NOT allowed THEN
                     RAISE EXCEPTION 'Invalid tracking work transition' USING ERRCODE='23514';
                 END IF;
@@ -247,6 +262,17 @@ public sealed class TrackingWorker : Migration
 
             CREATE FUNCTION m9_assert_processing_effect() RETURNS trigger LANGUAGE plpgsql AS $fn$
             BEGIN
+                IF NEW.redrive_generation > OLD.redrive_generation AND NOT EXISTS (
+                    SELECT 1 FROM tracking_work_attempt_events a
+                    WHERE a.receipt_id = NEW.receipt_id
+                      AND a.organization_id = NEW.organization_id
+                      AND a.source_id = NEW.source_id
+                      AND a.generation = NEW.redrive_generation
+                      AND a.event_kind = 'Redriven' AND a.actor_user_id IS NOT NULL
+                ) THEN
+                    RAISE EXCEPTION 'Manual redrive requires immutable attributed evidence'
+                        USING ERRCODE='23514';
+                END IF;
                 IF NEW.state = 'Processed' AND NOT EXISTS (
                     SELECT 1 FROM tracking_processing_effects e
                     WHERE e.receipt_id = NEW.receipt_id

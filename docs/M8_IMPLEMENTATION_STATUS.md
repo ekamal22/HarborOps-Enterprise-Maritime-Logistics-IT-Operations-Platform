@@ -1,6 +1,6 @@
 # M8 Implementation Status
 
-**As of:** 2026-11-03
+**As of:** 2026-11-04 (correctness remediations committed; runtime verification pending)
 **Source branch:** `feat/m8-durable-event-inbox`
 **Planning branch:** `plan/m8-durable-inbox-immutable-history` (draft PR #13)
 **Accepted baseline:** `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`, G0-G7 accepted.
@@ -19,7 +19,7 @@
 | Additive migration | `20261103190000_TrackingInboxAndHistory.cs` | Four new PostgreSQL tables, scoped unique key, append-only guards, deferred receipt-completeness checks, disposable-only downgrade |
 | Transactional intake | `src/HarborOps.Infrastructure/Integrations/TrackingInboxStore.cs` | Organization lock, original bearer revalidation, same-key replay, 409 collision, pending cap, atomic receipt + event + Pending work and post-commit-only success |
 | HTTP and DI | `TrackingEndpoints.cs`, `DependencyInjection.cs`, `IntegrationSourceStore.cs` | Preserve negative M7 contract, convert authenticated valid new/replayed event to HTTP 202 only after transaction commit, sanitize failures and recheck revocation |
-| Regression tests | `TrackingReceiptPolicyTests.cs`, `TrackingInboxHttpTests.cs`, `TrackingInboxSqlTests.cs`, `TrackingInboxMigrationTests.cs`; updated M7 tests | Canonical digest, replay, collision, concurrency, tenant access, capacity, cancellation, source revocation, SQL immutability, seeded upgrade/rollback and host restart |
+| Regression tests | `TrackingReceiptPolicyTests.cs`, `TrackingInboxHttpTests.cs`, `TrackingInboxSqlTests.cs`, `TrackingInboxMigrationTests.cs`, `TrackingInboxFailureWindowTests.cs`, `TrackingInboxAuditSqlTests.cs`, `TrackingInboxQuotaBoundaryTests.cs`, `TrackingInboxLockRaceTests.cs`, `TrackingInboxCredentialWindowTests.cs`; updated M7 tests | Canonical digest, 20-way replay/collision, temporal authorization, live row-lock waits, 10,000-item admission, lost acknowledgments, cancellation, adversarial SQL, populated upgrade/downgrade guards and restart durability |
 | Local verification scripts | `scripts/verify-m8-local.sh`, `scripts/check-m8-*.mjs`, `run-g8-mutations.mjs`, `summarize-g8-evidence.mjs`, `compose.g8.verify.yaml` | Separate `ho-verify-g8` E:-backed stack, ports 55438/8088/5178, subnet `172.30.252.0/24`, TRX/browser/mutation/scan/evidence stages |
 
 No M9 retry/worker claim/dead-letter execution, no M10 projection, no public receipt GET, no source-profile expansion, and no retention deletion are included.

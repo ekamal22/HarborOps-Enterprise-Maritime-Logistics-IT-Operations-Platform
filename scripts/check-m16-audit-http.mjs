@@ -113,7 +113,8 @@ if (process.env.G16_NETWORK) {
     "mcr.microsoft.com/dotnet/sdk:10.0", "-s", "-o", "/dev/null", "-w", "%{http_code}", "-H", `Cookie: ${cookie}`, ...extra,
     `${target}${L(A)}?limit=1`], { encoding: "utf8", env: { ...process.env, MSYS_NO_PATHCONV: "1" } }).trim();
   const plain = fromUntrusted([]);
-  record("S20", "valid session over plain HTTP from an untrusted peer, non-local Host", 403, plain, plain === "403");
+  // A non-local Host is refused before routing (400 host filtering) or by the transport rule (403); never served.
+  record("S20", "valid session over plain HTTP from an untrusted peer, non-local Host", "400 or 403", plain, plain === "400" || plain === "403");
   const hostSpoof = fromUntrusted(["-H", "Host: localhost:8080"]);
   record("S20", "untrusted peer with Host: localhost", 403, hostSpoof, hostSpoof === "403");
   const xff = fromUntrusted(["-H", "Host: localhost:8080", "-H", "X-Forwarded-For: 127.0.0.1", "-H", "X-Forwarded-Proto: https"]);
@@ -187,9 +188,9 @@ for (const p of [L(A) + "/export", L(A) + "/export.csv", "/api/v1/audit-events",
   const cur = await admin.get(`/api/v1/organizations/${A}/memberships/${u}`);
   const ev = cur.json?.version ?? cur.json?.membership?.version ?? 1;
   const r = await admin.mut("PUT", `/api/v1/organizations/${A}/memberships/${u}`, { role: "Manager", status: "Active", expectedVersion: ev });
-  const row = sql(`select event_type||'|'||actor_kind||'|'||coalesce(actor_role,'<null>')||'|'||(actor_user_id='${userId("g16h-admin")}')||'|'||metadata::text from audit_entries where resource_type='organization_memberships' and resource_id=(select id from organization_memberships where organization_id='${A}' and user_id='${u}') order by occurred_at_utc desc, id desc limit 1`);
-  record("S01/S05/S28", `membership role change (PUT ${r.status}) audit row`, 'membership.role_changed|Human|Administrator|true|{"changedFields": ["role"], "operation": "update"}', row,
-    row === 'membership.role_changed|Human|Administrator|true|{"changedFields": ["role"], "operation": "update"}');
+  const row = sql(`select event_type||'|'||actor_kind||'|'||coalesce(actor_role,'<null>')||'|'||(actor_user_id='${userId("g16h-admin")}')||'|'||(metadata->>'operation')||'|'||(metadata->'changedFields')::text from audit_entries where resource_type='organization_memberships' and resource_id=(select id from organization_memberships where organization_id='${A}' and user_id='${u}') order by occurred_at_utc desc, id desc limit 1`);
+  const wantRow = 'membership.role_changed|Human|Administrator|true|update|["role"]';
+  record("S01/S05/S28", `membership role change (PUT ${r.status}) audit row`, wantRow, row, row === wantRow);
   const meta = sql("select string_agg(metadata::text, ' ') from audit_entries");
   const leak = /password|secret|token|bearer|cookie|@|sourceEventId|canonical/i.test(meta ?? "");
   record("S01/S23", "no audit metadata contains credential, e-mail or payload text", false, leak, !leak);

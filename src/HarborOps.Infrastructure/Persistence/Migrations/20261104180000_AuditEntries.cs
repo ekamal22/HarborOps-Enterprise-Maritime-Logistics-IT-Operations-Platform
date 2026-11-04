@@ -183,15 +183,46 @@ public sealed class AuditEntries : Migration
                    OR length(p_correlation) NOT BETWEEN 1 AND 64 THEN
                     RAISE EXCEPTION 'Invalid audit access event' USING ERRCODE = '22023';
                 END IF;
-                INSERT INTO audit_entries (
+                -- The write path must not claim a permitted audit read after
+                -- membership/session revocation or a cross-tenant scope change.
+                IF p_kind = 'audit.read' THEN
+                    PERFORM 1
+                      FROM public.auth_sessions s
+                      JOIN public.users u ON u.id=s.user_id
+                      JOIN public.organizations o ON o.id=s.selected_organization_id
+                      JOIN public.organization_memberships m
+                        ON m.organization_id=o.id AND m.user_id=u.id
+                     WHERE s.id=p_session AND s.user_id=p_actor
+                       AND s.selected_organization_id=p_org
+                       AND s.revoked_at_utc IS NULL
+                       AND s.idle_expires_at_utc > now()
+                       AND s.absolute_expires_at_utc > now()
+                       AND s.security_version=u.security_version
+                       AND u.status='Active' AND o.status='Active'
+                       AND m.status='Active' AND m.role='Auditor'
+                     FOR SHARE OF s,u,o,m;
+                    IF NOT FOUND THEN
+                        RAISE EXCEPTION 'Audit read authorization revoked'
+                            USING ERRCODE='42501';
+                    END IF;
+                ELSIF NOT EXISTS (
+                    SELECT 1 FROM public.auth_sessions s
+                     WHERE s.id=p_session AND s.user_id=p_actor
+                       AND s.selected_organization_id=p_org
+                ) THEN
+                    -- A denied request is never made successful by its audit path.
+                    RETURN;
+                END IF;
+                INSERT INTO public.audit_entries (
                     organization_id, event_type, event_schema_version, outcome,
-                    actor_kind, actor_user_id, actor_session_id, resource_type,
-                    resource_id, correlation_id, metadata
+                    actor_kind, actor_user_id, actor_session_id, actor_role,
+                    resource_type, resource_id, correlation_id, metadata
                 ) VALUES (
                     p_org, p_kind, 1,
                     CASE WHEN p_kind='audit.read' THEN 'Succeeded' ELSE 'Denied' END,
-                    'Human', p_actor, p_session, 'audit_entries', p_resource,
-                    p_correlation, '{}'::jsonb
+                    'Human', p_actor, p_session,
+                    CASE WHEN p_kind='audit.read' THEN 'Auditor' ELSE NULL END,
+                    'audit_entries', p_resource, p_correlation, '{}'::jsonb
                 );
             END $audit$;
             REVOKE ALL ON FUNCTION m16_audit_capture() FROM PUBLIC;

@@ -117,9 +117,13 @@ public sealed class TrackingInboxAuditSqlTests
         await using var constraints = new NpgsqlCommand("""
             SELECT count(*) FROM pg_constraint
              WHERE connamespace = current_schema()::regnamespace
-               AND conname IN ('AK_m8_integration_credential_scope', 'AK_m8_receipt_scope')
+               AND conname IN (
+                   'AK_m8_integration_credential_scope', 'AK_m8_receipt_scope',
+                   'FK_m8_receipt_credential', 'FK_m8_receipt_source',
+                   'FK_m8_event_receipt', 'FK_m8_work_receipt',
+                   'FK_m8_conflict_receipt')
             """, connection);
-        Assert.Equal(2L, Convert.ToInt64(await constraints.ExecuteScalarAsync()));
+        Assert.Equal(7L, Convert.ToInt64(await constraints.ExecuteScalarAsync()));
     }
 
     [Fact]
@@ -170,6 +174,20 @@ public sealed class TrackingInboxAuditSqlTests
                 """));
         Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, forged.SqlState);
 
+        var unrelated = await sources.CreateAsync(fixture.A, "m8_forge_other",
+            "Other Scoped Credential", CancellationToken.None);
+        var credentialMismatch = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO tracking_inbox_receipts
+                    (id, organization_id, source_id, credential_id, profile, source_event_id,
+                     canonical_digest, canonical_payload_utf8, received_at_utc, correlation_id)
+                SELECT {Guid.NewGuid()}, organization_id, source_id, {unrelated.CredentialId},
+                       profile, {"forged-other-credential"}, canonical_digest,
+                       canonical_payload_utf8, received_at_utc, correlation_id
+                  FROM tracking_inbox_receipts WHERE id = {received.ReceiptId}
+                """));
+        Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, credentialMismatch.SqlState);
+
         var twoEvents = await Assert.ThrowsAsync<PostgresException>(() =>
             db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT INTO tracking_accepted_events
@@ -182,6 +200,17 @@ public sealed class TrackingInboxAuditSqlTests
                   FROM tracking_accepted_events WHERE receipt_id = {received.ReceiptId}
                 """));
         Assert.Equal(PostgresErrorCodes.UniqueViolation, twoEvents.SqlState);
+
+        var twoWorkItems = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO tracking_inbox_work_items
+                    (receipt_id, organization_id, source_id, state, attempt_count,
+                     created_at_utc, updated_at_utc)
+                SELECT receipt_id, organization_id, source_id, state, attempt_count,
+                       created_at_utc, updated_at_utc
+                  FROM tracking_inbox_work_items WHERE receipt_id = {received.ReceiptId}
+                """));
+        Assert.Equal(PostgresErrorCodes.UniqueViolation, twoWorkItems.SqlState);
 
         Assert.Single(await db.TrackingInboxReceipts.Where(x => x.SourceId == source.Id).ToListAsync());
         Assert.Single(await db.TrackingAcceptedEvents.Where(x => x.SourceId == source.Id).ToListAsync());

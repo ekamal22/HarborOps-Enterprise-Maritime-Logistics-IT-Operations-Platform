@@ -73,7 +73,7 @@ public static class AuditEndpoints
             .RequireAuthorization()
             .RequireRateLimiting("audit-read");
 
-        group.MapGet("/", async (string organizationId, HttpContext ctx,
+        group.MapGet("", async (string organizationId, HttpContext ctx,
             OrganizationStore organizations, AuditReader reader,
             AuditAccessRecorder recorder, CancellationToken ct) =>
         {

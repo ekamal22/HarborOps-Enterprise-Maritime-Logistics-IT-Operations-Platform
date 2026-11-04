@@ -21,6 +21,10 @@ public static class AuditRoleProvisioner
             throw new InvalidOperationException("Separate API and worker database credentials are required");
 
         var connection = (NpgsqlConnection)database.Database.GetDbConnection();
+        var migratorSecret = new NpgsqlConnectionStringBuilder(connection.ConnectionString).Password;
+        if (string.Equals(apiSecret, migratorSecret, StringComparison.Ordinal) ||
+            string.Equals(workerSecret, migratorSecret, StringComparison.Ordinal))
+            throw new InvalidOperationException("Database runtime credentials must differ from migration credentials");
         var close = connection.State != ConnectionState.Open;
         if (close) await connection.OpenAsync(ct);
         try

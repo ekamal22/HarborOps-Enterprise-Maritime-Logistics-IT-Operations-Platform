@@ -8,7 +8,8 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const project = "ho-verify-g9";
+const project = process.env.HARBOROPS_G9_PROJECT || "ho-verify-g9";
+assert.match(project, /^ho-verify-g9(-[a-z0-9]{1,12})?$/, "Invalid G9 Compose project name");
 const composeFile = "compose.g9.verify.yaml";
 const outDir = process.argv[2];
 assert.match(outDir || "", /^(?:[Ee]:[\\/]|\/e\/)/, "An E: evidence directory is required");

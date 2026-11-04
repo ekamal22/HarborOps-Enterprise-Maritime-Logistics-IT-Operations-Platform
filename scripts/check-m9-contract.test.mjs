@@ -102,7 +102,10 @@ test("development runner reports technical success and gate incompleteness separ
 test("G9 orchestrator is isolated, tears down the profile-gated worker and never decides acceptance", () => {
     const runner = read("scripts/verify-g9-local.sh");
     assert.match(runner, /compose\(\) \{ docker compose -f compose\.g9\.verify\.yaml -p "\$project" --profile worker/);
-    assert.match(runner, /project="ho-verify-g9"/);
+    assert.match(runner, /project="\$\{HARBOROPS_G9_PROJECT:-ho-verify-g9\}"/);
+    assert.match(runner, /db_image="harborops-g9-postgres:/);
+    assert.doesNotMatch(read("compose.g9.verify.yaml"), /image: harborops-postgres:/);
+    assert.doesNotMatch(runner, /-t harborops-postgres:16\.15-rootless/);
     assert.match(runner, /stage image-scans scan_images/);
     assert.match(runner, /for service in postgres api web worker/);
     assert.match(runner, /Full G9 cannot use a reduced mutation subset/);

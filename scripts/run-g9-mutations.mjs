@@ -9,6 +9,8 @@ import { mutations } from "./apply-g9-mutation.mjs";
 const root = process.argv[2], sha = process.env.HARBOROPS_SOURCE_SHA;
 assert.ok(root && /^(?:[Ee]:[\\/]|\/e\/)/.test(root), "E: verification root required");
 assert.match(sha || "", /^[0-9a-f]{40}$/);
+// A G9-specific database image tag keeps this run from touching images other sessions share.
+const dbImage = process.env.HARBOROPS_G9_DB_IMAGE || "harborops-g9-postgres:" + sha.slice(0, 12);
 const evidence = path.join(root, "evidence", "mutations");
 fs.mkdirSync(evidence, { recursive: true });
 const cache = path.join(root, "cache");
@@ -89,7 +91,7 @@ try {
                 "--ulimit", "core=0", "--tmpfs", "/var/lib/postgresql/data:uid=70,gid=70,mode=0700",
                 "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
                 "-e", "POSTGRES_DB=harborops_integration", "-e", "POSTGRES_USER=harborops",
-                "-e", "POSTGRES_HOST_AUTH_METHOD=trust", "harborops-postgres:16.15-rootless"]);
+                "-e", "POSTGRES_HOST_AUTH_METHOD=trust", dbImage]);
             owned = true;
             let ready = false;
             for (let k = 0; k < 60; k++) {

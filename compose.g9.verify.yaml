@@ -2,7 +2,7 @@ name: ho-verify-g9
 
 services:
   postgres:
-    image: harborops-postgres:16.15-rootless
+    image: harborops-g9-postgres:16.15-rootless
     build:
       context: .
       dockerfile: docker/postgres/Dockerfile

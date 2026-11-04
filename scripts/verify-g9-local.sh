@@ -43,8 +43,14 @@ export DOTNET_NOLOGO=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
 node scripts/check-m3-docker-storage.mjs
 export HARBOROPS_SOURCE_SHA="$(git rev-parse HEAD)"
 [[ "$HARBOROPS_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
-project="ho-verify-g9"
+# A per-attempt project name keeps this run's label-based guards and teardown away from any other
+# session's containers. The G9-specific database image tag never reuses the tag other streams share.
+project="${HARBOROPS_G9_PROJECT:-ho-verify-g9}"
+[[ "$project" =~ ^ho-verify-g9(-[a-z0-9]{1,12})?$ ]] || { echo "Invalid G9 Compose project name" >&2; exit 2; }
+export HARBOROPS_G9_PROJECT="$project"
 sdk_db="ho-g9-sdk-pg"
+db_image="harborops-g9-postgres:${HARBOROPS_SOURCE_SHA:0:12}"
+export HARBOROPS_G9_DB_IMAGE="$db_image"
 compose() { docker compose -f compose.g9.verify.yaml -p "$project" --profile worker "$@"; }
 if [[ -n "$(docker ps -aq --filter "label=com.docker.compose.project=$project")" ||
       -n "$(docker volume ls -q --filter "label=com.docker.compose.project=$project")" ||
@@ -195,12 +201,12 @@ pull_base_images() {
 }
 stage base-images pull_base_images
 stage postgres-image docker build --build-arg "SOURCE_REVISION=$HARBOROPS_SOURCE_SHA" \
-  -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
+  -f docker/postgres/Dockerfile -t "$db_image" .
 docker run -d --name "$sdk_db" --label harborops.g9=disposable --ulimit core=0 \
   --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 \
   --cap-drop ALL --security-opt no-new-privileges \
   -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops \
-  -e POSTGRES_HOST_AUTH_METHOD=trust harborops-postgres:16.15-rootless \
+  -e POSTGRES_HOST_AUTH_METHOD=trust "$db_image" \
   > "$evidence/sdk-postgres-container-id.txt"
 owned_sdk=1
 ready=0

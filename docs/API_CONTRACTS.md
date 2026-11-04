@@ -150,3 +150,17 @@ DCSA Track & Trace is the reference for event terminology and adapter mapping. R
 
 
 M4 endpoint behavior, tenant/role boundaries, optimistic versions and error envelopes passed [G4 executed verification](M4_EXECUTED_VERIFICATION.md) on `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. D-003 Option B is accepted. No M5 shipment or M6 assignment endpoints are implied.
+
+## M9 scoped work queue and redrive API (feature-branch candidate)
+
+The following routes are implemented on `feat/m9-worker-reconciliation` in [draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18), not in accepted `main`. Their code and tests have not been executed in G9.
+
+| Method | Candidate route | Permission | Intended response |
+| --- | --- | --- | --- |
+| GET | `/api/v1/organizations/{organizationId}/tracking-work` | `TrackingWorkRead`: Manager, Analyst, Auditor | Scoped status metadata; optional UUID cursor `after`, `limit` 1 to 100; `items`, `nextAfter` |
+| GET | `/api/v1/organizations/{organizationId}/tracking-work/{receiptId}` | `TrackingWorkRead` | One tenant-scoped work item or `404 resource_not_found` |
+| POST | `/api/v1/organizations/{organizationId}/tracking-work/{receiptId}/redrive` | `TrackingWorkRedrive`: Manager only | JSON body with sanitized `reason` (8 to 240 characters); accepted only for `NeedsReconciliation` or `DeadLetter`, with up to three redrives |
+
+The candidate enforces selected active organization, current session/security version for redrive, membership, Origin/CSRF mutation checks and `Cache-Control: no-store`. Operator responses omit bearer, source secret, canonical/raw payload and digest. Other outcomes include `access_denied`, `redrive_limit`, `work_capacity_exceeded` and `work_state_conflict`. The accepted M8 source-authenticated intake route and post-commit acknowledgment contract remain unchanged.
+
+The [M9 implementation register](M9_IMPLEMENTATION_STATUS.md), [follow-up audit](M9_CORRECTNESS_AUDIT_20261104.md) and [G9 matrix](M9_VERIFICATION_PLAN.md) document the unverified implementation and required execution evidence. M9-01 contract acceptance is pending.

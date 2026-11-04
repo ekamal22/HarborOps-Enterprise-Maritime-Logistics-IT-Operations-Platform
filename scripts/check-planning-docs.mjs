@@ -42,8 +42,8 @@ for (const [name, content] of [
 }
 assert(status.includes("G0 verified") && status.includes("accepted"), "Status ledger must reflect accepted G0");
 for (const [name,body,needle] of [
-  ["README",readme,"M8 implementation is committed"],
-  ["Status",status,"technical G8 run executed"],
+  ["README",readme,"M8 implementation passed source-locked technical verification"],
+  ["Status",status,"M8/G8 accepted 2026-11-04"],
   ["Roadmap",roadmap,"G9-G24 remain open"],
   ["Contributors",contributors,"G0-G8 are verified and explicitly accepted"],
   ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],

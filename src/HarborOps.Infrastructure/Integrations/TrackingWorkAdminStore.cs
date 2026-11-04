@@ -20,14 +20,15 @@ public sealed class TrackingWorkAdminStore(HarborOpsDbContext db, IConfiguration
         OrganizationScope scope, Guid? after, int limit, CancellationToken ct)
     {
         if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
-        return await db.TrackingInboxWorkItems.AsNoTracking()
+        var query = db.TrackingInboxWorkItems.AsNoTracking()
             .Where(x => x.OrganizationId == scope.OrganizationId &&
-                (!after.HasValue || x.ReceiptId.CompareTo(after.Value) > 0) &&
                 db.OrganizationMemberships.Any(m => m.OrganizationId == scope.OrganizationId &&
                     m.UserId == scope.UserId && m.Status == "Active" &&
                     (m.Role == "Manager" || m.Role == "Analyst" || m.Role == "Auditor")) &&
-                db.Organizations.Any(o => o.Id == scope.OrganizationId && o.Status == "Active"))
-            .OrderBy(x => x.ReceiptId).Take(limit)
+                db.Organizations.Any(o => o.Id == scope.OrganizationId && o.Status == "Active"));
+        if (after is { } cursor)
+            query = query.Where(x => x.ReceiptId.CompareTo(cursor) > 0);
+        return await query.OrderBy(x => x.ReceiptId).Take(limit)
             .Select(x => new TrackingWorkQueueEntry(x.ReceiptId, x.SourceId, x.State,
                 x.AttemptCount, x.RedriveGeneration, x.AvailableAtUtc, x.UpdatedAtUtc,
                 x.LastErrorCode))

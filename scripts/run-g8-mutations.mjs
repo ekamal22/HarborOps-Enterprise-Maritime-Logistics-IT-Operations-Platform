@@ -14,24 +14,29 @@ const sourceTar=path.join(cache,"g8-mutation-"+sha.slice(0,12)+".tar");
 const exported=path.join(cache,"g8-mutation-export-"+sha.slice(0,12));
 assert.ok(!fs.existsSync(exported),"Mutation export already exists; use a new isolated verification root");
 const run=(cmd,args,options={})=>{
- const result=spawnSync(cmd,args,{encoding:"utf8",timeout:300000, ...options});
+ const result=spawnSync(cmd,args,{encoding:"utf8",timeout:300000,maxBuffer:10*1024*1024, ...options});
  if(result.error)throw result.error;
  return result;
 };
 const expectOk=(cmd,args)=>{const result=run(cmd,args);assert.equal(result.status,0,
   cmd+" failed: "+(result.stderr||result.stdout||"").slice(-600));return result.stdout||"";};
 expectOk("git",["archive","--format=tar","--output",sourceTar,sha]);
-// Development rehearsal only: HARBOROPS_G8_MUTATION_SUBSET=digest,suspension runs just those variants.
+// Development rehearsal only: a reduced mutation subset is never full-gate evidence.
 const subset=process.env.HARBOROPS_G8_MUTATION_SUBSET?.split(",");
 assert.ok(!subset||process.env.HARBOROPS_G8_MUTATION_SUBSET_DEV==="1","Subset runs are development only");
 const variants=[
-  ["control", null, "NewReceiptAndCanonicalReplayCommitOneImmutableTriple|ChangedPayloadConflictsWithoutMutatingOriginalOrLeakingBody|DirectSqlCannotRewriteAcceptedEventReceiptOrWork|FinalTransactionAuthorizationRejectsWrongDigestAndForeignSource|PendingCapacityReturnsRetryable503ButReplaysOriginalReceipt"],
+  ["control", null, "NewReceiptAndCanonicalReplayCommitOneImmutableTriple|ChangedPayloadConflictsWithoutMutatingOriginalOrLeakingBody|DirectSqlCannotRewriteAcceptedEventReceiptOrWork|FinalTransactionAuthorizationRejectsWrongDigestAndForeignSource|PendingCapacityReturnsRetryable503ButReplaysOriginalReceipt|M8DatabaseIndexesMatchRelationalModel|RevocationBeforeFinalAuthorizationIsRejected|OverlappingRevocationDisableAndSuspensionRespectCommitOrder|CommitUncertaintyNeverProducesSuccessAndReplayResolvesOutcome"],
   ["final-digest", "FinalTransactionAuthorizationRejectsWrongDigestAndForeignSource", "FinalTransactionAuthorizationRejectsWrongDigestAndForeignSource"],
   ["collision-as-replay", "ChangedPayloadConflictsWithoutMutatingOriginalOrLeakingBody", "ChangedPayloadConflictsWithoutMutatingOriginalOrLeakingBody"],
   ["no-work", "NewReceiptAndCanonicalReplayCommitOneImmutableTriple", "NewReceiptAndCanonicalReplayCommitOneImmutableTriple"],
   ["early-ack", "NewReceiptAndCanonicalReplayCommitOneImmutableTriple", "NewReceiptAndCanonicalReplayCommitOneImmutableTriple"],
   ["append-only", "DirectSqlCannotRewriteAcceptedEventReceiptOrWork", "DirectSqlCannotRewriteAcceptedEventReceiptOrWork"],
-  ["quota", "PendingCapacityReturnsRetryable503ButReplaysOriginalReceipt", "PendingCapacityReturnsRetryable503ButReplaysOriginalReceipt"]
+  ["quota", "PendingCapacityReturnsRetryable503ButReplaysOriginalReceipt", "PendingCapacityReturnsRetryable503ButReplaysOriginalReceipt"],
+  ["no-event", "NewReceiptAndCanonicalReplayCommitOneImmutableTriple", "NewReceiptAndCanonicalReplayCommitOneImmutableTriple"],
+  ["unique-key", "M8DatabaseIndexesMatchRelationalModel", "M8DatabaseIndexesMatchRelationalModel"],
+  ["tenant-fk", "M8DatabaseIndexesMatchRelationalModel", "M8DatabaseIndexesMatchRelationalModel"],
+  ["final-revocation", "RevocationBeforeFinalAuthorizationIsRejected", "RevocationBeforeFinalAuthorizationIsRejected"],
+  ["source-status", "OverlappingRevocationDisableAndSuspensionRespectCommitOrder", "OverlappingRevocationDisableAndSuspensionRespectCommitOrder"]
 ];
 const summary={sourceSha:sha,checkedAtUtc:new Date().toISOString(),control:null,mutants:[]};
 const report=path.join(root,"evidence","g8-mutations.json");
@@ -121,7 +126,7 @@ try{
      if(owned)expectOk("docker",["rm","-f",name]);
    }
  }
- if(!subset)assert.equal(summary.mutants.length,6,"All six meaningful mutations required");
+ if(!subset)assert.equal(summary.mutants.length,11,"All eleven meaningful mutations required");
  save();console.log("G8 controlled security mutation proofs: PASS");
 }finally{
  // Only the source export created under this verification root is disposable.

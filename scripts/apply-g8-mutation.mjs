@@ -32,6 +32,32 @@ const rules = {
     from: "            CREATE TRIGGER m8_receipt_immutable\n                BEFORE INSERT OR UPDATE OR DELETE ON tracking_inbox_receipts\n                FOR EACH ROW EXECUTE FUNCTION m8_guard_append_only();",
     to: "            -- Disposable mutation: receipt append-only guard omitted."
   },
+  "no-event": {
+    path: store,
+    from: "        await ExecuteAsync(connection, current, \"\"\"\n            INSERT INTO tracking_accepted_events",
+    deleteBlock: true,
+    deleteUntil: "\n\n        await ExecuteAsync(connection, current, \"\"\"\n            INSERT INTO tracking_inbox_work_items"
+  },
+  "unique-key": {
+    path: migration,
+    from: "            CREATE UNIQUE INDEX \"UQ_m8_receipt_key\"\n                ON tracking_inbox_receipts (organization_id, source_id, profile, source_event_id);",
+    to: "            -- Disposable mutation: source identity index intentionally omitted."
+  },
+  "tenant-fk": {
+    path: migration,
+    from: "                CONSTRAINT \"FK_m8_receipt_credential\"\n                    FOREIGN KEY (organization_id, source_id, credential_id)\n                    REFERENCES integration_credentials(organization_id, source_id, id) ON DELETE RESTRICT,\n",
+    to: ""
+  },
+  "final-revocation": {
+    path: store,
+    from: "AND c.revoked_at_utc IS NULL",
+    to: "AND TRUE"
+  },
+  "source-status": {
+    path: store,
+    from: "AND s.status = 'Active'",
+    to: "AND TRUE"
+  },
   "no-work": {
     path: store,
     from: "        await ExecuteAsync(connection, current, \"\"\"\n            INSERT INTO tracking_inbox_work_items",
@@ -46,7 +72,8 @@ const source = fs.readFileSync(file, "utf8");
 let output;
 if (rule.deleteBlock) {
   const start = source.indexOf(rule.from);
-  const end = source.indexOf("\n\n        // The deferred completeness trigger", start);
+  const end = source.indexOf(rule.deleteUntil ??
+    "\n\n        // The deferred completeness trigger", start);
   assert.ok(start >= 0 && end > start, "Work-item mutation anchor missing");
   assert.equal(source.indexOf(rule.from, start + 1), -1);
   output = source.slice(0, start) +

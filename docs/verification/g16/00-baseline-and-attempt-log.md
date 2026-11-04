@@ -43,4 +43,23 @@ The M16 branch is based on approved M16 documentation (`6c14c78`), before the M8
 ### Attempt 02 (derived runner, docs stage tolerated)
 
 - Derived copy kept at `E:\HarborOps-Verification\evidence\attempt-02\verify-m16-derived.sh` next to the untouched original copy. The only differences: `cd` pinned to the source worktree and the `docs` stage failure tolerated so that independent stages run. The source tree and its scripts are unchanged.
-- Results of this attempt are recorded in later checkpoints.
+- Started 2026-11-04T18:39:43Z, ended 18:58:03Z. Root `E:\HarborOps-Verification\evidence\attempt-02\m16`.
+- preflight, scripts, postgres-image, dotnet-build (0 warnings with warnaserror), unit (205 passed) and contract (39 passed) passed. `integration` failed: 235 passed, 12 failed of 247 (finding G16-F002). The runner stopped.
+
+### Attempt 03 (derived runner, already-evidenced stages skipped)
+
+- Started 18:58:52Z, ended 19:31:51Z. Root `...\attempt-03\m16`. Unit, contract and the full integration run were skipped because they were evidenced on the same SHA in attempt 02; the four failing integration classes were rerun and failed identically (41 passed, 12 failed of 53).
+- dependencies, web-build (18 tests), package-audit, compose, restricted-db-roles, image-scans (0 HIGH and CRITICAL) and every fixture stage passed. `browser-engines` failed: 58 of 61 tests per engine pass; the two audit tests and organization-revocation fail on all three engines (findings G16-F008 and G16-F009).
+- The final evidence safety check failed on nine quarantined Playwright traces, and the teardown record also lists two probe containers started by this campaign (finding G16-F010). Quarantine note: `attempt-03\m16\QUARANTINE.txt`.
+
+### Attempt 04 (derived diagnostic rehearsal, not gate evidence)
+
+- Started 19:34:46Z, ended 19:38:41Z. Root `...\attempt-04\m16`. Runner fixture display names corrected in the runner copy and the audit spec copy made to await the organization-selection PUT, in scratch only. Audit (3 tests) and organization-revocation passed on Chromium, Firefox and WebKit. Teardown clean and the evidence safety check passed (30 files). Its exit code 0 does not represent G16 status.
+
+### Independent probes
+
+SQL role and privilege probe, lock-conflict experiment, HTTP authorization and abuse probe, and S07 and S08 atomicity probe against disposable containers. Sanitized artifacts are in `probes/`; secrets stay private on E:.
+
+## Final state
+
+Technical verification FAILED. See `04-final-report.md`, `03-scenario-matrix.md` and `01-findings.md`. G16 acceptance pending.

@@ -199,7 +199,7 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
                 t.HasCheckConstraint("CK_m9_attempt_counter",
                     "generation BETWEEN 0 AND 3 AND attempt_count BETWEEN 0 AND 5 AND lease_epoch >= 0");
                 t.HasCheckConstraint("CK_m9_attempt_reason",
-                    "reason_code IS NULL OR length(reason_code) BETWEEN 1 AND 40");
+                    "(reason_code IS NULL OR length(reason_code) BETWEEN 1 AND 40) AND ((event_kind='Redriven' AND actor_user_id IS NOT NULL AND redrive_reason IS NOT NULL AND length(btrim(redrive_reason)) BETWEEN 8 AND 240) OR (event_kind<>'Redriven' AND actor_user_id IS NULL AND redrive_reason IS NULL))");
             });
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
@@ -215,6 +215,10 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.Property(x => x.LeaseEpoch).HasColumnName("lease_epoch");
             entity.Property(x => x.EventKind).HasColumnName("event_kind").HasMaxLength(32).IsRequired();
             entity.Property(x => x.ReasonCode).HasColumnName("reason_code").HasMaxLength(40);
+            entity.Property(x => x.ActorUserId).HasColumnName("actor_user_id");
+            entity.HasOne<HarborOps.Infrastructure.Identity.AuthUser>().WithMany()
+                .HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.Property(x => x.RedriveReason).HasColumnName("redrive_reason").HasMaxLength(240);
             entity.Property(x => x.OccurredAtUtc).HasColumnName("occurred_at_utc")
                 .HasColumnType("timestamp with time zone").HasDefaultValueSql("clock_timestamp()");
             entity.HasIndex(x => new { x.OrganizationId, x.ReceiptId, x.OccurredAtUtc, x.Id })

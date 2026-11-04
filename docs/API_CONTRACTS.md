@@ -136,6 +136,12 @@ The accepted M8 receipt path changes the prior M7-only 503 behavior **only after
 
 Accepted M8 behavior: new event -> 202 `{receiptId,status:"received",duplicate:false,receivedAtUtc,correlationId}`; canonically identical replay for the same tenant/source/profile/external event key -> 202 with original receipt and `duplicate:true`; same key with changed canonical event -> 409 `source_event_collision`; DB unavailability or pending cap -> 503 with retry guidance. Original M7 negative 4xx, secure transport, schema/profile, rate and 16 KiB limits remain unchanged. The original bearer must be reauthorized in the receipt transaction after parsing, and no 2xx is possible on unknown commit outcome. No public GET receipt, worker acknowledgment or shipment projection API belongs to M8. See [M8 architecture](M8_ARCHITECTURE_DESIGN.md), [D-006 proposal](M8_D006_DURABILITY_PROPOSAL.md) and [G8 plan](M8_VERIFICATION_PLAN.md).
 
+## Planned M16 audit-read endpoints (not implemented)
+
+Under approved [M16-D01](M16_POLICY_DECISIONS.md), only an active Auditor in the session-selected organization can access that organization's audit entries. Proposed read-only endpoints are `GET /api/v1/organizations/{organizationId}/audit-events` for tenant-scoped stable pagination (default 25, maximum 100), and `GET /api/v1/organizations/{organizationId}/audit-events/{auditId}` for tenant-scoped detail. Live membership, organization state and selection must be checked; Administrator, Support, Manager and Analyst receive no implicit permission. Foreign audit identifiers may not reveal existence; DTOs include allowlisted fields only.
+
+No audit HTTP create/update/delete endpoint, export or global listing is approved. Required sensitive mutation audit and business writes commit atomically. Denial logging must never turn a forbidden request into success. This is approved design, not a deployed contract. See [architecture](M16_ARCHITECTURE_DESIGN.md), [privacy](M16_AUDIT_PRIVACY_POLICY.md) and [G16 plan](M16_VERIFICATION_PLAN.md).
+
 ## Compatibility and standards
 
 DCSA Track & Trace is the reference for event terminology and adapter mapping. Record the exact specification release, supported subset, gaps, and contract-test results before making any compatibility claim. Internal event processing remains source-agnostic.

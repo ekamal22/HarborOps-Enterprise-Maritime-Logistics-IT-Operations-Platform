@@ -2,6 +2,9 @@ import { test, expect } from "@playwright/test";
 
 test("integration route is proxied and rejects requests without source credentials", async ({ page }) => {
   await page.goto("/");
+  // Let the application finish rendering before the context is used and closed; ending
+  // while the window is still initializing can fault the Firefox session store on teardown.
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   const response = await page.request.post("/integrations/v1/tracking-events", {
     headers: { "X-HarborOps-Tracking-Profile": "tnt-2.2-harborops-v1" },
     data: {
@@ -19,4 +22,5 @@ test("integration route is proxied and rejects requests without source credentia
   const body = await response.json();
   expect(body.code).toBe("invalid_source_credentials");
   expect(body.correlationId).toBeTruthy();
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 });

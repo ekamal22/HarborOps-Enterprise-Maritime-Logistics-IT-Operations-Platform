@@ -1,5 +1,7 @@
 # G9 Verification Plan: Idempotent Worker and Reconciliation
 
+**Execution status:** The corrected [M9 implementation candidate](M9_IMPLEMENTATION_STATUS.md) has authored unit, integration, isolated migration, source-contract and two-process test cases on [draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18). The [follow-up source audit](M9_CORRECTNESS_AUDIT_20261104.md) is not runtime evidence. **No mandatory G9-S01 through G9-S25 scenario has been executed and reconciled**, and no independent G9 evidence review has been completed. This document remains a verification plan.
+
 **Status:** Planned specification only. No M9 tests, worker execution, schema migration or G9 evidence exist. G9 acceptance pending.  
 **Prepared:** 2026-11-04  
 **Accepted baseline:** G0-G8 on protected `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`.  

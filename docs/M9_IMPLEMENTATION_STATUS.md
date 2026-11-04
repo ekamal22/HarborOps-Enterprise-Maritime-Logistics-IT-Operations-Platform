@@ -1,5 +1,7 @@
 # M9 Implementation Candidate Status
 
+**Repository-wide documentation reconciliation:** Current-facing project documents now distinguish this corrected implementation candidate from accepted M8 code and from future M10 processing. The [correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) remains source-only. No M9 runtime verification, M9-01 acceptance, G9 acceptance or merge into `main` is implied.
+
 **Recorded:** 2026-11-04  
 **Branch:** `feat/m9-worker-reconciliation`  
 **Baseline:** accepted `main` `7b9e19d730e3a09c5e1184262460dfeac9319e3d`  

@@ -1,5 +1,7 @@
 # M9 Planning Status
 
+**Historical planning record:** Subsequent M9 source implementation is separately tracked in [implementation status](M9_IMPLEMENTATION_STATUS.md) and the [correctness audit](M9_CORRECTNESS_AUDIT_20261104.md). This original planning record is retained, not promoted to executed verification. M9-01 contract and G9 acceptance pending.
+
 **Historical snapshot:** This records the initial M9 planning phase. Later source implementation on `feat/m9-worker-reconciliation` is separately documented in [M9 implementation status](M9_IMPLEMENTATION_STATUS.md). It is unverified, and the original M9-01 contract remains acceptance pending.
 
 **Prepared:** 2026-11-04  

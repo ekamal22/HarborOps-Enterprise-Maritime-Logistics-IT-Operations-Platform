@@ -1,8 +1,9 @@
 # HarborOps Delivery Roadmap
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
-**Date:** 2026-10-30  
-**State:** M0/G0 through M7/G7 are locally verified, explicitly accepted and integrated into `main` as of 2026-11-03. The twelve-rule M6 contract and G6-S10 snapshot limitation are documented in [gate closure](M6_G6_GATE_CLOSURE.md). G8-G24 remain open.
+**Original DAG revision:** 2026-10-30  
+**Updated status:** 2026-11-04  
+**State:** As of 2026-11-04, M0/G0 through M7/G7 are verified, explicitly accepted and integrated into protected `main`. M8 source and G8 verification runner are committed on an isolated feature branch, with correctness remediation applied and one complete technical G8 run executed (23 of 23 technical scenarios PASS). D-006 Option A, independent review and G8 acceptance completed 2026-11-04; G9-G24 remain open. The twelve-rule M6 contract and G6-S10 snapshot limitation are preserved in [gate closure](M6_G6_GATE_CLOSURE.md).
 
 ## Authority and rationale
 
@@ -37,7 +38,7 @@ The canonical work-package DAG is [execution-graph.json](execution-graph.json), 
 - **Gate closure** requires the complete positive/negative/security/regression evidence on the integrated source revision and explicit acceptance. Verified but unaccepted gates are not substitutes for accepted prerequisites.
 - **G24 release convergence** requires G0-G23 accepted, every cross-track contract integrated, a full final-system regression, M24-03 historical compatibility and M24-04 accessibility assessment. Early G19 recovery or G20 security review must be revalidated for later schema/features at this final gate.
 
-M6/G6 and M7/G7 are complete and integrated. M8-01 inbox contract design, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition are independently eligible under their work-package prerequisites. M8 requires the separate D-006 decision before applicable durable intake implementation. Eligibility never implies acceptance.
+M6/G6 and M7/G7 are complete and integrated. M8-01 through M8-04 have committed source candidates; **D-006 and G8 are not accepted**. The technical G8 run is complete; D-006 acceptance and independent evidence review are the immediate event-processing critical path. M12-01 search/export, M14-01 route mapping, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain independently eligible under their exact work-package prerequisites. Eligibility never implies acceptance.
 
 ## Milestone register
 
@@ -162,7 +163,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** Versioned and authenticated event interface.
 **Entry:** G3 accepted before respective dependent work packages. D-002 is accepted (2026-11-03, Option A).
-**Required work packages:** M7-01 Pin external subset and contract; M7-02 Implement source entitlements; M7-03 Implement strict payload validation; M7-04 Verify ingestion contract tests. [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the solution; the implementation is recorded in [M7 status](M7_IMPLEMENTATION_STATUS.md) and its local technical verification in [M7 executed verification](M7_EXECUTED_VERIFICATION.md); acceptance is pending.
+**Required work packages:** M7-01 Pin external subset and contract; M7-02 Implement source entitlements; M7-03 Implement strict payload validation; M7-04 Verify ingestion contract tests. [D-002 proposal](M7_D002_TRACKING_REFERENCE_PROPOSAL.md), [architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLEMENTATION_PLAN.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the solution; the implementation is recorded in [M7 status](M7_IMPLEMENTATION_STATUS.md) and its local technical verification in [M7 executed verification](M7_EXECUTED_VERIFICATION.md); G7 was explicitly accepted on 2026-11-03.
 **Exit G7:** Explicitly accepted 2026-11-03 after 25/25 reconciled scenarios, independent supplement review and D-002 Option A. Integrated via PR #10 and PR #11; original run and supplements are preserved separately in [G7 closure](M7_G7_GATE_CLOSURE.md).
 **Not covered by this milestone:** Inbox persistence and background processing.
 
@@ -170,7 +171,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** Transactional receipt persistence and accepted event provenance.
 **Entry:** G7 accepted, G6 accepted before respective dependent work packages. Resolve D-006 before applicable feature implementation. G7 permits contract design; M8-02 and M8-03 additionally wait for G6.
-**Required work packages:** M8-01 Specify inbox and retention states; M8-02 Implement receipt and event schema; M8-03 Implement intake transaction path; M8-04 Verify persistent ingestion behavior.
+**Required work packages:** M8-01 Specify inbox and retention states; M8-02 Implement receipt and event schema; M8-03 Implement intake transaction path; M8-04 Verify persistent ingestion behavior. [M8 architecture](M8_ARCHITECTURE_DESIGN.md), [D-006 proposal](M8_D006_DURABILITY_PROPOSAL.md), [implementation plan](M8_IMPLEMENTATION_PLAN.md), [G8 matrix](M8_VERIFICATION_PLAN.md) and [implementation register](M8_IMPLEMENTATION_STATUS.md) document the source-locked M8 implementation and executed evidence. D-006 Option A and G8 accepted 2026-11-04 after independent review; see [gate closure](M8_G8_GATE_CLOSURE.md).
 **Exit G8:** All applicable tasks, negative tests, runtime evidence and documentation for M8 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Worker retry scheduling and projected shipment state.
 

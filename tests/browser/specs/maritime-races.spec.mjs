@@ -85,7 +85,7 @@ test("M4 real Manager role revocation clears browser management controls", async
   const organizations = (await (await page.request.get("/api/v1/me/organizations")).json()).organizations;
   const org = organizations.find(x => x.slug === "m3-revocation-" + info.project.name);
   const root = "/api/v1/organizations/" + org.id;
-  const adminContext = await browser.newContext({ baseURL: "http://localhost:5173" });
+  const adminContext = await browser.newContext({ baseURL: (process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173") });
   try {
     const administrator = await adminContext.newPage();
     await login(administrator, "m3-admin-a@example.test");
@@ -102,7 +102,7 @@ test("M4 real Manager role revocation clears browser management controls", async
     expect(member?.role).toBe("Manager");
     const csrf = (await (await administrator.request.get("/api/v1/auth/csrf")).json()).token;
     const changed = await administrator.request.put(root + "/memberships/" + userId, {
-      headers: { Origin: "http://localhost:5173", "X-HarborOps-CSRF": csrf },
+      headers: { Origin: (process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173"), "X-HarborOps-CSRF": csrf },
       data: { role: "Support", status: "Active", expectedVersion: member.version }
     });
     expect(changed.status()).toBe(200);
@@ -110,7 +110,7 @@ test("M4 real Manager role revocation clears browser management controls", async
     await expect(page.getByRole("heading", { name: "Voyages and containers" })).toHaveCount(0);
     const second = (await (await administrator.request.get("/api/v1/auth/csrf")).json()).token;
     const restored = await administrator.request.put(root + "/memberships/" + userId, {
-      headers: { Origin: "http://localhost:5173", "X-HarborOps-CSRF": second },
+      headers: { Origin: (process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173"), "X-HarborOps-CSRF": second },
       data: { role: "Manager", status: "Active", expectedVersion: member.version + 1 }
     });
     expect(restored.status()).toBe(200);

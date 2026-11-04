@@ -300,7 +300,7 @@ test("G6 live membership downgrade invalidates the open allocation workspace",
     async function setRole(role,version){
       const csrf=(await (await adminPage.request.get("/api/v1/auth/csrf")).json()).token;
       const result=await adminPage.request.put(base+managerId,{
-        headers:{Origin:"http://localhost:5173","X-HarborOps-CSRF":csrf},
+        headers:{Origin:(process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173"),"X-HarborOps-CSRF":csrf},
         data:{role,status:"Active",expectedVersion:version}
       });
       expect(result.status()).toBe(200);

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const enabled = process.env.HARBOROPS_M3_FIXTURES === "1" &&
   Boolean(process.env.HARBOROPS_TEST_USER_PASSWORD);
-const base = "http://localhost:5173";
+const base = process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173";
 
 async function login(page, email) {
   await page.goto("/");

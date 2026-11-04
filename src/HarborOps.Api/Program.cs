@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using HarborOps.Api.Health;
 using HarborOps.Application.Baseline;
 using HarborOps.Infrastructure;
+using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,8 @@ var connectionString = builder.Configuration.GetConnectionString("HarborOps");
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("ConnectionStrings:HarborOps is required");
 
+// Reject invalid intake quotas before the API can accept any request.
+_ = TrackingInboxStore.ReadPendingLimit(builder.Configuration);
 builder.Services.AddHarborOpsPersistence(connectionString);
 builder.Services.AddHarborOpsAuthentication(builder.Configuration);
 builder.Services.AddSingleton<IntegrationRequestLimiter>();
@@ -113,6 +116,8 @@ app.UseExceptionHandler(handler => handler.Run(async context =>
     context.Response.StatusCode = invalidRequest ? StatusCodes.Status400BadRequest
         : dependency ? StatusCodes.Status503ServiceUnavailable
         : StatusCodes.Status500InternalServerError;
+    if (dependency && context.Request.Path.StartsWithSegments("/integrations/v1/tracking-events"))
+        context.Response.Headers.RetryAfter = "60";
     await context.Response.WriteAsJsonAsync(new
     {
         code = invalidRequest ? "invalid_request"

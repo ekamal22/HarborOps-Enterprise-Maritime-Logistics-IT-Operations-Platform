@@ -1,6 +1,6 @@
 # Architecture Decisions
 
-This document records accepted architecture decisions and outstanding choices. D-003 was explicitly accepted on 2026-11-01 alongside G4 after independent evidence review. D-002 Option A and M7/G7 were accepted on 2026-11-03; see [G7 closure](M7_G7_GATE_CLOSURE.md). D-006 for M8 remains open.
+This document records accepted architecture decisions and outstanding choices. D-003 was explicitly accepted on 2026-11-01 alongside G4 after independent evidence review. D-002 Option A and M7/G7 were accepted on 2026-11-03; see [G7 closure](M7_G7_GATE_CLOSURE.md). D-006 Option A and M8/G8 were explicitly accepted on 2026-11-04 after independently reviewed source-locked evidence. See [gate closure](M8_G8_GATE_CLOSURE.md).
 
 ## Local storage constraint
 
@@ -53,7 +53,7 @@ Human browser login uses ASP.NET Core 10 cookie authentication with protected ti
 
 ## Decision deadlines under parallel delivery
 
-Each D-number belongs to the first applicable implementing work package and must be resolved before that package, even when another milestone proceeds independently. D-003 (accepted for M4), D-002 (accepted for M7), D-006 for M8, D-005 for M13, D-004 for M14, D-008 for M19, and D-007 for M22 remain milestone-specific; parallel execution does not permit bypassing these decisions. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md). Accepted M0-M3 decisions are unchanged.
+Each D-number belongs to the first applicable implementing work package and must be resolved before that package, even when another milestone proceeds independently. D-003 (accepted for M4), D-002 (accepted for M7), D-006 (accepted for M8), D-005 for M13, D-004 for M14, D-008 for M19, and D-007 for M22 remain milestone-specific; parallel execution does not permit bypassing these decisions. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md). Accepted M0-M3 decisions are unchanged.
 
 ## M3 reference-data design choices (implemented and accepted)
 
@@ -83,9 +83,17 @@ See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed
 | D-002 | DCSA reference release/subset | Accepted 2026-11-03, Option A: DCSA Track & Trace 2.2.0 as the reference baseline for the deliberately narrower, HarborOps-specific, non-conformant profile `tnt-2.2-harborops-v1`, pinned by SHA-256 as local snapshots (not official immutable releases); the supported subset is unchanged. See the [decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [reference snapshots](../third_party/dcsa-track-and-trace/README.md) | M7 |
 | D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
 | D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M13 |
-| D-006 | Error queue and worker durability detail | PostgreSQL inbox/dead-letter tables | M8 |
+| D-006 | Transactional inbox, source-key replay, collision, pending cap, retention and future worker/dead-letter durability | **Accepted 2026-11-04, Option A.** PostgreSQL transactional receipt/event/Pending work with permanent source event identity and a 10,000 Pending cap, followed by M9 worker/retry/dead-letter transitions. See [D-006 decision](M8_D006_DURABILITY_PROPOSAL.md), [independent evidence](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md) and [gate closure](M8_G8_GATE_CLOSURE.md). | M8-01 and M9 |
 | D-007 | Hosting account and budget ceiling | Local only until credit and spending restrictions checked | M22 |
 | D-008 | Backup retention and recovery objectives | Define measurable targets based on demo environment | M19 |
+
+## D-006: Durable inbox and future worker handoff
+
+**Status:** Accepted 2026-11-04, Option A.
+**Decision reference:** [Explicit D-006 acceptance](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/14#issuecomment-6633731945).
+**Review source:** `537af9c2af99751aa2fbedf1a2115b7715e7b9e6`, [independent evidence](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md).
+
+PostgreSQL atomically persists one immutable receipt, accepted event and separate Pending work row. The scoped replay key is permanently reserved by a PostgreSQL unique index, with canonical digest, deterministic duplicate identity and bounded 409 collision metadata. The original bearer is reauthorized under organization/source/credential transaction locks before post-commit-only 202. The configurable 10,000 Pending per-organization default is accepted for the demonstrator, not certified production throughput. No immutable accepted-history deletion is authorized. M9 must add a separately reviewed migration permitting lease/retry/Processed/DeadLetter work-state transitions and preserve receipt/event immutability. See [D-006 contract](M8_D006_DURABILITY_PROPOSAL.md) and [M8/G8 closure](M8_G8_GATE_CLOSURE.md).
 
 ## Decision change protocol
 

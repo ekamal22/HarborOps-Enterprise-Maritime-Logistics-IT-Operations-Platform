@@ -20,7 +20,7 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
             Convert.ToBase64String(secret).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 
-    private static byte[]? ParseSecret(string token, out Guid id)
+    internal static byte[]? ParseSecret(string token, out Guid id)
     {
         id = Guid.Empty;
         if (token.Length != 83 || !token.StartsWith("hop_v1_", StringComparison.Ordinal) ||
@@ -209,13 +209,23 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
         if (secret is null) return new(null);
         try
         {
-            // One database statement selects and locks the credential, source and organization
-            // within a consistent authorization boundary. Revocation and suspension updates
-            // cannot commit during the lookup. M8 must repeat this check in its receipt transaction.
+            // One database command locks the organization, source and credential within a
+            // consistent authorization boundary. Revocation and suspension updates cannot commit
+            // during the lookup. M8 repeats this check in its receipt transaction.
+            // Shared locks are taken in the same order as every writer (organization, source,
+            // credential). A single FOR SHARE OF c, s, o join locks in planner order and can
+            // deadlock against revocation. Credential ownership is immutable, so resolving the
+            // owning rows before locking is safe; the final statement rechecks all mutable state.
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
             await using var command = db.Database.GetDbConnection().CreateCommand();
             command.Transaction = transaction.GetDbTransaction();
             command.CommandText = """
+                SELECT 1 FROM organizations
+                WHERE id = (SELECT organization_id FROM integration_credentials WHERE id = @credential_id)
+                FOR SHARE;
+                SELECT 1 FROM integration_sources
+                WHERE id = (SELECT source_id FROM integration_credentials WHERE id = @credential_id)
+                FOR SHARE;
                 SELECT c.secret_digest, s.id, s.organization_id, s.status, s.capability, o.status
                 FROM integration_credentials AS c
                 JOIN integration_sources AS s
@@ -238,6 +248,9 @@ public sealed class IntegrationSourceStore(HarborOpsDbContext db, TimeProvider c
             IntegrationAuthentication outcome = new(null);
             await using (var reader = await command.ExecuteReaderAsync(ct))
             {
+                // Skip the two ordered locking statements; only the final result set is read.
+                await reader.NextResultAsync(ct);
+                await reader.NextResultAsync(ct);
                 if (await reader.ReadAsync(ct))
                 {
                     var expected = reader.GetFieldValue<byte[]>(0);

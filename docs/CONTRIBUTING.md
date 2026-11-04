@@ -89,7 +89,7 @@ The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLE
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. The completed M1 pull request included schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and the historical GitHub Actions evidence in [G1 Verification](M1_VERIFICATION_PLAN.md). This does not authorize any additional workflow runs. No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.
 
-Do not conflate architecture approval with milestone acceptance. G0-G6 are verified and explicitly accepted. M1 merged via PR #4 ([evidence](M1_IMPLEMENTATION_VERIFICATION.md)), M2 via PR #5 ([evidence](M2_EXECUTED_VERIFICATION.md)), M3 by fast-forward ([evidence](M3_EXECUTED_VERIFICATION.md)), and M4-M6 are integrated with accepted gate closure records. G7-G24 each require independent verification and acceptance. M7 integration credentials and M24 accessibility belong to later gates.
+Do not conflate architecture approval with milestone acceptance. **G0-G8 are verified and explicitly accepted through 2026-11-04, with M8 protected-main integration authorized.** M1 merged via PR #4 ([evidence](M1_IMPLEMENTATION_VERIFICATION.md)), M2 via PR #5 ([evidence](M2_EXECUTED_VERIFICATION.md)), M3 by fast-forward ([evidence](M3_EXECUTED_VERIFICATION.md)); M4-M6 have accepted closure records, and M7 was accepted on 2026-11-03 ([closure](M7_G7_GATE_CLOSURE.md)). M8/G8 and D-006 Option A were accepted after [independent review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md). G9-G24 each require independent verification and explicit acceptance. Final accessibility verification is reserved for M24-04.
 
 ## Documentation hygiene
 
@@ -102,6 +102,7 @@ Do not conflate architecture approval with milestone acceptance. G0-G6 are verif
 - Update ACCEPTANCE_CRITERIA.md for changed release gates.
 - Keep STATUS.md evidence-based and current.
 - Review all relative links and status claims before merging.
+- Run `node scripts/render-execution-graph.mjs --check` and `node scripts/check-planning-docs.mjs` before source-locked milestone verification. The planning checker validates links throughout README and docs, status invariants and prohibited attribution trailers.
 
 ## Change reporting
 

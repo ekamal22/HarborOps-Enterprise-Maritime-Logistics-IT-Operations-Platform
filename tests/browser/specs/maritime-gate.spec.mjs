@@ -69,7 +69,7 @@ test("M4 container pagination preserves tenant results across multiple pages", a
     const suffix = String(i).padStart(3, "0");
     const created = await page.request.post(
       "/api/v1/organizations/" + organization.id + "/containers", {
-        headers: { Origin: "http://localhost:5173", "X-HarborOps-CSRF": token },
+        headers: { Origin: (process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173"), "X-HarborOps-CSRF": token },
         data: {
           referenceCode: prefix + "-" + suffix,
           identifierKind: "Synthetic",

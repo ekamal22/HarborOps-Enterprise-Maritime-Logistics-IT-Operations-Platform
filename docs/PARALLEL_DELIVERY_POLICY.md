@@ -1,7 +1,7 @@
 # Parallel Delivery and Integration Policy
 
-**Version:** 1.0  
-**Date:** 2026-10-31  
+**Version:** 1.1  
+**Updated:** 2026-11-04  
 **Authority:** [Roadmap](ROADMAP.md), [Execution Graph](EXECUTION_GRAPH.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Local Storage Policy](LOCAL_STORAGE_POLICY.md), [Status](STATUS.md)
 
 ## Purpose
@@ -28,13 +28,20 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M5 shipment lifecycle | Completed | G5 accepted 2026-11-02 and integrated into `main` after independent evidence review |
 | M6 shipment assignments | Accepted and merged | G4/G5 prerequisites were accepted; the [twelve-rule M6 contract](M6_LOCAL_CONTRACT_DECISION.md) and full G6 were accepted 2026-11-02, then integrated into `main`. [Gate closure](M6_G6_GATE_CLOSURE.md) preserves evidence provenance and snapshot limitations. |
 | M7 tracking source contract | Completed and merged | G7 and D-002 Option A accepted 2026-11-03; see [closure](M7_G7_GATE_CLOSURE.md) |
+| M8 durable receipt implementation | G8 accepted, integration authorized 2026-11-04 | G6/G7 accepted; D-006 Option A and independent source-locked G8 evidence reviewed; see [closure](M8_G8_GATE_CLOSURE.md) |
+| M12 shipment search/export | M12-01 | G5 accepted; scoped search and export can proceed on an isolated branch while G8 is verified |
+| M14 route mapping | M14-01 | G4 accepted; map licensing and fallback must be decided before implementation |
 | M16 audit foundations | M16-01 | G3 accepted; never weaken existing M1-M3 security |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |
 | M19 recovery foundations | M19-01 | G3 accepted; D-008 and safe isolated backups before risky operations |
 | M20 security assurance | M20-01 | Baseline review begins after G3; attack matrix waits for G15/G18, scanners for G19 |
 | M23 UI system | M23-01 | Visual-system definitions begin after G3; operational polish waits for G12/G13/G14/G15/G18 |
 
-M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and integrated. The parallel migration and shared-file ownership rule remains documented as historical guidance. M8-01 inbox contract work is now eligible after accepted G7; receipt and intake implementation also require accepted G6 and the separate D-006 decision. M13 KPI definitions can start after G11; aggregate integration requires G12. M18 incident policy can start after G17; CRUD integration requires G16. M21 can define benchmark workloads after G9 but needs G12/G13 for complete results. M22 may plan deployment after G19 but cannot close until G20/G21 integration. D-003 was accepted for M4. Nothing authorizes bypassing remaining D-004, D-005, D-006, D-007 or D-008; D-002 is accepted for the pinned M7 profile.
+M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and integrated. The parallel migration and shared-file ownership rule remains documented as historical guidance. M8-01 planning and M8-02/M8-03 implementation candidates are committed on `feat/m8-durable-event-inbox`, and were accepted 2026-11-04 after D-006 Option A and independent source-locked G8 review. See [gate closure](M8_G8_GATE_CLOSURE.md). M13 KPI definitions can start after G11; aggregate integration requires G12. M18 incident policy can start after G17; CRUD integration requires G16. M21 can define benchmark workloads after G9 but needs G12/G13 for complete results. M22 may plan deployment after G19 but cannot close until G20/G21 integration. D-003 was accepted for M4. Nothing authorizes bypassing remaining D-004, D-005, D-007 or D-008; D-002 is accepted for the pinned M7 profile.
+
+## M8 verification and independent parallel implementation boundary
+
+The [M8 implementation](M8_IMPLEMENTATION_STATUS.md), [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md), [second-audit remediation](M8_SECOND_REMEDIATION_STATUS.md) and [G8 matrix](M8_VERIFICATION_PLAN.md) are committed as a single feature-branch candidate. They were source-locked technically verified and accepted after independent review on 2026-11-04. Keep G8 source locked and verify its EF model/migration, transaction/authorization, real PostgreSQL COMMIT interruption and replay, restart-byte continuity and final archive safety. The approved D-006 Option A and G8 acceptance are separately recorded in [gate closure](M8_G8_GATE_CLOSURE.md). A parallel M12 search/export stream may begin from accepted G5, but it must use its own branch and resources and may not modify M8's shared migration or tracking route. M9 starts only after G8 acceptance. No execution-graph dependency changes are proposed.
 
 ## Branches and source of truth
 
@@ -53,7 +60,7 @@ M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and in
 - When parallel branches converge, run their combined tests on the merged candidate, including auth/tenant boundary races and migration rehearsals. Earlier per-branch PASS results alone do not establish integration correctness.
 - G19 recovery can be implemented early, but any later migration requires appropriate upgrade/recovery testing. G20 assurance similarly does not waive security checks on later modules.
 - G24 requires all G0-G23 gates explicitly accepted and a fresh complete-system verification on the final code and images. M24-04 remains the **only formal dedicated accessibility audit**; M6, M12, M18, and M24-03 retain historical-volume compatibility checkpoints. These milestone-bound checks remain required even if streams finish out of numeric order.
-- No release, production deployment or M8-M24 implementation is implied by updating planning documents. The [Status](STATUS.md) ledger alone records what was actually executed and accepted.
+- No release, production deployment, G8 acceptance or M9-M24 implementation is implied by updating planning documents. The [Status](STATUS.md) ledger alone records what was actually executed and accepted.
 
 ## Graph maintenance
 

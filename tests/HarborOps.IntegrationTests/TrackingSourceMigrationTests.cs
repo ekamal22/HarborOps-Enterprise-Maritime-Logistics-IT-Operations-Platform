@@ -129,9 +129,10 @@ public sealed class TrackingSourceMigrationTests
             Assert.NotEqual("[]", before["shipment_container_assignments"]);
             Assert.NotEqual("[]", before["auth_sessions"]);
 
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261103090000_IntegrationSources");
             Assert.Equal(8, (await db.Database.GetAppliedMigrationsAsync()).Count());
-            Assert.Empty(await db.Database.GetPendingMigrationsAsync());
+            Assert.Contains("20261103190000_TrackingInboxAndHistory",
+                await db.Database.GetPendingMigrationsAsync());
             Assert.False(db.Database.HasPendingModelChanges());
             Assert.Equal(before, await SnapshotAsync(scoped.ConnectionString));
 
@@ -145,7 +146,7 @@ public sealed class TrackingSourceMigrationTests
             await db.Database.MigrateAsync("20261102080000_ShipmentAssignments");
             Assert.Equal(7, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(before, await SnapshotAsync(scoped.ConnectionString));
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync("20261103090000_IntegrationSources");
             Assert.Equal(8, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(before, await SnapshotAsync(scoped.ConnectionString));
             Assert.Empty(await db.IntegrationSources.ToListAsync());

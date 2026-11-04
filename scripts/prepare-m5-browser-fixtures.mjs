@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
-const base = "http://localhost:5173";
+const base = process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173";
 const password = process.env.HARBOROPS_TEST_USER_PASSWORD;
 const root = process.env.HARBOROPS_VERIFICATION_ROOT;
 const sha = process.env.HARBOROPS_SOURCE_SHA;

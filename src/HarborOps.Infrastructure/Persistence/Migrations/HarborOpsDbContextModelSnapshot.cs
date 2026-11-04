@@ -60,6 +60,8 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
                 t.HasCheckConstraint("CK_m7_credential_window", "expires_at_utc > not_before_utc AND expires_at_utc <= not_before_utc + interval '90 days' AND created_at_utc <= not_before_utc AND (revoked_at_utc IS NULL OR revoked_at_utc >= created_at_utc)");
             });
             entity.HasKey(x => x.Id);
+            entity.HasAlternateKey(x => new { x.OrganizationId, x.SourceId, x.Id })
+                .HasName("AK_m8_integration_credential_scope");
             entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
             entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
             entity.HasOne<Organization>().WithMany().HasForeignKey(x => x.OrganizationId)
@@ -78,6 +80,121 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
             entity.Property(x => x.LastUsedAtUtc).HasColumnName("last_used_at_utc").HasColumnType("timestamp with time zone");
             entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.RevokedAtUtc }).HasDatabaseName("IX_m7_credential_scope");
             entity.HasIndex(x => x.ExpiresAtUtc).HasDatabaseName("IX_m7_credential_expiry");
+        });
+
+        modelBuilder.Entity<TrackingInboxReceipt>(entity =>
+        {
+            entity.ToTable("tracking_inbox_receipts", t =>
+            {
+                t.HasCheckConstraint("CK_m8_receipt_digest", "octet_length(canonical_digest) = 32");
+                t.HasCheckConstraint("CK_m8_receipt_canonical", "octet_length(canonical_payload_utf8) BETWEEN 1 AND 16384");
+                t.HasCheckConstraint("CK_m8_receipt_profile", "profile = 'tnt-2.2-harborops-v1'");
+                t.HasCheckConstraint("CK_m8_receipt_event_id", "source_event_id ~ '^[A-Za-z0-9._:-]{1,128}$'");
+                t.HasCheckConstraint("CK_m8_receipt_correlation", "length(correlation_id) BETWEEN 1 AND 64");
+            });
+            entity.HasKey(x => x.Id);
+            entity.HasAlternateKey(x => new { x.OrganizationId, x.SourceId, x.Id })
+                .HasName("AK_m8_receipt_scope");
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.Property(x => x.SourceId).HasColumnName("source_id");
+            entity.Property(x => x.CredentialId).HasColumnName("credential_id");
+            entity.HasOne<IntegrationSource>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.SourceId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m8_receipt_source");
+            entity.HasOne<IntegrationCredential>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.SourceId, x.CredentialId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.SourceId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m8_receipt_credential");
+            entity.Property(x => x.Profile).HasColumnName("profile").HasMaxLength(48).IsRequired();
+            entity.Property(x => x.SourceEventId).HasColumnName("source_event_id").HasMaxLength(128).IsRequired();
+            entity.Property(x => x.CanonicalDigest).HasColumnName("canonical_digest").IsRequired();
+            entity.Property(x => x.CanonicalPayloadUtf8).HasColumnName("canonical_payload_utf8").IsRequired();
+            entity.Property(x => x.ReceivedAtUtc).HasColumnName("received_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.CorrelationId).HasColumnName("correlation_id").HasMaxLength(64).IsRequired();
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.Profile, x.SourceEventId })
+                .IsUnique().HasDatabaseName("UQ_m8_receipt_key");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.ReceivedAtUtc })
+                .HasDatabaseName("IX_m8_receipt_chronology");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.CredentialId })
+                .HasDatabaseName("IX_m8_receipt_credential");
+        });
+        modelBuilder.Entity<TrackingAcceptedEvent>(entity =>
+        {
+            entity.ToTable("tracking_accepted_events", t =>
+            {
+                t.HasCheckConstraint("CK_m8_event_payload", "octet_length(raw_payload_utf8) BETWEEN 1 AND 16384");
+                t.HasCheckConstraint("CK_m8_event_variant", "classifier = 'ACT' AND external_schema_version = '2.2.0' AND ((event_family = 'Equipment' AND event_code IN ('GTIN', 'GTOT') AND equipment_reference IS NOT NULL AND transport_reference IS NULL) OR (event_family = 'Transport' AND event_code IN ('ARRI', 'DEPA') AND transport_reference IS NOT NULL AND equipment_reference IS NULL))");
+                t.HasCheckConstraint("CK_m8_event_canonical", "jsonb_typeof(canonical_payload) = 'object'");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.ReceiptId).HasColumnName("receipt_id");
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.Property(x => x.SourceId).HasColumnName("source_id");
+            entity.HasOne<TrackingInboxReceipt>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.SourceId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m8_event_receipt");
+            entity.HasIndex(x => x.ReceiptId).IsUnique().HasDatabaseName("UQ_m8_event_receipt");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasDatabaseName("IX_m8_event_scope");
+            entity.Property(x => x.EventFamily).HasColumnName("event_family").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.EventCode).HasColumnName("event_code").HasMaxLength(8).IsRequired();
+            entity.Property(x => x.Classifier).HasColumnName("classifier").HasMaxLength(8).IsRequired();
+            entity.Property(x => x.ExternalSchemaVersion).HasColumnName("external_schema_version").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.OccurredAtUtc).HasColumnName("occurred_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.EquipmentReference).HasColumnName("equipment_reference").HasMaxLength(32);
+            entity.Property(x => x.TransportReference).HasColumnName("transport_reference").HasMaxLength(80);
+            entity.Property(x => x.RawPayloadUtf8).HasColumnName("raw_payload_utf8").IsRequired();
+            entity.Property(x => x.CanonicalPayloadJson).HasColumnName("canonical_payload").HasColumnType("jsonb").IsRequired();
+        });
+        modelBuilder.Entity<TrackingInboxWorkItem>(entity =>
+        {
+            entity.ToTable("tracking_inbox_work_items", t =>
+            {
+                t.HasCheckConstraint("CK_m8_work_state", "state = 'Pending' AND attempt_count = 0 AND updated_at_utc >= created_at_utc");
+            });
+            entity.HasKey(x => x.ReceiptId);
+            entity.Property(x => x.ReceiptId).HasColumnName("receipt_id").ValueGeneratedNever();
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.Property(x => x.SourceId).HasColumnName("source_id");
+            entity.HasOne<TrackingInboxReceipt>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.SourceId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m8_work_receipt");
+            entity.Property(x => x.State).HasColumnName("state").HasMaxLength(24).IsRequired();
+            entity.Property(x => x.AttemptCount).HasColumnName("attempt_count");
+            entity.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
+            entity.HasIndex(x => new { x.OrganizationId, x.State, x.CreatedAtUtc })
+                .HasDatabaseName("IX_m8_work_pending");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasDatabaseName("IX_m8_work_scope");
+        });
+        modelBuilder.Entity<TrackingReceiptConflict>(entity =>
+        {
+            entity.ToTable("tracking_receipt_conflicts", t =>
+            {
+                t.HasCheckConstraint("CK_m8_conflict_digest", "octet_length(attempted_digest) = 32");
+                t.HasCheckConstraint("CK_m8_conflict_correlation", "length(correlation_id) BETWEEN 1 AND 64");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            entity.Property(x => x.ReceiptId).HasColumnName("receipt_id");
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.Property(x => x.SourceId).HasColumnName("source_id");
+            entity.HasOne<TrackingInboxReceipt>().WithMany()
+                .HasForeignKey(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasPrincipalKey(x => new { x.OrganizationId, x.SourceId, x.Id })
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_m8_conflict_receipt");
+            entity.HasIndex(x => x.ReceiptId).IsUnique().HasDatabaseName("UQ_m8_conflict_receipt");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasDatabaseName("IX_m8_conflict_scope");
+            entity.Property(x => x.AttemptedDigest).HasColumnName("attempted_digest").IsRequired();
+            entity.Property(x => x.FirstSeenAtUtc).HasColumnName("first_seen_at_utc").HasColumnType("timestamp with time zone");
+            entity.Property(x => x.CorrelationId).HasColumnName("correlation_id").HasMaxLength(64).IsRequired();
         });
 
         modelBuilder.Entity<BootstrapRecord>(entity =>

@@ -35,6 +35,8 @@ public static class DependencyInjection
         services.AddScoped<ShipmentStore>();
         services.AddScoped<AssignmentStore>();
         services.AddScoped<IntegrationSourceStore>();
+        services.AddScoped<ITrackingReceiptCommitHook, NoopTrackingReceiptCommitHook>();
+        services.AddScoped<TrackingInboxStore>();
         return services;
     }
 }

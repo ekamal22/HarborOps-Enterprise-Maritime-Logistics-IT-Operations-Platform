@@ -13,6 +13,13 @@ const decisions = get("docs/DECISIONS.md");
 const graphView = get("docs/EXECUTION_GRAPH.md");
 const readme = get("README.md");
 const storagePolicy = get("docs/LOCAL_STORAGE_POLICY.md");
+const implementationPlan = get("docs/IMPLEMENTATION_PLAN.md");
+const parallelPolicy = get("docs/PARALLEL_DELIVERY_POLICY.md");
+const contributors = get("docs/CONTRIBUTING.md");
+const m8Plan = get("docs/M8_VERIFICATION_PLAN.md");
+const m8Status = get("docs/M8_IMPLEMENTATION_STATUS.md");
+const secondRemediation = get("docs/M8_SECOND_REMEDIATION_STATUS.md");
+const runbook = get("docs/M8_G8_VERIFICATION_RUNBOOK.md");
 
 function assert(ok, message) {
   if (!ok) throw Error(message);
@@ -34,6 +41,28 @@ for (const [name, content] of [
   assert(content.includes("LOCAL_STORAGE_POLICY.md"), name + " does not reference the mandatory E-drive policy");
 }
 assert(status.includes("G0 verified") && status.includes("accepted"), "Status ledger must reflect accepted G0");
+for (const [name,body,needle] of [
+  ["README",readme,"M8 implementation passed source-locked technical verification"],
+  ["Status",status,"M8/G8 accepted 2026-11-04"],
+  ["Roadmap",roadmap,"G9-G24 remain open"],
+  ["Contributors",contributors,"G0-G8 are verified and explicitly accepted"],
+  ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],
+  ["Implementation plan",implementationPlan,"M8 accepted after independent G8 review"],
+  ["G8 plan",m8Plan,"11 committed, source-isolated security mutation variants"],
+  ["M8 status",m8Status,"One complete source-locked local run passed all 24 stages"],
+  ["Second remediation",secondRemediation,"Five findings patched in source"],
+  ["Verification runbook",runbook,"G8 technical verification"]
+]) assert(body.includes(needle), name + " contains stale or missing M8 status");
+for (const [name,body] of [
+  ["README",readme],["Status",status],["Roadmap",roadmap],
+  ["Contributors",contributors],["Parallel",parallelPolicy],
+  ["Implementation plan",implementationPlan],["G8 plan",m8Plan]
+]) {
+  assert(!/G0-G6 are verified and explicitly accepted|G7-G24 each require independent verification|no M8 code or G8 evidence exists|Suggested future runner|M8 parallel implementation boundary \(planned\)/i.test(body),
+    "Superseded milestone statement returned in " + name);
+}
+assert(status.includes("D-006") && status.includes("accepted"), "Status must record accepted D-006");
+assert(m8Status.includes("G8") && m8Status.includes("Explicitly accepted 2026-11-04") && m8Status.includes("M8_G8_GATE_CLOSURE.md"), "G8 acceptance must reference the independently reviewed gate closure");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");
 assert(roadmap.includes("## Legacy milestone mapping"), "Missing version migration map");
@@ -54,7 +83,9 @@ for (const milestone of graph.milestones) {
       assert(new RegExp("^#{2,3} " + id + ":", "m").test(decisions) && milestone.id === accepted[id],
         "Approved decision " + id + " missing or misallocated");
     } else {
-      assert(line && line.endsWith("| " + milestone.id + " |"), "Decision deadline mismatch " + id);
+      // The final cell may name a work package ("M8-01 and M9"); it must reference the owning milestone.
+      const requiredBefore = line ? line.replace(/\s*\|\s*$/, "").split("|").pop() : "";
+      assert(new RegExp("\\b" + milestone.id + "\\b").test(requiredBefore), "Decision deadline mismatch " + id);
     }
   }
 }
@@ -81,10 +112,19 @@ for (const node of graph.nodes) {
   assert(graphView.includes("| **" + node.id + ": ") || graphView.includes("**" + node.id + " acceptance evidence:**"), "Missing work package or gate in rendered view: " + node.id);
 }
 const docsDir = join(root, "docs");
-const documents = ["README.md", ...readdirSync(docsDir).filter(s=>s.endsWith(".md")).map(s=>"docs/"+s)];
+const documents = [
+  "README.md",
+  ...readdirSync(docsDir).filter(s=>s.endsWith(".md")).map(s=>"docs/"+s),
+  "third_party/dcsa-track-and-trace/README.md"
+];
+// Include the pinned third-party reference index, not only the root and docs
+// directories. Its original reference snapshots remain immutable.
+assert(documents.length >= 98, "Repository Markdown inventory unexpectedly shrank");
 for (const path of documents) {
   const body = get(path);
   assert(!body.includes("\u2014"), "Em dash in " + path);
+  assert(!/^\s*(?:Co-authored-by:|Generated-by:|Assisted-by:|Authored-by:)\s*\S/im.test(body),
+    "Attribution footer in " + path);
   for (const match of body.matchAll(/\]\(([^)]+)\)/g)) {
     const target = match[1].split("#")[0].split("?")[0];
     if (!target || /^(?:https?:|mailto:)/.test(target)) continue;

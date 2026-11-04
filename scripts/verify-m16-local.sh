@@ -87,8 +87,9 @@ cleanup() {
   [[ -z "$containers" && -z "$volumes" && -z "$leftover" ]] || rc=1
   printf 'containers=%s volumes=%s sdk=%s\n' "$containers" "$volumes" "$leftover" > "$evidence/teardown.txt"
   date -u +%FT%TZ > "$evidence/ended-utc.txt"
-  if grep -R -E -i --include='*.log' '(password=|bearer [a-z0-9_-]{16,}|harborops\.session=)' "$evidence" >/dev/null; then
-    echo "Potential credential material in evidence; quarantine required" >&2
+  if ! node scripts/check-m16-evidence-safety.mjs "$HARBOROPS_VERIFICATION_ROOT" \
+      > "$evidence/evidence-safety.log" 2>&1; then
+    echo "G16 evidence may contain private data; quarantine on E: and do not share" >&2
     rc=1
   fi
   (cd "$evidence" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
@@ -109,7 +110,7 @@ chmod 600 "$test_password_file"
 export HARBOROPS_TEST_USER_PASSWORD="$(cat "$test_password_file")"
 stage preflight bash -c 'git rev-parse HEAD; node --version; npm --version; docker version; docker compose version'
 stage docs bash -c 'node scripts/render-execution-graph.mjs --check && node scripts/check-planning-docs.mjs'
-stage scripts bash -c 'bash -n scripts/verify-m16-local.sh scripts/run-m16-browsers-local.sh scripts/check-m16-db-roles.sh'
+stage scripts bash -c 'bash -n scripts/verify-m16-local.sh scripts/run-m16-browsers-local.sh scripts/check-m16-db-roles.sh && node --check scripts/check-m16-evidence-safety.mjs'
 stage postgres-image docker build --build-arg "SOURCE_REVISION=$revision" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
 docker run -d --name "$sdk_db" --label harborops.g16=disposable --ulimit core=0 \

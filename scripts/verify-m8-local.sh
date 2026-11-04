@@ -154,6 +154,7 @@ cleanup() {
 trap cleanup EXIT
 
 stage preflight bash -c 'git rev-parse HEAD; node --version; npm --version; docker version; docker compose version'
+stage script-syntax bash -c 'set -euo pipefail; for script in scripts/*.mjs; do node --check "$script"; done; bash -n scripts/verify-m8-local.sh scripts/run-m8-browsers-local.sh scripts/smoke-compose.sh'
 # Compose must render the isolated G8 network, never the retained default subnet.
 stage network-contract node scripts/check-m8-compose-network.mjs
 stage documentation bash -c 'node scripts/render-execution-graph.mjs --check && node scripts/check-planning-docs.mjs'
@@ -218,17 +219,17 @@ sdk() {
     -e HARBOROPS_TEST_DB="Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops" \
     mcr.microsoft.com/dotnet/sdk:10.0 bash /cache/run-dotnet-g8.sh "$1"
 }
+# Run cheap build, advisory and frontend gates before repeated PostgreSQL,
+# real browsers and the full controlled mutation campaign.
 stage build sdk build
+stage nuget-advisories sdk nuget
+stage npm-advisories bash -c 'npm --prefix web audit --audit-level=high && npm --prefix tests/browser audit --audit-level=high'
+stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build && ! grep -R -l "hop_v1_" web/dist'
 stage dotnet-regressions sdk tests
 if [[ -n "${HARBOROPS_G8_MUTATION_SUBSET:-}" ]]; then
   echo "Full G8 cannot use a reduced mutation subset" >&2
   exit 2
 fi
-stage security-mutations node scripts/run-g8-mutations.mjs "$HARBOROPS_VERIFICATION_ROOT"
-stage nuget-advisories sdk nuget
-# The built frontend must never contain a machine-source credential pattern.
-stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build && ! grep -R -l "hop_v1_" web/dist'
-stage npm-advisories bash -c 'npm --prefix web audit --audit-level=high && npm --prefix tests/browser audit --audit-level=high'
 
 # Only this project's newly created resources may be stopped or destroyed.
 owned_stack=1
@@ -345,6 +346,9 @@ scan_images() {
 }
 mkdir -p "$root/cache/trivy"
 stage image-scans scan_images
+# Run all 11 mutations after lower-cost mandatory checks have passed.
+# No test or mutation is omitted to improve elapsed time.
+stage security-mutations node scripts/run-g8-mutations.mjs "$HARBOROPS_VERIFICATION_ROOT"
 # The EXIT trap performs final teardown, post-log evidence scanning, immutable
 # packaging and technical-vs-governance disposition. Do not run these early.
 echo "All scheduled G8 technical stages completed; finalization runs on exit."

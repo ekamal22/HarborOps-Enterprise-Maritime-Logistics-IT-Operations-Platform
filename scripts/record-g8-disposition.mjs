@@ -12,7 +12,7 @@ const staged = readFileSync(join(evidence, "stages.tsv"), "utf8")
     const [name, sha, code] = line.split("\t");
     return { name, sha, code: Number(code) };
   });
-const needed = ["preflight","network-contract","documentation","tracking-contract",
+const needed = ["preflight","script-syntax","network-contract","documentation","tracking-contract",
   "postgres-image","build","dotnet-regressions","security-mutations",
   "nuget-advisories","web-build","npm-advisories","compose","accounts",
   "organizations","source-fixture","source-cli-negative","ingress-before",

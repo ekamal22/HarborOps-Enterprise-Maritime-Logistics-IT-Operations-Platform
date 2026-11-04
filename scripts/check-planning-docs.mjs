@@ -13,6 +13,13 @@ const decisions = get("docs/DECISIONS.md");
 const graphView = get("docs/EXECUTION_GRAPH.md");
 const readme = get("README.md");
 const storagePolicy = get("docs/LOCAL_STORAGE_POLICY.md");
+const implementationPlan = get("docs/IMPLEMENTATION_PLAN.md");
+const parallelPolicy = get("docs/PARALLEL_DELIVERY_POLICY.md");
+const contributors = get("docs/CONTRIBUTING.md");
+const m8Plan = get("docs/M8_VERIFICATION_PLAN.md");
+const m8Status = get("docs/M8_IMPLEMENTATION_STATUS.md");
+const secondRemediation = get("docs/M8_SECOND_REMEDIATION_STATUS.md");
+const runbook = get("docs/M8_G8_VERIFICATION_RUNBOOK.md");
 
 function assert(ok, message) {
   if (!ok) throw Error(message);
@@ -34,6 +41,28 @@ for (const [name, content] of [
   assert(content.includes("LOCAL_STORAGE_POLICY.md"), name + " does not reference the mandatory E-drive policy");
 }
 assert(status.includes("G0 verified") && status.includes("accepted"), "Status ledger must reflect accepted G0");
+for (const [name,body,needle] of [
+  ["README",readme,"M8 implementation is committed"],
+  ["Status",status,"G8 not executed"],
+  ["Roadmap",roadmap,"G8-G24 remain open"],
+  ["Contributors",contributors,"G0-G7 are verified, explicitly accepted"],
+  ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],
+  ["Implementation plan",implementationPlan,"M8 implemented candidate, verification pending"],
+  ["G8 plan",m8Plan,"11 committed, source-isolated security mutation variants"],
+  ["M8 status",m8Status,"No local .NET/PostgreSQL/Compose/Playwright verification has been executed"],
+  ["Second remediation",secondRemediation,"Five findings patched in source"],
+  ["Verification runbook",runbook,"G8 technical verification"]
+]) assert(body.includes(needle), name + " contains stale or missing M8 status");
+for (const [name,body] of [
+  ["README",readme],["Status",status],["Roadmap",roadmap],
+  ["Contributors",contributors],["Parallel",parallelPolicy],
+  ["Implementation plan",implementationPlan],["G8 plan",m8Plan]
+]) {
+  assert(!/G0-G6 are verified and explicitly accepted|G7-G24 each require independent verification|no M8 code or G8 evidence exists|Suggested future runner|M8 parallel implementation boundary \(planned\)/i.test(body),
+    "Superseded milestone statement returned in " + name);
+}
+assert(status.includes("D-006") && status.includes("acceptance pending"), "Status must keep D-006 pending");
+assert(m8Status.includes("G8") && m8Status.includes("Not executed and not accepted"), "G8 cannot be treated as accepted without evidence");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");
 assert(roadmap.includes("## Legacy milestone mapping"), "Missing version migration map");

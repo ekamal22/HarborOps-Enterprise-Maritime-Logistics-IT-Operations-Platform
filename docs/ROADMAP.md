@@ -1,7 +1,8 @@
 # HarborOps Delivery Roadmap
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
-**Date:** 2026-10-30  
+**Original DAG revision:** 2026-10-30  
+**Updated status:** 2026-11-04  
 **State:** As of 2026-11-04, M0/G0 through M7/G7 are verified, explicitly accepted and integrated into protected `main`. M8 source and G8 verification runner are committed on an isolated feature branch, with two correctness-audit remediation rounds applied but **not** executed. D-006 acceptance pending; G8-G24 remain open. The twelve-rule M6 contract and G6-S10 snapshot limitation are preserved in [gate closure](M6_G6_GATE_CLOSURE.md).
 
 ## Authority and rationale

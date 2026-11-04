@@ -102,6 +102,7 @@ Do not conflate architecture approval with milestone acceptance. **G0-G7 are ver
 - Update ACCEPTANCE_CRITERIA.md for changed release gates.
 - Keep STATUS.md evidence-based and current.
 - Review all relative links and status claims before merging.
+- Run `node scripts/render-execution-graph.mjs --check` and `node scripts/check-planning-docs.mjs` before source-locked milestone verification. The planning checker validates links throughout README and docs, status invariants and prohibited attribution trailers.
 
 ## Change reporting
 

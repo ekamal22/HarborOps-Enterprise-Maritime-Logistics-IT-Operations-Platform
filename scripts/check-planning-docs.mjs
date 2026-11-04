@@ -114,6 +114,8 @@ const documents = ["README.md", ...readdirSync(docsDir).filter(s=>s.endsWith(".m
 for (const path of documents) {
   const body = get(path);
   assert(!body.includes("\u2014"), "Em dash in " + path);
+  assert(!/^\s*(?:Co-authored-by:|Generated-by:|Assisted-by:|Authored-by:)\s*\S/im.test(body),
+    "Attribution footer in " + path);
   for (const match of body.matchAll(/\]\(([^)]+)\)/g)) {
     const target = match[1].split("#")[0].split("?")[0];
     if (!target || /^(?:https?:|mailto:)/.test(target)) continue;

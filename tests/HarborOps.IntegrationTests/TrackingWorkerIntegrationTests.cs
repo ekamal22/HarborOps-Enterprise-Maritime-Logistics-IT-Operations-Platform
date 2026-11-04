@@ -15,7 +15,7 @@ namespace HarborOps.IntegrationTests;
 
 public sealed class TrackingWorkerIntegrationTests
 {
-    private static async Task<Guid> Ingest(
+    private static async Task<(HttpStatusCode Status, Guid? ReceiptId)> PostIngest(
         ReferenceDataHttpTests.ApiFactory factory,
         Guid organization, string key, string reference = "SYN-BOX-UNKNOWN")
     {
@@ -36,9 +36,19 @@ public sealed class TrackingWorkerIntegrationTests
              "equipmentReference":"{{reference}}","externalSchemaVersion":"2.2.0"}
             """, Encoding.UTF8, "application/json");
         using var response = await client.SendAsync(request);
-        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-        return (await response.Content.ReadFromJsonAsync<JsonElement>())
-            .GetProperty("receiptId").GetGuid();
+        return response.StatusCode == HttpStatusCode.Accepted
+            ? (response.StatusCode, (await response.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("receiptId").GetGuid())
+            : (response.StatusCode, null);
+    }
+
+    private static async Task<Guid> Ingest(ReferenceDataHttpTests.ApiFactory factory,
+        Guid organization, string key, string reference = "SYN-BOX-UNKNOWN")
+    {
+        var (status, receipt) = await PostIngest(factory, organization, key, reference);
+        Assert.Equal(HttpStatusCode.Accepted, status);
+        Assert.NotNull(receipt);
+        return receipt.Value;
     }
 
     [Fact]
@@ -159,7 +169,7 @@ public sealed class TrackingWorkerIntegrationTests
     }
 
     [Fact]
-    public async Task RealConcurrentClaimsNeverShareOneLease()
+    public async Task DistinctConcurrentDbContextsCannotShareOneLease()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
         var fixture = await ReferenceDataHttpTests.Setup(factory);
@@ -168,15 +178,23 @@ public sealed class TrackingWorkerIntegrationTests
         using var analyst = fixture.Analyst;
         var id = await Ingest(factory, fixture.A, "m9-race-" + Guid.NewGuid().ToString("N")[..10]);
 
+        using var ready = new CountdownEvent(2);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         async Task<TrackingWorkClaim?> Claim()
         {
             await using var scope = factory.Services.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            ready.Signal();
+            await release.Task;
             return await new TrackingWorkStore(db, new TrackingWorkerSettings())
                 .ClaimOneAsync(fixture.A, CancellationToken.None);
         }
 
-        var attempts = await Task.WhenAll(Claim(), Claim());
+        var first = Claim();
+        var second = Claim();
+        Assert.True(ready.Wait(TimeSpan.FromSeconds(5)));
+        release.SetResult();
+        var attempts = await Task.WhenAll(first, second);
         Assert.Single(attempts.Where(x => x is not null));
         var winner = attempts.Single(x => x is not null)!;
         Assert.Equal(id, winner.ReceiptId);
@@ -213,12 +231,20 @@ public sealed class TrackingWorkerIntegrationTests
         Assert.Equal(1, await db.TrackingInboxReceipts.CountAsync(x => x.Id == id));
         Assert.Equal("Leased", (await db.TrackingInboxWorkItems.SingleAsync(x => x.ReceiptId == id)).State);
         Assert.Equal(1, await db.TrackingInboxWorkItems.CountAsync(x =>
-            x.OrganizationId == fixture.A && x.State == "Pending" || x.State == "Leased" ||
-                x.State == "RetryWaiting" || x.State == "NeedsReconciliation"));
+            x.OrganizationId == fixture.A && (x.State == "Pending" || x.State == "Leased" ||
+                x.State == "RetryWaiting" || x.State == "NeedsReconciliation")));
+        var refusedWhileLeased = await PostIngest(factory, fixture.A,
+            "m9-cap-refused-lease-" + Guid.NewGuid().ToString("N")[..9]);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, refusedWhileLeased.Status);
+        Assert.Null(refusedWhileLeased.ReceiptId);
         Assert.Equal(TrackingWorkDisposition.NeedsReconciliation,
             await worker.FinalizeAsync(claim!, CancellationToken.None));
         Assert.Equal(1, await db.TrackingInboxWorkItems.CountAsync(x =>
             x.OrganizationId == fixture.A && x.State == "NeedsReconciliation"));
+        var refusedWhileParked = await PostIngest(factory, fixture.A,
+            "m9-cap-refused-parked-" + Guid.NewGuid().ToString("N")[..9]);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, refusedWhileParked.Status);
+        Assert.Null(refusedWhileParked.ReceiptId);
     }
 
     [Fact]

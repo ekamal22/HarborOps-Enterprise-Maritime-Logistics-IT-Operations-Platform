@@ -77,16 +77,14 @@ public sealed class TrackingWorkerMigrationTests
             Assert.Equal(0, pending.AttemptCount);
             Assert.True(pending.AvailableAtUtc > DateTimeOffset.MinValue);
 
-            var token = Guid.NewGuid();
-            var updated = await db.Database.ExecuteSqlInterpolatedAsync($"""
-                UPDATE tracking_inbox_work_items
-                   SET state={"Leased"},attempt_count={1},lease_epoch={1L},
-                       lease_token={token},
-                       lease_expires_at_utc=clock_timestamp()+interval '60 seconds',
-                       updated_at_utc=clock_timestamp()
-                 WHERE receipt_id={received.ReceiptId}
-                """);
-            Assert.Equal(1, updated);
+            // The worker claim executes the privileged organization lock and
+            // generates its immutable attempt record in this isolated schema.
+            var worker = new TrackingWorkStore(db, new TrackingWorkerSettings());
+            var claim = await worker.ClaimOneAsync(org.Id, CancellationToken.None);
+            Assert.NotNull(claim);
+            Assert.Equal(received.ReceiptId, claim!.ReceiptId);
+            Assert.Equal(1, await db.TrackingWorkAttemptEvents.CountAsync(x =>
+                x.ReceiptId == received.ReceiptId && x.EventKind == "Claimed"));
             var blocked = await Assert.ThrowsAsync<PostgresException>(() =>
                 db.Database.MigrateAsync("20261103190000_TrackingInboxAndHistory"));
             Assert.Equal(PostgresErrorCodes.CheckViolation, blocked.SqlState);

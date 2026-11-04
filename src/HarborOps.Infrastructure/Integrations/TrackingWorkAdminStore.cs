@@ -112,10 +112,10 @@ public sealed class TrackingWorkAdminStore(HarborOpsDbContext db, IConfiguration
 
         Guid source;
         string stateName;
-        int generation, attempts;
+        int generation;
         long epoch;
         await using (var find = Command(connection, tx, """
-            SELECT source_id,state,redrive_generation,attempt_count,lease_epoch
+            SELECT source_id,state,redrive_generation,lease_epoch
             FROM tracking_inbox_work_items
             WHERE organization_id=@organization AND receipt_id=@receipt FOR UPDATE
             """, ("organization", organizationId), ("receipt", receiptId)))
@@ -125,8 +125,7 @@ public sealed class TrackingWorkAdminStore(HarborOpsDbContext db, IConfiguration
             source = reader.GetGuid(0);
             stateName = reader.GetString(1);
             generation = reader.GetInt32(2);
-            attempts = reader.GetInt32(3);
-            epoch = reader.GetInt64(4);
+            epoch = reader.GetInt64(3);
         }
         if (stateName is not ("NeedsReconciliation" or "DeadLetter"))
             return TrackingRedriveOutcome.InvalidState;

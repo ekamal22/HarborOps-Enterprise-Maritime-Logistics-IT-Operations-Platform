@@ -159,11 +159,11 @@ public sealed class TrackingWorkerIntegrationTests
         var claim = await worker.ClaimOneAsync(fixture.A, CancellationToken.None);
         Assert.NotNull(claim);
         // Admission with a claimed item still counts the same unresolved slot.
-        var existingSource = await db.TrackingInboxReceipts.SingleAsync(x => x.Id == id);
-        var source = await db.IntegrationSources.SingleAsync(x => x.Id == existingSource.SourceId);
+        Assert.Equal(1, await db.TrackingInboxReceipts.CountAsync(x => x.Id == id));
         Assert.Equal("Leased", (await db.TrackingInboxWorkItems.SingleAsync(x => x.ReceiptId == id)).State);
         Assert.Equal(1, await db.TrackingInboxWorkItems.CountAsync(x =>
-            x.OrganizationId == fixture.A && TrackingWorkPolicy.IsUnresolved(x.State)));
+            x.OrganizationId == fixture.A && x.State == "Pending" || x.State == "Leased" ||
+                x.State == "RetryWaiting" || x.State == "NeedsReconciliation"));
         Assert.Equal(TrackingWorkDisposition.NeedsReconciliation,
             await worker.FinalizeAsync(claim!, CancellationToken.None));
         Assert.Equal(1, await db.TrackingInboxWorkItems.CountAsync(x =>

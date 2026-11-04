@@ -190,9 +190,9 @@ accounts() {
     "m2-operator@example.test|M2 Administrator" \
     "m2-second-admin@example.test|M2 Second Administrator" \
     "m2-outage@example.test|M2 Outage" \
-    "m2-browser-chromium@example.test|M2 Browser Chromium" \
-    "m2-browser-firefox@example.test|M2 Browser Firefox" \
-    "m2-browser-webkit@example.test|M2 Browser WebKit" \
+    "m2-browser-chromium@example.test|Synthetic Browser Chromium Member" \
+    "m2-browser-firefox@example.test|Synthetic Browser Firefox Member" \
+    "m2-browser-webkit@example.test|Synthetic Browser Webkit Member" \
     "m3-admin-a@example.test|M3 North Administrator" \
     "m3-admin-b@example.test|M3 East Administrator" \
     "m3-manager@example.test|M3 Manager" \

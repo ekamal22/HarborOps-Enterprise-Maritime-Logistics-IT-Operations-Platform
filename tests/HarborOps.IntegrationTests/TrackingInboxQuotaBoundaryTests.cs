@@ -86,7 +86,7 @@ public sealed class TrackingInboxQuotaBoundaryTests
                     (receipt_id, organization_id, source_id, state, attempt_count,
                      created_at_utc, updated_at_utc)
                 SELECT r.id, r.organization_id, r.source_id, 'Pending', 0,
-                       clock_timestamp(), clock_timestamp()
+                       now(), now()
                   FROM receipts r JOIN events e ON e.receipt_id = r.id
                 """, (NpgsqlConnection)db.Database.GetDbConnection());
             command.CommandTimeout = 180;

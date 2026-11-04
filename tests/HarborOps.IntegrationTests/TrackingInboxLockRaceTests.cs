@@ -3,6 +3,7 @@ using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
@@ -11,6 +12,15 @@ namespace HarborOps.IntegrationTests;
 
 public sealed class TrackingInboxLockRaceTests
 {
+    private sealed class AdjustableClock(DateTimeOffset now) : TimeProvider
+    {
+        private long ticks = now.UtcTicks;
+        public override DateTimeOffset GetUtcNow() =>
+            new(Interlocked.Read(ref ticks), TimeSpan.Zero);
+        public void AdvanceTo(DateTimeOffset instant) =>
+            Interlocked.Exchange(ref ticks, instant.UtcTicks);
+    }
+
     private static byte[] Payload(string id) => Encoding.UTF8.GetBytes($$"""
         {"sourceEventId":"{{id}}","eventFamily":"Equipment","eventCode":"GTIN",
          "classifier":"ACT","occurredAtUtc":"2026-11-03T10:00:00Z",
@@ -113,4 +123,53 @@ public sealed class TrackingInboxLockRaceTests
         Assert.Empty(await db.TrackingInboxReceipts.Where(x => x.SourceId == issued.Id).ToListAsync());
         Assert.Empty(await db.TrackingAcceptedEvents.Where(x => x.SourceId == issued.Id).ToListAsync());
     }
+    [Fact]
+    public async Task CredentialExpiryEvaluatedAfterCredentialLockWait()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var setup = factory.Services.CreateAsyncScope();
+        var sources = setup.ServiceProvider.GetRequiredService<IntegrationSourceStore>();
+        var issued = await sources.CreateAsync(fixture.A, "m8_expire_wait", "Expiring Source",
+            CancellationToken.None);
+        var record = await setup.ServiceProvider.GetRequiredService<HarborOpsDbContext>()
+            .IntegrationCredentials.AsNoTracking()
+            .SingleAsync(x => x.Id == issued.CredentialId);
+        var clock = new AdjustableClock(record.NotBeforeUtc.AddSeconds(1));
+        var payload = Payload("m8-wait-for-expiry");
+        var incoming = TrackingEventPolicy.Parse(payload, TimeProvider.System.GetUtcNow()).Value!
+            .Bind(issued.Id, fixture.A);
+
+        await using var locker = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await locker.OpenAsync();
+        await using var observer = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await observer.OpenAsync();
+        await using var tx = (NpgsqlTransaction)await locker.BeginTransactionAsync();
+        await AcquireAsync(locker, tx,
+            "SELECT id FROM integration_credentials WHERE id = @id FOR UPDATE", issued.CredentialId);
+        int pidValue;
+        await using (var pid = new NpgsqlCommand("SELECT pg_backend_pid()", locker, tx))
+            pidValue = Convert.ToInt32(await pid.ExecuteScalarAsync());
+
+        var receiving = Task.Run(async () =>
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            var store = new TrackingInboxStore(db, clock, new ConfigurationBuilder().Build(),
+                new NoopTrackingReceiptCommitHook());
+            return await store.ReceiveAsync(incoming, issued.Bearer, payload, "expiry-wait",
+                CancellationToken.None);
+        });
+        await WaitForPostgresLockWaitAsync(observer, receiving, pidValue);
+        clock.AdvanceTo(record.ExpiresAtUtc.AddSeconds(1));
+        await tx.CommitAsync();
+        var result = await receiving.WaitAsync(TimeSpan.FromSeconds(15));
+        Assert.Equal(TrackingReceiptOutcome.AccessDenied, result.Outcome);
+        Assert.Empty(await setup.ServiceProvider.GetRequiredService<HarborOpsDbContext>()
+            .TrackingInboxReceipts.Where(x => x.SourceId == issued.Id).ToListAsync());
+    }
+
 }

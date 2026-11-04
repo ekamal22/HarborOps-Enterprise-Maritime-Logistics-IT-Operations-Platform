@@ -222,6 +222,50 @@ public sealed class TrackingWorkerIntegrationTests
     }
 
     [Fact]
+    public async Task DirectSqlRedriveCannotBypassAttributedImmutableHistory()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        var receipt = await Ingest(factory, fixture.A,
+            "m9-audit-" + Guid.NewGuid().ToString("N")[..10]);
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var work = new TrackingWorkStore(db, new TrackingWorkerSettings());
+        var claim = await work.ClaimOneAsync(fixture.A, CancellationToken.None);
+        Assert.NotNull(claim);
+        Assert.Equal(TrackingWorkDisposition.NeedsReconciliation,
+            await work.FinalizeAsync(claim!, CancellationToken.None));
+
+        // Even a syntactically legal state transition is rejected unless an
+        // attributed, receipt-scoped Redriven event commits with it.
+        var unaudited = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE tracking_inbox_work_items
+                SET state={"Pending"},attempt_count={0},
+                    redrive_generation=redrive_generation+1,lease_epoch=lease_epoch+1,
+                    available_at_utc=clock_timestamp(),last_error_code=NULL,
+                    completed_at_utc=NULL,resolution_kind=NULL,
+                    updated_at_utc=clock_timestamp()
+                WHERE receipt_id={receipt}
+                """));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, unaudited.SqlState);
+        var preserved = await db.TrackingInboxWorkItems.AsNoTracking()
+            .SingleAsync(x => x.ReceiptId == receipt);
+        Assert.Equal("NeedsReconciliation", preserved.State);
+        Assert.Equal(0, preserved.RedriveGeneration);
+
+        var attemptedUpdate = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE tracking_work_attempt_events
+                   SET event_kind={"Processed"} WHERE receipt_id={receipt}
+                """));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, attemptedUpdate.SqlState);
+    }
+
+    [Fact]
     public async Task InvalidDirectSqlCannotSkipStateOrRewriteEvidence()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

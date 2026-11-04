@@ -22,6 +22,18 @@ for var in TEMP TMP NPM_CONFIG_CACHE PLAYWRIGHT_BROWSERS_PATH DOTNET_CLI_HOME DO
   mkdir -p "$folder"
   export "$var=$(cygpath -w "$folder")"
 done
+# A fresh DOCKER_CONFIG has no plugin path, so `docker compose` would be unknown. Write one that
+# points at the installed Docker Desktop plugins, and refuse to start if they cannot be found.
+plugin_dir="$(node -e '
+const fs = require("fs"), path = require("path");
+const candidates = [
+  path.join(process.env.LOCALAPPDATA || "", "Programs", "DockerDesktop", "resources", "cli-plugins"),
+  path.join(process.env.ProgramFiles || "C:\\Program Files", "Docker", "Docker", "resources", "cli-plugins")];
+const found = candidates.find(item => fs.existsSync(item));
+if (!found) process.exit(1);
+fs.writeFileSync(path.join(process.env.DOCKER_CONFIG, "config.json"), JSON.stringify({ cliPluginsExtraDirs: [found] }));
+console.log(found);
+')" || { echo "Docker Desktop CLI plugin directory not found" >&2; exit 2; }
 export TMPDIR="$root/cache/TMPDIR" HOME="$root/cache/HOME"
 mkdir -p "$TMPDIR" "$HOME" "$root/cache/nuget" "$root/cache/dotnet" "$root/cache/tmp" "$root/cache/trivy"
 export NUGET_PACKAGES="$(cygpath -w "$root/cache/nuget")"
@@ -149,7 +161,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-stage preflight bash -c 'git rev-parse HEAD; node --version; npm --version; docker version; docker compose version; git log -1 --format="%H %an %s"'
+stage preflight bash -c 'set -euo pipefail; git rev-parse HEAD; node --version; npm --version; docker version; docker compose version; docker compose version --short; git log -1 --format="%H %an %s"; echo "docker plugins: $DOCKER_CONFIG"; cat "$DOCKER_CONFIG/config.json"'
 stage script-syntax bash -c 'set -euo pipefail; for script in scripts/*.mjs; do node --check "$script"; done; bash -n scripts/verify-g9-local.sh scripts/verify-m9-local.sh scripts/smoke-compose.sh'
 stage compose-contract bash -c 'set -euo pipefail; export HARBOROPS_DB_PASSWORD=x HARBOROPS_WORKER_DB_PASSWORD=y; docker compose -f compose.g9.verify.yaml -p ho-verify-g9 --profile worker config -q; docker compose -f compose.g9.verify.yaml -p ho-verify-g9 --profile worker config | grep -E "127.0.0.1\"?:?|published|subnet" | head -20'
 stage documentation bash -c 'node scripts/render-execution-graph.mjs --check && node scripts/check-planning-docs.mjs'

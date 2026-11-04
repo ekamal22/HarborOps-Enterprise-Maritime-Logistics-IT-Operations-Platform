@@ -110,7 +110,9 @@ try {
     const shell = "dotnet restore HarborOps.sln -v q && dotnet build HarborOps.sln -c Release --no-restore -v q -warnaserror && " +
       "{ dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-build --filter 'FullyQualifiedName~AuditPermission'; " +
       "dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter '" + FILTER + "'; }";
-    const cacheDir = process.env.NUGET_PACKAGES ?? path.join(cache, "nuget", "packages");
+    // The runner exports NUGET_PACKAGES for host tools; the SDK package cache used by the other
+    // stages is <root>/cache/nuget/packages. A development override is available.
+    const cacheDir = process.env.G16_NUGET_PACKAGES ?? path.join(cache, "nuget", "packages");
     const result = run("docker", ["run", "--rm", "--ulimit", "core=0", "--network", "container:" + name,
       "-v", work + ":/src", "-v", path.dirname(cacheDir) + ":/nuget-parent", "-w", "/src",
       "-e", "DOTNET_NOLOGO=1", "-e", "DOTNET_CLI_TELEMETRY_OPTOUT=1", "-e", "NUGET_PACKAGES=/nuget-parent/" + path.basename(cacheDir),

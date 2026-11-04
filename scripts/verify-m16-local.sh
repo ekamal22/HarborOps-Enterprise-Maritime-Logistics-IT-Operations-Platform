@@ -160,6 +160,7 @@ stage unit sdk 'dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj
 stage contract sdk 'dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --no-build --logger "trx;LogFileName=g16-contract.trx" --results-directory /cache/evidence/trx'
 stage integration sdk 'dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --logger "trx;LogFileName=g16-integration.trx" --results-directory /cache/evidence/trx'
 stage integration-repeat sdk 'dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --logger "trx;LogFileName=g16-integration-repeat.trx" --results-directory /cache/evidence/trx'
+stage security-mutations node scripts/run-g16-mutations.mjs "$HARBOROPS_VERIFICATION_ROOT"
 stage dependencies sdk 'dotnet list HarborOps.sln package --vulnerable --include-transitive'
 stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefix web test && npm --prefix web run build'
 stage package-audit bash -c 'npm --prefix web audit --audit-level=high && npm --prefix tests/browser audit --audit-level=high'

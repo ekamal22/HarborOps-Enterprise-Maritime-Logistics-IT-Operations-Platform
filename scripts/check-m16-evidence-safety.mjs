@@ -28,11 +28,11 @@ function check(folder) {
     const text = content.toString("utf8");
     assert.ok(!/hop_v1_[0-9a-f]{32}_[A-Za-z0-9_-]{43}/.test(text),
       "Source bearer in evidence: " + name);
-    assert.ok(!/HarborOps\\.Session=[A-Za-z0-9%._-]{15,}/i.test(text),
+    assert.ok(!/HarborOps\.Session=[A-Za-z0-9%._-]{15,}/i.test(text),
       "Session cookie in evidence: " + name);
-    assert.ok(!/HarborOps\\.Antiforgery=[A-Za-z0-9%._-]{15,}/i.test(text),
+    assert.ok(!/HarborOps\.Antiforgery=[A-Za-z0-9%._-]{15,}/i.test(text),
       "CSRF cookie in evidence: " + name);
-    assert.ok(!/authorization["': ]+bearer\\s+[A-Za-z0-9._-]{15,}/i.test(text),
+    assert.ok(!/authorization["': ]+bearer\s+[A-Za-z0-9._-]{15,}/i.test(text),
       "Authorization header in evidence: " + name);
     files++;
   }

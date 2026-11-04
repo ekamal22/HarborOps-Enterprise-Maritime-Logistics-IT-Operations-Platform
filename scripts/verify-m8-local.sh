@@ -259,7 +259,7 @@ accounts() {
     "m4-support@example.test|M4 Synthetic Support" \
     "m4-auditor@example.test|M4 Synthetic Auditor"; do
     IFS='|' read -r email display <<< "$entry"
-    provision "$email" "$display"
+    provision "$email" "$display" || return 1
   done
 }
 stage accounts accounts
@@ -268,13 +268,13 @@ bootstrap() {
     --organization-cli bootstrap "$1" "$2" "$3"
 }
 organizations() {
-  bootstrap north-terminal "North Terminal" m2-operator@example.test
-  bootstrap east-terminal "East Terminal" m2-second-admin@example.test
-  bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test
-  bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test
-  bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test
+  bootstrap north-terminal "North Terminal" m2-operator@example.test || return 1
+  bootstrap east-terminal "East Terminal" m2-second-admin@example.test || return 1
+  bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test || return 1
+  bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test || return 1
+  bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test || return 1
   for engine in chromium firefox webkit; do
-    bootstrap "m3-revocation-$engine" "M3 Revocation $engine" m3-admin-a@example.test
+    bootstrap "m3-revocation-$engine" "M3 Revocation $engine" m3-admin-a@example.test || return 1
   done
 }
 stage organizations organizations
@@ -323,25 +323,42 @@ recovery() {
 stage source-outage-recovery recovery
 
 scan_images() {
+  # Every step must fail the stage. This function runs inside an if, where set -e is
+  # inactive, so each command is checked explicitly: a failed scan must never be hidden
+  # by a later successful scan.
+  local trivy="aquasec/trivy:0.76.1"
+  local cachemount="$(cygpath -w "$root/cache/trivy"):/root/.cache/trivy"
+  # Acquire the vulnerability database first, with a bounded retry for transient DNS or
+  # registry errors. Scans never proceed without a current database.
+  local attempt db_ready=0
+  for attempt in 1 2 3; do
+    if MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 -v "$cachemount" \
+         "$trivy" image --download-db-only >> "$evidence/trivy/db-download.log" 2>&1; then
+      db_ready=1; break
+    fi
+    echo "Vulnerability database download attempt $attempt failed" >> "$evidence/trivy/db-download.log"
+    sleep 10
+  done
+  [[ "$db_ready" == 1 ]] || return 1
   # Record scanner and advisory database identity so a stale or missing database is visible.
-  MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 \
-    -v "$(cygpath -w "$root/cache/trivy"):/root/.cache/trivy" \
-    aquasec/trivy:0.76.1 version > "$evidence/trivy/version.txt" 2>&1
+  MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 -v "$cachemount" \
+    "$trivy" version > "$evidence/trivy/version.txt" 2>&1 || return 1
   for service in postgres api web; do
     local container image revision
-    container=$(compose ps -q "$service")
+    container=$(compose ps -q "$service") || return 1
     [[ -n "$container" ]] || return 1
-    image=$(docker inspect --format '{{.Image}}' "$container")
-    revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
+    image=$(docker inspect --format '{{.Image}}' "$container") || return 1
+    revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image") || return 1
     [[ "$revision" == "$HARBOROPS_SOURCE_SHA" ]] || return 1
-    printf '%s\t%s\t%s\n' "$service" "$image" "$revision" >> "$evidence/image-ids.tsv"
+    printf '%s\t%s\t%s\n' "$service" "$image" "$revision" >> "$evidence/image-ids.tsv" || return 1
     MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 \
       -v /var/run/docker.sock:/var/run/docker.sock \
-      -v "$(cygpath -w "$root/cache/trivy"):/root/.cache/trivy" \
+      -v "$cachemount" \
       -v "$(cygpath -w "$evidence/trivy"):/reports" \
-      aquasec/trivy:0.76.1 image --image-src docker --scanners vuln \
+      "$trivy" image --image-src docker --scanners vuln \
       --severity HIGH,CRITICAL --exit-code 1 --format json \
-      --output "/reports/$service.json" "$image"
+      --output "/reports/$service.json" "$image" || return 1
+    [[ -s "$evidence/trivy/$service.json" ]] || return 1
   done
 }
 mkdir -p "$root/cache/trivy"

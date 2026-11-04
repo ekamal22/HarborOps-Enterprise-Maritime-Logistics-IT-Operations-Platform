@@ -3,20 +3,27 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
-import { basename, join, resolve, sep } from "node:path";
+import { basename, join, relative, resolve, sep } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const [root, archivePath, manifestPath] = process.argv.slice(2);
 assert.ok(root && /^(?:[Ee]:[\\/]|\/e\/)/.test(root), "E:-backed G8 root required");
 assert.ok(archivePath && manifestPath, "Archive and manifest are required");
 assert.ok(existsSync(archivePath) && existsSync(manifestPath), "Archive inputs missing");
+// GNU tar reads "E:\path" as host:path and a backslash followed by t as an escape, so run it
+// from the verification root with relative forward-slash paths only.
+const rel = path => {
+  const value = relative(root, path).split(sep).join("/");
+  assert.ok(value && !value.startsWith("..") && !value.includes(":"), "Path must stay under the G8 root");
+  return value;
+};
 const call = args => {
   const result = spawnSync("tar", args, { encoding: "utf8", timeout: 120000,
-    maxBuffer: 16 * 1024 * 1024 });
+    maxBuffer: 16 * 1024 * 1024, cwd: root });
   assert.equal(result.status, 0, "Unable to inspect G8 archive");
   return result.stdout;
 };
-const names = call(["-tzf", archivePath]).split("\n").filter(Boolean);
+const names = call(["-tzf", rel(archivePath)]).split("\n").filter(Boolean);
 assert.ok(names.length > 0, "Empty evidence archive");
 for (const name of names)
   assert.ok(name === "evidence/" ||
@@ -24,7 +31,7 @@ for (const name of names)
      !name.startsWith("/") && !name.includes("\\")), "Unsafe tar member");
 const scratch = mkdtempSync(join(root, "private", "g8-archive-check-"));
 try {
-  call(["-xzf", archivePath, "-C", scratch]);
+  call(["-xzf", rel(archivePath), "-C", rel(scratch)]);
   const files = new Map();
   const walk = folder => {
     for (const entry of readdirSync(folder, { withFileTypes:true })) {
@@ -39,7 +46,8 @@ try {
   const lines = readFileSync(manifestPath, "utf8").split("\n").filter(Boolean);
   assert.equal(files.size, lines.length, "Manifest and archive file counts differ");
   for (const line of lines) {
-    const match = /^([a-f0-9]{64})\s\s(.+)$/.exec(line);
+    // sha256sum marks text mode with a space and binary mode (the Git Bash default) with an asterisk.
+    const match = /^([a-f0-9]{64}) [ *](.+)$/.exec(line);
     assert.ok(match, "Invalid manifest entry");
     assert.equal(files.get(match[2]), match[1], "Archived evidence digest mismatch");
   }

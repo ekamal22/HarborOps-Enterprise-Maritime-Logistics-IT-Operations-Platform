@@ -289,7 +289,7 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
     }
 
     public async Task<bool> FailAsync(TrackingWorkClaim claim, string sanitizedCode,
-        CancellationToken ct)
+        bool retryable, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(sanitizedCode) || sanitizedCode.Length > 40 ||
             !sanitizedCode.All(c => char.IsAsciiLetterOrDigit(c) || c == '_'))
@@ -300,8 +300,8 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
         if (!await LockActiveOrganizationAsync(connection, tx, claim.OrganizationId, ct)) return false;
         // An interrupted COMMIT may already have persisted the unique resolution effect.
         // Only a currently valid lease can be marked for retry or dead-letter.
-        var exhausted = claim.Attempt >= settings.MaxAttempts;
-        var due = TrackingWorkPolicy.RetryDelay(claim.ReceiptId, claim.Generation, claim.Attempt);
+        var exhausted = !retryable || claim.Attempt >= settings.MaxAttempts;
+        var due = exhausted ? TimeSpan.Zero : TrackingWorkPolicy.RetryDelay(claim.ReceiptId, claim.Generation, claim.Attempt);
         var changed = await ExecAsync(connection, tx, """
             UPDATE tracking_inbox_work_items
             SET state=@state,lease_token=NULL,lease_expires_at_utc=NULL,
@@ -312,7 +312,7 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
               AND state='Leased' AND lease_token=@token AND lease_epoch=@epoch
               AND redrive_generation=@generation AND lease_expires_at_utc>clock_timestamp()
             """, ct, ("state", exhausted ? "DeadLetter" : "RetryWaiting"),
-            ("error", sanitizedCode), ("delay", exhausted ? 0 : (int)due.TotalMilliseconds),
+            ("error", sanitizedCode), ("delay", (int)due.TotalMilliseconds),
             ("exhausted", exhausted), ("receipt", claim.ReceiptId),
             ("organization", claim.OrganizationId), ("source", claim.SourceId),
             ("token", claim.LeaseToken), ("epoch", claim.LeaseEpoch),

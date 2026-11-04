@@ -111,6 +111,56 @@ public sealed class TrackingWorker : Migration
                 FOR EACH ROW EXECUTE FUNCTION m8_guard_append_only();
 
             DROP TRIGGER m8_work_guard ON tracking_inbox_work_items;
+            CREATE FUNCTION m9_lock_active_organization(p_org uuid)
+                RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path = pg_catalog, public AS $fn$
+            DECLARE current_status text;
+            BEGIN
+                SELECT status INTO current_status
+                FROM public.organizations WHERE id=p_org FOR UPDATE;
+                RETURN current_status = 'Active';
+            END $fn$;
+            REVOKE ALL ON FUNCTION m9_lock_active_organization(uuid) FROM PUBLIC;
+
+            CREATE FUNCTION m9_validate_effect_reference() RETURNS trigger
+                LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path = pg_catalog, public AS $fn$
+            DECLARE
+                accepted public.tracking_accepted_events%ROWTYPE;
+                matches integer;
+            BEGIN
+                SELECT * INTO accepted FROM public.tracking_accepted_events
+                WHERE organization_id=NEW.organization_id AND source_id=NEW.source_id
+                  AND receipt_id=NEW.receipt_id;
+                IF NOT FOUND OR accepted.event_family <> 'Equipment' OR
+                   accepted.equipment_reference IS NULL THEN
+                    RAISE EXCEPTION 'Resolution effect requires equipment event'
+                        USING ERRCODE='23514';
+                END IF;
+                SELECT count(*) INTO matches FROM (
+                    SELECT 1 FROM public.containers c
+                    JOIN public.shipment_container_assignments a
+                      ON a.organization_id=c.organization_id AND a.container_id=c.id
+                    JOIN public.shipments sh
+                      ON sh.organization_id=a.organization_id AND sh.id=a.shipment_id
+                    WHERE c.organization_id=NEW.organization_id AND c.id=NEW.container_id
+                      AND c.container_identifier=upper(btrim(accepted.equipment_reference))
+                      AND c.record_status='Active' AND sh.record_status='Active'
+                      AND a.shipment_id=NEW.shipment_id
+                      AND a.starts_at_utc<=accepted.occurred_at_utc
+                      AND (a.ends_at_utc IS NULL OR accepted.occurred_at_utc<a.ends_at_utc)
+                    FOR SHARE OF c,a,sh
+                ) qualified;
+                IF matches <> 1 THEN
+                    RAISE EXCEPTION 'Resolution effect is not tenant-time valid'
+                        USING ERRCODE='23514';
+                END IF;
+                RETURN NEW;
+            END $fn$;
+            CREATE TRIGGER m9_effect_reference
+                BEFORE INSERT ON tracking_processing_effects
+                FOR EACH ROW EXECUTE FUNCTION m9_validate_effect_reference();
+
             CREATE FUNCTION m9_guard_work_item() RETURNS trigger LANGUAGE plpgsql AS $fn$
             DECLARE
                 at_utc timestamptz := clock_timestamp();
@@ -237,6 +287,9 @@ public sealed class TrackingWorker : Migration
                         USING ERRCODE='23514';
                 END IF;
             END $guard$;
+            DROP TRIGGER m9_effect_reference ON tracking_processing_effects;
+            DROP FUNCTION m9_validate_effect_reference();
+            DROP FUNCTION m9_lock_active_organization(uuid);
             DROP TRIGGER m9_effect_terminal ON tracking_processing_effects;
             DROP FUNCTION m9_assert_effect_terminal();
             DROP TRIGGER m9_work_effect_required ON tracking_inbox_work_items;

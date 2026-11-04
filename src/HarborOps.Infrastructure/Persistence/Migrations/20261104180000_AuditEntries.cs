@@ -14,7 +14,7 @@ public sealed class AuditEntries : Migration
         migrationBuilder.Sql("""
             CREATE TABLE audit_entries (
                 id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                organization_id uuid NULL REFERENCES organizations(id) ON DELETE RESTRICT,
+                organization_id uuid NULL,
                 event_type varchar(96) NOT NULL,
                 event_schema_version integer NOT NULL DEFAULT 1,
                 outcome varchar(16) NOT NULL,
@@ -43,6 +43,10 @@ public sealed class AuditEntries : Migration
                 CONSTRAINT "CK_m16_metadata" CHECK
                     (jsonb_typeof(metadata) = 'object' AND pg_column_size(metadata) <= 1024)
             );
+            -- Audit tenant identifiers are immutable historical facts, not a live
+            -- row relationship. A foreign key here acquired FOR KEY SHARE on
+            -- organizations for every audited mutation and violated the
+            -- established organization-first lock order.
             CREATE INDEX "IX_m16_audit_scope_time"
                 ON audit_entries(organization_id, occurred_at_utc DESC, id DESC);
             CREATE INDEX "IX_m16_audit_resource"

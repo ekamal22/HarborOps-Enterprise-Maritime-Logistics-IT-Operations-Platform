@@ -41,13 +41,20 @@ fi
 if [[ -e "$root/private/source-bearer.txt" || -e "$root/private/test-user-password.txt" ]]; then
   echo "Existing private fixture detected, refusing overwrite" >&2; exit 2
 fi
-mkdir -p "$root/archives"
-if [[ -d "$root/evidence" ]]; then
-  old=$(cat "$root/evidence/source-sha.txt" 2>/dev/null || echo unknown)
-  mv "$root/evidence" "$root/archives/g8-prior-$(date -u +%Y%m%dT%H%M%SZ)-$old-$$"
+# A verification root is single-use. Never rotate or replace historical runs.
+if [[ -e "$root/evidence" ]]; then
+  echo "G8 evidence already exists; select a new E:-backed /m8 root" >&2
+  exit 2
 fi
+run_id="$(date -u +%Y%m%dT%H%M%SZ)-$(node -e 'process.stdout.write(require("node:crypto").randomBytes(8).toString("hex"))')"
+archive_dir="$root/archives/$run_id"
+mkdir -p "$root/archives" "$root/private"
+mkdir "$archive_dir" || { echo "G8 run archive collision; refusing overwrite" >&2; exit 2; }
+archive_name="g8-$HARBOROPS_SOURCE_SHA-$run_id"
 evidence="$root/evidence"
-mkdir -p "$evidence/trx" "$evidence/trivy" "$root/private"
+mkdir "$evidence"
+mkdir -p "$evidence/trx" "$evidence/trivy"
+printf '%s\n' "$run_id" > "$evidence/run-id.txt"
 printf '%s\n' "$HARBOROPS_SOURCE_SHA" > "$evidence/source-sha.txt"
 date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/started-utc.txt"
 : > "$evidence/stages.tsv"
@@ -70,26 +77,16 @@ stage() {
   return "$rc"
 }
 cleanup() {
-  local rc=$?
+  local rc=$? scan_rc=0 summary_rc=0 archive_rc=0
   trap - EXIT
+  # Include the last logs, actual teardown outcome and timeline in the scan.
   if [[ "$owned_stack" == 1 ]]; then
-    compose logs --no-color --timestamps > "$evidence/compose.log" 2>&1 || true
+    compose logs --no-color --timestamps > "$evidence/compose.log" 2>&1 || rc=1
     compose down --volumes --remove-orphans >> "$evidence/cleanup.log" 2>&1 || rc=1
   fi
   if [[ "$owned_sdk" == 1 ]]; then
     docker rm -f "$sdk_db" >> "$evidence/cleanup.log" 2>&1 || rc=1
   fi
-  if [[ -f "$root/private/source-bearer.txt" ]]; then
-    if grep -R -F -q -- "$(cat "$root/private/source-bearer.txt")" "$evidence"; then
-      echo "Source credential detected in evidence" >&2; rc=1
-    fi
-    rm -f "$root/private/source-bearer.txt"
-  fi
-  if [[ -f "$root/private/test-user-password.txt" ]] &&
-     grep -R -F -q -- "$(cat "$root/private/test-user-password.txt")" "$evidence"; then
-    echo "Fixture password detected in evidence" >&2; rc=1
-  fi
-  rm -f "$root/private/test-user-password.txt"
   local leftover vols pg
   leftover=$(docker ps -aq --filter "label=com.docker.compose.project=$project" || true)
   vols=$(docker volume ls -q --filter "label=com.docker.compose.project=$project" || true)
@@ -97,11 +94,56 @@ cleanup() {
   [[ -z "$leftover" && -z "$vols" && -z "$pg" ]] || rc=1
   printf '%s\n' "containers=$leftover volumes=$vols database=$pg" > "$evidence/teardown.txt"
   date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/ended-utc.txt"
+
+  # The scan executes AFTER the final logs are collected. Private canaries stay
+  # available until the archive itself has also passed a second inspection.
+  stage evidence-safety node scripts/check-m8-evidence-safety.mjs "$HARBOROPS_VERIFICATION_ROOT" || scan_rc=1
+  stage evidence-summary node scripts/summarize-g8-evidence.mjs "$evidence" || summary_rc=1
+  if [[ "$scan_rc" != 0 || "$summary_rc" != 0 ]]; then rc=1; fi
+
+  # Formal gate decisions are independent of technical execution status.
+  if [[ -f "$evidence/g8-scenarios.json" ]]; then
+    node scripts/record-g8-disposition.mjs "$evidence" "$rc" || rc=1
+  else
+    rc=1
+  fi
+  if [[ -f "$evidence/g8-technical-status.json" ]]; then
+    technical_status=$(node -p 'require(process.argv[1]).status' "$evidence/g8-technical-status.json" || echo FAILED)
+  else
+    technical_status=FAILED
+  fi
+  if [[ "$technical_status" != "PASS" ]]; then rc=1; fi
   printf '%s\n' "$rc" > "$evidence/exit-code.txt"
+  # The completed manifest and archive are exclusively created inside the
+  # previously created, unique E:-backed run directory.
   (cd "$evidence" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
-    > "$root/archives/g8-$HARBOROPS_SOURCE_SHA-manifest.sha256" || rc=1
-  tar -czf "$root/archives/g8-$HARBOROPS_SOURCE_SHA-evidence.tar.gz" -C "$root" evidence || rc=1
-  exit "$rc"
+    > "$archive_dir/$archive_name-manifest.sha256" || archive_rc=1
+  draft_archive="$root/private/$archive_name-evidence.tar.gz.pending"
+  if [[ "$archive_rc" == 0 ]]; then
+    tar -czf "$draft_archive" -C "$root" evidence || archive_rc=1
+  fi
+  if [[ "$archive_rc" == 0 ]]; then
+    node scripts/check-m8-archive-safety.mjs "$HARBOROPS_VERIFICATION_ROOT" "$(cygpath -w "$draft_archive")" \
+      > "$archive_dir/archive-safety.log" 2>&1 || archive_rc=1
+  fi
+  if [[ "$archive_rc" == 0 ]]; then
+    [[ ! -e "$archive_dir/$archive_name-evidence.tar.gz" ]] || archive_rc=1
+  fi
+  if [[ "$archive_rc" == 0 ]]; then
+    mv -n "$draft_archive" "$archive_dir/$archive_name-evidence.tar.gz" || archive_rc=1
+  fi
+  if [[ "$archive_rc" != 0 ]]; then
+    rm -f "$draft_archive"
+    echo "G8 archive quarantined: archive creation or final sanitization failed" >&2
+    rc=1
+  fi
+  rm -f "$root/private/source-bearer.txt" "$root/private/test-user-password.txt"
+  if [[ "$rc" == 0 && "$technical_status" == "PASS" ]]; then
+    echo "G8 technical evidence PASS for $run_id. D-006, independent review and G8 acceptance pending."
+    exit 2
+  fi
+  echo "G8 technical verification FAILED for $run_id. Check stage evidence, source and teardown." >&2
+  exit 1
 }
 trap cleanup EXIT
 
@@ -297,19 +339,6 @@ scan_images() {
 }
 mkdir -p "$root/cache/trivy"
 stage image-scans scan_images
-stage evidence-safety node scripts/check-m8-evidence-safety.mjs "$HARBOROPS_VERIFICATION_ROOT"
-
-# G8 acceptance requires normative D-002 references and independent raw-evidence review.
-# The source credential is never packaged; protected interactive CLI issuance is a separate check.
-stage evidence-summary node scripts/summarize-g8-evidence.mjs "$evidence"
-node -e '
-const s = JSON.parse(require("node:fs").readFileSync(process.argv[1] + "/g8-scenarios.json", "utf8"));
-const rows = s.scenarios.filter(x => x.status !== "PASS")
-  .map(x => [x.id, x.status, [x.note, ...x.gaps].filter(Boolean).join("; ")].join("\t"));
-require("node:fs").writeFileSync(process.argv[1] + "/open-gates.tsv", rows.join("\n") + "\n");
-' "$evidence"
-if [[ -s "$evidence/open-gates.tsv" ]]; then
-  echo "G8 technical evidence incomplete; consult open-gates.tsv" >&2
-  exit 2
-fi
-echo "G8 technical stages and scenario assertions passed. Formal G8 acceptance is still pending."
+# The EXIT trap performs final teardown, post-log evidence scanning, immutable
+# packaging and technical-vs-governance disposition. Do not run these early.
+echo "All scheduled G8 technical stages completed; finalization runs on exit."

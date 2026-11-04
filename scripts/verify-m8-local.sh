@@ -123,7 +123,7 @@ cleanup() {
     tar -czf "$draft_archive" -C "$root" evidence || archive_rc=1
   fi
   if [[ "$archive_rc" == 0 ]]; then
-    node scripts/check-m8-archive-safety.mjs "$HARBOROPS_VERIFICATION_ROOT" "$(cygpath -w "$draft_archive")" \
+    node scripts/check-m8-archive-safety.mjs "$HARBOROPS_VERIFICATION_ROOT" "$(cygpath -w "$draft_archive")" "$(cygpath -w "$archive_dir/$archive_name-manifest.sha256")" \
       > "$archive_dir/archive-safety.log" 2>&1 || archive_rc=1
   fi
   if [[ "$archive_rc" == 0 ]]; then

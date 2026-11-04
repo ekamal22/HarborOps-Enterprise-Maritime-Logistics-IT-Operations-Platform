@@ -223,6 +223,9 @@ public sealed class HarborOpsDbContextModelSnapshot : ModelSnapshot
                 .HasColumnType("timestamp with time zone").HasDefaultValueSql("clock_timestamp()");
             entity.HasIndex(x => new { x.OrganizationId, x.ReceiptId, x.OccurredAtUtc, x.Id })
                 .HasDatabaseName("IX_m9_attempt_receipt");
+            entity.HasIndex(x => new { x.ReceiptId, x.Generation })
+                .IsUnique().HasFilter("event_kind='Redriven'")
+                .HasDatabaseName("UQ_m9_redrive_generation");
         });
         modelBuilder.Entity<TrackingProcessingEffect>(entity =>
         {

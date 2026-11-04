@@ -62,7 +62,8 @@ public sealed record TrackingWorkerSettings(
         if (LeaseSeconds is < 10 or > 600 ||
             HeartbeatSeconds is < 2 or > 200 || HeartbeatSeconds * 2 >= LeaseSeconds ||
             PollMilliseconds is < 100 or > 60000 ||
-            MaxAttempts is < 1 or > 5 || MaxRedrives is < 0 or > 3 ||
+            MaxAttempts != TrackingWorkPolicy.DefaultMaxAttempts ||
+            MaxRedrives != TrackingWorkPolicy.DefaultMaxRedrives ||
             BatchSize is < 1 or > 16 || Concurrency is < 1 or > 4)
             throw new InvalidOperationException("Tracking worker settings are outside the safe bounded range");
     }

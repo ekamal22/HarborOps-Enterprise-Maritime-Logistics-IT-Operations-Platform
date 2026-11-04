@@ -80,6 +80,21 @@ public sealed class WorkerShell(
             logger.LogInformation("Tracking worker disposition {Disposition}", result);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (PostgresException conflict) when (conflict.SqlState == PostgresErrorCodes.CheckViolation &&
+            conflict.ConstraintName == "CK_m9_effect_reference")
+        {
+            try
+            {
+                await using var scope = scopes.CreateAsyncScope();
+                var store = scope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
+                await store.ParkReferenceConflictAsync(claim, ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+            catch (Exception failure)
+            {
+                logger.LogWarning("Reference reconciliation deferred ({Type})", failure.GetType().Name);
+            }
+        }
         catch (Exception error)
         {
             var retryable = error switch

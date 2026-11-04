@@ -101,6 +101,7 @@ public sealed class TrackingWorkAdminStore(HarborOpsDbContext db, IConfiguration
               AND s.selected_organization_id=@organization
               AND s.idle_expires_at_utc>clock_timestamp()
               AND s.absolute_expires_at_utc>clock_timestamp()
+              AND s.security_version=u.security_version
               AND u.status='Active' AND m.status='Active' AND m.role='Manager'
             FOR SHARE OF s,m,u
             """, ("session", sessionId), ("actor", userId), ("organization", organizationId)))

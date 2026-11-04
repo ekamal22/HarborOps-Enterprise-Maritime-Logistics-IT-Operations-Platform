@@ -297,4 +297,28 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
         await transaction.CommitAsync(ct);
         return true;
     }
+    public async Task<bool> ParkReferenceConflictAsync(TrackingWorkClaim claim, CancellationToken ct)
+    {
+        // The previous resolution transaction has already rolled back after a
+        // concurrent reference change. Re-check the live lease in a new transaction.
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+        var connection = db.Database.GetDbConnection();
+        var tx = transaction.GetDbTransaction();
+        if (!await LockActiveOrganizationAsync(connection, tx, claim.OrganizationId, ct))
+            return false;
+        var changed = await ExecAsync(connection, tx, """
+            UPDATE tracking_inbox_work_items
+            SET state='NeedsReconciliation',lease_token=NULL,lease_expires_at_utc=NULL,
+                last_error_code='reference_changed',updated_at_utc=clock_timestamp()
+            WHERE receipt_id=@receipt AND organization_id=@organization AND source_id=@source
+              AND state='Leased' AND lease_token=@token AND lease_epoch=@epoch
+              AND redrive_generation=@generation AND lease_expires_at_utc>clock_timestamp()
+            """, ct, ("receipt", claim.ReceiptId), ("organization", claim.OrganizationId),
+            ("source", claim.SourceId), ("token", claim.LeaseToken),
+            ("epoch", claim.LeaseEpoch), ("generation", claim.Generation));
+        if (changed != 1) return false;
+        await transaction.CommitAsync(ct);
+        return true;
+    }
+
 }

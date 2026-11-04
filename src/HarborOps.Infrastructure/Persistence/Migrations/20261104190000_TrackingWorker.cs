@@ -149,7 +149,7 @@ public sealed class TrackingWorker : Migration
                     USING NEW.organization_id,NEW.source_id,NEW.receipt_id;
                 IF family IS DISTINCT FROM 'Equipment' OR equipment IS NULL THEN
                     RAISE EXCEPTION 'Resolution effect requires equipment event'
-                        USING ERRCODE='23514';
+                        USING ERRCODE='23514', CONSTRAINT='CK_m9_effect_reference';
                 END IF;
                 EXECUTE format(
                     'SELECT count(*) FROM (
@@ -171,7 +171,7 @@ public sealed class TrackingWorker : Migration
                     USING NEW.organization_id,NEW.container_id,equipment,NEW.shipment_id,occurred;
                 IF matches <> 1 THEN
                     RAISE EXCEPTION 'Resolution effect is not tenant-time valid'
-                        USING ERRCODE='23514';
+                        USING ERRCODE='23514', CONSTRAINT='CK_m9_effect_reference';
                 END IF;
                 RETURN NEW;
             END $fn$;

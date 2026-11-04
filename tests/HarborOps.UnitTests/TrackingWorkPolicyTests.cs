@@ -26,6 +26,8 @@ public sealed class TrackingWorkPolicyTests
     [InlineData(60,20,0,2,5,3,16,4)]
     [InlineData(60,20,5,2,0,3,16,4)]
     [InlineData(60,20,5,2,11,3,16,4)]
+    [InlineData(60,20,5,2,3,3,16,4)]
+    [InlineData(60,20,5,2,5,2,16,4)]
     [InlineData(60,20,5,2,5,3,17,4)]
     [InlineData(60,20,5,2,5,3,16,5)]
     public void UnsafeConfigurationsFailBeforeWorkStarts(

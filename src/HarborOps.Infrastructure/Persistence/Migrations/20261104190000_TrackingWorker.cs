@@ -112,14 +112,14 @@ public sealed class TrackingWorker : Migration
 
             DROP TRIGGER m8_work_guard ON tracking_inbox_work_items;
             CREATE FUNCTION m9_lock_active_organization(p_org uuid)
-                RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER AS $fn$
-            DECLARE
-                current_status text;
-                scoped_schema name := current_schema();
+                RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog AS $fn$
+            DECLARE current_status text;
             BEGIN
-                -- Identifiers are quoted, not interpolated as SQL values.
-                EXECUTE format('SELECT status FROM %I.organizations WHERE id=$1 FOR UPDATE',
-                    scoped_schema) INTO current_status USING p_org;
+                -- The worker is deployed only against the public application schema.
+                -- Never resolve SECURITY DEFINER tables through a caller-controlled search_path.
+                SELECT status INTO current_status FROM public.organizations
+                WHERE id=p_org FOR UPDATE;
                 RETURN current_status = 'Active';
             END $fn$;
             REVOKE ALL ON FUNCTION m9_lock_active_organization(uuid) FROM PUBLIC;

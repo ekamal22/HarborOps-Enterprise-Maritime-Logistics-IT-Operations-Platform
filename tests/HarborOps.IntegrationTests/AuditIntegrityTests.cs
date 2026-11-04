@@ -82,6 +82,44 @@ public sealed class AuditIntegrityTests
     }
 
     [Fact]
+    public async Task AuditInsertionDoesNotLockTheOrganizationRowBehindRevocations()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await using var blocker = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await blocker.OpenAsync();
+        await using var blockerTx = await blocker.BeginTransactionAsync();
+        await using (var lockOrg = new NpgsqlCommand(
+            "SELECT id FROM organizations WHERE id = @organization FOR UPDATE", blocker, blockerTx))
+        {
+            lockOrg.Parameters.AddWithValue("organization", fixture.A);
+            Assert.Equal(fixture.A, (Guid)(await lockOrg.ExecuteScalarAsync())!);
+        }
+
+        await using var writer = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await writer.OpenAsync();
+        await using var writerTx = await writer.BeginTransactionAsync();
+        await using (var timeout = new NpgsqlCommand("SET LOCAL lock_timeout = '1500ms'",
+            writer, writerTx))
+            await timeout.ExecuteNonQueryAsync();
+        await using (var mutate = new NpgsqlCommand("""
+            UPDATE organization_memberships
+            SET updated_at_utc = clock_timestamp()
+            WHERE id = (SELECT id FROM organization_memberships
+                        WHERE organization_id = @organization LIMIT 1)
+            """, writer, writerTx))
+        {
+            mutate.Parameters.AddWithValue("organization", fixture.A);
+            Assert.Equal(1, await mutate.ExecuteNonQueryAsync());
+        }
+        await writerTx.CommitAsync();
+        await blockerTx.RollbackAsync();
+    }
+
+    [Fact]
     public async Task ReaderUsesLiveAuditorAndOrganizationScope()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

@@ -235,7 +235,9 @@ stage contract-tests sdk 'dotnet test tests/HarborOps.ContractTests/HarborOps.Co
 stack_up() {
   owned_stack=1
   compose config -q || return 1
-  compose up -d --build postgres migrator api web || return 1
+  # Build every image once. A later `up --build` would rebuild dependencies and recreate PostgreSQL mid-run.
+  compose build postgres migrator api web worker || return 1
+  compose up -d --no-build postgres migrator api web || return 1
   local i code
   for i in $(seq 1 90); do
     code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8089/health/ready || true)
@@ -246,7 +248,7 @@ stack_up() {
   compose exec -T postgres psql -v ON_ERROR_STOP=1 -U harborops -d harborops < scripts/m9-worker-role.sql || return 1
   printf "ALTER ROLE harborops_worker PASSWORD :'pw'\n" | compose exec -T -e PW="$HARBOROPS_WORKER_DB_PASSWORD" postgres \
     sh -c 'psql -v ON_ERROR_STOP=1 -v pw="$PW" -U harborops -d harborops' || return 1
-  compose up -d --build worker || return 1
+  compose up -d --no-build worker || return 1
   local health
   for i in $(seq 1 60); do
     health=$(compose ps worker --format '{{.State}} {{.Health}}')

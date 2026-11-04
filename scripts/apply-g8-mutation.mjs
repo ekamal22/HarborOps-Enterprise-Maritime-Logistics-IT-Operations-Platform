@@ -19,8 +19,8 @@ const rules = {
   },
   "early-ack": {
     path: store,
-    from: "        await transaction.CommitAsync(ct);\n        return new(TrackingReceiptOutcome.Received, receipt, now);",
-    to: "        // Disposable mutation: return without committing the receipt transaction.\n        return new(TrackingReceiptOutcome.Received, receipt, now);"
+    from: "        await commitHook.BeforeCommitAsync(receipt, ct);\n        await transaction.CommitAsync(ct);",
+    to: "        await commitHook.BeforeCommitAsync(receipt, ct);\n        // Disposable mutation: omit the new-receipt COMMIT; leave the post-commit callback and response."
   },
   quota: {
     path: store,

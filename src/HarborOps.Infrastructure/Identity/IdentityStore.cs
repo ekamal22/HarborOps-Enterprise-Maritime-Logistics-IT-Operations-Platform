@@ -1,3 +1,4 @@
+using HarborOps.Infrastructure.Audit;
 using Microsoft.EntityFrameworkCore;
 using HarborOps.Infrastructure.Persistence;
 using HarborOps.Infrastructure.Organizations;
@@ -104,6 +105,7 @@ public sealed class IdentityStore(HarborOpsDbContext db, PasswordHasher password
     {
         var now = clock.GetUtcNow();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            await AuditActorContext.SetHumanAsync(db, userId, sessionId, correlationId, ct);
         await db.AuthSessions.Where(x => x.Id == sessionId && x.UserId == userId && x.RevokedAtUtc == null)
             .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.RevokedAtUtc, now)
                 .SetProperty(x => x.RevocationReason, "logout"), ct);

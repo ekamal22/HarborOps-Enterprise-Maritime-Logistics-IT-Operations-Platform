@@ -10,7 +10,7 @@
 
 **Recommendation:** `Pending -> Leased -> Processed`, with `RetryWaiting`, `NeedsReconciliation` and `DeadLetter` as persisted alternatives. An active lease is identified by a private UUID token, strictly increasing lease epoch and a PostgreSQL-issued expiry. Only current, unexpired ownership may finalize a result. Attempts are incremented on claim, not at the point of failure.
 
-An expired lease cannot update a receipt, replace the winner's result or renew an epoch it no longer holds. A stopped worker's abandoned lease remains durably visible until expiry and the next recovery sweep. Complete failure and retry attempts are recorded as append-only events. Processing effects have a unique receipt ID. `Processed` is terminal.
+An expired lease cannot update a receipt, replace the winner's result or renew an epoch it no longer holds. A takeover from expired Leased to new Leased is permitted only under the database lock with a fresh token, strictly higher epoch and incremented attempt count. Processed may commit only with exactly one immutable receipt-keyed effect in the same transaction, enforced by a deferred PostgreSQL completeness constraint. A stopped worker's abandoned lease remains durably visible until expiry and the next recovery sweep. Complete failure and retry attempts are recorded as append-only events. Processing effects have a unique receipt ID. `Processed` is terminal.
 
 ## Decision 2: Retry defaults
 

@@ -55,7 +55,7 @@ Deliverables:
 
 Source modifications to implement:
 
-- `src/HarborOps.Infrastructure/Persistence/Migrations/<new M9 timestamp>_TrackingWorker.cs`: additive work columns and initial Pending backfill; explicit guarded state constraints; replace M8 work guard only; append-only attempt/effect tables and tenant-scoped FKs; eligible/expired indexes; safe empty rollback and blocked populated rollback.
+- `src/HarborOps.Infrastructure/Persistence/Migrations/<new M9 timestamp>_TrackingWorker.cs`: additive work columns and initial Pending backfill; explicit guarded state constraints; replace M8 work guard only; add a deferred Processed-requires-effect completeness trigger; append-only attempt/effect tables and tenant-scoped FKs; eligible/expired indexes; safe empty rollback and blocked populated rollback.
 - `src/HarborOps.Infrastructure/Integrations/TrackingInboxEntities.cs`, `HarborOpsDbContext.cs`, `HarborOpsDbContextModelSnapshot.cs`: strictly matching EF model with DB constraints; unchanged receipt/event/conflict immutability.
 - `src/HarborOps.Infrastructure/Integrations/TrackingWorkStore.cs` (new): short organization-first claim transactions with `FOR UPDATE SKIP LOCKED`, expiring leases, generation/epoch/token checks, heartbeats, bounded row selection, fair polling, and atomic effect + processed-state finalization. Never hold a claim transaction while performing resolution.
 - `src/HarborOps.Infrastructure/Integrations/TrackingReferenceResolver.cs` (new): deterministic scoped lookup against source event time and tenant assignments; 0/1/multiple result treatment without foreign organization fallbacks.

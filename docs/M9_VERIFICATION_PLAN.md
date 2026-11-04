@@ -20,7 +20,7 @@ G9 has a separate acceptance step. M9-01 local contract approval and a technical
 | --- | --- | --- |
 | **G9-S01** | Accepted M9-01 local state/lease/capacity/reconciliation contract | Versioned decision record and approved state machine; no implicit change to D-006 |
 | **G9-S02** | Additive M0-M9 migration and M8 populated upgrade | Fresh schema, populated M8 rows retained unchanged, Pending backfill and safe empty rollback, EF snapshot parity |
-| **G9-S03** | Scoped SQL integrity and work transition guards | Direct-SQL UPDATE/DELETE attacks on M8 immutable tables fail; invalid state/tenant/token changes fail; no orphan effects |
+| **G9-S03** | Scoped SQL integrity and work transition guards | Direct-SQL UPDATE/DELETE attacks on M8 immutable tables fail; invalid state/tenant/token changes fail; a Processed row cannot commit without exactly one receipt effect; no orphan effects |
 | **G9-S04** | Unique immutable effect and attempt event constraints | Concurrent/duplicate effect insert impossible; append-only attempt events; correct composite FKs and unique keys |
 | **G9-S05** | Atomic due claim and fair polling | Due/undue indexes, one transaction claim, no double claim, bounded organization round-robin |
 | **G9-S06** | Two live worker processes race for one receipt | Actual overlapping PostgreSQL transactions, exactly one current lease token and epoch; losing worker cannot finalize |

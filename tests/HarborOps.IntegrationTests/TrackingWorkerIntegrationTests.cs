@@ -42,6 +42,57 @@ public sealed class TrackingWorkerIntegrationTests
     }
 
     [Fact]
+    public async Task ValidTimeScopedContainerAssignmentProducesExactlyOneImmutableEffect()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        var maritime = await AssignmentHttpTests.Seed(fixture);
+        using var allocation = await ReferenceDataHttpTests.Send(analyst, HttpMethod.Post,
+            maritime.Root + "/" + maritime.Shipment + "/container-assignments",
+            new { containerId = maritime.Container, startsAtUtc = "2026-11-03T09:00:00Z" });
+        Assert.Equal(HttpStatusCode.Created, allocation.StatusCode);
+        string reference;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            reference = (await db.Containers.AsNoTracking()
+                .SingleAsync(c => c.Id == maritime.Container)).ContainerIdentifier;
+        }
+        var receipt = await Ingest(factory, fixture.A,
+            "m9-resolved-" + Guid.NewGuid().ToString("N")[..12], reference);
+        await using var verify = factory.Services.CreateAsyncScope();
+        var database = verify.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var worker = new TrackingWorkStore(database, new TrackingWorkerSettings());
+        var claim = await worker.ClaimOneAsync(fixture.A, CancellationToken.None);
+        Assert.NotNull(claim);
+        Assert.Equal(receipt, claim!.ReceiptId);
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await worker.FinalizeAsync(claim, CancellationToken.None));
+        Assert.Equal(TrackingWorkDisposition.Stale,
+            await worker.FinalizeAsync(claim, CancellationToken.None));
+        var effect = await database.TrackingProcessingEffects.AsNoTracking()
+            .SingleAsync(e => e.ReceiptId == receipt);
+        Assert.Equal(maritime.Container, effect.ContainerId);
+        Assert.Equal(maritime.Shipment, effect.ShipmentId);
+        Assert.Equal("m9-reference-v1", effect.ResolutionPolicy);
+        var work = await database.TrackingInboxWorkItems.AsNoTracking()
+            .SingleAsync(x => x.ReceiptId == receipt);
+        Assert.Equal("Processed", work.State);
+        Assert.Equal(1, work.AttemptCount);
+        Assert.Equal(1, await database.TrackingProcessingEffects.CountAsync(x => x.ReceiptId == receipt));
+        var protectedEffect = await Assert.ThrowsAsync<PostgresException>(() =>
+            database.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE tracking_processing_effects SET resolution_kind = {"Other"}
+                WHERE receipt_id = {receipt}
+                """));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, protectedEffect.SqlState);
+        Assert.Equal(1, await database.TrackingAcceptedEvents.CountAsync(x => x.ReceiptId == receipt));
+    }
+
+    [Fact]
     public async Task UnknownReferenceIsParkedAndCanBeRedrivenOnlyByManager()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

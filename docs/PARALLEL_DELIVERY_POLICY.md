@@ -29,7 +29,8 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M6 shipment assignments | Accepted and merged | G4/G5 prerequisites were accepted; the [twelve-rule M6 contract](M6_LOCAL_CONTRACT_DECISION.md) and full G6 were accepted 2026-11-02, then integrated into `main`. [Gate closure](M6_G6_GATE_CLOSURE.md) preserves evidence provenance and snapshot limitations. |
 | M7 tracking source contract | Completed and merged | G7 and D-002 Option A accepted 2026-11-03; see [closure](M7_G7_GATE_CLOSURE.md) |
 | M8 durable receipt implementation | G8 accepted and merged 2026-11-04 via PR #14 | G6/G7 accepted; D-006 Option A and independent source-locked G8 evidence reviewed; see [closure](M8_G8_GATE_CLOSURE.md) |
-| M12 shipment search/export | M12-01 | G5 accepted; scoped search and export can proceed on an isolated branch while G8 is verified |
+| M9 worker and reconciliation | M9-01 planning | G8 accepted; [M9 local contract](M9_LOCAL_CONTRACT_PROPOSAL.md) acceptance pending before shared worker state/migration implementation; [M9 plan](M9_IMPLEMENTATION_PLAN.md) defines safe parallel files |
+| M12 shipment search/export | M12-01 | G5 accepted; scoped search/export remains independently eligible in an isolated branch with no shared EF snapshot or Compose collision |
 | M14 route mapping | M14-01 | G4 accepted; map licensing and fallback must be decided before implementation |
 | M16 audit foundations | M16-01 | G3 accepted; never weaken existing M1-M3 security |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |
@@ -42,6 +43,10 @@ M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and in
 ## M8 verification and independent parallel implementation boundary
 
 The [M8 implementation](M8_IMPLEMENTATION_STATUS.md), [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md), [second-audit remediation](M8_SECOND_REMEDIATION_STATUS.md) and [G8 matrix](M8_VERIFICATION_PLAN.md) are committed as a single feature-branch candidate. They were source-locked technically verified and accepted after independent review on 2026-11-04. Keep G8 source locked and verify its EF model/migration, transaction/authorization, real PostgreSQL COMMIT interruption and replay, restart-byte continuity and final archive safety. The approved D-006 Option A and G8 acceptance are separately recorded in [gate closure](M8_G8_GATE_CLOSURE.md). A parallel M12 search/export stream may begin from accepted G5, but it must use its own branch and resources and may not modify M8's shared migration or tracking route. M9 starts only after G8 acceptance. No execution-graph dependency changes are proposed.
+
+## M9 worker and retry implementation boundary (planned)
+
+The [M9 architecture](M9_ARCHITECTURE_DESIGN.md) and [G9 matrix](M9_VERIFICATION_PLAN.md) preserve the accepted G8 immutable receipt/event schema and add a new worker-only state migration with tenant-specific resolution effects, explicit lease fencing and bounded retry/dead-letter/reconciliation. M9-02 and M9-03 can be implemented in parallel after the [M9-01 local contract](M9_LOCAL_CONTRACT_PROPOSAL.md) is explicitly frozen; one integration coordinator controls EF snapshot, new migration, permission tables and worker DI. M12 search/export may run in a different branch from accepted G5, without conflicting migrations or default Compose resources. The 25-case G9 full verification follows M9-04 and requires independent review and explicit G9 acceptance. No changes to the canonical graph dependencies are proposed. [M9 planning status](M9_PLANNING_STATUS.md) records the unimplemented state.
 
 ## Branches and source of truth
 

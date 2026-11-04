@@ -79,7 +79,7 @@ Append-only records of sensitive actions and key operational state changes. No d
 - HTTP handlers call application services. Business rules reside in domain/application layers.
 - External data formats terminate at adapter boundaries; internal domain types are stable and versioned.
 - Queries may use dedicated read models without bypassing organization checks.
-- The worker must have bounded retries, idempotent handlers, and durable error records.
+- The worker must have bounded retries, idempotent handlers, and durable error records. [M9 architecture](M9_ARCHITECTURE_DESIGN.md) proposes PostgreSQL lease epoch/token fencing, receipt-unique immutable resolution effects and a separately authorized reconciliation path, with G9 acceptance pending.
 - Shared infrastructure abstractions must not obscure domain ownership.
 - Prefer straightforward synchronous paths until measurable requirements justify additional infrastructure.
 

@@ -95,6 +95,10 @@ See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed
 
 PostgreSQL atomically persists one immutable receipt, accepted event and separate Pending work row. The scoped replay key is permanently reserved by a PostgreSQL unique index, with canonical digest, deterministic duplicate identity and bounded 409 collision metadata. The original bearer is reauthorized under organization/source/credential transaction locks before post-commit-only 202. The configurable 10,000 Pending per-organization default is accepted for the demonstrator, not certified production throughput. No immutable accepted-history deletion is authorized. M9 must add a separately reviewed migration permitting lease/retry/Processed/DeadLetter work-state transitions and preserve receipt/event immutability. See [D-006 contract](M8_D006_DURABILITY_PROPOSAL.md) and [M8/G8 closure](M8_G8_GATE_CLOSURE.md).
 
+## M9 local contract scope (not a new D-number)
+
+The accepted D-006 Option A requires an additive M9 work-state migration while retaining immutable receipt/event history. The separate [M9 local contract proposal](M9_LOCAL_CONTRACT_PROPOSAL.md) identifies implementation-level choices for lease fencing, retry/redrive budgets, equipment/transport resolution, role permissions and the 10,000 unresolved-work admission predicate. **M9-01 acceptance pending** before any persistence or operator API implementation. This proposal does not reopen D-006 or authorize G9 acceptance; see [M9 architecture](M9_ARCHITECTURE_DESIGN.md).
+
 ## Decision change protocol
 
 Each material reversal records: context, alternatives, trade-offs, chosen approach, impact on requirements and tests, migration needs, and acceptance status. A change is not adopted solely because a new library or service is available.

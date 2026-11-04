@@ -54,8 +54,6 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
             entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
-            entity.HasOne<HarborOps.Infrastructure.Organizations.Organization>().WithMany()
-                .HasForeignKey(x => x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
             entity.Property(x => x.EventType).HasColumnName("event_type").HasMaxLength(96).IsRequired();
             entity.Property(x => x.EventSchemaVersion).HasColumnName("event_schema_version").HasDefaultValue(1);
             entity.Property(x => x.Outcome).HasColumnName("outcome").HasMaxLength(16).IsRequired();

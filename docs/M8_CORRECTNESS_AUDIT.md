@@ -8,6 +8,8 @@
 **Disposition:** **Correctness blockers found. M8 is not G8-ready. D-006 acceptance pending.**  
 **Evidence classification:** Repository source inspection only. No executable .NET, PostgreSQL, Compose, Playwright, mutation or G8 raw evidence is available from this repository connection. A source-asserted invariant is not an observed test pass.
 
+**Follow-up:** The source-level changes addressing all nine findings are recorded in [M8 correctness remediation](M8_CORRECTNESS_REMEDIATION.md). The original audit findings below remain preserved; executable verification is still pending.
+
 ## Audit method
 
 Reviewed the new receipt canonicalizer, tracking API endpoint, source bearer lifecycle and reauthorization, relational migration and EF/snapshot mappings, integration/unit/SQL tests, browser source, G8 Compose file, technical runner, mutation harness, evidence summarizer and governing D-006 and G8 requirements. Compared the implementation branch with its planning parent and cross-checked required scenarios with their named test methods. Historical G7 evidence was not modified or reinterpreted.

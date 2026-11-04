@@ -29,7 +29,7 @@ No M9 retry/worker claim/dead-letter execution, no M10 projection, no public rec
 - The first EF source assembly accidentally duplicated portions of the accepted model. Both EF mapping and snapshot were rebuilt from the clean M7 main baseline and the M8 mappings inserted once, with exact matching block content. This is a source-only correction, not a passing build.
 - The legacy G7 no-durable-ack unit/contract assertions and historical migration test boundaries were updated to distinguish M8 behavior from original immutable G7 evidence. G7 historical records were not altered.
 - The G8 Compose configuration has isolated ports, subnet and project; browser fixtures use a configurable base URL. The runner checks the E: path and refuses an existing disposable project before provisioning.
-- Controlled source mutations are defined for digest reauthorization, collision decision, missing Pending work insert, premature success, SQL append-only protection and quota checks. None has been executed here.
+- Controlled mutation coverage now defines 11 variants across source digest, authorization, tenant scope, immutable history, collision, quota and commit integrity. They have not been executed here. See [remediation register](M8_CORRECTNESS_REMEDIATION.md).
 
 ## Unverified and blocked requirements
 

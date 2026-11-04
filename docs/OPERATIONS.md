@@ -155,6 +155,8 @@ The M7 API implements a local operator-only source CLI for create, rotate, revok
 
 ## M8 local durable-intake verification operations (unverified candidate)
 
+The feature branch now provides [correctness remediation](M8_CORRECTNESS_REMEDIATION.md), a separate [source-locked review reconciliation procedure](M8_G8_RECONCILIATION.md) and an E:-backed technical runner. The runner cannot itself record D-006 approval or independent G8 acceptance; review inputs remain separately sourced and original raw run evidence must not be overwritten.
+
 The [M8 architecture](M8_ARCHITECTURE_DESIGN.md) proposes an atomic PostgreSQL receipt/event/Pending-work transaction on the accepted M7 tracking route. D-006 remains [acceptance pending](M8_D006_DURABILITY_PROPOSAL.md). The feature branch implements receipt intake, but no verified or accepted runtime exists. No retention job, worker or new operator command is introduced. For future G8 runs, isolate E:-backed `ho-verify-g8` database, network, image and evidence resources, never reuse the primary or G7 retained stack, and preserve raw sanitized transaction/replay/failure/teardown evidence. Do not delete committed receipts or release source-event keys to free capacity. The proposed Pending admission cap and M9 handoff require a separately accepted design; no durable success acknowledgment may be exposed before transactional verification. See [M8 verification plan](M8_VERIFICATION_PLAN.md).
 
 ## Parallel development operations boundary

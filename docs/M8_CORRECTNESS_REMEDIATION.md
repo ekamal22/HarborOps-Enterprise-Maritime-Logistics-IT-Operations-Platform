@@ -1,0 +1,30 @@
+# M8 Correctness Remediation Register
+
+**As of:** 2026-11-04  
+**Implementation branch:** `feat/m8-durable-event-inbox`, draft [PR #14](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/14)  
+**Source audit:** [M8 correctness audit](M8_CORRECTNESS_AUDIT.md), nine findings against `690360de234d856911f60d142332c48b75aae50e`.  
+**Status:** All nine findings have source-level remediation commits and targeted test definitions. **None is runtime verified or formally closed.** D-006 acceptance pending. G8 not executed and acceptance pending.
+
+## Remediation inventory
+
+| Audit ID | Source-level correction | Verification required | Status |
+| --- | --- | --- | --- |
+| **M8-A01, High** | Migration `Down()` raises a PostgreSQL check exception if any accepted receipt remains. Empty disposable rollback remains available. | `PopulatedM8DowngradeIsRejectedAndPreservesImmutableHistory`, existing empty rollback/reapply and raw catalog state | Source patched; verification pending |
+| **M8-A02, High** | G8 browser runner uses `http://localhost:5178` consistently with Compose CORS. Remaining hardcoded shipment-draft and baseline origins are configurable. | Full non-skipped Chromium, Firefox and WebKit suite, including same-origin mutation tests | Source patched; verification pending |
+| **M8-A03, High** | Added inert production commit-window hook and deterministic before-COMMIT rollback, after-COMMIT lost-acknowledgment and mid-write cancellation tests. The retry reconstructs original receipt identity. | `CommitUncertaintyNeverProducesSuccessAndReplayResolvesOutcome` (both variants), `MidTransactionCancellationRollsBackCompleteReceiptTriple`, controlled real database outage and repeated runs | Source patched; verification pending |
+| **M8-A04, High** | Added JSON reorder/whitespace, 10 sequential replays, 20 concurrent deliveries, distinct same-org sources, three PostgreSQL lock-wait races, temporal credentials, default 9,999/10,000/10,001 quota, direct SQL adversarial cases and loss/restart continuity. Evidence summary requires those named executed methods, both integration TRX runs and the full browser spec matrix. | Every [G8-S02 through G8-S24](M8_VERIFICATION_PLAN.md) scenario under the real source-locked G8 run | Source patched; verification pending |
+| **M8-A05, Medium** | Changed the three SQL uniqueness definitions from named constraints to named unique indexes matching EF Core `HasIndex(...).IsUnique()` metadata. Composite alternate keys remain unique constraints. | `M8DatabaseIndexesMatchRelationalModel`, PostgreSQL `pg_indexes` and `pg_constraint`, EF snapshot/differ checks | Source patched; verification pending |
+| **M8-A06, Medium** | Initial tracking authentication dependency errors now receive safe `Retry-After: 60` guidance through the shared 503 handler, consistent with the receipt store. | `InitialAuthenticationDatabaseOutageGivesRetryable503`, outage/recovery script and HTTP no-store/correlation assertions | Source patched; verification pending |
+| **M8-A07, Medium** | Expanded to **11 controlled mutations**: digest, collision, work absence, premature ack, append-only, quota, event absence, unique key, credential tenant FK, final revocation and source status. | Every intended mutant must fail its named test with a clean baseline and no compiler-only kills | Source patched; verification pending |
+| **M8-A08, Medium** | Added a separate `reconcile-g8-review.mjs` that binds explicit D-006 and independent-review references to source SHA, original 25-case evidence, all clean technical stages and archived SHA-256 digests. Does not rewrite original evidence or auto-accept G8. | Completed E:-backed run, actual approval and reviewer references, separate recorded acceptance | Source patched; decision and review pending |
+| **M8-A09, Low** | Validate `M8:PendingLimit` at application startup rather than during the first valid event. Invalid or out-of-range settings fail closed before serving requests. | `TrackingInboxQuotaConfigurationTests` and startup smoke on valid/invalid limits | Source patched; verification pending |
+
+Additional hardening: credentials now evaluate not-before and expiry **after** obtaining the final source/credential row locks, preventing stale pre-lock timestamps from authorizing an event.
+
+## Mandatory G8 completion boundary
+
+The remediation fixes are **not test results**. Real .NET 10 compilation, EF migration on fresh and populated PostgreSQL, both integration passes, 20-way concurrency, actual lock waits, fault-window injections, 10,000-item admission, 11 effective mutants, all browser engines, dependency and image scans, source/receipt hashes and sanitized evidence must still execute from E:. In particular, deterministic callback-based lost acknowledgment covers application semantics but is not a substitute for independently reviewing actual database/network failure-window artifacts.
+
+The G8 runner produces an immutable initial scenario report and will remain blocked for S01 and S25 until the decision and independent review. [Independent reconciliation procedure](M8_G8_RECONCILIATION.md) explains the separate hash-bound supplement. Do not modify or erase initial G8 outputs to manufacture passes. G8 gate acceptance remains separate from technical runs and D-006 approval.
+
+**Protected `main` is unchanged. GitHub Actions remain disabled. No permanent project writes on C:. No public hosting or M9/M10 work was introduced.**

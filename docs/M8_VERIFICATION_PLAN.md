@@ -1,6 +1,6 @@
 # G8 Verification Plan: Durable Inbox and Immutable Accepted History
 
-**State:** Planned, not executed. D-006 acceptance pending; G8 acceptance pending.
+**State:** Executable source-level tests, fault hooks, isolated runner and stricter evidence reconciliation authored. None executed. D-006 acceptance pending; G8 acceptance pending. See [remediation register](M8_CORRECTNESS_REMEDIATION.md).
 **Prepared:** 2026-11-03
 **Accepted baseline:** M0-G0 through M7-G7 on `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`.
 **Scope:** M8-01 to M8-04, no M9 worker execution or M10 projections.

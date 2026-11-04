@@ -84,6 +84,37 @@ public sealed class AuditHttpTests
                 entry.GetProperty("organizationId").GetString());
             Assert.False(entry.TryGetProperty("actorSessionId", out _));
         }
+        // The prior page API repeated rows because every read appends an audit
+        // event. The cursor must preserve a stable boundary between requests.
+        using var firstPageResponse = await auditor.GetAsync(route + "?limit=1");
+        Assert.Equal(HttpStatusCode.OK, firstPageResponse.StatusCode);
+        using var firstPage = JsonDocument.Parse(
+            await firstPageResponse.Content.ReadAsStringAsync());
+        var nextCursor = firstPage.RootElement.GetProperty("nextCursor").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(nextCursor));
+        var firstPageId = firstPage.RootElement.GetProperty("entries")[0]
+            .GetProperty("id").GetString();
+        using var secondPageResponse = await auditor.GetAsync(
+            route + "?limit=1&cursor=" + Uri.EscapeDataString(nextCursor!));
+        Assert.Equal(HttpStatusCode.OK, secondPageResponse.StatusCode);
+        using var secondPage = JsonDocument.Parse(
+            await secondPageResponse.Content.ReadAsStringAsync());
+        Assert.NotEqual(firstPageId, secondPage.RootElement.GetProperty("entries")[0]
+            .GetProperty("id").GetString());
+        Assert.Equal(HttpStatusCode.BadRequest,
+            (await auditor.GetAsync(route + "?page=2&limit=1")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest,
+            (await auditor.GetAsync(route + "?cursor=not-a-valid-cursor")).StatusCode);
+
+        var grantedMembershipId = await db.OrganizationMemberships.AsNoTracking()
+            .Where(m => m.OrganizationId == orgA.Id && m.UserId == auditorId)
+            .Select(m => m.Id).SingleAsync();
+        var membershipAudit = await db.AuditEntries.AsNoTracking()
+            .Where(e => e.OrganizationId == orgA.Id &&
+                        e.ResourceId == grantedMembershipId &&
+                        e.EventType == "organization_memberships.insert")
+            .SingleAsync();
+        Assert.Equal("Administrator", membershipAudit.ActorRole);
         var firstId = entries[0].GetProperty("id").GetString();
         Assert.Equal(HttpStatusCode.OK,
             (await auditor.GetAsync(route + "/" + firstId)).StatusCode);

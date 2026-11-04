@@ -31,7 +31,7 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M8 durable receipt implementation | G8 accepted and merged 2026-11-04 via PR #14 | G6/G7 accepted; D-006 Option A and independent source-locked G8 evidence reviewed; see [closure](M8_G8_GATE_CLOSURE.md) |
 | M12 shipment search/export | M12-01 | G5 accepted; scoped search and export can proceed on an isolated branch while G8 is verified |
 | M14 route mapping | M14-01 | G4 accepted; map licensing and fallback must be decided before implementation |
-| M16 audit foundations | M16-01 | G3 accepted; never weaken existing M1-M3 security |
+| M16 audit foundations | M16-01; architecture and M16-D01 to M16-D05 approved 2026-11-04 | G3 accepted; follow [approved audit policy](M16_POLICY_DECISIONS.md), coordinate migration/worker privileges with M9; G16 remains open |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |
 | M19 recovery foundations | M19-01 | G3 accepted; D-008 and safe isolated backups before risky operations |
 | M20 security assurance | M20-01 | Baseline review begins after G3; attack matrix waits for G15/G18, scanners for G19 |
@@ -42,6 +42,10 @@ M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and in
 ## M8 verification and independent parallel implementation boundary
 
 The [M8 implementation](M8_IMPLEMENTATION_STATUS.md), [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md), [second-audit remediation](M8_SECOND_REMEDIATION_STATUS.md) and [G8 matrix](M8_VERIFICATION_PLAN.md) are committed as a single feature-branch candidate. They were source-locked technically verified and accepted after independent review on 2026-11-04. Keep G8 source locked and verify its EF model/migration, transaction/authorization, real PostgreSQL COMMIT interruption and replay, restart-byte continuity and final archive safety. The approved D-006 Option A and G8 acceptance are separately recorded in [gate closure](M8_G8_GATE_CLOSURE.md). A parallel M12 search/export stream may begin from accepted G5, but it must use its own branch and resources and may not modify M8's shared migration or tracking route. M9 starts only after G8 acceptance. No execution-graph dependency changes are proposed.
+
+## M16 parallel integration rules
+
+The [approved M16 architecture](M16_ARCHITECTURE_DESIGN.md), [policy](M16_POLICY_DECISIONS.md) and [work plan](M16_IMPLEMENTATION_PLAN.md) require a separate audit schema, Auditor-only access and isolated migration/API/worker PostgreSQL roles. M9 worker and M16 must coordinate `HarborOpsDbContext.cs`, the EF snapshot, migration ordering, database grants, `OrganizationPolicy.cs`, `Program.cs`, DI and lock ordering; neither stream may silently rewrite the other's history. M12 export must not inherit audit visibility, M14 route work and M17 telemetry consume only safe explicitly typed audit contracts, and M19 recovery must cover the combined migration chain. M16 planning approval is not G16 verification or acceptance.
 
 ## Branches and source of truth
 

@@ -25,8 +25,8 @@ public sealed class AuditIntegrityTests
         var created = Assert.Single(entries, x => x.EventType == "organizations.insert");
         Assert.Equal("Succeeded", created.Outcome);
         Assert.Equal(1, created.EventSchemaVersion);
-        Assert.Equal("{\"operation\": \"insert\"}", created.MetadataJson.Replace(" ", "") == "{\"operation\":\"insert\"}"
-            ? "{\"operation\": \"insert\"}" : created.MetadataJson);
+        using (var metadata = System.Text.Json.JsonDocument.Parse(created.MetadataJson))
+            Assert.Equal("insert", metadata.RootElement.GetProperty("operation").GetString());
 
         var payload = string.Join("|", entries.Select(e => e.MetadataJson));
         Assert.DoesNotContain("@example.test", payload, StringComparison.OrdinalIgnoreCase);

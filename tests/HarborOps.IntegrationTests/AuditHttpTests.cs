@@ -95,7 +95,7 @@ public sealed class AuditHttpTests
         var revoke = await organizations.RemoveMemberAsync(session.UserId, session.SessionId,
             orgA.Id, auditorId, 1, "m16-revoke", CancellationToken.None);
         Assert.Equal(OrganizationAccessError.None, revoke);
-        Assert.Equal(HttpStatusCode.Forbidden, (await auditor.GetAsync(route)).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await auditor.GetAsync(route)).StatusCode);
     }
 
     private static async Task LoginAsync(HttpClient client, string email)

@@ -117,7 +117,7 @@ public static class AuthenticationSetup
                         ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
                     _ => new FixedWindowRateLimiterOptions
                     {
-                        Window = TimeSpan.FromMinutes(1), PermitLimit = 120,
+                        Window = TimeSpan.FromMinutes(1), PermitLimit = 30,
                         QueueLimit = 0, AutoReplenishment = true
                     }));
         });

@@ -68,7 +68,7 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
     }
 
     private static async Task<Guid> ReauthorizeAsync(DbConnection connection, DbTransaction tx,
-        string bearer, TrackingEvent value, DateTimeOffset now, CancellationToken ct)
+        string bearer, TrackingEvent value, TimeProvider clock, CancellationToken ct)
     {
         var secret = IntegrationSourceStore.ParseSecret(bearer, out var credentialId);
         if (secret is null) return Guid.Empty;
@@ -80,7 +80,7 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
                 // The organization is already held FOR UPDATE by the calling transaction.
                 // Lock source and credential in the order used by source CLI mutations.
                 await using var command = Command(connection, tx, """
-                    SELECT c.secret_digest
+                    SELECT c.secret_digest, c.not_before_utc, c.expires_at_utc
                     FROM integration_sources s
                     JOIN integration_credentials c
                       ON c.source_id = s.id AND c.organization_id = s.organization_id
@@ -89,15 +89,21 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
                       AND s.status = 'Active'
                       AND s.capability = 'tracking_event_validate'
                       AND c.revoked_at_utc IS NULL
-                      AND c.not_before_utc <= @checked_at AND c.expires_at_utc > @checked_at
                     FOR SHARE OF s, c
                     """,
                     ("organization", value.OrganizationId), ("source", value.SourceId),
-                    ("credential", credentialId), ("checked_at", now));
+                    ("credential", credentialId));
                 await using var reader = await command.ExecuteReaderAsync(ct);
                 if (!await reader.ReadAsync(ct)) return Guid.Empty;
+                // Capture the current time after the FOR SHARE lock has been acquired.
+                // A credential must not become valid merely because it was valid
+                // before a long source/credential lock wait.
+                var checkedAt = clock.GetUtcNow();
+                var notBefore = reader.GetFieldValue<DateTimeOffset>(1);
+                var expires = reader.GetFieldValue<DateTimeOffset>(2);
                 var expected = reader.GetFieldValue<byte[]>(0);
-                return expected.Length == digest.Length &&
+                return notBefore <= checkedAt && expires > checkedAt &&
+                    expected.Length == digest.Length &&
                     CryptographicOperations.FixedTimeEquals(expected, digest)
                     ? credentialId : Guid.Empty;
             }
@@ -134,10 +140,10 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
                 return new(TrackingReceiptOutcome.AccessDenied);
         }
 
-        var now = clock.GetUtcNow();
-        var credentialId = await ReauthorizeAsync(connection, current, bearer, value, now, ct);
+        var credentialId = await ReauthorizeAsync(connection, current, bearer, value, clock, ct);
         if (credentialId == Guid.Empty)
             return new(TrackingReceiptOutcome.AccessDenied);
+        var now = clock.GetUtcNow();
 
         Guid originalReceipt = Guid.Empty;
         DateTimeOffset originalTime = default;

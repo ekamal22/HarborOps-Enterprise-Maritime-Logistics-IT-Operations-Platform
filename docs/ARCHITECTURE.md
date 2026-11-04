@@ -1,6 +1,6 @@
 # Architecture
 
-**Accepted implementation:** M0-M7 are integrated into protected `main` as of 2026-11-03. M7 adds tenant-bound integration-source credentials and strict tracking-event validation. A valid event still returns HTTP 503 until M8 implements durable receipt. The .NET worker is an idle scaffold until M9. See [G7 closure](M7_G7_GATE_CLOSURE.md).
+**Accepted implementation:** M0-M7 are integrated into protected `main` as of 2026-11-03. M7 adds tenant-bound integration-source credentials and strict tracking-event validation. A valid event still returns HTTP 503 on accepted `main`. M8 durable receipts are implemented only in an unverified feature-branch candidate; no HTTP 202 behavior has been accepted or integrated. The .NET worker is an idle scaffold until M9. See [G7 closure](M7_G7_GATE_CLOSURE.md).
 
 ## Parallel implementation and integration contracts
 

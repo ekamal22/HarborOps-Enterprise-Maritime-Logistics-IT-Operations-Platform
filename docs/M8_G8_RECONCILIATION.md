@@ -32,7 +32,7 @@ The wrapper uses exit code 1 for a technical or archive-finalization failure and
 The example above intentionally uses placeholders, not assertions of completed approval. The actual `reviewedScenarioIds` array must contain the exact 25 distinct IDs in order. To reconcile, run from the repository checkout with Node installed:
 
 ```bash
-node scripts/reconcile-g8-review.mjs "E:\\HarborOps-Verification\\m8" "E:\\HarborOps-Verification\\review\\g8-review.json"
+node scripts/reconcile-g8-review.mjs "E:\\HarborOps-Verification\\g8-attempt-01\\m8" "E:\\HarborOps-Verification\\review\\g8-review.json"
 ```
 
 The utility checks source identity, the selected immutable run ID, independently recorded technical status, the full 25-case order, technical passes, stage source/exits, final archive safety, archived manifest, evidence, finalization and archive-safety hashes, explicit D-006 decision and independent review references. It writes a *new* `archives/<run-id>/g8-<sha>-<run-id>-review-reconciliation.json` with exclusive creation. It never overwrites the original run or implies acceptance. Reference authenticity and independent reviewer qualifications still need human verification. A reconciled review is **not** G8 approval: explicit acceptance remains separate before merging PR #14 or starting dependent M9 work.

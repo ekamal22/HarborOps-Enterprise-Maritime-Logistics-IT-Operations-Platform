@@ -1,26 +1,146 @@
-# Isolated local G9 verification resources only. Never point at the retained primary database.
 name: ho-verify-g9
+
 services:
   postgres:
+    image: harborops-postgres:16.15-rootless
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    user: "70:70"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: harborops
+      POSTGRES_USER: harborops
+      POSTGRES_PASSWORD: ${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}
     ports:
       - "127.0.0.1:55439:5432"
+    volumes:
+      - harborops-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harborops -d harborops"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks: [internal]
+
+  migrator:
+    build:
+      context: .
+      dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: "no"
+    command: ["--migrate"]
+    environment:
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
+      Identity__AllowInsecureLoopbackHttp: "true"
+      Identity__KeyRingPath: "/tmp/keys"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+
   api:
+    build:
+      context: .
+      dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - harborops-keyring:/keys
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "127.0.0.1:8089:8080"
     environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Identity__AllowInsecureLoopbackHttp: "true"
       Identity__TrustedLocalHttpPeers: "172.30.249.1,172.30.249.10"
       ReverseProxy__KnownProxies__0: "172.30.249.10"
+      Identity__KeyRingPath: "/keys"
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
       Cors__AllowedOrigins__0: "http://localhost:5179"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    networks: [internal]
+
   web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        VITE_API_BASE_URL: "http://localhost:8089"
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "127.0.0.1:5179:80"
+    depends_on:
+      api:
+        condition: service_started
     networks:
       internal:
         ipv4_address: 172.30.249.10
+
   worker:
     profiles: ["worker"]
+    build:
+      context: .
+      dockerfile: src/HarborOps.Worker/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops_worker;Password=${HARBOROPS_WORKER_DB_PASSWORD:?Set a distinct restricted worker password}"
+      TrackingWorker__LeaseSeconds: "60"
+      TrackingWorker__HeartbeatSeconds: "20"
+      TrackingWorker__PollMilliseconds: "2000"
+      TrackingWorker__MaxAttempts: "5"
+      TrackingWorker__MaxRedrives: "3"
+      TrackingWorker__BatchSize: "16"
+      TrackingWorker__Concurrency: "4"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "dotnet", "HarborOps.Worker.dll", "--readiness"]
+      interval: 20s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    networks: [internal]
+
+volumes:
+  harborops-postgres:
+  harborops-keyring:
+
 networks:
   internal:
+    driver: bridge
     ipam:
       config:
         - subnet: 172.30.249.0/24

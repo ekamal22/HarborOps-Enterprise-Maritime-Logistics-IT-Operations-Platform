@@ -109,8 +109,15 @@ public static class AuditEndpoints
                 await RecordDeniedAsync(recorder, ctx, orgId, session, null, ct);
                 return Denied(ctx, checkedAgain);
             }
-            await recorder.RecordAsync(orgId, session.UserId, session.SessionId,
-                null, ctx.Items["CorrelationId"]?.ToString(), true, ct);
+            try
+            {
+                await recorder.RecordAsync(orgId, session.UserId, session.SessionId,
+                    null, ctx.Items["CorrelationId"]?.ToString(), true, ct);
+            }
+            catch (Npgsql.PostgresException error) when (error.SqlState == "42501")
+            {
+                return Denied(ctx, OrganizationAccessError.Revoked);
+            }
             return Results.Ok(new { entries = result.Entries.Select(Entry).ToArray(),
                 page, limit, nextPage = result.NextPage });
         });
@@ -140,8 +147,15 @@ public static class AuditEndpoints
                 await RecordDeniedAsync(recorder, ctx, orgId, session, id, ct);
                 return Problem(ctx, 404, "resource_not_found", "Resource not found");
             }
-            await recorder.RecordAsync(orgId, session.UserId, session.SessionId,
-                id, ctx.Items["CorrelationId"]?.ToString(), true, ct);
+            try
+            {
+                await recorder.RecordAsync(orgId, session.UserId, session.SessionId,
+                    id, ctx.Items["CorrelationId"]?.ToString(), true, ct);
+            }
+            catch (Npgsql.PostgresException error) when (error.SqlState == "42501")
+            {
+                return Denied(ctx, OrganizationAccessError.Revoked);
+            }
             return Results.Ok(Entry(entry));
         });
     }

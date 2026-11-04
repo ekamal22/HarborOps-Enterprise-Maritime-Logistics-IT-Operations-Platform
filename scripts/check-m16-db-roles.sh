@@ -44,3 +44,35 @@ BEGIN
 END $check$;
 SELECT 'M16 least-privilege role matrix PASS';
 SQL
+
+# Execute denial probes as the actual runtime privilege sets, not as the
+# database owner. SET ROLE is valid here because this database is disposable.
+# The expected SQLSTATE is inspected, so a failed test cannot pass on any error.
+expect_denied() {
+  local role="$1" statement="$2" observed
+  if observed=$(docker compose -p ho-verify-g16 exec -T postgres \
+      psql -X -v ON_ERROR_STOP=1 -v VERBOSITY=verbose -U harborops -d harborops \
+      -c "SET ROLE $role; $statement" 2>&1); then
+    echo "Unexpected permission: $role can execute $statement" >&2
+    return 1
+  fi
+  case "$observed" in
+    *42501*) printf 'DENIED 42501: %s: %s\n' "$role" "$statement" ;;
+    *) echo "Unexpected failure for $role: $observed" >&2; return 1 ;;
+  esac
+}
+for role in harborops_api harborops_worker; do
+  expect_denied "$role" "UPDATE public.audit_entries SET outcome='Denied' WHERE false"
+  expect_denied "$role" "DELETE FROM public.audit_entries WHERE false"
+  expect_denied "$role" "TRUNCATE TABLE public.audit_entries"
+  expect_denied "$role" "INSERT INTO public.audit_entries DEFAULT VALUES"
+  expect_denied "$role" "ALTER TABLE public.audit_entries DISABLE TRIGGER ALL"
+  expect_denied "$role" "DROP TABLE public.audit_entries"
+  expect_denied "$role" "CREATE TABLE public.g16_unauthorized (id int)"
+  expect_denied "$role" "TRUNCATE public.organizations CASCADE"
+done
+expect_denied harborops_worker "SELECT id FROM public.audit_entries LIMIT 1"
+docker compose -p ho-verify-g16 exec -T postgres \
+  psql -X -v ON_ERROR_STOP=1 -U harborops -d harborops \
+  -c "SET ROLE harborops_api; SELECT count(*) FROM public.audit_entries"
+echo 'M16 runtime-role direct SQL denial matrix PASS'

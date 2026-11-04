@@ -30,19 +30,18 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
 {
     public const int MaximumPendingPerOrganization = 10_000;
 
-    private int PendingLimit
+    public static int ReadPendingLimit(Microsoft.Extensions.Configuration.IConfiguration configuration)
     {
-        get
-        {
-            var configured = configuration["M8:PendingLimit"];
-            if (string.IsNullOrEmpty(configured)) return MaximumPendingPerOrganization;
-            if (!int.TryParse(configured, System.Globalization.NumberStyles.None,
-                    System.Globalization.CultureInfo.InvariantCulture, out var limit) ||
-                limit < 1 || limit > MaximumPendingPerOrganization)
-                throw new InvalidOperationException("M8 pending admission limit must be between 1 and 10000");
-            return limit;
-        }
+        var configured = configuration["M8:PendingLimit"];
+        if (string.IsNullOrEmpty(configured)) return MaximumPendingPerOrganization;
+        if (!int.TryParse(configured, System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out var limit) ||
+            limit < 1 || limit > MaximumPendingPerOrganization)
+            throw new InvalidOperationException("M8 pending admission limit must be between 1 and 10000");
+        return limit;
     }
+
+    private int PendingLimit => ReadPendingLimit(configuration);
 
     private static DbCommand Command(DbConnection connection, DbTransaction tx, string sql,
         params (string Name, object? Value)[] values)

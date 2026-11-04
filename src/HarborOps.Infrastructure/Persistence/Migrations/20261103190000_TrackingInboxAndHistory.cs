@@ -28,8 +28,6 @@ public sealed class TrackingInboxAndHistory : Migration
                 received_at_utc timestamptz NOT NULL,
                 correlation_id varchar(64) NOT NULL,
                 CONSTRAINT "AK_m8_receipt_scope" UNIQUE (organization_id, source_id, id),
-                CONSTRAINT "UQ_m8_receipt_key"
-                    UNIQUE (organization_id, source_id, profile, source_event_id),
                 CONSTRAINT "FK_m8_receipt_source"
                     FOREIGN KEY (organization_id, source_id)
                     REFERENCES integration_sources(organization_id, id) ON DELETE RESTRICT,
@@ -46,12 +44,14 @@ public sealed class TrackingInboxAndHistory : Migration
                 CONSTRAINT "CK_m8_receipt_correlation"
                     CHECK (length(correlation_id) BETWEEN 1 AND 64)
             );
+            CREATE UNIQUE INDEX "UQ_m8_receipt_key"
+                ON tracking_inbox_receipts (organization_id, source_id, profile, source_event_id);
             CREATE INDEX "IX_m8_receipt_chronology"
                 ON tracking_inbox_receipts(organization_id, source_id, received_at_utc);
 
             CREATE TABLE tracking_accepted_events (
                 id uuid PRIMARY KEY,
-                receipt_id uuid NOT NULL CONSTRAINT "UQ_m8_event_receipt" UNIQUE,
+                receipt_id uuid NOT NULL,
                 organization_id uuid NOT NULL,
                 source_id uuid NOT NULL,
                 event_family varchar(16) NOT NULL,
@@ -78,6 +78,8 @@ public sealed class TrackingInboxAndHistory : Migration
                 CONSTRAINT "CK_m8_event_canonical"
                     CHECK (jsonb_typeof(canonical_payload) = 'object')
             );
+            CREATE UNIQUE INDEX "UQ_m8_event_receipt"
+                ON tracking_accepted_events (receipt_id);
             CREATE INDEX "IX_m8_event_scope"
                 ON tracking_accepted_events(organization_id, source_id, receipt_id);
 
@@ -104,7 +106,7 @@ public sealed class TrackingInboxAndHistory : Migration
 
             CREATE TABLE tracking_receipt_conflicts (
                 id uuid PRIMARY KEY,
-                receipt_id uuid NOT NULL CONSTRAINT "UQ_m8_conflict_receipt" UNIQUE,
+                receipt_id uuid NOT NULL,
                 organization_id uuid NOT NULL,
                 source_id uuid NOT NULL,
                 attempted_digest bytea NOT NULL,
@@ -119,6 +121,8 @@ public sealed class TrackingInboxAndHistory : Migration
                 CONSTRAINT "CK_m8_conflict_correlation"
                     CHECK (length(correlation_id) BETWEEN 1 AND 64)
             );
+            CREATE UNIQUE INDEX "UQ_m8_conflict_receipt"
+                ON tracking_receipt_conflicts (receipt_id);
             CREATE INDEX "IX_m8_conflict_scope"
                 ON tracking_receipt_conflicts(organization_id, source_id, receipt_id);
 
@@ -178,6 +182,15 @@ public sealed class TrackingInboxAndHistory : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""
+            -- Normal downgrade is permitted only before any durable receipt is accepted.
+            -- The append-only row triggers do not protect against DROP TABLE.
+            DO $m8_downgrade$
+            BEGIN
+                IF EXISTS (SELECT 1 FROM tracking_inbox_receipts LIMIT 1) THEN
+                    RAISE EXCEPTION 'Cannot downgrade M8 with retained tracking receipts'
+                        USING ERRCODE = '23514';
+                END IF;
+            END $m8_downgrade$;
             DROP TABLE tracking_receipt_conflicts;
             DROP TABLE tracking_inbox_work_items;
             DROP TABLE tracking_accepted_events;

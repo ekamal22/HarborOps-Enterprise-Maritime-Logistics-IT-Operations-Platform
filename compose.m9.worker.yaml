@@ -1,0 +1,29 @@
+# Opt-in only. Apply the M9 migration and configure the restricted worker role first.
+services:
+  worker:
+    profiles: ["worker"]
+    build:
+      context: .
+      dockerfile: src/HarborOps.Worker/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops_worker;Password=${HARBOROPS_WORKER_DB_PASSWORD:?Set a distinct restricted worker password}"
+      TrackingWorker__LeaseSeconds: "60"
+      TrackingWorker__HeartbeatSeconds: "20"
+      TrackingWorker__PollMilliseconds: "2000"
+      TrackingWorker__MaxAttempts: "5"
+      TrackingWorker__MaxRedrives: "3"
+      TrackingWorker__BatchSize: "16"
+      TrackingWorker__Concurrency: "4"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    networks: [internal]

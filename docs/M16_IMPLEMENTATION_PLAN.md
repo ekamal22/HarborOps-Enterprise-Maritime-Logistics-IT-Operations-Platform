@@ -1,6 +1,6 @@
 # M16 Implementation Work Packages
 
-**State:** Planning approved on 2026-11-04; code not implemented in this documentation update. **Dependency:** G3 accepted. **Gate:** G16 acceptance pending.
+**State:** Architecture/policy approved and code candidate committed on `feat/m16-audit-access-hardening`; local G16 execution, integration and independent review pending. See [M16 implementation status](M16_IMPLEMENTATION_STATUS.md). **Dependency:** G3 accepted. **Gate:** G16 acceptance pending.
 
 ## M16-01: Audit schema and privacy
 Freeze audit event taxonomy, roles, nullable actor references, metadata allowlists, retention/legal holds, read DTOs, schema keys/indexes and direct PostgreSQL privilege model. Preserve M1 auth_events and M8 permanent accepted history. Publish the [decision record](M16_POLICY_DECISIONS.md), [privacy policy](M16_AUDIT_PRIVACY_POLICY.md) and [architecture](M16_ARCHITECTURE_DESIGN.md). Review M9 branch migration and runtime-role plans before coding. Proposed policy source: `src/HarborOps.Domain/Audit/AuditEventPolicy.cs`.

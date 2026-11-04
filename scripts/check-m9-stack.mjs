@@ -110,6 +110,12 @@ await check("stack-services-ready", async () => {
   return "api ready, worker healthy";
 });
 
+await check("fresh-volume-migrations-applied", async () => {
+  const row = scalar(`SELECT count(*) || '|' || bool_or("MigrationId" LIKE '%_TrackingWorker') FROM "__EFMigrationsHistory"`);
+  assert.equal(row, "10|true", "all ten migrations, including the M9 worker migration, must be applied on the fresh volume");
+  return "ten migrations applied on a fresh volume";
+});
+
 await check("provision-accounts-and-organization", async () => {
   for (const [role, email] of Object.entries(emails)) {
     const run = compose(["run", "--rm", "-T", "-e", "HARBOROPS_ALLOW_ACCOUNT_CLI=true", "api",

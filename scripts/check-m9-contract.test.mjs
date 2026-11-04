@@ -98,3 +98,27 @@ test("development runner reports technical success and gate incompleteness separ
     assert.match(summary, /notExecuted === 0/);
     assert.match(summary, /row\.failed === 0/);
 });
+
+test("G9 orchestrator is isolated, tears down the profile-gated worker and never decides acceptance", () => {
+    const runner = read("scripts/verify-g9-local.sh");
+    assert.match(runner, /compose\(\) \{ docker compose -f compose\.g9\.verify\.yaml -p "\$project" --profile worker/);
+    assert.match(runner, /project="ho-verify-g9"/);
+    assert.match(runner, /stage image-scans scan_images/);
+    assert.match(runner, /for service in postgres api web worker/);
+    assert.match(runner, /Full G9 cannot use a reduced mutation subset/);
+    assert.match(runner, /G9 acceptance pending/);
+    const summary = read("scripts/summarize-g9-evidence.mjs");
+    assert.match(summary, /G9-S01", title: "Accepted M9-01 local contract", status: "BLOCKED"/);
+    assert.match(summary, /G9-S25", title: "Independent source-locked review and explicit acceptance", status: "NOT EXECUTED"/);
+});
+
+test("G9 mutation runner defines twelve distinct families that all name intended killing tests", () => {
+    const apply = read("scripts/apply-g9-mutation.mjs");
+    const runner = read("scripts/run-g9-mutations.mjs");
+    const names = [...apply.matchAll(/^    "([a-z-]+)": \[/gm)].map(m => m[1]);
+    assert.equal(new Set(names).size, 12);
+    for (const name of names) assert.ok(runner.includes(`["${name}",`), "runner lacks " + name);
+    assert.match(runner, /killed.length > 0/);
+    assert.match(runner, /Mutation survived/);
+    assert.match(runner, /mutant did not build or run/);
+});

@@ -4,6 +4,7 @@ using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 
 namespace HarborOps.Infrastructure.Integrations;

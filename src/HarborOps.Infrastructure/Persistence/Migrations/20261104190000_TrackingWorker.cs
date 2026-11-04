@@ -114,17 +114,23 @@ public sealed class TrackingWorker : Migration
                 FOR EACH ROW EXECUTE FUNCTION m8_guard_append_only();
 
             DROP TRIGGER m8_work_guard ON tracking_inbox_work_items;
-            CREATE FUNCTION m9_lock_active_organization(p_org uuid)
-                RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
-                SET search_path=pg_catalog AS $fn$
-            DECLARE current_status text;
+            -- Bind the organization table to the schema at migration time,
+            -- not to a schema selected later by the caller.
+            DO $create_lock$
+            DECLARE schema_name text := current_schema();
             BEGIN
-                -- The worker is deployed only against the public application schema.
-                -- Never resolve SECURITY DEFINER tables through a caller-controlled search_path.
-                SELECT status INTO current_status FROM public.organizations
-                WHERE id=p_org FOR UPDATE;
-                RETURN current_status = 'Active';
-            END $fn$;
+                EXECUTE format($sql$
+                    CREATE FUNCTION %1$I.m9_lock_active_organization(p_org uuid)
+                    RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path=pg_catalog AS $fn$
+                    DECLARE current_status text;
+                    BEGIN
+                        SELECT status INTO current_status FROM %1$I.organizations
+                        WHERE id=p_org FOR UPDATE;
+                        RETURN current_status = 'Active';
+                    END $fn$;
+                $sql$, schema_name);
+            END $create_lock$;
             REVOKE ALL ON FUNCTION m9_lock_active_organization(uuid) FROM PUBLIC;
 
             CREATE FUNCTION m9_validate_effect_reference() RETURNS trigger
@@ -267,6 +273,49 @@ public sealed class TrackingWorker : Migration
                 ON tracking_inbox_work_items FOR EACH ROW
                 EXECUTE FUNCTION m9_guard_work_item();
 
+            -- A valid state transition creates its own immutable attempt record.
+            -- No direct INSERT grant on this table is given to the worker role.
+            CREATE FUNCTION m9_log_work_transition() RETURNS trigger
+                LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $fn$
+            DECLARE kind text;
+            BEGIN
+                IF NEW.state='Pending' THEN
+                    -- Manual redrives are attributed separately by the authenticated API.
+                    RETURN NULL;
+                ELSIF NEW.state='Leased' THEN
+                    IF OLD.state='Leased' AND NEW.lease_epoch=OLD.lease_epoch THEN
+                        RETURN NULL;
+                    END IF;
+                    kind := CASE WHEN OLD.state='Leased' THEN 'LeaseRecovered' ELSE 'Claimed' END;
+                ELSIF NEW.state='Processed' THEN
+                    kind := 'Processed';
+                ELSIF NEW.state='NeedsReconciliation' THEN
+                    kind := 'ReconciliationRequired';
+                ELSIF NEW.state='RetryWaiting' THEN
+                    kind := 'Retried';
+                ELSIF NEW.state='DeadLetter' THEN
+                    kind := CASE WHEN OLD.state='Leased' AND
+                        OLD.lease_expires_at_utc<=clock_timestamp() AND OLD.attempt_count>=5
+                        THEN 'LeaseBudgetExhausted' ELSE 'DeadLettered' END;
+                ELSE
+                    RETURN NULL;
+                END IF;
+                EXECUTE format(
+                    'INSERT INTO %I.tracking_work_attempt_events
+                       (id,receipt_id,organization_id,source_id,generation,attempt_count,
+                        lease_epoch,event_kind,reason_code,occurred_at_utc)
+                     VALUES (gen_random_uuid(),$1,$2,$3,$4,$5,$6,$7,$8,clock_timestamp())',
+                    TG_TABLE_SCHEMA)
+                USING NEW.receipt_id,NEW.organization_id,NEW.source_id,
+                      NEW.redrive_generation,NEW.attempt_count,NEW.lease_epoch,
+                      kind,NEW.last_error_code;
+                RETURN NULL;
+            END $fn$;
+            REVOKE ALL ON FUNCTION m9_log_work_transition() FROM PUBLIC;
+            CREATE TRIGGER m9_work_transition_audit AFTER UPDATE
+                ON tracking_inbox_work_items FOR EACH ROW
+                EXECUTE FUNCTION m9_log_work_transition();
+
             CREATE FUNCTION m9_assert_processing_effect() RETURNS trigger LANGUAGE plpgsql AS $fn$
             BEGIN
                 IF NEW.redrive_generation > OLD.redrive_generation AND NOT EXISTS (
@@ -336,6 +385,8 @@ public sealed class TrackingWorker : Migration
             DROP FUNCTION m9_assert_effect_terminal();
             DROP TRIGGER m9_work_effect_required ON tracking_inbox_work_items;
             DROP FUNCTION m9_assert_processing_effect();
+            DROP TRIGGER m9_work_transition_audit ON tracking_inbox_work_items;
+            DROP FUNCTION m9_log_work_transition();
             DROP TRIGGER m9_work_guard ON tracking_inbox_work_items;
             DROP FUNCTION m9_guard_work_item();
             DROP TABLE tracking_processing_effects;

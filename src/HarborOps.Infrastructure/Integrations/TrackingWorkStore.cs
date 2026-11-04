@@ -3,6 +3,7 @@ using System.Data.Common;
 using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HarborOps.Infrastructure.Integrations;
 
@@ -44,21 +45,6 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
             "SELECT m9_lock_active_organization(@organization)",
             ("organization", organization));
         return await cmd.ExecuteScalarAsync(ct) is bool active && active;
-    }
-
-    private static async Task AttemptAsync(DbConnection connection, DbTransaction tx,
-        TrackingWorkClaim claim, string kind, string? code, CancellationToken ct)
-    {
-        await ExecAsync(connection, tx, """
-            INSERT INTO tracking_work_attempt_events
-                (id,receipt_id,organization_id,source_id,generation,attempt_count,
-                 lease_epoch,event_kind,reason_code,occurred_at_utc)
-            VALUES (@id,@receipt,@organization,@source,@generation,@attempt,
-                    @epoch,@kind,@reason,clock_timestamp())
-            """, ct, ("id", Guid.NewGuid()), ("receipt", claim.ReceiptId),
-            ("organization", claim.OrganizationId), ("source", claim.SourceId),
-            ("generation", claim.Generation), ("attempt", claim.Attempt),
-            ("epoch", claim.LeaseEpoch), ("kind", kind), ("reason", code));
     }
 
     public async Task<List<Guid>> CandidateOrganizationsAsync(Guid? after, CancellationToken ct)
@@ -135,12 +121,6 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
                 WHERE organization_id=@organization AND receipt_id=@receipt
                   AND state='Leased' AND lease_expires_at_utc<=clock_timestamp()
                 """, ct, ("organization", organizationId), ("receipt", receipt));
-            if (changed == 1)
-            {
-                await AttemptAsync(connection, tx,
-                    new(receipt, organizationId, source, Guid.Empty, epoch, attempt, generation),
-                    "LeaseBudgetExhausted", "lease_attempt_limit", ct);
-            }
             await transaction.CommitAsync(ct);
             return null;
         }
@@ -160,8 +140,6 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
         if (updated != 1) throw new InvalidOperationException("Work claim was lost");
         var claim = new TrackingWorkClaim(receipt, organizationId, source, token, nextEpoch,
             nextAttempt, generation);
-        await AttemptAsync(connection, tx, claim, state == "Leased" ? "LeaseRecovered" : "Claimed",
-            null, ct);
         await transaction.CommitAsync(ct);
         return claim;
     }
@@ -281,8 +259,6 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
             ("source", claim.SourceId), ("token", claim.LeaseToken),
             ("epoch", claim.LeaseEpoch), ("generation", claim.Generation));
         if (updated != 1) return TrackingWorkDisposition.Stale;
-        await AttemptAsync(connection, tx, claim,
-            resolved.HasValue ? "Processed" : "ReconciliationRequired", code, ct);
         await transaction.CommitAsync(ct);
         return resolved.HasValue ? TrackingWorkDisposition.Processed :
             TrackingWorkDisposition.NeedsReconciliation;
@@ -318,8 +294,6 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
             ("token", claim.LeaseToken), ("epoch", claim.LeaseEpoch),
             ("generation", claim.Generation));
         if (changed != 1) return false;
-        await AttemptAsync(connection, tx, claim, exhausted ? "DeadLettered" : "Retried",
-            sanitizedCode, ct);
         await transaction.CommitAsync(ct);
         return true;
     }

@@ -89,6 +89,7 @@ public sealed class TrackingInboxQuotaBoundaryTests
                        clock_timestamp(), clock_timestamp()
                   FROM receipts r JOIN events e ON e.receipt_id = r.id
                 """, (NpgsqlConnection)db.Database.GetDbConnection());
+            command.CommandTimeout = 180;
             command.Parameters.AddWithValue("org", fixture.A);
             command.Parameters.AddWithValue("source", a.Id);
             command.Parameters.AddWithValue("credential", a.CredentialId);

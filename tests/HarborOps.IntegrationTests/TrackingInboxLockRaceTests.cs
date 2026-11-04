@@ -25,17 +25,19 @@ public sealed class TrackingInboxLockRaceTests
         Assert.NotNull(await command.ExecuteScalarAsync());
     }
 
-    private static async Task WaitForPostgresLockWaitAsync(NpgsqlConnection observer, Task receiving)
+    private static async Task WaitForPostgresLockWaitAsync(
+        NpgsqlConnection observer, Task receiving, int lockerPid)
     {
         for (var attempt = 0; attempt < 100; attempt++)
         {
             Assert.False(receiving.IsCompleted, "Intake returned before the held row lock was released");
             await using var command = new NpgsqlCommand("""
-                SELECT count(*) FROM pg_stat_activity
-                 WHERE pid <> pg_backend_pid()
-                   AND wait_event_type = 'Lock'
-                   AND (query LIKE '%FOR UPDATE%' OR query LIKE '%FOR SHARE OF s, c%')
+                SELECT count(*) FROM pg_stat_activity AS a
+                 WHERE a.pid <> pg_backend_pid()
+                   AND a.wait_event_type = 'Lock'
+                   AND @lockerPid = ANY(pg_blocking_pids(a.pid))
                 """, observer);
+            command.Parameters.AddWithValue("lockerPid", lockerPid);
             if (Convert.ToInt64(await command.ExecuteScalarAsync()) > 0) return;
             await Task.Delay(50);
         }
@@ -66,7 +68,7 @@ public sealed class TrackingInboxLockRaceTests
         await locker.OpenAsync();
         await using var observer = new NpgsqlConnection(TestDatabase.ConnectionString());
         await observer.OpenAsync();
-        await using var tx = await locker.BeginTransactionAsync();
+        await using var tx = (NpgsqlTransaction)await locker.BeginTransactionAsync();
         var (query, id, mutation) = target switch
         {
             "organization" => (
@@ -83,6 +85,9 @@ public sealed class TrackingInboxLockRaceTests
                 "UPDATE integration_credentials SET revoked_at_utc = clock_timestamp() WHERE id = @id")
         };
         await AcquireAsync(locker, tx, query, id);
+        int lockerPid;
+        await using (var pid = new NpgsqlCommand("SELECT pg_backend_pid()", locker, tx))
+            lockerPid = Convert.ToInt32(await pid.ExecuteScalarAsync());
 
         // A new scoped DbContext runs the receiving transaction on another
         // PostgreSQL session. A held row lock delays its final authorization.
@@ -93,7 +98,7 @@ public sealed class TrackingInboxLockRaceTests
             return await store.ReceiveAsync(ev, issued.Bearer, payload, "lock-" + target,
                 CancellationToken.None);
         });
-        await WaitForPostgresLockWaitAsync(observer, receiving);
+        await WaitForPostgresLockWaitAsync(observer, receiving, lockerPid);
 
         await using (var update = new NpgsqlCommand(mutation, locker, tx))
         {

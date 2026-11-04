@@ -133,7 +133,8 @@ public sealed class AuditEntries : Migration
                          THEN NULLIF(row_data->>'source_id','')::uuid ELSE NULL END,
                     audit_role, TG_TABLE_NAME, audit_resource, audit_corr,
                     statement_timestamp(), jsonb_build_object('operation', operation_code);
-                RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
+                IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+                RETURN NEW;
             END $audit$;
 
             -- Only tables whose state changes matter to audit are captured.

@@ -41,9 +41,9 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
         Guid organization, CancellationToken ct)
     {
         await using var cmd = Command(connection, tx,
-            "SELECT status FROM organizations WHERE id=@organization FOR UPDATE",
+            "SELECT m9_lock_active_organization(@organization)",
             ("organization", organization));
-        return await cmd.ExecuteScalarAsync(ct) is string status && status == "Active";
+        return await cmd.ExecuteScalarAsync(ct) is bool active && active;
     }
 
     private static async Task AttemptAsync(DbConnection connection, DbTransaction tx,
@@ -72,7 +72,7 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
             cmd.CommandText = """
                 SELECT DISTINCT o.id FROM organizations o
                 JOIN tracking_inbox_work_items w ON w.organization_id=o.id
-                WHERE o.status='Active' AND (@after IS NULL OR o.id > @after)
+                WHERE o.status='Active' AND (CAST(@after AS uuid) IS NULL OR o.id > @after)
                   AND ((w.state IN ('Pending','RetryWaiting') AND
                         w.available_at_utc <= clock_timestamp()) OR
                        (w.state='Leased' AND w.lease_expires_at_utc <= clock_timestamp()))
@@ -219,7 +219,6 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
               AND a.starts_at_utc<=@occurred AND
                   (a.ends_at_utc IS NULL OR @occurred<a.ends_at_utc)
             ORDER BY a.id LIMIT 2
-            FOR SHARE OF c,a,s
             """, ("organization", claim.OrganizationId), ("equipment", normalized),
             ("occurred", occurred));
         await using var rows = await resolve.ExecuteReaderAsync(ct);

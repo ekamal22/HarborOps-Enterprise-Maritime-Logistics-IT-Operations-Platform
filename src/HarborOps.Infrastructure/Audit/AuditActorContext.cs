@@ -14,11 +14,24 @@ public static class AuditActorContext
             throw new InvalidOperationException("Audit actor context requires a transaction");
         var correlation = string.IsNullOrWhiteSpace(correlationId) ? "database" : correlationId;
         if (correlation.Length > 64) correlation = correlation[..64];
+        // Resolve the server-side selected role; never trust a client-supplied role.
+        // This ordinary MVCC read does not acquire an organization row lock.
+        string? role = null;
+        if (sessionId.HasValue)
+        {
+            role = await (from session in db.AuthSessions.AsNoTracking()
+                          from member in db.OrganizationMemberships.AsNoTracking()
+                          where session.Id == sessionId.Value && session.UserId == userId &&
+                                member.OrganizationId == session.SelectedOrganizationId &&
+                                member.UserId == userId && member.Status == "Active"
+                          select member.Role).SingleOrDefaultAsync(ct);
+        }
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             SELECT set_config('harborops.audit_actor_kind', {"Human"}, true),
                 set_config('harborops.audit_actor_user_id', {userId.ToString("D")}, true),
                 set_config('harborops.audit_actor_session_id', {sessionId?.ToString("D") ?? ""}, true),
-                set_config('harborops.audit_correlation_id', {correlation}, true)
+                set_config('harborops.audit_correlation_id', {correlation}, true),
+                set_config('harborops.audit_actor_role', {role ?? ""}, true)
             """, ct);
     }
 

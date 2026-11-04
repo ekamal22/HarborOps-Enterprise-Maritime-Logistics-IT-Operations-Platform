@@ -13,6 +13,9 @@ public static class AuditEndpoints
         Results.Json(new { code, message, correlationId = ctx.Items["CorrelationId"] },
             statusCode: status);
 
+    private static IResult StorageUnavailable(HttpContext ctx) =>
+        Problem(ctx, 503, "audit_unavailable", "Audit events are temporarily unavailable");
+
     private static IResult Denied(HttpContext ctx, OrganizationAccessError error) =>
         error switch
         {
@@ -79,7 +82,7 @@ public static class AuditEndpoints
             if (access != OrganizationAccessError.None) return Denied(ctx, access);
         }
         catch (Npgsql.NpgsqlException) { }
-        return Problem(ctx, 503, "audit_unavailable", "Audit events are temporarily unavailable");
+        return StorageUnavailable(ctx);
     }
 
     public static void MapAuditEndpoints(this WebApplication app)
@@ -100,7 +103,9 @@ public static class AuditEndpoints
                 return Problem(ctx, 403, "transport_required", "Secure transport required");
 
             var session = (CurrentSession)ctx.Items["IdentitySession"]!;
-            var access = await AccessAsync(ctx, organizations, orgId, ct);
+            OrganizationAccessError access;
+            try { access = await AccessAsync(ctx, organizations, orgId, ct); }
+            catch (Npgsql.NpgsqlException) { return StorageUnavailable(ctx); }
             if (access != OrganizationAccessError.None)
             {
                 await RecordDeniedAsync(recorder, ctx, orgId, session, null, ct);
@@ -130,7 +135,10 @@ public static class AuditEndpoints
             {
                 return Problem(ctx, 400, "invalid_request", "Invalid cursor");
             }
-            var checkedAgain = await AccessAsync(ctx, organizations, orgId, ct);
+            catch (Npgsql.NpgsqlException) { return StorageUnavailable(ctx); }
+            OrganizationAccessError checkedAgain;
+            try { checkedAgain = await AccessAsync(ctx, organizations, orgId, ct); }
+            catch (Npgsql.NpgsqlException) { return StorageUnavailable(ctx); }
             if (checkedAgain != OrganizationAccessError.None)
             {
                 await RecordDeniedAsync(recorder, ctx, orgId, session, null, ct);
@@ -161,14 +169,20 @@ public static class AuditEndpoints
                     ctx.RequestServices.GetRequiredService<IConfiguration>()))
                 return Problem(ctx, 403, "transport_required", "Secure transport required");
             var session = (CurrentSession)ctx.Items["IdentitySession"]!;
-            var access = await AccessAsync(ctx, organizations, orgId, ct);
+            OrganizationAccessError access;
+            try { access = await AccessAsync(ctx, organizations, orgId, ct); }
+            catch (Npgsql.NpgsqlException) { return StorageUnavailable(ctx); }
             if (access != OrganizationAccessError.None)
             {
                 await RecordDeniedAsync(recorder, ctx, orgId, session, id, ct);
                 return Denied(ctx, access);
             }
-            var entry = await reader.GetAsync(orgId, session.UserId, session.SessionId, id, ct);
-            var checkedAgain = await AccessAsync(ctx, organizations, orgId, ct);
+            AuditEntry? entry;
+            try { entry = await reader.GetAsync(orgId, session.UserId, session.SessionId, id, ct); }
+            catch (Npgsql.NpgsqlException) { return StorageUnavailable(ctx); }
+            OrganizationAccessError checkedAgain;
+            try { checkedAgain = await AccessAsync(ctx, organizations, orgId, ct); }
+            catch (Npgsql.NpgsqlException) { return StorageUnavailable(ctx); }
             if (entry is null || checkedAgain != OrganizationAccessError.None)
             {
                 await RecordDeniedAsync(recorder, ctx, orgId, session, id, ct);

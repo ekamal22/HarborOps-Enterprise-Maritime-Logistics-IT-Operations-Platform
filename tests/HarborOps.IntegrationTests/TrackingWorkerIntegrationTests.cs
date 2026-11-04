@@ -248,6 +248,34 @@ public sealed class TrackingWorkerIntegrationTests
     }
 
     [Fact]
+    public async Task PermanentProcessorFailureIsDeadLetteredWithImmutableEvidence()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        var receipt = await Ingest(factory, fixture.A,
+            "m9-permanent-" + Guid.NewGuid().ToString("N")[..9]);
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var worker = new TrackingWorkStore(db, new TrackingWorkerSettings());
+        var lease = await worker.ClaimOneAsync(fixture.A, CancellationToken.None);
+        Assert.NotNull(lease);
+        Assert.True(await worker.FailAsync(lease!, "processor_error", false, CancellationToken.None));
+        var work = await db.TrackingInboxWorkItems.AsNoTracking()
+            .SingleAsync(x => x.ReceiptId == receipt);
+        Assert.Equal("DeadLetter", work.State);
+        Assert.Equal(1, work.AttemptCount);
+        Assert.Equal("processor_error", work.LastErrorCode);
+        Assert.Equal(1, await db.TrackingWorkAttemptEvents.CountAsync(x =>
+            x.ReceiptId == receipt && x.EventKind == "DeadLettered" &&
+            x.ReasonCode == "processor_error"));
+        Assert.Null(await worker.ClaimOneAsync(fixture.A, CancellationToken.None));
+        Assert.Equal(1, await db.TrackingInboxReceipts.CountAsync(x => x.Id == receipt));
+    }
+
+    [Fact]
     public async Task DirectSqlRedriveCannotBypassAttributedImmutableHistory()
     {
         using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());

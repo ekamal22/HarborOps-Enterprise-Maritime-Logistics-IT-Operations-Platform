@@ -53,3 +53,37 @@ test("operator queue requires live scope, authenticated CSRF and attributed redr
     assert.match(admin, /actor_user_id,redrive_reason/);
     assert.doesNotMatch(server, /raw_payload_utf8|canonical_payload_utf8|secret_digest/);
 });
+
+const grants = read("scripts/m9-worker-role.sql");
+const g9Compose = read("compose.g9.verify.yaml");
+const workerCompose = read("compose.m9.worker.yaml");
+const host = read("src/HarborOps.Worker/Program.cs");
+
+test("restricted worker role reads ledger but cannot forge attempt rows", () => {
+    assert.match(grants, /tracking_work_attempt_events, public\.tracking_processing_effects/);
+    assert.match(grants, /REVOKE INSERT, UPDATE, DELETE ON public\.tracking_work_attempt_events/);
+    assert.doesNotMatch(grants, /GRANT INSERT ON public\.tracking_work_attempt_events/);
+    assert.match(workerMigration, /m9_log_work_transition/);
+    assert.match(workerMigration, /SECURITY DEFINER SET search_path=pg_catalog/);
+    assert.match(workerMigration, /m9_work_transition_audit AFTER UPDATE/);
+});
+
+test("verification compose is standalone with disjoint resources and real worker readiness", () => {
+    assert.match(g9Compose, /^name: ho-verify-g9/m);
+    assert.match(g9Compose, /127\.0\.0\.1:55439:5432/);
+    assert.match(g9Compose, /127\.0\.0\.1:8089:8080/);
+    assert.match(g9Compose, /127\.0\.0\.1:5179:80/);
+    assert.match(g9Compose, /VITE_API_BASE_URL: "http:\/\/localhost:8089"/);
+    assert.doesNotMatch(g9Compose, /127\.0\.0\.1:8080:8080/);
+    assert.match(g9Compose, /172\.30\.249\.0\/24/);
+    assert.match(g9Compose, /HarborOps\.Worker\.dll", "--readiness"/);
+    assert.match(workerCompose, /HarborOps\.Worker\.dll", "--readiness"/);
+    assert.match(host, /has_function_privilege\(current_user/);
+});
+
+test("manual redrive rechecks the session security epoch and schema pins its lock target", () => {
+    assert.match(admin, /s\.security_version=u\.security_version/);
+    assert.match(workerMigration, /schema_name text := current_schema\(\)/);
+    assert.match(workerMigration, /%1\$I\.organizations/);
+    assert.match(workerMigration, /CK_m9_effect_reference/);
+});

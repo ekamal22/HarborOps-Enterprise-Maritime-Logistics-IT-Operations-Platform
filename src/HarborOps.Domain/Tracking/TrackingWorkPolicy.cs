@@ -59,7 +59,7 @@ public sealed record TrackingWorkerSettings(
 {
     public void Validate()
     {
-        if (LeaseSeconds is < 10 or > 600 ||
+        if (LeaseSeconds is < 10 or > 540 ||
             HeartbeatSeconds is < 2 or > 200 || HeartbeatSeconds * 2 >= LeaseSeconds ||
             PollMilliseconds is < 100 or > 60000 ||
             MaxAttempts != TrackingWorkPolicy.DefaultMaxAttempts ||

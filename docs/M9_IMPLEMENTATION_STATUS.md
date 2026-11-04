@@ -35,6 +35,9 @@ A valid durable receipt survives revocation of the source credential after inges
 - Existing historical upgrade and downgrade migration assertions updated for the additive M9 migration.
 - `scripts/check-m9-contract.test.mjs` performs static source contract checks.
 - `scripts/verify-m9-local.sh` stages source-locked development checks on E:-backed isolated infrastructure. This is deliberately **not** the complete G9 acceptance campaign.
+- Subsequent source corrections make transition audit entries database-generated, deny direct worker ledger inserts, add live security-version revalidation, and route concurrent reference changes to reconciliation.
+- The G9 Compose configuration is standalone and port-isolated; worker runtime exposes a database-backed `--readiness` command and a container health check.
+- Runtime attempts and manual redrive budgets are fixed at five and three, respectively, to match the PostgreSQL constraints.
 
 No tests, build, database migrations, browser tests, worker races, vulnerability scans or controlled outage scenarios were run during preparation of this branch. Do not treat the above test source as execution evidence.
 

@@ -214,7 +214,22 @@ accounts() {
     "m3-analyst@example.test|M3 Analyst" \
     "m4-analyst-east@example.test|M4 East Analyst" \
     "m4-support@example.test|M4 Support" \
-    "m4-auditor@example.test|M4 Auditor"; do
+    "m4-auditor@example.test|M4 Auditor" \
+    "g16h-admin@example.test|G16 HTTP admin" \
+    "g16h-aud@example.test|G16 HTTP aud" \
+    "g16h-mgr@example.test|G16 HTTP mgr" \
+    "g16h-ana@example.test|G16 HTTP ana" \
+    "g16h-sup@example.test|G16 HTTP sup" \
+    "g16h-rev1@example.test|G16 HTTP rev1" \
+    "g16h-rev2@example.test|G16 HTTP rev2" \
+    "g16h-rev3@example.test|G16 HTTP rev3" \
+    "g16h-rev4@example.test|G16 HTTP rev4" \
+    "g16h-multi@example.test|G16 HTTP multi" \
+    "g16h-mix@example.test|G16 HTTP mix" \
+    "g16h-fault@example.test|G16 HTTP fault" \
+    "g16h-flood@example.test|G16 HTTP flood" \
+    "g16h-out@example.test|G16 HTTP out" \
+    "g16h-outmgr@example.test|G16 HTTP outmgr"; do
     IFS='|' read -r email display <<< "$row"
     provision "$email" "$display" || return 1
   done
@@ -230,6 +245,8 @@ organizations() {
   bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test || return 1
   bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test || return 1
   bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test || return 1
+  bootstrap g16h-a "G16 HTTP A" g16h-admin@example.test || return 1
+  bootstrap g16h-b "G16 HTTP B" g16h-admin@example.test || return 1
   for engine in chromium firefox webkit; do
     bootstrap "m3-revocation-$engine" "M3 Revocation $engine" m3-admin-a@example.test || return 1
   done
@@ -241,5 +258,11 @@ stage browser-m5-fixtures node scripts/prepare-m5-browser-fixtures.mjs
 stage browser-m6-fixtures node scripts/prepare-m6-browser-fixtures.mjs
 export HARBOROPS_M3_FIXTURES=1 HARBOROPS_M4_FIXTURES=1
 export HARBOROPS_M5_FIXTURES=1 HARBOROPS_M6_FIXTURES=1
+export G16_API_BASE="http://localhost:8086"
+export G16_PSQL="docker compose -p $project exec -T postgres psql -X -U harborops -d harborops -Atq"
+export G16_COMPOSE="docker compose -p $project"
+export G16_NETWORK="${project}_internal"
+stage audit-http-matrix node scripts/check-m16-audit-http.mjs "$evidence/audit-http-results.json"
+stage audit-outage node scripts/check-m16-audit-outage.mjs "$evidence/audit-outage-results.json"
 stage browser-engines bash scripts/run-m16-browsers-local.sh
 # Final teardown and manifest run in the exit trap; no acceptance is inferred.

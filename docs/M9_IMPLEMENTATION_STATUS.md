@@ -41,6 +41,10 @@ A valid durable receipt survives revocation of the source credential after inges
 
 No tests, build, database migrations, browser tests, worker races, vulnerability scans or controlled outage scenarios were run during preparation of this branch. Do not treat the above test source as execution evidence.
 
+## Follow-up correctness audit
+
+The ten original source-level findings have corrective changes, reviewed in [M9 follow-up correctness audit](M9_CORRECTNESS_AUDIT_20261104.md). No runtime verification has been performed. The corrected candidate is not yet approved for G9 execution or merge.
+
 ## Outstanding before G9 can be considered technically ready
 
 1. Explicitly approve or amend the six decisions in `docs/M9_LOCAL_CONTRACT_PROPOSAL.md`; any changes require code and regression alignment.

@@ -76,8 +76,9 @@ public static class AuditRoleProvisioner
                        AND to_regclass('public.tracking_processing_effects') IS NOT NULL THEN
                         GRANT SELECT ON tracking_work_attempt_events,
                             tracking_processing_effects TO harborops_worker;
-                        GRANT INSERT ON tracking_work_attempt_events,
-                            tracking_processing_effects TO harborops_worker;
+                        -- M9 attempt history is written exclusively by its
+                        -- security-definer transition trigger.
+                        GRANT INSERT ON tracking_processing_effects TO harborops_worker;
                         GRANT UPDATE (state,attempt_count,lease_token,lease_epoch,
                             lease_expires_at_utc,available_at_utc,redrive_generation,
                             last_error_code,completed_at_utc,resolution_kind,

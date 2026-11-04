@@ -8,6 +8,7 @@ const worker = "src/HarborOps.Infrastructure/Integrations/TrackingWorkStore.cs";
 const inbox = "src/HarborOps.Infrastructure/Integrations/TrackingInboxStore.cs";
 const migration = "src/HarborOps.Infrastructure/Persistence/Migrations/20261104190000_TrackingWorker.cs";
 const policy = "src/HarborOps.Domain/Organizations/OrganizationPolicy.cs";
+const adminStore = "src/HarborOps.Infrastructure/Integrations/TrackingWorkAdminStore.cs";
 
 const heartbeatCredential = "AND lease_token={claim.LeaseToken} AND lease_epoch={claim.LeaseEpoch}";
 const finalizeSelect = "              AND state='Leased' AND lease_token=@token AND lease_epoch=@epoch\n" +
@@ -44,9 +45,15 @@ export const mutations = {
     "retry-budget": [{ path: worker,
         from: "var exhausted = !retryable || claim.Attempt >= settings.MaxAttempts;",
         to: "var exhausted = !retryable || claim.Attempt >= settings.MaxAttempts + 100;" }],
-    "redrive-auth": [{ path: policy,
-        from: "(permission == OrganizationPermission.TrackingWorkRedrive &&\n            role == OrganizationRole.Manager) ||",
-        to: "(permission == OrganizationPermission.TrackingWorkRedrive &&\n            role is (OrganizationRole.Manager or OrganizationRole.Analyst)) ||" }],
+    // The policy and the locked store query both require Manager. Relaxing the policy alone is an
+    // equivalent mutant (the store still denies), so unauthorized redrive is modelled by relaxing both.
+    "redrive-auth": [
+        { path: policy,
+          from: "(permission == OrganizationPermission.TrackingWorkRedrive &&\n            role == OrganizationRole.Manager) ||",
+          to: "(permission == OrganizationPermission.TrackingWorkRedrive &&\n            role is (OrganizationRole.Manager or OrganizationRole.Analyst)) ||" },
+        { path: adminStore,
+          from: "AND u.status='Active' AND m.status='Active' AND m.role='Manager'",
+          to: "AND u.status='Active' AND m.status='Active' AND m.role IN ('Manager','Analyst')" }],
     "tenant-filter": [{ path: worker,
         from: "            WHERE c.organization_id=@organization\n              AND c.container_identifier=@equipment",
         to: "            WHERE c.container_identifier=@equipment" }],

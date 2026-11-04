@@ -297,6 +297,7 @@ scan_images() {
 }
 mkdir -p "$root/cache/trivy"
 stage image-scans scan_images
+stage evidence-safety node scripts/check-m8-evidence-safety.mjs "$HARBOROPS_VERIFICATION_ROOT"
 
 # G8 acceptance requires normative D-002 references and independent raw-evidence review.
 # The source credential is never packaged; protected interactive CLI issuance is a separate check.

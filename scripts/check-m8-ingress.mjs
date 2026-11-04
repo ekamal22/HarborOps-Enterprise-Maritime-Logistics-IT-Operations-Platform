@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const mode = process.argv[2] || "healthy";
@@ -32,7 +32,8 @@ async function send(token, data=body, profile="tnt-2.2-harborops-v1", headers={}
   assert.ok(parsed.correlationId);
   assert.match(result.headers.get("cache-control") || "", /no-store/);
   return { status:result.status, code:parsed.code, receiptId:parsed.receiptId,
-    duplicate:parsed.duplicate, retry:result.headers.get("retry-after") };
+    duplicate:parsed.duplicate, receivedAtUtc:parsed.receivedAtUtc,
+    retry:result.headers.get("retry-after") };
 }
 if (mode === "healthy") {
   const missing = await send(null);
@@ -40,6 +41,8 @@ if (mode === "healthy") {
   const valid = await send(bearer);
   assert.equal(valid.status, 202);
   assert.ok(valid.receiptId);
+  writeFileSync(join(root, "evidence", "g8-ingress-receipt.json"),
+    JSON.stringify({ receiptId:valid.receiptId, receivedAtUtc:valid.receivedAtUtc }));
   const replay = await send(bearer);
   assert.equal(replay.status, 202);
   assert.equal(replay.receiptId, valid.receiptId);
@@ -56,9 +59,14 @@ if (mode === "healthy") {
 } else if (mode === "outage") {
   const offline = await send(bearer);
   assert.deepEqual([offline.status,offline.code],[503,"dependency_unavailable"]);
+  assert.ok(offline.retry, "Database outage must include retry guidance");
 } else {
   const resumed = await send(bearer);
   assert.equal(resumed.status,202);
   assert.ok(resumed.receiptId);
+  const first = JSON.parse(readFileSync(join(root, "evidence", "g8-ingress-receipt.json"), "utf8"));
+  assert.equal(resumed.receiptId, first.receiptId);
+  assert.equal(resumed.receivedAtUtc, first.receivedAtUtc);
+  assert.equal(resumed.duplicate, true);
 }
 console.log("G8 source-bound ingress " + mode + ": PASS");

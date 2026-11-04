@@ -109,8 +109,8 @@ public static class AuditRoleProvisioner
         var passwordLiteral = (string)(await quote.ExecuteScalarAsync(ct)
             ?? throw new InvalidOperationException("Database credential quoting failed"));
         var command = found
-            ? $"ALTER ROLE {role} WITH LOGIN PASSWORD {passwordLiteral}"
-            : $"CREATE ROLE {role} LOGIN PASSWORD {passwordLiteral}";
+            ? $"ALTER ROLE {role} WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD {passwordLiteral}"
+            : $"CREATE ROLE {role} WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD {passwordLiteral}";
         await ExecuteAsync(connection, command, ct);
     }
 

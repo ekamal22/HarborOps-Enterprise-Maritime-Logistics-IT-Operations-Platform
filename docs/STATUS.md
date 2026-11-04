@@ -35,7 +35,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | **M13 Operational KPI definitions and dashboards** | Planned | No verified implementation or accepted gate G13 |
 | **M14 Route mapping and geographic context** | Planned | No verified implementation or accepted gate G14 |
 | **M15 Scoped in-app notifications** | Planned | No verified implementation or accepted gate G15 |
-| **M16 Audit logging and access hardening** | Candidate implementation committed on feature branch, G16 not verified | [Implementation status](M16_IMPLEMENTATION_STATUS.md), [approved policy](M16_POLICY_DECISIONS.md), [architecture](M16_ARCHITECTURE_DESIGN.md) and [G16 matrix](M16_VERIFICATION_PLAN.md). No source-locked runtime verification or G16 acceptance. |
+| **M16 Audit logging and access hardening** | Corrective M16 candidate committed after failed initial G16 diagnosis; rerun pending | [Implementation status](M16_IMPLEMENTATION_STATUS.md), [approved policy](M16_POLICY_DECISIONS.md), [architecture](M16_ARCHITECTURE_DESIGN.md) and [G16 matrix](M16_VERIFICATION_PLAN.md). No source-locked runtime verification or G16 acceptance. |
 | **M17 Observability and service health** | Planned | No verified implementation or accepted gate G17 |
 | **M18 IT incident lifecycle and remediation** | Planned | No verified implementation or accepted gate G18 |
 | **M19 Database recovery and migration rehearsal** | Planned | No verified implementation or accepted gate G19 |
@@ -113,7 +113,7 @@ The five M16 audit/access choices were explicitly approved on 2026-11-04: Audito
 
 ## M16 implementation candidate (G16 open)
 
-The isolated M16 feature branch includes the additive audit schema and guarded SQL capture, bounded Auditor-only read API, correlation/actor attribution, distinct migration/API/worker PostgreSQL role provisioning, test source and E:-backed local verification tooling. See [M16 implementation status](M16_IMPLEMENTATION_STATUS.md). Neither build, tests, M9 integration nor G16 source-locked evidence has been executed or independently reviewed in this environment. **G16 acceptance pending.**
+The isolated M16 feature branch includes the additive audit schema and guarded SQL capture, bounded Auditor-only read API, correlation/actor attribution, distinct migration/API/worker PostgreSQL role provisioning, test source and E:-backed local verification tooling. See [M16 implementation status](M16_IMPLEMENTATION_STATUS.md). The initial G16 diagnostic campaign on the prior revision failed with 12 deterministic lock-race regression tests, browser fixture failures and incomplete scenario coverage. Corrective changes and executable regression tests are committed on the feature branch, but have not been verified on the new source SHA. M9 integration and independent review remain outstanding. **G16 acceptance pending.**
 
 ## Next eligible parallel workstreams
 

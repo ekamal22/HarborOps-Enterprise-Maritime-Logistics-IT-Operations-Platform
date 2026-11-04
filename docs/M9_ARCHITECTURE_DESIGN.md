@@ -1,5 +1,7 @@
 # M9 Architecture: Idempotent Worker and Reconciliation
 
+**Historical proposal snapshot:** This document was written before the M9 candidate source implementation. The corrected candidate is recorded in [M9 implementation status](M9_IMPLEMENTATION_STATUS.md) and the [follow-up source audit](M9_CORRECTNESS_AUDIT_20261104.md). Neither test execution nor G9 acceptance has occurred. All six M9-01 contract decisions remain acceptance pending. [Status](STATUS.md) records the authoritative observed milestone state.
+
 **Status:** Proposed architecture and implementation contract, not implemented or verified. M9/G9 acceptance pending.  
 **Prepared:** 2026-11-04  
 **Accepted source baseline:** `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`; G0-G8 accepted.  

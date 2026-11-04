@@ -107,3 +107,7 @@ Do not conflate architecture approval with milestone acceptance. **G0-G8 are ver
 ## Change reporting
 
 Preferred structure: scope, changed paths, behavior, tests actually executed, results, known limitations, and acceptance status. If no tests were run, state "not run" and why.
+
+## M9 branch and documentation checkpoint
+
+Accepted `main` includes M0-M8/G0-G8. The corrected M9 implementation is isolated on [draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18), with [implementation status](M9_IMPLEMENTATION_STATUS.md), a [source-level audit](M9_CORRECTNESS_AUDIT_20261104.md), and an unexecuted [G9 verification plan](M9_VERIFICATION_PLAN.md). Do not describe authored test cases as executed evidence, merge unaccepted code or mark G9 closed. Parallel milestone branches must reconcile shared migration/EF snapshot, API and authorization changes before combined verification. Keep all persistent project storage and verification evidence on E:, never trigger GitHub Actions, and include `[skip ci]` in commits. Do not insert attribution trailers or generated-by markers.

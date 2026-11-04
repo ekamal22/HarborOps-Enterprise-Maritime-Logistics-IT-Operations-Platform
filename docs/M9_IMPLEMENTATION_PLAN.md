@@ -1,5 +1,7 @@
 # M9 Implementation Plan: Idempotent Worker and Reconciliation
 
+**Historical proposal snapshot:** This document was written before the M9 candidate source implementation. The corrected candidate is recorded in [M9 implementation status](M9_IMPLEMENTATION_STATUS.md) and the [follow-up source audit](M9_CORRECTNESS_AUDIT_20261104.md). Neither test execution nor G9 acceptance has occurred. All six M9-01 contract decisions remain acceptance pending. [Status](STATUS.md) records the authoritative observed milestone state.
+
 **State:** Planning complete as a proposal. No M9 application, database, worker or verification code has been implemented. G9 acceptance pending.  
 **Prepared:** 2026-11-04  
 **Planning branch:** `plan/m9-idempotent-worker-reconciliation`  

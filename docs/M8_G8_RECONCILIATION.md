@@ -16,6 +16,8 @@ The review record is a separate JSON file, placed outside the raw evidence direc
   "scenarioReportSha256": "<SHA-256 of evidence/g8-scenarios.json>",
   "manifestSha256": "<SHA-256 of archived manifest>",
   "evidenceArchiveSha256": "<SHA-256 of archived evidence tar.gz>",
+  "finalizationSha256": "<SHA-256 of archives/<run-id>/g8-finalization-status.json>",
+  "archiveSafetySha256": "<SHA-256 of archives/<run-id>/archive-safety.log>",
   "d006Decision": "accepted",
   "d006DecisionRef": "<actual GitHub decision-comment or issue URL>",
   "independentReview": "complete",
@@ -33,7 +35,7 @@ The example above intentionally uses placeholders, not assertions of completed a
 node scripts/reconcile-g8-review.mjs "E:\\HarborOps-Verification\\m8" "E:\\HarborOps-Verification\\review\\g8-review.json"
 ```
 
-The utility checks source identity, the selected immutable run ID, independently recorded technical status, the full 25-case order, technical passes, stage source/exits, final archive safety, archived manifest and evidence hashes, explicit D-006 decision and independent review references. It writes a *new* `archives/<run-id>/g8-<sha>-<run-id>-review-reconciliation.json` with exclusive creation. It never overwrites the original run or implies acceptance. Reference authenticity and independent reviewer qualifications still need human verification. A reconciled review is **not** G8 approval: explicit acceptance remains separate before merging PR #14 or starting dependent M9 work.
+The utility checks source identity, the selected immutable run ID, independently recorded technical status, the full 25-case order, technical passes, stage source/exits, final archive safety, archived manifest, evidence, finalization and archive-safety hashes, explicit D-006 decision and independent review references. It writes a *new* `archives/<run-id>/g8-<sha>-<run-id>-review-reconciliation.json` with exclusive creation. It never overwrites the original run or implies acceptance. Reference authenticity and independent reviewer qualifications still need human verification. A reconciled review is **not** G8 approval: explicit acceptance remains separate before merging PR #14 or starting dependent M9 work.
 
 The G8 run root must be unique per attempt and end with `/m8`. For example, `E:\\HarborOps-Verification\\g8-attempt-01\\m8` is one isolated root. Subsequent attempts use a new parent folder, even when repeating the same source SHA. Final logs and teardown are scanned before an archive is promoted; the private tarball is independently extracted and its contents checked against the run-specific manifest and credential canaries. Do not share any quarantined archive.
 

@@ -90,7 +90,9 @@ const actual = {
   sourceSha: sha,
   scenarioReportSha256: digest(reportBytes),
   manifestSha256: digest(readFileSync(manifest)),
-  evidenceArchiveSha256: digest(readFileSync(archive))
+  evidenceArchiveSha256: digest(readFileSync(archive)),
+  finalizationSha256: digest(readFileSync(finalizationFile)),
+  archiveSafetySha256: digest(readFileSync(safetyLog))
 };
 
 const review = JSON.parse(readFileSync(reviewPath, "utf8"));

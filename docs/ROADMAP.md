@@ -241,6 +241,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Append-only evidence and strengthened authorization.
 **Entry:** G3 accepted before respective dependent work packages.
 **Required work packages:** M16-01 Define audit schema and privacy; M16-02 Implement append-only audit entries; M16-03 Harden security boundaries; M16-04 Verify security and audit matrix.
+**Accepted policy:** M16-D01 through M16-D05 approved 2026-11-04. Follow [decisions](M16_POLICY_DECISIONS.md), [architecture](M16_ARCHITECTURE_DESIGN.md), [privacy](M16_AUDIT_PRIVACY_POLICY.md), [implementation](M16_IMPLEMENTATION_PLAN.md) and [G16 plan](M16_VERIFICATION_PLAN.md). Approval is not implementation or gate closure.
 **Exit G16:** All applicable tasks, negative tests, runtime evidence and documentation for M16 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Telemetry dashboards and IT incident lifecycle.
 

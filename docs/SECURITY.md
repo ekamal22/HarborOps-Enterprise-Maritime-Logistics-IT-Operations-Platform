@@ -85,6 +85,12 @@ The M7 implementation adds separate machine-source bearers, organization-first l
 
 The [original repository security review](PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.md) preserves its historical findings. The [remediation register](PUBLICATION_REMEDIATION_STATUS.md) and [publication safety status](PUBLICATION_SAFETY_STATUS.md) document the completed security changes, successful local verification, artifact disposition and branch governance. **The repository is public for source inspection as of 2026-11-03, but internet-facing application hosting is not cleared.** Historical Git content is visible, the LICENSE restricts reuse, and GitHub Actions remains disabled.
 
+## Approved M16 audit and access hardening policy (implementation pending)
+
+On 2026-11-04 M16-D01 through M16-D05 were approved: only active Auditor membership of the actively selected organization may read its audits; online retention targets 365 days followed by controlled archival without premature deletion; sensitive successful mutations and required audit rows commit together or roll back; migration, API and worker PostgreSQL identities must be separated; and database-enforced append-only protection is required while external cryptographic anchoring is deferred. Sensitive fields are excluded using typed metadata allowlists. PostgreSQL must deny audit UPDATE, DELETE and TRUNCATE. A DELETE row trigger cannot protect against TRUNCATE alone; require a separate statement-level guard and/or denied TRUNCATE privileges. No PostgreSQL-only solution is claimed to withstand privileged superuser tampering.
+
+See [approved decisions](M16_POLICY_DECISIONS.md), [privacy](M16_AUDIT_PRIVACY_POLICY.md), [architecture](M16_ARCHITECTURE_DESIGN.md) and [G16 matrix](M16_VERIFICATION_PLAN.md). M1 identity events and M8 immutable event history are not replaced. No M16 runtime control or G16 acceptance is claimed.
+
 ## Data protection
 
 - Keep secrets in local secret stores or environment configuration excluded from source control.

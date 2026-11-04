@@ -94,7 +94,7 @@ cleanup() {
       relative="${trace#"$evidence/"}"
       mkdir -p "$root/private/quarantine/$(dirname "$relative")"
       mv "$trace" "$root/private/quarantine/$relative" || rc=1
-    done < <(find "$evidence/playwright" -type f \\( -name '*.zip' -o -name '*.gz' -o -name '*.7z' \\) -print0)
+    done < <(find "$evidence/playwright" -type f \( -name '*.zip' -o -name '*.gz' -o -name '*.7z' \) -print0)
   fi
   if [[ -d "$root/private/quarantine" ]]; then
     (cd "$root/private/quarantine" &&

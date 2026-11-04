@@ -1,0 +1,37 @@
+[
+ {
+  "id": "S07",
+  "name": "rejected mutations stale=409 empty=400 forbidden=403 badId=400",
+  "expected": "4xx and no audit rows",
+  "actual": "audit rows +0, version 1->1",
+  "pass": true
+ },
+ {
+  "id": "S08",
+  "name": "10 rounds x 8 parallel same-version updates: wins=10 conflicts=70 other=0",
+  "expected": "wins=10, no 5xx",
+  "actual": "wins=10 other=0",
+  "pass": true
+ },
+ {
+  "id": "S08",
+  "name": "audit rows equal committed organization updates",
+  "expected": 10,
+  "actual": 10,
+  "pass": true
+ },
+ {
+  "id": "S08",
+  "name": "API killed mid-burst (client saw ok=5 fail=27)",
+  "expected": "committed updates == audit rows",
+  "actual": "versions +5, audit +5",
+  "pass": true
+ },
+ {
+  "id": "S08",
+  "name": "no audit row without a committed change (same-transaction pairing)",
+  "expected": "equal",
+  "actual": "5 vs 5",
+  "pass": true
+ }
+]

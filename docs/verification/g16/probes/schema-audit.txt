@@ -1,0 +1,11 @@
+owner|harborops|f
+index|IX_m16_audit_resource|CREATE INDEX "IX_m16_audit_resource" ON public.audit_entries USING btree (organization_id, resource_type, resource_id, occurred_at_utc DESC)
+index|IX_m16_audit_scope_time|CREATE INDEX "IX_m16_audit_scope_time" ON public.audit_entries USING btree (organization_id, occurred_at_utc DESC, id DESC)
+index|audit_entries_pkey|CREATE UNIQUE INDEX audit_entries_pkey ON public.audit_entries USING btree (id)
+trigger|m16_audit_no_change|O|ROW
+trigger|m16_audit_no_truncate|O|STATEMENT
+capture_triggers|15
+fn|m16_audit_capture|t|harborops|{harborops=X/harborops}|search_path=pg_catalog, public
+fn|m16_audit_guard|f|harborops||
+fn|m16_record_audit_access|t|harborops|{harborops=X/harborops,harborops_api=X/harborops}|search_path=pg_catalog, public
+fk|audit_entries_organization_id_fkey|organizations|r

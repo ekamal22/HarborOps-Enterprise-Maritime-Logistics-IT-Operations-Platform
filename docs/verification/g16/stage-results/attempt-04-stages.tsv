@@ -1,0 +1,13 @@
+stage	exit	seconds
+preflight	0	1
+docs	1	0
+scripts	0	0
+postgres-image	0	2
+compose	0	19
+browser-accounts	0	70
+browser-organizations	0	39
+browser-m3-fixtures	0	5
+browser-m4-fixtures	0	3
+browser-m5-fixtures	0	2
+browser-m6-fixtures	0	2
+browser-engines	0	83

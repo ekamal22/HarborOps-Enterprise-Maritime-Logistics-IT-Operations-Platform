@@ -1,0 +1,9 @@
+stage	exit	seconds
+preflight	0	1
+docs	1	0
+scripts	0	0
+postgres-image	0	5
+dotnet-build	0	64
+unit	0	4
+contract	0	15
+integration	1	1003

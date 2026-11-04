@@ -73,3 +73,31 @@ Findings are numbered in order of discovery. Severity reflects impact on the M16
 - **Observed:** With `EXECUTE` on `m16_record_audit_access` revoked from the API role (fault injection on a disposable database) an authorized Auditor read returned `403 organization_access_revoked` (SQLSTATE 42501 is mapped to revocation) rather than the 503 that M16-D03 specifies for unavailable persistence; a forbidden caller still received 403. A user without audit rights wrote 120 denial rows in one minute before the 120 per minute limiter returned 429.
 - **Impact:** Misleading error code; tenant audit volume can grow by 120 rows per minute per user.
 - **Recommended correction:** Map storage failures to a sanitized 503, and add a per-user or per-session cap or coalescing for denial rows.
+
+## G16-F008: Audit browser spec races the organization selection (test defect)
+
+- **Severity:** Medium (verification; product behavior verified correct)
+- **Component:** `tests/browser/specs/audit.spec.mjs` (tests 1 and 2)
+- **Observed:** Both tests fail on Chromium, Firefox and WebKit with `Expected 200, Received 409` and `Expected 403, Received 409` (attempt 03).
+- **Root cause (confirmed from the Playwright trace):** The spec calls `selectOption` on `#current-organization` and immediately issues `page.request.get` for the audit route. The trace shows the audit GET started at 19:12:42.291 and the `PUT /api/v1/auth/session/organization` started at 19:12:42.296, so the request carried no selected organization and correctly returned `organization_selection_required` (409). This is the pitfall recorded for earlier gates: wait for the selection PUT before using `page.request`.
+- **Impact:** The only browser coverage for G16-S13 and S15 cannot pass as written. API behavior is correct: the independent HTTP probe selected the organization first and observed 200 for the Auditor and 403 for the Administrator.
+- **Recommended correction:** Await the selection response (for example `waitForResponse` on the PUT) before the audit requests.
+- **Retest:** Diagnostic rehearsal (attempt 04, non-gate) with a scratch copy of the spec that awaits the PUT: audit spec 3 of 3 passed on all three engines. The corrected spec must be rerun on the corrected revision under the full runner.
+
+## G16-F009: G16 runner provisions browser members with display names the accepted spec does not expect (runner defect)
+
+- **Severity:** Medium (verification)
+- **Component:** `scripts/verify-m16-local.sh` stage `browser-accounts`, `tests/browser/specs/organization-revocation.spec.mjs`
+- **Observed:** `organization-revocation` times out at 120 s on all three engines. The trace shows the last open step is `admin.getByLabel("Membership state for Synthetic Browser Chromium Member").selectOption("Suspended")` (spec line 69).
+- **Root cause (confirmed):** The M16 runner creates `m2-browser-*` accounts as "M2 Browser Chromium", "M2 Browser Firefox" and "M2 Browser WebKit". The spec (unchanged since M2) and every earlier runner (M2, M5, M7, M8) use "Synthetic Browser Chromium Member", "... Firefox Member" and "... Webkit Member".
+- **Impact:** A previously accepted M2 browser regression (live membership revocation) fails in the G16 runner for a fixture reason, so G16-S30 cannot close from the runner.
+- **Recommended correction:** Use the accepted display names in the runner.
+- **Retest:** Attempt 04 (non-gate diagnostic) with the accepted names: `organization-revocation` passed on all three engines.
+
+## G16-F010: Runner evidence controls report false alarms and are contaminated by sibling containers
+
+- **Severity:** Low (verification tooling)
+- **Component:** `scripts/check-m16-evidence-safety.mjs`, runner teardown check, `scripts/run-m16-browsers-local.sh`
+- **Observed:** (a) The runner keeps Playwright traces on failure and the evidence safety script then rejects every `.zip` ("Compressed evidence requires separate private inspection"), turning any browser failure into an additional safety failure. The nine traces in attempt 03 were quarantined; two extracted traces did contain live cookie values of the disposable stack, so quarantine was correct. (b) The teardown leftover check filters containers by the Compose project label, which any container started from the Compose-built images inherits. Two probe containers created by this campaign from those images were reported as leftover in attempt 03 (`teardown.txt`) although the Compose project itself was fully removed (`compose-teardown.log`). (c) The runner stops at its first failed stage, so a failure in an early stage (F001, F002) hides every later stage.
+- **Impact:** Evidence for attempt 03 is flagged unsafe and non-clean even though no product secret was found; the teardown line for attempt 03 must be read with this caveat.
+- **Recommended correction:** Distinguish quarantined from unsafe artifacts, filter resources by an explicit disposable label, and add a continue-on-failure mode that still records every stage.

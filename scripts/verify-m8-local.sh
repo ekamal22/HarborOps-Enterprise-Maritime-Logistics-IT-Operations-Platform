@@ -113,7 +113,7 @@ cleanup() {
     technical_status=FAILED
   fi
   if [[ "$technical_status" != "PASS" ]]; then rc=1; fi
-  printf '%s\n' "$rc" > "$evidence/exit-code.txt"
+  printf '%s\n' "$rc" > "$evidence/technical-stage-exit-code.txt"
   # The completed manifest and archive are exclusively created inside the
   # previously created, unique E:-backed run directory.
   (cd "$evidence" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
@@ -132,11 +132,17 @@ cleanup() {
   if [[ "$archive_rc" == 0 ]]; then
     mv -n "$draft_archive" "$archive_dir/$archive_name-evidence.tar.gz" || archive_rc=1
   fi
+  if [[ "$archive_rc" == 0 && ! -f "$archive_dir/$archive_name-evidence.tar.gz" ]]; then
+    archive_rc=1
+  fi
   if [[ "$archive_rc" != 0 ]]; then
     rm -f "$draft_archive"
     echo "G8 archive quarantined: archive creation or final sanitization failed" >&2
     rc=1
   fi
+  # This report is outside the already sealed evidence tarball. It records
+  # archive publication outcome without rewriting the original technical run.
+  node scripts/record-g8-finalization.mjs "$evidence" "$archive_dir" "$rc" "$archive_rc" || rc=1
   rm -f "$root/private/source-bearer.txt" "$root/private/test-user-password.txt" "$root/private/g8-receipt-snapshot.json"
   if [[ "$rc" == 0 && "$technical_status" == "PASS" ]]; then
     echo "G8 technical evidence PASS for $run_id. D-006, independent review and G8 acceptance pending."

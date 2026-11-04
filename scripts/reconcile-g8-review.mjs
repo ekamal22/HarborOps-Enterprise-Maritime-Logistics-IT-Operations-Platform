@@ -57,6 +57,15 @@ const archiveDir = join(root, "archives", runId);
 const prefix = "g8-" + sha + "-" + runId;
 const archive = join(archiveDir, prefix + "-evidence.tar.gz");
 const manifest = join(archiveDir, prefix + "-manifest.sha256");
+const finalizationFile = join(archiveDir, "g8-finalization-status.json");
+assert.ok(existsSync(finalizationFile), "Final package disposition is required");
+const finalization = JSON.parse(readFileSync(finalizationFile, "utf8"));
+assert.equal(finalization.sourceSha, sha);
+assert.equal(finalization.runId, runId);
+assert.equal(finalization.technicalStatus, "PASS");
+assert.equal(finalization.archiveStatus, "PASS");
+assert.equal(finalization.expectedWrapperExitCode, 2);
+assert.equal(finalization.formalGateStatus, "ACCEPTANCE_PENDING");
 const safetyLog = join(archiveDir, "archive-safety.log");
 assert.ok(existsSync(safetyLog) &&
   readFileSync(safetyLog,"utf8").includes("G8 archive and manifest integrity PASS"),

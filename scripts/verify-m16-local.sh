@@ -151,6 +151,35 @@ stage package-audit bash -c 'npm --prefix web audit --audit-level=high && npm --
 owned_stack=1
 stage compose bash scripts/smoke-compose.sh --project "$project" --confirm-disposable
 stage restricted-db-roles bash scripts/check-m16-db-roles.sh
+image_scans() {
+  local trivy="aquasec/trivy:0.76.1"
+  local cache="$(cygpath -w "$root/cache/trivy"):/root/.cache/trivy"
+  local reports="$(cygpath -w "$evidence/trivy"):/reports"
+  mkdir -p "$root/cache/trivy" "$evidence/trivy"
+  local ready=0
+  for attempt in 1 2 3; do
+    if MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 -v "$cache" \
+        "$trivy" image --download-db-only; then ready=1; break; fi
+    sleep 10
+  done
+  [[ "$ready" == 1 ]] || { echo "Vulnerability database unavailable" >&2; return 1; }
+  for service in postgres api web; do
+    local id image revision
+    id="$(compose ps -q "$service")" || return 1
+    [[ -n "$id" ]] || return 1
+    image="$(docker inspect --format '{{.Image}}' "$id")" || return 1
+    revision="$(docker image inspect \
+      --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")" || return 1
+    [[ "$revision" == "$HARBOROPS_SOURCE_SHA" ]] || return 1
+    MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v "$cache" -v "$reports" "$trivy" \
+      image --image-src docker --scanners vuln --severity HIGH,CRITICAL \
+      --exit-code 1 --format json --output "/reports/$service.json" "$image" || return 1
+    [[ -s "$evidence/trivy/$service.json" ]] || return 1
+  done
+}
+stage image-scans image_scans
 provision() {
   printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | compose run --rm -T \
     -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision "$1" "$2"

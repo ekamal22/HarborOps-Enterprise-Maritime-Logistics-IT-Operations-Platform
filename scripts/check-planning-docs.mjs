@@ -110,7 +110,14 @@ for (const node of graph.nodes) {
   assert(graphView.includes("| **" + node.id + ": ") || graphView.includes("**" + node.id + " acceptance evidence:**"), "Missing work package or gate in rendered view: " + node.id);
 }
 const docsDir = join(root, "docs");
-const documents = ["README.md", ...readdirSync(docsDir).filter(s=>s.endsWith(".md")).map(s=>"docs/"+s)];
+const documents = [
+  "README.md",
+  ...readdirSync(docsDir).filter(s=>s.endsWith(".md")).map(s=>"docs/"+s),
+  "third_party/dcsa-track-and-trace/README.md"
+];
+// Include the pinned third-party reference index, not only the root and docs
+// directories. Its original reference snapshots remain immutable.
+assert(documents.length >= 98, "Repository Markdown inventory unexpectedly shrank");
 for (const path of documents) {
   const body = get(path);
   assert(!body.includes("\u2014"), "Em dash in " + path);

@@ -40,16 +40,33 @@ public static class AuditRoleProvisioner
                 GRANT EXECUTE ON FUNCTION
                     m16_record_audit_access(uuid,varchar,uuid,uuid,uuid,varchar) TO harborops_api;
 
-                -- M9 expands worker grants only through reviewed migration policy.
+                -- Worker starts read-only against the accepted M8 schema.
+                -- M9-specific column grants are activated only if M9 is present.
                 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM harborops_worker;
                 GRANT SELECT ON tracking_inbox_receipts, tracking_accepted_events,
                     tracking_inbox_work_items, integration_sources, integration_credentials,
-                    organizations TO harborops_worker;
-                GRANT UPDATE ON tracking_inbox_work_items TO harborops_worker;
+                    organizations, containers, shipments,
+                    shipment_container_assignments TO harborops_worker;
                 REVOKE ALL ON TABLE audit_entries FROM harborops_worker;
                 REVOKE ALL ON FUNCTION
                     m16_record_audit_access(uuid,varchar,uuid,uuid,uuid,varchar)
                     FROM harborops_worker;
+                DO $worker_grants$
+                BEGIN
+                    IF to_regclass('public.tracking_work_attempt_events') IS NOT NULL
+                       AND to_regclass('public.tracking_processing_effects') IS NOT NULL THEN
+                        GRANT SELECT ON tracking_work_attempt_events,
+                            tracking_processing_effects TO harborops_worker;
+                        GRANT INSERT ON tracking_work_attempt_events,
+                            tracking_processing_effects TO harborops_worker;
+                        GRANT UPDATE (state,attempt_count,lease_token,lease_epoch,
+                            lease_expires_at_utc,available_at_utc,redrive_generation,
+                            last_error_code,completed_at_utc,resolution_kind,
+                            updated_at_utc) ON tracking_inbox_work_items TO harborops_worker;
+                        GRANT EXECUTE ON FUNCTION m9_lock_active_organization(uuid)
+                            TO harborops_worker;
+                    END IF;
+                END $worker_grants$;
                 """, ct);
         }
         finally

@@ -20,14 +20,20 @@ public sealed class TrackingWorkAdminStore(HarborOpsDbContext db, IConfiguration
         OrganizationScope scope, Guid? after, int limit, CancellationToken ct)
     {
         if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
-        var query = db.TrackingInboxWorkItems.AsNoTracking()
-            .Where(x => x.OrganizationId == scope.OrganizationId &&
-                db.OrganizationMemberships.Any(m => m.OrganizationId == scope.OrganizationId &&
-                    m.UserId == scope.UserId && m.Status == "Active" &&
-                    (m.Role == "Manager" || m.Role == "Analyst" || m.Role == "Auditor")) &&
-                db.Organizations.Any(o => o.Id == scope.OrganizationId && o.Status == "Active"));
-        if (after is { } cursor)
-            query = query.Where(x => x.ReceiptId.CompareTo(cursor) > 0);
+        // Use PostgreSQL UUID ordering with parameters. Guid.CompareTo in LINQ is not
+        // consistently translated by relational providers.
+        IQueryable<TrackingInboxWorkItem> scoped = after.HasValue
+            ? db.TrackingInboxWorkItems.FromSqlInterpolated($"""
+                SELECT * FROM tracking_inbox_work_items
+                WHERE organization_id={scope.OrganizationId} AND receipt_id>{after.Value}
+                """)
+            : db.TrackingInboxWorkItems.Where(x => x.OrganizationId == scope.OrganizationId);
+        var query = scoped.AsNoTracking().Where(x =>
+            x.OrganizationId == scope.OrganizationId &&
+            db.OrganizationMemberships.Any(m => m.OrganizationId == scope.OrganizationId &&
+                m.UserId == scope.UserId && m.Status == "Active" &&
+                (m.Role == "Manager" || m.Role == "Analyst" || m.Role == "Auditor")) &&
+            db.Organizations.Any(o => o.Id == scope.OrganizationId && o.Status == "Active"));
         return await query.OrderBy(x => x.ReceiptId).Take(limit)
             .Select(x => new TrackingWorkQueueEntry(x.ReceiptId, x.SourceId, x.State,
                 x.AttemptCount, x.RedriveGeneration, x.AvailableAtUtc, x.UpdatedAtUtc,

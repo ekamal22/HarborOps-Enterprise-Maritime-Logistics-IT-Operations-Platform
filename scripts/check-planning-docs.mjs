@@ -44,7 +44,7 @@ assert(status.includes("G0 verified") && status.includes("accepted"), "Status le
 for (const [name,body,needle] of [
   ["README",readme,"M8 implementation is committed"],
   ["Status",status,"technical G8 run executed"],
-  ["Roadmap",roadmap,"G8-G24 remain open"],
+  ["Roadmap",roadmap,"G9-G24 remain open"],
   ["Contributors",contributors,"G0-G7 are verified, explicitly accepted"],
   ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],
   ["Implementation plan",implementationPlan,"M8 technically verified candidate, acceptance pending"],
@@ -61,8 +61,8 @@ for (const [name,body] of [
   assert(!/G0-G6 are verified and explicitly accepted|G7-G24 each require independent verification|no M8 code or G8 evidence exists|Suggested future runner|M8 parallel implementation boundary \(planned\)/i.test(body),
     "Superseded milestone statement returned in " + name);
 }
-assert(status.includes("D-006") && status.includes("acceptance pending"), "Status must keep D-006 pending");
-assert(m8Status.includes("G8") && m8Status.includes("Technical evidence executed; **not accepted.**"), "G8 cannot be treated as accepted without evidence");
+assert(status.includes("D-006") && status.includes("accepted"), "Status must record accepted D-006");
+assert(m8Status.includes("G8") && m8Status.includes("Explicitly accepted 2026-11-04") && m8Status.includes("M8_G8_GATE_CLOSURE.md"), "G8 acceptance must reference the independently reviewed gate closure");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");
 assert(roadmap.includes("## Legacy milestone mapping"), "Missing version migration map");

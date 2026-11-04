@@ -3,7 +3,7 @@
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
 **Updated status:** 2026-11-04  
-**State:** As of 2026-11-04, M0/G0 through M7/G7 are verified, explicitly accepted and integrated into protected `main`. M8 source and G8 verification runner are committed on an isolated feature branch, with correctness remediation applied and one complete technical G8 run executed (23 of 23 technical scenarios PASS). D-006 acceptance, independent review and G8 acceptance pending; G8-G24 remain open. The twelve-rule M6 contract and G6-S10 snapshot limitation are preserved in [gate closure](M6_G6_GATE_CLOSURE.md).
+**State:** As of 2026-11-04, M0/G0 through M7/G7 are verified, explicitly accepted and integrated into protected `main`. M8 source and G8 verification runner are committed on an isolated feature branch, with correctness remediation applied and one complete technical G8 run executed (23 of 23 technical scenarios PASS). D-006 Option A, independent review and G8 acceptance completed 2026-11-04; G9-G24 remain open. The twelve-rule M6 contract and G6-S10 snapshot limitation are preserved in [gate closure](M6_G6_GATE_CLOSURE.md).
 
 ## Authority and rationale
 
@@ -171,7 +171,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** Transactional receipt persistence and accepted event provenance.
 **Entry:** G7 accepted, G6 accepted before respective dependent work packages. Resolve D-006 before applicable feature implementation. G7 permits contract design; M8-02 and M8-03 additionally wait for G6.
-**Required work packages:** M8-01 Specify inbox and retention states; M8-02 Implement receipt and event schema; M8-03 Implement intake transaction path; M8-04 Verify persistent ingestion behavior. [M8 architecture](M8_ARCHITECTURE_DESIGN.md), [D-006 proposal](M8_D006_DURABILITY_PROPOSAL.md), [implementation plan](M8_IMPLEMENTATION_PLAN.md), [G8 matrix](M8_VERIFICATION_PLAN.md) and [implementation register](M8_IMPLEMENTATION_STATUS.md) document an unverified feature-branch implementation candidate. D-006 acceptance pending, no executed G8 evidence or accepted milestone.
+**Required work packages:** M8-01 Specify inbox and retention states; M8-02 Implement receipt and event schema; M8-03 Implement intake transaction path; M8-04 Verify persistent ingestion behavior. [M8 architecture](M8_ARCHITECTURE_DESIGN.md), [D-006 proposal](M8_D006_DURABILITY_PROPOSAL.md), [implementation plan](M8_IMPLEMENTATION_PLAN.md), [G8 matrix](M8_VERIFICATION_PLAN.md) and [implementation register](M8_IMPLEMENTATION_STATUS.md) document the source-locked M8 implementation and executed evidence. D-006 Option A and G8 accepted 2026-11-04 after independent review; see [gate closure](M8_G8_GATE_CLOSURE.md).
 **Exit G8:** All applicable tasks, negative tests, runtime evidence and documentation for M8 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Worker retry scheduling and projected shipment state.
 

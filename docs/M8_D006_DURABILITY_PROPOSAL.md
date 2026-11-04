@@ -1,6 +1,6 @@
 # D-006 Proposal: Durable Inbox, Receipt Identity and Future Dead-Letter Model
 
-**State:** Proposed, acceptance pending. No D-006 decision is recorded by this document.
+**State:** Accepted on 2026-11-04, Option A. Historical proposal wording and pre-decision analysis are retained below; the binding acceptance is in [D-006 decision](DECISIONS.md) and [M8/G8 gate closure](M8_G8_GATE_CLOSURE.md).
 **Prepared:** 2026-11-03
 **Milestone:** M8-01, with binding downstream contracts for M8-02, M8-03, M9-01 and M9-03.
 **Accepted baseline:** G0-G7 on `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`.
@@ -16,11 +16,11 @@ This decision specifies how M9 will subsequently claim, retry, reconcile and dea
 
 | Option | Design | Advantages | Disadvantages | Assessment |
 | --- | --- | --- | --- | --- |
-| **A: Transactional PostgreSQL inbox with separate immutable ledger and mutable work state** | Three transactional records for every accepted event; future worker uses the same database and separate processing/dead-letter metadata | No external broker, atomic local receipt, clear replay semantics, retained provenance, low-cost local-first runtime | Serialized admission per organization for quota, database capacity must be watched, later worker and recovery still needed | **Recommended, acceptance pending** |
+| **A: Transactional PostgreSQL inbox with separate immutable ledger and mutable work state** | Three transactional records for every accepted event; future worker uses the same database and separate processing/dead-letter metadata | No external broker, atomic local receipt, clear replay semantics, retained provenance, low-cost local-first runtime | Serialized admission per organization for quota, database capacity must be watched, later worker and recovery still needed | **Accepted 2026-11-04** |
 | B: Build full worker queue and dead-letter transitions inside M8 | Add retry leases, worker concurrency and dead-letter execution before G8 | Fewer future migration steps | Blurs M8/M9 acceptance, expands crash-window surface and conflicts with execution graph | Reject for M8 |
 | C: External managed queue or message broker as receipt authority | Acknowledge publisher after enqueue outside PostgreSQL | Potential high throughput | Distributed commit gap, new infrastructure, cost and replay ambiguity | Reject for initial local milestone |
 
-## Proposed Option A contract, not yet accepted
+## Accepted Option A contract (original proposal preserved)
 
 ### Source identity and duplicate definition
 
@@ -63,4 +63,4 @@ This decision specifies how M9 will subsequently claim, retry, reconcile and dea
 
 D-006 must explicitly confirm or change the persistence model, replay/collision semantics, response contract, pending-cap default, retention and M9 handoff before M8-02/M8-03 changes that depend on them. Any changed choice requires corresponding schema, G8 test and API-contract revisions. A planned design or merged documentation branch does not constitute D-006 acceptance, G8 verification or permission to merge M8 implementation.
 
-**Decision:** Acceptance pending. **Recommendation:** Option A with the constraints above.
+**Decision:** Option A accepted 2026-11-04 by [explicit acceptance](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/14#issuecomment-6633731945) after [independent evidence review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md). A PostgreSQL unique index enforces the scoped key; M8's Pending-only checks require a separate M9 state-transition migration. The 10,000 Pending ceiling is a demonstrator default. Other proposal terms above remain binding as applicable to M8; M9 processing and production capacity are not accepted by this milestone.

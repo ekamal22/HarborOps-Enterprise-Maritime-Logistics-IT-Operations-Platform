@@ -1,13 +1,13 @@
 # M8 Implementation Status
 
-**As of:** 2026-11-04 (technical G8 verification executed on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6`; acceptance pending)
+**As of:** 2026-11-04 (technical G8 verification executed on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6`; D-006 and G8 accepted after independent review)
 **Source branch:** `feat/m8-durable-event-inbox`
 **Planning branch:** `plan/m8-durable-inbox-immutable-history` (draft PR #13)
 **Accepted baseline:** `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`, G0-G7 accepted.
 **Status:** M8-02 persistence, M8-03 intake, M8-04 tests and the dedicated G8 runner are committed. One complete source-locked local run passed all 24 stages with 23 of 23 technical scenarios passing (see the [executed verification record](M8_EXECUTED_VERIFICATION.md)). Earlier attempts and development rehearsals found eleven defects, all corrected and registered in the [remediation register](M8_CORRECTNESS_REMEDIATION.md).
-**D-006:** Option A used as a provisional implementation contract. **Acceptance pending.**
-**G8:** Technical evidence executed; **not accepted.** G8-S01 (D-006 approval) and G8-S25 (independent evidence review) remain BLOCKED pending decisions. 23 technical scenarios PASS.
-**Integration:** Not merged into accepted `main`; GitHub Actions disabled.
+**D-006:** Option A accepted 2026-11-04, with bounded Pending capacity and an M9 state-transition migration; see [decision](DECISIONS.md).
+**G8:** Explicitly accepted 2026-11-04 after [independent source-locked review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md). Original run: 23 technical scenarios PASS and G8-S01/G8-S25 BLOCKED; separate decisions subsequently closed those cases without rewriting raw evidence. See [gate closure](M8_G8_GATE_CLOSURE.md).
+**Integration:** Accepted for merge into protected `main`; final integration SHA is recorded separately. GitHub Actions disabled.
 **Deployment:** None. No internet-facing hosting or accepted event processing.
 
 ## Implemented source candidate
@@ -47,4 +47,4 @@ The [second audit remediation register](M8_SECOND_REMEDIATION_STATUS.md) documen
 
 Run the existing `bash scripts/verify-m8-local.sh` from a clean E:-backed checkout after verifying Docker/WSL storage placement and [local storage policy](LOCAL_STORAGE_POLICY.md). Set `HARBOROPS_VERIFICATION_ROOT` to a **fresh, single-use** E:-backed path ending in `/m8`, for example `E:\\HarborOps-Verification\\g8-attempt-01\\m8`. Use a new parent for every repeat. The runner performs cheap validation before expensive integration, browsers and all eleven mutations. Original G8-S01 and G8-S25 remain blocked pending D-006 and independent review. Preserve exact raw evidence, staged archive hashes and separate supplement findings rather than rewriting original runs. Follow [G8 verification runbook](M8_G8_VERIFICATION_RUNBOOK.md) and [independent review](M8_G8_RECONCILIATION.md).
 
-**Next decision:** D-006 Option A acceptance or an explicit alternative. **Next executable gate:** G8, acceptance pending. **Merge:** Only after independent evidence review and explicit G8 acceptance.
+**Decision:** D-006 Option A and G8 accepted 2026-11-04. **Next executable gate:** G9 for M9 after its own implementation and verification. **Integration:** M8 may merge into protected `main` with the original evidence preserved.

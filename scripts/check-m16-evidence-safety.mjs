@@ -11,8 +11,12 @@ assert.ok(root && /^(?:[Ee]:[\\/]|\/e\/)/.test(root),
 const evidence = join(root, "evidence");
 assert.ok(existsSync(evidence), "Evidence root missing");
 const privatePassword = join(root, "private", "test-password.txt");
-const canary = existsSync(privatePassword)
-  ? readFileSync(privatePassword, "utf8").trim() : "";
+const canaries = [
+  existsSync(privatePassword) ? readFileSync(privatePassword, "utf8").trim() : "",
+  process.env.HARBOROPS_DB_PASSWORD,
+  process.env.HARBOROPS_API_DB_PASSWORD,
+  process.env.HARBOROPS_WORKER_DB_PASSWORD
+].filter(value => value && value.length >= 12);
 let files = 0;
 function check(folder) {
   for (const entry of readdirSync(folder, { withFileTypes: true })) {
@@ -23,8 +27,9 @@ function check(folder) {
     assert.ok(![".zip", ".gz", ".tar", ".7z"].includes(extname(name).toLowerCase()),
       "Compressed evidence requires separate private inspection: " + name);
     const content = readFileSync(name);
-    if (canary) assert.ok(!content.includes(Buffer.from(canary)),
-      "Synthetic login credential in evidence: " + name);
+    for (const canary of canaries)
+      assert.ok(!content.includes(Buffer.from(canary)),
+        "Private credential in evidence: " + name);
     const text = content.toString("utf8");
     assert.ok(!/hop_v1_[0-9a-f]{32}_[A-Za-z0-9_-]{43}/.test(text),
       "Source bearer in evidence: " + name);

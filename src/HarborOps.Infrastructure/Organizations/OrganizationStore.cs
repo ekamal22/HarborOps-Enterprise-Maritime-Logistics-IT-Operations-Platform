@@ -322,6 +322,7 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
         var name = OrganizationPolicy.ValidateDisplayName(displayName);
         var email = IdentityStore.NormalizeEmail(adminEmail);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await AuditActorContext.SetOperatorAsync(db, "local-cli", ct);
         var admin = await db.AuthUsers.AsNoTracking()
             .SingleOrDefaultAsync(x => x.NormalizedEmail == email && x.Status == "Active", ct);
         if (admin is null) throw new ArgumentException("An existing active account is required");

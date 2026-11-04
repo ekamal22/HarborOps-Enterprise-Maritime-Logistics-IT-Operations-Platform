@@ -1,3 +1,4 @@
+using HarborOps.Infrastructure.Audit;
 using System.Text.Json;
 using HarborOps.Domain.Maritime;
 using HarborOps.Domain.Organizations;
@@ -189,6 +190,7 @@ public sealed class MaritimeStore(HarborOpsDbContext db, OrganizationStore organ
         try
         {
             await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await AuditActorContext.SetHumanAsync(db, session.UserId, session.SessionId, "database", ct);
             var access = await ScopeAsync(session, org, OrganizationPermission.ManageVoyageData, true, ct);
             if (access != OrganizationAccessError.None) return new(null, access);
             VoyageRecord record;
@@ -277,6 +279,7 @@ public sealed class MaritimeStore(HarborOpsDbContext db, OrganizationStore organ
         try
         {
             await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await AuditActorContext.SetHumanAsync(db, session.UserId, session.SessionId, "database", ct);
             var access = await ScopeAsync(session, org, OrganizationPermission.ManageContainerData, true, ct);
             if (access != OrganizationAccessError.None) return new(null, access);
             ContainerRecord record;

@@ -56,8 +56,7 @@ public sealed class AuditReader(HarborOpsDbContext db, TimeProvider clock)
                 throw new ArgumentException("Invalid audit cursor", nameof(cursor));
             return (new DateTimeOffset(ticks, TimeSpan.Zero), id);
         }
-        catch (Exception error) when (error is FormatException or ArgumentException or
-            ArgumentOutOfRangeException)
+        catch (Exception error) when (error is FormatException or ArgumentException)
         {
             throw new ArgumentException("Invalid audit cursor", nameof(cursor));
         }

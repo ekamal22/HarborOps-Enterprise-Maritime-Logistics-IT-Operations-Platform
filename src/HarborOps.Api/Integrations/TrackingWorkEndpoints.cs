@@ -14,9 +14,12 @@ public static class TrackingWorkEndpoints
     private static CurrentSession Current(HttpContext ctx) =>
         (CurrentSession)ctx.Items["IdentitySession"]!;
 
-    private static IResult Failure(HttpContext ctx, int status, string code, string message) =>
-        Results.Json(new { code, message, correlationId = ctx.Items["CorrelationId"] },
+    private static IResult Failure(HttpContext ctx, int status, string code, string message)
+    {
+        ctx.Response.Headers.CacheControl = "no-store";
+        return Results.Json(new { code, message, correlationId = ctx.Items["CorrelationId"] },
             statusCode: status);
+    }
 
     private static IResult Denied(HttpContext ctx, OrganizationAccessError error) => error switch
     {
@@ -40,6 +43,7 @@ public static class TrackingWorkEndpoints
         group.MapGet("", async (string organizationId, HttpContext ctx,
             OrganizationStore organizations, TrackingWorkAdminStore work, CancellationToken ct) =>
         {
+            ctx.Response.Headers.CacheControl = "no-store";
             if (!Id(organizationId, out var organization) || ctx.Request.Query.Count > 2 ||
                 ctx.Request.Query.Keys.Any(k => k is not ("after" or "limit")) ||
                 ctx.Request.Query.Any(k => k.Value.Count != 1))
@@ -70,6 +74,7 @@ public static class TrackingWorkEndpoints
             HttpContext ctx, OrganizationStore organizations, TrackingWorkAdminStore work,
             CancellationToken ct) =>
         {
+            ctx.Response.Headers.CacheControl = "no-store";
             if (!Id(organizationId, out var organization) || !Id(receiptId, out var receipt))
                 return Failure(ctx, 400, "invalid_request", "Invalid request");
             var session = Current(ctx);
@@ -85,6 +90,7 @@ public static class TrackingWorkEndpoints
             RedriveTrackingWorkRequest input, HttpContext ctx, IAntiforgery anti,
             OrganizationStore organizations, TrackingWorkAdminStore work, CancellationToken ct) =>
         {
+            ctx.Response.Headers.CacheControl = "no-store";
             if (!AuthenticationSetup.IsAllowedTransport(ctx, app.Configuration) ||
                 !await AuthenticationSetup.ValidMutationAsync(ctx, anti))
                 return Failure(ctx, 403, "csrf_invalid", "Request validation failed");

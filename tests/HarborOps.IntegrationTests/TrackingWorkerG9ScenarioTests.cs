@@ -554,4 +554,130 @@ public sealed class TrackingWorkerG9ScenarioTests
         Assert.Equal(10000, await Unresolved());
         await AssertRefused("g9-cap-refused-final");
     }
+
+    // G9-S20 and G9-S06 support: intake and worker claims both wait on the organization lock,
+    // finish after it is released, and neither deadlocks nor double-counts capacity.
+    [Fact]
+    public async Task IntakeAndWorkerClaimSerializeOnTheOrganizationLockWithoutDeadlock()
+    {
+        var connection = TestDatabase.ConnectionString();
+        using var factory = new ReferenceDataHttpTests.ApiFactory(connection);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        var source = await G9Support.NewSource(factory, fixture.A, "g9_lock");
+        var existing = await G9Support.Accept(factory, source,
+            G9Support.EquipmentPayload(Key("g9-lock-existing"), "SYN-BOX-UNKNOWN"));
+
+        await using var blocker = new NpgsqlConnection(connection);
+        await blocker.OpenAsync();
+        await using var blockerTx = await blocker.BeginTransactionAsync();
+        await using (var hold = new NpgsqlCommand(
+            "SELECT id FROM organizations WHERE id=@o FOR UPDATE", blocker, blockerTx))
+        {
+            hold.Parameters.AddWithValue("o", fixture.A);
+            Assert.Equal(fixture.A, await hold.ExecuteScalarAsync());
+        }
+
+        var claimTask = Task.Run(async () =>
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            return await new TrackingWorkStore(db, new TrackingWorkerSettings())
+                .ClaimOneAsync(fixture.A, CancellationToken.None);
+        });
+        var intakeKey = Key("g9-lock-new");
+        var intakeTask = G9Support.Submit(factory, source,
+            G9Support.EquipmentPayload(intakeKey, "SYN-BOX-UNKNOWN"));
+
+        var waiting = false;
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
+        while (DateTimeOffset.UtcNow < deadline && !waiting)
+        {
+            waiting = await G9Support.Count(connection, """
+                SELECT count(*) FROM pg_stat_activity
+                WHERE datname=current_database() AND wait_event_type='Lock' AND pid<>pg_backend_pid()
+                """) >= 2;
+            if (!waiting) await Task.Delay(100);
+        }
+        Assert.True(waiting, "Both the intake transaction and the worker claim must wait on the organization lock");
+        Assert.False(claimTask.IsCompleted);
+        Assert.False(intakeTask.IsCompleted);
+
+        await blockerTx.CommitAsync();
+        var claim = await claimTask.WaitAsync(TimeSpan.FromSeconds(30));
+        var intake = await intakeTask.WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.NotNull(claim);
+        Assert.Equal(existing, claim!.ReceiptId);
+        Assert.Equal(HttpStatusCode.Accepted, intake.Status);
+        Assert.False(intake.Duplicate);
+
+        await using var verify = factory.Services.CreateAsyncScope();
+        var db2 = verify.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Equal("Leased", (await Work(db2, existing)).State);
+        Assert.Equal("Pending", (await Work(db2, intake.Receipt!.Value)).State);
+        Assert.Equal(2, await db2.TrackingInboxWorkItems.CountAsync(x => x.SourceId == source.Id));
+    }
+
+    // G9-S05: only due work is polled, in organization order with an exclusive cursor, using partial indexes.
+    [Fact]
+    public async Task PollingSelectsOnlyDueOrganizationsWithAnExclusiveCursorAndPartialIndexes()
+    {
+        var connection = TestDatabase.ConnectionString();
+        using var factory = new ReferenceDataHttpTests.ApiFactory(connection);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        var sourceA = await G9Support.NewSource(factory, fixture.A, "g9_poll_a");
+        var sourceB = await G9Support.NewSource(factory, fixture.B, "g9_poll_b");
+        var receiptA = await G9Support.Accept(factory, sourceA,
+            G9Support.EquipmentPayload(Key("g9-poll-a"), "SYN-BOX-UNKNOWN"));
+        var receiptB = await G9Support.Accept(factory, sourceB,
+            G9Support.EquipmentPayload(Key("g9-poll-b"), "SYN-BOX-UNKNOWN"));
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var store = new TrackingWorkStore(db, new TrackingWorkerSettings());
+        var due = await store.CandidateOrganizationsAsync(null, CancellationToken.None);
+        Assert.Contains(fixture.A, due);
+        Assert.Contains(fixture.B, due);
+        Assert.Equal(due.OrderBy(x => x).ToList(), due);
+        Assert.True(due.Count <= 100, "Candidate pages are bounded");
+
+        var lower = fixture.A.CompareTo(fixture.B) < 0 ? fixture.A : fixture.B;
+        var higher = lower == fixture.A ? fixture.B : fixture.A;
+        var afterLower = await store.CandidateOrganizationsAsync(lower, CancellationToken.None);
+        Assert.DoesNotContain(lower, afterLower);
+        Assert.Contains(higher, afterLower);
+        Assert.All(afterLower, x => Assert.True(x.CompareTo(lower) > 0));
+
+        // Undue retries and unexpired leases are not candidates.
+        var claimA = await store.ClaimOneAsync(fixture.A, CancellationToken.None);
+        Assert.Equal(receiptA, claimA!.ReceiptId);
+        Assert.True(await store.FailAsync(claimA, "transient_dependency", true, CancellationToken.None));
+        var claimB = await store.ClaimOneAsync(fixture.B, CancellationToken.None);
+        Assert.Equal(receiptB, claimB!.ReceiptId);
+        var narrowed = await store.CandidateOrganizationsAsync(null, CancellationToken.None);
+        Assert.DoesNotContain(fixture.A, narrowed);
+        Assert.DoesNotContain(fixture.B, narrowed);
+        Assert.Null(await store.ClaimOneAsync(fixture.A, CancellationToken.None));
+
+        // The due and expiry paths are served by partial indexes rather than full-table scans.
+        var definitions = new List<string>();
+        await using (var direct = new NpgsqlConnection(connection))
+        {
+            await direct.OpenAsync();
+            await using var command = new NpgsqlCommand("""
+                SELECT indexdef FROM pg_indexes
+                WHERE schemaname=current_schema() AND indexname IN ('IX_m9_work_due','IX_m9_work_expired')
+                ORDER BY indexname
+                """, direct);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync()) definitions.Add(reader.GetString(0));
+        }
+        Assert.Equal(2, definitions.Count);
+        Assert.All(definitions, x => Assert.Contains("WHERE", x));
+    }
 }

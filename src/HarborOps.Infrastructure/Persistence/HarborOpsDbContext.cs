@@ -243,6 +243,9 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
             entity.HasIndex(x => new { x.ReceiptId, x.Generation })
                 .IsUnique().HasFilter("event_kind='Redriven'")
                 .HasDatabaseName("UQ_m9_redrive_generation");
+            entity.HasIndex(x => x.ActorUserId).HasDatabaseName("IX_m9_attempt_actor");
+            entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
+                .HasDatabaseName("IX_m9_attempt_receipt_scope");
         });
         modelBuilder.Entity<TrackingProcessingEffect>(entity =>
         {
@@ -275,6 +278,10 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
                 .HasColumnType("timestamp with time zone").HasDefaultValueSql("clock_timestamp()");
             entity.HasIndex(x => new { x.OrganizationId, x.SourceId, x.ReceiptId })
                 .HasDatabaseName("IX_m9_effect_tenant");
+            entity.HasIndex(x => new { x.OrganizationId, x.ContainerId })
+                .HasDatabaseName("IX_m9_effect_container");
+            entity.HasIndex(x => new { x.OrganizationId, x.ShipmentId })
+                .HasDatabaseName("IX_m9_effect_shipment");
         });
         modelBuilder.Entity<TrackingReceiptConflict>(entity =>
         {

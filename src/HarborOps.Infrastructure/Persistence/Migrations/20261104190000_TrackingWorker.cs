@@ -78,6 +78,9 @@ public sealed class TrackingWorker : Migration
             CREATE UNIQUE INDEX "UQ_m9_redrive_generation"
                 ON tracking_work_attempt_events(receipt_id,generation)
                 WHERE event_kind='Redriven';
+            CREATE INDEX "IX_m9_attempt_actor" ON tracking_work_attempt_events(actor_user_id);
+            CREATE INDEX "IX_m9_attempt_receipt_scope"
+                ON tracking_work_attempt_events(organization_id,source_id,receipt_id);
 
             CREATE TABLE tracking_processing_effects (
                 receipt_id uuid PRIMARY KEY,
@@ -105,6 +108,10 @@ public sealed class TrackingWorker : Migration
             );
             CREATE INDEX "IX_m9_effect_tenant"
                 ON tracking_processing_effects(organization_id,source_id,receipt_id);
+            CREATE INDEX "IX_m9_effect_container"
+                ON tracking_processing_effects(organization_id,container_id);
+            CREATE INDEX "IX_m9_effect_shipment"
+                ON tracking_processing_effects(organization_id,shipment_id);
 
             CREATE TRIGGER m9_attempt_immutable
                 BEFORE INSERT OR UPDATE OR DELETE ON tracking_work_attempt_events

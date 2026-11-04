@@ -81,16 +81,21 @@ public sealed class WorkerShell(
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
         catch (Exception error)
         {
-            var code = error is PostgresException pg && TrackingWorkPolicy.IsRetryableSqlState(pg.SqlState)
-                ? "transient_database" : error is TimeoutException or NpgsqlException
-                    ? "transient_dependency" : "processor_error";
+            var retryable = error switch
+            {
+                PostgresException pg => TrackingWorkPolicy.IsRetryableSqlState(pg.SqlState),
+                NpgsqlException => true,
+                TimeoutException => true,
+                _ => false
+            };
+            var code = retryable ? "transient_dependency" : "processor_error";
             logger.LogWarning("Tracking worker failure ({Type}, {Code})",
                 error.GetType().Name, code);
             try
             {
                 await using var scope = scopes.CreateAsyncScope();
                 var store = scope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
-                await store.FailAsync(claim, code, ct);
+                await store.FailAsync(claim, code, retryable, ct);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
             catch (Exception failure)
@@ -105,6 +110,10 @@ public sealed class WorkerShell(
             renewalCancellation.Cancel();
             try { await heartbeat; }
             catch (OperationCanceledException) when (renewalCancellation.IsCancellationRequested) { }
+            catch (Exception leaseError)
+            {
+                logger.LogWarning("Tracking lease renewal stopped ({Type})", leaseError.GetType().Name);
+            }
         }
     }
 

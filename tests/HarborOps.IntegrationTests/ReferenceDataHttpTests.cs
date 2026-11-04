@@ -6,6 +6,7 @@ using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -16,11 +17,14 @@ public sealed class ReferenceDataHttpTests
 {
     private const string Password = "Synthetic-reference-integration-passphrase-123";
 
-    internal sealed class ApiFactory(string connection, int? pendingLimit = null) : WebApplicationFactory<Program>
+    internal sealed class ApiFactory(string connection, int? pendingLimit = null,
+        Action<IServiceCollection>? overrideServices = null) : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             LocalPeerTestServer.Configure(builder);
+            if (overrideServices is not null)
+                builder.ConfigureTestServices(overrideServices);
             builder.UseEnvironment("Development");
             builder.UseSetting("ConnectionStrings:HarborOps", connection);
             if (pendingLimit.HasValue)

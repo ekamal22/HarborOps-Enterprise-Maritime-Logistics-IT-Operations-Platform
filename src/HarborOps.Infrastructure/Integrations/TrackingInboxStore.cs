@@ -26,7 +26,8 @@ public sealed record TrackingReceiptResult(TrackingReceiptOutcome Outcome,
 /// final credential check. No 202 can be sent until CommitAsync succeeds.
 /// </summary>
 public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock,
-    Microsoft.Extensions.Configuration.IConfiguration configuration)
+    Microsoft.Extensions.Configuration.IConfiguration configuration,
+    ITrackingReceiptCommitHook commitHook)
 {
     public const int MaximumPendingPerOrganization = 10_000;
 
@@ -229,7 +230,11 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
 
         // The deferred completeness trigger runs as part of this COMMIT. An
         // exception or ambiguous commit outcome must never yield HTTP 202.
+        await commitHook.BeforeCommitAsync(receipt, ct);
         await transaction.CommitAsync(ct);
+        // A lost acknowledgement after a successful commit is indistinguishable to
+        // the publisher from an uncertain COMMIT. Stable-key replay resolves it.
+        await commitHook.AfterCommitAsync(receipt, ct);
         return new(TrackingReceiptOutcome.Received, receipt, now);
     }
 }

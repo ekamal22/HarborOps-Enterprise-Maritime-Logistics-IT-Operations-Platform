@@ -35,6 +35,7 @@ public sealed class IdentityStore(HarborOpsDbContext db, PasswordHasher password
         var hash = await passwords.HashAsync(password, ct);
         var now = clock.GetUtcNow();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await AuditActorContext.SetOperatorAsync(db, "local-cli", ct);
         var user = new AuthUser { Id = Guid.NewGuid(), Email = email.Trim(), NormalizedEmail = normalized,
             DisplayName = displayName.Trim(), CreatedAtUtc = now };
         db.AuthUsers.Add(user);
@@ -118,6 +119,7 @@ public sealed class IdentityStore(HarborOpsDbContext db, PasswordHasher password
     {
         var now = clock.GetUtcNow();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await AuditActorContext.SetHumanAsync(db, userId, null, correlationId, ct);
         await db.AuthSessions.Where(x => x.UserId == userId && x.RevokedAtUtc == null)
             .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.RevokedAtUtc, now)
                 .SetProperty(x => x.RevocationReason, reason), ct);
@@ -132,6 +134,7 @@ public sealed class IdentityStore(HarborOpsDbContext db, PasswordHasher password
         if (!await passwords.VerifyAsync(password, credential.PasswordHash, ct)) return false;
         var now = clock.GetUtcNow();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await AuditActorContext.SetHumanAsync(db, userId, null, correlationId, ct);
         // Administrator membership mutations lock the same organization rows first.
         // Holding these locks through account disablement prevents losing the last
         // active administrator through a concurrent role or membership change.
@@ -177,6 +180,7 @@ public sealed class IdentityStore(HarborOpsDbContext db, PasswordHasher password
         var hash = await passwords.HashAsync(password, ct);
         var now = clock.GetUtcNow();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await AuditActorContext.SetOperatorAsync(db, "local-cli", ct);
         var user = await db.AuthUsers.SingleAsync(x => x.NormalizedEmail == normalized, ct);
         await db.UserCredentials.Where(x => x.UserId == user.Id).ExecuteUpdateAsync(
             setters => setters.SetProperty(x => x.PasswordHash, hash)

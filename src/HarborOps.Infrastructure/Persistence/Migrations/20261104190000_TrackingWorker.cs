@@ -53,6 +53,8 @@ public sealed class TrackingWorker : Migration
                 lease_epoch bigint NOT NULL,
                 event_kind varchar(32) NOT NULL,
                 reason_code varchar(40) NULL,
+                actor_user_id uuid NULL REFERENCES users(id) ON DELETE RESTRICT,
+                redrive_reason varchar(240) NULL,
                 occurred_at_utc timestamptz NOT NULL DEFAULT clock_timestamp(),
                 CONSTRAINT "FK_m9_attempt_receipt" FOREIGN KEY
                     (organization_id,source_id,receipt_id)
@@ -64,7 +66,12 @@ public sealed class TrackingWorker : Migration
                 CONSTRAINT "CK_m9_attempt_counter" CHECK
                     (generation BETWEEN 0 AND 3 AND attempt_count BETWEEN 0 AND 5 AND lease_epoch >= 0),
                 CONSTRAINT "CK_m9_attempt_reason" CHECK
-                    (reason_code IS NULL OR length(reason_code) BETWEEN 1 AND 40)
+                    ((reason_code IS NULL OR length(reason_code) BETWEEN 1 AND 40)
+                     AND ((event_kind='Redriven' AND actor_user_id IS NOT NULL
+                           AND redrive_reason IS NOT NULL
+                           AND length(btrim(redrive_reason)) BETWEEN 8 AND 240)
+                       OR (event_kind<>'Redriven' AND actor_user_id IS NULL
+                           AND redrive_reason IS NULL)))
             );
             CREATE INDEX "IX_m9_attempt_receipt"
                 ON tracking_work_attempt_events(organization_id,receipt_id,occurred_at_utc,id);

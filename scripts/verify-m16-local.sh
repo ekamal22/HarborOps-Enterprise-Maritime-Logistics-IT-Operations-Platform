@@ -48,10 +48,6 @@ done
    "$HARBOROPS_DB_PASSWORD" != "$HARBOROPS_WORKER_DB_PASSWORD" &&
    "$HARBOROPS_API_DB_PASSWORD" != "$HARBOROPS_WORKER_DB_PASSWORD" ]] ||
    { echo "Distinct database secrets are mandatory" >&2; exit 2; }
-test_password_file="$root/private/test-password.txt"
-node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))' > "$test_password_file"
-chmod 600 "$test_password_file"
-export HARBOROPS_TEST_USER_PASSWORD="$(cat "$test_password_file")"
 project="ho-verify-g16"
 sdk_db="ho-g16-pg"
 owned_sdk=0
@@ -98,7 +94,7 @@ cleanup() {
   (cd "$evidence" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
     > "$root/evidence-manifest.sha256" || rc=1
   printf '%s\n' "$rc" > "$root/technical-exit-code.txt"
-  rm -f "$test_password_file"
+  if [[ -n "${test_password_file:-}" ]]; then rm -f "$test_password_file"; fi
   if ((rc)); then
     echo "G16 technical run FAILED or incomplete. Gate acceptance pending." >&2
   else
@@ -107,6 +103,10 @@ cleanup() {
   exit "$rc"
 }
 trap cleanup EXIT
+test_password_file="$root/private/test-password.txt"
+node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))' > "$test_password_file"
+chmod 600 "$test_password_file"
+export HARBOROPS_TEST_USER_PASSWORD="$(cat "$test_password_file")"
 stage preflight bash -c 'git rev-parse HEAD; node --version; npm --version; docker version; docker compose version'
 stage docs bash -c 'node scripts/render-execution-graph.mjs --check && node scripts/check-planning-docs.mjs'
 stage scripts bash -c 'bash -n scripts/verify-m16-local.sh scripts/run-m16-browsers-local.sh'

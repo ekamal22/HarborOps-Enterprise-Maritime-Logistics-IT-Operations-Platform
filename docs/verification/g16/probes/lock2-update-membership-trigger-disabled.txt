@@ -1,0 +1,4 @@
+SET
+membership UPDATE (trigger disabled) start|2026-11-04 19:10:35.671349+00
+UPDATE 1
+membership UPDATE finished|2026-11-04 19:10:35.67405+00

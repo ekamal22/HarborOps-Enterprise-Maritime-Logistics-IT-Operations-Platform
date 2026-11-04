@@ -1,0 +1,13 @@
+SET
+membership UPDATE start|2026-11-04 19:10:26.853746+00
+ERROR:  canceling statement due to lock timeout
+CONTEXT:  while locking tuple (0,1) in relation "organizations"
+SQL statement "SELECT 1 FROM ONLY "public"."organizations" x WHERE "id" OPERATOR(pg_catalog.=) $1 FOR KEY SHARE OF x"
+SQL statement "INSERT INTO public.audit_entries
+         (id, organization_id, event_type, event_schema_version, outcome,
+          actor_kind, actor_user_id, actor_session_id, actor_source_id,
+          actor_role, resource_type, resource_id, correlation_id,
+          occurred_at_utc, metadata)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)"
+PL/pgSQL function m16_audit_capture() line 51 at EXECUTE
+membership UPDATE finished|2026-11-04 19:10:29.864234+00

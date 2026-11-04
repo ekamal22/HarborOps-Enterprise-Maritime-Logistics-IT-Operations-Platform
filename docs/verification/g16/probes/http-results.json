@@ -1,0 +1,554 @@
+[
+ {
+  "id": "S13/S15",
+  "name": "list as probe-aud",
+  "expected": 200,
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S14/S15",
+  "name": "detail as probe-aud",
+  "expected": 200,
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S13/S15",
+  "name": "list as probe-mgr",
+  "expected": "403",
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S14/S15",
+  "name": "detail as probe-mgr",
+  "expected": "403",
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S13/S15",
+  "name": "list as probe-ana",
+  "expected": "403",
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S14/S15",
+  "name": "detail as probe-ana",
+  "expected": "403",
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S13/S15",
+  "name": "list as probe-sup",
+  "expected": "403",
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S14/S15",
+  "name": "detail as probe-sup",
+  "expected": "403",
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S15",
+  "name": "list as Administrator",
+  "expected": 403,
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S15",
+  "name": "detail as Administrator",
+  "expected": 403,
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S20",
+  "name": "anonymous list",
+  "expected": 401,
+  "actual": 401,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S20",
+  "name": "anonymous detail",
+  "expected": 401,
+  "actual": 401,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S14",
+  "name": "response DTO keys",
+  "expected": "actorKind,actorRole,actorUserId,correlationId,eventType,id,metadata,occurredAtUtc,organizationId,outcome,resourceId,resourceType,schemaVersion",
+  "actual": "actorKind,actorRole,actorUserId,correlationId,eventType,id,metadata,occurredAtUtc,organizationId,outcome,resourceId,resourceType,schemaVersion",
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S23",
+  "name": "list body free of credential/email words",
+  "expected": false,
+  "actual": false,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S17",
+  "name": "multi auditor selected A reads A",
+  "expected": 200,
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S17",
+  "name": "multi auditor selected A reads B",
+  "expected": "not 200",
+  "actual": 404,
+  "pass": true,
+  "note": "resource_not_found"
+ },
+ {
+  "id": "S17",
+  "name": "multi auditor selected B reads B",
+  "expected": 200,
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S17",
+  "name": "multi auditor selected B reads A",
+  "expected": "not 200",
+  "actual": 404,
+  "pass": true,
+  "note": "resource_not_found"
+ },
+ {
+  "id": "S17",
+  "name": "Auditor in A, Analyst in B, selected B reads B",
+  "expected": 403,
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S16",
+  "name": "foreign id under own org vs unknown id (status)",
+  "expected": 404,
+  "actual": 404,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S16",
+  "name": "foreign org path with real id vs unknown id (status)",
+  "expected": 404,
+  "actual": 404,
+  "pass": true,
+  "note": "[\"resource_not_found\",\"resource_not_found\"]"
+ },
+ {
+  "id": "S16",
+  "name": "foreign vs unknown id body identical",
+  "expected": true,
+  "actual": true,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query page=0",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query page=1001",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query page=abc",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query page=-1",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query limit=0",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query limit=101",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query limit=abc",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query limit=99999999999",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query page=99999999999",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query limit=5&limit=6",
+  "expected": "400 or 200",
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query eventType=%27%3BDROP%20TABLE%20audit_entries--&limit=3",
+  "expected": "ignored or 400",
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query limit=%00",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24/S26",
+  "name": "query from=2020-01-01&to=bad&limit=3",
+  "expected": "ignored or 400",
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24",
+  "name": "detail bad guid",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24",
+  "name": "bad org guid",
+  "expected": 400,
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S24",
+  "name": "list trailing slash",
+  "expected": "200/404",
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "POST list",
+  "expected": "404/405",
+  "actual": 405,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "POST detail",
+  "expected": "404/405",
+  "actual": 405,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "PUT list",
+  "expected": "404/405",
+  "actual": 405,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "PUT detail",
+  "expected": "404/405",
+  "actual": 405,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "PATCH list",
+  "expected": "404/405",
+  "actual": 405,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "PATCH detail",
+  "expected": "404/405",
+  "actual": 405,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "DELETE list",
+  "expected": "404/405",
+  "actual": 405,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "DELETE detail",
+  "expected": "404/405",
+  "actual": 405,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "GET /api/v1/organizations/{org}/audit-events/export",
+  "expected": "not 200",
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "GET /api/v1/organizations/{org}/audit-events/export.csv",
+  "expected": "not 200",
+  "actual": 400,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "GET /api/v1/audit-events",
+  "expected": "not 200",
+  "actual": 404,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S27",
+  "name": "GET /api/v1/audit-events/export",
+  "expected": "not 200",
+  "actual": 404,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S25",
+  "name": "one audit.read row per successful list",
+  "expected": 8,
+  "actual": 8,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S25/S21",
+  "name": "denied read recorded once",
+  "expected": 14,
+  "actual": 14,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S28",
+  "name": "audit.read row actor fields (kind|role|user|session)",
+  "expected": "Human|Auditor|t|t",
+  "actual": "Human|Auditor|true|true",
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S05/S28",
+  "name": "HTTP membership PUT (status 200) audit row",
+  "expected": "organization_memberships.update|Human|Administrator|true|changed fields",
+  "actual": "organization_memberships.update|Human|<null>|true|{\"operation\": \"update\"}",
+  "pass": false,
+  "note": "informational: expected role and changed-field evidence per privacy policy"
+ },
+ {
+  "id": "S26",
+  "name": "page1/page2 disjoint (reads append rows between calls)",
+  "expected": 0,
+  "actual": 1,
+  "pass": false,
+  "note": "overlap=1"
+ },
+ {
+  "id": "S18",
+  "name": "rev1 baseline",
+  "expected": 200,
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S18",
+  "name": "role downgraded to Analyst (PUT 200)",
+  "expected": "not 200",
+  "actual": 403,
+  "pass": true,
+  "note": "access_denied"
+ },
+ {
+  "id": "S18",
+  "name": "membership removed (DELETE 204)",
+  "expected": "not 200",
+  "actual": 409,
+  "pass": true,
+  "note": "organization_selection_required"
+ },
+ {
+  "id": "S18",
+  "name": "session revoked (logout-all)",
+  "expected": "not 200",
+  "actual": 401,
+  "pass": true,
+  "note": "authentication_required"
+ },
+ {
+  "id": "S18",
+  "name": "account disabled",
+  "expected": "not 200",
+  "actual": 401,
+  "pass": true,
+  "note": "authentication_required"
+ },
+ {
+  "id": "S18",
+  "name": "organization suspended",
+  "expected": "not 200",
+  "actual": 403,
+  "pass": true,
+  "note": "organization_access_revoked"
+ },
+ {
+  "id": "S18",
+  "name": "organization reactivated, auditor reads again",
+  "expected": 200,
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S22",
+  "name": "audit-read record fails (grant removed): authorized read",
+  "expected": "not 200 (fail closed)",
+  "actual": 403,
+  "pass": true,
+  "note": "organization_access_revoked"
+ },
+ {
+  "id": "S22",
+  "name": "audit-read record fails: forbidden read stays denied",
+  "expected": 403,
+  "actual": 403,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S22",
+  "name": "restored grant, read works",
+  "expected": 200,
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S29",
+  "name": "DB paused: read does not succeed",
+  "expected": "not 200",
+  "actual": "client-timeout",
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S29",
+  "name": "after recovery read works",
+  "expected": 200,
+  "actual": 200,
+  "pass": true,
+  "note": ""
+ },
+ {
+  "id": "S26",
+  "name": "audit-read limiter (120 per minute per user)",
+  "expected": "429 after 120",
+  "actual": "{\"200\":120,\"429\":20}",
+  "pass": true,
+  "note": "first429=121"
+ },
+ {
+  "id": "S21/S26",
+  "name": "denial flood: statuses and denial rows written",
+  "expected": "bounded",
+  "actual": "{\"403\":120,\"429\":30} rows+120",
+  "pass": true,
+  "note": "rows written per minute are bounded only by the 120/min limiter"
+ }
+]

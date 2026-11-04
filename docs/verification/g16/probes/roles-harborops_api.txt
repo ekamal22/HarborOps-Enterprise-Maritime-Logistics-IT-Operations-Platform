@@ -1,0 +1,167 @@
+identity
+ROLE harborops_api session_user harborops_api
+(1 row)
+flags
+FLAGS super=false createdb=false createrole=false repl=false bypassrls=false
+(1 row)
+NOTICE:  PROBE S09 UPDATE audit_entries -> DENIED sqlstate=42501 message=permission denied for table audit_entries
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S09 DELETE audit_entries -> DENIED sqlstate=42501 message=permission denied for table audit_entries
+probe
+
+(1 row)
+NOTICE:  PROBE S10 TRUNCATE audit_entries -> DENIED sqlstate=42501 message=permission denied for table audit_entries
+NOTICE:  PROBE S10 TRUNCATE organizations CASCADE -> DENIED sqlstate=42501 message=permission denied for table organizations
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S09 INSERT audit_entries direct -> DENIED sqlstate=42501 message=permission denied for table audit_entries
+NOTICE:  PROBE S11 CREATE TABLE public -> DENIED sqlstate=42501 message=permission denied for schema public
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S11 CREATE FUNCTION public -> DENIED sqlstate=42501 message=permission denied for schema public
+probe
+
+(1 row)
+NOTICE:  PROBE S11 DROP TABLE audit_entries -> DENIED sqlstate=42501 message=must be owner of table audit_entries
+probe
+
+(1 row)
+NOTICE:  PROBE S11 ALTER audit_entries DISABLE TRIGGER ALL -> DENIED sqlstate=42501 message=must be owner of table audit_entries
+NOTICE:  PROBE S11 DROP guard trigger no_change -> DENIED sqlstate=42501 message=must be owner of relation audit_entries
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S11 DROP guard trigger no_truncate -> DENIED sqlstate=42501 message=must be owner of relation audit_entries
+probe
+
+(1 row)
+NOTICE:  PROBE S11 REPLACE guard function -> DENIED sqlstate=42501 message=permission denied for schema public
+probe
+
+(1 row)
+NOTICE:  PROBE S11 REPLACE capture function -> DENIED sqlstate=42501 message=permission denied for schema public
+NOTICE:  PROBE S11 DROP capture trigger on organizations -> DENIED sqlstate=42501 message=must be owner of relation organizations
+probe
+
+(1 row)
+NOTICE:  PROBE S11 ALTER capture trigger disable on shipments -> DENIED sqlstate=42501 message=must be owner of table shipments
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S11 CREATE TRIGGER on audit_entries -> DENIED sqlstate=42501 message=permission denied for table audit_entries
+probe
+
+(1 row)
+NOTICE:  PROBE S11 SET session_replication_role replica -> DENIED sqlstate=42501 message=permission denied to set parameter "session_replication_role"
+NOTICE:  PROBE S11 ALTER OWNER audit_entries -> DENIED sqlstate=42501 message=must be owner of table audit_entries
+probe
+
+(1 row)
+WARNING:  no privileges were granted for "audit_entries"
+NOTICE:  PROBE S11 GRANT ALL audit_entries to PUBLIC -> ALLOWED
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S11 CREATE ROLE -> DENIED sqlstate=42501 message=permission denied to create role
+probe
+
+(1 row)
+NOTICE:  PROBE S11 CREATE SCHEMA -> DENIED sqlstate=42501 message=permission denied for database harborops
+NOTICE:  PROBE S11 DROP FUNCTION m16_record_audit_access -> DENIED sqlstate=42501 message=must be owner of function public.m16_record_audit_access
+probe
+
+(1 row)
+NOTICE:  PROBE S11 direct call capture function -> DENIED sqlstate=42501 message=permission denied for function m16_audit_capture
+probe
+
+(1 row)
+NOTICE:  PROBE S11 CREATE TEMP TABLE (control) -> ALLOWED
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S12 UPDATE organizations (control, API only) -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S12 DELETE users -> DENIED sqlstate=42501 message=permission denied for table users
+probe
+
+(1 row)
+NOTICE:  PROBE S12 DELETE auth_sessions -> DENIED sqlstate=42501 message=permission denied for table auth_sessions
+NOTICE:  PROBE S12 DELETE shipments -> DENIED sqlstate=42501 message=permission denied for table shipments
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S12 UPDATE tracking_inbox_receipts -> DENIED sqlstate=42501 message=permission denied for table tracking_inbox_receipts
+probe
+
+(1 row)
+NOTICE:  PROBE S12 DELETE tracking_accepted_events -> DENIED sqlstate=42501 message=permission denied for table tracking_accepted_events
+NOTICE:  PROBE S12 SELECT user_credentials -> ALLOWED
+probe
+
+(1 row)
+table_privs
+TABLE_PRIV __EFMigrationsHistory SELECT
+TABLE_PRIV audit_entries SELECT
+TABLE_PRIV auth_events INSERT,SELECT
+TABLE_PRIV auth_sessions INSERT,SELECT,UPDATE
+TABLE_PRIV bootstrap_records SELECT
+TABLE_PRIV containers INSERT,SELECT,UPDATE
+TABLE_PRIV integration_credentials INSERT,SELECT,UPDATE
+TABLE_PRIV integration_sources INSERT,SELECT,UPDATE
+TABLE_PRIV organization_memberships INSERT,SELECT,UPDATE
+TABLE_PRIV organizations INSERT,SELECT,UPDATE
+TABLE_PRIV ports INSERT,SELECT,UPDATE
+TABLE_PRIV shipment_container_assignments INSERT,SELECT,UPDATE
+TABLE_PRIV shipment_status_changes INSERT,SELECT
+TABLE_PRIV shipment_voyage_assignments INSERT,SELECT,UPDATE
+TABLE_PRIV shipments INSERT,SELECT,UPDATE
+TABLE_PRIV tracking_accepted_events INSERT,SELECT
+TABLE_PRIV tracking_inbox_receipts INSERT,SELECT
+TABLE_PRIV tracking_inbox_work_items INSERT,SELECT,UPDATE
+TABLE_PRIV tracking_receipt_conflicts INSERT,SELECT
+TABLE_PRIV user_credentials INSERT,SELECT,UPDATE
+TABLE_PRIV users INSERT,SELECT,UPDATE
+TABLE_PRIV vessels INSERT,SELECT,UPDATE
+TABLE_PRIV voyages INSERT,SELECT,UPDATE
+(23 rows)
+?column?
+SCHEMA_PRIV public CREATE=false USAGE=true DB_CREATE=false DB_TEMP=true
+(1 row)
+?column?
+FUNC_EXEC m16_audit_capture false
+FUNC_EXEC m16_audit_guard true
+FUNC_EXEC m16_record_audit_access true
+FUNC_EXEC m8_assert_complete_receipt true
+FUNC_EXEC m8_guard_append_only true
+FUNC_EXEC m8_guard_work_item true
+(6 rows)

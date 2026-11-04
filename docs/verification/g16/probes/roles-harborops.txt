@@ -1,0 +1,183 @@
+identity
+ROLE harborops session_user harborops
+(1 row)
+flags
+FLAGS super=true createdb=true createrole=true repl=true bypassrls=true
+(1 row)
+NOTICE:  PROBE S09 UPDATE audit_entries -> DENIED sqlstate=23514 message=Audit entries are immutable
+probe
+
+(1 row)
+NOTICE:  PROBE S09 DELETE audit_entries -> DENIED sqlstate=23514 message=Audit entries are immutable
+probe
+
+(1 row)
+NOTICE:  PROBE S10 TRUNCATE audit_entries -> DENIED sqlstate=23514 message=Audit entries are immutable
+probe
+
+(1 row)
+NOTICE:  truncate cascades to table "auth_sessions"
+NOTICE:  truncate cascades to table "organization_memberships"
+NOTICE:  truncate cascades to table "ports"
+NOTICE:  truncate cascades to table "vessels"
+NOTICE:  truncate cascades to table "voyages"
+NOTICE:  truncate cascades to table "containers"
+NOTICE:  truncate cascades to table "shipments"
+NOTICE:  truncate cascades to table "shipment_container_assignments"
+NOTICE:  truncate cascades to table "shipment_voyage_assignments"
+NOTICE:  truncate cascades to table "integration_sources"
+NOTICE:  truncate cascades to table "integration_credentials"
+NOTICE:  truncate cascades to table "audit_entries"
+NOTICE:  truncate cascades to table "shipment_status_changes"
+NOTICE:  truncate cascades to table "tracking_inbox_receipts"
+NOTICE:  truncate cascades to table "tracking_accepted_events"
+NOTICE:  truncate cascades to table "tracking_inbox_work_items"
+NOTICE:  truncate cascades to table "tracking_receipt_conflicts"
+NOTICE:  PROBE S10 TRUNCATE organizations CASCADE -> DENIED sqlstate=23514 message=Audit entries are immutable
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S09 INSERT audit_entries direct -> ALLOWED
+NOTICE:  PROBE S11 CREATE TABLE public -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S11 CREATE FUNCTION public -> ALLOWED
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S11 DROP TABLE audit_entries -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S11 ALTER audit_entries DISABLE TRIGGER ALL -> ALLOWED
+NOTICE:  PROBE S11 DROP guard trigger no_change -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S11 DROP guard trigger no_truncate -> ALLOWED
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S11 REPLACE guard function -> ALLOWED
+NOTICE:  PROBE S11 REPLACE capture function -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S11 DROP capture trigger on organizations -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S11 ALTER capture trigger disable on shipments -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S11 CREATE TRIGGER on audit_entries -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S11 SET session_replication_role replica -> ALLOWED
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S11 ALTER OWNER audit_entries -> ALLOWED
+NOTICE:  PROBE S11 GRANT ALL audit_entries to PUBLIC -> ALLOWED
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S11 CREATE ROLE -> ALLOWED
+NOTICE:  PROBE S11 CREATE SCHEMA -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S11 DROP FUNCTION m16_record_audit_access -> ALLOWED
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S11 direct call capture function -> DENIED sqlstate=0A000 message=trigger functions can only be called as triggers
+NOTICE:  PROBE S11 CREATE TEMP TABLE (control) -> ALLOWED
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S12 UPDATE organizations (control, API only) -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S12 DELETE users -> ALLOWED
+NOTICE:  PROBE S12 DELETE auth_sessions -> ALLOWED
+probe
+
+(1 row)
+probe
+
+(1 row)
+NOTICE:  PROBE S12 DELETE shipments -> ALLOWED
+NOTICE:  PROBE S12 UPDATE tracking_inbox_receipts -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S12 DELETE tracking_accepted_events -> ALLOWED
+probe
+
+(1 row)
+NOTICE:  PROBE S12 SELECT user_credentials -> ALLOWED
+probe
+
+(1 row)
+table_privs
+TABLE_PRIV __EFMigrationsHistory DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV audit_entries DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV auth_events DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV auth_sessions DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV bootstrap_records DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV containers DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV integration_credentials DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV integration_sources DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV organization_memberships DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV organizations DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV ports DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV shipment_container_assignments DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV shipment_status_changes DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV shipment_voyage_assignments DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV shipments DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV tracking_accepted_events DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV tracking_inbox_receipts DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV tracking_inbox_work_items DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV tracking_receipt_conflicts DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV user_credentials DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV users DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV vessels DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+TABLE_PRIV voyages DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+(23 rows)
+?column?
+SCHEMA_PRIV public CREATE=true USAGE=true DB_CREATE=true DB_TEMP=true
+(1 row)
+?column?
+FUNC_EXEC m16_audit_capture true
+FUNC_EXEC m16_audit_guard true
+FUNC_EXEC m16_record_audit_access true
+FUNC_EXEC m8_assert_complete_receipt true
+FUNC_EXEC m8_guard_append_only true
+FUNC_EXEC m8_guard_work_item true
+(6 rows)

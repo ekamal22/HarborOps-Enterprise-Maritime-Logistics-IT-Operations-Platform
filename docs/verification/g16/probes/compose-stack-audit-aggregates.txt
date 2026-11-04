@@ -1,0 +1,8 @@
+rows|32|0|0|0
+OperatorCli|Succeeded|32
+user_credentials.insert|14
+users.insert|14
+organizations.insert|2
+organization_memberships.insert|2
+maxmeta|28|9
+auth_events_by_type|0

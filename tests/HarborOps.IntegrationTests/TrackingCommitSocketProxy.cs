@@ -8,7 +8,7 @@ namespace HarborOps.IntegrationTests;
 // Disposable PostgreSQL wire proxy. Its only fault trigger is an actual
 // receipt-work INSERT followed by COMMIT on the same database connection.
 // No production service registers or invokes this type.
-internal sealed class TrackingCommitSocketProxy : IAsyncDisposable
+public sealed class TrackingCommitSocketProxy : IAsyncDisposable
 {
     public enum CutPoint { BeforeCommitForward, AfterCommitServerReady }
 

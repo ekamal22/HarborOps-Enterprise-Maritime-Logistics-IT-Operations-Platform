@@ -109,7 +109,7 @@ chmod 600 "$test_password_file"
 export HARBOROPS_TEST_USER_PASSWORD="$(cat "$test_password_file")"
 stage preflight bash -c 'git rev-parse HEAD; node --version; npm --version; docker version; docker compose version'
 stage docs bash -c 'node scripts/render-execution-graph.mjs --check && node scripts/check-planning-docs.mjs'
-stage scripts bash -c 'bash -n scripts/verify-m16-local.sh scripts/run-m16-browsers-local.sh'
+stage scripts bash -c 'bash -n scripts/verify-m16-local.sh scripts/run-m16-browsers-local.sh scripts/check-m16-db-roles.sh'
 stage postgres-image docker build --build-arg "SOURCE_REVISION=$revision" \
   -f docker/postgres/Dockerfile -t harborops-postgres:16.15-rootless .
 docker run -d --name "$sdk_db" --label harborops.g16=disposable --ulimit core=0 \
@@ -149,6 +149,7 @@ stage web-build bash -c 'npm --prefix web ci --no-audit --no-fund && npm --prefi
 stage package-audit bash -c 'npm --prefix web audit --audit-level=high && npm --prefix tests/browser audit --audit-level=high'
 owned_stack=1
 stage compose bash scripts/smoke-compose.sh --project "$project" --confirm-disposable
+stage restricted-db-roles bash scripts/check-m16-db-roles.sh
 provision() {
   printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | compose run --rm -T \
     -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision "$1" "$2"

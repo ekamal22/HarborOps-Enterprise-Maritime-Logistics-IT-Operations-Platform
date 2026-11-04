@@ -49,6 +49,7 @@ public sealed class WorkerShell(
             }
         }
         if (organizations.Count == 0) return;
+        organizations = organizations.Take(settings.BatchSize).ToList();
         cursor = organizations[^1];
 
         // Each task owns its own scoped context and a short transaction.

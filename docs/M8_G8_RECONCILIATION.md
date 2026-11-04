@@ -1,6 +1,6 @@
 # G8 Independent Evidence Reconciliation
 
-**State:** Procedure available. D-006 and G8 acceptance pending. One technical G8 run (attempt 04, run ID `20261104T073952Z-0d093512c50ec17d`, source `537af9c2af99751aa2fbedf1a2115b7715e7b9e6`) has been executed and sealed; its hashes and file locations are listed under "Independent review inputs" in the [executed verification record](M8_EXECUTED_VERIFICATION.md). No independent review has been performed or recorded.
+**State:** Source-locked G8 evidence from attempt 04 was independently reviewed and D-006 Option A / G8 were accepted on 2026-11-04. Original runner and original scenario results remain preserved. See the [independent review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md), [accepted D-006 decision](DECISIONS.md) and [gate closure](M8_G8_GATE_CLOSURE.md). This document retains the pre-acceptance procedure for reproducibility.
 
 The local [G8 runner](../scripts/verify-m8-local.sh) intentionally records `G8-S01` and `G8-S25` as blocked until D-006 is explicitly decided and the raw source-locked evidence is reviewed independently. Do not edit `evidence/g8-scenarios.json`, stage logs, source hashes or original archived evidence to change gate disposition.
 

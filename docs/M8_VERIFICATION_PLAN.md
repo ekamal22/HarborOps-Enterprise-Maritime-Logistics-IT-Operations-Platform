@@ -1,5 +1,7 @@
 # G8 Verification Plan: Durable Inbox and Immutable Accepted History
 
+**Historical verification specification:** The original prepared-state descriptions and planned scenario register below are preserved as they existed before execution. M8/G8 and D-006 Option A were subsequently accepted 2026-11-04 after the source-locked run and [independent review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md); current authority is [G8 closure](M8_G8_GATE_CLOSURE.md).
+
 **State:** M8 source, the full G8 test/runner candidate, two audit-remediation rounds and source/run-locked review scripts are committed but have **not** been executed. D-006 and G8 acceptance pending. See [initial remediation](M8_CORRECTNESS_REMEDIATION.md), [second remediation](M8_SECOND_REMEDIATION_STATUS.md) and [verification runbook](M8_G8_VERIFICATION_RUNBOOK.md).
 **Prepared:** 2026-11-03
 **Accepted baseline:** M0-G0 through M7-G7 on `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`.

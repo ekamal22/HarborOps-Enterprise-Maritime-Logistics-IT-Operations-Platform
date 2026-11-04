@@ -1,6 +1,6 @@
 # M8 Executed G8 Verification Record
 
-**State:** Technical verification executed on one source revision. D-006 acceptance pending; independent evidence review pending; G8 acceptance pending. This record is not an acceptance and does not authorize a merge.
+**State at execution:** Technical verification completed, with D-006 and G8 acceptance still pending at the moment of the source-locked run. Original runner results remain unchanged. **Subsequent supplement:** D-006 Option A and G8 were explicitly accepted on 2026-11-04 after [independent evidence review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md) and separately documented [gate closure](M8_G8_GATE_CLOSURE.md).
 **Tested revision:** `537af9c2af99751aa2fbedf1a2115b7715e7b9e6` on `feat/m8-durable-event-inbox`, draft [PR #14](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/14), clean worktree, accepted baseline `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`. Commits after it change documentation and the expected status phrases in `scripts/check-planning-docs.mjs` only (`git log 537af9c..HEAD`); no product, test, runner or migration file differs from the tested revision.
 **Runner:** `scripts/verify-m8-local.sh`, one complete run (attempt 04), wrapper exit status 2 by design: technical evidence passed while formal decisions are pending.
 **Run ID:** `20261104T073952Z-0d093512c50ec17d`.

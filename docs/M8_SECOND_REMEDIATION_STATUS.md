@@ -3,7 +3,7 @@
 **Date:** 2026-11-04  
 **Branch:** `feat/m8-durable-event-inbox`, draft PR #14  
 **Baseline audit:** [Second correctness audit](M8_SECOND_CORRECTNESS_AUDIT.md), source `ef32252916c42f7604db0ed5739f3313739982f9`  
-**Status:** Five findings patched in source. Executable proof is recorded in the [executed verification record](M8_EXECUTED_VERIFICATION.md) (technical run on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6`). D-006 acceptance pending, independent review pending, G8 acceptance pending and no merge to `main`.
+**Status:** Five findings patched in source. Executable proof is recorded in the [executed verification record](M8_EXECUTED_VERIFICATION.md) (technical run on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6`). D-006 Option A and G8 were subsequently accepted 2026-11-04 after [independent review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md) and [gate closure](M8_G8_GATE_CLOSURE.md). The original source-level findings and runtime obligations remain preserved.
 
 | Finding | Source remediation | Required verification | Disposition |
 | --- | --- | --- | --- |

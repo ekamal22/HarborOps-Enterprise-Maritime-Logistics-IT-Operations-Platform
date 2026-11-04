@@ -3,7 +3,7 @@
 **As of:** 2026-11-04  
 **Implementation branch:** `feat/m8-durable-event-inbox`, draft [PR #14](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/14)  
 **Source audit:** [M8 correctness audit](M8_CORRECTNESS_AUDIT.md), nine findings against `690360de234d856911f60d142332c48b75aae50e`.  
-**Status:** All nine findings have source-level remediation commits and targeted test definitions. All are exercised by the complete technical run on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6` (see the [executed verification record](M8_EXECUTED_VERIFICATION.md)); **none is formally closed.** D-006 acceptance pending. G8 not executed and acceptance pending.
+**Status:** All nine findings have source-level remediation commits and targeted test definitions. All are exercised by the complete technical run on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6` (see the [executed verification record](M8_EXECUTED_VERIFICATION.md)); **all were accepted as remediated under G8 on 2026-11-04** following source-locked technical verification, [independent raw evidence review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md) and [G8 closure](M8_G8_GATE_CLOSURE.md). Original audit findings remain historical.
 
 ## Remediation inventory
 

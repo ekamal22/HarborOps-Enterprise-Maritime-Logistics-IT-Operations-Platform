@@ -1,5 +1,7 @@
 # M8 Planning Status
 
+**Historical planning snapshot (2026-11-03):** The pending statements below describe the original planning period. On 2026-11-04, D-006 Option A and M8/G8 were accepted after the [independent G8 review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md); see [gate closure](M8_G8_GATE_CLOSURE.md). This historic record is not the current project status.
+
 **As of:** 2026-11-03
 **State:** Planning package completed; an M8 implementation candidate now exists on `feat/m8-durable-event-inbox`. **D-006 acceptance pending and G8 not executed.**
 **Branch:** `plan/m8-durable-inbox-immutable-history`.

@@ -68,11 +68,16 @@ test("M8 implementation has pure canonical policy and executable regression defi
   ]) assert.ok(existsSync(path), path);
 });
 
-test("D-006 and G8 remain acceptance pending until executed evidence", () => {
+test("D-006 and G8 acceptance references preserve the original planned gate", () => {
   const decision = read("docs/M8_D006_DURABILITY_PROPOSAL.md");
   const gate = read("docs/M8_VERIFICATION_PLAN.md");
   const status = read("docs/M8_PLANNING_STATUS.md");
-  assert.match(decision, /acceptance pending/i);
+  assert.match(decision, /Accepted on 2026-11-04/i);
+  assert.match(decision, /M8_G8_GATE_CLOSURE.md/);
+  const closure = read("docs/M8_G8_GATE_CLOSURE.md");
+  const review = read("docs/M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md");
+  assert.match(closure, /G8 accepted/i);
+  assert.match(review, /Independent evidence review PASS/i);
   assert.match(gate, /not executed/i);
   assert.match(status, /G8.*not executed/i);
   for (let i = 1; i <= 25; i++) {

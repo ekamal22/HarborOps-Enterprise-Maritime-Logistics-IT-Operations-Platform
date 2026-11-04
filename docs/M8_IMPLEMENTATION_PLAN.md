@@ -1,11 +1,11 @@
 # M8 Implementation Plan: Durable Event Inbox and Immutable History
 
-**State:** M8-02/M8-03 implementation candidate and M8-04 test/runner source committed on `feat/m8-durable-event-inbox`. D-006 acceptance pending. One complete technical G8 run executed on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6` (see the [executed verification record](M8_EXECUTED_VERIFICATION.md)); no gate acceptance. See [implementation register](M8_IMPLEMENTATION_STATUS.md).
+**State:** M8-01 through M8-04 and G8 accepted 2026-11-04 after D-006 Option A and independent evidence review. One complete technical G8 run executed on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6` (see [executed verification](M8_EXECUTED_VERIFICATION.md) and [gate closure](M8_G8_GATE_CLOSURE.md)). The remaining sections preserve implementation-time sequencing and prerequisites.
 **Prepared:** 2026-11-03
 **Base:** Accepted M0-G0 through M7-G7 `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`.
 **Planning branch:** `plan/m8-durable-inbox-immutable-history`.
 **Source design:** [M8 architecture](M8_ARCHITECTURE_DESIGN.md).
-**Decision:** [D-006 proposed Option A](M8_D006_DURABILITY_PROPOSAL.md), acceptance pending.
+**Decision:** [D-006 Option A](M8_D006_DURABILITY_PROPOSAL.md) accepted 2026-11-04 (see [decision register](DECISIONS.md)).
 **Verification:** [G8 plan](M8_VERIFICATION_PLAN.md).
 **Graph:** [work-package dependencies](execution-graph.json), [roadmap](ROADMAP.md), [parallel policy](PARALLEL_DELIVERY_POLICY.md).
 

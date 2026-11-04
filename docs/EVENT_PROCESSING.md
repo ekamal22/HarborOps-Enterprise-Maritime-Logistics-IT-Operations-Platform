@@ -6,9 +6,9 @@ Transform third-party or simulated maritime tracking signals into a trustworthy,
 
 **Milestone boundary:** [M7](M7_ARCHITECTURE_DESIGN.md) and G7 were accepted 2026-11-03 and integrated into `main` ([closure](M7_G7_GATE_CLOSURE.md)). M7 establishes source authentication and strict contract validation without a durable event receipt. Valid M7 requests must return `503 intake_unavailable` until M8 implements transactional inbox persistence. This document describes the complete M7-M15 target pipeline, not functionality already implemented in M7; M8 owns immutable receipts, M9 worker processing and M10 projections.
 
-## M8 receipt transition (source candidate, not verified)
+## M8 receipt transition (accepted G8)
 
-[M8 architecture](M8_ARCHITECTURE_DESIGN.md) proposes one atomic acceptance transaction containing immutable receipt, immutable accepted event and separate Pending work state. The [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md) defines permanent source-scoped identity, canonical replay digest, 202 only after commit and 409 for changed-payload collision. **The source candidate implements this, but D-006 and G8 are not accepted and executable evidence is pending.** Valid M7 requests on protected `main` still return 503. M9 later adds worker claims, retries and dead-letter behavior, and M10 projection rebuild; a receipt means stored for future processing, not business reconciliation. See [M8 planning status](M8_PLANNING_STATUS.md).
+[M8 architecture](M8_ARCHITECTURE_DESIGN.md) proposes one atomic acceptance transaction containing immutable receipt, immutable accepted event and separate Pending work state. The [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md) defines permanent source-scoped identity, canonical replay digest, 202 only after commit and 409 for changed-payload collision. **M8, D-006 Option A and G8 were accepted 2026-11-04 after source-locked technical verification and independent evidence review.** Historical M7-only valid requests returned 503 before M8 intake was integrated. M9 later adds worker claims, retries and dead-letter behavior, and M10 projection rebuild; a receipt means stored for future processing, not business reconciliation. See [M8 planning status](M8_PLANNING_STATUS.md).
 
 ## Processing pipeline
 

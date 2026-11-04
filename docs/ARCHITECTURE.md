@@ -1,6 +1,6 @@
 # Architecture
 
-**Accepted implementation:** M0-M7 are integrated into protected `main` as of 2026-11-03. M7 adds tenant-bound integration-source credentials and strict tracking-event validation. A valid event still returns HTTP 503 on accepted `main`. M8 durable receipts are implemented only in an unverified feature-branch candidate; no HTTP 202 behavior has been accepted or integrated. The .NET worker is an idle scaffold until M9. See [G7 closure](M7_G7_GATE_CLOSURE.md).
+**Accepted implementation:** G0-G7 were integrated by 2026-11-03; M8/G8 and D-006 Option A were accepted 2026-11-04 following [independent raw evidence review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md). Durable intake returns HTTP 202 only after the atomic PostgreSQL receipt/event/Pending work commit. M7 negative validation and source credential safeguards remain intact. M9 worker execution is still an idle scaffold. See [G8 gate closure](M8_G8_GATE_CLOSURE.md).
 
 ## Parallel implementation and integration contracts
 

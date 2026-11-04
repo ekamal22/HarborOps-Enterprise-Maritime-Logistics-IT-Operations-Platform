@@ -69,6 +69,8 @@ public sealed class WorkerShell(
         }
         if (claim is null) return;
 
+        using var renewalCancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var heartbeat = MaintainLeaseAsync(claim, renewalCancellation.Token);
         try
         {
             await using var scope = scopes.CreateAsyncScope();
@@ -97,6 +99,23 @@ public sealed class WorkerShell(
                 logger.LogWarning("Tracking failure disposition deferred ({Type})",
                     failure.GetType().Name);
             }
+        }
+        finally
+        {
+            renewalCancellation.Cancel();
+            try { await heartbeat; }
+            catch (OperationCanceledException) when (renewalCancellation.IsCancellationRequested) { }
+        }
+    }
+
+    private async Task MaintainLeaseAsync(TrackingWorkClaim claim, CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(settings.HeartbeatSeconds), ct);
+            await using var scope = scopes.CreateAsyncScope();
+            var store = scope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
+            if (!await store.HeartbeatAsync(claim, ct)) return;
         }
     }
 }

@@ -85,7 +85,7 @@ The detailed product release checks below remain in force. The [Roadmap](ROADMAP
 | **G13** | M13 Operational KPI definitions and dashboards | Exact KPI denominator/window reconciliations and dashboard drill-through checks |
 | **G14** | M14 Route mapping and geographic context | Map license/fallback, simulated labeling, functional interactions and organization scoping |
 | **G15** | M15 Scoped in-app notifications | Notification recipient matrix, deduplication and correctly scoped navigation tests |
-| **G16** | M16 Audit logging and access hardening | Audit immutability, redaction, abuse throttling and permissions regression |
+| **G16** | M16 Audit logging and access hardening | [G16-S01 through G16-S30](M16_VERIFICATION_PLAN.md): SQL immutability including TRUNCATE, separate DB identities, atomic audit/rollback, Auditor-only scoped reads, retention/no-purge, redaction, denial logging, abuse bounds, M8/M9 regression, independent review and explicit acceptance |
 | **G17** | M17 Observability and service health | Health/trace/log signal propagation with controlled outage detection and redaction |
 | **G18** | M18 IT incident lifecycle and remediation | Incident lifecycle permissions, investigation evidence, remediation and verified closure; quarterly snapshot check or NOT APPLICABLE |
 | **G19** | M19 Database recovery and migration rehearsal | Fresh/historical migrations, isolated backup restoration, row/integrity verification and recovery target evidence |

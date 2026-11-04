@@ -149,16 +149,16 @@ public sealed class TrackingWorker : Migration
                           NEW.lease_epoch = OLD.lease_epoch + 1 AND
                           NEW.attempt_count = OLD.attempt_count + 1 AND
                           NEW.attempt_count <= 5 AND NEW.lease_expires_at_utc > at_utc));
+                ELSIF OLD.state = 'Leased' AND NEW.state = 'DeadLetter' AND
+                    OLD.lease_expires_at_utc <= at_utc AND OLD.attempt_count >= 5 THEN
+                    allowed := NEW.attempt_count = OLD.attempt_count AND
+                        NEW.lease_epoch = OLD.lease_epoch AND
+                        NEW.redrive_generation = OLD.redrive_generation AND
+                        NEW.lease_token IS NULL AND NEW.lease_expires_at_utc IS NULL;
                 ELSIF OLD.state = 'Leased' AND
                     NEW.state IN ('Processed','RetryWaiting','NeedsReconciliation','DeadLetter') THEN
                     allowed := OLD.lease_expires_at_utc > at_utc AND
                         NEW.attempt_count = OLD.attempt_count AND
-                        NEW.lease_epoch = OLD.lease_epoch AND
-                        NEW.redrive_generation = OLD.redrive_generation AND
-                        NEW.lease_token IS NULL AND NEW.lease_expires_at_utc IS NULL;
-                ELSIF OLD.state = 'Leased' AND NEW.state = 'DeadLetter' AND
-                    OLD.lease_expires_at_utc <= at_utc AND OLD.attempt_count >= 5 THEN
-                    allowed := NEW.attempt_count = OLD.attempt_count AND
                         NEW.lease_epoch = OLD.lease_epoch AND
                         NEW.redrive_generation = OLD.redrive_generation AND
                         NEW.lease_token IS NULL AND NEW.lease_expires_at_utc IS NULL;
@@ -241,6 +241,7 @@ public sealed class TrackingWorker : Migration
             DROP INDEX "IX_m9_work_queue";
             DROP INDEX "IX_m9_work_expired";
             DROP INDEX "IX_m9_work_due";
+            ALTER TABLE tracking_inbox_work_items DROP CONSTRAINT "CK_m9_work_state";
             ALTER TABLE tracking_inbox_work_items
               DROP COLUMN lease_token,
               DROP COLUMN lease_epoch,
@@ -250,7 +251,6 @@ public sealed class TrackingWorker : Migration
               DROP COLUMN last_error_code,
               DROP COLUMN completed_at_utc,
               DROP COLUMN resolution_kind;
-            ALTER TABLE tracking_inbox_work_items DROP CONSTRAINT "CK_m9_work_state";
             ALTER TABLE tracking_inbox_work_items
               ADD CONSTRAINT "CK_m8_work_state"
               CHECK (state = 'Pending' AND attempt_count = 0

@@ -15,7 +15,7 @@ public static class AuditActorContext
         var correlation = string.IsNullOrWhiteSpace(correlationId) ? "database" : correlationId;
         if (correlation.Length > 64) correlation = correlation[..64];
         await db.Database.ExecuteSqlInterpolatedAsync($"""
-            SELECT set_config('harborops.audit_actor_kind', {'Human'}, true),
+            SELECT set_config('harborops.audit_actor_kind', {"Human"}, true),
                 set_config('harborops.audit_actor_user_id', {userId.ToString("D")}, true),
                 set_config('harborops.audit_actor_session_id', {sessionId.ToString("D")}, true),
                 set_config('harborops.audit_correlation_id', {correlation}, true)

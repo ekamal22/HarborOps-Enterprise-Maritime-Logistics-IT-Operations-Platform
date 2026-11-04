@@ -34,6 +34,29 @@ public sealed class TrackingReceiptPolicyTests
     }
 
     [Fact]
+    public void CanonicalReplayIgnoresJsonPropertyOrderAndInsignificantWhitespace()
+    {
+        var ordered = Encoding.UTF8.GetBytes("""
+            {"sourceEventId":"same-key","eventFamily":"Equipment","eventCode":"GTIN",
+             "classifier":"ACT","occurredAtUtc":"2026-11-03T10:00:00Z",
+             "equipmentReference":"SYN-BOX-ABCD","externalSchemaVersion":"2.2.0"}
+            """);
+        var reversed = Encoding.UTF8.GetBytes("""
+            { "externalSchemaVersion" : "2.2.0",
+              "equipmentReference" : "SYN-BOX-ABCD",
+              "occurredAtUtc":"2026-11-03T10:00:00+00:00",
+              "classifier":"ACT", "eventCode":"GTIN",
+              "eventFamily":"Equipment", "sourceEventId":"same-key" }
+            """);
+        var first = TrackingEventPolicy.Parse(ordered, Now).Value!.Bind(Source, Organization);
+        var second = TrackingEventPolicy.Parse(reversed, Now).Value!.Bind(Source, Organization);
+        var a = TrackingReceiptPolicy.Canonicalize(first);
+        var b = TrackingReceiptPolicy.Canonicalize(second);
+        Assert.Equal(a.PayloadUtf8, b.PayloadUtf8);
+        Assert.Equal(a.Digest, b.Digest);
+    }
+
+    [Fact]
     public void ChangedEventIdentityAndMeaningProduceDistinctDigests()
     {
         var a = TrackingReceiptPolicy.Canonicalize(Event("2026-11-03T10:00:00Z"));

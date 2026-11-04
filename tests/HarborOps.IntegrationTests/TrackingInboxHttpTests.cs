@@ -212,7 +212,7 @@ public sealed class TrackingInboxHttpTests
             source = await setup.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
                 .CreateAsync(fixture.A, "m8_compete", "Competing Intake", CancellationToken.None);
 
-        var outcomes = await Task.WhenAll(Enumerable.Range(0, 16).Select(async index =>
+        var outcomes = await Task.WhenAll(Enumerable.Range(0, 20).Select(async index =>
         {
             using var client = factory.CreateClient();
             var code = index % 2 == 0 ? "GTIN" : "GTOT";
@@ -393,7 +393,7 @@ public sealed class TrackingInboxHttpTests
         var source = await scope.ServiceProvider.GetRequiredService<IntegrationSourceStore>()
             .CreateAsync(fixture.A, "m8_parallel", "Parallel Test", CancellationToken.None);
 
-        var outcomes = await Task.WhenAll(Enumerable.Range(0, 12).Select(async _ =>
+        var outcomes = await Task.WhenAll(Enumerable.Range(0, 20).Select(async _ =>
         {
             using var client = factory.CreateClient();
             using var response = await Post(client, source.Bearer, Payload(id: "parallel-m8"));

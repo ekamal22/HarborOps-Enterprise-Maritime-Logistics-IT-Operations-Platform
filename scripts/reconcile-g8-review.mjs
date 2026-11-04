@@ -36,11 +36,11 @@ assert.ok(technical.every(x => x.status === "PASS"),
 assert.ok(report.scenarios.find(x => x.id === "G8-S01").status === "BLOCKED");
 assert.ok(report.scenarios.find(x => x.id === "G8-S25").status === "BLOCKED");
 
-const technical = JSON.parse(file("g8-technical-status.json").toString("utf8"));
-assert.equal(technical.runId, runId);
-assert.equal(technical.sourceSha, sha);
-assert.equal(technical.status, "PASS", "All executable technical stages must pass");
-assert.equal(technical.formalGateStatus, "ACCEPTANCE_PENDING");
+const technicalState = JSON.parse(file("g8-technical-status.json").toString("utf8"));
+assert.equal(technicalState.runId, runId);
+assert.equal(technicalState.sourceSha, sha);
+assert.equal(technicalState.status, "PASS", "All executable technical stages must pass");
+assert.equal(technicalState.formalGateStatus, "ACCEPTANCE_PENDING");
 const formal = JSON.parse(file("g8-formal-gate-status.json").toString("utf8"));
 assert.equal(formal.runId, runId);
 assert.equal(formal.sourceSha, sha);

@@ -53,7 +53,7 @@ sdk_db="ho-g16-pg"
 owned_sdk=0
 owned_stack=0
 compose() { docker compose -p "$project" "$@"; }
-if [[ -n "$(docker ps -aq --filter "label=com.docker.compose.project=$project")" ||
+if [[ -n "$(docker ps -aq --filter "name=^/${project}-")" ||
       -n "$(docker volume ls -q --filter "label=com.docker.compose.project=$project")" ||
       -n "$(MSYS_NO_PATHCONV=1 docker ps -aq --filter "name=^/$sdk_db$")" ]]; then
   echo "Existing G16 resources found, refusing takeover" >&2; exit 2
@@ -81,12 +81,27 @@ cleanup() {
     docker rm -f "$sdk_db" > "$evidence/postgres-teardown.log" 2>&1 || rc=1
   fi
   local containers volumes leftover
-  containers="$(docker ps -aq --filter "label=com.docker.compose.project=$project" || true)"
+  containers="$(docker ps -aq --filter "name=^/${project}-" || true)"
   volumes="$(docker volume ls -q --filter "label=com.docker.compose.project=$project" || true)"
   leftover="$(MSYS_NO_PATHCONV=1 docker ps -aq --filter "name=^/$sdk_db$" || true)"
   [[ -z "$containers" && -z "$volumes" && -z "$leftover" ]] || rc=1
   printf 'containers=%s volumes=%s sdk=%s\n' "$containers" "$volumes" "$leftover" > "$evidence/teardown.txt"
   date -u +%FT%TZ > "$evidence/ended-utc.txt"
+  # Traces may contain session cookies. Preserve them privately on E:,
+  # never in the public/shareable evidence tree.
+  if [[ -d "$evidence/playwright" ]]; then
+    while IFS= read -r -d '' trace; do
+      relative="${trace#"$evidence/"}"
+      mkdir -p "$root/private/quarantine/$(dirname "$relative")"
+      mv "$trace" "$root/private/quarantine/$relative" || rc=1
+    done < <(find "$evidence/playwright" -type f \\( -name '*.zip' -o -name '*.gz' -o -name '*.7z' \\) -print0)
+  fi
+  if [[ -d "$root/private/quarantine" ]]; then
+    (cd "$root/private/quarantine" &&
+      find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+      > "$root/private/quarantine-manifest.sha256" || rc=1
+    echo "Private browser traces quarantined under E:; do not publish them."
+  fi
   if ! node scripts/check-m16-evidence-safety.mjs "$HARBOROPS_VERIFICATION_ROOT" \
       > "$evidence/evidence-safety.log" 2>&1; then
     echo "G16 evidence may contain private data; quarantine on E: and do not share" >&2

@@ -137,7 +137,7 @@ cleanup() {
     echo "G8 archive quarantined: archive creation or final sanitization failed" >&2
     rc=1
   fi
-  rm -f "$root/private/source-bearer.txt" "$root/private/test-user-password.txt"
+  rm -f "$root/private/source-bearer.txt" "$root/private/test-user-password.txt" "$root/private/g8-receipt-snapshot.json"
   if [[ "$rc" == 0 && "$technical_status" == "PASS" ]]; then
     echo "G8 technical evidence PASS for $run_id. D-006, independent review and G8 acceptance pending."
     exit 2

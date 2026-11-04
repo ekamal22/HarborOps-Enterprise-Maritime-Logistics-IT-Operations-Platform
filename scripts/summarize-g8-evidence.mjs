@@ -86,6 +86,15 @@ const requiredMutants = [
   "append-only", "quota", "no-event", "unique-key", "tenant-fk",
   "final-revocation", "source-status"
 ];
+const restartIntegrity = () => {
+  try {
+    const proof = JSON.parse(read("g8-restart-integrity.json"));
+    return proof.sourceSha === sha && proof.runId === read("run-id.txt").trim() &&
+      /^[a-f0-9-]{36}$/i.test(proof.receiptId) && proof.status === "PASS" &&
+      proof.rawBytesUnchanged === true && proof.canonicalDigestUnchanged === true &&
+      proof.canonicalEventUnchanged === true && proof.pendingWorkUnchanged === true;
+  } catch { return false; }
+};
 const mutations = () => mutation?.sourceSha === sha &&
   mutation.control?.status === "PASS" &&
   mutation.mutants?.length === requiredMutants.length &&
@@ -148,6 +157,8 @@ const scenarios = evidence.map(([suffix, description, tests, stagesNeeded, note]
       " (at least " + count + " in each required TRX)");
   }
   for (const name of stagesNeeded) if (!present(name)) gaps.push("stage missing/failed: " + name);
+  if (suffix === "S19" && !restartIntegrity())
+    gaps.push("exact raw bytes, canonical digest and Pending work restart proof missing");
   if (suffix === "S22" && !browsers()) gaps.push("three clean browser engines missing");
   if (suffix === "S23" && !mutations()) gaps.push("eleven effective G8 mutations missing");
   if (suffix === "S24" && !images()) gaps.push("complete HIGH/CRITICAL image scan evidence missing");

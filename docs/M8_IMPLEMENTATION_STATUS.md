@@ -29,18 +29,18 @@ No M9 retry/worker claim/dead-letter execution, no M10 projection, no public rec
 - The first EF source assembly accidentally duplicated portions of the accepted model. Both EF mapping and snapshot were rebuilt from the clean M7 main baseline and the M8 mappings inserted once, with exact matching block content. This is a source-only correction, not a passing build.
 - The legacy G7 no-durable-ack unit/contract assertions and historical migration test boundaries were updated to distinguish M8 behavior from original immutable G7 evidence. G7 historical records were not altered.
 - The G8 Compose configuration has isolated ports, subnet and project; browser fixtures use a configurable base URL. The runner checks the E: path and refuses an existing disposable project before provisioning.
-- Controlled mutation coverage now defines 11 variants across source digest, authorization, tenant scope, immutable history, collision, quota and commit integrity. They have not been executed here. See [remediation register](M8_CORRECTNESS_REMEDIATION.md).
+- Controlled mutation coverage now defines 11 variants across source digest, authorization, tenant scope, immutable history, collision, quota and commit integrity. They were executed in the complete technical run (see the [executed verification record](M8_EXECUTED_VERIFICATION.md)). See [remediation register](M8_CORRECTNESS_REMEDIATION.md).
 
 ## Second audit fixes
 
-The [second audit remediation register](M8_SECOND_REMEDIATION_STATUS.md) documents source-level repairs for evidence finalization, actual PostgreSQL COMMIT wire interruption, immutable run archives, byte-accurate restart recovery and separate technical/governance status plus sealed archive finalization. These are implementation definitions, **not** executed G8 evidence.
+The [second audit remediation register](M8_SECOND_REMEDIATION_STATUS.md) documents source-level repairs for evidence finalization, actual PostgreSQL COMMIT wire interruption, immutable run archives, byte-accurate restart recovery and separate technical/governance status plus sealed archive finalization. Their execution is recorded in the [executed verification record](M8_EXECUTED_VERIFICATION.md); the repairs are not themselves acceptance.
 
 ## Unverified and blocked requirements
 
 1. **D-006 acceptance pending.** Finalize replay/receipt contract, Pending-cap default, immutable retention and M9 worker handoff before freezing schema and HTTP semantics.
-2. **No executable G8 run.** .NET and PostgreSQL/Docker/Playwright tooling are not available to this repository connection; no compile, migration, fixture, browser, security mutation or image scan PASS is claimed.
-3. The [G8 25-scenario matrix](M8_VERIFICATION_PLAN.md) still requires actual two-session revocation interleavings, database restart, commit uncertainty injection, client cancellation windows, direct SQL attack outcomes, pending-cap boundary, clean full G0-G7 regressions, three-engine browser evidence, advisory/image scans, exact source/image hashes and E:-backed cleanup.
-4. Tests and scripts may expose further compile, database, concurrency or framework defects on first execution. Correct those on the feature branch and rerun the full affected matrix before proposing acceptance.
+2. **Technical execution complete, acceptance pending.** One complete source-locked local run on `537af9c2af99751aa2fbedf1a2115b7715e7b9e6` passed all stages; the sealed evidence archive is awaiting independent review. No compile, migration, fixture, browser, security mutation or image scan result is claimed beyond that recorded run.
+3. The [G8 25-scenario matrix](M8_VERIFICATION_PLAN.md) was exercised by that run for G8-S02 through G8-S24 (23 technical scenarios PASS). G8-S01 and G8-S25 stay BLOCKED by the pending decision and review.
+4. First execution exposed compile, database, concurrency and runner defects (M8-X01 to M8-X11 in the [remediation register](M8_CORRECTNESS_REMEDIATION.md)); all were corrected on the feature branch and the full matrix was rerun before the final technical PASS. Failed attempts 01 to 03 are preserved and are not gate evidence.
 5. An independent review of the sanitized raw G8 evidence is necessary before G8 acceptance. No changes to historical accepted M0-G7 evidence are authorized.
 
 ## Execution and acceptance boundary

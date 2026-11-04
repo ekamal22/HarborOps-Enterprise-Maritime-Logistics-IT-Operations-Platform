@@ -7,6 +7,7 @@
 **D-006:** Option A recommended; **acceptance pending**.
 **M8 implementation:** Source candidate committed on `feat/m8-durable-event-inbox`; see [implementation status](M8_IMPLEMENTATION_STATUS.md).
 **G8:** Not executed; acceptance pending.
+**Later record:** This document is the planning-time status. The technical G8 run executed afterwards is recorded in the [executed verification record](M8_EXECUTED_VERIFICATION.md); D-006 acceptance, independent review and G8 acceptance remain pending.
 **Runtime/deployment:** Protected `main` remains accepted M7. The candidate changes valid-intake behavior only in its feature branch; there is no verified runtime, public hosting or GitHub Actions authorization.
 
 ## Planning deliverables

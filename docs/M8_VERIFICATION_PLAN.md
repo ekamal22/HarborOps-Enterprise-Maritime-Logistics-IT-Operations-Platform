@@ -84,6 +84,8 @@ No critical/high open issue, unaccepted D-006, false success acknowledgment, inc
 
 ### Planned scenario register
 
+This register records the state at planning time and is kept unchanged. Results of the executed technical run are in the [executed verification record](M8_EXECUTED_VERIFICATION.md).
+
 | Result | At planning time |
 | --- | --- |
 | PASS | 0 (no G8 run executed) |

@@ -1,6 +1,6 @@
 # G8 Independent Evidence Reconciliation
 
-**State:** Procedure available. D-006 and G8 acceptance pending. No G8 run has been executed for this implementation.
+**State:** Procedure available. D-006 and G8 acceptance pending. One technical G8 run (attempt 04, run ID `20261104T073952Z-0d093512c50ec17d`, source `537af9c2af99751aa2fbedf1a2115b7715e7b9e6`) has been executed and sealed; its hashes and file locations are listed under "Independent review inputs" in the [executed verification record](M8_EXECUTED_VERIFICATION.md). No independent review has been performed or recorded.
 
 The local [G8 runner](../scripts/verify-m8-local.sh) intentionally records `G8-S01` and `G8-S25` as blocked until D-006 is explicitly decided and the raw source-locked evidence is reviewed independently. Do not edit `evidence/g8-scenarios.json`, stage logs, source hashes or original archived evidence to change gate disposition.
 
@@ -32,7 +32,7 @@ The wrapper uses exit code 1 for a technical or archive-finalization failure and
 The example above intentionally uses placeholders, not assertions of completed approval. The actual `reviewedScenarioIds` array must contain the exact 25 distinct IDs in order. To reconcile, run from the repository checkout with Node installed:
 
 ```bash
-node scripts/reconcile-g8-review.mjs "E:\\HarborOps-Verification\\g8-attempt-01\\m8" "E:\\HarborOps-Verification\\review\\g8-review.json"
+node scripts/reconcile-g8-review.mjs "E:\\HarborOps-Verification\\g8-attempt-04\\m8" "E:\\HarborOps-Verification\\review\\g8-review.json"
 ```
 
 The utility checks source identity, the selected immutable run ID, independently recorded technical status, the full 25-case order, technical passes, stage source/exits, final archive safety, archived manifest, evidence, finalization and archive-safety hashes, explicit D-006 decision and independent review references. It writes a *new* `archives/<run-id>/g8-<sha>-<run-id>-review-reconciliation.json` with exclusive creation. It never overwrites the original run or implies acceptance. Reference authenticity and independent reviewer qualifications still need human verification. A reconciled review is **not** G8 approval: explicit acceptance remains separate before merging PR #14 or starting dependent M9 work.

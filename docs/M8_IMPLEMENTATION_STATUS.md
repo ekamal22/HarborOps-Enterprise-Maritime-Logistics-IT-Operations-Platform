@@ -1,6 +1,6 @@
 # M8 Implementation Status
 
-**As of:** 2026-11-04 (correctness remediations committed; runtime verification pending)
+**As of:** 2026-11-04 (first and second correctness audit remediations committed; runtime verification pending)
 **Source branch:** `feat/m8-durable-event-inbox`
 **Planning branch:** `plan/m8-durable-inbox-immutable-history` (draft PR #13)
 **Accepted baseline:** `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`, G0-G7 accepted.
@@ -30,6 +30,10 @@ No M9 retry/worker claim/dead-letter execution, no M10 projection, no public rec
 - The legacy G7 no-durable-ack unit/contract assertions and historical migration test boundaries were updated to distinguish M8 behavior from original immutable G7 evidence. G7 historical records were not altered.
 - The G8 Compose configuration has isolated ports, subnet and project; browser fixtures use a configurable base URL. The runner checks the E: path and refuses an existing disposable project before provisioning.
 - Controlled mutation coverage now defines 11 variants across source digest, authorization, tenant scope, immutable history, collision, quota and commit integrity. They have not been executed here. See [remediation register](M8_CORRECTNESS_REMEDIATION.md).
+
+## Second audit fixes
+
+The [second audit remediation register](M8_SECOND_REMEDIATION_STATUS.md) documents source-level repairs for evidence finalization, actual PostgreSQL COMMIT wire interruption, immutable run archives, byte-accurate restart recovery and separate technical/governance status. These are implementation definitions, **not** executed G8 evidence.
 
 ## Unverified and blocked requirements
 

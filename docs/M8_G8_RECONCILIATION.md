@@ -35,4 +35,6 @@ node scripts/reconcile-g8-review.mjs "E:\\HarborOps-Verification\\m8" "E:\\Harbo
 
 The utility checks source identity, the selected immutable run ID, independently recorded technical status, the full 25-case order, technical passes, stage source/exits, final archive safety, archived manifest and evidence hashes, explicit D-006 decision and independent review references. It writes a *new* `archives/<run-id>/g8-<sha>-<run-id>-review-reconciliation.json` with exclusive creation. It never overwrites the original run or implies acceptance. Reference authenticity and independent reviewer qualifications still need human verification. A reconciled review is **not** G8 approval: explicit acceptance remains separate before merging PR #14 or starting dependent M9 work.
 
+The G8 run root must be unique per attempt and end with `/m8`. For example, `E:\\HarborOps-Verification\\g8-attempt-01\\m8` is one isolated root. Subsequent attempts use a new parent folder, even when repeating the same source SHA. Final logs and teardown are scanned before an archive is promoted; the private tarball is independently extracted and its contents checked against the run-specific manifest and credential canaries. Do not share any quarantined archive.
+
 GitHub Actions remain disabled. All local evidence and review inputs stay E:-backed. No permanent project-specific writes on C:.

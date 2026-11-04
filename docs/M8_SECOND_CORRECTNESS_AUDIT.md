@@ -7,6 +7,8 @@
 **Review type:** Independent source inspection of the implementation and the first audit's remediation, not executable verification.  
 **Disposition:** Correctness sign-off withheld. G8 not executed. D-006 acceptance pending. No source changes or accepted milestone merges performed in this audit.
 
+**Remediation follow-up:** All five findings have source-level corrections documented in [M8 second audit remediation](M8_SECOND_REMEDIATION_STATUS.md). The initial findings below remain preserved and executable verification is still pending.
+
 ## Overall conclusion
 
 The M8 transactional receipt design remains a reasonable basis for the milestone. No confirmed new violation of commit-before-202, composite tenant/source replay isolation or final credential reauthorization was found by this source inspection. That statement is deliberately narrower than a runtime PASS: the .NET build, EF migrations, PostgreSQL interleavings, Compose runner, three browser engines, mutations and raw logs have not been executed in the available repository environment.

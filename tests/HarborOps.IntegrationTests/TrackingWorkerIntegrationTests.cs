@@ -195,8 +195,7 @@ public sealed class TrackingWorkerIntegrationTests
         Assert.True(ready.Wait(TimeSpan.FromSeconds(5)));
         release.SetResult();
         var attempts = await Task.WhenAll(first, second);
-        Assert.Single(attempts.Where(x => x is not null));
-        var winner = attempts.Single(x => x is not null)!;
+        var winner = Assert.Single(attempts, x => x is not null)!;
         Assert.Equal(id, winner.ReceiptId);
         Assert.Equal(1L, winner.LeaseEpoch);
         await using var read = factory.Services.CreateAsyncScope();

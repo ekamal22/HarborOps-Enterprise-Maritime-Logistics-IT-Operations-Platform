@@ -3,7 +3,7 @@
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
 **Updated status:** 2026-11-04  
-**State:** As of 2026-11-04, M0/G0 through M7/G7 are verified, explicitly accepted and integrated into protected `main`. M8 source and G8 verification runner are committed on an isolated feature branch, with correctness remediation applied and one complete technical G8 run executed (23 of 23 technical scenarios PASS). D-006 Option A, independent review and G8 acceptance completed 2026-11-04; G9-G24 remain open. The twelve-rule M6 contract and G6-S10 snapshot limitation are preserved in [gate closure](M6_G6_GATE_CLOSURE.md).
+**State:** As of 2026-11-04, M0/G0 through M8/G8 are verified, explicitly accepted and integrated into protected `main`, with M8 merged through PR #14 on 2026-11-04. The M8 source-locked run passed 23 of 23 technical scenarios before the separate D-006 and independent review supplements. D-006 Option A, independent review and G8 acceptance completed 2026-11-04; G9-G24 remain open. The twelve-rule M6 contract and G6-S10 snapshot limitation are preserved in [gate closure](M6_G6_GATE_CLOSURE.md).
 
 ## Authority and rationale
 
@@ -38,7 +38,7 @@ The canonical work-package DAG is [execution-graph.json](execution-graph.json), 
 - **Gate closure** requires the complete positive/negative/security/regression evidence on the integrated source revision and explicit acceptance. Verified but unaccepted gates are not substitutes for accepted prerequisites.
 - **G24 release convergence** requires G0-G23 accepted, every cross-track contract integrated, a full final-system regression, M24-03 historical compatibility and M24-04 accessibility assessment. Early G19 recovery or G20 security review must be revalidated for later schema/features at this final gate.
 
-M6/G6 and M7/G7 are complete and integrated. M8-01 through M8-04 have committed source candidates; **D-006 and G8 are not accepted**. The technical G8 run is complete; D-006 acceptance and independent evidence review are the immediate event-processing critical path. M12-01 search/export, M14-01 route mapping, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain independently eligible under their exact work-package prerequisites. Eligibility never implies acceptance.
+M6/G6, M7/G7 and M8/G8 are complete, explicitly accepted and integrated. D-006 Option A and the G8 independent evidence review are complete. M9 worker/reconciliation may now begin under accepted G8, while G9 remains a separate acceptance gate. M12-01 search/export, M14-01 route mapping, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain independently eligible under their exact work-package prerequisites. Eligibility never implies acceptance.
 
 ## Milestone register
 
@@ -352,4 +352,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M7/G0-G7 are verified, explicitly accepted and integrated into `main`. Eligible next work includes M8-01 (D-006 pending before applicable implementation), M16, M17, M19 (D-008 pending), M20-01 and M23-01, subject to per-package prerequisites in the execution graph. The dependency graph remains unchanged. G8-G24 remain open. Public source visibility is separate from production-hosting acceptance.
+M0-M8/G0-G8 are verified, explicitly accepted and integrated into `main`. Eligible next work includes M9-01 from accepted G8, M12 search/export, M14 route work subject to D-004, M16, M17, M19 subject to D-008, M20-01 and M23-01, under the canonical dependency graph. The graph remains unchanged; G9-G24 remain open. Public source visibility is separate from production-hosting acceptance.

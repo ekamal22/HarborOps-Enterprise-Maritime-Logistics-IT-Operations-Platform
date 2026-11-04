@@ -34,4 +34,4 @@ The source-locked evidence includes a prior failed Firefox teardown attempt with
 
 Earlier unsuccessful G8 attempts 01 to 03, the successful sealed attempt 04, original G8-S01/S25 BLOCKED flags, all accepted G0-G7 evidence and the original D-006 proposal history remain preserved. GitHub Actions were not used. No change to a retained production or historical database is authorized.
 
-**Integration permission:** The accepted M8 feature branch may be merged to protected `main` with documentation and review provenance preserved. Subsequent dependent M9 work may use the accepted G8 interface contract; M9 remains a separately gated milestone.
+**Integration:** Accepted M8 was merged into protected `main` via [PR #14](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/14) at `1caa3daa68bfecfd19a671aa2e19d39c17224d75` on 2026-11-04. The earlier planning PR #13 was also marked merged when its commits reached `main` through PR #14. Subsequent M9 work may use the accepted G8 contract; M9 remains separately gated.

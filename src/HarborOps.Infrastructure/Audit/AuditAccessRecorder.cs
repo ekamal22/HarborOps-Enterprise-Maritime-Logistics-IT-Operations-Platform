@@ -26,7 +26,7 @@ public sealed class AuditAccessRecorder(HarborOpsDbContext db)
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             SELECT m16_record_audit_access({organizationId},
                 CAST({code} AS varchar), {actorId}, {sessionId},
-                {auditId}, CAST({correlation} AS varchar))
+                CAST({auditId} AS uuid), CAST({correlation} AS varchar))
             """, ct);
     }
 }

@@ -81,6 +81,7 @@ if (args.Contains("--migrate", StringComparer.Ordinal))
     var database = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
     await database.Database.MigrateAsync();
     await BootstrapSeeder.SeedAsync(database, CancellationToken.None);
+    await AuditRoleProvisioner.ProvisionAsync(database, builder.Configuration, CancellationToken.None);
     return;
 }
 

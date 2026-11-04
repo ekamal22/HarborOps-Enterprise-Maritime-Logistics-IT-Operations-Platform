@@ -108,6 +108,19 @@ public static class AuthenticationSetup
                         QueueLimit = 0, AutoReplenishment = true
                     }));
         });
+        // One partition per authenticated user; bound audit reads and enumeration probes.
+        services.AddRateLimiter(options =>
+        {
+            options.AddPolicy("audit-read", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                        ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1), PermitLimit = 120,
+                        QueueLimit = 0, AutoReplenishment = true
+                    }));
+        });
         services.AddSingleton<IdentityAttemptLimiter>();
         return services;
     }

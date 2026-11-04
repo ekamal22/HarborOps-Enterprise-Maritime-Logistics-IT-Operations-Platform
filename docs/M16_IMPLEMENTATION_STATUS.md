@@ -33,7 +33,7 @@ The five decisions, privacy contract, architecture, implementation plan and 30-c
 
 ## Initial G16 findings and corrective changes
 
-The first source-locked diagnostic campaign at `ef08d7c91d368f082fc97bac32acab1fdbd5cfca7` reported 235/247 integration tests passed, three failing browser tests on each engine, five failed G16 scenarios and one not executed. The independent verification report is on `verify/g16-local-evidence`. The initial campaign did not establish G16 acceptance.
+The first source-locked diagnostic campaign at `ef08d7c91d368f082fc97bac32acab1fdbd5cfca` reported 235/247 integration tests passed, three failing browser tests on each engine, five failed G16 scenarios and one not executed. The independent verification report is on `verify/g16-local-evidence`. The initial campaign did not establish G16 acceptance.
 
 Subsequent source changes address the audit-to-organization FK lock inversion (F002), unstable offset paging (F003), minimal audit content and source attribution (F004), stale generated graph (F001), test/fixture races (F008, F009), runtime-role executable SQL probes (F005), audit-storage 503 behavior and a tighter denial limiter (F007), and private browser trace isolation (F010). M16's conditional M9 worker grants no longer directly grant INSERT on M9's immutable attempt events.
 

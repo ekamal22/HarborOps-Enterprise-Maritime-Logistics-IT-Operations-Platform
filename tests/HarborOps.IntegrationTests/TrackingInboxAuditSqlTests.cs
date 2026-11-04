@@ -64,7 +64,7 @@ public sealed class TrackingInboxAuditSqlTests
             var rejected = await Assert.ThrowsAsync<PostgresException>(() =>
                 db.Database.MigrateAsync("20261103090000_IntegrationSources"));
             Assert.Equal(PostgresErrorCodes.CheckViolation, rejected.SqlState);
-            Assert.Equal(9, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(10, (await db.Database.GetAppliedMigrationsAsync()).Count());
             var persisted = await db.TrackingInboxReceipts.AsNoTracking()
                 .SingleAsync(x => x.Id == received.ReceiptId);
             var accepted = await db.TrackingAcceptedEvents.AsNoTracking()

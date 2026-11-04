@@ -46,6 +46,18 @@ public sealed class AuditIntegrityTests
         }
         Assert.NotNull(await db.AuditEntries.AsNoTracking()
             .SingleOrDefaultAsync(x => x.Id == created.Id));
+
+        var changed = await db.Organizations.Where(x => x.Id == fixture.A)
+            .ExecuteUpdateAsync(p => p.SetProperty(x => x.DisplayName, "G16 Changed Name")
+                .SetProperty(x => x.Version, x => x.Version + 1)
+                .SetProperty(x => x.UpdatedAtUtc, DateTimeOffset.UtcNow));
+        Assert.Equal(1, changed);
+        var updatedAudit = await db.AuditEntries.AsNoTracking()
+            .SingleAsync(x => x.OrganizationId == fixture.A &&
+                x.ResourceType == "organizations" && x.EventType == "organizations.update");
+        using var changedMetadata = System.Text.Json.JsonDocument.Parse(updatedAudit.MetadataJson);
+        Assert.Contains(changedMetadata.RootElement.GetProperty("changedFields")
+            .EnumerateArray().Select(x => x.GetString()), x => x == "display_name");
     }
 
     [Fact]

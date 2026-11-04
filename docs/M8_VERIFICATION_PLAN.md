@@ -1,6 +1,6 @@
 # G8 Verification Plan: Durable Inbox and Immutable Accepted History
 
-**State:** Executable source-level tests, fault hooks, isolated runner and stricter evidence reconciliation authored. None executed. D-006 acceptance pending; G8 acceptance pending. See [remediation register](M8_CORRECTNESS_REMEDIATION.md).
+**State:** M8 source, the full G8 test/runner candidate, two audit-remediation rounds and source/run-locked review scripts are committed but have **not** been executed. D-006 and G8 acceptance pending. See [initial remediation](M8_CORRECTNESS_REMEDIATION.md), [second remediation](M8_SECOND_REMEDIATION_STATUS.md) and [verification runbook](M8_G8_VERIFICATION_RUNBOOK.md).
 **Prepared:** 2026-11-03
 **Accepted baseline:** M0-G0 through M7-G7 on `main` at `47f030f9fa4b588d589f3ae082d03b3d5b94736a`.
 **Scope:** M8-01 to M8-04, no M9 worker execution or M10 projections.
@@ -55,19 +55,19 @@ Use two isolated organizations, at least two distinct integration sources per or
 
 Deterministically orchestrate distinct PostgreSQL connections with barriers at: after M7 preauthentication, after receipt-transaction org lock, before final credential validation, after receipt insert, after event/work inserts, immediately before COMMIT, after COMMIT sent and before response. Confirm the database outcome independently after each injected failure. A mock-only concurrency suite is not gate evidence.
 
-Run controlled security mutations that intentionally remove: (1) the scoped unique key, (2) final receipt-transaction reauthorization, (3) append-only SQL guard, (4) post-commit-only acknowledgment, (5) capacity enforcement, and (6) one of the required event/work inserts. Each mutant must fail the **intended** test; clean control must pass. Detect equivalent mutants and avoid treating an unrelated compiler failure as security efficacy.
+Run the **11 committed, source-isolated security mutation variants** from `scripts/run-g8-mutations.mjs`: digest verification, collision-as-replay, missing work, early acknowledgment, append-only guard, capacity enforcement, missing accepted event, unique key, credential tenant FK, final revocation and source-status checks. Require an unmodified passing control and an intended failing test for each effective mutant. Detect equivalent mutants and never count a compiler failure or unrelated test as a kill.
 
 ## 4. Local execution order and resources
 
-1. Preflight exact source SHA, clean worktree, E: storage paths, Docker/WSL location, environment versions, accepted baseline and D-006 decision. Refuse primary `harborops` project and unknown retained resources.
-2. Cheap gates: planning/link/schema checks, pure canonical unit tests, .NET release build with warnings as errors, contract tests and EF migration consistency. Fail fast before Docker/browser-heavy stages.
-3. Disposable PostgreSQL: full fresh M0-M8 migration/seed, populated M7->M8 upgrade, repeat integration suite, direct SQL immutability and FK attacks, concurrency, outage, restart and uncertainty windows.
-4. Security mutation suite in separate isolated source exports and databases, with read-only control and mutation result manifests. Do not mutate the working tree or accepted historical scripts.
-5. Build web and run relevant current browser/proxy tests in Chromium, Firefox and WebKit, including revised tracking ingress 202/409/4xx checks and accepted sessions/organizations/shipments/assignments flows.
-6. Dependency and supply-chain checks from reachable NuGet/npm advisory sources and three immutable exact-image HIGH/CRITICAL scans. Missing data is a failure/blocker, not a clean result.
-7. Controlled teardown removes only the named M8 test containers, volumes, images and network. Confirm unrelated and historical Docker resources unchanged. Package sanitized raw evidence with hashes and independent review.
+1. Preflight the exact feature commit, clean worktree, E:-backed paths and Docker/WSL data location; inventory unrelated Docker resources and any attributable temporary C: writes. The proposed D-006 contract remains acceptance pending, so technical testing may proceed but formal G8 closure cannot.
+2. Cheap failure gates before long work: script syntax, generated execution graph, all Markdown links and status consistency, Node tracking-contract tests, .NET Release build, current advisory checks and web tests/build. Stop at a real blocker, repair it and rerun the affected cheap gates.
+3. Disposable PostgreSQL: execute full fresh and repeated integration suites, populated accepted M7 upgrade/empty rollback, direct SQL attacks, live lock waits, real before/after COMMIT socket disruption, restart and complete byte-level Pending-state proof.
+4. Run the isolated Compose stack, account/source fixtures, three Playwright engines, outage/recovery probes, supply-chain advisories and three exact-source image scans. Preserve all missing/failed tests, not only a subset.
+5. Run the longest complete 11-mutation suite **after** the other less-expensive mandatory checks pass, with a passing control and expected regression kill for each mutant. Never substitute an unverified mutant list for execution.
+6. Teardown only identified G8-owned resources, scan all final logs and outputs, produce immutable per-run archive and manifest, and run independent package safety/reconciliation. Recheck C: temporary-path attribution and delete only safe task-owned temporary files.
+7. Report technical PASS/FAIL and formal acceptance separately, retain unmodified raw evidence and obtain explicit D-006 and G8 decisions later.
 
-Suggested future runner `scripts/verify-m8-local.sh` must use `HARBOROPS_VERIFICATION_ROOT=E:\\HarborOps-Verification\\m8` (or an E:-backed equivalent), an isolated `ho-verify-g8` Compose project and distinct ports/subnet from M7/default Compose. The runner and its stage layout are implementation deliverables, not existing files. Use cheap checks first. Do not run GitHub Actions or access the retained historical PostgreSQL volume outside its milestone checkpoints.
+The existing runner is `scripts/verify-m8-local.sh`, with `HARBOROPS_VERIFICATION_ROOT` set to a **fresh** E:-backed directory ending in `/m8`, for example `E:\\HarborOps-Verification\\g8-attempt-01\\m8`. Every attempt, including the same-SHA retry, needs a new root. The isolated Compose project is `ho-verify-g8`, with dedicated ports and subnet. See the [runbook](M8_G8_VERIFICATION_RUNBOOK.md) for exact evidence handling. Do not run GitHub Actions or access retained historical PostgreSQL volumes outside their approved milestone checkpoints.
 
 ## 5. Required immutable evidence package
 
@@ -88,5 +88,5 @@ No critical/high open issue, unaccepted D-006, false success acknowledgment, inc
 | --- | --- |
 | PASS | 0 (no G8 run executed) |
 | FAIL | 0 (no G8 run executed) |
-| BLOCKED | G8-S01 depends on D-006 acceptance; other implementation cases await code and runtime execution |
-| NOT EXECUTED | G8-S02 through G8-S25 |
+| BLOCKED | G8-S01 depends on D-006 acceptance and G8-S25 needs independent evidence review |
+| NOT EXECUTED | G8-S02 through G8-S24; G8-S25 also has no completed source-locked run |

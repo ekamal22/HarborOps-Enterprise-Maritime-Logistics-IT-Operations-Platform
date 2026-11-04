@@ -1,6 +1,6 @@
 # Project Status
 
-**As of:** 2026-11-03 (G0-G7 accepted, publication cleanup complete, source repository public)
+**As of:** 2026-11-04 (G0-G7 accepted; M8 candidate and second-audit patches committed; G8 unexecuted)
 **Default branch:** Protected `main` contains accepted M0-M7 implementations and verification records.
 **Baseline:** M0 merged via PRs #1 and #3; M1 merged via PR #4; M2 merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31.
 **Acceptance:** G0, G1, G2 and G3 explicitly accepted on 2026-10-31. G2 passed all 25 scenarios on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; [G2 evidence](M2_EXECUTED_VERIFICATION.md) remains preserved. G3 passed all 25 scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; the independent raw-evidence review found 174 successful .NET executions, 57 successful browser tests and clean HIGH/CRITICAL image scans. See [G3 executed verification](M3_EXECUTED_VERIFICATION.md). M3 through M6 are integrated into `main`; G6 was explicitly accepted 2026-11-02. G7 accepted 2026-11-03 after three verification supplements and independent review; G8-G24 remain open.
@@ -105,11 +105,11 @@ M7-01 through M7-04 and G7 were accepted on 2026-11-03 after the 25-scenario rec
 
 ## M8 implementation boundary
 
-M8-01 planning and candidate M8-02/M8-03 source implementation are committed separately from accepted `main`; the D-006 Option A proposal has not received formal approval. M8-04 test and verification runners are authored, **not executed**. The branch includes four additive tables, atomic commit-before-202, duplicate/collision handling, immutable guards, Pending admission bounds and source credential final validation. No executable gate evidence or acceptance exists. Reconcile and independently review the full 25-case G8 matrix on a source-locked E:-backed run before acceptance or integration. See [M8 implementation status](M8_IMPLEMENTATION_STATUS.md).
+M8-01 planning and candidate M8-02/M8-03 source implementation are committed separately from accepted `main`; the D-006 Option A proposal has not received formal approval. M8-04 test and verification runners are authored, **not executed**. The branch includes four additive tables, atomic commit-before-202, duplicate/collision handling, immutable guards, Pending admission bounds and source credential final validation. No executable gate evidence or acceptance exists. Reconcile and independently review the full 25-case G8 matrix on a source-locked E:-backed run before acceptance or integration. See [M8 implementation status](M8_IMPLEMENTATION_STATUS.md), [second-audit remediation](M8_SECOND_REMEDIATION_STATUS.md) and [G8 verification runbook](M8_G8_VERIFICATION_RUNBOOK.md).
 
 ## Next eligible parallel workstreams
 
-Accepted G7 allows M8-01 inbox contract work. M8 also requires D-006 and separate G8 verification and acceptance. M16 audit foundations, M17 observability, M19 recovery foundations and eligible preparatory M20/M23 work can proceed in parallel under the [execution graph](EXECUTION_GRAPH.md). G8-G24 remain open; no public application hosting or production deployment is authorized.
+M8-01 through M8-04 source candidates have been committed but are not runtime-verified or accepted. D-006 and G8 remain separate acceptance gates. M12-01 scoped search/export, M14-01 route design, M16 audit foundations, M17 observability, M19 recovery foundations and eligible preparatory M20/M23 work can proceed in parallel under the [execution graph](EXECUTION_GRAPH.md). G8-G24 remain open; no public application hosting or production deployment is authorized.
 
 ## Storage and residual risk
 

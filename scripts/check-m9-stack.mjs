@@ -27,13 +27,13 @@ async function check(id, fn) {
     const detail = await fn();
     record(id, true, typeof detail === "string" ? detail : "");
   } catch (error) {
-    record(id, false, String(error?.message ?? error).split("\n")[0].slice(0, 300));
+    record(id, false, String(error?.message ?? error).replace(/\s+/g, " ").slice(0, 400));
   }
 }
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function compose(args, { input, env = {}, timeout = 180_000 } = {}) {
-  return spawnSync("docker", ["compose", "-f", composeFile, "-p", project, ...args],
+  return spawnSync("docker", ["compose", "-f", composeFile, "-p", project, "--profile", "worker", ...args],
     { encoding: "utf8", input, timeout, env: { ...process.env, ...env }, maxBuffer: 32 * 1024 * 1024 });
 }
 function psql(sql, { user = "harborops", password } = {}) {
@@ -101,12 +101,12 @@ const sessions = {};
 
 await check("stack-services-ready", async () => {
   const ready = await fetch(base + "/health/ready", { signal: AbortSignal.timeout(15_000) });
-  assert.equal(ready.status, 200);
+  assert.equal(ready.status, 200, "api /health/ready returned " + ready.status);
   const worker = await waitFor("worker healthy", () => {
     const state = compose(["ps", "worker", "--format", "{{.State}} {{.Health}}"]).stdout.trim();
     return state === "running healthy" ? state : null;
   }, 90_000, 3000);
-  assert.equal(worker, "running healthy");
+  assert.equal(worker, "running healthy", "worker state was " + worker);
   return "api ready, worker healthy";
 });
 

@@ -33,7 +33,7 @@ No M9 retry/worker claim/dead-letter execution, no M10 projection, no public rec
 
 ## Second audit fixes
 
-The [second audit remediation register](M8_SECOND_REMEDIATION_STATUS.md) documents source-level repairs for evidence finalization, actual PostgreSQL COMMIT wire interruption, immutable run archives, byte-accurate restart recovery and separate technical/governance status. These are implementation definitions, **not** executed G8 evidence.
+The [second audit remediation register](M8_SECOND_REMEDIATION_STATUS.md) documents source-level repairs for evidence finalization, actual PostgreSQL COMMIT wire interruption, immutable run archives, byte-accurate restart recovery and separate technical/governance status plus sealed archive finalization. These are implementation definitions, **not** executed G8 evidence.
 
 ## Unverified and blocked requirements
 

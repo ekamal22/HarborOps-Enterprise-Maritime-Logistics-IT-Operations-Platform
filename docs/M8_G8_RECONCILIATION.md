@@ -25,7 +25,7 @@ The review record is a separate JSON file, placed outside the raw evidence direc
 }
 ```
 
-The wrapper uses exit code 1 for a technical failure and exit code 2 for a technically clean run with formal acceptance still pending. `evidence/g8-technical-status.json` and `evidence/g8-formal-gate-status.json` record these as separate states. Neither exit code constitutes acceptance.
+The wrapper uses exit code 1 for a technical or archive-finalization failure and exit code 2 for a technically clean run with a sanitized archive and formal acceptance still pending. The separate `archives/<run-id>/g8-finalization-status.json` must record `finalizationStatus: PASS`, `archiveStatus: PASS`, `technicalStatus: PASS`, and `expectedWrapperExitCode: 2` before independent reconciliation. `evidence/g8-technical-status.json` and `evidence/g8-formal-gate-status.json` record these as separate states. Neither exit code constitutes acceptance.
 
 The example above intentionally uses placeholders, not assertions of completed approval. The actual `reviewedScenarioIds` array must contain the exact 25 distinct IDs in order. To reconcile, run from the repository checkout with Node installed:
 

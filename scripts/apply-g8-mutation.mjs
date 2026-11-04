@@ -15,7 +15,8 @@ const rules = {
   "collision-as-replay": {
     path: store,
     from: "if (originalCanonical.AsSpan().SequenceEqual(canonical.PayloadUtf8))",
-    to: "if (true)"
+    // Always true at run time, yet not a compile-time constant, so no unreachable-code warning.
+    to: "if (originalCanonical.AsSpan().SequenceEqual(canonical.PayloadUtf8) || originalCanonical.Length >= 0)"
   },
   "early-ack": {
     path: store,
@@ -25,7 +26,8 @@ const rules = {
   quota: {
     path: store,
     from: "if (pending >= PendingLimit)",
-    to: "if (false)"
+    // Never true at run time, yet not a compile-time constant, so no unreachable-code warning.
+    to: "if (pending >= (long)PendingLimit + long.MaxValue / 2)"
   },
   "append-only": {
     path: migration,

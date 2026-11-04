@@ -1,0 +1,35 @@
+# M9 Verification Remediation Register
+
+**Status:** Records every defect found while executing the G9 technical campaign against the M9 candidate, its root cause, fix, regression coverage and commit. The final passing run is described in the [executed verification record](M9_EXECUTED_VERIFICATION.md). G9 acceptance pending.  
+**Prepared:** 2026-11-04  
+**Candidate at start:** `cff7c254f642432086689437f8a7403b683425bd`  
+**Final verified revision:** `7665bc419618bb587873169b1dff8772e6a68e22`
+
+## Summary
+
+One defect was in M9 product source: the PostgreSQL migration and EF model snapshot did not match the entity model (V02). Every other defect was in test source or in the verification tooling. All were found by executing the code, not by reading it. No assertion was weakened to obtain a pass, and no accepted M0 to M8 behavior was changed.
+
+## Defect register
+
+| ID | Class | Severity | Defect and root cause | Fix and regression coverage | Commit |
+| --- | --- | --- | --- | --- | --- |
+| V01 | Test source | Low | `TrackingWorkerIntegrationTests` used `Assert.Single(items.Where(...))`; the xUnit2031 analyzer error stopped the warnings-as-errors build of the integration project (development attempt 01 failed at `dotnet-build`). | `Assert.Single(items, predicate)`. The warnings-as-errors build is the regression. | `7706a08` |
+| V02 | **Product source** | **High** | The EF model declared four conventional foreign-key indexes on `tracking_work_attempt_events` and `tracking_processing_effects` that neither the hand-written migration nor the model snapshot contained. `PendingModelChangesWarning` is an error, so every integration test that migrates a database failed (9 of 9 worker tests); snapshot parity (G9-S02) was broken. | Explicit named indexes (`IX_m9_attempt_actor`, `IX_m9_attempt_receipt_scope`, `IX_m9_effect_container`, `IX_m9_effect_shipment`) added consistently to the model, snapshot and migration. Regression: `MigrationSnapshotTests.ModelSnapshot_MatchesCurrentEntityModel`. The guarded downgrade drops the tables and so the indexes. | `7dd7b57` |
+| V03 | Test source | Low | Two historical expectations listed the migrations before the M9 migration: `MigrationSnapshotTests.Migrations_AreDiscoveredInOrder` and `OrganizationUpgradeAndConstraintTests.RealM0M1M2Upgrade...`. A filtered run misses the second; only the full pass found it. | Both lists include `20261104190000_TrackingWorker`. | `7dd7b57`, `2131f2a` |
+| V04 | Verification tool | Medium | `verify-m9-local.sh` exited 2 on technical success, so success and gate incompleteness could not be told apart by orchestration. | Exit 0 for technical success, 1 for failure, 2 for refused preconditions; `gate-status.txt` records the pending acceptance; new fail-closed `summarize-m9-trx.mjs` (zero tests, failures or skipped tests are never success). Regression in `check-m9-contract.test.mjs`. | `405b908` |
+| V05 | Verification tool | Medium | The orchestrator redirected `DOCKER_CONFIG` to a new directory without the Compose plugin path, so `docker compose` was unknown; the preflight stage hid it because `bash -c 'a; b; c'` reports only the last command. | The runner writes a plugin-path `config.json` or refuses to start; the preflight uses `set -euo pipefail`. | `f0bd986` |
+| V06 | Verification tool | Medium | (a) `docker compose up -d --build worker` rebuilt dependency images and recreated PostgreSQL mid-run, leaving a stale API connection and one HTTP 503 on the first readiness check. (b) The stack check lacked `--profile worker` and hid assertion values. (c) A plain `compose down` leaves the profile-gated worker container. | Build all images once, then `up --no-build`; the profile is applied to every Compose call including teardown; failures report actual values. Regression: stack check `stack-services-ready`, teardown inventory. | `4cc3312`, `fc8310a`, `f624413` |
+| V07 | Verification tool and isolation | Medium | My Compose build re-tagged the shared `harborops-postgres:16.15-rootless` image, so containers created from it by other work streams inherited my Compose project labels and matched my label-based guards. A label-based `compose down` could have removed such a container. A concurrent container of that kind (`ho-dev16-pg`) was present; it was not touched, and earlier teardown output shows only `ho-verify-g9-*` names. | G9-specific image tag `harborops-g9-postgres`, per-attempt Compose project names (`ho-verify-g9-aNN`), the shared tag rebuilt without Compose labels, contract-test assertions that the G9 files never use the shared tag. Attempt 03 was refused by the guard before any work. | `907cd05` |
+| V08 | Test source (verification effectiveness) | High | Mutation family 6 survived in the real run (attempt 05): removing `FOR UPDATE` from the intake organization lock was not detected, because the blocker's `FOR UPDATE` also blocked the receipt insert's foreign-key check, so the lock test waited either way. A real capacity race would have gone undetected. | The blocker now holds `FOR KEY SHARE`, which conflicts with `FOR UPDATE` but not with foreign-key checks, so the transaction waits only if it takes the lock. Verified killed in attempt 06. | `10b1679` |
+| V09 | Verification tool | Low | Mutation family 9 (policy-only relaxation of redrive) survived because the locked store query independently requires the Manager role. That is defense in depth, so the mutant was equivalent. | The mutant relaxes both layers; the equivalence proof is recorded. Killed in attempt 06. | `7665bc4` |
+| V10 | Environment | Low | Transient `EOF` from `mcr.microsoft.com` when pulling the worker base image. | Retry succeeded; the orchestrator pre-pulls base images with bounded retries. Not a product issue. | `f624413` |
+
+## Not defects, recorded for review
+
+- The Npgsql `libgssapi_krb5` message in container logs is the known harmless Kerberos probe.
+- Free space on C: fell by 20 MiB during the final run with no attributable task file. Nothing was deleted.
+- Reference changes that race with a claim are parked in NeedsReconciliation by design (CA-04); the integration suite covers the committed reference states.
+
+## Source audit findings
+
+The ten findings in the [follow-up source audit](M9_CORRECTNESS_AUDIT_20261104.md) were source-level. This campaign executed their corresponding behaviors: CA-01 and CA-06 (restricted worker role processes real work and cannot forge attempts or bypass redrive), CA-02 (compiles), CA-03 (standalone G9 stack renders and runs on its own ports), CA-05 (isolated-schema migration and claim), CA-09 (tenant quota and two-process barrier tests), CA-10 (readiness probe fails on a missing grant and recovers). CA-04 (concurrent reference change) and CA-08 (redrive security-version recheck under revocation races) are present in source but have no dedicated race test; they are listed as open items in the [executed verification record](M9_EXECUTED_VERIFICATION.md).

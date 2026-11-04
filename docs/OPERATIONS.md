@@ -180,7 +180,7 @@ The database is bound only to `127.0.0.1:55432` on the host; the API and web por
 
 Failure behavior (reverified 2026-10-31 in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md)): when PostgreSQL becomes unavailable after startup, liveness stays HTTP 200, readiness becomes HTTP 503 and the baseline endpoint returns a controlled HTTP 503 with a correlation identifier. The UI shows a service error and recovers on refresh after the database returns. To repeat the exercise on a disposable local stack run `bash scripts/check-m0-degraded.sh --project ho-verify --confirm-local-outage` against the same isolated test project. Bootstrap schema migration recovery, backup, and restore procedures remain pending until M19.
 
-## M9 worker operations (candidate only, G9 not executed)
+## M9 worker operations (candidate; G9 technical campaign executed, acceptance pending)
 
 The corrected [M9 source](M9_IMPLEMENTATION_STATUS.md) on [draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18) adds a PostgreSQL-leased worker, scoped operator queue actions, a restricted database role, and a separate migration. These instructions describe an **unverified test-only candidate**, not an accepted upgrade or operating procedure for the retained M8 environment.
 
@@ -189,6 +189,7 @@ The corrected [M9 source](M9_IMPLEMENTATION_STATUS.md) on [draft PR #18](https:/
 - `compose.m9.worker.yaml` provides an opt-in worker service for coordinated deployment, not an independent accepted service. Provision `harborops_worker` using `scripts/m9-worker-role.sql` only on an approved disposable database following M9 migration and configure a separate untracked `HARBOROPS_WORKER_DB_PASSWORD`. The worker must not run under the application database superuser.
 - `dotnet HarborOps.Worker.dll --readiness` is a candidate database connectivity and permission probe. A running or healthy container is not proof of effect-once correctness, reconciliation, claim recovery or G9 acceptance.
 - Queue status routes require Manager, Analyst or Auditor; only Manager may submit a reasoned, CSRF-protected redrive. The worker retains immutable accepted receipts, parks unknown or ambiguous references and writes no M10 projection.
+- `scripts/verify-g9-local.sh` is the source-locked technical campaign. It needs a clean committed tree, a new E: root ending in `/m9`, and `HARBOROPS_G9_PROJECT` set to a new `ho-verify-g9-<suffix>` Compose project for each attempt. It builds a G9-specific database image tag, never the tag other streams share, pulls base images with retries, starts the stack with `--profile worker`, and tears down only its named project. Technical exit 0 is not G9 acceptance.
 - All future source-locked G9 test resources, caches, Docker/WSL data, logs and evidence must be isolated on E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Never repurpose retained data, trigger GitHub Actions, or erase failed evidence.
 
-The full [G9 verification matrix](M9_VERIFICATION_PLAN.md), [correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) and independent review remain necessary. **M9-01 contract acceptance and G9 acceptance pending. No public or production worker deployment is authorized.**
+The [G9 technical record](M9_EXECUTED_VERIFICATION.md), [verification plan](M9_VERIFICATION_PLAN.md), [correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) and an independent review remain necessary. **M9-01 contract acceptance and G9 acceptance pending. No public or production worker deployment is authorized.**

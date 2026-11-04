@@ -5,6 +5,7 @@
 **Branch:** `feat/m9-worker-reconciliation`  
 **Baseline:** G0 through G8 remain accepted on `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`.  
 **Method:** Read-only comparison of the updated source, migration, grants, role policy, deployment definitions and regression-test source. No application build, test suite, PostgreSQL query, browser execution, Docker image, mutation campaign or G9 gate run was performed.  
+**Later runtime status:** The campaign recorded in [M9 executed verification](M9_EXECUTED_VERIFICATION.md) executed the behaviors reviewed here; this audit itself remains a source-only review.  
 **Disposition:** All ten initial findings have source changes addressing their identified causes. Runtime and integration correctness remain unproven. G9 acceptance pending.
 
 ## Audit findings and corrective changes

@@ -93,7 +93,7 @@ assert(readme.includes("docs/M9_IMPLEMENTATION_STATUS.md") &&
   "Current M9 candidate must be linked from project overview, status and roadmap");
 assert(m9Implementation.includes("No tests, build, database migrations") &&
   m9Audit.includes("G9 acceptance pending") &&
-  status.includes("G9 not executed"),
+  status.includes("G9 technical campaign executed") && status.includes("acceptance pending"),
   "Current M9 documents must not misrepresent source review as executed verification");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");

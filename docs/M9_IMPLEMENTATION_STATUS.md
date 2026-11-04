@@ -6,7 +6,7 @@
 **Branch:** `feat/m9-worker-reconciliation`  
 **Baseline:** accepted `main` `7b9e19d730e3a09c5e1184262460dfeac9319e3d`  
 **Contract:** M9-01 local decisions acceptance pending  
-**G9:** NOT EXECUTED. No technical gate evidence, independent evidence review or acceptance.  
+**G9:** Technical campaign executed on `7665bc419618bb587873169b1dff8772e6a68e22` (see [executed verification](M9_EXECUTED_VERIFICATION.md)); every executable scenario passed. G9-S01 is blocked by contract acceptance, G9-S25 independent review is not executed, and G9 acceptance pending.  
 **Integration:** Not merged into `main`.
 
 ## Candidate source
@@ -30,6 +30,8 @@ Equipment events can be resolved only to an active tenant-owned container and a 
 A valid durable receipt survives revocation of the source credential after ingestion. A suspended organization cannot receive a newly committed processing effect. Processed outcomes remain terminal; redrive requires a separately authorized, attributed generation and cannot rewrite receipts or effects.
 
 ## Tests authored but not executed
+
+*Historical record from the time the candidate was authored. These tests were later executed; see the [executed verification record](M9_EXECUTED_VERIFICATION.md) and the [remediation register](M9_CORRECTNESS_REMEDIATION.md).*
 
 - `tests/HarborOps.UnitTests/TrackingWorkPolicyTests.cs`
 - `tests/HarborOps.IntegrationTests/TrackingWorkerIntegrationTests.cs`
@@ -56,6 +58,10 @@ The ten original source-level findings have corrective changes, reviewed in [M9 
 5. Complete the G9 security mutation matrix, affected M0-G8 regressions, browser coverage as applicable, vulnerability and image scans, teardown integrity and disk-storage compliance.
 6. Seal an immutable evidence archive with exact source SHA, raw results, hashes and failed-attempt history. Obtain an independent evidence review and explicit acceptance.
 7. Reconcile the local verification findings on this branch. Do not merge or claim G9 closure while any mandatory case is unexecuted, failed or blocked.
+
+## Technical verification record
+
+The source-locked G9 technical campaign (attempt 06) passed on `7665bc419618bb587873169b1dff8772e6a68e22`: 791 of 791 TRX results (226 unit, 39 contract, 263 integration twice), a 14-check isolated Compose stack end-to-end run with the restricted worker role, twelve mutation families killed by intended tests, clean NuGet, npm and Trivy scans of the four exact-source images, zero leftover resources and a verified evidence archive. The campaign found one product-source defect (migration and snapshot drift, V02) and several test and tooling defects, all fixed; see the [remediation register](M9_CORRECTNESS_REMEDIATION.md). M9-01 contract approval, independent evidence review and G9 acceptance are separate decisions that remain pending. Nothing is merged into `main`.
 
 ## Parallel integration
 

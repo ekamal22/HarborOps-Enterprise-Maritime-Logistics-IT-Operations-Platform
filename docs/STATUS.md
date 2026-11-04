@@ -1,7 +1,7 @@
 # Project Status
 
 **As of:** 2026-11-04 (G0-G8 accepted and merged; D-006 Option A and independent G8 review complete; M8 merged through PR #14)
-**Default branch:** Protected `main` contains accepted M0-M7 implementations and verification records.
+**Default branch:** Protected `main` contains accepted M0-M8 implementations and verification records.
 **Baseline:** M0 merged via PRs #1 and #3; M1 merged via PR #4; M2 merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31.
 **Acceptance:** G0, G1, G2 and G3 explicitly accepted on 2026-10-31. G2 passed all 25 scenarios on `fbddc1361d79b027275bb53b48133ba0dc7d5cb1`; [G2 evidence](M2_EXECUTED_VERIFICATION.md) remains preserved. G3 passed all 25 scenarios on `b72025d35d62d0a8a45b466986a0b3bd89eebadb`; the independent raw-evidence review found 174 successful .NET executions, 57 successful browser tests and clean HIGH/CRITICAL image scans. See [G3 executed verification](M3_EXECUTED_VERIFICATION.md). M3 through M6 are integrated into `main`; G6 was explicitly accepted 2026-11-02. G7 accepted 2026-11-03 after three verification supplements and independent review; M8/G8 accepted 2026-11-04 after separate D-006 and independent evidence review; G9-G24 remain open.
 
@@ -35,7 +35,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | **M13 Operational KPI definitions and dashboards** | Planned | No verified implementation or accepted gate G13 |
 | **M14 Route mapping and geographic context** | Planned | No verified implementation or accepted gate G14 |
 | **M15 Scoped in-app notifications** | Planned | No verified implementation or accepted gate G15 |
-| **M16 Audit logging and access hardening** | Planned | No verified implementation or accepted gate G16 |
+| **M16 Audit logging and access hardening** | Architecture and M16-D01 to M16-D05 approved 2026-11-04; implementation pending | [Policy decisions](M16_POLICY_DECISIONS.md), [architecture](M16_ARCHITECTURE_DESIGN.md), [implementation plan](M16_IMPLEMENTATION_PLAN.md), [G16 verification](M16_VERIFICATION_PLAN.md). No executed M16 verification or G16 acceptance. |
 | **M17 Observability and service health** | Planned | No verified implementation or accepted gate G17 |
 | **M18 IT incident lifecycle and remediation** | Planned | No verified implementation or accepted gate G18 |
 | **M19 Database recovery and migration rehearsal** | Planned | No verified implementation or accepted gate G19 |
@@ -106,6 +106,10 @@ M7-01 through M7-04 and G7 were accepted on 2026-11-03 after the 25-scenario rec
 ## M8 implementation boundary
 
 M8-01 through M8-04 are accepted and integrated into protected `main` via PR #14; D-006 Option A was accepted on 2026-11-04. M8-04 test and verification runners were executed once in full on tested revision `537af9c2af99751aa2fbedf1a2115b7715e7b9e6` with a technical PASS (see the [executed verification record](M8_EXECUTED_VERIFICATION.md)). The branch includes four additive tables, atomic commit-before-202, duplicate/collision handling, immutable guards, Pending admission bounds and source credential final validation. Independent evidence review and the separate G8 acceptance are complete. The original 25-case raw run remains unmodified; see [gate closure](M8_G8_GATE_CLOSURE.md). See [M8 implementation status](M8_IMPLEMENTATION_STATUS.md), [second-audit remediation](M8_SECOND_REMEDIATION_STATUS.md) and [G8 verification runbook](M8_G8_VERIFICATION_RUNBOOK.md).
+
+## M16 approved planning boundary
+
+The five M16 audit/access choices were explicitly approved on 2026-11-04: Auditor-only selected-organization visibility, 365-day online retention with controlled archival before deletion, same-transaction fail-closed sensitive mutation auditing, separate migration/API/worker PostgreSQL identities, and deferred external cryptographic anchoring. The [approved policy](M16_POLICY_DECISIONS.md), [privacy contract](M16_AUDIT_PRIVACY_POLICY.md), [architecture](M16_ARCHITECTURE_DESIGN.md), [implementation work packages](M16_IMPLEMENTATION_PLAN.md) and [G16 matrix](M16_VERIFICATION_PLAN.md) are documentation-only; no M16 schema, routes, code, local execution or independently reviewed evidence is claimed. M16 may proceed on an isolated branch while coordinating shared migrations and worker credentials with M9. **G16 acceptance pending.**
 
 ## Next eligible parallel workstreams
 

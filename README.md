@@ -54,7 +54,7 @@ M3 is implemented, locally verified, explicitly accepted on 2026-10-31 and integ
 
 ### Parallel-ready workstreams after G3
 
-M4 maritime records, M5 shipments and M6 assignments are accepted and integrated. Independently eligible future streams include M7 tracking contracts, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 interface planning. D-003 is accepted for M4; D-002 is accepted for M7 (Option A, 2026-11-03). See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
+M4 through M8 are accepted and integrated into `main`. M9 has corrected implementation source on a separate draft branch, while M12 search/export, M14 route mapping, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 interface planning remain independently eligible by prerequisite. D-003 is accepted for M4; D-002 is accepted for M7 (Option A, 2026-11-03). See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
 
 ### Planned modules
 

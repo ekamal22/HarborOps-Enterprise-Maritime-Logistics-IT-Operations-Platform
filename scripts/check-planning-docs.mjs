@@ -25,6 +25,8 @@ const m9Plan = get("docs/M9_IMPLEMENTATION_PLAN.md");
 const m9Contract = get("docs/M9_LOCAL_CONTRACT_PROPOSAL.md");
 const g9Verification = get("docs/M9_VERIFICATION_PLAN.md");
 const m9Status = get("docs/M9_PLANNING_STATUS.md");
+const m9Implementation = get("docs/M9_IMPLEMENTATION_STATUS.md");
+const m9Audit = get("docs/M9_CORRECTNESS_AUDIT_20261104.md");
 
 function assert(ok, message) {
   if (!ok) throw Error(message);
@@ -69,20 +71,30 @@ for (const [name,body] of [
 assert(status.includes("D-006") && status.includes("accepted"), "Status must record accepted D-006");
 assert(m8Status.includes("G8") && m8Status.includes("Explicitly accepted 2026-11-04") && m8Status.includes("M8_G8_GATE_CLOSURE.md"), "G8 acceptance must reference the independently reviewed gate closure");
 for (const [name, body, marker] of [
-  ["README", readme, "M9 idempotent worker and reconciliation (planning)"],
-  ["Status", status, "Architecture and implementation planned; G9 not executed or accepted"],
+  ["README", readme, "M9 idempotent worker and reconciliation (unverified feature-branch candidate)"],
+  ["Status", status, "Corrected source candidate on draft"],
   ["Roadmap", roadmap, "M9_LOCAL_CONTRACT_PROPOSAL.md"],
-  ["Implementation plan", implementationPlan, "M9 architecture and implementation planning"],
+  ["Implementation plan", implementationPlan, "M9 architecture and unverified implementation candidate"],
   ["M9 architecture", m9Architecture, "Claim, processing and effect-once transaction"],
   ["M9 plan", m9Plan, "M9-04: Integrated verification and controlled recovery"],
   ["M9 contract", m9Contract, "**Decision:** Acceptance pending."],
   ["M9 status", m9Status, "**G9:** Not executed, no evidence, no acceptance."],
-  ["G9 plan", g9Verification, "G9-S01 through G9-S25"]
+  ["G9 plan", g9Verification, "G9-S01 through G9-S25"],
+  ["M9 implementation", m9Implementation, "G9 acceptance pending"],
+  ["M9 source audit", m9Audit, "No application build, test suite, PostgreSQL query"]
 ]) assert(body.includes(marker), name + " missing or inconsistent M9 planning state");
 assert(g9Verification.split("\n").filter(line => line.startsWith("| **G9-S")).length === 25,
   "G9 must contain exactly 25 explicit scenarios");
 assert(!/G9 (?:accepted|verified|executed) 2026/i.test(m9Status),
   "Planning cannot claim G9 executable acceptance");
+assert(readme.includes("docs/M9_IMPLEMENTATION_STATUS.md") &&
+  status.includes("M9_CORRECTNESS_AUDIT_20261104.md") &&
+  roadmap.includes("M9_IMPLEMENTATION_STATUS.md"),
+  "Current M9 candidate must be linked from project overview, status and roadmap");
+assert(m9Implementation.includes("No tests, build, database migrations") &&
+  m9Audit.includes("G9 acceptance pending") &&
+  status.includes("G9 not executed"),
+  "Current M9 documents must not misrepresent source review as executed verification");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");
 assert(roadmap.includes("## Legacy milestone mapping"), "Missing version migration map");

@@ -91,18 +91,20 @@ public sealed class TrackingWorkerProcessRaceTests
                 {
                     ApplicationName = applicationName
                 };
-                var start = new ProcessStartInfo("dotnet", executable)
+                var start = new ProcessStartInfo("dotnet")
                 {
-                    WorkingDirectory = root.FullName,
+                    WorkingDirectory = root!.FullName,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
+                start.ArgumentList.Add(executable);
                 start.Environment["ConnectionStrings__HarborOps"] = connection.ConnectionString;
                 start.Environment["TrackingWorker__PollMilliseconds"] = "100";
                 return Process.Start(start)
                     ?? throw new InvalidOperationException("The independent worker process failed to start");
             }
 
+            var lockReleased = false;
             try
             {
                 first = StartWorker(nameA);
@@ -133,6 +135,7 @@ public sealed class TrackingWorkerProcessRaceTests
                 Assert.True(bothContending,
                     "Both independently started workers must overlap on the held organization lock");
                 await blockerTx.CommitAsync();
+                lockReleased = true;
 
                 var completed = false;
                 deadline = DateTimeOffset.UtcNow.AddSeconds(20);
@@ -159,8 +162,11 @@ public sealed class TrackingWorkerProcessRaceTests
             }
             finally
             {
-                if (blockerTx.Connection is not null)
-                    await blockerTx.RollbackAsync();
+                if (!lockReleased)
+                {
+                    try { await blockerTx.RollbackAsync(); }
+                    catch (InvalidOperationException) { }
+                }
                 foreach (var process in new[] { first, second })
                 {
                     if (process is null) continue;

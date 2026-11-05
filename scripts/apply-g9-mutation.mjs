@@ -62,7 +62,13 @@ export const mutations = {
         to: "            -- Disposable mutation: work transition guard trigger omitted." }],
     "commit-ack": [{ path: worker,
         from: "        await transaction.CommitAsync(ct);\n        return resolved.HasValue ? TrackingWorkDisposition.Processed :",
-        to: "        // Disposable mutation: acknowledge without COMMIT.\n        return resolved.HasValue ? TrackingWorkDisposition.Processed :" }]
+        to: "        // Disposable mutation: acknowledge without COMMIT.\n        return resolved.HasValue ? TrackingWorkDisposition.Processed :" }],
+    "reference-race": [{ path: "src/HarborOps.Worker/WorkerShell.cs",
+        from: "conflict.ConstraintName == \"CK_m9_effect_reference\")",
+        to: "conflict.ConstraintName == \"CK_m9_effect_reference_mutant\")" }],
+    "security-recheck": [{ path: adminStore,
+        from: "AND s.security_version=u.security_version",
+        to: "AND 1=1" }]
 };
 
 if (import.meta.url === new URL(process.argv[1], "file:///").href || process.argv[1]?.endsWith("apply-g9-mutation.mjs")) {

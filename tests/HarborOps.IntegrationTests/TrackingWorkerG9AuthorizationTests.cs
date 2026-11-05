@@ -20,7 +20,7 @@ public sealed class TrackingWorkerG9AuthorizationTests
 {
     private static string Key(string prefix) => prefix + "-" + Guid.NewGuid().ToString("N")[..12];
 
-    private static async Task<Guid> ParkedReceipt(ReferenceDataHttpTests.ApiFactory factory, Guid organization,
+    internal static async Task<Guid> ParkedReceipt(ReferenceDataHttpTests.ApiFactory factory, Guid organization,
         ProvisionedIntegrationSource source, string label)
     {
         var receipt = await G9Support.Accept(factory, source,

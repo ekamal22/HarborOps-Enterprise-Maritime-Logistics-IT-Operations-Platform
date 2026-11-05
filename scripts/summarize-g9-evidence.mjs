@@ -79,6 +79,7 @@ add("G9-S13", "Duplicate delivery does not repeat resolution", [D("ReplayedDeliv
     S("e2e-worker-processes-resolved-and-unresolved-events")]);
 add("G9-S14", "Equipment resolution is time and tenant safe", [D("ReferenceResolutionIsTenantTimeSafeAndNeverGuessed"),
     D("ArchivedContainerCannotCarryAnActiveAssignmentSoItIsNeverResolved"),
+    D("ReferenceChangedWhileWorkerFinalizesIsParkedForReconciliation"),
     D("ValidTimeScopedContainerAssignmentProducesExactlyOneImmutableEffect")]);
 add("G9-S15", "Transport and unknown references are not guessed", [D("ReferenceResolutionIsTenantTimeSafeAndNeverGuessed")]);
 add("G9-S16", "Deterministic finite retry schedule", [D("TransientFailuresFollowBoundedScheduleAndStopAtFiveAttempts"),
@@ -86,7 +87,8 @@ add("G9-S16", "Deterministic finite retry schedule", [D("TransientFailuresFollow
 add("G9-S17", "Dead-letter and reconstruction evidence", [D("PermanentProcessorFailureIsDeadLetteredWithImmutableEvidence"),
     D("UnknownReferenceIsParkedAndCanBeRedrivenOnlyByManager")]);
 add("G9-S18", "Authorized redrive is bounded and auditable", [D("UnknownReferenceIsParkedAndCanBeRedrivenOnlyByManager"),
-    D("DirectSqlRedriveCannotBypassAttributedImmutableHistory"), S("operator-api-roles-and-redrive-ceiling")]);
+    D("DirectSqlRedriveCannotBypassAttributedImmutableHistory"), S("operator-api-roles-and-redrive-ceiling"),
+    D("SecurityVersionChangeWhileRedriveWaitsOnTheOrganizationLockIsDenied")]);
 add("G9-S19", "Tenant and operator security", [S("operator-api-roles-and-redrive-ceiling"), S("worker-role-least-privilege"),
     D("ManagerQueueAccessAndRedriveStayDeniedAfterRevocation"), D("ForeignOrganizationIdentifiersNeverCrossTheTenantBoundary"),
     S("service-logs-contain-no-secrets"), D("UnknownReferenceIsParkedAndCanBeRedrivenOnlyByManager")]);
@@ -101,7 +103,7 @@ add("G9-S22", "Affected G0-G8 regression", [
     "Existing browser journeys are not rerun by this runner; see the final report for that boundary.");
 add("G9-S23", "Adversarial mutation effectiveness", [
     ["clean control passed", mutations?.control?.status === "PASS"],
-    ["twelve distinct families killed by intended tests", (mutations?.mutants ?? []).filter(x => x.status === "KILLED" && x.killedBy?.length > 0).length === 12]]);
+    ["fourteen distinct families killed by intended tests", (mutations?.mutants ?? []).filter(x => x.status === "KILLED" && x.killedBy?.length > 0).length === 14]]);
 const scans = ["postgres", "api", "web", "worker"].every(s => fs.existsSync(path.join(evidence, "trivy", s + ".json")));
 add("G9-S24", "Dependency, image, operational and evidence safety", [
     ["nuget advisories", stage("nuget-advisories")], ["npm advisories", stage("npm-advisories")],

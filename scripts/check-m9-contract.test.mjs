@@ -119,7 +119,7 @@ test("G9 mutation runner defines twelve distinct families that all name intended
     const apply = read("scripts/apply-g9-mutation.mjs");
     const runner = read("scripts/run-g9-mutations.mjs");
     const names = [...apply.matchAll(/^    "([a-z-]+)": \[/gm)].map(m => m[1]);
-    assert.equal(new Set(names).size, 12);
+    assert.equal(new Set(names).size, 14);
     for (const name of names) assert.ok(runner.includes(`["${name}",`), "runner lacks " + name);
     assert.match(runner, /killed.length > 0/);
     assert.match(runner, /Mutation survived/);

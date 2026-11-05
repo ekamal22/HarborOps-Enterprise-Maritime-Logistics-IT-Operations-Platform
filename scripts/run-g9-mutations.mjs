@@ -43,7 +43,9 @@ const T = {
     ceiling: "UnresolvedCeilingCountsLeasedRetryAndReconciliationAtTheExactLimit",
     redrive: "UnknownReferenceIsParkedAndCanBeRedrivenOnlyByManager",
     retry: "TransientFailuresFollowBoundedScheduleAndStopAtFiveAttempts",
-    commit: "AmbiguousFinalizeCommitIsReconstructedFromDurableState"
+    commit: "AmbiguousFinalizeCommitIsReconstructedFromDurableState",
+    refrace: "ReferenceChangedWhileWorkerFinalizesIsParkedForReconciliation",
+    secrace: "SecurityVersionChangeWhileRedriveWaitsOnTheOrganizationLockIsDenied"
 };
 const every = Object.values(T);
 // [variant, family number and name, tests that must fail, tests to execute]
@@ -60,7 +62,9 @@ const variants = [
     ["redrive-auth", "9 unauthorized redrive allowed", [T.redrive], [T.redrive]],
     ["tenant-filter", "10 tenant resolver filter removed", [T.refs], [T.refs]],
     ["transition-guard", "11 work transition SQL guard disabled", [T.sqlForge, T.sqlSkip], [T.sqlForge, T.sqlSkip]],
-    ["commit-ack", "12 post-commit effect acknowledgment weakened", [T.effect, T.commit], [T.effect, T.commit]]
+    ["commit-ack", "12 post-commit effect acknowledgment weakened", [T.effect, T.commit], [T.effect, T.commit]],
+    ["reference-race", "13 concurrent reference change handling removed", [T.refrace], [T.refrace]],
+    ["security-recheck", "14 redrive security version recheck removed", [T.secrace], [T.secrace]]
 ];
 for (const [variant] of variants.slice(1)) assert.ok(mutations[variant], "Missing mutation definition: " + variant);
 // Development rehearsal only: a reduced subset is never full-gate evidence.
@@ -151,7 +155,7 @@ try {
             if (owned) expectOk("docker", ["rm", "-f", name]);
         }
     }
-    if (!subset) assert.equal(summary.mutants.length, 12, "All twelve mutation families are required");
+    if (!subset) assert.equal(summary.mutants.length, 14, "All fourteen mutation families are required");
     save();
     console.log("G9 controlled mutation proofs: PASS");
 } finally {

@@ -12,7 +12,7 @@ namespace HarborOps.IntegrationTests;
 /// <summary>G9 crash-window and ambiguous-COMMIT scenarios with real processes and a real database wire.</summary>
 public sealed class TrackingWorkerG9ProcessTests
 {
-    private static string WorkerExecutable()
+    internal static string WorkerExecutable()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "HarborOps.sln")))
@@ -24,7 +24,7 @@ public sealed class TrackingWorkerG9ProcessTests
         return executable;
     }
 
-    private static Process StartWorker(string executable, string connectionString, string applicationName)
+    internal static Process StartWorker(string executable, string connectionString, string applicationName)
     {
         var connection = new NpgsqlConnectionStringBuilder(connectionString) { ApplicationName = applicationName };
         var start = new ProcessStartInfo("dotnet")
@@ -41,7 +41,7 @@ public sealed class TrackingWorkerG9ProcessTests
         return Process.Start(start) ?? throw new InvalidOperationException("Worker process failed to start");
     }
 
-    private static async Task StopAsync(Process? process)
+    internal static async Task StopAsync(Process? process)
     {
         if (process is null) return;
         try
@@ -55,7 +55,7 @@ public sealed class TrackingWorkerG9ProcessTests
         finally { process.Dispose(); }
     }
 
-    private static async Task<bool> WaitFor(Func<Task<bool>> condition, TimeSpan timeout)
+    internal static async Task<bool> WaitFor(Func<Task<bool>> condition, TimeSpan timeout)
     {
         var deadline = DateTimeOffset.UtcNow + timeout;
         while (DateTimeOffset.UtcNow < deadline)

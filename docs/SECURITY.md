@@ -127,10 +127,12 @@ The M0 hardening checks do not replace the independently accepted M1 identity/se
 
 G0 was explicitly accepted on 2026-10-31 after runtime and image verification. M1 authentication and M2 organization authorization were separately verified and accepted on 2026-10-31. None of the milestone gates approves public or production deployment; later security hardening and release assessment remain required.
 
-## M9 worker authorization and immutable processing evidence (unverified source)
+## M9 worker authorization and immutable processing evidence (verified candidate)
 
 The corrected [M9 implementation candidate](M9_IMPLEMENTATION_STATUS.md) adds tenant-scoped, lease-token/epoch-fenced work transitions, a receipt-unique immutable resolution effect, and database-generated append-only attempt events within the state-transition transaction. The restricted worker role may read relevant effect and attempt evidence, but cannot directly insert or update attempt history. The worker can operate only within active organization scope; the database guard disallows worker-initiated manual redrive.
 
 The candidate's operator routes use live membership and selected organization constraints. Redrive additionally requires a current session security version, Manager permission, CSRF validation, an attributed sanitized reason, and a bounded generation. Queue responses omit raw accepted bytes, credentials, secret digests and internal exception messages. They are marked `no-store`.
 
 The [source correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) is not a penetration test, migration witness or executed security check. Restricted-role SQL attacks, direct transition bypass attempts, concurrent revocation, tenant enumeration, credential rotation, failure logging and two-process takeover must be tested in the [G9 campaign](M9_VERIFICATION_PLAN.md). Accepted G8 immutable receipt retention and D-006 remain unchanged. M16 owns broader platform audit logging and access hardening. G9 and M9-01 acceptance remain pending.
+
+**M9 acceptance checkpoint (2026-11-05):** The six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices, including the intentionally stricter M8-derived backlog admission rule and Manager-only redrive permissions, are approved with the transport-backlog operating condition. The restricted worker, security-version redrive race, tenant negative cases and 14 mutation families passed in the [source-locked technical campaign](M9_EXECUTED_VERIFICATION.md). No deployment of sustained transport-event processing is authorized until M10 or an explicitly approved backlog mechanism handles parked transport events. G9-S25 independent review and formal G9 acceptance remain pending.

@@ -89,7 +89,7 @@ The M9 implementation uses lease-token/epoch fencing, receipt-unique immutable e
 
 ## M16 independent verification and integration preparation
 
-M16-D01 through M16-D05 policy choices were approved on 2026-11-04. The feature branch reports a successful standalone technical campaign on `e571157`, but private raw-evidence review, M9-current-baseline combined verification, G16 acceptance and merge remain pending. Before an integrated PR, reconcile the accepted M9 tracking-work API and authorization with M16 audit reads, coordinate the two additive migrations and EF snapshot, settle worker-role grant ownership and worker-effect auditing, then execute final source-locked fresh/populated migrations, .NET/security/browser/outage regressions and independent evidence inspection. No accepted code or historical evidence may be rewritten to achieve apparent convergence.
+M16-D01 through M16-D05 policy choices were approved on 2026-11-04. The feature branch's standalone technical campaign on `e571157` has now had its 162-file main evidence independently checked ([G16 review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md)). **`supplement-s07-s08-s28.log` is UNREVIEWED**, and M9-current-baseline combined verification, G16 acceptance and merge remain pending. Before an integrated PR, reconcile the accepted M9 tracking-work API and authorization with M16 audit reads, coordinate the two additive migrations and EF snapshot, settle worker-role grant ownership and worker-effect auditing, then execute final source-locked fresh/populated migrations, .NET/security/browser/outage regressions and independent evidence inspection. No accepted code or historical evidence may be rewritten to achieve apparent convergence.
 
 ## Concurrent work-package implementation
 

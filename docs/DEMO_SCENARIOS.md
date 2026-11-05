@@ -1,5 +1,7 @@
 # Reproducible Demonstration Scenarios
 
+**Current G9 disposition (2026-11-05):** M9/G9 accepted and merged into `main` via planning PR #16 (`43fe326`) and implementation PR #18 (`4684352`). [G9 closure](M9_G9_GATE_CLOSURE.md) preserves the reviewed evidence and limitations. Sustained transport-event processing is held until M10 or another explicitly approved, verified backlog mechanism handles parked events within the 10,000 unresolved-work cap. No production deployment is authorized.
+
 ## Demo dataset contract
 
 The planned final demonstration dataset will contain two isolated organizations, role-specific users, realistic-looking but fictional ports/routes/containers, event histories, expected KPI values and service incidents. Those full business entities and datasets are not implemented at M2. G2 separately verified two synthetic organizations and role-specific users in disposable test fixtures.

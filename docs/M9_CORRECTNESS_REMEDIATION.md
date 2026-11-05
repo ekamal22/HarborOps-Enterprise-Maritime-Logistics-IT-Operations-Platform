@@ -1,5 +1,7 @@
 # M9 Verification Remediation Register
 
+**Final G9 status (2026-11-05):** G9 accepted with the mandatory [M9-01 transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md); planning PR #16 and implementation PR #18 merged into `main` as `43fe326` and `4684352`. See [G9 gate closure](M9_G9_GATE_CLOSURE.md) and [evidence review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md). Historical source-locked result classifications and earlier proposals below remain unaltered. No production deployment is authorized.
+
 **Current governance status (2026-11-05):** All six [M9-01 contract choices](M9_LOCAL_CONTRACT_DECISION.md) were approved with the mandatory transport-backlog operating condition. The original defect register, source-locked verification and historical failures remain unchanged. G9-S25 formal independent review and G9 acceptance remain pending.
 
 **Status:** Records every defect found while executing the G9 technical campaign against the M9 candidate, its root cause, fix, regression coverage and commit. The final passing run is described in the [executed verification record](M9_EXECUTED_VERIFICATION.md). G9 acceptance pending.  

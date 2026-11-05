@@ -1,5 +1,7 @@
 # M9 Local Processing and Reconciliation Contract Proposal
 
+**Final G9 status (2026-11-05):** G9 accepted with the mandatory [M9-01 transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md); planning PR #16 and implementation PR #18 merged into `main` as `43fe326` and `4684352`. See [G9 gate closure](M9_G9_GATE_CLOSURE.md) and [evidence review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md). Historical source-locked result classifications and earlier proposals below remain unaltered. No production deployment is authorized.
+
 **Historical proposal:** All six choices were subsequently approved on 2026-11-05 with a mandatory transport-backlog operating condition. The authoritative accepted terms are in [M9-01 Local Contract Decision](M9_LOCAL_CONTRACT_DECISION.md). Statements below that say approval is pending describe the original proposal, not the current decision status.
 
 **Decision status update:** All six local M9-01 choices below remain proposals and acceptance pending. The corrected [implementation candidate](M9_IMPLEMENTATION_STATUS.md) on [draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18) and its [source-level correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) do not replace explicit contract acceptance or executed G9 evidence.

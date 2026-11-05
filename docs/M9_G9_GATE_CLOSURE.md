@@ -44,3 +44,12 @@ Explicit G9 acceptance on 2026-11-05 includes the request to merge M9 into prote
 5. Leave M16 and all other concurrent branches untouched. No GitHub Actions execution.
 
 **Decision:** G9 accepted with the stated transport-backlog condition and residual limitations; M9 merge authorized. No production deployment authorized.
+
+## Completed integration (2026-11-05)
+
+- M9 planning [PR #16](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/16) merged into `main` as `43fe326758a587ba569a6a14e4fe440d550c27ed`.
+- M9 implementation [PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18) merged into `main` as `4684352c70132bebb5a4adc04753eb9651b84fa5`.
+- Both merge commits carry `[skip ci]`. No GitHub Actions were started by this merge task.
+- The transport-backlog condition and all disclosed limitations remain binding; M16 remains separate.
+
+**Final disposition:** G9 accepted and M9 integrated into `main`. G10-G24 remain open.

@@ -35,3 +35,7 @@ The deployment/readiness checklist must carry this condition forward and assess 
 - Merge preparation may proceed, with PR #16 as an ancestor of PR #18 and M16 shared-file/migration reconciliation handled separately. Merge only after formal G9 closure and explicit merge authorization.
 
 **Disposition:** M9-01 contract approved with a mandatory operating condition. G9-S01 governance prerequisite satisfied. G9-S25, G9 acceptance and merge remain pending.
+
+## Gate acceptance and integration
+
+G9 accepted 2026-11-05 with the mandatory operating restriction above. [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and merge through PR #16 (`43fe326`) and PR #18 (`4684352`). No production deployment or sustained transport-event processing is authorized by the acceptance.

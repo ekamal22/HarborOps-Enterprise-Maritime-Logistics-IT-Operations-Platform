@@ -1,5 +1,7 @@
 # M9 Executed G9 Technical Verification
 
+**Final G9 status (2026-11-05):** G9 accepted with the mandatory [M9-01 transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md); planning PR #16 and implementation PR #18 merged into `main` as `43fe326` and `4684352`. See [G9 gate closure](M9_G9_GATE_CLOSURE.md) and [evidence review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md). Historical source-locked result classifications and earlier proposals below remain unaltered. No production deployment is authorized.
+
 **Governance supplement (2026-11-05):** The original run remains immutable and recorded G9-S01 as BLOCKED at execution time. All six M9-01 contract choices were subsequently approved with a mandatory [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). G9-S25 formal independent review and explicit G9 acceptance remain pending. This is an appended decision status, not a rewrite of test evidence.
 
 **Status:** G9 technical campaign executed on one exact source revision. **Technical result: PASS for every executable scenario.** G9-S01 is BLOCKED (M9-01 contract acceptance pending) and G9-S25 is NOT EXECUTED (independent evidence review pending). **G9 acceptance pending.** This record is not an acceptance decision and does not authorize a merge into `main`.

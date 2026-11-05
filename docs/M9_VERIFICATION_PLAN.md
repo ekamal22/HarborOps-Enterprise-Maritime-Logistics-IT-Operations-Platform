@@ -1,10 +1,12 @@
 # G9 Verification Plan: Idempotent Worker and Reconciliation
 
+**Final G9 status (2026-11-05):** G9 accepted with the mandatory [M9-01 transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md); planning PR #16 and implementation PR #18 merged into `main` as `43fe326` and `4684352`. See [G9 gate closure](M9_G9_GATE_CLOSURE.md) and [evidence review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md). Historical source-locked result classifications and earlier proposals below remain unaltered. No production deployment is authorized.
+
 **Governance supplement (2026-11-05):** The six M9-01 choices were explicitly approved with a mandatory [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). The original source-locked G9-S01 raw result stays historically BLOCKED because approval happened after execution. G9-S25 formal independent review and explicit G9 acceptance are still pending. Do not revise the original raw scenario register.
 
 **Execution status:** The G9 technical campaign was executed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440` and its results are recorded in the [executed verification record](M9_EXECUTED_VERIFICATION.md). Every executable scenario passed; **G9-S01 is blocked by contract acceptance and G9-S25 independent review is not executed. G9 acceptance pending.** The scenario list below is the original plan and is unchanged. The browser requirement of G9-S22 was closed by a separate [browser supplement](M9_BROWSER_SUPPLEMENT.md) on the same revision.
 
-**Status:** Specification with an executed technical record (see above). G9 acceptance pending.  
+**Status:** Original verification specification and executed technical record, subsequently accepted 2026-11-05 with the transport-backlog condition.  
 **Prepared:** 2026-11-04  
 **Accepted baseline:** G0-G8 on protected `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`.  
 **Work packages:** M9-01 through M9-04 in [execution graph](execution-graph.json).  

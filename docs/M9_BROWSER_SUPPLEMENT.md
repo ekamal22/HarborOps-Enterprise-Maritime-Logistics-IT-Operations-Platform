@@ -1,8 +1,10 @@
 # M9 G9-S22 Browser Regression Supplement
 
+**Final G9 status (2026-11-05):** G9 accepted with the mandatory [M9-01 transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md); planning PR #16 and implementation PR #18 merged into `main` as `43fe326` and `4684352`. See [G9 gate closure](M9_G9_GATE_CLOSURE.md) and [evidence review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md). Historical source-locked result classifications and earlier proposals below remain unaltered. No production deployment is authorized.
+
 **Decision status supplement (2026-11-05):** All six [M9-01 choices](M9_LOCAL_CONTRACT_DECISION.md) are approved with the transport-backlog operating condition. This does not alter the 174/174 browser execution evidence or close the formal G9-S25 independent review and gate acceptance requirements.
 
-**Status:** Supplemental technical evidence, executed. **Result: PASS** (final run). It closes the browser requirement of G9-S22 and does not replace or alter the attempt 08 campaign in the [executed verification record](M9_EXECUTED_VERIFICATION.md). G9 acceptance pending.
+**Status:** Supplemental technical evidence, executed. **Result: PASS** (final run). It completed the browser requirement of G9-S22, subsequently accepted in formal G9 closure and does not replace or alter the attempt 08 campaign in the [executed verification record](M9_EXECUTED_VERIFICATION.md). G9 acceptance pending.
 
 **Implementation source:** `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440`, the exact revision of attempt 08, built from a clean detached worktree (`E:\HarborOps-Verification\worktrees\m9-browser-0abeeb0`).  
 **Tooling:** `scripts/verify-g9-browsers-local.sh`, `scripts/run-g9-browsers-local.sh`, `scripts/summarize-g9-browsers.mjs` and `scripts/redact-g9-browser-artifacts.mjs` at `1ee653fc37a7c6e6c60a4a96a73d4b304fa582ed`. Everything the stack and specs execute (`src`, `web`, `tests`, `compose.g9.verify.yaml`, `docker` and the fixture scripts) is byte-identical between the implementation revision and the tooling revision; the diff is recorded in the evidence (`source-vs-tooling-diff.txt`, empty).  

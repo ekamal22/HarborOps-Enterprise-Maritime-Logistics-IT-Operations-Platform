@@ -1,5 +1,7 @@
 # Parallel Delivery and Integration Policy
 
+**Current G9 disposition (2026-11-05):** M9/G9 accepted and merged into `main` via planning PR #16 (`43fe326`) and implementation PR #18 (`4684352`). [G9 closure](M9_G9_GATE_CLOSURE.md) preserves the reviewed evidence and limitations. Sustained transport-event processing is held until M10 or another explicitly approved, verified backlog mechanism handles parked events within the 10,000 unresolved-work cap. No production deployment is authorized.
+
 **Version:** 1.1  
 **Updated:** 2026-11-04  
 **Authority:** [Roadmap](ROADMAP.md), [Execution Graph](EXECUTION_GRAPH.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Local Storage Policy](LOCAL_STORAGE_POLICY.md), [Status](STATUS.md)
@@ -29,7 +31,7 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M6 shipment assignments | Accepted and merged | G4/G5 prerequisites were accepted; the [twelve-rule M6 contract](M6_LOCAL_CONTRACT_DECISION.md) and full G6 were accepted 2026-11-02, then integrated into `main`. [Gate closure](M6_G6_GATE_CLOSURE.md) preserves evidence provenance and snapshot limitations. |
 | M7 tracking source contract | Completed and merged | G7 and D-002 Option A accepted 2026-11-03; see [closure](M7_G7_GATE_CLOSURE.md) |
 | M8 durable receipt implementation | G8 accepted and merged 2026-11-04 via PR #14 | G6/G7 accepted; D-006 Option A and independent source-locked G8 evidence reviewed; see [closure](M8_G8_GATE_CLOSURE.md) |
-| M9 worker and reconciliation | Technical campaign and browser supplement PASS; M9-01 approved with operating condition; G9 pending | [M9-01 decision](M9_LOCAL_CONTRACT_DECISION.md) records approval and transport-backlog restriction; independent G9-S25 review and gate acceptance still required. The M9 branch owns additive migration and shared EF/API files; M16 coordination remains necessary. |
+| M9 worker and reconciliation | G9 accepted 2026-11-05, integrated into `main` | [M9 local decision](M9_LOCAL_CONTRACT_DECISION.md) and [G9 closure](M9_G9_GATE_CLOSURE.md) record the mandatory transport-backlog restriction, the evidence review and the completed PR #16/#18 merges. M16 migration and shared-file integration remains separate. |
 | M12 shipment search/export | M12-01 | G5 accepted; scoped search/export remains independently eligible in an isolated branch with no shared EF snapshot or Compose collision |
 | M14 route mapping | M14-01 | G4 accepted; map licensing and fallback must be decided before implementation |
 | M16 audit foundations | M16-01 | G3 accepted; never weaken existing M1-M3 security |
@@ -44,7 +46,7 @@ M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and in
 
 The [M8 implementation](M8_IMPLEMENTATION_STATUS.md), [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md), [second-audit remediation](M8_SECOND_REMEDIATION_STATUS.md) and [G8 matrix](M8_VERIFICATION_PLAN.md) are committed as a single feature-branch candidate. They were source-locked technically verified and accepted after independent review on 2026-11-04. Keep G8 source locked and verify its EF model/migration, transaction/authorization, real PostgreSQL COMMIT interruption and replay, restart-byte continuity and final archive safety. The approved D-006 Option A and G8 acceptance are separately recorded in [gate closure](M8_G8_GATE_CLOSURE.md). A parallel M12 search/export stream may begin from accepted G5, but it must use its own branch and resources and may not modify M8's shared migration or tracking route. M9 starts only after G8 acceptance. No execution-graph dependency changes are proposed.
 
-## M9 worker and retry implementation boundary (technically verified feature-branch candidate)
+## M9 worker and retry implementation boundary (accepted and integrated)
 
 **Current integration boundary:** [Draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18) owns the M9 migration, EF snapshot, tracking-work entities, worker DI, tracking operator permissions and handler on its isolated branch. M9-01 contract choices are approved with a [transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md). G9 technical verification and browser supplementation passed, but independent G9-S25 review and gate acceptance are pending; the [source audit](M9_CORRECTNESS_AUDIT_20261104.md) does not authorize integration. Parallel M12, M14, M16, M17 and M19 work must coordinate shared API/authorization files, additive migration ordering, and E:-backed separate PostgreSQL and Docker resources before combined verification.
 

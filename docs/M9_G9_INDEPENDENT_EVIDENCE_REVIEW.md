@@ -1,5 +1,7 @@
 # G9-S25 Evidence Review Disposition
 
+**Current G9 disposition (2026-11-05):** M9/G9 accepted and merged into `main` via planning PR #16 (`43fe326`) and implementation PR #18 (`4684352`). [G9 closure](M9_G9_GATE_CLOSURE.md) preserves the reviewed evidence and limitations. Sustained transport-event processing is held until M10 or another explicitly approved, verified backlog mechanism handles parked events within the 10,000 unresolved-work cap. No production deployment is authorized.
+
 **Recorded:** 2026-11-05  
 **Disposition:** **Accepted with disclosed limitations, by explicit G9 acceptance on 2026-11-05.**  
 **Scope:** Source-locked M9 technical attempt 08, supplemental browser attempt 02, contract decision, preserved raw evidence and residual risks.  

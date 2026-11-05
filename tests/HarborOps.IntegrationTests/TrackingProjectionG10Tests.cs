@@ -6,6 +6,7 @@ using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using HarborOps.Infrastructure.Shipments;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -61,6 +62,18 @@ public sealed class TrackingProjectionG10Tests
             .Where(e => e.ReceiptId == firstReceipt || e.ReceiptId == secondReceipt)
             .Select(e => new { e.ReceiptId, e.ShipmentId, e.ContainerId }).ToListAsync();
         Assert.Equal(2, beforeEffects.Count);
+        // Both referenced shipments exist, but only the correct shipment may
+        // receive an application record for the immutable M9 effect.
+        var anotherShipment = await G9Support.SeedResolvable(factory, fixture);
+        var badApplication = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO shipment_projection_applications
+                    (receipt_id,organization_id,shipment_id,policy_version)
+                VALUES ({firstReceipt},{fixture.A},{anotherShipment.Shipment},
+                    {TrackingTimelinePolicy.Version})
+                """));
+        Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, badApplication.SqlState);
+
         var manualBefore = (await db.Shipments.AsNoTracking()
             .SingleAsync(s => s.Id == target.Shipment)).WorkflowStatus;
 
@@ -102,12 +115,49 @@ public sealed class TrackingProjectionG10Tests
         Assert.Single(revised.Timeline.Where(e => e.Superseded));
         Assert.Null(revised.Timeline.Single(e => e.ReceiptId == secondReceipt).ReplacedByReceiptId);
         Assert.False(revised.MaterializationStale);
+        var duplicateChain = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO shipment_tracking_corrections
+                    (id,organization_id,shipment_id,target_receipt_id,
+                     replacement_receipt_id,generation,actor_user_id,reason,
+                     correlation_id,correction_digest)
+                VALUES ({Guid.NewGuid()},{fixture.A},{target.Shipment},{firstReceipt},
+                        {secondReceipt},{2L},{actor},{"Invalid correction chain attempt"},
+                        {"guard-check"},{new string('a', 64)})
+                """));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, duplicateChain.SqlState);
+        var appendOnly = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE shipment_tracking_corrections
+                SET reason={"Attempted evidence mutation"}
+                WHERE organization_id={fixture.A} AND shipment_id={target.Shipment}
+                """));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, appendOnly.SqlState);
+
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE shipment_tracking_projections SET observed_state={"Unknown"},
+                verified_at_utc={DateTimeOffset.UtcNow.AddMinutes(-10)}
+            WHERE organization_id={fixture.A} AND shipment_id={target.Shipment}
+            """);
+        var dirty = await store.DirtyAsync(50, CancellationToken.None);
+        Assert.Contains(dirty, item => item.Organization == fixture.A &&
+            item.Shipment == target.Shipment);
+        var repaired = await store.RebuildAsync(fixture.A, target.Shipment,
+            CancellationToken.None);
+        Assert.Equal(TrackingMutationResult.Applied, repaired.Result);
+        Assert.Equal(3, repaired.Revision);
+        var recovered = await store.ReadAsync(fixture.A, target.Shipment,
+            CancellationToken.None);
+        Assert.NotNull(recovered);
+        Assert.Equal("EquipmentIn", recovered!.State.ObservedTrackingState);
+        Assert.False(recovered.MaterializationStale);
+
 
         var invalid = await store.CorrectAsync(fixture.A, target.Shipment,
             new TrackingCorrection(firstReceipt, null, 0, "Stale correction generation"),
             actor, "stale-correction", CancellationToken.None);
         Assert.Equal(TrackingMutationResult.Conflict, invalid.Result);
-        Assert.Equal(2, (await store.RebuildAsync(fixture.A, target.Shipment,
+        Assert.Equal(3, (await store.RebuildAsync(fixture.A, target.Shipment,
             CancellationToken.None)).Revision);
 
         var afterEffects = await db.TrackingProcessingEffects.AsNoTracking()
@@ -144,13 +194,22 @@ public sealed class TrackingProjectionG10Tests
                 expectedGeneration = 0, reason = "Invalid stale correction attempt"
             }))
             Assert.Equal(HttpStatusCode.Conflict, staleCorrection.StatusCode);
+        var correctionIdempotency = Guid.NewGuid();
+        var correctionRequest = new
+        {
+            targetReceiptId = firstReceipt, replacementReceiptId = (Guid?)null,
+            expectedGeneration = 1, reason = "Confirmed invalid first observation"
+        };
         using (var approvedCorrection = await SendM10(
-            manager, root + "/tracking-corrections", new
-            {
-                targetReceiptId = firstReceipt, replacementReceiptId = (Guid?)null,
-                expectedGeneration = 1, reason = "Confirmed invalid first observation"
-            }))
+            manager, root + "/tracking-corrections", correctionRequest, correctionIdempotency))
             Assert.Equal(HttpStatusCode.OK, approvedCorrection.StatusCode);
+        using (var replayedCorrection = await SendM10(
+            manager, root + "/tracking-corrections", correctionRequest, correctionIdempotency))
+        {
+            Assert.Equal(HttpStatusCode.OK, replayedCorrection.StatusCode);
+            var replayBody = await replayedCorrection.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.True(replayBody.GetProperty("replayed").GetBoolean());
+        }
         var afterHttp = await store.ReadAsync(fixture.A, target.Shipment, CancellationToken.None);
         Assert.NotNull(afterHttp);
         Assert.Equal("Unknown", afterHttp!.State.ObservedTrackingState);

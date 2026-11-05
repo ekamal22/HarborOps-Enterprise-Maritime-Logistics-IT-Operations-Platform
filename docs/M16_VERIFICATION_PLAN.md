@@ -1,6 +1,6 @@
 # M16 G16 Verification Plan
 
-**Status:** Planned, not run. **Approved architecture/policy:** 2026-11-04. **G16:** Acceptance pending.
+**Status:** Verification matrix retained as the original requirements. A source-locked standalone campaign was executed on `e571157` with a reported 30/30 standalone scenario disposition; source evidence and caveats are in [executed verification](M16_EXECUTED_VERIFICATION.md). Independent evidence review and G16 acceptance pending. **Approved architecture/policy:** 2026-11-04.
 
 Use a fixed source SHA, disposable E:-backed databases and isolated Compose project/ports. Preserve raw TRX, SQL probes, HTTP results, sanitized logs, Playwright artifacts for Chromium/Firefox/WebKit, test exit codes, environment, SHA-256 manifest and independently reviewed evidence. A failed, blocked or skipped case is not PASS.
 
@@ -38,3 +38,7 @@ Use a fixed source SHA, disposable E:-backed databases and isolated Compose proj
 | G16-S30 | Three browser engines, affected M0-M8 regression and integrated M9 checks pass. |
 
 Prove guards with controlled fault injection, including missing audit writes, removed tenant predicates, widened permission, removed TRUNCATE protection and unredacted metadata. The 365-day policy does not authorize automatic deletion before a separately verified archival capability. Reconcile each scenario with raw evidence and source revision; no gate closure based on documentation or unit tests alone. Independent evidence review and explicit G16 approval are mandatory.
+
+## Execution reconciliation, 2026-11-05
+
+The recorded final run passed 205/205 unit, 39/39 contract, 252/252 PostgreSQL integration twice, 13 effective fault-injection mutants, 74/74 HTTP assertions, 14/14 database stop/restart checks and 61/61 browser tests per engine. A separate final-revision probe passed 6/6 for S07, S08 and the operator-identity portion of S28; it was not a runner stage. The published S01-S30 matrix marks all 30 PASS for standalone M16, but S30's integrated M9 clause is satisfied only by a partial disposable worktree diagnostic. M9/M16 combined Compose, browser and outage checks remain unexecuted. The metadata-size CHECK and late-commit cursor ordering are also documented limits. Independent review must judge each limitation against this matrix before acceptance. See [G16 executed verification](M16_EXECUTED_VERIFICATION.md).

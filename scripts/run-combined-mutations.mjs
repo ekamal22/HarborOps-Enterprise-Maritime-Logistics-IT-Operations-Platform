@@ -82,10 +82,8 @@ const variants = [
   // The list query filters by tenant twice (source query and outer predicate); removing both is the
   // non-equivalent mutant. Removing only one is an equivalent mutant by defense in depth.
   V("tracking-work-tenant-predicates-removed", [
-    [ADMIN, "        var query = scoped.AsNoTracking().Where(x =>
-            x.OrganizationId == scope.OrganizationId &&",
-      "        var query = scoped.AsNoTracking().Where(x =>
-            x.ReceiptId != Guid.Empty &&"],
+    [ADMIN, "        var query = scoped.AsNoTracking().Where(x =>\n            x.OrganizationId == scope.OrganizationId &&",
+      "        var query = scoped.AsNoTracking().Where(x =>\n            x.ReceiptId != Guid.Empty &&"],
     [ADMIN, "            : db.TrackingInboxWorkItems.Where(x => x.OrganizationId == scope.OrganizationId);",
       "            : db.TrackingInboxWorkItems;"]],
     [], [I.lifecycle]),

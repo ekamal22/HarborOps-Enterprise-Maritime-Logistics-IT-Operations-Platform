@@ -187,7 +187,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** Ordered history, current status and explicit correction handling.
 **Entry:** G9 accepted before respective dependent work packages.
-**Required work packages:** M10-01 Specify deterministic event ordering; M10-02 Implement accepted timeline API; M10-03 Implement versioned projections; M10-04 Verify projection rebuild.
+**Required work packages:** M10-01 Specify deterministic event ordering; M10-02 Implement accepted timeline API; M10-03 Implement versioned projections; M10-04 Verify projection rebuild. The proposed [M10 architecture](M10_ARCHITECTURE_DESIGN.md), [implementation plan](M10_IMPLEMENTATION_PLAN.md), [G10 matrix](M10_VERIFICATION_PLAN.md) and [planning status](M10_PLANNING_STATUS.md) define planned work only. G9's mandatory transport-backlog restriction remains active unless separately approved and verified handling demonstrates bounded resolution.
 **Exit G10:** All applicable tasks, negative tests, runtime evidence and documentation for M10 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Delay classification, notifications and dashboard metrics.
 
@@ -309,7 +309,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** Complete release scenarios and then perform the only formal accessibility test pass as the final work package before G24. Include automated checks and manual screen-reader, keyboard, focus, labels, contrast, zoom, responsive layouts, and complete workflows.
 **Entry:** G22 accepted, G23 accepted before respective dependent work packages.
-**Required work packages:** M24-01 Freeze deterministic demonstration fixtures; M24-02 Run end-to-end scenario suite; M24-03 Audit docs and test evidence; M24-04 Run final accessibility tests and release assessment.
+**Required work packages:** M24-01 Freeze deterministic demonstration fixtures; M24-02 Run end-to-end scenario suite; M24-03 Audit docs and test evidence, including the open [pre-release documentation checklist](RELEASE_READINESS_TODO.md) and PR #21 reconciliation; M24-04 Run final accessibility tests and release assessment.
 **Exit G24:** All applicable tasks, negative tests, runtime evidence and documentation for M24 recorded; acceptance pending until explicitly confirmed.
 **Q4 snapshot checkpoint:** M24-03 records the final historical-volume compatibility check, if a representative snapshot exists; the last work package M24-04 remains the complete final accessibility audit.
 **Not covered by this milestone:** Public hosting and production accreditation; only documented local release readiness is required.

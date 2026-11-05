@@ -163,4 +163,8 @@ The following routes are part of the accepted M9 implementation merged through [
 
 The routes enforce current session, selected active organization, live membership and CSRF/Origin checks where applicable. Operator responses do not expose bearer material, source secrets, raw payloads or digests, and use `Cache-Control: no-store`. The accepted M8 post-commit acknowledgment contract remains unchanged. No M10 timeline API or M16 audit endpoint is implied by G9 acceptance.
 
+## Proposed M10 shipment timeline and projection routes
+
+The [M10 architecture](M10_ARCHITECTURE_DESIGN.md) and [implementation plan](M10_IMPLEMENTATION_PLAN.md) propose a bounded, snapshot-stable `GET /api/v1/organizations/{organizationId}/shipments/{shipmentId}/events` timeline, plus `GET .../tracking-projection`. Both require the existing active, selected-organization `ViewShipmentData` permission. Returned information is a redacted, receipt-linked provenance summary and a separately labeled observed equipment state; these routes are **not implemented**. A Manager-only append-only correction request and bounded rebuild mutation remain proposals pending M10-local contract approval; no such permissions or endpoints currently exist.
+
 **Deployment restriction:** Sustained transport-event processing remains disabled until a verified M10 or separately approved mechanism safely manages `NeedsReconciliation` within the 10,000 unresolved-work cap. No public or production deployment is authorized.

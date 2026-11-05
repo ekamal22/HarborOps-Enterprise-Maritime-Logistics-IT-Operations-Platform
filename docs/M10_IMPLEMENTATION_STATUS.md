@@ -23,6 +23,10 @@
 
 M8 receipts/events and M9 receipt-unique effects, lease fencing, work states and 10,000 unresolved-item guard are untouched. Only M9-resolved equipment observations become shipment timeline input. `GTIN`/`GTOT` yield `EquipmentIn`/`EquipmentOut` or `Conflict`; no verified ETA, voyage inference or automatic M5 `WorkflowStatus` transition is claimed. Unresolved opaque ARRI/DEPA transport events remain parked, with the **mandatory sustained transport-event hold unchanged**. Background materialization does not start automatically; authorized GET derives current state live even when cached materialization is stale.
 
+## Correctness audit
+
+A [source-locked correctness audit](M10_SOURCE_CORRECTNESS_AUDIT.md) of runtime revision `83d78bb7b271b96d5086044801fc503f07d8a417` identified blocking integrity, scalability and projection-reconciliation findings. **Merge readiness is blocked** pending remediation and executed source-locked verification. The audit is a static review and records no runtime test pass.
+
 ## Known technical and acceptance blockers
 
 - **No execution:** .NET SDK, Docker and a reachable E:-backed PostgreSQL environment are unavailable from this GitHub-only session. No tests, migrations, browsers, security scans, failure injection or generated G10 source-locked evidence have been run here. New test files are authored, not passed.

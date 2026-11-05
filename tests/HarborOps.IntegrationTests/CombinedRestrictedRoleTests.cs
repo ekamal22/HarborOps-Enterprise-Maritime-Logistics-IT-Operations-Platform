@@ -268,5 +268,50 @@ public sealed class CombinedRestrictedRoleTests
         Assert.False(await Has("harborops_worker", "tracking_work_attempt_events", "UPDATE"));
         Assert.False(await Has("harborops_worker", "audit_entries", "SELECT"));
         Assert.False(await Has("harborops_worker", "tracking_inbox_work_items", "INSERT"));
+
+        // The worker holds exactly the accepted M9 table privileges and nothing more, so a widened
+        // grant (for example credential or source tables) fails here instead of passing silently.
+        async Task<string> Granted(string role)
+        {
+            await using var command = new NpgsqlCommand("""
+                SELECT COALESCE(string_agg(table_name || ':' || privilege_type, ',' ORDER BY table_name, privilege_type), '')
+                FROM information_schema.role_table_grants
+                WHERE grantee = @role AND table_schema = 'public'
+                """, connection);
+            command.Parameters.AddWithValue("role", role);
+            return (string)(await command.ExecuteScalarAsync())!;
+        }
+        Assert.Equal(string.Join(",", new[]
+        {
+            "containers:SELECT", "organizations:SELECT", "shipment_container_assignments:SELECT",
+            "shipments:SELECT", "tracking_accepted_events:SELECT", "tracking_inbox_receipts:SELECT",
+            "tracking_inbox_work_items:SELECT", "tracking_processing_effects:INSERT",
+            "tracking_processing_effects:SELECT", "tracking_work_attempt_events:SELECT"
+        }), await Granted("harborops_worker"));
+        var api = await Granted("harborops_api");
+        foreach (var forbidden in new[]
+        {
+            "audit_entries:INSERT", "audit_entries:UPDATE", "audit_entries:DELETE", "audit_entries:TRUNCATE",
+            "tracking_processing_effects:INSERT", "tracking_processing_effects:UPDATE",
+            "tracking_work_attempt_events:UPDATE", "tracking_work_attempt_events:DELETE",
+            "tracking_inbox_receipts:UPDATE", "tracking_accepted_events:UPDATE",
+            "users:DELETE", "auth_sessions:DELETE", "organizations:DELETE", "organizations:TRUNCATE"
+        })
+            Assert.DoesNotContain(forbidden, api.Split(','));
+        foreach (var required in new[]
+        {
+            "audit_entries:SELECT", "tracking_inbox_work_items:UPDATE", "tracking_work_attempt_events:INSERT",
+            "tracking_inbox_receipts:INSERT", "tracking_accepted_events:INSERT"
+        })
+            Assert.Contains(required, api.Split(','));
+        var workerColumns = (string)(await new NpgsqlCommand("""
+            SELECT COALESCE(string_agg(column_name, ',' ORDER BY column_name), '')
+            FROM information_schema.role_column_grants
+            WHERE grantee='harborops_worker' AND table_schema='public'
+              AND table_name='tracking_inbox_work_items' AND privilege_type='UPDATE'
+            """, connection).ExecuteScalarAsync())!;
+        Assert.Equal("attempt_count,available_at_utc,completed_at_utc,last_error_code,lease_epoch," +
+            "lease_expires_at_utc,lease_token,redrive_generation,resolution_kind,state,updated_at_utc",
+            workerColumns);
     }
 }

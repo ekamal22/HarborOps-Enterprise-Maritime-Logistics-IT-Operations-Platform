@@ -68,8 +68,9 @@ public static class AuditRoleProvisioner
                 -- Worker starts read-only against the accepted M8 schema.
                 -- M9-specific column grants are activated only if M9 is present.
                 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM harborops_worker;
+                -- Exactly the accepted M9 worker read set: no source or credential tables.
                 GRANT SELECT ON tracking_inbox_receipts, tracking_accepted_events,
-                    tracking_inbox_work_items, integration_sources, integration_credentials,
+                    tracking_inbox_work_items,
                     organizations, containers, shipments,
                     shipment_container_assignments TO harborops_worker;
                 REVOKE ALL ON TABLE audit_entries FROM harborops_worker;

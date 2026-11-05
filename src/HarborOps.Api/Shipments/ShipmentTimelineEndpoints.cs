@@ -171,12 +171,14 @@ public static class ShipmentTimelineEndpoints
             if (denied is not null) return denied;
             try
             {
-                var (result, revision) = await store.RebuildAsync(org, shipment, ct);
+                var (result, revision) = await store.RebuildForSessionAsync(
+                    org, shipment, Current(c).UserId, Current(c).SessionId, ct);
                 return result switch {
                     TrackingMutationResult.Applied =>
                         Results.Ok(new { materializationRevision = revision,
                             correlationId = c.Items["CorrelationId"] }),
                     TrackingMutationResult.NotFound => Fail(c, 404, "resource_not_found"),
+                    TrackingMutationResult.Forbidden => Fail(c, 403, "access_denied"),
                     _ => Fail(c, 409, "rebuild_conflict")
                 };
             }
@@ -197,8 +199,9 @@ public static class ShipmentTimelineEndpoints
             if (input is null) return Fail(c, 400, "invalid_request");
             try
             {
-                var (result, revision) = await store.CorrectAsync(org, shipment, input,
-                    Current(c).UserId, c.Items["CorrelationId"]?.ToString() ?? "", ct);
+                var (result, revision) = await store.CorrectForSessionAsync(org, shipment, input,
+                    Current(c).UserId, Current(c).SessionId,
+                    c.Items["CorrelationId"]?.ToString() ?? "", ct);
                 return result switch {
                     TrackingMutationResult.Applied =>
                         Results.Ok(new { correctionGeneration = input.ExpectedGeneration + 1,
@@ -206,6 +209,7 @@ public static class ShipmentTimelineEndpoints
                             correlationId = c.Items["CorrelationId"] }),
                     TrackingMutationResult.NotFound => Fail(c, 404, "resource_not_found"),
                     TrackingMutationResult.Invalid => Fail(c, 422, "invalid_correction"),
+                    TrackingMutationResult.Forbidden => Fail(c, 403, "access_denied"),
                     _ => Fail(c, 409, "correction_conflict")
                 };
             }

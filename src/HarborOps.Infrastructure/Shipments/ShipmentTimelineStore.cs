@@ -15,7 +15,7 @@ public sealed record ShipmentTrackingView(
     bool MaterializationStale, DateTimeOffset? MaterializedAtUtc,
     IReadOnlyList<ShipmentTimelineEvent> Timeline);
 
-public enum TrackingMutationResult { Applied, NotFound, Conflict, Invalid }
+public enum TrackingMutationResult { Applied, NotFound, Conflict, Invalid, Forbidden }
 
 public sealed record TrackingCorrection(Guid TargetReceiptId, Guid? ReplacementReceiptId,
     long ExpectedGeneration, string Reason);
@@ -177,6 +177,30 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
         return await s.ExecuteScalarAsync(ct) is string state && state == "Active";
     }
 
+    private static async Task<bool> CurrentManagerAsync(NpgsqlConnection con,
+        NpgsqlTransaction tx, Guid org, Guid actor, Guid session, CancellationToken ct)
+    {
+        await using var cmd = Command(con, tx, """
+            SELECT EXISTS (
+                SELECT 1 FROM auth_sessions sess
+                JOIN users u ON u.id=sess.user_id
+                JOIN organization_memberships member
+                  ON member.user_id=sess.user_id
+                  AND member.organization_id=sess.selected_organization_id
+                WHERE sess.id=@session AND sess.user_id=@actor
+                  AND sess.selected_organization_id=@org
+                  AND sess.revoked_at_utc IS NULL
+                  AND sess.idle_expires_at_utc > clock_timestamp()
+                  AND sess.absolute_expires_at_utc > clock_timestamp()
+                  AND u.status='Active'
+                  AND u.security_version=sess.security_version
+                  AND member.status='Active' AND member.role='Manager'
+                FOR SHARE OF sess,u,member
+            )
+            """, ("session", session), ("actor", actor), ("org", org));
+        return await cmd.ExecuteScalarAsync(ct) is bool allowed && allowed;
+    }
+
     private static async Task<long> PersistAsync(NpgsqlConnection con, NpgsqlTransaction tx,
         Guid org, Guid shipment, CancellationToken ct)
     {
@@ -228,7 +252,7 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
 
     private async Task<(TrackingMutationResult Result, long Revision)> ExecuteAsync(
         Guid org, Guid shipment, TrackingCorrection? correction,
-        Guid actor, string correlation, CancellationToken ct)
+        Guid actor, Guid session, string correlation, CancellationToken ct)
     {
         for (var attempt = 0; attempt < 3; attempt++)
         {
@@ -239,6 +263,9 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
                     IsolationLevel.Serializable, ct);
                 if (!await LockScopeAsync(Connection, tx, org, shipment, ct))
                     return (TrackingMutationResult.NotFound, 0);
+                if (session != Guid.Empty &&
+                    !await CurrentManagerAsync(Connection, tx, org, actor, session, ct))
+                    return (TrackingMutationResult.Forbidden, 0);
                 if (correction is not null)
                 {
                     long current;
@@ -282,12 +309,21 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
 
     public Task<(TrackingMutationResult Result, long Revision)> RebuildAsync(
         Guid org, Guid shipment, CancellationToken ct)
-        => ExecuteAsync(org, shipment, null, Guid.Empty, "", ct);
+        => ExecuteAsync(org, shipment, null, Guid.Empty, Guid.Empty, "", ct);
+
+    public Task<(TrackingMutationResult Result, long Revision)> RebuildForSessionAsync(
+        Guid org, Guid shipment, Guid actor, Guid session, CancellationToken ct)
+        => ExecuteAsync(org, shipment, null, actor, session, "", ct);
 
     public Task<(TrackingMutationResult Result, long Revision)> CorrectAsync(
         Guid org, Guid shipment, TrackingCorrection correction,
         Guid actor, string correlation, CancellationToken ct)
-        => ExecuteAsync(org, shipment, correction, actor, correlation, ct);
+        => ExecuteAsync(org, shipment, correction, actor, Guid.Empty, correlation, ct);
+
+    public Task<(TrackingMutationResult Result, long Revision)> CorrectForSessionAsync(
+        Guid org, Guid shipment, TrackingCorrection correction,
+        Guid actor, Guid session, string correlation, CancellationToken ct)
+        => ExecuteAsync(org, shipment, correction, actor, session, correlation, ct);
 
     public async Task<IReadOnlyList<(Guid Organization, Guid Shipment)>> DirtyAsync(
         int batchSize, CancellationToken ct)

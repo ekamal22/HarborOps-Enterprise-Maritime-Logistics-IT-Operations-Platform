@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using HarborOps.Api.Audit;
 using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Identity;
@@ -99,6 +101,23 @@ public sealed class CombinedRestrictedRoleTests
         // SECURITY DEFINER M16 capture for the accepted event.
         var parked = await G9Support.Accept(apiFactory, source,
             G9Support.EquipmentPayload("cg16-" + Guid.NewGuid().ToString("N")[..10], "SYN-BOX-UNKNOWN"));
+
+        // Tenant isolation of the M9 queue read under the restricted API identity: a foreign tenant's
+        // work exists in the same table, yet it is neither listed nor readable through this tenant.
+        var foreignSource = await G9Support.NewSource(adminFactory, fixture.B, "cg16b");
+        var foreignReceipt = await G9Support.Accept(adminFactory, foreignSource,
+            G9Support.EquipmentPayload("cg16b-" + Guid.NewGuid().ToString("N")[..10], "SYN-BOX-UNKNOWN"));
+        var queue = "/api/v1/organizations/" + fixture.A + "/tracking-work";
+        using (var listed = await manager.GetAsync(queue + "?limit=100"))
+        {
+            Assert.Equal(HttpStatusCode.OK, listed.StatusCode);
+            var ids = (await listed.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("items")
+                .EnumerateArray().Select(x => x.GetProperty("receiptId").GetGuid()).ToList();
+            Assert.Contains(parked, ids);
+            Assert.DoesNotContain(foreignReceipt, ids);
+        }
+        using (var foreignDetail = await manager.GetAsync(queue + "/" + foreignReceipt))
+            Assert.Equal(HttpStatusCode.NotFound, foreignDetail.StatusCode);
 
         await using var workerDb = Context(roles.Worker);
         var worker = new TrackingWorkStore(workerDb, new TrackingWorkerSettings());

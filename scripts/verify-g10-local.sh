@@ -71,10 +71,11 @@ stage() {
 }
 stage docs node scripts/check-planning-docs.mjs
 stage graph node scripts/render-execution-graph.mjs --check
-stage scripts node --test scripts/check-planning-docs.test.mjs
+stage scripts node --test scripts/*.test.mjs
 stage restore dotnet restore HarborOps.sln
 stage unit dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-restore
 stage contract dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --no-restore
+stage worker-build dotnet build src/HarborOps.Worker/HarborOps.Worker.csproj -c Release --no-restore
 own_stack=1
 stage postgres compose up -d --build postgres
 stage testdb compose exec -T postgres psql -U harborops -d harborops -v ON_ERROR_STOP=1 -c "CREATE DATABASE harborops_integration"

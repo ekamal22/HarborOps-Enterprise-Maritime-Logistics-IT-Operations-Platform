@@ -103,6 +103,13 @@ public sealed class ShipmentTrackingProjections : Migration
                   AND t.shipment_id=NEW.shipment_id) THEN
                 RAISE EXCEPTION 'invalid correction replacement' USING ERRCODE='23514';
               END IF;
+              IF EXISTS (
+                SELECT 1 FROM shipment_tracking_corrections c
+                WHERE c.organization_id=NEW.organization_id
+                  AND c.shipment_id=NEW.shipment_id
+                  AND c.replacement_receipt_id=NEW.target_receipt_id) THEN
+                RAISE EXCEPTION 'correction chain not supported' USING ERRCODE='23514';
+              END IF;
               IF NEW.replacement_receipt_id IS NOT NULL AND EXISTS (
                 SELECT 1 FROM shipment_tracking_corrections c
                 WHERE c.organization_id=NEW.organization_id

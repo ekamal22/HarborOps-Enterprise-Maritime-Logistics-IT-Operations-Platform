@@ -117,7 +117,7 @@ public static class ShipmentTimelineEndpoints
                 eventId = e.EventId, receiptId = e.ReceiptId, sourceId = e.SourceId,
                 sourceEventId = e.SourceEventId, eventCode = e.EventCode,
                 occurredAtUtc = e.OccurredAtUtc, receivedAtUtc = e.ReceivedAtUtc,
-                superseded = e.ReplacedByReceiptId is not null,
+                superseded = e.Superseded,
                 replacedByReceiptId = e.ReplacedByReceiptId
             }).ToArray();
             var next = index + page.Length;
@@ -126,6 +126,7 @@ public static class ShipmentTimelineEndpoints
                     ? ShipmentTimelineStore.EncodeCursor(view.State.InputDigest, next) : null,
                 policyVersion = view.State.PolicyVersion,
                 materializationRevision = view.MaterializationRevision,
+                correctionGeneration = view.CorrectionGeneration,
                 materializationStale = view.MaterializationStale });
         });
         g.MapGet("/tracking-projection", async (string organizationId, string shipmentId,
@@ -148,6 +149,7 @@ public static class ShipmentTimelineEndpoints
                 inputDigest = view.State.InputDigest, policyVersion = view.State.PolicyVersion,
                 eventCount = view.State.EventCount,
                 materializationRevision = view.MaterializationRevision,
+                correctionGeneration = view.CorrectionGeneration,
                 materializationStale = view.MaterializationStale,
                 materializedAtUtc = view.MaterializedAtUtc
             });

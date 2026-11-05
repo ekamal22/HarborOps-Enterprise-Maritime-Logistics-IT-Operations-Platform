@@ -6,7 +6,7 @@ namespace HarborOps.Domain.Tracking;
 public sealed record ShipmentTimelineEvent(
     Guid EventId, Guid ReceiptId, Guid SourceId, string SourceEventId,
     string EventCode, DateTimeOffset OccurredAtUtc, DateTimeOffset ReceivedAtUtc,
-    Guid? ReplacedByReceiptId);
+    bool Superseded, Guid? ReplacedByReceiptId);
 
 public sealed record ShipmentTrackingState(
     string ObservedTrackingState, Guid? LastEventId, DateTimeOffset? LastOccurredAtUtc,
@@ -40,13 +40,14 @@ public static class TrackingTimelinePolicy
                 .Append(':').Append(e.EventCode)
                 .Append(':').Append(e.OccurredAtUtc.UtcTicks)
                 .Append(':').Append(e.ReceivedAtUtc.UtcTicks)
+                .Append(':').Append(e.Superseded ? "1" : "0")
                 .Append(':').Append(e.ReplacedByReceiptId?.ToString("N") ?? "");
         }
         var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(data.ToString())))
             .ToLowerInvariant();
 
-        var effective = ordered.Where(e => e.ReplacedByReceiptId is null &&
-            e.EventCode is "GTIN" or "GTOT").ToArray();
+        var effective = ordered.Where(e => !e.Superseded &&
+            e.EventCode is ("GTIN" or "GTOT")).ToArray();
         if (effective.Length == 0)
             return new ShipmentTrackingState("Unknown", null, null, digest, Version, ordered.Count);
 

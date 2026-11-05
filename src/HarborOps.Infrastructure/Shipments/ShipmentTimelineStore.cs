@@ -11,7 +11,7 @@ using Npgsql;
 namespace HarborOps.Infrastructure.Shipments;
 
 public sealed record ShipmentTrackingView(
-    ShipmentTrackingState State, long MaterializationRevision,
+    ShipmentTrackingState State, long MaterializationRevision, long CorrectionGeneration,
     bool MaterializationStale, DateTimeOffset? MaterializedAtUtc,
     IReadOnlyList<ShipmentTimelineEvent> Timeline);
 
@@ -58,7 +58,7 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
     {
         await using var cmd = Command(con, tx, """
             SELECT e.id,e.receipt_id,e.source_id,r.source_event_id,e.event_code,
-                   e.occurred_at_utc,r.received_at_utc,c.replacement_receipt_id
+                   e.occurred_at_utc,r.received_at_utc,c.id IS NOT NULL,c.replacement_receipt_id
             FROM tracking_processing_effects fx
             JOIN tracking_accepted_events e ON e.receipt_id=fx.receipt_id
               AND e.organization_id=fx.organization_id AND e.source_id=fx.source_id
@@ -81,8 +81,8 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
                 reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2),
                 reader.GetString(3), reader.GetString(4),
                 reader.GetFieldValue<DateTimeOffset>(5),
-                reader.GetFieldValue<DateTimeOffset>(6),
-                reader.IsDBNull(7) ? null : reader.GetGuid(7)));
+                reader.GetFieldValue<DateTimeOffset>(6), reader.GetBoolean(7),
+                reader.IsDBNull(8) ? null : reader.GetGuid(8)));
             if (rows.Count > MaximumEvents) throw new TrackingTimelineLimitException();
         }
         return rows;
@@ -101,6 +101,16 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
             reader.GetFieldValue<DateTimeOffset>(2));
     }
 
+    private static async Task<long> GenerationAsync(NpgsqlConnection con, NpgsqlTransaction tx,
+        Guid org, Guid shipment, CancellationToken ct)
+    {
+        await using var cmd = Command(con, tx, """
+            SELECT COALESCE(MAX(generation),0) FROM shipment_tracking_corrections
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", org), ("shipment", shipment));
+        return Convert.ToInt64(await cmd.ExecuteScalarAsync(ct), CultureInfo.InvariantCulture);
+    }
+
     public async Task<ShipmentTrackingView?> ReadAsync(
         Guid org, Guid shipment, CancellationToken ct)
     {
@@ -115,8 +125,9 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
             var rows = await LoadAsync(Connection, tx, org, shipment, ct);
             var state = TrackingTimelinePolicy.Reduce(org, shipment, rows);
             var cached = await CachedAsync(Connection, tx, org, shipment, ct);
+            var generation = await GenerationAsync(Connection, tx, org, shipment, ct);
             await tx.CommitAsync(ct);
-            return new ShipmentTrackingView(state, cached.Revision,
+            return new ShipmentTrackingView(state, cached.Revision, generation,
                 cached.Digest != state.InputDigest, cached.At, rows);
         }
         finally { await db.Database.CloseConnectionAsync(); }

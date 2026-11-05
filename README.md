@@ -112,7 +112,7 @@ The parallel [M16 feature branch](https://github.com/ekamal22/HarborOps-Enterpri
 
 M0 through M24 follow the evidence-gated [Delivery Roadmap](docs/ROADMAP.md). The [Execution Graph](docs/EXECUTION_GRAPH.md) establishes 101 scoped work packages, 25 evidence gates, and explicit prerequisites. Previous seven-milestone task IDs have been superseded; see the roadmap migration table. Milestone IDs are not execution order: independently ready workstreams may run in parallel after their named upstream gates are accepted. The graph v3.0 defines work-package-level hard and integration dependencies; see [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md). Current delivery status remains exclusive to [Project Status](docs/STATUS.md).
 
-### Local M0-M3 startup
+### Local baseline Compose startup
 
 Prerequisites: Docker Engine with Compose, Node.js 22 or later, and either the .NET 10 SDK for standalone development or an E:-backed local .NET 10 SDK container.
 
@@ -137,12 +137,13 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Execution Graph](docs/EXECUTION_GRAPH.md) | Generated execution dependencies and work packages |
 | [Execution Graph Data](docs/execution-graph.json) | Canonical dependency edges and node IDs |
 | [Project Status](docs/STATUS.md) | Authoritative implementation, verification, and acceptance state |
+| [Documentation Status Guide](docs/DOCUMENT_STATUS_GUIDE.md) | Current sources of truth and how to read historical milestone records |
 | [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) | Mandatory E-drive workspace, caches, runtime data and evidence locations |
 | [Product Scope](docs/PRODUCT_SCOPE.md) | Goals, non-goals, personas, and constraints |
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
 | [Domain Model](docs/DOMAIN_MODEL.md) | Entities, relationships, and invariants |
-| [API Contracts](docs/API_CONTRACTS.md) | Implemented M0-M3 HTTP routes and planned future REST resources |
+| [API Contracts](docs/API_CONTRACTS.md) | Accepted M0-M9 HTTP contracts and planned future APIs |
 | [M1 Authentication Design](docs/M1_AUTHENTICATION_DESIGN.md) | Approved D-001 implementation blueprint; M1 accepted on `main` |
 | [M1 Verification Plan](docs/M1_VERIFICATION_PLAN.md) | G1 checks and evidence requirements; executed M1 evidence is recorded separately |
 | [M1 Verification Register](docs/M1_IMPLEMENTATION_VERIFICATION.md) | Executed M1 checks, exact revisions, G1 acceptance and merge record |
@@ -155,13 +156,13 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M3 Implementation Plan](docs/M3_IMPLEMENTATION_PLAN.md) | M3-01 to M3-04 work packages and dependency sequence |
 | [G3 Verification Plan](docs/M3_VERIFICATION_PLAN.md) | Required G3-S01 to G3-S25 local tests, all executed and passed |
 | [M3 Implementation Register](docs/M3_IMPLEMENTATION_STATUS.md) | Accepted M3 implementation and source inventory |
-| [M5 Architecture](docs/M5_ARCHITECTURE_DESIGN.md) | Planned shipment domain, database and HTTP contracts |
+| [M5 Architecture](docs/M5_ARCHITECTURE_DESIGN.md) | Accepted shipment domain, database and HTTP contracts |
 | [M5 Implementation Plan](docs/M5_IMPLEMENTATION_PLAN.md) | Four work packages and integration strategy |
 | [G5 Verification Plan](docs/M5_VERIFICATION_PLAN.md) | 25 mandatory scenarios and evidence |
 | [M5 Contract Compliance](docs/M5_G5_S01_CONTRACT_COMPLIANCE.md) | Rule-by-rule audit of the accepted M5 contract and G5-S01 |
 | [M5 Executed Verification](docs/M5_EXECUTED_VERIFICATION.md) | Accepted G5 execution, evidence and limitations |
 | [M5/G5 Remediation](docs/M5_G5_REMEDIATION_STATUS.md) | Corrective source changes for all eleven findings, with execution update |
-| [M5 Source Audit](docs/M5_SOURCE_CORRECTNESS_AUDIT.md) | Source corrections and remaining real-runtime / adversarial verification gaps |
+| [M5 Source Audit](docs/M5_SOURCE_CORRECTNESS_AUDIT.md) | Historical pre-G5 source findings; see the later accepted G5 execution and closure |
 
 | [M5 Planning Status](docs/M5_IMPLEMENTATION_STATUS.md) | Implemented, verified and accepted, G5 closed |
 | [M6 Local Contract](docs/M6_LOCAL_CONTRACT_DECISION.md) | Accepted twelve-rule assignment contract |

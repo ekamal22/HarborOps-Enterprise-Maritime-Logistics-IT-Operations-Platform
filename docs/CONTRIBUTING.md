@@ -103,6 +103,7 @@ Do not conflate architecture approval with milestone acceptance. **G0-G9 are ver
 - Update OPERATIONS.md for runtime and incident behavior.
 - Update ACCEPTANCE_CRITERIA.md for changed release gates.
 - Keep STATUS.md evidence-based and current.
+- Use [Documentation Status Guide](DOCUMENT_STATUS_GUIDE.md) to distinguish living specifications from immutable historical planning, audit and execution records.
 - Review all relative links and status claims before merging.
 - Run `node scripts/render-execution-graph.mjs --check` and `node scripts/check-planning-docs.mjs` before source-locked milestone verification. The planning checker validates links throughout README and docs, status invariants and prohibited attribution trailers.
 

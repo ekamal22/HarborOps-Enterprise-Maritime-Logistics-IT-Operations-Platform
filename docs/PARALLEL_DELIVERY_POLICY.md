@@ -3,14 +3,14 @@
 **Current G9 disposition (2026-11-05):** M9/G9 accepted and merged into `main` via planning PR #16 (`43fe326`) and implementation PR #18 (`4684352`). [G9 closure](M9_G9_GATE_CLOSURE.md) preserves the reviewed evidence and limitations. Sustained transport-event processing is held until M10 or another explicitly approved, verified backlog mechanism handles parked events within the 10,000 unresolved-work cap. No production deployment is authorized.
 
 **Version:** 1.1  
-**Updated:** 2026-11-04  
+**Updated:** 2026-11-05  
 **Authority:** [Roadmap](ROADMAP.md), [Execution Graph](EXECUTION_GRAPH.md), [Acceptance Criteria](ACCEPTANCE_CRITERIA.md), [Local Storage Policy](LOCAL_STORAGE_POLICY.md), [Status](STATUS.md)
 
 ## Purpose
 
 HarborOps milestones M0-M24 retain 101 work packages and 25 separately verified, explicitly accepted gates. Milestone numbering and P0-P5 topic groupings do not impose sequential implementation. `execution-graph.json` version 3.0 is the sole dependency-edge authority. The generated Markdown graph must be regenerated after changing dependencies; never hand-edit it.
 
-The accepted baseline is G0-G7 on `main` as of 2026-11-03. A future milestone is **eligible**, not started, merely because its prerequisites are accepted.
+The accepted baseline is G0-G9 on `main` as of 2026-11-05. M9's transport-backlog operating restriction remains binding. A later milestone is **eligible**, not accepted or integrated, merely because its prerequisites are accepted.
 
 ## Dependency contracts
 
@@ -40,11 +40,11 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M20 security assurance | M20-01 | Baseline review begins after G3; attack matrix waits for G15/G18, scanners for G19 |
 | M23 UI system | M23-01 | Visual-system definitions begin after G3; operational polish waits for G12/G13/G14/G15/G18 |
 
-M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and integrated. The parallel migration and shared-file ownership rule remains documented as historical guidance. M8-01 planning and M8-02/M8-03 implementation candidates are committed on `feat/m8-durable-event-inbox`, and were accepted 2026-11-04 after D-006 Option A and independent source-locked G8 review. See [gate closure](M8_G8_GATE_CLOSURE.md). M13 KPI definitions can start after G11; aggregate integration requires G12. M18 incident policy can start after G17; CRUD integration requires G16. M21 can define benchmark workloads after G9 but needs G12/G13 for complete results. M22 may plan deployment after G19 but cannot close until G20/G21 integration. D-003 was accepted for M4. Nothing authorizes bypassing remaining D-004, D-005, D-007 or D-008; D-002 is accepted for the pinned M7 profile.
+M6 required accepted G4 and G5; its delivery and G6 gate are now accepted and integrated. The parallel migration and shared-file ownership rule remains documented as historical guidance. M8-01 through M8-04 are accepted and integrated into `main` from the historical `feat/m8-durable-event-inbox` branch; D-006 Option A and G8 were accepted on 2026-11-04 after independent source-locked evidence review. See [gate closure](M8_G8_GATE_CLOSURE.md). M13 KPI definitions can start after G11; aggregate integration requires G12. M18 incident policy can start after G17; CRUD integration requires G16. M21 can define benchmark workloads after G9 but needs G12/G13 for complete results. M22 may plan deployment after G19 but cannot close until G20/G21 integration. D-003 was accepted for M4. Nothing authorizes bypassing remaining D-004, D-005, D-007 or D-008; D-002 is accepted for the pinned M7 profile.
 
-## M8 verification and independent parallel implementation boundary
+## M8 accepted verification and historical branch boundary
 
-The [M8 implementation](M8_IMPLEMENTATION_STATUS.md), [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md), [second-audit remediation](M8_SECOND_REMEDIATION_STATUS.md) and [G8 matrix](M8_VERIFICATION_PLAN.md) are committed as a single feature-branch candidate. They were source-locked technically verified and accepted after independent review on 2026-11-04. Keep G8 source locked and verify its EF model/migration, transaction/authorization, real PostgreSQL COMMIT interruption and replay, restart-byte continuity and final archive safety. The approved D-006 Option A and G8 acceptance are separately recorded in [gate closure](M8_G8_GATE_CLOSURE.md). A parallel M12 search/export stream may begin from accepted G5, but it must use its own branch and resources and may not modify M8's shared migration or tracking route. M9 starts only after G8 acceptance. No execution-graph dependency changes are proposed.
+The [M8 implementation](M8_IMPLEMENTATION_STATUS.md), [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md), [second-audit remediation](M8_SECOND_REMEDIATION_STATUS.md) and [G8 matrix](M8_VERIFICATION_PLAN.md) preserve the design and source-locked verification history. M8 was accepted on 2026-11-04 and integrated into `main`; see [G8 closure](M8_G8_GATE_CLOSURE.md). Its verified boundaries include the EF model/migration, transaction and authorization, PostgreSQL COMMIT interruption and replay, restart-byte continuity and retained evidence. M9 subsequently passed G9 and was integrated. Parallel M12 search/export remains independently eligible after G5, but must isolate its source and runtime resources and preserve accepted M8/M9 contracts. No execution-graph dependency changes are proposed.
 
 ## M9 worker and retry implementation boundary (accepted and integrated)
 

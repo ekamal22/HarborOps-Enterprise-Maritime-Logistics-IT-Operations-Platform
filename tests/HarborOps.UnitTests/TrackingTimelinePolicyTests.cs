@@ -96,4 +96,42 @@ public sealed class TrackingTimelinePolicyTests
         Assert.Equal("Unknown", state.ObservedTrackingState);
         Assert.Null(state.LastEventId);
     }
+    [Fact]
+    public void DifferentContainerStatusesAreMixedRatherThanFalseConflicts()
+    {
+        var firstContainer = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var secondContainer = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        var state = TrackingTimelinePolicy.Reduce(Org, Shipment, [
+            E(1, "GTIN") with { ContainerId = firstContainer },
+            E(2, "GTOT") with { ContainerId = secondContainer }
+        ]);
+        Assert.Equal("Mixed", state.ObservedTrackingState);
+        Assert.Equal(2, state.Containers!.Count);
+        Assert.All(state.Containers, item => Assert.NotEqual("Conflict", item.ObservedState));
+    }
+
+    [Fact]
+    public void ContradictionMustBeOnSameContainerAtSameTime()
+    {
+        var container = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var state = TrackingTimelinePolicy.Reduce(Org, Shipment, [
+            E(1, "GTIN") with { ContainerId = container },
+            E(2, "GTOT") with { ContainerId = container }
+        ]);
+        Assert.Equal("Conflict", state.ObservedTrackingState);
+    }
+
+    [Fact]
+    public void StreamingReducerProcessesHistoryBeyondUnresolvedWorkCap()
+    {
+        using var accumulator = new ShipmentTrackingAccumulator(Org, Shipment);
+        var container = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        for (var i = 1; i <= 10_050; i++)
+            accumulator.Add(E(i, "GTIN", seconds: i) with { ContainerId = container });
+        var reduced = accumulator.Complete();
+        Assert.Equal(10_050, reduced.EventCount);
+        Assert.Equal("EquipmentIn", reduced.ObservedTrackingState);
+        Assert.Equal(64, reduced.InputDigest.Length);
+    }
+
 }

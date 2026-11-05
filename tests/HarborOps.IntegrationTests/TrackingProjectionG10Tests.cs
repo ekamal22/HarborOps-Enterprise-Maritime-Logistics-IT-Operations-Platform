@@ -13,6 +13,22 @@ namespace HarborOps.IntegrationTests;
 
 public sealed class TrackingProjectionG10Tests
 {
+    private static async Task<HttpResponseMessage> SendM10(HttpClient client, string path,
+        object? payload = null, Guid? idempotencyKey = null)
+    {
+        using var csrf = await client.GetAsync("/api/v1/auth/csrf");
+        csrf.EnsureSuccessStatusCode();
+        var token = await csrf.Content.ReadFromJsonAsync<JsonElement>();
+        using var request = new HttpRequestMessage(HttpMethod.Post, path);
+        request.Headers.TryAddWithoutValidation("Origin", "http://localhost");
+        request.Headers.TryAddWithoutValidation("X-HarborOps-CSRF",
+            token.GetProperty("token").GetString());
+        request.Headers.TryAddWithoutValidation("Idempotency-Key",
+            (idempotencyKey ?? Guid.NewGuid()).ToString());
+        if (payload is not null) request.Content = JsonContent.Create(payload);
+        return await client.SendAsync(request);
+    }
+
     [Fact]
     public async Task ResolvedEventReadRebuildAndVoidCorrectionPreserveM9History()
     {
@@ -115,21 +131,21 @@ public sealed class TrackingProjectionG10Tests
             $"/api/v1/organizations/{fixture.B}/shipments/{target.Shipment}/events");
         Assert.NotEqual(HttpStatusCode.OK, foreign.StatusCode);
         var root = $"/api/v1/organizations/{fixture.A}/shipments/{target.Shipment}";
-        using (var forbidden = await ReferenceDataHttpTests.Send(
-            analyst, HttpMethod.Post, root + "/tracking-projection/rebuild"))
+        using (var forbidden = await SendM10(
+            analyst, root + "/tracking-projection/rebuild"))
             Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
-        using (var approved = await ReferenceDataHttpTests.Send(
-            manager, HttpMethod.Post, root + "/tracking-projection/rebuild"))
+        using (var approved = await SendM10(
+            manager, root + "/tracking-projection/rebuild"))
             Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
-        using (var staleCorrection = await ReferenceDataHttpTests.Send(
-            manager, HttpMethod.Post, root + "/tracking-corrections", new
+        using (var staleCorrection = await SendM10(
+            manager, root + "/tracking-corrections", new
             {
                 targetReceiptId = firstReceipt, replacementReceiptId = (Guid?)null,
                 expectedGeneration = 0, reason = "Invalid stale correction attempt"
             }))
             Assert.Equal(HttpStatusCode.Conflict, staleCorrection.StatusCode);
-        using (var approvedCorrection = await ReferenceDataHttpTests.Send(
-            manager, HttpMethod.Post, root + "/tracking-corrections", new
+        using (var approvedCorrection = await SendM10(
+            manager, root + "/tracking-corrections", new
             {
                 targetReceiptId = firstReceipt, replacementReceiptId = (Guid?)null,
                 expectedGeneration = 1, reason = "Confirmed invalid first observation"
@@ -139,17 +155,31 @@ public sealed class TrackingProjectionG10Tests
         Assert.NotNull(afterHttp);
         Assert.Equal("Unknown", afterHttp!.State.ObservedTrackingState);
         Assert.Equal(2, afterHttp.CorrectionGeneration);
+        using (var redacted = await analyst.GetAsync(root + "/tracking-projection"))
+        {
+            Assert.Equal(HttpStatusCode.OK, redacted.StatusCode);
+            var data = await redacted.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(data.TryGetProperty("inputDigest", out _));
+            Assert.True(data.TryGetProperty("snapshotToken", out var snapshot));
+            Assert.False(string.IsNullOrWhiteSpace(snapshot.GetString()));
+        }
+        using (var invalidCursor = await analyst.GetAsync(root + "/events?cursor=forged"))
+            Assert.Equal(HttpStatusCode.Conflict, invalidCursor.StatusCode);
+        using (var invalidSnapshot = await analyst.GetAsync(root + "/events?snapshot=forged"))
+            Assert.Equal(HttpStatusCode.Conflict, invalidSnapshot.StatusCode);
+
     }
 
     [Fact]
-    public void OpaqueTimelineCursorIsBoundToExactDigestAndRange()
+    public void CanonicalTimelineKeyOrderingIsOrdinalAndDeterministic()
     {
-        var digest = new string('a', 64);
-        var valid = ShipmentTimelineStore.EncodeCursor(digest, 5);
-        Assert.True(ShipmentTimelineStore.DecodeCursor(valid, digest, 10, out var index));
-        Assert.Equal(5, index);
-        Assert.False(ShipmentTimelineStore.DecodeCursor(valid, new string('b', 64), 10, out _));
-        Assert.False(ShipmentTimelineStore.DecodeCursor(valid, digest, 4, out _));
-        Assert.False(ShipmentTimelineStore.DecodeCursor("../bad", digest, 10, out _));
+        var utc = new DateTimeOffset(2026, 11, 5, 10, 0, 0, TimeSpan.Zero);
+        var a = new ShipmentTimelineKey(utc, utc, Guid.Empty, "A",
+            Guid.Empty, Guid.Empty);
+        var b = a with { SourceEventId = "a" };
+        var c = a with { SourceEventId = "B" };
+        Assert.True(TrackingTimelinePolicy.Compare(a, b) < 0);
+        Assert.True(TrackingTimelinePolicy.Compare(b, c) > 0);
+        Assert.Equal(0, TrackingTimelinePolicy.Compare(a, a));
     }
 }

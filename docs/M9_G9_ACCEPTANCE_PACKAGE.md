@@ -1,6 +1,6 @@
 # M9 G9 Acceptance Package and Merge Readiness
 
-**Status:** The six M9-01 contract choices were approved on 2026-11-05 with the mandatory [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). The source-locked raw G9-S01 scenario remains historically BLOCKED, now supplemented by an explicit decision record. Formal G9-S25 independent review and G9 acceptance remain pending. Nothing here authorizes a merge into `main`.  
+**Current disposition:** G9 accepted on 2026-11-05 with the mandatory transport-backlog condition. Planning PR #16 merged at `43fe326` and implementation PR #18 at `4684352`. See [gate closure](M9_G9_GATE_CLOSURE.md). The pre-acceptance package below retains its historical pending/NOT EXECUTED scenario records.
 **Gate closure supplement (2026-11-05):** The separate [M9-01 decision](M9_LOCAL_CONTRACT_DECISION.md) approves all six choices with the transport-backlog condition. The [evidence review disposition](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md) and [formal G9 gate closure](M9_G9_GATE_CLOSURE.md) record acceptance with disclosed limitations. The historical acceptance-pending text and raw scenario statuses below describe the original pre-acceptance package.
 
 **Prepared:** 2026-11-05  
@@ -79,3 +79,7 @@ Alternatively retarget PR #18 to `main` and merge it directly, which carries the
 **Parallel work.** `origin/feat/m16-audit-access-hardening` changes the same shared files as M9 (`Program.cs`, `OrganizationPolicy.cs`, `HarborOpsDbContext.cs`, the EF model snapshot) and adds its own migration `20261104180000_AuditEntries`, which sorts before M9's `20261104190000_TrackingWorker`. A read-only merge of the two branches conflicts in nine files: `README.md`, `docs/DECISIONS.md`, `docs/PARALLEL_DELIVERY_POLICY.md`, `docs/STATUS.md`, `docs/TEST_STRATEGY.md`, `Program.cs`, `OrganizationPolicy.cs`, `MigrationSnapshotTests.cs` and `OrganizationUpgradeAndConstraintTests.cs`. The model snapshot and `HarborOpsDbContext.cs` merge textually but must be regenerated and verified in combination, and the migration-count assertions need reconciling. The M16 stream already keeps a local diagnostic combined branch (`diag/m16-m9-combined-local`); it was not modified. Whichever of M9 and M16 lands second must carry the reconciliation and a combined regression run (fresh and populated migrations, EF snapshot, full integration suites). No M12, M14, M16, M17 or M19 branch was modified.
 
 **Precautions.** Do not rebase shared branches or force-push; do not merge before the acceptance record exists; keep the two evidence archives and the failed attempt directories until cleanup is explicitly authorized.
+
+## Completed integration
+
+The [G9 evidence review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md), [gate closure](M9_G9_GATE_CLOSURE.md) and [M9-01 decision](M9_LOCAL_CONTRACT_DECISION.md) reconcile the original source-locked evidence without altering it. Planning PR #16 merged at `43fe326758a587ba569a6a14e4fe440d550c27ed`; implementation PR #18 merged at `4684352c70132bebb5a4adc04753eb9651b84fa5`. Earlier pending and merge-planning text remains a historical snapshot.

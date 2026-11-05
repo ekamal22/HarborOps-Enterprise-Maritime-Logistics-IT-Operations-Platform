@@ -6,7 +6,8 @@
 **Accepted baseline:** G0 through G8 on `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`  
 **Run:** attempt 08, run id `20261105T015029Z-29816397e2c9920d`, 2026-11-05T01:50:30Z to 2026-11-05T02:41:20Z  
 **Runner:** `scripts/verify-g9-local.sh` (clean committed tree, E:-backed root, isolated Compose project `ho-verify-g9-a08`, no GitHub Actions)  
-**Evidence root:** `E:\HarborOps-Verification\evidence\g9-attempt-08\m9`
+**Evidence root:** `E:\HarborOps-Verification\evidence\g9-attempt-08\m9`  
+**Supplemental browser evidence:** the 16 existing browser specs in three engines on the same revision are recorded separately in the [browser supplement](M9_BROWSER_SUPPLEMENT.md) and are not part of the 809-test total. The review package is in the [acceptance package](M9_G9_ACCEPTANCE_PACKAGE.md).
 
 ## Stage results
 
@@ -47,7 +48,7 @@ The TRX summary fails closed on zero tests, any failure and any skipped or not-e
 | G9-S19 | PASS | Administrator, Analyst, Auditor and integration principal denied redrive or queue access as specified; Manager queue access and redrive stay denied after session revocation, account disabling, security-version change, membership removal and organization suspension; foreign organization and receipt identifiers never cross tenants; worker role cannot read identity or credential tables; logs contain no secrets |
 | G9-S20 | PASS | Real 10,000 ceiling with Pending, Leased, NeedsReconciliation and RetryWaiting all counted, canonical replay bypasses capacity, competing intake and terminal transition stay bounded |
 | G9-S21 | PASS | Suspended organization not claimed, heartbeat or finalize fenced, receipts preserved, resumed work completes once |
-| G9-S22 | PASS (stated boundary) | Unit, contract and integration suites twice, M7 to M9 source contracts, frontend unit tests and production build, EF snapshot, stack end-to-end with database outage and recovery. Existing browser journeys were not rerun; see limitations. |
+| G9-S22 | PASS (attempt 08 plus the browser supplement) | Unit, contract and integration suites twice, M7 to M9 source contracts, frontend unit tests and production build, EF snapshot, stack end-to-end with database outage and recovery; and, in a separate run on the same revision, the 16 existing browser specs in Chromium, Firefox and WebKit (174 test executions, 0 failed, 0 skipped). See the [browser supplement](M9_BROWSER_SUPPLEMENT.md). |
 | G9-S23 | PASS | Clean control (16 tests) plus 14 mutation families, each killed by its intended test (table below) |
 | G9-S24 | PASS | No vulnerable NuGet packages, no high npm advisories, no HIGH or CRITICAL Trivy findings on the four exact-source images, zero leftover resources, evidence safety scan and archive verification |
 | G9-S25 | **NOT EXECUTED** | Requires independent evidence review and a separate explicit acceptance decision. |
@@ -100,7 +101,7 @@ Earlier attempts are preserved unchanged and are not used as gate evidence: deve
 
 ## Limitations and open items
 
-- Existing M0 to M8 browser journeys were not rerun. The M9 change set touches no `web/` file and adds no UI; the frontend unit tests and production build were executed.
+- The existing browser journeys were executed in the separate [browser supplement](M9_BROWSER_SUPPLEMENT.md). Its first run had three WebKit login-step failures (Chromium and Firefox had none); a full unmodified rerun passed. The cause of the intermittent WebKit failure was not proven and remains a residual risk for the independent reviewer.
 - Ambiguous overlapping assignments cannot be constructed because M6 constraints prevent them, so the resolver's ambiguity branch has no executing test; the database prevents the condition.
 - Transient dependency retries are covered at the store level and by the outage stack check; per-error-class worker retry classification is covered by unit tests only.
 - The six M9-01 local decisions (state and lease contract, retry defaults, backlog counting, identity reconciliation and effect-once outcome, operator permissions and redrive, failure handling and deployment) are acceptance pending; testing them is not approval.

@@ -63,6 +63,8 @@ The ten original source-level findings have corrective changes, reviewed in [M9 
 
 The source-locked G9 technical campaign (attempt 08) passed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440`: 809 of 809 TRX results (226 unit, 39 contract, 272 integration twice), a 14-check isolated Compose stack end-to-end run with the restricted worker role, fourteen mutation families killed by intended tests, clean NuGet, npm and Trivy scans of the four exact-source images, zero leftover resources and a verified evidence archive. The campaign found one product-source defect (migration and snapshot drift, V02) and several test and tooling defects, all fixed; see the [remediation register](M9_CORRECTNESS_REMEDIATION.md). M9-01 contract approval, independent evidence review and G9 acceptance are separate decisions that remain pending. Nothing is merged into `main`.
 
+The browser regression requirement of G9-S22 was closed by a separate run of the 16 existing browser specs in Chromium, Firefox and WebKit on the same revision (174 test executions, 0 failed); see the [browser supplement](M9_BROWSER_SUPPLEMENT.md). The [acceptance package](M9_G9_ACCEPTANCE_PACKAGE.md) holds the combined evidence references, the six M9-01 decisions for approval, the independent-review checklist and the merge plan.
+
 ## Parallel integration
 
 The M9 branch owns its EF snapshot and migration until integration coordination. M12, M16, M17 and M19 may progress independently but must reconcile shared security, persistence and API contracts before combining branches. The accepted G0-G8 status, execution graph and history remain unchanged.

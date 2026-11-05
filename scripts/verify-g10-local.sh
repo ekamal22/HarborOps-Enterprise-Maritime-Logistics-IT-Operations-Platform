@@ -46,6 +46,11 @@ export HARBOROPS_DB_PASSWORD="$(cat "$root/private/db-password.txt")"
 export HARBOROPS_WORKER_DB_PASSWORD="$(cat "$root/private/worker-password.txt")"
 export HARBOROPS_TEST_DB="Host=127.0.0.1;Port=55410;Database=harborops_integration;Username=harborops;Password=$HARBOROPS_DB_PASSWORD"
 export HARBOROPS_G10_PROJECT="$project"
+node -e 'process.stdout.write(require("node:crypto").randomBytes(24).toString("hex"))' > "$root/private/user-password.txt"
+export HARBOROPS_TEST_USER_PASSWORD="$(cat "$root/private/user-password.txt")"
+export HARBOROPS_BROWSER_BASE_URL="http://localhost:5180"
+export HARBOROPS_G10_PLAYWRIGHT_OUT="$root/evidence/playwright/artifacts"
+mkdir -p "$HARBOROPS_G10_PLAYWRIGHT_OUT"
 compose() { docker compose -f compose.g10.verify.yaml -p "$project" "$@"; }
 own_stack=0
 cleanup() {
@@ -75,7 +80,8 @@ stage scripts node --test scripts/*.test.mjs
 stage restore dotnet restore HarborOps.sln
 stage unit dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-restore
 stage contract dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --no-restore
-stage worker-build dotnet build src/HarborOps.Worker/HarborOps.Worker.csproj -c Release --no-restore
+stage solution-build dotnet build HarborOps.sln -c Release --no-restore -warnaserror
+stage worker-build dotnet build src/HarborOps.Worker/HarborOps.Worker.csproj -c Release --no-restore -warnaserror
 own_stack=1
 stage postgres compose up -d --build postgres
 stage testdb compose exec -T postgres psql -U harborops -d harborops -v ON_ERROR_STOP=1 -c "CREATE DATABASE harborops_integration"
@@ -84,6 +90,75 @@ stage web-install npm --prefix web ci
 stage web-test npm --prefix web test
 stage web-build npm --prefix web run build
 stage compose-api compose up -d --build migrator api web
-stage config compose config
+stage config compose config -q
+
+ready() {
+  local code="000"
+  for i in $(seq 1 90); do
+    code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8090/health/ready || true)"
+    [[ "$code" == "200" ]] && return 0
+    sleep 2
+  done
+  echo "Isolated G10 API was not ready" >&2
+  return 1
+}
+stage ready ready
+
+provision() {
+  printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | compose run --rm -T \
+    -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision "$1" "$2"
+}
+accounts() {
+  for entry in \
+    "operator@example.test|Synthetic Operator" \
+    "m2-operator@example.test|M2 Synthetic Administrator" \
+    "m2-second-admin@example.test|Second Administrator" \
+    "m2-outage@example.test|Outage Synthetic Member" \
+    "m2-browser-chromium@example.test|Synthetic Browser Chromium Member" \
+    "m2-browser-firefox@example.test|Synthetic Browser Firefox Member" \
+    "m2-browser-webkit@example.test|Synthetic Browser Webkit Member" \
+    "m3-admin-a@example.test|M3 Synthetic North Administrator" \
+    "m3-admin-b@example.test|M3 Synthetic East Administrator" \
+    "m3-manager@example.test|M3 Synthetic Manager" \
+    "m3-analyst@example.test|M3 Synthetic Analyst" \
+    "m4-analyst-east@example.test|M4 Synthetic East Analyst" \
+    "m4-support@example.test|M4 Synthetic Support" \
+    "m4-auditor@example.test|M4 Synthetic Auditor"; do
+    IFS='|' read -r email display <<< "$entry"
+    provision "$email" "$display" || return 1
+  done
+}
+stage browser-accounts accounts
+
+bootstrap() {
+  compose run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+    --organization-cli bootstrap "$1" "$2" "$3"
+}
+organizations() {
+  bootstrap north-terminal "North Terminal" m2-operator@example.test || return 1
+  bootstrap east-terminal "East Terminal" m2-second-admin@example.test || return 1
+  bootstrap m3-north "M3 North Terminal" m3-admin-a@example.test || return 1
+  bootstrap m3-east "M3 East Terminal" m3-admin-b@example.test || return 1
+  bootstrap m3-pagination "M3 Pagination Fixtures" m3-admin-a@example.test || return 1
+  for engine in chromium firefox webkit; do
+    bootstrap "m3-revocation-$engine" "M3 Revocation $engine" m3-admin-a@example.test || return 1
+  done
+}
+stage browser-organizations organizations
+stage browser-fixtures bash -c \
+  'node scripts/prepare-m3-browser-fixtures.mjs && node scripts/prepare-m4-browser-fixtures.mjs && node scripts/prepare-m5-browser-fixtures.mjs && node scripts/prepare-m6-browser-fixtures.mjs'
+export HARBOROPS_M3_FIXTURES=1 HARBOROPS_M4_FIXTURES=1
+export HARBOROPS_M5_FIXTURES=1 HARBOROPS_M6_FIXTURES=1
+stage browser-install npm --prefix tests/browser ci
+stage browser-drivers bash -c 'cd tests/browser && npx playwright install chromium firefox webkit'
+stage browser-3-engines bash -c \
+  'cd tests/browser && npx playwright test --project=chromium --project=firefox --project=webkit --reporter=line --output="$HARBOROPS_G10_PLAYWRIGHT_OUT"'
+
+# Store a source-locked manifest without including the temporary credentials.
 git status --porcelain > "$root/evidence/status-after.txt"
-echo "Technical helper completed. Browser and outage gates still require separate review."
+printf '%s\n' "browser functional coverage completed; independent outage, mutation, vulnerability and evidence reviews remain pending" \
+  > "$root/evidence/remaining-gates.txt"
+( cd "$root/evidence" && find . -type f ! -name 'sha256-manifest.txt' -print0 \
+  | sort -z | xargs -0 sha256sum ) > "$root/evidence/sha256-manifest.txt"
+echo "Local technical stages completed; source-locked independent G10 review is still required."
+

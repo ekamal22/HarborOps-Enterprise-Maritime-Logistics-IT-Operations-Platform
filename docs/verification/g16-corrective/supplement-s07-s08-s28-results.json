@@ -1,0 +1,44 @@
+[
+ {
+  "id": "S07",
+  "name": "rejected mutations stale=409 empty=400 forbidden=409 badId=400",
+  "expected": "4xx and no audit rows, version unchanged",
+  "actual": "audit +0, version 1->1",
+  "pass": true
+ },
+ {
+  "id": "S08",
+  "name": "10 rounds x 8 parallel same-version updates (wins=10, other=0)",
+  "expected": "10 wins, 0 other",
+  "actual": "10 wins, 0 other",
+  "pass": true
+ },
+ {
+  "id": "S08",
+  "name": "audit rows equal committed organization updates",
+  "expected": "10",
+  "actual": "10",
+  "pass": true
+ },
+ {
+  "id": "S08",
+  "name": "API process killed mid-burst: committed updates equal audit rows",
+  "expected": "equal and > 0",
+  "actual": "versions +3, audit +3",
+  "pass": true
+ },
+ {
+  "id": "S28",
+  "name": "operator CLI provisioning and bootstrap are attributed to OperatorCli",
+  "expected": "includes users.insert and organizations.insert",
+  "actual": "OperatorCli:organization_memberships.insert,OperatorCli:organizations.insert,OperatorCli:user_credentials.insert,OperatorCli:users.insert",
+  "pass": true
+ },
+ {
+  "id": "S28",
+  "name": "OperatorCli rows carry no human user or session",
+  "expected": "0",
+  "actual": "0",
+  "pass": true
+ }
+]

@@ -1,6 +1,6 @@
 # G16 corrective campaign: corrections and retest status
 
-**Status:** In progress. G16 acceptance pending. The original failed campaign report in `docs/verification/g16/` is preserved unchanged.
+**Status:** Complete for the standalone M16 revision. G16 acceptance pending. The original failed campaign report in `docs/verification/g16/` is preserved unchanged.
 
 ## Revisions
 
@@ -24,9 +24,9 @@ All commits carry `[skip ci]`. Nothing was merged. The M16 branch contains no as
 | G16-F005 | M16 tests did not prove restricted-role guarantees | Closed by this campaign. Added: runtime-role denial test under the real provisioned roles (33 denial statements, SQLSTATE 42501 required), runner role-denial matrix with `SET ROLE` and SQLSTATE checks, HTTP authorization matrix (74 checks), real PostgreSQL stop and restart stage (14 checks), source-locked fault-injection stage (13 mutants and a control) | final campaign stages `restricted-db-roles`, `audit-http-matrix`, `audit-outage`, `security-mutations` |
 | G16-F006 | Migration identity is a PostgreSQL superuser | Not changed. Documented limitation consistent with M16-D05; whether to introduce a non-superuser table owner is a decision, acceptance pending | role probe output |
 | G16-F007 | Storage failure mapped to a revocation code; denial volume | Fixed. Authorized read with failed audit recording returns `503 audit_unavailable`; forbidden callers stay 403; limiter lowered to 30 requests per minute per user; one user wrote at most 30 denial rows in a window | HTTP stage S22, S21/S26 |
-| G16-F008 | Audit browser spec raced the organization selection | Fixed in the spec (awaits the selection response). Browser result in the scenario matrix | see `03-scenario-matrix.md` |
-| G16-F009 | Runner provisioned wrong browser member names | Fixed (accepted display names restored) | see browser result |
-| G16-F010 | Evidence controls: traces, teardown label | Fixed. Traces are moved to `private/quarantine` with a private manifest; leftover checks use container name prefix. Quarantine block executed against synthetic traces: zips moved, other artifacts stay, safety scan passes | synthetic test, final run teardown |
+| G16-F008 | Audit browser spec raced the organization selection | Fixed in the spec (awaits the selection response). Browser result in the scenario matrix | final campaign: Chromium, Firefox and WebKit 61 of 61 each, audit spec included |
+| G16-F009 | Runner provisioned wrong browser member names | Fixed (accepted display names restored) | final campaign browser stage, organization-revocation passes on all three engines |
+| G16-F010 | Evidence controls: traces, teardown label | Fixed. Traces are moved to `private/quarantine` with a private manifest; leftover checks use container name prefix. Quarantine block executed against synthetic traces: zips moved, other artifacts stay, safety scan passes | synthetic test; final teardown clean (no containers, volumes or SDK database left), evidence safety passed on 162 files |
 
 ## New findings in this campaign
 

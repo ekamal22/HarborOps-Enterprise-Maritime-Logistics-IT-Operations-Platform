@@ -64,6 +64,10 @@ cleanup() {
         "$root/private/user-password.txt"
   rmdir "$root/private" 2>/dev/null || true
   printf '%s\n' "$prior" > "$root/evidence/technical-exit-code.txt"
+  if [[ -d "$root/evidence" ]]; then
+    ( cd "$root/evidence" && find . -type f ! -name 'sha256-manifest.txt' -print0 \
+      | sort -z | xargs -0 sha256sum ) > "$root/evidence/sha256-manifest.txt" || prior=1
+  fi
   exit "$prior"
 }
 trap cleanup EXIT
@@ -179,7 +183,5 @@ stage browser-3-engines bash -c \
 git status --porcelain > "$root/evidence/status-after.txt"
 printf '%s\n' "browser functional coverage completed; independent outage, mutation, vulnerability and evidence reviews remain pending" \
   > "$root/evidence/remaining-gates.txt"
-( cd "$root/evidence" && find . -type f ! -name 'sha256-manifest.txt' -print0 \
-  | sort -z | xargs -0 sha256sum ) > "$root/evidence/sha256-manifest.txt"
 echo "Local technical stages completed; source-locked independent G10 review is still required."
 

@@ -60,6 +60,7 @@ public sealed class TrackingProjectionG10Tests
 
         var beforeEffects = await db.TrackingProcessingEffects.AsNoTracking()
             .Where(e => e.ReceiptId == firstReceipt || e.ReceiptId == secondReceipt)
+            .OrderBy(e => e.ReceiptId)
             .Select(e => new { e.ReceiptId, e.ShipmentId, e.ContainerId }).ToListAsync();
         Assert.Equal(2, beforeEffects.Count);
         // Both referenced shipments exist, but only the correct shipment may
@@ -162,6 +163,7 @@ public sealed class TrackingProjectionG10Tests
 
         var afterEffects = await db.TrackingProcessingEffects.AsNoTracking()
             .Where(e => e.ReceiptId == firstReceipt || e.ReceiptId == secondReceipt)
+            .OrderBy(e => e.ReceiptId)
             .Select(e => new { e.ReceiptId, e.ShipmentId, e.ContainerId }).ToListAsync();
         Assert.Equal(beforeEffects, afterEffects);
         Assert.Equal(manualBefore, (await db.Shipments.AsNoTracking()

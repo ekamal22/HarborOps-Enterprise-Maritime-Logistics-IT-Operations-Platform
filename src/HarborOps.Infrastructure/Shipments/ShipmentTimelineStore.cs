@@ -182,7 +182,6 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
         Guid org, Guid shipment, CancellationToken ct)
     {
         var (reduced, _, _) = await StreamAsync(con, tx, org, shipment, 0, null, ct);
-        var current = await CachedAsync(con, tx, org, shipment, ct);
         var generation = await GenerationAsync(con, tx, org, shipment, ct);
         // Always compare the computed derived fields. A matching input digest alone
         // must not conceal manual corruption of materialized state.

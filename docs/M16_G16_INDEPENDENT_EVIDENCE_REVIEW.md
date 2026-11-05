@@ -2,7 +2,7 @@
 
 **Reviewed:** 2026-11-05  
 **Tested source:** `e5711573839b185a2dfc7d9f2c64ce4fc18d4c13` (`feat/m16-audit-access-hardening`)  
-**Scope:** Main standalone G16 source-locked campaign only. The independently executed supplemental probe and combined M9/M16 gate are outside this review.  
+**Scope:** Main standalone G16 source-locked campaign only. The supplemental probe has since been reviewed separately; see [supplement review](M16_G16_SUPPLEMENT_EVIDENCE_REVIEW.md). The combined M9/M16 gate remains outside this review.  
 **Disposition:** Main campaign evidence reviewed and internally consistent. **G16 remains acceptance pending.** No authorization to merge M16 or deploy.
 
 ## Reviewed inputs and file integrity
@@ -30,9 +30,9 @@ The supplied evidence is from the local E:-backed campaign at `E:\HarborOps-Veri
 
 The raw results are consistent with the [published technical report](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/verify/g16-local-evidence/docs/verification/g16-corrective/04-final-report.md) and its [scenario register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/verify/g16-local-evidence/docs/verification/g16-corrective/03-scenario-matrix.md). This does not independently reproduce the campaign or validate every assertion's adequacy.
 
-## Evidence expressly unreviewed
+## Separate supplemental evidence, subsequently reviewed
 
-**`supplement-s07-s08-s28.log`: UNREVIEWED.** This log was not among the uploaded main-campaign files and was not independently inspected or hash-verified. The published report states that a separate 6/6 final-source probe covers G16-S07 (unauthorized/invalid changes), G16-S08 (concurrent writes and API interruption), and the operator-identity portion of G16-S28. Those **6/6 results remain reported, not independently verified**. Do not mark the supplemental evidence as reviewed, do not infer independent closure of the three affected scenarios from this record, and preserve the original scenario matrix.
+The files `supplement-s07-s08-s28.log` and `supplement-s07-s08-s28-results.json` were subsequently supplied and independently inspected. Six of six recorded checks pass consistently with the committed probe script, supporting G16-S07, S08 and the operator-identity portion of S28. See the [separate supplemental review](M16_G16_SUPPLEMENT_EVIDENCE_REVIEW.md), including both SHA-256 digests and the remaining inability to authenticate the exact test source SHA from the two supplied files alone. These two files are not in the original 162-file main-campaign manifest. The original matrix is preserved.
 
 Other disclosed boundaries remain: the specific 1024-byte metadata CHECK lacks a dedicated negative probe; statement-time cursors do not provide a commit-order snapshot for late commits; migration uses a privileged PostgreSQL identity; and the unreleased M16 migration was edited in place. All require risk treatment as specified in the final report.
 
@@ -40,6 +40,6 @@ Other disclosed boundaries remain: the specific 1024-byte metadata CHECK lacks a
 
 M9/G9 was accepted and merged into `main` on 2026-11-05 with the mandatory transport-backlog operating restriction. The earlier M9/M16 disposable diagnostic combined M16 `e571157` with M9 `7665bc4`, not the accepted final M9 source, and reportedly passed 273 combined integration tests only after correcting hard-coded migration-count expectations. It did not execute combined Compose, browsers, outage recovery or the final source-locked G9/G16 gates. This record does not establish M16 compatibility with the accepted M9 baseline.
 
-Before a G16 acceptance or merge decision: inspect and reconcile `supplement-s07-s08-s28.log`; close or expressly decide the disclosed evidence gaps; resolve worker-role provisioning, migration privilege/history and M9 worker-effect audit policies; verify the integrated source with accepted M9; and obtain explicit G16 acceptance and separate merge authorization. The dependency graph remains unchanged.
+Before a G16 acceptance or merge decision: resolve or explicitly disposition the disclosed remaining test and provenance limitations; resolve worker-role provisioning, migration privilege/history and M9 worker-effect audit policies; verify the integrated source with accepted M9; and obtain explicit G16 acceptance and separate merge authorization. The dependency graph remains unchanged.
 
-**Review status: main 162-file campaign reviewed; supplemental probe UNREVIEWED; combined M9 verification incomplete; G16 acceptance pending.**
+**Review status: main 162-file campaign REVIEWED; supplemental S07/S08/S28 log and JSON REVIEWED in a separate record; combined M9 verification INCOMPLETE; G16 acceptance pending.**

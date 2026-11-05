@@ -23,8 +23,17 @@ cd tests/browser
 npm ci --no-audit --no-fund
 npx playwright install chromium firefox webkit
 failed=()
-for engine in chromium firefox webkit; do
-  for spec in specs/*.spec.mjs; do
+# Development rehearsal filters (space separated names). A full campaign must leave both unset, and the
+# independent summarizer rejects a campaign whose engines ran different spec sets.
+read -ra engines <<< "${HARBOROPS_BROWSER_ENGINES:-chromium firefox webkit}"
+if [[ -n "${HARBOROPS_BROWSER_SPECS:-}" ]]; then
+  spec_files=()
+  for name in $HARBOROPS_BROWSER_SPECS; do spec_files+=("specs/$name.spec.mjs"); done
+else
+  spec_files=(specs/*.spec.mjs)
+fi
+for engine in "${engines[@]}"; do
+  for spec in "${spec_files[@]}"; do
     basename="$(basename "$spec" .spec.mjs)"
     docker compose -p "$project" --profile worker restart api
     for _ in $(seq 1 40); do curl --silent --fail --max-time 3 http://127.0.0.1:8086/health/ready >/dev/null && break; sleep 1; done

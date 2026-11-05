@@ -1,5 +1,7 @@
 # Implementation Notes
 
+**Current M9/G9 status (2026-11-05):** G9 was accepted with the mandatory [M9-01 transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). M9 is integrated into `main` through PR #16 (`43fe326`) and PR #18 (`4684352`). The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and residual limitations. No production or public deployment is authorized; sustained transport-event processing is held until M10 or another explicitly approved backlog mechanism is verified. Earlier planning or acceptance-pending language in historical subsections reflects the earlier project phase.
+
 **Status:** Supporting engineering guidance. This file is not an independent roadmap or authoritative dependency ledger.
 
 The [Product Requirements Document](PRD.md) defines user outcomes and release boundaries. The [Delivery Roadmap](ROADMAP.md) owns M0-M24 scope and verification gates, while [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) governs concurrent workstreams and integration. The [Execution Graph](EXECUTION_GRAPH.md), generated from [execution-graph.json](execution-graph.json), owns work-package IDs and dependency edges. [Status](STATUS.md) alone owns what is actually implemented and verified.
@@ -79,7 +81,7 @@ The [M7 architecture](M7_ARCHITECTURE_DESIGN.md), [implementation plan](M7_IMPLE
 
 With G6 and G7 accepted, [M8 architecture](M8_ARCHITECTURE_DESIGN.md), [implementation plan](M8_IMPLEMENTATION_PLAN.md), [G8 matrix](M8_VERIFICATION_PLAN.md) and [D-006 proposal](M8_D006_DURABILITY_PROPOSAL.md) define the proposed immutable receipt/event, Pending work state, source-scoped replay key, transaction-locked bearer revalidation and post-commit-only HTTP 202. **M8 code, tests, the isolated G8 runner, correctness remediation and an independent review procedure are committed on `feat/m8-durable-event-inbox`. One complete source-locked local run (`537af9c`) passed all stages and 23 of 23 technical scenarios; D-006 Option A and G8 were accepted 2026-11-04 after independent sealed-evidence review (see [gate closure](M8_G8_GATE_CLOSURE.md)).** Explicit acceptance and integration authorization are recorded in the [G8 gate closure](M8_G8_GATE_CLOSURE.md). Worker retries and dead-letter dispatch remain M9; shipment projection remains M10. See the [executed verification record](M8_EXECUTED_VERIFICATION.md), [implementation status](M8_IMPLEMENTATION_STATUS.md), [second-audit remediation](M8_SECOND_REMEDIATION_STATUS.md) and [verification handoff](M8_G8_VERIFICATION_RUNBOOK.md).
 
-## M9 architecture and verified implementation candidate (formal acceptance pending)
+## M9 architecture and accepted implementation
 
 The M9 source candidate on [draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18) passed the [attempt 08 technical campaign](M9_EXECUTED_VERIFICATION.md) (809/809 tests and 14/14 mutation families) and [browser supplement](M9_BROWSER_SUPPLEMENT.md) (174/174 executions). All six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices were approved on 2026-11-05, with a hold on sustained transport processing until an approved M10 or alternate backlog mechanism exists. Formal G9-S25 independent review and gate acceptance still precede merge.
 

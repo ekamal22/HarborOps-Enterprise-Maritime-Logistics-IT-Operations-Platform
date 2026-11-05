@@ -1,5 +1,7 @@
 # Operations and Reliability
 
+**Current M9/G9 status (2026-11-05):** G9 was accepted with the mandatory [M9-01 transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). M9 is integrated into `main` through PR #16 (`43fe326`) and PR #18 (`4684352`). The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and residual limitations. No production or public deployment is authorized; sustained transport-event processing is held until M10 or another explicitly approved backlog mechanism is verified. Earlier planning or acceptance-pending language in historical subsections reflects the earlier project phase.
+
 ## Environment model
 
 - Local: Docker Compose-managed API, worker, PostgreSQL, web, and optional observability stack.
@@ -193,7 +195,7 @@ The corrected [M9 source](M9_IMPLEMENTATION_STATUS.md) on [draft PR #18](https:/
 - `scripts/verify-g9-browsers-local.sh` runs the 16 existing browser specs in three engines against the isolated G9 stack built from a clean, source-locked checkout (`HARBOROPS_SOURCE_WORKTREE` and `HARBOROPS_EXPECTED_SOURCE_SHA`), with its own `ho-verify-g9-<suffix>` project and an E: root ending in `/m9b`. Failure artifacts are sanitized before archiving; optional `HARBOROPS_BROWSER_ENGINES` and `HARBOROPS_BROWSER_SPECS` narrow a documented partial rerun.
 - All future source-locked G9 test resources, caches, Docker/WSL data, logs and evidence must be isolated on E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Never repurpose retained data, trigger GitHub Actions, or erase failed evidence.
 
-The [G9 technical record](M9_EXECUTED_VERIFICATION.md), [verification plan](M9_VERIFICATION_PLAN.md), [correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) and an independent review remain necessary. **M9-01 contract accepted with mandatory transport-backlog operating condition on 2026-11-05; independent G9-S25 review and G9 acceptance pending. No public or production worker deployment is authorized.**
+The [G9 technical record](M9_EXECUTED_VERIFICATION.md), [verification plan](M9_VERIFICATION_PLAN.md), [correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) and an independent review remain necessary. **M9/G9 accepted 2026-11-05 with mandatory transport-backlog operating restriction. No public or production worker deployment is authorized.**
 
 ### M9 transport-backlog deployment hold
 

@@ -1,5 +1,7 @@
 # Requirements
 
+**Current M9/G9 status (2026-11-05):** G9 was accepted with the mandatory [M9-01 transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). M9 is integrated into `main` through PR #16 (`43fe326`) and PR #18 (`4684352`). The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and residual limitations. No production or public deployment is authorized; sustained transport-event processing is held until M10 or another explicitly approved backlog mechanism is verified. Earlier planning or acceptance-pending language in historical subsections reflects the earlier project phase.
+
 **Authority:** This document owns atomic FR/NFR identifiers and the permission matrix. The [Product Requirements Document](PRD.md) owns product outcomes and release boundaries. [Roadmap](ROADMAP.md) assigns milestone gates, [execution-graph.json](execution-graph.json) connects work packages to requirement IDs, and [Status](STATUS.md) owns delivery evidence.
 
 The [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and version 3.0 [Execution Graph](EXECUTION_GRAPH.md) govern technical prerequisites: separate workstreams may progress independently after named accepted gates, but all cross-module security, data integrity and verification requirements remain mandatory. Requirement IDs and actual completion status are unchanged by the dependency redesign.
@@ -69,7 +71,7 @@ FR-005 shipment-container and shipment-voyage assignments were implemented under
 
 M7-01 to M7-04 satisfy the **validation and source-authentication** portion of FR-007 and the applicable FR-002, NFR-002, NFR-003, NFR-006 and NFR-007 boundaries. [M7 architecture](M7_ARCHITECTURE_DESIGN.md) and [G7 matrix](M7_VERIFICATION_PLAN.md) define the intended source-tenant credential and bounded payload behavior. FR-006 immutable durable event history, FR-008 idempotent processing and accepted-event acknowledgment are **not** delivered in M7: M8 introduces receipt persistence under D-006, followed by M9 and M10. D-002 Option A and M7/G7 were accepted 2026-11-03 following source-locked evidence and independently reviewed supplements. See [G7 closure](M7_G7_GATE_CLOSURE.md).
 
-## M9 FR-008 effect-once processing allocation (unverified implementation candidate)
+## M9 FR-008 effect-once processing allocation (accepted)
 
 M9-01 to M9-04 implement the worker-claim, bounded retry/dead-letter and receipt-keyed resolution portion of FR-008, together with relevant FR-007 and NFR-004 recovery conditions. The [M9-01 local contract](M9_LOCAL_CONTRACT_DECISION.md) was approved on 2026-11-05 with a mandatory hold on sustained transport processing until M10 or another explicitly approved backlog mechanism is available. The [technical G9 record](M9_EXECUTED_VERIFICATION.md) reports 809/809 tests and 14/14 mutations passing, and the [browser supplement](M9_BROWSER_SUPPLEMENT.md) reports 174/174 passing executions. G9-S25 formal independent review and G9 acceptance are pending. M10 retains projections and status/ETA calculations.
 

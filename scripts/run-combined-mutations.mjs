@@ -61,7 +61,7 @@ const I = {
   effect: "ValidTimeScopedContainerAssignmentProducesExactlyOneImmutableEffect",
   lockProcess: "TwoIndependentWorkersContendOnOneReceiptAndOnlyOneClaimsIt",
   lockIntake: "IntakeAndWorkerClaimSerializeOnTheOrganizationLockWithoutDeadlock",
-  m9down: "PopulatedM8ReceiptSurvivesM9UpgradeAndClaimedWorkPreventsDowngrade",
+  m9down: "RetainedAttemptHistoryOnRedrivenPendingWorkBlocksTheM9Downgrade",
   m16down: "AcceptedM8UpgradeAddsImmutableAuditWithoutChangingPriorRecords"
 };
 const V = (name, edits, unit, integration) => ({ name, edits, unit, integration });
@@ -79,10 +79,16 @@ const variants = [
     "(permission == OrganizationPermission.ViewAuditEvents && role == OrganizationRole.Auditor)",
     "(permission == OrganizationPermission.ViewAuditEvents && role is (OrganizationRole.Auditor or OrganizationRole.Manager))"]],
     [U.auditOnly, U.auditNoAdmin], []),
-  V("tracking-work-tenant-predicate-removed", [[ADMIN,
-    "        var query = scoped.AsNoTracking().Where(x =>\n            x.OrganizationId == scope.OrganizationId &&",
-    "        var query = scoped.AsNoTracking().Where(x =>\n            x.ReceiptId != Guid.Empty &&"]],
-    [], [I.foreign]),
+  // The list query filters by tenant twice (source query and outer predicate); removing both is the
+  // non-equivalent mutant. Removing only one is an equivalent mutant by defense in depth.
+  V("tracking-work-tenant-predicates-removed", [
+    [ADMIN, "        var query = scoped.AsNoTracking().Where(x =>
+            x.OrganizationId == scope.OrganizationId &&",
+      "        var query = scoped.AsNoTracking().Where(x =>
+            x.ReceiptId != Guid.Empty &&"],
+    [ADMIN, "            : db.TrackingInboxWorkItems.Where(x => x.OrganizationId == scope.OrganizationId);",
+      "            : db.TrackingInboxWorkItems;"]],
+    [], [I.lifecycle]),
   V("api-can-insert-audit", [[ROLES,
     "GRANT SELECT ON TABLE audit_entries TO harborops_api;",
     "GRANT SELECT, INSERT ON TABLE audit_entries TO harborops_api;"]],

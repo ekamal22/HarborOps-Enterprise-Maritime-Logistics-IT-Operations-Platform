@@ -4,10 +4,14 @@ import { getJson, organizationError, OrganizationRequestError } from "../auth/or
 type EventRow = {
   eventId: string; receiptId: string; sourceEventId: string; eventCode: string;
   occurredAtUtc: string; receivedAtUtc: string; superseded: boolean;
+  containerId: string;
 };
 type Page = { items: EventRow[]; nextCursor: string | null; eventCount: number };
 type Projection = { observedTrackingState: string; lastOccurredAtUtc: string | null;
-  materializationRevision: number; materializationStale: boolean; eventCount: number };
+  materializationRevision: number; materializationStale: boolean; eventCount: number;
+  snapshotToken: string; containerCount: number; containerObservations: {
+    containerId: string; observedState: string; occurredAtUtc: string;
+  }[]; containerObservationsTruncated: boolean };
 
 export default function ShipmentTrackingTimeline({ organizationId, shipmentId, onAccessInvalidated }: {
   organizationId: string; shipmentId: string; onAccessInvalidated: (message: string) => void;
@@ -32,10 +36,10 @@ export default function ShipmentTrackingTimeline({ organizationId, shipmentId, o
     const run = ++serial.current;
     setLoading(true); setPaging(false); setError("");
     try {
-      const [projectionResult, page] = await Promise.all([
-        getJson<Projection>(path + "/tracking-projection"),
-        getJson<Page>(path + "/events?limit=25")
-      ]);
+      const projectionResult = await getJson<Projection>(path + "/tracking-projection");
+      if (serial.current !== run) return;
+      const page = await getJson<Page>(path + "/events?limit=25&snapshot=" +
+        encodeURIComponent(projectionResult.snapshotToken));
       if (serial.current !== run) return;
       setProjection(projectionResult); setEvents(page.items); setCursor(page.nextCursor);
     } catch (cause) {
@@ -89,6 +93,13 @@ export default function ShipmentTrackingTimeline({ organizationId, shipmentId, o
         Materialization: {projection.materializationRevision || "not yet materialized"}
         {projection.materializationStale ? " (rebuild pending)" : ""}
       </p>
+      {projection.containerObservations.length > 0 && <div className="mt-2 text-xs">
+        <strong>Container observations ({projection.containerCount})</strong>
+        <ul className="mt-1 space-y-1">{projection.containerObservations.map(item =>
+          <li key={item.containerId}>{item.containerId}: {item.observedState}</li>)}</ul>
+        {projection.containerObservationsTruncated &&
+          <span>Additional container observations not shown.</span>}
+      </div>}
       <h6 className="mt-3 font-medium text-sm">Resolved event timeline</h6>
       {events.length === 0 ? <p className="mt-1 text-xs text-slate-400">
         No resolved tracking events. Reconciliation may still be pending.
@@ -96,6 +107,7 @@ export default function ShipmentTrackingTimeline({ organizationId, shipmentId, o
         <li key={x.eventId} className="rounded border border-slate-700 p-2">
           <strong>{x.eventCode}</strong>
           {x.superseded && <span className="ml-2 text-amber-300">Corrected</span>}
+          <div>Container: {x.containerId}</div>
           <div>Occurred: {x.occurredAtUtc}</div>
           <div className="text-slate-400">Received: {x.receivedAtUtc}</div>
           <div className="text-slate-400">Source event: {x.sourceEventId}</div>

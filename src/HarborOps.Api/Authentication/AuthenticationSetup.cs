@@ -107,6 +107,15 @@ public static class AuthenticationSetup
                         Window = TimeSpan.FromMinutes(5), PermitLimit = 20,
                         QueueLimit = 0, AutoReplenishment = true
                     }));
+            options.AddPolicy("m10-mutations", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    context.User.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1), PermitLimit = 10,
+                        QueueLimit = 0, AutoReplenishment = true
+                    }));
         });
         services.AddSingleton<IdentityAttemptLimiter>();
         return services;

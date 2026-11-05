@@ -209,7 +209,9 @@ public static class ShipmentTimelineEndpoints
             return Results.Ok(new
             {
                 observedTrackingState = view.State.ObservedTrackingState,
-                containerObservations = view.State.Containers,
+                containerObservations = view.State.Containers?.Take(50).ToArray(),
+                containerCount = view.State.Containers?.Count ?? 0,
+                containerObservationsTruncated = (view.State.Containers?.Count ?? 0) > 50,
                 etaUtc = (DateTimeOffset?)null, lastEventId = view.State.LastEventId,
                 lastOccurredAtUtc = view.State.LastOccurredAtUtc,
                 snapshotToken = Protect(Protector(protection),

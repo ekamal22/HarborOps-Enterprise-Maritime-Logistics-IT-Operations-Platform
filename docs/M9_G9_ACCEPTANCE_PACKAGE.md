@@ -1,6 +1,8 @@
 # M9 G9 Acceptance Package and Merge Readiness
 
 **Status:** The six M9-01 contract choices were approved on 2026-11-05 with the mandatory [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). The source-locked raw G9-S01 scenario remains historically BLOCKED, now supplemented by an explicit decision record. Formal G9-S25 independent review and G9 acceptance remain pending. Nothing here authorizes a merge into `main`.  
+**Gate closure supplement (2026-11-05):** The separate [M9-01 decision](M9_LOCAL_CONTRACT_DECISION.md) approves all six choices with the transport-backlog condition. The [evidence review disposition](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md) and [formal G9 gate closure](M9_G9_GATE_CLOSURE.md) record acceptance with disclosed limitations. The historical acceptance-pending text and raw scenario statuses below describe the original pre-acceptance package.
+
 **Prepared:** 2026-11-05  
 **Accepted baseline:** G0 through G8 on `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`.
 

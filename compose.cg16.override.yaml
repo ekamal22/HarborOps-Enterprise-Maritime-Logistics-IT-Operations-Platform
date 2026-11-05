@@ -1,0 +1,10 @@
+# Combined M9/M16 verification overlay. Layer it over compose.g16.verify.yaml and
+# compose.m9.worker.yaml with a unique Compose project name:
+#   docker compose -f compose.g16.verify.yaml -f compose.m9.worker.yaml \
+#     -f compose.cg16.override.yaml -p <unique-project> --profile worker ...
+# It only gives PostgreSQL a private image tag so building it never retags an image
+# that another stack or stream already uses. Ports, subnet and volumes come from
+# compose.g16.verify.yaml. Do not enable sustained transport-event processing.
+services:
+  postgres:
+    image: ${HARBOROPS_CG16_PG_IMAGE:?Set HARBOROPS_CG16_PG_IMAGE to a private tag}

@@ -35,7 +35,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | **M13 Operational KPI definitions and dashboards** | Planned | No verified implementation or accepted gate G13 |
 | **M14 Route mapping and geographic context** | Planned | No verified implementation or accepted gate G14 |
 | **M15 Scoped in-app notifications** | Planned | No verified implementation or accepted gate G15 |
-| **M16 Audit logging and access hardening** | Planned | No verified implementation or accepted gate G16 |
+| **M16 Audit logging and access hardening** | Standalone implementation candidate; G16 acceptance pending | Candidate source `e571157` reportedly passed 205 unit, 39 contract, 252 integration twice, 183 browser tests and 13 security mutants. Independent raw-evidence review, combined M9/M16 verification and G16 acceptance pending; unmerged branch `feat/m16-audit-access-hardening`. |
 | **M17 Observability and service health** | Planned | No verified implementation or accepted gate G17 |
 | **M18 IT incident lifecycle and remediation** | Planned | No verified implementation or accepted gate G18 |
 | **M19 Database recovery and migration rehearsal** | Planned | No verified implementation or accepted gate G19 |
@@ -73,7 +73,7 @@ The unchecked items below concern the complete M0-M24 product release. They do n
 
 ## Verification evidence
 
-The `main` branch includes the accepted M0-M8 capabilities. G0 and G1 used disposable GitHub-hosted verification; G2 used disposable local database, Compose and browser resources on E:. None of these milestone acceptances constitutes public or production deployment. See [M0 evidence](M0_HARDENING_VERIFICATION.md), [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) and [M2 evidence](M2_EXECUTED_VERIFICATION.md).
+The `main` branch includes the accepted M0-M9 capabilities. G0 and G1 used disposable GitHub-hosted verification; G2 used disposable local database, Compose and browser resources on E:. None of these milestone acceptances constitutes public or production deployment. See [M0 evidence](M0_HARDENING_VERIFICATION.md), [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) and [M2 evidence](M2_EXECUTED_VERIFICATION.md).
 
 ## Accepted milestone: M2
 
@@ -111,9 +111,15 @@ M8-01 through M8-04 are accepted and integrated into protected `main` via PR #14
 
 M9-01 and G9 were accepted on 2026-11-05 with the mandatory [transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md). [Technical G9 evidence](M9_EXECUTED_VERIFICATION.md) and the [browser supplement](M9_BROWSER_SUPPLEMENT.md) passed. The subsequent governance reconciliation is recorded in the [G9 review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md) and [gate closure](M9_G9_GATE_CLOSURE.md), without rewriting original BLOCKED/NOT EXECUTED raw scenario entries. Planning PR #16 merged at `43fe326`, then implementation PR #18 at `4684352`. The worker is opt-in; no production deployment or sustained transport processing is authorized. M16 remains independent and must reconcile shared files/migrations.
 
+## M16 candidate and unresolved G16 integration
+
+The parallel `feat/m16-audit-access-hardening` branch is at `54903c986654f5f779d6dd61e3977f3553b0baed`. Its runtime source `e5711573839b185a2dfc7d9f2c64ce4fc18d4c13` has reported successful standalone G16 verification; subsequent branch commits change documentation, not runtime source. The [published G16 report](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/verify/g16-local-evidence/docs/verification/g16-corrective/04-final-report.md) is not a substitute for reviewing private raw evidence on E:. Independent raw-evidence review is pending. Prior combined M9/M16 diagnostics used superseded M9 source and did not include full combined Compose, browser or outage checks.
+
+Reconcile M9 tracking-work read/redrive permissions and API endpoints alongside M16 Auditor-only audit permissions and read APIs; merge EF snapshot mappings while preserving migration order `20261104180000_AuditEntries` before `20261104190000_TrackingWorker`. Resolve worker-role provisioning and worker-effect audit policy, then run source-locked combined fresh and populated migration, security, PostgreSQL, browser and outage regressions. G16 acceptance and a separate merge decision remain pending. Draft M16 policy [PR #17](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/17) is not an implementation PR.
+
 ## Next eligible parallel workstreams
 
-M8-01 through M8-04 and G8 are accepted and merged; D-006 Option A was separately approved. M9 worker/reconciliation now has its required upstream G8 acceptance. M12-01 scoped search/export, M14-01 route design, M16 audit foundations, M17 observability, M19 recovery foundations and eligible preparatory M20/M23 work can proceed in parallel under the [execution graph](EXECUTION_GRAPH.md). G9-G24 remain open; no public application hosting or production deployment is authorized.
+M0-M9/G0-G9 are accepted and integrated. M10 event timeline and projection work may start from accepted G9; M12 search/export and M17 observability may run independently. M14 needs D-004 before applicable implementation and M19 needs D-008 before applicable implementation. M20-01, M21-01/M21-03 and M23-01/M23-03 may start under their package-specific prerequisites. M16 requires evidence review and reconciliation against accepted M9 before G16 acceptance. G10-G24 remain open; no public application hosting or production deployment is authorized.
 
 ## Storage and residual risk
 

@@ -241,7 +241,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Append-only evidence and strengthened authorization.
 **Entry:** G3 accepted before respective dependent work packages.
 **Required work packages:** M16-01 Define audit schema and privacy; M16-02 Implement append-only audit entries; M16-03 Harden security boundaries; M16-04 Verify security and audit matrix.
-**Exit G16:** All applicable tasks, negative tests, runtime evidence and documentation for M16 recorded; acceptance pending until explicitly confirmed.
+**Exit G16:** Standalone technical verification is reported against `e571157` with 30/30 scenario dispositions and disclosed supplements and limitations. Independent raw-evidence review and full combined M9/M16 integration verification remain incomplete; G16 acceptance and merge authorization pending. The five M16-local policy choices were approved 2026-11-04, separately from gate acceptance.
 **Not covered by this milestone:** Telemetry dashboards and IT incident lifecycle.
 
 #### M17: Observability and service health
@@ -352,4 +352,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M9/G0-G9 accepted and integrated on `main`. G10-G24 remain open. M9 sustained transport-event processing is held until approved backlog handling exists. The parallel M16 branch requires combined migration and security regression tests before its later merge.
+M0-M9/G0-G9 accepted and integrated on `main`. G10-G24 remain open. M10 and independent M12/M17 work may advance on the accepted baseline; M14 requires D-004 and M19 requires D-008 before applicable implementation. M9 sustained transport-event processing remains held until approved backlog handling exists. The unmerged M16 candidate has standalone reported evidence but requires independent G16 raw-evidence review, M9 integration decisions, combined migrations and security/browser/outage regression tests before any acceptance or merge.

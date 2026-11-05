@@ -53,7 +53,7 @@ The [M3 design](M3_ARCHITECTURE_DESIGN.md) delivers accepted organization-owned 
 
 ## Accepted M5/M6 shipment and assignment boundary
 
-M5 and M6 provide the accepted shipment lifecycle and assignment histories. M7 source validation and M8 durable receipts are accepted and integrated into `main`. M9 worker/reconciliation remains a separate draft candidate, now technically verified by [G9 attempt 08](M9_EXECUTED_VERIFICATION.md) and the [browser supplement](M9_BROWSER_SUPPLEMENT.md). Its six [local contract choices](M9_LOCAL_CONTRACT_DECISION.md) were approved on 2026-11-05 with a transport-backlog operating hold. G9-S25 review, gate acceptance and merge are still pending. M10 projections and M12 export remain separate later milestones.
+M5 and M6 provide the accepted shipment lifecycle and assignment histories. M7 source validation and M8 durable receipts are accepted and integrated into `main`. M9 worker/reconciliation is accepted and integrated into `main` following [G9 attempt 08](M9_EXECUTED_VERIFICATION.md), the [browser supplement](M9_BROWSER_SUPPLEMENT.md), independent review and [G9 closure](M9_G9_GATE_CLOSURE.md). All six [local contract choices](M9_LOCAL_CONTRACT_DECISION.md) were approved with a mandatory hold on sustained transport-event processing. M10 projections and parked-backlog handling, M12 export and M16 audit logging remain separate milestones. G16 standalone evidence is reported but neither independently accepted nor integrated.
 
 ## Out of scope for initial release
 

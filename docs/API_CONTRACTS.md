@@ -2,7 +2,7 @@
 
 ## Contract status
 
-M0 provides public synthetic status and health routes. M1 implements accepted protected authentication endpoints. M2 organization and membership routes are implemented on `main` following accepted G2 and merged PR #5, verified locally for supported endpoint, verb, role and foreign-identifier scenarios (see [executed evidence](M2_EXECUTED_VERIFICATION.md)). M3-M6 maritime, shipment and assignment APIs are now implemented and accepted; full public OpenAPI generation remains planned; M7 integration-source intake has an unverified candidate implementation on a separate branch.
+M0 provides public synthetic status and health routes. M1 implements accepted protected authentication endpoints. M2 organization and membership routes are implemented on `main` following accepted G2 and merged PR #5, verified locally for supported endpoint, verb, role and foreign-identifier scenarios (see [executed evidence](M2_EXECUTED_VERIFICATION.md)). M3-M6 maritime, shipment and assignment APIs are now implemented and accepted; full public OpenAPI generation remains planned; M7 source authentication, M8 durable receipt intake and M9 tracking-work query/redrive are accepted on `main`. M10 timeline/projection endpoints and M16 audit read APIs are not accepted.
 
 ## Observed M0 contract verification
 
@@ -151,16 +151,16 @@ DCSA Track & Trace is the reference for event terminology and adapter mapping. R
 
 M4 endpoint behavior, tenant/role boundaries, optimistic versions and error envelopes passed [G4 executed verification](M4_EXECUTED_VERIFICATION.md) on `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. D-003 Option B is accepted. No M5 shipment or M6 assignment endpoints are implied.
 
-## M9 scoped work queue and redrive API (feature-branch candidate)
+## M9 scoped work queue and redrive API (accepted on `main`)
 
-The following routes are implemented on `feat/m9-worker-reconciliation` in [draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18), not in accepted `main`. Their code and tests have not been executed in G9.
+The following routes are part of the accepted M9 implementation merged through [PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18). [G9 closure](M9_G9_GATE_CLOSURE.md) and the [M9 local contract](M9_LOCAL_CONTRACT_DECISION.md) govern their behavior.
 
-| Method | Candidate route | Permission | Intended response |
+| Method | Implemented route | Permission | Response |
 | --- | --- | --- | --- |
 | GET | `/api/v1/organizations/{organizationId}/tracking-work` | `TrackingWorkRead`: Manager, Analyst, Auditor | Scoped status metadata; optional UUID cursor `after`, `limit` 1 to 100; `items`, `nextAfter` |
 | GET | `/api/v1/organizations/{organizationId}/tracking-work/{receiptId}` | `TrackingWorkRead` | One tenant-scoped work item or `404 resource_not_found` |
-| POST | `/api/v1/organizations/{organizationId}/tracking-work/{receiptId}/redrive` | `TrackingWorkRedrive`: Manager only | JSON body with sanitized `reason` (8 to 240 characters); accepted only for `NeedsReconciliation` or `DeadLetter`, with up to three redrives |
+| POST | `/api/v1/organizations/{organizationId}/tracking-work/{receiptId}/redrive` | `TrackingWorkRedrive`: Manager only | Sanitized `reason` (8 to 240 characters); `NeedsReconciliation` or `DeadLetter` only; at most three redrives |
 
-The candidate enforces selected active organization, current session/security version for redrive, membership, Origin/CSRF mutation checks and `Cache-Control: no-store`. Operator responses omit bearer, source secret, canonical/raw payload and digest. Other outcomes include `access_denied`, `redrive_limit`, `work_capacity_exceeded` and `work_state_conflict`. The accepted M8 source-authenticated intake route and post-commit acknowledgment contract remain unchanged.
+The routes enforce current session, selected active organization, live membership and CSRF/Origin checks where applicable. Operator responses do not expose bearer material, source secrets, raw payloads or digests, and use `Cache-Control: no-store`. The accepted M8 post-commit acknowledgment contract remains unchanged. No M10 timeline API or M16 audit endpoint is implied by G9 acceptance.
 
-The [M9 implementation register](M9_IMPLEMENTATION_STATUS.md), [follow-up audit](M9_CORRECTNESS_AUDIT_20261104.md) and [G9 matrix](M9_VERIFICATION_PLAN.md) document the unverified implementation and required execution evidence. M9-01 contract acceptance is pending.
+**Deployment restriction:** Sustained transport-event processing remains disabled until a verified M10 or separately approved mechanism safely manages `NeedsReconciliation` within the 10,000 unresolved-work cap. No public or production deployment is authorized.

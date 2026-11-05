@@ -47,6 +47,12 @@ done
 export TMPDIR="$root/cache/TMPDIR" HOME="$root/cache/HOME"
 mkdir -p "$TMPDIR" "$HOME" "$root/cache/nuget/http" "$root/cache/nuget/packages"
 export USERPROFILE="$(cygpath -w "$HOME")"
+# HOME is redirected to E:, so Docker's CLI plugin lookup needs an explicit config that names the plugin directory.
+docker_cfg_source="${HARBOROPS_DOCKER_CONFIG_SOURCE:-/e/HarborOps-Verification/docker-config}"
+mkdir -p "$root/cache/DOCKER_CONFIG"
+[[ -f "$docker_cfg_source/config.json" ]] || { echo "Docker CLI plugin config not found: $docker_cfg_source" >&2; exit 2; }
+cp "$docker_cfg_source/config.json" "$root/cache/DOCKER_CONFIG/config.json"
+export DOCKER_CONFIG="$(cygpath -w "$root/cache/DOCKER_CONFIG")"
 # The Docker Desktop disk/WSL registration preflight must succeed before creating any resource.
 node scripts/check-m3-docker-storage.mjs
 for key in HARBOROPS_DB_PASSWORD HARBOROPS_API_DB_PASSWORD HARBOROPS_WORKER_DB_PASSWORD; do

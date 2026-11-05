@@ -23,8 +23,17 @@ npx playwright --version > "$out/playwright-version.txt"
 npx playwright install chromium firefox webkit
 ls "$PLAYWRIGHT_BROWSERS_PATH" > "$out/browser-builds.txt"
 failed=()
-for engine in chromium firefox webkit; do
-  for spec in specs/*.spec.mjs; do
+# Defaults run every spec in every engine. HARBOROPS_BROWSER_ENGINES and HARBOROPS_BROWSER_SPECS
+# (space separated names) narrow a documented partial rerun; the summarizer reads the same filters.
+read -ra engines <<< "${HARBOROPS_BROWSER_ENGINES:-chromium firefox webkit}"
+if [[ -n "${HARBOROPS_BROWSER_SPECS:-}" ]]; then
+  spec_files=()
+  for name in $HARBOROPS_BROWSER_SPECS; do spec_files+=("specs/$name.spec.mjs"); done
+else
+  spec_files=(specs/*.spec.mjs)
+fi
+for engine in "${engines[@]}"; do
+  for spec in "${spec_files[@]}"; do
     basename="$(basename "$spec" .spec.mjs)"
     docker compose -p "$project" --profile worker restart api
     # The API needs a moment before the web proxy can reach it again.

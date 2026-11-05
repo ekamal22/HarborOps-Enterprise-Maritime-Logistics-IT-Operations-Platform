@@ -9,8 +9,11 @@ const evidence = process.argv[2];
 const specsDir = process.argv[3];
 assert.ok(evidence && specsDir, "usage: summarize-g9-browsers.mjs <evidence-dir> <specs-dir>");
 const dir = path.join(evidence, "playwright");
-const specs = fs.readdirSync(specsDir).filter(x => x.endsWith(".spec.mjs")).map(x => x.replace(".spec.mjs", "")).sort();
-const engines = ["chromium", "firefox", "webkit"];
+// Optional filters mirror the runner's, for a documented partial rerun. The default is every spec in every engine.
+const allSpecs = fs.readdirSync(specsDir).filter(x => x.endsWith(".spec.mjs")).map(x => x.replace(".spec.mjs", "")).sort();
+const specs = process.env.HARBOROPS_BROWSER_SPECS ? process.env.HARBOROPS_BROWSER_SPECS.split(/\s+/).filter(Boolean).sort() : allSpecs;
+for (const name of specs) assert.ok(allSpecs.includes(name), "Unknown spec in filter: " + name);
+const engines = process.env.HARBOROPS_BROWSER_ENGINES ? process.env.HARBOROPS_BROWSER_ENGINES.split(/\s+/).filter(Boolean) : ["chromium", "firefox", "webkit"];
 const rows = [];
 const tests = [];
 let problems = 0;

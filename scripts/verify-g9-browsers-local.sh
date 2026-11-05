@@ -125,6 +125,10 @@ cleanup() {
   [[ "$(tr -d '\n' < "$evidence/teardown.txt")" == "containers= volumes= networks=" ]] || rc=1
   free_c > "$evidence/c-drive-after.txt"
   date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence/ended-utc.txt"
+  # Failure snapshots and traces can hold the disposable login password: keep raw copies privately,
+  # record their hashes, and leave only sanitized files in the shareable evidence.
+  stage artifact-sanitization node "$tooling_win/scripts/redact-g9-browser-artifacts.mjs" "$(cygpath -w "$evidence")" \
+    "$(cygpath -w "$root/private")" "$(cygpath -w "$root/private/user.pw")" || safety_rc=1
   stage evidence-safety node "$tooling_win/scripts/check-g9-evidence-safety.mjs" evidence "$(cygpath -w "$evidence")" \
     "$(cygpath -w "$root/private/db.pw")" "$(cygpath -w "$root/private/worker.pw")" \
     "$(cygpath -w "$root/private/user.pw")" || safety_rc=1
@@ -244,5 +248,13 @@ stage browser-fixtures bash -c \
   'node scripts/prepare-m3-browser-fixtures.mjs && node scripts/prepare-m4-browser-fixtures.mjs && node scripts/prepare-m5-browser-fixtures.mjs && node scripts/prepare-m6-browser-fixtures.mjs'
 export HARBOROPS_M3_FIXTURES=1 HARBOROPS_M4_FIXTURES=1
 export HARBOROPS_M5_FIXTURES=1 HARBOROPS_M6_FIXTURES=1
+if [[ "${HARBOROPS_BROWSER_PREPARE_ONLY:-}" == "1" ]]; then
+  # Development diagnostics only: leave the prepared stack running and skip finalization. Never evidence.
+  # Remove it afterwards with: docker compose -p <project> --profile worker down --volumes (named project only).
+  trap - EXIT
+  printf 'prepared=%s\n' "$project" > "$evidence/prepare-only.txt"
+  echo "Stack prepared for diagnostics (project $project, password in $root/private/user.pw). Not evidence."
+  exit 0
+fi
 stage browsers bash "$tooling_win/scripts/run-g9-browsers-local.sh"
 echo "All scheduled browser supplement stages completed; finalization runs on exit."

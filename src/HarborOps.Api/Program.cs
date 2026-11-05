@@ -33,6 +33,9 @@ builder.Services.AddHarborOpsPersistence(connectionString);
 builder.Services.AddHarborOpsAuthentication(builder.Configuration);
 builder.Services.AddSingleton<IntegrationRequestLimiter>();
 builder.Services.AddScoped<TrackingWorkAdminStore>();
+builder.Services.AddScoped<ShipmentTimelineStore>();
+if (builder.Configuration.GetValue<bool>("M10:EnableProjector"))
+    builder.Services.AddHostedService<TrackingProjectionHostedService>();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -141,6 +144,7 @@ app.MapShipmentEndpoints();
 app.MapAssignmentEndpoints();
 app.MapTrackingEndpoints();
 app.MapTrackingWorkEndpoints();
+app.MapShipmentTimelineEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

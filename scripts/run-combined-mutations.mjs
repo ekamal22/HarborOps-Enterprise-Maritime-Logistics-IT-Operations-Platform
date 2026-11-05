@@ -17,6 +17,7 @@ assert.ok(dbImage, "HARBOROPS_CG16_PG_IMAGE is required");
 const evidence = path.join(root, "evidence", "mutations");
 fs.mkdirSync(evidence, { recursive: true });
 const cache = path.join(root, "cache");
+fs.mkdirSync(cache, { recursive: true });
 const sourceTar = path.join(cache, "cg16-mutation-" + sha.slice(0, 12) + ".tar");
 const exported = path.join(cache, "cg16-mutation-export-" + sha.slice(0, 12));
 assert.ok(!fs.existsSync(exported), "Mutation export already exists; use a new verification root");

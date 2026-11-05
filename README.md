@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0/G0 through M8/G8 explicitly accepted through 2026-11-04. M8 was merged into protected `main` through [PR #14](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/14) at `1caa3daa68bfecfd19a671aa2e19d39c17224d75` after independent review. M7 verification reconciled 25/25 scenarios through the original source-locked run and three reviewed supplements; see [G7 closure](docs/M7_G7_GATE_CLOSURE.md). The accepted M8 implementation acknowledges validated tracking receipts only after durable PostgreSQL commit. No production deployment; G9-G24 remain open.
+**Status:** M0/G0 through M8/G8 explicitly accepted through 2026-11-04. M8 was merged into protected `main` through [PR #14](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/14) at `1caa3daa68bfecfd19a671aa2e19d39c17224d75` after independent review. M7 verification reconciled 25/25 scenarios through the original source-locked run and three reviewed supplements; see [G7 closure](docs/M7_G7_GATE_CLOSURE.md). The accepted M8 implementation acknowledges validated tracking receipts only after durable PostgreSQL commit. The standalone M16 candidate on `feat/m16-audit-access-hardening` has a reported passing technical campaign at `e571157`; independent G16 review, combined M9 integration and G16 acceptance pending. No production deployment; G9-G24 remain open.
 
 **Source availability:** Public since 2026-11-03 under the [inspection-only license](LICENSE). Public source code is not a hosted service. GitHub Actions is disabled and `main` is protected. See [Publication Safety Status](docs/PUBLICATION_SAFETY_STATUS.md).
 
@@ -129,6 +129,8 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Execution Graph](docs/EXECUTION_GRAPH.md) | Generated execution dependencies and work packages |
 | [Execution Graph Data](docs/execution-graph.json) | Canonical dependency edges and node IDs |
 | [Project Status](docs/STATUS.md) | Authoritative implementation, verification, and acceptance state |
+| [M16 Executed Technical Verification](docs/M16_EXECUTED_VERIFICATION.md) | Frozen M16 G16 test results, security probes, raw-evidence provenance and unresolved integration limits |
+| [M16 Implementation Status](docs/M16_IMPLEMENTATION_STATUS.md) | Completed M16 candidate and gate requirements before independent acceptance |
 | [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) | Mandatory E-drive workspace, caches, runtime data and evidence locations |
 | [Product Scope](docs/PRODUCT_SCOPE.md) | Goals, non-goals, personas, and constraints |
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |

@@ -1,6 +1,6 @@
 # M16 Audit Logging and Access Hardening Architecture
 
-**Status:** Approved design and M16-D01 to M16-D05, 2026-11-04. No implementation, tests, deployment or G16 acceptance is implied. **Entry:** G3 accepted.
+**Status:** Approved M16-D01 to M16-D05 design (2026-11-04). The corrected M16 source at `e571157` has a reported passing standalone G16 technical campaign; the design approval itself grants neither independent evidence acceptance nor merge or deployment authority. See [executed verification](M16_EXECUTED_VERIFICATION.md). **Entry:** G3 accepted.
 
 ## Baseline
 The .NET 10 modular API uses EF Core 10 and PostgreSQL 16, server-authoritative sessions and typed organization permissions. M1 auth_events provide limited identity events, not comprehensive audit. M8 receipt/accepted-event tables are immutable operational history, not general audit. Do not replace either or alter accepted M8 source keys. M9 introduces worker claim/retry/effect tracking and must coordinate schema and privileges.
@@ -23,3 +23,7 @@ Separate migration, API and worker credentials using least-privilege grants. The
 
 ## Parallel and deferred scope
 M12 export is separately permissioned and cannot export audit logs implicitly. M14 map and M17 telemetry may correlate only safe identifiers. M19 backup/restore must cover audit constraints. M18 incident CRUD depends on G16 under the existing graph. External cryptographic anchoring, global audit search, automatic purge and hosted certification are deferred. See [approved policy](M16_POLICY_DECISIONS.md), [privacy](M16_AUDIT_PRIVACY_POLICY.md), [work plan](M16_IMPLEMENTATION_PLAN.md) and [G16 tests](M16_VERIFICATION_PLAN.md).
+
+## Executed-architecture reconciliation
+
+The source-locked standalone campaign on `e571157` reportedly tested the absent audit-to-organization foreign key, append-only database guards, organization-scoped cursor reader, Auditor-only API and current actor role, with 252/252 integration tests twice, 13 effective security mutations and 61/61 browser checks in each of three engines. Independent raw-evidence review is pending. An audit cursor is not a transactional snapshot for rows that commit after a walk begins with an older statement timestamp. The migration login still uses a PostgreSQL superuser and is outside runtime-role tamper guarantees. M9's worker attempt/effect auditing and the authoritative worker-role grant path remain separate integration decisions. The local combined M9/M16 integration diagnostic does not establish a passing combined service or browser gate.

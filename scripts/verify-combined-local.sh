@@ -318,6 +318,19 @@ export G16_COMPOSE="docker compose -p $project"
 export G16_NETWORK="${project}_internal"
 stage audit-http-matrix node scripts/check-m16-audit-http.mjs "$evidence/audit-http-results.json"
 stage audit-outage node scripts/check-m16-audit-outage.mjs "$evidence/audit-outage-results.json"
+# Fixture logins share one client address and the login limiter is per window, so give the stack check a
+# fresh API process after the outage probes, as the accepted G6 and G9 runners do between login-heavy stages.
+api_restart() {
+  compose restart api || return 1
+  local i
+  for i in $(seq 1 60); do
+    curl --silent --fail --max-time 3 http://127.0.0.1:8086/health/ready >/dev/null && return 0
+    sleep 2
+  done
+  echo "API did not become ready after restart" >&2
+  return 1
+}
+stage api-restart api_restart
 stage combined-stack-check node scripts/check-combined-stack.mjs "$evidence/combined-stack"
 stage browser-engines bash scripts/run-combined-browsers-local.sh
 stage security-mutations node scripts/run-combined-mutations.mjs "$HARBOROPS_VERIFICATION_ROOT"

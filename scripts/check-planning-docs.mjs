@@ -20,6 +20,11 @@ const m8Plan = get("docs/M8_VERIFICATION_PLAN.md");
 const m8Status = get("docs/M8_IMPLEMENTATION_STATUS.md");
 const secondRemediation = get("docs/M8_SECOND_REMEDIATION_STATUS.md");
 const runbook = get("docs/M8_G8_VERIFICATION_RUNBOOK.md");
+const m9Architecture = get("docs/M9_ARCHITECTURE_DESIGN.md");
+const m9Plan = get("docs/M9_IMPLEMENTATION_PLAN.md");
+const m9Contract = get("docs/M9_LOCAL_CONTRACT_PROPOSAL.md");
+const g9Verification = get("docs/M9_VERIFICATION_PLAN.md");
+const m9Status = get("docs/M9_PLANNING_STATUS.md");
 
 function assert(ok, message) {
   if (!ok) throw Error(message);
@@ -63,6 +68,21 @@ for (const [name,body] of [
 }
 assert(status.includes("D-006") && status.includes("accepted"), "Status must record accepted D-006");
 assert(m8Status.includes("G8") && m8Status.includes("Explicitly accepted 2026-11-04") && m8Status.includes("M8_G8_GATE_CLOSURE.md"), "G8 acceptance must reference the independently reviewed gate closure");
+for (const [name, body, marker] of [
+  ["README", readme, "M9 idempotent worker and reconciliation (planning)"],
+  ["Status", status, "Architecture and implementation planned; G9 not executed or accepted"],
+  ["Roadmap", roadmap, "M9_LOCAL_CONTRACT_PROPOSAL.md"],
+  ["Implementation plan", implementationPlan, "M9 architecture and implementation planning"],
+  ["M9 architecture", m9Architecture, "Claim, processing and effect-once transaction"],
+  ["M9 plan", m9Plan, "M9-04: Integrated verification and controlled recovery"],
+  ["M9 contract", m9Contract, "**Decision:** Acceptance pending."],
+  ["M9 status", m9Status, "**G9:** Not executed, no evidence, no acceptance."],
+  ["G9 plan", g9Verification, "G9-S01 through G9-S25"]
+]) assert(body.includes(marker), name + " missing or inconsistent M9 planning state");
+assert(g9Verification.split("\n").filter(line => line.startsWith("| **G9-S")).length === 25,
+  "G9 must contain exactly 25 explicit scenarios");
+assert(!/G9 (?:accepted|verified|executed) 2026/i.test(m9Status),
+  "Planning cannot claim G9 executable acceptance");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");
 assert(roadmap.includes("## Legacy milestone mapping"), "Missing version migration map");
@@ -152,6 +172,12 @@ for (const [id, expected] of Object.entries(requiredStarts)) {
   assert(node && node.depends_on.join(",") === expected.join(","),
     "Unexpected parallel dependency on " + id);
 }
+assert(graphNodes.get("M9-01").depends_on.join(",") === "G8" &&
+  graphNodes.get("M9-02").depends_on.join(",") === "M9-01" &&
+  graphNodes.get("M9-03").depends_on.join(",") === "M9-01" &&
+  graphNodes.get("M9-04").depends_on.includes("M9-02") &&
+  graphNodes.get("M9-04").depends_on.includes("M9-03"),
+  "M9 work-package prerequisite graph diverged from accepted G8");
 assert(graphNodes.get("M8-01").depends_on.includes("G7") &&
   graphNodes.get("M8-02").depends_on.includes("G6") &&
   graphNodes.get("M8-03").depends_on.includes("G6"),

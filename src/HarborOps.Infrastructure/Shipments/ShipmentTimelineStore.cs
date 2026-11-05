@@ -184,42 +184,45 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
         var (reduced, _, _) = await StreamAsync(con, tx, org, shipment, 0, null, ct);
         var current = await CachedAsync(con, tx, org, shipment, ct);
         var generation = await GenerationAsync(con, tx, org, shipment, ct);
-        if (current.Digest != reduced.InputDigest)
-        {
-            await using var put = Command(con, tx, """
-                INSERT INTO shipment_tracking_projections
-                    (organization_id,shipment_id,observed_state,last_event_id,
-                     last_occurred_at_utc,input_digest,policy_version,correction_generation,
-                     materialization_revision)
-                VALUES (@org,@shipment,@state,@event,@occurred,@digest,@policy,@generation,1)
-                ON CONFLICT (shipment_id) DO UPDATE
-                SET observed_state=EXCLUDED.observed_state,
-                    last_event_id=EXCLUDED.last_event_id,
-                    last_occurred_at_utc=EXCLUDED.last_occurred_at_utc,
-                    input_digest=EXCLUDED.input_digest,
-                    policy_version=EXCLUDED.policy_version,
-                    correction_generation=EXCLUDED.correction_generation,
-                    materialization_revision=shipment_tracking_projections.materialization_revision+1,
-                    refreshed_at_utc=clock_timestamp(),
-                    verified_at_utc=clock_timestamp()
-                WHERE shipment_tracking_projections.organization_id=EXCLUDED.organization_id
-                  AND (shipment_tracking_projections.input_digest IS DISTINCT FROM EXCLUDED.input_digest
-                    OR shipment_tracking_projections.policy_version IS DISTINCT FROM EXCLUDED.policy_version)
-                """, ("org", org), ("shipment", shipment),
+        // Always compare the computed derived fields. A matching input digest alone
+        // must not conceal manual corruption of materialized state.
+        await using (var put = Command(con, tx, """
+            INSERT INTO shipment_tracking_projections
+                (organization_id,shipment_id,observed_state,last_event_id,
+                 last_occurred_at_utc,input_digest,policy_version,correction_generation,
+                 materialization_revision)
+            VALUES (@org,@shipment,@state,@event,@occurred,@digest,@policy,@generation,1)
+            ON CONFLICT (shipment_id) DO UPDATE
+            SET observed_state=EXCLUDED.observed_state,
+                last_event_id=EXCLUDED.last_event_id,
+                last_occurred_at_utc=EXCLUDED.last_occurred_at_utc,
+                input_digest=EXCLUDED.input_digest,
+                policy_version=EXCLUDED.policy_version,
+                correction_generation=EXCLUDED.correction_generation,
+                materialization_revision=shipment_tracking_projections.materialization_revision+1,
+                refreshed_at_utc=clock_timestamp(),verified_at_utc=clock_timestamp()
+            WHERE shipment_tracking_projections.organization_id=EXCLUDED.organization_id
+              AND (shipment_tracking_projections.input_digest IS DISTINCT FROM EXCLUDED.input_digest
+                OR shipment_tracking_projections.policy_version IS DISTINCT FROM EXCLUDED.policy_version
+                OR shipment_tracking_projections.observed_state IS DISTINCT FROM EXCLUDED.observed_state
+                OR shipment_tracking_projections.last_event_id IS DISTINCT FROM EXCLUDED.last_event_id
+                OR shipment_tracking_projections.last_occurred_at_utc IS DISTINCT FROM EXCLUDED.last_occurred_at_utc
+                OR shipment_tracking_projections.correction_generation IS DISTINCT FROM EXCLUDED.correction_generation)
+            """, ("org", org), ("shipment", shipment),
                 ("state", reduced.ObservedTrackingState), ("event", reduced.LastEventId),
                 ("occurred", reduced.LastOccurredAtUtc), ("digest", reduced.InputDigest),
-                ("policy", reduced.PolicyVersion), ("generation", generation));
-            await put.ExecuteNonQueryAsync(ct);
-        }
-        else
+                ("policy", reduced.PolicyVersion), ("generation", generation)))
         {
-            await using var verified = Command(con, tx, """
-                UPDATE shipment_tracking_projections
-                SET verified_at_utc=clock_timestamp(),correction_generation=@generation
-                WHERE organization_id=@org AND shipment_id=@shipment
-                """, ("org", org), ("shipment", shipment), ("generation", generation));
-            await verified.ExecuteNonQueryAsync(ct);
+            if (await put.ExecuteNonQueryAsync(ct) == 0)
+            {
+                await using var verified = Command(con, tx, """
+                    UPDATE shipment_tracking_projections SET verified_at_utc=clock_timestamp()
+                    WHERE organization_id=@org AND shipment_id=@shipment
+                    """, ("org", org), ("shipment", shipment));
+                await verified.ExecuteNonQueryAsync(ct);
+            }
         }
+
         await using (var apps = Command(con, tx, """
             INSERT INTO shipment_projection_applications
                 (receipt_id,organization_id,shipment_id,policy_version)

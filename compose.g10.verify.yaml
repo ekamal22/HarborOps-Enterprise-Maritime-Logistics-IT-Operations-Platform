@@ -76,7 +76,7 @@ services:
       Identity__KeyRingPath: "/keys"
       ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
       Cors__AllowedOrigins__0: "http://localhost:5180"
-      M10__EnableProjector: "true"
+      M10__EnableProjector: "false"
     depends_on:
       migrator:
         condition: service_completed_successfully

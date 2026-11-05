@@ -114,6 +114,31 @@ public sealed class TrackingProjectionG10Tests
         using var foreign = await analyst.GetAsync(
             $"/api/v1/organizations/{fixture.B}/shipments/{target.Shipment}/events");
         Assert.NotEqual(HttpStatusCode.OK, foreign.StatusCode);
+        var root = $"/api/v1/organizations/{fixture.A}/shipments/{target.Shipment}";
+        using (var forbidden = await ReferenceDataHttpTests.Send(
+            analyst, HttpMethod.Post, root + "/tracking-projection/rebuild"))
+            Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        using (var approved = await ReferenceDataHttpTests.Send(
+            manager, HttpMethod.Post, root + "/tracking-projection/rebuild"))
+            Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
+        using (var staleCorrection = await ReferenceDataHttpTests.Send(
+            manager, HttpMethod.Post, root + "/tracking-corrections", new
+            {
+                targetReceiptId = firstReceipt, replacementReceiptId = (Guid?)null,
+                expectedGeneration = 0, reason = "Invalid stale correction attempt"
+            }))
+            Assert.Equal(HttpStatusCode.Conflict, staleCorrection.StatusCode);
+        using (var approvedCorrection = await ReferenceDataHttpTests.Send(
+            manager, HttpMethod.Post, root + "/tracking-corrections", new
+            {
+                targetReceiptId = firstReceipt, replacementReceiptId = (Guid?)null,
+                expectedGeneration = 1, reason = "Confirmed invalid first observation"
+            }))
+            Assert.Equal(HttpStatusCode.OK, approvedCorrection.StatusCode);
+        var afterHttp = await store.ReadAsync(fixture.A, target.Shipment, CancellationToken.None);
+        Assert.NotNull(afterHttp);
+        Assert.Equal("Unknown", afterHttp!.State.ObservedTrackingState);
+        Assert.Equal(2, afterHttp.CorrectionGeneration);
     }
 
     [Fact]

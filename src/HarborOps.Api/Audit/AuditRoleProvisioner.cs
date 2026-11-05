@@ -109,10 +109,10 @@ public static class AuditRoleProvisioner
                         CREATE OR REPLACE FUNCTION m16_api_scope_work_item() RETURNS trigger
                             LANGUAGE plpgsql SET search_path = pg_catalog AS $scope$
                         BEGIN
-                            IF session_user = 'harborops_api' AND NOT (
+                            IF session_user = 'harborops_api' AND NOT COALESCE(
                                 OLD.state IN ('NeedsReconciliation','DeadLetter')
                                 AND NEW.state = 'Pending'
-                                AND NEW.redrive_generation = OLD.redrive_generation + 1) THEN
+                                AND NEW.redrive_generation = OLD.redrive_generation + 1, false) THEN
                                 RAISE EXCEPTION 'API role is limited to manual redrive'
                                     USING ERRCODE='23514';
                             END IF;
@@ -123,7 +123,7 @@ public static class AuditRoleProvisioner
                         DECLARE valid boolean := true;
                         BEGIN
                             IF session_user = 'harborops_api' THEN
-                                valid := NEW.event_kind = 'Redriven' AND NEW.actor_user_id IS NOT NULL;
+                                valid := COALESCE(NEW.event_kind = 'Redriven' AND NEW.actor_user_id IS NOT NULL, false);
                                 IF valid THEN
                                     EXECUTE format(
                                         'SELECT EXISTS (

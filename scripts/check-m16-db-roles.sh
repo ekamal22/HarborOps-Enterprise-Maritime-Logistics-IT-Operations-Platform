@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Read-only privilege review against the exclusively disposable G16 Compose DB.
 set -euo pipefail
-[[ "${COMPOSE_FILE:-}" == *"compose.g16.verify.yaml" ]] ||
+# The standalone G16 project is the default; the combined campaign sets G16_PROJECT.
+project="${G16_PROJECT:-ho-verify-g16}"
+[[ "${COMPOSE_FILE:-}" == *compose.g16.verify.yaml* ]] ||
   { echo "G16 Compose file required" >&2; exit 2; }
 [[ "${HARBOROPS_SOURCE_SHA:-}" =~ ^[a-f0-9]{40}$ ]] ||
   { echo "Source-lock required" >&2; exit 2; }
-docker compose -p ho-verify-g16 exec -T postgres \
+docker compose -p "$project" exec -T postgres \
   psql -X -v ON_ERROR_STOP=1 -U harborops -d harborops <<'SQL'
 DO $check$
 DECLARE
@@ -50,7 +52,7 @@ SQL
 # The expected SQLSTATE is inspected, so a failed test cannot pass on any error.
 expect_denied() {
   local role="$1" statement="$2" observed
-  if observed=$(docker compose -p ho-verify-g16 exec -T postgres \
+  if observed=$(docker compose -p "$project" exec -T postgres \
       psql -X -v ON_ERROR_STOP=1 -v VERBOSITY=verbose -U harborops -d harborops \
       -c "SET ROLE $role; $statement" 2>&1); then
     echo "Unexpected permission: $role can execute $statement" >&2
@@ -72,7 +74,7 @@ for role in harborops_api harborops_worker; do
   expect_denied "$role" "TRUNCATE public.organizations CASCADE"
 done
 expect_denied harborops_worker "SELECT id FROM public.audit_entries LIMIT 1"
-docker compose -p ho-verify-g16 exec -T postgres \
+docker compose -p "$project" exec -T postgres \
   psql -X -v ON_ERROR_STOP=1 -U harborops -d harborops \
   -c "SET ROLE harborops_api; SELECT count(*) FROM public.audit_entries"
 echo 'M16 runtime-role direct SQL denial matrix PASS'

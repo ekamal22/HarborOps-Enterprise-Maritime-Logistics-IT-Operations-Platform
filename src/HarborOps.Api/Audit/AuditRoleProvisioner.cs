@@ -95,6 +95,72 @@ public static class AuditRoleProvisioner
                             updated_at_utc) ON tracking_inbox_work_items TO harborops_worker;
                         GRANT EXECUTE ON FUNCTION m9_lock_active_organization(uuid)
                             TO harborops_worker;
+
+                        -- The API identity holds table-level UPDATE on work items and INSERT on
+                        -- attempt history only so the Manager redrive can run in one transaction.
+                        -- These guards confine that identity to exactly that transition and to
+                        -- the attributed Redriven record, so a compromised HTTP runtime cannot
+                        -- claim leases, finish work or forge worker attempt history. Other roles
+                        -- (migrator, worker) are unaffected.
+                        -- These functions also run nested inside the SECURITY DEFINER M9 transition
+                        -- trigger (search_path=pg_catalog), so every relation is schema-qualified
+                        -- through TG_TABLE_SCHEMA and no unqualified name is parsed.
+                        CREATE OR REPLACE FUNCTION m16_api_scope_work_item() RETURNS trigger
+                            LANGUAGE plpgsql SET search_path = pg_catalog AS $scope$
+                        BEGIN
+                            IF session_user = 'harborops_api' AND NOT (
+                                OLD.state IN ('NeedsReconciliation','DeadLetter')
+                                AND NEW.state = 'Pending'
+                                AND NEW.redrive_generation = OLD.redrive_generation + 1) THEN
+                                RAISE EXCEPTION 'API role is limited to manual redrive'
+                                    USING ERRCODE='23514';
+                            END IF;
+                            RETURN NEW;
+                        END $scope$;
+                        CREATE OR REPLACE FUNCTION m16_api_scope_attempt() RETURNS trigger
+                            LANGUAGE plpgsql SET search_path = pg_catalog AS $scope$
+                        DECLARE valid boolean := true;
+                        BEGIN
+                            IF session_user = 'harborops_api' THEN
+                                valid := NEW.event_kind = 'Redriven' AND NEW.actor_user_id IS NOT NULL;
+                                IF valid THEN
+                                    EXECUTE format(
+                                        'SELECT EXISTS (
+                                            SELECT 1 FROM %1$I.tracking_inbox_work_items w
+                                             WHERE w.receipt_id = $1 AND w.organization_id = $2
+                                               AND w.source_id = $3 AND w.state = ''Pending''
+                                               AND w.redrive_generation = $4 AND w.lease_epoch = $5)
+                                          AND EXISTS (
+                                            SELECT 1 FROM %1$I.organization_memberships m
+                                             WHERE m.organization_id = $2 AND m.user_id = $6
+                                               AND m.status = ''Active'' AND m.role = ''Manager'')',
+                                        TG_TABLE_SCHEMA)
+                                    INTO valid
+                                    USING NEW.receipt_id, NEW.organization_id, NEW.source_id,
+                                          NEW.generation, NEW.lease_epoch, NEW.actor_user_id;
+                                END IF;
+                                IF NOT valid THEN
+                                    RAISE EXCEPTION 'API role may only record an attributed manual redrive'
+                                        USING ERRCODE='23514';
+                                END IF;
+                            END IF;
+                            RETURN NEW;
+                        END $scope$;
+                        REVOKE ALL ON FUNCTION m16_api_scope_work_item() FROM PUBLIC;
+                        REVOKE ALL ON FUNCTION m16_api_scope_attempt() FROM PUBLIC;
+                        DROP TRIGGER IF EXISTS m16_api_scope_work_item ON tracking_inbox_work_items;
+                        CREATE TRIGGER m16_api_scope_work_item BEFORE UPDATE
+                            ON tracking_inbox_work_items FOR EACH ROW
+                            EXECUTE FUNCTION m16_api_scope_work_item();
+                        DROP TRIGGER IF EXISTS m16_api_scope_attempt ON tracking_work_attempt_events;
+                        CREATE TRIGGER m16_api_scope_attempt BEFORE INSERT
+                            ON tracking_work_attempt_events FOR EACH ROW
+                            EXECUTE FUNCTION m16_api_scope_attempt();
+                    ELSE
+                        -- M9 was rolled back: drop any scope guard that referenced its columns.
+                        DROP TRIGGER IF EXISTS m16_api_scope_work_item ON tracking_inbox_work_items;
+                        DROP FUNCTION IF EXISTS m16_api_scope_work_item();
+                        DROP FUNCTION IF EXISTS m16_api_scope_attempt();
                     END IF;
                 END $worker_grants$;
                 """, ct);

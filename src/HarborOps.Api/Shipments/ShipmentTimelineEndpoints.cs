@@ -26,12 +26,15 @@ public static class ShipmentTimelineEndpoints
         _ => Fail(c, 400, "invalid_request")
     };
     private static async Task<IResult?> Guard(HttpContext c, OrganizationStore organizations,
-        Guid org, OrganizationPermission permission, CancellationToken ct)
+        Guid org, OrganizationPermission permission, CancellationToken ct,
+        bool managerOnly = false)
     {
         var session = Current(c);
         var access = await organizations.ResolveAsync(session.UserId, session.SessionId,
             org, permission, ct);
-        return access.Value is null ? Denied(c, access.Error) : null;
+        if (access.Value is null) return Denied(c, access.Error);
+        return managerOnly && access.Value.Role != OrganizationRole.Manager
+            ? Denied(c, OrganizationAccessError.Forbidden) : null;
     }
     private static async Task<bool> Mutation(HttpContext c, WebApplication app,
         IAntiforgery anti) =>
@@ -163,7 +166,8 @@ public static class ShipmentTimelineEndpoints
             if (!Id(organizationId, out var org) || !Id(shipmentId, out var shipment) ||
                 c.Request.Query.Count != 0 || c.Request.ContentLength is > 0)
                 return Fail(c, 400, "invalid_request");
-            var denied = await Guard(c, orgs, org, OrganizationPermission.ManageShipmentData, ct);
+            var denied = await Guard(c, orgs, org, OrganizationPermission.ManageShipmentData, ct,
+                managerOnly: true);
             if (denied is not null) return denied;
             try
             {
@@ -186,7 +190,8 @@ public static class ShipmentTimelineEndpoints
             if (!await Mutation(c, app, anti)) return Fail(c, 403, "csrf_invalid");
             if (!Id(organizationId, out var org) || !Id(shipmentId, out var shipment) ||
                 c.Request.Query.Count != 0) return Fail(c, 400, "invalid_request");
-            var denied = await Guard(c, orgs, org, OrganizationPermission.ManageShipmentData, ct);
+            var denied = await Guard(c, orgs, org, OrganizationPermission.ManageShipmentData, ct,
+                managerOnly: true);
             if (denied is not null) return denied;
             var input = await ReadCorrection(c);
             if (input is null) return Fail(c, 400, "invalid_request");

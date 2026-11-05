@@ -15,7 +15,7 @@ Authoritative published reports from the local campaign:
 - [Corrections and retest register](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/verify/g16-local-evidence/docs/verification/g16-corrective/01-corrections-and-retest.md).
 - [M9 compatibility diagnostic](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/verify/g16-local-evidence/docs/verification/g16-corrective/02-m9-compatibility-refresh.md).
 
-Private raw evidence remains at `E:\HarborOps-Verification\evidence\new-campaign\m16`. Its reported SHA-256 manifest has 162 entries and digest `a9a13a6abf4f6b05ca305affb020c8237f12f81ed65de7cda5337fab3fa72671`. The original raw G16 evidence has **not** been independently re-parsed in this review. Documentation checks and summaries must not be presented as a replacement for that review.
+Private raw evidence remains at `E:\HarborOps-Verification\evidence\new-campaign\m16`. Its reported SHA-256 manifest has 162 entries and digest `a9a13a6abf4f6b05ca305affb020c8237f12f81ed65de7cda5337fab3fa72671`. The uploaded 162-file main campaign has now been independently checked against all 162 manifest digests, with no missing or mismatched files. Raw TRX results, all 25 recorded stage exits, three-engine Playwright JSON, mutation control and 13 kills, 74 HTTP records, 14 outage records and Trivy outputs were parsed. See the [main-campaign independent review](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/m9-m16-repowide-reconciliation-20261105/docs/M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md). **`supplement-s07-s08-s28.log` is UNREVIEWED** and is not contained in the reviewed 162 files. Documentation alone cannot close its outstanding evidence.
 
 ## Reported standalone results
 
@@ -31,20 +31,20 @@ Private raw evidence remains at `E:\HarborOps-Verification\evidence\new-campaign
 | Real PostgreSQL stop and restart | 14/14, read availability recovered without API restart |
 | Browsers | Chromium 61/61, Firefox 61/61, WebKit 61/61, no reported skips or flaky cases |
 | Dependencies and images | No vulnerable NuGet packages reported, npm audit clean, no HIGH/CRITICAL findings in three Trivy image scans |
-| Additional final-SHA probe | 6/6, covering S07, S08 and the operator-identity portion of S28 |
+| Additional final-SHA probe | 6/6 reported, **UNREVIEWED**: `supplement-s07-s08-s28.log` was not supplied; S07, S08 and operator identity in S28 remain pending independent probe inspection |
 | Teardown | Runner-relevant containers, volumes and networks reportedly removed |
 
 The 12 previously failing lock/revocation regression tests passed in both integration runs; the new foreign-key inversion mutant was killed. The runner also exercised role denial, append-only TRUNCATE/DELETE guards, audit failure rollback, cross-tenant read isolation, safe actor attribution and cursor pagination.
 
 ## Scenario and acceptance boundaries
 
-The published matrix labels G16-S01 through G16-S30 PASS **for the standalone M16 revision**. However, S07, S08 and part of S28 were supplied by an additional final-SHA probe, not a stage of the standard runner. The unauthorized S07 probe used no membership, producing 409; role-denied behavior comes from the prior accepted suites. S24's metadata size CHECK was not exercised separately. S26's ordering is stable for the committed pre-walk snapshot, but late commits with older statement timestamps can fall behind an issued cursor.
+The published matrix labels G16-S01 through G16-S30 PASS **for the standalone M16 revision**. However, S07, S08 and part of S28 were supplied by an additional final-SHA probe, not a stage of the standard runner. The supplemental file `supplement-s07-s08-s28.log` is **UNREVIEWED**, so the separate 6/6 claim and independent closure of those three scenarios are not established by the main-campaign review. The unauthorized S07 probe used no membership, producing 409; role-denied behavior comes from the prior accepted suites. S24's metadata size CHECK was not exercised separately. S26's ordering is stable for the committed pre-walk snapshot, but late commits with older statement timestamps can fall behind an issued cursor.
 
-G16-S30's M9 integration element has **not** passed a complete combined gate. A local diagnostic worktree combining M16 `e571157` and M9 `7665bc4` reportedly built with no warnings and passed 228 unit, 39 contract and 273 integration tests after fixing five hard-coded migration-count expectations. That worktree was not pushed and neither original branch was modified. Combined Compose, browser, outage and full source-locked G9/G16 campaigns were not run. M9 subsequently advanced beyond the tested diagnostic base, so current-head compatibility must be checked again.
+G16-S30's M9 integration element has **not** passed a complete combined gate. A local diagnostic worktree combining M16 `e571157` and M9 `7665bc4` reportedly built with no warnings and passed 228 unit, 39 contract and 273 integration tests after fixing five hard-coded migration-count expectations. That worktree was not pushed and neither original branch was modified. Combined Compose, browser, outage and full source-locked G9/G16 campaigns were not run. M9/G9 was subsequently accepted and merged into `main` on 2026-11-05, after advancing beyond the tested diagnostic base. Compatibility must therefore be checked against that accepted M9 baseline.
 
 ## Decisions and residual risks
 
-1. Independent review of the raw G16 stage logs, TRX, role probes, security mutants, browser results, scenario evidence and 162-file manifest is pending.
+1. Independent review of the 162-file standalone main campaign is complete. **`supplement-s07-s08-s28.log` remains UNREVIEWED** and is required to confirm the separately reported 6/6 S07/S08/S28 probe; see [main evidence review](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/docs/m9-m16-repowide-reconciliation-20261105/docs/M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md).
 2. The migration identity remains a PostgreSQL superuser. M16-D04/D05 explicitly exclude superuser tampering from the runtime-role guarantee; whether to use a restricted migrator/table owner is a separate decision.
 3. The unreleased `20261104180000_AuditEntries` migration was edited in place during corrections. A database created from the earlier unmerged migration would require a controlled migration/rebuild decision. No deployed database is claimed.
 4. M9/M16 integration still has two consistent but duplicate worker-role provisioning paths. Choose one authority for runtime grants.
@@ -55,6 +55,6 @@ G16-S30's M9 integration element has **not** passed a complete combined gate. A 
 
 ## Disposition
 
-**Standalone technical verification: passed as reported on `e571157`. Independent raw-evidence review: pending. Integrated M9 verification: partial diagnostic only. G16 acceptance and merge: pending.**
+**Standalone main-campaign technical evidence: independently checked on `e571157` (162/162 files). Supplemental log `supplement-s07-s08-s28.log`: UNREVIEWED. Integrated accepted-M9 verification: incomplete. G16 acceptance and merge: pending.**
 
 Do not rewrite the earlier failed attempt, auto-accept the gate based on runner exit 0, or claim hosted-production clearance.

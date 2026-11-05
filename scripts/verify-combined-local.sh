@@ -74,6 +74,13 @@ stage() {
   local name="$1" start="$SECONDS" rc=0 startutc
   startutc="$(date -u +%FT%TZ)"
   shift
+  # Development rehearsal only: a skipped stage is recorded as not executed, so the independent
+  # summary can never accept such a run as gate evidence.
+  if [[ ",${HARBOROPS_COMBINED_DEV_SKIP:-}," == *",$name,"* ]]; then
+    printf '%s\t%s\t0\t0\t%s\tDEV-SKIPPED\n' "$name" "$revision" "$startutc" >> "$evidence/stages.tsv"
+    echo "Combined stage $name skipped (development rehearsal)"
+    return 0
+  fi
   echo "Combined stage $name"
   if "$@" > "$evidence/$name.log" 2>&1; then rc=0; else rc=$?; fi
   printf '%s\t%s\t%s\t%s\t%s\tyes\n' "$name" "$revision" "$rc" "$((SECONDS-start))" "$startutc" >> "$evidence/stages.tsv"

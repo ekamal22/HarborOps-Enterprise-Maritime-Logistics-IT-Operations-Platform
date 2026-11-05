@@ -30,7 +30,7 @@ public sealed class MigrationSnapshotTests
     {
         using var db = SnapshotOnlyContext();
         Assert.Equal(
-            new[] { "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions", "20261031020000_OrganizationMemberships", "20261031110000_PortVesselReferences", "20261101010000_VoyageContainerReferences", "20261101180000_ShipmentLifecycle", "20261102080000_ShipmentAssignments", "20261103090000_IntegrationSources", "20261103190000_TrackingInboxAndHistory", "20261104190000_TrackingWorker" },
+            new[] { "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions", "20261031020000_OrganizationMemberships", "20261031110000_PortVesselReferences", "20261101010000_VoyageContainerReferences", "20261101180000_ShipmentLifecycle", "20261102080000_ShipmentAssignments", "20261103090000_IntegrationSources", "20261103190000_TrackingInboxAndHistory", "20261104190000_TrackingWorker", "20261105180000_ShipmentTrackingProjections" },
             db.Database.GetMigrations().ToArray());
     }
 

@@ -119,7 +119,7 @@ Reconcile M9 tracking-work read/redrive permissions and API endpoints alongside 
 
 ## Next eligible parallel workstreams
 
-M0-M9/G0-G9 are accepted and integrated. M10 event timeline and projection work may start from accepted G9; M12 search/export and M17 observability may run independently. M14 needs D-004 before applicable implementation and M19 needs D-008 before applicable implementation. M20-01, M21-01/M21-03 and M23-01/M23-03 may start under their package-specific prerequisites. M16 requires evidence review and reconciliation against accepted M9 before G16 acceptance. G10-G24 remain open; no public application hosting or production deployment is authorized.
+M0-M9/G0-G9 are accepted and integrated. M10 event timeline and projection work may start from accepted G9; M12 search/export and M17 observability may run independently. M14 needs D-004 before applicable implementation and M19 needs D-008 before applicable implementation. M20-01, M21-01 and M23-01/M23-03 may start under their package-specific prerequisites; M21-03 additionally requires M21-01. M16 requires evidence review and reconciliation against accepted M9 before G16 acceptance. G10-G24 remain open; no public application hosting or production deployment is authorized.
 
 ## Storage and residual risk
 

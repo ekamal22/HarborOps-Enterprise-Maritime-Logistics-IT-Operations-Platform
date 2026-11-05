@@ -2,7 +2,7 @@
 
 ## Contract status
 
-M0 provides public synthetic status and health routes. M1 implements accepted protected authentication endpoints. M2 organization and membership routes are implemented on `main` following accepted G2 and merged PR #5, verified locally for supported endpoint, verb, role and foreign-identifier scenarios (see [executed evidence](M2_EXECUTED_VERIFICATION.md)). M3-M6 maritime, shipment and assignment APIs are now implemented and accepted; full public OpenAPI generation remains planned; M7 source authentication, M8 durable receipt intake and M9 tracking-work query/redrive are accepted on `main`. M10 timeline/projection endpoints and M16 audit read APIs are not accepted.
+M0 provides public synthetic status and health routes. M1 implements accepted protected authentication endpoints. M2 organization and membership routes are implemented on `main` following accepted G2 and merged PR #5, verified locally for supported endpoint, verb, role and foreign-identifier scenarios (see [executed evidence](M2_EXECUTED_VERIFICATION.md)). M3-M6 maritime, shipment and assignment APIs, M7 source authentication, M8 durable receipt intake and M9 tracking-work query/redrive are accepted on `main`. Full public OpenAPI generation remains planned. M10 timeline/projection endpoints and M16 audit-read APIs are not accepted.
 
 ## Observed M0 contract verification
 

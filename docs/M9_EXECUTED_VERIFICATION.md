@@ -2,23 +2,23 @@
 
 **Status:** G9 technical campaign executed on one exact source revision. **Technical result: PASS for every executable scenario.** G9-S01 is BLOCKED (M9-01 contract acceptance pending) and G9-S25 is NOT EXECUTED (independent evidence review pending). **G9 acceptance pending.** This record is not an acceptance decision and does not authorize a merge into `main`.
 
-**Source revision:** `7665bc419618bb587873169b1dff8772e6a68e22` on `feat/m9-worker-reconciliation` ([draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18))  
+**Source revision:** `7797a4e7a8d11a8fa7b229c178e0fc323b4c3077` on `feat/m9-worker-reconciliation` ([draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18))  
 **Accepted baseline:** G0 through G8 on `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`  
-**Run:** attempt 06, run id `20261104T214054Z-584bdd362b7ae905`, 2026-11-04T21:40:54Z to 2026-11-04T22:50:37Z  
-**Runner:** `scripts/verify-g9-local.sh` (clean committed tree, E:-backed root, isolated Compose project `ho-verify-g9-a06`, no GitHub Actions)  
-**Evidence root:** `E:\HarborOps-Verification\evidence\g9-attempt-06\m9`
+**Run:** attempt 07, run id `20261105T002641Z-e5b350f4aec5e630`, 2026-11-05T00:26:41Z to 2026-11-05T01:16:19Z  
+**Runner:** `scripts/verify-g9-local.sh` (clean committed tree, E:-backed root, isolated Compose project `ho-verify-g9-a07`, no GitHub Actions)  
+**Evidence root:** `E:\HarborOps-Verification\evidence\g9-attempt-07\m9`
 
 ## Stage results
 
-All 24 runner stages exited 0 (seconds in parentheses): preflight (3), script-syntax (7), compose-contract (1), documentation (0), tracking-contract (1), no-automatic-actions (0), base-images (4), postgres-image (2), build (59), nuget-advisories (74), npm-advisories (10), web-build (567), unit-tests (3), contract-tests (12), stack-up (80), stack-e2e (96), image-scans (24), stack-teardown (4), integration-tests (867), integration-repeat (1008), trx-summary (0), security-mutations (1353), evidence-safety (0), evidence-summary (0).
+All 24 runner stages exited 0 (seconds in parentheses): preflight (2), script-syntax (5), compose-contract (1), documentation (0), tracking-contract (0), no-automatic-actions (0), base-images (3), postgres-image (10), build (45), nuget-advisories (39), npm-advisories (6), web-build (19), unit-tests (3), contract-tests (9), stack-up (43), stack-e2e (85), image-scans (20), stack-teardown (3), integration-tests (800), integration-repeat (813), trx-summary (0), security-mutations (1066), evidence-safety (0), evidence-summary (0).
 
 | Suite | Tests | Passed | Failed | Skipped or not executed |
 | --- | --- | --- | --- | --- |
 | Unit | 226 | 226 | 0 | 0 |
 | Contract | 39 | 39 | 0 | 0 |
-| PostgreSQL integration, first pass | 263 | 263 | 0 | 0 |
-| PostgreSQL integration, repeat pass | 263 | 263 | 0 | 0 |
-| Total TRX results | 791 | 791 | 0 | 0 |
+| PostgreSQL integration, first pass | 270 | 270 | 0 | 0 |
+| PostgreSQL integration, repeat pass | 270 | 270 | 0 | 0 |
+| Total TRX results | 805 | 805 | 0 | 0 |
 
 The TRX summary fails closed on zero tests, any failure and any skipped or not-executed test. Node source-contract tests (M7, M8 and M9, 24 cases) and the documentation guards also passed.
 
@@ -39,12 +39,12 @@ The TRX summary fails closed on zero tests, any failure and any skipped or not-e
 | G9-S11 | PASS | Same process kill while the effect insert was blocked inside the finalize transaction; no effect committed, one effect after recovery |
 | G9-S12 | PASS | Real PostgreSQL wire proxy cut before COMMIT reaches the server and after the server processed it; durable state is the oracle |
 | G9-S13 | PASS | 12 sequential and 20 concurrent replays plus post-processing replays, one receipt, one work item, one effect; replay through the live stack |
-| G9-S14 | PASS | Time-valid tenant assignment resolves; unknown, out-of-window and foreign-tenant references do not |
+| G9-S14 | PASS | Time-valid tenant assignment resolves; unknown, out-of-window, foreign-tenant and archived-container references do not (a container with an active assignment cannot be archived, a database guard) |
 | G9-S15 | PASS | An opaque transport token equal to an existing voyage reference is not equated with it |
 | G9-S16 | PASS | Real delays within 80 to 100 percent of 5, 10, 20 and 40 seconds, undue work not claimable, exactly five claims then DeadLetter |
 | G9-S17 | PASS | Permanent failure dead-letters with immutable evidence; unresolved references are parked with receipts intact |
 | G9-S18 | PASS | Manager-only attributed redrive, three-generation ceiling returns 409, Processed redrive denied, immutable audit rows |
-| G9-S19 | PASS | Administrator, Analyst, Auditor and integration principal denied redrive or queue access as specified; foreign tenant denied; worker role cannot read identity or credential tables; logs contain no secrets |
+| G9-S19 | PASS | Administrator, Analyst, Auditor and integration principal denied redrive or queue access as specified; Manager queue access and redrive stay denied after session revocation, account disabling, security-version change, membership removal and organization suspension; foreign organization and receipt identifiers never cross tenants; worker role cannot read identity or credential tables; logs contain no secrets |
 | G9-S20 | PASS | Real 10,000 ceiling with Pending, Leased, NeedsReconciliation and RetryWaiting all counted, canonical replay bypasses capacity, competing intake and terminal transition stay bounded |
 | G9-S21 | PASS | Suspended organization not claimed, heartbeat or finalize fenced, receipts preserved, resumed work completes once |
 | G9-S22 | PASS (stated boundary) | Unit, contract and integration suites twice, M7 to M9 source contracts, frontend unit tests and production build, EF snapshot, stack end-to-end with database outage and recovery. Existing browser journeys were not rerun; see limitations. |
@@ -81,26 +81,26 @@ NuGet: no vulnerable packages. npm: no advisory at high or above for `web` and `
 
 | Service | Image id |
 | --- | --- |
-| postgres | `sha256:ff2d7f86b9bb59d1edd4571177b4692de499dc003515dbdc18a0f0e89a1ed114` |
-| api | `sha256:88fb687a94c5e5242b043eab01a319c71e739e5026747ddb5f14f4b4bee30f2a` |
-| web | `sha256:f084a0787793e605dfc47de1730e4472b5b75ebb18ce481722b1e3c03352c37d` |
-| worker | `sha256:6300c81a27f5bac689182b07383c024c938259832eebf82dd8e768e02e9484d0` |
+| postgres | `sha256:9be4e8dbe3bbc7baa3dc143d0b54581baf20c92e4eaa2d1c578c9218abc847e8` |
+| api | `sha256:a062f48422f459e8407900ebabd8d08c352ec0cd8772564dab5a0cada0bc8ad9` |
+| web | `sha256:9b072bd2a63626ec9831ac863c724d2729b37aee8ee86b830977b64f801798a5` |
+| worker | `sha256:9ceb732484b76edaa613e3a31b9c0749920c8452cb3091005af467574a4dbde0` |
 
-Teardown left zero containers, volumes, networks and database containers for the run. Free space on C: measured 3584 MiB before and 3564 MiB after; no attributable task file was found, so nothing was deleted.
+Teardown left zero containers, volumes, networks and database containers for the run. Free space on C: measured 3681 MiB before and 3690 MiB after the run, with no attributable task file and nothing deleted.
 
 ## Evidence
 
-Archive `evidence\g9-attempt-06\m9\archives\20261104T214054Z-584bdd362b7ae905\g9-7665bc419618bb587873169b1dff8772e6a68e22-20261104T214054Z-584bdd362b7ae905-evidence.tar.gz`, SHA-256 `694fe31c0edd79ff6774e50a40a101465518ac94ee145388c6e268c30578f584`, 80 files. The runner compared the manifest with the extracted archive and scanned it for secrets; the manifest check was repeated independently with `sha256sum -c` on an extracted copy (80 of 80 verified). `finalization.json` and the scenario register `g9-scenarios.json` are beside the archive and inside `evidence`. No secrets, bearer tokens or cookies are in the archive; disposable database passwords were used as scan canaries.
+Archive `evidence\g9-attempt-07\m9\archives\20261105T002641Z-e5b350f4aec5e630\g9-7797a4e7a8d11a8fa7b229c178e0fc323b4c3077-20261105T002641Z-e5b350f4aec5e630-evidence.tar.gz`, SHA-256 `891f9bd50bb84930ec9af7d31b14bf1ed00761dd6bb45c47717bfdfafc1ebc81`, 80 files. The runner compared the manifest with the extracted archive and scanned it for secrets; the manifest check was repeated independently with `sha256sum -c` on an extracted copy (80 of 80 verified). `finalization.json` and the scenario register `g9-scenarios.json` are beside the archive and inside `evidence`. No secrets, bearer tokens or cookies are in the archive; disposable database passwords were used as scan canaries.
 
 ## Attempt history
 
-Earlier attempts are preserved unchanged and are not used as gate evidence: development attempt 01 (compile error, fixed), development attempt 02 (767 of 767 tests passed on `2131f2a`), attempt 03 (refused before any work, shared-label collision), attempt 04 (stopped by me within seconds, clean teardown), attempt 05 (all scenarios passed except S23, where one mutant survived; test gap fixed) and dev-only rehearsals 01 to 08. Details are in the [remediation register](M9_CORRECTNESS_REMEDIATION.md).
+Earlier attempts are preserved unchanged and are not used as gate evidence: development attempt 01 (compile error, fixed), development attempt 02 (767 of 767 tests passed on `2131f2a`), attempt 03 (refused before any work, shared-label collision), attempt 04 (stopped by me within seconds, clean teardown), attempt 05 (all scenarios passed except S23, where one mutant survived; test gap fixed), attempt 06 (technical PASS on `7665bc4`, 791 of 791 tests, archive `694fe31c0edd79ff6774e50a40a101465518ac94ee145388c6e268c30578f584`; superseded because later commits added the operator revocation, foreign tenant and archived container negatives) and dev-only rehearsals 01 to 08. Attempt 07 is the final source-locked run. Details are in the [remediation register](M9_CORRECTNESS_REMEDIATION.md).
 
 ## Limitations and open items
 
 - Existing M0 to M8 browser journeys were not rerun. The M9 change set touches no `web/` file and adds no UI; the frontend unit tests and production build were executed.
-- Operator API denial after session revocation, membership removal, account disabling and security-version change was not exercised by a new M9 test (the locked redrive query rechecks them in source; earlier accepted suites cover those controls for other routes). Recommended before acceptance.
-- An archived container reference is not separately exercised; the resolver and the database trigger both require `record_status='Active'` (source inspection only). Ambiguous overlapping assignments cannot be constructed because M6 constraints prevent them.
+- Ambiguous overlapping assignments cannot be constructed because M6 constraints prevent them, so the resolver's ambiguity branch has no executing test; the database prevents the condition.
+- A concurrent reference change racing a claim (CA-04) and a security-version change racing a redrive transaction (CA-08) have no dedicated race test; their sequential outcomes are tested.
 - Transient dependency retries are covered at the store level and by the outage stack check; per-error-class worker retry classification is covered by unit tests only.
 - The six M9-01 local decisions (state and lease contract, retry defaults, backlog counting, identity reconciliation and effect-once outcome, operator permissions and redrive, failure handling and deployment) are acceptance pending; testing them is not approval.
 - Independent evidence review (G9-S25) and G9 acceptance are separate decisions that remain pending. Nothing is merged into `main`.

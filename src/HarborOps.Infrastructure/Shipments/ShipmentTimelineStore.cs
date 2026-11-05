@@ -5,7 +5,6 @@ using System.Text;
 using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 
 namespace HarborOps.Infrastructure.Shipments;
@@ -13,87 +12,96 @@ namespace HarborOps.Infrastructure.Shipments;
 public sealed record ShipmentTrackingView(
     ShipmentTrackingState State, long MaterializationRevision, long CorrectionGeneration,
     bool MaterializationStale, DateTimeOffset? MaterializedAtUtc,
-    IReadOnlyList<ShipmentTimelineEvent> Timeline);
+    IReadOnlyList<ShipmentTimelineEvent> Timeline, bool HasMore = false);
 
-public enum TrackingMutationResult { Applied, NotFound, Conflict, Invalid, Forbidden }
+public enum TrackingMutationResult { Applied, Replayed, NotFound, Conflict, Invalid, Forbidden }
 
 public sealed record TrackingCorrection(Guid TargetReceiptId, Guid? ReplacementReceiptId,
     long ExpectedGeneration, string Reason);
 
-public sealed class TrackingTimelineLimitException : Exception
-{
-    public TrackingTimelineLimitException() : base("Tracking timeline exceeds the supported read limit") { }
-}
-
 public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
 {
-    private const int MaximumEvents = 10_000;
+    private const string OrderedSourceEvents = """
+        SELECT e.id,e.receipt_id,e.source_id,r.source_event_id,e.event_code,
+               e.occurred_at_utc,r.received_at_utc,c.id IS NOT NULL,c.replacement_receipt_id,
+               fx.container_id,c.id
+        FROM tracking_processing_effects fx
+        JOIN tracking_accepted_events e ON e.receipt_id=fx.receipt_id
+          AND e.organization_id=fx.organization_id AND e.source_id=fx.source_id
+        JOIN tracking_inbox_receipts r ON r.id=e.receipt_id
+          AND r.organization_id=e.organization_id AND r.source_id=e.source_id
+        LEFT JOIN shipment_tracking_corrections c
+          ON c.organization_id=fx.organization_id
+          AND c.shipment_id=fx.shipment_id
+          AND c.target_receipt_id=fx.receipt_id
+        WHERE fx.organization_id=@org AND fx.shipment_id=@shipment
+        ORDER BY e.occurred_at_utc,r.received_at_utc,e.source_id,
+                 r.source_event_id COLLATE "C",e.receipt_id,e.id
+        """;
 
-    private static NpgsqlCommand Command(NpgsqlConnection connection, NpgsqlTransaction? tx,
+    private static NpgsqlCommand Command(NpgsqlConnection con, NpgsqlTransaction? tx,
         string sql, params (string Name, object? Value)[] args)
     {
-        var command = new NpgsqlCommand(sql, connection, tx) { CommandTimeout = 30 };
+        var cmd = new NpgsqlCommand(sql, con, tx) { CommandTimeout = 60 };
         foreach (var (name, value) in args)
-            command.Parameters.AddWithValue(name, value ?? DBNull.Value);
-        return command;
+            cmd.Parameters.AddWithValue(name, value ?? DBNull.Value);
+        return cmd;
     }
-
     private NpgsqlConnection Connection => (NpgsqlConnection)db.Database.GetDbConnection();
 
-    private static async Task<bool> ExistsAsync(NpgsqlConnection con, NpgsqlTransaction? tx,
+    private static async Task<bool> ExistsAsync(NpgsqlConnection con, NpgsqlTransaction tx,
         Guid org, Guid shipment, CancellationToken ct)
     {
         await using var cmd = Command(con, tx, """
-            SELECT EXISTS (
-              SELECT 1 FROM shipments s JOIN organizations o
+            SELECT EXISTS(SELECT 1 FROM shipments s JOIN organizations o
                 ON o.id=s.organization_id
-              WHERE s.organization_id=@org AND s.id=@shipment
-                AND s.record_status='Active' AND o.status='Active')
+                WHERE s.organization_id=@org AND s.id=@shipment
+                  AND s.record_status='Active' AND o.status='Active')
             """, ("org", org), ("shipment", shipment));
-        return await cmd.ExecuteScalarAsync(ct) is bool exists && exists;
+        return await cmd.ExecuteScalarAsync(ct) is true;
     }
 
-    private static async Task<List<ShipmentTimelineEvent>> LoadAsync(
-        NpgsqlConnection con, NpgsqlTransaction? tx, Guid org, Guid shipment, CancellationToken ct)
+    // Consume the entire immutable history with constant memory beyond the requested
+    // bounded page. Materialization never depends on a 10,000-row truncation.
+    private static async Task<(ShipmentTrackingState State,
+        IReadOnlyList<ShipmentTimelineEvent> Page, bool HasMore)> StreamAsync(
+        NpgsqlConnection con, NpgsqlTransaction tx, Guid org, Guid shipment,
+        int pageSize, ShipmentTimelineKey? after, CancellationToken ct)
     {
-        await using var cmd = Command(con, tx, """
-            SELECT e.id,e.receipt_id,e.source_id,r.source_event_id,e.event_code,
-                   e.occurred_at_utc,r.received_at_utc,c.id IS NOT NULL,c.replacement_receipt_id
-            FROM tracking_processing_effects fx
-            JOIN tracking_accepted_events e ON e.receipt_id=fx.receipt_id
-              AND e.organization_id=fx.organization_id AND e.source_id=fx.source_id
-            JOIN tracking_inbox_receipts r ON r.id=e.receipt_id
-              AND r.organization_id=e.organization_id AND r.source_id=e.source_id
-            LEFT JOIN shipment_tracking_corrections c
-              ON c.organization_id=fx.organization_id
-              AND c.shipment_id=fx.shipment_id
-              AND c.target_receipt_id=fx.receipt_id
-            WHERE fx.organization_id=@org AND fx.shipment_id=@shipment
-            ORDER BY e.occurred_at_utc,r.received_at_utc,e.source_id,r.source_event_id,
-                     e.receipt_id,e.id
-            LIMIT 10001
-            """, ("org", org), ("shipment", shipment));
-        var rows = new List<ShipmentTimelineEvent>();
+        if (pageSize is < 0 or > 100) throw new ArgumentOutOfRangeException(nameof(pageSize));
+        var page = new List<ShipmentTimelineEvent>(pageSize);
+        var hasMore = false;
+        using var accumulator = new ShipmentTrackingAccumulator(org, shipment);
+        await using var cmd = Command(con, tx, OrderedSourceEvents,
+            ("org", org), ("shipment", shipment));
         await using var reader = await cmd.ExecuteReaderAsync(ct);
         while (await reader.ReadAsync(ct))
         {
-            rows.Add(new ShipmentTimelineEvent(
+            var e = new ShipmentTimelineEvent(
                 reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2),
                 reader.GetString(3), reader.GetString(4),
                 reader.GetFieldValue<DateTimeOffset>(5),
                 reader.GetFieldValue<DateTimeOffset>(6), reader.GetBoolean(7),
-                reader.IsDBNull(8) ? null : reader.GetGuid(8)));
-            if (rows.Count > MaximumEvents) throw new TrackingTimelineLimitException();
+                reader.IsDBNull(8) ? null : reader.GetGuid(8), reader.GetGuid(9),
+                reader.IsDBNull(10) ? null : reader.GetGuid(10));
+            accumulator.Add(e);
+            if (pageSize == 0 || after is not null &&
+                TrackingTimelinePolicy.Compare(ShipmentTimelineKey.Of(e), after) <= 0)
+                continue;
+            if (page.Count < pageSize) page.Add(e);
+            else hasMore = true;
         }
-        return rows;
+        return (accumulator.Complete(), page, hasMore);
     }
 
     private static async Task<(long Revision, string? Digest, DateTimeOffset? At)> CachedAsync(
-        NpgsqlConnection con, NpgsqlTransaction? tx, Guid org, Guid shipment, CancellationToken ct)
+        NpgsqlConnection con, NpgsqlTransaction tx,
+        Guid org, Guid shipment, CancellationToken ct)
     {
         await using var cmd = Command(con, tx, """
             SELECT materialization_revision,input_digest,refreshed_at_utc
-            FROM shipment_tracking_projections WHERE organization_id=@org AND shipment_id=@shipment
+            FROM shipment_tracking_projections
+            WHERE organization_id=@org AND shipment_id=@shipment
             """, ("org", org), ("shipment", shipment));
         await using var reader = await cmd.ExecuteReaderAsync(ct);
         if (!await reader.ReadAsync(ct)) return (0, null, null);
@@ -111,70 +119,40 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
         return Convert.ToInt64(await cmd.ExecuteScalarAsync(ct), CultureInfo.InvariantCulture);
     }
 
-    public async Task<ShipmentTrackingView?> ReadAsync(
-        Guid org, Guid shipment, CancellationToken ct)
+    public async Task<ShipmentTrackingView?> ReadAsync(Guid org, Guid shipment, CancellationToken ct,
+        int pageSize = 100, ShipmentTimelineKey? after = null)
     {
         await db.Database.OpenConnectionAsync(ct);
         try
         {
-            // One consistent snapshot; later commits change the cursor digest,
-            // not the contents of an already-read page.
             await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
                 IsolationLevel.RepeatableRead, ct);
             if (!await ExistsAsync(Connection, tx, org, shipment, ct)) return null;
-            var rows = await LoadAsync(Connection, tx, org, shipment, ct);
-            var state = TrackingTimelinePolicy.Reduce(org, shipment, rows);
+            var (state, page, hasMore) =
+                await StreamAsync(Connection, tx, org, shipment, pageSize, after, ct);
             var cached = await CachedAsync(Connection, tx, org, shipment, ct);
             var generation = await GenerationAsync(Connection, tx, org, shipment, ct);
             await tx.CommitAsync(ct);
             return new ShipmentTrackingView(state, cached.Revision, generation,
-                cached.Digest != state.InputDigest, cached.At, rows);
+                cached.Digest != state.InputDigest, cached.At, page, hasMore);
         }
         finally { await db.Database.CloseConnectionAsync(); }
     }
 
-    public static string EncodeCursor(string digest, int position)
+    private static async Task<bool> LockScopeAsync(NpgsqlConnection con, NpgsqlTransaction tx,
+        Guid org, Guid shipment, CancellationToken ct)
     {
-        var payload = Convert.ToBase64String(Encoding.UTF8.GetBytes(digest + ":" +
-            position.ToString(CultureInfo.InvariantCulture)));
-        return payload.TrimEnd('=').Replace('+', '-').Replace('/', '_');
-    }
-
-    public static bool DecodeCursor(string? cursor, string digest, int total, out int position)
-    {
-        position = 0;
-        if (string.IsNullOrWhiteSpace(cursor)) return true;
-        if (cursor.Length > 160 || cursor.Any(x => !char.IsAsciiLetterOrDigit(x) && x is not ('-' or '_')))
-            return false;
-        try
-        {
-            var value = cursor.Replace('-', '+').Replace('_', '/');
-            value = value.PadRight((value.Length + 3) / 4 * 4, '=');
-            var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(value));
-            var colon = decoded.LastIndexOf(':');
-            if (colon != 64 || !string.Equals(decoded[..colon], digest, StringComparison.Ordinal))
-                return false;
-            return int.TryParse(decoded[(colon + 1)..], NumberStyles.None,
-                CultureInfo.InvariantCulture, out position) && position >= 0 &&
-                position <= total;
-        }
-        catch (FormatException) { return false; }
-    }
-
-    private static async Task<bool> LockScopeAsync(
-        NpgsqlConnection con, NpgsqlTransaction tx, Guid org, Guid shipment, CancellationToken ct)
-    {
-        await using (var o = Command(con, tx,
+        await using (var cmd = Command(con, tx,
             "SELECT status FROM organizations WHERE id=@org FOR UPDATE", ("org", org)))
         {
-            if (await o.ExecuteScalarAsync(ct) is not string status || status != "Active")
+            if (await cmd.ExecuteScalarAsync(ct) is not string status || status != "Active")
                 return false;
         }
-        await using var s = Command(con, tx, """
+        await using var shipmentCommand = Command(con, tx, """
             SELECT record_status FROM shipments
             WHERE organization_id=@org AND id=@shipment FOR UPDATE
             """, ("org", org), ("shipment", shipment));
-        return await s.ExecuteScalarAsync(ct) is string state && state == "Active";
+        return await shipmentCommand.ExecuteScalarAsync(ct) is "Active";
     }
 
     private static async Task<bool> CurrentManagerAsync(NpgsqlConnection con,
@@ -184,75 +162,98 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
             SELECT EXISTS (
                 SELECT 1 FROM auth_sessions sess
                 JOIN users u ON u.id=sess.user_id
-                JOIN organization_memberships member
-                  ON member.user_id=sess.user_id
-                  AND member.organization_id=sess.selected_organization_id
+                JOIN organization_memberships member ON
+                     member.user_id=sess.user_id
+                 AND member.organization_id=sess.selected_organization_id
                 WHERE sess.id=@session AND sess.user_id=@actor
                   AND sess.selected_organization_id=@org
                   AND sess.revoked_at_utc IS NULL
                   AND sess.idle_expires_at_utc > clock_timestamp()
                   AND sess.absolute_expires_at_utc > clock_timestamp()
-                  AND u.status='Active'
-                  AND u.security_version=sess.security_version
+                  AND u.status='Active' AND u.security_version=sess.security_version
                   AND member.status='Active' AND member.role='Manager'
                 FOR SHARE OF sess,u,member
             )
             """, ("session", session), ("actor", actor), ("org", org));
-        return await cmd.ExecuteScalarAsync(ct) is bool allowed && allowed;
+        return await cmd.ExecuteScalarAsync(ct) is true;
     }
 
     private static async Task<long> PersistAsync(NpgsqlConnection con, NpgsqlTransaction tx,
         Guid org, Guid shipment, CancellationToken ct)
     {
-        var events = await LoadAsync(con, tx, org, shipment, ct);
-        var reduced = TrackingTimelinePolicy.Reduce(org, shipment, events);
+        var (reduced, _, _) = await StreamAsync(con, tx, org, shipment, 0, null, ct);
         var current = await CachedAsync(con, tx, org, shipment, ct);
+        var generation = await GenerationAsync(con, tx, org, shipment, ct);
         if (current.Digest != reduced.InputDigest)
         {
             await using var put = Command(con, tx, """
                 INSERT INTO shipment_tracking_projections
                     (organization_id,shipment_id,observed_state,last_event_id,
-                     last_occurred_at_utc,input_digest,policy_version,materialization_revision)
-                VALUES (@org,@shipment,@state,@event,@occurred,@digest,@policy,1)
+                     last_occurred_at_utc,input_digest,policy_version,correction_generation,
+                     materialization_revision)
+                VALUES (@org,@shipment,@state,@event,@occurred,@digest,@policy,@generation,1)
                 ON CONFLICT (shipment_id) DO UPDATE
                 SET observed_state=EXCLUDED.observed_state,
                     last_event_id=EXCLUDED.last_event_id,
                     last_occurred_at_utc=EXCLUDED.last_occurred_at_utc,
                     input_digest=EXCLUDED.input_digest,
                     policy_version=EXCLUDED.policy_version,
+                    correction_generation=EXCLUDED.correction_generation,
                     materialization_revision=shipment_tracking_projections.materialization_revision+1,
-                    refreshed_at_utc=clock_timestamp()
+                    refreshed_at_utc=clock_timestamp(),
+                    verified_at_utc=clock_timestamp()
                 WHERE shipment_tracking_projections.organization_id=EXCLUDED.organization_id
                   AND (shipment_tracking_projections.input_digest IS DISTINCT FROM EXCLUDED.input_digest
                     OR shipment_tracking_projections.policy_version IS DISTINCT FROM EXCLUDED.policy_version)
                 """, ("org", org), ("shipment", shipment),
-                ("state", reduced.ObservedTrackingState),
-                ("event", reduced.LastEventId), ("occurred", reduced.LastOccurredAtUtc),
-                ("digest", reduced.InputDigest), ("policy", reduced.PolicyVersion));
+                ("state", reduced.ObservedTrackingState), ("event", reduced.LastEventId),
+                ("occurred", reduced.LastOccurredAtUtc), ("digest", reduced.InputDigest),
+                ("policy", reduced.PolicyVersion), ("generation", generation));
             await put.ExecuteNonQueryAsync(ct);
         }
-
-        // This table is bookkeeping, not a second M9 effect.
+        else
+        {
+            await using var verified = Command(con, tx, """
+                UPDATE shipment_tracking_projections
+                SET verified_at_utc=clock_timestamp(),correction_generation=@generation
+                WHERE organization_id=@org AND shipment_id=@shipment
+                """, ("org", org), ("shipment", shipment), ("generation", generation));
+            await verified.ExecuteNonQueryAsync(ct);
+        }
         await using (var apps = Command(con, tx, """
             INSERT INTO shipment_projection_applications
                 (receipt_id,organization_id,shipment_id,policy_version)
             SELECT fx.receipt_id,fx.organization_id,fx.shipment_id,@policy
             FROM tracking_processing_effects fx
             WHERE fx.organization_id=@org AND fx.shipment_id=@shipment
-            ON CONFLICT (receipt_id) DO NOTHING
+            ON CONFLICT (receipt_id,policy_version) DO NOTHING
             """, ("policy", TrackingTimelinePolicy.Version),
-            ("org", org), ("shipment", shipment)))
+                ("org", org), ("shipment", shipment)))
             await apps.ExecuteNonQueryAsync(ct);
-
         var saved = await CachedAsync(con, tx, org, shipment, ct);
         if (saved.Digest != reduced.InputDigest)
             throw new InvalidOperationException("Projection digest mismatch");
         return saved.Revision;
     }
 
+    private static string RequestDigest(Guid org, Guid shipment, Guid actor,
+        TrackingCorrection? correction)
+    {
+        var canonical = correction is null
+            ? "Rebuild|" + org.ToString("N") + "|" + shipment.ToString("N") + "|" +
+              actor.ToString("N")
+            : "Correction|" + org.ToString("N") + "|" + shipment.ToString("N") + "|" +
+              actor.ToString("N") + "|" + correction.TargetReceiptId.ToString("N") + "|" +
+              (correction.ReplacementReceiptId?.ToString("N") ?? "") + "|" +
+              correction.ExpectedGeneration.ToString(CultureInfo.InvariantCulture) + "|" +
+              correction.Reason;
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)))
+            .ToLowerInvariant();
+    }
+
     private async Task<(TrackingMutationResult Result, long Revision)> ExecuteAsync(
         Guid org, Guid shipment, TrackingCorrection? correction,
-        Guid actor, Guid session, string correlation, CancellationToken ct)
+        Guid actor, Guid session, string correlation, Guid? idempotencyKey, CancellationToken ct)
     {
         for (var attempt = 0; attempt < 3; attempt++)
         {
@@ -266,37 +267,70 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
                 if (session != Guid.Empty &&
                     !await CurrentManagerAsync(Connection, tx, org, actor, session, ct))
                     return (TrackingMutationResult.Forbidden, 0);
+
+                var requestHash = RequestDigest(org, shipment, actor, correction);
+                if (idempotencyKey.HasValue)
+                {
+                    await using var replay = Command(Connection, tx, """
+                        SELECT request_digest,response_revision
+                        FROM shipment_tracking_operation_replays
+                        WHERE organization_id=@org AND shipment_id=@shipment
+                          AND actor_user_id=@actor AND idempotency_key=@key
+                        """, ("org", org), ("shipment", shipment),
+                        ("actor", actor), ("key", idempotencyKey.Value));
+                    await using var reader = await replay.ExecuteReaderAsync(ct);
+                    if (await reader.ReadAsync(ct))
+                    {
+                        var sameRequest = reader.GetString(0).Trim() == requestHash;
+                        var savedRevision = reader.GetInt64(1);
+                        return sameRequest
+                            ? (TrackingMutationResult.Replayed, savedRevision)
+                            : (TrackingMutationResult.Conflict, 0);
+                    }
+                }
+
+                long generation = await GenerationAsync(Connection, tx, org, shipment, ct);
                 if (correction is not null)
                 {
-                    long current;
-                    await using (var gen = Command(Connection, tx, """
-                        SELECT COALESCE(MAX(generation),0)
-                        FROM shipment_tracking_corrections
-                        WHERE organization_id=@org AND shipment_id=@shipment
-                        """, ("org", org), ("shipment", shipment)))
-                        current = Convert.ToInt64(await gen.ExecuteScalarAsync(ct), CultureInfo.InvariantCulture);
-                    if (correction.ExpectedGeneration != current)
+                    if (correction.ExpectedGeneration != generation)
                         return (TrackingMutationResult.Conflict, 0);
                     await using var insert = Command(Connection, tx, """
                         INSERT INTO shipment_tracking_corrections
                             (id,organization_id,shipment_id,target_receipt_id,
-                             replacement_receipt_id,generation,actor_user_id,reason,correlation_id)
+                             replacement_receipt_id,generation,actor_user_id,reason,
+                             correlation_id,correction_digest)
                         VALUES (@id,@org,@shipment,@target,@replacement,@generation,
-                                @actor,@reason,@correlation)
+                                @actor,@reason,@correlation,@digest)
                         """, ("id", Guid.NewGuid()), ("org", org), ("shipment", shipment),
                         ("target", correction.TargetReceiptId),
                         ("replacement", correction.ReplacementReceiptId),
-                        ("generation", current + 1), ("actor", actor),
-                        ("reason", correction.Reason), ("correlation", correlation));
+                        ("generation", generation + 1), ("actor", actor),
+                        ("reason", correction.Reason), ("correlation", correlation),
+                        ("digest", requestHash));
                     await insert.ExecuteNonQueryAsync(ct);
+                    generation++;
                 }
                 var revision = await PersistAsync(Connection, tx, org, shipment, ct);
+                if (idempotencyKey.HasValue)
+                {
+                    await using var replayWrite = Command(Connection, tx, """
+                        INSERT INTO shipment_tracking_operation_replays
+                            (organization_id,shipment_id,actor_user_id,idempotency_key,
+                             operation_kind,request_digest,response_revision,response_generation)
+                        VALUES (@org,@shipment,@actor,@key,@kind,@digest,@revision,@generation)
+                        """, ("org", org), ("shipment", shipment), ("actor", actor),
+                        ("key", idempotencyKey.Value),
+                        ("kind", correction is null ? "Rebuild" : "Correction"),
+                        ("digest", requestHash), ("revision", revision),
+                        ("generation", generation));
+                    await replayWrite.ExecuteNonQueryAsync(ct);
+                }
                 await tx.CommitAsync(ct);
                 return (TrackingMutationResult.Applied, revision);
             }
-            catch (PostgresException pg) when (pg.SqlState is "40001" or "40P01" && attempt < 2)
+            catch (PostgresException pg) when ((pg.SqlState is "40001" or "40P01") && attempt < 2)
             {
-                // Retry a complete serializable transaction, never a partial write.
+                // Entire failed serializable transaction is discarded.
             }
             catch (PostgresException pg) when (pg.SqlState is "23514" or "23505" or "23503")
             {
@@ -309,21 +343,21 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
 
     public Task<(TrackingMutationResult Result, long Revision)> RebuildAsync(
         Guid org, Guid shipment, CancellationToken ct)
-        => ExecuteAsync(org, shipment, null, Guid.Empty, Guid.Empty, "", ct);
+        => ExecuteAsync(org, shipment, null, Guid.Empty, Guid.Empty, "", null, ct);
 
     public Task<(TrackingMutationResult Result, long Revision)> RebuildForSessionAsync(
-        Guid org, Guid shipment, Guid actor, Guid session, CancellationToken ct)
-        => ExecuteAsync(org, shipment, null, actor, session, "", ct);
+        Guid org, Guid shipment, Guid actor, Guid session, Guid key, CancellationToken ct)
+        => ExecuteAsync(org, shipment, null, actor, session, "", key, ct);
 
     public Task<(TrackingMutationResult Result, long Revision)> CorrectAsync(
         Guid org, Guid shipment, TrackingCorrection correction,
         Guid actor, string correlation, CancellationToken ct)
-        => ExecuteAsync(org, shipment, correction, actor, Guid.Empty, correlation, ct);
+        => ExecuteAsync(org, shipment, correction, actor, Guid.Empty, correlation, null, ct);
 
     public Task<(TrackingMutationResult Result, long Revision)> CorrectForSessionAsync(
-        Guid org, Guid shipment, TrackingCorrection correction,
-        Guid actor, Guid session, string correlation, CancellationToken ct)
-        => ExecuteAsync(org, shipment, correction, actor, session, correlation, ct);
+        Guid org, Guid shipment, TrackingCorrection correction, Guid actor,
+        Guid session, string correlation, Guid key, CancellationToken ct)
+        => ExecuteAsync(org, shipment, correction, actor, session, correlation, key, ct);
 
     public async Task<IReadOnlyList<(Guid Organization, Guid Shipment)>> DirtyAsync(
         int batchSize, CancellationToken ct)
@@ -338,12 +372,20 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
                 JOIN organizations o ON o.id=fx.organization_id AND o.status='Active'
                 JOIN shipments s ON s.organization_id=fx.organization_id
                   AND s.id=fx.shipment_id AND s.record_status='Active'
-                LEFT JOIN shipment_projection_applications a ON a.receipt_id=fx.receipt_id
-                LEFT JOIN shipment_tracking_projections p ON p.shipment_id=fx.shipment_id
-                  AND p.organization_id=fx.organization_id
+                LEFT JOIN shipment_projection_applications a
+                  ON a.receipt_id=fx.receipt_id AND a.policy_version=@policy
+                LEFT JOIN shipment_tracking_projections p
+                  ON p.shipment_id=fx.shipment_id AND p.organization_id=fx.organization_id
                 WHERE a.receipt_id IS NULL OR p.shipment_id IS NULL
                   OR p.policy_version<>@policy
-                ORDER BY fx.organization_id,fx.shipment_id LIMIT @limit
+                  OR p.verified_at_utc < clock_timestamp() - interval '5 minutes'
+                  OR p.correction_generation < (
+                      SELECT COALESCE(MAX(c.generation),0)
+                      FROM shipment_tracking_corrections c
+                      WHERE c.organization_id=fx.organization_id
+                        AND c.shipment_id=fx.shipment_id)
+                ORDER BY fx.organization_id,fx.shipment_id
+                LIMIT @limit
                 """, ("policy", TrackingTimelinePolicy.Version), ("limit", batchSize));
             var found = new List<(Guid Organization, Guid Shipment)>();
             await using var reader = await cmd.ExecuteReaderAsync(ct);

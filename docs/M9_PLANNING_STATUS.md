@@ -1,5 +1,7 @@
 # M9 Planning Status
 
+**Final G9 status (2026-11-05):** G9 accepted with the mandatory [M9-01 transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md); planning PR #16 and implementation PR #18 merged into `main` as `43fe326` and `4684352`. See [G9 gate closure](M9_G9_GATE_CLOSURE.md) and [evidence review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md). Historical source-locked result classifications and earlier proposals below remain unaltered. No production deployment is authorized.
+
 **Subsequent decision and execution:** The original planning and acceptance-pending text below is historical. The later [M9-01 decision](M9_LOCAL_CONTRACT_DECISION.md) approves all six choices with the transport-backlog condition; [executed verification](M9_EXECUTED_VERIFICATION.md) and the [browser supplement](M9_BROWSER_SUPPLEMENT.md) passed on source `0abeeb0`. G9-S25 formal review and gate acceptance remain pending.
 
 **Historical planning record:** Subsequent M9 source implementation is separately tracked in [implementation status](M9_IMPLEMENTATION_STATUS.md) and the [correctness audit](M9_CORRECTNESS_AUDIT_20261104.md). This original planning record is retained, not promoted to executed verification. M9-01 contract and G9 acceptance pending.
@@ -38,4 +40,4 @@
 
 The accepted G8 evidence and the original G0-G8 records remain unchanged. Planning approval does not authorize implementing M10, merging M9, using GitHub Actions or persistent storage on C:.
 
-**Disposition:** M9 planning ready for review. M9-01 contract acceptance pending. G9 acceptance pending.
+**Historical disposition:** M9 planning was ready for review when this record was created. The later M9/G9 acceptance and merge are in [gate closure](M9_G9_GATE_CLOSURE.md).

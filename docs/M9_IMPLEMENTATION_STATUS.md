@@ -1,5 +1,7 @@
 # M9 Implementation Candidate Status
 
+**Final G9 status (2026-11-05):** G9 accepted with the mandatory [M9-01 transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md); planning PR #16 and implementation PR #18 merged into `main` as `43fe326` and `4684352`. See [G9 gate closure](M9_G9_GATE_CLOSURE.md) and [evidence review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md). Historical source-locked result classifications and earlier proposals below remain unaltered. No production deployment is authorized.
+
 **Current status 2026-11-05:** M9 technical attempt 08 and supplemental browser verification have passed on source `0abeeb0`. All six [M9-01 contract choices](M9_LOCAL_CONTRACT_DECISION.md) were approved with a mandatory transport-backlog operating condition. Formal G9-S25 independent reviewer decision, G9 acceptance and merge remain pending. The original planning and remediation sections below document earlier stages and are not current execution-status assertions.
 
 **Recorded:** 2026-11-04  
@@ -69,4 +71,4 @@ The browser regression requirement of G9-S22 was closed by a separate run of the
 
 The M9 branch owns its EF snapshot and migration until integration coordination. M12, M16, M17 and M19 may progress independently but must reconcile shared security, persistence and API contracts before combining branches. The accepted G0-G8 status, execution graph and history remain unchanged.
 
-**Disposition as of 2026-11-05: Technically verified implementation candidate with approved M9-01 contract and transport-backlog operating condition. G9-S25 formal independent review and G9 acceptance pending.**
+**Disposition as of 2026-11-05:** G9 accepted and M9 integrated into `main`; mandatory transport-backlog condition remains binding.

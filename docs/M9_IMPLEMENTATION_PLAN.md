@@ -1,5 +1,7 @@
 # M9 Implementation Plan: Idempotent Worker and Reconciliation
 
+**Final G9 status (2026-11-05):** G9 accepted with the mandatory [M9-01 transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md); planning PR #16 and implementation PR #18 merged into `main` as `43fe326` and `4684352`. See [G9 gate closure](M9_G9_GATE_CLOSURE.md) and [evidence review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md). Historical source-locked result classifications and earlier proposals below remain unaltered. No production deployment is authorized.
+
 **Subsequent implementation status:** This is the original pre-implementation plan. The approved [M9-01 decision](M9_LOCAL_CONTRACT_DECISION.md) records all six choices and the transport-backlog operating condition. Technical [G9 attempt 08](M9_EXECUTED_VERIFICATION.md) and the [browser supplement](M9_BROWSER_SUPPLEMENT.md) passed; G9-S25 formal independent review, gate acceptance and merging remain pending.
 
 **Historical proposal snapshot:** This document was written before the M9 candidate source implementation. The corrected candidate is recorded in [M9 implementation status](M9_IMPLEMENTATION_STATUS.md) and the [follow-up source audit](M9_CORRECTNESS_AUDIT_20261104.md). Neither test execution nor G9 acceptance has occurred. All six M9-01 contract decisions remain acceptance pending. [Status](STATUS.md) records the authoritative observed milestone state.

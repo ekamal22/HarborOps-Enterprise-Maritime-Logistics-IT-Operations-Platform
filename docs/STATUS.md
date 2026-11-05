@@ -3,7 +3,7 @@
 **As of:** 2026-11-05 (G0-G9 accepted and merged, with mandatory M9 transport-backlog operating restriction)
 **Default branch:** Protected `main` contains accepted M0-M9 implementations and verification records.
 **Baseline:** M0 merged via PRs #1 and #3; M1 merged via PR #4; M2 merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31.
-**Acceptance:** G0-G3 accepted 2026-10-31; G4 2026-11-01; G5-G6 2026-11-02; G7 2026-11-03; G8 2026-11-04; G9 2026-11-05. [G9 closure](M9_G9_GATE_CLOSURE.md). G10-G24 remain open; all historical evidence remains preserved.
+**Acceptance:** G0-G3 accepted 2026-10-31; G4 2026-11-01; G5-G6 2026-11-02; G7 2026-11-03; M8/G8 accepted 2026-11-04 after D-006 Option A and independent evidence review; M9/G9 2026-11-05 with the mandatory transport-backlog restriction. [G8 closure](M8_G8_GATE_CLOSURE.md) and [G9 closure](M9_G9_GATE_CLOSURE.md). M16/G16 acceptance and combined M9/M16 integration verification remain pending. G10-G24 remain open; all historical evidence remains preserved.
 
 ## Publication security review, November 3, 2026
 

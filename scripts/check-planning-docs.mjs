@@ -55,7 +55,7 @@ for (const [name,body,needle] of [
   ["README",readme,"M8 implementation passed source-locked technical verification"],
   ["Status",status,"M8/G8 accepted 2026-11-04"],
   ["Roadmap",roadmap,"G10-G24 remain open"],
-  ["Contributors",contributors,"G0-G8 are verified and explicitly accepted"],
+  ["Contributors",contributors,"G0-G9 are verified and explicitly accepted"],
   ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],
   ["Implementation plan",implementationPlan,"M8 accepted after independent G8 review"],
   ["G8 plan",m8Plan,"11 committed, source-isolated security mutation variants"],

@@ -38,7 +38,7 @@ The canonical work-package DAG is [execution-graph.json](execution-graph.json), 
 - **Gate closure** requires the complete positive/negative/security/regression evidence on the integrated source revision and explicit acceptance. Verified but unaccepted gates are not substitutes for accepted prerequisites.
 - **G24 release convergence** requires G0-G23 accepted, every cross-track contract integrated, a full final-system regression, M24-03 historical compatibility and M24-04 accessibility assessment. Early G19 recovery or G20 security review must be revalidated for later schema/features at this final gate.
 
-M6/G6 through M9/G9 are accepted and integrated. The [M9-01 contract](M9_LOCAL_CONTRACT_DECISION.md) retains a mandatory sustained-transport processing hold pending approved backlog handling. M12, M14, M16, M17, M19 and other parallel streams maintain their exact prerequisites and source-isolation rules.
+M6/G6 through M9/G9 are accepted and integrated. The [M9-01 contract](M9_LOCAL_CONTRACT_DECISION.md) retains a mandatory sustained-transport processing hold pending approved backlog handling; the earlier [M9 proposal](M9_LOCAL_CONTRACT_PROPOSAL.md) is preserved as history. M12, M14, M16, M17, M19 and other parallel streams maintain their exact prerequisites and source-isolation rules.
 
 ## Milestone register
 

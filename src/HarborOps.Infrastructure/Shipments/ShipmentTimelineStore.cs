@@ -94,19 +94,31 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
         return (accumulator.Complete(), page, hasMore);
     }
 
-    private static async Task<(long Revision, string? Digest, DateTimeOffset? At)> CachedAsync(
+    private sealed record ProjectionCache(
+        long Revision, string? Digest, DateTimeOffset? At, string? ObservedState,
+        Guid? LastEvent, DateTimeOffset? LastOccurred, long CorrectionGeneration,
+        string? PolicyVersion);
+
+    private static async Task<ProjectionCache> CachedAsync(
         NpgsqlConnection con, NpgsqlTransaction tx,
         Guid org, Guid shipment, CancellationToken ct)
     {
         await using var cmd = Command(con, tx, """
-            SELECT materialization_revision,input_digest,refreshed_at_utc
+            SELECT materialization_revision,input_digest,refreshed_at_utc,
+                   observed_state,last_event_id,last_occurred_at_utc,
+                   correction_generation,policy_version
             FROM shipment_tracking_projections
             WHERE organization_id=@org AND shipment_id=@shipment
             """, ("org", org), ("shipment", shipment));
         await using var reader = await cmd.ExecuteReaderAsync(ct);
-        if (!await reader.ReadAsync(ct)) return (0, null, null);
-        return (reader.GetInt64(0), reader.GetString(1).Trim(),
-            reader.GetFieldValue<DateTimeOffset>(2));
+        if (!await reader.ReadAsync(ct))
+            return new ProjectionCache(0, null, null, null, null, null, 0, null);
+        return new ProjectionCache(
+            reader.GetInt64(0), reader.GetString(1).Trim(),
+            reader.GetFieldValue<DateTimeOffset>(2), reader.GetString(3),
+            reader.IsDBNull(4) ? null : reader.GetGuid(4),
+            reader.IsDBNull(5) ? null : reader.GetFieldValue<DateTimeOffset>(5),
+            reader.GetInt64(6), reader.GetString(7));
     }
 
     private static async Task<long> GenerationAsync(NpgsqlConnection con, NpgsqlTransaction tx,
@@ -133,8 +145,14 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
             var cached = await CachedAsync(Connection, tx, org, shipment, ct);
             var generation = await GenerationAsync(Connection, tx, org, shipment, ct);
             await tx.CommitAsync(ct);
+            var stale = cached.Digest != state.InputDigest ||
+                cached.ObservedState != state.ObservedTrackingState ||
+                cached.LastEvent != state.LastEventId ||
+                cached.LastOccurred != state.LastOccurredAtUtc ||
+                cached.CorrectionGeneration != generation ||
+                cached.PolicyVersion != state.PolicyVersion;
             return new ShipmentTrackingView(state, cached.Revision, generation,
-                cached.Digest != state.InputDigest, cached.At, page, hasMore);
+                stale, cached.At, page, hasMore);
         }
         finally { await db.Database.CloseConnectionAsync(); }
     }

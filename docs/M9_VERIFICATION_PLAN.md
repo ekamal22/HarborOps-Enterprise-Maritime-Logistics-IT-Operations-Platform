@@ -1,5 +1,7 @@
 # G9 Verification Plan: Idempotent Worker and Reconciliation
 
+**Governance supplement (2026-11-05):** The six M9-01 choices were explicitly approved with a mandatory [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). The original source-locked G9-S01 raw result stays historically BLOCKED because approval happened after execution. G9-S25 formal independent review and explicit G9 acceptance are still pending. Do not revise the original raw scenario register.
+
 **Execution status:** The G9 technical campaign was executed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440` and its results are recorded in the [executed verification record](M9_EXECUTED_VERIFICATION.md). Every executable scenario passed; **G9-S01 is blocked by contract acceptance and G9-S25 independent review is not executed. G9 acceptance pending.** The scenario list below is the original plan and is unchanged. The browser requirement of G9-S22 was closed by a separate [browser supplement](M9_BROWSER_SUPPLEMENT.md) on the same revision.
 
 **Status:** Specification with an executed technical record (see above). G9 acceptance pending.  

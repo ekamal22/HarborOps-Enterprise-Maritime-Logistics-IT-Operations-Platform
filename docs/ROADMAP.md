@@ -2,7 +2,7 @@
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-04  
+**Updated status:** 2026-11-05  
 **State:** As of 2026-11-04, M0/G0 through M8/G8 are verified, explicitly accepted and integrated into protected `main`, with M8 merged through PR #14 on 2026-11-04. The M8 source-locked run passed 23 of 23 technical scenarios before the separate D-006 and independent review supplements. D-006 Option A, independent review and G8 acceptance completed 2026-11-04; G9-G24 remain open. The twelve-rule M6 contract and G6-S10 snapshot limitation are preserved in [gate closure](M6_G6_GATE_CLOSURE.md).
 
 ## Authority and rationale
@@ -38,7 +38,7 @@ The canonical work-package DAG is [execution-graph.json](execution-graph.json), 
 - **Gate closure** requires the complete positive/negative/security/regression evidence on the integrated source revision and explicit acceptance. Verified but unaccepted gates are not substitutes for accepted prerequisites.
 - **G24 release convergence** requires G0-G23 accepted, every cross-track contract integrated, a full final-system regression, M24-03 historical compatibility and M24-04 accessibility assessment. Early G19 recovery or G20 security review must be revalidated for later schema/features at this final gate.
 
-M6/G6, M7/G7 and M8/G8 are complete, explicitly accepted and integrated. D-006 Option A and the G8 independent evidence review are complete. M9 worker/reconciliation now has a corrected unverified feature-branch candidate on draft [PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18), with [source audit](M9_CORRECTNESS_AUDIT_20261104.md). M9-01 contract acceptance and the G9 execution/acceptance gate remain pending. M12-01 search/export, M14-01 route mapping, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain independently eligible under their exact work-package prerequisites. Eligibility never implies acceptance.
+M6/G6, M7/G7 and M8/G8 are complete, explicitly accepted and integrated. D-006 Option A and the G8 independent evidence review are complete. M9 worker/reconciliation now has a corrected unverified feature-branch candidate on draft [PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18), with [source audit](M9_CORRECTNESS_AUDIT_20261104.md). M9-01 was approved on 2026-11-05 with a [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). The technical G9 campaign and browser supplement passed; the independent G9-S25 decision and formal G9 acceptance remain pending. M12-01 search/export, M14-01 route mapping, M16 audit foundations, M17 observability, M19 recovery, M20-01 security review and M23-01 design-system definition remain independently eligible under their exact work-package prerequisites. Eligibility never implies acceptance.
 
 ## Milestone register
 
@@ -179,7 +179,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 **Scope:** At-least-once processing with effect-once business outcomes.
 **Entry:** G8 accepted before respective dependent work packages.
-**Required work packages:** M9-01 Define worker state transitions; M9-02 Implement transactional worker claim; M9-03 Implement retry and dead-letter queue; M9-04 Verify interrupted-work recovery. The [M9 architecture](M9_ARCHITECTURE_DESIGN.md), [local contract proposal](M9_LOCAL_CONTRACT_PROPOSAL.md), [implementation plan](M9_IMPLEMENTATION_PLAN.md), [G9 matrix](M9_VERIFICATION_PLAN.md) and [historical planning register](M9_PLANNING_STATUS.md), [candidate implementation](M9_IMPLEMENTATION_STATUS.md) and [source audit](M9_CORRECTNESS_AUDIT_20261104.md) define the candidate delivery. The M9 source candidate is implemented on draft PR #18 but unverified; the six M9-01 contract choices and all G9 evidence/acceptance remain pending.
+**Required work packages:** M9-01 Define worker state transitions; M9-02 Implement transactional worker claim; M9-03 Implement retry and dead-letter queue; M9-04 Verify interrupted-work recovery. The [M9-01 decision](M9_LOCAL_CONTRACT_DECISION.md) accepts all six choices with the transport-backlog operating condition. The [executed G9 campaign](M9_EXECUTED_VERIFICATION.md) passed 809/809 tests and 14/14 mutations; the [browser supplement](M9_BROWSER_SUPPLEMENT.md) passed 174/174 executions. The [acceptance package](M9_G9_ACCEPTANCE_PACKAGE.md) documents the remaining formal independent G9-S25 review. G9 acceptance and merge remain pending.
 **Exit G9:** All applicable tasks, negative tests, runtime evidence and documentation for M9 recorded; acceptance pending until explicitly confirmed.
 **Not covered by this milestone:** Shipment timelines, ETA rules and UI dashboards.
 
@@ -352,4 +352,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M8/G0-G8 are verified, explicitly accepted and integrated into `main`. M9 is an unverified feature-branch candidate with M9-01 acceptance pending. Eligible concurrent work includes M12 search/export, M14 route work subject to D-004, M16, M17, M19 subject to D-008, M20-01 and M23-01, under the canonical dependency graph. The graph remains unchanged; G9-G24 remain open. Public source visibility is separate from production-hosting acceptance.
+M0-M8/G0-G8 remain accepted on `main`. M9 is technically verified and all six M9-01 choices are accepted with a mandatory transport-backlog operating condition. Independent G9-S25 review, formal gate acceptance and PR #16/#18 merge remain pending. Independent work on M12, M14, M16, M17 and M19 continues under unchanged canonical graph dependencies. Public source visibility does not authorize production hosting.

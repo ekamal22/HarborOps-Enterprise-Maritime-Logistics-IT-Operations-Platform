@@ -1,6 +1,6 @@
 # M9 G9 Acceptance Package and Merge Readiness
 
-**Status:** Package for the independent evidence review (G9-S25) and for the M9-01 contract decision (G9-S01). It records no decision. **Acceptance pending** for the six M9-01 choices, for G9-S25 and for G9 itself. Nothing here authorizes a merge into `main`.  
+**Status:** The six M9-01 contract choices were approved on 2026-11-05 with the mandatory [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). The source-locked raw G9-S01 scenario remains historically BLOCKED, now supplemented by an explicit decision record. Formal G9-S25 independent review and G9 acceptance remain pending. Nothing here authorizes a merge into `main`.  
 **Prepared:** 2026-11-05  
 **Accepted baseline:** G0 through G8 on `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`.
 
@@ -24,16 +24,16 @@ Historical attempts are preserved unchanged and are not evidence for this packag
 
 | Case | Status | Evidence |
 | --- | --- | --- |
-| G9-S01 | **BLOCKED** | Contract acceptance pending (section 3) |
+| G9-S01 | **Contract accepted by subsequent decision** | The sealed attempt 08 register originally reported BLOCKED; [M9-01 decision](M9_LOCAL_CONTRACT_DECISION.md) approves all six with an operating condition |
 | G9-S02 to G9-S21 | PASS | Attempt 08 register `evidence\g9-scenarios.json` |
 | G9-S22 | PASS | Attempt 08 suites twice, stack outage and recovery, plus the browser supplement |
 | G9-S23 | PASS | 14 mutation families, clean control (`evidence\g9-mutations.json`) |
 | G9-S24 | PASS | Advisories, Trivy, teardown, evidence safety, archive |
 | G9-S25 | **NOT EXECUTED** | Requires an independent reviewer and a recorded decision |
 
-## 3. M9-01 contract decisions requiring explicit approval (G9-S01)
+## 3. M9-01 contract choices approved with operating condition (G9-S01)
 
-All six remain **acceptance pending**. Passing tests demonstrate behavior; they do not approve the choices. Source for each: [local contract proposal](M9_LOCAL_CONTRACT_PROPOSAL.md).
+**All six were approved on 2026-11-05 with a mandatory transport-backlog operating condition.** See the signed-off [M9-01 decision record](M9_LOCAL_CONTRACT_DECISION.md). The proposal and recommendations in the table below are preserved as the historical pre-approval assessment, not as current pending decisions.
 
 | # | Proposed decision | Implemented behavior | Verifying tests | Implications | Recommendation |
 | --- | --- | --- | --- | --- | --- |
@@ -56,7 +56,7 @@ Recorded status: **not executed**. This package does not certify itself. A revie
 
 Open items for the reviewer: the intermittent WebKit login-step failure (2.6 percent of WebKit tests across two complete runs, cause unproven); the resolver ambiguity branch has no executing test because M6 constraints prevent the condition; the M8 standalone ingress script was not rerun (equivalent coverage in the stack check); and the M9 and M16 integration work described next.
 
-Prerequisites for formal G9 acceptance: approval of the six decisions, a recorded independent review, and an explicit acceptance statement. No other technical verification is outstanding.
+The six contract choices are now approved with a mandatory transport-backlog operating condition. Remaining prerequisites for formal G9 acceptance are a dated independent review decision for G9-S25 and an explicit G9 acceptance statement. The transport operating condition remains binding for deployment, independently of gate closure.
 
 ## 5. Merge readiness (no merge has been performed)
 
@@ -65,7 +65,7 @@ Prerequisites for formal G9 acceptance: approval of the six decisions, a recorde
 **Conflicts against current `main`.** A read-only `git merge-tree` of the M9 branch into `main` is clean (no conflicting files).
 
 **Safe sequence.**
-1. Obtain G9 acceptance and approval of the six decisions first.
+1. Obtain formal G9-S25 independent review and explicit G9 acceptance first; the six M9-01 decisions have already been approved with their mandatory operating condition.
 2. Confirm `main` is still `7b9e19d` (or re-run the merge check and the EF snapshot test if it moved).
 3. Merge PR #16 into `main` (documentation only).
 4. Retarget PR #18 to `main` (a base change, no history rewrite, no force-push) and confirm the diff is the 90 implementation and verification commits.

@@ -1,5 +1,7 @@
 # M9 Executed G9 Technical Verification
 
+**Governance supplement (2026-11-05):** The original run remains immutable and recorded G9-S01 as BLOCKED at execution time. All six M9-01 contract choices were subsequently approved with a mandatory [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). G9-S25 formal independent review and explicit G9 acceptance remain pending. This is an appended decision status, not a rewrite of test evidence.
+
 **Status:** G9 technical campaign executed on one exact source revision. **Technical result: PASS for every executable scenario.** G9-S01 is BLOCKED (M9-01 contract acceptance pending) and G9-S25 is NOT EXECUTED (independent evidence review pending). **G9 acceptance pending.** This record is not an acceptance decision and does not authorize a merge into `main`.
 
 **Source revision:** `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440` on `feat/m9-worker-reconciliation` ([draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18))  

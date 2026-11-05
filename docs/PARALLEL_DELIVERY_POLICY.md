@@ -34,7 +34,7 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M9 worker and reconciliation | G9 accepted 2026-11-05, integrated into `main` | [M9 local decision](M9_LOCAL_CONTRACT_DECISION.md) and [G9 closure](M9_G9_GATE_CLOSURE.md) record the mandatory transport-backlog restriction, the evidence review and the completed PR #16/#18 merges. M16 migration and shared-file integration remains separate. |
 | M12 shipment search/export | M12-01 | G5 accepted; scoped search/export remains independently eligible in an isolated branch with no shared EF snapshot or Compose collision |
 | M14 route mapping | M14-01 | G4 accepted; map licensing and fallback must be decided before implementation |
-| M16 audit foundations | M16-01 (standalone source-locked technical candidate; G16 acceptance pending) | G3 accepted and five local decisions approved 2026-11-04. Independent raw evidence and full M9 combined integration still pending; no merge or deployment authorized |
+| M16 audit foundations | M16-01 (standalone source-locked technical candidate; G16 acceptance pending) | G3 accepted and five local decisions approved 2026-11-04. [Independent main-evidence review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md) verified 162 files; **`supplement-s07-s08-s28.log` UNREVIEWED** and full M9 combined integration pending; no merge or deployment authorized |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |
 | M19 recovery foundations | M19-01 | G3 accepted; D-008 and safe isolated backups before risky operations |
 | M20 security assurance | M20-01 | Baseline review begins after G3; attack matrix waits for G15/G18, scanners for G19 |
@@ -73,7 +73,7 @@ On the final M16 integration candidate, retain M9 `TrackingWorkRead` and `Tracki
 - When parallel branches converge, run their combined tests on the merged candidate, including auth/tenant boundary races and migration rehearsals. Earlier per-branch PASS results alone do not establish integration correctness.
 - G19 recovery can be implemented early, but any later migration requires appropriate upgrade/recovery testing. G20 assurance similarly does not waive security checks on later modules.
 - G24 requires all G0-G23 gates explicitly accepted and a fresh complete-system verification on the final code and images. M24-04 remains the **only formal dedicated accessibility audit**; M6, M12, M18, and M24-03 retain historical-volume compatibility checkpoints. These milestone-bound checks remain required even if streams finish out of numeric order.
-- No release, production deployment, new gate acceptance or M10-M24 implementation is implied by updating planning documents. M9/G9 is already accepted and integrated; M16/G16 remains pending independent review, combined verification and explicit acceptance. The [Status](STATUS.md) ledger records what was actually executed and accepted.
+- No release, production deployment, new gate acceptance or M10-M24 implementation is implied by updating planning documents. M9/G9 is already accepted and integrated; M16/G16 remains pending the UNREVIEWED S07/S08/S28 supplement, combined verification and explicit acceptance. The [Status](STATUS.md) ledger records what was actually executed and accepted.
 
 ## Graph maintenance
 

@@ -1,6 +1,6 @@
 # M16 Approved Audit and Access Policy Decisions
 
-**Approved:** 2026-11-04. **Scope:** M16 architecture and five local policies. **Implementation:** Pending. **Gate G16:** Acceptance pending.
+**Approved:** 2026-11-04. **Scope:** M16 architecture and five local policies. **Implementation:** Corrected candidate at `e571157` with reported passing standalone technical verification. **Gate G16:** Independent review and acceptance pending.
 
 These M16-local IDs do not replace the project-wide D-001 through D-008 decision register. Accepted M0-M8 behavior remains authoritative.
 
@@ -20,4 +20,8 @@ These M16-local IDs do not replace the project-wide D-001 through D-008 decision
 **Accepted:** Database-enforced append-only storage, restricted privileges and integrity checks are in scope. External cryptographic anchoring/witnessing is deferred. Do not claim absolute tamper resistance against privileged database administrators.
 
 ## Delivery and acceptance boundary
-Follow [architecture](M16_ARCHITECTURE_DESIGN.md), [privacy](M16_AUDIT_PRIVACY_POLICY.md), [implementation](M16_IMPLEMENTATION_PLAN.md) and [G16 matrix](M16_VERIFICATION_PLAN.md). Parallel M9/M12/M14/M17/M19 work remains eligible with coordinated shared files and migration order. This decision approval is not implementation, evidence review, G16 acceptance or authorization to merge into protected main.
+Follow [architecture](M16_ARCHITECTURE_DESIGN.md), [privacy](M16_AUDIT_PRIVACY_POLICY.md), [implementation](M16_IMPLEMENTATION_PLAN.md) and [G16 matrix](M16_VERIFICATION_PLAN.md). Parallel M9/M12/M14/M17/M19 work remains eligible with coordinated shared files and migration order. Policy approval by itself is not implementation or evidence acceptance. The subsequent standalone technical campaign is recorded in [executed verification](M16_EXECUTED_VERIFICATION.md); independent review, integrated M9 checks, G16 acceptance and authorization to merge into protected `main` remain separate.
+
+### Open integration choices, not reversals of approved M16 policy
+
+The migration login is currently a PostgreSQL superuser, consistent with the documented exclusion of superusers from the runtime tamper threat boundary; adopting a restricted migration owner remains a separate decision. An earlier unreleased M16 migration was edited in place, and any database initialized from that version needs explicit reconciliation. Choose one authoritative M9 worker provisioning path and clarify whether M9's immutable attempt/effect records alone satisfy M16-D03 or additional audit entries are required. These questions are acceptance pending and do not alter M16-D01 through M16-D05.

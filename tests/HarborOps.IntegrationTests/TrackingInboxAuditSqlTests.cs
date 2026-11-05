@@ -68,7 +68,7 @@ public sealed class TrackingInboxAuditSqlTests
             // the subsequent M8 downgrade without rewriting its immutable history.
             Assert.Equal(9, (await db.Database.GetAppliedMigrationsAsync()).Count());
             await db.Database.MigrateAsync();
-            Assert.Equal(10, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(11, (await db.Database.GetAppliedMigrationsAsync()).Count());
             var persisted = await db.TrackingInboxReceipts.AsNoTracking()
                 .SingleAsync(x => x.Id == received.ReceiptId);
             var accepted = await db.TrackingAcceptedEvents.AsNoTracking()

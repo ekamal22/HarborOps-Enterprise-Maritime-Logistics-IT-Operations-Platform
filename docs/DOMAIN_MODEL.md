@@ -116,3 +116,7 @@ Append-only `TrackingWorkAttemptEvent` records processing transitions with actor
 Migration `20261104190000_TrackingWorker` and the matching EF model are integrated into `main` after G9 acceptance on 2026-11-05. M9 does not implement shipment status, ETA, timeline or rebuildable projections, which belong to M10. See the [M9 contract](M9_LOCAL_CONTRACT_DECISION.md), [evidence](M9_EXECUTED_VERIFICATION.md) and [G9 closure](M9_G9_GATE_CLOSURE.md).
 
 **Operating condition:** Do not enable sustained transport-event processing until M10 or a separately approved and verified mechanism manages the parked backlog under the 10,000 unresolved-item cap. M16 audit logging is a distinct, unmerged milestone with integration and G16 acceptance pending.
+
+## M10 projection implementation candidate
+
+The unmerged M10 branch introduces SQL-only additive `shipment_tracking_projections`, `shipment_tracking_corrections` and `shipment_projection_applications` tables. No EF entity mapping is added for these read models; the existing M9 snapshot remains unchanged. Derived `Unknown`, `EquipmentIn`, `EquipmentOut` and `Conflict` observations are computed from same-organization receipt-unique M9 resolution effects and ordered M8 accepted-event provenance. Corrections are append-only, scoped and explicitly linked to original resolved receipts; replay or rebuilding does not delete history or alter manual M5 workflow state. [Implementation record](M10_IMPLEMENTATION_STATUS.md). **This is an unverified source candidate, not an accepted G10 gate.**

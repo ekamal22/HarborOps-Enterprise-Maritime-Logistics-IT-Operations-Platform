@@ -203,6 +203,12 @@ All six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices are app
 
 The [source-locked G9 campaign](M9_EXECUTED_VERIFICATION.md) passed 809/809 tests and 14/14 mutation families; the [browser supplement](M9_BROWSER_SUPPLEMENT.md) passed 174/174 browser executions. The later independent G9-S25 review and formal acceptance are recorded in [G9 closure](M9_G9_GATE_CLOSURE.md). M16 is not part of that accepted integration and requires a separate combined gate.
 
+## M10 projection candidate, isolated operational validation
+
+The feature branch introduces `compose.g10.verify.yaml` with loopback-only test ports 55410 (PostgreSQL), 8090 (API) and 5180 (web), plus `scripts/verify-g10-local.sh`. All G10 attempts must use a clean committed E:-backed checkout, fresh E:-root ending in `/m10`, a unique `ho-verify-g10-<suffix>` project and disposable secrets. No existing database, keyring, Docker project or raw evidence may be repurposed. The helper verifies code and build layers but does not, by itself, complete the G10-S01 through G10-S25 gate; separate three-browser, outage, mutation, security, migration and independent raw-evidence dispositions remain mandatory.
+
+The M10 API computes observed equipment tracking state from scoped immutable M9-resolved events on read and offers a Manager-only projection rebuild and append-only corrections. Background materialization is opt-in with `M10:EnableProjector=true`; the default application does not start it. No safe published runtime, production deployment or transport-backlog release is authorized. [M10 candidate status](M10_IMPLEMENTATION_STATUS.md) records source paths and remaining verification.
+
 ## M16 audit integration operational hold
 
 The unmerged M16 candidate has a [completed independent review of the 162-file standalone main campaign](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md), while **`supplement-s07-s08-s28.log` remains UNREVIEWED** and compatibility with accepted M9 remains pending. Do not apply its migration or worker-role grants to the retained application database. Run integration rehearsals only with isolated E:-backed volumes and a coordinated ordering of `20261104180000_AuditEntries` and `20261104190000_TrackingWorker`. Preserve the accepted M9 tracking-work permissions and runtime behavior while adding M16 Auditor-only audit reads. Resolve duplicate worker-role provisioning and audit coverage of M9 effects before a combined source-locked campaign. No G16 merge or deployment is authorized.

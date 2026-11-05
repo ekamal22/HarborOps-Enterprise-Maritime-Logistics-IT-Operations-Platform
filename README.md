@@ -104,6 +104,10 @@ The [M7 architecture](docs/M7_ARCHITECTURE_DESIGN.md), [implementation plan](doc
 
 M9 adds fenced PostgreSQL leases, bounded retries, receipt-unique immutable effects and scoped operator redrive. [G9 execution](docs/M9_EXECUTED_VERIFICATION.md) passed 809/809 tests and 14/14 mutation families; [browser verification](docs/M9_BROWSER_SUPPLEMENT.md) passed 174/174 executions. All six [M9-01 choices](docs/M9_LOCAL_CONTRACT_DECISION.md) and G9 were accepted on 2026-11-05, with a hold on sustained transport-event processing until M10 or another explicitly approved backlog mechanism exists. [G9 gate closure](docs/M9_G9_GATE_CLOSURE.md) records evidence review, limitations and PR #16/#18 merge. No public or production deployment authorized. M10 still owns projections.
 
+### M10 shipment tracking timeline and projections (implementation candidate)
+
+The [M10 implementation register](docs/M10_IMPLEMENTATION_STATUS.md) describes additive projection and correction persistence, deterministic event ordering, scoped read/rebuild/correction HTTP routes, an opt-in projection sweep, and a shipment-workspace timeline. Unit and real-PostgreSQL regression tests are committed but **not executed in this GitHub-only session**. The independent [planning PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) remains open. M10/G10 acceptance pending, M16 unmerged, and the M9 sustained transport-event processing restriction remains mandatory.
+
 ### M16 audit and access hardening (candidate, acceptance pending)
 
 The parallel [M16 feature branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/tree/feat/m16-audit-access-hardening) reports passing standalone technical verification on `e571157`, with 205 unit, 39 contract and two 252-test integration runs, plus 183 browser tests and 13 killed security mutants. The [G16 main-evidence review](docs/M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md) independently checked 162/162 manifest files, raw TRX, Playwright, mutations, HTTP, outage and image reports, all consistent with the published technical campaign. However, **`supplement-s07-s08-s28.log` remains UNREVIEWED**, so the separate 6/6 probe and independent completion of G16-S07/S08 and part of S28 are pending. G16 acceptance, merged migrations and full M9/M16 integration verification remain pending. Preserve accepted M9 tracking-work permissions, audit-only Auditor access, both API route families and the EF snapshot when coordinating integration. Draft M16 policy [PR #17](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/17) is not an implementation PR.
@@ -177,6 +181,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M3 Correctness Remediation](docs/M3_CORRECTNESS_REMEDIATION.md) | Historical first-audit fixes and subsequent verified G3 outcome |
 | [Second M3 Audit Remediation](docs/M3_SECOND_CORRECTNESS_REMEDIATION.md) | Historical second-audit fixes and subsequent verified G3 outcome |
 | [Event Processing](docs/EVENT_PROCESSING.md) | Tracking workflow, failure modes, and reconciliation |
+| [M10 Implementation Status](docs/M10_IMPLEMENTATION_STATUS.md) | Implemented candidate source paths, tests and G10 verification blockers |
 | [Security](docs/SECURITY.md) | Threat model and security acceptance gates |
 | [Operations](docs/OPERATIONS.md) | Monitoring, incidents, backups, and recovery |
 | [Testing Strategy](docs/TEST_STRATEGY.md) | Test layers, fixtures, and quality gates |

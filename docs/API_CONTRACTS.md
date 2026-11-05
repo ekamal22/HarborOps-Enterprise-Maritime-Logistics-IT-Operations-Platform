@@ -163,4 +163,17 @@ The following routes are part of the accepted M9 implementation merged through [
 
 The routes enforce current session, selected active organization, live membership and CSRF/Origin checks where applicable. Operator responses do not expose bearer material, source secrets, raw payloads or digests, and use `Cache-Control: no-store`. The accepted M8 post-commit acknowledgment contract remains unchanged. No M10 timeline API or M16 audit endpoint is implied by G9 acceptance.
 
+## M10 candidate HTTP endpoints (not accepted)
+
+The M10 branch registers the following tenant-scoped routes under `/api/v1/organizations/{organizationId}/shipments/{shipmentId}`, separate from the M5 manual shipment workflow:
+
+| Method | Path suffix | Role and semantics |
+| --- | --- | --- |
+| GET | `/events` | Analyst, Manager, Auditor via `ViewShipmentData`; `limit=1..100`, optional digest-bound `cursor`; `items`, `eventCount`, `nextCursor`, materialization and correction generation fields. No raw payload. |
+| GET | `/tracking-projection` | Same read scope; live derived `observedTrackingState`, last event/time, input digest, nullable ETA (always unknown for current profile), materialization revision and stale flag. |
+| POST | `/tracking-corrections` | Manager only, CSRF/Origin, live session recheck inside transaction; exact `targetReceiptId`, optional same-shipment `replacementReceiptId`, `expectedGeneration` and sanitized reason (8 to 240 chars). Append-only, rejects cycles and stale generation. |
+| POST | `/tracking-projection/rebuild` | Manager only, CSRF/Origin, live session recheck; serializable, digest-based idempotent materialization. |
+
+Corrections do not overwrite accepted events or M9 effects. A void correction is visible as superseded even when its replacement is null. Historical event pagination invalidates stale cursors rather than silently skipping a late arrival. Status observations are **not** M5 `workflowStatus` transitions. All M10 routes and migration are implementation candidates until source-locked G10 verification and acceptance. [Implementation register](M10_IMPLEMENTATION_STATUS.md).
+
 **Deployment restriction:** Sustained transport-event processing remains disabled until a verified M10 or separately approved mechanism safely manages `NeedsReconciliation` within the 10,000 unresolved-work cap. No public or production deployment is authorized.

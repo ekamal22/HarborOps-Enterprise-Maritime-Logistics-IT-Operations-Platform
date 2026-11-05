@@ -5,6 +5,7 @@ import { archiveShipment, changeShipment, createShipment, listShipments, shipmen
 import type { ReferenceRow } from "../references/referenceClient";
 import { isDirty, mergeLatest, scheduleEditable, serverChanged, workflowOptions } from "../lib/shipmentDraft.mjs";
 import ShipmentAssignmentsPanel from "../assignments/ShipmentAssignmentsPanel";
+import ShipmentTrackingTimeline from "./ShipmentTrackingTimeline";
 
 type Form = {
   referenceCode: string; externalReference: string; displayName: string;
@@ -465,6 +466,10 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
       {!creating && selected && <ShipmentAssignmentsPanel
         key={`${organizationId}:${selected.id}`}
         organizationId={organizationId} shipment={selected} canManage={canManage}
+        onAccessInvalidated={onAccessInvalidated} />}
+      {!creating && selected?.recordStatus === "Active" && <ShipmentTrackingTimeline
+        key={`tracking:${organizationId}:${selected.id}`}
+        organizationId={organizationId} shipmentId={selected.id}
         onAccessInvalidated={onAccessInvalidated} />}
       {!creating && selected && <div className="mt-4">
         <h6 className="font-medium">Manual status history</h6>

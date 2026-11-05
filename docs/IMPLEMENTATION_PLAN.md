@@ -87,6 +87,10 @@ The accepted M9 implementation merged through [PR #18](https://github.com/ekamal
 
 The M9 implementation uses lease-token/epoch fencing, receipt-unique immutable effects, bounded retries and an additive PostgreSQL migration preserving M8 history. The original [architecture](M9_ARCHITECTURE_DESIGN.md), [implementation plan](M9_IMPLEMENTATION_PLAN.md) and [local proposal](M9_LOCAL_CONTRACT_PROPOSAL.md) are historical design records. The approved [M9-01 local contract](M9_LOCAL_CONTRACT_DECISION.md) governs the implementation. The [G9 plan](M9_VERIFICATION_PLAN.md) and historical [acceptance package](M9_G9_ACCEPTANCE_PACKAGE.md) retain the pre-acceptance record. The [G9 closure](M9_G9_GATE_CLOSURE.md) is the authoritative accepted disposition.
 
+## M10 delivery plan (proposed)
+
+After accepted G9, M10-01 freezes source-specific deterministic ordering, correction provenance, tracking observation semantics and transport-backlog policy. M10-02 and M10-03 may advance independently after M10-01 under the [canonical execution graph](execution-graph.json), but share one controlled integration branch for migrations, permissions, `Program.cs` and EF snapshot. M10-04 requires a single source-locked combined campaign and separate G10 acceptance. See [architecture](M10_ARCHITECTURE_DESIGN.md), [implementation plan](M10_IMPLEMENTATION_PLAN.md), [G10 verification matrix](M10_VERIFICATION_PLAN.md) and [planning status](M10_PLANNING_STATUS.md). These plans do not lift M9's transport hold or imply executed tests.
+
 ## M16 independent verification and integration preparation
 
 M16-D01 through M16-D05 policy choices were approved on 2026-11-04. The feature branch's standalone technical campaign on `e571157` has now had its 162-file main evidence independently checked ([G16 review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md)). **`supplement-s07-s08-s28.log` is UNREVIEWED**, and M9-current-baseline combined verification, G16 acceptance and merge remain pending. Before an integrated PR, reconcile the accepted M9 tracking-work API and authorization with M16 audit reads, coordinate the two additive migrations and EF snapshot, settle worker-role grant ownership and worker-effect auditing, then execute final source-locked fresh/populated migrations, .NET/security/browser/outage regressions and independent evidence inspection. No accepted code or historical evidence may be rewritten to achieve apparent convergence.
@@ -100,7 +104,7 @@ The canonical graph v3.0 defines technical dependencies at package level rather 
 - Coordinate all new EF Core/PostgreSQL migrations into one ordered, additive history. Rehearse both fresh and relevant accepted M0-M6 historical upgrades after branches converge.
 - Require local scoped evidence for each package; before gate closure, integrate upstream changes and rerun affected M0-M6 and cross-stream regressions at one final SHA.
 - Verified evidence is not explicit acceptance. Merge only after the specific gate is accepted; milestone numbering does not authorize another stream or merge.
-- G24 must revalidate the final integrated code, including security, recovery, performance, quarter checkpoints and the final M24-04 accessibility audit.
+- G24 must revalidate the final integrated code, including security, recovery, performance, quarter checkpoints and the final M24-04 accessibility audit. The open [M24-03 pre-release documentation checklist](RELEASE_READINESS_TODO.md) also requires PR #21 reconciliation and fresh local documentation checks on the final SHA.
 
 See the [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) for ownership of shared contracts and detailed integration safeguards.
 

@@ -84,6 +84,10 @@ The [G9 25-case plan](M9_VERIFICATION_PLAN.md) was executed against source `0abe
 
 M9 results: the source-locked technical campaign is in the [executed verification record](M9_EXECUTED_VERIFICATION.md). Because G9-S22 requires the existing browser journeys, the 16 Playwright specs ran in Chromium, Firefox and WebKit on the same revision in a separate run, recorded in the [browser supplement](M9_BROWSER_SUPPLEMENT.md); browser executions are reported separately from the 809 .NET tests. The supplement is a source-locked, E:-backed, one-worker run on the isolated G9 stack with credential sanitization of failure artifacts.
 
+## M10/G10 projection and timeline verification (planned)
+
+The [G10-S01 through G10-S25 plan](M10_VERIFICATION_PLAN.md) covers explicit ordering and correction policy, read-model migrations on fresh/populated M9 data, tenant-safe keyset timeline APIs, independent M5 workflow status, late/out-of-order handling, versioned repeat rebuild, real PostgreSQL concurrency/failure windows, and M9 regression and transport backlog safety. [M10 architecture](M10_ARCHITECTURE_DESIGN.md) and [implementation plan](M10_IMPLEMENTATION_PLAN.md) describe the intended source boundaries. No G10 tests have run and no G10 acceptance is recorded. Formal accessibility tests remain M24-04 only.
+
 ## M16 candidate evidence and combined integration gate
 
 The M16 candidate has a reported successful source-locked standalone G16 technical run on `e571157`, with 30/30 standalone scenario dispositions, 205 unit, 39 contract, 252 integration twice, 183 browser, 13/13 security mutations, 74 HTTP authorization checks and 14 outage/recovery checks. The [independent G16 main-evidence review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md) verified all 162 supplied manifest files and re-parsed the main TRX, mutation, Playwright, HTTP and outage results. **`supplement-s07-s08-s28.log` was not included and remains UNREVIEWED**; its separate 6/6 final-SHA probes are reported, not independently confirmed. The 1024-byte metadata CHECK and cursor timing caveat remain disclosed. Earlier M9/M16 combined diagnostic tests were not full integrated gate evidence.

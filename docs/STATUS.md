@@ -117,6 +117,14 @@ The parallel `feat/m16-audit-access-hardening` branch is at `54903c986654f5f779d
 
 Reconcile M9 tracking-work read/redrive permissions and API endpoints alongside M16 Auditor-only audit permissions and read APIs; merge EF snapshot mappings while preserving migration order `20261104180000_AuditEntries` before `20261104190000_TrackingWorker`. Resolve worker-role provisioning and worker-effect audit policy, then run source-locked combined fresh and populated migration, security, PostgreSQL, browser and outage regressions. G16 acceptance and a separate merge decision remain pending. Draft M16 policy [PR #17](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/17) is not an implementation PR.
 
+## M10 architecture and implementation planning (not implemented)
+
+The [M10 architecture](M10_ARCHITECTURE_DESIGN.md), [M10-01 through M10-04 implementation plan](M10_IMPLEMENTATION_PLAN.md), [25-scenario G10 verification matrix](M10_VERIFICATION_PLAN.md) and [planning status](M10_PLANNING_STATUS.md) have been drafted against accepted G9. Event ordering, immutable correction provenance, separate observed tracking state and rebuildable projections are **proposed**, not implemented or verified. M10's transport-reference mapping and safe handling of the M9 `NeedsReconciliation` backlog require explicit policy and verification; the mandatory sustained transport-processing hold remains active. G10 acceptance pending.
+
+## Pre-release documentation follow-up (open)
+
+[PR #20](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/20) was merged on 2026-11-05. Follow-up stale-documentation reconciliation is open in [PR #21](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/21). Its final local Node documentation guards and repo-wide current-state audit must be rerun against the eventual release SHA. Record completion or a superseding resolution in the [M24-03 pre-release checklist](RELEASE_READINESS_TODO.md) before G24. No check has been executed on this planning branch.
+
 ## Next eligible parallel workstreams
 
 M0-M9/G0-G9 are accepted and integrated. M10 event timeline and projection work may start from accepted G9; M12 search/export and M17 observability may run independently. M14 needs D-004 before applicable implementation and M19 needs D-008 before applicable implementation. M20-01, M21-01 and M23-01/M23-03 may start under their package-specific prerequisites; M21-03 additionally requires M21-01. M16 requires review of the UNREVIEWED S07/S08/S28 supplement and reconciliation against accepted M9 before G16 acceptance. G10-G24 remain open; no public application hosting or production deployment is authorized.

@@ -42,6 +42,7 @@ if (builder.Configuration.GetValue<bool>("M10:EnableProjector"))
     var projectorAccount = new Npgsql.NpgsqlConnectionStringBuilder(projectorConnection);
     var apiAccount = new Npgsql.NpgsqlConnectionStringBuilder(connectionString);
     if (string.IsNullOrWhiteSpace(projectorAccount.Username) ||
+        !string.Equals(projectorAccount.Username, "harborops_projector", StringComparison.Ordinal) ||
         string.Equals(projectorAccount.Username, apiAccount.Username, StringComparison.OrdinalIgnoreCase))
         throw new InvalidOperationException("M10 projector must use a distinct restricted database role");
     builder.Services.AddHostedService<TrackingProjectionHostedService>();

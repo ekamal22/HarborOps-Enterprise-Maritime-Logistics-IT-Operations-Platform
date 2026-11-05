@@ -88,7 +88,8 @@ public sealed class TrackingWorkerMigrationTests
             var blocked = await Assert.ThrowsAsync<PostgresException>(() =>
                 db.Database.MigrateAsync("20261103190000_TrackingInboxAndHistory"));
             Assert.Equal(PostgresErrorCodes.CheckViolation, blocked.SqlState);
-            Assert.Equal(11, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            // M10 is empty and reverts; retained M9 claimed work blocks the next downgrade.
+            Assert.Equal(10, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(1, await db.TrackingInboxReceipts.CountAsync(x => x.Id == received.ReceiptId));
             Assert.Equal(1, await db.TrackingAcceptedEvents.CountAsync(x => x.ReceiptId == received.ReceiptId));
         }

@@ -59,6 +59,10 @@ cleanup() {
   if (( own_stack )); then
     compose down --volumes --remove-orphans >> "$root/evidence/teardown.log" 2>&1 || prior=1
   fi
+  # Delete only task-created disposable secret files after the owned stack stops.
+  rm -f "$root/private/db-password.txt" "$root/private/worker-password.txt" \
+        "$root/private/user-password.txt"
+  rmdir "$root/private" 2>/dev/null || true
   printf '%s\n' "$prior" > "$root/evidence/technical-exit-code.txt"
   exit "$prior"
 }
@@ -103,6 +107,23 @@ ready() {
   return 1
 }
 stage ready ready
+
+projector_role() {
+  compose exec -T postgres psql -U harborops -d harborops -v ON_ERROR_STOP=1 \
+    < scripts/configure-m10-projector-db.sql
+}
+stage projector-role-setup projector_role
+projector_privileges() {
+  local got
+  got="$(compose exec -T postgres psql -U harborops -d harborops -At -c \
+    "SELECT has_table_privilege('harborops_projector','tracking_processing_effects','INSERT'),
+            has_table_privilege('harborops_projector','tracking_processing_effects','UPDATE'),
+            has_table_privilege('harborops_projector','tracking_processing_effects','DELETE'),
+            has_table_privilege('harborops_projector','tracking_processing_effects','SELECT'),
+            has_table_privilege('harborops_projector','shipment_tracking_projections','UPDATE')")"
+  [[ "$got" == "f|f|f|t|t" ]]
+}
+stage projector-role-privileges projector_privileges
 
 provision() {
   printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | compose run --rm -T \

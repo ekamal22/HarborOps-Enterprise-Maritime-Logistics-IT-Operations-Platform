@@ -61,8 +61,8 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
         return await cmd.ExecuteScalarAsync(ct) is true;
     }
 
-    // Consume the entire immutable history with constant memory beyond the requested
-    // bounded page. Materialization never depends on a 10,000-row truncation.
+    // Consume immutable history without retaining every event: memory is bounded
+    // by the requested page and the number of distinct resolved containers. Materialization never depends on a 10,000-row truncation.
     private static async Task<(ShipmentTrackingState State,
         IReadOnlyList<ShipmentTimelineEvent> Page, bool HasMore)> StreamAsync(
         NpgsqlConnection con, NpgsqlTransaction tx, Guid org, Guid shipment,

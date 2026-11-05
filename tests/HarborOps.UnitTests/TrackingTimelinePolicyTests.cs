@@ -107,7 +107,7 @@ public sealed class TrackingTimelinePolicyTests
         ]);
         Assert.Equal("Mixed", state.ObservedTrackingState);
         Assert.Equal(2, state.Containers!.Count);
-        Assert.All(state.Containers, item => Assert.NotEqual("Conflict", item.ObservedState));
+        Assert.All(state.Containers!, item => Assert.NotEqual("Conflict", item.ObservedState));
     }
 
     [Fact]

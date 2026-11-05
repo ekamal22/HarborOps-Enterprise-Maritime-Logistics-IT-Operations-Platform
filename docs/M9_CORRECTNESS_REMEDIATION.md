@@ -1,5 +1,7 @@
 # M9 Verification Remediation Register
 
+**Current governance status (2026-11-05):** All six [M9-01 contract choices](M9_LOCAL_CONTRACT_DECISION.md) were approved with the mandatory transport-backlog operating condition. The original defect register, source-locked verification and historical failures remain unchanged. G9-S25 formal independent review and G9 acceptance remain pending.
+
 **Status:** Records every defect found while executing the G9 technical campaign against the M9 candidate, its root cause, fix, regression coverage and commit. The final passing run is described in the [executed verification record](M9_EXECUTED_VERIFICATION.md). G9 acceptance pending.  
 **Prepared:** 2026-11-04  
 **Candidate at start:** `cff7c254f642432086689437f8a7403b683425bd`  

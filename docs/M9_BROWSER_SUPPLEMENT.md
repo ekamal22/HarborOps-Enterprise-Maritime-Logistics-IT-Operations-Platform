@@ -1,5 +1,7 @@
 # M9 G9-S22 Browser Regression Supplement
 
+**Decision status supplement (2026-11-05):** All six [M9-01 choices](M9_LOCAL_CONTRACT_DECISION.md) are approved with the transport-backlog operating condition. This does not alter the 174/174 browser execution evidence or close the formal G9-S25 independent review and gate acceptance requirements.
+
 **Status:** Supplemental technical evidence, executed. **Result: PASS** (final run). It closes the browser requirement of G9-S22 and does not replace or alter the attempt 08 campaign in the [executed verification record](M9_EXECUTED_VERIFICATION.md). G9 acceptance pending.
 
 **Implementation source:** `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440`, the exact revision of attempt 08, built from a clean detached worktree (`E:\HarborOps-Verification\worktrees\m9-browser-0abeeb0`).  

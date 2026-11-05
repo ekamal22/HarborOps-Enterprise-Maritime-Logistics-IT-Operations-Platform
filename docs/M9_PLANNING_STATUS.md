@@ -1,5 +1,7 @@
 # M9 Planning Status
 
+**Subsequent decision and execution:** The original planning and acceptance-pending text below is historical. The later [M9-01 decision](M9_LOCAL_CONTRACT_DECISION.md) approves all six choices with the transport-backlog condition; [executed verification](M9_EXECUTED_VERIFICATION.md) and the [browser supplement](M9_BROWSER_SUPPLEMENT.md) passed on source `0abeeb0`. G9-S25 formal review and gate acceptance remain pending.
+
 **Historical planning record:** Subsequent M9 source implementation is separately tracked in [implementation status](M9_IMPLEMENTATION_STATUS.md) and the [correctness audit](M9_CORRECTNESS_AUDIT_20261104.md). This original planning record is retained, not promoted to executed verification. M9-01 contract and G9 acceptance pending.
 
 **Historical snapshot:** This records the initial M9 planning phase. Later source implementation on `feat/m9-worker-reconciliation` is separately documented in [M9 implementation status](M9_IMPLEMENTATION_STATUS.md). It is unverified, and the original M9-01 contract remains acceptance pending.

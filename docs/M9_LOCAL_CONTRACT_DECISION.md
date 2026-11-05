@@ -20,7 +20,7 @@
 
 ## Mandatory transport-backlog operating condition
 
-**Do not enable sustained transport-event ingestion or processing in any deployed environment until M10, or a separately approved operational mechanism, demonstrably manages the transport events that M9 parks in NeedsReconciliation and prevents the unresolved backlog from exhausting the 10,000-item capacity.**
+**Do not enable sustained transport-event processing in any deployed environment until M10, or a separately approved operational mechanism, demonstrably manages the transport events that M9 parks in NeedsReconciliation and prevents the unresolved backlog from exhausting the 10,000-item capacity.**
 
 This is an operational enablement constraint, not permission to change M8 receipt semantics, automatically delete historical events, silently drop transport events or bypass admission safeguards. Controlled, isolated verification of transport-event parking remains permitted. If the backlog-management design is developed outside M10, it requires separate explicit approval and verification before sustained use.
 

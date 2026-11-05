@@ -1,5 +1,7 @@
 # M9 Architecture: Idempotent Worker and Reconciliation
 
+**Subsequent contract and evidence:** This document remains a historical design proposal. Its six local choices were approved with a mandatory [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md) on 2026-11-05, and the source-locked [G9 campaign](M9_EXECUTED_VERIFICATION.md) plus [browser supplement](M9_BROWSER_SUPPLEMENT.md) passed. Formal G9-S25 review and acceptance are still pending.
+
 **Historical proposal snapshot:** This document was written before the M9 candidate source implementation. The corrected candidate is recorded in [M9 implementation status](M9_IMPLEMENTATION_STATUS.md) and the [follow-up source audit](M9_CORRECTNESS_AUDIT_20261104.md). Neither test execution nor G9 acceptance has occurred. All six M9-01 contract decisions remain acceptance pending. [Status](STATUS.md) records the authoritative observed milestone state.
 
 **Status:** Proposed architecture and implementation contract, not implemented or verified. M9/G9 acceptance pending.  

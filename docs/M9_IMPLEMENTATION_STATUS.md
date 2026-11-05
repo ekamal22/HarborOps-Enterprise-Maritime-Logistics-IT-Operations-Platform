@@ -1,12 +1,12 @@
 # M9 Implementation Candidate Status
 
-**Repository-wide documentation reconciliation:** Current-facing project documents now distinguish this corrected implementation candidate from accepted M8 code and from future M10 processing. The [correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) remains source-only. No M9 runtime verification, M9-01 acceptance, G9 acceptance or merge into `main` is implied.
+**Current status 2026-11-05:** M9 technical attempt 08 and supplemental browser verification have passed on source `0abeeb0`. All six [M9-01 contract choices](M9_LOCAL_CONTRACT_DECISION.md) were approved with a mandatory transport-backlog operating condition. Formal G9-S25 independent reviewer decision, G9 acceptance and merge remain pending. The original planning and remediation sections below document earlier stages and are not current execution-status assertions.
 
 **Recorded:** 2026-11-04  
 **Branch:** `feat/m9-worker-reconciliation`  
 **Baseline:** accepted `main` `7b9e19d730e3a09c5e1184262460dfeac9319e3d`  
-**Contract:** M9-01 local decisions acceptance pending  
-**G9:** Technical campaign executed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440` (see [executed verification](M9_EXECUTED_VERIFICATION.md)); every executable scenario passed. G9-S01 is blocked by contract acceptance, G9-S25 independent review is not executed, and G9 acceptance pending.  
+**Contract:** All six M9-01 choices accepted 2026-11-05 with [mandatory operating condition](M9_LOCAL_CONTRACT_DECISION.md)  
+**G9:** Technical campaign executed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440` (see [executed verification](M9_EXECUTED_VERIFICATION.md)); every executable scenario passed. The source-locked G9-S01 result was BLOCKED at execution time; the subsequent contract decision satisfies the governance prerequisite. G9-S25 formal independent review and G9 acceptance remain pending.  
 **Integration:** Not merged into `main`.
 
 ## Candidate source
@@ -29,7 +29,7 @@ Equipment events can be resolved only to an active tenant-owned container and a 
 
 A valid durable receipt survives revocation of the source credential after ingestion. A suspended organization cannot receive a newly committed processing effect. Processed outcomes remain terminal; redrive requires a separately authorized, attributed generation and cannot rewrite receipts or effects.
 
-## Tests authored but not executed
+## Historical test-authoring checkpoint (subsequently executed)
 
 *Historical record from the time the candidate was authored. These tests were later executed; see the [executed verification record](M9_EXECUTED_VERIFICATION.md) and the [remediation register](M9_CORRECTNESS_REMEDIATION.md).*
 
@@ -61,7 +61,7 @@ The ten original source-level findings have corrective changes, reviewed in [M9 
 
 ## Technical verification record
 
-The source-locked G9 technical campaign (attempt 08) passed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440`: 809 of 809 TRX results (226 unit, 39 contract, 272 integration twice), a 14-check isolated Compose stack end-to-end run with the restricted worker role, fourteen mutation families killed by intended tests, clean NuGet, npm and Trivy scans of the four exact-source images, zero leftover resources and a verified evidence archive. The campaign found one product-source defect (migration and snapshot drift, V02) and several test and tooling defects, all fixed; see the [remediation register](M9_CORRECTNESS_REMEDIATION.md). M9-01 contract approval, independent evidence review and G9 acceptance are separate decisions that remain pending. Nothing is merged into `main`.
+The source-locked G9 technical campaign (attempt 08) passed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440`: 809 of 809 TRX results (226 unit, 39 contract, 272 integration twice), a 14-check isolated Compose stack end-to-end run with the restricted worker role, fourteen mutation families killed by intended tests, clean NuGet, npm and Trivy scans of the four exact-source images, zero leftover resources and a verified evidence archive. The campaign found one product-source defect (migration and snapshot drift, V02) and several test and tooling defects, all fixed; see the [remediation register](M9_CORRECTNESS_REMEDIATION.md). M9-01 contract approval was granted with an operating condition on 2026-11-05. Independent G9-S25 review and explicit G9 acceptance remain pending. Nothing is merged into `main`.
 
 The browser regression requirement of G9-S22 was closed by a separate run of the 16 existing browser specs in Chromium, Firefox and WebKit on the same revision (174 test executions, 0 failed); see the [browser supplement](M9_BROWSER_SUPPLEMENT.md). The [acceptance package](M9_G9_ACCEPTANCE_PACKAGE.md) holds the combined evidence references, the six M9-01 decisions for approval, the independent-review checklist and the merge plan.
 
@@ -69,4 +69,4 @@ The browser regression requirement of G9-S22 was closed by a separate run of the
 
 The M9 branch owns its EF snapshot and migration until integration coordination. M12, M16, M17 and M19 may progress independently but must reconcile shared security, persistence and API contracts before combining branches. The accepted G0-G8 status, execution graph and history remain unchanged.
 
-**Disposition: Implementation candidate; source and tests require execution and correction. G9 acceptance pending.**
+**Disposition as of 2026-11-05: Technically verified implementation candidate with approved M9-01 contract and transport-backlog operating condition. G9-S25 formal independent review and G9 acceptance pending.**

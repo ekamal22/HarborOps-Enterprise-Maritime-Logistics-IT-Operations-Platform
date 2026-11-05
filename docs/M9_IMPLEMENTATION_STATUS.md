@@ -6,7 +6,7 @@
 **Branch:** `feat/m9-worker-reconciliation`  
 **Baseline:** accepted `main` `7b9e19d730e3a09c5e1184262460dfeac9319e3d`  
 **Contract:** M9-01 local decisions acceptance pending  
-**G9:** Technical campaign executed on `7797a4e7a8d11a8fa7b229c178e0fc323b4c3077` (see [executed verification](M9_EXECUTED_VERIFICATION.md)); every executable scenario passed. G9-S01 is blocked by contract acceptance, G9-S25 independent review is not executed, and G9 acceptance pending.  
+**G9:** Technical campaign executed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440` (see [executed verification](M9_EXECUTED_VERIFICATION.md)); every executable scenario passed. G9-S01 is blocked by contract acceptance, G9-S25 independent review is not executed, and G9 acceptance pending.  
 **Integration:** Not merged into `main`.
 
 ## Candidate source
@@ -61,7 +61,7 @@ The ten original source-level findings have corrective changes, reviewed in [M9 
 
 ## Technical verification record
 
-The source-locked G9 technical campaign (attempt 07) passed on `7797a4e7a8d11a8fa7b229c178e0fc323b4c3077`: 805 of 805 TRX results (226 unit, 39 contract, 270 integration twice), a 14-check isolated Compose stack end-to-end run with the restricted worker role, twelve mutation families killed by intended tests, clean NuGet, npm and Trivy scans of the four exact-source images, zero leftover resources and a verified evidence archive. The campaign found one product-source defect (migration and snapshot drift, V02) and several test and tooling defects, all fixed; see the [remediation register](M9_CORRECTNESS_REMEDIATION.md). M9-01 contract approval, independent evidence review and G9 acceptance are separate decisions that remain pending. Nothing is merged into `main`.
+The source-locked G9 technical campaign (attempt 08) passed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440`: 809 of 809 TRX results (226 unit, 39 contract, 272 integration twice), a 14-check isolated Compose stack end-to-end run with the restricted worker role, fourteen mutation families killed by intended tests, clean NuGet, npm and Trivy scans of the four exact-source images, zero leftover resources and a verified evidence archive. The campaign found one product-source defect (migration and snapshot drift, V02) and several test and tooling defects, all fixed; see the [remediation register](M9_CORRECTNESS_REMEDIATION.md). M9-01 contract approval, independent evidence review and G9 acceptance are separate decisions that remain pending. Nothing is merged into `main`.
 
 ## Parallel integration
 

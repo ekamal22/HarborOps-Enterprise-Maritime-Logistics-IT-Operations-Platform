@@ -3,7 +3,7 @@
 **Status:** Records every defect found while executing the G9 technical campaign against the M9 candidate, its root cause, fix, regression coverage and commit. The final passing run is described in the [executed verification record](M9_EXECUTED_VERIFICATION.md). G9 acceptance pending.  
 **Prepared:** 2026-11-04  
 **Candidate at start:** `cff7c254f642432086689437f8a7403b683425bd`  
-**Final verified revision:** `7797a4e7a8d11a8fa7b229c178e0fc323b4c3077`
+**Final verified revision:** `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440`
 
 ## Summary
 
@@ -24,6 +24,7 @@ One defect was in M9 product source: the PostgreSQL migration and EF model snaps
 | V09 | Verification tool | Low | Mutation family 9 (policy-only relaxation of redrive) survived because the locked store query independently requires the Manager role. That is defense in depth, so the mutant was equivalent. | The mutant relaxes both layers; the equivalence proof is recorded. Killed in attempt 06. | `7665bc4` |
 | V10 | Environment | Low | Transient `EOF` from `mcr.microsoft.com` when pulling the worker base image. | Retry succeeded; the orchestrator pre-pulls base images with bounded retries. Not a product issue. | `f624413` |
 | V11 | Test coverage gap | Medium | The first complete run left required negatives unexercised: operator API denial after session revocation, account disabling, security-version change, membership removal and organization suspension, and an archived container reference. | `TrackingWorkerG9AuthorizationTests` (five revocation cases, foreign organization identifiers, archived container). All passed on first execution; they found no product defect. | `7797a4e` |
+| V12 | Test coverage gap | Low | CA-04 (a reference changing while a worker finalizes) and the redrive security-version recheck under a lock wait (CA-08) had no race test. | `TrackingWorkerG9RaceTests`: a real worker process parked on a blocked effect insert while the assignment is closed, and a redrive waiting on the organization lock while the security version changes; both added as mutation families 13 and 14 and killed. They found no product defect. | `0abeeb0` |
 
 ## Not defects, recorded for review
 
@@ -33,4 +34,4 @@ One defect was in M9 product source: the PostgreSQL migration and EF model snaps
 
 ## Source audit findings
 
-The ten findings in the [follow-up source audit](M9_CORRECTNESS_AUDIT_20261104.md) were source-level. This campaign executed their corresponding behaviors: CA-01 and CA-06 (restricted worker role processes real work and cannot forge attempts or bypass redrive), CA-02 (compiles), CA-03 (standalone G9 stack renders and runs on its own ports), CA-05 (isolated-schema migration and claim), CA-09 (tenant quota and two-process barrier tests), CA-10 (readiness probe fails on a missing grant and recovers). CA-08 (the redrive recheck of the session security version) is exercised sequentially by the security-version revocation test. CA-04 (concurrent reference change) and a race version of CA-08 are present in source without a dedicated race test and are listed as open items in the [executed verification record](M9_EXECUTED_VERIFICATION.md).
+The ten findings in the [follow-up source audit](M9_CORRECTNESS_AUDIT_20261104.md) were source-level. This campaign executed their corresponding behaviors: CA-01 and CA-06 (restricted worker role processes real work and cannot forge attempts or bypass redrive), CA-02 (compiles), CA-03 (standalone G9 stack renders and runs on its own ports), CA-05 (isolated-schema migration and claim), CA-09 (tenant quota and two-process barrier tests), CA-10 (readiness probe fails on a missing grant and recovers). CA-04 (concurrent reference change) and CA-08 (the redrive recheck of the session security version) are exercised by deterministic race tests and by mutation families 13 and 14.

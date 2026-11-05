@@ -1,6 +1,6 @@
 # G9 Verification Plan: Idempotent Worker and Reconciliation
 
-**Execution status:** The G9 technical campaign was executed on `7797a4e7a8d11a8fa7b229c178e0fc323b4c3077` and its results are recorded in the [executed verification record](M9_EXECUTED_VERIFICATION.md). Every executable scenario passed; **G9-S01 is blocked by contract acceptance and G9-S25 independent review is not executed. G9 acceptance pending.** The scenario list below is the original plan and is unchanged.
+**Execution status:** The G9 technical campaign was executed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440` and its results are recorded in the [executed verification record](M9_EXECUTED_VERIFICATION.md). Every executable scenario passed; **G9-S01 is blocked by contract acceptance and G9-S25 independent review is not executed. G9 acceptance pending.** The scenario list below is the original plan and is unchanged.
 
 **Status:** Specification with an executed technical record (see above). G9 acceptance pending.  
 **Prepared:** 2026-11-04  

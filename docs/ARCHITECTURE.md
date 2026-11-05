@@ -18,7 +18,7 @@ M4 remains inside the accepted ASP.NET Core modular monolith, not a separate ser
 
 ## Baseline topology
 
-A modular monolith provides the HTTP API and transactional domain functions. A separate .NET worker remains idle in accepted `main`; the M9 candidate replaces the scaffold with a PostgreSQL-backed worker, with runtime verification complete on tested source `0abeeb0`, pending independent G9-S25 review and gate acceptance. PostgreSQL is the authoritative persistence layer. React is the user interface. Local infrastructure is orchestrated through Docker Compose.
+A modular monolith provides the HTTP API and transactional domain functions. A separate opt-in .NET worker is implemented in accepted `main` under M9, with PostgreSQL leases, bounded retries, immutable resolution effects and scoped operator redrive. G9 was accepted on 2026-11-05; the default Compose stack still does not start the worker. PostgreSQL is the authoritative persistence layer. React is the user interface. Local infrastructure is orchestrated through Docker Compose.
 
     Browser (React + TypeScript)
                 |
@@ -39,7 +39,7 @@ A modular monolith provides the HTTP API and transactional domain functions. A s
     API + Worker -> OpenTelemetry -> Prometheus/Grafana + structured logs
     Monitoring signals -> Incident workflow
 
-The diagram is the target topology for later milestones. In M0, the code contains the API, PostgreSQL DbContext and migrator, React status interface, and an idle worker shell. Tracking ingestion, domain modules, metrics, tracing, and incidents are not implemented. Docker Compose startup, database-backed API, browser path and controlled database outage/recovery were verified historically at `4fb34eb`, then successfully reverified on `fec7429415fede121db8a4a34f0df72cd4fac609` with .NET 10 in GitHub Actions run #2. G0 was accepted on 2026-10-31. The containers were stopped after verification; this is not a hosted deployment.
+The diagram includes accepted M9 infrastructure and planned downstream observability/incident capabilities. Historically M0 supplied the API, PostgreSQL DbContext and migrator, React status UI and an idle worker shell; M1-M9 subsequently implemented identity, maritime records and tracking receipt/worker operations. M10 projections, M16 audit and M17-M18 observability/incident capabilities remain unaccepted. Docker Compose startup, database-backed API, browser path and controlled database outage/recovery were verified historically at `4fb34eb`, then successfully reverified on `fec7429415fede121db8a4a34f0df72cd4fac609` with .NET 10 in GitHub Actions run #2. G0 was accepted on 2026-10-31. The containers were stopped after verification; this is not a hosted deployment.
 
 ## M2 organization and authorization architecture (implemented, G2 accepted, merged to `main`)
 
@@ -81,7 +81,7 @@ Append-only records of sensitive actions and key operational state changes. No d
 - HTTP handlers call application services. Business rules reside in domain/application layers.
 - External data formats terminate at adapter boundaries; internal domain types are stable and versioned.
 - Queries may use dedicated read models without bypassing organization checks.
-- The worker must have bounded retries, idempotent handlers, and durable error records. [M9 candidate](M9_IMPLEMENTATION_STATUS.md) implements PostgreSQL lease epoch/token fencing, receipt-unique immutable resolution effects, DB-generated attempt events and a separately authorized reconciliation path; G9 verification and acceptance remain pending.
+- The worker must have bounded retries, idempotent handlers, and durable error records. [Accepted M9](M9_G9_GATE_CLOSURE.md) implements PostgreSQL lease epoch/token fencing, receipt-unique immutable resolution effects, DB-generated attempt events and separately authorized reconciliation.
 - Shared infrastructure abstractions must not obscure domain ownership.
 - Prefer straightforward synchronous paths until measurable requirements justify additional infrastructure.
 
@@ -162,10 +162,10 @@ The accepted M0 hardening baseline uses .NET 10 and EF Core 10 while preserving 
 - `src/HarborOps.Application`: read-only baseline service contract
 - `src/HarborOps.Domain`: immutable synthetic baseline identifiers
 - `src/HarborOps.Infrastructure`: EF Core context, PostgreSQL migration, deterministic baseline seed, and read service
-- `src/HarborOps.Worker`: idle in the original accepted M0 baseline; M9's isolated candidate adds bounded claim, heartbeat, finalization and reconciliation, not yet verified
+- `src/HarborOps.Worker`: historically an idle M0 shell; accepted M9 adds verified, opt-in PostgreSQL claim, heartbeat, finalization and reconciliation
 - `web`: React status UI reading the API, with loading and dependency-error states
 - `compose.yaml`: PostgreSQL, one-shot migrator, API, and static frontend
 
 The M0 baseline record is infrastructure metadata, not a shipment or organization entity. The API does not run migrations while serving requests. Initial database creation and seeding occur in the one-shot migrator container. Subsequent migrations require an explicit operational check. No protected business endpoints exist at this stage.
 
-**Current M9 architecture and deployment boundary (2026-11-05):** Technical and browser regressions passed on `0abeeb0`; all six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices are approved. Transport events park in NeedsReconciliation, so sustained transport-event processing must not be enabled in a deployment until M10 or another explicitly approved mechanism manages the unresolved backlog. G9-S25 review, gate acceptance, merge and production authorization remain separate.
+**Current M9 architecture and deployment boundary (2026-11-05):** Technical and browser regressions passed on `0abeeb0`; all six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices are approved. Transport events park in NeedsReconciliation, so sustained transport-event processing must not be enabled in a deployment until M10 or another explicitly approved mechanism manages the unresolved backlog. G9 review and acceptance are complete, and M9 is merged into `main`. Production deployment remains unauthorized; M16 audit integration, merged EF snapshot parity and G16 acceptance remain separate. The [G16 main-evidence review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md) covers the 162-file standalone campaign, but **`supplement-s07-s08-s28.log` remains UNREVIEWED** and full combined M9/M16 checks remain incomplete.

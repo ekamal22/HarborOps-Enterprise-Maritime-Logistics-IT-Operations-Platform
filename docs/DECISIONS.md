@@ -74,7 +74,7 @@ Approved equipment types: `Dry20`, `Dry40`, `HighCube40`, `Reefer20`, `Reefer40`
 
 D-003 approval and G4 acceptance were explicitly provided on 2026-11-01 following [independent G4 evidence review](M4_EXECUTED_VERIFICATION.md). The final source tested on E: was `600d7c787da9f9cd4a70225cb3e3c38c093c0dc6`. The evidence index's policy-only G4-S01 incompleteness at execution time is closed by this explicit decision; executable checksum and validation tests had already passed. No software functionality was modified to close the decision.
 
-See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed shipment lifecycle/permissions contract awaiting explicit confirmation. This M5-local decision is not an additional global D-number and does not change the execution graph.
+See the accepted [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the shipment lifecycle/permissions contract approved alongside G5 on 2026-11-02. This M5-local decision is not an additional global D-number and does not change the execution graph.
 
 ## Milestone decisions (accepted and open)
 
@@ -101,4 +101,10 @@ PostgreSQL atomically persists one immutable receipt, accepted event and separat
 
 **Transport-backlog condition:** Do not enable sustained transport-event ingestion or processing in a deployment until M10 or a separately approved mechanism manages transport events parked in NeedsReconciliation and prevents the 10,000-item unresolved backlog from being exhausted. Controlled verification remains permitted.
 
-The earlier [proposal](M9_LOCAL_CONTRACT_PROPOSAL.md) is preserved as a historical input. The [G9 acceptance package](M9_G9_ACCEPTANCE_PACKAGE.md) distinguishes the recorded M9-01 approval from still-pending G9-S25 formal independent review and explicit G9 acceptance. No G9 merge or production deployment is authorized by this decision.
+The earlier [proposal](M9_LOCAL_CONTRACT_PROPOSAL.md) and [G9 acceptance package](M9_G9_ACCEPTANCE_PACKAGE.md) preserve the pre-acceptance state as history. Independent G9-S25 review and explicit gate acceptance are complete; see [G9 closure](M9_G9_GATE_CLOSURE.md). M9 merged into `main` on 2026-11-05, but no production deployment is authorized.
+
+## M16 local audit policy and integration choices
+
+Five M16-local policy choices were approved on 2026-11-04: only a current selected-organization Auditor may read audit entries; retain entries online for 365 days before separately verified archival; fail closed with transactional audit persistence for sensitive successful mutations; separate least-privilege migration, API and worker PostgreSQL identities; and defer external cryptographic anchoring. The [M16 feature-branch policy](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m16-audit-access-hardening/docs/M16_POLICY_DECISIONS.md) records the approved contract. These decisions are separate from G16 acceptance.
+
+The [M16 technical report](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/verify/g16-local-evidence/docs/verification/g16-corrective/04-final-report.md) records standalone verification on `e571157`. The separate [G16 main-evidence review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md) verified 162/162 file hashes and the principal raw results, but **`supplement-s07-s08-s28.log` is UNREVIEWED** and the full M9 integration gate has not run. Neither technical success nor review of part of the evidence grants G16 acceptance. G16 acceptance pending. Open integration choices: one authoritative worker-role provisioning path, whether immutable M9 work/effect history suffices for M16 audit coverage, risk treatment for the current superuser migrator and edited unreleased M16 migration, and source-locked combined EF migration/authorization/browser/outage verification. Do not alter accepted M9 behavior, D-006 or historical evidence without an approved change.

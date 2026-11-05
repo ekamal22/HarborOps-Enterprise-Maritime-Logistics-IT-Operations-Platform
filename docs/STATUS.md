@@ -3,7 +3,7 @@
 **As of:** 2026-11-05 (G0-G9 accepted and merged, with mandatory M9 transport-backlog operating restriction)
 **Default branch:** Protected `main` contains accepted M0-M9 implementations and verification records.
 **Baseline:** M0 merged via PRs #1 and #3; M1 merged via PR #4; M2 merged via [PR #5](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/5) at `1df638d5300191f6c2c6c9d201fd5f4c4ab9e562` on 2026-10-31.
-**Acceptance:** G0-G3 accepted 2026-10-31; G4 2026-11-01; G5-G6 2026-11-02; G7 2026-11-03; G8 2026-11-04; G9 2026-11-05. [G9 closure](M9_G9_GATE_CLOSURE.md). G10-G24 remain open; all historical evidence remains preserved.
+**Acceptance:** G0-G3 accepted 2026-10-31; G4 2026-11-01; G5-G6 2026-11-02; G7 2026-11-03; M8/G8 accepted 2026-11-04 after D-006 Option A and independent evidence review; M9/G9 2026-11-05 with the mandatory transport-backlog restriction. [G8 closure](M8_G8_GATE_CLOSURE.md) and [G9 closure](M9_G9_GATE_CLOSURE.md). G16's 162-file main campaign has an independent evidence review; `supplement-s07-s08-s28.log` remains **UNREVIEWED**. G16 acceptance and combined M9/M16 integration verification remain pending. G10-G24 remain open; all historical evidence remains preserved.
 
 ## Publication security review, November 3, 2026
 
@@ -35,7 +35,7 @@ The ledger below is the current *observed* state, not a projection from planning
 | **M13 Operational KPI definitions and dashboards** | Planned | No verified implementation or accepted gate G13 |
 | **M14 Route mapping and geographic context** | Planned | No verified implementation or accepted gate G14 |
 | **M15 Scoped in-app notifications** | Planned | No verified implementation or accepted gate G15 |
-| **M16 Audit logging and access hardening** | Planned | No verified implementation or accepted gate G16 |
+| **M16 Audit logging and access hardening** | Standalone implementation candidate; G16 acceptance pending | Candidate source `e571157` passed an independently inspected 162-file standalone main campaign: 205 unit, 39 contract, 252 integration twice, 183 browser, 13 killed mutants, 74 HTTP and 14 outage checks. [Main-evidence review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md) complete; **`supplement-s07-s08-s28.log` UNREVIEWED**. S07/S08 and the operator portion of S28 not independently closed; integrated M9 checks and G16 acceptance pending. M16 unmerged. |
 | **M17 Observability and service health** | Planned | No verified implementation or accepted gate G17 |
 | **M18 IT incident lifecycle and remediation** | Planned | No verified implementation or accepted gate G18 |
 | **M19 Database recovery and migration rehearsal** | Planned | No verified implementation or accepted gate G19 |
@@ -73,7 +73,7 @@ The unchecked items below concern the complete M0-M24 product release. They do n
 
 ## Verification evidence
 
-The `main` branch includes the accepted M0-M8 capabilities. G0 and G1 used disposable GitHub-hosted verification; G2 used disposable local database, Compose and browser resources on E:. None of these milestone acceptances constitutes public or production deployment. See [M0 evidence](M0_HARDENING_VERIFICATION.md), [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) and [M2 evidence](M2_EXECUTED_VERIFICATION.md).
+The `main` branch includes the accepted M0-M9 capabilities. G0 and G1 used disposable GitHub-hosted verification; G2 used disposable local database, Compose and browser resources on E:. None of these milestone acceptances constitutes public or production deployment. See [M0 evidence](M0_HARDENING_VERIFICATION.md), [M1 evidence](M1_IMPLEMENTATION_VERIFICATION.md) and [M2 evidence](M2_EXECUTED_VERIFICATION.md).
 
 ## Accepted milestone: M2
 
@@ -111,9 +111,15 @@ M8-01 through M8-04 are accepted and integrated into protected `main` via PR #14
 
 M9-01 and G9 were accepted on 2026-11-05 with the mandatory [transport-backlog condition](M9_LOCAL_CONTRACT_DECISION.md). [Technical G9 evidence](M9_EXECUTED_VERIFICATION.md) and the [browser supplement](M9_BROWSER_SUPPLEMENT.md) passed. The subsequent governance reconciliation is recorded in the [G9 review](M9_G9_INDEPENDENT_EVIDENCE_REVIEW.md) and [gate closure](M9_G9_GATE_CLOSURE.md), without rewriting original BLOCKED/NOT EXECUTED raw scenario entries. Planning PR #16 merged at `43fe326`, then implementation PR #18 at `4684352`. The worker is opt-in; no production deployment or sustained transport processing is authorized. M16 remains independent and must reconcile shared files/migrations.
 
+## M16 candidate and unresolved G16 integration
+
+The parallel `feat/m16-audit-access-hardening` branch is at `54903c986654f5f779d6dd61e3977f3553b0baed`. Its runtime source `e5711573839b185a2dfc7d9f2c64ce4fc18d4c13` has reported successful standalone G16 verification; subsequent branch commits change documentation, not runtime source. The [main G16 raw-evidence review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md) checked all 162 uploaded manifest files, the original TRX results, three browser engines, 13 mutation kills, HTTP/outage results and 25 stages. **`supplement-s07-s08-s28.log` was not supplied and is UNREVIEWED**, so the published separate 6/6 probe is not independently confirmed. Prior combined M9/M16 diagnostics used superseded M9 source and did not include full combined Compose, browser or outage checks.
+
+Reconcile M9 tracking-work read/redrive permissions and API endpoints alongside M16 Auditor-only audit permissions and read APIs; merge EF snapshot mappings while preserving migration order `20261104180000_AuditEntries` before `20261104190000_TrackingWorker`. Resolve worker-role provisioning and worker-effect audit policy, then run source-locked combined fresh and populated migration, security, PostgreSQL, browser and outage regressions. G16 acceptance and a separate merge decision remain pending. Draft M16 policy [PR #17](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/17) is not an implementation PR.
+
 ## Next eligible parallel workstreams
 
-M8-01 through M8-04 and G8 are accepted and merged; D-006 Option A was separately approved. M9 worker/reconciliation now has its required upstream G8 acceptance. M12-01 scoped search/export, M14-01 route design, M16 audit foundations, M17 observability, M19 recovery foundations and eligible preparatory M20/M23 work can proceed in parallel under the [execution graph](EXECUTION_GRAPH.md). G9-G24 remain open; no public application hosting or production deployment is authorized.
+M0-M9/G0-G9 are accepted and integrated. M10 event timeline and projection work may start from accepted G9; M12 search/export and M17 observability may run independently. M14 needs D-004 before applicable implementation and M19 needs D-008 before applicable implementation. M20-01, M21-01 and M23-01/M23-03 may start under their package-specific prerequisites; M21-03 additionally requires M21-01. M16 requires review of the UNREVIEWED S07/S08/S28 supplement and reconciliation against accepted M9 before G16 acceptance. G10-G24 remain open; no public application hosting or production deployment is authorized.
 
 ## Storage and residual risk
 

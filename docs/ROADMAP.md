@@ -38,7 +38,7 @@ The canonical work-package DAG is [execution-graph.json](execution-graph.json), 
 - **Gate closure** requires the complete positive/negative/security/regression evidence on the integrated source revision and explicit acceptance. Verified but unaccepted gates are not substitutes for accepted prerequisites.
 - **G24 release convergence** requires G0-G23 accepted, every cross-track contract integrated, a full final-system regression, M24-03 historical compatibility and M24-04 accessibility assessment. Early G19 recovery or G20 security review must be revalidated for later schema/features at this final gate.
 
-M6/G6 through M9/G9 are accepted and integrated. The [M9-01 contract](M9_LOCAL_CONTRACT_DECISION.md) retains a mandatory sustained-transport processing hold pending approved backlog handling. M12, M14, M16, M17, M19 and other parallel streams maintain their exact prerequisites and source-isolation rules.
+M6/G6 through M9/G9 are accepted and integrated. The [M9-01 contract](M9_LOCAL_CONTRACT_DECISION.md) retains a mandatory sustained-transport processing hold pending approved backlog handling; the earlier [M9 proposal](M9_LOCAL_CONTRACT_PROPOSAL.md) is preserved as history. M12, M14, M16, M17, M19 and other parallel streams maintain their exact prerequisites and source-isolation rules.
 
 ## Milestone register
 
@@ -241,7 +241,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Append-only evidence and strengthened authorization.
 **Entry:** G3 accepted before respective dependent work packages.
 **Required work packages:** M16-01 Define audit schema and privacy; M16-02 Implement append-only audit entries; M16-03 Harden security boundaries; M16-04 Verify security and audit matrix.
-**Exit G16:** All applicable tasks, negative tests, runtime evidence and documentation for M16 recorded; acceptance pending until explicitly confirmed.
+**Exit G16:** Standalone technical verification is reported against `e571157` with 30/30 scenario dispositions and disclosed supplements and limitations. Independent review of the 162-file main campaign is complete ([review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md)), but **`supplement-s07-s08-s28.log` is UNREVIEWED** and the full M9/M16 integration verification remains incomplete; G16 acceptance and merge authorization pending. The five M16-local policy choices were approved 2026-11-04, separately from gate acceptance.
 **Not covered by this milestone:** Telemetry dashboards and IT incident lifecycle.
 
 #### M17: Observability and service health
@@ -352,4 +352,4 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M9/G0-G9 accepted and integrated on `main`. G10-G24 remain open. M9 sustained transport-event processing is held until approved backlog handling exists. The parallel M16 branch requires combined migration and security regression tests before its later merge.
+M0-M9/G0-G9 accepted and integrated on `main`. G10-G24 remain open. M10 and independent M12/M17 work may advance on the accepted baseline; M14 requires D-004 and M19 requires D-008 before applicable implementation. M9 sustained transport-event processing remains held until approved backlog handling exists. The unmerged M16 candidate has independently reviewed standalone main-campaign evidence, but its **S07/S08/S28 supplemental log is UNREVIEWED** and it requires M9 integration decisions, combined migrations and security/browser/outage regression tests before any acceptance or merge.

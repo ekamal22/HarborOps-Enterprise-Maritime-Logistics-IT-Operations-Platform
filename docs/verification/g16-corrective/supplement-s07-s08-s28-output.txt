@@ -1,0 +1,17 @@
+PASS S07 rejected mutations stale=409 empty=400 forbidden=409 badId=400 expected=4xx and no audit rows, version unchanged actual=audit +0, version 1->1
+PASS S08 10 rounds x 8 parallel same-version updates (wins=10, other=0) expected=10 wins, 0 other actual=10 wins, 0 other
+PASS S08 audit rows equal committed organization updates expected=10 actual=10
+ Container ho-verify-dev16-api-1 Killing 
+ Container ho-verify-dev16-api-1 Killed 
+ Container ho-verify-dev16-postgres-1 Waiting 
+ Container ho-verify-dev16-postgres-1 Healthy 
+ Container ho-verify-dev16-migrator-1 Starting 
+ Container ho-verify-dev16-migrator-1 Started 
+ Container ho-verify-dev16-migrator-1 Waiting 
+ Container ho-verify-dev16-migrator-1 Exited 
+ Container ho-verify-dev16-api-1 Starting 
+ Container ho-verify-dev16-api-1 Started 
+PASS S08 API process killed mid-burst: committed updates equal audit rows expected=equal and > 0 actual=versions +3, audit +3
+PASS S28 operator CLI provisioning and bootstrap are attributed to OperatorCli expected=includes users.insert and organizations.insert actual=OperatorCli:organization_memberships.insert,OperatorCli:organizations.insert,OperatorCli:user_cred
+PASS S28 OperatorCli rows carry no human user or session expected=0 actual=0
+SUMMARY pass=6 fail=0

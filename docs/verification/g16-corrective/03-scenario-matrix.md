@@ -2,7 +2,7 @@
 
 **Source revision for every row:** `e5711573839b185a2dfc7d9f2c64ce4fc18d4c13` (branch `feat/m16-audit-access-hardening`). Final campaign: unmodified `scripts/verify-m16-local.sh`, 2026-11-04 21:48:51Z to 22:59:24Z, runner exit 0. **Acceptance pending.**
 
-Evidence root `E:\HarborOps-Verification\evidence\new-campaign\m16` (private). Keys: **TRX** `evidence/trx/g16-integration*.trx`; **HTTP** `evidence/audit-http-matrix.log` (74 checks); **OUT** `evidence/audit-outage.log` (14 checks); **MUT** `evidence/g16-mutations.json`; **ROLES** `evidence/restricted-db-roles.log`; **BR** `evidence/playwright/*.json`; **SUPP** supplemental probe on this revision, `supplement-s07-s08-s28.log` in this folder (not a runner stage).
+Evidence root `E:\HarborOps-Verification\evidence\new-campaign\m16` (private). Keys: **TRX** `evidence/trx/g16-integration*.trx`; **HTTP** `evidence/audit-http-matrix.log` (74 checks); **OUT** `evidence/audit-outage.log` (14 checks); **MUT** `evidence/g16-mutations.json`; **ROLES** `evidence/restricted-db-roles.log`; **BR** `evidence/playwright/*.json`; **SUPP** supplemental probe on this revision, `supplement-s07-s08-s28-output.txt` (console output), `supplement-s07-s08-s28-results.json` and `supp-s07-s08-s28.mjs` in this folder (not a runner stage).
 
 | ID | Observed result | Evidence | Status | Limit |
 | --- | --- | --- | --- | --- |

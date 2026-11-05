@@ -41,6 +41,17 @@ public sealed class ShipmentTrackingProjections : Migration
             CREATE INDEX ix_m10_projection_scope
                 ON shipment_tracking_projections(organization_id,shipment_id);
 
+            CREATE TABLE shipment_tracking_correction_heads (
+                organization_id uuid NOT NULL,
+                shipment_id uuid NOT NULL,
+                generation bigint NOT NULL DEFAULT 0,
+                CONSTRAINT pk_m10_correction_head PRIMARY KEY (organization_id,shipment_id),
+                CONSTRAINT fk_m10_correction_head_shipment FOREIGN KEY
+                    (organization_id,shipment_id) REFERENCES shipments(organization_id,id)
+                    ON DELETE RESTRICT,
+                CONSTRAINT ck_m10_head_generation CHECK (generation >= 0)
+            );
+
             CREATE TABLE shipment_tracking_corrections (
                 id uuid PRIMARY KEY,
                 organization_id uuid NOT NULL,
@@ -158,6 +169,20 @@ public sealed class ShipmentTrackingProjections : Migration
                        OR c.replacement_receipt_id=NEW.target_receipt_id)) THEN
                 RAISE EXCEPTION 'correction chain not supported' USING ERRCODE='23514';
               END IF;
+              -- Every insert writes a durable per-shipment generation counter.
+              -- Competing REPEATABLE READ/SERIALIZABLE writers conflict rather than
+              -- using a stale pre-lock snapshot to accept a forbidden chain.
+              INSERT INTO shipment_tracking_correction_heads
+                  (organization_id,shipment_id,generation)
+              VALUES (NEW.organization_id,NEW.shipment_id,0)
+              ON CONFLICT (organization_id,shipment_id) DO NOTHING;
+              UPDATE shipment_tracking_correction_heads
+              SET generation=generation+1
+              WHERE organization_id=NEW.organization_id AND shipment_id=NEW.shipment_id
+              RETURNING generation INTO new_generation;
+              IF NEW.generation IS DISTINCT FROM new_generation THEN
+                RAISE EXCEPTION 'correction generation conflict' USING ERRCODE='23514';
+              END IF;
               RETURN NEW;
             END
             $fn$;
@@ -186,6 +211,7 @@ public sealed class ShipmentTrackingProjections : Migration
               IF EXISTS (SELECT 1 FROM shipment_tracking_corrections LIMIT 1)
                  OR EXISTS (SELECT 1 FROM shipment_projection_applications LIMIT 1)
                  OR EXISTS (SELECT 1 FROM shipment_tracking_operation_replays LIMIT 1)
+                 OR EXISTS (SELECT 1 FROM shipment_tracking_correction_heads LIMIT 1)
                  OR EXISTS (SELECT 1 FROM shipment_tracking_projections LIMIT 1) THEN
                 RAISE EXCEPTION 'M10 retained projection or correction history prevents downgrade'
                     USING ERRCODE='23514';
@@ -194,6 +220,7 @@ public sealed class ShipmentTrackingProjections : Migration
             DROP TABLE IF EXISTS shipment_tracking_operation_replays;
             DROP TABLE IF EXISTS shipment_projection_applications;
             DROP TABLE IF EXISTS shipment_tracking_corrections;
+            DROP TABLE IF EXISTS shipment_tracking_correction_heads;
             DROP TABLE IF EXISTS shipment_tracking_projections;
             DROP FUNCTION IF EXISTS m10_validate_correction();
             DROP FUNCTION IF EXISTS m10_block_evidence_change();
@@ -223,6 +250,7 @@ public sealed class ShipmentTrackingProjections : Migration
 
             CREATE OR REPLACE FUNCTION m10_validate_correction() RETURNS trigger
             LANGUAGE plpgsql AS $fn$
+            DECLARE new_generation bigint;
             BEGIN
               IF NOT EXISTS (
                 SELECT 1 FROM tracking_processing_effects t

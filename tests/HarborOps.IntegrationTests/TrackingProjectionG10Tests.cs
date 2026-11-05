@@ -1,3 +1,4 @@
+using System.Data;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -93,6 +94,7 @@ public sealed class TrackingProjectionG10Tests
         var sameBuild = await store.RebuildAsync(fixture.A, target.Shipment, CancellationToken.None);
         Assert.Equal(1, sameBuild.Revision);
 
+        string? earlierSnapshot;
         using (var response = await analyst.GetAsync(
             $"/api/v1/organizations/{fixture.A}/shipments/{target.Shipment}/tracking-projection"))
         {
@@ -101,6 +103,7 @@ public sealed class TrackingProjectionG10Tests
             Assert.Equal("EquipmentOut", json.GetProperty("observedTrackingState").GetString());
             Assert.True(json.GetProperty("etaUtc").ValueKind == JsonValueKind.Null);
             Assert.Equal(1, json.GetProperty("materializationRevision").GetInt64());
+            earlierSnapshot = json.GetProperty("snapshotToken").GetString();
         }
 
         var actor = await db.AuthUsers.AsNoTracking().Select(u => u.Id).FirstAsync();
@@ -112,6 +115,10 @@ public sealed class TrackingProjectionG10Tests
         var revised = await store.ReadAsync(fixture.A, target.Shipment, CancellationToken.None);
         Assert.NotNull(revised);
         Assert.Equal("EquipmentIn", revised!.State.ObservedTrackingState);
+        using (var stalePage = await analyst.GetAsync(
+            $"/api/v1/organizations/{fixture.A}/shipments/{target.Shipment}/events?limit=1&snapshot={Uri.EscapeDataString(earlierSnapshot!)}"))
+            Assert.Equal(HttpStatusCode.Conflict, stalePage.StatusCode);
+
         Assert.Equal(1, revised.CorrectionGeneration);
         Assert.Single(revised.Timeline.Where(e => e.Superseded));
         Assert.Null(revised.Timeline.Single(e => e.ReceiptId == secondReceipt).ReplacedByReceiptId);
@@ -229,6 +236,97 @@ public sealed class TrackingProjectionG10Tests
         using (var invalidSnapshot = await analyst.GetAsync(root + "/events?snapshot=forged"))
             Assert.Equal(HttpStatusCode.Conflict, invalidSnapshot.StatusCode);
 
+    }
+
+    [Fact]
+    public async Task ConcurrentDirectCorrectionWritersCannotCommitAnInvalidChain()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        using var admin = fixture.Admin;
+        var target = await G9Support.SeedResolvable(factory, fixture);
+        var source = await G9Support.NewSource(factory, fixture.A, "g10_concurrency");
+        var prefix = Guid.NewGuid().ToString("N")[..12];
+        var first = await G9Support.Accept(factory, source,
+            G9Support.EquipmentPayload("race-first-" + prefix, target.Reference));
+        var second = await G9Support.Accept(factory, source,
+            G9Support.EquipmentPayload("race-second-" + prefix, target.Reference,
+                occurredAt: "2026-11-03T11:00:00Z", code: "GTOT"));
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var worker = new TrackingWorkStore(db, new TrackingWorkerSettings());
+        for (var i = 0; i < 2; i++)
+        {
+            var claim = await worker.ClaimOneAsync(fixture.A, CancellationToken.None);
+            Assert.NotNull(claim);
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await worker.FinalizeAsync(claim!, CancellationToken.None));
+        }
+        var actor = await db.AuthUsers.AsNoTracking().Select(x => x.Id).FirstAsync();
+        await using var conA = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await using var conB = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await conA.OpenAsync();
+        await conB.OpenAsync();
+        await using var txA = await conA.BeginTransactionAsync(IsolationLevel.RepeatableRead);
+        await using var txB = await conB.BeginTransactionAsync(IsolationLevel.RepeatableRead);
+
+        static NpgsqlCommand Insert(NpgsqlConnection con, NpgsqlTransaction tx,
+            Guid org, Guid shipment, Guid targetReceipt, Guid replaceReceipt,
+            Guid actorId, long generation)
+        {
+            var cmd = new NpgsqlCommand("""
+                INSERT INTO shipment_tracking_corrections
+                    (id,organization_id,shipment_id,target_receipt_id,replacement_receipt_id,
+                     generation,actor_user_id,reason,correlation_id,correction_digest)
+                VALUES (@id,@org,@shipment,@target,@replacement,
+                        @generation,@actor,@reason,@correlation,@digest)
+                """, con, tx) { CommandTimeout = 10 };
+            cmd.Parameters.AddWithValue("id", Guid.NewGuid());
+            cmd.Parameters.AddWithValue("org", org);
+            cmd.Parameters.AddWithValue("shipment", shipment);
+            cmd.Parameters.AddWithValue("target", targetReceipt);
+            cmd.Parameters.AddWithValue("replacement", replaceReceipt);
+            cmd.Parameters.AddWithValue("generation", generation);
+            cmd.Parameters.AddWithValue("actor", actorId);
+            cmd.Parameters.AddWithValue("reason", "Validated synthetic concurrency correction");
+            cmd.Parameters.AddWithValue("correlation", "g10-concurrency");
+            cmd.Parameters.AddWithValue("digest", new string('a', 64));
+            return cmd;
+        }
+
+        await using (var firstWrite = Insert(conA, txA, fixture.A, target.Shipment,
+            first, second, actor, 1))
+            await firstWrite.ExecuteNonQueryAsync();
+        var otherWrite = Task.Run(async () =>
+        {
+            await using var cmd = Insert(conB, txB, fixture.A, target.Shipment,
+                second, first, actor, 2);
+            try
+            {
+                await cmd.ExecuteNonQueryAsync();
+                await txB.CommitAsync();
+                return false;
+            }
+            catch (PostgresException ex) when (ex.SqlState is
+                PostgresErrorCodes.CheckViolation or PostgresErrorCodes.SerializationFailure
+                or PostgresErrorCodes.UniqueViolation)
+            {
+                await txB.RollbackAsync();
+                return true;
+            }
+        });
+        await Task.Delay(150);
+        await txA.CommitAsync();
+        Assert.True(await otherWrite.WaitAsync(TimeSpan.FromSeconds(15)));
+        await using var verify = new NpgsqlCommand("""
+            SELECT count(*) FROM shipment_tracking_corrections
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, conA);
+        verify.Parameters.AddWithValue("org", fixture.A);
+        verify.Parameters.AddWithValue("shipment", target.Shipment);
+        Assert.Equal(1L, Convert.ToInt64(await verify.ExecuteScalarAsync()));
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 # M16 Audit Privacy and Retention Policy
 
-**Approved policy:** 2026-11-04. **Runtime enforcement:** The corrected standalone M16 revision `e571157` passed the reported source-locked technical campaign, including privacy and security probes. Independent review of the standalone 162-file main campaign completed; **`supplement-s07-s08-s28.log` UNREVIEWED**, combined verification and G16 acceptance pending. See [M16 decisions](M16_POLICY_DECISIONS.md) and [executed verification](M16_EXECUTED_VERIFICATION.md).
+**Approved policy:** 2026-11-04. **Runtime enforcement:** The corrected standalone M16 revision `e571157` passed the reported source-locked technical campaign, including privacy and security probes. Independent review of the standalone 162-file main campaign completed; **S07/S08/S28 supplemental log and JSON REVIEWED** ([record](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/0bf356dba78e51a6aafdeb665870ffa24789b3d9/docs/M16_G16_SUPPLEMENT_EVIDENCE_REVIEW.md), source-provenance caveat), combined verification and G16 acceptance pending. See [M16 decisions](M16_POLICY_DECISIONS.md) and [executed verification](M16_EXECUTED_VERIFICATION.md).
 
 ## Data collection
 The audit entry contains a generated UUID, nullable tenant scope for platform identity actions, event type/schema version/outcome, server-proven actor kind and permitted actor/session/source references, actor role, resource type/ID, safe correlation ID, server UTC time and an event-specific allowlisted JSON metadata object. Supported actor categories are Human, OperatorCli, IntegrationSource and System. Each event definition must specify maximum field and metadata sizes. Never use client-provided tenant IDs or actor claims as authority.
@@ -22,7 +22,7 @@ The corrective candidate stores audit event categories for membership role and s
 
 Audit tenant identifiers are historical facts, not live organization foreign keys. This prevents an audit append from taking an unexpected organization-row lock during concurrent authorization and revocation. The source business tables and restricted append path establish the tenant identity. Auditor reads use tenant-scoped keyset cursors rather than offsets, because every audit read itself generates an event.
 
-These mappings were exercised in the reported standalone G16 campaign, including allowlist tests, a stale-context mutant and HTTP metadata checks. The 162-file main evidence was independently checked; the additional S07/S08/S28 log remains **UNREVIEWED**. The retention, privilege and archival decisions above are unchanged.
+These mappings were exercised in the reported standalone G16 campaign, including allowlist tests, a stale-context mutant and HTTP metadata checks. The 162-file main evidence was independently checked; the additional S07/S08/S28 log and JSON were subsequently **REVIEWED** (6/6 checks). The retention, privilege and archival decisions above are unchanged.
 
 ## Verification and limits
 G16 must scan synthetic secret canaries across rows, HTTP responses, logs, browser traces and evidence bundles; verify event metadata allowlists, bound denial rates and test failed audit persistence. The policy does not establish regulatory certification or tamper resistance against database superusers. See [G16 verification](M16_VERIFICATION_PLAN.md).

@@ -107,3 +107,7 @@ Do not conflate architecture approval with milestone acceptance. **G0-G8 are ver
 ## Change reporting
 
 Preferred structure: scope, changed paths, behavior, tests actually executed, results, known limitations, and acceptance status. If no tests were run, state "not run" and why.
+
+## M9 branch and documentation checkpoint
+
+Accepted `main` includes M0-M8/G0-G8. M9's technical campaign and browser supplement have executed on source `0abeeb0`; the six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices were approved on 2026-11-05 with a transport-backlog operating condition. See [executed evidence](M9_EXECUTED_VERIFICATION.md), [browser supplement](M9_BROWSER_SUPPLEMENT.md) and [gate package](M9_G9_ACCEPTANCE_PACKAGE.md). Formal G9-S25 independent review and G9 acceptance remain pending, so do not merge. Parallel streams must reconcile shared EF migrations, snapshots and authorization changes. Keep persistent resources and evidence on E:, preserve the accepted `main` baseline, do not run GitHub Actions and include `[skip ci]` in commits.

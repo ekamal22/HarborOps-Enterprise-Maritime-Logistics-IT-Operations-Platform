@@ -32,6 +32,7 @@ _ = TrackingInboxStore.ReadPendingLimit(builder.Configuration);
 builder.Services.AddHarborOpsPersistence(connectionString);
 builder.Services.AddHarborOpsAuthentication(builder.Configuration);
 builder.Services.AddSingleton<IntegrationRequestLimiter>();
+builder.Services.AddScoped<TrackingWorkAdminStore>();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -139,6 +140,7 @@ app.MapMaritimeEndpoints();
 app.MapShipmentEndpoints();
 app.MapAssignmentEndpoints();
 app.MapTrackingEndpoints();
+app.MapTrackingWorkEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

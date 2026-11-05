@@ -1,5 +1,9 @@
 # M9 Local Processing and Reconciliation Contract Proposal
 
+**Historical proposal:** All six choices were subsequently approved on 2026-11-05 with a mandatory transport-backlog operating condition. The authoritative accepted terms are in [M9-01 Local Contract Decision](M9_LOCAL_CONTRACT_DECISION.md). Statements below that say approval is pending describe the original proposal, not the current decision status.
+
+**Decision status update:** All six local M9-01 choices below remain proposals and acceptance pending. The corrected [implementation candidate](M9_IMPLEMENTATION_STATUS.md) on [draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18) and its [source-level correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) do not replace explicit contract acceptance or executed G9 evidence.
+
 **State:** Proposed for M9-01 contract freeze; acceptance pending. This is not a new global D-number and does not reopen the accepted D-006 Option A decision.  
 **Prepared:** 2026-11-04  
 **Baseline:** G8 accepted; [G8 closure](M8_G8_GATE_CLOSURE.md).  

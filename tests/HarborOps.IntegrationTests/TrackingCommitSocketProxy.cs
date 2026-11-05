@@ -17,6 +17,7 @@ public sealed class TrackingCommitSocketProxy : IAsyncDisposable
     private readonly string targetHost;
     private readonly int targetPort;
     private readonly CutPoint cut;
+    private readonly string armingStatement;
     private readonly Task accepting;
     private readonly List<Task> connections = [];
     private int triggered;
@@ -24,12 +25,14 @@ public sealed class TrackingCommitSocketProxy : IAsyncDisposable
     public bool Triggered => Volatile.Read(ref triggered) != 0;
     public int Port { get; }
 
-    public TrackingCommitSocketProxy(string originalConnection, CutPoint cutPoint)
+    public TrackingCommitSocketProxy(string originalConnection, CutPoint cutPoint,
+        string armingStatement = "INSERT INTO tracking_inbox_work_items")
     {
         var original = new NpgsqlConnectionStringBuilder(originalConnection);
         targetHost = original.Host ?? throw new ArgumentException("A database host is required", nameof(originalConnection));
         targetPort = original.Port;
         cut = cutPoint;
+        this.armingStatement = armingStatement;
         listener.Start();
         Port = ((IPEndPoint)listener.LocalEndpoint).Port;
         accepting = Task.Run(AcceptAsync);
@@ -86,7 +89,7 @@ public sealed class TrackingCommitSocketProxy : IAsyncDisposable
                         // PostgreSQL command text is carried in the Query/Parse
                         // payload. Keep a short tail for split TCP segments.
                         var text = trailing + Encoding.UTF8.GetString(buffer, 0, count);
-                        if (text.Contains("INSERT INTO tracking_inbox_work_items",
+                        if (text.Contains(armingStatement,
                                 StringComparison.Ordinal))
                             Volatile.Write(ref armed, 1);
                         var commit = Volatile.Read(ref armed) == 1 &&

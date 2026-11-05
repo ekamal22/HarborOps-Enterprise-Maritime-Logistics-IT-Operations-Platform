@@ -1,6 +1,10 @@
 # G9 Verification Plan: Idempotent Worker and Reconciliation
 
-**Status:** Planned specification only. No M9 tests, worker execution, schema migration or G9 evidence exist. G9 acceptance pending.  
+**Governance supplement (2026-11-05):** The six M9-01 choices were explicitly approved with a mandatory [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). The original source-locked G9-S01 raw result stays historically BLOCKED because approval happened after execution. G9-S25 formal independent review and explicit G9 acceptance are still pending. Do not revise the original raw scenario register.
+
+**Execution status:** The G9 technical campaign was executed on `0abeeb0e0eca3f639ef0036483f6cfc6e6e65440` and its results are recorded in the [executed verification record](M9_EXECUTED_VERIFICATION.md). Every executable scenario passed; **G9-S01 is blocked by contract acceptance and G9-S25 independent review is not executed. G9 acceptance pending.** The scenario list below is the original plan and is unchanged. The browser requirement of G9-S22 was closed by a separate [browser supplement](M9_BROWSER_SUPPLEMENT.md) on the same revision.
+
+**Status:** Specification with an executed technical record (see above). G9 acceptance pending.  
 **Prepared:** 2026-11-04  
 **Accepted baseline:** G0-G8 on protected `main` at `7b9e19d730e3a09c5e1184262460dfeac9319e3d`.  
 **Work packages:** M9-01 through M9-04 in [execution graph](execution-graph.json).  
@@ -77,4 +81,4 @@ Preserve failed attempts and do not repeatedly run a full suite while known chea
 
 The final report must include exact source SHA and clean worktree, stage exit codes, full test counts, per-scenario evidence links, worker race barrier logs, lease-token/epoch redaction proof, effects and attempts reconciled to original receipts, mutation control and kills, scan/image identities, final Docker inventory, C: temporary cleanup, and archive/manifest hashes. Separate source execution from external independent review.
 
-**Current outcome:** G9-S01 through G9-S25 are NOT EXECUTED and G9 acceptance is pending. The M9-01 local contract proposal is awaiting a decision. No M9 gate is closed.
+**Current outcome:** G9-S02 through G9-S24 passed technically on the source revision above; G9-S01 is BLOCKED (M9-01 local contract acceptance pending) and G9-S25 is NOT EXECUTED (independent evidence review pending). No M9 gate is closed and nothing is accepted.

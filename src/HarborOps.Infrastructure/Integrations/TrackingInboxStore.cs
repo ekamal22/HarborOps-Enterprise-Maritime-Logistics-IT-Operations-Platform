@@ -194,7 +194,8 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
         long pending;
         await using (var count = Command(connection, current, """
             SELECT count(*) FROM tracking_inbox_work_items
-            WHERE organization_id = @organization AND state = 'Pending'
+            WHERE organization_id = @organization
+              AND state IN ('Pending','Leased','RetryWaiting','NeedsReconciliation')
             """, ("organization", value.OrganizationId)))
             pending = Convert.ToInt64(await count.ExecuteScalarAsync(ct));
         if (pending >= PendingLimit)

@@ -1,6 +1,6 @@
 # Architecture
 
-**Accepted implementation:** G0-G7 were integrated by 2026-11-03; M8/G8 and D-006 Option A were accepted 2026-11-04 following [independent raw evidence review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md). Durable intake returns HTTP 202 only after the atomic PostgreSQL receipt/event/Pending work commit. M7 negative validation and source credential safeguards remain intact. M9 worker execution is still an idle scaffold. See [G8 gate closure](M8_G8_GATE_CLOSURE.md).
+**Accepted implementation:** G0-G7 were integrated by 2026-11-03; M8/G8 and D-006 Option A were accepted 2026-11-04 following [independent raw evidence review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md). Durable intake returns HTTP 202 only after the atomic PostgreSQL receipt/event/Pending work commit. M7 negative validation and source credential safeguards remain intact. The accepted `main` baseline still contains the idle worker; an opt-in worker implementation candidate exists on [M9 draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18), with [executed G9 technical evidence](M9_EXECUTED_VERIFICATION.md), a passing [browser supplement](M9_BROWSER_SUPPLEMENT.md), and all six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices approved with a transport-backlog condition. Formal independent G9-S25 review and gate acceptance remain pending. See [G8 gate closure](M8_G8_GATE_CLOSURE.md).
 
 ## Parallel implementation and integration contracts
 
@@ -16,7 +16,7 @@ M4 remains inside the accepted ASP.NET Core modular monolith, not a separate ser
 
 ## Baseline topology
 
-A modular monolith provides the HTTP API and transactional domain functions. A separate .NET worker is scaffolded for future processing and remains idle in the accepted M7 baseline. PostgreSQL is the authoritative persistence layer. React is the user interface. Local infrastructure is orchestrated through Docker Compose.
+A modular monolith provides the HTTP API and transactional domain functions. A separate .NET worker remains idle in accepted `main`; the M9 candidate replaces the scaffold with a PostgreSQL-backed worker, with runtime verification complete on tested source `0abeeb0`, pending independent G9-S25 review and gate acceptance. PostgreSQL is the authoritative persistence layer. React is the user interface. Local infrastructure is orchestrated through Docker Compose.
 
     Browser (React + TypeScript)
                 |
@@ -79,7 +79,7 @@ Append-only records of sensitive actions and key operational state changes. No d
 - HTTP handlers call application services. Business rules reside in domain/application layers.
 - External data formats terminate at adapter boundaries; internal domain types are stable and versioned.
 - Queries may use dedicated read models without bypassing organization checks.
-- The worker must have bounded retries, idempotent handlers, and durable error records. [M9 architecture](M9_ARCHITECTURE_DESIGN.md) proposes PostgreSQL lease epoch/token fencing, receipt-unique immutable resolution effects and a separately authorized reconciliation path, with G9 acceptance pending.
+- The worker must have bounded retries, idempotent handlers, and durable error records. [M9 candidate](M9_IMPLEMENTATION_STATUS.md) implements PostgreSQL lease epoch/token fencing, receipt-unique immutable resolution effects, DB-generated attempt events and a separately authorized reconciliation path; G9 verification and acceptance remain pending.
 - Shared infrastructure abstractions must not obscure domain ownership.
 - Prefer straightforward synchronous paths until measurable requirements justify additional infrastructure.
 
@@ -160,8 +160,10 @@ The accepted M0 hardening baseline uses .NET 10 and EF Core 10 while preserving 
 - `src/HarborOps.Application`: read-only baseline service contract
 - `src/HarborOps.Domain`: immutable synthetic baseline identifiers
 - `src/HarborOps.Infrastructure`: EF Core context, PostgreSQL migration, deterministic baseline seed, and read service
-- `src/HarborOps.Worker`: idle host shell only; no tracking processing
+- `src/HarborOps.Worker`: idle in the original accepted M0 baseline; M9's isolated candidate adds bounded claim, heartbeat, finalization and reconciliation, not yet verified
 - `web`: React status UI reading the API, with loading and dependency-error states
 - `compose.yaml`: PostgreSQL, one-shot migrator, API, and static frontend
 
 The M0 baseline record is infrastructure metadata, not a shipment or organization entity. The API does not run migrations while serving requests. Initial database creation and seeding occur in the one-shot migrator container. Subsequent migrations require an explicit operational check. No protected business endpoints exist at this stage.
+
+**Current M9 architecture and deployment boundary (2026-11-05):** Technical and browser regressions passed on `0abeeb0`; all six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices are approved. Transport events park in NeedsReconciliation, so sustained transport-event processing must not be enabled in a deployment until M10 or another explicitly approved mechanism manages the unresolved backlog. G9-S25 review, gate acceptance, merge and production authorization remain separate.

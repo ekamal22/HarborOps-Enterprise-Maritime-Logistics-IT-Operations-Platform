@@ -95,14 +95,10 @@ See [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the proposed
 
 PostgreSQL atomically persists one immutable receipt, accepted event and separate Pending work row. The scoped replay key is permanently reserved by a PostgreSQL unique index, with canonical digest, deterministic duplicate identity and bounded 409 collision metadata. The original bearer is reauthorized under organization/source/credential transaction locks before post-commit-only 202. The configurable 10,000 Pending per-organization default is accepted for the demonstrator, not certified production throughput. No immutable accepted-history deletion is authorized. M9 must add a separately reviewed migration permitting lease/retry/Processed/DeadLetter work-state transitions and preserve receipt/event immutability. See [D-006 contract](M8_D006_DURABILITY_PROPOSAL.md) and [M8/G8 closure](M8_G8_GATE_CLOSURE.md).
 
-## M9 local contract scope (not a new D-number)
+## M9 local contract (not a new D-number)
 
-The accepted D-006 Option A requires an additive M9 work-state migration while retaining immutable receipt/event history. The separate [M9 local contract proposal](M9_LOCAL_CONTRACT_PROPOSAL.md) identifies implementation-level choices for lease fencing, retry/redrive budgets, equipment/transport resolution, role permissions and the 10,000 unresolved-work admission predicate. **M9-01 acceptance pending** before any persistence or operator API implementation. This proposal does not reopen D-006 or authorize G9 acceptance; see [M9 architecture](M9_ARCHITECTURE_DESIGN.md).
+**Accepted 2026-11-05 with mandatory operating condition.** All six implementation choices in [M9-01 local decision](M9_LOCAL_CONTRACT_DECISION.md) are approved as implemented: work-state leasing and immutable effects, bounded retry and redrive settings, expanded 10,000 unresolved-work admission accounting, conservative reference reconciliation, Manager-only redrive permissions, and a separate least-privilege worker. This intentionally tightens the accepted M8 admission predicate without revising or deleting D-006 historical evidence.
 
-## Decision change protocol
+**Transport-backlog condition:** Do not enable sustained transport-event ingestion or processing in a deployment until M10 or a separately approved mechanism manages transport events parked in NeedsReconciliation and prevents the 10,000-item unresolved backlog from being exhausted. Controlled verification remains permitted.
 
-Each material reversal records: context, alternatives, trade-offs, chosen approach, impact on requirements and tests, migration needs, and acceptance status. A change is not adopted solely because a new library or service is available.
-
-## Accepted M0 runtime decision
-
-The M0 baseline uses .NET 10, EF Core 10, PostgreSQL 16 with rootless container execution, a public synthetic-only read-only status endpoint and an isolated test database. Runtime verification passed on source revision `fec7429415fede121db8a4a34f0df72cd4fac609` and G0 was accepted on 2026-10-31. Authentication and session management are M1 under the accepted D-001 architecture; organization isolation remains M2. The browser remains functional-only until the final M24-04 accessibility gate.
+The earlier [proposal](M9_LOCAL_CONTRACT_PROPOSAL.md) is preserved as a historical input. The [G9 acceptance package](M9_G9_ACCEPTANCE_PACKAGE.md) distinguishes the recorded M9-01 approval from still-pending G9-S25 formal independent review and explicit G9 acceptance. No G9 merge or production deployment is authorized by this decision.

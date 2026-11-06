@@ -30,18 +30,23 @@ public sealed record ShipmentTrackingState(
 public static class TrackingTimelinePolicy
 {
     public const string Version = "m10-equipment-v2";
+    // PostgreSQL compares uuid values in network-byte (canonical hex) order.
+    // Guid.CompareTo can differ because its leading field is stored as a signed int.
+    private static int CompareUuid(Guid left, Guid right) =>
+        StringComparer.Ordinal.Compare(left.ToString("N"), right.ToString("N"));
+
     public static int Compare(ShipmentTimelineKey a, ShipmentTimelineKey b)
     {
         var compare = a.OccurredAtUtc.CompareTo(b.OccurredAtUtc);
         if (compare != 0) return compare;
         compare = a.ReceivedAtUtc.CompareTo(b.ReceivedAtUtc);
         if (compare != 0) return compare;
-        compare = a.SourceId.CompareTo(b.SourceId);
+        compare = CompareUuid(a.SourceId, b.SourceId);
         if (compare != 0) return compare;
         compare = StringComparer.Ordinal.Compare(a.SourceEventId, b.SourceEventId);
         if (compare != 0) return compare;
-        compare = a.ReceiptId.CompareTo(b.ReceiptId);
-        return compare != 0 ? compare : a.EventId.CompareTo(b.EventId);
+        compare = CompareUuid(a.ReceiptId, b.ReceiptId);
+        return compare != 0 ? compare : CompareUuid(a.EventId, b.EventId);
     }
 
     public static IReadOnlyList<ShipmentTimelineEvent> Order(IEnumerable<ShipmentTimelineEvent> items)

@@ -134,4 +134,25 @@ public sealed class TrackingTimelinePolicyTests
         Assert.Equal(64, reduced.InputDigest.Length);
     }
 
+    [Fact]
+    public void UuidTieBreakMatchesPostgresqlCanonicalBinaryOrder()
+    {
+        var time = Time;
+        var small = Guid.Parse("00000001-0000-0000-0000-000000000000");
+        var large = Guid.Parse("ffffffff-0000-0000-0000-000000000000");
+        var a = new ShipmentTimelineKey(time, time, small, "same",
+            Guid.Empty, Guid.Empty);
+        var b = a with { SourceId = large };
+        Assert.True(TrackingTimelinePolicy.Compare(a, b) < 0);
+        Assert.True(TrackingTimelinePolicy.Compare(b, a) > 0);
+
+        // The same rule must also apply to receipt and event UUID tie-breaks.
+        var receiptHigh = a with { ReceiptId = large };
+        var receiptLow = a with { ReceiptId = small };
+        Assert.True(TrackingTimelinePolicy.Compare(receiptLow, receiptHigh) < 0);
+        var eventHigh = a with { EventId = large };
+        var eventLow = a with { EventId = small };
+        Assert.True(TrackingTimelinePolicy.Compare(eventLow, eventHigh) < 0);
+    }
+
 }

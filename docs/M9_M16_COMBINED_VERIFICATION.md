@@ -87,3 +87,7 @@ Private location: `E:\HarborOps-Verification\evidence\combined-g16`. Portable ar
 
 - **G16 technical acceptance readiness:** technically ready for acceptance consideration on `79318c6`, with the caveat that the campaign is a failed run plus a same-source supplement and that decisions 1 to 3 and 7 are still open.
 - **Merge readiness:** not ready. PR #25 stays a draft. Merge needs G16 acceptance, the decisions above, a review of the corrective commits and a separate merge authorization.
+
+## Subsequent gate disposition (2026-11-06)
+
+The frozen technical evidence, including its failed and successful source-matched runs, was independently inspected from the uploaded archive. All 544 submitted manifest entries matched. G16 and the four recommended Option A integration decisions were explicitly accepted on 2026-11-06. This later decision does not change any original run result, the reported Firefox failure or the fact that no single uninterrupted all-green campaign occurred. See the separate [G16 gate closure](M16_G16_GATE_CLOSURE.md). PR #25 merge and production deployment are not authorized by the gate decision.

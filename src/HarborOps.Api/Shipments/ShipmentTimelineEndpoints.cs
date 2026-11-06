@@ -168,7 +168,7 @@ public static class ShipmentTimelineEndpoints
                     return Fail(ctx, 409, "stale_or_invalid_cursor");
             }
 
-            var view = await store.ReadAsync(org, shipment, ct, limit, cursor?.Last);
+            var view = await store.ReadBoundedAsync(org, shipment, ct, limit, cursor?.Last);
             if (view is null) return Fail(ctx, 404, "resource_not_found");
             if (snapshot is not null && snapshot.Digest != view.State.InputDigest ||
                 cursor is not null && cursor.Digest != view.State.InputDigest)
@@ -204,7 +204,7 @@ public static class ShipmentTimelineEndpoints
                 ctx.Request.Query.Count != 0) return Fail(ctx, 400, "invalid_request");
             var denied = await Guard(ctx, orgs, org, OrganizationPermission.ViewShipmentData, ct);
             if (denied is not null) return denied;
-            var view = await store.ReadAsync(org, shipment, ct, pageSize: 0);
+            var view = await store.ReadBoundedAsync(org, shipment, ct, pageSize: 0);
             if (view is null) return Fail(ctx, 404, "resource_not_found");
             return Results.Ok(new
             {

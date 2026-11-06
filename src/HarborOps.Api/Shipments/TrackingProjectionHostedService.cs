@@ -19,8 +19,7 @@ public sealed class TrackingProjectionHostedService(
         return new HarborOpsDbContext(options);
     }
 
-    // Refuse to start if the configured identity is unavailable or can mutate
-    // immutable M8/M9 evidence. A configuration string alone is not proof of isolation.
+    // Do not trust the username in a connection string: inspect the actual role.
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         await using var db = CreateContext();
@@ -29,8 +28,12 @@ public sealed class TrackingProjectionHostedService(
         {
             await using var cmd = new NpgsqlCommand("""
                 SELECT current_user='harborops_projector'
+                  AND session_user='harborops_projector'
+                  AND has_function_privilege(current_user,'m10_lock_projector_scope(uuid,uuid)','EXECUTE')
                   AND has_table_privilege(current_user,'tracking_processing_effects','SELECT')
+                  AND has_table_privilege(current_user,'shipment_tracking_input_versions','SELECT')
                   AND has_table_privilege(current_user,'shipment_tracking_projections','UPDATE')
+                  AND has_table_privilege(current_user,'shipment_tracking_projections','INSERT')
                   AND has_table_privilege(current_user,'shipment_projection_applications','INSERT')
                   AND NOT has_table_privilege(current_user,'tracking_processing_effects','INSERT')
                   AND NOT has_table_privilege(current_user,'tracking_processing_effects','UPDATE')
@@ -38,6 +41,8 @@ public sealed class TrackingProjectionHostedService(
                   AND NOT has_table_privilege(current_user,'tracking_accepted_events','INSERT')
                   AND NOT has_table_privilege(current_user,'tracking_accepted_events','UPDATE')
                   AND NOT has_table_privilege(current_user,'tracking_inbox_receipts','DELETE')
+                  AND NOT has_table_privilege(current_user,'shipments','UPDATE')
+                  AND NOT has_table_privilege(current_user,'organizations','UPDATE')
                 """, (NpgsqlConnection)db.Database.GetDbConnection());
             if (await cmd.ExecuteScalarAsync(cancellationToken) is not true)
                 throw new InvalidOperationException("M10 projector database identity is not restricted");
@@ -46,32 +51,55 @@ public sealed class TrackingProjectionHostedService(
         await base.StartAsync(cancellationToken);
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stop)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        Guid? cursorOrganization = null;
+        Guid? cursorShipment = null;
+        while (!stop.IsCancellationRequested)
         {
             try
             {
                 IReadOnlyList<(Guid Organization, Guid Shipment)> dirty;
                 await using (var db = CreateContext())
-                    dirty = await new ShipmentTimelineStore(db, restrictedProjector: true).DirtyAsync(16, stoppingToken);
+                    dirty = await new ShipmentTimelineStore(db, restrictedProjector: true)
+                        .DirtyAsync(16, stop, cursorOrganization, cursorShipment);
+                if (dirty.Count == 0)
+                {
+                    // At the end of the sorted set, begin a fresh round. A failing
+                    // first shipment can never prevent later shipments from running.
+                    cursorOrganization = null;
+                    cursorShipment = null;
+                }
                 foreach (var (org, shipment) in dirty)
                 {
-                    stoppingToken.ThrowIfCancellationRequested();
-                    await using var db = CreateContext();
-                    var result = await new ShipmentTimelineStore(db, restrictedProjector: true)
-                        .RebuildAsync(org, shipment, stoppingToken);
-                    if (result.Result != TrackingMutationResult.Applied)
-                        logger.LogWarning("Projection rebuild deferred ({Result})", result.Result);
+                    stop.ThrowIfCancellationRequested();
+                    cursorOrganization = org;
+                    cursorShipment = shipment;
+                    try
+                    {
+                        await using var db = CreateContext();
+                        var result = await new ShipmentTimelineStore(db, restrictedProjector: true)
+                            .RebuildAsync(org, shipment, stop);
+                        if (result.Result != TrackingMutationResult.Applied)
+                            logger.LogWarning("M10 projection sweep deferred ({Result})", result.Result);
+                    }
+                    catch (OperationCanceledException) when (stop.IsCancellationRequested) { throw; }
+                    catch (Exception failure)
+                    {
+                        // Continue to the next scoped shipment even if one is corrupt.
+                        logger.LogWarning("M10 projection item deferred ({Type})",
+                            failure.GetType().Name);
+                    }
                 }
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+            catch (OperationCanceledException) when (stop.IsCancellationRequested) { break; }
             catch (Exception failure)
             {
-                logger.LogWarning("Projection sweep deferred ({Type})", failure.GetType().Name);
+                logger.LogWarning("M10 projection discovery deferred ({Type})",
+                    failure.GetType().Name);
             }
-            try { await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken); }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+            try { await Task.Delay(TimeSpan.FromSeconds(5), stop); }
+            catch (OperationCanceledException) when (stop.IsCancellationRequested) { break; }
         }
     }
 }

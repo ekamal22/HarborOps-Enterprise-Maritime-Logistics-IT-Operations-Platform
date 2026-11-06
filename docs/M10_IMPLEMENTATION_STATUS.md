@@ -23,6 +23,10 @@
 
 M8 receipts/events and M9 receipt-unique effects, lease fencing, work states and 10,000 unresolved-item guard are untouched. Only M9-resolved equipment observations become shipment timeline input. `GTIN`/`GTOT` yield per-container `EquipmentIn`/`EquipmentOut`, same-container `Conflict`, or mixed-container `Mixed`; no verified ETA, voyage inference or automatic M5 `WorkflowStatus` transition is claimed. Unresolved opaque ARRI/DEPA transport events remain parked, with the **mandatory sustained transport-event hold unchanged**. Background materialization does not start automatically; authorized GET derives current state live even when cached materialization is stale.
 
+## Second correctness audit, source-locked
+
+The [second source correctness audit](M10_SECOND_CORRECTNESS_AUDIT.md), against `784689f483c64d19495ee8e9c1047464aaef8f32`, identifies a critical malformed migration and further projector privilege, fairness and query-scaling blockers. Previous C01-C11 remediation mapping remains historical **source-only work**, not verified completion. **PR #23 must remain draft and unmerged.** No runtime testing or final G10 review has occurred.
+
 ## Correctness audit
 
 A [source-locked correctness audit](M10_SOURCE_CORRECTNESS_AUDIT.md) of runtime revision `83d78bb7b271b96d5086044801fc503f07d8a417` identified blocking integrity, scalability and projection-reconciliation findings. [Remediation register](M10_CORRECTNESS_REMEDIATION.md) maps the eleven findings to committed source corrections. **Merge readiness remains blocked** pending executed source-locked verification and independent review. The audit is a static review and records no runtime test pass.

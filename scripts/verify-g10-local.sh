@@ -35,6 +35,7 @@ sha256sum scripts/verify-g10-local.sh scripts/check-g10-stack.mjs scripts/run-co
   scripts/run-g10-mutations.mjs scripts/check-m16-db-roles.sh scripts/check-m16-audit-http.mjs \
   scripts/check-m16-audit-outage.mjs scripts/check-m16-evidence-safety.mjs scripts/smoke-compose.sh \
   scripts/check-m10-contract.mjs scripts/check-m10-m16-integration.mjs scripts/configure-m10-projector-db.sql \
+  scripts/prepare-m10-browser-fixtures.mjs tests/browser/specs/tracking-timeline.spec.mjs \
   compose.g16.verify.yaml compose.m9.worker.yaml compose.cg16.override.yaml compose.g10.verify.yaml \
   > "$evidence/verification-script-hashes.txt"
 export HARBOROPS_SOURCE_SHA="$revision"

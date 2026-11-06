@@ -2,6 +2,12 @@
 
 **Accepted M9/G9 baseline (2026-11-05):** G9 was accepted with the mandatory [M9-01 transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). M9 is integrated into `main` through PR #16 (`43fe326`) and PR #18 (`4684352`). The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and residual limitations. No production or public deployment is authorized; sustained transport-event processing is held until M10 or another explicitly approved backlog mechanism is verified. Earlier planning or acceptance-pending language in historical subsections reflects the earlier project phase.
 
+## G10 review and operating boundary
+
+The [independent G10 evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) supports technical verification, not gate acceptance or deployment. The optional M10 projector stays off by default and requires the restricted `harborops_projector` identity and a fail-closed privilege preflight. The corrected verification branch remains separate from `main`. The source-locked tests include container SIGKILL recovery but not host power-loss or PostgreSQL crash-recovery of an M10 transaction.
+
+**Do not enable sustained transport-event processing.** ARRI and DEPA remain parked, and the 10,000 unresolved-work cap remains enforced. M10-L07 and L14 policy review, G10-S01 approval and G10-S25 gate disposition are pending.
+
 ## Environment model
 
 - Local: Docker Compose-managed API, worker, PostgreSQL, web, and optional observability stack.

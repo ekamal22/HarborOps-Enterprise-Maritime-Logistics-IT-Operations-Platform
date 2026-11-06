@@ -2,6 +2,12 @@
 
 **Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
 
+## Reviewed G10 technical evidence
+
+The [independent G10 review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) validates the 500-entry consolidated package manifest and reconciles original failed attempts with same-runtime-SHA supplements A1-A7. Reported passing results include 239 unit, 39 contract, 18 web, 302 integration tests twice, 198 three-engine browser executions and 28/28 killed mutation variants. A6 and A7 added targeted coverage for the five previously disputed scenarios without rerunning successful stages.
+
+Future corrections require focused tests of affected runtime and security contracts. Reuse valid same-SHA evidence instead of repeating historical accepted campaigns or full suites without an impact-based reason. The M10-L07 audit question and L14 database write trust boundary must be resolved before S01. S25 formal acceptance is pending.
+
 ## M7 source-locked verification boundary
 
 The accepted M7 implementation contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 was accepted on 2026-11-03; the pinned reference snapshots are checked by `scripts/verify-dcsa-reference.mjs` and the M7 contract tests; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).

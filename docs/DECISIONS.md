@@ -8,6 +8,15 @@ The mandatory [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires E-drive s
 
 The accepted M0 baseline uses the hardened rootless PostgreSQL container and .NET 10. The prior upstream `gosu` findings were closed in the immutable-image high/critical scan performed during GitHub Actions run #2. G0 was accepted on 2026-10-31; future image changes require scanning.
 
+## Pending M10-local policy decisions, 2026-11-06
+
+Fourteen proposed choices M10-L01 through M10-L14 remain unapproved despite the [independent G10 technical evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md). S01 is BLOCKED and no technical result grants a policy decision. Two questions merit explicit resolution:
+
+- **L07 correction audit:** Determine whether M10's separate append-only correction ledger satisfies accepted [M16-D03](M16_POLICY_DECISIONS.md) or whether an atomic M16 audit row or explicitly approved scoped exception is required.
+- **L14 direct SQL grant:** Determine whether `harborops_api` direct INSERT on corrections with caller-supplied actor is acceptable without a database-level Manager/session check. Consider narrower write privileges and targeted verification if the trust boundary changes.
+
+All other proposed M10 decisions remain pending. The accepted M9 transport hold and G16 audit/role contracts are unchanged. This is an open decision register, not approval.
+
 ## Accepted baseline decisions
 
 ### ADR-001: Modular monolith with separate tracking worker

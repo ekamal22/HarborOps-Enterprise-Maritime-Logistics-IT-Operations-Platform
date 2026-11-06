@@ -5,6 +5,10 @@
 **State (updated 2026-11-06):** Merged through PR #23 (`5edf003`). Technical verification was executed on frozen source `3e81b88`; see [M10 executed verification](M10_EXECUTED_VERIFICATION.md). **G10 acceptance pending.** The sections below describe the state before verification and are kept as history.  
 **Planning:** [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) is an independent open documentation PR; its M10 architecture, work packages and G10 scenario specification remain proposed, not accepted decisions.
 
+## Updated G10 review state, 2026-11-06
+
+The [independent evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) reconciles all seven G10 attempts, confirms the sanitized package's 500/500 matching manifest entries, and supports the technical 23 PASS dispositions including the five later focused coverage supplements. S01 remains blocked on 14 proposed policies, particularly L07 M16 audit compatibility and L14 database correction grant scope; S25 formal acceptance remains outstanding. The corrected verification branch is not merged. **G10 acceptance pending.** Historical pre-execution statements below are retained for provenance and do not describe the current verification status.
+
 ## Implemented candidate paths
 
 | Component | Source | Intended behavior |

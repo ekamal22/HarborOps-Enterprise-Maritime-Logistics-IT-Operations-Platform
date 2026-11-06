@@ -15,6 +15,10 @@
 No item is accepted by implication. See [Status](STATUS.md) for the current ledger. Independently numbered gates may be verified and accepted in parallel when their explicit prerequisites are accepted. Milestone numbering alone is not an acceptance dependency. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md).
 
 
+## G10 verification and acceptance boundary
+
+The [independent raw-evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) supports the corrected M10 implementation's technical 23 PASS dispositions on frozen SHA `3e81b88`, including the five later targeted supplements. **S01 remains BLOCKED** on fourteen M10-local policy decisions; the L07 audit and L14 database grants need explicit reconciliation with accepted contracts. **S25 remains NOT EXECUTED as a completed gate**, although raw-evidence review is now done, because formal acceptance is pending. The corrected verification branch is not merged and no deployment is authorized.
+
 ## Independent gate verification and parallel integration
 
 Each gate G0-G24 retains its own full mandatory security, authorization, database, HTTP, browser, failure/recovery and documentation checks. The [Execution Graph](EXECUTION_GRAPH.md) defines which accepted gates a given work package needs. A verified-but-unaccepted gate cannot be relied upon for dependent implementation or final integration. Different milestones may close in a nonnumeric order when their actual dependencies have been satisfied.

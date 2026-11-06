@@ -1,12 +1,18 @@
 # M10 Executed Verification Record (G10)
 
-**State:** Technical verification complete on the frozen runtime source. **G10 acceptance pending.** Independent evidence review pending. No gate decision, merge authorization or deployment authorization is implied.
+**State:** Technical verification complete on frozen source; [independent evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) completed. **G10 acceptance pending.** S01 policies and S25 formal gate decision remain open. No gate decision, merge authorization or deployment authorization is implied.
 **Baseline:** `main` at `5edf0035a1fb9d854cba00673eb8fdf1f3033b0c` (merge of [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), 2026-11-06), which contains accepted M0-M9 and M16/G16 plus the M10 source.
 **Verification branch:** `feat/harborops-m10-g16-verify-f80276`.
 **Frozen runtime source:** `3e81b884b6a4cc782f84c58510793666786c5796`. Later branch commits change only verification tooling, one added test and documentation; `git diff` of the frozen SHA against the branch head over `src`, `web`, `docker` and the Compose files is empty.
 **Restriction preserved:** The M9 transport-backlog hold and the 10,000 unresolved-work cap are unchanged. M10 indexes only M9-resolved equipment events and does not process parked transport events. M0-M9 and M16/G16 accepted evidence is not rewritten.
 
 Earlier source audits and remediation registers are historical and are not rewritten by this record.
+
+## Superseding evidence assessment, 2026-11-06
+
+The original A1-A5 attempt table, scenario matrix and disclosed gaps below are preserved as the **first assessment**. Subsequent A6 and A7 targeted runs closed the previously disclosed S03, S05, S11, S12 and S21 coverage gaps. The [independent raw-evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) checked 500/500 entries in the consolidated package's SHA-256 manifest and reconciled A1-A7, including all preserved failures.
+
+The current scenario tally remains **23 PASS, S01 BLOCKED, S25 NOT EXECUTED**. The raw evidence supports technical readiness for a policy and gate decision, not automatic acceptance. The main issues requiring a decision are M10-L07 correction audit compatibility with M16-D03, and M10-L14 direct API-role SQL correction inserts without a database-level Manager/session guard. The first WebKit failure remains a disclosed intermittent risk.
 
 ## Evidence attempts
 

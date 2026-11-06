@@ -46,8 +46,11 @@ export HARBOROPS_DB_PASSWORD="$(cat "$root/private/db-password.txt")"
 export HARBOROPS_WORKER_DB_PASSWORD="$(cat "$root/private/worker-password.txt")"
 export HARBOROPS_TEST_DB="Host=127.0.0.1;Port=55410;Database=harborops_integration;Username=harborops;Password=$HARBOROPS_DB_PASSWORD"
 export HARBOROPS_G10_PROJECT="$project"
+export HARBOROPS_G10_VULNERABILITY_JSON="$(cygpath -w "$root/evidence/nuget-vulnerabilities.json")"
 node -e 'process.stdout.write(require("node:crypto").randomBytes(24).toString("hex"))' > "$root/private/user-password.txt"
 export HARBOROPS_TEST_USER_PASSWORD="$(cat "$root/private/user-password.txt")"
+node -e 'process.stdout.write(require("node:crypto").randomBytes(24).toString("hex"))' > "$root/private/projector-password.txt"
+export HARBOROPS_PROJECTOR_PASSWORD="$(cat "$root/private/projector-password.txt")"
 export HARBOROPS_BROWSER_BASE_URL="http://localhost:5180"
 export HARBOROPS_G10_PLAYWRIGHT_OUT="$root/evidence/playwright/artifacts"
 mkdir -p "$HARBOROPS_G10_PLAYWRIGHT_OUT"
@@ -59,9 +62,19 @@ cleanup() {
   if (( own_stack )); then
     compose down --volumes --remove-orphans >> "$root/evidence/teardown.log" 2>&1 || prior=1
   fi
+  # Fail closed when logs or browser evidence contain disposable credentials.
+  if [[ -d "$root/evidence" ]]; then
+    node scripts/check-g9-evidence-safety.mjs evidence \
+      "$(cygpath -w "$root/evidence")" \
+      "$(cygpath -w "$root/private/db-password.txt")" \
+      "$(cygpath -w "$root/private/worker-password.txt")" \
+      "$(cygpath -w "$root/private/user-password.txt")" \
+      "$(cygpath -w "$root/private/projector-password.txt")" \
+      > "$root/evidence/evidence-safety.log" 2>&1 || prior=1
+  fi
   # Delete only task-created disposable secret files after the owned stack stops.
   rm -f "$root/private/db-password.txt" "$root/private/worker-password.txt" \
-        "$root/private/user-password.txt"
+        "$root/private/user-password.txt" "$root/private/projector-password.txt"
   rmdir "$root/private" 2>/dev/null || true
   printf '%s\n' "$prior" > "$root/evidence/technical-exit-code.txt"
   if [[ -d "$root/evidence" ]]; then
@@ -82,6 +95,7 @@ stage() {
     return 1
   fi
 }
+stage script-syntax bash -c 'set -euo pipefail; bash -n scripts/verify-g10-local.sh; for s in scripts/*.mjs; do node --check "$s"; done'
 stage docs node scripts/check-planning-docs.mjs
 stage graph node scripts/render-execution-graph.mjs --check
 stage scripts node --test scripts/*.test.mjs
@@ -179,9 +193,84 @@ stage browser-drivers bash -c 'cd tests/browser && npx playwright install chromi
 stage browser-3-engines bash -c \
   'cd tests/browser && npx playwright test --project=chromium --project=firefox --project=webkit --reporter=line --output="$HARBOROPS_G10_PLAYWRIGHT_OUT"'
 
-# Store a source-locked manifest without including the temporary credentials.
+# Use the actual restricted identity against the isolated database, not only
+# has_table_privilege metadata from the administrator's session.
+projector_role_runtime() {
+  compose exec -T postgres psql -U harborops -d harborops -v ON_ERROR_STOP=1 <<SQL
+ALTER ROLE harborops_projector PASSWORD '$HARBOROPS_PROJECTOR_PASSWORD';
+SQL
+  local identifiers org shipment
+  identifiers="$(compose exec -T postgres psql -U harborops -d harborops -At -c \
+    "SELECT organization_id||'|'||id FROM shipments WHERE record_status='Active' ORDER BY id LIMIT 1")"
+  [[ -n "$identifiers" ]] || return 1
+  IFS='|' read -r org shipment <<< "$identifiers"
+  local output
+  output="$(printf '%s\n' "$HARBOROPS_PROJECTOR_PASSWORD" | compose exec -T postgres sh -c \
+    'IFS= read -r PGPASSWORD; export PGPASSWORD; psql -h 127.0.0.1 -U harborops_projector -d harborops -At -v ON_ERROR_STOP=1 -c "$1"' \
+    sh "SELECT m10_lock_projector_scope('$org'::uuid,'$shipment'::uuid)")" || return 1
+  [[ "$output" == "t" ]] || return 1
+}
+stage projector-real-role-lock projector_role_runtime
+
+# Validate service and database recovery with the worker profile disabled.
+api_restart() {
+  compose restart api
+  ready
+}
+stage api-restart api_restart
+database_outage() {
+  compose stop postgres
+  local status
+  status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+    http://127.0.0.1:8090/health/ready || true)"
+  [[ "$status" != "200" ]] || return 1
+  compose start postgres
+  ready
+}
+stage isolated-db-outage database_outage
+
+unauthorized_routes() {
+  local status
+  for endpoint in tracking-projection events; do
+    status="$(curl -s -o /dev/null -w '%{http_code}' \
+      "http://127.0.0.1:8090/api/v1/organizations/00000000-0000-0000-0000-000000000001/shipments/00000000-0000-0000-0000-000000000002/$endpoint")"
+    [[ "$status" == "401" || "$status" == "403" ]] || return 1
+  done
+}
+stage unauthenticated-scope-mutations unauthorized_routes
+
+stage nuget-vulnerability-audit bash -c \
+  'dotnet list HarborOps.sln package --vulnerable --include-transitive --format json > "$HARBOROPS_G10_VULNERABILITY_JSON"; \
+    node -e "const x=require(process.env.HARBOROPS_G10_VULNERABILITY_JSON); if(x.projects?.some(p=>p.frameworks?.some(f=>f.topLevelPackages?.some(q=>q.vulnerabilities?.length)||f.transitivePackages?.some(q=>q.vulnerabilities?.length))))process.exit(1)"'
+stage npm-security-audit npm --prefix web audit --audit-level=high
+stage browser-npm-audit npm --prefix tests/browser audit --audit-level=high
+
+scan_images() {
+  local trivy="aquasec/trivy:0.76.1"
+  local mount="$(cygpath -w "$root/cache/trivy"):/root/.cache/trivy"
+  mkdir -p "$root/cache/trivy" "$root/evidence/trivy"
+  MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 -v "$mount" \
+    "$trivy" image --download-db-only || return 1
+  local service container image
+  for service in postgres api web; do
+    container="$(compose ps -q "$service")" || return 1
+    [[ -n "$container" ]] || return 1
+    image="$(docker inspect --format '{{.Image}}' "$container")" || return 1
+    MSYS_NO_PATHCONV=1 docker run --rm --ulimit core=0 \
+      -v /var/run/docker.sock:/var/run/docker.sock -v "$mount" \
+      -v "$(cygpath -w "$root/evidence/trivy"):/reports" \
+      "$trivy" image --image-src docker --scanners vuln \
+      --severity HIGH,CRITICAL --exit-code 1 --format json \
+      --output "/reports/$service.json" "$image" || return 1
+  done
+}
+stage image-vulnerability-scans scan_images
+stage source-security-mutations node scripts/run-g10-mutations.mjs "$HARBOROPS_VERIFICATION_ROOT"
+
 git status --porcelain > "$root/evidence/status-after.txt"
-printf '%s\n' "browser functional coverage completed; independent outage, mutation, vulnerability and evidence reviews remain pending" \
+[[ "$(git rev-parse HEAD)" == "$HARBOROPS_SOURCE_SHA" ]] || exit 1
+[[ ! -s "$root/evidence/status-after.txt" ]] || exit 1
+printf '%s\n' "Independent raw evidence review, G10-S01 policy approval and G10 acceptance remain pending" \
   > "$root/evidence/remaining-gates.txt"
-echo "Local technical stages completed; source-locked independent G10 review is still required."
+echo "Local technical stages completed; G10 independent review remains required."
 

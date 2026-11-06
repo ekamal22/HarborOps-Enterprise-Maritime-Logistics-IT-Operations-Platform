@@ -348,6 +348,9 @@ api_restart() {
 }
 stage api-restart api_restart
 stage g10-stack-check node scripts/check-g10-stack.mjs "$evidence/g10-stack"
+stage api-restart-fixtures api_restart
+stage browser-m10-fixtures node scripts/prepare-m10-browser-fixtures.mjs
+export HARBOROPS_M10_FIXTURES=1
 stage browser-engines bash scripts/run-combined-browsers-local.sh
 stage security-mutations node scripts/run-g10-mutations.mjs "$HARBOROPS_VERIFICATION_ROOT"
 # Final teardown, evidence safety and manifest run in the exit trap; no acceptance is inferred.

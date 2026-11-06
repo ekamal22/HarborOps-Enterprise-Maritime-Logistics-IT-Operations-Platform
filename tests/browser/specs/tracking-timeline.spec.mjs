@@ -106,3 +106,37 @@ test("G10 access revocation response clears previously visible observed state", 
   await panel.getByRole("button", { name: "Refresh tracking" }).click();
   await expect(panel.getByText(/Observed:\s*/)).toHaveCount(0);
 });
+
+const liveEnabled = enabled && process.env.HARBOROPS_M10_FIXTURES === "1";
+
+test("G10 shipment shows real worker-resolved events in order and the materialized observation", async ({ page }) => {
+  test.skip(!liveEnabled, "Disposable G10 live fixture required");
+  await page.goto("/");
+  await page.getByLabel("Email").fill("m3-analyst@example.test");
+  await page.getByLabel("Password", { exact: true })
+    .fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.getByRole("heading", { name: "Organization workspace" })).toBeVisible();
+  await page.locator("#current-organization")
+    .selectOption({ label: "M3 North Terminal (Analyst)" });
+  const shipments = page.getByRole("heading", { name: "Shipments", exact: true })
+    .locator("xpath=ancestor::section[1]");
+  await shipments.getByLabel("Search shipments").fill("G10-LIVE-NORTH");
+  await expect(shipments.getByText("G10-LIVE-NORTH", { exact: true })).toBeVisible();
+  await shipments.getByRole("button", { name: "View shipment" }).first().click();
+  const panel = shipments.getByRole("heading", { name: "Tracking observations" })
+    .locator("xpath=ancestor::section[1]");
+  await expect(panel).toBeVisible();
+  await expect(panel.locator("p", { hasText: "Observed:" })).toContainText("EquipmentOut");
+  await expect(panel.locator("p", { hasText: "Materialization:" })).toContainText(/Materialization: [1-9]/);
+  await expect(panel.locator("p", { hasText: "Materialization:" })).not.toContainText("rebuild pending");
+  const items = panel.locator("ol > li");
+  await expect(items).toHaveCount(2);
+  await expect(items.nth(0)).toContainText("GTIN");
+  await expect(items.nth(0)).toContainText("g10-browser-in-");
+  await expect(items.nth(1)).toContainText("GTOT");
+  await expect(items.nth(1)).toContainText("g10-browser-out-");
+  await expect(panel.getByText("No ETA can be inferred", { exact: false })).toBeVisible();
+  await expect(panel.getByRole("button", { name: /rebuild|correct/i })).toHaveCount(0);
+  await expect(shipments.getByText("Manual status history")).toBeVisible();
+});

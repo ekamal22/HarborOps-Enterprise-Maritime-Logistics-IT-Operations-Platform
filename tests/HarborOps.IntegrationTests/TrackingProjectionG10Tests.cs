@@ -64,6 +64,26 @@ public sealed class TrackingProjectionG10Tests
             .OrderBy(e => e.ReceiptId)
             .Select(e => new { e.ReceiptId, e.ShipmentId, e.ContainerId }).ToListAsync();
         Assert.Equal(2, beforeEffects.Count);
+        // The indexed source cannot be forged independently of the accepted event.
+        var forgedTimeline = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO shipment_tracking_timeline_entries
+                    (receipt_id,organization_id,shipment_id,event_id,source_id,
+                     source_event_id,event_code,occurred_at_utc,received_at_utc,container_id)
+                SELECT fx.receipt_id,fx.organization_id,fx.shipment_id,
+                       e.id,e.source_id,r.source_event_id,{"FORGED"},
+                       e.occurred_at_utc,r.received_at_utc,fx.container_id
+                FROM tracking_processing_effects fx
+                JOIN tracking_accepted_events e ON e.receipt_id=fx.receipt_id
+                JOIN tracking_inbox_receipts r ON r.id=e.receipt_id
+                WHERE fx.receipt_id={firstReceipt}
+                """));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, forgedTimeline.SqlState);
+        var indexedCount = await db.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM shipment_tracking_timeline_entries")
+            .SingleAsync();
+        Assert.True(indexedCount >= 2);
+
         // Both referenced shipments exist, but only the correct shipment may
         // receive an application record for the immutable M9 effect.
         var anotherShipment = await G9Support.SeedResolvable(factory, fixture);

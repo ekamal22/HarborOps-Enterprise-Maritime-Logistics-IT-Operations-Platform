@@ -6,6 +6,7 @@ using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using HarborOps.Infrastructure.Shipments;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -595,5 +596,139 @@ public sealed class M10RuntimeIdentityTests
             """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
         Assert.NotEqual(Guid.Empty, second);
         Assert.NotEqual(Guid.Empty, third);
+    }
+
+    [Fact]
+    public async Task RealProjectorIdentityDiscoversAndRebuildsADirtyScopeThroughTheStore()
+    {
+        var s = await SeedAsync("g10r");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        await AcceptAsync(s, "r-1");
+        await AcceptAsync(s, "r-2", "2026-11-03T11:00:00Z", "GTOT");
+        for (var n = 0; n < 2; n++)
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+
+        await using var db = Context(s.Roles.Projector);
+        var store = new ShipmentTimelineStore(db, restrictedProjector: true);
+        var dirty = await store.DirtyAsync(50, CancellationToken.None);
+        Assert.Contains(dirty, d => d.Organization == s.Fixture.A && d.Shipment == s.Target.Shipment);
+        var rebuilt = await store.RebuildAsync(s.Fixture.A, s.Target.Shipment, CancellationToken.None);
+        Assert.Equal(TrackingMutationResult.Applied, rebuilt.Result);
+        Assert.Equal(1L, await Scalar(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_projections
+            WHERE shipment_id=@s AND observed_state='EquipmentOut' AND event_count=2
+            """, ("s", s.Target.Shipment)));
+        // Once materialized at the current revision the scope is no longer dirty.
+        var after = await store.DirtyAsync(50, CancellationToken.None);
+        Assert.DoesNotContain(after, d => d.Shipment == s.Target.Shipment);
+    }
+
+    private sealed class ProjectorFactory(string api, string projector)
+        : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            LocalPeerTestServer.Configure(builder);
+            builder.UseEnvironment("Development");
+            builder.UseSetting("ConnectionStrings:HarborOps", api);
+            builder.UseSetting("ConnectionStrings:HarborOpsProjector", projector);
+            builder.UseSetting("M10:EnableProjector", "true");
+            builder.UseSetting("Identity:AllowInsecureLoopbackHttp", "true");
+            builder.UseSetting("Identity:KeyRingPath",
+                Path.Combine(Directory.GetCurrentDirectory(), ".identity-keys"));
+        }
+    }
+
+    [Fact]
+    public async Task RealProjectorServiceSkipsAPoisonedShipmentThenRecoversUnderTheRestrictedRole()
+    {
+        var s = await SeedAsync("g10s");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var other = await G9Support.SeedResolvable(s.Admin, s.Fixture);
+        await G9Support.Accept(s.Admin, s.Source, G9Support.EquipmentPayload(
+            "s-a-" + Guid.NewGuid().ToString("N")[..10], s.Target.Reference));
+        await G9Support.Accept(s.Admin, s.Source, G9Support.EquipmentPayload(
+            "s-b-" + Guid.NewGuid().ToString("N")[..10], other.Reference));
+        for (var n = 0; n < 2; n++)
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+
+        // The poisoned shipment sorts first, so a fixed-position retry would starve the healthy one.
+        var poison = (Guid)(await Scalar(s.Roles.Admin, "SELECT LEAST(@a,@b)",
+            ("a", s.Target.Shipment), ("b", other.Shipment)))!;
+        var healthy = poison == s.Target.Shipment ? other.Shipment : s.Target.Shipment;
+        var poisonLiteral = poison.ToString();
+        await using (var setup = new NpgsqlConnection(s.Roles.Admin))
+        {
+            await setup.OpenAsync();
+            await using var create = new NpgsqlCommand($$"""
+                CREATE OR REPLACE FUNCTION g10_test_poison() RETURNS trigger LANGUAGE plpgsql AS $f$
+                BEGIN
+                    IF NEW.shipment_id='{{poisonLiteral}}'::uuid THEN
+                        RAISE EXCEPTION 'synthetic persistent projection failure';
+                    END IF;
+                    RETURN NEW;
+                END $f$;
+                CREATE TRIGGER g10_test_poison BEFORE INSERT OR UPDATE
+                    ON shipment_tracking_projections
+                    FOR EACH ROW EXECUTE FUNCTION g10_test_poison();
+                """, setup);
+            await create.ExecuteNonQueryAsync();
+        }
+        var auditBefore = await Count(s.Roles.Admin, "SELECT COUNT(*) FROM audit_entries");
+        try
+        {
+            using var projectorHost = new ProjectorFactory(s.Roles.Api, s.Roles.Projector);
+            using var client = projectorHost.CreateClient();   // starts the hosted service
+
+            async Task<bool> Materialized(Guid shipment) => await Count(s.Roles.Admin, """
+                SELECT COUNT(*) FROM shipment_tracking_projections
+                WHERE shipment_id=@s AND observed_state='EquipmentIn'
+                """, ("s", shipment)) == 1;
+            var deadline = DateTime.UtcNow.AddSeconds(120);
+            while (DateTime.UtcNow < deadline && !await Materialized(healthy))
+                await Task.Delay(500);
+            Assert.True(await Materialized(healthy),
+                "The healthy shipment was starved by the poisoned shipment");
+            Assert.False(await Materialized(poison));
+            Assert.Equal(0, await Count(s.Roles.Admin,
+                "SELECT COUNT(*) FROM shipment_tracking_projections WHERE shipment_id=@s",
+                ("s", poison)));
+
+            // Recovery: once the fault is removed the next round materializes the poisoned item.
+            await using (var heal = new NpgsqlConnection(s.Roles.Admin))
+            {
+                await heal.OpenAsync();
+                await using var drop = new NpgsqlCommand(
+                    "DROP TRIGGER g10_test_poison ON shipment_tracking_projections", heal);
+                await drop.ExecuteNonQueryAsync();
+            }
+            deadline = DateTime.UtcNow.AddSeconds(120);
+            while (DateTime.UtcNow < deadline && !await Materialized(poison))
+                await Task.Delay(500);
+            Assert.True(await Materialized(poison), "The poisoned shipment did not recover");
+            Assert.Equal(1, await Count(s.Roles.Admin, """
+                SELECT COUNT(*) FROM shipment_projection_applications WHERE shipment_id=@s
+                """, ("s", poison)));
+        }
+        finally
+        {
+            await using var cleanup = new NpgsqlConnection(s.Roles.Admin);
+            await cleanup.OpenAsync();
+            await using var drop = new NpgsqlCommand("""
+                DROP TRIGGER IF EXISTS g10_test_poison ON shipment_tracking_projections;
+                DROP FUNCTION IF EXISTS g10_test_poison();
+                """, cleanup);
+            await drop.ExecuteNonQueryAsync();
+        }
+        // The projector wrote no audit evidence and altered no accepted M8/M9 row.
+        Assert.Equal(auditBefore, await Count(s.Roles.Admin, "SELECT COUNT(*) FROM audit_entries"));
     }
 }

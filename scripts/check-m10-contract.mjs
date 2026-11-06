@@ -39,5 +39,7 @@ assert.match(projector, /cursorOrganization = org;/);
 assert.match(projector, /catch \(Exception failure\)/);
 assert.match(grants, /GRANT EXECUTE ON FUNCTION m10_lock_projector_scope/);
 assert.match(grants, /shipment_tracking_timeline_entries/);
+assert.match(grants, /shipment_tracking_correction_heads/);
+assert.match(projector, /shipment_tracking_correction_heads/);
 assert.ok(!/GRANT UPDATE ON TABLE organizations|GRANT UPDATE ON TABLE shipments/.test(grants));
 console.log("M10 source contract guard: PASS");

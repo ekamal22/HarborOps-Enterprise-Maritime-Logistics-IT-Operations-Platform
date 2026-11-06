@@ -904,6 +904,181 @@ public sealed class M10RuntimeIdentityTests
             Assert.Equal(HttpStatusCode.Unauthorized, afterProjection.StatusCode);
     }
 
+    private static async Task InstallStall(string admin, Guid shipment, int seconds)
+    {
+        await using var connection = new NpgsqlConnection(admin);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand($$"""
+            CREATE OR REPLACE FUNCTION g10_test_stall() RETURNS trigger LANGUAGE plpgsql AS $f$
+            BEGIN
+                IF NEW.shipment_id='{{shipment}}'::uuid THEN PERFORM pg_sleep({{seconds}}); END IF;
+                RETURN NEW;
+            END $f$;
+            CREATE TRIGGER g10_test_stall BEFORE INSERT ON shipment_projection_applications
+                FOR EACH ROW EXECUTE FUNCTION g10_test_stall();
+            """, connection);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task RemoveStall(string admin)
+    {
+        await using var connection = new NpgsqlConnection(admin);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand("""
+            DROP TRIGGER IF EXISTS g10_test_stall ON shipment_projection_applications;
+            DROP FUNCTION IF EXISTS g10_test_stall();
+            """, connection);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task<int?> WaitForSleepingBackend(string admin, string role, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            var pid = await Scalar(admin, """
+                SELECT pid FROM pg_stat_activity
+                WHERE usename=@role AND wait_event='PgSleep' LIMIT 1
+                """, ("role", role));
+            if (pid is int found) return found;
+            await Task.Delay(50);
+        }
+        return null;
+    }
+
+    [Fact]
+    public async Task ProjectorKilledMidRebuildRollsBackCompletelyAndTheRetryIsIdempotent()
+    {
+        var s = await SeedAsync("g10k");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        await AcceptAsync(s, "k-1");
+        await AcceptAsync(s, "k-2", "2026-11-03T11:00:00Z", "GTOT");
+        for (var n = 0; n < 2; n++)
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        var revision = await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment));
+
+        await InstallStall(s.Roles.Admin, s.Target.Shipment, 30);
+        try
+        {
+            await using var projectorDb = Context(s.Roles.Projector);
+            var store = new ShipmentTimelineStore(projectorDb, restrictedProjector: true);
+            var doomed = Task.Run(() => store.RebuildAsync(
+                s.Fixture.A, s.Target.Shipment, CancellationToken.None));
+            var pid = await WaitForSleepingBackend(s.Roles.Admin, "harborops_projector",
+                TimeSpan.FromSeconds(30));
+            Assert.NotNull(pid);   // the transaction is open and has already written the projection row
+            Assert.Equal(true, await Scalar(s.Roles.Admin, "SELECT pg_terminate_backend(@p)",
+                ("p", pid!.Value)));
+            await Assert.ThrowsAnyAsync<Exception>(() => doomed);
+        }
+        finally { await RemoveStall(s.Roles.Admin); }
+
+        // Crash before COMMIT: nothing leaked, source input untouched.
+        Assert.Equal(0, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_tracking_projections WHERE shipment_id=@s",
+            ("s", s.Target.Shipment)));
+        Assert.Equal(0, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_projection_applications WHERE shipment_id=@s",
+            ("s", s.Target.Shipment)));
+        Assert.Equal(revision, await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(0, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM pg_stat_activity WHERE usename='harborops_projector' AND state='idle in transaction'"));
+
+        // Retry on a new connection: one application per receipt, and an identical replay is a no-op.
+        await using var retryDb = Context(s.Roles.Projector);
+        var retry = new ShipmentTimelineStore(retryDb, restrictedProjector: true);
+        var first = await retry.RebuildAsync(s.Fixture.A, s.Target.Shipment, CancellationToken.None);
+        Assert.Equal(TrackingMutationResult.Applied, first.Result);
+        Assert.Equal(2, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_projection_applications WHERE shipment_id=@s",
+            ("s", s.Target.Shipment)));
+        var again = await retry.RebuildAsync(s.Fixture.A, s.Target.Shipment, CancellationToken.None);
+        Assert.Equal(first.Revision, again.Revision);
+        Assert.Equal(2, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_projection_applications WHERE shipment_id=@s",
+            ("s", s.Target.Shipment)));
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_projections
+            WHERE shipment_id=@s AND observed_state='EquipmentOut' AND event_count=2
+            """, ("s", s.Target.Shipment)));
+    }
+
+    [Fact]
+    public async Task LateWorkerEffectDuringRebuildIsNeverLostAndMarksTheProjectionStale()
+    {
+        var s = await SeedAsync("g10c");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        await AcceptAsync(s, "c-1");
+        await AcceptAsync(s, "c-2", "2026-11-03T11:00:00Z", "GTOT");
+        await AcceptAsync(s, "c-3", "2026-11-03T12:00:00Z", "GTIN");
+        for (var n = 0; n < 2; n++)
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+
+        await InstallStall(s.Roles.Admin, s.Target.Shipment, 3);
+        TrackingWorkDisposition late;
+        (TrackingMutationResult Result, long Revision) rebuilt;
+        try
+        {
+            await using var projectorDb = Context(s.Roles.Projector);
+            var store = new ShipmentTimelineStore(projectorDb, restrictedProjector: true);
+            var rebuild = Task.Run(() => store.RebuildAsync(
+                s.Fixture.A, s.Target.Shipment, CancellationToken.None));
+            Assert.NotNull(await WaitForSleepingBackend(s.Roles.Admin, "harborops_projector",
+                TimeSpan.FromSeconds(30)));
+            // The rebuild transaction is open and holds the scope locks. The late M9 effect must wait.
+            var worker = Task.Run(() => WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+            Assert.True(await WaitForLockWait(s.Roles.Admin, "harborops_worker", TimeSpan.FromSeconds(30)),
+                "The late M9 effect did not wait behind the rebuild");
+            Assert.False(worker.IsCompleted);
+            rebuilt = await rebuild.WaitAsync(TimeSpan.FromSeconds(60));
+            late = await worker.WaitAsync(TimeSpan.FromSeconds(60));
+        }
+        finally { await RemoveStall(s.Roles.Admin); }
+
+        Assert.Equal(TrackingMutationResult.Applied, rebuilt.Result);
+        Assert.Equal(TrackingWorkDisposition.Processed, late);
+        // The materialization covers exactly the two events it saw; the late effect is retained.
+        Assert.Equal(2, await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_projections WHERE shipment_id=@s
+            """, ("s", s.Target.Shipment)));
+        Assert.Equal(3, await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        await using var readDb = Context(s.Roles.Admin);
+        var stale = await new ShipmentTimelineStore(readDb).ReadBoundedAsync(
+            s.Fixture.A, s.Target.Shipment, CancellationToken.None);
+        Assert.NotNull(stale);
+        Assert.True(stale!.MaterializationStale, "a materialization older than the input must report stale");
+        await using var sweepDb = Context(s.Roles.Projector);
+        var sweep = new ShipmentTimelineStore(sweepDb, restrictedProjector: true);
+        Assert.Contains(await sweep.DirtyAsync(50, CancellationToken.None),
+            d => d.Shipment == s.Target.Shipment);
+        // Recovery: the next rebuild includes the late effect and the scope is clean again.
+        Assert.Equal(TrackingMutationResult.Applied,
+            (await sweep.RebuildAsync(s.Fixture.A, s.Target.Shipment, CancellationToken.None)).Result);
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_projections
+            WHERE shipment_id=@s AND input_revision=3 AND event_count=3
+            """, ("s", s.Target.Shipment)));
+        Assert.DoesNotContain(await sweep.DirtyAsync(50, CancellationToken.None),
+            d => d.Shipment == s.Target.Shipment);
+    }
+
     private sealed class ProjectorFactory(string api, string projector)
         : WebApplicationFactory<Program>
     {

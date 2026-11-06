@@ -627,6 +627,283 @@ public sealed class M10RuntimeIdentityTests
         Assert.DoesNotContain(after, d => d.Shipment == s.Target.Shipment);
     }
 
+    [Fact]
+    public async Task LargeHistoryUsesTheKeysetIndexPagesCompletelyAndRebuildsWithinBounds()
+    {
+        const int Bulk = 12_000;
+        var s = await SeedAsync("g10x");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var manager = s.Fixture.Manager;
+        using var analyst = s.Fixture.Analyst;
+        var template = await AcceptAsync(s, "x-template");
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+
+        // Historical-style bulk load: triggers are bypassed for this controlled seed only, and
+        // every row mirrors the real template chain (receipt, event, work item, effect, index).
+        await using (var seed = new NpgsqlConnection(s.Roles.Admin))
+        {
+            await seed.OpenAsync();
+            await using var transaction = await seed.BeginTransactionAsync();
+            await using var command = new NpgsqlCommand($$"""
+                SET LOCAL session_replication_role = replica;
+                CREATE TEMP TABLE bulk_ids ON COMMIT DROP AS
+                    SELECT g AS n, gen_random_uuid() AS rid, gen_random_uuid() AS eid
+                    FROM generate_series(1,{{Bulk}}) g;
+                INSERT INTO tracking_inbox_receipts
+                    (id,organization_id,source_id,credential_id,profile,source_event_id,
+                     canonical_digest,canonical_payload_utf8,received_at_utc,correlation_id)
+                SELECT b.rid,r.organization_id,r.source_id,r.credential_id,r.profile,
+                       'bulk-'||b.n,sha256(convert_to('bulk-'||b.n,'UTF8')),
+                       r.canonical_payload_utf8,
+                       timestamptz '2026-11-04 00:00:00+00'+(b.n||' seconds')::interval,'bulk'
+                FROM bulk_ids b CROSS JOIN tracking_inbox_receipts r WHERE r.id=@t;
+                INSERT INTO tracking_accepted_events
+                    (id,receipt_id,organization_id,source_id,event_family,event_code,classifier,
+                     external_schema_version,occurred_at_utc,equipment_reference,
+                     transport_reference,raw_payload_utf8,canonical_payload)
+                SELECT b.eid,b.rid,e.organization_id,e.source_id,e.event_family,
+                       CASE WHEN b.n%2=0 THEN 'GTOT' ELSE 'GTIN' END,e.classifier,
+                       e.external_schema_version,
+                       timestamptz '2026-11-03 12:00:00+00'+((b.n/3)||' seconds')::interval,
+                       e.equipment_reference,e.transport_reference,e.raw_payload_utf8,
+                       e.canonical_payload
+                FROM bulk_ids b CROSS JOIN tracking_accepted_events e WHERE e.receipt_id=@t;
+                INSERT INTO tracking_inbox_work_items
+                SELECT b.rid,w.organization_id,w.source_id,w.state,w.attempt_count,
+                       w.created_at_utc,w.updated_at_utc,w.lease_token,w.lease_epoch,
+                       w.lease_expires_at_utc,w.available_at_utc,w.redrive_generation,
+                       w.last_error_code,w.completed_at_utc,w.resolution_kind
+                FROM bulk_ids b CROSS JOIN tracking_inbox_work_items w WHERE w.receipt_id=@t;
+                INSERT INTO tracking_processing_effects
+                SELECT b.rid,fx.organization_id,fx.source_id,fx.resolution_kind,
+                       fx.resolution_policy,fx.container_id,fx.shipment_id,fx.resolved_at_utc
+                FROM bulk_ids b CROSS JOIN tracking_processing_effects fx WHERE fx.receipt_id=@t;
+                INSERT INTO shipment_tracking_timeline_entries
+                    (receipt_id,organization_id,shipment_id,event_id,source_id,source_event_id,
+                     event_code,occurred_at_utc,received_at_utc,container_id)
+                SELECT fx.receipt_id,fx.organization_id,fx.shipment_id,e.id,e.source_id,
+                       r.source_event_id,e.event_code,e.occurred_at_utc,r.received_at_utc,
+                       fx.container_id
+                FROM tracking_processing_effects fx
+                JOIN tracking_accepted_events e ON e.receipt_id=fx.receipt_id
+                JOIN tracking_inbox_receipts r ON r.id=e.receipt_id
+                WHERE fx.receipt_id IN (SELECT rid FROM bulk_ids);
+                UPDATE shipment_tracking_input_versions
+                   SET input_revision=input_revision+{{Bulk}},event_count=event_count+{{Bulk}}
+                 WHERE organization_id=@o AND shipment_id=@s;
+                """, seed, transaction) { CommandTimeout = 120 };
+            command.Parameters.AddWithValue("t", template);
+            command.Parameters.AddWithValue("o", s.Fixture.A);
+            command.Parameters.AddWithValue("s", s.Target.Shipment);
+            await command.ExecuteNonQueryAsync();
+            await transaction.CommitAsync();
+        }
+        var total = Bulk + 1;
+        Assert.Equal(total, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_timeline_entries
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        await Scalar(s.Roles.Admin, "ANALYZE shipment_tracking_timeline_entries");
+
+        // The bounded page must be an index range scan with the ordering supplied by the index.
+        var anchor = await Scalar(s.Roles.Admin, $"""
+            SELECT concat_ws('|',occurred_at_utc::text,received_at_utc::text,source_id::text,
+                             source_event_id,receipt_id::text,event_id::text)
+            FROM shipment_tracking_timeline_entries
+            WHERE organization_id='{s.Fixture.A}' AND shipment_id='{s.Target.Shipment}'
+            ORDER BY occurred_at_utc,received_at_utc,source_id,source_event_id COLLATE "C",
+                     receipt_id,event_id OFFSET 6000 LIMIT 1
+            """) as string;
+        var p = anchor!.Split('|');
+        var plan = new System.Text.StringBuilder();
+        await using (var explain = new NpgsqlConnection(s.Roles.Admin))
+        {
+            await explain.OpenAsync();
+            await using var command = new NpgsqlCommand($"""
+                EXPLAIN (ANALYZE, BUFFERS)
+                SELECT e.event_id,e.receipt_id,e.source_id,e.source_event_id,e.event_code,
+                       e.occurred_at_utc,e.received_at_utc,c.id IS NOT NULL,
+                       c.replacement_receipt_id,e.container_id,c.id
+                FROM shipment_tracking_timeline_entries e
+                LEFT JOIN shipment_tracking_corrections c
+                  ON c.organization_id=e.organization_id AND c.shipment_id=e.shipment_id
+                 AND c.target_receipt_id=e.receipt_id
+                WHERE e.organization_id='{s.Fixture.A}' AND e.shipment_id='{s.Target.Shipment}'
+                  AND (e.occurred_at_utc,e.received_at_utc,e.source_id,
+                       e.source_event_id COLLATE "C",e.receipt_id,e.event_id)
+                    > ('{p[0]}'::timestamptz,'{p[1]}'::timestamptz,'{p[2]}'::uuid,
+                       '{p[3]}' COLLATE "C",'{p[4]}'::uuid,'{p[5]}'::uuid)
+                ORDER BY e.occurred_at_utc,e.received_at_utc,e.source_id,
+                         e.source_event_id COLLATE "C",e.receipt_id,e.event_id
+                LIMIT 101
+                """, explain);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync()) plan.AppendLine(reader.GetString(0));
+        }
+        var planText = plan.ToString();
+        Assert.Contains("ix_m10_timeline_keyset", planText);
+        Assert.DoesNotContain("Sort", planText);
+        Assert.DoesNotContain("Seq Scan on shipment_tracking_timeline_entries", planText);
+
+        // Walk the complete history over HTTP and compare with the SQL canonical order.
+        var root = $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}";
+        var received = new List<Guid>();
+        var latencies = new List<double>();
+        string? cursor = null, firstCursor = null;
+        var watch = new System.Diagnostics.Stopwatch();
+        do
+        {
+            watch.Restart();
+            using var response = await analyst.GetAsync(root + "/events?limit=100" +
+                (cursor is null ? "" : "&cursor=" + Uri.EscapeDataString(cursor)));
+            watch.Stop();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            latencies.Add(watch.Elapsed.TotalMilliseconds);
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(total, body.GetProperty("eventCount").GetInt64());
+            foreach (var item in body.GetProperty("items").EnumerateArray())
+                received.Add(item.GetProperty("receiptId").GetGuid());
+            cursor = body.GetProperty("nextCursor").ValueKind == JsonValueKind.Null
+                ? null : body.GetProperty("nextCursor").GetString();
+            firstCursor ??= cursor;
+        } while (cursor is not null);
+        Assert.Equal(total, received.Count);
+        Assert.Equal(total, received.Distinct().Count());
+        var expected = new List<Guid>();
+        await using (var order = new NpgsqlConnection(s.Roles.Admin))
+        {
+            await order.OpenAsync();
+            await using var command = new NpgsqlCommand("""
+                SELECT receipt_id FROM shipment_tracking_timeline_entries
+                WHERE organization_id=@o AND shipment_id=@s
+                ORDER BY occurred_at_utc,received_at_utc,source_id,source_event_id COLLATE "C",
+                         receipt_id,event_id
+                """, order);
+            command.Parameters.AddWithValue("o", s.Fixture.A);
+            command.Parameters.AddWithValue("s", s.Target.Shipment);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync()) expected.Add(reader.GetGuid(0));
+        }
+        Assert.Equal(expected, received);
+        latencies.Sort();
+        var p95 = latencies[(int)(latencies.Count * 0.95)];
+        Assert.True(latencies[^1] < 5000, $"slowest page {latencies[^1]:F0} ms");
+
+        // Rebuild streams the complete retained history under a bounded time and memory budget.
+        var process = System.Diagnostics.Process.GetCurrentProcess();
+        process.Refresh();
+        var memoryBefore = process.PrivateMemorySize64;
+        watch.Restart();
+        using (var rebuild = await SendM10(manager, root + "/tracking-projection/rebuild"))
+        {
+            watch.Stop();
+            Assert.Equal(HttpStatusCode.OK, rebuild.StatusCode);
+        }
+        process.Refresh();
+        var memoryAfter = process.PrivateMemorySize64;
+        var rebuildMs = watch.Elapsed.TotalMilliseconds;
+        Assert.True(rebuildMs < 60_000, $"rebuild took {rebuildMs:F0} ms");
+        Assert.True(memoryAfter - memoryBefore < 512L * 1024 * 1024,
+            $"rebuild grew private memory by {(memoryAfter - memoryBefore) / 1024 / 1024} MiB");
+        using (var read = await analyst.GetAsync(root + "/tracking-projection"))
+        {
+            var body = await read.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(total, body.GetProperty("eventCount").GetInt64());
+            Assert.False(body.GetProperty("materializationStale").GetBoolean());
+            Assert.Equal("EquipmentOut", body.GetProperty("observedTrackingState").GetString());
+        }
+
+        // A new M9 effect invalidates cursors issued before it.
+        await AcceptAsync(s, "x-late", "2026-11-03T09:30:00Z", "GTIN");
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        using (var stale = await analyst.GetAsync(root + "/events?limit=100&cursor=" +
+            Uri.EscapeDataString(firstCursor!)))
+            Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+        using (var fresh = await analyst.GetAsync(root + "/events?limit=100"))
+        {
+            var body = await fresh.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(total + 1, body.GetProperty("eventCount").GetInt64());
+            Assert.True(body.GetProperty("materializationStale").GetBoolean());
+        }
+
+        var evidence = Environment.GetEnvironmentVariable("HARBOROPS_G10_PERF_OUT");
+        if (!string.IsNullOrWhiteSpace(evidence))
+            await File.AppendAllTextAsync(evidence,
+                $"large-history events={total} pages={latencies.Count} page_p95_ms={p95:F1} " +
+                $"page_max_ms={latencies[^1]:F1} rebuild_ms={rebuildMs:F0} " +
+                $"rebuild_private_mem_delta_mib={(memoryAfter - memoryBefore) / 1024 / 1024}{Environment.NewLine}" +
+                "-- plan --" + Environment.NewLine + planText + Environment.NewLine);
+    }
+
+    [Fact]
+    public async Task M10RoutesHonorLiveRoleDowngradeRateLimitAndSessionRevocation()
+    {
+        var s = await SeedAsync("g10v");
+        using var _ = s.Admin;
+        using var admin = s.Fixture.Admin;
+        using var manager = s.Fixture.Manager;
+        using var analyst = s.Fixture.Analyst;
+        await AcceptAsync(s, "v-1");
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        var root = $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}";
+
+        using (var allowed = await SendM10(manager, root + "/tracking-projection/rebuild"))
+            Assert.Equal(HttpStatusCode.OK, allowed.StatusCode);
+
+        // A live role downgrade takes effect on the very next Manager-only request.
+        async Task SetRole(string role)
+        {
+            await using var db = Context(s.Roles.Admin);
+            var membership = await db.OrganizationMemberships.AsNoTracking().SingleAsync(m =>
+                m.OrganizationId == s.Fixture.A && m.UserId == s.Actor);
+            using var put = await ReferenceDataHttpTests.Send(admin, HttpMethod.Put,
+                $"/api/v1/organizations/{s.Fixture.A}/memberships/{s.Actor}",
+                new { role, status = "Active", expectedVersion = membership.Version });
+            Assert.Equal(HttpStatusCode.OK, put.StatusCode);
+        }
+        await SetRole("Analyst");
+        using (var denied = await SendM10(manager, root + "/tracking-projection/rebuild"))
+            Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        using (var deniedCorrection = await SendM10(manager, root + "/tracking-corrections",
+            new { targetReceiptId = Guid.NewGuid(), replacementReceiptId = (Guid?)null,
+                  expectedGeneration = 0, reason = "Downgraded manager attempt" }))
+            Assert.Equal(HttpStatusCode.Forbidden, deniedCorrection.StatusCode);
+        using (var stillReads = await manager.GetAsync(root + "/events?limit=1"))
+            Assert.Equal(HttpStatusCode.OK, stillReads.StatusCode);
+        Assert.Equal(0, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_tracking_corrections WHERE organization_id=@o",
+            ("o", s.Fixture.A)));
+        await SetRole("Manager");
+
+        // The mutation limiter (10 per minute per user) answers 429 without blocking readers.
+        var statuses = new List<HttpStatusCode>();
+        for (var n = 0; n < 25; n++)
+        {
+            using var response = await SendM10(manager, root + "/tracking-projection/rebuild");
+            statuses.Add(response.StatusCode);
+        }
+        Assert.Contains(HttpStatusCode.TooManyRequests, statuses);
+        Assert.Contains(HttpStatusCode.OK, statuses);
+        using (var reader = await analyst.GetAsync(root + "/events?limit=1"))
+            Assert.Equal(HttpStatusCode.OK, reader.StatusCode);
+        // Reads of other families keep working for the limited user.
+        using (var limitedRead = await manager.GetAsync(root + "/tracking-projection"))
+            Assert.Equal(HttpStatusCode.OK, limitedRead.StatusCode);
+
+        // Revoking every session ends access immediately for reads and mutations.
+        using (var revoke = await ReferenceDataHttpTests.Send(analyst, HttpMethod.Post,
+            "/api/v1/auth/logout-all"))
+            Assert.True(revoke.IsSuccessStatusCode, "logout-all " + revoke.StatusCode);
+        using (var after = await analyst.GetAsync(root + "/events?limit=1"))
+            Assert.Equal(HttpStatusCode.Unauthorized, after.StatusCode);
+        using (var afterProjection = await analyst.GetAsync(root + "/tracking-projection"))
+            Assert.Equal(HttpStatusCode.Unauthorized, afterProjection.StatusCode);
+    }
+
     private sealed class ProjectorFactory(string api, string projector)
         : WebApplicationFactory<Program>
     {

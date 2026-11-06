@@ -1,6 +1,6 @@
 # Parallel Delivery and Integration Policy
 
-**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 has an unaccepted draft implementation in [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), without executed G10 evidence. The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
+**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
 
 **Version:** 1.1  
 **Updated:** 2026-11-04  
@@ -10,7 +10,7 @@
 
 HarborOps milestones M0-M24 retain 101 work packages and 25 separately verified, explicitly accepted gates. Milestone numbering and P0-P5 topic groupings do not impose sequential implementation. `execution-graph.json` version 3.0 is the sole dependency-edge authority. The generated Markdown graph must be regenerated after changing dependencies; never hand-edit it.
 
-The accepted baseline is G0-G9 plus G16 on `main` as of 2026-11-06. Eligibility to start a future work package is distinct from runtime verification and formal gate acceptance. Draft M10 implementation PR #23 has no accepted G10 evidence.
+The accepted baseline is G0-G9 plus G16 on `main` as of 2026-11-06. Eligibility to start a future work package is distinct from runtime verification and formal gate acceptance. M10 implementation PR #23 was merged on 2026-11-06 and has no accepted G10 evidence.
 
 ## Dependency contracts
 
@@ -73,7 +73,7 @@ Completed convergence: M9 `TrackingWorkRead` and `TrackingWorkRedrive` coexist w
 - When parallel branches converge, run their combined tests on the merged candidate, including auth/tenant boundary races and migration rehearsals. Earlier per-branch PASS results alone do not establish integration correctness.
 - G19 recovery can be implemented early, but any later migration requires appropriate upgrade/recovery testing. G20 assurance similarly does not waive security checks on later modules.
 - G24 requires all G0-G23 gates explicitly accepted and a fresh complete-system verification on the final code and images. M24-04 remains the **only formal dedicated accessibility audit**; M6, M12, M18, and M24-03 retain historical-volume compatibility checkpoints. These milestone-bound checks remain required even if streams finish out of numeric order.
-- No release, production deployment or new unaccepted gate is implied by updating planning documents. G0-G9 and G16 are accepted and merged. G10-G15 and G17-G24 remain open; the draft M10 source in PR #23 does not waive G10 requirements or lift the transport-processing hold. [Status](STATUS.md) records executed and accepted outcomes.
+- No release, production deployment or new unaccepted gate is implied by updating planning documents. G0-G9 and G16 are accepted and merged. G10-G15 and G17-G24 remain open; the merged M10 source in PR #23 does not waive G10 requirements or lift the transport-processing hold. [Status](STATUS.md) records executed and accepted outcomes.
 
 ## Graph maintenance
 

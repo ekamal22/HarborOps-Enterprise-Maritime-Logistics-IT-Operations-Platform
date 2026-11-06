@@ -156,7 +156,7 @@ public sealed class TrackingProjectionG10Tests
             Assert.Equal(HttpStatusCode.Conflict, stalePage.StatusCode);
 
         Assert.Equal(1, revised.CorrectionGeneration);
-        Assert.Single(revised.Timeline.Where(e => e.Superseded));
+        Assert.Single(revised.Timeline, e => e.Superseded);
         Assert.Null(revised.Timeline.Single(e => e.ReceiptId == secondReceipt).ReplacedByReceiptId);
         Assert.False(revised.MaterializationStale);
         var duplicateChain = await Assert.ThrowsAsync<PostgresException>(() =>

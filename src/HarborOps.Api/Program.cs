@@ -17,6 +17,7 @@ using HarborOps.Application.Baseline;
 using HarborOps.Infrastructure;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
+using HarborOps.Infrastructure.Shipments;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

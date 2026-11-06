@@ -23,21 +23,17 @@ public sealed record TrackingCorrection(Guid TargetReceiptId, Guid? ReplacementR
 public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restrictedProjector = false)
 {
     private const string OrderedSourceEvents = """
-        SELECT e.id,e.receipt_id,e.source_id,r.source_event_id,e.event_code,
-               e.occurred_at_utc,r.received_at_utc,c.id IS NOT NULL,c.replacement_receipt_id,
-               fx.container_id,c.id
-        FROM tracking_processing_effects fx
-        JOIN tracking_accepted_events e ON e.receipt_id=fx.receipt_id
-          AND e.organization_id=fx.organization_id AND e.source_id=fx.source_id
-        JOIN tracking_inbox_receipts r ON r.id=e.receipt_id
-          AND r.organization_id=e.organization_id AND r.source_id=e.source_id
+        SELECT e.event_id,e.receipt_id,e.source_id,e.source_event_id,e.event_code,
+               e.occurred_at_utc,e.received_at_utc,c.id IS NOT NULL,
+               c.replacement_receipt_id,e.container_id,c.id
+        FROM shipment_tracking_timeline_entries e
         LEFT JOIN shipment_tracking_corrections c
-          ON c.organization_id=fx.organization_id
-          AND c.shipment_id=fx.shipment_id
-          AND c.target_receipt_id=fx.receipt_id
-        WHERE fx.organization_id=@org AND fx.shipment_id=@shipment
-        ORDER BY e.occurred_at_utc,r.received_at_utc,e.source_id,
-                 r.source_event_id COLLATE "C",e.receipt_id,e.id
+          ON c.organization_id=e.organization_id
+          AND c.shipment_id=e.shipment_id
+          AND c.target_receipt_id=e.receipt_id
+        WHERE e.organization_id=@org AND e.shipment_id=@shipment
+        ORDER BY e.occurred_at_utc,e.received_at_utc,e.source_id,
+                 e.source_event_id COLLATE "C",e.receipt_id,e.event_id
         """;
 
     private static NpgsqlCommand Command(NpgsqlConnection con, NpgsqlTransaction? tx,
@@ -148,19 +144,15 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
         if (pageSize == 0) return (Array.Empty<ShipmentTimelineEvent>(), false);
         if (pageSize is < 0 or > 100) throw new ArgumentOutOfRangeException(nameof(pageSize));
         var sql = """
-            SELECT e.id,e.receipt_id,e.source_id,r.source_event_id,e.event_code,
-                   e.occurred_at_utc,r.received_at_utc,c.id IS NOT NULL,c.replacement_receipt_id,
-                   fx.container_id,c.id
-            FROM tracking_processing_effects fx
-            JOIN tracking_accepted_events e ON e.receipt_id=fx.receipt_id
-                AND e.organization_id=fx.organization_id AND e.source_id=fx.source_id
-            JOIN tracking_inbox_receipts r ON r.id=e.receipt_id
-                AND r.organization_id=e.organization_id AND r.source_id=e.source_id
+            SELECT e.event_id,e.receipt_id,e.source_id,e.source_event_id,e.event_code,
+                   e.occurred_at_utc,e.received_at_utc,c.id IS NOT NULL,
+                   c.replacement_receipt_id,e.container_id,c.id
+            FROM shipment_tracking_timeline_entries e
             LEFT JOIN shipment_tracking_corrections c
-                ON c.organization_id=fx.organization_id
-                AND c.shipment_id=fx.shipment_id
-                AND c.target_receipt_id=fx.receipt_id
-            WHERE fx.organization_id=@org AND fx.shipment_id=@shipment
+                ON c.organization_id=e.organization_id
+                AND c.shipment_id=e.shipment_id
+                AND c.target_receipt_id=e.receipt_id
+            WHERE e.organization_id=@org AND e.shipment_id=@shipment
             """;
         var arguments = new List<(string Name, object? Value)>
         {
@@ -170,8 +162,8 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
         {
             sql += """
                 
-                AND (e.occurred_at_utc,r.received_at_utc,e.source_id,
-                     r.source_event_id COLLATE "C",e.receipt_id,e.id)
+                AND (e.occurred_at_utc,e.received_at_utc,e.source_id,
+                     e.source_event_id COLLATE "C",e.receipt_id,e.event_id)
                   > (@afterOccurred,@afterReceived,@afterSource,
                      @afterEvent COLLATE "C",@afterReceipt,@afterId)
                 """;
@@ -184,8 +176,8 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
         }
         sql += """
             
-            ORDER BY e.occurred_at_utc,r.received_at_utc,e.source_id,
-                     r.source_event_id COLLATE "C",e.receipt_id,e.id
+            ORDER BY e.occurred_at_utc,e.received_at_utc,e.source_id,
+                     e.source_event_id COLLATE "C",e.receipt_id,e.event_id
             LIMIT @take
             """;
         await using var cmd = Command(con, tx, sql, arguments.ToArray());

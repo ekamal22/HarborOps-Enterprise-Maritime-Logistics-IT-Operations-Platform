@@ -174,7 +174,7 @@ const variants = [
     [], [I.grants]),
   V("api-redrive-scope-guards-disabled", [
     [ROLES, "IF session_user = 'harborops_api' AND NOT COALESCE(", "IF session_user = 'harborops_api_off' AND NOT COALESCE("],
-    [ROLES, "IF session_user = 'harborops_api' THEN\n                                valid", "IF session_user = 'harborops_api_off' THEN\n                                valid"]],
+    [ROLES, "IF session_user = 'harborops_api' THEN\n                                -- A new intake is Pending at generation zero.", "IF session_user = 'harborops_api_off' THEN\n                                -- A new intake is Pending at generation zero."]],
     [], [I.lifecycle]),
   V("audit-failure-swallowed", [
     [MIG16, "EXECUTE format(", "BEGIN\n                EXECUTE format("],

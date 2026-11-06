@@ -147,54 +147,73 @@ public sealed class ShipmentTrackingProjections : Migration
                 actual_generation bigint;
                 org_status text;
                 shipment_status text;
+                scope_valid boolean;
+                chain_present boolean;
             BEGIN
-                -- Organization-first then shipment locking mirrors the API transaction.
+                -- All table references are pinned to the triggering schema.
                 EXECUTE format('SELECT status FROM %I.organizations WHERE id=$1 FOR UPDATE',
                     TG_TABLE_SCHEMA) INTO org_status USING NEW.organization_id;
-                EXECUTE format('SELECT record_status FROM %I.shipments WHERE id=$1 AND organization_id=$2 FOR UPDATE',
+                EXECUTE format(
+                    'SELECT record_status FROM %I.shipments
+                     WHERE organization_id=$1 AND id=$2 FOR UPDATE',
                     TG_TABLE_SCHEMA) INTO shipment_status
-                    USING NEW.shipment_id,NEW.organization_id;
+                    USING NEW.organization_id,NEW.shipment_id;
                 IF org_status IS DISTINCT FROM 'Active'
                    OR shipment_status IS DISTINCT FROM 'Active' THEN
                     RAISE EXCEPTION 'inactive correction scope' USING ERRCODE='23514';
                 END IF;
-                IF NOT EXISTS (
-                    SELECT 1 FROM public.tracking_processing_effects t
-                    WHERE t.receipt_id=NEW.target_receipt_id
-                      AND t.organization_id=NEW.organization_id
-                      AND t.shipment_id=NEW.shipment_id) THEN
+                EXECUTE format(
+                    'SELECT EXISTS(SELECT 1 FROM %I.tracking_processing_effects
+                     WHERE receipt_id=$1 AND organization_id=$2 AND shipment_id=$3)',
+                    TG_TABLE_SCHEMA) INTO scope_valid
+                    USING NEW.target_receipt_id,NEW.organization_id,NEW.shipment_id;
+                IF NOT scope_valid THEN
                     RAISE EXCEPTION 'invalid correction target' USING ERRCODE='23514';
                 END IF;
-                IF NEW.replacement_receipt_id IS NOT NULL AND NOT EXISTS (
-                    SELECT 1 FROM public.tracking_processing_effects t
-                    WHERE t.receipt_id=NEW.replacement_receipt_id
-                      AND t.organization_id=NEW.organization_id
-                      AND t.shipment_id=NEW.shipment_id) THEN
-                    RAISE EXCEPTION 'invalid correction replacement' USING ERRCODE='23514';
+                IF NEW.replacement_receipt_id IS NOT NULL THEN
+                    EXECUTE format(
+                        'SELECT EXISTS(SELECT 1 FROM %I.tracking_processing_effects
+                         WHERE receipt_id=$1 AND organization_id=$2 AND shipment_id=$3)',
+                        TG_TABLE_SCHEMA) INTO scope_valid
+                        USING NEW.replacement_receipt_id,NEW.organization_id,NEW.shipment_id;
+                    IF NOT scope_valid THEN
+                        RAISE EXCEPTION 'invalid correction replacement' USING ERRCODE='23514';
+                    END IF;
                 END IF;
-                IF EXISTS (
-                    SELECT 1 FROM public.shipment_tracking_corrections c
-                    WHERE c.organization_id=NEW.organization_id
-                      AND c.shipment_id=NEW.shipment_id
-                      AND c.replacement_receipt_id=NEW.target_receipt_id) THEN
+                EXECUTE format(
+                    'SELECT EXISTS(SELECT 1 FROM %I.shipment_tracking_corrections
+                     WHERE organization_id=$1 AND shipment_id=$2
+                       AND replacement_receipt_id=$3)',
+                    TG_TABLE_SCHEMA) INTO chain_present
+                    USING NEW.organization_id,NEW.shipment_id,NEW.target_receipt_id;
+                IF chain_present THEN
                     RAISE EXCEPTION 'correction chain not supported' USING ERRCODE='23514';
                 END IF;
-                IF NEW.replacement_receipt_id IS NOT NULL AND EXISTS (
-                    SELECT 1 FROM public.shipment_tracking_corrections c
-                    WHERE c.organization_id=NEW.organization_id
-                      AND c.shipment_id=NEW.shipment_id
-                      AND (c.target_receipt_id=NEW.replacement_receipt_id
-                           OR c.replacement_receipt_id=NEW.target_receipt_id)) THEN
-                    RAISE EXCEPTION 'correction chain not supported' USING ERRCODE='23514';
+                IF NEW.replacement_receipt_id IS NOT NULL THEN
+                    EXECUTE format(
+                        'SELECT EXISTS(SELECT 1 FROM %I.shipment_tracking_corrections
+                         WHERE organization_id=$1 AND shipment_id=$2
+                           AND (target_receipt_id=$3 OR replacement_receipt_id=$4))',
+                        TG_TABLE_SCHEMA) INTO chain_present
+                        USING NEW.organization_id,NEW.shipment_id,
+                              NEW.replacement_receipt_id,NEW.target_receipt_id;
+                    IF chain_present THEN
+                        RAISE EXCEPTION 'correction chain not supported' USING ERRCODE='23514';
+                    END IF;
                 END IF;
-                INSERT INTO public.shipment_tracking_correction_heads
-                    (organization_id,shipment_id,generation)
-                VALUES (NEW.organization_id,NEW.shipment_id,0)
-                ON CONFLICT (organization_id,shipment_id) DO NOTHING;
-                UPDATE public.shipment_tracking_correction_heads
-                SET generation=generation+1
-                WHERE organization_id=NEW.organization_id AND shipment_id=NEW.shipment_id
-                RETURNING generation INTO actual_generation;
+                EXECUTE format(
+                    'INSERT INTO %I.shipment_tracking_correction_heads
+                         (organization_id,shipment_id,generation)
+                     VALUES ($1,$2,0)
+                     ON CONFLICT (organization_id,shipment_id) DO NOTHING',
+                    TG_TABLE_SCHEMA) USING NEW.organization_id,NEW.shipment_id;
+                EXECUTE format(
+                    'UPDATE %I.shipment_tracking_correction_heads
+                     SET generation=generation+1
+                     WHERE organization_id=$1 AND shipment_id=$2
+                     RETURNING generation',
+                    TG_TABLE_SCHEMA) INTO actual_generation
+                    USING NEW.organization_id,NEW.shipment_id;
                 IF NEW.generation IS DISTINCT FROM actual_generation THEN
                     RAISE EXCEPTION 'correction generation conflict' USING ERRCODE='23514';
                 END IF;

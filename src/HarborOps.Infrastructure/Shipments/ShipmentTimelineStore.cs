@@ -19,7 +19,7 @@ public enum TrackingMutationResult { Applied, Replayed, NotFound, Conflict, Inva
 public sealed record TrackingCorrection(Guid TargetReceiptId, Guid? ReplacementReceiptId,
     long ExpectedGeneration, string Reason);
 
-public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
+public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restrictedProjector = false)
 {
     private const string OrderedSourceEvents = """
         SELECT e.id,e.receipt_id,e.source_id,r.source_event_id,e.event_code,
@@ -158,8 +158,15 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
     }
 
     private static async Task<bool> LockScopeAsync(NpgsqlConnection con, NpgsqlTransaction tx,
-        Guid org, Guid shipment, CancellationToken ct)
+        Guid org, Guid shipment, bool restrictedProjector, CancellationToken ct)
     {
+        if (restrictedProjector)
+        {
+            await using var guarded = Command(con, tx,
+                "SELECT m10_lock_projector_scope(@org,@shipment)",
+                ("org", org), ("shipment", shipment));
+            return await guarded.ExecuteScalarAsync(ct) is true;
+        }
         await using (var cmd = Command(con, tx,
             "SELECT status FROM organizations WHERE id=@org FOR UPDATE", ("org", org)))
         {
@@ -282,7 +289,7 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db)
             {
                 await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
                     IsolationLevel.Serializable, ct);
-                if (!await LockScopeAsync(Connection, tx, org, shipment, ct))
+                if (!await LockScopeAsync(Connection, tx, org, shipment, restrictedProjector, ct))
                     return (TrackingMutationResult.NotFound, 0);
                 if (session != Guid.Empty &&
                     !await CurrentManagerAsync(Connection, tx, org, actor, session, ct))

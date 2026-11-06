@@ -13,7 +13,9 @@ GRANT USAGE ON SCHEMA public TO harborops_projector;
 GRANT SELECT ON TABLE organizations,shipments,tracking_processing_effects,
     tracking_accepted_events,tracking_inbox_receipts,
     shipment_tracking_corrections,shipment_tracking_projections,
-    shipment_projection_applications TO harborops_projector;
+    shipment_tracking_input_versions,shipment_projection_applications TO harborops_projector;
 GRANT INSERT,UPDATE ON TABLE shipment_tracking_projections TO harborops_projector;
 GRANT INSERT ON TABLE shipment_projection_applications TO harborops_projector;
 -- No update or delete access to M8 receipts, accepted events or M9 effects/work.
+
+GRANT EXECUTE ON FUNCTION m10_lock_projector_scope(uuid,uuid) TO harborops_projector;

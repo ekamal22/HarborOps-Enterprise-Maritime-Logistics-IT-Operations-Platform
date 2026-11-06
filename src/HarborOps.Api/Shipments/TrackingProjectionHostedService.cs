@@ -54,12 +54,12 @@ public sealed class TrackingProjectionHostedService(
             {
                 IReadOnlyList<(Guid Organization, Guid Shipment)> dirty;
                 await using (var db = CreateContext())
-                    dirty = await new ShipmentTimelineStore(db).DirtyAsync(16, stoppingToken);
+                    dirty = await new ShipmentTimelineStore(db, restrictedProjector: true).DirtyAsync(16, stoppingToken);
                 foreach (var (org, shipment) in dirty)
                 {
                     stoppingToken.ThrowIfCancellationRequested();
                     await using var db = CreateContext();
-                    var result = await new ShipmentTimelineStore(db)
+                    var result = await new ShipmentTimelineStore(db, restrictedProjector: true)
                         .RebuildAsync(org, shipment, stoppingToken);
                     if (result.Result != TrackingMutationResult.Applied)
                         logger.LogWarning("Projection rebuild deferred ({Result})", result.Result);

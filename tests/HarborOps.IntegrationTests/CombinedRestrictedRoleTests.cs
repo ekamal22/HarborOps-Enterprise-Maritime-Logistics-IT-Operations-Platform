@@ -175,6 +175,24 @@ public sealed class CombinedRestrictedRoleTests
         var good = await G9Support.Accept(apiFactory, source,
             G9Support.EquipmentPayload("cg16-" + Guid.NewGuid().ToString("N")[..10], resolvable.Reference));
 
+        // A new Pending item at generation zero has never been redriven.
+        // Supplying a real active Manager identity and matching row counters
+        // must not be sufficient to fabricate immutable redrive evidence.
+        Assert.Equal(0, await Scalar(roles.Admin,
+            "SELECT redrive_generation FROM tracking_inbox_work_items WHERE receipt_id=@r",
+            ("r", good)));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, (await Denied(roles.Api, """
+            INSERT INTO tracking_work_attempt_events
+                (id,receipt_id,organization_id,source_id,generation,attempt_count,
+                 lease_epoch,event_kind,reason_code,actor_user_id,redrive_reason,occurred_at_utc)
+            SELECT gen_random_uuid(),receipt_id,organization_id,source_id,
+                   redrive_generation,attempt_count,lease_epoch,
+                   'Redriven','manual_redrive',@actor,
+                   'Fabricated redrive without a parked state',clock_timestamp()
+            FROM tracking_inbox_work_items WHERE receipt_id=@r
+            """, ("r", good), ("actor", managerId))).SqlState);
+        Assert.Equal("", await Kinds(roles.Admin, good));
+
         // The restricted API identity is confined to the Manager redrive transition: it cannot
         // claim a lease, forge worker attempt history, or redrive without attributed evidence.
         Assert.Equal(PostgresErrorCodes.CheckViolation, (await Denied(roles.Api, """

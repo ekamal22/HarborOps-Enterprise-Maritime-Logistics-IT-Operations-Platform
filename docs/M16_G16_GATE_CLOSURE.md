@@ -63,3 +63,9 @@ These choices supplement, and do not reverse, approved M16-D01 through M16-D05.
 6. Reconcile `docs/STATUS.md`, `docs/DECISIONS.md` and release/operations references with the actual merge SHA after merging.
 
 **Final disposition:** G16 accepted on 2026-11-06 for verified source `79318c6b6126362a0b26a1452aad6d2b48fdf4b4`. PR #25 merge and production deployment remain unauthorized until separately approved.
+
+## Subsequent pre-merge security review finding
+
+The independent final source-diff review identified a missing negative case in F001: before the correction below, the restricted API role could potentially insert a fabricated `Redriven` attempt at generation zero against a newly accepted `Pending` item, naming an active Manager, without a legitimate parked-to-Pending redrive transition. This is not covered by the tested runtime SHA `79318c6` and is distinct from the previously accepted F001 fix.
+
+The integration branch now includes a follow-up restriction requiring a nonzero redrive generation, a reset attempt counter and the expected manual-redrive reason code, plus a focused regression that uses matching generation-zero values. **This follow-up source change requires targeted PostgreSQL execution and a source-locked gate extension before merging.** The previously recorded G16 acceptance remains attached to `79318c6`; this notice neither alters the original evidence nor claims the new change has already passed. PR #25 must stay unmerged while validation is outstanding.

@@ -123,7 +123,17 @@ public static class AuditRoleProvisioner
                         DECLARE valid boolean := true;
                         BEGIN
                             IF session_user = 'harborops_api' THEN
-                                valid := COALESCE(NEW.event_kind = 'Redriven' AND NEW.actor_user_id IS NOT NULL, false);
+                                -- A new intake is Pending at generation zero. It has never
+                                -- been redriven, so allowing a matching Redriven record here
+                                -- would let this runtime role forge immutable attempt history.
+                                -- The M9 redrive path increments generation and resets the
+                                -- attempt counter before inserting its attributed record.
+                                valid := COALESCE(
+                                    NEW.event_kind = 'Redriven'
+                                    AND NEW.actor_user_id IS NOT NULL
+                                    AND NEW.generation BETWEEN 1 AND 3
+                                    AND NEW.attempt_count = 0
+                                    AND NEW.reason_code = 'manual_redrive', false);
                                 IF valid THEN
                                     EXECUTE format(
                                         'SELECT EXISTS (

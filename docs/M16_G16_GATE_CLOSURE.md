@@ -69,3 +69,17 @@ These choices supplement, and do not reverse, approved M16-D01 through M16-D05.
 The independent final source-diff review identified a missing negative case in F001: before the correction below, the restricted API role could potentially insert a fabricated `Redriven` attempt at generation zero against a newly accepted `Pending` item, naming an active Manager, without a legitimate parked-to-Pending redrive transition. This is not covered by the tested runtime SHA `79318c6` and is distinct from the previously accepted F001 fix.
 
 The integration branch now includes a follow-up restriction requiring a nonzero redrive generation, a reset attempt counter and the expected manual-redrive reason code, plus a focused regression that uses matching generation-zero values. **This follow-up source change requires targeted PostgreSQL execution and a source-locked gate extension before merging.** The previously recorded G16 acceptance remains attached to `79318c6`; this notice neither alters the original evidence nor claims the new change has already passed. PR #25 must stay unmerged while validation is outstanding.
+
+## Gate extension result for the F001 generation-zero correction
+
+**Source verified:** `8ba7727abc4953e2390b75e38a4bbe2fac89e9ea`, clean checkout, run on 2026-11-06. The acceptance of `79318c6` above is unchanged; this section is a post-acceptance extension and does not rewrite it.
+
+- Delta from `79318c6`: the attempt guard condition in `AuditRoleProvisioner.cs` and one regression in `CombinedRestrictedRoleTests.cs`. No migration, Dockerfile, compose, web or worker source changed.
+- Warning-as-error build: 0 warnings, 0 errors.
+- Focused PostgreSQL run against the real restricted roles: 17 of 17 passed (CombinedRestrictedRoleTests, AuditHardeningTests, CombinedRetentionTests, TrackingWorkerG9AuthorizationTests, AuditMigrationTests, TrackingWorkerMigrationTests, TrackingInboxMigrationTests). Full integration suite on a brand new database: 286 of 286.
+- SQL probe as the real `harborops_api` login: the generation-zero forgery with a real active Manager fails with SQLSTATE 23514, as do wrong reason code, nonzero attempt count, Analyst or null actor, generation mismatch, Processed and Claimed kinds and the Pending to Leased transition. A genuine parked redrive followed by the attributed Manager record succeeds (INSERT 0 1); a duplicate generation is refused (23505). Nothing was committed.
+- Mutation: restoring the pre-correction guard makes the new regression fail ("No exception was thrown"), so the regression detects the original gap.
+- Grants, constraints, indexes, triggers, roles and the 11-migration history are identical to the verified `79318c6` combined database. The only difference is the body of `m16_api_scope_attempt()`.
+- Not repeated, because unchanged by the delta: browsers, outage and fault-injection, image scans, the 18-mutant harness and the populated accepted-M9 upgrade.
+
+**Result:** the post-acceptance correction passed a source-locked gate extension. PR #25 is technically ready for a merge decision on the code evidence; the remaining merge boundary items above (review, currency against `main`, separate merge authorization, accepted-M9 operating restriction) still apply. Evidence archive `f001-extension-evidence-8ba7727.tar.gz`, SHA-256 `cf53e0329a8ec49669fe93f951e60e2575a159dc88a510d828ccc0397d2a71fe`, 47 files in its manifest, under `E:HarborOps-Verificationevidence001-extension-archive`.

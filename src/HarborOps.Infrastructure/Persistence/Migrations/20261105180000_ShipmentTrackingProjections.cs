@@ -52,6 +52,34 @@ public sealed class ShipmentTrackingProjections : Migration
                 BEFORE UPDATE OR DELETE ON shipment_tracking_timeline_entries
                 FOR EACH ROW EXECUTE FUNCTION m8_guard_append_only();
 
+            CREATE FUNCTION m10_validate_timeline_entry() RETURNS trigger
+            LANGUAGE plpgsql SET search_path=pg_catalog AS $fn$
+            DECLARE matched bigint;
+            BEGIN
+                EXECUTE format(
+                    'SELECT COUNT(*) FROM %1$I.tracking_processing_effects fx
+                     JOIN %1$I.tracking_accepted_events e ON e.receipt_id=fx.receipt_id
+                         AND e.organization_id=fx.organization_id AND e.source_id=fx.source_id
+                     JOIN %1$I.tracking_inbox_receipts r ON r.id=e.receipt_id
+                         AND r.organization_id=e.organization_id AND r.source_id=e.source_id
+                     WHERE fx.receipt_id=$1 AND fx.organization_id=$2
+                       AND fx.shipment_id=$3 AND e.id=$4 AND e.source_id=$5
+                       AND r.source_event_id=$6 AND e.event_code=$7
+                       AND e.occurred_at_utc=$8 AND r.received_at_utc=$9
+                       AND fx.container_id=$10', TG_TABLE_SCHEMA)
+                INTO matched USING NEW.receipt_id,NEW.organization_id,
+                    NEW.shipment_id,NEW.event_id,NEW.source_id,NEW.source_event_id,
+                    NEW.event_code,NEW.occurred_at_utc,NEW.received_at_utc,NEW.container_id;
+                IF matched<>1 THEN
+                    RAISE EXCEPTION 'M10 timeline entry must match immutable M9 evidence'
+                        USING ERRCODE='23514';
+                END IF;
+                RETURN NEW;
+            END $fn$;
+            CREATE TRIGGER tr_m10_validate_timeline_entry
+                BEFORE INSERT ON shipment_tracking_timeline_entries
+                FOR EACH ROW EXECUTE FUNCTION m10_validate_timeline_entry();
+
             CREATE TABLE shipment_tracking_projections (
                 shipment_id uuid PRIMARY KEY,
                 organization_id uuid NOT NULL,
@@ -377,6 +405,7 @@ public sealed class ShipmentTrackingProjections : Migration
             DROP TABLE shipment_tracking_correction_heads;
             DROP TABLE shipment_tracking_projections;
             DROP TABLE shipment_tracking_input_versions;
+            DROP FUNCTION m10_validate_timeline_entry();
             DROP FUNCTION m10_validate_correction();
             DROP FUNCTION m10_append_only();
             DROP INDEX uq_m10_effect_scope;

@@ -32,6 +32,7 @@ public sealed class TrackingProjectionHostedService(
                   AND has_function_privilege(current_user,'m10_lock_projector_scope(uuid,uuid)','EXECUTE')
                   AND has_table_privilege(current_user,'tracking_processing_effects','SELECT')
                   AND has_table_privilege(current_user,'shipment_tracking_input_versions','SELECT')
+                  AND has_table_privilege(current_user,'shipment_tracking_timeline_entries','SELECT')
                   AND has_table_privilege(current_user,'shipment_tracking_projections','UPDATE')
                   AND has_table_privilege(current_user,'shipment_tracking_projections','INSERT')
                   AND has_table_privilege(current_user,'shipment_projection_applications','INSERT')

@@ -3,7 +3,7 @@
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status:** M0/G0 through M9/G9 accepted and integrated into `main` as of 2026-11-05. M9 planning [PR #16](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/16) merged at `43fe326` and implementation [PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18) at `4684352`. G9 passed 809/809 .NET tests, 14/14 mutation families and 174/174 supplemental browser executions. All six [M9-01 choices](docs/M9_LOCAL_CONTRACT_DECISION.md) are accepted with a mandatory transport-backlog condition. [G9 closure](docs/M9_G9_GATE_CLOSURE.md). G10-G24 remain open; production deployment is not authorized.
+**Status (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and merged into protected `main`. [G9 closure](docs/M9_G9_GATE_CLOSURE.md) and [G16 closure](docs/M16_G16_GATE_CLOSURE.md) record their evidence, approved decisions and limits. M16 integrated via [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) at `47ba55e2`, followed by a docs-only reconciliation in PR #26. M10 source remains an unaccepted draft in [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23). The mandatory M9 transport-backlog hold remains; G10-G15 and G17-G24 are open. No production deployment.
 
 **Source availability:** Public since 2026-11-03 under the [inspection-only license](LICENSE). Public source code is not a hosted service. GitHub Actions is disabled and `main` is protected. See [Publication Safety Status](docs/PUBLICATION_SAFETY_STATUS.md).
 
@@ -54,7 +54,7 @@ M3 is implemented, locally verified, explicitly accepted on 2026-10-31 and integ
 
 ### Parallel-ready workstreams after G3
 
-M4 through M9 are accepted and integrated into `main`. Sustained transport processing remains held by the M9 operating condition. M10 timeline/projection rebuild, M12 search/export and M17 observability are independently eligible; M14 requires D-004 licensing and M19 requires D-008 recovery objectives before applicable implementation. Preparatory M20, M21 and M23 packages may start under their own graph prerequisites. M16 remains unmerged. The 162-file standalone G16 main campaign has been independently checked, but `supplement-s07-s08-s28.log` is **UNREVIEWED** and integrated M9/G16 verification remains incomplete. See the [G16 review](docs/M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md). D-003 is accepted for M4; D-002 is accepted for M7 (Option A, 2026-11-03). See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md) and [Roadmap](docs/ROADMAP.md).
+M4-M9 and M16 are accepted and integrated into `main`. G16's standalone and combined evidence, the reviewed S07/S08/S28 supplement and the final F001 security extension are recorded in [G16 closure](docs/M16_G16_GATE_CLOSURE.md). Sustained transport processing remains held under the accepted G9 condition. M10 has draft planning [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) and an unaccepted source implementation [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23); neither is G10 acceptance. M12 search/export and M17 observability remain independently eligible; M14 requires D-004 and M19 requires D-008 before applicable implementation. D-003 is accepted for M4 and D-002 Option A for M7. See [Parallel Delivery Policy](docs/PARALLEL_DELIVERY_POLICY.md), [Roadmap](docs/ROADMAP.md) and [Status](docs/STATUS.md).
 
 ### Planned modules
 
@@ -104,9 +104,9 @@ The [M7 architecture](docs/M7_ARCHITECTURE_DESIGN.md), [implementation plan](doc
 
 M9 adds fenced PostgreSQL leases, bounded retries, receipt-unique immutable effects and scoped operator redrive. [G9 execution](docs/M9_EXECUTED_VERIFICATION.md) passed 809/809 tests and 14/14 mutation families; [browser verification](docs/M9_BROWSER_SUPPLEMENT.md) passed 174/174 executions. All six [M9-01 choices](docs/M9_LOCAL_CONTRACT_DECISION.md) and G9 were accepted on 2026-11-05, with a hold on sustained transport-event processing until M10 or another explicitly approved backlog mechanism exists. [G9 gate closure](docs/M9_G9_GATE_CLOSURE.md) records evidence review, limitations and PR #16/#18 merge. No public or production deployment authorized. M10 still owns projections.
 
-### M16 audit and access hardening (candidate, acceptance pending)
+### M16 audit logging and access hardening (accepted and merged)
 
-The parallel [M16 feature branch](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/tree/feat/m16-audit-access-hardening) reports passing standalone technical verification on `e571157`, with 205 unit, 39 contract and two 252-test integration runs, plus 183 browser tests and 13 killed security mutants. The [G16 main-evidence review](docs/M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md) independently checked 162/162 manifest files, raw TRX, Playwright, mutations, HTTP, outage and image reports, all consistent with the published technical campaign. However, **`supplement-s07-s08-s28.log` remains UNREVIEWED**, so the separate 6/6 probe and independent completion of G16-S07/S08 and part of S28 are pending. G16 acceptance, merged migrations and full M9/M16 integration verification remain pending. Preserve accepted M9 tracking-work permissions, audit-only Auditor access, both API route families and the EF snapshot when coordinating integration. Draft M16 policy [PR #17](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/17) is not an implementation PR.
+M16 adds append-only transaction-coupled audit events, scoped Auditor-only read APIs, actor attribution, restricted API/worker database identities and 365-day online-retention policy with future controlled archival. The standalone G16 evidence review checked 162 files and the S07/S08/S28 supplement was subsequently reviewed as 6/6 consistent with a provenance caveat. The accepted combined G16 runtime (`79318c6`) passed 228 unit, 39 contract and 286 integration tests twice, three browser engines (61/61 each in a same-source supplement), and targeted security/upgrade/outage checks. Final F001 security correction `8ba7727` passed 17 focused and 286 full integration tests. [G16 closure](docs/M16_G16_GATE_CLOSURE.md), [combined verification](docs/M9_M16_COMBINED_VERIFICATION.md) and merged [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) record the outcome. M9 worker history remains the authoritative worker audit record. No deployment or sustained transport-event processing is authorized.
 
 ### Parallel dependency-based delivery
 
@@ -142,7 +142,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Requirements](docs/REQUIREMENTS.md) | Functional and non-functional requirements |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, components, and design rules |
 | [Domain Model](docs/DOMAIN_MODEL.md) | Entities, relationships, and invariants |
-| [API Contracts](docs/API_CONTRACTS.md) | Implemented M0-M3 HTTP routes and planned future REST resources |
+| [API Contracts](docs/API_CONTRACTS.md) | Accepted M0-M9 and M16 HTTP routes and planned future REST resources |
 | [M1 Authentication Design](docs/M1_AUTHENTICATION_DESIGN.md) | Approved D-001 implementation blueprint; M1 accepted on `main` |
 | [M1 Verification Plan](docs/M1_VERIFICATION_PLAN.md) | G1 checks and evidence requirements; executed M1 evidence is recorded separately |
 | [M1 Verification Register](docs/M1_IMPLEMENTATION_VERIFICATION.md) | Executed M1 checks, exact revisions, G1 acceptance and merge record |
@@ -155,7 +155,7 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [M3 Implementation Plan](docs/M3_IMPLEMENTATION_PLAN.md) | M3-01 to M3-04 work packages and dependency sequence |
 | [G3 Verification Plan](docs/M3_VERIFICATION_PLAN.md) | Required G3-S01 to G3-S25 local tests, all executed and passed |
 | [M3 Implementation Register](docs/M3_IMPLEMENTATION_STATUS.md) | Accepted M3 implementation and source inventory |
-| [M5 Architecture](docs/M5_ARCHITECTURE_DESIGN.md) | Planned shipment domain, database and HTTP contracts |
+| [M5 Architecture](docs/M5_ARCHITECTURE_DESIGN.md) | Accepted shipment domain, database and HTTP contracts |
 | [M5 Implementation Plan](docs/M5_IMPLEMENTATION_PLAN.md) | Four work packages and integration strategy |
 | [G5 Verification Plan](docs/M5_VERIFICATION_PLAN.md) | 25 mandatory scenarios and evidence |
 | [M5 Contract Compliance](docs/M5_G5_S01_CONTRACT_COMPLIANCE.md) | Rule-by-rule audit of the accepted M5 contract and G5-S01 |
@@ -186,6 +186,8 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Demo Scenarios](docs/DEMO_SCENARIOS.md) | Reproducible product walkthroughs |
 | [Decisions](docs/DECISIONS.md) | Architecture decisions and pending choices |
 | [Contributing](docs/CONTRIBUTING.md) | Working conventions and documentation hygiene |
+| [Documentation Status Guide](docs/DOCUMENT_STATUS_GUIDE.md) | Current-state sources versus historical milestone and evidence records |
+| [Pre-release Documentation Checklist](docs/RELEASE_READINESS_TODO.md) | Open M24-03 reconciliation and release evidence tasks |
 
 ### Operating principles
 
@@ -211,4 +213,4 @@ The [original security review](docs/PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.
 
 ### Current state
 
-M0-M9/G0-G9 are explicitly accepted and integrated into `main` as of 2026-11-05. M8 delivered durable tracking-event receipts and immutable history; M9 delivered opt-in lease-fenced worker processing and reconciliation, subject to the 10,000-item unresolved-backlog transport hold. M10 timeline/projections, M16 audit, analytics, observability and IT incident workflows remain outside the accepted baseline. The source repository is public for inspection, but the application has not been publicly hosted or deployed to production. See [Project Status](docs/STATUS.md).
+M0-M9/G0-G9 and M16/G16 are accepted and integrated into `main` as of 2026-11-06. M8 provides durable receipts, M9 provides opt-in lease-fenced reconciliation and M16 adds Auditor-scoped append-only audits. M9's 10,000 unresolved-work-item hold remains. M10 has a draft implementation in PR #23 with no accepted G10 evidence. Operational analytics, observability and incident workflows outside the accepted milestones remain future work. Public source inspection is available, but production deployment and public application hosting are not authorized. See [Project Status](docs/STATUS.md).

@@ -188,7 +188,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Ordered history, current status and explicit correction handling.
 **Entry:** G9 accepted before respective dependent work packages.
 **Required work packages:** M10-01 Specify deterministic event ordering; M10-02 Implement accepted timeline API; M10-03 Implement versioned projections; M10-04 Verify projection rebuild.
-**Exit G10:** All applicable tasks, negative tests, runtime evidence and documentation for M10 recorded; acceptance pending until explicitly confirmed.
+**Exit G10:** Candidate source exists in draft [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), with source audits and unexecuted remediation paths; G10 policy decisions, source-locked execution, independent raw-evidence review and explicit acceptance remain pending. Timeline ordering, late events, corrections, projection consistency, accepted-M9 upgrade and backlog policy must be verified. Open [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) contains proposed architecture and gate details, not an accepted contract.
 **Not covered by this milestone:** Delay classification, notifications and dashboard metrics.
 
 #### M11: Delay rules and shipment exceptions
@@ -353,3 +353,7 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 ## Immediate execution
 
 M0-M9/G0-G9 and M16/G16 accepted and integrated into protected `main` as of 2026-11-06. G10-G15 and G17-G24 remain open. M10 and independent M12/M17 work may advance on accepted baselines; M14 requires D-004 and M19 requires D-008 before implementation. M9 sustained transport-event processing remains held until separately approved and verified backlog handling exists. The combined M9/M16 integration decisions, migrations and security/browser/outage checks were closed by the [G16 gate decision](M16_G16_GATE_CLOSURE.md) and PR #25 merge. Public hosting and release acceptance remain pending.
+
+## M24-03 pre-release reconciliation reminder
+
+The [pre-release documentation and evidence checklist](RELEASE_READINESS_TODO.md) is an open M24-03 task. Reconcile obsolete current-state wording, open planning PRs, final source-locked checks and independent gate evidence before the M24-04 accessibility audit and G24 acceptance. This reminder does not change execution-graph dependencies or accept an unverified milestone.

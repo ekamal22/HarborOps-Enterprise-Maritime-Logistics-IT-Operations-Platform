@@ -2,11 +2,11 @@
 
 ## Contract status
 
-M0 provides public synthetic status and health routes. M1 implements accepted protected authentication endpoints. M2 organization and membership routes are implemented on `main` following accepted G2 and merged PR #5, verified locally for supported endpoint, verb, role and foreign-identifier scenarios (see [executed evidence](M2_EXECUTED_VERIFICATION.md)). M3-M6 maritime, shipment and assignment APIs, M7 source authentication, M8 durable receipt intake and M9 tracking-work query/redrive are accepted on `main`. Full public OpenAPI generation remains planned. M10 timeline/projection endpoints and M16 audit-read APIs are not accepted.
+M0-M9 APIs, including durable tracking receipt intake and scoped M9 work query/redrive, are accepted on `main`. M16 Auditor-only tenant-scoped audit read APIs were separately accepted and merged through [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25); see [G16 closure](M16_G16_GATE_CLOSURE.md). M10 tracking timeline/projection endpoints are authored only in draft PR #23 and remain unaccepted with no G10 runtime evidence. Full public OpenAPI generation is still planned.
 
 ## Observed M0 contract verification
 
-At code revision `4fb34eb`, the API was tested against real PostgreSQL and through the HTTP pipeline. A local database outage produced controlled 503 responses from readiness and baseline endpoints, with liveness remaining HTTP 200 and a correlation identifier included in the baseline error/log. The tests verified the four-field synthetic status contract. The corrected .NET 10 runtime was subsequently verified in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md), with G0 **accepted** on 2026-10-31. The `4fb34eb` check remains historical. That M0 statement is historical: identity, maritime, shipment and assignment resources were subsequently implemented and accepted under G1-G6; M7 tracking intake remains unverified and unmerged.
+At historical M0 revision `4fb34eb`, the API was tested against real PostgreSQL and through HTTP, including readiness 503 under database outage and liveness 200. This M0-only source was later verified on .NET 10 and accepted as G0 (see [M0 hardening evidence](M0_HARDENING_VERIFICATION.md)). M1-M9 and M16 API families were subsequently implemented and accepted; do not interpret the original M0-only scope as the present application state.
 
 The workspace, caches and test artifacts must follow [Local Storage Policy](LOCAL_STORAGE_POLICY.md), using E: for all controlled persistent project storage. Only unavoidable short-lived Windows temporary activity on C: is permitted.
 
@@ -161,6 +161,17 @@ The following routes are part of the accepted M9 implementation merged through [
 | GET | `/api/v1/organizations/{organizationId}/tracking-work/{receiptId}` | `TrackingWorkRead` | One tenant-scoped work item or `404 resource_not_found` |
 | POST | `/api/v1/organizations/{organizationId}/tracking-work/{receiptId}/redrive` | `TrackingWorkRedrive`: Manager only | Sanitized `reason` (8 to 240 characters); `NeedsReconciliation` or `DeadLetter` only; at most three redrives |
 
-The routes enforce current session, selected active organization, live membership and CSRF/Origin checks where applicable. Operator responses do not expose bearer material, source secrets, raw payloads or digests, and use `Cache-Control: no-store`. The accepted M8 post-commit acknowledgment contract remains unchanged. No M10 timeline API or M16 audit endpoint is implied by G9 acceptance.
+The routes enforce current session, selected active organization, live membership and CSRF/Origin checks where applicable. Operator responses do not expose bearer material, source secrets, raw payloads or digests, and use `Cache-Control: no-store`. The accepted M8 post-commit acknowledgment contract remains unchanged. G9 acceptance alone did not include M16; the later independently accepted G16 implementation adds the separate audit-read endpoints below.
 
 **Deployment restriction:** Sustained transport-event processing remains disabled until a verified M10 or separately approved mechanism safely manages `NeedsReconciliation` within the 10,000 unresolved-work cap. No public or production deployment is authorized.
+
+## M16 audit events API (accepted on `main`)
+
+The accepted [G16 gate closure](M16_G16_GATE_CLOSURE.md) and integrated [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) establish these read-only HTTP routes. They require an authenticated, active, selected-organization **Auditor** membership and secure transport. Other roles, including Manager and Administrator, receive no implicit audit access.
+
+| Method | Route | Contract |
+| --- | --- | --- |
+| GET | `/api/v1/organizations/{organizationId}/audit-events` | Bounded list with optional `page=1`, `limit` 1 to 100 and scope-bound `cursor`; returns `entries` and `nextCursor` |
+| GET | `/api/v1/organizations/{organizationId}/audit-events/{auditId}` | Tenant-scoped audit entry or a sanitized missing/denied response |
+
+Successful audit reads record their own audit-access events. Sensitive mutations and their audit entries commit in the same database transaction or fail closed. Responses use `Cache-Control: no-store`; there is no public audit write, export or global search route. The actor/source context and fixed metadata allowlist exclude secrets and raw tracking payloads. Retention policy is 365 days online followed by separately verified archival, without implemented automatic purge. M9 worker attempt/effect history remains a distinct immutable audit-of-record surface. The audit cursor retains its documented late-commit ordering caveat; see [G16 closure](M16_G16_GATE_CLOSURE.md).

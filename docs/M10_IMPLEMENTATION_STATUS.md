@@ -1,7 +1,7 @@
 # M10 Event Timeline and Projection Rebuild: Implementation Register
 
 **As of:** 2026-11-05  
-**Branch:** `feat/m10-timeline-projections` (originally branched from accepted G9 SHA `b4f7b93`; now reconciled with G16-accepted main `2ff2f2df9c4d74d82a0939eb457ceba874af6c3c` by the source merge). [Integration reconciliation](M10_M16_SOURCE_RECONCILIATION.md) records the merge and remaining verification.  
+**Branch:** `feat/m10-timeline-projections` (originally branched from accepted G9 SHA `b4f7b93`; now reconciled with the accepted G16 and PR #27 documentation baseline `25e89026737063294a32bbd081ced400d19c6b3d` by merge `82c5d6eec34469ac1813d99270b4108788c9435d`). [Integration reconciliation](M10_M16_SOURCE_RECONCILIATION.md) records the merge and remaining verification.  
 **State:** Source implementation candidate committed and pushed. **G10 acceptance pending. Not merged. No runtime test execution claimed.**  
 **Planning:** [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) is an independent open documentation PR; its M10 architecture, work packages and G10 scenario specification remain proposed, not accepted decisions.
 

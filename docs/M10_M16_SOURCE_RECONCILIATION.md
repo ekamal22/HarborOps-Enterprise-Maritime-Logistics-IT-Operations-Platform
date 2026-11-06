@@ -1,9 +1,9 @@
 # M10 / Accepted M16 Source Reconciliation
 
 **Recorded:** 2026-11-06  
-**Accepted base:** `main` at `2ff2f2df9c4d74d82a0939eb457ceba874af6c3c` (merged G16 source and post-merge documentation).  
+**Accepted base:** `main` at `25e89026737063294a32bbd081ced400d19c6b3d`, including PR #25 G16 integration, PR #26 post-merge reconciliation and PR #27 living-documentation updates.  
 **M10 head before reconciliation:** `3159baa508f840596e1fe1981164296c1d8dffca` in draft PR #23.  
-**Integration:** A two-parent source merge is recorded in PR #23; `main` is a parent of the integrated M10 branch. No acceptance or main-branch merge is implied.
+**Integration merge commit:** `82c5d6eec34469ac1813d99270b4108788c9435d`, with parents `3159baa508f840596e1fe1981164296c1d8dffca` (M10 source) and `25e89026737063294a32bbd081ced400d19c6b3d` (accepted main). The integration is on draft PR #23 only, not on protected `main`.
 
 ## Source reconciliation decisions
 

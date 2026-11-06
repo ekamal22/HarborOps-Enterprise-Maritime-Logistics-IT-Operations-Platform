@@ -5,7 +5,7 @@
 **Authority:** Explicit approval in the project conversation on 2026-11-06 of G16 acceptance and all four recommended Option A integration decisions, following independent inspection of the uploaded combined evidence archive.
 **Verified runtime source:** `79318c6b6126362a0b26a1452aad6d2b48fdf4b4`.
 **Accepted baseline:** `main` at `b4f7b93f1ee8135b9a16b605ded315b3fbc036cc`, including accepted M9.
-**Integration PR:** [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25), pending separate merge authorization.
+**Integration PR:** [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25), separately authorized and merged on 2026-11-06 at `47ba55e2c88556bc5ca0da7d50335ffc8c5ca56d`.
 **Evidence archive:** `cg16-combined-evidence-79318c6.tar.gz`, SHA-256 `ffa263f7f5abb3c27a0907d3704b902fd8b0812b237920079b6c92c4461dd74b`.
 
 ## Source-locked evidence reviewed
@@ -51,9 +51,9 @@ These choices supplement, and do not reverse, approved M16-D01 through M16-D05.
 - The upstream image `apt` correction must be revisited when base images include the fixed version.
 - This acceptance does not certify future M10 changes, later unreleased milestones, public hosting, the full G24 release or production deployment.
 
-## Merge boundary
+## Original pre-merge boundary (historical)
 
-**G16 is accepted, but M16 is not yet merged into protected `main`.** This approval does not itself authorize a merge. Before merging PR #25:
+At G16 acceptance, M16 was not yet merged and acceptance alone did not authorize integration. The following safeguards were subsequently completed before the separately authorized merge:
 
 1. Review the exact final source diff, especially F001 guard triggers, F002 role grants, migration history and changed Docker images, and resolve any substantive source findings.
 2. Confirm the PR's later changes from `79318c6b6126362a0b26a1452aad6d2b48fdf4b4` remain documentation and evidence-summarization only; do not claim runtime verification of any subsequently changed application code.
@@ -62,7 +62,7 @@ These choices supplement, and do not reverse, approved M16-D01 through M16-D05.
 5. Obtain explicit separate PR #25 merge authorization. Use a merge commit with `[skip ci]`, verify the exact post-merge `main` tree and preserve the accepted-M9 operating restriction.
 6. Reconcile `docs/STATUS.md`, `docs/DECISIONS.md` and release/operations references with the actual merge SHA after merging.
 
-**Final disposition:** G16 accepted on 2026-11-06 for verified source `79318c6b6126362a0b26a1452aad6d2b48fdf4b4`. PR #25 merge and production deployment remain unauthorized until separately approved.
+**Disposition at initial gate acceptance:** G16 accepted on 2026-11-06 for verified source `79318c6b6126362a0b26a1452aad6d2b48fdf4b4`. The separately authorized PR merge is recorded below; production deployment remains unauthorized.
 
 ## Subsequent pre-merge security review finding
 
@@ -83,3 +83,13 @@ The integration branch now includes a follow-up restriction requiring a nonzero 
 - Not repeated, because unchanged by the delta: browsers, outage and fault-injection, image scans, the 18-mutant harness and the populated accepted-M9 upgrade.
 
 **Result:** the post-acceptance correction passed a source-locked gate extension. PR #25 is technically ready for a merge decision on the code evidence; the remaining merge boundary items above (review, currency against `main`, separate merge authorization, accepted-M9 operating restriction) still apply. Evidence archive `f001-extension-evidence-8ba7727.tar.gz`, SHA-256 `cf53e0329a8ec49669fe93f951e60e2575a159dc88a510d828ccc0397d2a71fe`, 47 files in its manifest, under `E:HarborOps-Verificationevidence001-extension-archive`.
+
+## Completed PR #25 integration (2026-11-06)
+
+- Independently inspected the post-acceptance F001 extension archive `f001-extension-evidence-8ba7727.tar.gz`. Its SHA-256 matched `cf53e0329a8ec49669fe93f951e60e2575a159dc88a510d828ccc0397d2a71fe`, with all 47 manifest entries matching. Corrected source `8ba7727` passed 17/17 focused and 286/286 full integration tests; the restored pre-correction guard failed the new regression as intended. The real restricted API role refused generation-zero forgery with SQLSTATE 23514, while a legitimate Manager redrive succeeded.
+- GitHub reported clean mergeability and no unresolved review threads. The corrected-source-to-PR-head delta contained documentation changes only. The user separately authorized merger conditioned on a clean final review; those conditions were met.
+- [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) was marked ready and merged into protected `main` on 2026-11-06 with a `[skip ci]` merge commit. **Merge SHA:** `47ba55e2c88556bc5ca0da7d50335ffc8c5ca56d`.
+- Merge parents: accepted-M9 `main` `b4f7b93f1ee8135b9a16b605ded315b3fbc036cc` and reviewed PR head `e7d63212af4fda346efa7d61f533c94323041131`. The resulting merge tree `5e62d376fa4944592282a5904a084a529acac86a` exactly matched the PR-head tree. No GitHub Actions were initiated for this merge.
+- All accepted-M9 processing limitations remain: no sustained transport-event processing until approved verified `NeedsReconciliation` backlog handling prevents exhaustion of the 10,000 unresolved-work-item cap. G16 cursor, privileged-migrator, provenance and environment qualifications remain disclosed. This merge does not authorize production deployment, external hosting or G24 release.
+
+**Current disposition:** G16 accepted and M16 integrated into protected `main`; release and deployment acceptance pending.

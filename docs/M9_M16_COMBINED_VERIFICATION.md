@@ -91,3 +91,9 @@ Private location: `E:\HarborOps-Verification\evidence\combined-g16`. Portable ar
 ## Subsequent gate disposition (2026-11-06)
 
 The frozen technical evidence, including its failed and successful source-matched runs, was independently inspected from the uploaded archive. All 544 submitted manifest entries matched. G16 and the four recommended Option A integration decisions were explicitly accepted on 2026-11-06. This later decision does not change any original run result, the reported Firefox failure or the fact that no single uninterrupted all-green campaign occurred. See the separate [G16 gate closure](M16_G16_GATE_CLOSURE.md). PR #25 merge and production deployment are not authorized by the gate decision.
+
+## Subsequent F001 extension and integration disposition (2026-11-06)
+
+The independent final diff review identified an F001 generation-zero forged-redrive case. Corrected source `8ba7727` subsequently passed 17/17 focused and 286/286 full PostgreSQL integration tests, and an intentional previous-guard mutation failed the new regression. The independently inspected extension archive contained 47 matching SHA-256 manifest entries and matched the supplied full-archive checksum `cf53e0329a8ec49669fe93f951e60e2575a159dc88a510d828ccc0397d2a71fe`. These results supplement, not overwrite, the earlier technical campaign and its failed-run evidence.
+
+G16 acceptance and four Option A decisions were followed by separate conditional authorization and completion of PR #25 integration at `47ba55e2c88556bc5ca0da7d50335ffc8c5ca56d`. Its merge tree matches reviewed PR head `e7d63212`. The pre-acceptance recommendations above remain a historical record, not the current merge status. See [G16 gate closure](M16_G16_GATE_CLOSURE.md).

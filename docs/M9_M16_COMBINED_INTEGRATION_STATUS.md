@@ -4,7 +4,7 @@
 **Integration branch:** `integrate/m9-m16-g16-candidate-20261105`
 **Base:** Accepted M9/G9 `main` at `b4f7b93f1ee8135b9a16b605ded315b3fbc036cc`
 **M16 source:** `feat/m16-audit-access-hardening` at `c499741a4d291515cda4de35593048fd90c1c83e`, with standalone runtime evidence at `e5711573839b185a2dfc7d9f2c64ce4fc18d4c13`
-**Status:** Combined technical verification executed on runtime source `79318c6b6126362a0b26a1452aad6d2b48fdf4b4` (a failed run plus a same-source supplement, both preserved); see the [executed verification record](M9_M16_COMBINED_VERIFICATION.md). Three corrective findings were fixed on this branch. The campaign script reparse was followed by independent review of the uploaded raw evidence (544/544 manifest entries). G16 and four Option A integration decisions were accepted on 2026-11-06 ([gate closure](M16_G16_GATE_CLOSURE.md)); PR #25 merge authorization remains pending.
+**Status:** Combined technical verification executed on runtime source `79318c6b6126362a0b26a1452aad6d2b48fdf4b4` (a failed run plus a same-source supplement, both preserved); see the [executed verification record](M9_M16_COMBINED_VERIFICATION.md). Three corrective findings were fixed on this branch. The campaign script reparse was followed by independent review of the uploaded raw evidence (544/544 manifest entries). G16 and four Option A integration decisions were accepted on 2026-11-06 ([gate closure](M16_G16_GATE_CLOSURE.md)); PR #25 was separately authorized and merged on 2026-11-06 at `47ba55e2`, following the focused F001 gate extension.
 
 ## Source reconciliation
 
@@ -44,5 +44,5 @@ Freeze the final integration source SHA before the full gate. Preserve raw TRX, 
 - Accepted M9's sustained transport-event hold and 10,000 unresolved-item limit remain binding.
 - No GitHub Actions. Use `[skip ci]` on all commits. All controllable permanent project storage is on E:. C: is limited to unavoidable cleaned temporary files.
 - Isolate resources and do not disrupt or delete unrelated worktrees, volumes, images, databases or evidence.
-- G16 was accepted on 2026-11-06 for the verified runtime SHA. The acceptance does not authorize merging PR #25 into protected `main`.
+- G16 was accepted on 2026-11-06 for the verified runtime SHA. Separately authorized PR #25 integration completed at `47ba55e2` after the F001 source-locked extension; gate acceptance alone did not authorize merger.
 - Original standalone M16/G16 reports and historical accepted M9/G9 evidence remain unchanged. The independently reviewed S07/S08/S28 supplement remains a separate record, with its exact-source attestation limitation.

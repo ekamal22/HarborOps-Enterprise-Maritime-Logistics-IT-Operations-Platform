@@ -28,6 +28,30 @@ public sealed class ShipmentTrackingProjections : Migration
                 CONSTRAINT ck_m10_input_revision CHECK (input_revision >= 0 AND event_count >= 0)
             );
 
+            CREATE TABLE shipment_tracking_timeline_entries (
+                receipt_id uuid PRIMARY KEY,
+                organization_id uuid NOT NULL,
+                shipment_id uuid NOT NULL,
+                event_id uuid NOT NULL,
+                source_id uuid NOT NULL,
+                source_event_id varchar(128) NOT NULL,
+                event_code varchar(32) NOT NULL,
+                occurred_at_utc timestamptz NOT NULL,
+                received_at_utc timestamptz NOT NULL,
+                container_id uuid NOT NULL,
+                CONSTRAINT fk_m10_timeline_effect FOREIGN KEY
+                    (receipt_id,organization_id,shipment_id)
+                    REFERENCES tracking_processing_effects(receipt_id,organization_id,shipment_id)
+                    ON DELETE RESTRICT
+            );
+            CREATE INDEX ix_m10_timeline_keyset
+                ON shipment_tracking_timeline_entries
+                (organization_id,shipment_id,occurred_at_utc,received_at_utc,source_id,
+                 source_event_id COLLATE "C",receipt_id,event_id);
+            CREATE TRIGGER tr_m10_immutable_timeline
+                BEFORE UPDATE OR DELETE ON shipment_tracking_timeline_entries
+                FOR EACH ROW EXECUTE FUNCTION m8_guard_append_only();
+
             CREATE TABLE shipment_tracking_projections (
                 shipment_id uuid PRIMARY KEY,
                 organization_id uuid NOT NULL,
@@ -240,16 +264,38 @@ public sealed class ShipmentTrackingProjections : Migration
             -- worker or the restricted projector's table privileges.
             CREATE FUNCTION m10_track_input_change() RETURNS trigger
             LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $fn$
-            DECLARE delta integer;
+            DECLARE
+                delta integer;
+                inserted_rows bigint;
             BEGIN
                 delta := CASE WHEN TG_TABLE_NAME='tracking_processing_effects' THEN 1 ELSE 0 END;
+                IF delta=1 THEN
+                    EXECUTE format(
+                        'INSERT INTO %1$I.shipment_tracking_timeline_entries
+                            (receipt_id,organization_id,shipment_id,event_id,source_id,
+                             source_event_id,event_code,occurred_at_utc,received_at_utc,container_id)
+                         SELECT fx.receipt_id,fx.organization_id,fx.shipment_id,
+                                e.id,e.source_id,r.source_event_id,e.event_code,
+                                e.occurred_at_utc,r.received_at_utc,fx.container_id
+                         FROM %1$I.tracking_processing_effects fx
+                         JOIN %1$I.tracking_accepted_events e ON e.receipt_id=fx.receipt_id
+                             AND e.organization_id=fx.organization_id AND e.source_id=fx.source_id
+                         JOIN %1$I.tracking_inbox_receipts r ON r.id=e.receipt_id
+                             AND r.organization_id=e.organization_id AND r.source_id=e.source_id
+                         WHERE fx.receipt_id=$1', TG_TABLE_SCHEMA)
+                    USING NEW.receipt_id;
+                    GET DIAGNOSTICS inserted_rows = ROW_COUNT;
+                    IF inserted_rows<>1 THEN
+                        RAISE EXCEPTION 'M10 effect provenance is incomplete' USING ERRCODE='23514';
+                    END IF;
+                END IF;
                 EXECUTE format(
-                    'INSERT INTO %I.shipment_tracking_input_versions
+                    'INSERT INTO %I.shipment_tracking_input_versions AS current_input
                         (organization_id,shipment_id,input_revision,event_count)
                      VALUES ($1,$2,1,$3)
                      ON CONFLICT (organization_id,shipment_id) DO UPDATE
-                     SET input_revision=shipment_tracking_input_versions.input_revision+1,
-                         event_count=shipment_tracking_input_versions.event_count+EXCLUDED.event_count,
+                     SET input_revision=current_input.input_revision+1,
+                         event_count=current_input.event_count+EXCLUDED.event_count,
                          touched_at_utc=clock_timestamp()',
                     TG_TABLE_SCHEMA)
                 USING NEW.organization_id,NEW.shipment_id,delta;
@@ -262,6 +308,18 @@ public sealed class ShipmentTrackingProjections : Migration
             CREATE TRIGGER tr_m10_correction_input_revision
                 AFTER INSERT ON shipment_tracking_corrections FOR EACH ROW
                 EXECUTE FUNCTION m10_track_input_change();
+
+            INSERT INTO shipment_tracking_timeline_entries
+                (receipt_id,organization_id,shipment_id,event_id,source_id,
+                 source_event_id,event_code,occurred_at_utc,received_at_utc,container_id)
+            SELECT fx.receipt_id,fx.organization_id,fx.shipment_id,
+                   e.id,e.source_id,r.source_event_id,e.event_code,
+                   e.occurred_at_utc,r.received_at_utc,fx.container_id
+            FROM tracking_processing_effects fx
+            JOIN tracking_accepted_events e ON e.receipt_id=fx.receipt_id
+                AND e.organization_id=fx.organization_id AND e.source_id=fx.source_id
+            JOIN tracking_inbox_receipts r ON r.id=e.receipt_id
+                AND r.organization_id=e.organization_id AND r.source_id=e.source_id;
 
             INSERT INTO shipment_tracking_input_versions
                 (organization_id,shipment_id,input_revision,event_count)
@@ -297,7 +355,8 @@ public sealed class ShipmentTrackingProjections : Migration
         migrationBuilder.Sql("""
             DO $guard$
             BEGIN
-                IF EXISTS(SELECT 1 FROM shipment_tracking_input_versions LIMIT 1)
+                IF EXISTS(SELECT 1 FROM shipment_tracking_timeline_entries LIMIT 1)
+                   OR EXISTS(SELECT 1 FROM shipment_tracking_input_versions LIMIT 1)
                    OR EXISTS(SELECT 1 FROM shipment_tracking_projections LIMIT 1)
                    OR EXISTS(SELECT 1 FROM shipment_tracking_corrections LIMIT 1)
                    OR EXISTS(SELECT 1 FROM shipment_tracking_correction_heads LIMIT 1)
@@ -312,6 +371,7 @@ public sealed class ShipmentTrackingProjections : Migration
             DROP FUNCTION m10_track_input_change();
             DROP FUNCTION m10_lock_projector_scope(uuid,uuid);
             DROP TABLE shipment_tracking_operation_replays;
+            DROP TABLE shipment_tracking_timeline_entries;
             DROP TABLE shipment_projection_applications;
             DROP TABLE shipment_tracking_corrections;
             DROP TABLE shipment_tracking_correction_heads;

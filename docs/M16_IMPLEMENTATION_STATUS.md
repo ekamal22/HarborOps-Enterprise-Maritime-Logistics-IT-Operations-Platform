@@ -1,6 +1,8 @@
 # M16 Implementation Status
 
-**As of:** 2026-11-05  
+**Current integrated state (2026-11-06):** G16 accepted and PR #25 merged into protected `main` at `47ba55e2` following the independent F001 extension. See [G16 gate closure](M16_G16_GATE_CLOSURE.md). The standalone status below is a preserved historical snapshot; the accepted M9 transport-backlog restriction remains binding.
+
+**Standalone snapshot as of:** 2026-11-05  
 **Branch:** `feat/m16-audit-access-hardening`  
 **Final standalone tested source:** `e5711573839b185a2dfc7d9f2c64ce4fc18d4c13`  
 **State:** Corrected implementation candidate completed; standalone G16 source-locked technical campaign passed as reported. Independent review of the 162-file main campaign completed; **S07/S08/S28 supplemental log and JSON REVIEWED** (6/6 consistent checks; [record](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/0bf356dba78e51a6aafdeb665870ffa24789b3d9/docs/M16_G16_SUPPLEMENT_EVIDENCE_REVIEW.md)), M9 combined verification and G16 acceptance pending. No merge into `main`.  
@@ -48,3 +50,7 @@ A disposable local merge of M16 `e571157` and M9 `7665bc4` reportedly passed a c
 5. Obtain explicit G16 acceptance and separate authorization before merging. No production deployment or hosted-application clearance is implied.
 
 **Disposition:** The standalone main-campaign evidence was independently checked; supplemental S07/S08/S28 evidence is **REVIEWED** (6/6 consistent checks). Combined M9 verification and G16 acceptance pending.
+
+## Subsequent combined disposition
+
+The combined M9/M16 gate was accepted on 2026-11-06, the F001 source-locked guard extension at `8ba7727` passed 17/17 focused and 286/286 full integration, and PR #25 merged into `main` at `47ba55e2`. This supersedes the earlier standalone pending-integration checklist as current status, without rewriting the historical standalone results. No production deployment or sustained transport-event processing is authorized.

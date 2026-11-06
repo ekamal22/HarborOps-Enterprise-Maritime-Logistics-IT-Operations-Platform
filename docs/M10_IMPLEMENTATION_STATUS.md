@@ -10,8 +10,8 @@
 | Component | Source | Intended behavior |
 | --- | --- | --- |
 | Deterministic ordering and reducer | `src/HarborOps.Domain/Tracking/TrackingTimelinePolicy.cs` | UTC occurrence then receipt/source/event key/ID tie-break, explicit Conflict and correction handling, stable SHA-256 input fingerprint; unknown ETA |
-| Additive M10 migration | `src/HarborOps.Infrastructure/Persistence/Migrations/20261105180000_ShipmentTrackingProjections.cs` | Scoped projections, append-only corrections, durable correction heads, idempotent operation replays and policy-versioned application records; composite effect/shipment foreign keys, serialized generations and populated-history downgrade guard |
-| Timeline/rebuild store | `src/HarborOps.Infrastructure/Shipments/ShipmentTimelineStore.cs` | Complete streaming M9 effect history, per-container reducer, bounded keyset pages, policy/version drift reconciliation, serializable org-then-shipment locking and durable operation replay |
+| Additive M10 migration | `src/HarborOps.Infrastructure/Persistence/Migrations/20261105180000_ShipmentTrackingProjections.cs` | Immutable indexed source entries, monotonic input revisions, scoped projections, correction heads, append-only correction and replay records, composite effect FKs and guarded downgrade |
+| Timeline/rebuild store | `src/HarborOps.Infrastructure/Shipments/ShipmentTimelineStore.cs` | Indexed SQL keyset GET, input-versioned cached projections with explicit stale/unknown state, full historical streaming only during rebuild, serializable locking and durable operation replay |
 | Scoped HTTP routes | `src/HarborOps.Api/Shipments/ShipmentTimelineEndpoints.cs` and `Program.cs` | Two GET read routes with encrypted scope-bound snapshot/keyset tokens; Manager-only, CSRF-protected, rate-limited and idempotent correction and rebuild routes with live session verification |
 | Optional projection updater | `src/HarborOps.Api/Shipments/TrackingProjectionHostedService.cs` | Disabled by default; dedicated restricted PostgreSQL identity with fail-closed startup, bounded work scans, policy/correction/drift reconciliation |
 | Shipment tracking UI | `web/src/shipments/ShipmentTrackingTimeline.tsx`, `ShipmentWorkspace.tsx` | Authorized, read-only observed tracking status and paginated provenance; manual workflow remains separate |
@@ -21,11 +21,11 @@
 
 ## Source boundaries
 
-M8 receipts/events and M9 receipt-unique effects, lease fencing, work states and 10,000 unresolved-item guard are untouched. Only M9-resolved equipment observations become shipment timeline input. `GTIN`/`GTOT` yield per-container `EquipmentIn`/`EquipmentOut`, same-container `Conflict`, or mixed-container `Mixed`; no verified ETA, voyage inference or automatic M5 `WorkflowStatus` transition is claimed. Unresolved opaque ARRI/DEPA transport events remain parked, with the **mandatory sustained transport-event hold unchanged**. Background materialization does not start automatically; authorized GET derives current state live even when cached materialization is stale.
+M8 receipts/events and M9 receipt-unique effects, lease fencing, work states and 10,000 unresolved-item guard are untouched. Only M9-resolved equipment observations become shipment timeline input. `GTIN`/`GTOT` yield per-container `EquipmentIn`/`EquipmentOut`, same-container `Conflict`, or mixed-container `Mixed`; no verified ETA, voyage inference or automatic M5 `WorkflowStatus` transition is claimed. Unresolved opaque ARRI/DEPA transport events remain parked, with the **mandatory sustained transport-event hold unchanged**. Background materialization does not start automatically. Bounded authorized GETs use the stored input revision and indexed timeline entries; when the materialization revision is stale, GET reports an unknown/pending derived state rather than recalculating the entire event history.
 
 ## Second correctness audit, source-locked
 
-The [second source correctness audit](M10_SECOND_CORRECTNESS_AUDIT.md), against `784689f483c64d19495ee8e9c1047464aaef8f32`, identifies a critical malformed migration and further projector privilege, fairness and query-scaling blockers. Previous C01-C11 remediation mapping remains historical **source-only work**, not verified completion. **PR #23 must remain draft and unmerged.** No runtime testing or final G10 review has occurred.
+The [second source correctness audit](M10_SECOND_CORRECTNESS_AUDIT.md), against `784689f483c64d19495ee8e9c1047464aaef8f32`, identified a critical malformed migration and further projector privilege, fairness and query-scaling blockers. The [follow-up remediation](M10_SECOND_AUDIT_REMEDIATION.md) records corresponding unverified source corrections. Previous C01-C11 remediation mapping remains historical **source-only work**, not verified completion. **PR #23 must remain draft and unmerged.** No runtime testing or final G10 review has occurred.
 
 ## Correctness audit
 

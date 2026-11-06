@@ -106,7 +106,7 @@ M9 adds fenced PostgreSQL leases, bounded retries, receipt-unique immutable effe
 
 ### M10 shipment tracking timeline and projections (implementation candidate)
 
-The [M10 implementation register](docs/M10_IMPLEMENTATION_STATUS.md) describes additive projection and correction persistence, deterministic event ordering, scoped read/rebuild/correction HTTP routes, an opt-in projection sweep, and a shipment-workspace timeline. [C01-C11 source remediation](docs/M10_CORRECTNESS_REMEDIATION.md) is committed, including large-history streaming, scope integrity, protected cursors and correction concurrency fixes. Unit and real-PostgreSQL regression tests are committed but **not executed in this GitHub-only session**. The independent [planning PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) remains open. M10/G10 acceptance pending, M16 unmerged, and the M9 sustained transport-event processing restriction remains mandatory.
+The [M10 implementation register](docs/M10_IMPLEMENTATION_STATUS.md) describes additive projection and correction persistence, deterministic event ordering, scoped read/rebuild/correction HTTP routes, an opt-in projection sweep, and a shipment-workspace timeline. [C01-C11 source remediation](docs/M10_CORRECTNESS_REMEDIATION.md) is committed, including large-history streaming, scope integrity, protected cursors and correction concurrency fixes. The [second-audit remediation](docs/M10_SECOND_AUDIT_REMEDIATION.md) adds a coherent migration, restricted projector lock, fair sweep, indexed bounded timeline reads and expanded negative tests. **No .NET build, PostgreSQL migration or G10 campaign has run against these corrections.** The independent [planning PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) remains open. M10/G10 acceptance pending, M16 unmerged, and the M9 sustained transport-event processing restriction remains mandatory.
 
 ### M16 audit and access hardening (candidate, acceptance pending)
 
@@ -182,7 +182,8 @@ The web image installs from the committed `web/package-lock.json` with `npm ci`.
 | [Second M3 Audit Remediation](docs/M3_SECOND_CORRECTNESS_REMEDIATION.md) | Historical second-audit fixes and subsequent verified G3 outcome |
 | [Event Processing](docs/EVENT_PROCESSING.md) | Tracking workflow, failure modes, and reconciliation |
 | [M10 Implementation Status](docs/M10_IMPLEMENTATION_STATUS.md) | Implemented candidate source paths, tests and G10 verification blockers |
-| [M10 Correctness Remediation](docs/M10_CORRECTNESS_REMEDIATION.md) | C01-C11 source changes and outstanding G10 verification |
+| [M10 Correctness Remediation](docs/M10_CORRECTNESS_REMEDIATION.md) | C01-C11 historical source corrections and G10 gaps |
+| [M10 Second Audit Remediation](docs/M10_SECOND_AUDIT_REMEDIATION.md) | Eight further source corrections, indexed read design, and verification requirements |
 | [Security](docs/SECURITY.md) | Threat model and security acceptance gates |
 | [Operations](docs/OPERATIONS.md) | Monitoring, incidents, backups, and recovery |
 | [Testing Strategy](docs/TEST_STRATEGY.md) | Test layers, fixtures, and quality gates |

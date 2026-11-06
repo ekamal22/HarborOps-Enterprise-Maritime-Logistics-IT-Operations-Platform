@@ -96,6 +96,7 @@ stage() {
   fi
 }
 stage script-syntax bash -c 'set -euo pipefail; bash -n scripts/verify-g10-local.sh; for s in scripts/*.mjs; do node --check "$s"; done'
+stage m10-source-contract node scripts/check-m10-contract.mjs
 stage docs node scripts/check-planning-docs.mjs
 stage graph node scripts/render-execution-graph.mjs --check
 stage scripts node --test scripts/*.test.mjs

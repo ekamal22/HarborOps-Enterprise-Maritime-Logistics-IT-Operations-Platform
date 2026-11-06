@@ -18,12 +18,12 @@ assert.match(migration, /ck_m10_replay_digest CHECK \(request_digest ~ '\^\[0-9a
 assert.match(migration, /CREATE INDEX ix_m10_timeline_keyset/);
 assert.match(migration, /AFTER INSERT ON tracking_processing_effects/);
 assert.match(migration, /CREATE TRIGGER tr_m10_immutable_replays/);
-assert.match(migration, /CREATE FUNCTION m10_lock_projector_scope/);
+assert.match(migration, /m10_lock_projector_scope\\(p_org/);
 assert.match(migration, /M10 retained history prevents downgrade/);
 assert.match(store, /FROM shipment_tracking_timeline_entries e/);
 assert.match(store, /LIMIT @take/);
 assert.match(store, /ReadBoundedAsync/);
-assert.match(store, /current_input\.input_revision/);
+assert.match(migration, /current_input\\.input_revision/);
 assert.match(store, /restrictedProjector/);
 assert.match(store, /DirtyAsync\(/);
 assert.equal((endpoints.match(/store\.ReadBoundedAsync\(/g) || []).length, 2);

@@ -370,7 +370,7 @@ public sealed class ShipmentTrackingProjections : Migration
                             WHERE id=p_org FOR UPDATE;
                         SELECT record_status INTO shipment_state FROM %1$I.shipments
                             WHERE organization_id=p_org AND id=p_shipment FOR UPDATE;
-                        RETURN organization_state='Active' AND shipment_state='Active';
+                        RETURN COALESCE(organization_state='Active' AND shipment_state='Active',false);
                     END $fn$;
                 $sql$,schema_name);
             END $create$;

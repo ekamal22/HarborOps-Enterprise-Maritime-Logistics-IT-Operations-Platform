@@ -1,0 +1,599 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using HarborOps.Api.Audit;
+using HarborOps.Domain.Tracking;
+using HarborOps.Infrastructure.Integrations;
+using HarborOps.Infrastructure.Persistence;
+using HarborOps.Infrastructure.Shipments;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Npgsql;
+using Xunit;
+
+namespace HarborOps.IntegrationTests;
+
+/// <summary>
+/// M10/G16 combined verification under the real PostgreSQL identities. Every connection below
+/// logs in as harborops_api, harborops_worker or harborops_projector, never as the migrator,
+/// so privilege gaps in the SECURITY DEFINER triggers and the M10 grants surface as errors.
+/// </summary>
+public sealed class M10RuntimeIdentityTests
+{
+    private sealed record Roles(string Admin, string Api, string Worker, string Projector);
+
+    private static string RepositoryFile(string relative)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory.FullName, relative);
+            if (File.Exists(candidate)) return candidate;
+            directory = directory.Parent;
+        }
+        throw new FileNotFoundException(relative);
+    }
+
+    private static async Task<Roles> ProvisionAsync()
+    {
+        var admin = TestDatabase.ConnectionString();
+        await using var db = Context(admin);
+        await db.Database.MigrateAsync();
+        var apiSecret = "api-" + Guid.NewGuid().ToString("N");
+        var workerSecret = "worker-" + Guid.NewGuid().ToString("N");
+        var projectorSecret = "projector-" + Guid.NewGuid().ToString("N");
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["AuditRoles:ApiPassword"] = apiSecret,
+            ["AuditRoles:WorkerPassword"] = workerSecret
+        }).Build();
+        await AuditRoleProvisioner.ProvisionAsync(db, configuration, CancellationToken.None);
+
+        // Run the committed projector provisioning script itself, with only the database name
+        // retargeted, so this test verifies the shipped grants and not a private copy.
+        var database = new NpgsqlConnectionStringBuilder(admin).Database!;
+        var script = (await File.ReadAllTextAsync(
+                RepositoryFile("scripts/configure-m10-projector-db.sql")))
+            .Replace("ON DATABASE harborops TO", $"ON DATABASE \"{database}\" TO",
+                StringComparison.Ordinal);
+        Assert.Contains($"\"{database}\"", script);
+        await using (var connection = new NpgsqlConnection(admin))
+        {
+            await connection.OpenAsync();
+            await using var apply = new NpgsqlCommand(script, connection);
+            await apply.ExecuteNonQueryAsync();
+            await using var quote = new NpgsqlCommand("SELECT quote_literal(@s)", connection);
+            quote.Parameters.AddWithValue("s", projectorSecret);
+            var literal = (string)(await quote.ExecuteScalarAsync())!;
+            await using var password = new NpgsqlCommand(
+                "ALTER ROLE harborops_projector WITH PASSWORD " + literal, connection);
+            await password.ExecuteNonQueryAsync();
+        }
+        string For(string role, string secret) => new NpgsqlConnectionStringBuilder(admin)
+        { Username = role, Password = secret, Pooling = false }.ConnectionString;
+        return new Roles(admin, For("harborops_api", apiSecret),
+            For("harborops_worker", workerSecret), For("harborops_projector", projectorSecret));
+    }
+
+    private static HarborOpsDbContext Context(string connection) => new(
+        new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(connection).Options);
+
+    private static async Task<object?> Scalar(string connection, string sql,
+        params (string, object)[] values)
+    {
+        await using var direct = new NpgsqlConnection(connection);
+        await direct.OpenAsync();
+        await using var command = new NpgsqlCommand(sql, direct);
+        foreach (var (name, value) in values) command.Parameters.AddWithValue(name, value);
+        return await command.ExecuteScalarAsync();
+    }
+
+    private static async Task<long> Count(string connection, string sql,
+        params (string, object)[] values) => Convert.ToInt64(await Scalar(connection, sql, values));
+
+    private static async Task<PostgresException> Denied(string connection, string sql,
+        params (string, object)[] values)
+    {
+        await using var direct = new NpgsqlConnection(connection);
+        await direct.OpenAsync();
+        await using var command = new NpgsqlCommand(sql, direct);
+        foreach (var (name, value) in values) command.Parameters.AddWithValue(name, value);
+        return await Assert.ThrowsAsync<PostgresException>(() => command.ExecuteNonQueryAsync());
+    }
+
+    private static async Task AssertPermissionDenied(string connection, string label, string sql,
+        params (string, object)[] values)
+    {
+        var failure = await Denied(connection, sql, values);
+        Assert.True(failure.SqlState == PostgresErrorCodes.InsufficientPrivilege,
+            $"{label}: expected 42501 but got {failure.SqlState} {failure.MessageText}");
+    }
+
+    private static async Task<HttpResponseMessage> SendM10(HttpClient client, string path,
+        object? payload = null, Guid? idempotencyKey = null)
+    {
+        using var csrf = await client.GetAsync("/api/v1/auth/csrf");
+        csrf.EnsureSuccessStatusCode();
+        var token = await csrf.Content.ReadFromJsonAsync<JsonElement>();
+        using var request = new HttpRequestMessage(HttpMethod.Post, path);
+        request.Headers.TryAddWithoutValidation("Origin", "http://localhost");
+        request.Headers.TryAddWithoutValidation("X-HarborOps-CSRF",
+            token.GetProperty("token").GetString());
+        request.Headers.TryAddWithoutValidation("Idempotency-Key",
+            (idempotencyKey ?? Guid.NewGuid()).ToString());
+        if (payload is not null) request.Content = JsonContent.Create(payload);
+        return await client.SendAsync(request);
+    }
+
+    private sealed record Seeded(Roles Roles, ReferenceDataHttpTests.ApiFactory Admin,
+        ReferenceDataHttpTests.Fixture Fixture, G9Support.Resolvable Target,
+        ProvisionedIntegrationSource Source, Guid Actor);
+
+    private static async Task<Seeded> SeedAsync(string prefix)
+    {
+        var roles = await ProvisionAsync();
+        var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        var target = await G9Support.SeedResolvable(factory, fixture);
+        var source = await G9Support.NewSource(factory, fixture.A, prefix);
+        Guid actor;
+        await using (var lookup = Context(roles.Admin))
+            actor = (await lookup.AuthUsers.AsNoTracking().SingleAsync(x =>
+                x.NormalizedEmail == HarborOps.Infrastructure.Identity.IdentityStore
+                    .NormalizeEmail(fixture.ManagerEmail))).Id;
+        return new Seeded(roles, factory, fixture, target, source, actor);
+    }
+
+    private static async Task<Guid> AcceptAsync(Seeded s, string key,
+        string occurredAt = "2026-11-03T10:00:00Z", string code = "GTIN") =>
+        await G9Support.Accept(s.Admin, s.Source,
+            G9Support.EquipmentPayload(key + "-" + Guid.NewGuid().ToString("N")[..10],
+                s.Target.Reference, occurredAt, code));
+
+    private static async Task<TrackingWorkDisposition> WorkerFinalizeOneAsync(Roles roles, Guid org)
+    {
+        await using var workerDb = Context(roles.Worker);
+        var worker = new TrackingWorkStore(workerDb, new TrackingWorkerSettings());
+        var claim = await worker.ClaimOneAsync(org, CancellationToken.None);
+        Assert.NotNull(claim);
+        return await worker.FinalizeAsync(claim!, CancellationToken.None);
+    }
+
+    private static async Task<bool> WaitForLockWait(string admin, string role, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            if (await Count(admin, """
+                SELECT COUNT(*) FROM pg_stat_activity
+                WHERE usename=@role AND wait_event_type='Lock'
+                """, ("role", role)) > 0) return true;
+            await Task.Delay(50);
+        }
+        return false;
+    }
+
+    [Fact]
+    public async Task RealWorkerIdentityFeedsTheM10IndexAndAuditCaptureThroughDefinerTriggers()
+    {
+        var s = await SeedAsync("g10w");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var first = await AcceptAsync(s, "w-in");
+        var second = await AcceptAsync(s, "w-out", "2026-11-03T11:00:00Z", "GTOT");
+        var auditBefore = await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM audit_entries WHERE organization_id=@o", ("o", s.Fixture.A));
+        Assert.Equal(2, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM audit_entries
+            WHERE organization_id=@o AND event_type='integration.tracking_accepted'
+            """, ("o", s.Fixture.A)));
+
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+
+        // The definer triggers ran although the worker holds no M10 table rights.
+        Assert.Equal(2, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_timeline_entries
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(2, await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        // Accepted M16 contract: M9 worker effects are M9 history and never duplicate audit
+        // rows. The M10 definer triggers must not add, alter or remove any audit entry either.
+        Assert.Equal(auditBefore, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM audit_entries WHERE organization_id=@o", ("o", s.Fixture.A)));
+        Assert.Equal(0, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM audit_entries
+            WHERE organization_id=@o AND resource_type IN
+                ('tracking_processing_effects','shipment_tracking_timeline_entries',
+                 'shipment_tracking_input_versions')
+            """, ("o", s.Fixture.A)));
+
+        // No direct path for the worker into any M10 table.
+        foreach (var table in new[] { "shipment_tracking_timeline_entries",
+                     "shipment_tracking_input_versions", "shipment_tracking_correction_heads",
+                     "shipment_tracking_corrections", "shipment_tracking_projections",
+                     "shipment_projection_applications", "shipment_tracking_operation_replays" })
+        {
+            await AssertPermissionDenied(s.Roles.Worker, "worker select " + table,
+                $"SELECT 1 FROM {table} LIMIT 1");
+            await AssertPermissionDenied(s.Roles.Worker, "worker delete " + table,
+                $"DELETE FROM {table}");
+        }
+        await AssertPermissionDenied(s.Roles.Worker, "worker forge input revision", """
+            UPDATE shipment_tracking_input_versions SET input_revision=input_revision+1
+            """);
+        await AssertPermissionDenied(s.Roles.Worker, "worker execute projector lock",
+            "SELECT m10_lock_projector_scope(@o,@s)", ("o", s.Fixture.A), ("s", s.Target.Shipment));
+        Assert.NotEqual(Guid.Empty, first);
+        Assert.NotEqual(Guid.Empty, second);
+    }
+
+    [Fact]
+    public async Task RealApiIdentityHasOnlyTheScopedM10WritesAndTheDefinerTriggerRuns()
+    {
+        var s = await SeedAsync("g10a");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var first = await AcceptAsync(s, "a-in");
+        var second = await AcceptAsync(s, "a-out", "2026-11-03T11:00:00Z", "GTOT");
+        for (var n = 0; n < 2; n++)
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        var revisionBefore = await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment));
+
+        // Evidence tables and the M9/M16 evidence the API must never alter.
+        foreach (var table in new[] { "shipment_tracking_timeline_entries",
+                     "shipment_tracking_input_versions", "shipment_tracking_correction_heads" })
+        {
+            await AssertPermissionDenied(s.Roles.Api, "api update " + table,
+                $"UPDATE {table} SET organization_id=organization_id");
+            await AssertPermissionDenied(s.Roles.Api, "api delete " + table, $"DELETE FROM {table}");
+            await AssertPermissionDenied(s.Roles.Api, "api truncate " + table, $"TRUNCATE {table}");
+        }
+        await AssertPermissionDenied(s.Roles.Api, "api forge head", """
+            INSERT INTO shipment_tracking_correction_heads(organization_id,shipment_id,generation)
+            VALUES (@o,@s,41)
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment));
+        await AssertPermissionDenied(s.Roles.Api, "api forge timeline", """
+            INSERT INTO shipment_tracking_timeline_entries
+                (receipt_id,organization_id,shipment_id,event_id,source_id,source_event_id,
+                 event_code,occurred_at_utc,received_at_utc,container_id)
+            SELECT receipt_id,organization_id,shipment_id,receipt_id,source_id,'x','GTIN',
+                   clock_timestamp(),clock_timestamp(),container_id
+            FROM tracking_processing_effects WHERE receipt_id=@r
+            """, ("r", first));
+        await AssertPermissionDenied(s.Roles.Api, "api forge M9 effect", """
+            INSERT INTO tracking_processing_effects
+                (receipt_id,organization_id,source_id,resolution_kind,resolution_policy,
+                 container_id,shipment_id,resolved_at_utc)
+            SELECT gen_random_uuid(),organization_id,source_id,resolution_kind,resolution_policy,
+                   container_id,shipment_id,clock_timestamp()
+            FROM tracking_processing_effects WHERE receipt_id=@r
+            """, ("r", first));
+        await AssertPermissionDenied(s.Roles.Api, "api audit insert", """
+            INSERT INTO audit_entries SELECT * FROM audit_entries LIMIT 1
+            """);
+        await AssertPermissionDenied(s.Roles.Api, "api execute projector lock",
+            "SELECT m10_lock_projector_scope(@o,@s)", ("o", s.Fixture.A), ("s", s.Target.Shipment));
+
+        // Cross-tenant: organization B cannot correct a shipment that belongs to organization A.
+        var crossTenant = await Denied(s.Roles.Api, """
+            INSERT INTO shipment_tracking_corrections
+                (id,organization_id,shipment_id,target_receipt_id,replacement_receipt_id,
+                 generation,actor_user_id,reason,correlation_id,correction_digest)
+            VALUES (gen_random_uuid(),@b,@s,@t,NULL,1,@u,'Cross tenant forgery probe','probe',@d)
+            """, ("b", s.Fixture.B), ("s", s.Target.Shipment), ("t", first),
+            ("u", s.Actor), ("d", new string('b', 64)));
+        Assert.Contains(crossTenant.SqlState, new[] { PostgresErrorCodes.CheckViolation,
+            PostgresErrorCodes.ForeignKeyViolation });
+        Assert.Equal(0, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_tracking_corrections WHERE organization_id=@b",
+            ("b", s.Fixture.B)));
+
+        // Allowed: a valid scoped correction. The SECURITY DEFINER trigger advances the head
+        // and the input revision although the API holds no rights on either table.
+        await using (var direct = new NpgsqlConnection(s.Roles.Api))
+        {
+            await direct.OpenAsync();
+            await using var insert = new NpgsqlCommand("""
+                INSERT INTO shipment_tracking_corrections
+                    (id,organization_id,shipment_id,target_receipt_id,replacement_receipt_id,
+                     generation,actor_user_id,reason,correlation_id,correction_digest)
+                VALUES (gen_random_uuid(),@o,@s,@t,NULL,1,@u,'Confirmed invalid observation','api-id',@d)
+                """, direct);
+            insert.Parameters.AddWithValue("o", s.Fixture.A);
+            insert.Parameters.AddWithValue("s", s.Target.Shipment);
+            insert.Parameters.AddWithValue("t", first);
+            insert.Parameters.AddWithValue("u", s.Actor);
+            insert.Parameters.AddWithValue("d", new string('c', 64));
+            Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+        }
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT generation FROM shipment_tracking_correction_heads
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(revisionBefore + 1, await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+
+        // Retained corrections stay immutable for the API role at privilege level.
+        await AssertPermissionDenied(s.Roles.Api, "api update correction",
+            "UPDATE shipment_tracking_corrections SET reason='Tampered after the fact'");
+        await AssertPermissionDenied(s.Roles.Api, "api delete correction",
+            "DELETE FROM shipment_tracking_corrections");
+        await AssertPermissionDenied(s.Roles.Api, "api update replay",
+            "UPDATE shipment_tracking_operation_replays SET response_revision=0");
+        await AssertPermissionDenied(s.Roles.Api, "api delete replay",
+            "DELETE FROM shipment_tracking_operation_replays");
+        Assert.NotEqual(Guid.Empty, second);
+    }
+
+    [Fact]
+    public async Task RealProjectorIdentityCannotMutateM8M9M16EvidenceOrOtherScopes()
+    {
+        var s = await SeedAsync("g10p");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var first = await AcceptAsync(s, "p-in");
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+
+        Assert.Equal("projector", await Scalar(s.Roles.Projector,
+            "SELECT 'projector' WHERE session_user='harborops_projector'") as string);
+        Assert.Equal(true, await Scalar(s.Roles.Projector,
+            "SELECT m10_lock_projector_scope(@o,@s)", ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        // The definer function refuses any session that is not the projector.
+        Assert.Equal(false, await Scalar(s.Roles.Admin,
+            "SELECT m10_lock_projector_scope(@o,@s)", ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        // Unknown scope is reported as not lockable, never as success.
+        Assert.Equal(false, await Scalar(s.Roles.Projector,
+            "SELECT m10_lock_projector_scope(@o,@s)", ("o", s.Fixture.A), ("s", Guid.NewGuid())));
+
+        foreach (var table in new[] { "tracking_processing_effects", "tracking_accepted_events",
+                     "tracking_inbox_receipts", "tracking_inbox_work_items",
+                     "tracking_work_attempt_events", "shipment_tracking_timeline_entries",
+                     "shipment_tracking_correction_heads", "shipment_tracking_input_versions",
+                     "shipment_tracking_corrections", "organizations", "shipments" })
+        {
+            await AssertPermissionDenied(s.Roles.Projector, "projector delete " + table,
+                $"DELETE FROM {table}");
+            var column = table is "organizations" or "shipments" ? "id" : "organization_id";
+            await AssertPermissionDenied(s.Roles.Projector, "projector update " + table,
+                $"UPDATE {table} SET {column}={column}");
+        }
+        await AssertPermissionDenied(s.Roles.Projector, "projector insert effect", """
+            INSERT INTO tracking_processing_effects
+                (receipt_id,organization_id,source_id,resolution_kind,resolution_policy,
+                 container_id,shipment_id,resolved_at_utc)
+            SELECT gen_random_uuid(),organization_id,source_id,resolution_kind,resolution_policy,
+                   container_id,shipment_id,clock_timestamp()
+            FROM tracking_processing_effects LIMIT 1
+            """);
+        await AssertPermissionDenied(s.Roles.Projector, "projector reads audit", "SELECT 1 FROM audit_entries LIMIT 1");
+        await AssertPermissionDenied(s.Roles.Projector, "projector reads work queue",
+            "SELECT 1 FROM tracking_inbox_work_items LIMIT 1");
+        await AssertPermissionDenied(s.Roles.Projector, "projector reads credentials",
+            "SELECT 1 FROM integration_sources LIMIT 1");
+        await AssertPermissionDenied(s.Roles.Projector, "projector delete projection",
+            "DELETE FROM shipment_tracking_projections");
+        await AssertPermissionDenied(s.Roles.Projector, "projector update application",
+            "UPDATE shipment_projection_applications SET organization_id=organization_id");
+
+        // Allowed: the materialized projection and the application record only.
+        await using (var direct = new NpgsqlConnection(s.Roles.Projector))
+        {
+            await direct.OpenAsync();
+            await using var insert = new NpgsqlCommand("""
+                INSERT INTO shipment_tracking_projections
+                    (shipment_id,organization_id,observed_state,input_revision,input_digest,policy_version)
+                VALUES (@s,@o,'EquipmentIn',1,@d,'probe');
+                INSERT INTO shipment_projection_applications
+                    (receipt_id,organization_id,shipment_id,policy_version)
+                VALUES (@r,@o,@s,'probe');
+                UPDATE shipment_tracking_projections SET observed_state='Unknown' WHERE shipment_id=@s;
+                """, direct);
+            insert.Parameters.AddWithValue("s", s.Target.Shipment);
+            insert.Parameters.AddWithValue("o", s.Fixture.A);
+            insert.Parameters.AddWithValue("d", new string('d', 64));
+            insert.Parameters.AddWithValue("r", first);
+            await insert.ExecuteNonQueryAsync();
+        }
+        // Even through the projector, an application for a different shipment is refused.
+        var mismatched = await Denied(s.Roles.Projector, """
+            INSERT INTO shipment_projection_applications
+                (receipt_id,organization_id,shipment_id,policy_version)
+            VALUES (@r,@o,@wrong,'probe2')
+            """, ("r", first), ("o", s.Fixture.A), ("wrong", Guid.NewGuid()));
+        Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, mismatched.SqlState);
+    }
+
+    [Fact]
+    public async Task M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards()
+    {
+        var s = await SeedAsync("g10h");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var first = await AcceptAsync(s, "h-in");
+        var second = await AcceptAsync(s, "h-out", "2026-11-03T11:00:00Z", "GTOT");
+        for (var n = 0; n < 2; n++)
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+
+        using var apiFactory = new ReferenceDataHttpTests.ApiFactory(s.Roles.Api);
+        using var manager = apiFactory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        using var analyst = apiFactory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(manager, s.Fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Login(analyst, s.Fixture.AnalystEmail);
+        await ReferenceDataHttpTests.Select(manager, s.Fixture.A);
+        await ReferenceDataHttpTests.Select(analyst, s.Fixture.A);
+        var root = $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}";
+
+        using (var read = await analyst.GetAsync(root + "/tracking-projection"))
+            Assert.Equal(HttpStatusCode.OK, read.StatusCode);
+        using (var events = await analyst.GetAsync(root + "/events?limit=1"))
+        {
+            Assert.Equal(HttpStatusCode.OK, events.StatusCode);
+            Assert.Equal(2, (await events.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("eventCount").GetInt32());
+        }
+        using (var forbidden = await SendM10(analyst, root + "/tracking-projection/rebuild"))
+            Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        // The write path under the restricted identity: projection upsert, application rows,
+        // replay record and locking must all succeed without migrator privileges.
+        var rebuildKey = Guid.NewGuid();
+        using (var rebuild = await SendM10(manager, root + "/tracking-projection/rebuild",
+            idempotencyKey: rebuildKey))
+            Assert.Equal(HttpStatusCode.OK, rebuild.StatusCode);
+        using (var rebuildReplay = await SendM10(manager, root + "/tracking-projection/rebuild",
+            idempotencyKey: rebuildKey))
+        {
+            Assert.Equal(HttpStatusCode.OK, rebuildReplay.StatusCode);
+            Assert.True((await rebuildReplay.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("replayed").GetBoolean());
+        }
+        var correction = new
+        {
+            targetReceiptId = first, replacementReceiptId = (Guid?)null,
+            expectedGeneration = 0, reason = "Confirmed invalid first observation"
+        };
+        var correctionKey = Guid.NewGuid();
+        using (var applied = await SendM10(manager, root + "/tracking-corrections", correction, correctionKey))
+            Assert.Equal(HttpStatusCode.OK, applied.StatusCode);
+        using (var replayed = await SendM10(manager, root + "/tracking-corrections", correction, correctionKey))
+            Assert.True((await replayed.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("replayed").GetBoolean());
+        // Same key with a different payload is a collision, never a silent success.
+        using (var collision = await SendM10(manager, root + "/tracking-corrections",
+            new { targetReceiptId = second, replacementReceiptId = (Guid?)null,
+                  expectedGeneration = 1, reason = "Different payload with reused key" },
+            correctionKey))
+            Assert.Equal(HttpStatusCode.Conflict, collision.StatusCode);
+        // Tenant boundary: a manager of A cannot reach the same shipment through organization B.
+        using (var foreign = await SendM10(manager,
+            $"/api/v1/organizations/{s.Fixture.B}/shipments/{s.Target.Shipment}/tracking-projection/rebuild"))
+            Assert.NotEqual(HttpStatusCode.OK, foreign.StatusCode);
+        // Missing CSRF and a hostile Origin are refused before any database write.
+        using (var noCsrf = new HttpRequestMessage(HttpMethod.Post, root + "/tracking-projection/rebuild"))
+        {
+            noCsrf.Headers.TryAddWithoutValidation("Origin", "http://localhost");
+            noCsrf.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
+            using var response = await manager.SendAsync(noCsrf);
+            Assert.True(response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Forbidden,
+                "CSRF guard returned " + response.StatusCode);
+        }
+        using (var csrf = await manager.GetAsync("/api/v1/auth/csrf"))
+        {
+            var token = (await csrf.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString();
+            using var hostile = new HttpRequestMessage(HttpMethod.Post, root + "/tracking-projection/rebuild");
+            hostile.Headers.TryAddWithoutValidation("Origin", "http://evil.example");
+            hostile.Headers.TryAddWithoutValidation("X-HarborOps-CSRF", token);
+            hostile.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
+            using var response = await manager.SendAsync(hostile);
+            Assert.True(response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Forbidden,
+                "Origin guard returned " + response.StatusCode);
+        }
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT generation FROM shipment_tracking_correction_heads
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+    }
+
+    [Fact]
+    public async Task WorkerFinalizationBlocksBehindProjectorAndCorrectionLocksWithoutDeadlock()
+    {
+        var s = await SeedAsync("g10l");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var first = await AcceptAsync(s, "l-1");
+        var second = await AcceptAsync(s, "l-2", "2026-11-03T11:00:00Z", "GTOT");
+        var third = await AcceptAsync(s, "l-3", "2026-11-03T12:00:00Z", "GTIN");
+        // Intake shares the organization lock, so every event is accepted before a lock is held.
+        var fourth = await AcceptAsync(s, "l-4", "2026-11-03T13:00:00Z", "GTOT");
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+
+        // Round 1: the real projector identity holds the organization and shipment locks.
+        TrackingWorkDisposition blockedByProjector;
+        await using (var projector = new NpgsqlConnection(s.Roles.Projector))
+        {
+            await projector.OpenAsync();
+            await using var transaction = await projector.BeginTransactionAsync();
+            await using var lockCommand = new NpgsqlCommand(
+                "SELECT m10_lock_projector_scope(@o,@s)", projector, transaction);
+            lockCommand.Parameters.AddWithValue("o", s.Fixture.A);
+            lockCommand.Parameters.AddWithValue("s", s.Target.Shipment);
+            Assert.Equal(true, await lockCommand.ExecuteScalarAsync());
+            var workerTask = Task.Run(() => WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+            Assert.True(await WaitForLockWait(s.Roles.Admin, "harborops_worker", TimeSpan.FromSeconds(30)),
+                "The M9 worker did not wait behind the projector lock");
+            Assert.False(workerTask.IsCompleted);
+            await transaction.CommitAsync();
+            blockedByProjector = await workerTask.WaitAsync(TimeSpan.FromSeconds(60));
+        }
+        Assert.Equal(TrackingWorkDisposition.Processed, blockedByProjector);
+
+        // Round 2: an uncommitted API correction blocks the worker; releasing it lets both commit.
+        TrackingWorkDisposition blockedByCorrection;
+        await using (var api = new NpgsqlConnection(s.Roles.Api))
+        {
+            await api.OpenAsync();
+            await using var transaction = await api.BeginTransactionAsync();
+            await using var insert = new NpgsqlCommand("""
+                INSERT INTO shipment_tracking_corrections
+                    (id,organization_id,shipment_id,target_receipt_id,replacement_receipt_id,
+                     generation,actor_user_id,reason,correlation_id,correction_digest)
+                VALUES (gen_random_uuid(),@o,@s,@t,NULL,1,@u,'Confirmed invalid observation','lock',@d)
+                """, api, transaction);
+            insert.Parameters.AddWithValue("o", s.Fixture.A);
+            insert.Parameters.AddWithValue("s", s.Target.Shipment);
+            insert.Parameters.AddWithValue("t", first);
+            insert.Parameters.AddWithValue("u", s.Actor);
+            insert.Parameters.AddWithValue("d", new string('e', 64));
+            Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+            var workerTask = Task.Run(() => WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+            Assert.True(await WaitForLockWait(s.Roles.Admin, "harborops_worker", TimeSpan.FromSeconds(30)),
+                "The M9 worker did not wait behind the uncommitted correction");
+            Assert.False(workerTask.IsCompleted);
+            await transaction.CommitAsync();
+            blockedByCorrection = await workerTask.WaitAsync(TimeSpan.FromSeconds(60));
+            Assert.NotEqual(Guid.Empty, fourth);
+        }
+        Assert.Equal(TrackingWorkDisposition.Processed, blockedByCorrection);
+
+        // Final state is exactly the sum of the committed inputs: no lost or doubled revision.
+        Assert.Equal(3, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_timeline_entries
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(4, await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(3, await Count(s.Roles.Admin, """
+            SELECT event_count FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.NotEqual(Guid.Empty, second);
+        Assert.NotEqual(Guid.Empty, third);
+    }
+}

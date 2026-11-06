@@ -2,6 +2,7 @@ using System.Data;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -97,7 +98,8 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
     private sealed record ProjectionCache(
         long Revision, string? Digest, DateTimeOffset? At, string? ObservedState,
         Guid? LastEvent, DateTimeOffset? LastOccurred, long CorrectionGeneration,
-        string? PolicyVersion);
+        string? PolicyVersion, long InputRevision, long EventCount,
+        int ContainerCount, string? ContainerJson);
 
     private static async Task<ProjectionCache> CachedAsync(
         NpgsqlConnection con, NpgsqlTransaction tx,
@@ -106,19 +108,137 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
         await using var cmd = Command(con, tx, """
             SELECT materialization_revision,input_digest,refreshed_at_utc,
                    observed_state,last_event_id,last_occurred_at_utc,
-                   correction_generation,policy_version
+                   correction_generation,policy_version,input_revision,event_count,
+                   container_count,container_observations_json::text
             FROM shipment_tracking_projections
             WHERE organization_id=@org AND shipment_id=@shipment
             """, ("org", org), ("shipment", shipment));
         await using var reader = await cmd.ExecuteReaderAsync(ct);
         if (!await reader.ReadAsync(ct))
-            return new ProjectionCache(0, null, null, null, null, null, 0, null);
+            return new ProjectionCache(0, null, null, null, null, null, 0, null, 0, 0, 0, null);
         return new ProjectionCache(
             reader.GetInt64(0), reader.GetString(1).Trim(),
             reader.GetFieldValue<DateTimeOffset>(2), reader.GetString(3),
             reader.IsDBNull(4) ? null : reader.GetGuid(4),
             reader.IsDBNull(5) ? null : reader.GetFieldValue<DateTimeOffset>(5),
-            reader.GetInt64(6), reader.GetString(7));
+            reader.GetInt64(6), reader.GetString(7), reader.GetInt64(8),
+            reader.GetInt64(9), reader.GetInt32(10), reader.GetString(11));
+    }
+
+    private sealed record InputVersion(long Revision, long EventCount);
+
+    private static async Task<InputVersion> VersionAsync(NpgsqlConnection con,
+        NpgsqlTransaction tx, Guid org, Guid shipment, CancellationToken ct)
+    {
+        await using var cmd = Command(con, tx, """
+            SELECT input_revision,event_count FROM shipment_tracking_input_versions
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", org), ("shipment", shipment));
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return new InputVersion(0, 0);
+        return new InputVersion(reader.GetInt64(0), reader.GetInt64(1));
+    }
+
+    // Unlike StreamAsync, this query uses the database index and fetches at
+    // most 101 rows. The complete history is processed only during rebuild.
+    private static async Task<(IReadOnlyList<ShipmentTimelineEvent>, bool)> PageAsync(
+        NpgsqlConnection con, NpgsqlTransaction tx, Guid org, Guid shipment,
+        int pageSize, ShipmentTimelineKey? after, CancellationToken ct)
+    {
+        if (pageSize == 0) return (Array.Empty<ShipmentTimelineEvent>(), false);
+        if (pageSize is < 0 or > 100) throw new ArgumentOutOfRangeException(nameof(pageSize));
+        var sql = """
+            SELECT e.id,e.receipt_id,e.source_id,r.source_event_id,e.event_code,
+                   e.occurred_at_utc,r.received_at_utc,c.id IS NOT NULL,c.replacement_receipt_id,
+                   fx.container_id,c.id
+            FROM tracking_processing_effects fx
+            JOIN tracking_accepted_events e ON e.receipt_id=fx.receipt_id
+                AND e.organization_id=fx.organization_id AND e.source_id=fx.source_id
+            JOIN tracking_inbox_receipts r ON r.id=e.receipt_id
+                AND r.organization_id=e.organization_id AND r.source_id=e.source_id
+            LEFT JOIN shipment_tracking_corrections c
+                ON c.organization_id=fx.organization_id
+                AND c.shipment_id=fx.shipment_id
+                AND c.target_receipt_id=fx.receipt_id
+            WHERE fx.organization_id=@org AND fx.shipment_id=@shipment
+            """;
+        var arguments = new List<(string Name, object? Value)>
+        {
+            ("org", org), ("shipment", shipment), ("take", pageSize + 1)
+        };
+        if (after is not null)
+        {
+            sql += """
+                
+                AND (e.occurred_at_utc,r.received_at_utc,e.source_id,
+                     r.source_event_id COLLATE "C",e.receipt_id,e.id)
+                  > (@afterOccurred,@afterReceived,@afterSource,
+                     @afterEvent COLLATE "C",@afterReceipt,@afterId)
+                """;
+            arguments.Add(("afterOccurred", after.OccurredAtUtc));
+            arguments.Add(("afterReceived", after.ReceivedAtUtc));
+            arguments.Add(("afterSource", after.SourceId));
+            arguments.Add(("afterEvent", after.SourceEventId));
+            arguments.Add(("afterReceipt", after.ReceiptId));
+            arguments.Add(("afterId", after.EventId));
+        }
+        sql += """
+            
+            ORDER BY e.occurred_at_utc,r.received_at_utc,e.source_id,
+                     r.source_event_id COLLATE "C",e.receipt_id,e.id
+            LIMIT @take
+            """;
+        await using var cmd = Command(con, tx, sql, arguments.ToArray());
+        var rows = new List<ShipmentTimelineEvent>(pageSize + 1);
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        while (await reader.ReadAsync(ct))
+            rows.Add(new ShipmentTimelineEvent(
+                reader.GetGuid(0),reader.GetGuid(1),reader.GetGuid(2),
+                reader.GetString(3),reader.GetString(4),
+                reader.GetFieldValue<DateTimeOffset>(5),
+                reader.GetFieldValue<DateTimeOffset>(6),reader.GetBoolean(7),
+                reader.IsDBNull(8)?null:reader.GetGuid(8),reader.GetGuid(9),
+                reader.IsDBNull(10)?null:reader.GetGuid(10)));
+        var more = rows.Count > pageSize;
+        if (more) rows.RemoveAt(rows.Count - 1);
+        return (rows, more);
+    }
+
+    // HTTP read model: bounded database page plus a versioned materialization.
+    // On stale source input, never claim that cached tracking state is current.
+    public async Task<ShipmentTrackingView?> ReadBoundedAsync(
+        Guid org, Guid shipment, CancellationToken ct, int pageSize = 0,
+        ShipmentTimelineKey? after = null)
+    {
+        await db.Database.OpenConnectionAsync(ct);
+        try
+        {
+            await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
+                IsolationLevel.RepeatableRead, ct);
+            if (!await ExistsAsync(Connection, tx, org, shipment, ct)) return null;
+            var input = await VersionAsync(Connection, tx, org, shipment, ct);
+            var cached = await CachedAsync(Connection, tx, org, shipment, ct);
+            var generation = await GenerationAsync(Connection, tx, org, shipment, ct);
+            var (page, more) = await PageAsync(Connection, tx, org, shipment, pageSize, after, ct);
+            await tx.CommitAsync(ct);
+            var stale = cached.Revision == 0 || cached.InputRevision != input.Revision ||
+                cached.CorrectionGeneration != generation ||
+                cached.PolicyVersion != TrackingTimelinePolicy.Version;
+            var token = input.Revision.ToString("x16", CultureInfo.InvariantCulture)
+                .PadLeft(64, '0');
+            IReadOnlyList<ContainerTrackingObservation> containerSummary = stale
+                ? Array.Empty<ContainerTrackingObservation>()
+                : JsonSerializer.Deserialize<ContainerTrackingObservation[]>(
+                    cached.ContainerJson ?? "[]") ?? Array.Empty<ContainerTrackingObservation>();
+            var state = new ShipmentTrackingState(
+                stale ? "Unknown" : cached.ObservedState ?? "Unknown",
+                stale ? null : cached.LastEvent, stale ? null : cached.LastOccurred,
+                token, TrackingTimelinePolicy.Version,
+                (int)Math.Min(input.EventCount, int.MaxValue), containerSummary);
+            return new ShipmentTrackingView(state, cached.Revision, generation,
+                stale, cached.At, page, more);
+        }
+        finally { await db.Database.CloseConnectionAsync(); }
     }
 
     private static async Task<long> GenerationAsync(NpgsqlConnection con, NpgsqlTransaction tx,

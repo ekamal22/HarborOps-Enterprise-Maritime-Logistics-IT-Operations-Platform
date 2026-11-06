@@ -86,13 +86,29 @@ public sealed class TrackingProjectionG10Tests
         Assert.Equal(2, read.State.EventCount);
         Assert.Equal(0, read.MaterializationRevision);
         Assert.True(read.MaterializationStale);
-        Assert.Null(await store.ReadAsync(fixture.B, target.Shipment, CancellationToken.None));
+        var pending = await store.ReadBoundedAsync(fixture.A, target.Shipment,
+            CancellationToken.None, pageSize: 1);
+        Assert.NotNull(pending);
+        Assert.True(pending!.MaterializationStale);
+        Assert.Equal("Unknown", pending.State.ObservedTrackingState);
+        Assert.Single(pending.Timeline);
+        Assert.True(pending.HasMore);
+        Assert.Null(await store.ReadBoundedAsync(fixture.B, target.Shipment,
+            CancellationToken.None));
 
         var firstBuild = await store.RebuildAsync(fixture.A, target.Shipment, CancellationToken.None);
         Assert.Equal(TrackingMutationResult.Applied, firstBuild.Result);
         Assert.Equal(1, firstBuild.Revision);
         var sameBuild = await store.RebuildAsync(fixture.A, target.Shipment, CancellationToken.None);
         Assert.Equal(1, sameBuild.Revision);
+        var fresh = await store.ReadBoundedAsync(fixture.A, target.Shipment,
+            CancellationToken.None, pageSize: 1);
+        Assert.NotNull(fresh);
+        Assert.False(fresh!.MaterializationStale);
+        Assert.Equal("EquipmentOut", fresh.State.ObservedTrackingState);
+        Assert.Single(fresh.Timeline);
+        Assert.True(fresh.HasMore);
+
 
         string? earlierSnapshot;
         using (var response = await analyst.GetAsync(
@@ -269,6 +285,8 @@ public sealed class TrackingProjectionG10Tests
         await using var conB = new NpgsqlConnection(TestDatabase.ConnectionString());
         await conA.OpenAsync();
         await conB.OpenAsync();
+        await using var backend = new NpgsqlCommand("SELECT pg_backend_pid()", conB);
+        var contenderPid = Convert.ToInt32(await backend.ExecuteScalarAsync());
         await using var txA = await conA.BeginTransactionAsync(IsolationLevel.RepeatableRead);
         await using var txB = await conB.BeginTransactionAsync(IsolationLevel.RepeatableRead);
 
@@ -317,8 +335,29 @@ public sealed class TrackingProjectionG10Tests
                 return true;
             }
         });
-        await Task.Delay(150);
-        await txA.CommitAsync();
+        // Observe the PostgreSQL lock wait, not a timing assumption.
+        await using var watcher = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await watcher.OpenAsync();
+        var observedLock = false;
+        try
+        {
+            for (var poll = 0; poll < 150 && !observedLock; poll++)
+            {
+                await using var observation = new NpgsqlCommand("""
+                    SELECT wait_event_type FROM pg_stat_activity WHERE pid=@pid
+                    """, watcher);
+                observation.Parameters.AddWithValue("pid", contenderPid);
+                observedLock = (await observation.ExecuteScalarAsync()) is string name
+                    && name == "Lock";
+                if (!observedLock) await Task.Delay(50);
+            }
+        }
+        finally
+        {
+            // Release the lock even if the assertion is about to fail.
+            await txA.CommitAsync();
+        }
+        Assert.True(observedLock, "Second writer never reached a PostgreSQL lock wait");
         Assert.True(await otherWrite.WaitAsync(TimeSpan.FromSeconds(15)));
         await using var verify = new NpgsqlCommand("""
             SELECT count(*) FROM shipment_tracking_corrections

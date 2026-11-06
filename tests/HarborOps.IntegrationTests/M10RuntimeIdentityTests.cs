@@ -1178,6 +1178,248 @@ public sealed class M10RuntimeIdentityTests
         Assert.Equal(1, await Rows());
     }
 
+    private static string TransportBody(string key, string code, string reference) =>
+        "{\"sourceEventId\":\"" + key + "\",\"eventFamily\":\"Transport\",\"eventCode\":\"" + code +
+        "\",\"classifier\":\"ACT\",\"occurredAtUtc\":\"2026-11-03T10:00:00Z\"," +
+        "\"transportReference\":\"" + reference + "\",\"externalSchemaVersion\":\"2.2.0\"}";
+
+    [Fact]
+    public async Task DepaAndArriTransportEventsStayParkedAndNeverReachTheM10IndexOrProjection()
+    {
+        var s = await SeedAsync("g10d");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var nonce = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
+        var depa = await G9Support.Accept(s.Admin, s.Source, TransportBody("depa-" + nonce, "DEPA", "SYN-VOY-" + nonce));
+        var arri = await G9Support.Accept(s.Admin, s.Source, TransportBody("arri-" + nonce, "ARRI", "SYN-VOY-" + nonce));
+        var equipment = await AcceptAsync(s, "d-eq");
+        var revisionBefore = await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_input_versions WHERE organization_id=@o
+            """, ("o", s.Fixture.A));
+        var dispositions = new List<TrackingWorkDisposition>();
+        for (var n = 0; n < 3; n++) dispositions.Add(await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        Assert.Equal(2, dispositions.Count(d => d == TrackingWorkDisposition.NeedsReconciliation));
+        Assert.Equal(1, dispositions.Count(d => d == TrackingWorkDisposition.Processed));
+
+        foreach (var receipt in new[] { depa, arri })
+        {
+            Assert.Equal("NeedsReconciliation", await Scalar(s.Roles.Admin,
+                "SELECT state FROM tracking_inbox_work_items WHERE receipt_id=@r", ("r", receipt)));
+            Assert.Equal(0, await Count(s.Roles.Admin,
+                "SELECT COUNT(*) FROM tracking_processing_effects WHERE receipt_id=@r", ("r", receipt)));
+            Assert.Equal(0, await Count(s.Roles.Admin,
+                "SELECT COUNT(*) FROM shipment_tracking_timeline_entries WHERE receipt_id=@r", ("r", receipt)));
+            Assert.Equal(0, await Count(s.Roles.Admin,
+                "SELECT COUNT(*) FROM shipment_projection_applications WHERE receipt_id=@r", ("r", receipt)));
+        }
+        // Only the resolved equipment event is indexed; transport events change no input revision.
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_timeline_entries WHERE organization_id=@o
+            """, ("o", s.Fixture.A)));
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT event_count FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_timeline_entries WHERE receipt_id=@r
+            """, ("r", equipment)));
+        Assert.True(revisionBefore <= 1);
+        // Rebuilding never resolves the parked events either.
+        await using var projectorDb = Context(s.Roles.Projector);
+        var rebuilt = await new ShipmentTimelineStore(projectorDb, restrictedProjector: true)
+            .RebuildAsync(s.Fixture.A, s.Target.Shipment, CancellationToken.None);
+        Assert.Equal(TrackingMutationResult.Applied, rebuilt.Result);
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT event_count FROM shipment_tracking_projections WHERE shipment_id=@s
+            """, ("s", s.Target.Shipment)));
+        Assert.Equal(2, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM tracking_inbox_work_items
+            WHERE organization_id=@o AND state='NeedsReconciliation'
+            """, ("o", s.Fixture.A)));
+    }
+
+    [Fact]
+    public async Task ArchivedShipmentIsInvisibleToM10RoutesKeepsHistoryAndRecoversOnRestore()
+    {
+        var s = await SeedAsync("g10z");
+        using var _ = s.Admin;
+        using var admin = s.Fixture.Admin;
+        using var manager = s.Fixture.Manager;
+        using var analyst = s.Fixture.Analyst;
+        await AcceptAsync(s, "z-1");
+        await AcceptAsync(s, "z-2", "2026-11-03T11:00:00Z", "GTOT");
+        for (var n = 0; n < 2; n++)
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        var root = $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}";
+        using (var before = await analyst.GetAsync(root + "/events?limit=5"))
+            Assert.Equal(HttpStatusCode.OK, before.StatusCode);
+
+        // The accepted M6 rule: a shipment with an open allocation cannot be archived. Close it first.
+        long openVersion;
+        await using (var read = Context(s.Roles.Admin))
+            openVersion = (await read.Shipments.AsNoTracking().SingleAsync(x => x.Id == s.Target.Shipment)).Version;
+        using (var guarded = await ReferenceDataHttpTests.Send(manager, HttpMethod.Delete,
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}", new { expectedVersion = openVersion }))
+            Assert.Equal(HttpStatusCode.Conflict, guarded.StatusCode);
+        var assignmentId = (Guid)(await Scalar(s.Roles.Admin, """
+            SELECT id FROM shipment_container_assignments
+            WHERE organization_id=@o AND shipment_id=@s AND ends_at_utc IS NULL
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)))!;
+        using (var close = await ReferenceDataHttpTests.Send(analyst, HttpMethod.Patch,
+            root + "/container-assignments/" + assignmentId,
+            new { expectedVersion = 1L, endsAtUtc = "2026-11-10T12:00:00Z" }))
+            Assert.Equal(HttpStatusCode.OK, close.StatusCode);
+
+        long version;
+        await using (var read = Context(s.Roles.Admin))
+            version = (await read.Shipments.AsNoTracking().SingleAsync(x => x.Id == s.Target.Shipment)).Version;
+        using (var archive = await ReferenceDataHttpTests.Send(manager, HttpMethod.Delete,
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}", new { expectedVersion = version }))
+            Assert.Equal(HttpStatusCode.NoContent, archive.StatusCode);
+
+        // Every M10 surface treats the archived shipment as not found and reveals nothing.
+        foreach (var client in new[] { analyst, manager })
+        {
+            foreach (var path in new[] { "/events?limit=5", "/tracking-projection" })
+            {
+                using var response = await client.GetAsync(root + path);
+                Assert.True(response.StatusCode == HttpStatusCode.NotFound,
+                    $"GET {path} on an archived shipment returned {(int)response.StatusCode}");
+                Assert.DoesNotContain("g10", await response.Content.ReadAsStringAsync());
+            }
+        }
+        using (var rebuild = await SendM10(manager, root + "/tracking-projection/rebuild"))
+            Assert.Equal(HttpStatusCode.NotFound, rebuild.StatusCode);
+        using (var correction = await SendM10(manager, root + "/tracking-corrections", new
+        {
+            targetReceiptId = Guid.NewGuid(), replacementReceiptId = (Guid?)null,
+            expectedGeneration = 0, reason = "Correction attempt on archived shipment"
+        }))
+            Assert.Equal(HttpStatusCode.NotFound, correction.StatusCode);
+        Assert.Equal(0, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_tracking_corrections WHERE shipment_id=@s", ("s", s.Target.Shipment)));
+        Assert.Equal(0, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_tracking_projections WHERE shipment_id=@s", ("s", s.Target.Shipment)));
+        // The projector never discovers or rebuilds an archived scope, although it was never materialized.
+        await using var projectorDb = Context(s.Roles.Projector);
+        var projector = new ShipmentTimelineStore(projectorDb, restrictedProjector: true);
+        Assert.DoesNotContain(await projector.DirtyAsync(50, CancellationToken.None),
+            d => d.Shipment == s.Target.Shipment);
+        Assert.Equal(TrackingMutationResult.NotFound,
+            (await projector.RebuildAsync(s.Fixture.A, s.Target.Shipment, CancellationToken.None)).Result);
+        // History is retained, immutable and merely hidden.
+        Assert.Equal(2, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_tracking_timeline_entries WHERE shipment_id=@s", ("s", s.Target.Shipment)));
+
+        // Restore makes the retained history visible again, unchanged.
+        long archivedVersion;
+        await using (var read = Context(s.Roles.Admin))
+            archivedVersion = (await read.Shipments.AsNoTracking().SingleAsync(x => x.Id == s.Target.Shipment)).Version;
+        using (var restore = await ReferenceDataHttpTests.Send(analyst, HttpMethod.Patch, root,
+            new { recordStatus = "Active", expectedVersion = archivedVersion }))
+            Assert.Equal(HttpStatusCode.OK, restore.StatusCode);
+        using (var after = await analyst.GetAsync(root + "/events?limit=5"))
+        {
+            Assert.Equal(HttpStatusCode.OK, after.StatusCode);
+            Assert.Equal(2, (await after.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("eventCount").GetInt64());
+        }
+    }
+
+    [Fact]
+    public async Task SuspendedOrganizationIsDeniedAtOnceByEveryM10PathAndRecoversOnReactivation()
+    {
+        var s = await SeedAsync("g10u");
+        using var _ = s.Admin;
+        using var admin = s.Fixture.Admin;
+        using var manager = s.Fixture.Manager;
+        using var analyst = s.Fixture.Analyst;
+        await AcceptAsync(s, "u-1");
+        await AcceptAsync(s, "u-2", "2026-11-03T11:00:00Z", "GTOT");
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        var root = $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}";
+        using (var before = await analyst.GetAsync(root + "/events?limit=5"))
+            Assert.Equal(HttpStatusCode.OK, before.StatusCode);
+
+        async Task SetStatus(string status)
+        {
+            await using var connection = new NpgsqlConnection(s.Roles.Admin);
+            await connection.OpenAsync();
+            await using var command = new NpgsqlCommand(
+                "UPDATE organizations SET status=@s WHERE id=@o", connection);
+            command.Parameters.AddWithValue("s", status);
+            command.Parameters.AddWithValue("o", s.Fixture.A);
+            Assert.Equal(1, await command.ExecuteNonQueryAsync());
+        }
+        await SetStatus("Suspended");
+        try
+        {
+            // Already authenticated sessions are refused on the very next request, for reads and mutations.
+            foreach (var path in new[] { "/events?limit=5", "/tracking-projection" })
+            {
+                using var response = await analyst.GetAsync(root + path);
+                Assert.True(response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.NotFound or
+                    HttpStatusCode.Conflict or HttpStatusCode.Unauthorized,
+                    $"GET {path} for a suspended organization returned {(int)response.StatusCode}");
+            }
+            using (var rebuild = await SendM10(manager, root + "/tracking-projection/rebuild"))
+                Assert.True(rebuild.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.NotFound or
+                    HttpStatusCode.Conflict or HttpStatusCode.Unauthorized,
+                    $"rebuild returned {(int)rebuild.StatusCode}");
+            using (var correction = await SendM10(manager, root + "/tracking-corrections", new
+            {
+                targetReceiptId = Guid.NewGuid(), replacementReceiptId = (Guid?)null,
+                expectedGeneration = 0, reason = "Correction during suspension"
+            }))
+                Assert.True(correction.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.NotFound or
+                    HttpStatusCode.Conflict or HttpStatusCode.Unauthorized,
+                    $"correction returned {(int)correction.StatusCode}");
+            Assert.Equal(0, await Count(s.Roles.Admin,
+                "SELECT COUNT(*) FROM shipment_tracking_corrections WHERE organization_id=@o", ("o", s.Fixture.A)));
+            Assert.Equal(0, await Count(s.Roles.Admin,
+                "SELECT COUNT(*) FROM shipment_tracking_projections WHERE organization_id=@o", ("o", s.Fixture.A)));
+            // The restricted projector cannot lock a suspended scope, the sweep skips it, and the worker holds back.
+            Assert.Equal(false, await Scalar(s.Roles.Projector,
+                "SELECT m10_lock_projector_scope(@o,@s)", ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+            await using (var projectorDb = Context(s.Roles.Projector))
+            {
+                var projector = new ShipmentTimelineStore(projectorDb, restrictedProjector: true);
+                Assert.DoesNotContain(await projector.DirtyAsync(50, CancellationToken.None),
+                    d => d.Organization == s.Fixture.A);
+                Assert.Equal(TrackingMutationResult.NotFound,
+                    (await projector.RebuildAsync(s.Fixture.A, s.Target.Shipment, CancellationToken.None)).Result);
+            }
+            await using (var workerDb = Context(s.Roles.Worker))
+            {
+                var worker = new TrackingWorkStore(workerDb, new TrackingWorkerSettings());
+                var claim = await worker.ClaimOneAsync(s.Fixture.A, CancellationToken.None);
+                Assert.True(claim is null, "the worker claimed work for a suspended organization");
+            }
+            Assert.Equal(1, await Count(s.Roles.Admin, """
+                SELECT COUNT(*) FROM tracking_inbox_work_items
+                WHERE organization_id=@o AND state='Pending'
+                """, ("o", s.Fixture.A)));
+        }
+        finally { await SetStatus("Active"); }
+
+        // Reactivation: retained history is intact and the deferred work completes.
+        using (var after = await analyst.GetAsync(root + "/events?limit=5"))
+        {
+            Assert.Equal(HttpStatusCode.OK, after.StatusCode);
+            Assert.Equal(1, (await after.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("eventCount").GetInt64());
+        }
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        Assert.Equal(2, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_timeline_entries WHERE shipment_id=@s
+            """, ("s", s.Target.Shipment)));
+    }
+
     private sealed class ProjectorFactory(string api, string projector)
         : WebApplicationFactory<Program>
     {

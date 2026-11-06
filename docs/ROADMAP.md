@@ -172,7 +172,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Transactional receipt persistence and accepted event provenance.
 **Entry:** G7 accepted, G6 accepted before respective dependent work packages. Resolve D-006 before applicable feature implementation. G7 permits contract design; M8-02 and M8-03 additionally wait for G6.
 **Required work packages:** M8-01 Specify inbox and retention states; M8-02 Implement receipt and event schema; M8-03 Implement intake transaction path; M8-04 Verify persistent ingestion behavior. [M8 architecture](M8_ARCHITECTURE_DESIGN.md), [D-006 proposal](M8_D006_DURABILITY_PROPOSAL.md), [implementation plan](M8_IMPLEMENTATION_PLAN.md), [G8 matrix](M8_VERIFICATION_PLAN.md) and [implementation register](M8_IMPLEMENTATION_STATUS.md) document the source-locked M8 implementation and executed evidence. D-006 Option A and G8 accepted 2026-11-04 after independent review; see [gate closure](M8_G8_GATE_CLOSURE.md).
-**Exit G8:** All applicable tasks, negative tests, runtime evidence and documentation for M8 recorded; acceptance pending until explicitly confirmed.
+**Exit G8:** Accepted 2026-11-04 following independently reviewed source-locked evidence and D-006 Option A. Integrated into `main` via [G8 closure](M8_G8_GATE_CLOSURE.md); original execution-time blocked/pending entries remain historical evidence.
 **Not covered by this milestone:** Worker retry scheduling and projected shipment state.
 
 #### M9: Idempotent worker and reconciliation

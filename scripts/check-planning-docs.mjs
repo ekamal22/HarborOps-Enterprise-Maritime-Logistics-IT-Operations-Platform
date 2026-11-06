@@ -56,7 +56,7 @@ for (const [name,body,needle] of [
   ["Status",status,"M8/G8 accepted 2026-11-04"],
   ["Roadmap",roadmap,"G10-G24 remain open"],
   ["Contributors",contributors,"G0-G9 are verified and explicitly accepted"],
-  ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],
+  ["Parallel delivery",parallelPolicy,"M8 accepted verification and historical branch boundary"],
   ["Implementation plan",implementationPlan,"M8 accepted after independent G8 review"],
   ["G8 plan",m8Plan,"11 committed, source-isolated security mutation variants"],
   ["M8 status",m8Status,"One complete source-locked local run passed all 24 stages"],
@@ -71,6 +71,20 @@ for (const [name,body] of [
   assert(!/G0-G6 are verified and explicitly accepted|G7-G24 each require independent verification|no M8 code or G8 evidence exists|Suggested future runner|M8 parallel implementation boundary \(planned\)/i.test(body),
     "Superseded milestone statement returned in " + name);
 }
+const guide = get("docs/DOCUMENT_STATUS_GUIDE.md");
+assert(readme.includes("DOCUMENT_STATUS_GUIDE.md") &&
+  contributors.includes("DOCUMENT_STATUS_GUIDE.md") &&
+  guide.includes("M0-M9/G0-G9 are accepted") &&
+  guide.includes("supplement-s07-s08-s28.log") &&
+  guide.includes("G10-G24 remain unaccepted"),
+  "Documentation status guide must explain accepted gates, historical evidence and pending G16");
+for (const [name,body,bad] of [
+  ["README",readme,"Implemented M0-M3 HTTP routes"],
+  ["README",readme,"Planned shipment domain, database and HTTP contracts"],
+  ["Roadmap",roadmap,"**Exit G8:** All applicable tasks"],
+  ["Parallel",parallelPolicy,"The accepted baseline is G0-G7 on `main`"],
+  ["Parallel",parallelPolicy,"M8 implementation candidates are committed"],
+]) assert(!body.includes(bad), name + " reverted to superseded current-state wording");
 assert(status.includes("D-006") && status.includes("accepted"), "Status must record accepted D-006");
 assert(m8Status.includes("G8") && m8Status.includes("Explicitly accepted 2026-11-04") && m8Status.includes("M8_G8_GATE_CLOSURE.md"), "G8 acceptance must reference the independently reviewed gate closure");
 for (const [name, body, marker] of [

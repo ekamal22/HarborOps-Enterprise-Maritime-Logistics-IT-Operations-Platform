@@ -4,7 +4,7 @@
 **Integration branch:** `integrate/m9-m16-g16-candidate-20261105`
 **Base:** Accepted M9/G9 `main` at `b4f7b93f1ee8135b9a16b605ded315b3fbc036cc`
 **M16 source:** `feat/m16-audit-access-hardening` at `c499741a4d291515cda4de35593048fd90c1c83e`, with standalone runtime evidence at `e5711573839b185a2dfc7d9f2c64ce4fc18d4c13`
-**Status:** Integrated source candidate assembled. No combined runtime verification has been executed or independently reviewed for this revision. G16 acceptance and merge authorization pending.
+**Status:** Combined technical verification executed on runtime source `79318c6b6126362a0b26a1452aad6d2b48fdf4b4` (a failed run plus a same-source supplement, both preserved); see the [executed verification record](M9_M16_COMBINED_VERIFICATION.md). Three corrective findings were fixed on this branch. The evidence has been re-parsed by script only, with no separate independent reviewer. G16 acceptance, the pending decisions and merge authorization remain acceptance pending.
 
 ## Source reconciliation
 

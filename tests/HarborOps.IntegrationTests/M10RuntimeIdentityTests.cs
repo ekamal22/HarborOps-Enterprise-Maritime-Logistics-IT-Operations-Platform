@@ -1079,6 +1079,105 @@ public sealed class M10RuntimeIdentityTests
             d => d.Shipment == s.Target.Shipment);
     }
 
+    private static async Task<HttpResponseMessage> SendRawM10(HttpClient client, string path,
+        string body, string contentType = "application/json")
+    {
+        using var csrf = await client.GetAsync("/api/v1/auth/csrf");
+        csrf.EnsureSuccessStatusCode();
+        var token = await csrf.Content.ReadFromJsonAsync<JsonElement>();
+        using var request = new HttpRequestMessage(HttpMethod.Post, path);
+        request.Headers.TryAddWithoutValidation("Origin", "http://localhost");
+        request.Headers.TryAddWithoutValidation("X-HarborOps-CSRF", token.GetProperty("token").GetString());
+        request.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
+        request.Content = new StringContent(body, System.Text.Encoding.UTF8);
+        request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+        return await client.SendAsync(request);
+    }
+
+    [Fact]
+    public async Task CorrectionReasonSanitizationAndLinkRulesAreEnforcedOverHttp()
+    {
+        var s = await SeedAsync("g10q");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var manager = s.Fixture.Manager;
+        using var analyst = s.Fixture.Analyst;
+        var first = await AcceptAsync(s, "q-1");
+        var second = await AcceptAsync(s, "q-2", "2026-11-03T11:00:00Z", "GTOT");
+        var third = await AcceptAsync(s, "q-3", "2026-11-03T12:00:00Z", "GTIN");
+        var other = await G9Support.SeedResolvable(s.Admin, s.Fixture);
+        var foreign = await G9Support.Accept(s.Admin, s.Source, G9Support.EquipmentPayload(
+            "q-x-" + Guid.NewGuid().ToString("N")[..10], other.Reference));
+        for (var n = 0; n < 4; n++)
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        var root = $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}/tracking-corrections";
+        async Task<long> Rows() => await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_tracking_corrections WHERE shipment_id=@s", ("s", s.Target.Shipment));
+
+        string Body(Guid target, string reason, Guid? replacement = null, long generation = 0,
+            string extra = "") => "{\"targetReceiptId\":\"" + target + "\",\"replacementReceiptId\":" +
+            (replacement.HasValue ? "\"" + replacement + "\"" : "null") +
+            ",\"expectedGeneration\":" + generation + ",\"reason\":" +
+            JsonSerializer.Serialize(reason) + extra + "}";
+        // The m10-mutations limiter allows 10 requests per user per minute. A 429 is the limiter
+        // working, so wait for the next window and send the same request again.
+        async Task<HttpResponseMessage> Post(HttpClient client, string body,
+            string contentType = "application/json")
+        {
+            for (var attempt = 0; attempt < 8; attempt++)
+            {
+                var response = await SendRawM10(client, root, body, contentType);
+                if (response.StatusCode != HttpStatusCode.TooManyRequests) return response;
+                response.Dispose();
+                await Task.Delay(TimeSpan.FromSeconds(15));
+            }
+            throw new InvalidOperationException("The mutation rate limit window never reopened");
+        }
+        async Task Rejected(string label, string body, HttpStatusCode expected,
+            string contentType = "application/json")
+        {
+            var before = await Rows();
+            using var response = await Post(manager, body, contentType);
+            Assert.True(response.StatusCode == expected,
+                $"{label}: expected {(int)expected} but got {(int)response.StatusCode}");
+            Assert.Equal(before, await Rows());
+        }
+
+        // Input sanitization at the HTTP boundary: nothing reaches the database.
+        await Rejected("reason too short", Body(first, "short"), HttpStatusCode.BadRequest);
+        await Rejected("reason over 240", Body(first, new string('r', 241)), HttpStatusCode.BadRequest);
+        await Rejected("reason leading space", Body(first, " leading space reason"), HttpStatusCode.BadRequest);
+        await Rejected("reason trailing space", Body(first, "trailing space reason "), HttpStatusCode.BadRequest);
+        await Rejected("reason control character", Body(first, "bad\u0007control reason"), HttpStatusCode.BadRequest);
+        await Rejected("unknown field", Body(first, "Valid reason text", extra: ",\"extra\":1"), HttpStatusCode.BadRequest);
+        await Rejected("duplicate field", Body(first, "Valid reason text", extra: ",\"expectedGeneration\":0"), HttpStatusCode.BadRequest);
+        await Rejected("replacement equals target", Body(first, "Valid reason text", first), HttpStatusCode.BadRequest);
+        await Rejected("negative generation", Body(first, "Valid reason text", generation: -1), HttpStatusCode.BadRequest);
+        await Rejected("wrong content type", Body(first, "Valid reason text"), HttpStatusCode.BadRequest, "text/plain");
+        await Rejected("oversized body", Body(first, "Valid reason text", extra: ",\"x\":\"" + new string('a', 5000) + "\""), HttpStatusCode.BadRequest);
+
+        // Database-level link validity: another shipment's receipt is never a valid target or replacement.
+        await Rejected("target on another shipment", Body(foreign, "Valid reason text"), HttpStatusCode.UnprocessableEntity);
+        await Rejected("replacement on another shipment", Body(first, "Valid reason text", foreign), HttpStatusCode.UnprocessableEntity);
+        await Rejected("unknown target", Body(Guid.NewGuid(), "Valid reason text"), HttpStatusCode.UnprocessableEntity);
+        await Rejected("stale generation", Body(first, "Valid reason text", generation: 5), HttpStatusCode.Conflict);
+
+        // A valid replacement link applies; chains, cycles and reuse are refused and leave one row.
+        using (var linked = await Post(manager, Body(first, "Replaced by the later observation", second)))
+            Assert.Equal(HttpStatusCode.OK, linked.StatusCode);
+        Assert.Equal(1, await Rows());
+        await Rejected("cycle back to the target", Body(second, "Valid reason text", first, generation: 1), HttpStatusCode.UnprocessableEntity);
+        await Rejected("chain through a replacement", Body(second, "Valid reason text", third, generation: 1), HttpStatusCode.UnprocessableEntity);
+        await Rejected("replacement reused", Body(third, "Valid reason text", second, generation: 1), HttpStatusCode.UnprocessableEntity);
+        await Rejected("target already corrected", Body(first, "Valid reason text", third, generation: 1), HttpStatusCode.UnprocessableEntity);
+        Assert.Equal(1, await Rows());
+        // Analyst remains refused even for a well-formed correction.
+        using (var denied = await Post(analyst, Body(third, "Valid reason text")))
+            Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        Assert.Equal(1, await Rows());
+    }
+
     private sealed class ProjectorFactory(string api, string projector)
         : WebApplicationFactory<Program>
     {

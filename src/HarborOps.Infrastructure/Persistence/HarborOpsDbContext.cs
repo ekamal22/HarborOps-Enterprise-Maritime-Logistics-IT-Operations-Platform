@@ -37,8 +37,46 @@ public sealed class HarborOpsDbContext(DbContextOptions<HarborOpsDbContext> opti
     public DbSet<TrackingProcessingEffect> TrackingProcessingEffects => Set<TrackingProcessingEffect>();
     public DbSet<TrackingReceiptConflict> TrackingReceiptConflicts => Set<TrackingReceiptConflict>();
 
+    public DbSet<HarborOps.Infrastructure.Audit.AuditEntry> AuditEntries => Set<HarborOps.Infrastructure.Audit.AuditEntry>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<HarborOps.Infrastructure.Audit.AuditEntry>(entity =>
+        {
+            entity.ToTable("audit_entries", t =>
+            {
+                t.HasCheckConstraint("CK_m16_event_type", "event_type ~ '^[a-z0-9_.]{1,96}$'");
+                t.HasCheckConstraint("CK_m16_event_version", "event_schema_version = 1");
+                t.HasCheckConstraint("CK_m16_event_outcome", "outcome IN ('Succeeded','Denied','Failed')");
+                t.HasCheckConstraint("CK_m16_actor_kind", "actor_kind IN ('Human','OperatorCli','IntegrationSource','System')");
+                t.HasCheckConstraint("CK_m16_resource_type", "resource_type ~ '^[a-z0-9_]{1,64}$'");
+                t.HasCheckConstraint("CK_m16_correlation", "length(correlation_id) BETWEEN 1 AND 64");
+                t.HasCheckConstraint("CK_m16_metadata", "jsonb_typeof(metadata) = 'object' AND pg_column_size(metadata) <= 1024");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(x => x.OrganizationId).HasColumnName("organization_id");
+            entity.Property(x => x.EventType).HasColumnName("event_type").HasMaxLength(96).IsRequired();
+            entity.Property(x => x.EventSchemaVersion).HasColumnName("event_schema_version").HasDefaultValue(1);
+            entity.Property(x => x.Outcome).HasColumnName("outcome").HasMaxLength(16).IsRequired();
+            entity.Property(x => x.ActorKind).HasColumnName("actor_kind").HasMaxLength(24).IsRequired();
+            entity.Property(x => x.ActorUserId).HasColumnName("actor_user_id");
+            entity.Property(x => x.ActorSessionId).HasColumnName("actor_session_id");
+            entity.Property(x => x.ActorSourceId).HasColumnName("actor_source_id");
+            entity.Property(x => x.ActorRole).HasColumnName("actor_role").HasMaxLength(24);
+            entity.Property(x => x.ResourceType).HasColumnName("resource_type").HasMaxLength(64).IsRequired();
+            entity.Property(x => x.ResourceId).HasColumnName("resource_id");
+            entity.Property(x => x.CorrelationId).HasColumnName("correlation_id").HasMaxLength(64).IsRequired();
+            entity.Property(x => x.OccurredAtUtc).HasColumnName("occurred_at_utc")
+                .HasColumnType("timestamp with time zone").HasDefaultValueSql("statement_timestamp()");
+            entity.Property(x => x.MetadataJson).HasColumnName("metadata").HasColumnType("jsonb")
+                .HasDefaultValueSql("'{}'::jsonb").IsRequired();
+            entity.HasIndex(x => new { x.OrganizationId, x.OccurredAtUtc, x.Id })
+                .IsDescending(false, true, true).HasDatabaseName("IX_m16_audit_scope_time");
+            entity.HasIndex(x => new { x.OrganizationId, x.ResourceType, x.ResourceId, x.OccurredAtUtc })
+                .IsDescending(false, false, false, true).HasDatabaseName("IX_m16_audit_resource");
+        });
+
         modelBuilder.Entity<IntegrationSource>(entity =>
         {
             entity.ToTable("integration_sources", t =>

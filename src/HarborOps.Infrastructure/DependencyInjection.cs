@@ -7,6 +7,7 @@ using HarborOps.Infrastructure.Maritime;
 using HarborOps.Infrastructure.Shipments;
 using HarborOps.Infrastructure.Assignments;
 using HarborOps.Infrastructure.Integrations;
+using HarborOps.Infrastructure.Audit;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,8 @@ public static class DependencyInjection
         services.AddScoped<IBaselineReadService, EfBaselineReadService>();
         services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddSingleton<PasswordHasher>();
+        services.AddScoped<AuditReader>();
+        services.AddScoped<AuditAccessRecorder>();
         services.AddScoped<IdentityStore>();
         services.AddScoped<OrganizationStore>();
         services.AddScoped<ReferenceStore>();

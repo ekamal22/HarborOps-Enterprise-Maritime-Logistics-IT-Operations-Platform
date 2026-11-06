@@ -1,0 +1,114 @@
+name: ho-verify-g16
+
+services:
+  postgres:
+    image: harborops-postgres:16.15-rootless
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    user: "70:70"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: harborops
+      POSTGRES_USER: harborops
+      POSTGRES_PASSWORD: ${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:55446:5432"
+    volumes:
+      - harborops-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harborops -d harborops"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks: [internal]
+
+  migrator:
+    build:
+      context: .
+      dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: "no"
+    command: ["--migrate"]
+    environment:
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
+      AuditRoles__ApiPassword: "${HARBOROPS_API_DB_PASSWORD:?Set HARBOROPS_API_DB_PASSWORD}"
+      AuditRoles__WorkerPassword: "${HARBOROPS_WORKER_DB_PASSWORD:?Set HARBOROPS_WORKER_DB_PASSWORD}"
+      Identity__AllowInsecureLoopbackHttp: "true"
+      Identity__KeyRingPath: "/tmp/keys"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+
+  api:
+    build:
+      context: .
+      dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - harborops-keyring:/keys
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:8086:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Identity__AllowInsecureLoopbackHttp: "true"
+      Identity__TrustedLocalHttpPeers: "172.30.250.1,172.30.250.10"
+      ReverseProxy__KnownProxies__0: "172.30.250.10"
+      Identity__KeyRingPath: "/keys"
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops_api;Password=${HARBOROPS_API_DB_PASSWORD:?Set HARBOROPS_API_DB_PASSWORD}"
+      Cors__AllowedOrigins__0: "http://localhost:5176"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    networks: [internal]
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        VITE_API_BASE_URL: "http://localhost:8086"
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:5176:80"
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      internal:
+        ipv4_address: 172.30.250.10
+
+volumes:
+  harborops-postgres:
+  harborops-keyring:
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.250.0/24

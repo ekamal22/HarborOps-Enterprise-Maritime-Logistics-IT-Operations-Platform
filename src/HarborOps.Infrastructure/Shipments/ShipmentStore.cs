@@ -1,3 +1,4 @@
+using HarborOps.Infrastructure.Audit;
 using System.Text.Json;
 using HarborOps.Domain.Organizations;
 using HarborOps.Domain.Shipments;
@@ -187,6 +188,7 @@ public sealed class ShipmentStore(HarborOpsDbContext db, OrganizationStore organ
         try
         {
             await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await AuditActorContext.SetHumanAsync(db, session.UserId, session.SessionId, AuditCorrelation.Current, ct);
             var access = await ScopeAsync(session, org,
                 OrganizationPermission.ManageShipmentData, true, ct);
             if (access != OrganizationAccessError.None) return new(null, access);

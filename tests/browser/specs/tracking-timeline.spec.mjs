@@ -64,6 +64,9 @@ test("G10 stale timeline cursor response is visible and refresh restores the pag
   const panel = shipments.getByRole("heading", { name: "Tracking observations" })
     .locator("xpath=ancestor::section[1]");
   await expect(panel).toBeVisible();
+  // The panel loads on mount. Arm the mock only after that initial load completed, otherwise the
+  // in-flight initial request can consume the one-shot 409 before the Refresh click.
+  await expect(panel.locator("p", { hasText: "Observed:" })).toBeVisible();
 
   let rejected = false;
   await page.route("**/api/v1/organizations/*/shipments/*/events?*", async route => {
@@ -98,6 +101,8 @@ test("G10 access revocation response clears previously visible observed state", 
   const panel = shipments.getByRole("heading", { name: "Tracking observations" })
     .locator("xpath=ancestor::section[1]");
   await expect(panel).toBeVisible();
+  // The observed state must be visible first, so clearing it afterwards is a real transition.
+  await expect(panel.locator("p", { hasText: "Observed:" })).toBeVisible();
 
   await page.route("**/api/v1/organizations/*/shipments/*/tracking-projection", route =>
     route.fulfill({ status: 403, contentType: "application/json",

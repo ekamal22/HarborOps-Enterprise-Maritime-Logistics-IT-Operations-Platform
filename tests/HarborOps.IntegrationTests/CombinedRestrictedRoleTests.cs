@@ -295,6 +295,24 @@ public sealed class CombinedRestrictedRoleTests
                 Assert.False(await Has("harborops_api", table, privilege), $"api {privilege} {table}");
         Assert.False(await Has("harborops_api", "tracking_processing_effects", "INSERT"));
         Assert.False(await Has("harborops_api", "audit_entries", "INSERT"));
+        // M10 is an additive API capability. The accepted M16 audit and M9
+        // worker grant matrix remains unchanged; only these scoped API writes expand.
+        foreach (var table in new[] { "shipment_tracking_corrections",
+                     "shipment_tracking_operation_replays", "shipment_tracking_projections",
+                     "shipment_projection_applications" })
+            Assert.True(await Has("harborops_api", table, "INSERT"), $"M10 api INSERT {table}");
+        Assert.True(await Has("harborops_api", "shipment_tracking_projections", "UPDATE"));
+        foreach (var table in new[] { "shipment_tracking_timeline_entries",
+                     "shipment_tracking_input_versions", "shipment_tracking_correction_heads" })
+            foreach (var privilege in new[] { "INSERT", "UPDATE", "DELETE" })
+                Assert.False(await Has("harborops_api", table, privilege), $"M10 evidence {table} {privilege}");
+        foreach (var table in new[] { "shipment_tracking_corrections",
+                     "shipment_tracking_operation_replays", "shipment_tracking_projections",
+                     "shipment_projection_applications", "shipment_tracking_timeline_entries",
+                     "shipment_tracking_input_versions", "shipment_tracking_correction_heads" })
+            foreach (var privilege in new[] { "INSERT", "UPDATE", "DELETE" })
+                Assert.False(await Has("harborops_worker", table, privilege), $"M10 worker {table} {privilege}");
+
         // Worker: effects INSERT and work-item column UPDATE; no attempt-history or audit writes.
         Assert.True(await Has("harborops_worker", "tracking_processing_effects", "INSERT"));
         foreach (var table in new[] { "tracking_work_attempt_events", "tracking_processing_effects",

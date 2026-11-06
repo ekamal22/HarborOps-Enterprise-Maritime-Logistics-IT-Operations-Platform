@@ -175,3 +175,16 @@ The accepted [G16 gate closure](M16_G16_GATE_CLOSURE.md) and integrated [PR #25]
 | GET | `/api/v1/organizations/{organizationId}/audit-events/{auditId}` | Tenant-scoped audit entry or a sanitized missing/denied response |
 
 Successful audit reads record their own audit-access events. Sensitive mutations and their audit entries commit in the same database transaction or fail closed. Responses use `Cache-Control: no-store`; there is no public audit write, export or global search route. The actor/source context and fixed metadata allowlist exclude secrets and raw tracking payloads. Retention policy is 365 days online followed by separately verified archival, without implemented automatic purge. M9 worker attempt/effect history remains a distinct immutable audit-of-record surface. The audit cursor retains its documented late-commit ordering caveat; see [G16 closure](M16_G16_GATE_CLOSURE.md).
+
+## M10 tracking timeline and projection endpoints (draft, not accepted)
+
+The [source-reconciled M10 candidate](M10_M16_SOURCE_RECONCILIATION.md) adds four authenticated routes under `/api/v1/organizations/{organizationId}/shipments/{shipmentId}`. These do **not** supersede the accepted M5 manual shipment workflow or the accepted M16 Auditor-only audit routes.
+
+| Method | Suffix | Contract and roles |
+| --- | --- | --- |
+| GET | `/events` | Selected-organization shipment-read permission; `limit=1..100`, optional encrypted, short-lived `snapshot` and keyset `cursor`, M8/M9 provenance and bounded indexed pages. Late changes reject stale cursors. No raw payload or input digest. |
+| GET | `/tracking-projection` | Same read scope; materialized per-container observed state, nullable ETA (not inferred from the current source profile), input revision token, materialization revision and stale flag. On stale inputs, observed state is `Unknown` until a rebuild. |
+| POST | `/tracking-corrections` | Manager-only CSRF/Origin checks, current membership and session revalidation, UUID `Idempotency-Key`, append-only reasoned correction and generation precondition. |
+| POST | `/tracking-projection/rebuild` | Manager-only CSRF/Origin checks and UUID idempotency key; serializable scope locking, atomically refreshed projection, unchanged input -> unchanged materialization revision. |
+
+G10 testing must verify these routes **with the accepted M16 `harborops_api` database identity** and prove no extra authority over audit entries, M8 accepted events or M9 worker effects. They remain unaccepted, and the sustained transport-event hold remains in force.

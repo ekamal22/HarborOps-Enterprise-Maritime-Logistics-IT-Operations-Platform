@@ -121,6 +121,19 @@ public static class AuthenticationSetup
                         QueueLimit = 0, AutoReplenishment = true
                     }));
         });
+        // M10 write-heavy projection paths are scoped per authenticated principal.
+        services.AddRateLimiter(options =>
+        {
+            options.AddPolicy("m10-mutations", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                        ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1), PermitLimit = 10,
+                        QueueLimit = 0, AutoReplenishment = true
+                    }));
+        });
         services.AddSingleton<IdentityAttemptLimiter>();
         return services;
     }

@@ -62,6 +62,24 @@ public static class AuditRoleProvisioner
                 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO harborops_api;
                 REVOKE ALL ON TABLE audit_entries FROM harborops_api;
                 GRANT SELECT ON TABLE audit_entries TO harborops_api;
+                -- M10 is strictly additive to the already accepted M9/M16 role matrix.
+                -- The API may write only corrections, replay acknowledgments and
+                -- derived projections. Immutable source/index/correction generation
+                -- tables remain accessible only through migration-owned triggers.
+                DO $m10_roles$
+                BEGIN
+                    IF to_regclass('public.shipment_tracking_projections') IS NOT NULL
+                       AND to_regclass('public.shipment_tracking_corrections') IS NOT NULL
+                       AND to_regclass('public.shipment_tracking_operation_replays') IS NOT NULL
+                       AND to_regclass('public.shipment_projection_applications') IS NOT NULL THEN
+                        GRANT INSERT ON shipment_tracking_corrections,
+                            shipment_tracking_operation_replays,
+                            shipment_tracking_projections,
+                            shipment_projection_applications TO harborops_api;
+                        GRANT UPDATE ON shipment_tracking_projections TO harborops_api;
+                    END IF;
+                END $m10_roles$;
+
                 GRANT EXECUTE ON FUNCTION
                     m16_record_audit_access(uuid,varchar,uuid,uuid,uuid,varchar) TO harborops_api;
 

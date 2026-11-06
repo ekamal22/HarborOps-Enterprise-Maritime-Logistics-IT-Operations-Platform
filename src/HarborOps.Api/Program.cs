@@ -35,6 +35,20 @@ builder.Services.AddHarborOpsPersistence(connectionString);
 builder.Services.AddHarborOpsAuthentication(builder.Configuration);
 builder.Services.AddSingleton<IntegrationRequestLimiter>();
 builder.Services.AddScoped<TrackingWorkAdminStore>();
+builder.Services.AddScoped<ShipmentTimelineStore>();
+if (builder.Configuration.GetValue<bool>("M10:EnableProjector"))
+{
+    var projectorConnection = builder.Configuration.GetConnectionString("HarborOpsProjector");
+    if (string.IsNullOrWhiteSpace(projectorConnection))
+        throw new InvalidOperationException("M10 projector requires separate database credentials");
+    var projectorAccount = new Npgsql.NpgsqlConnectionStringBuilder(projectorConnection);
+    var apiAccount = new Npgsql.NpgsqlConnectionStringBuilder(connectionString);
+    if (string.IsNullOrWhiteSpace(projectorAccount.Username) ||
+        !string.Equals(projectorAccount.Username, "harborops_projector", StringComparison.Ordinal) ||
+        string.Equals(projectorAccount.Username, apiAccount.Username, StringComparison.OrdinalIgnoreCase))
+        throw new InvalidOperationException("M10 projector must use a distinct restricted database role");
+    builder.Services.AddHostedService<TrackingProjectionHostedService>();
+}
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -145,6 +159,7 @@ app.MapShipmentEndpoints();
 app.MapAssignmentEndpoints();
 app.MapTrackingEndpoints();
 app.MapTrackingWorkEndpoints();
+app.MapShipmentTimelineEndpoints();
 app.MapAuditEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions

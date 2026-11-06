@@ -90,6 +90,10 @@ The independent G16 main-evidence review checked 162/162 standalone files; the S
 
 After G16 acceptance, a final source review found a possible generation-zero `Redriven` forgery. Correction source `8ba7727` passed 17/17 focused restricted-role tests and 286/286 full PostgreSQL integration tests; reverting the old guard caused the new regression to fail. The extension archive matched 47/47 file hashes. [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) merged only after that gate extension. No extra browsers, outages or image scans were claimed on the corrected SHA because those paths were unchanged. G10 is a draft and has no executed gate evidence. No GitHub Actions are authorized.
 
+## M10/G16 combined source verification (NOT EXECUTED)
+
+The [M10/G16 source reconciliation](M10_M16_SOURCE_RECONCILIATION.md) extends the accepted eleven-migration G16/M9 baseline with M10's SQL-only twelfth migration and its immutable effect-derived timeline index. The M16 Auditor API, audit insertion triggers and accepted M9 restricted worker behavior must remain unchanged. New focused tests extend the exact restricted API/worker grant matrix, correction-head security-definer trigger, twelve-migration inventory and downgrade counts. Full `G10-S01` through `G10-S25` source-locked execution must include the combined suites, real-role SQL, concurrency and outage/restart scenarios, three browser engines, vulnerability and mutation checks, preserved evidence and independent review. These checks are authored but not yet run. Historical G16 results remain accepted but do not certify the later M10 branch.
+
 ## Publication security verification (executed locally)
 
 The repository became publicly viewable on 2026-11-03 after branch protection and historical artifact cleanup. Source visibility does not authorize public application hosting. GitHub Actions remains disabled; new verification uses approved, isolated E:-backed local resources. See [Publication Safety Status](PUBLICATION_SAFETY_STATUS.md) for the final disclosure and governance disposition.

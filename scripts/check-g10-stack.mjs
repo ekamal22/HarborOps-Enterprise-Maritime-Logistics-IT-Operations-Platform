@@ -493,7 +493,7 @@ await check("m10-transport-events-stay-parked-and-unindexed", async () => {
     headers: { "Content-Type": "application/json; charset=utf-8", Authorization: "Bearer " + bearer,
       "X-HarborOps-Tracking-Profile": "tnt-2.2-harborops-v1" },
     body: JSON.stringify({ sourceEventId: "g10-transport-" + nonce, eventFamily: "Transport", eventCode: "ARRI", classifier: "ACT",
-      occurredAtUtc: "2026-11-03T10:00:00Z", transportReference: "SYN-TRANSPORT-" + nonce, externalSchemaVersion: "2.2.0" })
+      occurredAtUtc: "2026-11-03T10:00:00Z", transportReference: "SYN-TRANSPORT-" + nonce.toUpperCase(), externalSchemaVersion: "2.2.0" })
   });
   assert.equal(response.status, 202);
   const receipt = (await response.json()).receiptId;

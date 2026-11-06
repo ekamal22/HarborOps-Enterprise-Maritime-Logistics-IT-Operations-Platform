@@ -327,15 +327,20 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
         Guid org, Guid shipment, CancellationToken ct)
     {
         var (reduced, _, _) = await StreamAsync(con, tx, org, shipment, 0, null, ct);
+        var input = await VersionAsync(con, tx, org, shipment, ct);
         var generation = await GenerationAsync(con, tx, org, shipment, ct);
-        // Always compare the computed derived fields. A matching input digest alone
-        // must not conceal manual corruption of materialized state.
+        if (input.EventCount != reduced.EventCount)
+            throw new InvalidOperationException("Tracking input-version counter mismatch");
+        var containers = reduced.Containers ?? Array.Empty<ContainerTrackingObservation>();
+        var sample = JsonSerializer.Serialize(containers.Take(50).ToArray());
         await using (var put = Command(con, tx, """
             INSERT INTO shipment_tracking_projections
                 (organization_id,shipment_id,observed_state,last_event_id,
                  last_occurred_at_utc,input_digest,policy_version,correction_generation,
+                 input_revision,event_count,container_count,container_observations_json,
                  materialization_revision)
-            VALUES (@org,@shipment,@state,@event,@occurred,@digest,@policy,@generation,1)
+            VALUES (@org,@shipment,@state,@event,@occurred,@digest,@policy,@generation,
+                    @inputRevision,@eventCount,@containerCount,CAST(@containers AS jsonb),1)
             ON CONFLICT (shipment_id) DO UPDATE
             SET observed_state=EXCLUDED.observed_state,
                 last_event_id=EXCLUDED.last_event_id,
@@ -343,19 +348,29 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
                 input_digest=EXCLUDED.input_digest,
                 policy_version=EXCLUDED.policy_version,
                 correction_generation=EXCLUDED.correction_generation,
+                input_revision=EXCLUDED.input_revision,
+                event_count=EXCLUDED.event_count,
+                container_count=EXCLUDED.container_count,
+                container_observations_json=EXCLUDED.container_observations_json,
                 materialization_revision=shipment_tracking_projections.materialization_revision+1,
                 refreshed_at_utc=clock_timestamp(),verified_at_utc=clock_timestamp()
             WHERE shipment_tracking_projections.organization_id=EXCLUDED.organization_id
               AND (shipment_tracking_projections.input_digest IS DISTINCT FROM EXCLUDED.input_digest
+                OR shipment_tracking_projections.input_revision IS DISTINCT FROM EXCLUDED.input_revision
                 OR shipment_tracking_projections.policy_version IS DISTINCT FROM EXCLUDED.policy_version
                 OR shipment_tracking_projections.observed_state IS DISTINCT FROM EXCLUDED.observed_state
                 OR shipment_tracking_projections.last_event_id IS DISTINCT FROM EXCLUDED.last_event_id
                 OR shipment_tracking_projections.last_occurred_at_utc IS DISTINCT FROM EXCLUDED.last_occurred_at_utc
-                OR shipment_tracking_projections.correction_generation IS DISTINCT FROM EXCLUDED.correction_generation)
+                OR shipment_tracking_projections.correction_generation IS DISTINCT FROM EXCLUDED.correction_generation
+                OR shipment_tracking_projections.event_count IS DISTINCT FROM EXCLUDED.event_count
+                OR shipment_tracking_projections.container_count IS DISTINCT FROM EXCLUDED.container_count
+                OR shipment_tracking_projections.container_observations_json IS DISTINCT FROM EXCLUDED.container_observations_json)
             """, ("org", org), ("shipment", shipment),
                 ("state", reduced.ObservedTrackingState), ("event", reduced.LastEventId),
                 ("occurred", reduced.LastOccurredAtUtc), ("digest", reduced.InputDigest),
-                ("policy", reduced.PolicyVersion), ("generation", generation)))
+                ("policy", reduced.PolicyVersion), ("generation", generation),
+                ("inputRevision", input.Revision), ("eventCount", input.EventCount),
+                ("containerCount", containers.Count), ("containers", sample)))
         {
             if (await put.ExecuteNonQueryAsync(ct) == 0)
             {
@@ -378,8 +393,8 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
                 ("org", org), ("shipment", shipment)))
             await apps.ExecuteNonQueryAsync(ct);
         var saved = await CachedAsync(con, tx, org, shipment, ct);
-        if (saved.Digest != reduced.InputDigest)
-            throw new InvalidOperationException("Projection digest mismatch");
+        if (saved.Digest != reduced.InputDigest || saved.InputRevision != input.Revision)
+            throw new InvalidOperationException("Projection verification mismatch");
         return saved.Revision;
     }
 
@@ -506,34 +521,51 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
         Guid session, string correlation, Guid key, CancellationToken ct)
         => ExecuteAsync(org, shipment, correction, actor, session, correlation, key, ct);
 
+    // The cursor is exclusive. Advancing past a failed item prevents it from
+    // starving healthy later shipments; wrap to the start after reaching the end.
     public async Task<IReadOnlyList<(Guid Organization, Guid Shipment)>> DirtyAsync(
-        int batchSize, CancellationToken ct)
+        int batchSize, CancellationToken ct,
+        Guid? afterOrganization = null, Guid? afterShipment = null)
     {
-        if (batchSize is < 1 or > 50) throw new ArgumentOutOfRangeException(nameof(batchSize));
+        if (batchSize is < 1 or > 50 ||
+            afterOrganization.HasValue != afterShipment.HasValue)
+            throw new ArgumentOutOfRangeException(nameof(batchSize));
         await db.Database.OpenConnectionAsync(ct);
         try
         {
-            await using var cmd = Command(Connection, null, """
-                SELECT DISTINCT fx.organization_id,fx.shipment_id
-                FROM tracking_processing_effects fx
-                JOIN organizations o ON o.id=fx.organization_id AND o.status='Active'
-                JOIN shipments s ON s.organization_id=fx.organization_id
-                  AND s.id=fx.shipment_id AND s.record_status='Active'
-                LEFT JOIN shipment_projection_applications a
-                  ON a.receipt_id=fx.receipt_id AND a.policy_version=@policy
+            var sql = """
+                SELECT v.organization_id,v.shipment_id
+                FROM shipment_tracking_input_versions v
+                JOIN organizations o ON o.id=v.organization_id AND o.status='Active'
+                JOIN shipments s ON s.organization_id=v.organization_id
+                    AND s.id=v.shipment_id AND s.record_status='Active'
                 LEFT JOIN shipment_tracking_projections p
-                  ON p.shipment_id=fx.shipment_id AND p.organization_id=fx.organization_id
-                WHERE a.receipt_id IS NULL OR p.shipment_id IS NULL
-                  OR p.policy_version<>@policy
-                  OR p.verified_at_utc < clock_timestamp() - interval '5 minutes'
-                  OR p.correction_generation < (
-                      SELECT COALESCE(MAX(c.generation),0)
-                      FROM shipment_tracking_corrections c
-                      WHERE c.organization_id=fx.organization_id
-                        AND c.shipment_id=fx.shipment_id)
-                ORDER BY fx.organization_id,fx.shipment_id
-                LIMIT @limit
-                """, ("policy", TrackingTimelinePolicy.Version), ("limit", batchSize));
+                    ON p.organization_id=v.organization_id AND p.shipment_id=v.shipment_id
+                LEFT JOIN shipment_tracking_correction_heads head
+                    ON head.organization_id=v.organization_id AND head.shipment_id=v.shipment_id
+                WHERE (p.shipment_id IS NULL OR p.input_revision<>v.input_revision
+                       OR p.policy_version<>@policy
+                       OR p.correction_generation<>COALESCE(head.generation,0)
+                       OR p.verified_at_utc < clock_timestamp() - interval '5 minutes')
+                """;
+            var args = new List<(string Name, object? Value)>
+            {
+                ("policy", TrackingTimelinePolicy.Version), ("limit", batchSize)
+            };
+            if (afterOrganization.HasValue)
+            {
+                sql += """
+                    
+                    AND (v.organization_id,v.shipment_id) > (@afterOrg,@afterShipment)
+                    """;
+                args.Add(("afterOrg", afterOrganization.Value));
+                args.Add(("afterShipment", afterShipment!.Value));
+            }
+            sql += """
+                
+                ORDER BY v.organization_id,v.shipment_id LIMIT @limit
+                """;
+            await using var cmd = Command(Connection, null, sql, args.ToArray());
             var found = new List<(Guid Organization, Guid Shipment)>();
             await using var reader = await cmd.ExecuteReaderAsync(ct);
             while (await reader.ReadAsync(ct))

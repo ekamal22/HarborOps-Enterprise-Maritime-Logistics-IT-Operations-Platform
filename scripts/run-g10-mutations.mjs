@@ -1,75 +1,288 @@
+// M10/G16 combined controlled fault injection. Runs on an exported copy of the exact source revision, never
+// on the checkout. Every edit anchor must occur exactly once, every mutant must compile, and a mutant counts
+// as killed only when at least one of its named tests fails while the clean control passes.
+// Scope: M10 privilege, trigger, lock, route, cursor and projector boundaries plus the accepted M9/M16
+// integration mutants whose source surfaces M10 changes (role provisioner, worker effect path, retention).
+// Usage: node scripts/run-g10-mutations.mjs <E: verification root>
+//   env HARBOROPS_SOURCE_SHA, HARBOROPS_G10_PG_IMAGE (private PostgreSQL image tag)
+//   The .NET 10 SDK runs in a container because the host has no .NET 10 SDK.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const root = process.argv[2], sha = process.env.HARBOROPS_SOURCE_SHA;
-assert.ok(root && /^(?:[Ee]:[\\/]|\/e\/)/.test(root), "Fresh E: root required");
+const dbImage = process.env.HARBOROPS_G10_PG_IMAGE || process.env.HARBOROPS_CG16_PG_IMAGE;
+assert.ok(root && /^(?:[Ee]:[\\/]|\/e\/)/.test(root), "E: verification root required");
 assert.match(sha || "", /^[0-9a-f]{40}$/);
-const workspace = path.join(root, "cache", "g10-mutations");
+assert.ok(dbImage, "HARBOROPS_G10_PG_IMAGE is required");
 const evidence = path.join(root, "evidence", "mutations");
-assert.ok(!fs.existsSync(workspace), "Mutation workspace must be fresh");
-fs.mkdirSync(workspace, { recursive: true });
 fs.mkdirSync(evidence, { recursive: true });
+const cache = path.join(root, "cache");
+fs.mkdirSync(cache, { recursive: true });
+const sourceTar = path.join(cache, "g10-mutation-" + sha.slice(0, 12) + ".tar");
+const exported = path.join(cache, "g10-mutation-export-" + sha.slice(0, 12));
+const run = (cmd, args, options = {}) => {
+  const result = spawnSync(cmd, args, { encoding: "utf8", timeout: 1500000, maxBuffer: 64 * 1024 * 1024, ...options });
+  if (result.error) throw result.error;
+  return result;
+};
+const expectOk = (cmd, args, options) => {
+  const result = run(cmd, args, options);
+  assert.equal(result.status, 0, cmd + " failed: " + (result.stderr || result.stdout || "").slice(-600));
+  return result.stdout || "";
+};
 
-function run(cmd, args, cwd = process.cwd(), timeout = 240000) {
-    const result = spawnSync(cmd, args, {
-        cwd, encoding: "utf8", timeout, maxBuffer: 16 * 1024 * 1024,
-        env: { ...process.env, DOTNET_CLI_TELEMETRY_OPTOUT: "1" }
-    });
-    if (result.error) throw result.error;
-    return result;
-}
-const head = run("git", ["rev-parse", "HEAD"]);
-assert.equal(head.status, 0);
-assert.equal(head.stdout.trim(), sha, "Source revision changed");
-const archive = path.join(workspace, "control.tar");
-assert.equal(run("git", ["archive", "--format=tar", "--output", archive, sha]).status, 0);
+const MIG10 = "src/HarborOps.Infrastructure/Persistence/Migrations/20261105180000_ShipmentTrackingProjections.cs";
+const MIG16 = "src/HarborOps.Infrastructure/Persistence/Migrations/20261104180000_AuditEntries.cs";
+const MIG9 = "src/HarborOps.Infrastructure/Persistence/Migrations/20261104190000_TrackingWorker.cs";
+const ROLES = "src/HarborOps.Api/Audit/AuditRoleProvisioner.cs";
+const WORKER = "src/HarborOps.Infrastructure/Integrations/TrackingWorkStore.cs";
+const STORE = "src/HarborOps.Infrastructure/Shipments/ShipmentTimelineStore.cs";
+const ROUTES = "src/HarborOps.Api/Shipments/ShipmentTimelineEndpoints.cs";
+const POLICY = "src/HarborOps.Domain/Tracking/TrackingTimelinePolicy.cs";
+const PROJECTOR_SQL = "scripts/configure-m10-projector-db.sql";
 
-const file = "src/HarborOps.Domain/Tracking/TrackingTimelinePolicy.cs";
-const tests = "tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj";
-const families = [
-    {
-        name: "superseded-accepted",
-        from: 'if (e.Superseded || e.EventCode is not ("GTIN" or "GTOT")) return;',
-        to: 'if (e.EventCode is not ("GTIN" or "GTOT")) return;'
-    },
-    {
-        name: "mixed-aggregated-as-in",
-        from: 'else result = "Mixed";',
-        to: 'else result = "EquipmentIn";'
-    },
-    {
-        name: "same-container-conflict-ignored",
-        from: 'else if (active.Any(x => x.ObservedState == "Conflict")) result = "Conflict";',
-        to: 'else if (false && active.Any(x => x.ObservedState == "Conflict")) result = "Conflict";'
-    }
+const U = {
+  reducer: "TrackingTimelinePolicyTests",
+  tracking: "RedriveAndRolesFailClosed",
+  auditOnly: "OnlyAuditorHasExplicitAuditReadPermission",
+  auditNoAdmin: "AuditPermissionDoesNotBroadenAdministrativeGrants"
+};
+const I = {
+  // Combined M9/M16 regressions
+  lifecycle: "ManagerRedriveAndWorkerLifecycleRunUnderTheRealRestrictedRoles",
+  grants: "RuntimeRolesCarryExactlyTheCombinedGrantContract",
+  roleMatrix: "ProvisionedRuntimeRolesCannotModifyAuditEvidenceOrRunDdl",
+  swallow: "AuditInsertFailureAbortsTheOriginalBusinessMutation",
+  sqlForge: "DirectSqlCannotForgeDuplicateOrTerminalWorkEvidence",
+  commit: "AmbiguousFinalizeCommitIsReconstructedFromDurableState",
+  effect: "ValidTimeScopedContainerAssignmentProducesExactlyOneImmutableEffect",
+  lockProcess: "TwoIndependentWorkersContendOnOneReceiptAndOnlyOneClaimsIt",
+  lockIntake: "IntakeAndWorkerClaimSerializeOnTheOrganizationLockWithoutDeadlock",
+  m9down: "RetainedAttemptHistoryOnRedrivenPendingWorkBlocksTheM9Downgrade",
+  m16down: "AcceptedM8UpgradeAddsImmutableAuditWithoutChangingPriorRecords",
+  // M10 verification
+  g10main: "ResolvedEventReadRebuildAndVoidCorrectionPreserveM9History",
+  g10race: "ConcurrentDirectCorrectionWritersCannotCommitAnInvalidChain",
+  workerId: "RealWorkerIdentityFeedsTheM10IndexAndAuditCaptureThroughDefinerTriggers",
+  apiId: "RealApiIdentityHasOnlyTheScopedM10WritesAndTheDefinerTriggerRuns",
+  projectorId: "RealProjectorIdentityCannotMutateM8M9M16EvidenceOrOtherScopes",
+  projectorStore: "RealProjectorIdentityDiscoversAndRebuildsADirtyScopeThroughTheStore",
+  projectorService: "RealProjectorServiceSkipsAPoisonedShipmentThenRecoversUnderTheRestrictedRole",
+  routes: "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards",
+  locks: "WorkerFinalizationBlocksBehindProjectorAndCorrectionLocksWithoutDeadlock",
+  live: "M10RoutesHonorLiveRoleDowngradeRateLimitAndSessionRevocation",
+  scale: "LargeHistoryUsesTheKeysetIndexPagesCompletelyAndRebuildsWithinBounds",
+  upgrade: "PopulatedHistoryIsBackfilledByM10WithoutAlteringAcceptedEvidenceAndDowngradeIsProtected"
+};
+const V = (name, edits, unit, integration) => ({ name, edits, unit, integration });
+const variants = [
+  V("control", [], Object.values(U), Object.values(I)),
+
+  // ----- M10 reducer (unit) -----
+  V("reducer-superseded-accepted", [[POLICY,
+    'if (e.Superseded || e.EventCode is not ("GTIN" or "GTOT")) return;',
+    'if (e.EventCode is not ("GTIN" or "GTOT")) return;']], [U.reducer], []),
+  V("reducer-mixed-aggregated-as-in", [[POLICY,
+    'else result = "Mixed";', 'else result = "EquipmentIn";']], [U.reducer], []),
+  V("reducer-same-container-conflict-ignored", [[POLICY,
+    'else if (active.Any(x => x.ObservedState == "Conflict")) result = "Conflict";',
+    'else if (false && active.Any(x => x.ObservedState == "Conflict")) result = "Conflict";']], [U.reducer], []),
+
+  // ----- M10 privileges -----
+  V("m10-api-timeline-insert-granted", [[ROLES,
+    "GRANT UPDATE ON shipment_tracking_projections TO harborops_api;",
+    "GRANT UPDATE ON shipment_tracking_projections TO harborops_api;\n                        GRANT INSERT ON shipment_tracking_timeline_entries TO harborops_api;"]],
+    [], [I.grants, I.apiId]),
+  V("m10-worker-input-version-update-granted", [[ROLES,
+    "GRANT SELECT ON tracking_work_attempt_events,\n                            tracking_processing_effects TO harborops_worker;",
+    "GRANT SELECT ON tracking_work_attempt_events,\n                            tracking_processing_effects TO harborops_worker;\n                        IF to_regclass('public.shipment_tracking_input_versions') IS NOT NULL THEN\n                            GRANT UPDATE ON shipment_tracking_input_versions TO harborops_worker;\n                        END IF;"]],
+    [], [I.grants, I.workerId]),
+  V("m10-projector-heads-grant-removed", [[PROJECTOR_SQL,
+    "shipment_tracking_input_versions,shipment_tracking_correction_heads,",
+    "shipment_tracking_input_versions,"]],
+    [], [I.projectorStore, I.projectorService]),
+  V("m10-projector-session-guard-removed", [[MIG10,
+    "IF session_user <> 'harborops_projector' THEN RETURN false; END IF;", ""]],
+    [], [I.projectorId]),
+  V("m10-projector-lock-null-for-unknown-scope", [[MIG10,
+    "RETURN COALESCE(organization_state='Active' AND shipment_state='Active',false);",
+    "RETURN organization_state='Active' AND shipment_state='Active';"]],
+    [], [I.projectorId]),
+
+  // ----- M10 migration triggers and retention -----
+  V("m10-input-trigger-not-security-definer", [[MIG10,
+    "CREATE FUNCTION m10_track_input_change() RETURNS trigger\n            LANGUAGE plpgsql SECURITY DEFINER",
+    "CREATE FUNCTION m10_track_input_change() RETURNS trigger\n            LANGUAGE plpgsql"]],
+    [], [I.workerId, I.lifecycle]),
+  V("m10-correction-trigger-not-security-definer", [[MIG10,
+    "CREATE FUNCTION m10_validate_correction() RETURNS trigger\n            LANGUAGE plpgsql SECURITY DEFINER",
+    "CREATE FUNCTION m10_validate_correction() RETURNS trigger\n            LANGUAGE plpgsql"]],
+    [], [I.apiId, I.routes]),
+  V("m10-timeline-immutability-removed", [[MIG10,
+    "CREATE TRIGGER tr_m10_immutable_timeline\n                BEFORE UPDATE OR DELETE ON shipment_tracking_timeline_entries\n                FOR EACH ROW EXECUTE FUNCTION m8_guard_append_only();",
+    "-- immutability trigger removed by mutation"]],
+    [], [I.upgrade]),
+  V("m10-timeline-provenance-check-removed", [[MIG10,
+    "IF matched<>1 THEN\n                    RAISE EXCEPTION 'M10 timeline entry must match immutable M9 evidence'",
+    "IF false THEN\n                    RAISE EXCEPTION 'M10 timeline entry must match immutable M9 evidence'"]],
+    [], [I.g10main]),
+  V("m10-downgrade-retention-weakened", [[MIG10,
+    "RAISE EXCEPTION 'M10 retained history prevents downgrade'\n                        USING ERRCODE='23514';",
+    "RAISE NOTICE 'weakened';"]],
+    [], [I.upgrade]),
+  V("m10-keyset-index-dropped", [[MIG10,
+    "CREATE INDEX ix_m10_timeline_keyset\n                ON shipment_tracking_timeline_entries\n                (organization_id,shipment_id,occurred_at_utc,received_at_utc,source_id,\n                 source_event_id COLLATE \"C\",receipt_id,event_id);",
+    "-- keyset index removed by mutation"]],
+    [], [I.scale]),
+
+  // ----- M10 HTTP boundaries -----
+  V("m10-cursor-digest-check-removed", [[ROUTES,
+    "cursor is not null && cursor.Digest != view.State.InputDigest)",
+    "false)"]],
+    [], [I.scale, I.g10main]),
+  V("m10-idempotency-collision-accepted", [[STORE,
+    "return sameRequest\n                            ? (TrackingMutationResult.Replayed, savedRevision)\n                            : (TrackingMutationResult.Conflict, 0);",
+    "return (TrackingMutationResult.Replayed, savedRevision);"]],
+    [], [I.routes]),
+  V("m10-rebuild-rate-limit-removed", [[ROUTES,
+    "_ => Fail(ctx, 409, \"rebuild_conflict\")\n            };\n        }).RequireRateLimiting(\"m10-mutations\");",
+    "_ => Fail(ctx, 409, \"rebuild_conflict\")\n            };\n        });"]],
+    [], [I.live]),
+  // The Manager restriction is enforced at the route and again against live membership in the store,
+  // so a non-equivalent mutant must remove both layers.
+  V("m10-manager-only-removed-both-layers", [
+    [ROUTES, "OrganizationPermission.ManageShipmentData,\n                ct, managerOnly: true);\n            if (denied is not null) return denied;\n            var input = await ReadCorrection(ctx);",
+      "OrganizationPermission.ManageShipmentData,\n                ct, managerOnly: false);\n            if (denied is not null) return denied;\n            var input = await ReadCorrection(ctx);"],
+    [STORE, "if (session != Guid.Empty &&\n                    !await CurrentManagerAsync(Connection, tx, org, actor, session, ct))",
+      "if (false &&\n                    !await CurrentManagerAsync(Connection, tx, org, actor, session, ct))"]],
+    [], [I.live]),
+
+  // ----- Accepted M9/M16 integration surfaces changed by M10 -----
+  V("api-can-insert-audit", [[ROLES,
+    "GRANT SELECT ON TABLE audit_entries TO harborops_api;",
+    "GRANT SELECT, INSERT ON TABLE audit_entries TO harborops_api;"]],
+    [], [I.roleMatrix, I.grants]),
+  V("worker-attempt-insert-granted", [[ROLES,
+    "GRANT INSERT ON tracking_processing_effects TO harborops_worker;",
+    "GRANT INSERT ON tracking_processing_effects, tracking_work_attempt_events TO harborops_worker;"]],
+    [], [I.lifecycle, I.grants, I.roleMatrix]),
+  V("worker-credential-read-restored", [[ROLES,
+    "                    tracking_inbox_work_items,\n                    organizations, containers, shipments,",
+    "                    tracking_inbox_work_items, integration_credentials,\n                    organizations, containers, shipments,"]],
+    [], [I.grants]),
+  V("api-redrive-scope-guards-disabled", [
+    [ROLES, "IF session_user = 'harborops_api' AND NOT COALESCE(", "IF session_user = 'harborops_api_off' AND NOT COALESCE("],
+    [ROLES, "IF session_user = 'harborops_api' THEN\n                                valid", "IF session_user = 'harborops_api_off' THEN\n                                valid"]],
+    [], [I.lifecycle]),
+  V("audit-failure-swallowed", [
+    [MIG16, "EXECUTE format(", "BEGIN\n                EXECUTE format("],
+    [MIG16, "'operation', operation_code, 'changedFields', changed_fields);",
+      "'operation', operation_code, 'changedFields', changed_fields);\n                EXCEPTION WHEN OTHERS THEN NULL; END;"]],
+    [], [I.swallow]),
+  V("m9-effect-uniqueness-removed", [[MIG9,
+    "CREATE TABLE tracking_processing_effects (\n                receipt_id uuid PRIMARY KEY,",
+    "CREATE TABLE tracking_processing_effects (\n                receipt_id uuid NOT NULL,"]],
+    [], [I.sqlForge]),
+  V("m9-claim-organization-lock-removed", [[WORKER,
+    "        if (!await LockActiveOrganizationAsync(connection, tx, organizationId, ct))\n            return null;\n\n        Guid receipt = default, source = default;",
+    "        Guid receipt = default, source = default;"]],
+    [], [I.lockProcess, I.lockIntake]),
+  V("m9-effect-commit-acknowledged-without-commit", [[WORKER,
+    "        await transaction.CommitAsync(ct);\n        return resolved.HasValue ? TrackingWorkDisposition.Processed :",
+    "        // Disposable mutation: acknowledge without COMMIT.\n        return resolved.HasValue ? TrackingWorkDisposition.Processed :"]],
+    [], [I.effect, I.commit]),
+  V("m9-downgrade-retention-weakened", [[MIG9,
+    "RAISE EXCEPTION 'M9 work evidence prevents downgrade'\n                        USING ERRCODE='23514';",
+    "RAISE NOTICE 'weakened';"]],
+    [], [I.m9down]),
+  V("m16-downgrade-retention-weakened", [[MIG16,
+    "RAISE EXCEPTION 'Cannot downgrade M16 with retained audit evidence'\n                        USING ERRCODE='23514';",
+    "RAISE NOTICE 'weakened';"]],
+    [], [I.m16down])
 ];
-const register = [];
-for (const family of families) {
-    const dir = path.join(workspace, family.name);
-    fs.mkdirSync(dir);
-    const extraction = run("tar", ["-xf", archive, "-C", dir], process.cwd());
-    assert.equal(extraction.status, 0, "Archive extraction failed");
-    const target = path.join(dir, file);
-    const current = fs.readFileSync(target, "utf8");
-    assert.ok(current.includes(family.from), "Mutation sentinel missing: " + family.name);
-    assert.equal(current.split(family.from).length, 2, "Mutation must replace one occurrence");
-    fs.writeFileSync(target, current.replace(family.from, family.to), "utf8");
-    const execution = run("dotnet", [
-        "test", tests, "-c", "Release",
-        "--filter", "FullyQualifiedName~TrackingTimelinePolicyTests",
-        "--nologo"
-    ], dir);
-    const output = (execution.stdout || "") + "\n" + (execution.stderr || "");
-    fs.writeFileSync(path.join(evidence, family.name + ".log"), output);
-    const testFailure = execution.status !== 0 &&
-        /Failed:|Failed\s+HarborOps|\[FAIL\]|\[xUnit.net\].*FAIL/i.test(output) &&
-        !/error CS\d+|NU1301|NU1900|Unable to load the service index/i.test(output);
-    register.push({ family: family.name, exitCode: execution.status,
-        result: testFailure ? "KILLED_BY_TEST" : "INVALID_OR_SURVIVED" });
+
+// Development aid: verify every anchor occurs exactly once in the source revision, then stop.
+if (process.env.HARBOROPS_G10_ANCHOR_CHECK === "1") {
+  let bad = 0;
+  for (const v of variants) for (const [file, anchor] of v.edits) {
+    const text = expectOk("git", ["show", sha + ":" + file]);
+    const count = text.split(anchor).length - 1;
+    if (count !== 1) { bad++; console.error(`ANCHOR ${count}x: ${v.name}: ${anchor.slice(0, 70)}`); }
+  }
+  console.log(bad ? "anchor check FAILED" : "all anchors unique in " + sha.slice(0, 12));
+  process.exit(bad ? 1 : 0);
 }
-fs.writeFileSync(path.join(evidence, "results.json"),
-    JSON.stringify({ sourceSha: sha, families: register }, null, 2) + "\n");
-assert.ok(register.every(item => item.result === "KILLED_BY_TEST"),
-    "All G10 mutation families must be killed by test assertions");
+assert.ok(!fs.existsSync(exported), "Mutation export already exists; use a new verification root");
+expectOk("git", ["archive", "--format=tar", "--output", sourceTar, sha]);
+const subset = process.env.HARBOROPS_G10_MUTATION_SUBSET?.split(",");
+assert.ok(!subset || process.env.HARBOROPS_G10_MUTATION_SUBSET_DEV === "1", "Subset runs are development only");
+
+const summary = { sourceSha: sha, checkedAtUtc: new Date().toISOString(), mutants: [] };
+const report = path.join(root, "evidence", "g10-mutations.json");
+const save = () => fs.writeFileSync(report, JSON.stringify(summary, null, 2));
+const name = "ho-g10-mutant-pg";
+assert.equal(expectOk("docker", ["ps", "-aq", "--filter", "name=^/" + name + "$"]).trim(), "", "Existing mutant database container found");
+const filterFor = tests => tests.map(t => "FullyQualifiedName~" + t).join("|");
+let failures = 0;
+try {
+  for (const variant of variants.filter(v => !subset || v.name === "control" || subset.includes(v.name))) {
+    const work = path.join(exported, variant.name);
+    fs.mkdirSync(work, { recursive: true });
+    // GNU tar reads "E:\..." as host:path, so extract with forward-slash paths relative to the cache.
+    const rel = p => path.relative(cache, p).split(path.sep).join("/");
+    const extract = run("tar", ["-xf", rel(sourceTar), "-C", rel(work)], { cwd: cache });
+    assert.equal(extract.status, 0, "tar failed: " + (extract.stderr || extract.stdout || "").slice(-400));
+    for (const [file, anchor, replacement] of variant.edits) {
+      const target = path.join(work, file);
+      const text = fs.readFileSync(target, "utf8");
+      assert.equal(text.split(anchor).length - 1, 1, `${variant.name}: anchor must occur exactly once in ${file}: ${anchor}`);
+      assert.notEqual(anchor, replacement, `${variant.name}: no-op edit`);
+      fs.writeFileSync(target, text.replace(anchor, () => replacement));
+    }
+    run("docker", ["rm", "-f", name]);
+    expectOk("docker", ["run", "-d", "--name", name, "--label", "harborops.g10mutation=disposable", "--ulimit", "core=0",
+      "--tmpfs", "/var/lib/postgresql/data:uid=70,gid=70,mode=0700", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+      "-e", "POSTGRES_DB=harborops_integration", "-e", "POSTGRES_USER=harborops", "-e", "POSTGRES_HOST_AUTH_METHOD=trust", dbImage]);
+    let ready = false;
+    for (let k = 0; k < 60 && !ready; k++) {
+      ready = run("docker", ["exec", name, "pg_isready", "-U", "harborops", "-d", "harborops_integration"]).status === 0;
+      if (!ready) await new Promise(r => setTimeout(r, 500));
+    }
+    assert.ok(ready, "Mutation database not ready");
+    const steps = ["dotnet restore HarborOps.sln -v q", "dotnet build HarborOps.sln -c Release --no-restore -v q -warnaserror"];
+    if (variant.unit.length)
+      steps.push("dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-build --filter '" + filterFor(variant.unit) + "' || true");
+    if (variant.integration.length)
+      steps.push("dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter '" + filterFor(variant.integration) + "' || true");
+    const shell = steps.slice(0, 2).join(" && ") + " && { " + steps.slice(2).join("; ") + "; }";
+    const cacheDir = path.join(cache, "nuget", "packages");
+    const result = run("docker", ["run", "--rm", "--ulimit", "core=0", "--network", "container:" + name,
+      "-v", work + ":/src", "-v", path.dirname(cacheDir) + ":/nuget-parent", "-w", "/src",
+      "-e", "DOTNET_NOLOGO=1", "-e", "DOTNET_CLI_TELEMETRY_OPTOUT=1", "-e", "NUGET_PACKAGES=/nuget-parent/" + path.basename(cacheDir),
+      "-e", "HOME=/tmp/home", "-e", "DOTNET_CLI_HOME=/tmp/home",
+      "-e", "HARBOROPS_TEST_DB=Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops",
+      "mcr.microsoft.com/dotnet/sdk:10.0", "bash", "-c", shell], { env: { ...process.env, MSYS_NO_PATHCONV: "1" } });
+    const output = (result.stdout || "") + (result.stderr || "");
+    fs.writeFileSync(path.join(evidence, variant.name + ".log"), output);
+    run("docker", ["rm", "-f", name]);
+    const failed = [...output.matchAll(/^\s+Failed (\S+)/gm)].map(m => m[1].replace("HarborOps.IntegrationTests.", "").replace("HarborOps.UnitTests.", ""));
+    const expected = [...variant.unit, ...variant.integration];
+    const compiled = !/error (CS|MSB|xUnit)\d+/.test(output) && /Passed!|Failed!/.test(output);
+    const entry = { variant: variant.name, compiled, exitCode: result.status, failedTests: [...new Set(failed)], expectedKillers: variant.name === "control" ? [] : expected };
+    if (variant.name === "control") {
+      const executed = [...output.matchAll(/(Passed|Failed)!\s+- Failed:\s+(\d+), Passed:\s+(\d+)/g)].map(m => ({ failed: +m[2], passed: +m[3] }));
+      entry.executed = executed;
+      entry.status = compiled && executed.length === 2 && executed.every(e => e.failed === 0 && e.passed > 0) ? "control-clean" : "CONTROL-FAILED";
+    } else if (!compiled) entry.status = "INVALID-MUTANT (did not compile)";
+    else entry.status = expected.some(k => failed.some(f => f.includes(k))) ? "killed" : (failed.length ? "KILLED-BY-UNEXPECTED-TEST" : "SURVIVED");
+    if (!["control-clean", "killed"].includes(entry.status)) failures++;
+    summary.mutants.push(entry); save();
+    console.log(`${entry.status}: ${variant.name} failed=[${entry.failedTests.join(", ")}]`);
+    if (variant.name === "control" && entry.status !== "control-clean") break;
+  }
+} finally { run("docker", ["rm", "-f", name]); }
+summary.survivorsOrInvalid = failures; save();
+console.log(`G10 mutation summary: ${summary.mutants.length} variants, ${failures} not killed as expected`);
+process.exit(failures ? 1 : 0);

@@ -2,7 +2,7 @@
 
 **As of:** 2026-11-05  
 **Branch:** `feat/m10-timeline-projections` (originally branched from accepted G9 SHA `b4f7b93`; now reconciled with the accepted G16 and PR #27 documentation baseline `25e89026737063294a32bbd081ced400d19c6b3d` by merge `82c5d6eec34469ac1813d99270b4108788c9435d`). [Integration reconciliation](M10_M16_SOURCE_RECONCILIATION.md) records the merge and remaining verification.  
-**State:** Source implementation candidate committed and pushed. **G10 acceptance pending. Not merged. No runtime test execution claimed.**  
+**State (updated 2026-11-06):** Merged through PR #23 (`5edf003`). Technical verification was executed on frozen source `3e81b88`; see [M10 executed verification](M10_EXECUTED_VERIFICATION.md). **G10 acceptance pending.** The sections below describe the state before verification and are kept as history.  
 **Planning:** [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) is an independent open documentation PR; its M10 architecture, work packages and G10 scenario specification remain proposed, not accepted decisions.
 
 ## Implemented candidate paths

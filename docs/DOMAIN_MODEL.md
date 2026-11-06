@@ -1,6 +1,6 @@
 # Domain Model and Invariants
 
-**Current M9/G9 status (2026-11-05):** G9 was accepted with the mandatory [M9-01 transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). M9 is integrated into `main` through PR #16 (`43fe326`) and PR #18 (`4684352`). The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and residual limitations. No production or public deployment is authorized; sustained transport-event processing is held until M10 or another explicitly approved backlog mechanism is verified. Earlier planning or acceptance-pending language in historical subsections reflects the earlier project phase.
+**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 has an unaccepted draft implementation in [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), without executed G10 evidence. The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
 
 ## Entities
 
@@ -24,7 +24,7 @@
 | ShipmentProjection | ShipmentId, computed status, ETA, version | Derived, rebuildable read model |
 | ShipmentException | Id, shipment, rule, severity, state | Investigable exception |
 | Notification | Id, recipient scope, type, status | Derived from authorization-aware rules |
-| AuditRecord | Id, actor, action, resource, timestamp, metadata | Append-only sensitive action record |
+| AuditEntry (M16 implemented) | Id, OrganizationId, EventType, Outcome, ActorKind, ActorUserId/ActorSourceId, ResourceType/Id, CorrelationId, OccurredAtUtc, bounded Metadata | Append-only transaction-coupled record; selected-organization Auditor reads only, no global export; M9 worker history remains separate |
 | ServiceIncident | Id, priority, state, title, cause, timestamps | Infrastructure and application investigations |
 | IncidentActivity | Id, incident, actor, timestamp, note/type | Chronological incident history |
 
@@ -115,8 +115,8 @@ Append-only `TrackingWorkAttemptEvent` records processing transitions with actor
 
 Migration `20261104190000_TrackingWorker` and the matching EF model are integrated into `main` after G9 acceptance on 2026-11-05. M9 does not implement shipment status, ETA, timeline or rebuildable projections, which belong to M10. See the [M9 contract](M9_LOCAL_CONTRACT_DECISION.md), [evidence](M9_EXECUTED_VERIFICATION.md) and [G9 closure](M9_G9_GATE_CLOSURE.md).
 
-**Operating condition:** Do not enable sustained transport-event processing until M10 or a separately approved and verified mechanism manages the parked backlog under the 10,000 unresolved-item cap. M16 audit logging is a distinct, unmerged milestone with integration and G16 acceptance pending.
+**Operating condition:** M9 sustained transport-event processing remains disabled until M10 or a separately approved and verified mechanism handles the parked backlog under the 10,000 unresolved-work-item limit. M16 audit logging and access hardening was independently verified, accepted and merged on 2026-11-06; M9 attempt/effect history remains the worker audit of record. Shipment projection remains planned M10 work without accepted G10 evidence.
 
-## M10 projection implementation candidate
+## M10 indexed timeline candidate after accepted G16
 
-The unmerged M10 branch introduces an immutable, provenance-checked `shipment_tracking_timeline_entries` index, transactionally versioned `shipment_tracking_input_versions` and SQL-only additive `shipment_tracking_projections`, `shipment_tracking_corrections`, `shipment_tracking_correction_heads`, `shipment_tracking_operation_replays` and versioned `shipment_projection_applications` tables. No EF entity mapping is added for these read models; the existing M9 snapshot remains unchanged. Derived `Unknown`, `EquipmentIn`, `EquipmentOut`, `Mixed` and `Conflict` observations are computed per container and aggregated from same-organization receipt-unique M9 resolution effects and ordered M8 accepted-event provenance. The input version increments atomically on a resolved effect or correction; a stale cached projection is reported as pending/unknown until rebuilt. Corrections are append-only, scoped and explicitly linked to original resolved receipts; replay or rebuilding does not delete history or alter manual M5 workflow state. [Implementation record](M10_IMPLEMENTATION_STATUS.md) and [second-audit remediation](M10_SECOND_AUDIT_REMEDIATION.md). **This is an unverified source candidate, not an accepted G10 gate.**
+Unaccepted M10 adds SQL-only `shipment_tracking_timeline_entries`, `shipment_tracking_input_versions`, `shipment_tracking_projections`, `shipment_tracking_corrections`, `shipment_tracking_correction_heads`, `shipment_tracking_operation_replays` and `shipment_projection_applications`. The new timeline rows derive from immutable M8 events and M9 receipt-unique resolution effects, never from guessed transport references; an indexed page is separate from the retained source-of-truth records. M10 input versions advance when an M9 effect or an M10 correction commits, and stale projections surface as unknown/pending until rebuilt. M5 manual shipment workflow and accepted M16 business-audit persistence remain separate. The accepted G16 EF snapshot stays unchanged because these M10 tables are additive, SQL-only derived models. See [M10/G16 source reconciliation](M10_M16_SOURCE_RECONCILIATION.md). **G10 technical verification and acceptance pending.**

@@ -1,3 +1,4 @@
+using HarborOps.Infrastructure.Audit;
 using HarborOps.Domain.Organizations;
 using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Persistence;
@@ -180,6 +181,7 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
         catch (ArgumentException) { return new(null, OrganizationAccessError.Invalid); }
         if (expectedVersion < 1) return new(null, OrganizationAccessError.Invalid);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await AuditActorContext.SetHumanAsync(db, actorId, sessionId, correlationId, ct);
         var access = await LockAdminAsync(actorId, sessionId, orgId, ct);
         if (access != OrganizationAccessError.None) return new(null, access);
         var org = await db.Organizations.AsNoTracking().SingleAsync(x => x.Id == orgId, ct);
@@ -207,6 +209,7 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
             return new(null, OrganizationAccessError.Invalid);
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await AuditActorContext.SetHumanAsync(db, actorId, sessionId, correlationId, ct);
         var access = await LockAdminAsync(actorId, sessionId, orgId, ct);
         if (access != OrganizationAccessError.None) return new(null, access);
 
@@ -268,6 +271,7 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
         if (expectedVersion < 1) return OrganizationAccessError.Invalid;
         if (actorId == targetId) return OrganizationAccessError.Forbidden;
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await AuditActorContext.SetHumanAsync(db, actorId, sessionId, correlationId, ct);
         var access = await LockAdminAsync(actorId, sessionId, orgId, ct);
         if (access != OrganizationAccessError.None) return access;
         var member = await db.OrganizationMemberships.AsNoTracking()
@@ -318,6 +322,7 @@ public sealed class OrganizationStore(HarborOpsDbContext db, TimeProvider clock)
         var name = OrganizationPolicy.ValidateDisplayName(displayName);
         var email = IdentityStore.NormalizeEmail(adminEmail);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await AuditActorContext.SetOperatorAsync(db, "local-cli", ct);
         var admin = await db.AuthUsers.AsNoTracking()
             .SingleOrDefaultAsync(x => x.NormalizedEmail == email && x.Status == "Active", ct);
         if (admin is null) throw new ArgumentException("An existing active account is required");

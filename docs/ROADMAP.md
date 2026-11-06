@@ -2,8 +2,8 @@
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-05  
-**State:** M0/G0 through M9/G9 accepted and merged into protected `main` by 2026-11-05. The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records technical verification, browser evidence, the six choices, independent inspection and PR #16/#18 integration. G10-G24 remain open.
+**Updated status:** 2026-11-06  
+**State:** M0/G0 through M9/G9 and M16/G16 accepted and merged into protected `main`. G16 integrated through PR #25 at `47ba55e2` after the source-locked F001 correction extension. G10-G15 and G17-G24 remain open. Accepted M9 sustained transport-event processing restrictions remain.
 
 ## Authority and rationale
 
@@ -188,7 +188,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Ordered history, current status and explicit correction handling.
 **Entry:** G9 accepted before respective dependent work packages.
 **Required work packages:** M10-01 Specify deterministic event ordering; M10-02 Implement accepted timeline API; M10-03 Implement versioned projections; M10-04 Verify projection rebuild.
-**Exit G10:** All applicable tasks, negative tests, runtime evidence and documentation for M10 recorded; acceptance pending until explicitly confirmed.
+**Exit G10:** Candidate source exists in draft [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), with source audits and unexecuted remediation paths; G10 policy decisions, source-locked execution, independent raw-evidence review and explicit acceptance remain pending. Timeline ordering, late events, corrections, projection consistency, accepted-M9 upgrade and backlog policy must be verified. Open [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) contains proposed architecture and gate details, not an accepted contract.
 **Not covered by this milestone:** Delay classification, notifications and dashboard metrics.
 
 #### M11: Delay rules and shipment exceptions
@@ -241,7 +241,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Append-only evidence and strengthened authorization.
 **Entry:** G3 accepted before respective dependent work packages.
 **Required work packages:** M16-01 Define audit schema and privacy; M16-02 Implement append-only audit entries; M16-03 Harden security boundaries; M16-04 Verify security and audit matrix.
-**Exit G16:** Standalone technical verification is reported against `e571157` with 30/30 scenario dispositions and disclosed supplements and limitations. Independent review of the 162-file main campaign is complete ([review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md)), but **`supplement-s07-s08-s28.log` is UNREVIEWED** and the full M9/M16 integration verification remains incomplete; G16 acceptance and merge authorization pending. The five M16-local policy choices were approved 2026-11-04, separately from gate acceptance.
+**Exit G16:** **Accepted and merged 2026-11-06 via PR #25, merge SHA `47ba55e2`.** Standalone source `e571157` and combined source `79318c6` had independently reviewed evidence, including the subsequent S07/S08/S28 supplement review with preserved source-attestation caveat. Combined tests passed 228 unit, 39 contract, 286 integration twice, 61 browsers per engine after same-SHA supplement, targeted mutants, security/stack/outage probes and a populated accepted-M9 upgrade. The F001 follow-up source `8ba7727` passed 17 focused and 286 full integration tests plus a targeted regression mutant. Four Option A integration decisions were accepted. See [G16 gate closure](M16_G16_GATE_CLOSURE.md). No deployment approved.
 **Not covered by this milestone:** Telemetry dashboards and IT incident lifecycle.
 
 #### M17: Observability and service health
@@ -352,4 +352,8 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M9/G0-G9 accepted and integrated on `main`. G10-G24 remain open. M10 and independent M12/M17 work may advance on the accepted baseline; M14 requires D-004 and M19 requires D-008 before applicable implementation. M9 sustained transport-event processing remains held until approved backlog handling exists. The unmerged M16 candidate has independently reviewed standalone main-campaign evidence, but its **S07/S08/S28 supplemental log is UNREVIEWED** and it requires M9 integration decisions, combined migrations and security/browser/outage regression tests before any acceptance or merge.
+M0-M9/G0-G9 and M16/G16 accepted and integrated into protected `main` as of 2026-11-06. G10-G15 and G17-G24 remain open. M10 and independent M12/M17 work may advance on accepted baselines; M14 requires D-004 and M19 requires D-008 before implementation. M9 sustained transport-event processing remains held until separately approved and verified backlog handling exists. The combined M9/M16 integration decisions, migrations and security/browser/outage checks were closed by the [G16 gate decision](M16_G16_GATE_CLOSURE.md) and PR #25 merge. Public hosting and release acceptance remain pending.
+
+## M24-03 pre-release reconciliation reminder
+
+The [pre-release documentation and evidence checklist](RELEASE_READINESS_TODO.md) is an open M24-03 task. Reconcile obsolete current-state wording, open planning PRs, final source-locked checks and independent gate evidence before the M24-04 accessibility audit and G24 acceptance. This reminder does not change execution-graph dependencies or accept an unverified milestone.

@@ -40,7 +40,10 @@ public sealed class TrackingInboxAuditSqlTests
             var sources = new IntegrationSourceStore(db, TimeProvider.System);
             var source = await sources.CreateAsync(org.Id, "m8_history", "History Source",
                 CancellationToken.None);
-            await db.Database.MigrateAsync();
+            // Populate accepted M8 history before the M16 audit migration exists, as in a real
+            // upgrade. M16 own downgrade guard (retained audit evidence) is covered by
+            // AuditMigrationTests; this test proves the M8 retained-history guard independently.
+            await db.Database.MigrateAsync("20261103190000_TrackingInboxAndHistory");
 
             var raw = Encoding.UTF8.GetBytes("""
                 {"sourceEventId":"history-protected","eventFamily":"Equipment",
@@ -54,6 +57,8 @@ public sealed class TrackingInboxAuditSqlTests
                 source.Bearer, raw, "history-guard", CancellationToken.None);
             Assert.Equal(TrackingReceiptOutcome.Received, received.Outcome);
 
+            await db.Database.MigrateAsync();
+
             var beforeReceipt = await db.TrackingInboxReceipts.AsNoTracking()
                 .SingleAsync(x => x.Id == received.ReceiptId);
             var beforeEvent = await db.TrackingAcceptedEvents.AsNoTracking()
@@ -64,11 +69,9 @@ public sealed class TrackingInboxAuditSqlTests
             var rejected = await Assert.ThrowsAsync<PostgresException>(() =>
                 db.Database.MigrateAsync("20261103090000_IntegrationSources"));
             Assert.Equal(PostgresErrorCodes.CheckViolation, rejected.SqlState);
-            // The empty M9 layer can roll back first; the retained M8 receipt blocks
-            // the subsequent M8 downgrade without rewriting its immutable history.
             Assert.Equal(9, (await db.Database.GetAppliedMigrationsAsync()).Count());
             await db.Database.MigrateAsync();
-            Assert.Equal(11, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(12, (await db.Database.GetAppliedMigrationsAsync()).Count());
             var persisted = await db.TrackingInboxReceipts.AsNoTracking()
                 .SingleAsync(x => x.Id == received.ReceiptId);
             var accepted = await db.TrackingAcceptedEvents.AsNoTracking()

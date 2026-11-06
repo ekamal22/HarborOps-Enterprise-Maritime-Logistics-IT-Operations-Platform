@@ -1,6 +1,6 @@
 # Cost and Deployment Strategy
 
-**Current G9 disposition (2026-11-05):** M9/G9 accepted and merged into `main` via planning PR #16 (`43fe326`) and implementation PR #18 (`4684352`). [G9 closure](M9_G9_GATE_CLOSURE.md) preserves the reviewed evidence and limitations. Sustained transport-event processing is held until M10 or another explicitly approved, verified backlog mechanism handles parked events within the 10,000 unresolved-work cap. No production deployment is authorized.
+**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 has an unaccepted draft implementation in [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), without executed G10 evidence. The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
 
 ## Primary constraint
 
@@ -91,4 +91,4 @@ The .NET 10 SDK, derived PostgreSQL image, and browser runner can require additi
 
 ## M9 transport-backlog operating condition (approved 2026-11-05)
 
-All six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices are approved, but sustained transport-event processing must not be enabled until M10 or a separately approved and verified mechanism manages the `NeedsReconciliation` backlog without exhausting the 10,000-item capacity. The default Compose stack still does not start the M9 worker. Formal G9-S25 review and G9 acceptance were completed on 2026-11-05, while explicit deployment authorization remains outstanding. Accepted [G9 technical evidence](M9_EXECUTED_VERIFICATION.md), [browser evidence](M9_BROWSER_SUPPLEMENT.md) and [gate closure](M9_G9_GATE_CLOSURE.md) do not authorize public hosting or sustained transport processing. The unmerged M16 candidate does not change those restrictions.
+All six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices are approved, but sustained transport-event processing must remain disabled until M10 or separately approved, verified backlog handling prevents the `NeedsReconciliation` queue from exhausting the 10,000 unresolved-item bound. The default Compose stack does not start the optional M9 worker. G9, G16 and the later F001 extension have been accepted and merged as documented in [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md); neither merge authorizes public hosting or production deployment. M10 PR #23 remains an unaccepted draft.

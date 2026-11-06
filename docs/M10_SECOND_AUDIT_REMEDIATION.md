@@ -25,7 +25,7 @@ A final source review found that comparing UUIDs with .NET `Guid.CompareTo` can 
 
 The new M10 timeline entry table is a **derived immutable index**, not a new accepted event source. Each indexed row must match its M9 effect, M8 accepted event and inbox receipt. Its insert trigger is transactionally coupled to M9 effect creation; an M10 input revision is changed in the same transaction. Projected state is materialized at a specific input revision. When a revision changes before rebuild, the HTTP API deliberately returns pending/unknown observed state, a bounded provenance page and a protected version token. This replaces the earlier unbounded live-reduction-on-every-GET behavior. An explicitly authorized rebuild or a separately enabled, restricted projector advances materialization.
 
-The new historical timeline storage and update triggers add migration, lock and worker-permission interactions that require an isolated, source-locked M9/G9 regression campaign. **The 10,000 cap on unresolved M9 work is unchanged. M10 does not resolve parked opaque transport events, lift the transport admission hold, merge M16 or authorize production deployment.**
+The indexed timeline and revision triggers now integrate with accepted M9 and G16 code; a fresh source-locked M9/M16/M10 regression campaign must verify migration order, worker-role permissions, M16 audit triggers and runtime lock behavior. **The 10,000 cap on unresolved M9 work is unchanged. M10 does not resolve parked opaque transport events, lift the transport admission hold or authorize production deployment. M16 has been accepted and merged separately; M10's compatibility requires new verification.**
 
 ## Technical verification status
 
@@ -33,6 +33,6 @@ The new historical timeline storage and update triggers add migration, lock and 
 - All new and changed G10 unit, HTTP, SQL, browser, load, privilege and controlled-failure tests are **NOT EXECUTED**.
 - The independent M10-01 policy decisions remain acceptance pending, including the explicit stale projection response contract.
 - PR #21 stale-doc cleanup and PR #22 original M10 planning remain independently open; reconcile branch overlap before merge.
-- M16 supplemental evidence and integrated G9/M16 migration/permission checks remain separate.
+- G16 supplemental and combined M9/M16 evidence were reviewed and G16 accepted before this reconciliation. M10/G16 combined integration and final-SHA evidence remain pending. See [source reconciliation](M10_M16_SOURCE_RECONCILIATION.md).
 
 **Disposition:** Source remediation candidate. PR #23 stays draft, no merge, no G10 acceptance or deployment.

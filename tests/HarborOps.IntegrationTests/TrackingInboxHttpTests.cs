@@ -76,6 +76,17 @@ public sealed class TrackingInboxHttpTests
             .SingleAsync(x => x.ReceiptId == receiptId);
         Assert.Contains("m8-accepted-1", Encoding.UTF8.GetString(accepted.RawPayloadUtf8));
         Assert.Contains("m8-canonical-v1", accepted.CanonicalPayloadJson);
+        var audit = await db.AuditEntries.AsNoTracking().SingleAsync(x =>
+            x.OrganizationId == fixture.A &&
+            x.ResourceId == accepted.Id &&
+            x.EventType == "integration.tracking_accepted");
+        Assert.Equal("IntegrationSource", audit.ActorKind);
+        Assert.Equal(source.Id, audit.ActorSourceId);
+        Assert.Null(audit.ActorUserId);
+        Assert.Null(audit.ActorSessionId);
+        Assert.Null(audit.ActorRole);
+        Assert.DoesNotContain("sourceEventId", audit.MetadataJson, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("m8-canonical-v1", audit.MetadataJson, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

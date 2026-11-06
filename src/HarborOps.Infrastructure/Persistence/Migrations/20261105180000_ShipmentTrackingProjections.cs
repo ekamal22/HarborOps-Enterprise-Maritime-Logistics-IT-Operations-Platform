@@ -194,7 +194,7 @@ public sealed class ShipmentTrackingProjections : Migration
             );
 
             CREATE FUNCTION m10_validate_correction() RETURNS trigger
-            LANGUAGE plpgsql SET search_path=pg_catalog AS $fn$
+            LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $fn$
             DECLARE
                 actual_generation bigint;
                 org_status text;

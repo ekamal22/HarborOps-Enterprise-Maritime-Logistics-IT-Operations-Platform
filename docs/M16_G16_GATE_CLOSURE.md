@@ -1,0 +1,95 @@
+# M16 / G16 Gate Closure
+
+**Acceptance date:** 2026-11-06
+**Formal disposition:** **G16 accepted for the combined M9/M16 implementation, with the documented operating restrictions and residual limitations.**
+**Authority:** Explicit approval in the project conversation on 2026-11-06 of G16 acceptance and all four recommended Option A integration decisions, following independent inspection of the uploaded combined evidence archive.
+**Verified runtime source:** `79318c6b6126362a0b26a1452aad6d2b48fdf4b4`.
+**Accepted baseline:** `main` at `b4f7b93f1ee8135b9a16b605ded315b3fbc036cc`, including accepted M9.
+**Integration PR:** [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25), separately authorized and merged on 2026-11-06 at `47ba55e2c88556bc5ca0da7d50335ffc8c5ca56d`.
+**Evidence archive:** `cg16-combined-evidence-79318c6.tar.gz`, SHA-256 `ffa263f7f5abb3c27a0907d3704b902fd8b0812b237920079b6c92c4461dd74b`.
+
+## Source-locked evidence reviewed
+
+The independently inspected archive contained 544 files in the SHA-256 manifest. All 544 entries matched, with no missing or unlisted files; the full archive checksum matched the submitted report. The raw test records, mutation outputs, upgrade snapshots and security findings were examined independently of the original technical summary.
+
+| Verification dimension | Reviewed result |
+| --- | --- |
+| .NET warning-as-error build | PASS |
+| .NET unit / contract | 228/228 and 39/39 |
+| PostgreSQL integration | 286/286, repeated 286/286 on a fresh database |
+| Web unit and production build | 18/18, build PASS |
+| Chromium, Firefox, WebKit | 61/61 in each engine in final-03 |
+| Audit HTTP and outage/recovery | 74/74 and 14/14 in both final-02 and final-03 |
+| Combined stack and restricted-role checks | 20/20 in both final-02 and final-03 |
+| Targeted integration-boundary mutations | Clean control and 18/18 intended mutant kills |
+| Existing accepted-M9 populated upgrade | 12/12 post-upgrade checks; all 20 preexisting table hashes preserved |
+| Four final image scans | No reported HIGH or CRITICAL findings |
+
+**Evidence composition is accepted as a qualified result.** The final source did not have one uninterrupted all-green execution. `final-02` had four unexpected Firefox browser results across three specifications, while the same-source `final-03` supplement passed every browser specification and the targeted mutations. Earlier `final-01` image-scan failures were corrected before the frozen tested source. All failed attempts remain preserved, and the Firefox environment-fault explanation was not proven. The accepted technical finding is the aggregate of these source-matched records, not a claim that `final-02` passed unconditionally.
+
+The populated-M9 upgrade demonstrated the additive M16 migration applied after an already-installed M9 worker migration, with the 17 attempt rows, three processing effects and retained table contents preserved. See [executed combined verification](M9_M16_COMBINED_VERIFICATION.md), [combined integration contract](M9_M16_COMBINED_INTEGRATION_STATUS.md), [standalone main evidence review](M16_G16_INDEPENDENT_EVIDENCE_REVIEW.md) and [supplement review](M16_G16_SUPPLEMENT_EVIDENCE_REVIEW.md).
+
+## Four approved integration decisions
+
+| Decision | Approved disposition, Option A |
+| --- | --- |
+| G16-I01: Worker-effect audit | Immutable M9 attempt-history and processing-effect records remain the authoritative worker audit record. No duplicate M16 rows for M9 transitions or redrive are required for this gate. |
+| G16-I02: Database role provisioning | The M16 migration-time provisioner is the authoritative path for the combined stack. The manual M9 role script remains historical/standalone and is not a second combined-stack startup authority. |
+| G16-I03: Privileged migrator | Retain the documented privileged migrator for the present local-first scope. Runtime API and worker identities stay restricted; privileged administrators remain outside the claimed database-only tamper resistance. |
+| G16-I04: F001 API confinement mechanism | Accept the tested provisioner-installed database guard triggers, without introducing a twelfth migration now. A separate security design is required if the API database identity is shared more broadly. |
+
+These choices supplement, and do not reverse, approved M16-D01 through M16-D05.
+
+## Continuing restrictions and disclosed limitations
+
+- **Mandatory accepted-M9 condition:** Do not enable sustained transport-event processing before a separately approved and verified approach prevents `NeedsReconciliation` backlog exhaustion at the 10,000 unresolved-work-item limit. Controlled isolated tests do not authorize sustained service.
+- Retention remains 365 days online followed by controlled archival. No automatic deletion, hard purge, external cryptographic anchoring or global audit export is authorized by G16.
+- The audit cursor's documented statement-time/late-commit ordering caveat remains. Do not represent it as a commit-ordered cursor.
+- The original standalone G16 supplemental probe has a source-SHA provenance limitation; the combined source-locked campaign supplies later evidence without rewriting the original probe.
+- A pre-correction M16 database was not found in inspectable retained environments. A separate retained old-copy volume was intentionally not inspected. If any incompatible database is later identified, require a separately approved safe-copy remediation.
+- The intermittent Firefox teardown failure remains an explicitly disclosed, unproven infrastructure attribution.
+- The upstream image `apt` correction must be revisited when base images include the fixed version.
+- This acceptance does not certify future M10 changes, later unreleased milestones, public hosting, the full G24 release or production deployment.
+
+## Original pre-merge boundary (historical)
+
+At G16 acceptance, M16 was not yet merged and acceptance alone did not authorize integration. The following safeguards were subsequently completed before the separately authorized merge:
+
+1. Review the exact final source diff, especially F001 guard triggers, F002 role grants, migration history and changed Docker images, and resolve any substantive source findings.
+2. Confirm the PR's later changes from `79318c6b6126362a0b26a1452aad6d2b48fdf4b4` remain documentation and evidence-summarization only; do not claim runtime verification of any subsequently changed application code.
+3. Reconcile the gate closure and current status documents without overwriting historical failed attempts or accepted M9/G9 reports.
+4. Confirm PR #25 is current against `main`, has no unresolved review concerns, and satisfies applicable protected-branch rules. GitHub Actions must remain disabled.
+5. Obtain explicit separate PR #25 merge authorization. Use a merge commit with `[skip ci]`, verify the exact post-merge `main` tree and preserve the accepted-M9 operating restriction.
+6. Reconcile `docs/STATUS.md`, `docs/DECISIONS.md` and release/operations references with the actual merge SHA after merging.
+
+**Disposition at initial gate acceptance:** G16 accepted on 2026-11-06 for verified source `79318c6b6126362a0b26a1452aad6d2b48fdf4b4`. The separately authorized PR merge is recorded below; production deployment remains unauthorized.
+
+## Subsequent pre-merge security review finding
+
+The independent final source-diff review identified a missing negative case in F001: before the correction below, the restricted API role could potentially insert a fabricated `Redriven` attempt at generation zero against a newly accepted `Pending` item, naming an active Manager, without a legitimate parked-to-Pending redrive transition. This is not covered by the tested runtime SHA `79318c6` and is distinct from the previously accepted F001 fix.
+
+The integration branch now includes a follow-up restriction requiring a nonzero redrive generation, a reset attempt counter and the expected manual-redrive reason code, plus a focused regression that uses matching generation-zero values. **This follow-up source change requires targeted PostgreSQL execution and a source-locked gate extension before merging.** The previously recorded G16 acceptance remains attached to `79318c6`; this notice neither alters the original evidence nor claims the new change has already passed. PR #25 must stay unmerged while validation is outstanding.
+
+## Gate extension result for the F001 generation-zero correction
+
+**Source verified:** `8ba7727abc4953e2390b75e38a4bbe2fac89e9ea`, clean checkout, run on 2026-11-06. The acceptance of `79318c6` above is unchanged; this section is a post-acceptance extension and does not rewrite it.
+
+- Delta from `79318c6`: the attempt guard condition in `AuditRoleProvisioner.cs` and one regression in `CombinedRestrictedRoleTests.cs`. No migration, Dockerfile, compose, web or worker source changed.
+- Warning-as-error build: 0 warnings, 0 errors.
+- Focused PostgreSQL run against the real restricted roles: 17 of 17 passed (CombinedRestrictedRoleTests, AuditHardeningTests, CombinedRetentionTests, TrackingWorkerG9AuthorizationTests, AuditMigrationTests, TrackingWorkerMigrationTests, TrackingInboxMigrationTests). Full integration suite on a brand new database: 286 of 286.
+- SQL probe as the real `harborops_api` login: the generation-zero forgery with a real active Manager fails with SQLSTATE 23514, as do wrong reason code, nonzero attempt count, Analyst or null actor, generation mismatch, Processed and Claimed kinds and the Pending to Leased transition. A genuine parked redrive followed by the attributed Manager record succeeds (INSERT 0 1); a duplicate generation is refused (23505). Nothing was committed.
+- Mutation: restoring the pre-correction guard makes the new regression fail ("No exception was thrown"), so the regression detects the original gap.
+- Grants, constraints, indexes, triggers, roles and the 11-migration history are identical to the verified `79318c6` combined database. The only difference is the body of `m16_api_scope_attempt()`.
+- Not repeated, because unchanged by the delta: browsers, outage and fault-injection, image scans, the 18-mutant harness and the populated accepted-M9 upgrade.
+
+**Result:** the post-acceptance correction passed a source-locked gate extension. PR #25 is technically ready for a merge decision on the code evidence; the remaining merge boundary items above (review, currency against `main`, separate merge authorization, accepted-M9 operating restriction) still apply. Evidence archive `f001-extension-evidence-8ba7727.tar.gz`, SHA-256 `cf53e0329a8ec49669fe93f951e60e2575a159dc88a510d828ccc0397d2a71fe`, 47 files in its manifest, under `E:HarborOps-Verificationevidence001-extension-archive`.
+
+## Completed PR #25 integration (2026-11-06)
+
+- Independently inspected the post-acceptance F001 extension archive `f001-extension-evidence-8ba7727.tar.gz`. Its SHA-256 matched `cf53e0329a8ec49669fe93f951e60e2575a159dc88a510d828ccc0397d2a71fe`, with all 47 manifest entries matching. Corrected source `8ba7727` passed 17/17 focused and 286/286 full integration tests; the restored pre-correction guard failed the new regression as intended. The real restricted API role refused generation-zero forgery with SQLSTATE 23514, while a legitimate Manager redrive succeeded.
+- GitHub reported clean mergeability and no unresolved review threads. The corrected-source-to-PR-head delta contained documentation changes only. The user separately authorized merger conditioned on a clean final review; those conditions were met.
+- [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) was marked ready and merged into protected `main` on 2026-11-06 with a `[skip ci]` merge commit. **Merge SHA:** `47ba55e2c88556bc5ca0da7d50335ffc8c5ca56d`.
+- Merge parents: accepted-M9 `main` `b4f7b93f1ee8135b9a16b605ded315b3fbc036cc` and reviewed PR head `e7d63212af4fda346efa7d61f533c94323041131`. The resulting merge tree `5e62d376fa4944592282a5904a084a529acac86a` exactly matched the PR-head tree. No GitHub Actions were initiated for this merge.
+- All accepted-M9 processing limitations remain: no sustained transport-event processing until approved verified `NeedsReconciliation` backlog handling prevents exhaustion of the 10,000 unresolved-work-item cap. G16 cursor, privileged-migrator, provenance and environment qualifications remain disclosed. This merge does not authorize production deployment, external hosting or G24 release.
+
+**Current disposition:** G16 accepted and M16 integrated into protected `main`; release and deployment acceptance pending.

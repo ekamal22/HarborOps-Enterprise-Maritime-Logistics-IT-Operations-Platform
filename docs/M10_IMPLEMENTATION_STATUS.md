@@ -1,7 +1,7 @@
 # M10 Event Timeline and Projection Rebuild: Implementation Register
 
 **As of:** 2026-11-05  
-**Branch:** `feat/m10-timeline-projections` (based on accepted G9 `main`, starting SHA `b4f7b93f1ee8135b9a16b605ded315b3fbc036cc`).  
+**Branch:** `feat/m10-timeline-projections` (originally branched from accepted G9 SHA `b4f7b93`; now reconciled with G16-accepted main `2ff2f2df9c4d74d82a0939eb457ceba874af6c3c` by the source merge). [Integration reconciliation](M10_M16_SOURCE_RECONCILIATION.md) records the merge and remaining verification.  
 **State:** Source implementation candidate committed and pushed. **G10 acceptance pending. Not merged. No runtime test execution claimed.**  
 **Planning:** [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) is an independent open documentation PR; its M10 architecture, work packages and G10 scenario specification remain proposed, not accepted decisions.
 
@@ -35,9 +35,9 @@ A [source-locked correctness audit](M10_SOURCE_CORRECTNESS_AUDIT.md) of runtime 
 
 - **No execution:** .NET SDK, Docker and a reachable E:-backed PostgreSQL environment are unavailable from this GitHub-only session. No tests, migrations, browsers, security scans, failure injection or generated G10 source-locked evidence have been run here. New test files are authored, not passed.
 - **G10-S01 policy approval pending:** Deterministic tie/conflict policy, correction semantics/authorization, exact projection revision/consistency and transport-map/backlog policy require explicit review. Implemented source is a candidate; the code does not approve these choices.
-- **Scale and operability:** The source candidate removes the 10,000-resolved-event rejection and reduces full history through a streamed reducer with bounded keyset page memory plus per-container observation state. Reads remain O(retained events) and require verified latency/resource limits. The projector is disabled by default and requires the distinct restricted `harborops_projector` database role and separately supplied credentials.
+- **Scale and operability:** The source candidate removes the 10,000-resolved-event rejection and reduces full history through a streamed reducer with bounded keyset page memory plus per-container observation state. Bounded GETs use a materialized input version and indexed timeline pages; full rebuilds remain O(retained events) and require verified performance limits. The projector is disabled by default and requires the distinct restricted `harborops_projector` database role and separately supplied credentials.
 - **Evidence:** Source-locked compile, unit/contract/integration, fresh/populated migration, role/session, direct SQL immutable corrections, race/failure windows, three-browser functionality, security mutations/scans, independent raw-evidence review, G10 acceptance and separate merge authorization are pending. The local helper does not cover all gates by itself.
-- **M16 integration:** The unmerged M16 feature branch requires its S07/S08/S28 supplemental raw evidence and combined M9/M16 migrations, permissions and DB-role review. The M10 SQL-only migration follows the accepted M9 version; when M16 merges, preserve the full ordered migration history and verify snapshot/permission compatibility against the final combined SHA.
+- **M16 integration:** G16 was accepted and merged through PR #25 and documented through PR #26. M10 now follows accepted migration order: M16 AuditEntries, M9 TrackingWorker, then M10 ShipmentTrackingProjections (12 in total). The accepted M16 EF snapshot and role provisioner are preserved; M10 adds narrowly scoped API correction/projection grants. Fresh/populated upgrades, exact restricted runtime roles, effect-trigger concurrency and G10 plus G16 regressions remain **unexecuted**. [Reconciliation register](M10_M16_SOURCE_RECONCILIATION.md).
 - **Release:** PR #21 documentation reconciliation and final M24-03 documentation/source checks remain open in the separate planning stream. No public hosting or production deployment authorized.
 
 ## Verification status

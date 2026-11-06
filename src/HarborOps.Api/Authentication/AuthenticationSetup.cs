@@ -107,10 +107,27 @@ public static class AuthenticationSetup
                         Window = TimeSpan.FromMinutes(5), PermitLimit = 20,
                         QueueLimit = 0, AutoReplenishment = true
                     }));
+        });
+        // One partition per authenticated user; bound audit reads and enumeration probes.
+        services.AddRateLimiter(options =>
+        {
+            options.AddPolicy("audit-read", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                        ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1), PermitLimit = 30,
+                        QueueLimit = 0, AutoReplenishment = true
+                    }));
+        });
+        // M10 write-heavy projection paths are scoped per authenticated principal.
+        services.AddRateLimiter(options =>
+        {
             options.AddPolicy("m10-mutations", context =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    context.User.FindFirstValue(ClaimTypes.NameIdentifier) ??
-                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                        ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
                     _ => new FixedWindowRateLimiterOptions
                     {
                         Window = TimeSpan.FromMinutes(1), PermitLimit = 10,

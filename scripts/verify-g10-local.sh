@@ -42,6 +42,8 @@ printf '%s\n' "$HARBOROPS_SOURCE_SHA" > "$root/evidence/source-sha.txt"
 git status --porcelain > "$root/evidence/status-before.txt"
 node -e 'process.stdout.write(require("node:crypto").randomBytes(24).toString("hex"))'   > "$root/private/db-password.txt"
 node -e 'process.stdout.write(require("node:crypto").randomBytes(24).toString("hex"))'   > "$root/private/worker-password.txt"
+node -e 'process.stdout.write(require("node:crypto").randomBytes(24).toString("hex"))' > "$root/private/api-password.txt"
+export HARBOROPS_API_DB_PASSWORD="$(cat "$root/private/api-password.txt")"
 export HARBOROPS_DB_PASSWORD="$(cat "$root/private/db-password.txt")"
 export HARBOROPS_WORKER_DB_PASSWORD="$(cat "$root/private/worker-password.txt")"
 export HARBOROPS_TEST_DB="Host=127.0.0.1;Port=55410;Database=harborops_integration;Username=harborops;Password=$HARBOROPS_DB_PASSWORD"
@@ -67,13 +69,15 @@ cleanup() {
     node scripts/check-g9-evidence-safety.mjs evidence \
       "$(cygpath -w "$root/evidence")" \
       "$(cygpath -w "$root/private/db-password.txt")" \
+      "$(cygpath -w "$root/private/api-password.txt")" \
       "$(cygpath -w "$root/private/worker-password.txt")" \
       "$(cygpath -w "$root/private/user-password.txt")" \
       "$(cygpath -w "$root/private/projector-password.txt")" \
       > "$root/evidence/evidence-safety.log" 2>&1 || prior=1
   fi
   # Delete only task-created disposable secret files after the owned stack stops.
-  rm -f "$root/private/db-password.txt" "$root/private/worker-password.txt" \
+  rm -f "$root/private/db-password.txt" "$root/private/api-password.txt" \
+        "$root/private/worker-password.txt" \
         "$root/private/user-password.txt" "$root/private/projector-password.txt"
   rmdir "$root/private" 2>/dev/null || true
   printf '%s\n' "$prior" > "$root/evidence/technical-exit-code.txt"
@@ -97,6 +101,7 @@ stage() {
 }
 stage script-syntax bash -c 'set -euo pipefail; bash -n scripts/verify-g10-local.sh; for s in scripts/*.mjs; do node --check "$s"; done'
 stage m10-source-contract node scripts/check-m10-contract.mjs
+stage m10-m16-source node scripts/check-m10-m16-integration.mjs
 stage docs node scripts/check-planning-docs.mjs
 stage graph node scripts/render-execution-graph.mjs --check
 stage scripts node --test scripts/*.test.mjs

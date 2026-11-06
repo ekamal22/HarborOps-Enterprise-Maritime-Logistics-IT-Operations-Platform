@@ -1,3 +1,4 @@
+using HarborOps.Infrastructure.Audit;
 using System.Text.Json;
 using HarborOps.Domain.Organizations;
 using HarborOps.Domain.References;
@@ -261,6 +262,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         try
         {
             await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await AuditActorContext.SetHumanAsync(db, session.UserId, session.SessionId, AuditCorrelation.Current, ct);
             var access = await LockManagerAsync(session, orgId, ct);
             if (access != OrganizationAccessError.None) return new(null, access);
             PortReference item;
@@ -315,6 +317,7 @@ public sealed class ReferenceStore(HarborOpsDbContext db, OrganizationStore orga
         try
         {
             await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await AuditActorContext.SetHumanAsync(db, session.UserId, session.SessionId, AuditCorrelation.Current, ct);
             var access = await LockManagerAsync(session, orgId, ct);
             if (access != OrganizationAccessError.None) return new(null, access);
             VesselReference item;

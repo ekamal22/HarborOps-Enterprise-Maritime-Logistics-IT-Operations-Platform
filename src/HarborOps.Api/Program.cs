@@ -6,6 +6,8 @@ using HarborOps.Api.Maritime;
 using HarborOps.Api.Shipments;
 using HarborOps.Api.Assignments;
 using HarborOps.Api.Integrations;
+using HarborOps.Api.Audit;
+using HarborOps.Infrastructure.Audit;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -95,6 +97,7 @@ if (args.Contains("--migrate", StringComparer.Ordinal))
     var database = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
     await database.Database.MigrateAsync();
     await BootstrapSeeder.SeedAsync(database, CancellationToken.None);
+    await AuditRoleProvisioner.ProvisionAsync(database, builder.Configuration, CancellationToken.None);
     return;
 }
 
@@ -104,6 +107,7 @@ app.Use(async (context, next) =>
 {
     var correlationId = Guid.NewGuid().ToString("N");
     context.Items["CorrelationId"] = correlationId;
+    using var auditCorrelationScope = AuditCorrelation.Begin(correlationId);
     context.Response.Headers["X-Correlation-ID"] = correlationId;
     // Handlers set no-store themselves; this also covers responses produced by the framework
     // (authentication challenges, rate limiting, the exception handler) on every API route.
@@ -156,6 +160,7 @@ app.MapAssignmentEndpoints();
 app.MapTrackingEndpoints();
 app.MapTrackingWorkEndpoints();
 app.MapShipmentTimelineEndpoints();
+app.MapAuditEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

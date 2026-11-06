@@ -235,6 +235,21 @@ public sealed class TrackingProjectionG10Tests
             var replayBody = await replayedCorrection.Content.ReadFromJsonAsync<JsonElement>();
             Assert.True(replayBody.GetProperty("replayed").GetBoolean());
         }
+        var immutableReplay = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE shipment_tracking_operation_replays
+                SET response_revision={999L}
+                WHERE organization_id={fixture.A} AND shipment_id={target.Shipment}
+                  AND idempotency_key={correctionIdempotency}
+                """));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, immutableReplay.SqlState);
+        var immutableReplayDelete = await Assert.ThrowsAsync<PostgresException>(() =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                DELETE FROM shipment_tracking_operation_replays
+                WHERE organization_id={fixture.A} AND shipment_id={target.Shipment}
+                  AND idempotency_key={correctionIdempotency}
+                """));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, immutableReplayDelete.SqlState);
         var afterHttp = await store.ReadAsync(fixture.A, target.Shipment, CancellationToken.None);
         Assert.NotNull(afterHttp);
         Assert.Equal("Unknown", afterHttp!.State.ObservedTrackingState);
@@ -366,6 +381,46 @@ public sealed class TrackingProjectionG10Tests
         verify.Parameters.AddWithValue("org", fixture.A);
         verify.Parameters.AddWithValue("shipment", target.Shipment);
         Assert.Equal(1L, Convert.ToInt64(await verify.ExecuteScalarAsync()));
+    }
+
+    [Fact]
+    public async Task DirtyDiscoveryAdvancesBeyondFirstShipmentWithoutWaitingForRebuild()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = fixture.Admin;
+        using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        var a = await G9Support.SeedResolvable(factory, fixture);
+        var b = await G9Support.SeedResolvable(factory, fixture);
+        var source = await G9Support.NewSource(factory, fixture.A, "g10_fairness");
+        var prefix = Guid.NewGuid().ToString("N")[..10];
+        await G9Support.Accept(factory, source,
+            G9Support.EquipmentPayload("fair-a-" + prefix, a.Reference));
+        await G9Support.Accept(factory, source,
+            G9Support.EquipmentPayload("fair-b-" + prefix, b.Reference));
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var worker = new TrackingWorkStore(db, new TrackingWorkerSettings());
+        for (var i = 0; i < 2; i++)
+        {
+            var claim = await worker.ClaimOneAsync(fixture.A, CancellationToken.None);
+            Assert.NotNull(claim);
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await worker.FinalizeAsync(claim!, CancellationToken.None));
+        }
+        var store = new ShipmentTimelineStore(db);
+        var all = await store.DirtyAsync(50, CancellationToken.None);
+        Assert.Contains(all, item => item.Organization == fixture.A && item.Shipment == a.Shipment);
+        Assert.Contains(all, item => item.Organization == fixture.A && item.Shipment == b.Shipment);
+        var ordered = all.Where(item => item.Organization == fixture.A &&
+            (item.Shipment == a.Shipment || item.Shipment == b.Shipment))
+            .OrderBy(item => item.Shipment).ToArray();
+        Assert.Equal(2, ordered.Length);
+        var later = await store.DirtyAsync(50, CancellationToken.None,
+            ordered[0].Organization, ordered[0].Shipment);
+        Assert.Contains(later, item => item.Organization == ordered[1].Organization &&
+            item.Shipment == ordered[1].Shipment);
     }
 
     [Fact]

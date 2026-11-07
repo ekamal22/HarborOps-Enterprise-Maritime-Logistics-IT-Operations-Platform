@@ -1,5 +1,7 @@
 # HarborOps
 
+**M12 second-pass audit, 2026-11-08:** [Latest source findings and corrections](docs/M12_CORRECTNESS_AUDIT_20261108.md) cover build/test fixture imports, audit-history downgrade protection, bounded URL and PostgreSQL/export execution, full five-role HTTP coverage, and signed-proof tampering tests. These corrections are committed on draft PR #32, but the G12 runtime campaign and independent acceptance remain pending. Protected main and the accepted M9 hold are unchanged.
+
 **M12 implementation candidate (2026-11-07):** Branch `feat/m12-shipment-search-export` contains new scoped advanced shipment search and bounded Analyst/Manager CSV export, with authored test sources. G12 runtime verification is NOT EXECUTED and acceptance pending. The accepted `main` baseline, M9 transport hold and separate M11 planning remain unchanged. See [M12 architecture](docs/M12_ARCHITECTURE_DESIGN.md), [implementation status](docs/M12_IMPLEMENTATION_STATUS.md), [G12 test plan](docs/M12_VERIFICATION_PLAN.md) and [policy choices](docs/M12_PLANNING_STATUS.md).
 
 **M12 correctness audit (2026-11-07):** [Source findings and fixes](docs/M12_CORRECTNESS_AUDIT_20261107.md) cover HMAC export authority, SQL key isolation and replay, same-origin downloads, user/session cursors, regression tests and M11 integration. These are authored and committed source remediations, not runtime G12 passes. G12 acceptance and merge authorization remain pending.

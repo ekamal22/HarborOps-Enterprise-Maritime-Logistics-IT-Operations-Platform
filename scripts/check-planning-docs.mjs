@@ -36,6 +36,25 @@ function assert(ok, message) {
 }
 
 assert(graph.schema_version === 2, "Expected version 2 execution graph");
+const m11SecondAudit = get("docs/M11_SECOND_CORRECTNESS_AUDIT_20261107.md");
+const m11Implementation = get("docs/M11_IMPLEMENTATION_STATUS.md");
+assert(m11SecondAudit.includes("G11 acceptance pending") &&
+  m11SecondAudit.includes("NOT EXECUTED") &&
+  m11Implementation.includes("G11 NOT VERIFIED"),
+  "M11 must retain an unverified, acceptance-pending disposition");
+for (const [name, path] of [
+  ["README", "README.md"],
+  ["Status", "docs/STATUS.md"],
+  ["Roadmap", "docs/ROADMAP.md"],
+  ["Architecture", "docs/ARCHITECTURE.md"],
+  ["API contracts", "docs/API_CONTRACTS.md"],
+  ["Security", "docs/SECURITY.md"],
+  ["Test strategy", "docs/TEST_STRATEGY.md"],
+  ["Operations", "docs/OPERATIONS.md"]
+]) {
+  assert(get(path).includes("M11_SECOND_CORRECTNESS_AUDIT_20261107.md"),
+    name + " omits the current M11 source audit");
+}
 assert(storagePolicy.includes("Persistent project-specific writes to C: are prohibited"), "E-drive storage policy missing its persistent-storage prohibition");
 // The policy names the E: requirement generically; a workstation-specific folder name is
 // deliberately absent so shared documentation does not disclose local machine layout.

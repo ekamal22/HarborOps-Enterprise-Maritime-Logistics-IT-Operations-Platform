@@ -20,7 +20,7 @@ No pass may be claimed from a test file or dry run. S01 records explicit policy 
 | --- | --- | --- |
 | G11-S01 | M11 local policy decision | Explicit disposition of M11-P01 to P12, exact version and any revised choices; otherwise BLOCKED |
 | G11-S02 | Clean warning-as-error compile and contract validation | Exact .NET build, frontend typecheck and schema/API contract results on frozen SHA |
-| G11-S03 | Deterministic rule truth table | Equal/just-before/just-after UTC boundaries, fixed TimeProvider, repeated same-input same-output |
+| G11-S03 | Deterministic rule truth table | Equal/just-before/just-after UTC boundaries, fixed UTC evaluation instant, repeated same-input same-output |
 | G11-S04 | Arrival schedule overdue | Active booked/in-transit shipment with planned arrival past grace is labeled schedule overdue, not physically delayed |
 | G11-S05 | Recorded arrival late | Explicit M5 Arrived history beyond planned deadline produces recorded-workflow late evidence with correct transition ID/time |
 | G11-S06 | Departure slippage at risk | Late recorded InTransit transition + future arrival produces risk only under approved source confidence and thresholds |

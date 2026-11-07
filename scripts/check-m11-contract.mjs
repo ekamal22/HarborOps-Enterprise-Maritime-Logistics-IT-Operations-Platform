@@ -71,6 +71,10 @@ assert.match(store, /error.ConstraintName == "shipment_exception_replays_pkey"/)
 assert.match(m11RuntimeTests, /RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence/);
 assert.match(policy, /input.WorkflowStatus == "InTransit"/);
 assert.match(store, /candidate AS MATERIALIZED/);
+assert.match(store, /\(@afterOrg::uuid,@afterShip::uuid\)/);
+assert.match(policy, /recordedLate \? "High" : "Info"/);
+assert.match(policy, /condition == "Active" \? "Warning" : "Info"/);
+assert.match(m11RuntimeTests, /RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence/);
 assert.match(store, /LastOrganization/);
 assert.match(store, /DateTimeOffset SnapshotAtUtc/);
 assert.match(store, /first_detected_at_utc<=@snapshot::timestamptz/);

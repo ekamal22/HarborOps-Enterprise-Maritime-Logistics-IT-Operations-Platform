@@ -133,9 +133,10 @@ public static class ShipmentExceptionPolicy
                 results.Add(Build(ArrivalScheduleOverdue, "Inactive", "Info",
                     "recorded_arrival_exists", input.RecordedArrivalAtUtc,
                     arrivalBoundary, null, "RecordedWorkflow"));
+                var recordedLate = input.RecordedArrivalAtUtc > arrivalBoundary;
                 results.Add(Build(RecordedArrivalLate,
-                    input.RecordedArrivalAtUtc > arrivalBoundary ? "Active" : "Inactive",
-                    "High", input.RecordedArrivalAtUtc > arrivalBoundary
+                    recordedLate ? "Active" : "Inactive",
+                    recordedLate ? "High" : "Info", recordedLate
                         ? "recorded_arrival_after_grace" : "recorded_arrival_within_grace",
                     input.RecordedArrivalAtUtc, arrivalBoundary, null, "RecordedWorkflow"));
             }
@@ -154,7 +155,8 @@ public static class ShipmentExceptionPolicy
             {
                 var condition = evaluationAtUtc > arrivalBoundary ? "Active" : "Inactive";
                 DateTimeOffset? nextDue = condition == "Active" ? null : StrictlyAfter(arrivalBoundary);
-                results.Add(Build(ArrivalScheduleOverdue, condition, "Warning",
+                results.Add(Build(ArrivalScheduleOverdue, condition,
+                    condition == "Active" ? "Warning" : "Info",
                     condition == "Active" ? "scheduled_arrival_overdue_unconfirmed"
                         : "scheduled_arrival_not_yet_overdue",
                     null, arrivalBoundary, nextDue, "ScheduleOnly"));
@@ -179,7 +181,7 @@ public static class ShipmentExceptionPolicy
                        evaluationAtUtc < input.PlannedArrivalAtUtc.Value &&
                        !input.RecordedArrivalAtUtc.HasValue;
             results.Add(Build(DepartureSlippageRisk, late ? "Active" : "Inactive",
-                "Warning", late ? "recorded_departure_after_tolerance"
+                late ? "Warning" : "Info", late ? "recorded_departure_after_tolerance"
                     : "no_current_departure_slippage_risk",
                 input.RecordedDepartureAtUtc, deadline,
                 late ? input.PlannedArrivalAtUtc : null, "RecordedWorkflow"));

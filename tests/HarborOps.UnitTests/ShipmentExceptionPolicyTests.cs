@@ -40,6 +40,33 @@ public sealed class ShipmentExceptionPolicyTests
     }
 
     [Fact]
+    public void InactiveOrTimelySignalsNeverRetainHighOrWarningSeverity()
+    {
+        var beforeOverdue = Rule(Input(arrival: T0.AddHours(2)),
+            ShipmentExceptionPolicy.ArrivalScheduleOverdue);
+        Assert.Equal("Inactive", beforeOverdue.Condition);
+        Assert.Equal("Info", beforeOverdue.Severity);
+
+        var timely = Rule(Input(arrival: T0.AddHours(-2),
+            recordedArrival: T0.AddHours(-1), workflow: "Arrived"),
+            ShipmentExceptionPolicy.RecordedArrivalLate);
+        Assert.Equal("Inactive", timely.Condition);
+        Assert.Equal("Info", timely.Severity);
+
+        var noCurrentRisk = Rule(Input(
+            departure: T0.AddHours(-3), arrival: T0.AddHours(1),
+            recordedDeparture: T0.AddHours(-1), workflow: "Arrived"),
+            ShipmentExceptionPolicy.DepartureSlippageRisk);
+        Assert.Equal("Inactive", noCurrentRisk.Condition);
+        Assert.Equal("Info", noCurrentRisk.Severity);
+        Assert.Equal("Warning", Rule(Input(arrival: T0.AddHours(-3)),
+            ShipmentExceptionPolicy.ArrivalScheduleOverdue).Severity);
+        Assert.Equal("High", Rule(Input(arrival: T0.AddHours(-3),
+            recordedArrival: T0.AddHours(-1), workflow: "Arrived"),
+            ShipmentExceptionPolicy.RecordedArrivalLate).Severity);
+    }
+
+    [Fact]
     public void ExplicitWorkflowArrivalIsDistinguishedFromUnconfirmedSchedule()
     {
         var late = Input(arrival: T0.AddHours(-4),

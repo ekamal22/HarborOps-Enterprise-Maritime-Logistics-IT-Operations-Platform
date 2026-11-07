@@ -443,7 +443,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                     JOIN organizations o ON o.id=s.organization_id
                         AND o.status='Active'
                     WHERE (@afterOrg::uuid IS NULL OR
-                        (s.organization_id,s.id)>(@afterOrg,@afterShip))
+                        (s.organization_id,s.id)>(@afterOrg::uuid,@afterShip::uuid))
                     ORDER BY s.organization_id,s.id LIMIT @limit
                 )
                 SELECT c.organization_id,c.id,

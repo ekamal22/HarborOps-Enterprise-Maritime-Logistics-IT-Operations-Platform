@@ -2,6 +2,8 @@
 
 **M12 implementation candidate (2026-11-07):** Branch `feat/m12-shipment-search-export` contains new scoped advanced shipment search and bounded Analyst/Manager CSV export, with authored test sources. G12 runtime verification is NOT EXECUTED and acceptance pending. The accepted `main` baseline, M9 transport hold and separate M11 planning remain unchanged. See [M12 architecture](M12_ARCHITECTURE_DESIGN.md), [implementation status](M12_IMPLEMENTATION_STATUS.md), [G12 test plan](M12_VERIFICATION_PLAN.md) and [policy choices](M12_PLANNING_STATUS.md).
 
+**M12 correctness audit (2026-11-07):** [Source findings and fixes](M12_CORRECTNESS_AUDIT_20261107.md) cover HMAC export authority, SQL key isolation and replay, same-origin downloads, user/session cursors, regression tests and M11 integration. These are authored and committed source remediations, not runtime G12 passes. G12 acceptance and merge authorization remain pending.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
@@ -104,7 +106,7 @@ The M5 shipment Minimal API implements the documented routes and was verified an
 | PATCH | /organizations/{orgId}/exceptions/{id} | Acknowledge/resolve exception | Scoped operations |
 | GET | /organizations/{orgId}/analytics/overview | Documented operational KPIs | Scoped viewer |
 | GET | /organizations/{orgId}/shipments/search | M12 candidate advanced tenant-scoped search, protected UUID keyset and UTC filters | Typed shipment-read permission, G12 pending |
-| GET | /organizations/{orgId}/exports/shipments | M12 candidate bounded CSV and restricted export audit, G12 pending | Analyst/Manager typed export permission |
+| GET | /organizations/{orgId}/exports/shipments | M12 candidate bounded CSV and signed nonreplayable preparation audit, G12 pending | Analyst/Manager typed export permission with verifier key |
 | GET/POST | /operations/incidents | Incident list/create | IT operations role |
 | GET/PATCH | /operations/incidents/{id} | Incident detail and transitions | IT operations role |
 | GET | /health/live | Process liveness | Public, minimal metadata |

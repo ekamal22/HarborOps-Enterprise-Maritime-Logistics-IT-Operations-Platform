@@ -135,7 +135,7 @@ public sealed class M10CorrectionAuthority : Migration
                     VALUES (p_org,'shipment.tracking_correction_created',1,'Succeeded',
                             'Human',p_actor,p_session,'Manager',
                             'shipment_tracking_corrections',correction_id,p_correlation,
-                            '{"operation":"insert","changedFields":["correction"]}'::jsonb);
+                            '{"operation":"insert","changedFields":[]}'::jsonb);
                 EXCEPTION WHEN OTHERS THEN
                     RAISE EXCEPTION 'Required correction audit is unavailable'
                         USING ERRCODE='PZ001';

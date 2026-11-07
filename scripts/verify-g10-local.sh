@@ -131,6 +131,7 @@ cleanup() {
     compose down --volumes --remove-orphans > "$evidence/compose-teardown.log" 2>&1 || rc=1
   fi
   if [[ "$owned_sdk" == 1 ]]; then
+    docker logs "$sdk_db" > "$evidence/sdk-postgres-final-server.log" 2>&1 || true
     docker rm -f "$sdk_db" > "$evidence/postgres-teardown.log" 2>&1 || rc=1
   fi
   local containers volumes leftover
@@ -201,6 +202,7 @@ start_sdk_db() {
   return 1
 }
 fresh_sdk_db() {
+  docker logs "$sdk_db" > "$evidence/sdk-postgres-1-server.log" 2>&1 || true
   docker rm -f "$sdk_db" >/dev/null 2>&1 || true
   start_sdk_db
 }

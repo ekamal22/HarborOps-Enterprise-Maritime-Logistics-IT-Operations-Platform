@@ -644,7 +644,7 @@ await check("m10-correction-authority-attacks-under-real-restricted-api-login", 
   assert.equal(entry.actorRole, "Manager");
   assert.equal(entry.actorUserId, managerUser);
   assert.equal(entry.resourceType, "shipment_tracking_corrections");
-  assert.deepEqual(entry.metadata, { operation: "insert", changedFields: ["correction"] });
+  assert.deepEqual(entry.metadata, { operation: "insert", changedFields: [] });
   const text = JSON.stringify(entry);
   for (const secret of ["Confirmed invalid first observation", stolenSession, "signature", "nonce"])
     assert.ok(!text.includes(secret), "audit entry must not expose " + secret.slice(0, 12));

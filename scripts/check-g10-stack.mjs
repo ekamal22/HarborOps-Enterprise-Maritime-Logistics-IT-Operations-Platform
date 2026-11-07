@@ -117,12 +117,12 @@ await check("stack-services-ready", async () => {
 
 await check("fresh-volume-migrations-applied", async () => {
   const row = scalar(`SELECT count(*) || '|' || bool_or("MigrationId" LIKE '%_TrackingWorker') FROM "__EFMigrationsHistory"`);
-  assert.equal(row, "12|true", "all twelve migrations, including M16 audit, the M9 worker and M10 projections, must be applied");
+  assert.equal(row, "13|true", "all thirteen migrations, including M16 audit, M9 worker, M10 projections and correction authority, must be applied");
   const order = scalar(`SELECT string_agg(split_part("MigrationId",'_',2),',' ORDER BY "MigrationId") FROM (
-    SELECT "MigrationId" FROM "__EFMigrationsHistory" ORDER BY "MigrationId" DESC LIMIT 3) t`);
-  assert.equal(order, "AuditEntries,TrackingWorker,ShipmentTrackingProjections",
-    "M16 audit must precede the M9 worker, which must precede the M10 projections");
-  return "twelve migrations applied in order";
+    SELECT "MigrationId" FROM "__EFMigrationsHistory" ORDER BY "MigrationId" DESC LIMIT 4) t`);
+  assert.equal(order, "AuditEntries,TrackingWorker,ShipmentTrackingProjections,M10CorrectionAuthority",
+    "Accepted migrations must precede M10 correction authority");
+  return "thirteen migrations applied in order";
 });
 
 await check("provision-accounts-and-organization", async () => {
@@ -560,6 +560,7 @@ await check("m10-manager-rebuild-and-correction-under-restricted-api-role", asyn
   assert.equal(scalar(`SELECT generation FROM shipment_tracking_correction_heads WHERE organization_id='${organizationId}' AND shipment_id='${fixture.shipment}'`), "1");
   assert.equal(Number(scalar(`SELECT input_revision FROM shipment_tracking_input_versions WHERE organization_id='${organizationId}' AND shipment_id='${fixture.shipment}'`)), revisionBefore + 1);
   assert.equal(scalar(`SELECT count(*) FROM tracking_processing_effects WHERE receipt_id='${resolved.receipt}'`), "1", "the M9 effect is untouched by the correction");
+  assert.equal(scalar("SELECT count(*) FROM audit_entries WHERE event_type='shipment.tracking_correction_created'"), "1");
 
   // The restricted API identity and even the owner session cannot rewrite retained M10 history.
   for (const sqlText of ["UPDATE shipment_tracking_corrections SET reason='Tampered after the fact'", "DELETE FROM shipment_tracking_operation_replays",
@@ -574,7 +575,7 @@ await check("m10-manager-rebuild-and-correction-under-restricted-api-role", asyn
 
 await check("m10-exact-api-worker-grants-keep-m16-and-m9-restrictions", async () => {
   const api = tableSet(grants("harborops_api"));
-  for (const need of ["shipment_tracking_corrections:INSERT", "shipment_tracking_operation_replays:INSERT", "shipment_tracking_projections:INSERT",
+  for (const need of ["shipment_tracking_operation_replays:INSERT", "shipment_tracking_projections:INSERT",
     "shipment_tracking_projections:UPDATE", "shipment_projection_applications:INSERT"])
     assert.ok(api.has(need), "API must hold " + need);
   for (const table of ["shipment_tracking_timeline_entries", "shipment_tracking_input_versions", "shipment_tracking_correction_heads"])
@@ -583,12 +584,18 @@ await check("m10-exact-api-worker-grants-keep-m16-and-m9-restrictions", async ()
   for (const table of ["shipment_tracking_corrections", "shipment_tracking_operation_replays", "shipment_projection_applications"])
     for (const privilege of ["UPDATE", "DELETE", "TRUNCATE"])
       assert.ok(!api.has(table + ":" + privilege), `API must not hold ${privilege} on ${table}`);
-  for (const forbidden of ["audit_entries:INSERT", "audit_entries:UPDATE", "audit_entries:DELETE", "tracking_processing_effects:INSERT", "tracking_work_attempt_events:UPDATE"])
+  for (const forbidden of ["audit_entries:INSERT", "audit_entries:UPDATE", "audit_entries:DELETE",
+    "shipment_tracking_corrections:INSERT", "m10_correction_proof_keys:SELECT",
+    "m10_correction_proof_nonces:SELECT", "tracking_processing_effects:INSERT",
+    "tracking_work_attempt_events:UPDATE"])
     assert.ok(!api.has(forbidden), "API must not hold " + forbidden);
   const worker = grants("harborops_worker");
   assert.equal(/shipment_tracking_|shipment_projection_/.test(worker), false, "the worker holds no M10 table privilege");
   assert.equal(scalar("SELECT count(*) FROM pg_trigger WHERE tgrelid='public.audit_entries'::regclass AND NOT tgisinternal AND tgenabled='O'"), "2");
-  assert.equal(scalar("SELECT count(*) FROM audit_entries WHERE resource_type IN ('shipment_tracking_timeline_entries','shipment_tracking_input_versions','shipment_tracking_corrections')"), "0", "M10 evidence adds no duplicate audit rows");
+  assert.equal(scalar("SELECT count(*) FROM audit_entries WHERE event_type='shipment.tracking_correction_created'"), "1",
+    "An authorized correction must atomically produce one M16 audit event");
+  assert.equal(scalar("SELECT count(*) FROM audit_entries WHERE resource_type IN ('shipment_tracking_timeline_entries','shipment_tracking_input_versions')"), "0",
+    "M10 derived evidence must not duplicate audit rows");
   return "API gained only the scoped M10 writes; worker and audit protections unchanged";
 });
 

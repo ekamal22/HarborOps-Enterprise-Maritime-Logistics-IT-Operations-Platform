@@ -256,6 +256,10 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
             {
                 // Failed serializable transaction is discarded before retry.
             }
+            catch (PostgresException ex) when (ex.SqlState is "40001" or "40P01")
+            {
+                return (M11StoreResult.Conflict, 0);
+            }
             catch (PostgresException ex) when (ex.SqlState == "42501")
             {
                 return (M11StoreResult.Forbidden, 0);

@@ -120,6 +120,7 @@ public sealed class M11ExceptionRuntimeTests
             "UPDATE shipment_exceptions SET lifecycle_state='Resolved'",
             "DELETE FROM shipment_exception_history",
             "DELETE FROM shipment_exception_replays",
+            "SELECT * FROM shipment_exception_replays LIMIT 1",
             "SELECT * FROM shipment_exception_proof_nonces LIMIT 1",
             "SELECT * FROM m10_correction_proof_keys LIMIT 1"
         })

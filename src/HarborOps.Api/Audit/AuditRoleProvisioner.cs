@@ -100,8 +100,8 @@ public static class AuditRoleProvisioner
                 BEGIN
                     IF to_regclass('public.shipment_exceptions') IS NOT NULL
                        AND to_regclass('public.shipment_exception_proof_nonces') IS NOT NULL THEN
-                        REVOKE ALL ON shipment_exception_proof_nonces
-                            FROM harborops_api;
+                        REVOKE ALL ON shipment_exception_proof_nonces,
+                            shipment_exception_replays FROM harborops_api;
                         GRANT EXECUTE ON FUNCTION m11_apply_signed_evaluation(
                             uuid,uuid,varchar,varchar,varchar,varchar,varchar,varchar,
                             timestamptz,timestamptz,timestamptz,bigint,bigint,bigint,

@@ -42,6 +42,9 @@ assert.ok(!/\bv\.revision\b/.test(migration + store),
 assert.match(migration, /ix_m11_nonce_expiry/);
 assert.match(migration, /LIMIT 64 FOR UPDATE SKIP LOCKED/);
 assert.match(migration, /rule_policy_version/);
+assert.match(migration, /IF stored_condition=p_condition AND previous_fp=p_fingerprint THEN[\\s\\S]*?evaluated_at_utc=clock_timestamp\(\)/);
+assert.match(migration, /Exception reevaluation required/);
+assert.match(roles, /shipment_exception_replays FROM harborops_api/);
 assert.match(migration, /PRIMARY KEY \(organization_id,idempotency_key\)/);
 assert.match(migration, /existing_state='Open' OR p_reason='shipment_not_eligible'/);
 assert.match(policy, /input.WorkflowStatus == "InTransit"/);

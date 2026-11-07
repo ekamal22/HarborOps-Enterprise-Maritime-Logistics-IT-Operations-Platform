@@ -294,6 +294,22 @@ public sealed class ShipmentExceptions : Migration
                 WHERE organization_id=p_org AND shipment_id=p_shipment AND rule_code=p_rule
                 FOR UPDATE;
                 IF stored_condition=p_condition AND previous_fp=p_fingerprint THEN
+                    -- An unchanged semantic result still represents a new
+                    -- source review. Advance the due checkpoint and projection
+                    -- refresh watermark without writing duplicate history.
+                    UPDATE shipment_exception_evaluations SET
+                        rule_policy_version='m11-rules-v1',
+                        shipment_version=p_ship_version,
+                        tracking_input_revision=p_input_revision,
+                        correction_generation=p_generation,
+                        next_evaluation_at_utc=p_next,
+                        evaluated_at_utc=clock_timestamp()
+                    WHERE organization_id=p_org AND shipment_id=p_shipment
+                      AND rule_code=p_rule;
+                    UPDATE shipment_exceptions SET
+                        last_evaluated_at_utc=clock_timestamp()
+                    WHERE organization_id=p_org AND shipment_id=p_shipment
+                      AND rule_code=p_rule AND lifecycle_state<>'Resolved';
                     RETURN;
                 END IF;
 
@@ -331,7 +347,10 @@ public sealed class ShipmentExceptions : Migration
                             lifecycle_state='Resolved',condition_state=p_condition,
                             resolved_at_utc=clock_timestamp(),last_evaluated_at_utc=clock_timestamp(),
                             version=version+1,source_fingerprint=p_fingerprint,
-                            confidence=p_confidence,reason_code=p_reason,evidence=payload,
+                            confidence=p_confidence,severity=p_severity,
+                            reason_code=p_reason,evidence=payload,
+                            reference_at_utc=p_reference,threshold_at_utc=p_threshold,
+                            next_evaluation_at_utc=p_next,
                             shipment_version=p_ship_version,tracking_input_revision=p_input_revision,
                             correction_generation=p_generation
                         WHERE id=existing_id;
@@ -403,6 +422,8 @@ public sealed class ShipmentExceptions : Migration
                 saved_version bigint;
                 saved_exception uuid;
                 saved_actor uuid;
+                row_rule varchar(40);
+                row_fingerprint char(64);
             BEGIN
                 IF session_user <> 'harborops_api'
                    OR p_actor IS NULL OR p_session IS NULL OR p_idempotency IS NULL
@@ -473,9 +494,9 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Exception scope inactive' USING ERRCODE='42501';
                 END IF;
                 SELECT lifecycle_state,condition_state,version,shipment_version,
-                    tracking_input_revision,correction_generation
+                    tracking_input_revision,correction_generation,rule_code,source_fingerprint
                 INTO row_state,row_condition,row_version,row_shipment_version,
-                    row_input_revision,row_generation
+                    row_input_revision,row_generation,row_rule,row_fingerprint
                 FROM shipment_exceptions
                 WHERE id=p_exception AND organization_id=p_org FOR UPDATE;
 
@@ -501,6 +522,19 @@ public sealed class ShipmentExceptions : Migration
                 IF p_action='Resolve' AND
                     (row_state <> 'Acknowledged' OR row_condition <> 'Inactive') THEN
                     RAISE EXCEPTION 'Exception cannot be resolved' USING ERRCODE='PZ005';
+                END IF;
+                -- Prevent actions against a rule that has reached an elapsed
+                -- time boundary or whose checkpoint no longer matches the
+                -- occurrence under review. Require reevaluation first.
+                IF NOT EXISTS (
+                    SELECT 1 FROM shipment_exception_evaluations e
+                    WHERE e.organization_id=p_org AND e.shipment_id=row_shipment
+                      AND e.rule_code=row_rule
+                      AND e.source_fingerprint=row_fingerprint
+                      AND (e.next_evaluation_at_utc IS NULL
+                        OR e.next_evaluation_at_utc>clock_timestamp())
+                ) THEN
+                    RAISE EXCEPTION 'Exception reevaluation required' USING ERRCODE='PZ004';
                 END IF;
                 IF row_shipment_version IS DISTINCT FROM (
                     SELECT version FROM shipments WHERE organization_id=p_org

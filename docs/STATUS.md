@@ -143,3 +143,8 @@ Update this page whenever a milestone materially changes state. Record implement
 
 G0 does not depend on any retained local Docker volume. Fresh disposable database checks are required. Historical-volume compatibility moves to quarterly progress checkpoints at M6, M12, M18 and M24-03, using safe copies only; M19 separately owns comprehensive backup, restore and upgrade rehearsal. If no representative snapshot exists at a checkpoint, record NOT APPLICABLE. Breaking changes applied to retained data still require a safe-copy rehearsal before rollout.
 
+## G10 policy selection and targeted security remediation, 2026-11-07
+
+The fourteen M10 local policies are approved with changes to L07 and L14 and a condition on L06. The decision is recorded in [DECISIONS](DECISIONS.md), and the [L07/L14 remediation plan](M10_G10_L07_L14_REMEDIATION_PLAN.md) defines atomic central correction auditing, correction-write authority and actor/session proof, real-login adversarial tests and narrow M9/M16 regressions.
+
+The existing independent G10 evidence review supports the frozen source `3e81b884b6a4cc782f84c58510793666786c5796`; it does not verify these new changes. S01 source conformance and S25 formal gate acceptance remain pending. The corrected G10 verification source has not been merged to main. The M9 transport hold and unresolved-work admission cap remain unchanged. No GitHub Actions, merge, release or deployment is authorized.

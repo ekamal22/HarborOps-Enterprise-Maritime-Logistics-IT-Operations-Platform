@@ -121,3 +121,13 @@ The [M16 technical report](https://github.com/ekamal22/HarborOps-Enterprise-Mari
 ## G16 integration decision and acceptance (2026-11-06)
 
 The combined M9/M16 runtime at `79318c6b6126362a0b26a1452aad6d2b48fdf4b4` passed the reviewed technical gate through a preserved initial Firefox failure followed by a complete same-source browser and mutation supplement. The [G16 gate closure](M16_G16_GATE_CLOSURE.md) records explicit acceptance and four approved Option A choices: M9 immutable worker history as audit of record; the migration-time role provisioner as the sole combined authority; privileged migrator retained within its stated threat model; and F001 provisioner-installed guards accepted. Accepted M9 sustained-processing restrictions and the 10,000-item unresolved limit remain mandatory. Final source-diff review found and corrected the generation-zero F001 issue. The correction `8ba7727` passed 17/17 focused and 286/286 full integration tests plus an effective regression mutation. PR #25 was separately authorized and merged on 2026-11-06 at `47ba55e2c88556bc5ca0da7d50335ffc8c5ca56d`. No public deployment or full-product release is approved.
+
+## M10 local policy selection for G10, 2026-11-07
+
+M10-L01 through M10-L14 were approved with modifications to **L07** and **L14**, and **L06** conditioned on the L14 authorization boundary being implemented and verified. L01-L05 and L08-L13 retain the exact proposed contracts in `S01_PROPOSED_M10_LOCAL_POLICY_DECISIONS.md` from the submitted decision package. L06 retains its append-only, Manager-only, idempotent and same-shipment behavior, subject to the new database boundary.
+
+**L07:** A successful tracking correction must write an M16 audit event atomically with the immutable M10 correction and dependent effects; audit persistence failure rolls back the transaction. The original correction ledger remains authoritative specialized evidence, and an idempotent replay must not duplicate an audit event.
+
+**L14:** Ordinary API-role direct correction INSERT is no longer authorized as the target contract. The replacement constrained database operation must validate live authority and nonforgeable request provenance, even against a database-credential-only attacker who can read session IDs. Worker and projector rights stay restricted. Existing M16 audit and M9 operational boundaries remain unchanged.
+
+The [targeted remediation plan](M10_G10_L07_L14_REMEDIATION_PLAN.md) specifies implementation, test criteria and evidence requirements. This is a **policy decision**, not proof of code implementation. S01 policy selection is decided, but its verified implementation and G10 S25 gate acceptance are pending. No merge, deployment or release is authorized.

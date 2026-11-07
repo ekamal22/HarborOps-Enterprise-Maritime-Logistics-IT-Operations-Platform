@@ -41,6 +41,7 @@ services:
       AuditRoles__ApiPassword: "${HARBOROPS_API_DB_PASSWORD:?Set HARBOROPS_API_DB_PASSWORD in .env}"
       AuditRoles__WorkerPassword: "${HARBOROPS_WORKER_DB_PASSWORD:?Set HARBOROPS_WORKER_DB_PASSWORD in .env}"
       M10CorrectionProof__Key: "${HARBOROPS_M10_CORRECTION_PROOF_KEY:?Set HARBOROPS_M10_CORRECTION_PROOF_KEY in .env to a private base64 encoding of 32 random bytes}"
+      M12ExportProof__Key: "${HARBOROPS_M12_EXPORT_PROOF_KEY:-}"
       Identity__AllowInsecureLoopbackHttp: "true"
       Identity__KeyRingPath: "/tmp/keys"
     read_only: true
@@ -80,6 +81,7 @@ services:
       ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops_api;Password=${HARBOROPS_API_DB_PASSWORD:?Set HARBOROPS_API_DB_PASSWORD in .env}"
       Cors__AllowedOrigins__0: "http://localhost:5173"
       M10CorrectionProof__Key: "${HARBOROPS_M10_CORRECTION_PROOF_KEY:?Set HARBOROPS_M10_CORRECTION_PROOF_KEY in .env to a private base64 encoding of 32 random bytes}"
+      M12ExportProof__Key: "${HARBOROPS_M12_EXPORT_PROOF_KEY:-}"
     depends_on:
       migrator:
         condition: service_completed_successfully

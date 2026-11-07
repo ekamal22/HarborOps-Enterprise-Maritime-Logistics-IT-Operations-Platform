@@ -1,6 +1,6 @@
 # M11 Delay Rules and Shipment Exceptions: Architecture
 
-**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records separate incidents on reviewed-clearance recurrence, Resolve controls aligned with SQL and precise replay-error classification. These changes are unexecuted. G11-S01 BLOCKED on policy; G11-S02 through S25 NOT EXECUTED, acceptance pending. M9 transport processing remains held.
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents informational severity on inactive outcomes, versioned rule-metadata reconciliation and typed due-work continuation. The source changes and new tests are unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport-processing hold remains in force.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11-S01 is BLOCKED on policy approval; G11-S02 through G11-S25 remain NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
@@ -44,6 +44,10 @@ These are **provisional candidate choices requiring M11-01 approval**, not appro
 | M11-P12 | Sensitivity: human dispositions write one M16 central audit event atomically and append immutable M11 state history. System evaluation creates its own immutable rule history. Direct API-role SQL updates must not bypass Manager/session authorization. | Preserve G16 and G10 database defense-in-depth |
 
 Approval may alter the proposed rules. If a rule cannot be justified against accepted evidence, omit the rule rather than fabricate confidence. Explicitly distinguish `ActiveCondition`, `ClearedCondition`, `InsufficientEvidence` and `StaleInput`.
+
+## Sixth-pass provisional severity and fingerprint semantics
+
+An inactive condition must not retain severity appropriate only to an active qualifying rule: recorded timely arrival and inactive schedule or departure risks use Info, while their active variants retain High or Warning. The deterministic source fingerprint intentionally excludes severity, confidence and next-due metadata, so the signed evaluator's no-op path must also compare persisted visible metadata before skipping a versioned Reevaluated event. The due scanner's nullable UUID keyset bounds are explicitly typed. These remain provisional source invariants pending execution and policy approval.
 
 ## Fifth-pass provisional recurrence contract
 

@@ -1,6 +1,6 @@
 # M11 Source Implementation Status
 
-**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records separate incidents on reviewed-clearance recurrence, Resolve controls aligned with SQL and precise replay-error classification. These changes are unexecuted. G11-S01 BLOCKED on policy; G11-S02 through S25 NOT EXECUTED, acceptance pending. M9 transport processing remains held.
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents informational severity on inactive outcomes, versioned rule-metadata reconciliation and typed due-work continuation. The source changes and new tests are unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport-processing hold remains in force.
 
 **Date:** 2026-11-07
 **Branch:** `feat/m11-delay-exception-lifecycle`
@@ -45,6 +45,10 @@ The [fourth audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records the databas
 ## Fifth-pass correctness remediation
 
 The [fifth audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records a signed-evaluator recurrence fix: verified inactive Acknowledged occurrences are system-closed before a new Active occurrence opens. Unknown/Stale does not prove clearance. The UI restricts Resolve to Acknowledged/Inactive, and ActionAsync classifies only the replay primary-key unique violation as an expected uniqueness conflict. Integration and browser regression sources are committed but unexecuted. Recurrence across uncertainty and permanently active RecordedArrivalLate remain policy blockers.
+
+## Sixth-pass correctness remediation
+
+The [sixth source audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents corrected rule severity for inactive outcomes, a stronger no-op predicate that compares persisted metadata rather than condition/fingerprint alone, and explicit UUID typing of due-work keyset bounds. Pure rule unit and PostgreSQL integration test source were added. Build, SQL and browser verification remain NOT EXECUTED, as do policy approval and independent G11 review.
 
 ## Unexecuted checks and known limitations
 

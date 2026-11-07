@@ -1,12 +1,16 @@
 # M11 / G11 Source-Locked Verification Specification
 
-**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records separate incidents on reviewed-clearance recurrence, Resolve controls aligned with SQL and precise replay-error classification. These changes are unexecuted. G11-S01 BLOCKED on policy; G11-S02 through S25 NOT EXECUTED, acceptance pending. M9 transport processing remains held.
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents informational severity on inactive outcomes, versioned rule-metadata reconciliation and typed due-work continuation. The source changes and new tests are unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport-processing hold remains in force.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11 scenarios are NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
 **State:** Verification plan only, with a separate provisional implementation candidate. G11-S01 remains BLOCKED on local policy approval and executable scenarios remain NOT EXECUTED. G11 acceptance pending.
 **Scope:** M11 delay rules and shipment exceptions; FR-010, FR-009, FR-002, NFR-002, NFR-007. Base `6ead1d076946dd96b53401265a31efc35c4a666c`.
 **References:** [architecture and proposed policies](M11_ARCHITECTURE_DESIGN.md), [delivery plan](M11_IMPLEMENTATION_PLAN.md), [G10 closure](M10_G10_GATE_CLOSURE_20261107.md), [M9 hold](M9_G9_GATE_CLOSURE.md).
+
+## Sixth-pass mandatory regressions, NOT EXECUTED
+
+F11-039 through F11-041 require: pure rule tests for Info severity on inactive timely arrivals, not-yet-overdue schedule, and no current departure risk; High/Warning severity retained on active outcomes; a real PostgreSQL same-fingerprint severity mismatch repaired with exactly one versioned Reevaluated event and no duplicate on repeated evaluation; and keyset queries with nullable as well as populated UUID cursor bounds. Test the exact SQL migration and role grants against frozen source. No authored source check is a PASS.
 
 ## Fifth-pass change-impact scenarios, NOT EXECUTED
 

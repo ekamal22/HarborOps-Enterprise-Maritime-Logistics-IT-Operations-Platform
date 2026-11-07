@@ -1,6 +1,6 @@
 # M11 Planning Register
 
-**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records separate incidents on reviewed-clearance recurrence, Resolve controls aligned with SQL and precise replay-error classification. These changes are unexecuted. G11-S01 BLOCKED on policy; G11-S02 through S25 NOT EXECUTED, acceptance pending. M9 transport processing remains held.
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents informational severity on inactive outcomes, versioned rule-metadata reconciliation and typed due-work continuation. The source changes and new tests are unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport-processing hold remains in force.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11-S01 is BLOCKED on policy approval; G11-S02 through G11-S25 remain NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
@@ -8,6 +8,10 @@
 **Status:** Architecture, delivery sequence and G11 specification originated in a documentation-only planning branch. The separate draft implementation PR #31 now includes source corrections reviewed in the [audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md), with execution unverified. M11 policies and G11 acceptance pending.
 **Base:** protected `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`. G10 and G16 accepted and integrated. No release authorization.
 **Source of truth:** [Status](STATUS.md), [Roadmap](ROADMAP.md), [execution graph](execution-graph.json).
+
+## Sixth audit checkpoint
+
+Source changes now classify inactive rule outcomes as informational, reconcile differing visible rule metadata on a stable fingerprint with immutable reevaluation history, and explicitly type due-work UUID boundaries. The [sixth audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) is a source-review checkpoint, not a policy decision or G11 acceptance. All outstanding decision and runtime requirements persist.
 
 ## Fifth audit checkpoint
 

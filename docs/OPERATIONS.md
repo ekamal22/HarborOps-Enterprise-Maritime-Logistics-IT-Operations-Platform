@@ -1,11 +1,15 @@
 # Operations and Reliability
 
-**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records separate incidents on reviewed-clearance recurrence, Resolve controls aligned with SQL and precise replay-error classification. These changes are unexecuted. G11-S01 BLOCKED on policy; G11-S02 through S25 NOT EXECUTED, acceptance pending. M9 transport processing remains held.
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents informational severity on inactive outcomes, versioned rule-metadata reconciliation and typed due-work continuation. The source changes and new tests are unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport-processing hold remains in force.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
 **Accepted M9/G9 baseline (2026-11-05):** G9 was accepted with the mandatory [M9-01 transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). M9 is integrated into `main` through PR #16 (`43fe326`) and PR #18 (`4684352`). The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and residual limitations. No production or public deployment is authorized; sustained transport-event processing is held until M10 or another explicitly approved backlog mechanism is verified. Earlier planning or acceptance-pending language in historical subsections reflects the earlier project phase.
+
+## M11 sixth-pass operating observations
+
+The optional due scanner still uses a bounded organization/shipment UUID keyset with explicit casts. Repeated no-op evaluations refresh their due checkpoint; changed visible metadata requires a full versioned rule update, not an unnoticed stale display. Under G11 verification, track both event counts and scan progression while simulating an inactive/active severity recalibration. No production evaluator enablement is authorized.
 
 ## M11 unverified pagination operating boundary
 

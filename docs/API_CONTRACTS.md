@@ -86,6 +86,10 @@ The accepted [M4 architecture](M4_ARCHITECTURE_DESIGN.md) implements ten `/api/v
 
 The M5 shipment Minimal API implements the documented routes and was verified and accepted on 2026-11-02. See [G5 closure](M5_G5_GATE_CLOSURE.md) and [implementation status](M5_IMPLEMENTATION_STATUS.md).
 
+## M11 proposed exception routes, not yet implemented
+
+M11 proposes scoped `GET /api/v1/organizations/{organizationId}/shipments/{shipmentId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}` and versioned, idempotent Manager-only `PATCH /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`. See the [M11 architecture](M11_ARCHITECTURE_DESIGN.md) for request, response, evidence and role proposals. These are **not live routes**; M11 policy choices, implementation and G11 acceptance pending. No arrival certainty or ETA is implied by the proposed at-risk/overdue labels.
+
 ## Proposed resource map
 
 | Method | Route | Purpose | Access |

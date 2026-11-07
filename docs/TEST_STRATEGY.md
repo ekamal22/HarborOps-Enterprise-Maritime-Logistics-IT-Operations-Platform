@@ -21,6 +21,10 @@ Future changes require focused, source-locked verification of affected contracts
 
 The accepted M7 implementation contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 was accepted on 2026-11-03; the pinned reference snapshots are checked by `scripts/verify-dcsa-reference.mjs` and the M7 contract tests; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
 
+## Proposed M11/G11 validation (NOT EXECUTED)
+
+The [G11-S01 to G11-S25 matrix](M11_VERIFICATION_PLAN.md) defines rule truth tables, real tenant/session and restricted SQL role checks, M10 correction/rebuild races, an additive populated-baseline migration, M16 audit atomicity, due-clock/restart paths, cross-browser regressions, security mutants, evidence hashing and independent review. This is planning only: no G11 result has passed, policies and acceptance pending. Preserve the accepted M9 transport hold and null M10 ETA. See [M11 planning](M11_PLANNING_STATUS.md).
+
 ## Philosophy
 
 Test domain invariants, integration boundaries, security boundaries, and operational recovery before investing in visual polish. All results must be reproducible and linked to an exact commit, environment, and dataset seed.

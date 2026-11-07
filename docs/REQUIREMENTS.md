@@ -50,6 +50,10 @@ All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_PO
 | FR-021 | Could | Add an optional adapter for permitted external tracking APIs | Sandbox contract tests |
 | FR-022 | Could | Add external SSO and enterprise identity mapping | Integration/security review |
 
+## Proposed M11 FR-010 requirement allocation
+
+The [M11 architecture](M11_ARCHITECTURE_DESIGN.md), [implementation plan](M11_IMPLEMENTATION_PLAN.md) and [G11 matrix](M11_VERIFICATION_PLAN.md) propose deterministic, explainable and tenant-scoped schedule-risk, recorded-workflow delay, and M10 equipment-conflict rules. FR-010 is **not yet implemented or accepted**. FR-009 supplies the accepted corrected timeline and explicitly null ETA; FR-002/NFR-002 secure scoped exceptions and NFR-007 requires UTC comparisons. M11 cannot consume parked ARRI/DEPA as resolved transport evidence, bypass the 10,000-work cap, or claim a physical arrival prediction. M11 rule choices and G11 acceptance pending.
+
 ## M1 identity requirement allocation
 
 [The accepted M1 design](M1_AUTHENTICATION_DESIGN.md) addresses `FR-001`, `NFR-002` and `NFR-003` for identity, credentials, cookies, keys and logs. Organization and role authorization is `FR-002`, implemented and accepted in M2; integration source authentication was implemented and accepted in M7. Human browser sessions use protected cookies, not browser JWT/refresh-token storage. D-001/G1 and G2 are accepted. The [M2 architecture](M2_ARCHITECTURE_DESIGN.md) and [executed G2 verification](M2_EXECUTED_VERIFICATION.md) record the completed tenant-isolation implementation on `main`.

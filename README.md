@@ -17,6 +17,8 @@ HarborOps is designed to run locally with free, self-hosted development tools. O
 
 ### Planning source of truth
 
+The [proposed M11 architecture](docs/M11_ARCHITECTURE_DESIGN.md), [implementation plan](docs/M11_IMPLEMENTATION_PLAN.md), [G11 verification matrix](docs/M11_VERIFICATION_PLAN.md) and [planning register](docs/M11_PLANNING_STATUS.md) define the next delay/exception delivery candidate. They do not constitute policy approval, implemented functionality or G11 acceptance.
+
 - [Product Requirements Document](docs/PRD.md) defines intended users, product scope, outcomes, and release priorities.
 - [Delivery Roadmap](docs/ROADMAP.md) defines milestone deliverables, entry criteria, and evidence-based exit gates.
 - [Local Storage Policy](docs/LOCAL_STORAGE_POLICY.md) requires all controlled persistent development storage on E: and limits C: use to unavoidable temporary system activity.

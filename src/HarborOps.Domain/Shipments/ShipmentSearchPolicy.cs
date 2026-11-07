@@ -40,7 +40,8 @@ public sealed record ShipmentSearchFilters(
         if (from.HasValue != before.HasValue) throw new ArgumentException("Both UTC bounds required");
         if (from is null) return;
         if (from.Value.Offset != TimeSpan.Zero || before!.Value.Offset != TimeSpan.Zero ||
-            before <= from || before - from > TimeSpan.FromDays(366))
+            before.Value <= from.Value ||
+            before.Value - from.Value > TimeSpan.FromDays(366))
             throw new ArgumentException("Invalid UTC window");
     }
 

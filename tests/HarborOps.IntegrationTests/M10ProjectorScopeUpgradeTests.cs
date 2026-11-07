@@ -103,7 +103,7 @@ public sealed class M10ProjectorScopeUpgradeTests
         {
             await using var db = Context(scoped);
             await db.Database.MigrateAsync();
-            Assert.Equal(13, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(14, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Empty(await db.Database.GetPendingMigrationsAsync());
             Assert.False(db.Database.HasPendingModelChanges());
 
@@ -256,7 +256,7 @@ public sealed class M10ProjectorScopeUpgradeTests
 
             // Upgrade the genuinely historical database.
             await db.Database.MigrateAsync();
-            Assert.Equal(13, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(14, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Empty(await db.Database.GetPendingMigrationsAsync());
             Assert.Equal(historyBefore, await Scalar(scoped, HistoryRows));
             Assert.Equal(evidenceBefore, await M10UpgradeTests.Fingerprint(scoped));
@@ -292,7 +292,7 @@ public sealed class M10ProjectorScopeUpgradeTests
 
             // Idempotency: running the migrator again changes nothing.
             await db.Database.MigrateAsync();
-            Assert.Equal(13, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(14, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(upgraded, await Function(scoped, schema));
 
             // Reversible without retained authority evidence: the downgrade restores the exact

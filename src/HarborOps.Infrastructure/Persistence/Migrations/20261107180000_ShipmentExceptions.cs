@@ -359,6 +359,8 @@ public sealed class ShipmentExceptions : Migration
                 row_condition text;
                 row_version bigint;
                 row_shipment uuid;
+                row_shipment_state text;
+                current_org text;
                 row_shipment_version bigint;
                 row_input_revision bigint;
                 row_generation bigint;
@@ -393,6 +395,13 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Exception action authority denied' USING ERRCODE='42501';
                 END IF;
 
+                -- Match the established organization-first lock order before
+                -- locking the session or exception row.
+                SELECT status INTO current_org FROM public.organizations
+                    WHERE id=p_org FOR SHARE;
+                IF current_org IS DISTINCT FROM 'Active' THEN
+                    RAISE EXCEPTION 'Exception action authority denied' USING ERRCODE='42501';
+                END IF;
                 -- A valid UUID is not a grant. Lock the live session and role before mutation.
                 SELECT EXISTS (
                     SELECT 1 FROM public.auth_sessions s
@@ -414,21 +423,24 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Exception action authority denied' USING ERRCODE='42501';
                 END IF;
 
-                SELECT shipment_id,lifecycle_state,condition_state,version,
-                    shipment_version,tracking_input_revision,correction_generation
-                INTO row_shipment,row_state,row_condition,row_version,
-                    row_shipment_version,row_input_revision,row_generation
-                FROM public.shipment_exceptions
-                WHERE id=p_exception AND organization_id=p_org FOR UPDATE;
+                -- Read the immutable scope first, then lock the shipment before
+                -- the exception, matching the evaluation mutation lock order.
+                SELECT shipment_id INTO row_shipment FROM public.shipment_exceptions
+                    WHERE id=p_exception AND organization_id=p_org;
                 IF row_shipment IS NULL THEN
                     RAISE EXCEPTION 'Exception not found' USING ERRCODE='PZ003';
                 END IF;
-                IF NOT EXISTS (
-                    SELECT 1 FROM public.shipments WHERE organization_id=p_org
-                        AND id=row_shipment AND record_status='Active' FOR SHARE
-                ) THEN
+                SELECT record_status INTO row_shipment_state FROM public.shipments
+                    WHERE organization_id=p_org AND id=row_shipment FOR SHARE;
+                IF row_shipment_state IS DISTINCT FROM 'Active' THEN
                     RAISE EXCEPTION 'Exception scope inactive' USING ERRCODE='42501';
                 END IF;
+                SELECT lifecycle_state,condition_state,version,shipment_version,
+                    tracking_input_revision,correction_generation
+                INTO row_state,row_condition,row_version,row_shipment_version,
+                    row_input_revision,row_generation
+                FROM public.shipment_exceptions
+                WHERE id=p_exception AND organization_id=p_org FOR UPDATE;
 
                 SELECT request_digest,response_version INTO saved_digest,saved_version
                 FROM public.shipment_exception_replays

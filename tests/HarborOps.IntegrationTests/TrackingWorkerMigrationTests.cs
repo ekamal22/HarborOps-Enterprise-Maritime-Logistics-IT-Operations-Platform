@@ -61,7 +61,7 @@ public sealed class TrackingWorkerMigrationTests
                 .SingleAsync(x => x.ReceiptId == received.ReceiptId);
 
             await db.Database.MigrateAsync();
-            Assert.Equal(13, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(14, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Empty(await db.Database.GetPendingMigrationsAsync());
             Assert.False(db.Database.HasPendingModelChanges());
             var after = await db.TrackingInboxReceipts.AsNoTracking()

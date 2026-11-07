@@ -328,6 +328,31 @@ public sealed class ShipmentExceptions : Migration
                   AND rule_code=p_rule AND lifecycle_state<>'Resolved'
                 FOR UPDATE;
 
+                -- An Acknowledged occurrence whose condition was confirmed
+                -- inactive represents a cleared historical incident. If the
+                -- condition recurs before Manager review, close that incident
+                -- and open a separate, actionable occurrence. Unknown/Stale
+                -- is not proof of clearance and never starts a new occurrence.
+                IF p_condition='Active' AND existing_id IS NOT NULL
+                   AND existing_state='Acknowledged'
+                   AND existing_condition='Inactive' THEN
+                    UPDATE shipment_exceptions SET
+                        lifecycle_state='Resolved',
+                        resolved_at_utc=clock_timestamp(),
+                        last_evaluated_at_utc=clock_timestamp(),
+                        version=version+1
+                    WHERE id=existing_id;
+                    INSERT INTO shipment_exception_history
+                        (organization_id,exception_id,action,old_state,new_state,
+                         actor_kind,reason,source_fingerprint)
+                    SELECT p_org,existing_id,'AutoResolved','Acknowledged',
+                           'Resolved','System',
+                           'Prior cleared occurrence superseded by recurrence',
+                           source_fingerprint
+                    FROM shipment_exceptions WHERE id=existing_id;
+                    existing_id := NULL;
+                END IF;
+
                 IF p_condition='Active' AND existing_id IS NULL THEN
                     SELECT COALESCE(MAX(occurrence),0)+1 INTO next_occurrence
                     FROM shipment_exceptions WHERE organization_id=p_org

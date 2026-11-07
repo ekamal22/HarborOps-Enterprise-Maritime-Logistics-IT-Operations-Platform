@@ -44,6 +44,12 @@ The current Compose integration leaves the M12 environment variable optional to 
 
 **All of the above are authored test sources, not executed test evidence.** The restricted-role fixture changes a PostgreSQL cluster-wide role password. Run it only in an exclusive disposable G12 instance, never concurrently with another mutable integration campaign. Test results and unexpected failures must be retained with the final SHA.
 
+## Final source consistency supplement
+
+The last implementation/test source change before this documentation supplement is `facc3a04906464a843029da7e24c1f8638aeaacc`. At that exact SHA, 18 targeted cross-file **static assertions were source-consistent**, covering two-service Compose proof key scoping, authenticated cursor actor/session binding, restrictive exports and same-origin checks, HMAC version and bound fields, SQL expiry/signature verification, unique-correlation replay defense, migrator-only key table/grants, event name/test allowlist, migration discovery, stable M5 workflow selector and missing/mismatched key test sources. These are only textual/source consistency results, not compiled, executable, integration, scan, performance, browser or gate PASS outcomes.
+
+The broader repo-diff review found only expected M12 source/tests/docs and additive `compose.yaml` / `.env.example` configuration changes. No .github workflow, accepted M9/M10 source, docker image definition, shared retained data or `main` was altered by this audit. The eight central M12/security/operations documents tested for relative Markdown links had zero missing referenced repository paths. The PR remains draft.
+
 ## Mandatory next verification and acceptance
 
 1. Freeze the final branch SHA after documentation reconciliation. On an isolated E:-backed worktree, run .NET release compilation and unit/contract suites, web build, and planning/status docs checks without running GitHub Actions.

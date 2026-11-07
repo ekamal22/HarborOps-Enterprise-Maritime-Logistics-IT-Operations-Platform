@@ -189,8 +189,8 @@ test("M5 deferred shipment response cannot cross organization switch",async ({pa
   let waiting;
   const entered=new Promise(resolve=>{waiting=resolve;});
   let intercepted=false;
-  await page.route("**/api/v1/organizations/*/shipments?*",async route=>{
-    if(!intercepted && route.request().url().includes("/"+northId+"/shipments?") &&
+  await page.route("**/api/v1/organizations/*/shipments/search?*",async route=>{
+    if(!intercepted && route.request().url().includes("/"+northId+"/shipments/search?") &&
       route.request().method()==="GET"){
       intercepted=true;waiting();
       await held;

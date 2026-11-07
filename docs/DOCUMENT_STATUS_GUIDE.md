@@ -1,5 +1,7 @@
 # Documentation Status Guide
 
+**M12 implementation candidate (2026-11-07):** New search and export services, UI and test sources exist on `feat/m12-shipment-search-export` only. No G12 tests, migrations, browser suites, scans or independent review have been executed in this source-editing environment. Acceptance pending. See [M12 status](M12_IMPLEMENTATION_STATUS.md), [architecture](M12_ARCHITECTURE_DESIGN.md), [policy](M12_PLANNING_STATUS.md) and [G12 verification](M12_VERIFICATION_PLAN.md). The M11/M12 migration-14 collision requires coordination before integration; the M9 hold remains unchanged.
+
 **Current integrated baseline (2026-11-07):** M0-M10/G0-G10 and M16/G16 are accepted and integrated into protected `main`. Original M10 PR #23 plus remediation [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` complete the G10 integration. G11-G15 and G17-G24 remain unaccepted. The [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) and [project status](STATUS.md) are authoritative for current decisions.
 **Current documentation reconciliation:** [G10 post-merge record](M10_G10_POST_MERGE_RECONCILIATION_20261107.md) indexes the current-state changes without rewriting historical evidence reports.
 

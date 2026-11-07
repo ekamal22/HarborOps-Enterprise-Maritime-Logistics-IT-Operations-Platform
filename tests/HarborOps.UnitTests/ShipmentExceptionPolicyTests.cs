@@ -52,6 +52,18 @@ public sealed class ShipmentExceptionPolicyTests
     }
 
     [Fact]
+    public void CompletedWithoutArrivedHistoryClearsOverdueButNotLateArrival()
+    {
+        var input = Input(arrival: T0.AddHours(-4), workflow: "Completed");
+        Assert.Equal("Inactive", Rule(input,
+            ShipmentExceptionPolicy.ArrivalScheduleOverdue).Condition);
+        Assert.Equal("recorded_completion_exists", Rule(input,
+            ShipmentExceptionPolicy.ArrivalScheduleOverdue).ReasonCode);
+        Assert.Equal("Unknown", Rule(input,
+            ShipmentExceptionPolicy.RecordedArrivalLate).Condition);
+    }
+
+    [Fact]
     public void DepartureRiskNeedsRecordedWorkflowAndFutureArrival()
     {
         var input = Input(departure: T0.AddHours(-3),

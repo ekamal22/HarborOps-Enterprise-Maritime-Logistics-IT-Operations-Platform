@@ -129,6 +129,17 @@ public static class ShipmentExceptionPolicy
                         ? "recorded_arrival_after_grace" : "recorded_arrival_within_grace",
                     input.RecordedArrivalAtUtc, arrivalBoundary, null, "RecordedWorkflow"));
             }
+            else if (input.WorkflowStatus == "Completed")
+            {
+                // A completed manual workflow clears overdue schedule risk even
+                // if no independent Arrived transition was recorded.
+                results.Add(Build(ArrivalScheduleOverdue, "Inactive", "Info",
+                    "recorded_completion_exists", null, arrivalBoundary, null,
+                    "RecordedWorkflow"));
+                results.Add(Build(RecordedArrivalLate, "Unknown", "Info",
+                    "recorded_arrival_missing", null, arrivalBoundary, null,
+                    "Unverified"));
+            }
             else
             {
                 var condition = evaluationAtUtc > arrivalBoundary ? "Active" : "Inactive";

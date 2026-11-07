@@ -146,8 +146,10 @@ public sealed class ShipmentExceptions : Migration
                 expires_at_utc timestamptz NOT NULL,
                 CONSTRAINT ck_m11_nonce_operation CHECK (operation IN ('Evaluation','Disposition'))
             );
-            CREATE TRIGGER tr_m11_immutable_nonces BEFORE UPDATE OR DELETE
-                ON shipment_exception_proof_nonces FOR EACH ROW EXECUTE FUNCTION m10_append_only();
+            -- Ephemeral signing nonces are pruned after proof expiry.
+            -- Runtime API credentials cannot delete them directly.
+            CREATE INDEX ix_m11_nonce_expiry ON shipment_exception_proof_nonces
+                (expires_at_utc,nonce);
             REVOKE ALL ON shipment_exception_proof_nonces FROM PUBLIC;
 
             CREATE FUNCTION m11_apply_signed_evaluation(
@@ -223,7 +225,7 @@ public sealed class ShipmentExceptions : Migration
                 IF current_version IS NULL THEN
                     RAISE EXCEPTION 'Shipment not found' USING ERRCODE='PZ003';
                 END IF;
-                SELECT COALESCE(v.revision,0) INTO current_input
+                SELECT COALESCE(v.input_revision,0) INTO current_input
                     FROM shipment_tracking_input_versions v
                     WHERE v.organization_id=p_org AND v.shipment_id=p_shipment;
                 current_input := COALESCE(current_input,0);
@@ -250,6 +252,12 @@ public sealed class ShipmentExceptions : Migration
                     END IF;
                 END IF;
 
+                DELETE FROM shipment_exception_proof_nonces
+                WHERE nonce IN (
+                    SELECT nonce FROM shipment_exception_proof_nonces
+                    WHERE expires_at_utc < clock_timestamp() - interval '1 minute'
+                    ORDER BY expires_at_utc,nonce LIMIT 64 FOR UPDATE SKIP LOCKED
+                );
                 INSERT INTO shipment_exception_proof_nonces
                     (nonce,organization_id,shipment_id,operation,expires_at_utc)
                 VALUES (p_nonce,p_org,p_shipment,'Evaluation',to_timestamp(p_expires));
@@ -292,7 +300,9 @@ public sealed class ShipmentExceptions : Migration
                         (organization_id,exception_id,action,new_state,actor_kind,source_fingerprint)
                     VALUES (p_org,exception_id,'Opened','Open','System',p_fingerprint);
                 ELSIF existing_id IS NOT NULL THEN
-                    IF p_condition='Inactive' THEN
+                    IF p_condition='Inactive' AND existing_state='Open' THEN
+                        -- Acknowledged occurrences stay open but inactive until
+                        -- an authorized Manager reviews the clearance.
                         UPDATE shipment_exceptions SET
                             lifecycle_state='Resolved',condition_state=p_condition,
                             resolved_at_utc=clock_timestamp(),last_evaluated_at_utc=clock_timestamp(),
@@ -461,14 +471,14 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Exception cannot be acknowledged' USING ERRCODE='PZ005';
                 END IF;
                 IF p_action='Resolve' AND
-                    (row_state='Resolved' OR row_condition <> 'Inactive') THEN
+                    (row_state <> 'Acknowledged' OR row_condition <> 'Inactive') THEN
                     RAISE EXCEPTION 'Exception cannot be resolved' USING ERRCODE='PZ005';
                 END IF;
                 IF row_shipment_version IS DISTINCT FROM (
                     SELECT version FROM shipments WHERE organization_id=p_org
                         AND id=row_shipment
                 ) OR row_input_revision IS DISTINCT FROM COALESCE((
-                    SELECT revision FROM shipment_tracking_input_versions
+                    SELECT input_revision FROM shipment_tracking_input_versions
                     WHERE organization_id=p_org AND shipment_id=row_shipment
                 ),0) OR row_generation IS DISTINCT FROM COALESCE((
                     SELECT generation FROM shipment_tracking_correction_heads
@@ -477,6 +487,12 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Exception source changed' USING ERRCODE='PZ004';
                 END IF;
 
+                DELETE FROM shipment_exception_proof_nonces
+                WHERE nonce IN (
+                    SELECT nonce FROM shipment_exception_proof_nonces
+                    WHERE expires_at_utc < clock_timestamp() - interval '1 minute'
+                    ORDER BY expires_at_utc,nonce LIMIT 64 FOR UPDATE SKIP LOCKED
+                );
                 INSERT INTO shipment_exception_proof_nonces
                     (nonce,organization_id,shipment_id,operation,expires_at_utc)
                 VALUES (p_nonce,p_org,row_shipment,'Disposition',to_timestamp(p_expires));

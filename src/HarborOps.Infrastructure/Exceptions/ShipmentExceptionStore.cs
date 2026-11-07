@@ -145,7 +145,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                    COALESCE(p.observed_state,'Unknown'),
                    p.input_revision,p.correction_generation,p.policy_version,
                    p.input_digest,p.last_occurred_at_utc,
-                   COALESCE(v.revision,0),COALESCE(h.generation,0)
+                   COALESCE(v.input_revision,0),COALESCE(h.generation,0)
             FROM shipments s
             JOIN organizations o ON o.id=s.organization_id AND o.status='Active'
             LEFT JOIN shipment_tracking_input_versions v
@@ -330,7 +330,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                         SELECT 1 FROM shipment_exception_evaluations e
                         WHERE e.organization_id=s.organization_id AND e.shipment_id=s.id
                           AND (e.shipment_version<>s.version
-                            OR e.tracking_input_revision<>COALESCE(v.revision,0)
+                            OR e.tracking_input_revision<>COALESCE(v.input_revision,0)
                             OR e.correction_generation<>COALESCE(h.generation,0)
                             OR (e.next_evaluation_at_utc IS NOT NULL
                                 AND e.next_evaluation_at_utc<=clock_timestamp())

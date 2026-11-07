@@ -213,6 +213,52 @@ public sealed class M11ExceptionRuntimeTests
     }
 
     [Fact]
+    public async Task AcknowledgedExceptionCanBeResolvedAfterSourceClearance()
+    {
+        var s = await Prepare();
+        using var f = s.Factory; using var runtime = s.Runtime;
+        using var a = s.Fixture.Admin; using var m = s.Fixture.Manager;
+        using var n = s.Fixture.Analyst;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        var shipment = await ScheduledShipment(s);
+        var id = await EvaluateAndFind(s, shipment);
+        var root = Collection(s.Fixture.A) + "/" + id;
+        using (var ack = await SendAction(manager, root,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Review recorded overdue arrival" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, ack.StatusCode);
+        var url = $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}";
+        using (var transit = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, url, new { expectedVersion = 3L, workflowStatus = "InTransit" }))
+            Assert.Equal(HttpStatusCode.OK, transit.StatusCode);
+        using (var arrival = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, url, new { expectedVersion = 4L, workflowStatus = "Arrived" }))
+            Assert.Equal(HttpStatusCode.OK, arrival.StatusCode);
+        using (var scan = await ReferenceDataHttpTests.Send(manager, HttpMethod.Post,
+            url + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, scan.StatusCode);
+        using (var detail = await manager.GetAsync(root))
+        {
+            var record = (await detail.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("exception");
+            Assert.Equal("Inactive", record.GetProperty("condition").GetString());
+            Assert.Equal("Acknowledged", record.GetProperty("state").GetString());
+            Assert.Equal(3L, record.GetProperty("version").GetInt64());
+        }
+        using (var resolved = await SendAction(manager, root,
+            new { action = "Resolve", expectedVersion = 3L,
+                reason = "Reviewed the recorded workflow clearance" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, resolved.StatusCode);
+        await using var db = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>()
+                .UseNpgsql(s.Roles.Admin).Options);
+        Assert.Equal(1L, await db.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM audit_entries WHERE resource_id={0} AND event_type='shipment.exception_resolved'",
+            id).SingleAsync());
+    }
+
+    [Fact]
     public async Task NullSchedulesAreUnknownNotInventedDelays()
     {
         var s = await Prepare();

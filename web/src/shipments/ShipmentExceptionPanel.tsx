@@ -10,7 +10,7 @@ type ExceptionRow = {
   firstDetectedAtUtc: string; lastEvaluatedAtUtc: string;
   resolvedAtUtc: string | null; version: number;
 };
-type ExceptionPage = { items: ExceptionRow[]; nextAfter: string | null };
+type ExceptionPage = { items: ExceptionRow[]; nextCursor: string | null };
 type ExceptionHistory = {
   id: string; action: string; oldState: string | null; newState: string;
   actorKind: string; occurredAtUtc: string; reason: string | null;
@@ -59,7 +59,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
     try {
       const page = await getJson<ExceptionPage>(shipmentRoot + "/exceptions?limit=25");
       if (run !== serial.current) return;
-      setRows(page.items); setCursor(page.nextAfter);
+      setRows(page.items); setCursor(page.nextCursor);
     } catch (cause) {
       if (run !== serial.current) return;
       setRows([]); setError(organizationError(cause)); invalidate(cause);
@@ -79,11 +79,11 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
     setPaging(true); setError("");
     try {
       const page = await getJson<ExceptionPage>(shipmentRoot +
-        "/exceptions?limit=25&after=" + encodeURIComponent(cursor));
+        "/exceptions?limit=25&cursor=" + encodeURIComponent(cursor));
       if (run !== serial.current) return;
       setRows(current => [...current,
         ...page.items.filter(x => !current.some(y => y.id === x.id))]);
-      setCursor(page.nextAfter);
+      setCursor(page.nextCursor);
     } catch (cause) {
       if (run !== serial.current) return;
       setError(organizationError(cause)); invalidate(cause);

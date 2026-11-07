@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using HarborOps.Api.Audit;
+using HarborOps.Infrastructure.Shipments;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -144,7 +145,8 @@ public sealed class ShipmentSearchHttpTests
                 new Dictionary<string, string?> {
                     ["AuditRoles:ApiPassword"] = apiPassword,
                     ["AuditRoles:WorkerPassword"] = workerPassword,
-                    ["M10CorrectionProof:Key"] = ReferenceDataHttpTests.CorrectionProofKey
+                    ["M10CorrectionProof:Key"] = ReferenceDataHttpTests.CorrectionProofKey,
+                    ["M12ExportProof:Key"] = ReferenceDataHttpTests.ExportProofKey
                 }).Build();
             await AuditRoleProvisioner.ProvisionAsync(db, config, CancellationToken.None);
         }
@@ -198,7 +200,8 @@ public sealed class ShipmentSearchHttpTests
             await using (var missing = new NpgsqlCommand("""
                 SELECT public.m12_record_shipment_export(
                     NULL::uuid, NULL::uuid, NULL::uuid, NULL::integer,
-                    NULL::bigint, NULL::varchar, NULL::varchar)
+                    NULL::bigint, NULL::varchar, NULL::varchar,
+                    NULL::bigint, NULL::varchar)
                 """, direct))
             {
                 await Assert.ThrowsAsync<PostgresException>(
@@ -207,7 +210,7 @@ public sealed class ShipmentSearchHttpTests
             await using (var forged = new NpgsqlCommand("""
                 SELECT public.m12_record_shipment_export(
                     @org, @user, @session, 1, 128,
-                    @digest, @correlation)
+                    @digest, @correlation, @expires, @signature)
                 """, direct))
             {
                 forged.Parameters.AddWithValue("org", fixture.A);
@@ -215,6 +218,8 @@ public sealed class ShipmentSearchHttpTests
                 forged.Parameters.AddWithValue("session", Guid.NewGuid());
                 forged.Parameters.AddWithValue("digest", new string('A', 64));
                 forged.Parameters.AddWithValue("correlation", Guid.NewGuid().ToString("N"));
+                forged.Parameters.AddWithValue("expires", DateTimeOffset.UtcNow.AddSeconds(30).ToUnixTimeSeconds());
+                forged.Parameters.AddWithValue("signature", new string('0', 64));
                 await Assert.ThrowsAsync<PostgresException>(
                     () => forged.ExecuteNonQueryAsync());
             }
@@ -235,12 +240,66 @@ public sealed class ShipmentSearchHttpTests
             Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, sqlError.SqlState);
         }
 
+        Guid actorId;
+        Guid sessionId;
+        await using (var scope = seedFactory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            actorId = await db.AuthUsers.AsNoTracking()
+                .Where(u => u.Email == fixture.ManagerEmail).Select(u => u.Id).SingleAsync();
+            sessionId = await db.AuthSessions.AsNoTracking()
+                .Where(x => x.UserId == actorId && x.SelectedOrganizationId == fixture.A &&
+                    x.RevokedAtUtc == null)
+                .OrderByDescending(x => x.IssuedAtUtc).Select(x => x.Id).FirstAsync();
+        }
+        var digest = new string('A', 64);
+        var correlation = Guid.NewGuid().ToString("N");
+        var proof = M12ExportProofSigner.Sign(ReferenceDataHttpTests.ExportProofKey,
+            fixture.A, actorId, sessionId, 1, 128, digest, correlation,
+            TimeProvider.System)!;
+        Assert.NotNull(proof);
+        await using (var direct = new NpgsqlConnection(csb.ConnectionString))
+        {
+            await direct.OpenAsync();
+            // The proof is bound to the actor and transaction metadata.
+            await using var signed = new NpgsqlCommand("""
+                SELECT public.m12_record_shipment_export(
+                    @org, @actor, @session, @rows, @bytes,
+                    @digest, @correlation, @expires, @signature)
+                """, direct);
+            signed.Parameters.AddWithValue("org", fixture.A);
+            signed.Parameters.AddWithValue("actor", actorId);
+            signed.Parameters.AddWithValue("session", sessionId);
+            signed.Parameters.AddWithValue("rows", 1);
+            signed.Parameters.AddWithValue("bytes", 128L);
+            signed.Parameters.AddWithValue("digest", digest);
+            signed.Parameters.AddWithValue("correlation", correlation);
+            signed.Parameters.AddWithValue("expires", proof.ExpiresEpoch);
+            signed.Parameters.AddWithValue("signature", proof.Signature);
+
+            signed.Parameters["actor"].Value = Guid.NewGuid();
+            var altered = await Assert.ThrowsAsync<PostgresException>(
+                () => signed.ExecuteNonQueryAsync());
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, altered.SqlState);
+
+            signed.Parameters["actor"].Value = actorId;
+            await signed.ExecuteNonQueryAsync();
+            var replay = await Assert.ThrowsAsync<PostgresException>(
+                () => signed.ExecuteNonQueryAsync());
+            Assert.Equal(PostgresErrorCodes.UniqueViolation, replay.SqlState);
+            await using var keyRead = new NpgsqlCommand(
+                "SELECT secret FROM public.m12_export_proof_keys", direct);
+            var keyError = await Assert.ThrowsAsync<PostgresException>(
+                () => keyRead.ExecuteScalarAsync());
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, keyError.SqlState);
+        }
+
         await using var verifyScope = seedFactory.Services.CreateAsyncScope();
         var verification = verifyScope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         var events = await verification.AuditEntries.AsNoTracking().Where(e =>
             e.OrganizationId == fixture.A && e.EventType == "shipment.export_prepared")
             .ToListAsync();
-        Assert.Equal(2, events.Count);
+        Assert.Equal(3, events.Count);
         Assert.All(events, e =>
         {
             Assert.Equal("Succeeded", e.Outcome);

@@ -335,7 +335,7 @@ public sealed class M10RuntimeIdentityTests
         Assert.Equal(1, await Count(s.Roles.Admin, """
             SELECT COUNT(*) FROM audit_entries
             WHERE organization_id=@o AND event_type='shipment.tracking_correction_created'
-              AND actor_user_id=@u
+              AND outcome='Succeeded' AND actor_user_id=@u
             """, ("o", s.Fixture.A), ("u", s.Actor)));
         Assert.Equal(1, await Count(s.Roles.Admin, """
             SELECT generation FROM shipment_tracking_correction_heads

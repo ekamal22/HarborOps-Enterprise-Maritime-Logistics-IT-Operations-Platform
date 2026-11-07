@@ -58,3 +58,9 @@ A [source-locked correctness audit](M10_SOURCE_CORRECTNESS_AUDIT.md) of runtime 
 | Explicit G10 acceptance and merge | PENDING |
 
 **Next action:** Run a dedicated source-locked local G10 campaign on E:, remediate any compile/runtime defects without overwriting original evidence, resolve M10-local decisions, and obtain independent verification and explicit acceptance. No milestone gate is closed by the presence of this implementation register.
+
+## Superseding policy update, 2026-11-07
+
+M10-L01 to M10-L14 policy selection is approved, with L07 requiring atomic M16 correction audit, L14 requiring constrained database correction authority with unforgeable actor/session provenance, and L06 conditional on the L14 guarantee. The [G10 L07/L14 remediation plan](M10_G10_L07_L14_REMEDIATION_PLAN.md) records exact requirements, proposed execution stages and negative tests. Prior statements above about pending policy selection describe earlier historical status, not the current decision.
+
+**Implementation and new-source tests remain pending.** Earlier G10 A1-A7 raw evidence independently supports the frozen source `3e81b884b6a4cc782f84c58510793666786c5796`, not the as-yet-unimplemented security changes. Preserve earlier evidence, run focused source-locked tests on E:, then independently review the supplemental package. G10 acceptance, merging, release and deployment remain pending or unauthorized as applicable.

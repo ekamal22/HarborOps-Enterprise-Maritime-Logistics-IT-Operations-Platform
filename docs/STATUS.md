@@ -148,3 +148,9 @@ G0 does not depend on any retained local Docker volume. Fresh disposable databas
 The fourteen M10 local policies are approved with changes to L07 and L14 and a condition on L06. The decision is recorded in [DECISIONS](DECISIONS.md), and the [L07/L14 remediation plan](M10_G10_L07_L14_REMEDIATION_PLAN.md) defines atomic central correction auditing, correction-write authority and actor/session proof, real-login adversarial tests and narrow M9/M16 regressions.
 
 The existing independent G10 evidence review supports the frozen source `3e81b884b6a4cc782f84c58510793666786c5796`; it does not verify these new changes. S01 source conformance and S25 formal gate acceptance remain pending. The corrected G10 verification source has not been merged to main. The M9 transport hold and unresolved-work admission cap remain unchanged. No GitHub Actions, merge, release or deployment is authorized.
+
+## G10 remediation implementation checkpoint, 2026-11-07
+
+The approved M10-L07/L14 changes are committed on `fix/m10-g10-l07-l14-remediation`. New-source correction authorization now requires a signed request verified by migration-owned PostgreSQL code; an authorized correction records its M16 event transactionally. The API role's direct correction INSERT grant is removed. The added migration increases the current source inventory to thirteen; prior reviewed G10 evidence correctly describes the original twelve-migration source.
+
+See [implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) and [targeted verification plan](M10_G10_L07_L14_REMEDIATION_PLAN.md). No executable runtime verification has been completed on this new source. New-source S01 conformance and the formal S25 decision are pending. No merge, deployment, release or GitHub Actions run is authorized.

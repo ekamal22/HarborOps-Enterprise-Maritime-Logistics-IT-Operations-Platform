@@ -1,5 +1,7 @@
 # HarborOps Product Requirements Document
 
+**M12 second-pass source audit, 2026-11-08:** [Findings and remediation](M12_CORRECTNESS_AUDIT_20261108.md) add the mandatory audit-history downgrade guard, 4,096-character URL limit, 15-second per-statement and 30-second export budgets, expanded restricted-role and signed-proof test sources, and a missing hosting extension import. The M12 candidate remains draft PR #32; these fixes are unexecuted at runtime, G12 acceptance pending. Existing accepted G0-G10/G16 controls and the M9 hold remain unchanged.
+
 **M12 implementation checkpoint (2026-11-07):** FR-011 search and FR-013 authorized export have a source candidate on draft PR #32, including signed export-preparation audit, fixed CSV fields and isolated React controls. No .NET/PostgreSQL/browser technical G12 campaign has been executed; no requirement is marked accepted by source authorship. The [M12 correctness audit](M12_CORRECTNESS_AUDIT_20261107.md), [candidate contract](M12_ARCHITECTURE_DESIGN.md) and [G12 matrix](M12_VERIFICATION_PLAN.md) govern open verification. No change to the canonical graph, accepted M9 transport hold, product scope or release decision.
 
 

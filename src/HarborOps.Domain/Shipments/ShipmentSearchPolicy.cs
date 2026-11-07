@@ -63,8 +63,12 @@ public static class ShipmentCsv
     public static string Cell(string? value)
     {
         var text = value ?? "";
-        var first = text.TrimStart();
-        if (first.Length > 0 && first[0] is ('=' or '+' or '-' or '@'))
+        var first = 0;
+        while (first < text.Length &&
+            (char.IsWhiteSpace(text[first]) || char.IsControl(text[first]) ||
+             char.GetUnicodeCategory(text[first]) == System.Globalization.UnicodeCategory.Format))
+            first++;
+        if (first < text.Length && text[first] is ('=' or '+' or '-' or '@'))
             text = "'" + text;
         return "\"" + text.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
     }

@@ -1,6 +1,6 @@
 # M11 Delay Rules and Shipment Exceptions: Architecture
 
-**Current source audit (2026-11-07):** [M11 correctness audit](M11_CORRECTNESS_AUDIT_20261107.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
+**Current source audit (2026-11-07):** [M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11 scenarios are NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
@@ -44,6 +44,10 @@ These are **recommendations for M11-01 approval**, not implemented or approved d
 | M11-P12 | Sensitivity: human dispositions write one M16 central audit event atomically and append immutable M11 state history. System evaluation creates its own immutable rule history. Direct API-role SQL updates must not bypass Manager/session authorization. | Preserve G16 and G10 database defense-in-depth |
 
 Approval may alter the proposed rules. If a rule cannot be justified against accepted evidence, omit the rule rather than fabricate confidence. Explicitly distinguish `ActiveCondition`, `ClearedCondition`, `InsufficientEvidence` and `StaleInput`.
+
+## Additional provisional source invariants
+
+An unchanged semantic result advances the evaluated-UTC and next-due checkpoint without adding duplicate immutable history. Manager dispositions require a matching, nonexpired checkpoint, and equipment dispositions require the accepted M10 projection to be no fresher than the checked input. Proof expiry comes from the PostgreSQL clock. UTC threshold arithmetic clamps safely at the maximum timestamp and schedules at the next representable microsecond. These are candidate source behaviors, not verified or approved policies; see the [second audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md).
 
 ## 3. Evaluation and provenance semantics
 

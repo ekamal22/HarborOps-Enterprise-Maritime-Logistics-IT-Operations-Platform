@@ -1,17 +1,17 @@
 # M10 Event Timeline and Projection Rebuild: Implementation Register
 
-**Gate decision (2026-11-07):** G10 is ACCEPTED after S01 implementation-conformance and S25 independent-evidence review. The verified remediation branch is authorized for merge into `main`; integration is not yet recorded in this pre-merge checkpoint. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision record. Older G10 pending or blocked statements below are source-locked historical checkpoints, not current gate status. The M9 transport-processing hold remains mandatory.
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 
 
 **As of:** 2026-11-05  
 **Branch:** `feat/m10-timeline-projections` (originally branched from accepted G9 SHA `b4f7b93`; now reconciled with the accepted G16 and PR #27 documentation baseline `25e89026737063294a32bbd081ced400d19c6b3d` by merge `82c5d6eec34469ac1813d99270b4108788c9435d`). [Integration reconciliation](M10_M16_SOURCE_RECONCILIATION.md) records the merge and remaining verification.  
-**State (updated 2026-11-07):** PR #23 merged the original M10 source; technical verification and independent evidence review apply only to frozen runtime `3e81b88`. The fourteen M10 local policies are now approved with L07/L14 revisions and conditional L06. Corrected source is committed separately at runtime candidate `3ef7a50859b5f023aa1457b373728888f6d1cba9`, and technical verification of the corrected source (final runtime `a26d19a`, one audit-metadata line after the candidate) was executed and passed; independent review is NOT EXECUTED. G10 acceptance pending. Earlier source-candidate and pre-approval subsections are retained as history.
+**State (updated 2026-11-07):** Original M10 source merged via PR #23; final security remediation, signed correction authority and upgrade-safe thirteenth migration merged via [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). G10-S01 and S25 reviewed, G10 accepted and integrated into protected `main`. Verified source `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343`; see [gate closure](M10_G10_GATE_CLOSURE_20261107.md). This does not authorize release or the M9 transport-hold removal.
 
 **Planning:** [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) is an independent open documentation PR; its M10 architecture, work packages and G10 scenario specification remain proposed, not accepted decisions.
 
 ## Current correction-authority checkpoint, 2026-11-07
 
-[New-source implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) is committed, with thirteen migrations, signed corrections, central M16 audit evidence and restricted direct SQL correction grants. Build, database and security-mutation verification were executed on `a26d19a` ([record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)). The previously reviewed 23 PASS matrix remains historical evidence only for `3e81b88`. S01 implementation conformance and S25 acceptance remain pending; no merge, release or deployment is authorized.
+[New-source implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) is accepted and merged with thirteen additive migrations, signed Manager corrections, atomic M16 audit persistence and restricted database grants. The original 23 PASS evidence remains locked to `3e81b88`; correction-authority verification applies to `a26d19a`, with final upgrade/Compose verification on `e3002bd`. See [G10 closure](M10_G10_GATE_CLOSURE_20261107.md).
 
 **Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. Independent review (G10-S25) and the S01 conformance disposition are NOT EXECUTED. Acceptance pending.
 
@@ -63,11 +63,11 @@ A [source-locked correctness audit](M10_SOURCE_CORRECTNESS_AUDIT.md) of runtime 
 | `node scripts/check-planning-docs.mjs`, graph and script tests on this branch | Executed (pass) |
 | Migration fresh/upgrade and schema checks | Executed: fresh, populated twelve-to-thirteen, downgrade guards |
 | Browser and outage/security campaigns | Executed: `tracking-timeline` x 3 engines, audit HTTP and outage, image scans, 40/40 mutants killed. The other 17 browser specs: NOT EXECUTED |
-| G10 independent evidence review | NOT EXECUTED |
+| G10 independent evidence review | COMPLETED, S25 PASS on 2026-11-07; source-locked evidence and supplemental review reconciled |
 | C01-C11 code-level remediation mapping | Committed; runtime proof recorded for the changed boundary |
-| Explicit G10 acceptance and merge | PENDING |
+| Explicit G10 acceptance and merge | ACCEPTED 2026-11-07; merged through PR #28 at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` |
 
-**Next action:** Run a dedicated source-locked local G10 campaign on E:, remediate any compile/runtime defects without overwriting original evidence, resolve M10-local decisions, and obtain independent verification and explicit acceptance. No milestone gate is closed by the presence of this implementation register.
+**Next action:** Proceed with G11 or other unlocked work according to the [roadmap](ROADMAP.md) and [execution graph](EXECUTION_GRAPH.md). Preserve the accepted M9 transport-processing hold. Do not treat G10 acceptance as production-release or deployment authorization.
 
 ## Superseding policy update, 2026-11-07
 

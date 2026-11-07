@@ -26,11 +26,15 @@ No .NET SDK, Docker, PostgreSQL or browser runtime is available in the connected
 
 ## Second-pass remediation checkpoint
 
-[Second-pass correctness audit](M12_CORRECTNESS_AUDIT_20261108.md), 2026-11-08: eight further source-level findings were corrected or covered by new regression source. This includes the missing hosting namespace in SQL-role tests, the M12 audit-history downgrade guard, 4,096-character URL bound, 15-second PostgreSQL statement timeouts, a 30-second CSV preparation deadline, the full five-role HTTP matrix, and field-by-field HMAC substitution tests. **None of these tests were executed** in this environment. The G12 gate remains pending.
+[Second-pass correctness audit](M12_CORRECTNESS_AUDIT_20261108.md), 2026-11-08: eight further source-level findings were corrected or covered by new regression source. This includes the missing hosting namespace in SQL-role tests, the M12 audit-history downgrade guard, 4,096-character URL bound, 15-second PostgreSQL statement timeouts, the then-proposed 30-second CSV preparation deadline (superseded by 25 seconds in the fourth pass), the full five-role HTTP matrix, and field-by-field HMAC substitution tests. **None of these tests were executed** in this environment. The G12 gate remains pending.
 
 ## Third-pass M5 browser integration review
 
 The [2026-11-08 audit](M12_CORRECTNESS_AUDIT_20261108.md#third-pass-m5-browser-regression-findings-2026-11-08) records two further source-level regressions found by comparing the accepted M5 browser suite with the M12 workspace's new search URI. The deferred shipment response test and in-flight background-refresh/draft test now intercept `/shipments/search` and retain their original behavioral assertions. They have **not** been executed in any browser. This is not accepted G12 evidence.
+
+## Fourth-pass search and export timeout reconciliation
+
+The [fourth-pass source audit](M12_CORRECTNESS_AUDIT_20261108_FOURTH_PASS.md) corrected the M12 SQL audit call to use the EF Core 10 parameterized `ExecuteSqlAsync` API, and introduced **25-second internal budgets for both search and export** with existing 15-second per-statement SQL limits. Both local and hosted Nginx continue to use a 30-second API read timeout. Internal deadline expiry maps to sanitized 503; browser abort remains separate. The budget change is a source-level mitigation and does not prove proxy-timing behavior. **No .NET build, PostgreSQL, browser or proxy test was executed.** G12 acceptance pending.
 
 ## Open conditions
 

@@ -318,6 +318,44 @@ public sealed class M11ExceptionRuntimeTests
     }
 
     [Fact]
+    public async Task SameFingerprintWithStaleSeverityWritesAttributedReevaluation()
+    {
+        var s = await Prepare();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var admin = s.Fixture.Admin; using var managerFixture = s.Fixture.Manager;
+        using var analystFixture = s.Fixture.Analyst;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        var shipment = await ScheduledShipment(s);
+        var occurrence = await EvaluateAndFind(s, shipment);
+        await using var db = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>()
+                .UseNpgsql(s.Roles.Admin).Options);
+        // A migration-role fixture simulates a pre-gate severity recalibration.
+        // Production API credentials do not have this direct UPDATE permission.
+        Assert.Equal(1, await db.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE shipment_exceptions SET severity='Info' WHERE id={occurrence}"));
+        using (var evaluate = await ReferenceDataHttpTests.Send(manager, HttpMethod.Post,
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, evaluate.StatusCode);
+        using (var detail = await manager.GetAsync(Collection(s.Fixture.A) + "/" + occurrence))
+        {
+            Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+            var data = await detail.Content.ReadFromJsonAsync<JsonElement>();
+            var row = data.GetProperty("exception");
+            Assert.Equal("Warning", row.GetProperty("severity").GetString());
+            Assert.Equal(2L, row.GetProperty("version").GetInt64());
+            Assert.Equal(2, data.GetProperty("history").GetArrayLength());
+        }
+        using (var again = await ReferenceDataHttpTests.Send(manager, HttpMethod.Post,
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, again.StatusCode);
+        Assert.Equal(2L, await db.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM shipment_exception_history WHERE exception_id={0}",
+            occurrence).SingleAsync());
+    }
+
+    [Fact]
     public async Task UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory()
     {
         var s = await Prepare();

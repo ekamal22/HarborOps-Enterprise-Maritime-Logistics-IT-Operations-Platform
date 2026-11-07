@@ -13,6 +13,10 @@ The [Product Requirements Document](PRD.md) defines user outcomes and release bo
 
 **Current M10/G10 implementation checkpoint (2026-11-07):** G10 S01/S25 accepted and merged via PR #28. Thirteen additive migrations, restricted signed corrections, atomic M16 audit, historical upgrade and corrected default Compose environment were verified on their respective source locks. [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision; historical implementation notes below preserve prior status.
 
+## M11 implementation candidate (planning only)
+
+The proposed [M11 architecture](M11_ARCHITECTURE_DESIGN.md), [four-package delivery plan](M11_IMPLEMENTATION_PLAN.md) and [G11 source-locked verification matrix](M11_VERIFICATION_PLAN.md) provide a source-based design for FR-010 after accepted G10. M11-01 local policies require approval before dependent implementation; M11-02 and M11-03 may then proceed with one shared database migration coordinator. No M11 source has been implemented or tested, G11 acceptance pending, and the M9 transport hold remains active. See [planning register](M11_PLANNING_STATUS.md).
+
 ## Work-package execution contract
 
 For each work package, record:

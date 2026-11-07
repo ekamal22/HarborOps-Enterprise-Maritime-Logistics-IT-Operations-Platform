@@ -200,7 +200,8 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Entry:** G10 accepted before respective dependent work packages.
 **Required work packages:** M11-01 Specify delay classification rules; M11-02 Implement exception evaluation; M11-03 Implement exception lifecycle; M11-04 Verify end-to-end exception flow.
 **Exit G11:** All applicable tasks, negative tests, runtime evidence and documentation for M11 recorded; acceptance pending until explicitly confirmed.
-**Not covered by this milestone:** Notifications and high-level KPI visualization.
+**Not covered by this milestone:** Notifications and high-level KPI visualization. M11 does not provide transport-event backlog relief or predictive ETA.
+**Planning package (proposal only):** [M11 architecture and local policy choices](M11_ARCHITECTURE_DESIGN.md), [implementation sequence](M11_IMPLEMENTATION_PLAN.md), [G11-S01 to G11-S25 verification](M11_VERIFICATION_PLAN.md) and [planning register](M11_PLANNING_STATUS.md). Decisions and G11 acceptance pending. The canonical dependency graph is unchanged.
 
 ### P2: Operational workspaces
 

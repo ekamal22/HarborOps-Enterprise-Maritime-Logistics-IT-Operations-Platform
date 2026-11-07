@@ -13,6 +13,10 @@
 
 The accepted correction-security layer adds an SQL-only thirteenth migration after the immutable original twelve, including the NULL-safe projector-scope function replacement. HTTP proof signing is separated from the restricted PostgreSQL verifier; the correction and M16 audit event commit atomically. The optional projector remains off by default and restricted. See [gate closure](M10_G10_GATE_CLOSURE_20261107.md).
 
+## Proposed M11 rule evaluation architecture (not implemented)
+
+After accepted G10, [M11 architecture](M11_ARCHITECTURE_DESIGN.md) proposes a versioned rule engine over accepted M5 shipment schedules/workflow timestamps and *fresh* M10 equipment tracking projections, with a tenant-bound append-only exception lifecycle, guarded Manager dispositions, M16 atomic audit, durable due-reevaluation and an additive fourteenth migration. [Implementation sequencing](M11_IMPLEMENTATION_PLAN.md) and [G11 verification](M11_VERIFICATION_PLAN.md) remain proposals until local policy approval and executable evidence. No physical arrival, transport ETA, parked ARRI/DEPA processing or release is implied. [Planning status](M11_PLANNING_STATUS.md) records the boundary.
+
 ## Parallel implementation and integration contracts
 
 The established modular monolith remains the single shared architecture. Workstream parallelism changes planning prerequisites, not deployment topology or transaction ownership. Independent milestone branches must preserve accepted M0-M7 authentication, tenant isolation, API envelopes, persistence constraints, shipment and allocation behavior. Shared PostgreSQL schema changes require one coordinated additive migration history and integrated regression. Event processing attaches only after the shipment and tracking contracts needed by its own dependent packages are accepted. Observability, audit foundations and recovery tooling may develop alongside business features, but G24 must recheck all integrated domains. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md).

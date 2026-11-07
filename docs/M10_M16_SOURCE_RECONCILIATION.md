@@ -5,6 +5,10 @@
 **M10 head before reconciliation:** `3159baa508f840596e1fe1981164296c1d8dffca` in draft PR #23.  
 **Integration merge commit:** `82c5d6eec34469ac1813d99270b4108788c9435d`, with parents `3159baa508f840596e1fe1981164296c1d8dffca` (M10 source) and `25e89026737063294a32bbd081ced400d19c6b3d` (accepted main). The integration is on draft PR #23 only, not on protected `main`.
 
+## Historical reconciliation scope and later update, 2026-11-07
+
+This reconciliation records the original merged twelve-migration M10/M16 candidate and its original G10 handoff. PR #23 later merged on 2026-11-06, and technical evidence on frozen source `3e81b88` was independently reviewed. On 2026-11-07, fourteen M10-local policies were approved, modifying L07/L14 and conditioning L06. A separate unmerged security remediation at runtime candidate `3ef7a50859b5f023aa1457b373728888f6d1cba9` adds a thirteenth migration, constrained signed correction authority and atomic M16 correction audit capture. The later source has no executed new-source verification; the original evidence and granted-role descriptions below remain historical and must not be treated as present remediation grants. [Current implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+
 ## Source reconciliation decisions
 
 | Area | Resolution | Remaining proof |

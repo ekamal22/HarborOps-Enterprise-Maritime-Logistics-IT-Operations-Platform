@@ -47,7 +47,8 @@ public sealed class M10RuntimeIdentityTests
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["AuditRoles:ApiPassword"] = apiSecret,
-            ["AuditRoles:WorkerPassword"] = workerSecret
+            ["AuditRoles:WorkerPassword"] = workerSecret,
+            ["M10CorrectionProof:Key"] = ReferenceDataHttpTests.CorrectionProofKey
         }).Build();
         await AuditRoleProvisioner.ProvisionAsync(db, configuration, CancellationToken.None);
 
@@ -298,30 +299,43 @@ public sealed class M10RuntimeIdentityTests
             VALUES (gen_random_uuid(),@b,@s,@t,NULL,1,@u,'Cross tenant forgery probe','probe',@d)
             """, ("b", s.Fixture.B), ("s", s.Target.Shipment), ("t", first),
             ("u", s.Actor), ("d", new string('b', 64)));
-        Assert.Contains(crossTenant.SqlState, new[] { PostgresErrorCodes.CheckViolation,
-            PostgresErrorCodes.ForeignKeyViolation });
+        Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, crossTenant.SqlState);
         Assert.Equal(0, await Count(s.Roles.Admin,
             "SELECT COUNT(*) FROM shipment_tracking_corrections WHERE organization_id=@b",
             ("b", s.Fixture.B)));
 
-        // Allowed: a valid scoped correction. The SECURITY DEFINER trigger advances the head
-        // and the input revision although the API holds no rights on either table.
-        await using (var direct = new NpgsqlConnection(s.Roles.Api))
+        // A valid correction now requires an authenticated HTTP request with
+        // an unforgeable proof. Direct SQL using the same API credentials fails.
+        await AssertPermissionDenied(s.Roles.Api, "api direct correction", """
+            INSERT INTO shipment_tracking_corrections
+                (id,organization_id,shipment_id,target_receipt_id,replacement_receipt_id,
+                 generation,actor_user_id,reason,correlation_id,correction_digest)
+            VALUES (gen_random_uuid(),@o,@s,@t,NULL,1,@u,
+                    'Confirmed invalid observation','api-id',@d)
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment),
+            ("t", first), ("u", s.Actor), ("d", new string('c', 64)));
+        await AssertPermissionDenied(s.Roles.Api, "api reads correction proof secret",
+            "SELECT 1 FROM m10_correction_proof_keys");
+        await AssertPermissionDenied(s.Roles.Api, "api reads proof nonce",
+            "SELECT 1 FROM m10_correction_proof_nonces");
+
+        using (var apiFactory = new ReferenceDataHttpTests.ApiFactory(s.Roles.Api))
+        using (var manager = apiFactory.CreateClient(new WebApplicationFactoryClientOptions
+            { HandleCookies = true }))
         {
-            await direct.OpenAsync();
-            await using var insert = new NpgsqlCommand("""
-                INSERT INTO shipment_tracking_corrections
-                    (id,organization_id,shipment_id,target_receipt_id,replacement_receipt_id,
-                     generation,actor_user_id,reason,correlation_id,correction_digest)
-                VALUES (gen_random_uuid(),@o,@s,@t,NULL,1,@u,'Confirmed invalid observation','api-id',@d)
-                """, direct);
-            insert.Parameters.AddWithValue("o", s.Fixture.A);
-            insert.Parameters.AddWithValue("s", s.Target.Shipment);
-            insert.Parameters.AddWithValue("t", first);
-            insert.Parameters.AddWithValue("u", s.Actor);
-            insert.Parameters.AddWithValue("d", new string('c', 64));
-            Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+            await ReferenceDataHttpTests.Login(manager, s.Fixture.ManagerEmail);
+            await ReferenceDataHttpTests.Select(manager, s.Fixture.A);
+            using var correction = await SendM10(manager,
+                $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}/tracking-corrections",
+                new { targetReceiptId = first, replacementReceiptId = (Guid?)null,
+                    expectedGeneration = 0, reason = "Confirmed invalid observation" });
+            Assert.Equal(HttpStatusCode.OK, correction.StatusCode);
         }
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM audit_entries
+            WHERE organization_id=@o AND event_type='shipment.tracking_correction_created'
+              AND actor_user_id=@u
+            """, ("o", s.Fixture.A), ("u", s.Actor)));
         Assert.Equal(1, await Count(s.Roles.Admin, """
             SELECT generation FROM shipment_tracking_correction_heads
             WHERE organization_id=@o AND shipment_id=@s

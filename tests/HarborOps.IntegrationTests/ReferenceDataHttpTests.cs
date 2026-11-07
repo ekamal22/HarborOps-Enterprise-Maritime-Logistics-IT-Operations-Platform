@@ -74,11 +74,13 @@ public sealed class ReferenceDataHttpTests
     internal sealed record Fixture(Guid A, Guid B, string AdminEmail, string ManagerEmail,
         string AnalystEmail, HttpClient Admin, HttpClient Manager, HttpClient Analyst);
 
-    internal static async Task<Fixture> Setup(ApiFactory factory)
+    // migrateToHead:false is for historical-upgrade tests whose schema is deliberately held at an
+    // earlier migration before seeding; the default always migrates to the current head.
+    internal static async Task<Fixture> Setup(ApiFactory factory, bool migrateToHead = true)
     {
         await using var scope = factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
-        await db.Database.MigrateAsync();
+        if (migrateToHead) await db.Database.MigrateAsync();
         await AuditRoleProvisioner.ProvisionCorrectionKeyAsync(db,
             CorrectionProofKey, CancellationToken.None);
         var ids = scope.ServiceProvider.GetRequiredService<IdentityStore>();

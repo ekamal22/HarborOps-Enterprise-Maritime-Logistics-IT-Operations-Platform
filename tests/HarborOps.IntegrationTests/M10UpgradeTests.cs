@@ -39,10 +39,10 @@ public sealed class M10UpgradeTests
         DELETE FROM "__EFMigrationsHistory" WHERE "MigrationId"='20261105180000_ShipmentTrackingProjections';
         """;
 
-    private static string Scoped(string schema) => new NpgsqlConnectionStringBuilder(
+    internal static string Scoped(string schema) => new NpgsqlConnectionStringBuilder(
         TestDatabase.ConnectionString()) { SearchPath = schema + ",public" }.ConnectionString;
 
-    private static async Task<object?> Scalar(string connection, string sql)
+    internal static async Task<object?> Scalar(string connection, string sql)
     {
         await using var direct = new NpgsqlConnection(connection);
         await direct.OpenAsync();
@@ -50,7 +50,7 @@ public sealed class M10UpgradeTests
         return await command.ExecuteScalarAsync();
     }
 
-    private static async Task Run(string connection, string sql)
+    internal static async Task Run(string connection, string sql)
     {
         await using var direct = new NpgsqlConnection(connection);
         await direct.OpenAsync();
@@ -58,7 +58,7 @@ public sealed class M10UpgradeTests
         await command.ExecuteNonQueryAsync();
     }
 
-    private static async Task<string> Fingerprint(string connection) => (string)(await Scalar(connection, """
+    internal static async Task<string> Fingerprint(string connection) => (string)(await Scalar(connection, """
         SELECT concat_ws('/',
           (SELECT md5(COALESCE(string_agg(x::text,'|' ORDER BY x::text),'')) FROM tracking_inbox_receipts x),
           (SELECT md5(COALESCE(string_agg(x::text,'|' ORDER BY x::text),'')) FROM tracking_accepted_events x),
@@ -218,7 +218,7 @@ public sealed class M10UpgradeTests
         }
     }
 
-    private static Task<object?> M10Fingerprint(string connection) => Scalar(connection, """
+    internal static Task<object?> M10Fingerprint(string connection) => Scalar(connection, """
         SELECT concat_ws('/',
           (SELECT md5(COALESCE(string_agg(x::text,'|' ORDER BY x::text),'')) FROM shipment_tracking_corrections x),
           (SELECT md5(COALESCE(string_agg(x::text,'|' ORDER BY x::text),'')) FROM shipment_tracking_operation_replays x),

@@ -25,7 +25,7 @@ public sealed partial class M10RuntimeIdentityTests
 {
     internal sealed record Roles(string Admin, string Api, string Worker, string Projector);
 
-    private static string RepositoryFile(string relative)
+    internal static string RepositoryFile(string relative)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)

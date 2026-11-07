@@ -179,6 +179,31 @@ public sealed class M10CorrectionAuthority : Migration
                 FOR EACH ROW EXECUTE FUNCTION m10_guard_correction_replay();
             REVOKE ALL ON TABLE m10_correction_proof_keys,
                 m10_correction_proof_nonces FROM PUBLIC;
+
+            -- Migration 12 stays immutable. Databases that already executed it keep
+            -- the original three-valued RETURN until this replacement. CREATE OR
+            -- REPLACE keeps the function owner, SECURITY DEFINER attribute, pinned
+            -- search_path, signature and existing EXECUTE grants unchanged.
+            DO $reconcile$
+            DECLARE schema_name text := current_schema();
+            BEGIN
+                EXECUTE format($sql$
+                    CREATE OR REPLACE FUNCTION %1$I.m10_lock_projector_scope(p_org uuid,p_shipment uuid)
+                    RETURNS boolean
+                    LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $fn$
+                    DECLARE organization_state text;
+                    DECLARE shipment_state text;
+                    BEGIN
+                        IF session_user <> 'harborops_projector' THEN RETURN false; END IF;
+                        SELECT status INTO organization_state FROM %1$I.organizations
+                            WHERE id=p_org FOR UPDATE;
+                        SELECT record_status INTO shipment_state FROM %1$I.shipments
+                            WHERE organization_id=p_org AND id=p_shipment FOR UPDATE;
+                        RETURN COALESCE(organization_state='Active' AND shipment_state='Active',false);
+                    END $fn$;
+                $sql$,schema_name);
+            END $reconcile$;
+            REVOKE ALL ON FUNCTION m10_lock_projector_scope(uuid,uuid) FROM PUBLIC;
             """);
     }
 
@@ -192,6 +217,26 @@ public sealed class M10CorrectionAuthority : Migration
                         USING ERRCODE='23514';
                 END IF;
             END $guard$;
+            -- Restore the original migration 12 function body.
+            DO $restore$
+            DECLARE schema_name text := current_schema();
+            BEGIN
+                EXECUTE format($sql$
+                    CREATE OR REPLACE FUNCTION %1$I.m10_lock_projector_scope(p_org uuid,p_shipment uuid)
+                    RETURNS boolean
+                    LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $fn$
+                    DECLARE organization_state text;
+                    DECLARE shipment_state text;
+                    BEGIN
+                        IF session_user <> 'harborops_projector' THEN RETURN false; END IF;
+                        SELECT status INTO organization_state FROM %1$I.organizations
+                            WHERE id=p_org FOR UPDATE;
+                        SELECT record_status INTO shipment_state FROM %1$I.shipments
+                            WHERE organization_id=p_org AND id=p_shipment FOR UPDATE;
+                        RETURN organization_state='Active' AND shipment_state='Active';
+                    END $fn$;
+                $sql$,schema_name);
+            END $restore$;
             DROP TRIGGER tr_m10_guard_correction_replay
                 ON shipment_tracking_operation_replays;
             DROP FUNCTION m10_guard_correction_replay();

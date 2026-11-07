@@ -13,7 +13,7 @@ public sealed class M10CorrectionAuthority : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""
-            CREATE EXTENSION IF NOT EXISTS pgcrypto;
+            CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 
             -- A dedicated verifier secret is provisioned by the migration identity.
             -- Ordinary runtime identities must not read this table.

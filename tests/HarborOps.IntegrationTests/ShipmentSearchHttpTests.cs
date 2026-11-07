@@ -190,6 +190,51 @@ public sealed class ShipmentSearchHttpTests
         using (var analystExport = await analyst.GetAsync(search + "?q=" + code))
             Assert.Equal(HttpStatusCode.OK, analystExport.StatusCode);
 
+        // A direct runtime SQL login may not bypass the function's required
+        // metadata or invent a user/session outside active organization scope.
+        await using (var direct = new NpgsqlConnection(csb.ConnectionString))
+        {
+            await direct.OpenAsync();
+            await using (var missing = new NpgsqlCommand("""
+                SELECT public.m12_record_shipment_export(
+                    NULL::uuid, NULL::uuid, NULL::uuid, NULL::integer,
+                    NULL::bigint, NULL::varchar, NULL::varchar)
+                """, direct))
+            {
+                await Assert.ThrowsAsync<PostgresException>(
+                    () => missing.ExecuteNonQueryAsync());
+            }
+            await using (var forged = new NpgsqlCommand("""
+                SELECT public.m12_record_shipment_export(
+                    @org, @user, @session, 1, 128,
+                    @digest, @correlation)
+                """, direct))
+            {
+                forged.Parameters.AddWithValue("org", fixture.A);
+                forged.Parameters.AddWithValue("user", Guid.NewGuid());
+                forged.Parameters.AddWithValue("session", Guid.NewGuid());
+                forged.Parameters.AddWithValue("digest", new string('A', 64));
+                forged.Parameters.AddWithValue("correlation", Guid.NewGuid().ToString("N"));
+                await Assert.ThrowsAsync<PostgresException>(
+                    () => forged.ExecuteNonQueryAsync());
+            }
+        }
+        var workerCsb = new NpgsqlConnectionStringBuilder(migratorConnection) {
+            Username = "harborops_worker", Password = workerPassword
+        };
+        await using (var worker = new NpgsqlConnection(workerCsb.ConnectionString))
+        {
+            await worker.OpenAsync();
+            await using var denied = new NpgsqlCommand("""
+                SELECT public.m12_record_shipment_export(
+                    NULL::uuid, NULL::uuid, NULL::uuid, NULL::integer,
+                    NULL::bigint, NULL::varchar, NULL::varchar)
+                """, worker);
+            var sqlError = await Assert.ThrowsAsync<PostgresException>(
+                () => denied.ExecuteNonQueryAsync());
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, sqlError.SqlState);
+        }
+
         await using var verifyScope = seedFactory.Services.CreateAsyncScope();
         var verification = verifyScope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         var events = await verification.AuditEntries.AsNoTracking().Where(e =>

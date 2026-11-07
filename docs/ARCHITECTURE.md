@@ -13,6 +13,10 @@
 
 The accepted correction-security layer adds an SQL-only thirteenth migration after the immutable original twelve, including the NULL-safe projector-scope function replacement. HTTP proof signing is separated from the restricted PostgreSQL verifier; the correction and M16 audit event commit atomically. The optional projector remains off by default and restricted. See [gate closure](M10_G10_GATE_CLOSURE_20261107.md).
 
+## M11 provisional exception architecture, not verified
+
+The [M11 source candidate](M11_IMPLEMENTATION_STATUS.md) extends M5 UTC schedules and M10 equipment projections with a versioned rule engine, additively migrated exception tables, signed SQL authority, scoped API and UI, M16 atomic audit and an optional bounded reevaluator. [M11 architecture](M11_ARCHITECTURE_DESIGN.md), [work-package sequence](M11_IMPLEMENTATION_PLAN.md), and [G11 specification](M11_VERIFICATION_PLAN.md) are proposed. Local policy approval and all executable verification remain pending, so no M11 runtime behavior is represented as accepted. The M9 transport hold and null ETA remain.
+
 ## Parallel implementation and integration contracts
 
 The established modular monolith remains the single shared architecture. Workstream parallelism changes planning prerequisites, not deployment topology or transaction ownership. Independent milestone branches must preserve accepted M0-M7 authentication, tenant isolation, API envelopes, persistence constraints, shipment and allocation behavior. Shared PostgreSQL schema changes require one coordinated additive migration history and integrated regression. Event processing attaches only after the shipment and tracking contracts needed by its own dependent packages are accepted. Observability, audit foundations and recovery tooling may develop alongside business features, but G24 must recheck all integrated domains. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md).

@@ -13,6 +13,10 @@ The [Product Requirements Document](PRD.md) defines user outcomes and release bo
 
 **Current M10/G10 implementation checkpoint (2026-11-07):** G10 S01/S25 accepted and merged via PR #28. Thirteen additive migrations, restricted signed corrections, atomic M16 audit, historical upgrade and corrected default Compose environment were verified on their respective source locks. [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision; historical implementation notes below preserve prior status.
 
+## M11 source candidate
+
+After accepted G10, M11-01 rule policy, M11-02 evaluation, M11-03 exception lifecycle and M11-04 integrated API/UI are represented by a feature-branch source candidate. See [M11 source status](M11_IMPLEMENTATION_STATUS.md), [architecture](M11_ARCHITECTURE_DESIGN.md), [delivery plan](M11_IMPLEMENTATION_PLAN.md) and [G11 gate](M11_VERIFICATION_PLAN.md). The policy has not been approved, the code has not been executed, and G11 acceptance is pending. M9's transport hold continues.
+
 ## Work-package execution contract
 
 For each work package, record:

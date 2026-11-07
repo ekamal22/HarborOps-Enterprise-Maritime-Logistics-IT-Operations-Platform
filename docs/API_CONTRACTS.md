@@ -86,6 +86,10 @@ The accepted [M4 architecture](M4_ARCHITECTURE_DESIGN.md) implements ten `/api/v
 
 The M5 shipment Minimal API implements the documented routes and was verified and accepted on 2026-11-02. See [G5 closure](M5_G5_GATE_CLOSURE.md) and [implementation status](M5_IMPLEMENTATION_STATUS.md).
 
+## Unaccepted M11 exception API candidate
+
+The feature branch implements `GET /api/v1/organizations/{organizationId}/shipments/{shipmentId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`, Manager-only `POST /api/v1/organizations/{organizationId}/shipments/{shipmentId}/exceptions/evaluate`, and Manager-only, idempotent `PATCH /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`. List cursors are protected and bound to tenant/filter. The contracts are a source candidate only, unverified and not accepted. See [M11 architecture](M11_ARCHITECTURE_DESIGN.md) and [status](M11_IMPLEMENTATION_STATUS.md). They do not represent ETA or processed ARRI/DEPA records.
+
 ## Proposed resource map
 
 | Method | Route | Purpose | Access |

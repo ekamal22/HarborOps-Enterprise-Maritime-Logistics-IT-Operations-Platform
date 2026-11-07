@@ -199,7 +199,17 @@ public static class ShipmentSearchEndpoints
                 return Task.CompletedTask;
             });
             var correlation = ctx.Items["CorrelationId"]?.ToString() ?? "database";
-            var result = await store.ExportAsync(session, org, filters, correlation, ct);
+            ShipmentSearchResult<byte[]> result;
+            try
+            {
+                result = await store.ExportAsync(session, org, filters, correlation, ct);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                // The internal 30-second export budget expired, not a client abort.
+                return Error(ctx, 503, "dependency_unavailable",
+                    "Export could not be prepared within the request budget");
+            }
             if (result.Value is null)
                 return result.FailureCode == "export_authority_unavailable"
                     ? Error(ctx, 503, "dependency_unavailable", "Export authority temporarily unavailable")

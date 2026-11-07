@@ -85,14 +85,23 @@ public sealed class AuditHardeningTests
         using var analyst = fixture.Analyst;
         await using var connection = new NpgsqlConnection(TestDatabase.ConnectionString());
         await connection.OpenAsync();
-        var keys = new List<string>();
+        var keys = new List<(string EventType, string Key)>();
         await using (var command = new NpgsqlCommand("""
-            SELECT DISTINCT k FROM audit_entries, jsonb_object_keys(metadata) AS k ORDER BY k
+            SELECT DISTINCT a.event_type, k
+            FROM audit_entries a, jsonb_object_keys(a.metadata) AS k
+            ORDER BY a.event_type, k
             """, connection))
         await using (var reader = await command.ExecuteReaderAsync())
-            while (await reader.ReadAsync()) keys.Add(reader.GetString(0));
+            while (await reader.ReadAsync())
+                keys.Add((reader.GetString(0), reader.GetString(1)));
         Assert.NotEmpty(keys);
-        Assert.All(keys, key => Assert.Contains(key, new[] { "changedFields", "operation" }));
+        Assert.All(keys, item =>
+        {
+            var allowed = item.EventType == "shipment.export_completed"
+                ? new[] { "rowCount", "byteCount", "filterDigest", "exportSchema" }
+                : new[] { "changedFields", "operation" };
+            Assert.Contains(item.Key, allowed);
+        });
 
         var fields = new List<string>();
         await using (var command = new NpgsqlCommand("""

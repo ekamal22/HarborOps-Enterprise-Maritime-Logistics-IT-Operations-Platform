@@ -1,9 +1,9 @@
 # Cost and Deployment Strategy
 
-**G10 accepted (2026-11-07):** M10/G10 S01 and S25 are closed by [the gate decision](M10_G10_GATE_CLOSURE_20261107.md). The final signed-correction and historical-upgrade source is verified at `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343`; its integration into `main` is authorized and still pending at this pre-merge checkpoint. Earlier unaccepted-state passages remain historical evidence references. No hosting, release or M9 transport-hold change is authorized.
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 
-**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 ## Primary constraint
 
@@ -40,7 +40,7 @@ The development working tree, dependency caches and verification evidence use co
 
 ### G10 remediation deployment restriction, 2026-11-07
 
-M10 correction security changes are source-committed on the separate `fix/m10-g10-l07-l14-remediation` branch. The signed correction operation, private verifier key provisioning and thirteenth migration have not passed new-source runtime verification. Do not upgrade retained data, merge or deploy the remediation based on source inspection alone. The accepted M9 sustained transport-event processing hold and 10,000 unresolved-work limit remain unchanged. See [current G10 status](STATUS.md) and [implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+M10 signed correction authority, restricted database proof verification, atomic M16 audit, default Compose key supply and additive thirteenth migration are accepted and merged via [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). Gate acceptance is not deployment authorization. Future persistent-data upgrades require backups and a separate operational decision. The M9 parked-transport hold remains in force.
 
 ### Profile L: Local complete system
 All core modules available on one development computer. No externally hosted API. Preferred for automated tests and fault injection.

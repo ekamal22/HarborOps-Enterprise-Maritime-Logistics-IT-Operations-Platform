@@ -1,6 +1,8 @@
 # Product Scope
 
-**Current M9/G9 status (2026-11-05):** G9 was accepted with the mandatory [M9-01 transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). M9 is integrated into `main` through PR #16 (`43fe326`) and PR #18 (`4684352`). The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and residual limitations. No production or public deployment is authorized; sustained transport-event processing is held until M10 or another explicitly approved backlog mechanism is verified. Earlier planning or acceptance-pending language in historical subsections reflects the earlier project phase.
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
+
+**Current milestone status (2026-11-07):** G0-G10 and G16 are accepted and merged into `main`. G10 correction authority and upgrade-safe migration 13 integrated via [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). The earlier M9 transport-backlog operating condition remains mandatory, so sustained ARRI/DEPA processing is held until separately verified cap-safe behavior is approved. No deployment or release authorization.
 
 **Supporting scope detail:** The [Product Requirements Document](PRD.md) is authoritative for product vision, users, priorities, and release boundaries. Preserve domain-specific detail here without introducing a competing scope baseline. Actual state is recorded in [Status](STATUS.md).
 
@@ -53,7 +55,7 @@ The [M3 design](M3_ARCHITECTURE_DESIGN.md) delivers accepted organization-owned 
 
 ## Accepted M5/M6 shipment and assignment boundary
 
-M5 and M6 provide the accepted shipment lifecycle and assignment histories. M7 source validation and M8 durable receipts are accepted and integrated into `main`. M9 worker/reconciliation is accepted and integrated into `main` following [G9 attempt 08](M9_EXECUTED_VERIFICATION.md), the [browser supplement](M9_BROWSER_SUPPLEMENT.md), independent review and [G9 closure](M9_G9_GATE_CLOSURE.md). All six [local contract choices](M9_LOCAL_CONTRACT_DECISION.md) were approved with a mandatory hold on sustained transport-event processing. M10 projection source merged through PR #23 but G10 is unaccepted; parked ARRI/DEPA backlog handling is not implemented, and the M9 transport hold remains mandatory. M12 export remains planned. M16/G16 was independently reviewed, accepted and merged through PR #25 on 2026-11-06. Approved L07/L14 remediation source is committed separately with a thirteenth migration, restricted signed corrections and transactional M16 audit capture, without executed new-source runtime verification. See [M10 implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) and [G16 closure](M16_G16_GATE_CLOSURE.md).
+M5/M6 provide accepted shipment lifecycle and assignments; M7 source validation, M8 durable receipts, M9 worker/reconciliation and M10 indexed event timeline/projection are accepted and integrated. M16 Auditor-scoped audit controls are also accepted. M10 corrections are signed and audit-backed. M10 does not release the parked-transport hold or compute ETA.
 
 ## Out of scope for initial release
 

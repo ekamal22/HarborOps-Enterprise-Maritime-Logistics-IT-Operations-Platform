@@ -1,6 +1,8 @@
 # Tracking Event Processing
 
-**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
+
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 ## Purpose
 
@@ -14,7 +16,7 @@ Transform third-party or simulated maritime tracking signals into a trustworthy,
 
 ## M10 correction replay and audit contract, 2026-11-07
 
-The merged original M10 source indexes resolved equipment effects without rewriting M8/M9 accepted histories. The separate L07/L14 remediation branch adds signed, scope-bound correction requests, a constrained PostgreSQL operation and one same-transaction M16 audit event per successful correction, while preserving append-only corrections, generation checks and replay semantics. The ordinary API role no longer has direct correction INSERT. New-source .NET/PostgreSQL verification is NOT EXECUTED, so these changes are not G10 accepted. [Implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+Accepted M10 indexes resolved equipment effects without rewriting M8/M9 history. The signed L07/L14 correction operation and transactional M16 audit evidence merged via [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). Projector operation remains opt-in; ARRI and DEPA stay parked under the M9 10,000-item hold. See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md).
 
 M10 reports null ETA and does not process parked ARRI/DEPA traffic. The M9 transport hold and 10,000 unresolved-work cap remain mandatory. ETA-oriented examples elsewhere on this page describe planned downstream behavior, not verified M10 capability.
 

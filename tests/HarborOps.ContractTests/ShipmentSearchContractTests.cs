@@ -12,16 +12,22 @@ public sealed class ShipmentSearchContractTests
     {
         var codec = new ShipmentCursorCodec(new EphemeralDataProtectionProvider());
         var org = Guid.NewGuid();
+        var actor = Guid.NewGuid();
+        var session = Guid.NewGuid();
         var after = Guid.NewGuid();
         var now = new DateTimeOffset(2026, 11, 7, 16, 0, 0, TimeSpan.Zero);
-        var token = codec.Encode(org, "FINGERPRINT", after, now, now);
+        var token = codec.Encode(org, actor, session, "FINGERPRINT", after, now, now);
 
-        Assert.True(codec.TryDecode(token, org, "FINGERPRINT", now.AddMinutes(1), out var parsed));
+        Assert.True(codec.TryDecode(token, org, actor, session, "FINGERPRINT", now.AddMinutes(1), out var parsed));
         Assert.NotNull(parsed);
         Assert.Equal(after, parsed.After);
-        Assert.False(codec.TryDecode(token, Guid.NewGuid(), "FINGERPRINT", now, out _));
-        Assert.False(codec.TryDecode(token, org, "OTHER", now, out _));
-        Assert.False(codec.TryDecode(token, org, "FINGERPRINT", now.AddMinutes(16), out _));
+        Assert.False(codec.TryDecode(token, Guid.NewGuid(), actor, session, "FINGERPRINT", now, out _));
+        Assert.False(codec.TryDecode(token, org, actor, session, "OTHER", now, out _));
+        Assert.False(codec.TryDecode(token, org, Guid.NewGuid(), session,
+            "FINGERPRINT", now, out _));
+        Assert.False(codec.TryDecode(token, org, actor, Guid.NewGuid(),
+            "FINGERPRINT", now, out _));
+        Assert.False(codec.TryDecode(token, org, actor, session, "FINGERPRINT", now.AddMinutes(16), out _));
         Assert.False(codec.TryDecode(token + "X", org, "FINGERPRINT", now, out _));
     }
 
@@ -32,8 +38,10 @@ public sealed class ShipmentSearchContractTests
         var second = new ShipmentCursorCodec(new EphemeralDataProtectionProvider());
         var now = DateTimeOffset.UtcNow;
         var org = Guid.NewGuid();
-        var token = first.Encode(org, "SCOPE", Guid.NewGuid(), now, now);
-        Assert.False(second.TryDecode(token, org, "SCOPE", now, out _));
+        var actor = Guid.NewGuid();
+        var session = Guid.NewGuid();
+        var token = first.Encode(org, actor, session, "SCOPE", Guid.NewGuid(), now, now);
+        Assert.False(second.TryDecode(token, org, actor, session, "SCOPE", now, out _));
     }
 
     [Fact]

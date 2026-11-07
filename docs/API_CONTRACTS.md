@@ -1,6 +1,6 @@
 # API Contracts
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and full, role-guarded immutable-history continuation. These changes are source-only and have not been compiled or executed against PostgreSQL or browser fixtures. G11-S01 remains BLOCKED on local policy, G11-S02 through S25 NOT EXECUTED, and G11 acceptance pending. PR #31 is unmerged; the M9 sustained transport hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records the proposed reviewed-clearance recurrence transition, corrected Resolve visibility, and narrowed disposition-error classification. Source and regression tests are committed but have not been executed. G11-S01 BLOCKED on policy approval, G11-S02 through S25 NOT EXECUTED, acceptance pending. PR #31 remains draft; the M9 transport hold remains active.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
@@ -95,6 +95,10 @@ Exception lists use the provisional P09 rule order (`EquipmentConflict`, `Record
 ## Fourth-pass M11 list and history continuation
 
 The scoped exception-list cursor now binds `organizationId`, optional filters, rule-ranked last ID and a PostgreSQL-clock `SnapshotAtUtc`. Rows opened after the first page are excluded, but lifecycle changes are not an immutable SQL snapshot and may affect later filtered pages. The detail response supplies `nextHistoryCursor` only when the 500-item preview is truncated. `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}/history?limit=100&cursor=...` returns `{ items, nextCursor }` using immutable `(occurred_at_utc,id)` paging. Each token expires after 20 minutes, is bound to the selected tenant and exception, and cannot expose foreign history. Analyst reads redact `reason` and `actorUserId` on every page. These contracts are implemented in source, not G11-verified.
+
+## Fifth-pass M11 provisional lifecycle and API behaviors
+
+If an Acknowledged incident was explicitly evaluated Inactive and later becomes Active again, the signed evaluator now closes the previous occurrence as a system AutoResolved event and creates a separate Open occurrence with the next occurrence number. The Resolve action is allowed only for an Acknowledged/Inactive occurrence. Known replay-key uniqueness, serialization and deadlock collisions return 409; unrelated database uniqueness failures are not mislabeled as ordinary conflicts. These are unverified source contracts, and the decisions for recurrence across Unknown/Stale and a persistent RecordedArrivalLate condition remain pending.
 
 ## M11 provisional request and response contract
 

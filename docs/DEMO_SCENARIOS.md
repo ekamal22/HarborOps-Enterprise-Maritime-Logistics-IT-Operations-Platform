@@ -1,6 +1,6 @@
 # Reproducible Demonstration Scenarios
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and protected, tenant-scoped continuation of immutable history beyond the initial 500 entries. This candidate remains unverified, G11-S01 blocked on local policy, G11 acceptance pending, and draft PR #31 unmerged. The M9 sustained transport hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records the proposed reviewed-clearance recurrence transition, corrected Resolve visibility, and narrowed disposition-error classification. Source and regression tests are committed but have not been executed. G11-S01 BLOCKED on policy approval, G11-S02 through S25 NOT EXECUTED, acceptance pending. PR #31 remains draft; the M9 transport hold remains active.
 
 **Current G9 disposition (2026-11-05):** M9/G9 accepted and merged into `main` via planning PR #16 (`43fe326`) and implementation PR #18 (`4684352`). [G9 closure](M9_G9_GATE_CLOSURE.md) preserves the reviewed evidence and limitations. Sustained transport-event processing is held until M10 or another explicitly approved, verified backlog mechanism handles parked events within the 10,000 unresolved-work cap. No production deployment is authorized.
 

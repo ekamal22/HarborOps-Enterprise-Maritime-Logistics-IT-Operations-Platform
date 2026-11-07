@@ -1,6 +1,8 @@
 # Acceptance Criteria
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and protected, tenant-scoped continuation of immutable history beyond the initial 500 entries. This candidate remains unverified, G11-S01 blocked on local policy, G11 acceptance pending, and draft PR #31 unmerged. The M9 sustained transport hold remains in force.
+**G11 source acceptance boundary:** The [fifth M11 audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) adds a required source-locked test for Acknowledged/Inactive recurrence to a new Open occurrence, with historical AutoResolved evidence, no duplicate occurrence on repeat evaluation and proper Resolve visibility. G11-S01 still requires explicit local-policy decisions; no source review alone satisfies acceptance.
+
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records the proposed reviewed-clearance recurrence transition, corrected Resolve visibility, and narrowed disposition-error classification. Source and regression tests are committed but have not been executed. G11-S01 BLOCKED on policy approval, G11-S02 through S25 NOT EXECUTED, acceptance pending. PR #31 remains draft; the M9 transport hold remains active.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 

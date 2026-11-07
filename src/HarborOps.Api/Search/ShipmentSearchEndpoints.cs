@@ -12,24 +12,24 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace HarborOps.Api.Search;
 
-public sealed record ShipmentCursor(Guid OrganizationId, string Fingerprint,
-    Guid After, DateTimeOffset AsOfUtc, DateTimeOffset ExpiresAtUtc);
+public sealed record ShipmentCursor(Guid OrganizationId, Guid ActorId, Guid SessionId,
+    string Fingerprint, Guid After, DateTimeOffset AsOfUtc, DateTimeOffset ExpiresAtUtc);
 
 public sealed class ShipmentCursorCodec(IDataProtectionProvider provider)
 {
     private readonly IDataProtector protector =
         provider.CreateProtector("HarborOps.M12.ShipmentSearchCursor.v1");
 
-    public string Encode(Guid org, string fingerprint, Guid after, DateTimeOffset asOfUtc,
-        DateTimeOffset now)
+    public string Encode(Guid org, Guid actor, Guid session, string fingerprint,
+        Guid after, DateTimeOffset asOfUtc, DateTimeOffset now)
     {
-        var body = JsonSerializer.Serialize(new ShipmentCursor(org, fingerprint, after,
-            asOfUtc, now.AddMinutes(15)));
+        var body = JsonSerializer.Serialize(new ShipmentCursor(org, actor, session, fingerprint,
+            after, asOfUtc, now.AddMinutes(15)));
         return WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(protector.Protect(body)));
     }
 
-    public bool TryDecode(string token, Guid org, string fingerprint, DateTimeOffset now,
-        out ShipmentCursor? cursor)
+    public bool TryDecode(string token, Guid org, Guid actor, Guid session,
+        string fingerprint, DateTimeOffset now, out ShipmentCursor? cursor)
     {
         cursor = null;
         if (token.Length is < 10 or > 2048) return false;
@@ -39,6 +39,7 @@ public sealed class ShipmentCursorCodec(IDataProtectionProvider provider)
             var payload = protector.Unprotect(Encoding.UTF8.GetString(bytes));
             var parsed = JsonSerializer.Deserialize<ShipmentCursor>(payload);
             if (parsed is null || parsed.OrganizationId != org ||
+                parsed.ActorId != actor || parsed.SessionId != session ||
                 parsed.Fingerprint != fingerprint || parsed.After == Guid.Empty ||
                 parsed.ExpiresAtUtc <= now || parsed.AsOfUtc > now.AddMinutes(1))
                 return false;
@@ -148,25 +149,26 @@ public static class ShipmentSearchEndpoints
             ShipmentSearchFilters filters;
             try { filters = Parse(ctx, export: false); }
             catch (ArgumentException) { return Access(ctx, OrganizationAccessError.Invalid); }
+            var session = (CurrentSession)ctx.Items["IdentitySession"]!;
             var now = clock.GetUtcNow();
             var asOf = now;
             Guid? after = null;
             var token = ctx.Request.Query["cursor"].ToString();
             if (token.Length > 0)
             {
-                if (!codec.TryDecode(token, org, filters.Fingerprint(), now, out var parsed))
+                if (!codec.TryDecode(token, org, session.UserId, session.SessionId,
+                    filters.Fingerprint(), now, out var parsed))
                     return Error(ctx, 409, "stale_or_invalid_cursor", "Restart this search");
                 asOf = parsed!.AsOfUtc;
                 after = parsed.After;
             }
             else if (ctx.Request.Query.ContainsKey("cursor"))
                 return Access(ctx, OrganizationAccessError.Invalid);
-            var session = (CurrentSession)ctx.Items["IdentitySession"]!;
             var result = await store.SearchAsync(session, org, filters, asOf, after, ct);
             if (result.Value is null) return Access(ctx, result.Error);
             var next = result.Value.NextAfter.HasValue
-                ? codec.Encode(org, filters.Fingerprint(), result.Value.NextAfter.Value,
-                    asOf, now) : null;
+                ? codec.Encode(org, session.UserId, session.SessionId, filters.Fingerprint(),
+                    result.Value.NextAfter.Value, asOf, now) : null;
             return Results.Ok(new { shipments = result.Value.Shipments,
                 nextCursor = next, asOfUtc = asOf });
         });

@@ -1,5 +1,7 @@
 # G12 Source-Locked Verification Plan
 
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records M11 draft PR #31 and M12 draft PR #32 with different additive migration IDs, shared API/UI/role integration surfaces and no combined execution. G11-S01 is BLOCKED, G11-S02..S25 NOT EXECUTED and G12 verification pending. Accepted `main` and the M9 transport hold remain unchanged.
+
 **State:** NOT EXECUTED. G12 acceptance pending. Applies only to final frozen M12 source SHA. G5 accepted; G11 is not an M12 prerequisite.
 
 | ID | Required scenario | Expected proof |

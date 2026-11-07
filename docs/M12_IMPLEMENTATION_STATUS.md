@@ -1,6 +1,6 @@
 # M12 Implementation Status
 
-**Date:** 2026-11-07. **Branch:** `feat/m12-shipment-search-export`.
+**Last source audit:** 2026-11-08. **Branch:** `feat/m12-shipment-search-export`.
 **Accepted baseline:** `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`.
 **Disposition:** Code and test candidate committed; no G12 technical campaign executed, no independent G12 review and no gate acceptance. Nothing merged or deployed.
 
@@ -18,7 +18,7 @@ Domain: `ShipmentSearchPolicy.cs`, `OrganizationPolicy.cs`.
 Infrastructure: `ShipmentSearchStore.cs`, `M12ExportProofSigner.cs`, `DependencyInjection.cs`, `20261107230000_M12ShipmentExportAudit.cs`.
 API: `ShipmentSearchEndpoints.cs`, `Program.cs`, `AuthenticationSetup.cs`, `AuditRoleProvisioner.cs`.
 Web: `shipmentSearchClient.ts`, `ShipmentWorkspace.tsx`.
-Tests: `ShipmentSearchPolicyTests.cs`, `M12ExportProofSignerTests.cs`, `M12MigrationSafetyTests.cs`, `ShipmentSearchContractTests.cs`, `ShipmentSearchHttpTests.cs`, `shipment-search.spec.mjs`, updated `MigrationSnapshotTests.cs` and event-specific M16 `AuditHardeningTests.cs`. Configuration: `compose.yaml` and `.env.example` use the separate untracked M12 signing key only in migrator/API.
+Tests: `ShipmentSearchPolicyTests.cs`, `M12ExportProofSignerTests.cs`, `M12MigrationSafetyTests.cs`, `ShipmentSearchContractTests.cs`, `ShipmentSearchHttpTests.cs`, `shipment-search.spec.mjs`, the corrected M5 `shipment.spec.mjs` and `shipment-draft.spec.mjs` interceptors, updated `MigrationSnapshotTests.cs` and event-specific M16 `AuditHardeningTests.cs`. Configuration: `compose.yaml` and `.env.example` use the separate untracked M12 signing key only in migrator/API.
 
 [M12 source correctness audit](M12_CORRECTNESS_AUDIT_20261107.md) records ten findings, committed source fixes, and the unexecuted checks. The signed proof and optional key configuration must be verified before acceptance.
 
@@ -26,7 +26,11 @@ No .NET SDK, Docker, PostgreSQL or browser runtime is available in the connected
 
 ## Second-pass remediation checkpoint
 
-[Second-pass correctness audit](M12_CORRECTNESS_AUDIT_20261108.md), 2026-11-08: six further source-level findings were corrected or covered by new regression source. This includes the missing hosting namespace in SQL-role tests, the M12 audit-history downgrade guard, 4,096-character URL bound, 15-second PostgreSQL statement timeouts, a 30-second CSV preparation deadline, the full five-role HTTP matrix, and field-by-field HMAC substitution tests. **None of these tests were executed** in this environment. The G12 gate remains pending.
+[Second-pass correctness audit](M12_CORRECTNESS_AUDIT_20261108.md), 2026-11-08: eight further source-level findings were corrected or covered by new regression source. This includes the missing hosting namespace in SQL-role tests, the M12 audit-history downgrade guard, 4,096-character URL bound, 15-second PostgreSQL statement timeouts, a 30-second CSV preparation deadline, the full five-role HTTP matrix, and field-by-field HMAC substitution tests. **None of these tests were executed** in this environment. The G12 gate remains pending.
+
+## Third-pass M5 browser integration review
+
+The [2026-11-08 audit](M12_CORRECTNESS_AUDIT_20261108.md#third-pass-m5-browser-regression-findings-2026-11-08) records two further source-level regressions found by comparing the accepted M5 browser suite with the M12 workspace's new search URI. The deferred shipment response test and in-flight background-refresh/draft test now intercept `/shipments/search` and retain their original behavioral assertions. They have **not** been executed in any browser. This is not accepted G12 evidence.
 
 ## Open conditions
 

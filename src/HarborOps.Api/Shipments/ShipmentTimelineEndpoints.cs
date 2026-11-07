@@ -254,7 +254,7 @@ public static class ShipmentTimelineEndpoints
 
         routes.MapPost("/tracking-corrections", async (string organizationId,
             string shipmentId, HttpContext ctx, IAntiforgery anti, OrganizationStore orgs,
-            ShipmentTimelineStore store, CancellationToken ct) =>
+            ShipmentTimelineStore store, IConfiguration configuration, CancellationToken ct) =>
         {
             ctx.Response.Headers.CacheControl = "no-store";
             if (!await Mutation(ctx, app, anti)) return Fail(ctx, 403, "csrf_invalid");
@@ -266,9 +266,14 @@ public static class ShipmentTimelineEndpoints
             if (denied is not null) return denied;
             var input = await ReadCorrection(ctx);
             if (input is null) return Fail(ctx, 400, "invalid_request");
+            var signed = M10CorrectionProofSigner.Sign(
+                configuration["M10CorrectionProof:Key"],
+                org, shipment, Current(ctx).UserId, Current(ctx).SessionId, key, input);
+            if (signed is null)
+                return Fail(ctx, 503, "correction_authority_unavailable");
             var (result, revision) = await store.CorrectForSessionAsync(org, shipment,
                 input, Current(ctx).UserId, Current(ctx).SessionId,
-                ctx.Items["CorrelationId"]?.ToString() ?? "", key, ct);
+                ctx.Items["CorrelationId"]?.ToString() ?? "", key, signed, ct);
             return result switch
             {
                 TrackingMutationResult.Applied or TrackingMutationResult.Replayed =>
@@ -281,6 +286,7 @@ public static class ShipmentTimelineEndpoints
                     }),
                 TrackingMutationResult.NotFound => Fail(ctx, 404, "resource_not_found"),
                 TrackingMutationResult.Invalid => Fail(ctx, 422, "invalid_correction"),
+                TrackingMutationResult.AuditUnavailable => Fail(ctx, 503, "dependency_unavailable"),
                 TrackingMutationResult.Forbidden => Fail(ctx, 403, "access_denied"),
                 _ => Fail(ctx, 409, "correction_conflict")
             };

@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-08  
 **Scope:** `feat/m12-shipment-search-export`, draft PR #32, against accepted `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`.  
-**Code checkpoint before documentation updates:** `9fb59ef60c282f2eccd50541502cd4523932d470`.  
+**Code checkpoint after second-pass remediation, before final documentation reconciliation:** `d3970590f34220ad328db8b6770ffb87c2011d92`.  
 **Disposition:** New source defects remediated, regression cases authored, executable G12 verification NOT EXECUTED. Acceptance pending. No merge or deployment.
 
 This is the second source audit. The [first correctness audit](M12_CORRECTNESS_AUDIT_20261107.md) remains the historical record for signed export authority, replay protection, cursor isolation, CSV defenses, and the M11 integration boundary. Earlier code/source review results do not establish executable passing tests at the current revision.
@@ -18,6 +18,9 @@ This is the second source audit. The [first correctness audit](M12_CORRECTNESS_A
 | M12-B05 | High, role coverage | The restricted-role HTTP fixture tested Manager, Analyst and Administrator, but not Auditor and Support end to end. The suite now provisions both additional roles in the exclusive disposable fixture and asserts Auditor search-only, Support read/export denial, and Administrator export denial. | Test source added; five-role runtime matrix NOT EXECUTED |
 | M12-B06 | High, proof forgery tests | The earlier SQL restricted-role test mutated the signed actor only. It now independently mutates all nine bound proof inputs: organization, actor, session, row count, byte count, filter digest, correlation, expiry and signature. Each must be rejected before the unchanged proof succeeds once and replay is denied. | Test source added; real restricted SQL run NOT EXECUTED |
 
+| M12-B07 | Low, frontend type safety | The advanced-filter text field key type included `workflowStatus`, which is separately restricted to a finite typed list. The text-field key is now explicitly `Exclude<keyof ShipmentAdvancedFilters, "workflowStatus">`. | Source fixed; frontend typecheck NOT EXECUTED |
+| M12-B08 | Medium, migration guard testability | The new downgrade safeguard was not independently asserted by a lightweight test. `M12MigrationSafetyTests` now inspect EF migration operations for the audit-history guard before destructive statements and for verifier function/table restrictions, without changing any database. | Unit tests authored; NOT EXECUTED |
+
 ## Architecture and accepted contract review
 
 The M12 search route stays separate from accepted M5 list/detail/mutation routes. The baseline M5 search uses normalized literal substring matching over reference code, external reference and display name, workflow/record-status filters, and UUID-ascending keyset ordering. M12 retains those same methods and adds M6 half-open voyage intervals, route and UTC date constraints, a tenant/user/session/filter-bound protected cursor and a bounded page size. No accepted M5 source is modified.
@@ -32,7 +35,7 @@ M11 draft PR #31 adds the separate `20261107180000_ShipmentExceptions` migration
 
 ## Verification and evidence classification
 
-**Performed:** Connected repository source inspection, diff and call-site review; earlier 18 cross-file source-consistency checks from the [first audit](M12_CORRECTNESS_AUDIT_20261107.md); authored and committed source corrections and regression cases. No hosted workflows were enabled.
+**Performed:** Connected repository source inspection, diff and call-site review; earlier 18 cross-file source-consistency checks from the [first audit](M12_CORRECTNESS_AUDIT_20261107.md); authored and committed source corrections and regression cases. Reviewed Vite/Nginx routing: the browser calls same-origin relative /api paths and the local/hosted proxies preserve the public Host, so M12's same-origin download check remains compatible. No hosted workflows were enabled.
 
 **Not performed:** .NET release compile, integration or contract test execution, real PostgreSQL SQL/role/downgrade tests, web production bundle, live three-engine Playwright checks, security mutations, image scanning, M12 query-plan measurements, 5,000/5,001-row export checks, historical Q2 snapshot compatibility or independent G12-S25 raw evidence review. The connected repository environment has no checked-out .NET/PostgreSQL/Docker stack and direct GitHub network checkout is unavailable from the local execution container. These are **NOT EXECUTED**, not PASS.
 

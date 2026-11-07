@@ -12,6 +12,12 @@ Transform third-party or simulated maritime tracking signals into a trustworthy,
 
 [M8 architecture](M8_ARCHITECTURE_DESIGN.md) proposes one atomic acceptance transaction containing immutable receipt, immutable accepted event and separate Pending work state. The [D-006 Option A proposal](M8_D006_DURABILITY_PROPOSAL.md) defines permanent source-scoped identity, canonical replay digest, 202 only after commit and 409 for changed-payload collision. **M8, D-006 Option A and G8 were accepted 2026-11-04 after source-locked technical verification and independent evidence review.** Historical M7-only valid requests returned 503 before M8 intake was integrated. M9 later adds worker claims, retries and dead-letter behavior, and M10 projection rebuild; a receipt means stored for future processing, not business reconciliation. See [M8 planning status](M8_PLANNING_STATUS.md).
 
+## M10 correction replay and audit contract, 2026-11-07
+
+The merged original M10 source indexes resolved equipment effects without rewriting M8/M9 accepted histories. The separate L07/L14 remediation branch adds signed, scope-bound correction requests, a constrained PostgreSQL operation and one same-transaction M16 audit event per successful correction, while preserving append-only corrections, generation checks and replay semantics. The ordinary API role no longer has direct correction INSERT. New-source .NET/PostgreSQL verification is NOT EXECUTED, so these changes are not G10 accepted. [Implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+
+M10 reports null ETA and does not process parked ARRI/DEPA traffic. The M9 transport hold and 10,000 unresolved-work cap remain mandatory. ETA-oriented examples elsewhere on this page describe planned downstream behavior, not verified M10 capability.
+
 ## M9 worker transition (G9 accepted and integrated)
 
 The [M9 architecture](M9_ARCHITECTURE_DESIGN.md) separates the M8 immutable receipt/event history from a mutable, lease-fenced work row and an append-only receipt-unique processing-resolution effect. A separate .NET worker claims due Pending/RetryWaiting or expired leases under PostgreSQL locks, classifies outcomes and commits resolution effects atomically with terminal state. Unknown equipment/transport/shipment associations remain NeedsReconciliation instead of being guessed. Bounded transient failure retries end in DeadLetter, with explicit scoped redrive and immutable attempt evidence. A worker's Processed state means durable reference resolution, not M10 timeline/projection updates.

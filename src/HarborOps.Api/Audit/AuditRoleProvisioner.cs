@@ -95,6 +95,13 @@ public static class AuditRoleProvisioner
 
                 GRANT EXECUTE ON FUNCTION
                     m16_record_audit_access(uuid,varchar,uuid,uuid,uuid,varchar) TO harborops_api;
+                DO $m12_export$
+                BEGIN
+                    IF to_regprocedure('public.m12_record_shipment_export(uuid,uuid,uuid,integer,bigint,varchar,varchar)') IS NOT NULL THEN
+                        GRANT EXECUTE ON FUNCTION m12_record_shipment_export(
+                            uuid,uuid,uuid,integer,bigint,varchar,varchar) TO harborops_api;
+                    END IF;
+                END $m12_export$;
 
                 -- Worker starts read-only against the accepted M8 schema.
                 -- M9-specific column grants are activated only if M9 is present.

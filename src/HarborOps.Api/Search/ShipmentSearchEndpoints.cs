@@ -1,0 +1,173 @@
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using HarborOps.Domain.Shipments;
+using HarborOps.Infrastructure.Identity;
+using HarborOps.Infrastructure.Organizations;
+using HarborOps.Infrastructure.Shipments;
+using Microsoft.AspNetCore.WebUtilities;
+
+namespace HarborOps.Api.Search;
+
+internal sealed record ShipmentCursor(Guid OrganizationId, string Fingerprint,
+    Guid After, DateTimeOffset AsOfUtc, DateTimeOffset ExpiresAtUtc);
+
+public sealed class ShipmentCursorCodec
+{
+    private readonly byte[] key = RandomNumberGenerator.GetBytes(32);
+    public string Encode(Guid org, string fingerprint, Guid after, DateTimeOffset asOfUtc,
+        DateTimeOffset now)
+    {
+        var body = JsonSerializer.SerializeToUtf8Bytes(new ShipmentCursor(org, fingerprint, after,
+            asOfUtc, now.AddMinutes(15)));
+        var mac = HMACSHA256.HashData(key, body);
+        return WebEncoders.Base64UrlEncode(body) + "." + WebEncoders.Base64UrlEncode(mac);
+    }
+
+    public bool TryDecode(string token, Guid org, string fingerprint, DateTimeOffset now,
+        out ShipmentCursor? cursor)
+    {
+        cursor = null;
+        if (token.Length is < 10 or > 2048) return false;
+        try
+        {
+            var pieces = token.Split('.');
+            if (pieces.Length != 2) return false;
+            var body = WebEncoders.Base64UrlDecode(pieces[0]);
+            var mac = WebEncoders.Base64UrlDecode(pieces[1]);
+            var correct = HMACSHA256.HashData(key, body);
+            if (!CryptographicOperations.FixedTimeEquals(mac, correct)) return false;
+            var parsed = JsonSerializer.Deserialize<ShipmentCursor>(body);
+            if (parsed is null || parsed.OrganizationId != org ||
+                parsed.Fingerprint != fingerprint || parsed.After == Guid.Empty ||
+                parsed.ExpiresAtUtc <= now || parsed.AsOfUtc > now.AddMinutes(1))
+                return false;
+            cursor = parsed;
+            return true;
+        }
+        catch (Exception ex) when (ex is FormatException or JsonException or ArgumentException)
+        {
+            return false;
+        }
+    }
+}
+
+public static class ShipmentSearchEndpoints
+{
+    private static IResult Error(HttpContext ctx, int status, string code, string message) =>
+        Results.Json(new { code, message, correlationId = ctx.Items["CorrelationId"] },
+            statusCode: status);
+
+    private static IResult Access(HttpContext ctx, OrganizationAccessError code) => code switch
+    {
+        OrganizationAccessError.SelectionRequired =>
+            Error(ctx, 409, "organization_selection_required", "Select an organization to continue"),
+        OrganizationAccessError.Revoked =>
+            Error(ctx, 403, "organization_access_revoked", "Organization access is no longer available"),
+        OrganizationAccessError.Forbidden =>
+            Error(ctx, 403, "access_denied", "Access denied"),
+        OrganizationAccessError.NotFound =>
+            Error(ctx, 404, "resource_not_found", "Resource not found"),
+        OrganizationAccessError.Invalid =>
+            Error(ctx, 400, "invalid_request", "Invalid request"),
+        OrganizationAccessError.Conflict =>
+            Error(ctx, 409, "conflict", "The requested operation conflicts with current state"),
+        _ => Error(ctx, 503, "dependency_unavailable", "Search temporarily unavailable")
+    };
+
+    private static bool Id(string text, out Guid value) =>
+        Guid.TryParse(text, out value) && value != Guid.Empty;
+
+    private static ShipmentSearchFilters Parse(HttpContext ctx, bool export)
+    {
+        var query = ctx.Request.Query;
+        string[] allowed = ["q", "recordStatus", "workflowStatus", "voyageId",
+            "originPortId", "destinationPortId",
+            "plannedDepartureFromUtc", "plannedDepartureBeforeUtc",
+            "plannedArrivalFromUtc", "plannedArrivalBeforeUtc"];
+        if (!export) allowed = [..allowed, "limit", "cursor"];
+        if (query.Count > allowed.Length || query.Keys.Any(k => !allowed.Contains(k, StringComparer.Ordinal)) ||
+            query.Any(kv => kv.Value.Count != 1))
+            throw new ArgumentException("Invalid search query");
+        static Guid? G(Microsoft.AspNetCore.Http.IQueryCollection values, string key)
+        {
+            if (!values.ContainsKey(key)) return null;
+            if (!Guid.TryParse(values[key], out var value) || value == Guid.Empty)
+                throw new ArgumentException("Invalid identifier");
+            return value;
+        }
+        static DateTimeOffset? D(Microsoft.AspNetCore.Http.IQueryCollection values, string key)
+        {
+            if (!values.ContainsKey(key)) return null;
+            return ShipmentPolicy.Utc(values[key].ToString());
+        }
+        var limit = 25;
+        if (query.ContainsKey("limit") && (!int.TryParse(query["limit"], out limit) ||
+            limit is < 1 or > 100))
+            throw new ArgumentException("Invalid limit");
+        return ShipmentSearchFilters.Create(query["q"].ToString(),
+            query["recordStatus"].ToString(), query["workflowStatus"].ToString(),
+            G(query, "voyageId"), G(query, "originPortId"), G(query, "destinationPortId"),
+            D(query, "plannedDepartureFromUtc"), D(query, "plannedDepartureBeforeUtc"),
+            D(query, "plannedArrivalFromUtc"), D(query, "plannedArrivalBeforeUtc"), limit);
+    }
+
+    public static void MapShipmentSearchEndpoints(this WebApplication app)
+    {
+        var root = app.MapGroup("/api/v1/organizations/{organizationId}")
+            .RequireAuthorization();
+        root.MapGet("/shipments/search", async (string organizationId,
+            HttpContext ctx, ShipmentSearchStore store, ShipmentCursorCodec codec,
+            TimeProvider clock, CancellationToken ct) =>
+        {
+            if (!Id(organizationId, out var org))
+                return Access(ctx, OrganizationAccessError.Invalid);
+            ShipmentSearchFilters filters;
+            try { filters = Parse(ctx, export: false); }
+            catch (ArgumentException) { return Access(ctx, OrganizationAccessError.Invalid); }
+            var now = clock.GetUtcNow();
+            var asOf = now;
+            Guid? after = null;
+            var token = ctx.Request.Query["cursor"].ToString();
+            if (token.Length > 0)
+            {
+                if (!codec.TryDecode(token, org, filters.Fingerprint(), now, out var parsed))
+                    return Error(ctx, 409, "stale_or_invalid_cursor", "Restart this search");
+                asOf = parsed!.AsOfUtc;
+                after = parsed.After;
+            }
+            else if (ctx.Request.Query.ContainsKey("cursor"))
+                return Access(ctx, OrganizationAccessError.Invalid);
+            var session = (CurrentSession)ctx.Items["IdentitySession"]!;
+            var result = await store.SearchAsync(session, org, filters, asOf, after, ct);
+            if (result.Value is null) return Access(ctx, result.Error);
+            var next = result.Value.NextAfter.HasValue
+                ? codec.Encode(org, filters.Fingerprint(), result.Value.NextAfter.Value,
+                    asOf, now) : null;
+            return Results.Ok(new { shipments = result.Value.Shipments,
+                nextCursor = next, asOfUtc = asOf });
+        });
+
+        root.MapGet("/exports/shipments", async (string organizationId,
+            HttpContext ctx, ShipmentSearchStore store, TimeProvider clock, CancellationToken ct) =>
+        {
+            if (!Id(organizationId, out var org))
+                return Access(ctx, OrganizationAccessError.Invalid);
+            ShipmentSearchFilters filters;
+            try { filters = Parse(ctx, export: true); }
+            catch (ArgumentException) { return Access(ctx, OrganizationAccessError.Invalid); }
+            var session = (CurrentSession)ctx.Items["IdentitySession"]!;
+            var correlation = ctx.Items["CorrelationId"]?.ToString() ?? "database";
+            var result = await store.ExportAsync(session, org, filters, correlation, ct);
+            if (result.Value is null)
+                return result.FailureCode is not null
+                    ? Error(ctx, 413, result.FailureCode, "Export limit exceeded. Narrow the filters")
+                    : Access(ctx, result.Error);
+            var filename = "shipments-" + clock.GetUtcNow().UtcDateTime.ToString(
+                "yyyyMMddTHHmmssZ", System.Globalization.CultureInfo.InvariantCulture) + ".csv";
+            ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
+            ctx.Response.Headers.CacheControl = "private, no-store";
+            return Results.File(result.Value, "text/csv; charset=utf-8", filename);
+        });
+    }
+}

@@ -4,6 +4,7 @@ using HarborOps.Api.Organizations;
 using HarborOps.Api.References;
 using HarborOps.Api.Maritime;
 using HarborOps.Api.Shipments;
+using HarborOps.Api.Search;
 using HarborOps.Api.Assignments;
 using HarborOps.Api.Integrations;
 using HarborOps.Api.Audit;
@@ -37,6 +38,7 @@ builder.Services.AddHarborOpsAuthentication(builder.Configuration);
 builder.Services.AddSingleton<IntegrationRequestLimiter>();
 builder.Services.AddScoped<TrackingWorkAdminStore>();
 builder.Services.AddScoped<ShipmentTimelineStore>();
+builder.Services.AddSingleton<ShipmentCursorCodec>();
 if (builder.Configuration.GetValue<bool>("M10:EnableProjector"))
 {
     var projectorConnection = builder.Configuration.GetConnectionString("HarborOpsProjector");
@@ -157,6 +159,7 @@ app.MapOrganizationEndpoints();
 app.MapReferenceEndpoints();
 app.MapMaritimeEndpoints();
 app.MapShipmentEndpoints();
+app.MapShipmentSearchEndpoints();
 app.MapAssignmentEndpoints();
 app.MapTrackingEndpoints();
 app.MapTrackingWorkEndpoints();

@@ -95,6 +95,10 @@ public sealed class M11ExceptionRuntimeTests
         Assert.Equal("ArrivalScheduleOverdue", row.GetProperty("ruleCode").GetString());
         Assert.Equal("Active", row.GetProperty("condition").GetString());
         Assert.Equal("ScheduleOnly", row.GetProperty("confidence").GetString());
+        var provenance = row.GetProperty("evidence");
+        Assert.Equal("m11-rules-v1",
+            provenance.GetProperty("rulePolicyVersion").GetString());
+        Assert.True(provenance.GetProperty("shipmentVersion").GetInt64() > 0);
         return row.GetProperty("id").GetGuid();
     }
 

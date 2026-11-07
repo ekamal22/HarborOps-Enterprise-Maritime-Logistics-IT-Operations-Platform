@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text.Json;
 using HarborOps.Domain.Exceptions;
 using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Persistence;
@@ -14,7 +15,8 @@ public sealed record ShipmentExceptionRecord(
     string SourceFingerprint, long ShipmentVersion, long TrackingInputRevision,
     long CorrectionGeneration, DateTimeOffset? ReferenceAtUtc,
     DateTimeOffset? ThresholdAtUtc, DateTimeOffset FirstDetectedAtUtc,
-    DateTimeOffset LastEvaluatedAtUtc, DateTimeOffset? ResolvedAtUtc, long Version);
+    DateTimeOffset LastEvaluatedAtUtc, DateTimeOffset? ResolvedAtUtc, long Version,
+    JsonElement Evidence);
 public sealed record ShipmentExceptionHistory(
     Guid Id, Guid ExceptionId, string Action, string? OldState, string NewState,
     string ActorKind, Guid? ActorUserId, DateTimeOffset OccurredAtUtc, string? Reason);
@@ -52,14 +54,15 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         reader.IsDBNull(15) ? null : reader.GetFieldValue<DateTimeOffset>(15),
         reader.GetFieldValue<DateTimeOffset>(16), reader.GetFieldValue<DateTimeOffset>(17),
         reader.IsDBNull(18) ? null : reader.GetFieldValue<DateTimeOffset>(18),
-        reader.GetInt64(19));
+        reader.GetInt64(19),
+        JsonDocument.Parse(reader.GetString(20)).RootElement.Clone());
 
     private const string Columns = """
         id,organization_id,shipment_id,rule_code,occurrence,condition_state,
         lifecycle_state,severity,confidence,reason_code,source_fingerprint,
         shipment_version,tracking_input_revision,correction_generation,
         reference_at_utc,threshold_at_utc,first_detected_at_utc,
-        last_evaluated_at_utc,resolved_at_utc,version
+        last_evaluated_at_utc,resolved_at_utc,version,evidence::text
         """;
 
     public Task<bool> ShipmentExistsAsync(Guid org, Guid shipment, CancellationToken ct) =>

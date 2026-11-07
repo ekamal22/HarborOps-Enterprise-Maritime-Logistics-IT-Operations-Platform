@@ -9,6 +9,8 @@ type ExceptionRow = {
   referenceAtUtc: string | null; thresholdAtUtc: string | null;
   firstDetectedAtUtc: string; lastEvaluatedAtUtc: string;
   resolvedAtUtc: string | null; version: number;
+  evidence: { rulePolicyVersion: string; trackingInputDigest: string | null;
+    trackingInputRevision: number; correctionGeneration: number };
 };
 type ExceptionPage = { items: ExceptionRow[]; nextCursor: string | null };
 type ExceptionHistory = {
@@ -213,6 +215,14 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
       </div>
       {detail.historyTruncated && <p role="status" className="mt-2 text-amber-300">
         Only the first 500 history entries are displayed. Review the retained records for the full history.
+      </p>}
+      <p className="mt-2 text-slate-400">
+        Rule policy: {detail.exception.evidence.rulePolicyVersion};
+        input revision: {detail.exception.evidence.trackingInputRevision};
+        correction generation: {detail.exception.evidence.correctionGeneration}
+      </p>
+      {detail.exception.evidence.trackingInputDigest && <p className="mt-1 break-all text-slate-400">
+        M10 projection input digest: {detail.exception.evidence.trackingInputDigest}
       </p>}
       <ol className="mt-2 space-y-1">{detail.history.map(entry =>
         <li key={entry.id}>{entry.occurredAtUtc}: {entry.action}

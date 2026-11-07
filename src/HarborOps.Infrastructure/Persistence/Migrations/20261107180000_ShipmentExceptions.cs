@@ -263,9 +263,26 @@ public sealed class ShipmentExceptions : Migration
                 INSERT INTO shipment_exception_proof_nonces
                     (nonce,organization_id,shipment_id,operation,expires_at_utc)
                 VALUES (p_nonce,p_org,p_shipment,'Evaluation',to_timestamp(p_expires));
-                payload := jsonb_build_object('reasonCode',p_reason,'confidence',p_confidence,
+                -- Preserve bounded, typed provenance, not raw tracking payloads.
+                -- A projection digest identifies the accepted M10 snapshot,
+                -- not an independently confirmed physical arrival.
+                payload := jsonb_build_object(
+                    'reasonCode',p_reason,'confidence',p_confidence,
                     'referenceAtUtc',p_reference,'thresholdAtUtc',p_threshold,
-                    'rulePolicyVersion','m11-rules-v1');
+                    'rulePolicyVersion','m11-rules-v1',
+                    'shipmentVersion',p_ship_version,
+                    'trackingInputRevision',p_input_revision,
+                    'correctionGeneration',p_generation,
+                    'trackingPolicyVersion',CASE WHEN p_rule='EquipmentConflict'
+                        THEN (SELECT policy_version FROM shipment_tracking_projections
+                              WHERE organization_id=p_org AND shipment_id=p_shipment)
+                        ELSE NULL END,
+                    'trackingInputDigest',CASE WHEN p_rule='EquipmentConflict'
+                        THEN (SELECT input_digest::text FROM shipment_tracking_projections
+                              WHERE organization_id=p_org AND shipment_id=p_shipment
+                                AND input_revision=p_input_revision
+                                AND correction_generation=p_generation)
+                        ELSE NULL END);
                 IF pg_column_size(payload) > 2048 THEN
                     RAISE EXCEPTION 'Evaluation metadata invalid' USING ERRCODE='23514';
                 END IF;

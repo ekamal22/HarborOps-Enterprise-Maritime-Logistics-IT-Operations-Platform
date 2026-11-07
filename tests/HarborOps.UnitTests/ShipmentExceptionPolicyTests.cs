@@ -57,7 +57,7 @@ public sealed class ShipmentExceptionPolicyTests
         var input = Input(arrival: T0.AddHours(-4), workflow: "Completed");
         Assert.Equal("Inactive", Rule(input,
             ShipmentExceptionPolicy.ArrivalScheduleOverdue).Condition);
-        Assert.Equal("recorded_completion_exists", Rule(input,
+        Assert.Equal("recorded_terminal_workflow_exists", Rule(input,
             ShipmentExceptionPolicy.ArrivalScheduleOverdue).ReasonCode);
         Assert.Equal("Unknown", Rule(input,
             ShipmentExceptionPolicy.RecordedArrivalLate).Condition);
@@ -75,6 +75,20 @@ public sealed class ShipmentExceptionPolicyTests
             ShipmentExceptionPolicy.DepartureSlippageRisk, T0.AddHours(2)).Condition);
         Assert.Equal("Unknown", Rule(input with { RecordedDepartureAtUtc = null },
             ShipmentExceptionPolicy.DepartureSlippageRisk).Condition);
+    }
+
+    [Fact]
+    public void TerminalWorkflowWithoutArrivalHistoryCannotProduceDepartureRisk()
+    {
+        var input = Input(departure: T0.AddHours(-3),
+            arrival: T0.AddHours(1), recordedDeparture: T0.AddHours(-1),
+            workflow: "Arrived");
+        Assert.Equal("Inactive", Rule(input,
+            ShipmentExceptionPolicy.DepartureSlippageRisk).Condition);
+        Assert.Equal("Inactive", Rule(input with { WorkflowStatus = "Completed" },
+            ShipmentExceptionPolicy.DepartureSlippageRisk).Condition);
+        Assert.Equal("Inactive", Rule(input,
+            ShipmentExceptionPolicy.ArrivalScheduleOverdue).Condition);
     }
 
     [Fact]

@@ -2,7 +2,11 @@
 
 **Status:** Approved M16-D01 to M16-D05 design (2026-11-04). The corrected M16 source at `e571157` has a reported passing standalone G16 technical campaign; the design approval itself grants neither independent evidence acceptance nor merge or deployment authority. See [executed verification](M16_EXECUTED_VERIFICATION.md). **Entry:** G3 accepted.
 
-## Baseline
+## Later correction-audit integration, 2026-11-07
+
+M16/G16 was explicitly accepted and merged through PR #25 on 2026-11-06. The approved M10-L07/L14 changes extend the accepted same-transaction audit obligation to M10 tracking corrections. The unmerged M10 remediation source adds one atomic `shipment.tracking_correction_created` event, privacy-allowlisted metadata, signed and constrained correction authority and a thirteenth migration. No new-source .NET/PostgreSQL execution has occurred. This does not replace accepted G16 source-locked evidence, modify Auditor-only read access, or authorize deployment. [M10 implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+
+
 The .NET 10 modular API uses EF Core 10 and PostgreSQL 16, server-authoritative sessions and typed organization permissions. M1 auth_events provide limited identity events, not comprehensive audit. M8 receipt/accepted-event tables are immutable operational history, not general audit. Do not replace either or alter accepted M8 source keys. M9 introduces worker claim/retry/effect tracking and must coordinate schema and privileges.
 
 ## Proposed audit schema

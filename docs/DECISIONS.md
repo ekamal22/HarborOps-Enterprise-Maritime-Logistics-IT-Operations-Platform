@@ -1,5 +1,7 @@
 # Architecture Decisions
 
+**M12 second-pass checkpoint, 2026-11-08:** Draft PR #32 includes the [source correctness audit and new remediation](M12_CORRECTNESS_AUDIT_20261108.md), with SQL and export time budgets, downgrade integrity, strict input limits and expanded authorization/proof test sources. M12-P01..P16 still require an explicit decision; G12 has no executed acceptance evidence. M11/M12 integration remains a separate combined-source obligation, not a prerequisite to isolated M12 authoring. The accepted M9 hold persists.
+
 **M12 local design status (2026-11-07):** M12-P01 through M12-P16 remain proposed implementation defaults, **not approved decisions**. Draft PR #32 includes scoped search, independently signed restricted CSV export and audit. The [M12 decision register](M12_PLANNING_STATUS.md) and [correctness audit](M12_CORRECTNESS_AUDIT_20261107.md) record open authority/role, key lifecycle, migration-integration and G12 review checks. The parallel M11 draft PR #31 has different migration identity but shared integration surfaces. No acceptance or merge authority is inferred.
 
 

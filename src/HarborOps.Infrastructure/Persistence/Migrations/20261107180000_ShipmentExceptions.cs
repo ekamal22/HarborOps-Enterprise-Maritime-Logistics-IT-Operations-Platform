@@ -185,7 +185,15 @@ public sealed class ShipmentExceptions : Migration
                 payload jsonb;
                 current_org text;
             BEGIN
-                IF session_user <> 'harborops_api' OR p_nonce IS NULL
+                IF session_user <> 'harborops_api'
+                   OR p_org IS NULL OR p_shipment IS NULL OR p_nonce IS NULL
+                   OR p_expires IS NULL OR p_signature IS NULL
+                   OR p_rule IS NULL OR p_condition IS NULL
+                   OR p_severity IS NULL OR p_confidence IS NULL
+                   OR p_reason IS NULL OR p_fingerprint IS NULL
+                   OR p_ship_version IS NULL OR p_input_revision IS NULL
+                   OR p_generation IS NULL
+                   OR p_signature !~ '^[0-9a-f]{64}$'
                    OR p_expires < now_epoch OR p_expires > now_epoch+60
                    OR p_rule NOT IN ('EquipmentConflict','ArrivalScheduleOverdue',
                        'RecordedArrivalLate','DepartureSlippageRisk')
@@ -426,8 +434,12 @@ public sealed class ShipmentExceptions : Migration
                 row_fingerprint char(64);
             BEGIN
                 IF session_user <> 'harborops_api'
+                   OR p_org IS NULL OR p_exception IS NULL
                    OR p_actor IS NULL OR p_session IS NULL OR p_idempotency IS NULL
-                   OR p_nonce IS NULL OR p_expected_version < 1
+                   OR p_nonce IS NULL OR p_expires IS NULL OR p_signature IS NULL
+                   OR p_action IS NULL OR p_expected_version IS NULL
+                   OR p_signature !~ '^[0-9a-f]{64}$'
+                   OR p_expected_version < 1
                    OR p_action NOT IN ('Acknowledge','Resolve')
                    OR p_reason IS NULL OR length(btrim(p_reason)) NOT BETWEEN 8 AND 240
                    OR p_reason <> btrim(p_reason) OR p_reason ~ '[[:cntrl:]]'

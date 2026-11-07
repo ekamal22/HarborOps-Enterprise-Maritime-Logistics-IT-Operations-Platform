@@ -1,6 +1,6 @@
 # M10 Executed Verification Record (G10)
 
-**State:** Technical verification complete on frozen source; [independent evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) completed. **G10 acceptance pending.** S01 policies and S25 formal gate decision remain open. No gate decision, merge authorization or deployment authorization is implied.
+**Historical executed record:** The A1-A7 campaign and independent review cover frozen runtime `3e81b88` and its twelve migrations. The S01 BLOCKED disposition reflects the policy status during that run; all fourteen choices were approved on 2026-11-07. New-source security remediation at `3ef7a50859b5f023aa1457b373728888f6d1cba9` has **NOT EXECUTED** .NET/PostgreSQL or supplemental gate verification, so S01 source conformance and S25 formal acceptance remain pending. No merge or deployment authorization is implied. See [new-source implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 **Baseline:** `main` at `5edf0035a1fb9d854cba00673eb8fdf1f3033b0c` (merge of [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), 2026-11-06), which contains accepted M0-M9 and M16/G16 plus the M10 source.
 **Verification branch:** `feat/harborops-m10-g16-verify-f80276`.
 **Frozen runtime source:** `3e81b884b6a4cc782f84c58510793666786c5796`. Later branch commits change only verification tooling, one added test and documentation; `git diff` of the frozen SHA against the branch head over `src`, `web`, `docker` and the Compose files is empty.

@@ -29,8 +29,7 @@ export type ShipmentSearchPage = {
 
 function queryString(filters: ShipmentSearchFilters): URLSearchParams {
   const params = new URLSearchParams();
-  const values: Record<string, string> = { ...filters };
-  for (const [name, raw] of Object.entries(values)) {
+  for (const [name, raw] of Object.entries(filters)) {
     const value = raw.trim();
     if (value) params.set(name, value);
   }

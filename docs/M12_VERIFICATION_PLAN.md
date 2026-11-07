@@ -20,7 +20,7 @@
 | S14 | Search and export parity | Identical stable fixture/filter subset |
 | S15 | CSV injection and encoding | Formula, quotes, comma, newline, Unicode |
 | S16 | Safe fields and response headers | Fixed 12-column schema, no-store |
-| S17 | Row/byte/timeout limits | 5000, 5001, 10 MiB, 15-second statement timeout, 30-second total deadline, no partial CSV |
+| S17 | Row/byte/timeout limits | 5000, 5001, 10 MiB, 15-second statement timeout, 25-second internal deadline and 30-second proxy read timeout, no partial CSV |
 | S18 | M16 signed export audit and restricted role | Nine-field HMAC substitution, expiry, key missing/mismatch/rotation, unreadable verifier table, replay, SQL forgery, audit outage, M12 downgrade refusal after audited exports |
 | S19 | Outage/cancel/rate/concurrency | Safe no-partial-output failure |
 | S20 | PostgreSQL plans | EXPLAIN actual cost for representative data |

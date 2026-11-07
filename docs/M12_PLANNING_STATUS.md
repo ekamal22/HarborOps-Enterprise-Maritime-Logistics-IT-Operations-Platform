@@ -13,12 +13,12 @@
 | M12-P07 | Protected UUID keyset cursor bound to tenant, user, session, filters; 15-minute TTL | Pending |
 | M12-P08 | Export for Analyst/Manager, Auditor denied pending further approval | Pending |
 | M12-P09 | Fixed versioned CSV v1 fields | Pending |
-| M12-P10 | 5,000 rows, 10 MiB, 10/min and one in-flight per principal | Pending |
+| M12-P10 | 5,000 rows, 10 MiB, 15-second SQL and 30-second preparation deadlines, 10/min and one in-flight per principal | Pending |
 | M12-P11 | UTF-8 quoted CSV and spreadsheet-formula defense | Pending |
 | M12-P12 | Mandatory signed, 45-second HMAC proof, migration-only verifier key, no replay and transactional export-preparation audit | Pending |
 | M12-P13 | Live search pages versus single-transaction export consistency | Pending |
-| M12-P14 | Existing selected organization, five-role policy, sanitized errors and no-store | Pending |
+| M12-P14 | Existing selected organization, five-role policy, bounded 4,096-character URL, sanitized errors and no-store | Pending |
 | M12-P15 | No dependence on M11 exception rules, inferred ETA or M9 parked events | Pending |
 | M12-P16 | G12 Q2 safe-copy historical snapshot checkpoint or evidenced NOT APPLICABLE | Pending |
 
-See [correctness audit](M12_CORRECTNESS_AUDIT_20261107.md), [architecture](M12_ARCHITECTURE_DESIGN.md), [implementation status](M12_IMPLEMENTATION_STATUS.md), [verification](M12_VERIFICATION_PLAN.md). The canonical work-package graph is unchanged.
+See [second-pass audit](M12_CORRECTNESS_AUDIT_20261108.md), [first audit](M12_CORRECTNESS_AUDIT_20261107.md), [architecture](M12_ARCHITECTURE_DESIGN.md), [implementation status](M12_IMPLEMENTATION_STATUS.md), [verification](M12_VERIFICATION_PLAN.md). The canonical work-package graph is unchanged.

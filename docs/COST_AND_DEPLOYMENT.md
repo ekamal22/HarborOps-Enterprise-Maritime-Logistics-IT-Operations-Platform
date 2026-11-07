@@ -35,6 +35,10 @@ The development working tree, dependency caches and verification evidence use co
 
 ## Deployment profiles
 
+### G10 remediation deployment restriction, 2026-11-07
+
+M10 correction security changes are source-committed on the separate `fix/m10-g10-l07-l14-remediation` branch. The signed correction operation, private verifier key provisioning and thirteenth migration have not passed new-source runtime verification. Do not upgrade retained data, merge or deploy the remediation based on source inspection alone. The accepted M9 sustained transport-event processing hold and 10,000 unresolved-work limit remain unchanged. See [current G10 status](STATUS.md) and [implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+
 ### Profile L: Local complete system
 All core modules available on one development computer. No externally hosted API. Preferred for automated tests and fault injection.
 

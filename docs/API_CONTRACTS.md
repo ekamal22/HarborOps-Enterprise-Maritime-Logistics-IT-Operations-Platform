@@ -1,5 +1,8 @@
 # API Contracts
 
+**G10 accepted (2026-11-07):** M10/G10 S01 and S25 are closed by [the gate decision](M10_G10_GATE_CLOSURE_20261107.md). The final signed-correction and historical-upgrade source is verified at `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343`; its integration into `main` is authorized and still pending at this pre-merge checkpoint. Earlier unaccepted-state passages remain historical evidence references. No hosting, release or M9 transport-hold change is authorized.
+
+
 ## Contract status
 
 M0-M9 APIs, including durable tracking receipt intake and scoped M9 work query/redrive, are accepted on `main`. M16 Auditor-only tenant-scoped audit read APIs were separately accepted and merged through [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25); see [G16 closure](M16_G16_GATE_CLOSURE.md). M10 tracking timeline/projection endpoints merged through PR #23 but G10 remains unaccepted. Original frozen runtime `3e81b88` has independently reviewed technical evidence; the separately committed L07/L14 security remediation has no executed runtime verification. Full public OpenAPI generation is still planned.

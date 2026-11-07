@@ -1,5 +1,8 @@
 # Cost and Deployment Strategy
 
+**G10 accepted (2026-11-07):** M10/G10 S01 and S25 are closed by [the gate decision](M10_G10_GATE_CLOSURE_20261107.md). The final signed-correction and historical-upgrade source is verified at `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343`; its integration into `main` is authorized and still pending at this pre-merge checkpoint. Earlier unaccepted-state passages remain historical evidence references. No hosting, release or M9 transport-hold change is authorized.
+
+
 **Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
 
 ## Primary constraint

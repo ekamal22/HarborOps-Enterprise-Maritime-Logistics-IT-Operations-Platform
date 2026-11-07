@@ -1,5 +1,8 @@
 # Requirements
 
+**G10 accepted (2026-11-07):** M10/G10 S01 and S25 are closed by [the gate decision](M10_G10_GATE_CLOSURE_20261107.md). The final signed-correction and historical-upgrade source is verified at `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343`; its integration into `main` is authorized and still pending at this pre-merge checkpoint. Earlier unaccepted-state passages remain historical evidence references. No hosting, release or M9 transport-hold change is authorized.
+
+
 **Current M9/G9 status (2026-11-05):** G9 was accepted with the mandatory [M9-01 transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). M9 is integrated into `main` through PR #16 (`43fe326`) and PR #18 (`4684352`). The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and residual limitations. No production or public deployment is authorized; sustained transport-event processing is held until M10 or another explicitly approved backlog mechanism is verified. Earlier planning or acceptance-pending language in historical subsections reflects the earlier project phase.
 
 **Authority:** This document owns atomic FR/NFR identifiers and the permission matrix. The [Product Requirements Document](PRD.md) owns product outcomes and release boundaries. [Roadmap](ROADMAP.md) assigns milestone gates, [execution-graph.json](execution-graph.json) connects work packages to requirement IDs, and [Status](STATUS.md) owns delivery evidence.

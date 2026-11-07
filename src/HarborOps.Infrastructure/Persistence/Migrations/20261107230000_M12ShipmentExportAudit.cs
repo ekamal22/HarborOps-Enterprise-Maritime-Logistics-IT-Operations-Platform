@@ -143,6 +143,16 @@ public sealed class M12ShipmentExportAudit : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""
+            DO $m12_down_guard$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM public.audit_entries
+                    WHERE event_type = 'shipment.export_prepared' LIMIT 1
+                ) THEN
+                    RAISE EXCEPTION 'M12 audit history exists; archive and verify before rollback'
+                        USING ERRCODE = '23514';
+                END IF;
+            END $m12_down_guard$;
             DROP FUNCTION IF EXISTS public.m12_record_shipment_export(
                 uuid,uuid,uuid,integer,bigint,varchar,varchar,bigint,varchar);
             DROP INDEX IF EXISTS public.uq_m12_export_prepared_correlation;

@@ -1,6 +1,6 @@
 # Pre-release Documentation and Evidence Checklist
 
-**M11 scope note (2026-11-07):** [Draft M11 correctness audit](M11_CORRECTNESS_AUDIT_20261107.md) records an unverified local implementation candidate on PR #31. It is not an accepted or deployed service and does not authorize release, external transport processing, or changes to the M9 hold. G11 acceptance pending.
+**M11 scope note (2026-11-07):** [Draft M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records an unverified local implementation candidate on PR #31. It is not an accepted or deployed service and does not authorize release, external transport processing, or changes to the M9 hold. G11 acceptance pending.
 
 **Opened:** 2026-11-06  
 **Target:** M24-03 source/evidence reconciliation before M24-04 accessibility and G24 release acceptance.  

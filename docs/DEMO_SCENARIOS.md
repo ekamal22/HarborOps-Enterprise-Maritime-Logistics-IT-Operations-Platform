@@ -1,6 +1,6 @@
 # Reproducible Demonstration Scenarios
 
-**M11 scope note (2026-11-07):** [Draft M11 correctness audit](M11_CORRECTNESS_AUDIT_20261107.md) records an unverified local implementation candidate on PR #31. It is not an accepted or deployed service and does not authorize release, external transport processing, or changes to the M9 hold. G11 acceptance pending.
+**M11 scope note (2026-11-07):** [Draft M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records an unverified local implementation candidate on PR #31. It is not an accepted or deployed service and does not authorize release, external transport processing, or changes to the M9 hold. G11 acceptance pending.
 
 **Current G9 disposition (2026-11-05):** M9/G9 accepted and merged into `main` via planning PR #16 (`43fe326`) and implementation PR #18 (`4684352`). [G9 closure](M9_G9_GATE_CLOSURE.md) preserves the reviewed evidence and limitations. Sustained transport-event processing is held until M10 or another explicitly approved, verified backlog mechanism handles parked events within the 10,000 unresolved-work cap. No production deployment is authorized.
 

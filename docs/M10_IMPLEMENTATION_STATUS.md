@@ -64,3 +64,9 @@ A [source-locked correctness audit](M10_SOURCE_CORRECTNESS_AUDIT.md) of runtime 
 M10-L01 to M10-L14 policy selection is approved, with L07 requiring atomic M16 correction audit, L14 requiring constrained database correction authority with unforgeable actor/session provenance, and L06 conditional on the L14 guarantee. The [G10 L07/L14 remediation plan](M10_G10_L07_L14_REMEDIATION_PLAN.md) records exact requirements, proposed execution stages and negative tests. Prior statements above about pending policy selection describe earlier historical status, not the current decision.
 
 **Implementation and new-source tests remain pending.** Earlier G10 A1-A7 raw evidence independently supports the frozen source `3e81b884b6a4cc782f84c58510793666786c5796`, not the as-yet-unimplemented security changes. Preserve earlier evidence, run focused source-locked tests on E:, then independently review the supplemental package. G10 acceptance, merging, release and deployment remain pending or unauthorized as applicable.
+
+## Correction authority remediation source update, 2026-11-07
+
+The approved L07/L14 remediation code is now committed on `fix/m10-g10-l07-l14-remediation`. It adds the thirteenth SQL-only migration, signed and server-authenticated correction operation, migration-owned M16 audit insert, protection against direct correction INSERT and forged correction replay, and targeted regression tests. The original frozen-source G10 evidence still applies only to `3e81b88`.
+
+See [implementation and verification boundary](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md). Source inspection and static consistency checks have occurred, but .NET compilation, PostgreSQL migration execution, source-locked targeted integration, failure injection and browser runs have **not** been executed in this environment. Do not mark new-source verification PASS. G10 acceptance and merge remain pending.

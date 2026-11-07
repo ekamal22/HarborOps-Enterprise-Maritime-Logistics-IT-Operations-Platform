@@ -2,9 +2,11 @@
 
 **Decision date:** 2026-11-07  
 **Policy disposition:** M10-L01 through M10-L14 approved, with changes to L07 and L14 and L06 conditioned on effective database authorization.  
-**Execution status:** Remediation and new-source verification pending. G10 acceptance pending.  
+**Execution status:** Source remediation committed (runtime candidate `3ef7a50859b5f023aa1457b373728888f6d1cba9`); new-source compile, migration, database security tests, independent review and G10 acceptance pending.  
 **Baseline for this branch:** `d8ede69d2e7d153a886b09e0bfef8d7cbc32059f`, descended from frozen G10 runtime `3e81b884b6a4cc782f84c58510793666786c5796`.  
 **Scope:** Corrections, audit persistence and restricted runtime database authority. No merger, deployment, release or GitHub Actions authorization.
+
+The source-implementation checkpoint and its unexecuted test boundary are in [the implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md). The gap analysis in section 2 describes the earlier frozen source, not current branch behavior.
 
 ## 1. Accepted policy boundaries
 
@@ -102,4 +104,4 @@ Report exact branch and source SHA, changed files, migration effect, security in
 
 Keep permanent repositories, worktrees, caches, Docker/WSL data, databases and evidence under E: on the Windows verification machine. Short-lived C: system use is allowed only when unavoidable and must be cleaned safely. Preserve all earlier A1-A7 source-locked evidence under its original paths. Use isolated Compose project names and volumes for new runs. Do not delete unrelated Docker resources or evidence.
 
-**Current gate state:** Policy choices approved on 2026-11-07. New-source implementation and verification pending. G10 acceptance pending.
+**Current gate state:** Policy choices approved on 2026-11-07. New-source implementation is committed at candidate runtime `3ef7a50859b5f023aa1457b373728888f6d1cba9`, but runtime verification and new-source S01 conformance are not executed. S25 and G10 acceptance remain pending.

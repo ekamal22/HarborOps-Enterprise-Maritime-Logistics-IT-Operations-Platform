@@ -1,5 +1,7 @@
 # Pre-release Documentation and Evidence Checklist
 
+**M11 current review (2026-11-08):** [Third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records additional signed-authority, cursor, timestamp and concurrency corrections. Runtime execution remains unverified, G11 acceptance pending, and M9 transport restrictions unchanged.
+
 **M11 scope note (2026-11-07):** [Draft M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records an unverified local implementation candidate on PR #31. It is not an accepted or deployed service and does not authorize release, external transport processing, or changes to the M9 hold. G11 acceptance pending.
 
 **Opened:** 2026-11-06  

@@ -1,5 +1,7 @@
 # Test and Verification Strategy
 
+**M11 current review (2026-11-08):** [Third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records additional signed-authority, cursor, timestamp and concurrency corrections. Runtime execution remains unverified, G11 acceptance pending, and M9 transport restrictions unchanged.
+
 **M11 audited source candidate (2026-11-07):** [Correctness findings and residual risks](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) are recorded on draft PR #31. Source defects were corrected, but .NET/PostgreSQL/browser execution, local-policy decisions and G11 acceptance remain pending. This source has not been merged into accepted `main`; the M9 transport-event hold remains in force.
 
 **Current M11 audit checkpoint (2026-11-07):** [M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records source fixes and unresolved executable verification. G11 remains unverified and acceptance pending. This is an isolated implementation branch, not an accepted `main` capability. The M9 sustained transport hold remains mandatory.

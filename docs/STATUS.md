@@ -8,6 +8,10 @@
 
 ## Current G10 remediation status, 2026-11-07
 
+The [repository-wide M10 documentation reconciliation](M10_G10_DOCUMENTATION_RECONCILIATION_20261107.md) records which current-state pages were updated and preserves the historical G10 evidence boundary.
+
+
+
 **Current M10/G10 source checkpoint (2026-11-07):** All fourteen M10-local policy decisions are approved with revised L07/L14 and conditional L06. The L07/L14 correction-security changes are committed on `fix/m10-g10-l07-l14-remediation` (thirteenth migration, signed restricted database correction operation, same-transaction M16 audit event and replay safeguards). New-source build, database execution, supplemental security verification and independent review are NOT EXECUTED. The prior 23 PASS technical evidence is source-locked to `3e81b88` and is not proof of the changes. S01 implementation conformance and S25 formal acceptance remain pending. No merge, release, deployment or GitHub Actions execution is authorized. The M9 transport hold and 10,000 unresolved-work cap remain mandatory. See [implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) and [verification plan](M10_G10_L07_L14_REMEDIATION_PLAN.md).
 
 ## G10 independent technical evidence review, 2026-11-06

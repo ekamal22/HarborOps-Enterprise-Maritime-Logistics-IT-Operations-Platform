@@ -31,6 +31,9 @@ public sealed class M10CorrectionAuthority : Migration
                 transaction_id xid8 NOT NULL DEFAULT pg_current_xact_id(),
                 expires_at_utc timestamptz NOT NULL
             );
+            CREATE TRIGGER tr_m10_immutable_proof_nonces
+                BEFORE UPDATE OR DELETE ON m10_correction_proof_nonces
+                FOR EACH ROW EXECUTE FUNCTION m10_append_only();
 
             CREATE FUNCTION m10_apply_signed_correction(
                 p_org uuid, p_shipment uuid, p_target uuid, p_replacement uuid,
@@ -182,6 +185,13 @@ public sealed class M10CorrectionAuthority : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""
+            DO $guard$
+            BEGIN
+                IF EXISTS(SELECT 1 FROM m10_correction_proof_nonces LIMIT 1) THEN
+                    RAISE EXCEPTION 'Retained correction authority evidence prevents downgrade'
+                        USING ERRCODE='23514';
+                END IF;
+            END $guard$;
             DROP TRIGGER tr_m10_guard_correction_replay
                 ON shipment_tracking_operation_replays;
             DROP FUNCTION m10_guard_correction_replay();

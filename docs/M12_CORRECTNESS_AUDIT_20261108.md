@@ -33,6 +33,12 @@ The M12 signing key comes from `HARBOROPS_M12_EXPORT_PROOF_KEY` in the untracked
 
 M11 draft PR #31 adds the separate `20261107180000_ShipmentExceptions` migration; M12 adds `20261107230000_M12ShipmentExportAudit`. The two IDs are not duplicates, but their respective branch migration counts are both fourteen and the combined count would be fifteen. M11 and M12 also edit role provisioning, API startup, integration fixtures, migration snapshot tests, shipment workspace and documentation. Their combined, conflict-resolved source must be reverified on one new SHA. G11 is not a prerequisite for isolated M12 development.
 
+## End-of-pass source reconciliation
+
+At the final pre-report source checkpoint `3ba2846ce3f5b8629e3c5a134740518d688dd92a`, a targeted cross-file source scan checked the export signer/function version, nine HMAC binding fields, key grants and Compose secrets, anti-replay index, search query bounds, 15-second statement and 30-second export budgets, sanitized cancellation, rollback guard ordering, dedicated migration-operation tests, all five HTTP role cases, protected cursor, same-origin guard and typed filter keys. Nineteen automated text assertions matched, and the twentieth five-role case was separately confirmed after correcting the checker to use the actual lowercase local variable names. This is **20 source-consistent checks**, not 20 executed unit or integration tests.
+
+A relative Markdown link scan of 22 relevant M12 and living documents found **zero missing linked repository file paths**. A review of the 35 commits added in this pass found every commit message included `[skip ci]` and no attribution trailer. All changes remain isolated to draft PR #32. These checks do not validate EF translation, PostgreSQL privileges, real SQL cancellation, migration rollback behavior, browser execution or deployment readiness.
+
 ## Verification and evidence classification
 
 **Performed:** Connected repository source inspection, diff and call-site review; earlier 18 cross-file source-consistency checks from the [first audit](M12_CORRECTNESS_AUDIT_20261107.md); authored and committed source corrections and regression cases. Reviewed Vite/Nginx routing: the browser calls same-origin relative /api paths and the local/hosted proxies preserve the public Host, so M12's same-origin download check remains compatible. No hosted workflows were enabled.

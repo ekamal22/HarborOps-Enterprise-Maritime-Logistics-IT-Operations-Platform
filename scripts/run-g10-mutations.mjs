@@ -119,9 +119,9 @@ const variants = [
     "CREATE FUNCTION m10_track_input_change() RETURNS trigger\n            LANGUAGE plpgsql SECURITY DEFINER",
     "CREATE FUNCTION m10_track_input_change() RETURNS trigger\n            LANGUAGE plpgsql"]],
     [], [I.workerId, I.lifecycle]),
-  V("m10-correction-trigger-not-security-definer", [[MIG10,
-    "CREATE FUNCTION m10_validate_correction() RETURNS trigger\n            LANGUAGE plpgsql SECURITY DEFINER",
-    "CREATE FUNCTION m10_validate_correction() RETURNS trigger\n            LANGUAGE plpgsql"]],
+  V("m10-signed-correction-function-not-security-definer", [[AUTH10,
+    "RETURNS void LANGUAGE plpgsql SECURITY DEFINER",
+    "RETURNS void LANGUAGE plpgsql"]],
     [], [I.apiId, I.routes]),
   V("m10-timeline-immutability-removed", [[MIG10,
     "CREATE TRIGGER tr_m10_immutable_timeline\n                BEFORE UPDATE OR DELETE ON shipment_tracking_timeline_entries\n                FOR EACH ROW EXECUTE FUNCTION m8_guard_append_only();",
@@ -153,8 +153,8 @@ const variants = [
     "_ => Fail(ctx, 409, \"rebuild_conflict\")\n            };\n        }).RequireRateLimiting(\"m10-mutations\");",
     "_ => Fail(ctx, 409, \"rebuild_conflict\")\n            };\n        });"]],
     [], [I.live]),
-  // The Manager restriction is enforced at the route and again against live membership in the store,
-  // so a non-equivalent mutant must remove both layers.
+  // Manager authority is enforced at the route, store and signed database operation.
+  // Remove all three checks to make this a meaningful security mutation.
   V("m10-manager-only-removed-both-layers", [
     [ROUTES, "OrganizationPermission.ManageShipmentData,\n                ct, managerOnly: true);\n            if (denied is not null) return denied;\n            var input = await ReadCorrection(ctx);",
       "OrganizationPermission.ManageShipmentData,\n                ct, managerOnly: false);\n            if (denied is not null) return denied;\n            var input = await ReadCorrection(ctx);"],

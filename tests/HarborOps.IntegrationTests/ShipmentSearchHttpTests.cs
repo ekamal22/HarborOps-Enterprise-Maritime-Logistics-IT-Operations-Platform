@@ -14,6 +14,12 @@ using Xunit;
 
 namespace HarborOps.IntegrationTests;
 
+// This suite reprovisions global PostgreSQL runtime roles in one test.
+// Keep it separate from concurrent database test collections.
+[CollectionDefinition("M12ServerRoleIsolation", DisableParallelization = true)]
+public sealed class M12ServerRoleIsolationCollection;
+
+[Collection("M12ServerRoleIsolation")]
 public sealed class ShipmentSearchHttpTests
 {
     private static string Root(Guid org) => $"/api/v1/organizations/{org}";
@@ -129,6 +135,12 @@ public sealed class ShipmentSearchHttpTests
     [Fact]
     public async Task RestrictedRuntimeExportIsScopedAndAudited()
     {
+        // This test alters PostgreSQL roles globally, not just inside the
+        // disposable database. A dedicated local PostgreSQL instance is required.
+        if (Environment.GetEnvironmentVariable("HARBOROPS_G12_EXCLUSIVE_POSTGRES") != "1")
+            throw new InvalidOperationException(
+                "Restricted-role verification requires HARBOROPS_G12_EXCLUSIVE_POSTGRES=1 " +
+                "on an exclusive disposable local PostgreSQL instance");
         var migratorConnection = TestDatabase.ConnectionString();
         using var seedFactory = new ReferenceDataHttpTests.ApiFactory(migratorConnection);
         var fixture = await ReferenceDataHttpTests.Setup(seedFactory);

@@ -14,10 +14,50 @@ public static class ShipmentExceptionEndpoints
 {
     private sealed record ExceptionCursor(Guid OrganizationId, Guid? ShipmentId,
         string? State, Guid Last, DateTimeOffset SnapshotAtUtc);
+    private sealed record HistoryCursor(Guid OrganizationId, Guid ExceptionId,
+        DateTimeOffset LastAtUtc, Guid LastId);
 
     private static ITimeLimitedDataProtector CursorProtector(IDataProtectionProvider provider) =>
         provider.CreateProtector("HarborOps.M11.ExceptionCursor.v1")
             .ToTimeLimitedDataProtector();
+
+    private static ITimeLimitedDataProtector HistoryProtector(
+        IDataProtectionProvider provider) =>
+        provider.CreateProtector("HarborOps.M11.HistoryCursor.v1")
+            .ToTimeLimitedDataProtector();
+
+    private static bool TryHistoryCursor(HttpContext ctx,
+        IDataProtectionProvider provider, Guid org, Guid exception,
+        out DateTimeOffset? afterUtc, out Guid? afterId)
+    {
+        afterUtc = null;
+        afterId = null;
+        if (!ctx.Request.Query.TryGetValue("cursor", out var token)) return true;
+        if (token.Count != 1 || token.ToString().Length is < 1 or > 2048) return false;
+        try
+        {
+            var parsed = JsonSerializer.Deserialize<HistoryCursor>(
+                HistoryProtector(provider).Unprotect(token.ToString()));
+            if (parsed is null || parsed.OrganizationId != org ||
+                parsed.ExceptionId != exception || parsed.LastId == Guid.Empty ||
+                parsed.LastAtUtc == default ||
+                parsed.LastAtUtc.Offset != TimeSpan.Zero) return false;
+            afterUtc = parsed.LastAtUtc;
+            afterId = parsed.LastId;
+            return true;
+        }
+        catch (System.Security.Cryptography.CryptographicException) { return false; }
+        catch (JsonException) { return false; }
+        catch (FormatException) { return false; }
+    }
+
+    private static string? ProtectHistoryNext(IDataProtectionProvider provider,
+        Guid org, Guid exception, DateTimeOffset? afterUtc, Guid? afterId) =>
+        afterUtc.HasValue && afterId.HasValue
+            ? HistoryProtector(provider).Protect(
+                JsonSerializer.Serialize(new HistoryCursor(
+                    org, exception, afterUtc.Value, afterId.Value)),
+                TimeSpan.FromMinutes(20)) : null;
 
     private static bool TryCursor(HttpContext ctx, IDataProtectionProvider provider,
         Guid org, Guid? shipment, string? state, out Guid? after,
@@ -206,7 +246,7 @@ public static class ShipmentExceptionEndpoints
         routes.MapGet("/exceptions/{exceptionId}", async
             (string organizationId, string exceptionId, HttpContext ctx,
             OrganizationStore organizations, ShipmentExceptionStore store,
-            CancellationToken ct) =>
+            IDataProtectionProvider protection, CancellationToken ct) =>
         {
             if (!Id(organizationId, out var org) ||
                 !Id(exceptionId, out var id) || ctx.Request.Query.Count != 0)
@@ -226,7 +266,46 @@ public static class ShipmentExceptionEndpoints
                         ActorUserId = null
                     }).ToArray()
                 };
-            return Results.Ok(result);
+            var last = result.HistoryTruncated ? result.History.LastOrDefault() : null;
+            return Results.Ok(new
+            {
+                result.Exception, result.History, result.HistoryTruncated,
+                nextHistoryCursor = ProtectHistoryNext(protection, org, id,
+                    last?.OccurredAtUtc, last?.Id)
+            });
+        }).RequireRateLimiting("audit-read");
+
+        routes.MapGet("/exceptions/{exceptionId}/history", async
+            (string organizationId, string exceptionId, HttpContext ctx,
+            OrganizationStore organizations, ShipmentExceptionStore store,
+            IDataProtectionProvider protection, CancellationToken ct) =>
+        {
+            if (!Id(organizationId, out var org) ||
+                !Id(exceptionId, out var exception) ||
+                !SingleQuery(ctx, "cursor", "limit") ||
+                !TryPage(ctx, out var limit))
+                return Fail(ctx, 400, "invalid_request");
+            var denied = await Guard(ctx, organizations, org, false, ct);
+            if (denied is not null) return denied;
+            if (!TryHistoryCursor(ctx, protection, org, exception,
+                    out var afterUtc, out var afterId))
+                return Fail(ctx, 409, "stale_or_invalid_cursor");
+            var page = await store.HistoryPageAsync(
+                org, exception, afterUtc, afterId, limit, ct);
+            if (page is null) return Fail(ctx, 404, "resource_not_found");
+            var visible = ctx.Items["M11AuthorizedRole"] is OrganizationRole.Analyst
+                ? page.Items.Select(item => item with
+                {
+                    Reason = null,
+                    ActorUserId = null
+                }).ToArray()
+                : page.Items;
+            return Results.Ok(new
+            {
+                items = visible,
+                nextCursor = ProtectHistoryNext(protection, org, exception,
+                    page.NextAfterAtUtc, page.NextAfterId)
+            });
         }).RequireRateLimiting("audit-read");
 
         routes.MapPost("/shipments/{shipmentId}/exceptions/evaluate", async

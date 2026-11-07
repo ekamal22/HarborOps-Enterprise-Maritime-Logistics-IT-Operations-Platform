@@ -18,7 +18,7 @@ public static class ShipmentExceptionEndpoints
         DateTimeOffset LastAtUtc, Guid LastId);
 
     private static ITimeLimitedDataProtector CursorProtector(IDataProtectionProvider provider) =>
-        provider.CreateProtector("HarborOps.M11.ExceptionCursor.v1")
+        provider.CreateProtector("HarborOps.M11.ExceptionCursor.v2")
             .ToTimeLimitedDataProtector();
 
     private static ITimeLimitedDataProtector HistoryProtector(

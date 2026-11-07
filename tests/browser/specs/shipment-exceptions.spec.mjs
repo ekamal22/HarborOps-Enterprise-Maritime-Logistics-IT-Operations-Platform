@@ -102,3 +102,23 @@ test("G11 history continuation displays additional immutable entries without dup
   await expect(panel.getByText("Opened", { exact: false })).toHaveCount(1);
   await expect(panel.getByRole("button", { name: "Load more history" })).toHaveCount(0);
 });
+
+
+test("G11 Resolve is unavailable for an unacknowledged inactive occurrence", async ({ page }) => {
+  test.skip(!enabled, "Disposable M5 fixture required");
+  const panel = await openShipment(page, "Manager");
+  const record = {
+    id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    ruleCode: "ArrivalScheduleOverdue", occurrence: 1,
+    condition: "Inactive", state: "Open", severity: "Info",
+    confidence: "ScheduleOnly", reasonCode: "scheduled_arrival_not_yet_overdue",
+    lastEvaluatedAtUtc: "2026-11-08T12:00:00Z"
+  };
+  await page.route("**/shipments/*/exceptions?*", route =>
+    route.fulfill({ status: 200, contentType: "application/json",
+      body: JSON.stringify({ items: [record], nextCursor: null }) }));
+  await panel.getByRole("button", { name: "Refresh exceptions" }).click();
+  await expect(panel.getByText("Inactive / Open")).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Resolve" })).toHaveCount(0);
+  await expect(panel.getByRole("button", { name: "Acknowledge" })).toHaveCount(0);
+});

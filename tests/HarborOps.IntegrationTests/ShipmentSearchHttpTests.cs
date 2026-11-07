@@ -114,6 +114,7 @@ public sealed class ShipmentSearchHttpTests
         Assert.Equal(ids[0], matched[0].GetProperty("id").GetGuid());
 
         foreach (var bad in new[] { "?q=" + prefix + "&limit=0",
+            "?q=" + new string('x', 5000),
             "?q=" + prefix + "&limit=1&limit=2",
             "?q=" + prefix + "&voyageId=nope",
             "?q=" + prefix + "&plannedArrivalFromUtc=2026-11-01T00%3A00%3A00Z",

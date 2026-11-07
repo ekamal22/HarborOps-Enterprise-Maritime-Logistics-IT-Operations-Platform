@@ -1,5 +1,8 @@
 # HarborOps Product Requirements Document
 
+**M12 implementation checkpoint (2026-11-07):** FR-011 search and FR-013 authorized export have a source candidate on draft PR #32, including signed export-preparation audit, fixed CSV fields and isolated React controls. No .NET/PostgreSQL/browser technical G12 campaign has been executed; no requirement is marked accepted by source authorship. The [M12 correctness audit](M12_CORRECTNESS_AUDIT_20261107.md), [candidate contract](M12_ARCHITECTURE_DESIGN.md) and [G12 matrix](M12_VERIFICATION_PLAN.md) govern open verification. No change to the canonical graph, accepted M9 transport hold, product scope or release decision.
+
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 

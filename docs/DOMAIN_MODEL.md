@@ -1,5 +1,12 @@
 # Domain Model and Invariants
 
+## M12 search and export model candidate, 2026-11-07
+
+M12 on [draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) adds no mutable shipment or voyage domain entity. Advanced search uses existing M5 shipment columns and M6 tenant-scoped voyage-assignment intervals, with half-open UTC windows and live reauthorization. Export has a fixed twelve-column CSV view over authorized shipment data.
+
+The additive, SQL-only `20261107230000_M12ShipmentExportAudit` migration introduces `m12_export_proof_keys`, a restricted verifier table not mapped as a domain entity, plus `m12_record_shipment_export` and a unique partial index on M16 `audit_entries` for `shipment.export_prepared` correlation. It does not rewrite accepted migrations or change the EF model snapshot. The audit entry records bounded row count, byte count, filter fingerprint and schema version, but not CSV contents. See [architecture](M12_ARCHITECTURE_DESIGN.md) and [correctness audit](M12_CORRECTNESS_AUDIT_20261107.md). G12 acceptance pending.
+
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.

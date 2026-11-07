@@ -1,5 +1,8 @@
 # Architecture Decisions
 
+**M12 local design status (2026-11-07):** M12-P01 through M12-P16 remain proposed implementation defaults, **not approved decisions**. Draft PR #32 includes scoped search, independently signed restricted CSV export and audit. The [M12 decision register](M12_PLANNING_STATUS.md) and [correctness audit](M12_CORRECTNESS_AUDIT_20261107.md) record open authority/role, key lifecycle, migration-integration and G12 review checks. The parallel M11 draft PR #31 has different migration identity but shared integration surfaces. No acceptance or merge authority is inferred.
+
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 
 

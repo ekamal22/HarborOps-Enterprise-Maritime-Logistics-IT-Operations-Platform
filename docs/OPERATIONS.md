@@ -1,5 +1,16 @@
 # Operations and Reliability
 
+## M12 export proof provisioning candidate, 2026-11-07
+
+M12 is present only on the isolated feature branch, not accepted or deployed. See the [source audit](M12_CORRECTNESS_AUDIT_20261107.md) and [G12 verification plan](M12_VERIFICATION_PLAN.md). The accepted main stack and M9 transport hold remain unchanged.
+
+The SQL-only M12 migration creates `m12_export_proof_keys`, the restricted `m12_record_shipment_export` function and a unique event/correlation index. To enable CSV export in a **disposable, approved M12 verification stack**, generate an independent 32-byte random base64 key, for example with `node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('base64'))"`. Place it in the untracked, E:-backed local secret configuration as `HARBOROPS_M12_EXPORT_PROOF_KEY`, distinct from the M10 key and database passwords. `compose.yaml` passes it to the one-shot privileged migrator and HTTP API as `M12ExportProof__Key`, not the worker, web or projector. No key value belongs in the repository, terminal logs or evidence.
+
+The M12 Compose variable is optional so existing accepted-stack tests are not forced to configure a future module, but export **fails closed with sanitized 503** if the key is missing or the database verifier does not match. A configured but malformed key aborts the privileged provisioning step. To rotate, coordinate the same new value in migrator and API, reprovision with the privileged identity on an isolated stack, then restart only the authorized API instance. Previous outstanding proofs are invalidated; audit records stay immutable. Do not perform this on retained environments without a separate maintenance approval.
+
+The proposed G12 PostgreSQL role test reprovisions server-wide `harborops_api` and `harborops_worker` passwords. It requires a dedicated disposable PostgreSQL instance and must never run concurrently with other mutable verification tests or touch the primary database. All worktrees, images, caches, credentials, volumes and raw evidence belong on E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Run `docker compose config --quiet` and source-locked checks only when a suitable local runtime is available and approved; this audit did not run them.
+
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 

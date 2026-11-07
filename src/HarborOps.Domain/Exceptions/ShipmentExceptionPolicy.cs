@@ -46,6 +46,16 @@ public static class ShipmentExceptionPolicy
     public static readonly TimeSpan ArrivalGrace = TimeSpan.FromMinutes(60);
     public static readonly TimeSpan DepartureTolerance = TimeSpan.FromMinutes(60);
 
+    // M5 accepts the full UTC timestamp range; avoid overflow at year 9999.
+    private static DateTimeOffset AddClamped(DateTimeOffset value, TimeSpan interval) =>
+        value > DateTimeOffset.MaxValue - interval
+            ? DateTimeOffset.MaxValue : value + interval;
+
+    // PostgreSQL timestamptz can distinguish microseconds.
+    private static DateTimeOffset? StrictlyAfter(DateTimeOffset instant) =>
+        instant > DateTimeOffset.MaxValue.AddTicks(-10)
+            ? null : instant.AddTicks(10);
+
     public static IReadOnlyList<ShipmentExceptionSignal> Evaluate(
         ShipmentExceptionInput input, DateTimeOffset evaluationAtUtc)
     {
@@ -117,7 +127,7 @@ public static class ShipmentExceptionPolicy
         }
         else
         {
-            var arrivalBoundary = input.PlannedArrivalAtUtc.Value + ArrivalGrace;
+            var arrivalBoundary = AddClamped(input.PlannedArrivalAtUtc.Value, ArrivalGrace);
             if (input.RecordedArrivalAtUtc.HasValue)
             {
                 results.Add(Build(ArrivalScheduleOverdue, "Inactive", "Info",
@@ -143,7 +153,7 @@ public static class ShipmentExceptionPolicy
             else
             {
                 var condition = evaluationAtUtc > arrivalBoundary ? "Active" : "Inactive";
-                var nextDue = condition == "Active" ? null : arrivalBoundary.AddMilliseconds(1);
+                DateTimeOffset? nextDue = condition == "Active" ? null : StrictlyAfter(arrivalBoundary);
                 results.Add(Build(ArrivalScheduleOverdue, condition, "Warning",
                     condition == "Active" ? "scheduled_arrival_overdue_unconfirmed"
                         : "scheduled_arrival_not_yet_overdue",
@@ -163,7 +173,7 @@ public static class ShipmentExceptionPolicy
         }
         else
         {
-            var deadline = input.PlannedDepartureAtUtc.Value + DepartureTolerance;
+            var deadline = AddClamped(input.PlannedDepartureAtUtc.Value, DepartureTolerance);
             var late = input.RecordedDepartureAtUtc > deadline &&
                        input.WorkflowStatus == "InTransit" &&
                        evaluationAtUtc < input.PlannedArrivalAtUtc.Value &&

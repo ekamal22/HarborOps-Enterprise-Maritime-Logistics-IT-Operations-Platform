@@ -140,6 +140,30 @@ public sealed class ShipmentExceptionPolicyTests
     }
 
     [Fact]
+    public void NearMaximumUtcScheduleDoesNotOverflowOrFabricateDelay()
+    {
+        var nearMaximum = DateTimeOffset.MaxValue.AddMinutes(-30);
+        var input = Input(arrival: nearMaximum,
+            departure: nearMaximum.AddMinutes(-15),
+            recordedDeparture: nearMaximum.AddMinutes(-12),
+            workflow: "InTransit");
+        var overdue = Rule(input, ShipmentExceptionPolicy.ArrivalScheduleOverdue,
+            nearMaximum);
+        Assert.Equal("Inactive", overdue.Condition);
+        Assert.Null(overdue.NextEvaluationAtUtc);
+        Assert.Equal("Inactive", Rule(input,
+            ShipmentExceptionPolicy.DepartureSlippageRisk, nearMaximum).Condition);
+    }
+
+    [Fact]
+    public void NextOverdueScanUsesFirstPostgresRepresentableInstant()
+    {
+        var signal = Rule(Input(arrival: T0.AddMinutes(-60)),
+            ShipmentExceptionPolicy.ArrivalScheduleOverdue, T0);
+        Assert.Equal(T0.AddTicks(10), signal.NextEvaluationAtUtc);
+    }
+
+    [Fact]
     public void NonUtcClockIsRejected()
     {
         Assert.Throws<ArgumentException>(() =>

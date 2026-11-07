@@ -143,6 +143,21 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
     private static DateTimeOffset? Date(NpgsqlDataReader reader, int ordinal) =>
         reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<DateTimeOffset>(ordinal);
 
+    private static async Task<DateTimeOffset> DatabaseNowAsync(NpgsqlConnection connection,
+        NpgsqlTransaction? transaction, CancellationToken ct)
+    {
+        await using var command = Command(connection, transaction, "SELECT clock_timestamp()");
+        var value = await command.ExecuteScalarAsync(ct)
+            ?? throw new InvalidOperationException("Database clock unavailable");
+        return value switch
+        {
+            DateTimeOffset offset => offset.ToUniversalTime(),
+            DateTime timestamp => new DateTimeOffset(
+                DateTime.SpecifyKind(timestamp, DateTimeKind.Utc)),
+            _ => throw new InvalidOperationException("Database clock invalid")
+        };
+    }
+
     // This query takes one repeatable source snapshot. The signed SQL procedure
     // rechecks all source version fields before accepting any of its effects.
     private async Task<ShipmentExceptionInput?> InputsAsync(Guid org, Guid shipment,
@@ -209,24 +224,11 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                     IsolationLevel.Serializable, ct);
                 var input = await InputsAsync(org, shipment, tx, ct);
                 if (input is null) return (M11StoreResult.NotFound, 0);
-                // Use PostgreSQL time rather than the host's timezone.
-                DateTimeOffset now;
-                await using (var query = Command(Connection, tx, "SELECT clock_timestamp()"))
-                {
-                    var value = await query.ExecuteScalarAsync(ct)
-                        ?? throw new InvalidOperationException("Database clock unavailable");
-                    now = value switch
-                    {
-                        DateTimeOffset offset => offset.ToUniversalTime(),
-                        DateTime datetime => new DateTimeOffset(
-                            DateTime.SpecifyKind(datetime, DateTimeKind.Utc)),
-                        _ => throw new InvalidOperationException("Database clock invalid")
-                    };
-                }
+                var now = await DatabaseNowAsync(Connection, tx, ct);
                 var results = ShipmentExceptionPolicy.Evaluate(input, now);
                 foreach (var signal in results)
                 {
-                    var proof = M11ProofSigner.Evaluation(key, input, signal);
+                    var proof = M11ProofSigner.Evaluation(key, input, signal, now);
                     if (proof is null) return (M11StoreResult.DependencyUnavailable, 0);
                     await using var command = Command(Connection, tx, """
                         SELECT m11_apply_signed_evaluation(
@@ -281,12 +283,14 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         Guid exception, Guid actor, Guid session, string action, long expectedVersion,
         string reason, Guid idempotencyKey, CancellationToken ct)
     {
-        var proof = M11ProofSigner.Action(configuration["M10CorrectionProof:Key"],
-            org, exception, actor, session, action, expectedVersion, reason, idempotencyKey);
-        if (proof is null) return (M11StoreResult.DependencyUnavailable, 0);
         await database.Database.OpenConnectionAsync(ct);
         try
         {
+            var databaseNow = await DatabaseNowAsync(Connection, null, ct);
+            var proof = M11ProofSigner.Action(configuration["M10CorrectionProof:Key"],
+                org, exception, actor, session, action, expectedVersion, reason,
+                idempotencyKey, databaseNow);
+            if (proof is null) return (M11StoreResult.DependencyUnavailable, 0);
             await using var command = Command(Connection, null, """
                 SELECT result_code,result_version FROM m11_apply_signed_action(
                     @org::uuid,@exception::uuid,@actor::uuid,@session::uuid,

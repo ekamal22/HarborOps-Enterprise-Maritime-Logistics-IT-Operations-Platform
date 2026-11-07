@@ -31,10 +31,10 @@ public static class M11ProofSigner
         date?.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture) ?? "";
 
     public static Proof? Evaluation(string? base64, ShipmentExceptionInput input,
-        ShipmentExceptionSignal signal)
+        ShipmentExceptionSignal signal, DateTimeOffset databaseNow)
     {
         var nonce = Guid.NewGuid();
-        var expires = DateTimeOffset.UtcNow.AddSeconds(45).ToUnixTimeSeconds();
+        var expires = databaseNow.AddSeconds(45).ToUnixTimeSeconds();
         var message = string.Join("|", "m11-eval-v1",
             nonce.ToString("N"), expires.ToString(CultureInfo.InvariantCulture),
             input.OrganizationId.ToString("N"), input.ShipmentId.ToString("N"),
@@ -61,10 +61,10 @@ public static class M11ProofSigner
 
     public static Proof? Action(string? base64, Guid org, Guid exception,
         Guid actor, Guid session, string action, long expectedVersion,
-        string reason, Guid idempotencyKey)
+        string reason, Guid idempotencyKey, DateTimeOffset databaseNow)
     {
         var nonce = Guid.NewGuid();
-        var expires = DateTimeOffset.UtcNow.AddSeconds(45).ToUnixTimeSeconds();
+        var expires = databaseNow.AddSeconds(45).ToUnixTimeSeconds();
         var digest = ActionDigest(org, exception, actor, session, action, expectedVersion, reason);
         var message = string.Join("|", "m11-action-v1", nonce.ToString("N"),
             expires.ToString(CultureInfo.InvariantCulture), idempotencyKey.ToString("N"),

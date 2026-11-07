@@ -554,7 +554,9 @@ public sealed class ShipmentExceptions : Migration
             BEGIN
                 IF EXISTS(SELECT 1 FROM shipment_exceptions LIMIT 1)
                    OR EXISTS(SELECT 1 FROM shipment_exception_history LIMIT 1)
-                   OR EXISTS(SELECT 1 FROM shipment_exception_replays LIMIT 1) THEN
+                   OR EXISTS(SELECT 1 FROM shipment_exception_replays LIMIT 1)
+                   OR EXISTS(SELECT 1 FROM shipment_exception_evaluations LIMIT 1)
+                   OR EXISTS(SELECT 1 FROM shipment_exception_proof_nonces LIMIT 1) THEN
                     RAISE EXCEPTION 'Retained M11 evidence prevents downgrade'
                         USING ERRCODE='23514';
                 END IF;

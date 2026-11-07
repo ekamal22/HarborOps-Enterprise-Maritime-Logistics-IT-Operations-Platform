@@ -131,6 +131,44 @@ public sealed class M11ExceptionRuntimeTests
             Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, error.SqlState);
         }
 
+        // Direct restricted-login calls must not convert SQL NULL values
+        // into an absent HMAC and then skip signature verification.
+        foreach (var unsigned in new[]
+        {
+            """
+            SELECT m11_apply_signed_evaluation(
+                '11111111-1111-1111-1111-111111111111'::uuid,
+                '22222222-2222-2222-2222-222222222222'::uuid,
+                'ArrivalScheduleOverdue'::varchar,'Inactive'::varchar,
+                NULL::varchar,'ScheduleOnly'::varchar,
+                'scheduled_arrival_not_yet_overdue'::varchar,
+                repeat('0',64)::varchar,
+                NULL::timestamptz,NULL::timestamptz,NULL::timestamptz,
+                1::bigint,0::bigint,0::bigint,
+                '33333333-3333-3333-3333-333333333333'::uuid,
+                (extract(epoch from clock_timestamp())::bigint+30),
+                NULL::varchar)
+            """,
+            """
+            SELECT * FROM m11_apply_signed_action(
+                '11111111-1111-1111-1111-111111111111'::uuid,
+                '22222222-2222-2222-2222-222222222222'::uuid,
+                '33333333-3333-3333-3333-333333333333'::uuid,
+                '44444444-4444-4444-4444-444444444444'::uuid,
+                NULL::varchar,1::bigint,'Reviewed synthetic exception'::varchar,
+                '55555555-5555-5555-5555-555555555555'::uuid,
+                '66666666-6666-6666-6666-666666666666'::uuid,
+                (extract(epoch from clock_timestamp())::bigint+30),
+                NULL::varchar)
+            """
+        })
+        {
+            await using var command = new NpgsqlCommand(unsigned, restricted);
+            var denied = await Assert.ThrowsAsync<PostgresException>(
+                () => command.ExecuteNonQueryAsync());
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, denied.SqlState);
+        }
+
         await using var admin = new NpgsqlConnection(roles.Admin);
         await admin.OpenAsync();
         await using var inspect = new NpgsqlCommand("""

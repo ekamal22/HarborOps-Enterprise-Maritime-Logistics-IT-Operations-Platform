@@ -19,6 +19,8 @@ public sealed class ReferenceDataHttpTests
     private const string Password = "Synthetic-reference-integration-passphrase-123";
     internal static readonly string CorrectionProofKey = Convert.ToBase64String(
         System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+    internal static readonly string ExportProofKey = Convert.ToBase64String(
+        System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
 
     internal sealed class ApiFactory(string connection, int? pendingLimit = null,
         Action<IServiceCollection>? overrideServices = null) : WebApplicationFactory<Program>
@@ -31,6 +33,7 @@ public sealed class ReferenceDataHttpTests
             builder.UseEnvironment("Development");
             builder.UseSetting("ConnectionStrings:HarborOps", connection);
             builder.UseSetting("M10CorrectionProof:Key", CorrectionProofKey);
+            builder.UseSetting("M12ExportProof:Key", ExportProofKey);
             if (pendingLimit.HasValue)
                 builder.UseSetting("M8:PendingLimit", pendingLimit.Value.ToString(
                     System.Globalization.CultureInfo.InvariantCulture));

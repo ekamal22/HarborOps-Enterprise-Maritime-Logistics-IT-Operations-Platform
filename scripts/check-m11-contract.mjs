@@ -58,7 +58,9 @@ assert.match(store, /WHEN 'EquipmentConflict' THEN 1[\s\S]*WHEN 'RecordedArrival
 assert.match(store, /ORDER BY rule_priority,id LIMIT @limit/);
 assert.match(store, /IsEvaluationRace/);
 assert.match(store, /shipment_exception_evaluations_pkey/);
-assert.match(store, /ex.SqlState is "PZ004" or "23505" or "40001" or "40P01"/);
+assert.match(store, /IsActionRace/);
+assert.match(store, /shipment_exception_replays_pkey/);
+assert.match(web, /item.state === "Acknowledged" && item.condition === "Inactive"/);
 assert.match(migration, /PRIMARY KEY \(organization_id,idempotency_key\)/);
 assert.match(migration, /existing_state='Open' OR p_reason='shipment_not_eligible'/);
 assert.match(policy, /input.WorkflowStatus == "InTransit"/);

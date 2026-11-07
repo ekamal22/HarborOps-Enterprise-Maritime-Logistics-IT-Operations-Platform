@@ -234,7 +234,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
                 className="rounded border border-cyan-500 px-2 py-1 disabled:opacity-50">
                 Acknowledge
               </button>}
-            {item.condition === "Inactive" &&
+            {item.state === "Acknowledged" && item.condition === "Inactive" &&
               <button type="button" disabled={busy || (reasons[item.id] ?? "").trim().length < 8}
                 onClick={() => void act(item, "Resolve")}
                 className="rounded border border-slate-500 px-2 py-1 disabled:opacity-50">

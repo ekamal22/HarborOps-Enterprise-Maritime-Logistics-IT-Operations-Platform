@@ -395,10 +395,11 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         {
             return (M11StoreResult.NotFound, 0);
         }
-        catch (PostgresException ex) when (ex.SqlState is "PZ004" or "23505" or "40001" or "40P01")
+        catch (PostgresException ex) when (IsActionRace(ex))
         {
-            // A replay collision, concurrent update, serialization failure or
-            // deadlock cannot be reported as a committed disposition.
+            // Only the known replay uniqueness collision or transaction races
+            // can be represented as a conflict. Other integrity failures must
+            // remain visible as errors and must never be reported as success.
             return (M11StoreResult.Conflict, 0);
         }
         catch (PostgresException ex) when (ex.SqlState == "PZ005")
@@ -411,6 +412,11 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         }
         finally { await database.Database.CloseConnectionAsync(); }
     }
+
+    private static bool IsActionRace(PostgresException error) =>
+        error.SqlState is "PZ004" or "40001" or "40P01" ||
+        (error.SqlState == "23505" &&
+         error.ConstraintName == "shipment_exception_replays_pkey");
 
     private static bool IsEvaluationRace(PostgresException error) =>
         error.SqlState is "40001" or "40P01" ||

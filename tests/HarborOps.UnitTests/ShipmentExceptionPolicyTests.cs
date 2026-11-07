@@ -128,6 +128,18 @@ public sealed class ShipmentExceptionPolicyTests
     }
 
     [Fact]
+    public void ArrivalBoundaryIsIndependentOfLocalDstAndSubsecondTime()
+    {
+        var schedule = new DateTimeOffset(2026, 3, 29, 0, 30, 0, TimeSpan.Zero);
+        var input = Input(arrival: schedule);
+        var boundary = schedule.Add(ShipmentExceptionPolicy.ArrivalGrace);
+        Assert.Equal("Inactive", Rule(input,
+            ShipmentExceptionPolicy.ArrivalScheduleOverdue, boundary).Condition);
+        Assert.Equal("Active", Rule(input,
+            ShipmentExceptionPolicy.ArrivalScheduleOverdue, boundary.AddTicks(1)).Condition);
+    }
+
+    [Fact]
     public void NonUtcClockIsRejected()
     {
         Assert.Throws<ArgumentException>(() =>

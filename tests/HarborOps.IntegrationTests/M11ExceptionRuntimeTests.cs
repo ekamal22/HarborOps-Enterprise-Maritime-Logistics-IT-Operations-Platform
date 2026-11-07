@@ -316,6 +316,38 @@ public sealed class M11ExceptionRuntimeTests
     }
 
     [Fact]
+    public async Task InvalidMutationHeadersAndBodiesDoNotWriteHistory()
+    {
+        var s = await Prepare();
+        using var f = s.Factory; using var runtime = s.Runtime;
+        using var a = s.Fixture.Admin; using var m = s.Fixture.Manager;
+        using var n = s.Fixture.Analyst;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        var exception = await EvaluateAndFind(s, await ScheduledShipment(s));
+        var path = Collection(s.Fixture.A) + "/" + exception;
+        using (var noKey = await ReferenceDataHttpTests.Send(manager, HttpMethod.Patch,
+            path, new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Reviewed but missing idempotency key" }))
+            Assert.Equal(HttpStatusCode.BadRequest, noKey.StatusCode);
+        using (var unknown = await SendAction(manager, path,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Reviewed with an extra property", unexpected = true },
+            Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.BadRequest, unknown.StatusCode);
+        using (var shortReason = await SendAction(manager, path,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "short" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.BadRequest, shortReason.StatusCode);
+        await using var db = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>()
+                .UseNpgsql(s.Roles.Admin).Options);
+        Assert.Equal(1L, await db.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM shipment_exception_history WHERE exception_id={0}",
+            exception).SingleAsync());
+    }
+
+    [Fact]
     public async Task NullSchedulesAreUnknownNotInventedDelays()
     {
         var s = await Prepare();

@@ -6,6 +6,7 @@ const read = path => fs.readFileSync(new URL("../" + path, import.meta.url), "ut
 const migration = read("src/HarborOps.Infrastructure/Persistence/Migrations/20261107180000_ShipmentExceptions.cs");
 const policy = read("src/HarborOps.Domain/Exceptions/ShipmentExceptionPolicy.cs");
 const store = read("src/HarborOps.Infrastructure/Exceptions/ShipmentExceptionStore.cs");
+const acceptedM10 = read("src/HarborOps.Infrastructure/Persistence/Migrations/20261105180000_ShipmentTrackingProjections.cs");
 const proof = read("src/HarborOps.Infrastructure/Exceptions/M11ProofSigner.cs");
 const endpoints = read("src/HarborOps.Api/Exceptions/ShipmentExceptionEndpoints.cs");
 const grants = read("src/HarborOps.Api/Audit/AuditRoleProvisioner.cs");
@@ -32,6 +33,8 @@ for (const fn of ["m11_apply_signed_evaluation", "m11_apply_signed_action"]) {
 }
 assert.match(migration, /SECURITY DEFINER/);
 assert.match(migration, /m11_schema/);
+assert.match(acceptedM10, /CREATE TABLE shipment_tracking_input_versions/);
+assert.match(acceptedM10, /input_revision bigint NOT NULL/);
 assert.match(migration, /SELECT input_revision FROM shipment_tracking_input_versions/);
 assert.match(store, /v\.input_revision/);
 assert.ok(!/\bv\.revision\b/.test(migration + store),
@@ -39,6 +42,9 @@ assert.ok(!/\bv\.revision\b/.test(migration + store),
 assert.match(migration, /ix_m11_nonce_expiry/);
 assert.match(migration, /LIMIT 64 FOR UPDATE SKIP LOCKED/);
 assert.match(migration, /rule_policy_version/);
+assert.match(migration, /PRIMARY KEY \(organization_id,idempotency_key\)/);
+assert.match(migration, /existing_state='Open' OR p_reason='shipment_not_eligible'/);
+assert.match(policy, /input.WorkflowStatus == "InTransit"/);
 assert.match(store, /candidate AS MATERIALIZED/);
 assert.match(store, /LastOrganization/);
 assert.match(grants, /REVOKE ALL ON shipment_exception_proof_nonces/);

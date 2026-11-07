@@ -310,8 +310,11 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         {
             return (M11StoreResult.NotFound, 0);
         }
-        catch (PostgresException ex) when (ex.SqlState == "PZ004")
+        catch (PostgresException ex) when (ex.SqlState is "PZ004" or "23505")
         {
+            // A competing write with the same organization-scoped replay key
+            // is a conflict. PostgreSQL rolls back the attempted transition
+            // and its audit entry in the failed statement.
             return (M11StoreResult.Conflict, 0);
         }
         catch (PostgresException ex) when (ex.SqlState == "PZ005")

@@ -1,8 +1,6 @@
 # Pre-release Documentation and Evidence Checklist
 
-**M11 current review (2026-11-08):** [Third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records additional signed-authority, cursor, timestamp and concurrency corrections. Runtime execution remains unverified, G11 acceptance pending, and M9 transport restrictions unchanged.
-
-**M11 scope note (2026-11-07):** [Draft M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records an unverified local implementation candidate on PR #31. It is not an accepted or deployed service and does not authorize release, external transport processing, or changes to the M9 hold. G11 acceptance pending.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and protected, tenant-scoped continuation of immutable history beyond the initial 500 entries. This candidate remains unverified, G11-S01 blocked on local policy, G11 acceptance pending, and draft PR #31 unmerged. The M9 sustained transport hold remains in force.
 
 **Opened:** 2026-11-06  
 **Target:** M24-03 source/evidence reconciliation before M24-04 accessibility and G24 release acceptance.  

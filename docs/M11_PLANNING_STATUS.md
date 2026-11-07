@@ -1,8 +1,6 @@
 # M11 Planning Register
 
-**M11 current review (2026-11-08):** [Third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records additional signed-authority, cursor, timestamp and concurrency corrections. Runtime execution remains unverified, G11 acceptance pending, and M9 transport restrictions unchanged.
-
-**Earlier source audit (2026-11-07):** [Second M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and protected, tenant-scoped continuation of immutable history beyond the initial 500 entries. This candidate remains unverified, G11-S01 blocked on local policy, G11 acceptance pending, and draft PR #31 unmerged. The M9 sustained transport hold remains in force.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11-S01 is BLOCKED on policy approval; G11-S02 through G11-S25 remain NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
@@ -10,6 +8,10 @@
 **Status:** Architecture, delivery sequence and G11 specification originated in a documentation-only planning branch. The separate draft implementation PR #31 now includes source corrections reviewed in the [audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md), with execution unverified. M11 policies and G11 acceptance pending.
 **Base:** protected `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`. G10 and G16 accepted and integrated. No release authorization.
 **Source of truth:** [Status](STATUS.md), [Roadmap](ROADMAP.md), [execution graph](execution-graph.json).
+
+## Fourth audit checkpoint
+
+The implementation branch added scoped history continuation and a database-clock creation cutoff for exception-list cursors. These are source changes only; the M11-P01 to P12 decision list remains proposed, and G11 acceptance requires full executed evidence and independent review. This planning record is not a gate decision.
 
 ## Scope and prerequisites
 

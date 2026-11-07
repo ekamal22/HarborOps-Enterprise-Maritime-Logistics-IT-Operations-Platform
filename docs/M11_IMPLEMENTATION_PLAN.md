@@ -1,14 +1,16 @@
 # M11 End-to-End Implementation Plan
 
-**M11 current review (2026-11-08):** [Third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records additional signed-authority, cursor, timestamp and concurrency corrections. Runtime execution remains unverified, G11 acceptance pending, and M9 transport restrictions unchanged.
-
-**Earlier source audit (2026-11-07):** [Second M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and protected, tenant-scoped continuation of immutable history beyond the initial 500 entries. This candidate remains unverified, G11-S01 blocked on local policy, G11 acceptance pending, and draft PR #31 unmerged. The M9 sustained transport hold remains in force.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11-S01 is BLOCKED on policy approval; G11-S02 through G11-S25 remain NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
 **Status:** Implementation source candidate committed; execution, policy approval and G11 acceptance pending.
 **Base:** accepted `main` `6ead1d076946dd96b53401265a31efc35c4a666c` (2026-11-07). **Work:** M11-01 to M11-04; exit G11.
 **Architecture:** [M11 design](M11_ARCHITECTURE_DESIGN.md). **Gate:** [G11 verification specification](M11_VERIFICATION_PLAN.md). **Register:** [M11 planning status](M11_PLANNING_STATUS.md).
+
+## Fourth-pass implementation checkpoint
+
+The unverified source candidate now has database-clock cutoff list cursors, separately protected append-only history keyset continuation, a scoped history API and UI Load more history action. Complete conflict-specific event lineage, true mutable-state snapshot semantics, independent SQL reader isolation and the proposed P10 recurrence choice are still open. Run actual compiled database and browser regression tests and reconcile the frozen raw evidence before any G11 gate recommendation.
 
 ## Current implementation review boundary
 

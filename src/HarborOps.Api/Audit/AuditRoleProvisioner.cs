@@ -228,7 +228,10 @@ public static class AuditRoleProvisioner
             throw new InvalidOperationException("Invalid correction proof key encoding", error);
         }
         if (secret.Length != 32)
+        {
+            System.Security.Cryptography.CryptographicOperations.ZeroMemory(secret);
             throw new InvalidOperationException("Correction proof key must contain 32 bytes");
+        }
         var connection = (NpgsqlConnection)database.Database.GetDbConnection();
         var close = connection.State != ConnectionState.Open;
         if (close) await connection.OpenAsync(ct);

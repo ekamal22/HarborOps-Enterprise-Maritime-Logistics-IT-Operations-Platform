@@ -1,5 +1,7 @@
 # Test and Verification Strategy
 
+**Current M11 audit checkpoint (2026-11-07):** [M11 correctness audit](M11_CORRECTNESS_AUDIT_20261107.md) records source fixes and unresolved executable verification. G11 remains unverified and acceptance pending. This is an isolated implementation branch, not an accepted `main` capability. The M9 sustained transport hold remains mandatory.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 
@@ -109,7 +111,7 @@ The independent G16 main-evidence review checked 162/162 standalone files; the S
 
 After G16 acceptance, a final source review found a possible generation-zero `Redriven` forgery. Correction source `8ba7727` passed 17/17 focused restricted-role tests and 286/286 full PostgreSQL integration tests; reverting the old guard caused the new regression to fail. The extension archive matched 47/47 file hashes. [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) merged only after that gate extension. No extra browsers, outages or image scans were claimed on the corrected SHA because those paths were unchanged. G10 has independently reviewed technical evidence on its original frozen source but no gate acceptance; its later correction-security remediation has no executed runtime evidence. No GitHub Actions are authorized.
 
-## M10/G16 combined verification (executed locally, acceptance pending)
+## Historical M10/G16 combined technical verification (subsequently accepted)
 
 The [M10/G16 source reconciliation](M10_M16_SOURCE_RECONCILIATION.md) extends the accepted eleven-migration G16/M9 baseline with M10's SQL-only twelfth migration and its immutable effect-derived timeline index. The M16 Auditor API, audit insertion triggers and accepted M9 restricted worker behavior must remain unchanged. New focused tests extend the exact restricted API/worker grant matrix, correction-head security-definer trigger, twelve-migration inventory and downgrade counts. Full `G10-S01` through `G10-S25` source-locked execution must include the combined suites, real-role SQL, concurrency and outage/restart scenarios, three browser engines, vulnerability and mutation checks, preserved evidence and independent review. These checks were executed on frozen source `3e81b88` with the real `harborops_api`, `harborops_worker` and `harborops_projector` logins, real overlapping PostgreSQL sessions proved by lock waits, a populated-history upgrade, a 12,001-event history, a projector killed before COMMIT, three browser engines and 29 mutation variants; see [M10 executed verification](M10_EXECUTED_VERIFICATION.md) for counts, attempts, defects and the scenario dispositions. Historical G16 results remain accepted and were not rerun; only the M10 interaction surfaces were.
 

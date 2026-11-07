@@ -54,7 +54,7 @@ assert(status.includes("G0 verified") && status.includes("accepted"), "Status le
 for (const [name,body,needle] of [
   ["README",readme,"M8 implementation passed source-locked technical verification"],
   ["Status",status,"M8/G8 accepted 2026-11-04"],
-  ["Roadmap",roadmap,"G10-G15 and G17-G24 remain open"],
+  ["Roadmap",roadmap,"G11-G15 and G17-G24 remain open"],
   ["Contributors",contributors,"G0-G9 and G16 are explicitly accepted and merged"],
   ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],
   ["Implementation plan",implementationPlan,"M8 accepted after independent G8 review"],
@@ -108,7 +108,7 @@ assert(m9Decision.includes("2026-11-05") &&
   m9Implementation.includes("Final G9 status (2026-11-05)") &&
   readme.includes("G9_GATE_CLOSURE.md") &&
   status.includes("G9 accepted 2026-11-05") &&
-  roadmap.includes("G10-G15 and G17-G24 remain open"),
+  roadmap.includes("G11-G15 and G17-G24 remain open"),
   "M9 acceptance, evidence review, merge or backlog condition is missing");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");

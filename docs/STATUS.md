@@ -1,5 +1,7 @@
 # Project Status
 
+**Current M11 audit checkpoint (2026-11-07):** [M11 correctness audit](M11_CORRECTNESS_AUDIT_20261107.md) records source fixes and unresolved executable verification. G11 remains unverified and acceptance pending. This is an isolated implementation branch, not an accepted `main` capability. The M9 sustained transport hold remains mandatory.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 **Post-merge documentation index:** [G10 post-merge reconciliation](M10_G10_POST_MERGE_RECONCILIATION_20261107.md) records changed living documents and retained source/evidence boundaries.
 
@@ -143,7 +145,7 @@ The completed [combined verification](M9_M16_COMBINED_VERIFICATION.md) covers en
 
 ## Next eligible parallel workstreams
 
-M0-M9/G0-G9 are accepted and integrated. M10 event timeline and projection work may start from accepted G9; M12 search/export and M17 observability may run independently. M14 needs D-004 before applicable implementation and M19 needs D-008 before applicable implementation. M20-01, M21-01 and M23-01/M23-03 may start under their package-specific prerequisites; M21-03 additionally requires M21-01. M16 combined evidence has been reviewed and G16 accepted under its gate closure; PR #25 has merged into protected `main` at `47ba55e2`. Other unaccepted gates remain open; no public application hosting or production deployment is authorized.
+M0-M10/G0-G10 and M16/G16 are accepted and integrated. M11 has an isolated source candidate under audit, with G11 acceptance pending; M12 search/export and M17 observability may run independently. M14 needs D-004 before applicable implementation and M19 needs D-008 before applicable implementation. M20-01, M21-01 and M23-01/M23-03 may start under their package-specific prerequisites; M21-03 additionally requires M21-01. M16 combined evidence has been reviewed and G16 accepted under its gate closure; PR #25 has merged into protected `main` at `47ba55e2`. Other unaccepted gates remain open; no public application hosting or production deployment is authorized.
 
 ## Storage and residual risk
 

@@ -1,6 +1,6 @@
 # M11 Delay Rules and Shipment Exceptions: Architecture
 
-**Current source audit (2026-11-08):** [Third M11 correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and full, role-guarded immutable-history continuation. These changes are source-only and have not been compiled or executed against PostgreSQL or browser fixtures. G11-S01 remains BLOCKED on local policy, G11-S02 through S25 NOT EXECUTED, and G11 acceptance pending. PR #31 is unmerged; the M9 sustained transport hold remains in force.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11-S01 is BLOCKED on policy approval; G11-S02 through G11-S25 remain NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
@@ -44,6 +44,10 @@ These are **recommendations for M11-01 approval**, not implemented or approved d
 | M11-P12 | Sensitivity: human dispositions write one M16 central audit event atomically and append immutable M11 state history. System evaluation creates its own immutable rule history. Direct API-role SQL updates must not bypass Manager/session authorization. | Preserve G16 and G10 database defense-in-depth |
 
 Approval may alter the proposed rules. If a rule cannot be justified against accepted evidence, omit the rule rather than fabricate confidence. Explicitly distinguish `ActiveCondition`, `ClearedCondition`, `InsufficientEvidence` and `StaleInput`.
+
+## Fourth-pass pagination contracts
+
+The provisional exception list uses `first_detected_at_utc` at or before the initial PostgreSQL-clock cutoff, kept in a separately versioned cursor. It prevents inclusion of newly opened occurrences but does not freeze mutable lifecycle fields. The detail endpoint retains a 500-row preview and exposes `nextHistoryCursor` when more rows exist. A separately protected, organization/exception-bound history route pages the append-only `occurred_at_utc,id` keyset and maintains Analyst redaction. These source capabilities remain unverified, and complete conflict-specific evidence lineage is a separate open requirement.
 
 ## Third-pass signed authority and presentation contracts
 
@@ -89,8 +93,9 @@ Scoped routes under `/api/v1/organizations/{organizationId}`, consistent with [A
 | Method | Route | Contract |
 | --- | --- | --- |
 | GET | `/shipments/{shipmentId}/exceptions` | Bounded current-and-history summary for the visible shipment |
-| GET | `/exceptions` | Tenant-scoped list with `state`, `ruleCode`, `shipmentId`, `limit=1..100`, protected keyset cursor |
+| GET | `/exceptions` | Tenant-scoped list with optional `state` and `shipmentId`, `limit=1..100`, protected rule-precedence keyset cursor and database creation cutoff; no `ruleCode` query filter is implemented |
 | GET | `/exceptions/{exceptionId}` | Evidence summary and immutable bounded transition history |
+| GET | `/exceptions/{exceptionId}/history` | Bounded `limit=1..100` continuation of immutable history using an encrypted, tenant-and-exception-bound `(occurred_at_utc,id)` cursor; Analyst reasons and actors redacted |
 | PATCH | `/exceptions/{exceptionId}` | `{ "action": "Acknowledge" | "Resolve", "expectedVersion": 7, "reason": "..." }`, with UUID `Idempotency-Key`, CSRF/Origin and live Manager authority |
 
 List/detail results include `ruleCode`, `rulePolicyVersion`, `severity`, `condition`, `state`, `reasonCode`, `evidence` (bounded, redacted), `sourceInputVersion`, `correctionGeneration`, `evaluatedAtUtc`, `materializationStale`, `nextCursor` when relevant and `version`. Expose `etaUtc: null` only if showing existing M10 projection context. No global collection, anonymous access, arbitrary external links, source credentials, secret-bearing traces or raw events.

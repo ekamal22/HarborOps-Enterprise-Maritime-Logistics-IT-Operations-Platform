@@ -1,11 +1,15 @@
 # Security Model
 
-**M11 audited source candidate (2026-11-08):** [Correctness findings and residual risks](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) are recorded on draft PR #31. Source defects were corrected, but .NET/PostgreSQL/browser execution, local-policy decisions and G11 acceptance remain pending. This source has not been merged into accepted `main`; the M9 transport-event hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and full, role-guarded immutable-history continuation. These changes are source-only and have not been compiled or executed against PostgreSQL or browser fixtures. G11-S01 remains BLOCKED on local policy, G11-S02 through S25 NOT EXECUTED, and G11 acceptance pending. PR #31 is unmerged; the M9 sustained transport hold remains in force.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
 **Current accepted baseline (2026-11-07):** G0-G10 and G16 are integrated into protected `main`; G10 remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following independently reviewed [gate closure](M10_G10_GATE_CLOSURE_20261107.md). G11-G15 and G17-G24 remain unaccepted. Sustained M9 transport-event processing remains held.
+
+## Provisional M11 history and list read security
+
+Exception-list cursors carry a database-clock creation cutoff in the v2 protected token; the cutoff limits new occurrence inclusion but is not a frozen status snapshot. History continuation uses a separate 20-minute protected cursor bound to organization and exception, validated after live selected-organization authorization. Analyst history projections redact human free-form reasons and actor identifiers on every page; Manager and Auditor access remains scoped by the existing permission matrix. All of these claims require executable role and cross-tenant tests. The inherited broad API SQL SELECT trust boundary remains a G11 review risk.
 
 ## Provisional M11 signed evaluation security
 

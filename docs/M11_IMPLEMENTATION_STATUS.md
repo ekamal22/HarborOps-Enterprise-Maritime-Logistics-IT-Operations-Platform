@@ -1,6 +1,6 @@
 # M11 Source Implementation Status
 
-**Current source audit (2026-11-08):** [Third M11 correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and full, role-guarded immutable-history continuation. These changes are source-only and have not been compiled or executed against PostgreSQL or browser fixtures. G11-S01 remains BLOCKED on local policy, G11-S02 through S25 NOT EXECUTED, and G11 acceptance pending. PR #31 is unmerged; the M9 sustained transport hold remains in force.
 
 **Date:** 2026-11-07
 **Branch:** `feat/m11-delay-exception-lifecycle`
@@ -38,12 +38,16 @@ The [second correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records
 
 The [third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records fixes for nullable signed SQL inputs, scoped rule-priority list/cursor ordering, concurrent evaluation unique-key races, Manager action conflicts, canonical microsecond `m11-eval-v2` proof timestamps and the undefined source-contract checker identifier. Direct restricted-role SQL, cursor and concurrency regression test sources were added, but remain unexecuted. Outstanding conflict lineage, full history pagination and broad API SQL read-scope questions remain open.
 
+## Fourth-pass source corrections
+
+The [fourth audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records the database-clock `SnapshotAtUtc` exception-list cutoff with cursor purpose v2, and the append-only history continuation using `(occurred_at_utc,id)`, separately protected history cursors, a bounded organization-scoped history route, Analyst redaction, frontend Load more history and synthetic 506-entry regression source. The initial 500-history view is now a preview, not a retrieval ceiling. Existing lifecycle status fields may change between stateless exception-list pages, and newly appended immutable history can appear while browsing. No executable verification is claimed.
+
 ## Unexecuted checks and known limitations
 
 - The current environment has no .NET 10 SDK, PostgreSQL, Docker or browser fixture runtime, and cannot download the public repository from GitHub. No compilation, database migration, contract tests, integration tests, browser tests or mutation campaign was executed here.
 - G11-S01 is **BLOCKED** until local policy approval; G11-S02 through G11-S25 remain **NOT EXECUTED**. This source audit is not evidence of PASS. Source existence and static review are not evidence of PASS.
 - Before G11 submission, run `scripts/verify-g11-local.sh` with disposable E:-backed storage and `HARBOROPS_TEST_DB`; extend it with the full G11 verification matrix, source-locked raw evidence, all required regressions, security mutation controls, image/dependency scans and independent S25 review.
-- SQL semantics, transactional security, storage/backpressure limits, audit failure atomicity, true populated-M10/G16 migration safety and restart behavior require execution and independent security review. Conflict-specific container provenance and full history pagination remain incomplete.
+- SQL semantics, transactional security, storage/backpressure limits, audit failure atomicity, true populated-M10/G16 migration safety and restart behavior require execution and independent security review. Conflict-specific container provenance remains incomplete. Full history pagination is now implemented as unexecuted source; runtime coverage, concurrent append correctness and role grants require verification.
 - The proposed automatic lifecycle resolves a condition on confirmed clearance, while manual resolution requires a cleared condition. The precise disposition policy remains subject to M11-P10 approval.
 - The signed evaluator shares the protected M10 verifier secret with a separate M11 message domain; key rotation and restricted SQL-login tests require real-stack verification.
 - The background evaluator is opt-in and uses bounded keyset sweeps, but operational throughput, due-time accuracy under sustained load and failure recovery are not yet verified.

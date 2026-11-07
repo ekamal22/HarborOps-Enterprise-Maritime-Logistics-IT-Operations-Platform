@@ -1,6 +1,6 @@
 # API Contracts
 
-**M11 audit status (2026-11-08):** [Source correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) documents corrected defects and outstanding verification. Draft implementation PR #31 is not merged, M11-P01 through M11-P12 and G11 acceptance pending, and the M9 transport hold remains in effect.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and full, role-guarded immutable-history continuation. These changes are source-only and have not been compiled or executed against PostgreSQL or browser fixtures. G11-S01 remains BLOCKED on local policy, G11-S02 through S25 NOT EXECUTED, and G11 acceptance pending. PR #31 is unmerged; the M9 sustained transport hold remains in force.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
@@ -92,9 +92,13 @@ The M5 shipment Minimal API implements the documented routes and was verified an
 
 Exception lists use the provisional P09 rule order (`EquipmentConflict`, `RecordedArrivalLate`, `ArrivalScheduleOverdue`, `DepartureSlippageRisk`) followed by UUID, including across paged cursors. Competing evaluations or Manager dispositions return an explicit 409 when uncommitted. The signed evaluation proof binds timestamps at PostgreSQL microsecond precision under `m11-eval-v2`. Executable verification remains outstanding.
 
+## Fourth-pass M11 list and history continuation
+
+The scoped exception-list cursor now binds `organizationId`, optional filters, rule-ranked last ID and a PostgreSQL-clock `SnapshotAtUtc`. Rows opened after the first page are excluded, but lifecycle changes are not an immutable SQL snapshot and may affect later filtered pages. The detail response supplies `nextHistoryCursor` only when the 500-item preview is truncated. `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}/history?limit=100&cursor=...` returns `{ items, nextCursor }` using immutable `(occurred_at_utc,id)` paging. Each token expires after 20 minutes, is bound to the selected tenant and exception, and cannot expose foreign history. Analyst reads redact `reason` and `actorUserId` on every page. These contracts are implemented in source, not G11-verified.
+
 ## M11 provisional request and response contract
 
-The scoped list returns `{ items, nextCursor }` with a short-lived protected cursor bound to organization, optional shipment and state. A tampered or foreign cursor returns 409 `stale_or_invalid_cursor`. Detail returns `{ exception, history, historyTruncated }`. The first 500 historical events are displayed with explicit truncation; this is not full-history retrieval. `exception.evidence` includes bounded policy and revision context, not raw tracking payload.
+The scoped list returns `{ items, nextCursor }` with a short-lived protected cursor bound to organization, optional shipment and state. A tampered or foreign cursor returns 409 `stale_or_invalid_cursor`. Detail returns `{ exception, history, historyTruncated }`. The first 500 historical events are previewed with explicit truncation; a protected `nextHistoryCursor` now supports full-history continuation through the separate history route, pending runtime verification. `exception.evidence` includes bounded policy and revision context, not raw tracking payload.
 
 Manager actions use a CSRF-protected empty evaluation `POST` or `PATCH /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`, with an `Idempotency-Key` UUID header and exactly `action`, `expectedVersion` and `reason` in the body. Keys are organization-unique and conflicting reuse yields 409. Analyst detail redacts free-form human reasons and actor IDs. These are source contracts only, not verified endpoints or ETA.
 

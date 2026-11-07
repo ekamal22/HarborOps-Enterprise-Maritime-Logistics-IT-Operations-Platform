@@ -62,6 +62,9 @@ public sealed class ShipmentSearchHttpTests
         using var secondResponse = await analyst.GetAsync(search + "?q=" + prefix +
             "&limit=1&cursor=" + Uri.EscapeDataString(cursor!));
         Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
+        using var actorSwap = await manager.GetAsync(search + "?q=" + prefix +
+            "&limit=1&cursor=" + Uri.EscapeDataString(cursor!));
+        Assert.Equal(HttpStatusCode.Conflict, actorSwap.StatusCode);
         var second = await secondResponse.Content.ReadFromJsonAsync<JsonElement>();
         var secondId = second.GetProperty("shipments")[0].GetProperty("id").GetGuid();
         Assert.NotEqual(firstId, secondId);

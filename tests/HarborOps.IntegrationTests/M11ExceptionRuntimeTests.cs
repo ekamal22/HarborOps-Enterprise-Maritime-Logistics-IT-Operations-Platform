@@ -263,6 +263,59 @@ public sealed class M11ExceptionRuntimeTests
     }
 
     [Fact]
+    public async Task ReplayKeyCannotBeReusedForAnotherException()
+    {
+        var s = await Prepare();
+        using var f = s.Factory; using var runtime = s.Runtime;
+        using var a = s.Fixture.Admin; using var m = s.Fixture.Manager;
+        using var n = s.Fixture.Analyst;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        var one = await EvaluateAndFind(s, await ScheduledShipment(s));
+        var two = await EvaluateAndFind(s, await ScheduledShipment(s));
+        var key = Guid.NewGuid();
+        using (var accepted = await SendAction(manager, Collection(s.Fixture.A) + "/" + one,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "First synthetic exception reviewed" }, key))
+            Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+        using (var collision = await SendAction(manager, Collection(s.Fixture.A) + "/" + two,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Second synthetic exception reviewed" }, key))
+            Assert.Equal(HttpStatusCode.Conflict, collision.StatusCode);
+    }
+
+    [Fact]
+    public async Task ArchivedAcknowledgedRiskIsAutomaticallyClosed()
+    {
+        var s = await Prepare();
+        using var f = s.Factory; using var runtime = s.Runtime;
+        using var a = s.Fixture.Admin; using var m = s.Fixture.Manager;
+        using var n = s.Fixture.Analyst;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        var shipment = await ScheduledShipment(s);
+        var exception = await EvaluateAndFind(s, shipment);
+        using (var acknowledged = await SendAction(manager,
+            Collection(s.Fixture.A) + "/" + exception,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Reviewed the synthetic overdue schedule" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, acknowledged.StatusCode);
+        var shipmentUrl = $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}";
+        using (var archived = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Delete, shipmentUrl, new { expectedVersion = 3L }))
+            Assert.Equal(HttpStatusCode.NoContent, archived.StatusCode);
+        using (var evaluated = await ReferenceDataHttpTests.Send(manager,
+            HttpMethod.Post, shipmentUrl + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, evaluated.StatusCode);
+        using var detail = await manager.GetAsync(Collection(s.Fixture.A) + "/" + exception);
+        Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+        var row = (await detail.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("exception");
+        Assert.Equal("Resolved", row.GetProperty("state").GetString());
+        Assert.Equal("Inactive", row.GetProperty("condition").GetString());
+    }
+
+    [Fact]
     public async Task NullSchedulesAreUnknownNotInventedDelays()
     {
         var s = await Prepare();

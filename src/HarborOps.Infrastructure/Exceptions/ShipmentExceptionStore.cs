@@ -45,6 +45,12 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         return command;
     }
 
+    private static JsonElement ParseEvidence(NpgsqlDataReader reader)
+    {
+        using var document = JsonDocument.Parse(reader.GetString(20));
+        return document.RootElement.Clone();
+    }
+
     private static ShipmentExceptionRecord Record(NpgsqlDataReader reader) => new(
         reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetString(3),
         reader.GetInt32(4), reader.GetString(5), reader.GetString(6),
@@ -55,7 +61,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         reader.GetFieldValue<DateTimeOffset>(16), reader.GetFieldValue<DateTimeOffset>(17),
         reader.IsDBNull(18) ? null : reader.GetFieldValue<DateTimeOffset>(18),
         reader.GetInt64(19),
-        JsonDocument.Parse(reader.GetString(20)).RootElement.Clone());
+        ParseEvidence(reader));
 
     private const string Columns = """
         id,organization_id,shipment_id,rule_code,occurrence,condition_state,

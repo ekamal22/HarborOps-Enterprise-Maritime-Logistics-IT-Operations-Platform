@@ -132,7 +132,9 @@ public sealed class ShipmentExceptions : Migration
                 response_version bigint NOT NULL,
                 action varchar(16) NOT NULL,
                 created_at_utc timestamptz NOT NULL DEFAULT clock_timestamp(),
-                PRIMARY KEY (organization_id,exception_id,actor_user_id,idempotency_key),
+                -- A key has one meaning per organization across actors and
+                -- exceptions. The signed digest includes the selected session.
+                PRIMARY KEY (organization_id,idempotency_key),
                 CONSTRAINT fk_m11_replay_exception FOREIGN KEY (exception_id,organization_id)
                     REFERENCES shipment_exceptions(id,organization_id) ON DELETE RESTRICT,
                 CONSTRAINT ck_m11_replay_digest CHECK (request_digest ~ '^[0-9a-f]{64}$')
@@ -319,9 +321,12 @@ public sealed class ShipmentExceptions : Migration
                         (organization_id,exception_id,action,new_state,actor_kind,source_fingerprint)
                     VALUES (p_org,exception_id,'Opened','Open','System',p_fingerprint);
                 ELSIF existing_id IS NOT NULL THEN
-                    IF p_condition='Inactive' AND existing_state='Open' THEN
-                        -- Acknowledged occurrences stay open but inactive until
-                        -- an authorized Manager reviews the clearance.
+                    IF p_condition='Inactive' AND
+                       (existing_state='Open' OR p_reason='shipment_not_eligible') THEN
+                        -- Cancellation and archive clear even acknowledged
+                        -- occurrences because manual actions are disallowed
+                        -- on archived shipments. Otherwise, acknowledged
+                        -- occurrences remain inactive for Manager review.
                         UPDATE shipment_exceptions SET
                             lifecycle_state='Resolved',condition_state=p_condition,
                             resolved_at_utc=clock_timestamp(),last_evaluated_at_utc=clock_timestamp(),
@@ -396,6 +401,8 @@ public sealed class ShipmentExceptions : Migration
                 row_generation bigint;
                 saved_digest text;
                 saved_version bigint;
+                saved_exception uuid;
+                saved_actor uuid;
             BEGIN
                 IF session_user <> 'harborops_api'
                    OR p_actor IS NULL OR p_session IS NULL OR p_idempotency IS NULL
@@ -472,12 +479,13 @@ public sealed class ShipmentExceptions : Migration
                 FROM shipment_exceptions
                 WHERE id=p_exception AND organization_id=p_org FOR UPDATE;
 
-                SELECT request_digest,response_version INTO saved_digest,saved_version
+                SELECT request_digest,response_version,exception_id,actor_user_id
+                INTO saved_digest,saved_version,saved_exception,saved_actor
                 FROM shipment_exception_replays
-                WHERE organization_id=p_org AND exception_id=p_exception
-                  AND actor_user_id=p_actor AND idempotency_key=p_idempotency;
+                WHERE organization_id=p_org AND idempotency_key=p_idempotency;
                 IF FOUND THEN
-                    IF saved_digest <> digest_value THEN
+                    IF saved_exception <> p_exception OR saved_actor <> p_actor
+                        OR saved_digest <> digest_value THEN
                         RAISE EXCEPTION 'Exception action replay conflict' USING ERRCODE='PZ004';
                     END IF;
                     RETURN QUERY SELECT 'Replayed'::text,saved_version;

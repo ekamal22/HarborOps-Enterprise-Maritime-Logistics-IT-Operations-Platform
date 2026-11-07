@@ -1,6 +1,6 @@
 # Operations and Reliability
 
-**M12 second-pass source audit, 2026-11-08:** [Findings and remediation](M12_CORRECTNESS_AUDIT_20261108.md) add the mandatory audit-history downgrade guard, 4,096-character URL limit, 15-second per-statement and 30-second export budgets, expanded restricted-role and signed-proof test sources, and a missing hosting extension import. The M12 candidate remains draft PR #32; these fixes are unexecuted at runtime, G12 acceptance pending. Existing accepted G0-G10/G16 controls and the M9 hold remain unchanged.
+**M12 candidate status (2026-11-08):** [Draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) contains scoped shipment search, bounded signed CSV export and source-level correctness repairs. [Latest audit](M12_CORRECTNESS_AUDIT_20261108.md), [implementation status](M12_IMPLEMENTATION_STATUS.md) and [G12 plan](M12_VERIFICATION_PLAN.md) distinguish authored tests from executed evidence. The third pass corrects two accepted M5 browser interceptors to exercise `/shipments/search`. G12 execution and independent acceptance remain pending. Protected `main` and the M9 transport hold are unchanged.
 
 ## M12 export proof provisioning candidate, 2026-11-07
 

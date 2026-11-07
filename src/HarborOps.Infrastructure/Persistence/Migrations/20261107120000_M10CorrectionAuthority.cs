@@ -23,7 +23,12 @@ public sealed class M10CorrectionAuthority : Migration
             );
             CREATE TABLE m10_correction_proof_nonces (
                 nonce uuid PRIMARY KEY,
+                organization_id uuid NOT NULL,
+                shipment_id uuid NOT NULL,
+                actor_user_id uuid NOT NULL,
+                idempotency_key uuid NOT NULL,
                 request_digest char(64) NOT NULL,
+                transaction_id xid8 NOT NULL DEFAULT pg_current_xact_id(),
                 expires_at_utc timestamptz NOT NULL
             );
 
@@ -103,8 +108,10 @@ public sealed class M10CorrectionAuthority : Migration
                 END IF;
 
                 INSERT INTO public.m10_correction_proof_nonces
-                    (nonce,request_digest,expires_at_utc)
-                VALUES (p_nonce,actual_digest,to_timestamp(p_expires_epoch));
+                    (nonce,organization_id,shipment_id,actor_user_id,
+                     idempotency_key,request_digest,expires_at_utc)
+                VALUES (p_nonce,p_org,p_shipment,p_actor,p_idempotency,
+                        actual_digest,to_timestamp(p_expires_epoch));
 
                 -- Existing M10 triggers validate correction scope, chain, generation
                 -- and immutable input revisions in this same transaction.
@@ -135,6 +142,38 @@ public sealed class M10CorrectionAuthority : Migration
             REVOKE ALL ON FUNCTION m10_apply_signed_correction(
                 uuid,uuid,uuid,uuid,bigint,uuid,uuid,varchar,varchar,varchar,
                 uuid,uuid,bigint,varchar) FROM PUBLIC;
+
+            -- A forged replay acknowledgment must not imply that a correction
+            -- committed. Require evidence from the same authorized transaction.
+            CREATE FUNCTION m10_guard_correction_replay() RETURNS trigger
+                LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog,public AS $replay$
+            BEGIN
+                IF session_user = 'harborops_api'
+                   AND NEW.operation_kind = 'Correction'
+                   AND NOT EXISTS (
+                       SELECT 1 FROM public.m10_correction_proof_nonces n
+                       JOIN public.shipment_tracking_corrections c
+                         ON c.organization_id=n.organization_id
+                        AND c.shipment_id=n.shipment_id
+                        AND c.actor_user_id=n.actor_user_id
+                        AND c.correction_digest=n.request_digest
+                       WHERE n.organization_id=NEW.organization_id
+                         AND n.shipment_id=NEW.shipment_id
+                         AND n.actor_user_id=NEW.actor_user_id
+                         AND n.idempotency_key=NEW.idempotency_key
+                         AND n.request_digest=NEW.request_digest
+                         AND n.transaction_id=pg_current_xact_id()
+                   ) THEN
+                    RAISE EXCEPTION 'Correction replay authority denied'
+                        USING ERRCODE='42501';
+                END IF;
+                RETURN NEW;
+            END $replay$;
+            REVOKE ALL ON FUNCTION m10_guard_correction_replay() FROM PUBLIC;
+            CREATE TRIGGER tr_m10_guard_correction_replay
+                BEFORE INSERT ON shipment_tracking_operation_replays
+                FOR EACH ROW EXECUTE FUNCTION m10_guard_correction_replay();
             REVOKE ALL ON TABLE m10_correction_proof_keys,
                 m10_correction_proof_nonces FROM PUBLIC;
             """);
@@ -143,6 +182,9 @@ public sealed class M10CorrectionAuthority : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""
+            DROP TRIGGER tr_m10_guard_correction_replay
+                ON shipment_tracking_operation_replays;
+            DROP FUNCTION m10_guard_correction_replay();
             DROP FUNCTION m10_apply_signed_correction(
                 uuid,uuid,uuid,uuid,bigint,uuid,uuid,varchar,varchar,varchar,
                 uuid,uuid,bigint,varchar);

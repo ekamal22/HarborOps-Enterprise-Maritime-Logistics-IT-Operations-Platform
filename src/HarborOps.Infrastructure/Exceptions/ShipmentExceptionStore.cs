@@ -1,0 +1,334 @@
+using System.Data;
+using HarborOps.Domain.Exceptions;
+using HarborOps.Domain.Tracking;
+using HarborOps.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Npgsql;
+
+namespace HarborOps.Infrastructure.Exceptions;
+
+public sealed record ShipmentExceptionRecord(
+    Guid Id, Guid OrganizationId, Guid ShipmentId, string RuleCode, int Occurrence,
+    string Condition, string State, string Severity, string Confidence, string ReasonCode,
+    string SourceFingerprint, long ShipmentVersion, long TrackingInputRevision,
+    long CorrectionGeneration, DateTimeOffset? ReferenceAtUtc,
+    DateTimeOffset? ThresholdAtUtc, DateTimeOffset FirstDetectedAtUtc,
+    DateTimeOffset LastEvaluatedAtUtc, DateTimeOffset? ResolvedAtUtc, long Version);
+public sealed record ShipmentExceptionHistory(
+    Guid Id, Guid ExceptionId, string Action, string? OldState, string NewState,
+    string ActorKind, Guid? ActorUserId, DateTimeOffset OccurredAtUtc, string? Reason);
+public sealed record ShipmentExceptionPage(
+    IReadOnlyList<ShipmentExceptionRecord> Items, Guid? NextAfter);
+public sealed record ShipmentExceptionDetail(
+    ShipmentExceptionRecord Exception, IReadOnlyList<ShipmentExceptionHistory> History);
+public enum M11StoreResult { Applied, Replayed, NotFound, Conflict, Invalid, Forbidden, DependencyUnavailable, AuditUnavailable }
+
+public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfiguration configuration)
+{
+    private NpgsqlConnection Connection =>
+        (NpgsqlConnection)database.Database.GetDbConnection();
+
+    private static NpgsqlCommand Command(NpgsqlConnection connection,
+        NpgsqlTransaction? transaction, string sql,
+        params (string Name, object? Value)[] parameters)
+    {
+        var command = new NpgsqlCommand(sql, connection, transaction) { CommandTimeout = 45 };
+        foreach (var (name, value) in parameters)
+            command.Parameters.AddWithValue(name, value ?? DBNull.Value);
+        return command;
+    }
+
+    private static ShipmentExceptionRecord Record(NpgsqlDataReader reader) => new(
+        reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetString(3),
+        reader.GetInt32(4), reader.GetString(5), reader.GetString(6),
+        reader.GetString(7), reader.GetString(8), reader.GetString(9),
+        reader.GetString(10).Trim(), reader.GetInt64(11), reader.GetInt64(12),
+        reader.GetInt64(13), reader.IsDBNull(14) ? null : reader.GetFieldValue<DateTimeOffset>(14),
+        reader.IsDBNull(15) ? null : reader.GetFieldValue<DateTimeOffset>(15),
+        reader.GetFieldValue<DateTimeOffset>(16), reader.GetFieldValue<DateTimeOffset>(17),
+        reader.IsDBNull(18) ? null : reader.GetFieldValue<DateTimeOffset>(18),
+        reader.GetInt64(19));
+
+    private const string Columns = """
+        id,organization_id,shipment_id,rule_code,occurrence,condition_state,
+        lifecycle_state,severity,confidence,reason_code,source_fingerprint,
+        shipment_version,tracking_input_revision,correction_generation,
+        reference_at_utc,threshold_at_utc,first_detected_at_utc,
+        last_evaluated_at_utc,resolved_at_utc,version
+        """;
+
+    public async Task<ShipmentExceptionPage> ListAsync(Guid org, Guid? shipment,
+        string? state, Guid? after, int limit, CancellationToken ct)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        await database.Database.OpenConnectionAsync(ct);
+        try
+        {
+            await using var command = Command(Connection, null,
+                $"SELECT {Columns} FROM shipment_exceptions WHERE organization_id=@org " +
+                "AND (@shipment::uuid IS NULL OR shipment_id=@shipment) " +
+                "AND (@state::varchar IS NULL OR lifecycle_state=@state) " +
+                "AND (@after::uuid IS NULL OR id>@after) ORDER BY id LIMIT @limit",
+                ("org", org), ("shipment", shipment), ("state", state),
+                ("after", after), ("limit", limit + 1));
+            var found = new List<ShipmentExceptionRecord>();
+            await using var reader = await command.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct)) found.Add(Record(reader));
+            var more = found.Count > limit;
+            if (more) found.RemoveAt(limit);
+            return new ShipmentExceptionPage(found,
+                more && found.Count > 0 ? found[^1].Id : null);
+        }
+        finally { await database.Database.CloseConnectionAsync(); }
+    }
+
+    public async Task<ShipmentExceptionDetail?> DetailAsync(Guid org, Guid exception,
+        CancellationToken ct)
+    {
+        await database.Database.OpenConnectionAsync(ct);
+        try
+        {
+            await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
+                IsolationLevel.RepeatableRead, ct);
+            ShipmentExceptionRecord? record;
+            await using (var command = Command(Connection, tx,
+                $"SELECT {Columns} FROM shipment_exceptions WHERE organization_id=@org AND id=@id",
+                ("org", org), ("id", exception)))
+            await using (var reader = await command.ExecuteReaderAsync(ct))
+                record = await reader.ReadAsync(ct) ? Record(reader) : null;
+            if (record is null) return null;
+            var history = new List<ShipmentExceptionHistory>();
+            await using (var command = Command(Connection, tx, """
+                SELECT id,exception_id,action,old_state,new_state,
+                    actor_kind,actor_user_id,occurred_at_utc,reason
+                FROM shipment_exception_history WHERE organization_id=@org
+                    AND exception_id=@id
+                ORDER BY occurred_at_utc,id LIMIT 500
+                """, ("org", org), ("id", exception)))
+            await using (var reader = await command.ExecuteReaderAsync(ct))
+                while (await reader.ReadAsync(ct))
+                    history.Add(new ShipmentExceptionHistory(reader.GetGuid(0),
+                        reader.GetGuid(1), reader.GetString(2),
+                        reader.IsDBNull(3) ? null : reader.GetString(3),
+                        reader.GetString(4), reader.GetString(5),
+                        reader.IsDBNull(6) ? null : reader.GetGuid(6),
+                        reader.GetFieldValue<DateTimeOffset>(7),
+                        reader.IsDBNull(8) ? null : reader.GetString(8)));
+            await tx.CommitAsync(ct);
+            return new ShipmentExceptionDetail(record, history);
+        }
+        finally { await database.Database.CloseConnectionAsync(); }
+    }
+
+    private static DateTimeOffset? Date(NpgsqlDataReader reader, int ordinal) =>
+        reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<DateTimeOffset>(ordinal);
+
+    // This query takes one repeatable source snapshot. The signed SQL procedure
+    // rechecks all source version fields before accepting any of its effects.
+    private async Task<ShipmentExceptionInput?> InputsAsync(Guid org, Guid shipment,
+        NpgsqlTransaction tx, CancellationToken ct)
+    {
+        await using var command = Command(Connection, tx, """
+            SELECT s.record_status,s.workflow_status,s.version,
+                   s.planned_departure_at_utc,s.planned_arrival_at_utc,
+                   (SELECT min(c.changed_at_utc) FROM shipment_status_changes c
+                       WHERE c.organization_id=s.organization_id AND c.shipment_id=s.id
+                         AND c.to_status='InTransit'),
+                   (SELECT min(c.changed_at_utc) FROM shipment_status_changes c
+                       WHERE c.organization_id=s.organization_id AND c.shipment_id=s.id
+                         AND c.to_status='Arrived'),
+                   COALESCE(p.observed_state,'Unknown'),
+                   p.input_revision,p.correction_generation,p.policy_version,
+                   p.input_digest,p.last_occurred_at_utc,
+                   COALESCE(v.revision,0),COALESCE(h.generation,0)
+            FROM shipments s
+            JOIN organizations o ON o.id=s.organization_id AND o.status='Active'
+            LEFT JOIN shipment_tracking_input_versions v
+                ON v.organization_id=s.organization_id AND v.shipment_id=s.id
+            LEFT JOIN shipment_tracking_correction_heads h
+                ON h.organization_id=s.organization_id AND h.shipment_id=s.id
+            LEFT JOIN shipment_tracking_projections p
+                ON p.organization_id=s.organization_id AND p.shipment_id=s.id
+            WHERE s.organization_id=@org AND s.id=@shipment
+            FOR SHARE OF s
+            """, ("org", org), ("shipment", shipment));
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return null;
+        var inputRevision = reader.GetInt64(13);
+        var generation = reader.GetInt64(14);
+        var stale = reader.IsDBNull(8) || reader.GetInt64(8) != inputRevision ||
+            reader.IsDBNull(9) || reader.GetInt64(9) != generation ||
+            reader.IsDBNull(10) || reader.GetString(10) != TrackingTimelinePolicy.Version;
+        return new ShipmentExceptionInput(org, shipment,
+            reader.GetString(0), reader.GetString(1), reader.GetInt64(2),
+            Date(reader, 3), Date(reader, 4), Date(reader, 5), Date(reader, 6),
+            reader.GetString(7), stale, inputRevision, generation,
+            reader.IsDBNull(10) ? "" : reader.GetString(10),
+            reader.IsDBNull(11) ? "" : reader.GetString(11).Trim(),
+            Date(reader, 12));
+    }
+
+    public async Task<(M11StoreResult Result, int Rules)> EvaluateAsync(
+        Guid org, Guid shipment, CancellationToken ct)
+    {
+        var key = configuration["M10CorrectionProof:Key"];
+        if (string.IsNullOrWhiteSpace(key))
+            return (M11StoreResult.DependencyUnavailable, 0);
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            await database.Database.OpenConnectionAsync(ct);
+            try
+            {
+                await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
+                    IsolationLevel.Serializable, ct);
+                var input = await InputsAsync(org, shipment, tx, ct);
+                if (input is null) return (M11StoreResult.NotFound, 0);
+                // Use PostgreSQL time rather than the host's timezone.
+                DateTimeOffset now;
+                await using (var query = Command(Connection, tx, "SELECT clock_timestamp()"))
+                    now = (DateTimeOffset)(await query.ExecuteScalarAsync(ct)
+                        ?? throw new InvalidOperationException("Database clock unavailable"));
+                var results = ShipmentExceptionPolicy.Evaluate(input, now);
+                foreach (var signal in results)
+                {
+                    var proof = M11ProofSigner.Evaluation(key, input, signal);
+                    if (proof is null) return (M11StoreResult.DependencyUnavailable, 0);
+                    await using var command = Command(Connection, tx, """
+                        SELECT m11_apply_signed_evaluation(
+                            @org::uuid,@shipment::uuid,@rule::varchar,@condition::varchar,
+                            @severity::varchar,@confidence::varchar,@reason::varchar,
+                            @fingerprint::varchar,@reference::timestamptz,
+                            @threshold::timestamptz,@next::timestamptz,
+                            @shipVersion::bigint,@inputRevision::bigint,@generation::bigint,
+                            @nonce::uuid,@expires::bigint,@signature::varchar)
+                        """, ("org", org), ("shipment", shipment),
+                        ("rule", signal.RuleCode), ("condition", signal.Condition),
+                        ("severity", signal.Severity), ("confidence", signal.Confidence),
+                        ("reason", signal.ReasonCode), ("fingerprint", signal.SourceFingerprint),
+                        ("reference", signal.ReferenceAtUtc), ("threshold", signal.ThresholdAtUtc),
+                        ("next", signal.NextEvaluationAtUtc),
+                        ("shipVersion", input.ShipmentVersion),
+                        ("inputRevision", input.TrackingInputRevision),
+                        ("generation", input.CorrectionGeneration),
+                        ("nonce", proof.Nonce), ("expires", proof.ExpiresEpoch),
+                        ("signature", proof.Signature));
+                    await command.ExecuteNonQueryAsync(ct);
+                }
+                await tx.CommitAsync(ct);
+                return (M11StoreResult.Applied, results.Count);
+            }
+            catch (PostgresException ex) when (ex.SqlState is "40001" or "40P01" && attempt < 2)
+            {
+                // Failed serializable transaction is discarded before retry.
+            }
+            catch (PostgresException ex) when (ex.SqlState == "42501")
+            {
+                return (M11StoreResult.Forbidden, 0);
+            }
+            catch (PostgresException ex) when (ex.SqlState == "PZ002")
+            {
+                return (M11StoreResult.DependencyUnavailable, 0);
+            }
+            catch (PostgresException ex) when (ex.SqlState == "PZ003")
+            {
+                return (M11StoreResult.NotFound, 0);
+            }
+            finally { await database.Database.CloseConnectionAsync(); }
+        }
+        return (M11StoreResult.Conflict, 0);
+    }
+
+    public async Task<(M11StoreResult Result, long Version)> ActionAsync(Guid org,
+        Guid exception, Guid actor, Guid session, string action, long expectedVersion,
+        string reason, Guid idempotencyKey, CancellationToken ct)
+    {
+        var proof = M11ProofSigner.Action(configuration["M10CorrectionProof:Key"],
+            org, exception, actor, session, action, expectedVersion, reason, idempotencyKey);
+        if (proof is null) return (M11StoreResult.DependencyUnavailable, 0);
+        await database.Database.OpenConnectionAsync(ct);
+        try
+        {
+            await using var command = Command(Connection, null, """
+                SELECT result_code,result_version FROM m11_apply_signed_action(
+                    @org::uuid,@exception::uuid,@actor::uuid,@session::uuid,
+                    @action::varchar,@expectedVersion::bigint,@reason::varchar,
+                    @key::uuid,@nonce::uuid,@expires::bigint,@signature::varchar)
+                """, ("org", org), ("exception", exception), ("actor", actor),
+                ("session", session), ("action", action),
+                ("expectedVersion", expectedVersion), ("reason", reason),
+                ("key", idempotencyKey), ("nonce", proof.Nonce),
+                ("expires", proof.ExpiresEpoch), ("signature", proof.Signature));
+            await using var reader = await command.ExecuteReaderAsync(ct);
+            if (!await reader.ReadAsync(ct)) return (M11StoreResult.Conflict, 0);
+            return (reader.GetString(0) == "Replayed"
+                ? M11StoreResult.Replayed : M11StoreResult.Applied, reader.GetInt64(1));
+        }
+        catch (PostgresException ex) when (ex.SqlState == "PZ001")
+        {
+            return (M11StoreResult.AuditUnavailable, 0);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "PZ002")
+        {
+            return (M11StoreResult.DependencyUnavailable, 0);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "PZ003")
+        {
+            return (M11StoreResult.NotFound, 0);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "PZ004")
+        {
+            return (M11StoreResult.Conflict, 0);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "PZ005")
+        {
+            return (M11StoreResult.Invalid, 0);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "42501")
+        {
+            return (M11StoreResult.Forbidden, 0);
+        }
+        finally { await database.Database.CloseConnectionAsync(); }
+    }
+
+    // Bounded indexed keyset scan. Repeat from the first key when a pass ends.
+    public async Task<IReadOnlyList<(Guid Organization, Guid Shipment)>> DueAsync(
+        Guid? afterOrg, Guid? afterShip, int limit, CancellationToken ct)
+    {
+        if (limit is < 1 or > 50 || afterOrg.HasValue != afterShip.HasValue)
+            throw new ArgumentOutOfRangeException(nameof(limit));
+        await database.Database.OpenConnectionAsync(ct);
+        try
+        {
+            await using var command = Command(Connection, null, """
+                SELECT s.organization_id,s.id
+                FROM shipments s
+                JOIN organizations o ON o.id=s.organization_id AND o.status='Active'
+                LEFT JOIN shipment_tracking_input_versions v
+                  ON v.organization_id=s.organization_id AND v.shipment_id=s.id
+                LEFT JOIN shipment_tracking_correction_heads h
+                  ON h.organization_id=s.organization_id AND h.shipment_id=s.id
+                WHERE (@afterOrg::uuid IS NULL OR
+                    (s.organization_id,s.id)>(@afterOrg,@afterShip))
+                  AND (NOT EXISTS (
+                        SELECT 1 FROM shipment_exception_evaluations e
+                        WHERE e.organization_id=s.organization_id AND e.shipment_id=s.id)
+                    OR EXISTS (
+                        SELECT 1 FROM shipment_exception_evaluations e
+                        WHERE e.organization_id=s.organization_id AND e.shipment_id=s.id
+                          AND (e.shipment_version<>s.version
+                            OR e.tracking_input_revision<>COALESCE(v.revision,0)
+                            OR e.correction_generation<>COALESCE(h.generation,0)
+                            OR (e.next_evaluation_at_utc IS NOT NULL
+                                AND e.next_evaluation_at_utc<=clock_timestamp()))))
+                ORDER BY s.organization_id,s.id LIMIT @limit
+                """, ("afterOrg", afterOrg), ("afterShip", afterShip),
+                ("limit", limit));
+            var items = new List<(Guid Organization, Guid Shipment)>();
+            await using var reader = await command.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct)) items.Add((reader.GetGuid(0), reader.GetGuid(1)));
+            return items;
+        }
+        finally { await database.Database.CloseConnectionAsync(); }
+    }
+}

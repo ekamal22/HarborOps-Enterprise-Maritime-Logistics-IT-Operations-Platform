@@ -347,12 +347,25 @@ public sealed class ShipmentSearchHttpTests
             signed.Parameters.AddWithValue("expires", proof.ExpiresEpoch);
             signed.Parameters.AddWithValue("signature", proof.Signature);
 
-            signed.Parameters["actor"].Value = Guid.NewGuid();
-            var altered = await Assert.ThrowsAsync<PostgresException>(
-                () => signed.ExecuteNonQueryAsync());
-            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, altered.SqlState);
+            var tampered = new (string Field, object Replacement)[]
+            {
+                ("org", fixture.B), ("actor", Guid.NewGuid()),
+                ("session", Guid.NewGuid()), ("rows", 2), ("bytes", 129L),
+                ("digest", new string('B', 64)),
+                ("correlation", Guid.NewGuid().ToString("N")),
+                ("expires", proof.ExpiresEpoch - 1),
+                ("signature", new string('0', 64))
+            };
+            foreach (var (field, replacement) in tampered)
+            {
+                var original = signed.Parameters[field].Value;
+                signed.Parameters[field].Value = replacement;
+                var altered = await Assert.ThrowsAsync<PostgresException>(
+                    () => signed.ExecuteNonQueryAsync());
+                Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, altered.SqlState);
+                signed.Parameters[field].Value = original;
+            }
 
-            signed.Parameters["actor"].Value = actorId;
             await signed.ExecuteNonQueryAsync();
             var replay = await Assert.ThrowsAsync<PostgresException>(
                 () => signed.ExecuteNonQueryAsync());

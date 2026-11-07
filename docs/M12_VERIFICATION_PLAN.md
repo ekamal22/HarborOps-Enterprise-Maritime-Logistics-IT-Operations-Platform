@@ -46,4 +46,4 @@ Remove tenant predicates, the M6 association scope, cursor org/fingerprint bindi
 
 ## Second-pass additions
 
-The [2026-11-08 source audit](M12_CORRECTNESS_AUDIT_20261108.md) added test sources for a full five-role HTTP matrix, forged and modified proof fields, and oversized URLs, plus source guards for the M12 audit rollback and database/total export deadlines. G12 must validate these in an exclusive real PostgreSQL and HTTP campaign. Do not infer any new PASS from the source additions.
+The [2026-11-08 source audit](M12_CORRECTNESS_AUDIT_20261108.md) added tests for a full five-role HTTP matrix, nine forged/modified proof fields, oversized URLs, and non-destructive EF migration rollback/privilege-operation assertions, plus source guards for audit rollback and database/total export deadlines. G12 must validate these in an exclusive real PostgreSQL and HTTP campaign. Do not infer any new PASS from the source additions.

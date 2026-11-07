@@ -1,9 +1,13 @@
 # M10 Correction Authority and Atomic Audit Remediation
 
 **Decision:** M10 local policies approved on 2026-11-07, with L07 and L14 modified and L06 conditional.  
-**Source:** `fix/m10-g10-l07-l14-remediation`.  
+**Source:** `fix/m10-g10-l07-l14-remediation`; last runtime-code revision `3ef7a50859b5f023aa1457b373728888f6d1cba9`. Later commits reconcile documentation only.  
 **Status:** Source changes and regression tests committed. Compilation, migration execution, database security tests and G10 supplemental evidence are **NOT EXECUTED** in this review environment. G10 acceptance pending.  
 **Baseline:** The branch descends from independently reviewed G10 verification code. The original A1-A7 raw evidence applies only to frozen runtime `3e81b884b6a4cc782f84c58510793666786c5796`.
+
+## Source and evidence provenance
+
+The last runtime-code commit was `3ef7a50859b5f023aa1457b373728888f6d1cba9`; it is a source candidate, not a passing test baseline. The original G10 independent evidence package (A1-A7, 23 PASS) belongs only to `3e81b884b6a4cc782f84c58510793666786c5796` and its twelve migrations. New-source changes add a thirteenth migration and must receive their own source-locked compile, upgrade, authorization, failure-injection and focused regression checks before any S01 implementation or S25 gate decision. Current living status is in [STATUS](STATUS.md), while [DECISIONS](DECISIONS.md) records policy approval.
 
 ## Implemented changes
 

@@ -2,7 +2,7 @@
 
 **Current source audit (2026-11-07):** [M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
 
-**Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11 scenarios are NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
+**Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11-S01 is BLOCKED on policy approval; G11-S02 through G11-S25 remain NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
 **Status:** Implementation source candidate committed; execution, policy approval and G11 acceptance pending.
 **Base:** accepted `main` `6ead1d076946dd96b53401265a31efc35c4a666c` (2026-11-07). **Work:** M11-01 to M11-04; exit G11.
@@ -98,4 +98,4 @@ Do not run multiple mutable-DB integration campaigns concurrently. Parallel unit
 
 All controllable persistent repositories, worktrees, test PostgreSQL data, Docker/WSL layers, caches, screenshots, traces, reports and temporary build artifacts must be on E:. Use `HARBOROPS_WORKSPACE_ROOT` and verify actual storage paths. Unavoidable short-lived C: activity is allowed, but cannot become persistent project storage. No pruning, relocation or deletion without separate authorization. Use `[skip ci]` in every commit, no attribution trailers, and no GitHub Actions unless separately authorized. Preserve earlier test failures and all accepted migrations.
 
-**Disposition:** Full M11 delivery sequence proposed. Implementation and G11 acceptance pending.
+**Disposition:** Full M11 delivery sequence proposed; an unverified implementation source candidate exists. Executable verification, local policy approval and G11 acceptance pending.

@@ -37,7 +37,7 @@ The [second correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records
 ## Unexecuted checks and known limitations
 
 - The current environment has no .NET 10 SDK, PostgreSQL, Docker or browser fixture runtime, and cannot download the public repository from GitHub. No compilation, database migration, contract tests, integration tests, browser tests or mutation campaign was executed here.
-- All G11-S01 through G11-S25 remain **NOT EXECUTED**, apart from their unapproved policy prerequisites, which remain acceptance pending. Source existence and static review are not evidence of PASS.
+- G11-S01 is **BLOCKED** until local policy approval; G11-S02 through G11-S25 remain **NOT EXECUTED**. This source audit is not evidence of PASS. Source existence and static review are not evidence of PASS.
 - Before G11 submission, run `scripts/verify-g11-local.sh` with disposable E:-backed storage and `HARBOROPS_TEST_DB`; extend it with the full G11 verification matrix, source-locked raw evidence, all required regressions, security mutation controls, image/dependency scans and independent S25 review.
 - SQL semantics, transactional security, storage/backpressure limits, audit failure atomicity, true populated-M10/G16 migration safety and restart behavior require execution and independent security review. Conflict-specific container provenance and full history pagination remain incomplete.
 - The proposed automatic lifecycle resolves a condition on confirmed clearance, while manual resolution requires a cleared condition. The precise disposition policy remains subject to M11-P10 approval.
@@ -48,4 +48,4 @@ The [second correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records
 
 The M9 sustained transport-event hold remains. ARRI/DEPA remain parked, the 10,000 unresolved-work-item cap is binding, and M10 ETA is null. M11 does not implement transport backlog relief, predicted ETA, M13 KPIs or M15 notifications. No GitHub Actions execution, release, public hosting, production deployment or merge is authorized.
 
-**Disposition:** Implementation source candidate delivered on an isolated feature branch; correctness review, policy approval, complete G11 verification and explicit acceptance pending.
+**Disposition:** Implementation source candidate delivered on an isolated feature branch; executed correctness verification, policy approval, complete G11 verification and explicit acceptance pending.

@@ -25,7 +25,7 @@
 | S19 | Outage/cancel/rate/concurrency | Safe no-partial-output failure |
 | S20 | PostgreSQL plans | EXPLAIN actual cost for representative data |
 | S21 | Q2 historical snapshot | Disposable clone test or evidenced NOT APPLICABLE |
-| S22 | Three-engine browser | Search/export/role/draft/organization changes |
+| S22 | Three-engine browser | M12 search/export/role plus accepted M5 delayed search response across organization switch and in-flight draft background refresh, in Chromium/Firefox/WebKit |
 | S23 | Accepted source regressions | M2/M5/M6/M10/M16, M9 hold |
 | S24 | Effective security mutants and scans | Intended assertions kill defects, no unresolved high/critical |
 | S25 | Independent raw-evidence review | SHA, artifacts, hashes, failure logs and residuals |
@@ -47,3 +47,7 @@ Remove tenant predicates, the M6 association scope, cursor org/fingerprint bindi
 ## Second-pass additions
 
 The [2026-11-08 source audit](M12_CORRECTNESS_AUDIT_20261108.md) added tests for a full five-role HTTP matrix, nine forged/modified proof fields, oversized URLs, and non-destructive EF migration rollback/privilege-operation assertions, plus source guards for audit rollback and database/total export deadlines. G12 must validate these in an exclusive real PostgreSQL and HTTP campaign. Do not infer any new PASS from the source additions.
+
+## Third-pass M5 browser compatibility checks
+
+The [third-pass source findings](M12_CORRECTNESS_AUDIT_20261108.md#third-pass-m5-browser-regression-findings-2026-11-08) show that the M12 shipment workspace reads `/shipments/search`, whereas two accepted M5 browser tests still intercepted the original list URI. The `shipment.spec.mjs` deferred-response test and `shipment-draft.spec.mjs` unsaved-draft background refresh test were updated to intercept the route actually used by M12, without weakening their assertions. G12-S22 must execute both tests with `shipment-search.spec.mjs` against actual M5/M12 fixtures across all three engines. Their source correction does not constitute a passing browser result.

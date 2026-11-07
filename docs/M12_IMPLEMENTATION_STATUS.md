@@ -18,7 +18,7 @@ Domain: `ShipmentSearchPolicy.cs`, `OrganizationPolicy.cs`.
 Infrastructure: `ShipmentSearchStore.cs`, `M12ExportProofSigner.cs`, `DependencyInjection.cs`, `20261107230000_M12ShipmentExportAudit.cs`.
 API: `ShipmentSearchEndpoints.cs`, `Program.cs`, `AuthenticationSetup.cs`, `AuditRoleProvisioner.cs`.
 Web: `shipmentSearchClient.ts`, `ShipmentWorkspace.tsx`.
-Tests: `ShipmentSearchPolicyTests.cs`, `M12ExportProofSignerTests.cs`, `ShipmentSearchContractTests.cs`, `ShipmentSearchHttpTests.cs`, `shipment-search.spec.mjs`, updated `MigrationSnapshotTests.cs` and event-specific M16 `AuditHardeningTests.cs`. Configuration: `compose.yaml` and `.env.example` use the separate untracked M12 signing key only in migrator/API.
+Tests: `ShipmentSearchPolicyTests.cs`, `M12ExportProofSignerTests.cs`, `M12MigrationSafetyTests.cs`, `ShipmentSearchContractTests.cs`, `ShipmentSearchHttpTests.cs`, `shipment-search.spec.mjs`, updated `MigrationSnapshotTests.cs` and event-specific M16 `AuditHardeningTests.cs`. Configuration: `compose.yaml` and `.env.example` use the separate untracked M12 signing key only in migrator/API.
 
 [M12 source correctness audit](M12_CORRECTNESS_AUDIT_20261107.md) records ten findings, committed source fixes, and the unexecuted checks. The signed proof and optional key configuration must be verified before acceptance.
 

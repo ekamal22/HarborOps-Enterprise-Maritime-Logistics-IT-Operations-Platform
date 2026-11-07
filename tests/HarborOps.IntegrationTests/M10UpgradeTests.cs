@@ -217,4 +217,128 @@ public sealed class M10UpgradeTests
                     await drop.ExecuteNonQueryAsync();
         }
     }
+
+    private static Task<object?> M10Fingerprint(string connection) => Scalar(connection, """
+        SELECT concat_ws('/',
+          (SELECT md5(COALESCE(string_agg(x::text,'|' ORDER BY x::text),'')) FROM shipment_tracking_corrections x),
+          (SELECT md5(COALESCE(string_agg(x::text,'|' ORDER BY x::text),'')) FROM shipment_tracking_operation_replays x),
+          (SELECT md5(COALESCE(string_agg(x::text,'|' ORDER BY x::text),'')) FROM shipment_tracking_input_versions x),
+          (SELECT md5(COALESCE(string_agg(x::text,'|' ORDER BY x::text),'')) FROM shipment_tracking_timeline_entries x),
+          (SELECT md5(COALESCE(string_agg(x::text,'|' ORDER BY x::text),'')) FROM shipment_tracking_correction_heads x))
+        """);
+
+    [Fact]
+    public async Task PopulatedTwelveMigrationDatabaseWithAPreAuthorityCorrectionUpgradesToThirteenWithoutLoss()
+    {
+        var schema = "m10_t13_" + Guid.NewGuid().ToString("N");
+        var scoped = Scoped(schema);
+        await using var admin = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await admin.OpenAsync();
+        await using (var create = new NpgsqlCommand($"CREATE SCHEMA \"{schema}\"", admin))
+            await create.ExecuteNonQueryAsync();
+        try
+        {
+            using var factory = new ReferenceDataHttpTests.ApiFactory(scoped);
+            var fixture = await ReferenceDataHttpTests.Setup(factory);
+            using var a = fixture.Admin;
+            using var m = fixture.Manager;
+            using var n = fixture.Analyst;
+            var target = await G9Support.SeedResolvable(factory, fixture);
+            var source = await G9Support.NewSource(factory, fixture.A, "m10t13");
+            var prefix = Guid.NewGuid().ToString("N")[..8];
+            var receipts = new List<Guid>();
+            foreach (var (key, at, code) in new[]
+            {
+                ("t13-1", "2026-11-03T10:00:00Z", "GTIN"),
+                ("t13-2", "2026-11-03T11:00:00Z", "GTOT")
+            })
+                receipts.Add(await G9Support.Accept(factory, source,
+                    G9Support.EquipmentPayload(key + "-" + prefix, target.Reference, at, code)));
+            Guid actor;
+            await using (var scope = factory.Services.CreateAsyncScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+                var worker = new TrackingWorkStore(db, new TrackingWorkerSettings());
+                for (var i = 0; i < 2; i++)
+                {
+                    var claim = await worker.ClaimOneAsync(fixture.A, CancellationToken.None);
+                    Assert.NotNull(claim);
+                    Assert.Equal(TrackingWorkDisposition.Processed,
+                        await worker.FinalizeAsync(claim!, CancellationToken.None));
+                }
+                actor = (await db.AuthUsers.AsNoTracking().SingleAsync(u => u.NormalizedEmail ==
+                    HarborOps.Infrastructure.Identity.IdentityStore.NormalizeEmail(fixture.ManagerEmail))).Id;
+            }
+
+            // Reproduce a populated database that stops at the twelfth migration: revert only the
+            // correction-authority layer (no nonce evidence exists), then write a correction and its
+            // replay acknowledgment the way the twelve-migration source did.
+            await using var db12 = new HarborOpsDbContext(
+                new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(scoped).Options);
+            await db12.Database.MigrateAsync(M10);
+            Assert.Equal(12, (await db12.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(false, await Scalar(scoped,
+                $"SELECT to_regclass('\"{schema}\".m10_correction_proof_keys') IS NOT NULL"));
+            var digest = new string('7', 64);
+            await using (var connection = new NpgsqlConnection(scoped))
+            {
+                await connection.OpenAsync();
+                await using var insert = new NpgsqlCommand("""
+                    INSERT INTO shipment_tracking_corrections
+                        (id,organization_id,shipment_id,target_receipt_id,replacement_receipt_id,
+                         generation,actor_user_id,reason,correlation_id,correction_digest)
+                    VALUES (gen_random_uuid(),@o,@s,@t,NULL,1,@u,'Correction written before authority','legacy',@d);
+                    INSERT INTO shipment_tracking_operation_replays
+                        (organization_id,shipment_id,actor_user_id,idempotency_key,operation_kind,
+                         request_digest,response_revision,response_generation)
+                    VALUES (@o,@s,@u,gen_random_uuid(),'Correction',@d,
+                        (SELECT input_revision FROM shipment_tracking_input_versions
+                         WHERE organization_id=@o AND shipment_id=@s),1);
+                    """, connection);
+                insert.Parameters.AddWithValue("o", fixture.A);
+                insert.Parameters.AddWithValue("s", target.Shipment);
+                insert.Parameters.AddWithValue("t", receipts[0]);
+                insert.Parameters.AddWithValue("u", actor);
+                insert.Parameters.AddWithValue("d", digest);
+                await insert.ExecuteNonQueryAsync();
+            }
+            Assert.Equal(1L, await Scalar(scoped, "SELECT COUNT(*) FROM shipment_tracking_corrections"));
+            var m10Before = await M10Fingerprint(scoped);
+            var evidenceBefore = await Fingerprint(scoped);
+            var auditBefore = await Scalar(scoped, "SELECT COUNT(*) FROM audit_entries");
+
+            // Upgrade the populated twelve-migration database.
+            await db12.Database.MigrateAsync();
+            Assert.Equal(13, (await db12.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Empty(await db12.Database.GetPendingMigrationsAsync());
+            Assert.False(db12.Database.HasPendingModelChanges());
+            Assert.Equal(m10Before, await M10Fingerprint(scoped));
+            Assert.Equal(evidenceBefore, await Fingerprint(scoped));
+            Assert.Equal(auditBefore, await Scalar(scoped, "SELECT COUNT(*) FROM audit_entries"));
+            Assert.Equal(0L, await Scalar(scoped, "SELECT COUNT(*) FROM m10_correction_proof_keys"));
+            Assert.Equal(0L, await Scalar(scoped, "SELECT COUNT(*) FROM m10_correction_proof_nonces"));
+            Assert.Equal(true, await Scalar(scoped,
+                $"SELECT to_regprocedure('\"{schema}\".m10_apply_signed_correction(uuid,uuid,uuid,uuid,bigint,uuid,uuid,varchar,varchar,varchar,uuid,uuid,bigint,varchar)') IS NOT NULL"));
+            Assert.Equal(1L, await Scalar(scoped, $"""
+                SELECT COUNT(*) FROM pg_trigger
+                WHERE tgname='tr_m10_guard_correction_replay' AND NOT tgisinternal
+                  AND tgrelid='"{schema}".shipment_tracking_operation_replays'::regclass
+                """));
+
+            // Without nonce evidence the downgrade is reversible and loses nothing, and the
+            // thirteenth migration re-applies cleanly.
+            await db12.Database.MigrateAsync(M10);
+            Assert.Equal(12, (await db12.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(m10Before, await M10Fingerprint(scoped));
+            await db12.Database.MigrateAsync();
+            Assert.Equal(13, (await db12.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(m10Before, await M10Fingerprint(scoped));
+            Assert.Equal(evidenceBefore, await Fingerprint(scoped));
+        }
+        finally
+        {
+            await using var drop = new NpgsqlCommand($"DROP SCHEMA \"{schema}\" CASCADE", admin);
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
 }

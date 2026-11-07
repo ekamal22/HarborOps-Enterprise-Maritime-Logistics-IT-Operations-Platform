@@ -6,6 +6,7 @@ using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using HarborOps.Infrastructure.Shipments;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Xunit;
@@ -475,6 +476,87 @@ public sealed partial class M10RuntimeIdentityTests
                         gen_random_uuid(),repeat('a',64),clock_timestamp())
                 """);
         }
+    }
+
+    [Fact]
+    public async Task AuditOutageReturnsASanitized503WithNoEffectsAndTheSameKeyRecoversAfterwards()
+    {
+        var s = await SeedAsync("g10-outage");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var target = await AcceptAsync(s, "outage-1");
+        Assert.Equal(TrackingWorkDisposition.Processed, await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        using var apiFactory = new ReferenceDataHttpTests.ApiFactory(s.Roles.Api);
+        using var manager = apiFactory.CreateClient(new WebApplicationFactoryClientOptions
+            { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(manager, s.Fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Select(manager, s.Fixture.A);
+        var path = $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}/tracking-corrections";
+        var body = new { targetReceiptId = target, replacementReceiptId = (Guid?)null,
+            expectedGeneration = 0, reason = "Correction during an audit outage" };
+        var key = Guid.NewGuid();
+        var revisionBefore = await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment));
+
+        await ExecuteDdl(s.Roles.Admin, """
+            CREATE FUNCTION g10_audit_outage() RETURNS trigger LANGUAGE plpgsql AS $f$
+            BEGIN
+                IF NEW.event_type='shipment.tracking_correction_created' THEN
+                    RAISE EXCEPTION 'injected audit persistence outage';
+                END IF;
+                RETURN NEW;
+            END $f$;
+            CREATE TRIGGER g10_audit_outage BEFORE INSERT ON audit_entries
+                FOR EACH ROW EXECUTE FUNCTION g10_audit_outage();
+            """);
+        try
+        {
+            using var failed = await SendM10(manager, path, body, key);
+            Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable, failed.StatusCode);
+            var text = await failed.Content.ReadAsStringAsync();
+            Assert.DoesNotContain("injected", text);
+            Assert.DoesNotContain("audit persistence", text);
+            await AssertNoCorrectionEffects(s, "audit outage");
+            Assert.Equal(revisionBefore, await Count(s.Roles.Admin, """
+                SELECT input_revision FROM shipment_tracking_input_versions
+                WHERE organization_id=@o AND shipment_id=@s
+                """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        }
+        finally
+        {
+            await ExecuteDdl(s.Roles.Admin, """
+                DROP TRIGGER g10_audit_outage ON audit_entries;
+                DROP FUNCTION g10_audit_outage();
+                """);
+        }
+
+        // The failed attempt left no replay acknowledgment, so the same key now applies exactly once.
+        using var recovered = await SendM10(manager, path, body, key);
+        Assert.Equal(System.Net.HttpStatusCode.OK, recovered.StatusCode);
+        using var replay = await SendM10(manager, path, body, key);
+        Assert.Equal(System.Net.HttpStatusCode.OK, replay.StatusCode);
+        Assert.Equal(1, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM shipment_tracking_corrections WHERE organization_id=@o", ("o", s.Fixture.A)));
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM audit_entries WHERE organization_id=@o
+              AND event_type='shipment.tracking_correction_created'
+            """, ("o", s.Fixture.A)));
+        Assert.Equal(1, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_operation_replays
+            WHERE organization_id=@o AND operation_kind='Correction'
+            """, ("o", s.Fixture.A)));
+    }
+
+    private static async Task ExecuteDdl(string admin, string sql)
+    {
+        await using var connection = new NpgsqlConnection(admin);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(sql, connection);
+        await command.ExecuteNonQueryAsync();
     }
 
     private static async Task Provision(Seeded s, string keyBase64)

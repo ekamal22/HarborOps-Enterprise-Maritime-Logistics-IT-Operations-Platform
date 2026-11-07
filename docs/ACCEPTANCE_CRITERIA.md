@@ -17,7 +17,7 @@ No item is accepted by implication. See [Status](STATUS.md) for the current ledg
 
 ## G10 verification and acceptance boundary
 
-The [independent raw-evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) supports the corrected M10 implementation's technical 23 PASS dispositions on frozen SHA `3e81b88`, including the five later targeted supplements. **S01 remains BLOCKED** on fourteen M10-local policy decisions; the L07 audit and L14 database grants need explicit reconciliation with accepted contracts. **S25 remains NOT EXECUTED as a completed gate**, although raw-evidence review is now done, because formal acceptance is pending. The corrected verification branch is not merged and no deployment is authorized.
+The [independent raw-evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) supports 23 PASS technical dispositions on frozen M10 runtime `3e81b88`, with S01 then BLOCKED and S25 NOT EXECUTED. The fourteen policies were approved on 2026-11-07, with revised L07/L14 and conditional L06. The dedicated remediation branch now contains a thirteenth SQL migration, signed correction authority and atomic M16 correction audit. **New-source S01 compliance is NOT VERIFIED** until the [targeted matrix](M10_G10_L07_L14_REMEDIATION_PLAN.md) has been executed and independently reviewed. **S25 formal gate acceptance remains NOT EXECUTED.** No merge, deployment or release is authorized. See [implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 
 ## Independent gate verification and parallel integration
 

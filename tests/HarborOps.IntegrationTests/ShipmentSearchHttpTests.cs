@@ -233,7 +233,8 @@ public sealed class ShipmentSearchHttpTests
             await using var denied = new NpgsqlCommand("""
                 SELECT public.m12_record_shipment_export(
                     NULL::uuid, NULL::uuid, NULL::uuid, NULL::integer,
-                    NULL::bigint, NULL::varchar, NULL::varchar)
+                    NULL::bigint, NULL::varchar, NULL::varchar,
+                    NULL::bigint, NULL::varchar)
                 """, worker);
             var sqlError = await Assert.ThrowsAsync<PostgresException>(
                 () => denied.ExecuteNonQueryAsync());

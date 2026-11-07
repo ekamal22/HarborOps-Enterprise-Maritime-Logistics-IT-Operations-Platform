@@ -52,11 +52,11 @@ async function csrf(): Promise<string> {
 }
 
 export async function mutate<T>(method: "POST" | "PUT" | "PATCH" | "DELETE", path: string,
-  body?: object): Promise<T | null> {
+  body?: object, extraHeaders?: Record<string, string>): Promise<T | null> {
   const token = await csrf();
   const response = await fetch(path, {
     method, credentials: "same-origin", cache: "no-store",
-    headers: { ...jsonHeaders, "X-HarborOps-CSRF": token },
+    headers: { ...jsonHeaders, "X-HarborOps-CSRF": token, ...extraHeaders },
     ...(body ? { body: JSON.stringify(body) } : {})
   });
   if (response.status === 204) return null;

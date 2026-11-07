@@ -93,6 +93,25 @@ public static class AuditRoleProvisioner
                     END IF;
                 END $m10_authority$;
 
+                -- M11 tables are read-only to the HTTP login. All exception
+                -- state changes and central audit writes pass through signed
+                -- migration-owned functions. Nonces are never exposed.
+                DO $m11_roles$
+                BEGIN
+                    IF to_regclass('public.shipment_exceptions') IS NOT NULL
+                       AND to_regclass('public.shipment_exception_proof_nonces') IS NOT NULL THEN
+                        REVOKE ALL ON shipment_exception_proof_nonces
+                            FROM harborops_api;
+                        GRANT EXECUTE ON FUNCTION m11_apply_signed_evaluation(
+                            uuid,uuid,varchar,varchar,varchar,varchar,varchar,varchar,
+                            timestamptz,timestamptz,timestamptz,bigint,bigint,bigint,
+                            uuid,bigint,varchar) TO harborops_api;
+                        GRANT EXECUTE ON FUNCTION m11_apply_signed_action(
+                            uuid,uuid,uuid,uuid,varchar,bigint,varchar,uuid,uuid,bigint,varchar)
+                            TO harborops_api;
+                    END IF;
+                END $m11_roles$;
+
                 GRANT EXECUTE ON FUNCTION
                     m16_record_audit_access(uuid,varchar,uuid,uuid,uuid,varchar) TO harborops_api;
 

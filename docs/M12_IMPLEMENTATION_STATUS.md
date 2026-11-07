@@ -24,10 +24,14 @@ Tests: `ShipmentSearchPolicyTests.cs`, `M12ExportProofSignerTests.cs`, `Shipment
 
 No .NET SDK, Docker, PostgreSQL or browser runtime is available in the connected source-editing environment. **No build, runtime test, migration, real-stack check, scan, mutation, or G12-S25 review passed or failed here because none was run.** All G12 scenarios are NOT EXECUTED. Reference-dataset p95 measurements belong to M21-02.
 
+## Second-pass remediation checkpoint
+
+[Second-pass correctness audit](M12_CORRECTNESS_AUDIT_20261108.md), 2026-11-08: six further source-level findings were corrected or covered by new regression source. This includes the missing hosting namespace in SQL-role tests, the M12 audit-history downgrade guard, 4,096-character URL bound, 15-second PostgreSQL statement timeouts, a 30-second CSV preparation deadline, the full five-role HTTP matrix, and field-by-field HMAC substitution tests. **None of these tests were executed** in this environment. The G12 gate remains pending.
+
 ## Open conditions
 
 - Explicit policy disposition M12-P01..P16 and review of Auditor export, audit grants and row/byte/rate limits.
-- Run local E:-backed disposable DB and browser verification with the source frozen at the final SHA. Preserve every failure, not just green outcomes.
+- Verify .NET Release compilation, migration downgrade guard, SQL timeouts and total deadline behavior, the expanded five-role and nine-field HMAC test sources; then run local E:-backed disposable DB and browser verification with the source frozen at the final SHA. Preserve every failure, not just green outcomes.
 - Coordinate M11 and M12 migration discovery on a combined SHA: their IDs are distinct (`20261107180000` and `20261107230000`), but separate branch migration-count tests and shared integrations must be reconciled.
 - Execute the new signed-proof, key rotation/mismatch, same-origin GET, worker denial, forged caller, duplicate-correlation, role change and audit-failure tests against real restricted PostgreSQL credentials. Source hardening is not runtime proof.
 - Perform G12 Q2 historical-volume compatibility on a safe copy, or document NOT APPLICABLE with discovery evidence.

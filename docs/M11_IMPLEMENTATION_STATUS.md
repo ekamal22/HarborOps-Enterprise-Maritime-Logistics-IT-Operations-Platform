@@ -1,6 +1,6 @@
 # M11 Source Implementation Status
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and full, role-guarded immutable-history continuation. These changes are source-only and have not been compiled or executed against PostgreSQL or browser fixtures. G11-S01 remains BLOCKED on local policy, G11-S02 through S25 NOT EXECUTED, and G11 acceptance pending. PR #31 is unmerged; the M9 sustained transport hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records separate incidents on reviewed-clearance recurrence, Resolve controls aligned with SQL and precise replay-error classification. These changes are unexecuted. G11-S01 BLOCKED on policy; G11-S02 through S25 NOT EXECUTED, acceptance pending. M9 transport processing remains held.
 
 **Date:** 2026-11-07
 **Branch:** `feat/m11-delay-exception-lifecycle`
@@ -41,6 +41,10 @@ The [third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records f
 ## Fourth-pass source corrections
 
 The [fourth audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records the database-clock `SnapshotAtUtc` exception-list cutoff with cursor purpose v2, and the append-only history continuation using `(occurred_at_utc,id)`, separately protected history cursors, a bounded organization-scoped history route, Analyst redaction, frontend Load more history and synthetic 506-entry regression source. The initial 500-history view is now a preview, not a retrieval ceiling. Existing lifecycle status fields may change between stateless exception-list pages, and newly appended immutable history can appear while browsing. No executable verification is claimed.
+
+## Fifth-pass correctness remediation
+
+The [fifth audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records a signed-evaluator recurrence fix: verified inactive Acknowledged occurrences are system-closed before a new Active occurrence opens. Unknown/Stale does not prove clearance. The UI restricts Resolve to Acknowledged/Inactive, and ActionAsync classifies only the replay primary-key unique violation as an expected uniqueness conflict. Integration and browser regression sources are committed but unexecuted. Recurrence across uncertainty and permanently active RecordedArrivalLate remain policy blockers.
 
 ## Unexecuted checks and known limitations
 

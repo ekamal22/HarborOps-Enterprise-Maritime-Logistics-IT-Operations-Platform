@@ -1,12 +1,16 @@
 # M11 / G11 Source-Locked Verification Specification
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and full, role-guarded immutable-history continuation. These changes are source-only and have not been compiled or executed against PostgreSQL or browser fixtures. G11-S01 remains BLOCKED on local policy, G11-S02 through S25 NOT EXECUTED, and G11 acceptance pending. PR #31 is unmerged; the M9 sustained transport hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records separate incidents on reviewed-clearance recurrence, Resolve controls aligned with SQL and precise replay-error classification. These changes are unexecuted. G11-S01 BLOCKED on policy; G11-S02 through S25 NOT EXECUTED, acceptance pending. M9 transport processing remains held.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11 scenarios are NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
 **State:** Verification plan only, with a separate provisional implementation candidate. G11-S01 remains BLOCKED on local policy approval and executable scenarios remain NOT EXECUTED. G11 acceptance pending.
 **Scope:** M11 delay rules and shipment exceptions; FR-010, FR-009, FR-002, NFR-002, NFR-007. Base `6ead1d076946dd96b53401265a31efc35c4a666c`.
 **References:** [architecture and proposed policies](M11_ARCHITECTURE_DESIGN.md), [delivery plan](M11_IMPLEMENTATION_PLAN.md), [G10 closure](M10_G10_GATE_CLOSURE_20261107.md), [M9 hold](M9_G9_GATE_CLOSURE.md).
+
+## Fifth-pass change-impact scenarios, NOT EXECUTED
+
+The [fifth audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) adds G11-S16 regressions: direct Acknowledged/Inactive-to-Active recurrence must create exactly one new Open occurrence, preserve the prior AutoResolved history, and remain idempotent on repeated evaluation. Reject Open/Inactive Resolve in SQL and hide it in the Manager UI. Unexpected integrity errors must not appear as ordinary replay-key conflicts. G11-S01 separately decides Unknown/Stale recurrence and immutable recorded-late-arrival disposition.
 
 ## Fourth-pass change-impact scenarios, NOT EXECUTED
 

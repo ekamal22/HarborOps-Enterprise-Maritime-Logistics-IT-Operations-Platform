@@ -1,12 +1,16 @@
 # M11 End-to-End Implementation Plan
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and protected, tenant-scoped continuation of immutable history beyond the initial 500 entries. This candidate remains unverified, G11-S01 blocked on local policy, G11 acceptance pending, and draft PR #31 unmerged. The M9 sustained transport hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records separate incidents on reviewed-clearance recurrence, Resolve controls aligned with SQL and precise replay-error classification. These changes are unexecuted. G11-S01 BLOCKED on policy; G11-S02 through S25 NOT EXECUTED, acceptance pending. M9 transport processing remains held.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11-S01 is BLOCKED on policy approval; G11-S02 through G11-S25 remain NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
 **Status:** Implementation source candidate committed; execution, policy approval and G11 acceptance pending.
 **Base:** accepted `main` `6ead1d076946dd96b53401265a31efc35c4a666c` (2026-11-07). **Work:** M11-01 to M11-04; exit G11.
 **Architecture:** [M11 design](M11_ARCHITECTURE_DESIGN.md). **Gate:** [G11 verification specification](M11_VERIFICATION_PLAN.md). **Register:** [M11 planning status](M11_PLANNING_STATUS.md).
+
+## Fifth-pass regression dependencies
+
+M11-03 requires a new occurrence when Acknowledged/Inactive becomes Active. Verify an overdue schedule acknowledged, changed to future, reevaluated inactive, then changed back to past. Ensure the first occurrence is Resolved with AutoResolved history, the second is Open, and repeated evaluation adds nothing. Verify Open/Inactive cannot Resolve and unrelated constraint errors are not mislabeled as replay collisions. G11-S01 must decide intervening Unknown/Stale and permanent RecordedArrivalLate behavior.
 
 ## Fourth-pass implementation checkpoint
 

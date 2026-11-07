@@ -168,24 +168,24 @@ public static class ShipmentSearchEndpoints
             var session = (CurrentSession)ctx.Items["IdentitySession"]!;
             if (!gate.TryEnter(session.UserId))
                 return Error(ctx, 429, "export_in_progress", "Another export is in progress");
-            try
-            {
-                var correlation = ctx.Items["CorrelationId"]?.ToString() ?? "database";
-                var result = await store.ExportAsync(session, org, filters, correlation, ct);
-                if (result.Value is null)
-                    return result.FailureCode is not null
-                        ? Error(ctx, 413, result.FailureCode, "Export limit exceeded. Narrow the filters")
-                        : Access(ctx, result.Error);
-                var filename = "shipments-" + clock.GetUtcNow().UtcDateTime.ToString(
-                    "yyyyMMddTHHmmssZ", System.Globalization.CultureInfo.InvariantCulture) + ".csv";
-                ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
-                ctx.Response.Headers.CacheControl = "private, no-store";
-                return Results.File(result.Value, "text/csv; charset=utf-8", filename);
-            }
-            finally
+            // Hold the lease until the HTTP response completes, including the file body.
+            // Releasing it immediately after returning Results.File would allow concurrent downloads.
+            ctx.Response.OnCompleted(() =>
             {
                 gate.Leave(session.UserId);
-            }
+                return Task.CompletedTask;
+            });
+            var correlation = ctx.Items["CorrelationId"]?.ToString() ?? "database";
+            var result = await store.ExportAsync(session, org, filters, correlation, ct);
+            if (result.Value is null)
+                return result.FailureCode is not null
+                    ? Error(ctx, 413, result.FailureCode, "Export limit exceeded. Narrow the filters")
+                    : Access(ctx, result.Error);
+            var filename = "shipments-" + clock.GetUtcNow().UtcDateTime.ToString(
+                "yyyyMMddTHHmmssZ", System.Globalization.CultureInfo.InvariantCulture) + ".csv";
+            ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
+            ctx.Response.Headers.CacheControl = "private, no-store";
+            return Results.File(result.Value, "text/csv; charset=utf-8", filename);
         }).RequireRateLimiting("m12-export");
     }
 }

@@ -142,12 +142,21 @@ public sealed class TrackingProjectionG10Tests
             earlierSnapshot = json.GetProperty("snapshotToken").GetString();
         }
 
-        var actor = await db.AuthUsers.AsNoTracking().Select(u => u.Id).FirstAsync();
-        var changed = await store.CorrectAsync(fixture.A, target.Shipment,
-            new TrackingCorrection(secondReceipt, null, 0, "Confirmed invalid observation"),
-            actor, Guid.NewGuid().ToString("N"), CancellationToken.None);
-        Assert.Equal(TrackingMutationResult.Applied, changed.Result);
-        Assert.Equal(2, changed.Revision);
+        var actor = (await db.AuthUsers.AsNoTracking().SingleAsync(u =>
+            u.NormalizedEmail == HarborOps.Infrastructure.Identity.IdentityStore
+                .NormalizeEmail(fixture.ManagerEmail))).Id;
+        var correctionUrl = $"/api/v1/organizations/{fixture.A}/shipments/{target.Shipment}/tracking-corrections";
+        using (var changed = await SendM10(manager, correctionUrl,
+            new { targetReceiptId = secondReceipt, replacementReceiptId = (Guid?)null,
+                expectedGeneration = 0, reason = "Confirmed invalid observation" }))
+        {
+            Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
+            var result = await changed.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(2, result.GetProperty("materializationRevision").GetInt64());
+        }
+        Assert.Equal(1, await db.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM audit_entries WHERE event_type='shipment.tracking_correction_created' AND actor_user_id={0}",
+            actor).SingleAsync());
         var revised = await store.ReadAsync(fixture.A, target.Shipment, CancellationToken.None);
         Assert.NotNull(revised);
         Assert.Equal("EquipmentIn", revised!.State.ObservedTrackingState);
@@ -197,10 +206,10 @@ public sealed class TrackingProjectionG10Tests
         Assert.False(recovered.MaterializationStale);
 
 
-        var invalid = await store.CorrectAsync(fixture.A, target.Shipment,
-            new TrackingCorrection(firstReceipt, null, 0, "Stale correction generation"),
-            actor, "stale-correction", CancellationToken.None);
-        Assert.Equal(TrackingMutationResult.Conflict, invalid.Result);
+        using (var invalid = await SendM10(manager, correctionUrl,
+            new { targetReceiptId = firstReceipt, replacementReceiptId = (Guid?)null,
+                expectedGeneration = 0, reason = "Stale correction generation" }))
+            Assert.Equal(HttpStatusCode.Conflict, invalid.StatusCode);
         Assert.Equal(3, (await store.RebuildAsync(fixture.A, target.Shipment,
             CancellationToken.None)).Revision);
 

@@ -6,6 +6,10 @@
 
 The [Product Requirements Document](PRD.md) defines user outcomes and release boundaries. The [Delivery Roadmap](ROADMAP.md) owns M0-M24 scope and verification gates, while [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) governs concurrent workstreams and integration. The [Execution Graph](EXECUTION_GRAPH.md), generated from [execution-graph.json](execution-graph.json), owns work-package IDs and dependency edges. [Status](STATUS.md) alone owns what is actually implemented and verified.
 
+## M10/G10 implementation boundary
+
+**Current M10/G10 source checkpoint (2026-11-07):** All fourteen M10-local policy decisions are approved with revised L07/L14 and conditional L06. The L07/L14 correction-security changes are committed on `fix/m10-g10-l07-l14-remediation` (thirteenth migration, signed restricted database correction operation, same-transaction M16 audit event and replay safeguards). New-source build, database execution, supplemental security verification and independent review are NOT EXECUTED. The prior 23 PASS technical evidence is source-locked to `3e81b88` and is not proof of the changes. S01 implementation conformance and S25 formal acceptance remain pending. No merge, release, deployment or GitHub Actions execution is authorized. The M9 transport hold and 10,000 unresolved-work cap remain mandatory. See [implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) and [verification plan](M10_G10_L07_L14_REMEDIATION_PLAN.md).
+
 ## Work-package execution contract
 
 For each work package, record:
@@ -89,7 +93,7 @@ The M9 implementation uses lease-token/epoch fencing, receipt-unique immutable e
 
 ## M16 acceptance and integrated delivery (2026-11-06)
 
-M16-D01 to M16-D05 were approved on 2026-11-04. Independently reviewed standalone and combined G16 evidence, including a 544-entry main campaign manifest, accepted-M9 populated migration rehearsal and the source-locked F001 extension, supported G16 acceptance and merger through PR #25 on 2026-11-06. The later F001 correction at `8ba7727` passed 17/17 focused and 286/286 full integration tests; the separate 47-file extension archive was independently reconciled. Four Option A integration decisions govern the M9 worker audit record, role provisioner, privileged migrator limitation and guard triggers. See [G16 closure](M16_G16_GATE_CLOSURE.md). M10's [draft implementation PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) has not been source-locked runtime verified or accepted; do not use it to lift the G9 transport hold.
+M16-D01 to M16-D05 were approved on 2026-11-04. Independently reviewed standalone and combined G16 evidence, including a 544-entry main campaign manifest, accepted-M9 populated migration rehearsal and the source-locked F001 extension, supported G16 acceptance and merger through PR #25 on 2026-11-06. The later F001 correction at `8ba7727` passed 17/17 focused and 286/286 full integration tests; the separate 47-file extension archive was independently reconciled. Four Option A integration decisions govern the M9 worker audit record, role provisioner, privileged migrator limitation and guard triggers. See [G16 closure](M16_G16_GATE_CLOSURE.md). M10 implementation PR #23 merged before G10 acceptance. The original frozen M10 source underwent a [technical campaign and independent evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md), while the newly approved L07/L14 remediation source is committed separately without executed .NET or PostgreSQL checks. Do not lift the accepted G9 transport hold. See [implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 
 ## Concurrent work-package implementation
 

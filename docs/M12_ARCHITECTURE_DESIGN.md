@@ -32,3 +32,7 @@ The [2026-11-08 correctness audit](M12_CORRECTNESS_AUDIT_20261108.md) documents 
 ## Fourth-pass implementation corrections
 
 The [fourth-pass correctness audit](M12_CORRECTNESS_AUDIT_20261108_FOURTH_PASS.md) records the supported EF Core parameterized SQL execution call, a 25-second total budget for both search and export, and the distinction between internal timeout 503 and client cancellation. The local/hosted Nginx 30-second read timeout was not changed. These changes remain unexecuted and cannot substitute for G12 verification.
+
+## Fifth-pass consistency and verification safety
+
+[Latest source audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md): The export code now checks the 25-second linked operation token during each CSV row and around UTF-8 encoding, before the signed audit transaction can commit. The restricted-role G12 integration test requires an explicitly isolated local PostgreSQL server through `HARBOROPS_G12_EXCLUSIVE_POSTGRES=1` and disables same-assembly parallel test scheduling. Without that marker it is SKIPPED, not a passing G12 result. Neither source-level change replaces actual SQL, browser, proxy, deadline or role-security execution.

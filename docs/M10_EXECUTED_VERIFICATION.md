@@ -104,3 +104,9 @@ The implementation is technically ready for independent G10 evidence review on t
 - Full source-locked campaign: `scripts/verify-g10-local.sh` with `HARBOROPS_VERIFICATION_ROOT` set to a new E: path ending in `/g10`, `HARBOROPS_G10_PROJECT` set to a unique `ho-verify-cg16-<suffix>` and `HARBOROPS_DOCKER_VHDX` set to the E: Docker disk image. It runs the .NET 10 SDK in a container and layers the accepted combined Compose files.
 - Mutations alone: `node scripts/run-g10-mutations.mjs <E: root>` with `HARBOROPS_SOURCE_SHA` and `HARBOROPS_G10_PG_IMAGE`.
 - Independent reparse: `node scripts/summarize-g10-evidence.mjs <base root> <browser supplement root> <mutation root>`.
+
+## New-source correction authority remediation, 2026-11-07
+
+The earlier A1-A7 records above remain valid historical evidence for frozen source `3e81b884b6a4cc782f84c58510793666786c5796`. Following explicit approval of revised M10-L07/L14 and conditional L06, an additive correction-authority implementation and new tests were committed on `fix/m10-g10-l07-l14-remediation`. This implementation requires a thirteenth migration, signed correction proofs, a restricted SQL insert path and atomic M16 audit capture.
+
+No new-source .NET, migration, integration, browser, mutation or outage execution has yet occurred. The earlier 23 PASS technical tally is **not** evidence that these changed security properties now pass. Supplemental source-locked results and an independent review are required before an updated S01 implementation disposition or S25 gate decision. See [implementation report](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).

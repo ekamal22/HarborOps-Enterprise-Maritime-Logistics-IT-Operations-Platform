@@ -155,7 +155,7 @@ public sealed class TrackingProjectionG10Tests
             Assert.Equal(2, result.GetProperty("materializationRevision").GetInt64());
         }
         Assert.Equal(1, await db.Database.SqlQueryRaw<long>(
-            "SELECT COUNT(*) AS \"Value\" FROM audit_entries WHERE event_type='shipment.tracking_correction_created' AND actor_user_id={0}",
+            "SELECT COUNT(*) AS \"Value\" FROM audit_entries WHERE event_type='shipment.tracking_correction_created' AND outcome='Succeeded' AND actor_user_id={0}",
             actor).SingleAsync());
         var revised = await store.ReadAsync(fixture.A, target.Shipment, CancellationToken.None);
         Assert.NotNull(revised);

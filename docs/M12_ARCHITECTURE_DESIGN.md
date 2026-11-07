@@ -21,6 +21,10 @@ M11 implementation draft PR #31 exists separately from planning draft PR #30. M1
 
 Source and tests are authored but not runtime verified. G12 acceptance pending. See [status](M12_IMPLEMENTATION_STATUS.md), [local policy choices](M12_PLANNING_STATUS.md), [G12 campaign](M12_VERIFICATION_PLAN.md).
 
+## Third-pass M5 browser compatibility
+
+The accepted M5 REST shipment list remains available to direct API consumers, but the M12 React workspace now reads the dedicated `GET /shipments/search` route. Browser tests designed to hold an in-flight workspace list request must intercept the new path. The two affected M5 specifications were updated on the isolated M12 branch: delayed list responses across organization switching, and unsaved-draft retention during a background list refresh. Their assertions are preserved, but executable browser evidence is still pending. See [third-pass findings](M12_CORRECTNESS_AUDIT_20261108.md#third-pass-m5-browser-regression-findings-2026-11-08).
+
 ## Second-pass source audit
 
 The [2026-11-08 correctness audit](M12_CORRECTNESS_AUDIT_20261108.md) documents bounded URL/statement/export execution, mandatory historical-audit rollback guard, and expanded five-role and nine-field signed proof test sources. These changes are not executable test evidence; G12 remains pending.

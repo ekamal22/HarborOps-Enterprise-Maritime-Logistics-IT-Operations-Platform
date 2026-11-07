@@ -101,16 +101,23 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
         CurrentSession session, Guid org, ShipmentSearchFilters filter,
         DateTimeOffset asOfUtc, Guid? after, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-        await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '15s'", ct);
-        var access = await ScopeAsync(session, org, OrganizationPermission.ViewShipmentData, ct);
+        // Bound the entire scoped read, including session and membership checks,
+        // below the 30-second reverse-proxy read timeout.
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        budget.CancelAfter(TimeSpan.FromSeconds(25));
+        var operationToken = budget.Token;
+        await using var tx = await db.Database.BeginTransactionAsync(operationToken);
+        await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '15s'",
+            operationToken);
+        var access = await ScopeAsync(session, org, OrganizationPermission.ViewShipmentData,
+            operationToken);
         if (access != OrganizationAccessError.None) return new(null, access);
         var query = Filter(org, filter, asOfUtc, after);
         var rows = await query.OrderBy(s => s.Id)
-            .Take(filter.Limit + 1).ToListAsync(ct);
+            .Take(filter.Limit + 1).ToListAsync(operationToken);
         var more = rows.Count > filter.Limit;
         if (more) rows.RemoveAt(filter.Limit);
-        await tx.CommitAsync(ct);
+        await tx.CommitAsync(operationToken);
         return new(new ShipmentSearchPage(rows, more ? rows[^1].Id : null, asOfUtc),
             OrganizationAccessError.None);
     }

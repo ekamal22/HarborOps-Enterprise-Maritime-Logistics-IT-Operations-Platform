@@ -39,6 +39,7 @@ builder.Services.AddSingleton<IntegrationRequestLimiter>();
 builder.Services.AddScoped<TrackingWorkAdminStore>();
 builder.Services.AddScoped<ShipmentTimelineStore>();
 builder.Services.AddSingleton<ShipmentCursorCodec>();
+builder.Services.AddSingleton<ShipmentExportGate>();
 if (builder.Configuration.GetValue<bool>("M10:EnableProjector"))
 {
     var projectorConnection = builder.Configuration.GetConnectionString("HarborOpsProjector");

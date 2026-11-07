@@ -1,5 +1,7 @@
 # Acceptance Criteria
 
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
 **G11 sixth-pass acceptance impact:** [Current source findings](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) require tests for informational severity on inactive rules, one versioned reevaluation on changed visible metadata despite a stable fingerprint, and no duplicated history on identical follow-up evaluation. These are verification obligations rather than evidence of PASS.
 
 **G11 source acceptance boundary:** The [fifth M11 audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) adds a required source-locked test for Acknowledged/Inactive recurrence to a new Open occurrence, with historical AutoResolved evidence, no duplicate occurrence on repeat evaluation and proper Resolve visibility. G11-S01 still requires explicit local-policy decisions; no source review alone satisfies acceptance.

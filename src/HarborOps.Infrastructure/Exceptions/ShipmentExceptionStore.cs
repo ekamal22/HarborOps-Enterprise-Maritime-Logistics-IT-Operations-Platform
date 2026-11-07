@@ -21,7 +21,8 @@ public sealed record ShipmentExceptionHistory(
     Guid Id, Guid ExceptionId, string Action, string? OldState, string NewState,
     string ActorKind, Guid? ActorUserId, DateTimeOffset OccurredAtUtc, string? Reason);
 public sealed record ShipmentExceptionPage(
-    IReadOnlyList<ShipmentExceptionRecord> Items, Guid? NextAfter);
+    IReadOnlyList<ShipmentExceptionRecord> Items, Guid? NextAfter,
+    DateTimeOffset SnapshotAtUtc);
 public sealed record ShipmentExceptionDueBatch(
     IReadOnlyList<(Guid Organization, Guid Shipment)> Items,
     Guid? LastOrganization, Guid? LastShipment, int Scanned);
@@ -76,12 +77,17 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
             x.OrganizationId == org && x.Id == shipment, ct);
 
     public async Task<ShipmentExceptionPage> ListAsync(Guid org, Guid? shipment,
-        string? state, Guid? after, int limit, CancellationToken ct)
+        string? state, Guid? after, DateTimeOffset? snapshot, int limit,
+        CancellationToken ct)
     {
         if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
         await database.Database.OpenConnectionAsync(ct);
         try
         {
+            // A database-time creation cutoff excludes exceptions opened after
+            // page one. Existing lifecycle fields can still change between
+            // stateless requests, so this is not an MVCC snapshot of updates.
+            var snapshotAtUtc = snapshot ?? await DatabaseNowAsync(Connection, null, ct);
             // The rule-precedence contract is presentation-only. Retain all
             // occurrences while keeping list order and keyset cursor identical.
             // The protected cursor contains an ID whose rule rank is resolved
@@ -101,20 +107,22 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                 SELECT {Columns} FROM scoped
                 WHERE (@shipment::uuid IS NULL OR shipment_id=@shipment)
                   AND (@state::varchar IS NULL OR lifecycle_state=@state)
+                  AND first_detected_at_utc<=@snapshot::timestamptz
                   AND (@after::uuid IS NULL OR
                       (rule_priority,id) > (
                           SELECT rule_priority,id FROM scoped WHERE id=@after))
                 ORDER BY rule_priority,id LIMIT @limit
                 """,
                 ("org", org), ("shipment", shipment), ("state", state),
-                ("after", after), ("limit", limit + 1));
+                ("after", after), ("snapshot", snapshotAtUtc),
+                ("limit", limit + 1));
             var found = new List<ShipmentExceptionRecord>();
             await using var reader = await command.ExecuteReaderAsync(ct);
             while (await reader.ReadAsync(ct)) found.Add(Record(reader));
             var more = found.Count > limit;
             if (more) found.RemoveAt(limit);
             return new ShipmentExceptionPage(found,
-                more && found.Count > 0 ? found[^1].Id : null);
+                more && found.Count > 0 ? found[^1].Id : null, snapshotAtUtc);
         }
         finally { await database.Database.CloseConnectionAsync(); }
     }

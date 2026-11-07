@@ -13,16 +13,18 @@ namespace HarborOps.Api.Exceptions;
 public static class ShipmentExceptionEndpoints
 {
     private sealed record ExceptionCursor(Guid OrganizationId, Guid? ShipmentId,
-        string? State, Guid Last);
+        string? State, Guid Last, DateTimeOffset SnapshotAtUtc);
 
     private static ITimeLimitedDataProtector CursorProtector(IDataProtectionProvider provider) =>
         provider.CreateProtector("HarborOps.M11.ExceptionCursor.v1")
             .ToTimeLimitedDataProtector();
 
     private static bool TryCursor(HttpContext ctx, IDataProtectionProvider provider,
-        Guid org, Guid? shipment, string? state, out Guid? after)
+        Guid org, Guid? shipment, string? state, out Guid? after,
+        out DateTimeOffset? snapshot)
     {
         after = null;
+        snapshot = null;
         if (!ctx.Request.Query.TryGetValue("cursor", out var token)) return true;
         if (token.Count != 1 || token.ToString().Length is < 1 or > 2048) return false;
         try
@@ -30,8 +32,11 @@ public static class ShipmentExceptionEndpoints
             var data = JsonSerializer.Deserialize<ExceptionCursor>(
                 CursorProtector(provider).Unprotect(token.ToString()));
             if (data is null || data.Last == Guid.Empty || data.OrganizationId != org ||
-                data.ShipmentId != shipment || data.State != state) return false;
+                data.ShipmentId != shipment || data.State != state ||
+                data.SnapshotAtUtc == default ||
+                data.SnapshotAtUtc.Offset != TimeSpan.Zero) return false;
             after = data.Last;
+            snapshot = data.SnapshotAtUtc;
             return true;
         }
         catch (System.Security.Cryptography.CryptographicException) { return false; }
@@ -40,9 +45,11 @@ public static class ShipmentExceptionEndpoints
     }
 
     private static string? ProtectNext(IDataProtectionProvider provider,
-        Guid org, Guid? shipment, string? state, Guid? after) =>
+        Guid org, Guid? shipment, string? state, Guid? after,
+        DateTimeOffset snapshot) =>
         after.HasValue ? CursorProtector(provider).Protect(
-            JsonSerializer.Serialize(new ExceptionCursor(org, shipment, state, after.Value)),
+            JsonSerializer.Serialize(new ExceptionCursor(
+                org, shipment, state, after.Value, snapshot)),
             TimeSpan.FromMinutes(20)) : null;
 
     private static CurrentSession Session(HttpContext ctx) =>
@@ -155,11 +162,13 @@ public static class ShipmentExceptionEndpoints
             if (denied is not null) return denied;
             if (!await store.ShipmentExistsAsync(org, shipment, ct))
                 return Fail(ctx, 404, "resource_not_found");
-            if (!TryCursor(ctx, protection, org, shipment, null, out var after))
+            if (!TryCursor(ctx, protection, org, shipment, null,
+                    out var after, out var snapshot))
                 return Fail(ctx, 409, "stale_or_invalid_cursor");
-            var page = await store.ListAsync(org, shipment, null, after, limit, ct);
+            var page = await store.ListAsync(org, shipment, null, after, snapshot, limit, ct);
             return Results.Ok(new { items = page.Items,
-                nextCursor = ProtectNext(protection, org, shipment, null, page.NextAfter) });
+                nextCursor = ProtectNext(protection, org, shipment, null,
+                    page.NextAfter, page.SnapshotAtUtc) });
         }).RequireRateLimiting("audit-read");
 
         routes.MapGet("/exceptions", async
@@ -184,12 +193,14 @@ public static class ShipmentExceptionEndpoints
             var denied = await Guard(ctx, organizations, org, false, ct);
             if (denied is not null) return denied;
             var normalizedState = state.Length == 0 ? null : state;
-            if (!TryCursor(ctx, protection, org, shipment, normalizedState, out var after))
+            if (!TryCursor(ctx, protection, org, shipment, normalizedState,
+                    out var after, out var snapshot))
                 return Fail(ctx, 409, "stale_or_invalid_cursor");
-            var page = await store.ListAsync(org, shipment, normalizedState, after, limit, ct);
+            var page = await store.ListAsync(org, shipment, normalizedState,
+                after, snapshot, limit, ct);
             return Results.Ok(new { items = page.Items,
                 nextCursor = ProtectNext(protection, org, shipment,
-                    normalizedState, page.NextAfter) });
+                    normalizedState, page.NextAfter, page.SnapshotAtUtc) });
         }).RequireRateLimiting("audit-read");
 
         routes.MapGet("/exceptions/{exceptionId}", async

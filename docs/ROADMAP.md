@@ -1,5 +1,7 @@
 # HarborOps Delivery Roadmap
 
+**M12 second-pass checkpoint, 2026-11-08:** Draft PR #32 includes the [source correctness audit and new remediation](M12_CORRECTNESS_AUDIT_20261108.md), with SQL and export time budgets, downgrade integrity, strict input limits and expanded authorization/proof test sources. M12-P01..P16 still require an explicit decision; G12 has no executed acceptance evidence. M11/M12 integration remains a separate combined-source obligation, not a prerequisite to isolated M12 authoring. The accepted M9 hold persists.
+
 **M12 implementation candidate (2026-11-07):** Branch `feat/m12-shipment-search-export` contains new scoped advanced shipment search and bounded Analyst/Manager CSV export, with authored test sources. G12 runtime verification is NOT EXECUTED and acceptance pending. The accepted `main` baseline, M9 transport hold and separate M11 planning remain unchanged. See [M12 architecture](M12_ARCHITECTURE_DESIGN.md), [implementation status](M12_IMPLEMENTATION_STATUS.md), [G12 test plan](M12_VERIFICATION_PLAN.md) and [policy choices](M12_PLANNING_STATUS.md).
 
 **M12 source audit and G12 boundary (2026-11-07):** [Correctness findings and fixes](M12_CORRECTNESS_AUDIT_20261107.md) record signed export authorization, key provisioning, replay and metadata guards, protected cursors and authored tests. No .NET, PostgreSQL, browser, scan or mutation test ran in this audit environment. Acceptance pending; the accepted M9 hold and canonical dependency graph remain unchanged.

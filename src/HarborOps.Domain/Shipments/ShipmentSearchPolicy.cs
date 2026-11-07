@@ -16,8 +16,11 @@ public sealed record ShipmentSearchFilters(
         DateTimeOffset? departureFrom, DateTimeOffset? departureBefore,
         DateTimeOffset? arrivalFrom, DateTimeOffset? arrivalBefore, int limit)
     {
-        var search = (q ?? "").Trim();
-        if (search.Length > 80 || search.Any(char.IsControl))
+        var raw = q ?? "";
+        if (raw.Any(char.IsControl))
+            throw new ArgumentException("Invalid search text");
+        var search = raw.Trim();
+        if (search.Length > 80)
             throw new ArgumentException("Invalid search text");
         var status = string.IsNullOrEmpty(recordStatus) ? "Active" : recordStatus;
         if (status is not ("Active" or "Archived" or "All"))

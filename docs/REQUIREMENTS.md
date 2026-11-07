@@ -1,5 +1,7 @@
 # Requirements
 
+**M12 second-pass checkpoint, 2026-11-08:** Draft PR #32 includes the [source correctness audit and new remediation](M12_CORRECTNESS_AUDIT_20261108.md), with SQL and export time budgets, downgrade integrity, strict input limits and expanded authorization/proof test sources. M12-P01..P16 still require an explicit decision; G12 has no executed acceptance evidence. M11/M12 integration remains a separate combined-source obligation, not a prerequisite to isolated M12 authoring. The accepted M9 hold persists.
+
 **M12 candidate, not accepted (2026-11-07):** `feat/m12-shipment-search-export` implements scoped advanced search and restricted CSV export in isolated source. Runtime G12 evidence and independent review NOT EXECUTED; G12 acceptance pending. See [M12 architecture](M12_ARCHITECTURE_DESIGN.md), [implementation status](M12_IMPLEMENTATION_STATUS.md), [policy decisions](M12_PLANNING_STATUS.md) and [verification](M12_VERIFICATION_PLAN.md). M11 convergence requires migration and shared-surface coordination; M9 hold remains unchanged.
 
 **M12 source audit and G12 boundary (2026-11-07):** [Correctness findings and fixes](M12_CORRECTNESS_AUDIT_20261107.md) record signed export authorization, key provisioning, replay and metadata guards, protected cursors and authored tests. No .NET, PostgreSQL, browser, scan or mutation test ran in this audit environment. Acceptance pending; the accepted M9 hold and canonical dependency graph remain unchanged.

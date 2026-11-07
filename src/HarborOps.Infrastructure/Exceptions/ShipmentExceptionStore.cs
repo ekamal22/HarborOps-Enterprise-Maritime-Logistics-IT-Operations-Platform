@@ -358,9 +358,10 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
     private static bool IsEvaluationRace(PostgresException error) =>
         error.SqlState is "40001" or "40P01" ||
         (error.SqlState == "23505" &&
-         error.ConstraintName is "uq_m11_exception_occurrence"
-            or "uq_m11_active_occurrence"
-            or "shipment_exception_evaluations_pkey");
+         error.ConstraintName is (
+             "uq_m11_exception_occurrence" or
+             "uq_m11_active_occurrence" or
+             "shipment_exception_evaluations_pkey"));
 
     // Inspect at most one indexed keyset page. Advance past not-due rows too,
     // so sparse due work cannot repeatedly scan the full shipment population.

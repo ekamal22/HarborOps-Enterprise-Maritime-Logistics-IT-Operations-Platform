@@ -168,7 +168,17 @@ public static class ShipmentSearchEndpoints
             }
             else if (ctx.Request.Query.ContainsKey("cursor"))
                 return Access(ctx, OrganizationAccessError.Invalid);
-            var result = await store.SearchAsync(session, org, filters, asOf, after, ct);
+            ShipmentSearchResult<ShipmentSearchPage> result;
+            try
+            {
+                result = await store.SearchAsync(session, org, filters, asOf, after, ct);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                // Internal read budget expired; distinguish it from client cancellation.
+                return Error(ctx, 503, "dependency_unavailable",
+                    "Search could not be completed within the request budget");
+            }
             if (result.Value is null) return Access(ctx, result.Error);
             var next = result.Value.NextAfter.HasValue
                 ? codec.Encode(org, session.UserId, session.SessionId, filters.Fingerprint(),

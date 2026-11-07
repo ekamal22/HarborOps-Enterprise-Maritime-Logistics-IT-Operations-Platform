@@ -90,6 +90,8 @@ public sealed class ShipmentSearchPolicyTests
     [InlineData("-3", "\"'-3\"")]
     [InlineData("@action", "\"'@action\"")]
     [InlineData(" \t=cmd", "\"' \t=cmd\"")]
+    [InlineData("\uFEFF=SUM(1,2)", "\"\u0027\uFEFF=SUM(1,2)\"")]
+    [InlineData("\u200B+SUM(1,2)", "\"\u0027\u200B+SUM(1,2)\"")]
     [InlineData("plain", "\"plain\"")]
     [InlineData("a,b", "\"a,b\"")]
     [InlineData("a\"b", "\"a\"\"b\"")]

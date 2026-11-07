@@ -1,6 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Collections.Concurrent;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.RateLimiting;
 using HarborOps.Domain.Shipments;
 using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Organizations;
@@ -9,19 +12,20 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace HarborOps.Api.Search;
 
-internal sealed record ShipmentCursor(Guid OrganizationId, string Fingerprint,
+public sealed record ShipmentCursor(Guid OrganizationId, string Fingerprint,
     Guid After, DateTimeOffset AsOfUtc, DateTimeOffset ExpiresAtUtc);
 
-public sealed class ShipmentCursorCodec
+public sealed class ShipmentCursorCodec(IDataProtectionProvider provider)
 {
-    private readonly byte[] key = RandomNumberGenerator.GetBytes(32);
+    private readonly IDataProtector protector =
+        provider.CreateProtector("HarborOps.M12.ShipmentSearchCursor.v1");
+
     public string Encode(Guid org, string fingerprint, Guid after, DateTimeOffset asOfUtc,
         DateTimeOffset now)
     {
-        var body = JsonSerializer.SerializeToUtf8Bytes(new ShipmentCursor(org, fingerprint, after,
+        var body = JsonSerializer.Serialize(new ShipmentCursor(org, fingerprint, after,
             asOfUtc, now.AddMinutes(15)));
-        var mac = HMACSHA256.HashData(key, body);
-        return WebEncoders.Base64UrlEncode(body) + "." + WebEncoders.Base64UrlEncode(mac);
+        return WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(protector.Protect(body)));
     }
 
     public bool TryDecode(string token, Guid org, string fingerprint, DateTimeOffset now,
@@ -31,13 +35,9 @@ public sealed class ShipmentCursorCodec
         if (token.Length is < 10 or > 2048) return false;
         try
         {
-            var pieces = token.Split('.');
-            if (pieces.Length != 2) return false;
-            var body = WebEncoders.Base64UrlDecode(pieces[0]);
-            var mac = WebEncoders.Base64UrlDecode(pieces[1]);
-            var correct = HMACSHA256.HashData(key, body);
-            if (!CryptographicOperations.FixedTimeEquals(mac, correct)) return false;
-            var parsed = JsonSerializer.Deserialize<ShipmentCursor>(body);
+            var bytes = WebEncoders.Base64UrlDecode(token);
+            var payload = protector.Unprotect(Encoding.UTF8.GetString(bytes));
+            var parsed = JsonSerializer.Deserialize<ShipmentCursor>(payload);
             if (parsed is null || parsed.OrganizationId != org ||
                 parsed.Fingerprint != fingerprint || parsed.After == Guid.Empty ||
                 parsed.ExpiresAtUtc <= now || parsed.AsOfUtc > now.AddMinutes(1))
@@ -45,11 +45,19 @@ public sealed class ShipmentCursorCodec
             cursor = parsed;
             return true;
         }
-        catch (Exception ex) when (ex is FormatException or JsonException or ArgumentException)
+        catch (Exception ex) when (ex is FormatException or JsonException or ArgumentException
+            or CryptographicException)
         {
             return false;
         }
     }
+}
+
+public sealed class ShipmentExportGate
+{
+    private readonly ConcurrentDictionary<Guid, byte> active = new();
+    public bool TryEnter(Guid userId) => active.TryAdd(userId, 0);
+    public void Leave(Guid userId) => active.TryRemove(userId, out _);
 }
 
 public static class ShipmentSearchEndpoints
@@ -149,7 +157,8 @@ public static class ShipmentSearchEndpoints
         });
 
         root.MapGet("/exports/shipments", async (string organizationId,
-            HttpContext ctx, ShipmentSearchStore store, TimeProvider clock, CancellationToken ct) =>
+            HttpContext ctx, ShipmentSearchStore store, ShipmentExportGate gate,
+            TimeProvider clock, CancellationToken ct) =>
         {
             if (!Id(organizationId, out var org))
                 return Access(ctx, OrganizationAccessError.Invalid);
@@ -157,17 +166,26 @@ public static class ShipmentSearchEndpoints
             try { filters = Parse(ctx, export: true); }
             catch (ArgumentException) { return Access(ctx, OrganizationAccessError.Invalid); }
             var session = (CurrentSession)ctx.Items["IdentitySession"]!;
-            var correlation = ctx.Items["CorrelationId"]?.ToString() ?? "database";
-            var result = await store.ExportAsync(session, org, filters, correlation, ct);
-            if (result.Value is null)
-                return result.FailureCode is not null
-                    ? Error(ctx, 413, result.FailureCode, "Export limit exceeded. Narrow the filters")
-                    : Access(ctx, result.Error);
-            var filename = "shipments-" + clock.GetUtcNow().UtcDateTime.ToString(
-                "yyyyMMddTHHmmssZ", System.Globalization.CultureInfo.InvariantCulture) + ".csv";
-            ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
-            ctx.Response.Headers.CacheControl = "private, no-store";
-            return Results.File(result.Value, "text/csv; charset=utf-8", filename);
-        });
+            if (!gate.TryEnter(session.UserId))
+                return Error(ctx, 429, "export_in_progress", "Another export is in progress");
+            try
+            {
+                var correlation = ctx.Items["CorrelationId"]?.ToString() ?? "database";
+                var result = await store.ExportAsync(session, org, filters, correlation, ct);
+                if (result.Value is null)
+                    return result.FailureCode is not null
+                        ? Error(ctx, 413, result.FailureCode, "Export limit exceeded. Narrow the filters")
+                        : Access(ctx, result.Error);
+                var filename = "shipments-" + clock.GetUtcNow().UtcDateTime.ToString(
+                    "yyyyMMddTHHmmssZ", System.Globalization.CultureInfo.InvariantCulture) + ".csv";
+                ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                ctx.Response.Headers.CacheControl = "private, no-store";
+                return Results.File(result.Value, "text/csv; charset=utf-8", filename);
+            }
+            finally
+            {
+                gate.Leave(session.UserId);
+            }
+        }).RequireRateLimiting("m12-export");
     }
 }

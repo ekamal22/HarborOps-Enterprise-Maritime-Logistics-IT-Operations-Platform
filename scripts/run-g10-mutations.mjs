@@ -34,6 +34,7 @@ const expectOk = (cmd, args, options) => {
 };
 
 const MIG10 = "src/HarborOps.Infrastructure/Persistence/Migrations/20261105180000_ShipmentTrackingProjections.cs";
+const AUTH10 = "src/HarborOps.Infrastructure/Persistence/Migrations/20261107120000_M10CorrectionAuthority.cs";
 const MIG16 = "src/HarborOps.Infrastructure/Persistence/Migrations/20261104180000_AuditEntries.cs";
 const MIG9 = "src/HarborOps.Infrastructure/Persistence/Migrations/20261104190000_TrackingWorker.cs";
 const ROLES = "src/HarborOps.Api/Audit/AuditRoleProvisioner.cs";
@@ -67,6 +68,8 @@ const I = {
   g10race: "ConcurrentDirectCorrectionWritersCannotCommitAnInvalidChain",
   workerId: "RealWorkerIdentityFeedsTheM10IndexAndAuditCaptureThroughDefinerTriggers",
   apiId: "RealApiIdentityHasOnlyTheScopedM10WritesAndTheDefinerTriggerRuns",
+  proofForgery: "StolenDatabaseSessionIdsCannotForgeAnM10Correction",
+  auditRollback: "FailedRequiredM16AuditRollsBackCorrectionAndReplay",
   projectorId: "RealProjectorIdentityCannotMutateM8M9M16EvidenceOrOtherScopes",
   projectorStore: "RealProjectorIdentityDiscoversAndRebuildsADirtyScopeThroughTheStore",
   projectorService: "RealProjectorServiceSkipsAPoisonedShipmentThenRecoversUnderTheRestrictedRole",
@@ -156,8 +159,24 @@ const variants = [
     [ROUTES, "OrganizationPermission.ManageShipmentData,\n                ct, managerOnly: true);\n            if (denied is not null) return denied;\n            var input = await ReadCorrection(ctx);",
       "OrganizationPermission.ManageShipmentData,\n                ct, managerOnly: false);\n            if (denied is not null) return denied;\n            var input = await ReadCorrection(ctx);"],
     [STORE, "if (session != Guid.Empty &&\n                    !await CurrentManagerAsync(Connection, tx, org, actor, session, ct))",
-      "if (false &&\n                    !await CurrentManagerAsync(Connection, tx, org, actor, session, ct))"]],
+      "if (false &&\n                    !await CurrentManagerAsync(Connection, tx, org, actor, session, ct))"],
+    [AUTH10, "AND m.status='Active' AND m.role='Manager'",
+      "AND m.status='Active'"]],
     [], [I.live]),
+
+  // ----- Correction authority and atomic audit -----
+  V("m10-api-direct-correction-grant-restored", [[ROLES,
+    "REVOKE INSERT ON shipment_tracking_corrections FROM harborops_api;",
+    "GRANT INSERT ON shipment_tracking_corrections TO harborops_api;"]],
+    [], [I.grants, I.apiId]),
+  V("m10-proof-signature-ignored", [[AUTH10,
+    "OR p_signature IS DISTINCT FROM expected_signature THEN",
+    "OR false THEN"]],
+    [], [I.proofForgery]),
+  V("m10-required-audit-rejected", [[AUTH10,
+    "VALUES (p_org,'shipment.tracking_correction_created',1,'Succeeded',",
+    "VALUES (p_org,'shipment.tracking_correction_created',1,'Failed',"]],
+    [], [I.apiId, I.auditRollback]),
 
   // ----- Accepted M9/M16 integration surfaces changed by M10 -----
   V("api-can-insert-audit", [[ROLES,

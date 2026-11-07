@@ -3,7 +3,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using HarborOps.Api.Audit;
+using HarborOps.Infrastructure.Exceptions;
 using HarborOps.Infrastructure.Persistence;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -178,6 +180,56 @@ public sealed class M11ExceptionRuntimeTests
                     SELECT 1 FROM aclexplode(p.proacl) a WHERE a.grantee=0))
             """, admin);
         Assert.Equal(true, await inspect.ExecuteScalarAsync());
+    }
+
+    [Fact]
+    public async Task ConcurrentFirstEvaluationsDoNotDuplicateOccurrenceOrHistory()
+    {
+        var setup = await Prepare();
+        using var factory = setup.Factory;
+        using var runtime = setup.Runtime;
+        using var setupAdmin = setup.Fixture.Admin;
+        using var setupManager = setup.Fixture.Manager;
+        using var setupAnalyst = setup.Fixture.Analyst;
+        using var manager = setup.Manager;
+        using var analyst = setup.Analyst;
+        using var administrator = setup.Administrator;
+        var shipment = await ScheduledShipment(setup);
+        var options = new DbContextOptionsBuilder<HarborOpsDbContext>()
+            .UseNpgsql(setup.Roles.Api).Options;
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["M10CorrectionProof:Key"] = ReferenceDataHttpTests.CorrectionProofKey
+            }).Build();
+        await using var firstDb = new HarborOpsDbContext(options);
+        await using var secondDb = new HarborOpsDbContext(options);
+        var firstStore = new ShipmentExceptionStore(firstDb, configuration);
+        var secondStore = new ShipmentExceptionStore(secondDb, configuration);
+        var results = await Task.WhenAll(
+            firstStore.EvaluateAsync(setup.Fixture.A, shipment, CancellationToken.None),
+            secondStore.EvaluateAsync(setup.Fixture.A, shipment, CancellationToken.None));
+        Assert.All(results, result => Assert.Contains(result.Result,
+            new[] { M11StoreResult.Applied, M11StoreResult.Conflict }));
+        Assert.Contains(results, result => result.Result == M11StoreResult.Applied);
+        if (results[0].Result == M11StoreResult.Conflict)
+            Assert.Equal(M11StoreResult.Applied, (await firstStore.EvaluateAsync(
+                setup.Fixture.A, shipment, CancellationToken.None)).Result);
+        if (results[1].Result == M11StoreResult.Conflict)
+            Assert.Equal(M11StoreResult.Applied, (await secondStore.EvaluateAsync(
+                setup.Fixture.A, shipment, CancellationToken.None)).Result);
+        await using var inspect = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>()
+                .UseNpgsql(setup.Roles.Admin).Options);
+        Assert.Equal(1L, await inspect.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM shipment_exceptions " +
+            "WHERE organization_id={0} AND shipment_id={1} AND rule_code='ArrivalScheduleOverdue'",
+            setup.Fixture.A, shipment).SingleAsync());
+        Assert.Equal(1L, await inspect.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM shipment_exception_history h " +
+            "JOIN shipment_exceptions e ON e.id=h.exception_id " +
+            "WHERE h.organization_id={0} AND e.shipment_id={1} AND h.action='Opened'",
+            setup.Fixture.A, shipment).SingleAsync());
     }
 
     [Fact]

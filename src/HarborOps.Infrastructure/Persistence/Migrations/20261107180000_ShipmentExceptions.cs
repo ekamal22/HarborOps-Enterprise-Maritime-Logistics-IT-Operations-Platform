@@ -102,6 +102,7 @@ public sealed class ShipmentExceptions : Migration
                 organization_id uuid NOT NULL,
                 shipment_id uuid NOT NULL,
                 rule_code varchar(40) NOT NULL,
+                rule_policy_version varchar(40) NOT NULL,
                 condition_state varchar(12) NOT NULL,
                 source_fingerprint char(64) NOT NULL,
                 shipment_version bigint NOT NULL,
@@ -114,6 +115,7 @@ public sealed class ShipmentExceptions : Migration
                     REFERENCES shipments(organization_id,id) ON DELETE RESTRICT,
                 CONSTRAINT ck_m11_eval_rule CHECK (rule_code IN ('EquipmentConflict',
                     'ArrivalScheduleOverdue','RecordedArrivalLate','DepartureSlippageRisk')),
+                CONSTRAINT ck_m11_eval_policy CHECK (rule_policy_version = 'm11-rules-v1'),
                 CONSTRAINT ck_m11_eval_state CHECK (condition_state IN ('Active','Inactive','Unknown','Stale')),
                 CONSTRAINT ck_m11_eval_fingerprint CHECK (source_fingerprint ~ '^[0-9a-f]{64}$')
             );
@@ -337,13 +339,14 @@ public sealed class ShipmentExceptions : Migration
                 END IF;
 
                 INSERT INTO shipment_exception_evaluations
-                    (organization_id,shipment_id,rule_code,condition_state,source_fingerprint,
-                     shipment_version,tracking_input_revision,correction_generation,
-                     next_evaluation_at_utc)
-                VALUES (p_org,p_shipment,p_rule,p_condition,p_fingerprint,
-                    p_ship_version,p_input_revision,p_generation,p_next)
+                    (organization_id,shipment_id,rule_code,rule_policy_version,
+                     condition_state,source_fingerprint,shipment_version,
+                     tracking_input_revision,correction_generation,next_evaluation_at_utc)
+                VALUES (p_org,p_shipment,p_rule,'m11-rules-v1',p_condition,
+                    p_fingerprint,p_ship_version,p_input_revision,p_generation,p_next)
                 ON CONFLICT (organization_id,shipment_id,rule_code)
-                DO UPDATE SET condition_state=EXCLUDED.condition_state,
+                DO UPDATE SET rule_policy_version=EXCLUDED.rule_policy_version,
+                    condition_state=EXCLUDED.condition_state,
                     source_fingerprint=EXCLUDED.source_fingerprint,
                     shipment_version=EXCLUDED.shipment_version,
                     tracking_input_revision=EXCLUDED.tracking_input_revision,

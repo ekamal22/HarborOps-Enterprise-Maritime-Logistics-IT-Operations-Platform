@@ -18,23 +18,23 @@ public sealed class ShipmentExceptionEvaluationService(
                 using var scope = scopes.CreateScope();
                 var store = scope.ServiceProvider.GetRequiredService<ShipmentExceptionStore>();
                 var batch = await store.DueAsync(afterOrg, afterShipment, 25, stoppingToken);
-                if (batch.Count == 0)
+                if (batch.Scanned == 0)
                 {
                     afterOrg = null;
                     afterShipment = null;
                     await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
                     continue;
                 }
-                foreach (var (org, shipment) in batch)
+                foreach (var (org, shipment) in batch.Items)
                 {
                     var result = await store.EvaluateAsync(org, shipment, stoppingToken);
                     if (result.Result is not (M11StoreResult.Applied or M11StoreResult.NotFound))
                         logger.LogWarning("Exception evaluation returned {Result}", result.Result);
                 }
-                var last = batch[^1];
-                afterOrg = last.Organization;
-                afterShipment = last.Shipment;
-                await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+                afterOrg = batch.LastOrganization;
+                afterShipment = batch.LastShipment;
+                await Task.Delay(batch.Items.Count == 0
+                    ? TimeSpan.FromMilliseconds(200) : TimeSpan.FromSeconds(2), stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

@@ -20,6 +20,9 @@ public sealed record ShipmentExceptionHistory(
     string ActorKind, Guid? ActorUserId, DateTimeOffset OccurredAtUtc, string? Reason);
 public sealed record ShipmentExceptionPage(
     IReadOnlyList<ShipmentExceptionRecord> Items, Guid? NextAfter);
+public sealed record ShipmentExceptionDueBatch(
+    IReadOnlyList<(Guid Organization, Guid Shipment)> Items,
+    Guid? LastOrganization, Guid? LastShipment, int Scanned);
 public sealed record ShipmentExceptionDetail(
     ShipmentExceptionRecord Exception, IReadOnlyList<ShipmentExceptionHistory> History);
 public enum M11StoreResult { Applied, Replayed, NotFound, Conflict, Invalid, Forbidden, DependencyUnavailable, AuditUnavailable }
@@ -133,6 +136,12 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
     private async Task<ShipmentExceptionInput?> InputsAsync(Guid org, Guid shipment,
         NpgsqlTransaction tx, CancellationToken ct)
     {
+        // Match the signed operation's organization-then-shipment lock order.
+        await using (var organization = Command(Connection, tx,
+            "SELECT status FROM organizations WHERE id=@org FOR SHARE", ("org", org)))
+        {
+            if (await organization.ExecuteScalarAsync(ct) is not "Active") return null;
+        }
         await using var command = Command(Connection, tx, """
             SELECT s.record_status,s.workflow_status,s.version,
                    s.planned_departure_at_utc,s.planned_arrival_at_utc,
@@ -155,7 +164,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
             LEFT JOIN shipment_tracking_projections p
                 ON p.organization_id=s.organization_id AND p.shipment_id=s.id
             WHERE s.organization_id=@org AND s.id=@shipment
-            FOR SHARE OF s
+            FOR UPDATE OF s
             """, ("org", org), ("shipment", shipment));
         await using var reader = await command.ExecuteReaderAsync(ct);
         if (!await reader.ReadAsync(ct)) return null;
@@ -304,8 +313,9 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         finally { await database.Database.CloseConnectionAsync(); }
     }
 
-    // Bounded indexed keyset scan. Repeat from the first key when a pass ends.
-    public async Task<IReadOnlyList<(Guid Organization, Guid Shipment)>> DueAsync(
+    // Inspect at most one indexed keyset page. Advance past not-due rows too,
+    // so sparse due work cannot repeatedly scan the full shipment population.
+    public async Task<ShipmentExceptionDueBatch> DueAsync(
         Guid? afterOrg, Guid? afterShip, int limit, CancellationToken ct)
     {
         if (limit is < 1 or > 50 || afterOrg.HasValue != afterShip.HasValue)
@@ -314,39 +324,59 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         try
         {
             await using var command = Command(Connection, null, """
-                SELECT s.organization_id,s.id
-                FROM shipments s
-                JOIN organizations o ON o.id=s.organization_id AND o.status='Active'
-                LEFT JOIN shipment_tracking_input_versions v
-                  ON v.organization_id=s.organization_id AND v.shipment_id=s.id
-                LEFT JOIN shipment_tracking_correction_heads h
-                  ON h.organization_id=s.organization_id AND h.shipment_id=s.id
-                WHERE (@afterOrg::uuid IS NULL OR
-                    (s.organization_id,s.id)>(@afterOrg,@afterShip))
-                  AND (NOT EXISTS (
-                        SELECT 1 FROM shipment_exception_evaluations e
-                        WHERE e.organization_id=s.organization_id AND e.shipment_id=s.id)
+                WITH candidate AS MATERIALIZED (
+                    SELECT s.organization_id,s.id,s.version
+                    FROM shipments s
+                    JOIN organizations o ON o.id=s.organization_id
+                        AND o.status='Active'
+                    WHERE (@afterOrg::uuid IS NULL OR
+                        (s.organization_id,s.id)>(@afterOrg,@afterShip))
+                    ORDER BY s.organization_id,s.id LIMIT @limit
+                )
+                SELECT c.organization_id,c.id,
+                    (SELECT COUNT(*) FROM shipment_exception_evaluations e
+                        WHERE e.organization_id=c.organization_id
+                          AND e.shipment_id=c.id) < 4
                     OR EXISTS (
                         SELECT 1 FROM shipment_exception_evaluations e
-                        WHERE e.organization_id=s.organization_id AND e.shipment_id=s.id
-                          AND (e.shipment_version<>s.version
+                        LEFT JOIN shipment_tracking_input_versions v
+                          ON v.organization_id=e.organization_id
+                         AND v.shipment_id=e.shipment_id
+                        LEFT JOIN shipment_tracking_correction_heads h
+                          ON h.organization_id=e.organization_id
+                         AND h.shipment_id=e.shipment_id
+                        WHERE e.organization_id=c.organization_id
+                          AND e.shipment_id=c.id
+                          AND (e.shipment_version<>c.version
+                            OR e.rule_policy_version<>@policy
                             OR e.tracking_input_revision<>COALESCE(v.input_revision,0)
                             OR e.correction_generation<>COALESCE(h.generation,0)
                             OR (e.next_evaluation_at_utc IS NOT NULL
                                 AND e.next_evaluation_at_utc<=clock_timestamp())
                             OR EXISTS (
                                 SELECT 1 FROM shipment_tracking_projections p
-                                WHERE p.organization_id=s.organization_id
-                                  AND p.shipment_id=s.id
-                                  AND p.refreshed_at_utc>e.evaluated_at_utc))))
-                ORDER BY s.organization_id,s.id LIMIT @limit
+                                WHERE p.organization_id=e.organization_id
+                                  AND p.shipment_id=e.shipment_id
+                                  AND p.refreshed_at_utc>e.evaluated_at_utc)))
+                FROM candidate c
+                ORDER BY c.organization_id,c.id
                 """, ("afterOrg", afterOrg), ("afterShip", afterShip),
-                ("limit", limit));
-            var items = new List<(Guid Organization, Guid Shipment)>();
+                ("limit", limit), ("policy", ShipmentExceptionPolicy.Version));
+            var due = new List<(Guid Organization, Guid Shipment)>();
+            Guid? lastOrg = null, lastShipment = null;
+            int scanned = 0;
             await using var reader = await command.ExecuteReaderAsync(ct);
-            while (await reader.ReadAsync(ct)) items.Add((reader.GetGuid(0), reader.GetGuid(1)));
-            return items;
+            while (await reader.ReadAsync(ct))
+            {
+                lastOrg = reader.GetGuid(0);
+                lastShipment = reader.GetGuid(1);
+                scanned++;
+                if (reader.GetBoolean(2))
+                    due.Add((lastOrg.Value, lastShipment.Value));
+            }
+            return new ShipmentExceptionDueBatch(due,lastOrg,lastShipment,scanned);
         }
         finally { await database.Database.CloseConnectionAsync(); }
     }
+
 }

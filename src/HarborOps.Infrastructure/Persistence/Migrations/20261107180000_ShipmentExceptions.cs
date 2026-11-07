@@ -212,16 +212,16 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Evaluation verifier unavailable' USING ERRCODE='PZ002';
                 END IF;
 
-                message := 'm11-eval-v1|' || replace(p_nonce::text,'-','') ||
+                message := 'm11-eval-v2|' || replace(p_nonce::text,'-','') ||
                     '|' || p_expires::text || '|' || replace(p_org::text,'-','') ||
                     '|' || replace(p_shipment::text,'-','') ||
                     '|' || p_rule || '|' || p_condition || '|' || p_severity ||
                     '|' || p_confidence || '|' || p_reason || '|' || p_fingerprint ||
                     '|' || p_ship_version::text || '|' || p_input_revision::text ||
                     '|' || p_generation::text ||
-                    '|' || COALESCE(floor(extract(epoch from p_reference)*1000)::bigint::text,'') ||
-                    '|' || COALESCE(floor(extract(epoch from p_threshold)*1000)::bigint::text,'') ||
-                    '|' || COALESCE(floor(extract(epoch from p_next)*1000)::bigint::text,'');
+                    '|' || COALESCE(floor(extract(epoch from p_reference)*1000000)::bigint::text,'') ||
+                    '|' || COALESCE(floor(extract(epoch from p_threshold)*1000000)::bigint::text,'') ||
+                    '|' || COALESCE(floor(extract(epoch from p_next)*1000000)::bigint::text,'');
                 expected_sig := encode(hmac(convert_to(message,'UTF8'),signing_key,'sha256'),'hex');
                 IF p_signature IS DISTINCT FROM expected_sig THEN
                     RAISE EXCEPTION 'Evaluation authority denied' USING ERRCODE='42501';

@@ -27,15 +27,23 @@ public static class M11ProofSigner
         finally { CryptographicOperations.ZeroMemory(secret); }
     }
 
-    private static string Milliseconds(DateTimeOffset? date) =>
-        date?.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture) ?? "";
+    // SQL timestamptz preserves microseconds. A signature must bind the same
+    // precision, including for negative Unix epochs.
+    public static string Microseconds(DateTimeOffset? date)
+    {
+        if (date is null) return "";
+        var delta = date.Value.UtcTicks - DateTime.UnixEpoch.Ticks;
+        var quotient = Math.DivRem(delta, 10, out var remainder);
+        if (remainder < 0) quotient--;
+        return quotient.ToString(CultureInfo.InvariantCulture);
+    }
 
     public static Proof? Evaluation(string? base64, ShipmentExceptionInput input,
         ShipmentExceptionSignal signal, DateTimeOffset databaseNow)
     {
         var nonce = Guid.NewGuid();
         var expires = databaseNow.AddSeconds(45).ToUnixTimeSeconds();
-        var message = string.Join("|", "m11-eval-v1",
+        var message = string.Join("|", "m11-eval-v2",
             nonce.ToString("N"), expires.ToString(CultureInfo.InvariantCulture),
             input.OrganizationId.ToString("N"), input.ShipmentId.ToString("N"),
             signal.RuleCode, signal.Condition, signal.Severity,
@@ -43,8 +51,8 @@ public static class M11ProofSigner
             input.ShipmentVersion.ToString(CultureInfo.InvariantCulture),
             input.TrackingInputRevision.ToString(CultureInfo.InvariantCulture),
             input.CorrectionGeneration.ToString(CultureInfo.InvariantCulture),
-            Milliseconds(signal.ReferenceAtUtc), Milliseconds(signal.ThresholdAtUtc),
-            Milliseconds(signal.NextEvaluationAtUtc));
+            Microseconds(signal.ReferenceAtUtc), Microseconds(signal.ThresholdAtUtc),
+            Microseconds(signal.NextEvaluationAtUtc));
         var signature = Sign(base64, message);
         return signature is null ? null : new Proof(nonce, expires, signature);
     }

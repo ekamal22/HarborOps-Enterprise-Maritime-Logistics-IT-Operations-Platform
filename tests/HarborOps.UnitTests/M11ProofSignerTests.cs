@@ -34,6 +34,19 @@ public sealed class M11ProofSignerTests
     }
 
     [Fact]
+    public void EvaluationProofTimestampPrecisionMatchesPostgreSqlMicroseconds()
+    {
+        var unix = DateTimeOffset.UnixEpoch;
+        Assert.Equal("0", M11ProofSigner.Microseconds(unix));
+        Assert.Equal("1", M11ProofSigner.Microseconds(unix.AddTicks(10)));
+        Assert.Equal("1000", M11ProofSigner.Microseconds(unix.AddMilliseconds(1)));
+        Assert.Equal("-1", M11ProofSigner.Microseconds(unix.AddTicks(-10)));
+        Assert.Equal("-1001", M11ProofSigner.Microseconds(unix.AddTicks(-10010)));
+        Assert.Equal("-1", M11ProofSigner.Microseconds(unix.AddTicks(-1)));
+        Assert.Equal("", M11ProofSigner.Microseconds(null));
+    }
+
+    [Fact]
     public void ManagerProofUsesDatabaseClockAndBindsAction()
     {
         var org = Guid.NewGuid();

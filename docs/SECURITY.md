@@ -1,11 +1,15 @@
 # Security Model
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and full, role-guarded immutable-history continuation. These changes are source-only and have not been compiled or executed against PostgreSQL or browser fixtures. G11-S01 remains BLOCKED on local policy, G11-S02 through S25 NOT EXECUTED, and G11 acceptance pending. PR #31 is unmerged; the M9 sustained transport hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records new occurrence identity after confirmed acknowledged clearance, corrected Resolve visibility and narrowed replay-conflict classification. Source and tests are unexecuted. G11-S01 BLOCKED on policy decisions; G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport hold and draft PR #31 remain unchanged.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
 **Current accepted baseline (2026-11-07):** G0-G10 and G16 are integrated into protected `main`; G10 remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following independently reviewed [gate closure](M10_G10_GATE_CLOSURE_20261107.md). G11-G15 and G17-G24 remain unaccepted. Sustained M9 transport-event processing remains held.
+
+## Fifth-pass provisional M11 disposition error boundary
+
+The signed action store treats only the replay table's known unique primary-key constraint as a routine 409 uniqueness conflict. Unexpected PostgreSQL 23505 errors are not concealed as idempotency collisions; transaction serialization, deadlock and explicit source-version PZ004 conflicts remain recognized. The signed recurrence transition closes a verified inactive Acknowledged row before reopening a new occurrence in the same database transaction. These source claims require real SQL, audit and session-race evidence.
 
 ## Provisional M11 history and list read security
 

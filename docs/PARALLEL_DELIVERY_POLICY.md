@@ -1,6 +1,6 @@
 # Parallel Delivery and Integration Policy
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and protected, tenant-scoped continuation of immutable history beyond the initial 500 entries. This candidate remains unverified, G11-S01 blocked on local policy, G11 acceptance pending, and draft PR #31 unmerged. The M9 sustained transport hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records new occurrence identity after confirmed acknowledged clearance, corrected Resolve visibility and narrowed replay-conflict classification. Source and tests are unexecuted. G11-S01 BLOCKED on policy decisions; G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport hold and draft PR #31 remain unchanged.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 

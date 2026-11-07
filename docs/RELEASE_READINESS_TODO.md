@@ -1,6 +1,6 @@
 # Pre-release Documentation and Evidence Checklist
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records snapshot-bound exception-list cursors and protected, tenant-scoped continuation of immutable history beyond the initial 500 entries. This candidate remains unverified, G11-S01 blocked on local policy, G11 acceptance pending, and draft PR #31 unmerged. The M9 sustained transport hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records new occurrence identity after confirmed acknowledged clearance, corrected Resolve visibility and narrowed replay-conflict classification. Source and tests are unexecuted. G11-S01 BLOCKED on policy decisions; G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport hold and draft PR #31 remain unchanged.
 
 **Opened:** 2026-11-06  
 **Target:** M24-03 source/evidence reconciliation before M24-04 accessibility and G24 release acceptance.  

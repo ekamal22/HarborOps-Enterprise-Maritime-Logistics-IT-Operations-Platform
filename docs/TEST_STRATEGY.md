@@ -1,6 +1,6 @@
 # Test and Verification Strategy
 
-**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records creation-cutoff exception-list cursors and complete immutable-history paging with scoped role redaction. Runtime build, migration and browser verification remain NOT EXECUTED. G11-S01 BLOCKED, G11 acceptance pending, PR #31 unmerged and the M9 sustained transport hold unchanged.
+**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records new occurrence identity after confirmed acknowledged clearance, corrected Resolve visibility and narrowed replay-conflict classification. Source and tests are unexecuted. G11-S01 BLOCKED on policy decisions; G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport hold and draft PR #31 remain unchanged.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
@@ -22,6 +22,10 @@ Future changes require focused, source-locked verification of affected contracts
 ## M7 source-locked verification boundary
 
 The accepted M7 implementation contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 was accepted on 2026-11-03; the pinned reference snapshots are checked by `scripts/verify-dcsa-reference.mjs` and the M7 contract tests; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
+
+## Fifth-pass M11 recurrence regression, not executed
+
+Source-locked integration verification must exercise direct Acknowledged/Inactive-to-Active recurrence with old AutoResolved history and a fresh Open occurrence; repeated reevaluation must not duplicate either. Test the manager UI hides Resolve on Open/Inactive. Confirm expected replay-primary-key conflicts map to HTTP 409 while unrelated SQL 23505 failures surface as actual errors. These new focused checks do not replace G11-S01 policy decisions or S02-S25 execution.
 
 ## Fourth-pass M11 focused verification, unexecuted
 

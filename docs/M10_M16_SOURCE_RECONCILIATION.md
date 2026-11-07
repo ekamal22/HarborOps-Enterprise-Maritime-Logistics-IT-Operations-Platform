@@ -1,5 +1,7 @@
 # M10 / Accepted M16 Source Reconciliation
 
+**Post-merge disposition (2026-11-07):** G10 S01/S25 passed independent review; the M10 security remediation is accepted and integrated into protected `main` through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier pending or unexecuted statements below are preserved as source-locked historical checkpoints. The M9 transport-processing hold and deployment restrictions remain.
+
 **Recorded:** 2026-11-06  
 **Accepted base:** `main` at `25e89026737063294a32bbd081ced400d19c6b3d`, including PR #25 G16 integration, PR #26 post-merge reconciliation and PR #27 living-documentation updates.  
 **M10 head before reconciliation:** `3159baa508f840596e1fe1981164296c1d8dffca` in draft PR #23.  
@@ -37,4 +39,4 @@ This reconciliation records the original merged twelve-migration M10/M16 candida
 3. Exercise separate `harborops_api`, `harborops_worker` and `harborops_projector` identities and the M16 audit/retention and M10 correction/rebuild paths with direct SQL adversarial cases.
 4. Complete G10 three-browser, concurrency, outage, performance, mutation, vulnerability and security checks, reconcile raw artifacts independently, resolve M10-S01 choices and obtain explicit G10 acceptance before a merge.
 
-**Current disposition:** Source-integrated candidate, technical verification and G10 decision pending.
+**Original handoff disposition (2026-11-06, historical):** Source-integrated candidate with G10 review pending at that time. Later source-locked L07/L14 verification, S01/S25 acceptance and security remediation were completed and integrated through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28); see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md).

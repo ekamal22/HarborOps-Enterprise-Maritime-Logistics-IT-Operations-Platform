@@ -1,11 +1,13 @@
 # M10/G10 Repository Documentation Reconciliation
 
+**Post-merge disposition (2026-11-07):** G10 S01/S25 passed independent review; the M10 security remediation is accepted and integrated into protected `main` through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier pending or unexecuted statements below are preserved as source-locked historical checkpoints. The M9 transport-processing hold and deployment restrictions remain.
+
 **Date:** 2026-11-07  
 **Branch:** `fix/m10-g10-l07-l14-remediation`  
 **Last runtime-code revision:** `3ef7a50859b5f023aa1457b373728888f6d1cba9`  
 **Status:** Documentation reconciled with the committed source candidate. New-source build and PostgreSQL execution were later performed (see the [verification record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)); independent supplemental review is NOT EXECUTED. G10 acceptance pending.
 
-## Current authoritative state
+## Original pre-verification documentation checkpoint (historical)
 
 1. M0-M9/G0-G9 and M16/G16 are accepted and merged in protected `main`.
 2. PR #23 merged the original M10 source before G10 acceptance. Independently reviewed A1-A7 technical results support 23 PASS scenarios on frozen runtime `3e81b884b6a4cc782f84c58510793666786c5796`, with S01 BLOCKED at the time and S25 NOT EXECUTED.

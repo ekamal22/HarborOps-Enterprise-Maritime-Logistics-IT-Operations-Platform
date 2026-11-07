@@ -1,8 +1,10 @@
 # M16 Implementation Status
 
+**Post-merge disposition (2026-11-07):** G10 S01/S25 passed independent review; the M10 security remediation is accepted and integrated into protected `main` through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier pending or unexecuted statements below are preserved as source-locked historical checkpoints. The M9 transport-processing hold and deployment restrictions remain.
+
 **Current integrated state (2026-11-06):** G16 accepted and PR #25 merged into protected `main` at `47ba55e2` following the independent F001 extension. See [G16 gate closure](M16_G16_GATE_CLOSURE.md). The standalone status below is a preserved historical snapshot; the accepted M9 transport-backlog restriction remains binding.
 
-**Current M10 interaction (2026-11-07):** M16/G16 remains accepted. The M10-L07/L14 remediation source adds a thirteenth SQL migration and transactional correction audit event, but is not merged or runtime-verified. The G16 standalone and accepted combined results remain historical and unchanged. [M10 implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+**Current M10 interaction (2026-11-07):** M16/G16 remains accepted. The G10-approved correction security adds a thirteenth additive migration and a same-transaction `shipment.tracking_correction_created` M16 audit event; it was independently reviewed, accepted and merged via [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). Original G16 source-lock, auditor-scoped access and retention policy are unchanged. See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md).
 
 **Standalone snapshot as of:** 2026-11-05
   

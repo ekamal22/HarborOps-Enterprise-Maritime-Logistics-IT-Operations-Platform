@@ -1,5 +1,7 @@
 # G10 M10-L07 and M10-L14 Targeted Security Remediation
 
+**Post-merge disposition (2026-11-07):** G10 S01/S25 passed independent review; the M10 security remediation is accepted and integrated into protected `main` through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier pending or unexecuted statements below are preserved as source-locked historical checkpoints. The M9 transport-processing hold and deployment restrictions remain.
+
 **Decision date:** 2026-11-07  
 **Policy disposition:** M10-L01 through M10-L14 approved, with changes to L07 and L14 and L06 conditioned on effective database authorization.  
 **Execution status:** Source remediation committed (runtime candidate `3ef7a50859b5f023aa1457b373728888f6d1cba9`); new-source compile, migration, database security tests and mutations later executed on final runtime `a26d19acd57308033bdf6fe7e25c61287cd17b0b` ([record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)); independent review and G10 acceptance pending.
@@ -107,4 +109,4 @@ Report exact branch and source SHA, changed files, migration effect, security in
 
 Keep permanent repositories, worktrees, caches, Docker/WSL data, databases and evidence under E: on the Windows verification machine. Short-lived C: system use is allowed only when unavoidable and must be cleaned safely. Preserve all earlier A1-A7 source-locked evidence under its original paths. Use isolated Compose project names and volumes for new runs. Do not delete unrelated Docker resources or evidence.
 
-**Current gate state:** Policy choices approved on 2026-11-07. New-source implementation is committed at candidate runtime `3ef7a50859b5f023aa1457b373728888f6d1cba9`, and technical runtime verification was executed later on `a26d19a` ([record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)). Independent review, new-source S01 conformance and S25 remain NOT EXECUTED or pending; G10 acceptance is pending.
+**Final gate disposition (2026-11-07):** This was the remediation plan before execution. Source-locked correction-authority and final historical-upgrade/Compose tests subsequently passed, S01/S25 were independently reviewed, G10 was accepted and remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Original candidate SHA and pre-acceptance findings are retained above for provenance. The M9 transport hold continues.

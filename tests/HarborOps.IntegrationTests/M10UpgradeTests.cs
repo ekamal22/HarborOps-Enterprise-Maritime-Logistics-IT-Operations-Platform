@@ -115,7 +115,11 @@ public sealed class M10UpgradeTests
             Assert.Equal(4L, await Scalar(scoped, "SELECT COUNT(*) FROM shipment_tracking_timeline_entries"));
             var evidenceBefore = await Fingerprint(scoped);
 
-            // Recreate the populated pre-M10 state, then run the real M10 Up over that history.
+            // Roll back only the new correction-authority layer, then recreate the
+            // populated pre-M10 state without removing retained accepted evidence.
+            await using (var prerequisite = new HarborOpsDbContext(
+                new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(scoped).Options))
+                await prerequisite.Database.MigrateAsync(M10);
             await Run(scoped, RemoveM10Objects);
             Assert.Equal(false, await Scalar(scoped,
                 $"SELECT to_regclass('\"{schema}\".shipment_tracking_timeline_entries') IS NOT NULL"));
@@ -126,7 +130,7 @@ public sealed class M10UpgradeTests
             Assert.Equal(11, (await db2.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Contains(M10, await db2.Database.GetPendingMigrationsAsync());
             await db2.Database.MigrateAsync();
-            Assert.Equal(12, (await db2.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(13, (await db2.Database.GetAppliedMigrationsAsync()).Count());
             Assert.False(db2.Database.HasPendingModelChanges());
 
             // Backfill: one immutable entry per historical effect, matching the M8 event exactly.
@@ -171,7 +175,7 @@ public sealed class M10UpgradeTests
                 db2.Database.MigrateAsync(M9));
             Assert.Equal(PostgresErrorCodes.CheckViolation, blocked.SqlState);
             Assert.Contains("M10 retained history prevents downgrade", blocked.MessageText);
-            Assert.Equal(12, (await db2.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(13, (await db2.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(4L, await Scalar(scoped, "SELECT COUNT(*) FROM shipment_tracking_timeline_entries"));
             Assert.Equal(evidenceBefore, await Fingerprint(scoped));
 
@@ -180,13 +184,13 @@ public sealed class M10UpgradeTests
             await using var db3 = new HarborOpsDbContext(
                 new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(emptyScoped).Options);
             await db3.Database.MigrateAsync();
-            Assert.Equal(12, (await db3.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(13, (await db3.Database.GetAppliedMigrationsAsync()).Count());
             await db3.Database.MigrateAsync(M9);
             Assert.Equal(11, (await db3.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(false, await Scalar(emptyScoped,
                 $"SELECT to_regclass('\"{empty}\".shipment_tracking_timeline_entries') IS NOT NULL"));
             await db3.Database.MigrateAsync();
-            Assert.Equal(12, (await db3.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(13, (await db3.Database.GetAppliedMigrationsAsync()).Count());
             Assert.False(db3.Database.HasPendingModelChanges());
         }
         finally

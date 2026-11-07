@@ -167,7 +167,7 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
             digest, correlation, clock);
         if (proof is null)
             return new(null, OrganizationAccessError.Invalid, "export_authority_unavailable");
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
+        await db.Database.ExecuteSqlAsync($"""
             SELECT public.m12_record_shipment_export({org}, {session.UserId},
                 {session.SessionId}, {rows.Count}, {bytes.LongLength},
                 CAST({digest} AS varchar), CAST({correlation} AS varchar),

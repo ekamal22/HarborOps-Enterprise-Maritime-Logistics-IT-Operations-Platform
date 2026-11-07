@@ -1,5 +1,7 @@
 # M12 End-to-End Correctness Audit and Source Remediation
 
+**Subsequent audit:** The [2026-11-08 second-pass report](M12_CORRECTNESS_AUDIT_20261108.md) documents later source findings, deadlines, downgrade protection, five-role test coverage and remaining G12 evidence. This document retains the original source assessment and should not be treated as the final G12 execution record.
+
 **Date:** 2026-11-07  
 **Scope:** M12-01 through M12-04 candidate on `feat/m12-shipment-search-export`, PR #32, against protected `main` `6ead1d076946dd96b53401265a31efc35c4a666c`.  
 **Post-remediation code checkpoint before documentation changes:** `43ad67a64fe191a0ac04e47194201d6f5021e70f`.  

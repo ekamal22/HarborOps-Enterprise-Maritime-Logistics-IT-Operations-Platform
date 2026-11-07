@@ -2,6 +2,8 @@
 
 **M12 implementation candidate (2026-11-07):** Branch `feat/m12-shipment-search-export` contains new scoped advanced shipment search and bounded Analyst/Manager CSV export, with authored test sources. G12 runtime verification is NOT EXECUTED and acceptance pending. The accepted `main` baseline, M9 transport hold and separate M11 planning remain unchanged. See [M12 architecture](docs/M12_ARCHITECTURE_DESIGN.md), [implementation status](docs/M12_IMPLEMENTATION_STATUS.md), [G12 test plan](docs/M12_VERIFICATION_PLAN.md) and [policy choices](docs/M12_PLANNING_STATUS.md).
 
+**M12 correctness audit (2026-11-07):** [Source findings and fixes](docs/M12_CORRECTNESS_AUDIT_20261107.md) cover HMAC export authority, SQL key isolation and replay, same-origin downloads, user/session cursors, regression tests and M11 integration. These are authored and committed source remediations, not runtime G12 passes. G12 acceptance and merge authorization remain pending.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](docs/M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 **Post-merge records:** [G10 gate closure](docs/M10_G10_GATE_CLOSURE_20261107.md) and [repository documentation reconciliation](docs/M10_G10_POST_MERGE_RECONCILIATION_20261107.md).
 

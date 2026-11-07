@@ -102,6 +102,7 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
         DateTimeOffset asOfUtc, Guid? after, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '15s'", ct);
         var access = await ScopeAsync(session, org, OrganizationPermission.ViewShipmentData, ct);
         if (access != OrganizationAccessError.None) return new(null, access);
         var query = Filter(org, filter, asOfUtc, after);
@@ -118,13 +119,18 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
         CurrentSession session, Guid org, ShipmentSearchFilters filter,
         string correlationId, CancellationToken ct)
     {
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        budget.CancelAfter(TimeSpan.FromSeconds(30));
+        var operationToken = budget.Token;
         await using var tx = await db.Database.BeginTransactionAsync(
-            IsolationLevel.RepeatableRead, ct);
-        var access = await ScopeAsync(session, org, OrganizationPermission.ExportShipmentData, ct);
+            IsolationLevel.RepeatableRead, operationToken);
+        await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '15s'",
+            operationToken);
+        var access = await ScopeAsync(session, org, OrganizationPermission.ExportShipmentData, operationToken);
         if (access != OrganizationAccessError.None) return new(null, access);
         var asOf = clock.GetUtcNow();
         var rows = await Filter(org, filter, asOf).OrderBy(s => s.Id)
-            .Take(ShipmentCsv.MaximumRows + 1).ToListAsync(ct);
+            .Take(ShipmentCsv.MaximumRows + 1).ToListAsync(operationToken);
         if (rows.Count > ShipmentCsv.MaximumRows)
             return new(null, OrganizationAccessError.Conflict, "export_row_limit");
 
@@ -166,8 +172,8 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
                 {session.SessionId}, {rows.Count}, {bytes.LongLength},
                 CAST({digest} AS varchar), CAST({correlation} AS varchar),
                 {proof.ExpiresEpoch}, CAST({proof.Signature} AS varchar))
-            """, ct);
-        await tx.CommitAsync(ct);
+            """, operationToken);
+        await tx.CommitAsync(operationToken);
         return new(bytes, OrganizationAccessError.None);
     }
 }

@@ -1,5 +1,7 @@
 # Domain Model and Invariants
 
+**M12 second-pass source audit, 2026-11-08:** [Findings and remediation](M12_CORRECTNESS_AUDIT_20261108.md) add the mandatory audit-history downgrade guard, 4,096-character URL limit, 15-second per-statement and 30-second export budgets, expanded restricted-role and signed-proof test sources, and a missing hosting extension import. The M12 candidate remains draft PR #32; these fixes are unexecuted at runtime, G12 acceptance pending. Existing accepted G0-G10/G16 controls and the M9 hold remain unchanged.
+
 ## M12 search and export model candidate, 2026-11-07
 
 M12 on [draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) adds no mutable shipment or voyage domain entity. Advanced search uses existing M5 shipment columns and M6 tenant-scoped voyage-assignment intervals, with half-open UTC windows and live reauthorization. Export has a fixed twelve-column CSV view over authorized shipment data.

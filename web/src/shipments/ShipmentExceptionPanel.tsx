@@ -19,8 +19,9 @@ type ExceptionHistory = {
 };
 type ExceptionDetail = {
   exception: ExceptionRow; history: ExceptionHistory[];
-  historyTruncated: boolean;
+  historyTruncated: boolean; nextHistoryCursor: string | null;
 };
+type HistoryPage = { items: ExceptionHistory[]; nextCursor: string | null };
 
 const descriptions: Record<string, string> = {
   EquipmentConflict: "Conflicting recorded equipment observations",
@@ -50,6 +51,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [paging, setPaging] = useState(false);
+  const [historyPaging, setHistoryPaging] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const serial = useRef(0);
@@ -63,6 +65,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
     const run = ++serial.current;
     detailSerial.current++;
     setLoading(true); setError(""); setDetail(null); setCursor(null);
+    setHistoryPaging(false);
     try {
       const page = await getJson<ExceptionPage>(shipmentRoot + "/exceptions?limit=25");
       if (run !== serial.current) return;
@@ -110,7 +113,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
   };
 
   const showDetail = async (id: string) => {
-    setError(""); setDetail(null);
+    setError(""); setDetail(null); setHistoryPaging(false);
     const run = serial.current;
     const detailRun = ++detailSerial.current;
     try {
@@ -123,6 +126,37 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
         setError(organizationError(cause));
         invalidate(cause);
       }
+    }
+  };
+
+  const moreHistory = async () => {
+    if (!detail?.nextHistoryCursor || historyPaging || loading) return;
+    const run = serial.current;
+    const detailRun = detailSerial.current;
+    const exceptionId = detail.exception.id;
+    setHistoryPaging(true); setError("");
+    try {
+      const page = await getJson<HistoryPage>(root + "/exceptions/" +
+        encodeURIComponent(exceptionId) + "/history?limit=100&cursor=" +
+        encodeURIComponent(detail.nextHistoryCursor));
+      if (run !== serial.current || detailRun !== detailSerial.current) return;
+      setDetail(previous => {
+        if (!previous || previous.exception.id !== exceptionId) return previous;
+        const ids = new Set(previous.history.map(x => x.id));
+        return {
+          ...previous,
+          history: [...previous.history, ...page.items.filter(x => !ids.has(x.id))],
+          nextHistoryCursor: page.nextCursor,
+          historyTruncated: page.nextCursor !== null
+        };
+      });
+    } catch (cause) {
+      if (run === serial.current && detailRun === detailSerial.current) {
+        setError(organizationError(cause)); invalidate(cause);
+      }
+    } finally {
+      if (run === serial.current && detailRun === detailSerial.current)
+        setHistoryPaging(false);
     }
   };
 
@@ -216,11 +250,14 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
     {detail && <div className="mt-3 rounded bg-slate-900 p-3 text-xs">
       <div className="flex items-center justify-between">
         <strong>Exception #{detail.exception.occurrence} history</strong>
-        <button type="button" onClick={() => setDetail(null)}
-          className="rounded border border-slate-500 px-2 py-1">Close</button>
+        <button type="button" onClick={() => {
+          detailSerial.current++;
+          setDetail(null);
+          setHistoryPaging(false);
+        }} className="rounded border border-slate-500 px-2 py-1">Close</button>
       </div>
-      {detail.historyTruncated && <p role="status" className="mt-2 text-amber-300">
-        Only the first 500 history entries are displayed. Review the retained records for the full history.
+      {detail.nextHistoryCursor && <p role="status" className="mt-2 text-amber-300">
+        Showing {detail.history.length} history entries. Additional retained records are available.
       </p>}
       <p className="mt-2 text-slate-400">
         Rule policy: {detail.exception.evidence.rulePolicyVersion};
@@ -234,6 +271,11 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
         <li key={entry.id}>{entry.occurredAtUtc}: {entry.action}
           {entry.reason ? " | " + entry.reason : ""}
         </li>)}</ol>
+      {detail.nextHistoryCursor && <button type="button" disabled={historyPaging || loading}
+        onClick={() => void moreHistory()}
+        className="mt-3 rounded border border-slate-500 px-2 py-1 disabled:opacity-50">
+        {historyPaging ? "Loading history..." : "Load more history"}
+      </button>}
     </div>}
   </section>;
 }

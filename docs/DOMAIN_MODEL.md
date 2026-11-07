@@ -1,6 +1,6 @@
 # Domain Model and Invariants
 
-**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 has an unaccepted draft implementation in [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), without executed G10 evidence. The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
+**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
 
 ## Entities
 
@@ -116,6 +116,12 @@ Append-only `TrackingWorkAttemptEvent` records processing transitions with actor
 Migration `20261104190000_TrackingWorker` and the matching EF model are integrated into `main` after G9 acceptance on 2026-11-05. M9 does not implement shipment status, ETA, timeline or rebuildable projections, which belong to M10. See the [M9 contract](M9_LOCAL_CONTRACT_DECISION.md), [evidence](M9_EXECUTED_VERIFICATION.md) and [G9 closure](M9_G9_GATE_CLOSURE.md).
 
 **Operating condition:** M9 sustained transport-event processing remains disabled until M10 or a separately approved and verified mechanism handles the parked backlog under the 10,000 unresolved-work-item limit. M16 audit logging and access hardening was independently verified, accepted and merged on 2026-11-06; M9 attempt/effect history remains the worker audit of record. Shipment projection remains planned M10 work without accepted G10 evidence.
+
+## M10 correction-security data model, 2026-11-07
+
+The approved L07/L14 source remediation adds one SQL-only thirteenth migration after the original twelve-migration M10 projections. The private `m10_correction_proof_keys` and append-only `m10_correction_proof_nonces` support signed, short-lived correction authority; a restricted database function checks live Manager/session scope and validates the proof. A successful correction must also persist a scoped `audit_entries` row of type `shipment.tracking_correction_created` with privacy-allowlisted metadata in the same transaction. The original M10 corrections remain immutable and M8/M9 history is not rewritten.
+
+The new source is committed, not executed or accepted. L06 remains conditional on verified L14 conformance, and G10 S25 remains pending. No ETA is inferred and parked transport traffic remains held. [Implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 
 ## M10 indexed timeline candidate after accepted G16
 

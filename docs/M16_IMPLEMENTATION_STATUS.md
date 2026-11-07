@@ -2,7 +2,10 @@
 
 **Current integrated state (2026-11-06):** G16 accepted and PR #25 merged into protected `main` at `47ba55e2` following the independent F001 extension. See [G16 gate closure](M16_G16_GATE_CLOSURE.md). The standalone status below is a preserved historical snapshot; the accepted M9 transport-backlog restriction remains binding.
 
-**Standalone snapshot as of:** 2026-11-05  
+**Current M10 interaction (2026-11-07):** M16/G16 remains accepted. The M10-L07/L14 remediation source adds a thirteenth SQL migration and transactional correction audit event, but is not merged or runtime-verified. The G16 standalone and accepted combined results remain historical and unchanged. [M10 implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+
+**Standalone snapshot as of:** 2026-11-05
+  
 **Branch:** `feat/m16-audit-access-hardening`  
 **Final standalone tested source:** `e5711573839b185a2dfc7d9f2c64ce4fc18d4c13`  
 **State:** Corrected implementation candidate completed; standalone G16 source-locked technical campaign passed as reported. Independent review of the 162-file main campaign completed; **S07/S08/S28 supplemental log and JSON REVIEWED** (6/6 consistent checks; [record](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/0bf356dba78e51a6aafdeb665870ffa24789b3d9/docs/M16_G16_SUPPLEMENT_EVIDENCE_REVIEW.md)), M9 combined verification and G16 acceptance pending. No merge into `main`.  

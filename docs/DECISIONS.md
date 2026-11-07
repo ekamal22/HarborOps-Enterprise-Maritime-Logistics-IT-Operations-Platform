@@ -1,5 +1,8 @@
 # Architecture Decisions
 
+**Gate decision (2026-11-07):** G10 is ACCEPTED after S01 implementation-conformance and S25 independent-evidence review. The verified remediation branch is authorized for merge into `main`; integration is not yet recorded in this pre-merge checkpoint. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision record. Older G10 pending or blocked statements below are source-locked historical checkpoints, not current gate status. The M9 transport-processing hold remains mandatory.
+
+
 This document records accepted architecture decisions and outstanding choices. D-003 was explicitly accepted on 2026-11-01 alongside G4 after independent evidence review. D-002 Option A and M7/G7 were accepted on 2026-11-03; see [G7 closure](M7_G7_GATE_CLOSURE.md). D-006 Option A and M8/G8 were explicitly accepted on 2026-11-04 after independently reviewed source-locked evidence. See [gate closure](M8_G8_GATE_CLOSURE.md).
 
 ## Local storage constraint
@@ -7,6 +10,14 @@ This document records accepted architecture decisions and outstanding choices. D
 The mandatory [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires E-drive storage for all controllable persistent project files, caches, Docker/WSL state, database data and evidence. C-drive use is limited to unavoidable short-lived Windows temporary activity. This does not grant permission for cleanup, package migration or changes to global tool installations.
 
 The accepted M0 baseline uses the hardened rootless PostgreSQL container and .NET 10. The prior upstream `gosu` findings were closed in the immutable-image high/critical scan performed during GitHub Actions run #2. G0 was accepted on 2026-10-31; future image changes require scanning.
+
+## Approved M10-local policy decisions, 2026-11-07
+
+M10-L01 through M10-L14 are approved, with modifications to L07 and L14 and a condition on L06. L07 mandates atomic M16 audit evidence for every successful correction, without duplication on replay. L14 removes unrestricted direct SQL correction INSERT by the API identity and requires nonforgeable, session-bound authority at the database boundary. L06 Manager-only correction semantics depend on verification of L14. The decision details are recorded under [M10 local policy selection for G10](#m10-local-policy-selection-for-g10-2026-11-07).
+
+The implementation is committed on `fix/m10-g10-l07-l14-remediation` and passed new-source .NET compilation, database execution and targeted security verification on `a26d19a` ([record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)). Policy selection is resolved; independent review, S01 source conformance and S25 gate acceptance remain pending. [Implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+
+**Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. Independent review (G10-S25) and the S01 conformance disposition are NOT EXECUTED. Acceptance pending.
 
 ## Accepted baseline decisions
 
@@ -112,3 +123,13 @@ The [M16 technical report](https://github.com/ekamal22/HarborOps-Enterprise-Mari
 ## G16 integration decision and acceptance (2026-11-06)
 
 The combined M9/M16 runtime at `79318c6b6126362a0b26a1452aad6d2b48fdf4b4` passed the reviewed technical gate through a preserved initial Firefox failure followed by a complete same-source browser and mutation supplement. The [G16 gate closure](M16_G16_GATE_CLOSURE.md) records explicit acceptance and four approved Option A choices: M9 immutable worker history as audit of record; the migration-time role provisioner as the sole combined authority; privileged migrator retained within its stated threat model; and F001 provisioner-installed guards accepted. Accepted M9 sustained-processing restrictions and the 10,000-item unresolved limit remain mandatory. Final source-diff review found and corrected the generation-zero F001 issue. The correction `8ba7727` passed 17/17 focused and 286/286 full integration tests plus an effective regression mutation. PR #25 was separately authorized and merged on 2026-11-06 at `47ba55e2c88556bc5ca0da7d50335ffc8c5ca56d`. No public deployment or full-product release is approved.
+
+## M10 local policy selection for G10, 2026-11-07
+
+M10-L01 through M10-L14 were approved with modifications to **L07** and **L14**, and **L06** conditioned on the L14 authorization boundary being implemented and verified. L01-L05 and L08-L13 retain the exact proposed contracts in `S01_PROPOSED_M10_LOCAL_POLICY_DECISIONS.md` from the submitted decision package. L06 retains its append-only, Manager-only, idempotent and same-shipment behavior, subject to the new database boundary.
+
+**L07:** A successful tracking correction must write an M16 audit event atomically with the immutable M10 correction and dependent effects; audit persistence failure rolls back the transaction. The original correction ledger remains authoritative specialized evidence, and an idempotent replay must not duplicate an audit event.
+
+**L14:** Ordinary API-role direct correction INSERT is no longer authorized as the target contract. The replacement constrained database operation must validate live authority and nonforgeable request provenance, even against a database-credential-only attacker who can read session IDs. Worker and projector rights stay restricted. Existing M16 audit and M9 operational boundaries remain unchanged.
+
+The [targeted remediation plan](M10_G10_L07_L14_REMEDIATION_PLAN.md) specifies implementation, test criteria and evidence requirements. This is a **policy decision**, not proof of code implementation; its technical verification is recorded in the [verification record](M10_G10_REMEDIATION_VERIFICATION_20261107.md). S01 policy selection is decided, but independent review of the implementation and G10 S25 gate acceptance are pending. No merge, deployment or release is authorized.

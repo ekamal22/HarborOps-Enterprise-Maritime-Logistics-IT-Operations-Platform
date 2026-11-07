@@ -1,6 +1,9 @@
 # Parallel Delivery and Integration Policy
 
-**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 has an unaccepted draft implementation in [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), without executed G10 evidence. The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
+**G10 accepted (2026-11-07):** M10/G10 S01 and S25 are closed by [the gate decision](M10_G10_GATE_CLOSURE_20261107.md). The final signed-correction and historical-upgrade source is verified at `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343`; its integration into `main` is authorized and still pending at this pre-merge checkpoint. Earlier unaccepted-state passages remain historical evidence references. No hosting, release or M9 transport-hold change is authorized.
+
+
+**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
 
 **Version:** 1.1  
 **Updated:** 2026-11-04  
@@ -10,7 +13,7 @@
 
 HarborOps milestones M0-M24 retain 101 work packages and 25 separately verified, explicitly accepted gates. Milestone numbering and P0-P5 topic groupings do not impose sequential implementation. `execution-graph.json` version 3.0 is the sole dependency-edge authority. The generated Markdown graph must be regenerated after changing dependencies; never hand-edit it.
 
-The accepted baseline is G0-G9 plus G16 on `main` as of 2026-11-06. Eligibility to start a future work package is distinct from runtime verification and formal gate acceptance. Draft M10 implementation PR #23 has no accepted G10 evidence.
+The accepted baseline is G0-G9 plus G16 on `main` as of 2026-11-07. Eligibility to start a future work package is distinct from runtime verification and formal gate acceptance. M10 implementation PR #23 merged on 2026-11-06 without G10 acceptance. The L07/L14 remediation source is committed on a separate branch, has a thirteenth migration and has not passed new-source runtime verification. See [implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 
 ## Dependency contracts
 
@@ -48,7 +51,7 @@ The [M8 implementation](M8_IMPLEMENTATION_STATUS.md), [D-006 Option A proposal](
 
 ## M9 worker and retry implementation boundary (accepted and integrated)
 
-**Current integration boundary:** M9's worker, operator permissions and EF migration are accepted and preserved in merged M16/G16 integration, [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25). The combined snapshot includes audit and worker mappings and 11 migrations. Runtime roles are segregated; the M16 migration-time role provisioner is authoritative for the combined stack. G16's historical source-lock and post-acceptance correction are recorded in [G16 closure](M16_G16_GATE_CLOSURE.md). M10 PR #23 is separate, draft and not runtime verified.
+**Current integration boundary:** M9's worker, operator permissions and EF migration are accepted and preserved in merged M16/G16 integration, [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25). The combined snapshot includes audit and worker mappings and 11 migrations. Runtime roles are segregated; the M16 migration-time role provisioner is authoritative for the combined stack. G16's historical source-lock and post-acceptance correction are recorded in [G16 closure](M16_G16_GATE_CLOSURE.md). M10 PR #23 merged into `main` before G10 acceptance. Frozen runtime `3e81b88` has reviewed technical evidence but no G10 gate acceptance. The approved 2026-11-07 security changes are isolated in a separate unmerged branch with no executed new-source tests.
 
 The [M9 architecture](M9_ARCHITECTURE_DESIGN.md) and [G9 matrix](M9_VERIFICATION_PLAN.md) preserve the accepted G8 immutable receipt/event schema and add a new worker-only state migration with tenant-specific resolution effects, explicit lease fencing and bounded retry/dead-letter/reconciliation. The original plan allowed M9-02 and M9-03 to proceed in parallel only after the local contract approval. All six choices are now approved with a [transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md); one integration coordinator must still control the shared EF snapshot, new migration, permissions and worker DI. M12 search/export may run in a different branch from accepted G5, without conflicting migrations or default Compose resources. The 25-case G9 verification, independent review and explicit acceptance are complete; see [G9 closure](M9_G9_GATE_CLOSURE.md). No changes to the canonical graph dependencies are proposed. [M9 planning status](M9_PLANNING_STATUS.md) preserves the earlier unimplemented planning state as history.
 
@@ -73,7 +76,7 @@ Completed convergence: M9 `TrackingWorkRead` and `TrackingWorkRedrive` coexist w
 - When parallel branches converge, run their combined tests on the merged candidate, including auth/tenant boundary races and migration rehearsals. Earlier per-branch PASS results alone do not establish integration correctness.
 - G19 recovery can be implemented early, but any later migration requires appropriate upgrade/recovery testing. G20 assurance similarly does not waive security checks on later modules.
 - G24 requires all G0-G23 gates explicitly accepted and a fresh complete-system verification on the final code and images. M24-04 remains the **only formal dedicated accessibility audit**; M6, M12, M18, and M24-03 retain historical-volume compatibility checkpoints. These milestone-bound checks remain required even if streams finish out of numeric order.
-- No release, production deployment or new unaccepted gate is implied by updating planning documents. G0-G9 and G16 are accepted and merged. G10-G15 and G17-G24 remain open; the draft M10 source in PR #23 does not waive G10 requirements or lift the transport-processing hold. [Status](STATUS.md) records executed and accepted outcomes.
+- No release, production deployment or new unaccepted gate is implied by updating planning documents. G0-G9 and G16 are accepted and merged. G10-G15 and G17-G24 remain open; the merged M10 source in PR #23 does not waive G10 requirements or lift the transport-processing hold. [Status](STATUS.md) records executed and accepted outcomes.
 
 ## Graph maintenance
 

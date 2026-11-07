@@ -15,10 +15,13 @@ public sealed record ShipmentTrackingView(
     bool MaterializationStale, DateTimeOffset? MaterializedAtUtc,
     IReadOnlyList<ShipmentTimelineEvent> Timeline, bool HasMore = false);
 
-public enum TrackingMutationResult { Applied, Replayed, NotFound, Conflict, Invalid, Forbidden }
+public enum TrackingMutationResult { Applied, Replayed, NotFound, Conflict, Invalid, Forbidden, AuditUnavailable, DependencyUnavailable }
 
 public sealed record TrackingCorrection(Guid TargetReceiptId, Guid? ReplacementReceiptId,
     long ExpectedGeneration, string Reason);
+
+public sealed record TrackingCorrectionProof(Guid Nonce, long ExpiresEpoch,
+    string Signature);
 
 public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restrictedProjector = false)
 {
@@ -390,7 +393,7 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
         return saved.Revision;
     }
 
-    private static string RequestDigest(Guid org, Guid shipment, Guid actor,
+    public static string RequestDigest(Guid org, Guid shipment, Guid actor,
         TrackingCorrection? correction)
     {
         var canonical = correction is null
@@ -407,7 +410,8 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
 
     private async Task<(TrackingMutationResult Result, long Revision)> ExecuteAsync(
         Guid org, Guid shipment, TrackingCorrection? correction,
-        Guid actor, Guid session, string correlation, Guid? idempotencyKey, CancellationToken ct)
+        Guid actor, Guid session, string correlation, Guid? idempotencyKey,
+        TrackingCorrectionProof? proof, CancellationToken ct)
     {
         for (var attempt = 0; attempt < 3; attempt++)
         {
@@ -448,19 +452,24 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
                 {
                     if (correction.ExpectedGeneration != generation)
                         return (TrackingMutationResult.Conflict, 0);
+                    // No unsigned human correction path, even if this store is
+                    // mistakenly called without the HTTP authorization guard.
+                    if (session == Guid.Empty || !idempotencyKey.HasValue || proof is null)
+                        return (TrackingMutationResult.Forbidden, 0);
                     await using var insert = Command(Connection, tx, """
-                        INSERT INTO shipment_tracking_corrections
-                            (id,organization_id,shipment_id,target_receipt_id,
-                             replacement_receipt_id,generation,actor_user_id,reason,
-                             correlation_id,correction_digest)
-                        VALUES (@id,@org,@shipment,@target,@replacement,@generation,
-                                @actor,@reason,@correlation,@digest)
-                        """, ("id", Guid.NewGuid()), ("org", org), ("shipment", shipment),
+                        SELECT m10_apply_signed_correction(
+                            @org::uuid,@shipment::uuid,@target::uuid,@replacement::uuid,
+                            @generation::bigint,@actor::uuid,@session::uuid,
+                            @reason::varchar,@correlation::varchar,@digest::varchar,
+                            @key::uuid,@nonce::uuid,@expires::bigint,@signature::varchar)
+                        """, ("org", org), ("shipment", shipment),
                         ("target", correction.TargetReceiptId),
                         ("replacement", correction.ReplacementReceiptId),
                         ("generation", generation + 1), ("actor", actor),
-                        ("reason", correction.Reason), ("correlation", correlation),
-                        ("digest", requestHash));
+                        ("session", session), ("reason", correction.Reason),
+                        ("correlation", correlation), ("digest", requestHash),
+                        ("key", idempotencyKey.Value), ("nonce", proof.Nonce),
+                        ("expires", proof.ExpiresEpoch), ("signature", proof.Signature));
                     await insert.ExecuteNonQueryAsync(ct);
                     generation++;
                 }
@@ -486,6 +495,18 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
             {
                 // Entire failed serializable transaction is discarded.
             }
+            catch (PostgresException pg) when (pg.SqlState == "PZ002")
+            {
+                return (TrackingMutationResult.DependencyUnavailable, 0);
+            }
+            catch (PostgresException pg) when (pg.SqlState == "PZ001")
+            {
+                return (TrackingMutationResult.AuditUnavailable, 0);
+            }
+            catch (PostgresException pg) when (pg.SqlState == "42501")
+            {
+                return (TrackingMutationResult.Forbidden, 0);
+            }
             catch (PostgresException pg) when (pg.SqlState is "23514" or "23505" or "23503")
             {
                 return (TrackingMutationResult.Invalid, 0);
@@ -497,21 +518,18 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
 
     public Task<(TrackingMutationResult Result, long Revision)> RebuildAsync(
         Guid org, Guid shipment, CancellationToken ct)
-        => ExecuteAsync(org, shipment, null, Guid.Empty, Guid.Empty, "", null, ct);
+        => ExecuteAsync(org, shipment, null, Guid.Empty, Guid.Empty, "", null, null, ct);
 
     public Task<(TrackingMutationResult Result, long Revision)> RebuildForSessionAsync(
         Guid org, Guid shipment, Guid actor, Guid session, Guid key, CancellationToken ct)
-        => ExecuteAsync(org, shipment, null, actor, session, "", key, ct);
-
-    public Task<(TrackingMutationResult Result, long Revision)> CorrectAsync(
-        Guid org, Guid shipment, TrackingCorrection correction,
-        Guid actor, string correlation, CancellationToken ct)
-        => ExecuteAsync(org, shipment, correction, actor, Guid.Empty, correlation, null, ct);
+        => ExecuteAsync(org, shipment, null, actor, session, "", key, null, ct);
 
     public Task<(TrackingMutationResult Result, long Revision)> CorrectForSessionAsync(
         Guid org, Guid shipment, TrackingCorrection correction, Guid actor,
-        Guid session, string correlation, Guid key, CancellationToken ct)
-        => ExecuteAsync(org, shipment, correction, actor, session, correlation, key, ct);
+        Guid session, string correlation, Guid key, TrackingCorrectionProof proof,
+        CancellationToken ct)
+        => ExecuteAsync(org, shipment, correction, actor, session, correlation, key,
+            proof, ct);
 
     // The cursor is exclusive. Advancing past a failed item prevents it from
     // starving healthy later shipments; wrap to the start after reaching the end.

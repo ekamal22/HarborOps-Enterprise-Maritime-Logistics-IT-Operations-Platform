@@ -1,8 +1,11 @@
 # HarborOps Delivery Roadmap
 
+**Gate decision (2026-11-07):** G10 is ACCEPTED after S01 implementation-conformance and S25 independent-evidence review. The verified remediation branch is authorized for merge into `main`; integration is not yet recorded in this pre-merge checkpoint. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision record. Older G10 pending or blocked statements below are source-locked historical checkpoints, not current gate status. The M9 transport-processing hold remains mandatory.
+
+
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-06  
+**Updated status:** 2026-11-07  
 **State:** M0/G0 through M9/G9 and M16/G16 accepted and merged into protected `main`. G16 integrated through PR #25 at `47ba55e2` after the source-locked F001 correction extension. G10-G15 and G17-G24 remain open. Accepted M9 sustained transport-event processing restrictions remain.
 
 ## Authority and rationale
@@ -188,7 +191,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Ordered history, current status and explicit correction handling.
 **Entry:** G9 accepted before respective dependent work packages.
 **Required work packages:** M10-01 Specify deterministic event ordering; M10-02 Implement accepted timeline API; M10-03 Implement versioned projections; M10-04 Verify projection rebuild.
-**Exit G10:** Candidate source exists in draft [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23), with source audits and unexecuted remediation paths; G10 policy decisions, source-locked execution, independent raw-evidence review and explicit acceptance remain pending. Timeline ordering, late events, corrections, projection consistency, accepted-M9 upgrade and backlog policy must be verified. Open [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) contains proposed architecture and gate details, not an accepted contract.
+**Exit G10:** PR #23 merged the original M10 source on 2026-11-06. The frozen twelve-migration campaign and [independent technical review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) supported 23 PASS scenarios on `3e81b88` without granting acceptance. All fourteen M10 policies were approved on 2026-11-07 with modified L07/L14 and conditional L06. The [security remediation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) is committed separately with a thirteenth migration, but has not been compiled or executed against PostgreSQL. Remaining mandatory work is source-locked remediation tests, real-role authorization and atomic audit failure injection, populated upgrade, affected M9/M16 regression checks, independent supplemental evidence review, S01 conformance decision and a separate explicit S25 gate decision. PR #22 remains a historical planning reference. Neither merge nor deployment is authorized.
 **Not covered by this milestone:** Delay classification, notifications and dashboard metrics.
 
 #### M11: Delay rules and shipment exceptions

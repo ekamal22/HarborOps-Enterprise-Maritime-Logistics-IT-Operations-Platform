@@ -1,0 +1,9 @@
+# M10 correction authority extension for the isolated combined G10 stack.
+# Layer over the accepted M9/M16 Compose files without changing their contents.
+services:
+  migrator:
+    environment:
+      M10CorrectionProof__Key: "${HARBOROPS_M10_CORRECTION_PROOF_KEY:?Set a private base64 32-byte correction signing key}"
+  api:
+    environment:
+      M10CorrectionProof__Key: "${HARBOROPS_M10_CORRECTION_PROOF_KEY:?Set a private base64 32-byte correction signing key}"

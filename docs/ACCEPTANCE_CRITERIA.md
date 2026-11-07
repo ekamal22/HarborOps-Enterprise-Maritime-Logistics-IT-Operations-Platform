@@ -1,5 +1,8 @@
 # Acceptance Criteria
 
+**Gate decision (2026-11-07):** G10 is ACCEPTED after S01 implementation-conformance and S25 independent-evidence review. The verified remediation branch is authorized for merge into `main`; integration is not yet recorded in this pre-merge checkpoint. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision record. Older G10 pending or blocked statements below are source-locked historical checkpoints, not current gate status. The M9 transport-processing hold remains mandatory.
+
+
 **Authority:** This document defines detailed product and milestone validation checks. [Roadmap](ROADMAP.md) owns the M0-M24 gate boundaries, [Execution Graph](EXECUTION_GRAPH.md) owns prerequisite relationships, and [Status](STATUS.md) records observed outcomes. None of these planning documents by itself proves a check has passed.
 
 ## Status convention
@@ -14,6 +17,10 @@
 
 No item is accepted by implication. See [Status](STATUS.md) for the current ledger. Independently numbered gates may be verified and accepted in parallel when their explicit prerequisites are accepted. Milestone numbering alone is not an acceptance dependency. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md).
 
+
+## G10 verification and acceptance boundary
+
+The [independent raw-evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) supports 23 PASS technical dispositions on frozen M10 runtime `3e81b88`, with S01 then BLOCKED and S25 NOT EXECUTED. The fourteen policies were approved on 2026-11-07, with revised L07/L14 and conditional L06. The dedicated remediation branch now contains a thirteenth SQL migration, signed correction authority and atomic M16 correction audit. **New-source S01 compliance is NOT VERIFIED** until the [targeted matrix](M10_G10_L07_L14_REMEDIATION_PLAN.md) has been executed and independently reviewed. **S25 formal gate acceptance remains NOT EXECUTED.** No merge, deployment or release is authorized. See [implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 
 ## Independent gate verification and parallel integration
 

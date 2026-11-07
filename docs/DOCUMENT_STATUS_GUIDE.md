@@ -1,6 +1,11 @@
 # Documentation Status Guide
 
-**Current integrated baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and merged into protected `main`. G16 merged through PR #25 at `47ba55e2` and its post-merge reconciliation through PR #26 at `2ff2f2df`. G10-G15 and G17-G24 remain unaccepted. The [project status](STATUS.md) is authoritative for current gates and changes.
+**Gate decision (2026-11-07):** G10 is ACCEPTED after S01 implementation-conformance and S25 independent-evidence review. The verified remediation branch is authorized for merge into `main`; integration is not yet recorded in this pre-merge checkpoint. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision record. Older G10 pending or blocked statements below are source-locked historical checkpoints, not current gate status. The M9 transport-processing hold remains mandatory.
+
+
+**Current integrated baseline (2026-11-07):** M0-M9/G0-G9 and M16/G16 are accepted and merged into protected `main`. G16 merged through PR #25 at `47ba55e2` and its post-merge reconciliation through PR #26 at `2ff2f2df`. G10-G15 and G17-G24 remain unaccepted. The [project status](STATUS.md) is authoritative for current gates and changes.
+
+For the 2026-11-07 M10 policy and source reconciliation, see [G10 documentation reconciliation](M10_G10_DOCUMENTATION_RECONCILIATION_20261107.md). Earlier source-locked reports preserve their original evidence and dispositions; this reconciliation does not replace any of those results.
 
 ## Sources of truth
 
@@ -15,7 +20,7 @@ Source-locked plans, proposal files, audit reports and executed-verification reg
 
 ## Currently unaccepted work and restrictions
 
-- M10 planning [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) and draft implementation [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) have not established G10 acceptance, independent runtime evidence or a merge to `main`.
+- M10 planning [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) and source [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) did not establish G10 acceptance. Frozen source `3e81b88` subsequently gained independently reviewed technical evidence (23 PASS, S01 BLOCKED at the time, S25 NOT EXECUTED). Fourteen policies were approved on 2026-11-07; L07/L14 remediation was committed on a separate branch without executed new-source tests. Preserve original evidence reports and their contemporaneous dispositions. See [current implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 - Older open documentation [PR #21](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/21) and G16 supplement [PR #24](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/24) may contain superseded current-state wording. Their historical content must be reconciled before any merge and is not a replacement for current `main`.
 - M9's mandatory hold on sustained transport-event processing remains until separately approved and verified backlog handling prevents exceeding the 10,000 unresolved-work-item cap. M16 audit retention is 365 days online followed by separately approved archival, not automatic purge.
 - The repository is public for inspection, but hosting, production deployment and G24 release are not authorized. GitHub Actions remains disabled.

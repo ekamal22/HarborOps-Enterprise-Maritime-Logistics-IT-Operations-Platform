@@ -600,9 +600,25 @@ public sealed class M11ExceptionRuntimeTests
         var body = await page.Content.ReadFromJsonAsync<JsonElement>();
         var token = body.GetProperty("nextCursor").GetString();
         Assert.False(string.IsNullOrWhiteSpace(token));
-        using (var next = await manager.GetAsync(Collection(s.Fixture.A) +
-            "?limit=1&cursor=" + Uri.EscapeDataString(token!)))
+        // A new occurrence opened after the first page must not enter its
+        // database-clock creation-cutoff window.
+        var later = await EvaluateAndFind(s, await ScheduledShipment(s));
+        var seen = new HashSet<Guid>();
+        seen.Add(Assert.Single(body.GetProperty("items").EnumerateArray())
+            .GetProperty("id").GetGuid());
+        var cursor = token;
+        for (var pageNumber = 0; pageNumber < 8 && cursor is not null; pageNumber++)
+        {
+            using var next = await manager.GetAsync(Collection(s.Fixture.A) +
+                "?limit=1&cursor=" + Uri.EscapeDataString(cursor));
             Assert.Equal(HttpStatusCode.OK, next.StatusCode);
+            var json = await next.Content.ReadFromJsonAsync<JsonElement>();
+            foreach (var item in json.GetProperty("items").EnumerateArray())
+                Assert.True(seen.Add(item.GetProperty("id").GetGuid()));
+            cursor = json.GetProperty("nextCursor").GetString();
+        }
+        Assert.Equal(2, seen.Count);
+        Assert.DoesNotContain(later, seen);
         using (var swapped = await manager.GetAsync(Collection(s.Fixture.A) +
             "?limit=1&state=Open&cursor=" + Uri.EscapeDataString(token!)))
             Assert.Equal(HttpStatusCode.Conflict, swapped.StatusCode);

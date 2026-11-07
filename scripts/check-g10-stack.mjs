@@ -599,6 +599,62 @@ await check("m10-exact-api-worker-grants-keep-m16-and-m9-restrictions", async ()
   return "API gained only the scoped M10 writes; worker and audit protections unchanged";
 });
 
+await check("m10-correction-authority-attacks-under-real-restricted-api-login", async () => {
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  const managerUser = scalar(`SELECT id FROM users WHERE email='${emails.manager}'`);
+  // The restricted login can read live identifiers; they must not be enough to correct.
+  const readable = asApi(`SELECT id FROM auth_sessions WHERE user_id='${managerUser}' AND revoked_at_utc IS NULL ORDER BY issued_at_utc DESC LIMIT 1`);
+  assert.equal(readable.code, 0, "API must read auth_sessions: " + readable.err.slice(0, 120));
+  assert.match(readable.out, uuid, "a live Manager session id is readable by the API login");
+  const stolenSession = readable.out;
+  const effects = () => scalar(`SELECT (SELECT count(*) FROM shipment_tracking_corrections WHERE organization_id='${organizationId}')||'/'||
+    (SELECT count(*) FROM audit_entries WHERE event_type='shipment.tracking_correction_created')||'/'||
+    (SELECT count(*) FROM shipment_tracking_operation_replays WHERE organization_id='${organizationId}' AND operation_kind='Correction')||'/'||
+    (SELECT count(*) FROM shipment_tracking_input_versions WHERE organization_id='${organizationId}' AND shipment_id='${fixture.shipment}' AND input_revision>0)`);
+  const before = effects();
+  // R04: direct INSERT is denied even for an otherwise valid actor and generation.
+  denies(asApi, `INSERT INTO shipment_tracking_corrections (id,organization_id,shipment_id,target_receipt_id,replacement_receipt_id,generation,actor_user_id,reason,correlation_id,correction_digest)
+    VALUES (gen_random_uuid(),'${organizationId}','${fixture.shipment}','${resolved.receipt}',NULL,2,'${managerUser}','Direct insert attempt','direct','${"d".repeat(64)}')`, /permission denied/);
+  // R05 and R06: forged proofs built from readable identifiers are refused.
+  const epoch = Math.floor(Date.now() / 1000);
+  const call = (signature, expires = epoch + 30) => `SELECT m10_apply_signed_correction('${organizationId}','${fixture.shipment}','${resolved.receipt}',NULL,2,'${managerUser}','${stolenSession}',
+    'Forged authority attempt','forge','${"e".repeat(64)}',gen_random_uuid(),gen_random_uuid(),${expires},'${signature}')`;
+  denies(asApi, call("a".repeat(64)), /Correction authority denied/);
+  denies(asApi, call(""), /Correction authority denied/);
+  denies(asApi, call("a".repeat(64), epoch - 30), /Correction authority denied/);
+  denies(asApi, call("a".repeat(64), epoch + 3600), /Correction authority denied/);
+  denies(asWorker, call("a".repeat(64)), /permission denied/);
+  // The verifier secret, the nonce store and replay forgery are closed to the API login.
+  denies(asApi, "SELECT secret FROM m10_correction_proof_keys", /permission denied/);
+  denies(asApi, "SELECT 1 FROM m10_correction_proof_nonces", /permission denied/);
+  denies(asApi, `INSERT INTO shipment_tracking_operation_replays (organization_id,shipment_id,actor_user_id,idempotency_key,operation_kind,request_digest,response_revision,response_generation)
+    VALUES ('${organizationId}','${fixture.shipment}','${managerUser}',gen_random_uuid(),'Correction','${"e".repeat(64)}',99,99)`, /Correction replay authority denied/);
+  assert.equal(effects(), before, "denied attacks must leave no correction, audit, replay or revision effect");
+
+  // R10: only the Auditor of this organization reads the correction event, without sensitive content.
+  const audit = `${root()}/audit-events`;
+  const list = await sessions.auditor.send("GET", audit + "?limit=100", undefined, { csrf: false });
+  assert.equal(list.status, 200, "auditor audit list " + list.status);
+  const rows = list.json.entries.filter(entry => entry.eventType === "shipment.tracking_correction_created");
+  assert.equal(rows.length, 1, "exactly one correction audit entry is visible");
+  const [entry] = rows;
+  assert.equal(entry.organizationId, organizationId);
+  assert.equal(entry.outcome, "Succeeded");
+  assert.equal(entry.actorKind, "Human");
+  assert.equal(entry.actorRole, "Manager");
+  assert.equal(entry.actorUserId, managerUser);
+  assert.equal(entry.resourceType, "shipment_tracking_corrections");
+  assert.deepEqual(entry.metadata, { operation: "insert", changedFields: ["correction"] });
+  const text = JSON.stringify(entry);
+  for (const secret of ["Confirmed invalid first observation", stolenSession, "signature", "nonce"])
+    assert.ok(!text.includes(secret), "audit entry must not expose " + secret.slice(0, 12));
+  for (const role of ["admin", "manager", "analyst"]) {
+    const denied = await sessions[role].send("GET", audit, undefined, { csrf: false });
+    assert.equal(denied.status, 403, role + " must not read the correction audit entry, got " + denied.status);
+  }
+  return "direct INSERT, forged and stolen-identifier proofs, expired and far-future proofs, key, nonce and replay access all denied with no effect; Auditor reads one sanitized scoped entry";
+});
+
 await check("m10-projector-role-provisioned-and-confined", async () => {
   const script = readFileSync(new URL("./configure-m10-projector-db.sql", import.meta.url), "utf8");
   const apply = compose(["exec", "-T", "postgres", "psql", "-X", "-v", "ON_ERROR_STOP=1", "-U", "harborops", "-d", "harborops"], { input: script });

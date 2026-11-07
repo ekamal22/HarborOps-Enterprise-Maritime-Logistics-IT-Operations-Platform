@@ -64,6 +64,18 @@ assert.match(migration, /existing_state='Open' OR p_reason='shipment_not_eligibl
 assert.match(policy, /input.WorkflowStatus == "InTransit"/);
 assert.match(store, /candidate AS MATERIALIZED/);
 assert.match(store, /LastOrganization/);
+assert.match(store, /DateTimeOffset SnapshotAtUtc/);
+assert.match(store, /first_detected_at_utc<=@snapshot::timestamptz/);
+assert.match(store, /HistoryPageAsync/);
+assert.match(store, /ORDER BY occurred_at_utc,id LIMIT @limit/);
+assert.match(endpoints, /DateTimeOffset SnapshotAtUtc/);
+assert.match(endpoints, /HistoryCursor/);
+assert.match(endpoints, /\/exceptions\/\{exceptionId\}\/history/);
+assert.match(web, /Load more history/);
+const m11RuntimeTests = read("tests/HarborOps.IntegrationTests/M11ExceptionRuntimeTests.cs");
+assert.match(m11RuntimeTests, /LongImmutableHistoryCanBePagedWithRoleRedaction/);
+assert.match(m11RuntimeTests, /database-clock creation-cutoff window/);
+
 assert.match(grants, /REVOKE ALL ON shipment_exception_proof_nonces/);
 assert.ok(!/GRANT (INSERT|UPDATE|DELETE) ON shipment_exception/i.test(grants));
 assert.match(migration, /audit_entries/);

@@ -195,6 +195,21 @@ public sealed class ShipmentSearchHttpTests
         using (var analystExport = await analyst.GetAsync(search + "?q=" + code))
             Assert.Equal(HttpStatusCode.OK, analystExport.StatusCode);
 
+        // Missing or mismatched HTTP-only proof secrets must never return a CSV.
+        // The SQL verifier remains provisioned with the original fixture secret.
+        foreach (var runtimeKey in new[] { "",
+            Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)) })
+        {
+            using var invalidRuntime = runtime.WithWebHostBuilder(
+                builder => builder.UseSetting("M12ExportProof:Key", runtimeKey));
+            using var client = invalidRuntime.CreateClient();
+            await ReferenceDataHttpTests.Login(client, fixture.ManagerEmail);
+            await ReferenceDataHttpTests.Select(client, fixture.A);
+            using var refused = await client.GetAsync(search + "?q=" + code);
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, refused.StatusCode);
+            Assert.NotEqual("text/csv", refused.Content.Headers.ContentType?.MediaType);
+        }
+
         // A direct runtime SQL login may not bypass the function's required
         // metadata or invent a user/session outside active organization scope.
         await using (var direct = new NpgsqlConnection(csb.ConnectionString))

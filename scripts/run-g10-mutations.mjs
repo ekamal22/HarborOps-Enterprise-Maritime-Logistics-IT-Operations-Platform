@@ -77,6 +77,9 @@ const I = {
   projectorId: "RealProjectorIdentityCannotMutateM8M9M16EvidenceOrOtherScopes",
   projectorStore: "RealProjectorIdentityDiscoversAndRebuildsADirtyScopeThroughTheStore",
   projectorService: "RealProjectorServiceSkipsAPoisonedShipmentThenRecoversUnderTheRestrictedRole",
+  projectorFresh: "FreshInstallAppliesThirteenMigrationsWithTheNullSafeProjectorScopeFunction",
+  projectorUpgrade: "GenuineTwelveMigrationDatabaseKeepsTheOriginalFunctionUntilMigrationThirteenThenIsNullSafeAndIdempotent",
+  projectorPerms: "OrdinaryRuntimeIdentitiesCannotExecuteReplaceOrBroadenTheProjectorScopeAndSigningFunctions",
   routes: "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards",
   locks: "WorkerFinalizationBlocksBehindProjectorAndCorrectionLocksWithoutDeadlock",
   live: "M10RoutesHonorLiveRoleDowngradeRateLimitAndSessionRevocation",
@@ -84,6 +87,22 @@ const I = {
   upgrade: "PopulatedHistoryIsBackfilledByM10WithoutAlteringAcceptedEvidenceAndDowngradeIsProtected"
 };
 const V = (name, edits, unit, integration) => ({ name, edits, unit, integration });
+// Migration 12 is immutable and migration 13 replaces the projector scope function in place, so the
+// effective definition on every database comes from migration 13. Its Up block is addressed through a
+// header that is unique to it (the Down block restores the original body under a different label).
+const NEWLINE = String.fromCharCode(10);
+const RECONCILE_HEAD = [
+  "DO $reconcile$",
+  "            DECLARE schema_name text := current_schema();",
+  "            BEGIN",
+  "                EXECUTE format($sql$",
+  "                    CREATE OR REPLACE FUNCTION %1$I.m10_lock_projector_scope(p_org uuid,p_shipment uuid)",
+  "                    RETURNS boolean",
+  "                    LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $fn$",
+  "                    DECLARE organization_state text;",
+  "                    DECLARE shipment_state text;",
+  "                    BEGIN"].join(NEWLINE);
+const GUARD_LINE = NEWLINE + "                        IF session_user <> 'harborops_projector' THEN RETURN false; END IF;";
 const variants = [
   V("control", [], Object.values(U), Object.values(I)),
 
@@ -111,12 +130,27 @@ const variants = [
     "shipment_tracking_input_versions,"]],
     [], [I.projectorStore, I.projectorService]),
   V("m10-projector-session-guard-removed", [[MIG10,
-    "IF session_user <> 'harborops_projector' THEN RETURN false; END IF;", ""]],
-    [], [I.projectorId]),
-  V("m10-projector-lock-null-for-unknown-scope", [[MIG10,
+    "IF session_user <> 'harborops_projector' THEN RETURN false; END IF;", ""],
+    [AUTH10, RECONCILE_HEAD + GUARD_LINE, RECONCILE_HEAD]],
+    [], [I.projectorId, I.projectorUpgrade]),
+  V("m10-projector-lock-null-for-unknown-scope", [[AUTH10,
     "RETURN COALESCE(organization_state='Active' AND shipment_state='Active',false);",
     "RETURN organization_state='Active' AND shipment_state='Active';"]],
-    [], [I.projectorId]),
+    [], [I.projectorId, I.projectorFresh, I.projectorUpgrade]),
+  V("m10-projector-scope-reconcile-not-security-definer", [[AUTH10, RECONCILE_HEAD,
+    RECONCILE_HEAD.replace("LANGUAGE plpgsql SECURITY DEFINER SET", "LANGUAGE plpgsql SET")]],
+    [], [I.projectorId, I.projectorFresh, I.projectorPerms]),
+  V("m10-projector-scope-reconcile-search-path-widened", [[AUTH10, RECONCILE_HEAD,
+    RECONCILE_HEAD.replace("SET search_path=pg_catalog AS", "SET search_path=public,pg_catalog AS")]],
+    [], [I.projectorFresh, I.projectorPerms]),
+  V("m10-down-leaves-corrected-projector-function", [[AUTH10,
+    "RETURN organization_state='Active' AND shipment_state='Active';",
+    "RETURN COALESCE(organization_state='Active' AND shipment_state='Active',false);"]],
+    [], [I.projectorUpgrade]),
+  V("m10-twelfth-migration-edited-in-place", [[MIG10,
+    "RETURN organization_state='Active' AND shipment_state='Active';",
+    "RETURN COALESCE(organization_state='Active' AND shipment_state='Active',false);"]],
+    [], [I.projectorUpgrade]),
 
   // ----- M10 migration triggers and retention -----
   V("m10-input-trigger-not-security-definer", [[MIG10,

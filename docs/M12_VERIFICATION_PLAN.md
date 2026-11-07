@@ -11,7 +11,7 @@
 | S05 | Origin/destination port filters | Matching and wrong-tenant port UUIDs |
 | S06 | UTC windows | Equal, just before/after, null and offsets |
 | S07 | Invalid and combined filters | Repeated, unknown, malformed, AND semantics |
-| S08 | Cursor integrity and UUID paging | Replay, expiry, tamper, tenant/filter swaps |
+| S08 | Cursor integrity and UUID paging | Replay, expiry, tamper, tenant/filter/user/session swaps |
 | S09 | Concurrent writes and live pages | No incorrect snapshot claim |
 | S10 | Search-to-M5 detail | Fresh authorization and archive semantics |
 | S11 | Five-role search/export matrix | Analyst, Manager, Auditor, Admin, Support |
@@ -21,7 +21,7 @@
 | S15 | CSV injection and encoding | Formula, quotes, comma, newline, Unicode |
 | S16 | Safe fields and response headers | Fixed 12-column schema, no-store |
 | S17 | Row/byte/timeout limits | 5000, 5001, 10 MiB, no partial CSV |
-| S18 | M16 audit and restricted role | Audit lock/revoke/failure; SQL forgery negative |
+| S18 | M16 signed export audit and restricted role | HMAC binding, expiry, key missing/mismatch/rotation, unreadable verifier table, replay, SQL forgery, audit outage |
 | S19 | Outage/cancel/rate/concurrency | Safe no-partial-output failure |
 | S20 | PostgreSQL plans | EXPLAIN actual cost for representative data |
 | S21 | Q2 historical snapshot | Disposable clone test or evidenced NOT APPLICABLE |
@@ -34,7 +34,7 @@
 
 **Tier 1:** On the frozen candidate, `dotnet build HarborOps.sln --configuration Release`; targeted unit/contract suites; `npm --prefix web run build`; `node scripts/render-execution-graph.mjs --check`; `node scripts/check-planning-docs.mjs`. Stop on source defects before heavy tests.
 
-**Tier 2:** Real scoped HTTP/PostgreSQL `ShipmentSearchHttpTests`, restricted API DB role, migration 14 on fresh and copied populated source, audit integrity, cross-role/revocation/SQL, failures, row and byte limits. The restricted-role test reprovisions a global PostgreSQL login, so run only on an exclusive disposable database/server; no parallel mutable DB suites.
+**Tier 2:** Real scoped HTTP/PostgreSQL `ShipmentSearchHttpTests`, restricted API DB role, migration 14 on fresh and copied populated source, signer and key provisioning, audit function grants, replay index, missing/mismatched/rotated key, cross-role/revocation/SQL, failure atomicity, row and byte limits. The restricted-role test reprovisions a global PostgreSQL login, so run only on an exclusive disposable database/server; no parallel mutable DB suites.
 
 **Tier 3:** One final source-locked G12 campaign, required relevant regressions, browser tests in Chromium/Firefox/WebKit using `HARBOROPS_M12_FIXTURES=1`, applicable security/mutation/image scans, measured query plans and Q2 historical check. Parallelize non-conflicting static checks only; isolate browser ports/profiles and mutable DB state.
 
@@ -42,4 +42,4 @@ Evidence on E: must include exact SHA, clean/dirty status, branch/parent/migrati
 
 ## Adversarial checks
 
-Remove tenant predicates, the M6 association scope, cursor org/fingerprint binding, live role validation, export limit, CSV formula defense, export audit or failure rollback in disposable mutations and prove targeted assertions fail for their intended reason. Test API-login forged audit arguments and unauthorized audit-write SQL. No test execution has been claimed.
+Remove tenant predicates, the M6 association scope, cursor org/fingerprint binding, live role validation, export limit, CSV formula defense, export audit or failure rollback in disposable mutations and prove targeted assertions fail for their intended reason. Test API-login forged audit arguments and unauthorized audit-write SQL. No test execution has been claimed. See [source correctness audit](M12_CORRECTNESS_AUDIT_20261107.md) for the required evidence distinctions.

@@ -15,10 +15,12 @@
 ## Changed source and tests
 
 Domain: `ShipmentSearchPolicy.cs`, `OrganizationPolicy.cs`.
-Infrastructure: `ShipmentSearchStore.cs`, `DependencyInjection.cs`, `20261107230000_M12ShipmentExportAudit.cs`.
+Infrastructure: `ShipmentSearchStore.cs`, `M12ExportProofSigner.cs`, `DependencyInjection.cs`, `20261107230000_M12ShipmentExportAudit.cs`.
 API: `ShipmentSearchEndpoints.cs`, `Program.cs`, `AuthenticationSetup.cs`, `AuditRoleProvisioner.cs`.
 Web: `shipmentSearchClient.ts`, `ShipmentWorkspace.tsx`.
-Tests: `ShipmentSearchPolicyTests.cs`, `ShipmentSearchContractTests.cs`, `ShipmentSearchHttpTests.cs`, `shipment-search.spec.mjs`, updated `MigrationSnapshotTests.cs` and event-specific M16 `AuditHardeningTests.cs`.
+Tests: `ShipmentSearchPolicyTests.cs`, `M12ExportProofSignerTests.cs`, `ShipmentSearchContractTests.cs`, `ShipmentSearchHttpTests.cs`, `shipment-search.spec.mjs`, updated `MigrationSnapshotTests.cs` and event-specific M16 `AuditHardeningTests.cs`. Configuration: `compose.yaml` and `.env.example` use the separate untracked M12 signing key only in migrator/API.
+
+[M12 source correctness audit](M12_CORRECTNESS_AUDIT_20261107.md) records ten findings, committed source fixes, and the unexecuted checks. The signed proof and optional key configuration must be verified before acceptance.
 
 No .NET SDK, Docker, PostgreSQL or browser runtime is available in the connected source-editing environment. **No build, runtime test, migration, real-stack check, scan, mutation, or G12-S25 review passed or failed here because none was run.** All G12 scenarios are NOT EXECUTED. Reference-dataset p95 measurements belong to M21-02.
 
@@ -26,8 +28,8 @@ No .NET SDK, Docker, PostgreSQL or browser runtime is available in the connected
 
 - Explicit policy disposition M12-P01..P16 and review of Auditor export, audit grants and row/byte/rate limits.
 - Run local E:-backed disposable DB and browser verification with the source frozen at the final SHA. Preserve every failure, not just green outcomes.
-- Coordinate M11/M12 migration 14 collision before combined integration.
-- Validate API-role direct SQL permission/forgery, role change and audit-failure atomicity; the audit function checks a claimed live session but does not have a signed per-request proof.
+- Coordinate M11 and M12 migration discovery on a combined SHA: their IDs are distinct (`20261107180000` and `20261107230000`), but separate branch migration-count tests and shared integrations must be reconciled.
+- Execute the new signed-proof, key rotation/mismatch, same-origin GET, worker denial, forged caller, duplicate-correlation, role change and audit-failure tests against real restricted PostgreSQL credentials. Source hardening is not runtime proof.
 - Perform G12 Q2 historical-volume compatibility on a safe copy, or document NOT APPLICABLE with discovery evidence.
 - Independent G12-S25 review and explicit G12 acceptance pending.
 

@@ -22,7 +22,7 @@
 | S16 | Safe fields and response headers | Fixed 12-column schema, no-store |
 | S17 | Row/byte/timeout limits | 5000, 5001, 10 MiB, 15-second statement timeout, 25-second internal deadline and 30-second proxy read timeout, no partial CSV |
 | S18 | M16 signed export audit and restricted role | Nine-field HMAC substitution, expiry, key missing/mismatch/rotation, unreadable verifier table, replay, SQL forgery, audit outage, M12 downgrade refusal after audited exports |
-| S19 | Outage/cancel/rate/concurrency | Safe no-partial-output failure |
+| S19 | Outage/cancel/rate/concurrency | Real slow DB, 25-second search/export budget, 30-second proxy envelope, browser abort, safe no-partial-output failure |
 | S20 | PostgreSQL plans | EXPLAIN actual cost for representative data |
 | S21 | Q2 historical snapshot | Disposable clone test or evidenced NOT APPLICABLE |
 | S22 | Three-engine browser | M12 search/export/role plus accepted M5 delayed search response across organization switch and in-flight draft background refresh, in Chromium/Firefox/WebKit |
@@ -51,3 +51,7 @@ The [2026-11-08 source audit](M12_CORRECTNESS_AUDIT_20261108.md) added tests for
 ## Third-pass M5 browser compatibility checks
 
 The [third-pass source findings](M12_CORRECTNESS_AUDIT_20261108.md#third-pass-m5-browser-regression-findings-2026-11-08) show that the M12 shipment workspace reads `/shipments/search`, whereas two accepted M5 browser tests still intercepted the original list URI. The `shipment.spec.mjs` deferred-response test and `shipment-draft.spec.mjs` unsaved-draft background refresh test were updated to intercept the route actually used by M12, without weakening their assertions. G12-S22 must execute both tests with `shipment-search.spec.mjs` against actual M5/M12 fixtures across all three engines. Their source correction does not constitute a passing browser result.
+
+## Fourth-pass execution prerequisites
+
+The [fourth-pass correctness audit](M12_CORRECTNESS_AUDIT_20261108_FOURTH_PASS.md) records the parameterized EF Core `ExecuteSqlAsync` change and 25-second total search/export budgets. Source inspection established both Nginx configurations use a 30-second API read timeout, but did not measure actual cancellation or HTTP response timing. S02 must compile the API with warnings-as-errors, and S17/S19 must exercise slow SQL, cancellation, timeout response, and the proxy path with actual timing and no partial CSV. S25 remains unexecuted.

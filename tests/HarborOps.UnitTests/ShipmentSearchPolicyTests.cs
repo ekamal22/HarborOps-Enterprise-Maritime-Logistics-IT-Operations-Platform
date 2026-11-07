@@ -57,6 +57,8 @@ public sealed class ShipmentSearchPolicyTests
         Assert.Throws<ArgumentException>(() => Make(limit: 0));
         Assert.Throws<ArgumentException>(() => Make(limit: 101));
         Assert.Throws<ArgumentException>(() => Make(q: "one\nmore"));
+        Assert.Throws<ArgumentException>(() => Make(q: "\nleading"));
+        Assert.Throws<ArgumentException>(() => Make(q: "trailing\r"));
         Assert.Throws<ArgumentException>(() => Make(q: new string('x', 81)));
     }
 

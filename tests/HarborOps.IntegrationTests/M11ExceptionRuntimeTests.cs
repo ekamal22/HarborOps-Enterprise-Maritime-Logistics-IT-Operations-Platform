@@ -351,6 +351,72 @@ public sealed class M11ExceptionRuntimeTests
     }
 
     [Fact]
+    public async Task RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence()
+    {
+        var s = await Prepare();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var a = s.Fixture.Admin; using var m = s.Fixture.Manager;
+        using var n = s.Fixture.Analyst;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        var shipment = await ScheduledShipment(s);
+        var original = await EvaluateAndFind(s, shipment);
+        var originalPath = Collection(s.Fixture.A) + "/" + original;
+        var shipmentPath = $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}";
+        using (var ack = await SendAction(manager, originalPath,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Reviewing the original overdue arrival" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, ack.StatusCode);
+
+        using (var update = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, shipmentPath, new { expectedVersion = 3L,
+                plannedArrivalAtUtc = Utc(DateTimeOffset.UtcNow.AddHours(4)) }))
+            Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+        using (var evaluation = await ReferenceDataHttpTests.Send(manager,
+            HttpMethod.Post, shipmentPath + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, evaluation.StatusCode);
+        using (var detail = await manager.GetAsync(originalPath))
+        {
+            var row = (await detail.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("exception");
+            Assert.Equal("Acknowledged", row.GetProperty("state").GetString());
+            Assert.Equal("Inactive", row.GetProperty("condition").GetString());
+        }
+
+        using (var update = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, shipmentPath, new { expectedVersion = 4L,
+                plannedArrivalAtUtc = Utc(DateTimeOffset.UtcNow.AddHours(-2)) }))
+            Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+        for (var i = 0; i < 2; i++)
+        {
+            using var evaluation = await ReferenceDataHttpTests.Send(manager,
+                HttpMethod.Post, shipmentPath + "/exceptions/evaluate");
+            Assert.Equal(HttpStatusCode.OK, evaluation.StatusCode);
+        }
+        using (var list = await manager.GetAsync(shipmentPath + "/exceptions"))
+        {
+            Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+            var data = await list.Content.ReadFromJsonAsync<JsonElement>();
+            var rows = data.GetProperty("items").EnumerateArray().ToArray();
+            Assert.Equal(2, rows.Length);
+            var first = rows.Single(item => item.GetProperty("id").GetGuid() == original);
+            Assert.Equal(1, first.GetProperty("occurrence").GetInt32());
+            Assert.Equal("Resolved", first.GetProperty("state").GetString());
+            var current = rows.Single(item => item.GetProperty("id").GetGuid() != original);
+            Assert.Equal(2, current.GetProperty("occurrence").GetInt32());
+            Assert.Equal("Open", current.GetProperty("state").GetString());
+            Assert.Equal("Active", current.GetProperty("condition").GetString());
+        }
+
+        await using var db = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>()
+                .UseNpgsql(s.Roles.Admin).Options);
+        Assert.Equal(1L, await db.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM shipment_exception_history " +
+            "WHERE exception_id={0} AND action='AutoResolved'", original).SingleAsync());
+    }
+
+    [Fact]
     public async Task AcknowledgedExceptionCanBeResolvedAfterSourceClearance()
     {
         var s = await Prepare();

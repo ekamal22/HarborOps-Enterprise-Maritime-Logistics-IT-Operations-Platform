@@ -1,6 +1,6 @@
 # Security Model
 
-**M12 candidate status (2026-11-08):** [Draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) contains scoped shipment search, bounded signed CSV export and source-level correctness repairs. [Latest audit](M12_CORRECTNESS_AUDIT_20261108.md), [implementation status](M12_IMPLEMENTATION_STATUS.md) and [G12 plan](M12_VERIFICATION_PLAN.md) distinguish authored tests from executed evidence. The third pass corrects two accepted M5 browser interceptors to exercise `/shipments/search`. G12 execution and independent acceptance remain pending. Protected `main` and the M9 transport hold are unchanged.
+**M12 candidate status (2026-11-08):** [Draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) contains scoped shipment search, bounded signed CSV export and source-level correctness repairs. [Latest audit](M12_CORRECTNESS_AUDIT_20261108_FOURTH_PASS.md), [implementation status](M12_IMPLEMENTATION_STATUS.md) and [G12 plan](M12_VERIFICATION_PLAN.md) distinguish authored tests from executed evidence. The fourth pass corrects EF Core SQL API compatibility and aligns search/export time budgets with the proxy, while retaining the third-pass M5 browser regression fixes. G12 execution and independent acceptance remain pending. Protected `main` and the M9 transport hold are unchanged.
 
 ## M12 scoped search/export security candidate, 2026-11-07
 

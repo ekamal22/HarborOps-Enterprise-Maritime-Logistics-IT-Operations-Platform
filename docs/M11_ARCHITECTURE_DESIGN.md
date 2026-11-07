@@ -1,0 +1,103 @@
+# M11 Delay Rules and Shipment Exceptions: Architecture
+
+**Status:** Proposed M11-01 contract. Acceptance pending. No M11 implementation, G11 verification or deployment is claimed.
+**Planning base:** accepted G10/G16 `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`, 2026-11-07.
+**Prerequisite:** G10 accepted. The canonical work-package dependencies remain those in [execution-graph.json](execution-graph.json).
+**Scope:** M11-01 rule definition; M11-02 deterministic exception evaluation; M11-03 scoped, auditable exception lifecycle; M11-04 end-to-end verification. FR-010, FR-009, FR-002, NFR-002 and NFR-007.
+**Companion documents:** [implementation plan](M11_IMPLEMENTATION_PLAN.md), [G11 verification](M11_VERIFICATION_PLAN.md), [planning register](M11_PLANNING_STATUS.md).
+
+## 1. Accepted inputs and design boundaries
+
+M11 extends the accepted modular monolith and PostgreSQL transaction boundary. It must not reinterpret accepted M5 shipment workflow, M8 immutable receipt history, M9 worker effects, M10 corrected timeline or M16 audit permissions.
+
+| Accepted input | Current location and semantics | M11 use |
+| --- | --- | --- |
+| Shipment schedule, workflow, archive flag and version | `ShipmentRecord` and `ShipmentStatusChange`, `src/HarborOps.Infrastructure/Shipments/` | Planned departure/arrival in UTC and recorded manual workflow transitions; never asserted physical position |
+| Deterministic tracking read model | `ShipmentTimelineStore.ReadBoundedAsync`, `TrackingTimelinePolicy.Version = m10-equipment-v2` | Equipment observations and explicit conflict, input revision/digest, correction generation, stale flag |
+| Retained accepted equipment history | `shipment_tracking_timeline_entries`, M10 corrections and M9 receipt-unique effects | Provenance and correction-sensitive evaluation; no rewrite of source evidence |
+| Tenant/session authorization | `OrganizationStore.ResolveAsync`, `OrganizationPermission.ViewShipmentData` | Live selected organization and typed business-role checks |
+| Central audit | M16 `audit_entries` and transaction-coupled write contract | Sensitive human dispositions must create exactly one authorized audit event in the same commit |
+
+**Mandatory restriction:** M9 ARRI and DEPA transport events remain parked in `NeedsReconciliation`. The 10,000 unresolved-work-item cap remains enforced. M10 reports `etaUtc = null`; its observed equipment events are GTIN/GTOT, not transport-arrival evidence. M11 must not derive vessel ETA, assert physical arrival/departure or drain parked events. No production deployment or sustained transport processing is authorized.
+
+## 2. Proposed local rule policy, acceptance pending
+
+These are **recommendations for M11-01 approval**, not implemented or approved decisions. Implementation must stop at the relevant decision boundary until an explicit contract disposition is recorded. No existing D-number is silently repurposed.
+
+| ID | Proposed contract | Reason |
+| --- | --- | --- |
+| M11-P01 | Rule version `m11-rules-v1`; case-stable rule identifiers `EquipmentConflict`, `ArrivalScheduleOverdue`, `RecordedArrivalLate`, `DepartureSlippageRisk`. | Deterministic storage, migration and reporting |
+| M11-P02 | Only accepted, active same-organization shipments are eligible. Archived or cancelled shipments are excluded from new schedule-risk evaluation; existing exception history is preserved. | Avoid indefinite noise and cross-scope leakage |
+| M11-P03 | `EquipmentConflict` requires a non-stale M10 projection with observed `Conflict` and the container/evidence identifiers actually responsible. It is not a movement or ETA assertion. | Reuse accepted M10 conflict semantics |
+| M11-P04 | `ArrivalScheduleOverdue` means a configured grace interval has elapsed after planned arrival while no recorded `Arrived`/`Completed` manual workflow transition exists. Label it **schedule overdue, arrival unconfirmed**, never confirmed physical delay. | Avoid false claims from absence of tracking |
+| M11-P05 | `RecordedArrivalLate` means a recorded manual transition to `Arrived` occurred strictly after planned arrival plus grace. Describe evidence as a **recorded workflow arrival**, not independently verified physical arrival. | Distinguish observed workflow evidence from missing data |
+| M11-P06 | `DepartureSlippageRisk` requires a recorded `InTransit` transition strictly later than planned departure plus tolerance while scheduled arrival is still in the future. It is a conservative schedule-risk indicator, not a prediction. | Provide a defensible at-risk label without ETA |
+| M11-P07 | Proposed demo defaults: arrival grace 60 minutes, departure tolerance 60 minutes, UTC clock supplied through `TimeProvider`. Values belong to a versioned policy, not caller query parameters. Equality at the boundary is not delayed. | Deterministic clock-bound tests; threshold approval pending |
+| M11-P08 | Missing schedule, absent matching workflow transition, stale M10 materialization, uncertain container identity or non-eligible shipment must yield `Unknown`/no inferred condition as applicable. Do not turn missing evidence into `Clear` or `Delayed`. | Explicit confidence and uncertainty |
+| M11-P09 | Separate matching rule instances may coexist. Display precedence `Conflict > RecordedArrivalLate > ArrivalScheduleOverdue > DepartureSlippageRisk` is presentation only; never delete other active conditions. | Stable UI and auditable independent causes |
+| M11-P10 | Lifecycle `Open -> Acknowledged -> Resolved`. Automatic first detection opens, automatic clearance resolves, Manager may acknowledge with reason, Manager may manually resolve only once condition is re-evaluated inactive. A recurring condition after resolution starts a new occurrence, preserving prior history. | No false suppression of active risk |
+| M11-P11 | Analyst, Manager and Auditor with active selected-organization shipment-read privilege may read; only active Manager may acknowledge/resolve. Administrator and Support have no implicit business access. Every mutation requires session, CSRF/Origin, exact version and idempotency. | Preserve accepted role boundaries |
+| M11-P12 | Sensitivity: human dispositions write one M16 central audit event atomically and append immutable M11 state history. System evaluation creates its own immutable rule history. Direct API-role SQL updates must not bypass Manager/session authorization. | Preserve G16 and G10 database defense-in-depth |
+
+Approval may alter the proposed rules. If a rule cannot be justified against accepted evidence, omit the rule rather than fabricate confidence. Explicitly distinguish `ActiveCondition`, `ClearedCondition`, `InsufficientEvidence` and `StaleInput`.
+
+## 3. Evaluation and provenance semantics
+
+1. Resolve an active organization, selected session and shipment scope before exposing any data. For internal evaluation, use a dedicated least-privileged executor and validate active organization/shipment inside its transaction.
+2. Acquire a consistent PostgreSQL snapshot of the shipment row/version, first qualifying workflow transition, M10 input revision, correction generation, projection policy/version, materialization revision and a database-provided UTC evaluation instant. Never combine revisions from different snapshots into one published assertion.
+3. Reject stale/absent M10 materialization as current tracking evidence. Schedule-only checks may be independently evaluated from authoritative shipment/workflow input, but any result that depends on M10 must remain `StaleInput` until repaired.
+4. Evaluate each policy independently. Evidence references must name source kind, source identifier, UTC time, rule version, compared threshold, actual comparison result and confidence/uncertainty label; never store an unrestricted raw payload.
+5. Persist only real input, due-boundary or state changes. A semantic evaluation key includes `organizationId, shipmentId, ruleCode, subjectKey, sourceVersion, projectionInputRevision, correctionGeneration, trackingPolicyVersion, rulePolicyVersion, dueBoundary`. Store a stable digest and explainable bounded structured facts.
+6. No event is edited to make a rule true. Corrections and rebuilds advance observed input revisions; the evaluator recomputes a new condition and appends a disposition instead of altering old evidence.
+7. A successful idempotent replay returns the original response/version and does not duplicate state or audit. Same idempotency key with different actor, action or payload conflicts.
+8. Use the `TimeProvider` abstraction in application tests and a trusted database UTC instant for transactional due transitions. Never compare local-formatted timestamps or host timezone defaults.
+
+A schedule becoming overdue merely due to wall-clock advance needs scheduled reevaluation. Plan a **separate bounded M11 due-work scheduler**, not reuse or enable the M9 transport worker. On shipment schedule/workflow changes or M10 input/correction/rebuild changes, enqueue or discover affected shipments without changing accepted M5/M10 write invariants. Bounded reconciliation scans and a durable due index must cover restart, missed notifications and late commits. No unbounded periodic full-table scan or request-side full-history replay.
+
+## 4. Persistence and concurrency design
+
+Add a new, additive **fourteenth EF Core migration** after `20261107120000_M10CorrectionAuthority`, without editing migrations 1 through 13.
+
+Proposed tables:
+
+- `shipment_exception_rules` or a versioned code catalog: immutable rule identity and policy version. Do not use arbitrary runtime-entered SQL/rules.
+- `shipment_exceptions`: UUID, tenant/shipment composite FK, rule code, bounded subject key, occurrence number, condition status, lifecycle state, severity, first detected UTC, last evaluated UTC, cleared/resolved UTC, source fingerprint, rule version, evidence summary, optimistic version, next evaluation UTC.
+- `shipment_exception_history`: append-only event ID, exception composite FK, UTC action, actor kind/user/session (where applicable), old/new state, source fingerprint, bounded reason and correlation; immutable trigger.
+- `shipment_exception_idempotency`: same-tenant actor/action/key/payload digest and replay response; bounded records plus enforced uniqueness.
+- Optional `shipment_exception_due_work`: tenant-bound checkpoint, claim/lease epoch and due time if a single indexed `next_evaluation_at_utc` on the exception table cannot cover not-yet-created conditions.
+
+Required constraints: composite organization/shipment FKs, unique active occurrence per `(organization, shipment, rule, subject)`, positive versions, allowed state and severity enums, bounded JSON metadata, valid UTC columns, no cascading deletion of historical evidence, verified indexes for tenant, open state, due work and keyset pagination. The EF snapshot must match the migration. Preserve historical existing-volume migrations and additive upgrade tests.
+
+Concurrency: serialize evaluation/disposition on a deterministic tenant/shipment lock order; enforce expected version and input fingerprint in the transaction, then CAS/unique constraints. Evaluate-and-create, acknowledge, automatic clearance and manual resolve races must not lose audit events or create duplicate active occurrences. An evaluation failure must never half-commit an exception without its history or required central audit. No direct insert/update/delete grant to the API DB login outside a guarded, narrow entry point. Where SQL-side identity validation cannot prove HTTP request provenance, use a short-lived session-bound signed proof with an M11-specific domain/key, following the M10 L14 design pattern. Do not reuse M10 correction proof bytes or grant its privileges to the M11 evaluator.
+
+## 5. Public application and UI contracts, proposed
+
+Scoped routes under `/api/v1/organizations/{organizationId}`, consistent with [API contracts](API_CONTRACTS.md) and M2/M5/M10:
+
+| Method | Route | Contract |
+| --- | --- | --- |
+| GET | `/shipments/{shipmentId}/exceptions` | Bounded current-and-history summary for the visible shipment |
+| GET | `/exceptions` | Tenant-scoped list with `state`, `ruleCode`, `shipmentId`, `limit=1..100`, protected keyset cursor |
+| GET | `/exceptions/{exceptionId}` | Evidence summary and immutable bounded transition history |
+| PATCH | `/exceptions/{exceptionId}` | `{ "action": "Acknowledge" | "Resolve", "expectedVersion": 7, "reason": "..." }`, with UUID `Idempotency-Key`, CSRF/Origin and live Manager authority |
+
+List/detail results include `ruleCode`, `rulePolicyVersion`, `severity`, `condition`, `state`, `reasonCode`, `evidence` (bounded, redacted), `sourceInputVersion`, `correctionGeneration`, `evaluatedAtUtc`, `materializationStale`, `nextCursor` when relevant and `version`. Expose `etaUtc: null` only if showing existing M10 projection context. No global collection, anonymous access, arbitrary external links, source credentials, secret-bearing traces or raw events.
+
+Use existing response conventions: 401 unauthenticated, 409 missing organization selection, 403 wrong role/revocation, 404 foreign or absent resource, 400 malformed input, 409 stale version/replay collision, 422 invalid lifecycle, 503 database/authority unavailable. All responses include bounded correlation references without private detail and `Cache-Control: no-store`. A cursor is bound to tenant, query and snapshot to prevent swapped-tenant or changed-filter enumeration.
+
+UI: add a shipment exception panel to `web/src/shipments/ShipmentWorkspace.tsx`, referencing the existing tracking timeline component without replacing its manual workflow. Render visible unknown/stale labels and concise rule explanations, source UTC timestamp, acknowledged/resolved history and accessible keyboard-friendly action controls. Do not add M15 notifications, M13 aggregate dashboards, M14 map features or predictive ETA.
+
+## 6. Isolation, failure and upgrade requirements
+
+- SQL tenant predicates and verified database grants are required even if HTTP checks pass. Deny cross-org ID substitution, archived/suspended organizations, revocation after initial read, and replay after session logout.
+- Manual state changes must be transactionally audited under M16; audit failure rolls the action back. Reason text remains bounded and privacy-safe.
+- Time-only reevaluation is idempotent after restart. A power or database outage must leave committed exceptions/history intact; only requeue unfinished evaluation work.
+- Source corrections and superseded events must not create duplicated active exceptions; histories remain inspectable and the latest state reflects the corrected M10 input once it is fresh.
+- A true M10 `Conflict` may coexist with schedule risk, but no `ARRI`/`DEPA` event can be treated as processed or used as proof.
+- Use a disposable E:-backed clean database and a populated accepted-M10/G16 database copy when validating migration 14. Never use or mutate the only retained volume.
+
+## 7. Ownership of downstream contracts
+
+G11 produces explainable per-shipment exception records for later G13 KPI definitions and G15 notification recipient/deduplication rules. Those downstream milestones must consume versioned exception IDs, occurrence, evidence status and deterministic policy version. G11 does **not** implement KPI aggregation, recipient routing, map tiles, incident tickets, transport backlog remediation or deployment.
+
+**Disposition:** Architecture proposed for implementation after M11-P01 through M11-P12 are decided. The accepted G10 source and mandatory M9 hold remain unchanged.

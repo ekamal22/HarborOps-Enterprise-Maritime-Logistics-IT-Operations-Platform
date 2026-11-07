@@ -4,6 +4,7 @@ using System.Text.Json;
 using HarborOps.Api.Audit;
 using Microsoft.AspNetCore.Hosting;
 using HarborOps.Infrastructure.Shipments;
+using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -169,6 +170,54 @@ public sealed class ShipmentSearchHttpTests
         await ReferenceDataHttpTests.Select(manager, fixture.A);
         await ReferenceDataHttpTests.Select(analyst, fixture.A);
         await ReferenceDataHttpTests.Select(administrator, fixture.A);
+
+        // Exercise all five organization roles under the actual restricted API login.
+        // Only Analysts and Managers have the separate export permission.
+        const string rolePassword = "M12-Synthetic-Role-Passphrase-123";
+        var suffix = Guid.NewGuid().ToString("N");
+        var auditorEmail = "m12-auditor-" + suffix + "@example.test";
+        var supportEmail = "m12-support-" + suffix + "@example.test";
+        Guid auditorId, supportId;
+        await using (var roleScope = seedFactory.Services.CreateAsyncScope())
+        {
+            var identities = roleScope.ServiceProvider.GetRequiredService<IdentityStore>();
+            await identities.ProvisionAsync(auditorEmail, "M12 Auditor", rolePassword,
+                CancellationToken.None);
+            await identities.ProvisionAsync(supportEmail, "M12 Support", rolePassword,
+                CancellationToken.None);
+            auditorId = (await identities.LoginAsync(auditorEmail, rolePassword,
+                "m12-roles", CancellationToken.None))!.UserId;
+            supportId = (await identities.LoginAsync(supportEmail, rolePassword,
+                "m12-roles", CancellationToken.None))!.UserId;
+        }
+        foreach (var (userId, role) in new[] { (auditorId, "Auditor"), (supportId, "Support") })
+        {
+            using var membership = await ReferenceDataHttpTests.Send(
+                admin, HttpMethod.Put, Root(fixture.A) + "/memberships/" + userId,
+                new { role, status = "Active", expectedVersion = (long?)null });
+            Assert.Equal(HttpStatusCode.OK, membership.StatusCode);
+        }
+        using var auditorClient = runtime.CreateClient();
+        using var supportClient = runtime.CreateClient();
+        foreach (var (client, email) in new[] {
+            (auditorClient, auditorEmail), (supportClient, supportEmail) })
+        {
+            using var login = await ReferenceDataHttpTests.Send(
+                client, HttpMethod.Post, "/api/v1/auth/login",
+                new { email, password = rolePassword });
+            Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+            await ReferenceDataHttpTests.Select(client, fixture.A);
+        }
+        using (var auditSearch = await auditorClient.GetAsync(
+            Root(fixture.A) + "/shipments/search?q=" + code))
+            Assert.Equal(HttpStatusCode.OK, auditSearch.StatusCode);
+        using (var auditExport = await auditorClient.GetAsync(search + "?q=" + code))
+            Assert.Equal(HttpStatusCode.Forbidden, auditExport.StatusCode);
+        using (var supportSearch = await supportClient.GetAsync(
+            Root(fixture.A) + "/shipments/search?q=" + code))
+            Assert.Equal(HttpStatusCode.Forbidden, supportSearch.StatusCode);
+        using (var supportExport = await supportClient.GetAsync(search + "?q=" + code))
+            Assert.Equal(HttpStatusCode.Forbidden, supportExport.StatusCode);
 
         using (var denied = await administrator.GetAsync(search + "?q=" + code))
             Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);

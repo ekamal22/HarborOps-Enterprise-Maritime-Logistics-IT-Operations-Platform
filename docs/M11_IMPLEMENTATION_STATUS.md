@@ -1,6 +1,6 @@
 # M11 Source Implementation Status
 
-**Current source audit (2026-11-07):** [M11 correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
+**Current source audit (2026-11-08):** [Third M11 correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
 
 **Date:** 2026-11-07
 **Branch:** `feat/m11-delay-exception-lifecycle`
@@ -28,11 +28,11 @@ Automatic reevaluation is opt-in via `HARBOROPS_M11_ENABLE_EVALUATOR=true`; defa
 
 ## Source remediation (not executable verification)
 
-The [correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) identifies and documents fixes for the M10 input-version column mismatch, terminal workflow risk, Manager resolution after clearance, archived acknowledgement cleanup, organization-wide replay-key uniqueness, bounded expiring nonces, lock ordering, fixed-size due candidate pages with rule-policy checkpoints, typed evidence, role-specific redaction, truncated-history disclosure, E:-backed failure evidence and stale documentation checks. These are committed source changes, not passed runtime tests.
+The [first correctness audit](M11_CORRECTNESS_AUDIT_20261107.md) identifies and documents fixes for the M10 input-version column mismatch, terminal workflow risk, Manager resolution after clearance, archived acknowledgement cleanup, organization-wide replay-key uniqueness, bounded expiring nonces, lock ordering, fixed-size due candidate pages with rule-policy checkpoints, typed evidence, role-specific redaction, truncated-history disclosure, E:-backed failure evidence and stale documentation checks. These are committed source changes, not passed runtime tests.
 
 ## Second-pass source corrections
 
-The [second correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records fixes for no-op evaluation checkpoints, expired time-bound dispositions, refreshed M10 projection authority, restricted replay-table reads, exhausted serializable retries, PostgreSQL-clock proof expiry, full-range UTC arithmetic, microsecond due boundaries, chunked-body validation and UI detail-response races. Unit and database integration test sources were expanded. No executable tests were run here. Complete conflict-event attribution, history pagination and inherited SQL reader scope remain unresolved.
+The [second correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records fixes for no-op evaluation checkpoints, expired time-bound dispositions, refreshed M10 projection authority, restricted replay-table reads, exhausted serializable retries, PostgreSQL-clock proof expiry, full-range UTC arithmetic, microsecond due boundaries, chunked-body validation and UI detail-response races. Unit and database integration test sources were expanded. No executable tests were run here. Complete conflict-event attribution, history pagination and inherited SQL reader scope remain unresolved.
 
 ## Third-pass source corrections
 

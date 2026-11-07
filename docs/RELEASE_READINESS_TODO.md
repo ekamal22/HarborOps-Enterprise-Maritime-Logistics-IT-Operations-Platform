@@ -1,5 +1,7 @@
 # Pre-release Documentation and Evidence Checklist
 
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
 **Opened:** 2026-11-06  
 **Target:** M24-03 source/evidence reconciliation before M24-04 accessibility and G24 release acceptance.  
 **Status:** OPEN. No final release verification or deployment authorization.

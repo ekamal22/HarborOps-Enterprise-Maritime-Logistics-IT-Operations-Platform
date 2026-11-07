@@ -536,6 +536,24 @@ public sealed class ShipmentExceptions : Migration
                 ) THEN
                     RAISE EXCEPTION 'Exception reevaluation required' USING ERRCODE='PZ004';
                 END IF;
+                -- An equipment condition must not be acted on after a
+                -- rebuilt projection, even if M10 input and correction counters
+                -- remain unchanged. The current accepted policy and checkpoint
+                -- must still describe the projection being reviewed.
+                IF row_rule='EquipmentConflict' AND NOT EXISTS (
+                    SELECT 1 FROM shipment_tracking_projections p
+                    JOIN shipment_exception_evaluations e
+                      ON e.organization_id=p.organization_id
+                     AND e.shipment_id=p.shipment_id
+                     AND e.rule_code=row_rule
+                    WHERE p.organization_id=p_org AND p.shipment_id=row_shipment
+                      AND p.policy_version='m10-equipment-v2'
+                      AND p.input_revision=row_input_revision
+                      AND p.correction_generation=row_generation
+                      AND p.refreshed_at_utc <= e.evaluated_at_utc
+                ) THEN
+                    RAISE EXCEPTION 'Equipment reevaluation required' USING ERRCODE='PZ004';
+                END IF;
                 IF row_shipment_version IS DISTINCT FROM (
                     SELECT version FROM shipments WHERE organization_id=p_org
                         AND id=row_shipment

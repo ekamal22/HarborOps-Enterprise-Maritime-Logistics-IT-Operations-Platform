@@ -44,6 +44,8 @@ assert.match(migration, /LIMIT 64 FOR UPDATE SKIP LOCKED/);
 assert.match(migration, /rule_policy_version/);
 assert.match(migration, /IF stored_condition=p_condition AND previous_fp=p_fingerprint THEN[\s\S]*?evaluated_at_utc=clock_timestamp\(\)/);
 assert.match(migration, /Exception reevaluation required/);
+assert.match(migration, /Equipment reevaluation required/);
+assert.match(migration, /p\.refreshed_at_utc <= e\.evaluated_at_utc/);
 assert.match(policy, /AddClamped/);
 assert.match(policy, /StrictlyAfter/);
 assert.match(store, /DatabaseNowAsync/);

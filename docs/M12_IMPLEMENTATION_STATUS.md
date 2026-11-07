@@ -1,5 +1,7 @@
 # M12 Implementation Status
 
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records M11 draft PR #31 and M12 draft PR #32 with different additive migration IDs, shared API/UI/role integration surfaces and no combined execution. G11-S01 is BLOCKED, G11-S02..S25 NOT EXECUTED and G12 verification pending. Accepted `main` and the M9 transport hold remain unchanged.
+
 **Last source audit:** 2026-11-08. **Branch:** `feat/m12-shipment-search-export`.
 **Accepted baseline:** `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`.
 **Disposition:** Code and test candidate committed; no G12 technical campaign executed, no independent G12 review and no gate acceptance. Nothing merged or deployed.

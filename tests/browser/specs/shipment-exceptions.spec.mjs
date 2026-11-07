@@ -62,3 +62,43 @@ test("G11 a revoked exception read clears stale results", async ({ page }) => {
   await panel.getByRole("button", { name: "Refresh exceptions" }).click();
   await expect(page.getByRole("region", { name: "Shipment exceptions" })).toHaveCount(0);
 });
+
+
+test("G11 history continuation displays additional immutable entries without duplicates", async ({ page }) => {
+  test.skip(!enabled, "Disposable M5 fixture required");
+  const panel = await openShipment(page, "Manager");
+  const exceptionId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const firstId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  const secondId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  const record = {
+    id: exceptionId, ruleCode: "ArrivalScheduleOverdue", occurrence: 1,
+    condition: "Inactive", state: "Acknowledged", severity: "Warning",
+    confidence: "ScheduleOnly", reasonCode: "scheduled_arrival_not_yet_overdue",
+    lastEvaluatedAtUtc: "2026-11-08T12:00:00Z",
+    evidence: { rulePolicyVersion: "m11-rules-v1",
+      trackingInputRevision: 0, correctionGeneration: 0,
+      trackingInputDigest: null }
+  };
+  await page.route("**/shipments/*/exceptions?*", route =>
+    route.fulfill({ status: 200, contentType: "application/json",
+      body: JSON.stringify({ items: [record], nextCursor: null }) }));
+  await page.route("**/exceptions/" + exceptionId, route =>
+    route.fulfill({ status: 200, contentType: "application/json",
+      body: JSON.stringify({ exception: record, historyTruncated: true,
+        nextHistoryCursor: "next-history-page",
+        history: [{ id: firstId, action: "Opened",
+          occurredAtUtc: "2026-11-08T11:00:00Z", reason: null }] }) }));
+  await page.route("**/exceptions/" + exceptionId + "/history?*", route =>
+    route.fulfill({ status: 200, contentType: "application/json",
+      body: JSON.stringify({ nextCursor: null, items: [
+        { id: secondId, action: "Reevaluated",
+          occurredAtUtc: "2026-11-08T12:00:00Z", reason: null }] }) }));
+  await panel.getByRole("button", { name: "Refresh exceptions" }).click();
+  await panel.getByRole("button", { name: "View history" }).click();
+  await expect(panel.getByText("Additional retained records are available", {
+    exact: false })).toBeVisible();
+  await panel.getByRole("button", { name: "Load more history" }).click();
+  await expect(panel.getByText("Reevaluated", { exact: false })).toHaveCount(1);
+  await expect(panel.getByText("Opened", { exact: false })).toHaveCount(1);
+  await expect(panel.getByRole("button", { name: "Load more history" })).toHaveCount(0);
+});

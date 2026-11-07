@@ -1,6 +1,6 @@
 # Documentation Status Guide
 
-**M11 audit status (2026-11-07):** [Source correctness audit](M11_CORRECTNESS_AUDIT_20261107.md) documents corrected defects and outstanding verification. Draft implementation PR #31 is not merged, M11-P01 through M11-P12 and G11 acceptance pending, and the M9 transport hold remains in effect.
+**M11 audit status (2026-11-07):** [Source correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) documents corrected defects and outstanding verification. Draft implementation PR #31 is not merged, M11-P01 through M11-P12 and G11 acceptance pending, and the M9 transport hold remains in effect.
 
 **Current integrated baseline (2026-11-07):** M0-M10/G0-G10 and M16/G16 are accepted and integrated into protected `main`. Original M10 PR #23 plus remediation [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` complete the G10 integration. G11-G15 and G17-G24 remain unaccepted. The [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) and [project status](STATUS.md) are authoritative for current decisions.
 **Current documentation reconciliation:** [G10 post-merge record](M10_G10_POST_MERGE_RECONCILIATION_20261107.md) indexes the current-state changes without rewriting historical evidence reports.

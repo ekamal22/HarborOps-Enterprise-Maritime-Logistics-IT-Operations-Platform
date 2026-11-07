@@ -84,6 +84,7 @@ public static class ShipmentExceptionEndpoints
         if (result.Value is null) return Access(ctx, result.Error);
         if (managerOnly && result.Value.Role != OrganizationRole.Manager)
             return Fail(ctx, 403, "access_denied");
+        ctx.Items["M11AuthorizedRole"] = result.Value.Role;
         return null;
     }
 
@@ -202,8 +203,19 @@ public static class ShipmentExceptionEndpoints
             var denied = await Guard(ctx, organizations, org, false, ct);
             if (denied is not null) return denied;
             var result = await store.DetailAsync(org, id, ct);
-            return result is null ? Fail(ctx, 404, "resource_not_found")
-                : Results.Ok(result);
+            if (result is null) return Fail(ctx, 404, "resource_not_found");
+            // Analysts can inspect the operational exception lifecycle without
+            // receiving free-form Manager reasons or actor identifiers.
+            if (ctx.Items["M11AuthorizedRole"] is OrganizationRole.Analyst)
+                result = result with
+                {
+                    History = result.History.Select(item => item with
+                    {
+                        Reason = null,
+                        ActorUserId = null
+                    }).ToArray()
+                };
+            return Results.Ok(result);
         }).RequireRateLimiting("audit-read");
 
         routes.MapPost("/shipments/{shipmentId}/exceptions/evaluate", async

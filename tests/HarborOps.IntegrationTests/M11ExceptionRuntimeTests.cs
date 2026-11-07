@@ -176,6 +176,16 @@ public sealed class M11ExceptionRuntimeTests
             Assert.Equal("Applied", json.GetProperty("result").GetString());
             Assert.Equal(2L, json.GetProperty("version").GetInt64());
         }
+        using (var analystDetail = await analyst.GetAsync(baseUrl))
+        {
+            var response = await analystDetail.Content.ReadFromJsonAsync<JsonElement>();
+            var history = response.GetProperty("history");
+            Assert.All(history.EnumerateArray(), entry =>
+            {
+                Assert.Equal(JsonValueKind.Null, entry.GetProperty("reason").ValueKind);
+                Assert.Equal(JsonValueKind.Null, entry.GetProperty("actorUserId").ValueKind);
+            });
+        }
         using (var replay = await SendAction(manager, baseUrl, body, key))
         {
             Assert.Equal(HttpStatusCode.OK, replay.StatusCode);

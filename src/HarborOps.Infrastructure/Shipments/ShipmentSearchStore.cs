@@ -49,10 +49,14 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
     }
 
     private IQueryable<ShipmentRecord> Filter(Guid org, ShipmentSearchFilters f,
-        DateTimeOffset asOfUtc)
+        DateTimeOffset asOfUtc, Guid? after = null)
     {
-        IQueryable<ShipmentRecord> query = db.Shipments.AsNoTracking()
-            .Where(s => s.OrganizationId == org);
+        IQueryable<ShipmentRecord> query = after.HasValue
+            ? db.Shipments.FromSqlInterpolated(
+                $"SELECT * FROM shipments WHERE organization_id = {org} AND id > {after.Value}")
+                .AsNoTracking()
+            : db.Shipments.AsNoTracking();
+        query = query.Where(s => s.OrganizationId == org);
         if (f.RecordStatus != "All")
             query = query.Where(s => s.RecordStatus == f.RecordStatus);
         if (f.WorkflowStatus is not null)
@@ -91,8 +95,7 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var access = await ScopeAsync(session, org, OrganizationPermission.ViewShipmentData, ct);
         if (access != OrganizationAccessError.None) return new(null, access);
-        var query = Filter(org, filter, asOfUtc);
-        if (after.HasValue) query = query.Where(s => s.Id.CompareTo(after.Value) > 0);
+        var query = Filter(org, filter, asOfUtc, after);
         var rows = await query.OrderBy(s => s.Id)
             .Take(filter.Limit + 1).ToListAsync(ct);
         var more = rows.Count > filter.Limit;
@@ -117,7 +120,9 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
             return new(null, OrganizationAccessError.Conflict, "export_row_limit");
 
         var csv = new StringBuilder();
-        csv.AppendJoin(',', ShipmentCsv.Headers.Select(ShipmentCsv.Cell)).Append("\r\n");
+        var heading = string.Join(',', ShipmentCsv.Headers.Select(ShipmentCsv.Cell)) + "\r\n";
+        csv.Append(heading);
+        var totalBytes = Encoding.UTF8.GetByteCount(heading);
         foreach (var s in rows)
         {
             var fields = new[]
@@ -130,9 +135,11 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
                 s.CreatedAtUtc.ToString("O", CultureInfo.InvariantCulture),
                 s.UpdatedAtUtc.ToString("O", CultureInfo.InvariantCulture)
             };
-            csv.AppendJoin(',', fields.Select(ShipmentCsv.Cell)).Append("\r\n");
-            if (Encoding.UTF8.GetByteCount(csv.ToString()) > ShipmentCsv.MaximumBytes)
+            var line = string.Join(',', fields.Select(ShipmentCsv.Cell)) + "\r\n";
+            totalBytes += Encoding.UTF8.GetByteCount(line);
+            if (totalBytes > ShipmentCsv.MaximumBytes)
                 return new(null, OrganizationAccessError.Conflict, "export_byte_limit");
+            csv.Append(line);
         }
         var bytes = Encoding.UTF8.GetBytes(csv.ToString());
         if (bytes.Length > ShipmentCsv.MaximumBytes)

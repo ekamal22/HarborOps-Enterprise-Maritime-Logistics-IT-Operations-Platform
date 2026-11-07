@@ -37,7 +37,7 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M7 tracking source contract | Completed and merged | G7 and D-002 Option A accepted 2026-11-03; see [closure](M7_G7_GATE_CLOSURE.md) |
 | M8 durable receipt implementation | G8 accepted and merged 2026-11-04 via PR #14 | G6/G7 accepted; D-006 Option A and independent source-locked G8 evidence reviewed; see [closure](M8_G8_GATE_CLOSURE.md) |
 | M9 worker and reconciliation | G9 accepted 2026-11-05, merged | [G9 closure](M9_G9_GATE_CLOSURE.md) records the reviewed evidence and mandatory transport-backlog restriction. M16 integration was separately completed and accepted as G16 on 2026-11-06. |
-| M12 shipment search/export | M12-01 | G5 accepted; scoped search/export remains independently eligible in an isolated branch with no shared EF snapshot or Compose collision |
+| M12 shipment search/export | M12-01 through M12-04 candidate on isolated branch | G5 accepted; scoped search/export implementation and tests authored, G12 not verified or accepted. Its additive migration 14 must be reconciled with M11's separately proposed migration 14 before branch integration; keep independent Compose/database resources. |
 | M14 route mapping | M14-01 | G4 accepted; map licensing and fallback must be decided before implementation |
 | M16 audit and access hardening | G16 accepted 2026-11-06, merged via PR #25 | [G16 closure](M16_G16_GATE_CLOSURE.md) records reviewed standalone, combined and F001 extension evidence, four accepted integration decisions and residual limits. No deployment authorized. |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |

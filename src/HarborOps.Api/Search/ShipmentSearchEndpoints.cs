@@ -86,6 +86,21 @@ public static class ShipmentSearchEndpoints
     private static bool Id(string text, out Guid value) =>
         Guid.TryParse(text, out value) && value != Guid.Empty;
 
+    private static bool SameOriginDownload(HttpContext ctx)
+    {
+        // Cookie SameSite policy does not distinguish a sibling subdomain.
+        // Restrict browser-initiated downloads to the current origin as an
+        // additional defense against unwanted cross-origin bulk exports.
+        var site = ctx.Request.Headers["Sec-Fetch-Site"].ToString();
+        if (site.Length > 0 && site is not ("same-origin" or "none")) return false;
+        var origin = ctx.Request.Headers.Origin.ToString();
+        if (origin.Length == 0) return true;
+        return Uri.TryCreate(origin, UriKind.Absolute, out var parsed) &&
+            string.Equals(parsed.GetLeftPart(UriPartial.Authority),
+                ctx.Request.Scheme + "://" + ctx.Request.Host,
+                StringComparison.OrdinalIgnoreCase);
+    }
+
     private static ShipmentSearchFilters Parse(HttpContext ctx, bool export)
     {
         var query = ctx.Request.Query;
@@ -160,6 +175,8 @@ public static class ShipmentSearchEndpoints
             HttpContext ctx, ShipmentSearchStore store, ShipmentExportGate gate,
             TimeProvider clock, CancellationToken ct) =>
         {
+            if (!SameOriginDownload(ctx))
+                return Error(ctx, 403, "origin_invalid", "Export requires a same-origin request");
             if (!Id(organizationId, out var org))
                 return Access(ctx, OrganizationAccessError.Invalid);
             ShipmentSearchFilters filters;

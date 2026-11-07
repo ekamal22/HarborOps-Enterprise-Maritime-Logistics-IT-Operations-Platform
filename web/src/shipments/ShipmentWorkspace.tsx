@@ -437,7 +437,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     <details className="mt-3 rounded border border-slate-700 p-3">
       <summary className="cursor-pointer text-sm">Advanced shipment search</summary>
       <div className="mt-3 grid gap-3 md:grid-cols-2">
-        <label className="text-sm">Shipment workflow
+        <label className="text-sm">Filter by workflow status
           <select value={advancedDraft.workflowStatus}
             onChange={e => setAdvancedDraft(old => ({ ...old,
               workflowStatus: e.target.value as ShipmentAdvancedFilters["workflowStatus"] }))}

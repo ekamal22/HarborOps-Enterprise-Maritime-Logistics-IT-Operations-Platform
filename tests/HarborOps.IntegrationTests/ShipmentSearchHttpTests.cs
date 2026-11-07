@@ -169,6 +169,13 @@ public sealed class ShipmentSearchHttpTests
             Assert.Equal(HttpStatusCode.NotFound, wrong.StatusCode);
         using (var invalid = await manager.GetAsync(search + "?cursor=not-an-export-filter"))
             Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+        using (var foreignDownload = new HttpRequestMessage(HttpMethod.Get, search + "?q=" + code))
+        {
+            foreignDownload.Headers.TryAddWithoutValidation("Sec-Fetch-Site", "same-site");
+            foreignDownload.Headers.TryAddWithoutValidation("Origin", "http://untrusted.localhost");
+            using var refused = await manager.SendAsync(foreignDownload);
+            Assert.Equal(HttpStatusCode.Forbidden, refused.StatusCode);
+        }
 
         using (var download = await manager.GetAsync(search + "?q=" + code))
         {

@@ -26,9 +26,11 @@ test("M12 advanced search keeps shipment draft intact", async ({ page }) => {
   await expect(s.getByText("M5-DEMO-NORTH", { exact: true })).toBeVisible();
   await s.getByRole("button", { name: "View shipment" }).first().click();
   await s.getByLabel("Shipment display name").fill("Unsubmitted local change");
+  await expect(s.getByLabel("Shipment workflow")).toHaveCount(1);
   await expect(s.getByText("Unsaved changes")).toBeVisible();
 
   await s.locator("summary").filter({ hasText: "Advanced shipment search" }).click();
+  await expect(s.getByLabel("Filter by workflow status")).toHaveCount(1);
   await s.getByLabel("Current voyage UUID").fill("00000000-0000-0000-0000-000000000001");
   await s.getByRole("button", { name: "Apply advanced filters" }).click();
   await expect(s.getByText("No shipments match this filter.")).toBeVisible();

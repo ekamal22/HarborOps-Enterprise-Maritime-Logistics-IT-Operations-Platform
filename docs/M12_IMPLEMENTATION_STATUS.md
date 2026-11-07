@@ -36,6 +36,10 @@ The [2026-11-08 audit](M12_CORRECTNESS_AUDIT_20261108.md#third-pass-m5-browser-r
 
 The [fourth-pass source audit](M12_CORRECTNESS_AUDIT_20261108_FOURTH_PASS.md) corrected the M12 SQL audit call to use the EF Core 10 parameterized `ExecuteSqlAsync` API, and introduced **25-second internal budgets for both search and export** with existing 15-second per-statement SQL limits. Both local and hosted Nginx continue to use a 30-second API read timeout. Internal deadline expiry maps to sanitized 503; browser abort remains separate. The budget change is a source-level mitigation and does not prove proxy-timing behavior. **No .NET build, PostgreSQL, browser or proxy test was executed.** G12 acceptance pending.
 
+## Fifth-pass safety remediation
+
+The [2026-11-08 fifth-pass source audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md) records two further corrections: the restricted-role SQL integration test now fails closed into an explicit xUnit **SKIPPED** state unless `HARBOROPS_G12_EXCLUSIVE_POSTGRES=1` declares an exclusive disposable PostgreSQL server, and its collection is nonparallel within the integration assembly. CSV materialization now checks cancellation per row and around UTF-8 conversion, preserving the existing 25-second store deadline. Separate processes and test assemblies still require external serialization. **No database, browser, .NET build, or timeout execution evidence was produced in this audit.** G12 acceptance pending.
+
 ## Open conditions
 
 - Explicit policy disposition M12-P01..P16 and review of Auditor export, audit grants and row/byte/rate limits.

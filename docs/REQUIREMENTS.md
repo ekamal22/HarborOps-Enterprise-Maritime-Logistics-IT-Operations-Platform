@@ -6,6 +6,10 @@
 
 The [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and version 3.0 [Execution Graph](EXECUTION_GRAPH.md) govern technical prerequisites: separate workstreams may progress independently after named accepted gates, but all cross-module security, data integrity and verification requirements remain mandatory. Requirement IDs and actual completion status are unchanged by the dependency redesign.
 
+## Current M10 contract checkpoint
+
+**M10/G10 checkpoint (2026-11-07):** Fourteen M10 policies are approved, with revised L07/L14 and conditional L06. The separate unmerged remediation branch adds signed restricted correction authority, same-transaction M16 correction audit and a thirteenth migration. The original `3e81b88` G10 evidence does not verify this new source. Compilation, database/role/adversarial tests, targeted regressions and independent supplemental review are NOT EXECUTED. S01 implementation conformance and S25 gate acceptance are pending. The M9 transport hold and unresolved-work cap remain binding. [Implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) and [verification plan](M10_G10_L07_L14_REMEDIATION_PLAN.md).
+
 ## Requirement status
 
 Requirements describe the intended complete product. G0 through G7 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
@@ -73,7 +77,7 @@ M7-01 to M7-04 satisfy the **validation and source-authentication** portion of F
 
 ## M9 FR-008 effect-once processing allocation (accepted)
 
-M9-01 to M9-04 implement the worker-claim, bounded retry/dead-letter and receipt-keyed resolution portion of FR-008, together with relevant FR-007 and NFR-004 recovery conditions. The [M9-01 local contract](M9_LOCAL_CONTRACT_DECISION.md) was approved on 2026-11-05 with a mandatory hold on sustained transport processing until M10 or another explicitly approved backlog mechanism is available. The [technical G9 record](M9_EXECUTED_VERIFICATION.md) reports 809/809 tests and 14/14 mutations passing, and the [browser supplement](M9_BROWSER_SUPPLEMENT.md) reports 174/174 passing executions. G9-S25 independent evidence review and formal G9 acceptance were completed on 2026-11-05; see [G9 closure](M9_G9_GATE_CLOSURE.md). M10 retains projections and status/ETA calculations as well as management of parked transport-event backlog under the accepted M9 operating restriction.
+M9-01 to M9-04 implement the worker-claim, bounded retry/dead-letter and receipt-keyed resolution portion of FR-008, together with relevant FR-007 and NFR-004 recovery conditions. The [M9-01 local contract](M9_LOCAL_CONTRACT_DECISION.md) was approved on 2026-11-05 with a mandatory hold on sustained transport processing until M10 or another explicitly approved backlog mechanism is available. The [technical G9 record](M9_EXECUTED_VERIFICATION.md) reports 809/809 tests and 14/14 mutations passing, and the [browser supplement](M9_BROWSER_SUPPLEMENT.md) reports 174/174 passing executions. G9-S25 independent evidence review and formal G9 acceptance were completed on 2026-11-05; see [G9 closure](M9_G9_GATE_CLOSURE.md). M10 owns deterministic observed equipment-event projections and correction/rebuild semantics, but currently returns a null ETA and does not resolve parked ARRI/DEPA transport events. The accepted M9 transport hold and 10,000 unresolved-work admission cap remain binding until separately verified backlog handling is approved.
 
 ## M8 FR-006 / FR-008 durability allocation (G8 accepted)
 

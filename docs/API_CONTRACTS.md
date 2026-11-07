@@ -1,5 +1,7 @@
 # API Contracts
 
+**M12 implementation candidate (2026-11-07):** Branch `feat/m12-shipment-search-export` contains new scoped advanced shipment search and bounded Analyst/Manager CSV export, with authored test sources. G12 runtime verification is NOT EXECUTED and acceptance pending. The accepted `main` baseline, M9 transport hold and separate M11 planning remain unchanged. See [M12 architecture](M12_ARCHITECTURE_DESIGN.md), [implementation status](M12_IMPLEMENTATION_STATUS.md), [G12 test plan](M12_VERIFICATION_PLAN.md) and [policy choices](M12_PLANNING_STATUS.md).
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 

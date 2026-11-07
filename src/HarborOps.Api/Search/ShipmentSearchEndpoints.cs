@@ -104,6 +104,10 @@ public static class ShipmentSearchEndpoints
 
     private static ShipmentSearchFilters Parse(HttpContext ctx, bool export)
     {
+        // Bound the entire encoded query before parsing individual fields.
+        // A fixed number of keys alone does not bound URL-decoding work.
+        if ((ctx.Request.QueryString.Value?.Length ?? 0) > 4096)
+            throw new ArgumentException("Search query exceeds the maximum length");
         var query = ctx.Request.Query;
         string[] allowed = ["q", "recordStatus", "workflowStatus", "voyageId",
             "originPortId", "destinationPortId",

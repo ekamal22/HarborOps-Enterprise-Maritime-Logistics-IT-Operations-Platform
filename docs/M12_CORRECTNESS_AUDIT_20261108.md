@@ -17,9 +17,19 @@ This is the second source audit. The [first correctness audit](M12_CORRECTNESS_A
 | M12-B04 | High, resource safety | Database search and CSV export previously relied on provider/default timeouts. Each M12 read transaction now uses PostgreSQL `SET LOCAL statement_timeout = '15s'`. Export also enforces a 30-second linked cancellation budget, returning a sanitized 503 for an internal deadline rather than a partial CSV. The transaction must roll back on error. | Source fixed; query timeout/outage evidence NOT EXECUTED |
 | M12-B05 | High, role coverage | The restricted-role HTTP fixture tested Manager, Analyst and Administrator, but not Auditor and Support end to end. The suite now provisions both additional roles in the exclusive disposable fixture and asserts Auditor search-only, Support read/export denial, and Administrator export denial. | Test source added; five-role runtime matrix NOT EXECUTED |
 | M12-B06 | High, proof forgery tests | The earlier SQL restricted-role test mutated the signed actor only. It now independently mutates all nine bound proof inputs: organization, actor, session, row count, byte count, filter digest, correlation, expiry and signature. Each must be rejected before the unchanged proof succeeds once and replay is denied. | Test source added; real restricted SQL run NOT EXECUTED |
-
 | M12-B07 | Low, frontend type safety | The advanced-filter text field key type included `workflowStatus`, which is separately restricted to a finite typed list. The text-field key is now explicitly `Exclude<keyof ShipmentAdvancedFilters, "workflowStatus">`. | Source fixed; frontend typecheck NOT EXECUTED |
 | M12-B08 | Medium, migration guard testability | The new downgrade safeguard was not independently asserted by a lightweight test. `M12MigrationSafetyTests` now inspect EF migration operations for the audit-history guard before destructive statements and for verifier function/table restrictions, without changing any database. | Unit tests authored; NOT EXECUTED |
+
+## Third-pass M5 browser-regression findings, 2026-11-08
+
+This additional source review compared the M12 React shipment search URL with the accepted M5 Playwright specifications. All 19 browser spec files were screened for shipment endpoint interception. Two accepted regression checks still targeted only the M5 list URI and did not exercise the M12 workspace's actual `/shipments/search` read path.
+
+| ID | Severity | Confirmed mismatch and correction | Verification |
+| --- | --- | --- | --- |
+| M12-C01 | Medium, organization-switch regression | In `tests/browser/specs/shipment.spec.mjs`, the deferred-response interceptor was still matching `/shipments?`, so it could not hold the new M12 search request. Updated the interceptor and path predicate to `/shipments/search?`. The original foreign-tenant response isolation assertion is retained. | Source corrected; Playwright not executed |
+| M12-C02 | Medium, unsaved draft regression | In `tests/browser/specs/shipment-draft.spec.mjs`, the in-flight background-refresh test only matched M5 list/detail requests, not `/shipments/search`. Updated its predicate to cover the new search URL and preserve existing detail matching. The original editable-draft assertions are retained. | Source corrected; Playwright not executed |
+
+These source fixes restore the intended scope of two accepted M5 regression tests on the M12 branch. They are not evidence that the tests pass. G12-S22 must run them across Chromium, Firefox and WebKit with actual M5/M12 fixtures. No GitHub Actions, merge, release or deployment is authorized by this audit.
 
 ## Architecture and accepted contract review
 

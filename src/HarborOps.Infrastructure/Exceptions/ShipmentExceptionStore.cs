@@ -82,11 +82,30 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         await database.Database.OpenConnectionAsync(ct);
         try
         {
+            // The rule-precedence contract is presentation-only. Retain all
+            // occurrences while keeping list order and keyset cursor identical.
+            // The protected cursor contains an ID whose rule rank is resolved
+            // within the already organization-scoped query.
             await using var command = Command(Connection, null,
-                $"SELECT {Columns} FROM shipment_exceptions WHERE organization_id=@org " +
-                "AND (@shipment::uuid IS NULL OR shipment_id=@shipment) " +
-                "AND (@state::varchar IS NULL OR lifecycle_state=@state) " +
-                "AND (@after::uuid IS NULL OR id>@after) ORDER BY id LIMIT @limit",
+                $"""
+                WITH scoped AS (
+                    SELECT *, CASE rule_code
+                        WHEN 'EquipmentConflict' THEN 1
+                        WHEN 'RecordedArrivalLate' THEN 2
+                        WHEN 'ArrivalScheduleOverdue' THEN 3
+                        WHEN 'DepartureSlippageRisk' THEN 4
+                        ELSE 5 END AS rule_priority
+                    FROM shipment_exceptions
+                    WHERE organization_id=@org
+                )
+                SELECT {Columns} FROM scoped
+                WHERE (@shipment::uuid IS NULL OR shipment_id=@shipment)
+                  AND (@state::varchar IS NULL OR lifecycle_state=@state)
+                  AND (@after::uuid IS NULL OR
+                      (rule_priority,id) > (
+                          SELECT rule_priority,id FROM scoped WHERE id=@after))
+                ORDER BY rule_priority,id LIMIT @limit
+                """,
                 ("org", org), ("shipment", shipment), ("state", state),
                 ("after", after), ("limit", limit + 1));
             var found = new List<ShipmentExceptionRecord>();

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using HarborOps.Api.Audit;
+using HarborOps.Api.Shipments;
 using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
@@ -355,6 +356,109 @@ public sealed class M10RuntimeIdentityTests
         await AssertPermissionDenied(s.Roles.Api, "api delete replay",
             "DELETE FROM shipment_tracking_operation_replays");
         Assert.NotEqual(Guid.Empty, second);
+    }
+
+
+    [Fact]
+    public async Task StolenDatabaseSessionIdsCannotForgeAnM10Correction()
+    {
+        var s = await SeedAsync("g10-proof");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var target = await AcceptAsync(s, "no-forgery");
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        Guid managerSession;
+        await using (var admin = Context(s.Roles.Admin))
+            managerSession = await admin.AuthSessions.AsNoTracking()
+                .Where(x => x.UserId == s.Actor && x.SelectedOrganizationId == s.Fixture.A &&
+                            x.RevokedAtUtc == null)
+                .OrderByDescending(x => x.IssuedAtUtc).Select(x => x.Id).FirstAsync();
+
+        var correction = new TrackingCorrection(target, null, 0, "Verified signed authority required");
+        var digest = ShipmentTimelineStore.RequestDigest(s.Fixture.A, s.Target.Shipment,
+            s.Actor, correction);
+        var forged = await Denied(s.Roles.Api, """
+            SELECT m10_apply_signed_correction(
+                @org::uuid,@shipment::uuid,@target::uuid,NULL::uuid,
+                1::bigint,@actor::uuid,@session::uuid,
+                @reason::varchar,'g10-proof'::varchar,@digest::varchar,
+                @key::uuid,@nonce::uuid,@expires::bigint,@signature::varchar)
+            """, ("org", s.Fixture.A), ("shipment", s.Target.Shipment),
+            ("target", target), ("actor", s.Actor), ("session", managerSession),
+            ("reason", correction.Reason), ("digest", digest),
+            ("key", Guid.NewGuid()), ("nonce", Guid.NewGuid()),
+            ("expires", DateTimeOffset.UtcNow.AddSeconds(30).ToUnixTimeSeconds()),
+            ("signature", new string('a', 64)));
+        Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, forged.SqlState);
+        Assert.Equal(0, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_corrections
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(0, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM m10_correction_proof_nonces
+            """));
+        Assert.Equal(0, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM audit_entries
+            WHERE event_type='shipment.tracking_correction_created'
+              AND organization_id=@o
+            """, ("o", s.Fixture.A)));
+    }
+
+    [Fact]
+    public async Task FailedRequiredM16AuditRollsBackCorrectionAndReplay()
+    {
+        var s = await SeedAsync("g10-audit-rollback");
+        using var _ = s.Admin;
+        using var __ = s.Fixture.Admin;
+        using var ___ = s.Fixture.Manager;
+        using var ____ = s.Fixture.Analyst;
+        var target = await AcceptAsync(s, "audit-fault");
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
+        Guid managerSession;
+        await using (var admin = Context(s.Roles.Admin))
+            managerSession = await admin.AuthSessions.AsNoTracking()
+                .Where(x => x.UserId == s.Actor && x.SelectedOrganizationId == s.Fixture.A &&
+                            x.RevokedAtUtc == null)
+                .OrderByDescending(x => x.IssuedAtUtc).Select(x => x.Id).FirstAsync();
+
+        var correction = new TrackingCorrection(target, null, 0, "Audit insert must be atomic");
+        var key = Guid.NewGuid();
+        var proof = M10CorrectionProofSigner.Sign(
+            ReferenceDataHttpTests.CorrectionProofKey, s.Fixture.A,
+            s.Target.Shipment, s.Actor, managerSession, key, correction);
+        Assert.NotNull(proof);
+        var revisionBefore = await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment));
+        await using (var db = Context(s.Roles.Api))
+        {
+            var store = new ShipmentTimelineStore(db);
+            // An empty correlation violates the accepted M16 audit constraint,
+            // after the correction insert has passed its own checks.
+            var result = await store.CorrectForSessionAsync(s.Fixture.A,
+                s.Target.Shipment, correction, s.Actor, managerSession, "", key,
+                proof!, CancellationToken.None);
+            Assert.Equal(TrackingMutationResult.AuditUnavailable, result.Result);
+        }
+        Assert.Equal(revisionBefore, await Count(s.Roles.Admin, """
+            SELECT input_revision FROM shipment_tracking_input_versions
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(0, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_corrections
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(0, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM shipment_tracking_operation_replays
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
+        Assert.Equal(0, await Count(s.Roles.Admin,
+            "SELECT COUNT(*) FROM m10_correction_proof_nonces"));
     }
 
     [Fact]

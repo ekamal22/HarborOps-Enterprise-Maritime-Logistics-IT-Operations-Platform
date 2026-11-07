@@ -24,8 +24,10 @@ node scripts/render-execution-graph.mjs --check 2>&1 | tee "$out/graph-check.log
 node scripts/check-planning-docs.mjs 2>&1 | tee "$out/docs-check.log"
 dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj --logger "trx;LogFileName=m11-unit.trx" --results-directory "$out" 2>&1 | tee "$out/unit.log"
 dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj --filter "FullyQualifiedName~M11ExceptionRuntimeTests" --logger "trx;LogFileName=m11-integration.trx" --results-directory "$out" 2>&1 | tee "$out/integration.log"
+if [[ ! -d web/node_modules ]]; then npm --prefix web ci --no-audit --no-fund 2>&1 | tee "$out/web-install.log"; fi
 npm --prefix web run build 2>&1 | tee "$out/web-build.log"
 if [[ "${HARBOROPS_M5_FIXTURES:-0}" == "1" && -n "${HARBOROPS_TEST_USER_PASSWORD:-}" ]]; then
+  if [[ ! -d tests/browser/node_modules ]]; then npm --prefix tests/browser ci --no-audit --no-fund 2>&1 | tee "$out/browser-install.log"; fi
   npm --prefix tests/browser test -- shipment-exceptions.spec.mjs 2>&1 | tee "$out/browser.log"
 else
   echo "NOT EXECUTED: browser fixtures unavailable" > "$out/browser.txt"

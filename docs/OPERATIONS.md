@@ -2,6 +2,12 @@
 
 **M12 candidate status (2026-11-08):** [Draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) contains scoped shipment search, bounded signed CSV export and source-level correctness repairs. [Latest audit](M12_CORRECTNESS_AUDIT_20261108_FOURTH_PASS.md), [implementation status](M12_IMPLEMENTATION_STATUS.md) and [G12 plan](M12_VERIFICATION_PLAN.md) distinguish authored tests from executed evidence. The fourth pass corrects EF Core SQL API compatibility and aligns search/export time budgets with the proxy, while retaining the third-pass M5 browser regression fixes. G12 execution and independent acceptance remain pending. Protected `main` and the M9 transport hold are unchanged.
 
+## M12 fifth-pass test execution boundary
+
+The [latest M12 audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md) identifies server-global PostgreSQL role mutation in the G12 restricted-runtime test. Use an exclusive disposable **server**, not only a disposable database. The test is explicitly SKIPPED unless `HARBOROPS_G12_EXCLUSIVE_POSTGRES=1` is set and performs a second fail-closed execution preflight. xUnit disables parallel execution for its collection within the assembly; concurrent test processes and other assemblies must be stopped separately. Review `HARBOROPS_TEST_DB` local host/database validation before selecting the G12 server. Do not apply the marker to a retained or shared instance.
+
+The export now checks cancellation through synchronous CSV generation and encoding. Real CPU-stall, database-stall and Nginx response-time tests remain unexecuted; the store's 25-second budget does not include authentication or delivery. Keep E: as the backing store for disposable verification volumes and evidence.
+
 ## M12 export proof provisioning candidate, 2026-11-07
 
 M12 is present only on the isolated feature branch, not accepted or deployed. See the [source audit](M12_CORRECTNESS_AUDIT_20261107.md) and [G12 verification plan](M12_VERIFICATION_PLAN.md). The accepted main stack and M9 transport hold remain unchanged.

@@ -147,6 +147,7 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
         var totalBytes = Encoding.UTF8.GetByteCount(heading);
         foreach (var s in rows)
         {
+            operationToken.ThrowIfCancellationRequested();
             var fields = new[]
             {
                 s.Id.ToString("D"), s.ReferenceCode, s.ExternalReference, s.DisplayName,
@@ -163,7 +164,9 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
                 return new(null, OrganizationAccessError.Conflict, "export_byte_limit");
             csv.Append(line);
         }
+        operationToken.ThrowIfCancellationRequested();
         var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        operationToken.ThrowIfCancellationRequested();
         if (bytes.Length > ShipmentCsv.MaximumBytes)
             return new(null, OrganizationAccessError.Conflict, "export_byte_limit");
         var digest = filter.Fingerprint();

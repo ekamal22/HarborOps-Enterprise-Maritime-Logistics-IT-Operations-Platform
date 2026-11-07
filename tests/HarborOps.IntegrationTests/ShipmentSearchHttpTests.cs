@@ -186,7 +186,7 @@ public sealed class ShipmentSearchHttpTests
         await using var verifyScope = seedFactory.Services.CreateAsyncScope();
         var verification = verifyScope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
         var events = await verification.AuditEntries.AsNoTracking().Where(e =>
-            e.OrganizationId == fixture.A && e.EventType == "shipment.export_completed")
+            e.OrganizationId == fixture.A && e.EventType == "shipment.export_prepared")
             .ToListAsync();
         Assert.Equal(2, events.Count);
         Assert.All(events, e =>

@@ -21,9 +21,113 @@ public sealed class M12ShipmentExportAudit : Migration
                 IF session_user <> 'harborops_api' THEN
                     RAISE EXCEPTION 'Export audit requires API runtime role';
                 END IF;
-                IF p_rows < 0 OR p_rows > 5000 OR p_bytes < 1 OR p_bytes > 10485760
-                    OR p_filter_digest !~ '^[0-9A-F]{64}$'
-                    OR length(p_correlation) NOT BETWEEN 1 AND 64 THEN
+                IF p_org IS NULL OR p_user IS NULL OR p_session IS NULL
+                    OR p_rows IS NULL OR p_bytes IS NULL
+                    OR p_filter_digest IS NULL OR p_correlation IS NULL
+                    OR p_org = '00000000-0000-0000-0000-000000000000'::uuid
+                    OR p_user = '00000000-0000-0000-0000-000000000000'::uuid
+                    OR p_session = '00000000-0000-0000-0000-000000000000'::uuid
+                    OR p_rows < 0 OR p_rows > 5000 OR p_bytes < 1 OR p_bytes > 10485760
+                    OR p_filter_digest !~ '^[0-9A-F]{64}
+                    RAISE EXCEPTION 'Invalid export audit metadata';
+                END IF;
+                PERFORM 1 FROM public.organizations o WHERE o.id=p_org
+                    AND o.status='Active' FOR SHARE;
+                IF NOT FOUND THEN RAISE EXCEPTION 'Organization unavailable'; END IF;
+                PERFORM 1 FROM public.auth_sessions s WHERE s.id=p_session
+                    AND s.user_id=p_user AND s.selected_organization_id=p_org
+                    AND s.revoked_at_utc IS NULL AND s.idle_expires_at_utc > clock_timestamp()
+                    AND s.absolute_expires_at_utc > clock_timestamp() FOR SHARE;
+                IF NOT FOUND THEN RAISE EXCEPTION 'Session unavailable'; END IF;
+                SELECT u.security_version INTO v_security_version
+                    FROM public.users u WHERE u.id=p_user AND u.status='Active'
+                    FOR SHARE;
+                IF NOT FOUND THEN RAISE EXCEPTION 'User unavailable'; END IF;
+                PERFORM 1 FROM public.auth_sessions s WHERE s.id=p_session
+                    AND s.security_version=v_security_version;
+                IF NOT FOUND THEN RAISE EXCEPTION 'Session version unavailable'; END IF;
+                PERFORM 1 FROM public.organization_memberships m
+                    WHERE m.organization_id=p_org AND m.user_id=p_user
+                    AND m.status='Active' AND m.role IN ('Analyst','Manager') FOR SHARE;
+                IF NOT FOUND THEN RAISE EXCEPTION 'Export permission unavailable'; END IF;
+
+                INSERT INTO public.audit_entries (
+                    organization_id,event_type,event_schema_version,outcome,
+                    actor_kind,actor_user_id,actor_session_id,actor_role,
+                    resource_type,resource_id,correlation_id,metadata)
+                SELECT p_org,'shipment.export_prepared',1,'Succeeded',
+                    'Human',p_user,p_session,m.role,
+                    'shipments',NULL,p_correlation,
+                    jsonb_build_object('rowCount',p_rows,'byteCount',p_bytes,
+                        'filterDigest',p_filter_digest,'exportSchema','m12-v1')
+                FROM public.organization_memberships m
+                WHERE m.organization_id=p_org AND m.user_id=p_user
+                    AND m.status='Active' AND m.role IN ('Analyst','Manager');
+                IF NOT FOUND THEN RAISE EXCEPTION 'Required export audit unavailable'; END IF;
+            END $m12$;
+            REVOKE ALL ON FUNCTION public.m12_record_shipment_export(
+                uuid,uuid,uuid,integer,bigint,varchar,varchar) FROM PUBLIC;
+            """);
+    }
+
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.Sql("""
+            DROP FUNCTION IF EXISTS public.m12_record_shipment_export(
+                uuid,uuid,uuid,integer,bigint,varchar,varchar);
+            """);
+    }
+}
+                    OR p_correlation !~ '^[0-9a-f]{32}
+                    RAISE EXCEPTION 'Invalid export audit metadata';
+                END IF;
+                PERFORM 1 FROM public.organizations o WHERE o.id=p_org
+                    AND o.status='Active' FOR SHARE;
+                IF NOT FOUND THEN RAISE EXCEPTION 'Organization unavailable'; END IF;
+                PERFORM 1 FROM public.auth_sessions s WHERE s.id=p_session
+                    AND s.user_id=p_user AND s.selected_organization_id=p_org
+                    AND s.revoked_at_utc IS NULL AND s.idle_expires_at_utc > now()
+                    AND s.absolute_expires_at_utc > now() FOR SHARE;
+                IF NOT FOUND THEN RAISE EXCEPTION 'Session unavailable'; END IF;
+                SELECT u.security_version INTO v_security_version
+                    FROM public.users u WHERE u.id=p_user AND u.status='Active'
+                    FOR SHARE;
+                IF NOT FOUND THEN RAISE EXCEPTION 'User unavailable'; END IF;
+                PERFORM 1 FROM public.auth_sessions s WHERE s.id=p_session
+                    AND s.security_version=v_security_version;
+                IF NOT FOUND THEN RAISE EXCEPTION 'Session version unavailable'; END IF;
+                PERFORM 1 FROM public.organization_memberships m
+                    WHERE m.organization_id=p_org AND m.user_id=p_user
+                    AND m.status='Active' AND m.role IN ('Analyst','Manager') FOR SHARE;
+                IF NOT FOUND THEN RAISE EXCEPTION 'Export permission unavailable'; END IF;
+
+                INSERT INTO public.audit_entries (
+                    organization_id,event_type,event_schema_version,outcome,
+                    actor_kind,actor_user_id,actor_session_id,actor_role,
+                    resource_type,resource_id,correlation_id,metadata)
+                SELECT p_org,'shipment.export_completed',1,'Succeeded',
+                    'Human',p_user,p_session,m.role,
+                    'shipments',NULL,p_correlation,
+                    jsonb_build_object('rowCount',p_rows,'byteCount',p_bytes,
+                        'filterDigest',p_filter_digest,'exportSchema','m12-v1')
+                FROM public.organization_memberships m
+                WHERE m.organization_id=p_org AND m.user_id=p_user
+                    AND m.status='Active' AND m.role IN ('Analyst','Manager');
+                IF NOT FOUND THEN RAISE EXCEPTION 'Required export audit unavailable'; END IF;
+            END $m12$;
+            REVOKE ALL ON FUNCTION public.m12_record_shipment_export(
+                uuid,uuid,uuid,integer,bigint,varchar,varchar) FROM PUBLIC;
+            """);
+    }
+
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.Sql("""
+            DROP FUNCTION IF EXISTS public.m12_record_shipment_export(
+                uuid,uuid,uuid,integer,bigint,varchar,varchar);
+            """);
+    }
+} THEN
                     RAISE EXCEPTION 'Invalid export audit metadata';
                 END IF;
                 PERFORM 1 FROM public.organizations o WHERE o.id=p_org

@@ -171,3 +171,9 @@ Never state an achieved latency number until a runnable benchmark report support
 ## Evidence register
 
 For every milestone: commit SHA, commands executed, test summary, pass/fail counts, relevant artifact paths, runtime environment, failed/waived checks, and acceptance status. A checklist without test artifacts is not verification.
+
+## G10 correction authority targeted supplemental verification, 2026-11-07
+
+The approved L07/L14 source modifications require a new source-locked targeted campaign, not an automatic rerun of all historical G10 stages. Verify the thirteenth migration on fresh and populated twelve-migration volumes, restricted API SQL denial, signed positive corrections, forged user/session and signature probes, altered digest/idempotency proofs, nonce reuse and forged replay rejection, live Manager revocation and downgrade, atomic M16 audit failure rollback, immutable correction history, retained M9 worker effects and projector operation. Exercise focused effective mutations and relevant M16 audit/role plus M9 worker regressions.
+
+All new-source execution is NOT EXECUTED until raw results are produced in the isolated E:-backed runtime. Preserve failed and interrupted attempts, source SHAs and hash manifests; independently review the supplement. See [targeted implementation plan](M10_G10_L07_L14_REMEDIATION_PLAN.md) and [implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md). No GitHub Actions, merge, release or deployment is authorized.

@@ -175,7 +175,9 @@ public sealed class M10UpgradeTests
                 db2.Database.MigrateAsync(M9));
             Assert.Equal(PostgresErrorCodes.CheckViolation, blocked.SqlState);
             Assert.Contains("M10 retained history prevents downgrade", blocked.MessageText);
-            Assert.Equal(13, (await db2.Database.GetAppliedMigrationsAsync()).Count());
+            // EF reverts one migration per transaction: the thirteenth (correction authority, no
+            // retained nonce evidence here) was reverted cleanly, the twelfth is blocked and kept.
+            Assert.Equal(12, (await db2.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(4L, await Scalar(scoped, "SELECT COUNT(*) FROM shipment_tracking_timeline_entries"));
             Assert.Equal(evidenceBefore, await Fingerprint(scoped));
 
@@ -192,6 +194,21 @@ public sealed class M10UpgradeTests
             await db3.Database.MigrateAsync();
             Assert.Equal(13, (await db3.Database.GetAppliedMigrationsAsync()).Count());
             Assert.False(db3.Database.HasPendingModelChanges());
+
+            // Retained correction-authority evidence blocks the downgrade of the thirteenth migration.
+            await Run(emptyScoped, """
+                INSERT INTO m10_correction_proof_nonces
+                    (nonce,organization_id,shipment_id,actor_user_id,idempotency_key,
+                     request_digest,expires_at_utc)
+                VALUES (gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),
+                        gen_random_uuid(),repeat('a',64),clock_timestamp())
+                """);
+            var nonceGuard = await Assert.ThrowsAsync<PostgresException>(() =>
+                db3.Database.MigrateAsync(M10));
+            Assert.Equal(PostgresErrorCodes.CheckViolation, nonceGuard.SqlState);
+            Assert.Contains("Retained correction authority evidence", nonceGuard.MessageText);
+            Assert.Equal(13, (await db3.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(1L, await Scalar(emptyScoped, "SELECT COUNT(*) FROM m10_correction_proof_nonces"));
         }
         finally
         {

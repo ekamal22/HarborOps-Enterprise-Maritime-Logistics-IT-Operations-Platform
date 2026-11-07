@@ -39,6 +39,13 @@ public sealed class TrackingProjectionG10Tests
         using var admin = fixture.Admin;
         using var manager = fixture.Manager;
         using var analyst = fixture.Analyst;
+        // Corrections are authorized only for the restricted harborops_api database login.
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var restrictedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var restrictedManager = restrictedFactory.CreateClient(
+            new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(restrictedManager, fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Select(restrictedManager, fixture.A);
         var target = await G9Support.SeedResolvable(factory, fixture);
         var source = await G9Support.NewSource(factory, fixture.A, "g10_track");
         var prefix = Guid.NewGuid().ToString("N")[..10];
@@ -146,7 +153,7 @@ public sealed class TrackingProjectionG10Tests
             u.NormalizedEmail == HarborOps.Infrastructure.Identity.IdentityStore
                 .NormalizeEmail(fixture.ManagerEmail))).Id;
         var correctionUrl = $"/api/v1/organizations/{fixture.A}/shipments/{target.Shipment}/tracking-corrections";
-        using (var changed = await SendM10(manager, correctionUrl,
+        using (var changed = await SendM10(restrictedManager, correctionUrl,
             new { targetReceiptId = secondReceipt, replacementReceiptId = (Guid?)null,
                 expectedGeneration = 0, reason = "Confirmed invalid observation" }))
         {
@@ -206,7 +213,7 @@ public sealed class TrackingProjectionG10Tests
         Assert.False(recovered.MaterializationStale);
 
 
-        using (var invalid = await SendM10(manager, correctionUrl,
+        using (var invalid = await SendM10(restrictedManager, correctionUrl,
             new { targetReceiptId = firstReceipt, replacementReceiptId = (Guid?)null,
                 expectedGeneration = 0, reason = "Stale correction generation" }))
             Assert.Equal(HttpStatusCode.Conflict, invalid.StatusCode);
@@ -242,7 +249,7 @@ public sealed class TrackingProjectionG10Tests
             manager, root + "/tracking-projection/rebuild"))
             Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
         using (var staleCorrection = await SendM10(
-            manager, root + "/tracking-corrections", new
+            restrictedManager, root + "/tracking-corrections", new
             {
                 targetReceiptId = firstReceipt, replacementReceiptId = (Guid?)null,
                 expectedGeneration = 0, reason = "Invalid stale correction attempt"
@@ -255,10 +262,10 @@ public sealed class TrackingProjectionG10Tests
             expectedGeneration = 1, reason = "Confirmed invalid first observation"
         };
         using (var approvedCorrection = await SendM10(
-            manager, root + "/tracking-corrections", correctionRequest, correctionIdempotency))
+            restrictedManager, root + "/tracking-corrections", correctionRequest, correctionIdempotency))
             Assert.Equal(HttpStatusCode.OK, approvedCorrection.StatusCode);
         using (var replayedCorrection = await SendM10(
-            manager, root + "/tracking-corrections", correctionRequest, correctionIdempotency))
+            restrictedManager, root + "/tracking-corrections", correctionRequest, correctionIdempotency))
         {
             Assert.Equal(HttpStatusCode.OK, replayedCorrection.StatusCode);
             var replayBody = await replayedCorrection.Content.ReadFromJsonAsync<JsonElement>();

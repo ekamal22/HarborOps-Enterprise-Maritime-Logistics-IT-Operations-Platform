@@ -21,9 +21,9 @@ namespace HarborOps.IntegrationTests;
 /// logs in as harborops_api, harborops_worker or harborops_projector, never as the migrator,
 /// so privilege gaps in the SECURITY DEFINER triggers and the M10 grants surface as errors.
 /// </summary>
-public sealed class M10RuntimeIdentityTests
+public sealed partial class M10RuntimeIdentityTests
 {
-    private sealed record Roles(string Admin, string Api, string Worker, string Projector);
+    internal sealed record Roles(string Admin, string Api, string Worker, string Projector);
 
     private static string RepositoryFile(string relative)
     {
@@ -37,7 +37,7 @@ public sealed class M10RuntimeIdentityTests
         throw new FileNotFoundException(relative);
     }
 
-    private static async Task<Roles> ProvisionAsync()
+    internal static async Task<Roles> ProvisionAsync()
     {
         var admin = TestDatabase.ConnectionString();
         await using var db = Context(admin);
@@ -711,18 +711,13 @@ public sealed class M10RuntimeIdentityTests
         {
             await api.OpenAsync();
             await using var transaction = await api.BeginTransactionAsync();
-            await using var insert = new NpgsqlCommand("""
-                INSERT INTO shipment_tracking_corrections
-                    (id,organization_id,shipment_id,target_receipt_id,replacement_receipt_id,
-                     generation,actor_user_id,reason,correlation_id,correction_digest)
-                VALUES (gen_random_uuid(),@o,@s,@t,NULL,1,@u,'Confirmed invalid observation','lock',@d)
-                """, api, transaction);
-            insert.Parameters.AddWithValue("o", s.Fixture.A);
-            insert.Parameters.AddWithValue("s", s.Target.Shipment);
-            insert.Parameters.AddWithValue("t", first);
-            insert.Parameters.AddWithValue("u", s.Actor);
-            insert.Parameters.AddWithValue("d", new string('e', 64));
-            Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+            // Direct INSERT is no longer granted to the API login, so the uncommitted
+            // correction is held through the signed database operation instead.
+            var lockSession = await LatestSession(s.Roles.Admin, s.Actor, s.Fixture.A);
+            var lockCall = Genuine(s, first, s.Actor, lockSession, 0, "Confirmed invalid observation");
+            await using var insert = new NpgsqlCommand(ApplySql, api, transaction);
+            foreach (var (name, value) in Bind(lockCall)) insert.Parameters.AddWithValue(name, value);
+            await insert.ExecuteNonQueryAsync();
             var workerTask = Task.Run(() => WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
             Assert.True(await WaitForLockWait(s.Roles.Admin, "harborops_worker", TimeSpan.FromSeconds(30)),
                 "The M9 worker did not wait behind the uncommitted correction");
@@ -1264,6 +1259,12 @@ public sealed class M10RuntimeIdentityTests
             Assert.Equal(TrackingWorkDisposition.Processed,
                 await WorkerFinalizeOneAsync(s.Roles, s.Fixture.A));
         var root = $"/api/v1/organizations/{s.Fixture.A}/shipments/{s.Target.Shipment}/tracking-corrections";
+        // Corrections are only authorized for the restricted harborops_api login.
+        using var restrictedFactory = new ReferenceDataHttpTests.ApiFactory(s.Roles.Api);
+        using var restrictedManager = restrictedFactory.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(restrictedManager, s.Fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Select(restrictedManager, s.Fixture.A);
         async Task<long> Rows() => await Count(s.Roles.Admin,
             "SELECT COUNT(*) FROM shipment_tracking_corrections WHERE shipment_id=@s", ("s", s.Target.Shipment));
 
@@ -1290,7 +1291,7 @@ public sealed class M10RuntimeIdentityTests
             string contentType = "application/json")
         {
             var before = await Rows();
-            using var response = await Post(manager, body, contentType);
+            using var response = await Post(restrictedManager, body, contentType);
             Assert.True(response.StatusCode == expected,
                 $"{label}: expected {(int)expected} but got {(int)response.StatusCode}");
             Assert.Equal(before, await Rows());
@@ -1316,7 +1317,7 @@ public sealed class M10RuntimeIdentityTests
         await Rejected("stale generation", Body(first, "Valid reason text", generation: 5), HttpStatusCode.Conflict);
 
         // A valid replacement link applies; chains, cycles and reuse are refused and leave one row.
-        using (var linked = await Post(manager, Body(first, "Replaced by the later observation", second)))
+        using (var linked = await Post(restrictedManager, Body(first, "Replaced by the later observation", second)))
             Assert.Equal(HttpStatusCode.OK, linked.StatusCode);
         Assert.Equal(1, await Rows());
         await Rejected("cycle back to the target", Body(second, "Valid reason text", first, generation: 1), HttpStatusCode.UnprocessableEntity);

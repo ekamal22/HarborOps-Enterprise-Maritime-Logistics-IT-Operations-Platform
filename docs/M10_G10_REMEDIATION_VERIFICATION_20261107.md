@@ -39,8 +39,8 @@ Observations, not changed:
 
 - The signed operation checks `session_user = 'harborops_api'`. An API process configured with another login (for example the migration login) receives a sanitized denial for every correction. All G10 Compose files use `harborops_api`.
 - The proof does not bind the correlation identifier; it affects only the stored correlation label.
-- The base `compose.yaml` does not pass `M10CorrectionProof__Key`; only the G10 and combined override files do. Without it, corrections return a sanitized HTTP 503.
-- `20261105180000_ShipmentTrackingProjections` was edited in place (COALESCE in the projector lock function). A database migrated from the PR #23 text before this branch will not receive that edit.
+- The base `compose.yaml` does not pass `M10CorrectionProof__Key`; only the G10 and combined override files do. Without it, corrections return a sanitized HTTP 503. This held at `a26d19a`; it was corrected afterwards (see the [final merge-readiness record](M10_G10_FINAL_MERGE_READINESS_20261107.md)).
+- `20261105180000_ShipmentTrackingProjections` was edited in place (COALESCE in the projector lock function). A database migrated from the PR #23 text before this branch will not receive that edit. This held at `a26d19a`; migration 12 was restored and the function is now replaced by migration 13 (see the [final merge-readiness record](M10_G10_FINAL_MERGE_READINESS_20261107.md)).
 
 ## Measured results on `a26d19a`
 

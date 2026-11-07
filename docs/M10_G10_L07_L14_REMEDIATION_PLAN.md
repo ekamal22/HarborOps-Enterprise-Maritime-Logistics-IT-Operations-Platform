@@ -4,6 +4,8 @@
 **Policy disposition:** M10-L01 through M10-L14 approved, with changes to L07 and L14 and L06 conditioned on effective database authorization.  
 **Execution status:** Source remediation committed (runtime candidate `3ef7a50859b5f023aa1457b373728888f6d1cba9`); new-source compile, migration, database security tests and mutations later executed on final runtime `a26d19acd57308033bdf6fe7e25c61287cd17b0b` ([record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)); independent review and G10 acceptance pending.
 
+**Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. Independent review (G10-S25) and the S01 conformance disposition are NOT EXECUTED. Acceptance pending.
+
 **Baseline for this branch:** `d8ede69d2e7d153a886b09e0bfef8d7cbc32059f`, descended from frozen G10 runtime `3e81b884b6a4cc782f84c58510793666786c5796`.  
 **Scope:** Corrections, audit persistence and restricted runtime database authority. No merger, deployment, release or GitHub Actions authorization.
 

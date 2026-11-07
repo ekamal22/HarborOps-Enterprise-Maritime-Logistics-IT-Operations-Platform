@@ -14,6 +14,8 @@ M10-L01 through M10-L14 are approved, with modifications to L07 and L14 and a co
 
 The implementation is committed on `fix/m10-g10-l07-l14-remediation` and passed new-source .NET compilation, database execution and targeted security verification on `a26d19a` ([record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)). Policy selection is resolved; independent review, S01 source conformance and S25 gate acceptance remain pending. [Implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 
+**Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. Independent review (G10-S25) and the S01 conformance disposition are NOT EXECUTED. Acceptance pending.
+
 ## Accepted baseline decisions
 
 ### ADR-001: Modular monolith with separate tracking worker

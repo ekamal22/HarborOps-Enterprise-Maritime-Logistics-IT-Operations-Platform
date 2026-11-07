@@ -17,7 +17,7 @@ namespace HarborOps.IntegrationTests;
 // This suite reprovisions global PostgreSQL runtime roles in one test.
 // Keep it separate from concurrent database test collections.
 [CollectionDefinition("M12ServerRoleIsolation", DisableParallelization = true)]
-public sealed class M12ServerRoleIsolationCollection;
+public sealed class M12ServerRoleIsolationCollection { }
 
 [Collection("M12ServerRoleIsolation")]
 public sealed class ShipmentSearchHttpTests

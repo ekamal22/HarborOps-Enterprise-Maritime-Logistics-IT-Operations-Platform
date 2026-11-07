@@ -1,11 +1,15 @@
 # Security Model
 
-**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records new occurrence identity after confirmed acknowledged clearance, corrected Resolve visibility and narrowed replay-conflict classification. Source and tests are unexecuted. G11-S01 BLOCKED on policy decisions; G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport hold and draft PR #31 remain unchanged.
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) records correction of inactive severity and same-fingerprint metadata drift, plus typed due-work cursor keys. Tests are authored but unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending; M9 transport processing held and PR #31 unmerged.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
 **Current accepted baseline (2026-11-07):** G0-G10 and G16 are integrated into protected `main`; G10 remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following independently reviewed [gate closure](M10_G10_GATE_CLOSURE_20261107.md). G11-G15 and G17-G24 remain unaccepted. Sustained M9 transport-event processing remains held.
+
+## Sixth-pass provisional rule-metadata integrity
+
+The signed rule evaluator must not let an unchanged fingerprint hide a divergence in visible severity, confidence, reason or time boundaries. Its no-op path now verifies this stored metadata and falls through to an immutable versioned rule reevaluation when it differs. This is a source-level correctness control, not a replacement for transaction, role-grant or audit-failure tests. The existing broad API database SELECT boundary and incomplete conflict-event lineage remain unresolved.
 
 ## Fifth-pass provisional M11 disposition error boundary
 

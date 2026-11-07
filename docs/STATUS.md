@@ -1,12 +1,14 @@
 # Project Status
 
-**Current M11 source audit (2026-11-08):** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records new occurrence identity after confirmed acknowledged clearance, corrected Resolve visibility and narrowed replay-conflict classification. Source and tests are unexecuted. G11-S01 BLOCKED on policy decisions; G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport hold and draft PR #31 remain unchanged.
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) records correction of inactive severity and same-fingerprint metadata drift, plus typed due-work cursor keys. Tests are authored but unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending; M9 transport processing held and PR #31 unmerged.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 **Post-merge documentation index:** [G10 post-merge reconciliation](M10_G10_POST_MERGE_RECONCILIATION_20261107.md) records changed living documents and retained source/evidence boundaries.
 
 
 **As of:** 2026-11-07 (G0-G10 and G16 accepted on protected `main`; M10 security remediation merged in PR #28; transport hold remains)
+**Sixth-pass M11 source checkpoint:** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents F11-039 through F11-041, with no successful build, SQL migration or browser run in this environment. G11 acceptance pending; earlier audit statements remain historical, not superseded test evidence.
+
 **Fifth-pass M11 source checkpoint:** [Fifth correctness audit](M11_FIFTH_CORRECTNESS_AUDIT_20261108.md) records F11-036 through F11-038. G11-S01 remains policy-blocked, including uncertain recurrence and immutable recorded lateness. End-to-end compilation, PostgreSQL and browser verification remain not executed, and no G11 acceptance or merge is implied.
 
 **Default branch:** Protected `main` contains accepted M0-M10 and M16 implementations, including the G10 correction-authority remediation. G11-G15 and G17-G24 remain open.

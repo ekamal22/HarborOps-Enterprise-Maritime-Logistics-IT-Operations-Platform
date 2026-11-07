@@ -8,6 +8,7 @@ using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace HarborOps.Infrastructure.Shipments;
 
@@ -17,7 +18,7 @@ public sealed record ShipmentSearchResult<T>(T? Value, OrganizationAccessError E
     string? FailureCode = null);
 
 public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore organizations,
-    TimeProvider clock)
+    TimeProvider clock, IConfiguration configuration)
 {
     private async Task<OrganizationAccessError> ScopeAsync(CurrentSession session, Guid org,
         OrganizationPermission permission, CancellationToken ct)
@@ -155,10 +156,16 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
         var digest = filter.Fingerprint();
         var correlation = string.IsNullOrWhiteSpace(correlationId)
             ? "database" : correlationId[..Math.Min(correlationId.Length, 64)];
+        var proof = M12ExportProofSigner.Sign(configuration["M12ExportProof:Key"],
+            org, session.UserId, session.SessionId, rows.Count, bytes.LongLength,
+            digest, correlation, clock);
+        if (proof is null)
+            return new(null, OrganizationAccessError.Invalid, "export_authority_unavailable");
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             SELECT public.m12_record_shipment_export({org}, {session.UserId},
-                {session.SessionId}, {rows.Count}, {((long)bytes.Length)},
-                CAST({digest} AS varchar), CAST({correlation} AS varchar))
+                {session.SessionId}, {rows.Count}, {bytes.LongLength},
+                CAST({digest} AS varchar), CAST({correlation} AS varchar),
+                {proof.ExpiresEpoch}, CAST({proof.Signature} AS varchar))
             """, ct);
         await tx.CommitAsync(ct);
         return new(bytes, OrganizationAccessError.None);

@@ -195,9 +195,11 @@ public static class ShipmentSearchEndpoints
             var correlation = ctx.Items["CorrelationId"]?.ToString() ?? "database";
             var result = await store.ExportAsync(session, org, filters, correlation, ct);
             if (result.Value is null)
-                return result.FailureCode is not null
-                    ? Error(ctx, 413, result.FailureCode, "Export limit exceeded. Narrow the filters")
-                    : Access(ctx, result.Error);
+                return result.FailureCode == "export_authority_unavailable"
+                    ? Error(ctx, 503, "dependency_unavailable", "Export authority temporarily unavailable")
+                    : result.FailureCode is not null
+                        ? Error(ctx, 413, result.FailureCode, "Export limit exceeded. Narrow the filters")
+                        : Access(ctx, result.Error);
             var filename = "shipments-" + clock.GetUtcNow().UtcDateTime.ToString(
                 "yyyyMMddTHHmmssZ", System.Globalization.CultureInfo.InvariantCulture) + ".csv";
             ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";

@@ -19,6 +19,18 @@ namespace HarborOps.IntegrationTests;
 [CollectionDefinition("M12ServerRoleIsolation", DisableParallelization = true)]
 public sealed class M12ServerRoleIsolationCollection { }
 
+// Report the global-role mutation case as SKIPPED, not PASS, unless the
+// dedicated PostgreSQL instance is explicitly selected for G12.
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class ExclusiveM12PostgresFactAttribute : FactAttribute
+{
+    public ExclusiveM12PostgresFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("HARBOROPS_G12_EXCLUSIVE_POSTGRES") != "1")
+            Skip = "Requires an exclusive disposable PostgreSQL instance for G12 role mutation";
+    }
+}
+
 [Collection("M12ServerRoleIsolation")]
 public sealed class ShipmentSearchHttpTests
 {
@@ -132,7 +144,7 @@ public sealed class ShipmentSearchHttpTests
         }
     }
 
-    [Fact]
+    [ExclusiveM12PostgresFact]
     public async Task RestrictedRuntimeExportIsScopedAndAudited()
     {
         // This test alters PostgreSQL roles globally, not just inside the

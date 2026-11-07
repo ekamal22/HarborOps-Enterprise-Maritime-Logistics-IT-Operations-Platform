@@ -26,7 +26,7 @@ M11 extends the accepted modular monolith and PostgreSQL transaction boundary. I
 
 ## 2. Proposed local rule policy, acceptance pending
 
-These are **recommendations for M11-01 approval**, not implemented or approved decisions. Implementation must stop at the relevant decision boundary until an explicit contract disposition is recorded. No existing D-number is silently repurposed.
+These are **provisional candidate choices requiring M11-01 approval**, not approved decisions. The draft feature branch implements some of them for executable scrutiny; that does not authorize G11 acceptance or merge. Unresolved decisions remain blockers, and no existing D-number is silently repurposed.
 
 | ID | Proposed contract | Reason |
 | --- | --- | --- |
@@ -67,10 +67,10 @@ An unchanged semantic result advances the evaluated-UTC and next-due checkpoint 
 2. Acquire a consistent PostgreSQL snapshot of the shipment row/version, first qualifying workflow transition, M10 input revision, correction generation, projection policy/version, materialization revision and a database-provided UTC evaluation instant. Never combine revisions from different snapshots into one published assertion.
 3. Reject stale/absent M10 materialization as current tracking evidence. Schedule-only checks may be independently evaluated from authoritative shipment/workflow input, but any result that depends on M10 must remain `StaleInput` until repaired.
 4. Evaluate each policy independently. Evidence references must name source kind, source identifier, UTC time, rule version, compared threshold, actual comparison result and confidence/uncertainty label; never store an unrestricted raw payload.
-5. Persist only real input, due-boundary or state changes. A semantic evaluation key includes `organizationId, shipmentId, ruleCode, subjectKey, sourceVersion, projectionInputRevision, correctionGeneration, trackingPolicyVersion, rulePolicyVersion, dueBoundary`. Store a stable digest and explainable bounded structured facts.
+5. Persist meaningful input, due-boundary or state transitions. The current shipment-level fingerprint binds organization, shipment, rule, workflow and schedule inputs, shipment version, M10 input revision/digest/correction generation, tracking policy, rule policy, condition and boundary. No per-container subject key is implemented; complete conflict-specific lineage remains a separate G11 blocker. Preserve a stable digest and bounded structured facts.
 6. No event is edited to make a rule true. Corrections and rebuilds advance observed input revisions; the evaluator recomputes a new condition and appends a disposition instead of altering old evidence.
 7. A successful idempotent replay returns the original response/version and does not duplicate state or audit. Same idempotency key with different actor, action or payload conflicts.
-8. Use the `TimeProvider` abstraction in application tests and a trusted database UTC instant for transactional due transitions. Never compare local-formatted timestamps or host timezone defaults.
+8. Supply an explicit UTC evaluation instant to the pure policy (a fixed instant in unit tests), and derive the transactional evaluation/proof time from PostgreSQL UTC. No application `TimeProvider` dependency exists in this candidate. Never compare local-formatted timestamps or host timezone defaults.
 
 A schedule becoming overdue merely due to wall-clock advance needs scheduled reevaluation. Plan a **separate bounded M11 due-work scheduler**, not reuse or enable the M9 transport worker. On shipment schedule/workflow changes or M10 input/correction/rebuild changes, enqueue or discover affected shipments without changing accepted M5/M10 write invariants. Bounded reconciliation scans and a durable due index must cover restart, missed notifications and late commits. No unbounded periodic full-table scan or request-side full-history replay.
 
@@ -81,12 +81,12 @@ Add a new, additive **fourteenth EF Core migration** after `20261107120000_M10Co
 Proposed tables:
 
 - `shipment_exception_rules` or a versioned code catalog: immutable rule identity and policy version. Do not use arbitrary runtime-entered SQL/rules.
-- `shipment_exceptions`: UUID, tenant/shipment composite FK, rule code, bounded subject key, occurrence number, condition status, lifecycle state, severity, first detected UTC, last evaluated UTC, cleared/resolved UTC, source fingerprint, rule version, evidence summary, optimistic version, next evaluation UTC.
+- `shipment_exceptions`: UUID, tenant/shipment composite FK, shipment-level rule code, occurrence number, condition status, lifecycle state, severity, first detected UTC, last evaluated UTC, resolved UTC, source fingerprint, structured evidence containing rule policy, optimistic version and next evaluation UTC. No per-container subject key or separate cleared timestamp exists in migration 14.
 - `shipment_exception_history`: append-only event ID, exception composite FK, UTC action, actor kind/user/session (where applicable), old/new state, source fingerprint, bounded reason and correlation; immutable trigger.
 - `shipment_exception_idempotency`: same-tenant actor/action/key/payload digest and replay response; bounded records plus enforced uniqueness.
 - Optional `shipment_exception_due_work`: tenant-bound checkpoint, claim/lease epoch and due time if a single indexed `next_evaluation_at_utc` on the exception table cannot cover not-yet-created conditions.
 
-Required constraints: composite organization/shipment FKs, unique active occurrence per `(organization, shipment, rule, subject)`, positive versions, allowed state and severity enums, bounded JSON metadata, valid UTC columns, no cascading deletion of historical evidence, verified indexes for tenant, open state, due work and keyset pagination. The EF snapshot must match the migration. Preserve historical existing-volume migrations and additive upgrade tests.
+Required constraints: composite organization/shipment FKs, unique unresolved occurrence per `(organization, shipment, rule)`, positive versions, allowed state and severity enums, bounded JSON metadata, UTC columns, no cascading deletion of historical evidence, and tenant/due/keyset indexes. The SQL-only migration adds no new EF entities or snapshot model. Validate existing-volume additive upgrade and downgrade guards without rewriting earlier migrations.
 
 Concurrency: serialize evaluation/disposition on a deterministic tenant/shipment lock order; enforce expected version and input fingerprint in the transaction, then CAS/unique constraints. Evaluate-and-create, acknowledge, automatic clearance and manual resolve races must not lose audit events or create duplicate active occurrences. An evaluation failure must never half-commit an exception without its history or required central audit. No direct insert/update/delete grant to the API DB login outside a guarded, narrow entry point. Where SQL-side identity validation cannot prove HTTP request provenance, use a short-lived session-bound signed proof with an M11-specific domain/key, following the M10 L14 design pattern. Do not reuse M10 correction proof bytes or grant its privileges to the M11 evaluator.
 

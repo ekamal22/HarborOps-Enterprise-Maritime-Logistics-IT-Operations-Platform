@@ -49,7 +49,7 @@ Implement after M11-01 contract approval. Split the change into testable units:
 | Reevaluation | Bounded M11 due scanner/lease service under `src/HarborOps.Api/Exceptions/` or a scoped background service | Due-time rechecks and missed-change reconciliation independent of M9; safe on restart |
 | Tests | New domain, migration, API and PostgreSQL integration suites | Truth-table, UTC boundaries, input drift, tenant security, correction/rebuild, replay and outage coverage |
 
-Use `TimeProvider`/database UTC consistently. Do not insert an exception from raw event receipt; require accepted resolved effects and fresh materialization where tracking evidence is essential. M10 `TrackingProjectionHostedService` is disabled by default, so specify how fixtures/rebuild or an authorized read-materialization path supplies fresh input without silently enabling it in deployment.
+Use a fixed explicit UTC instant for pure-policy tests and PostgreSQL clock time for transactional evaluation and signatures; the current source has no `TimeProvider` dependency. Do not insert an exception from raw event receipt; require accepted resolved effects and fresh materialization where tracking evidence is essential. M10 `TrackingProjectionHostedService` is disabled by default, so specify how fixtures/rebuild or an authorized read-materialization path supplies fresh input without silently enabling it in deployment.
 
 Avoid N+1 full timeline reductions. Store indexed due checkpoints and source-version fingerprints; reevaluate bounded batches on relevant version changes and when time crosses a configured threshold. Implement backpressure, bounded retries and idle behavior. Do not weaken or consume the M9 unresolved-work cap.
 

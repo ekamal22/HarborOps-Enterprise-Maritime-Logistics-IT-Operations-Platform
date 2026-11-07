@@ -1,5 +1,7 @@
 # G10 Independent Raw-Evidence Review
 
+**Subsequent gate disposition (2026-11-07):** The original results and pending decisions below are retained as historical source-locked evidence. G10 S01/S25 subsequently passed independent review, G10 was accepted, and the security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) and [post-merge reconciliation](M10_G10_POST_MERGE_RECONCILIATION_20261107.md). No deployment or M9 transport-hold change was authorized.
+
 **Review date:** 2026-11-06. **Result:** The submitted raw evidence supports G10 technical verification on frozen runtime `3e81b884b6a4cc782f84c58510793666786c5796`. **G10 acceptance pending.** This is not a gate decision, merge authorization, release or deployment authorization.
 
 **Repository baseline:** `main` at `5edf0035a1fb9d854cba00673eb8fdf1f3033b0c` includes M10 source from merged PR #23 and accepted M0-M9 and M16/G16. G10 corrections and test extensions are retained on `feat/harborops-m10-g16-verify-f80276`; they have not been merged to `main`. Changes after the frozen SHA are tests, the evidence reparse tool and documentation, not runtime code.

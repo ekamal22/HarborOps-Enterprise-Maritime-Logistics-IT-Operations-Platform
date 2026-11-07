@@ -193,7 +193,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                 FROM shipment_exception_history
                 WHERE organization_id=@org AND exception_id=@id
                   AND (@at::timestamptz IS NULL
-                       OR (occurred_at_utc,id)>(@at,@afterId))
+                       OR (occurred_at_utc,id)>(@at::timestamptz,@afterId::uuid))
                 ORDER BY occurred_at_utc,id LIMIT @limit
                 """, ("org", org), ("id", exception), ("at", afterUtc),
                     ("afterId", afterId), ("limit", limit + 1));

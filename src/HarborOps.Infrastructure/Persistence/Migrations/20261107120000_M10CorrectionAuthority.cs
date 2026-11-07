@@ -64,7 +64,7 @@ public sealed class M10CorrectionAuthority : Migration
                 SELECT secret INTO signing_key FROM public.m10_correction_proof_keys
                 WHERE key_id=1 FOR SHARE;
                 IF signing_key IS NULL THEN
-                    RAISE EXCEPTION 'Correction authority not provisioned' USING ERRCODE='42501';
+                    RAISE EXCEPTION 'Correction authority not provisioned' USING ERRCODE='PZ002';
                 END IF;
 
                 actual_digest := encode(digest(convert_to(

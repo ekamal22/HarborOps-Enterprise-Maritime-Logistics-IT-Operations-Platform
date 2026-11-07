@@ -120,7 +120,7 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
         string correlationId, CancellationToken ct)
     {
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        budget.CancelAfter(TimeSpan.FromSeconds(30));
+        budget.CancelAfter(TimeSpan.FromSeconds(25));
         var operationToken = budget.Token;
         await using var tx = await db.Database.BeginTransactionAsync(
             IsolationLevel.RepeatableRead, operationToken);

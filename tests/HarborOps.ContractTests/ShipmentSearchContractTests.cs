@@ -36,6 +36,21 @@ public sealed class ShipmentSearchContractTests
         Assert.False(second.TryDecode(token, org, "SCOPE", now, out _));
     }
 
+    [Fact]
+    public void ExportGateAllowsOneInFlightOperationPerUser()
+    {
+        var gate = new ShipmentExportGate();
+        var user = Guid.NewGuid();
+        var anotherUser = Guid.NewGuid();
+        Assert.True(gate.TryEnter(user));
+        Assert.False(gate.TryEnter(user));
+        Assert.True(gate.TryEnter(anotherUser));
+        gate.Leave(user);
+        Assert.True(gate.TryEnter(user));
+        gate.Leave(user);
+        gate.Leave(anotherUser);
+    }
+
     [Theory]
     [InlineData("/api/v1/organizations/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/shipments/search")]
     [InlineData("/api/v1/organizations/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/exports/shipments")]

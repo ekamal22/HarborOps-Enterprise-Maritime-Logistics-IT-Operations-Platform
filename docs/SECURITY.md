@@ -2,6 +2,14 @@
 
 **Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
 
+## M10 correction authority security boundary, 2026-11-07
+
+**M10/G10 checkpoint (2026-11-07):** Fourteen M10 policies are approved, with revised L07/L14 and conditional L06. The separate unmerged remediation branch adds signed restricted correction authority, same-transaction M16 correction audit and a thirteenth migration. The original `3e81b88` G10 evidence does not verify this new source. Compilation, database/role/adversarial tests, targeted regressions and independent supplemental review are NOT EXECUTED. S01 implementation conformance and S25 gate acceptance are pending. The M9 transport hold and unresolved-work cap remain binding. [Implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) and [verification plan](M10_G10_L07_L14_REMEDIATION_PLAN.md).
+
+The prior direct `harborops_api` correction INSERT grant is removed on the remediation branch. Human corrections now flow through an authenticated HTTP request, a short-lived HMAC-SHA256 proof bound to actor, session, tenant, shipment, payload, generation and idempotency key, and a constrained migration-owned PostgreSQL operation that checks live Manager/session status. A protected database verifier key and nonce evidence are not readable by the ordinary runtime role. The M16 correction event is inserted transactionally, and required audit failure rolls back business changes. Idempotent replay must not create additional audit events.
+
+The trust boundary excludes compromise of the complete HTTP runtime or privileged database/migration identities. The new proof and grant model must be verified against real restricted SQL logins, key mismatch/rotation, signature substitution and session revocation; committed code is not security certification. Do not log, disclose or store signing key material in repository files or shareable evidence.
+
 ## Security goals
 
 Protect organizational boundaries, shipment data integrity, credentials, diagnostic information, and the availability of operational workflows.

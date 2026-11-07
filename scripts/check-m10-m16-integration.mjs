@@ -7,6 +7,8 @@ const program = read("src/HarborOps.Api/Program.cs");
 const auth = read("src/HarborOps.Api/Authentication/AuthenticationSetup.cs");
 const provision = read("src/HarborOps.Api/Audit/AuditRoleProvisioner.cs");
 const migration = read("src/HarborOps.Infrastructure/Persistence/Migrations/20261105180000_ShipmentTrackingProjections.cs");
+const authority = read("src/HarborOps.Infrastructure/Persistence/Migrations/20261107120000_M10CorrectionAuthority.cs");
+const correctionStore = read("src/HarborOps.Infrastructure/Shipments/ShipmentTimelineStore.cs");
 const combined = read("tests/HarborOps.IntegrationTests/CombinedRestrictedRoleTests.cs");
 const migrationOrder = read("tests/HarborOps.IntegrationTests/MigrationSnapshotTests.cs");
 const compose = read("compose.g10.verify.yaml");
@@ -19,7 +21,8 @@ assert.match(auth, /"audit-read"/);
 assert.match(auth, /"m10-mutations"/);
 
 const order = ["20261104180000_AuditEntries", "20261104190000_TrackingWorker",
-  "20261105180000_ShipmentTrackingProjections"];
+  "20261105180000_ShipmentTrackingProjections",
+  "20261107120000_M10CorrectionAuthority"];
 let last = -1;
 for (const id of order) {
   const i = migrationOrder.indexOf(id);
@@ -30,7 +33,14 @@ assert.match(provision, /m16_record_audit_access/);
 assert.match(provision, /m16_api_scope_work_item/);
 assert.match(provision, /m16_api_scope_attempt/);
 assert.match(provision, /DO \$m10_roles\$/);
-assert.match(provision, /GRANT INSERT ON shipment_tracking_corrections/);
+assert.match(provision, /REVOKE INSERT ON shipment_tracking_corrections FROM harborops_api/);
+assert.match(provision, /REVOKE ALL ON m10_correction_proof_keys/);
+assert.match(provision, /GRANT EXECUTE ON FUNCTION m10_apply_signed_correction/);
+assert.match(authority, /CREATE FUNCTION m10_apply_signed_correction/);
+assert.match(authority, /INSERT INTO public.audit_entries/);
+assert.match(authority, /m10_guard_correction_replay/);
+assert.match(correctionStore, /SELECT m10_apply_signed_correction/);
+assert.doesNotMatch(correctionStore, /INSERT INTO shipment_tracking_corrections/);
 assert.match(provision, /GRANT UPDATE ON shipment_tracking_projections TO harborops_api/);
 assert.ok(!/GRANT (?:INSERT|UPDATE|DELETE) ON shipment_tracking_(?:correction_heads|input_versions|timeline_entries) TO harborops_api/.test(provision));
 assert.match(combined, /harborops_worker/);

@@ -301,7 +301,22 @@ public sealed class ShipmentExceptions : Migration
                 FROM shipment_exception_evaluations
                 WHERE organization_id=p_org AND shipment_id=p_shipment AND rule_code=p_rule
                 FOR UPDATE;
-                IF stored_condition=p_condition AND previous_fp=p_fingerprint THEN
+                IF stored_condition=p_condition AND previous_fp=p_fingerprint
+                   AND NOT EXISTS (
+                       -- A deterministic condition/fingerprint may be unchanged
+                       -- across a pre-acceptance severity calibration. Do not
+                       -- silently retain a stale visible severity or skip the
+                       -- corresponding immutable reevaluation history.
+                       SELECT 1 FROM shipment_exceptions
+                       WHERE organization_id=p_org AND shipment_id=p_shipment
+                         AND rule_code=p_rule AND lifecycle_state<>'Resolved'
+                         AND (severity IS DISTINCT FROM p_severity
+                              OR confidence IS DISTINCT FROM p_confidence
+                              OR reason_code IS DISTINCT FROM p_reason
+                              OR reference_at_utc IS DISTINCT FROM p_reference
+                              OR threshold_at_utc IS DISTINCT FROM p_threshold
+                              OR next_evaluation_at_utc IS DISTINCT FROM p_next)
+                   ) THEN
                     -- An unchanged semantic result still represents a new
                     -- source review. Advance the due checkpoint and projection
                     -- refresh watermark without writing duplicate history.

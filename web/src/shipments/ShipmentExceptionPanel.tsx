@@ -15,7 +15,10 @@ type ExceptionHistory = {
   id: string; action: string; oldState: string | null; newState: string;
   actorKind: string; occurredAtUtc: string; reason: string | null;
 };
-type ExceptionDetail = { exception: ExceptionRow; history: ExceptionHistory[] };
+type ExceptionDetail = {
+  exception: ExceptionRow; history: ExceptionHistory[];
+  historyTruncated: boolean;
+};
 
 const descriptions: Record<string, string> = {
   EquipmentConflict: "Conflicting recorded equipment observations",
@@ -41,7 +44,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
   const [rows, setRows] = useState<ExceptionRow[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [detail, setDetail] = useState<ExceptionDetail | null>(null);
-  const [reason, setReason] = useState("");
+  const [reasons, setReasons] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [paging, setPaging] = useState(false);
@@ -116,6 +119,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
   };
 
   const act = async (item: ExceptionRow, action: "Acknowledge" | "Resolve") => {
+    const reason = reasons[item.id] ?? "";
     if (!isManager || busy || reason.trim().length < 8 || reason.trim().length > 240) return;
     setBusy(true); setError(""); setMessage("");
     try {
@@ -123,7 +127,12 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
         "PATCH", root + "/exceptions/" + encodeURIComponent(item.id),
         { action, expectedVersion: item.version, reason: reason.trim() },
         { "Idempotency-Key": crypto.randomUUID() });
-      setReason(""); setMessage("Exception disposition saved.");
+      setReasons(old => {
+        const next = { ...old };
+        delete next[item.id];
+        return next;
+      });
+      setMessage("Exception disposition saved.");
       await refresh();
     } catch (cause) {
       setError(cause instanceof OrganizationRequestError && cause.status === 409
@@ -173,18 +182,18 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
             className="rounded border border-slate-500 px-2 py-1">View history</button>
           {isManager && item.state !== "Resolved" && <>
             <label className="sr-only" htmlFor={"reason-" + item.id}>Disposition reason</label>
-            <input id={"reason-" + item.id} value={reason} maxLength={240}
-              onChange={e => setReason(e.target.value)}
+            <input id={"reason-" + item.id} value={reasons[item.id] ?? ""} maxLength={240}
+              onChange={e => setReasons(old => ({ ...old, [item.id]: e.target.value }))}
               placeholder="Disposition reason (8 to 240 characters)"
               className="min-w-60 flex-1 rounded bg-slate-950 px-2 py-1" />
             {item.state === "Open" && item.condition === "Active" &&
-              <button type="button" disabled={busy || reason.trim().length < 8}
+              <button type="button" disabled={busy || (reasons[item.id] ?? "").trim().length < 8}
                 onClick={() => void act(item, "Acknowledge")}
                 className="rounded border border-cyan-500 px-2 py-1 disabled:opacity-50">
                 Acknowledge
               </button>}
             {item.condition === "Inactive" &&
-              <button type="button" disabled={busy || reason.trim().length < 8}
+              <button type="button" disabled={busy || (reasons[item.id] ?? "").trim().length < 8}
                 onClick={() => void act(item, "Resolve")}
                 className="rounded border border-slate-500 px-2 py-1 disabled:opacity-50">
                 Resolve
@@ -202,6 +211,9 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
         <button type="button" onClick={() => setDetail(null)}
           className="rounded border border-slate-500 px-2 py-1">Close</button>
       </div>
+      {detail.historyTruncated && <p role="status" className="mt-2 text-amber-300">
+        Only the first 500 history entries are displayed. Review the retained records for the full history.
+      </p>}
       <ol className="mt-2 space-y-1">{detail.history.map(entry =>
         <li key={entry.id}>{entry.occurredAtUtc}: {entry.action}
           {entry.reason ? " | " + entry.reason : ""}

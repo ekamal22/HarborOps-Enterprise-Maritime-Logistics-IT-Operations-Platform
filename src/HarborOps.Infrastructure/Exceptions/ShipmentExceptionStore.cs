@@ -24,7 +24,8 @@ public sealed record ShipmentExceptionDueBatch(
     IReadOnlyList<(Guid Organization, Guid Shipment)> Items,
     Guid? LastOrganization, Guid? LastShipment, int Scanned);
 public sealed record ShipmentExceptionDetail(
-    ShipmentExceptionRecord Exception, IReadOnlyList<ShipmentExceptionHistory> History);
+    ShipmentExceptionRecord Exception, IReadOnlyList<ShipmentExceptionHistory> History,
+    bool HistoryTruncated);
 public enum M11StoreResult { Applied, Replayed, NotFound, Conflict, Invalid, Forbidden, DependencyUnavailable, AuditUnavailable }
 
 public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfiguration configuration)
@@ -111,7 +112,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                     actor_kind,actor_user_id,occurred_at_utc,reason
                 FROM shipment_exception_history WHERE organization_id=@org
                     AND exception_id=@id
-                ORDER BY occurred_at_utc,id LIMIT 500
+                ORDER BY occurred_at_utc,id LIMIT 501
                 """, ("org", org), ("id", exception)))
             await using (var reader = await command.ExecuteReaderAsync(ct))
                 while (await reader.ReadAsync(ct))
@@ -123,7 +124,9 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                         reader.GetFieldValue<DateTimeOffset>(7),
                         reader.IsDBNull(8) ? null : reader.GetString(8)));
             await tx.CommitAsync(ct);
-            return new ShipmentExceptionDetail(record, history);
+            var truncated = history.Count > 500;
+            if (truncated) history.RemoveAt(500);
+            return new ShipmentExceptionDetail(record, history, truncated);
         }
         finally { await database.Database.CloseConnectionAsync(); }
     }

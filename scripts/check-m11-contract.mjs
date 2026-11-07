@@ -32,6 +32,15 @@ for (const fn of ["m11_apply_signed_evaluation", "m11_apply_signed_action"]) {
 }
 assert.match(migration, /SECURITY DEFINER/);
 assert.match(migration, /m11_schema/);
+assert.match(migration, /SELECT input_revision FROM shipment_tracking_input_versions/);
+assert.match(store, /v\.input_revision/);
+assert.ok(!/\bv\.revision\b/.test(migration + store),
+  "Accepted M10 input version column is input_revision");
+assert.match(migration, /ix_m11_nonce_expiry/);
+assert.match(migration, /LIMIT 64 FOR UPDATE SKIP LOCKED/);
+assert.match(migration, /rule_policy_version/);
+assert.match(store, /candidate AS MATERIALIZED/);
+assert.match(store, /LastOrganization/);
 assert.match(grants, /REVOKE ALL ON shipment_exception_proof_nonces/);
 assert.ok(!/GRANT (INSERT|UPDATE|DELETE) ON shipment_exception/i.test(grants));
 assert.match(migration, /audit_entries/);

@@ -287,6 +287,7 @@ public static class ShipmentTimelineEndpoints
                 TrackingMutationResult.NotFound => Fail(ctx, 404, "resource_not_found"),
                 TrackingMutationResult.Invalid => Fail(ctx, 422, "invalid_correction"),
                 TrackingMutationResult.AuditUnavailable => Fail(ctx, 503, "dependency_unavailable"),
+                TrackingMutationResult.DependencyUnavailable => Fail(ctx, 503, "dependency_unavailable"),
                 TrackingMutationResult.Forbidden => Fail(ctx, 403, "access_denied"),
                 _ => Fail(ctx, 409, "correction_conflict")
             };

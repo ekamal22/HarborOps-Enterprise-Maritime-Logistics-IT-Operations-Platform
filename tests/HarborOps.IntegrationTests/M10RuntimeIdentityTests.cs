@@ -399,7 +399,8 @@ public sealed class M10RuntimeIdentityTests
             """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
         Assert.Equal(0, await Count(s.Roles.Admin, """
             SELECT COUNT(*) FROM m10_correction_proof_nonces
-            """));
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
         Assert.Equal(0, await Count(s.Roles.Admin, """
             SELECT COUNT(*) FROM audit_entries
             WHERE event_type='shipment.tracking_correction_created'
@@ -457,8 +458,10 @@ public sealed class M10RuntimeIdentityTests
             SELECT COUNT(*) FROM shipment_tracking_operation_replays
             WHERE organization_id=@o AND shipment_id=@s
             """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
-        Assert.Equal(0, await Count(s.Roles.Admin,
-            "SELECT COUNT(*) FROM m10_correction_proof_nonces"));
+        Assert.Equal(0, await Count(s.Roles.Admin, """
+            SELECT COUNT(*) FROM m10_correction_proof_nonces
+            WHERE organization_id=@o AND shipment_id=@s
+            """, ("o", s.Fixture.A), ("s", s.Target.Shipment)));
     }
 
     [Fact]

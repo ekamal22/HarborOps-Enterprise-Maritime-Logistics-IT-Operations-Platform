@@ -1,8 +1,6 @@
 # Architecture Decisions
 
-**M11 current review (2026-11-08):** [Third-pass correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records signed SQL, cursor and concurrency corrections. They remain unexecuted source changes; G11 acceptance pending and the M9 transport hold unchanged.
-
-**M11 audited source candidate (2026-11-07):** [Correctness findings and residual risks](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) are recorded on draft PR #31. Source defects were corrected, but .NET/PostgreSQL/browser execution, local-policy decisions and G11 acceptance remain pending. This source has not been merged into accepted `main`; the M9 transport-event hold remains in force.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records creation-cutoff exception-list cursors and complete immutable-history paging with scoped role redaction. Runtime build, migration and browser verification remain NOT EXECUTED. G11-S01 BLOCKED, G11 acceptance pending, PR #31 unmerged and the M9 sustained transport hold unchanged.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 

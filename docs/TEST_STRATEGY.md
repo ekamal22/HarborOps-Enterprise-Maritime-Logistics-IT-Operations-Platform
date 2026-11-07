@@ -1,10 +1,6 @@
 # Test and Verification Strategy
 
-**M11 current review (2026-11-08):** [Third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records additional signed-authority, cursor, timestamp and concurrency corrections. Runtime execution remains unverified, G11 acceptance pending, and M9 transport restrictions unchanged.
-
-**M11 audited source candidate (2026-11-07):** [Correctness findings and residual risks](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) are recorded on draft PR #31. Source defects were corrected, but .NET/PostgreSQL/browser execution, local-policy decisions and G11 acceptance remain pending. This source has not been merged into accepted `main`; the M9 transport-event hold remains in force.
-
-**Current M11 audit checkpoint (2026-11-07):** [M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records source fixes and unresolved executable verification. G11 remains unverified and acceptance pending. This is an isolated implementation branch, not an accepted `main` capability. The M9 sustained transport hold remains mandatory.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records creation-cutoff exception-list cursors and complete immutable-history paging with scoped role redaction. Runtime build, migration and browser verification remain NOT EXECUTED. G11-S01 BLOCKED, G11 acceptance pending, PR #31 unmerged and the M9 sustained transport hold unchanged.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
@@ -26,6 +22,10 @@ Future changes require focused, source-locked verification of affected contracts
 ## M7 source-locked verification boundary
 
 The accepted M7 implementation contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 was accepted on 2026-11-03; the pinned reference snapshots are checked by `scripts/verify-dcsa-reference.mjs` and the M7 contract tests; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
+
+## Fourth-pass M11 focused verification, unexecuted
+
+Source changes require testing a database-clock first-page cutoff and new exception creation during list pagination, then mutable lifecycle status changes between stateless pages. For immutable history, generate more than 500 synthetic entries in a disposable database and verify the first preview, subsequent `(occurred_at_utc,id)` pages, protected token expiry/tampering, tenant and exception swapping, per-page Analyst redaction, unmodified retained rows, and Chromium/Firefox/WebKit loading and cancellation behavior. This extends the existing G11-S11/S12/S17/S20-S24 matrix. The [fourth audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) is source-level only.
 
 ## M11 candidate verification, not executed
 

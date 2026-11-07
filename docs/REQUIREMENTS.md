@@ -1,8 +1,6 @@
 # Requirements
 
-**M11 current review (2026-11-08):** [Third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records additional signed-authority, cursor, timestamp and concurrency corrections. Runtime execution remains unverified, G11 acceptance pending, and M9 transport restrictions unchanged.
-
-**Current M11 audit checkpoint (2026-11-07):** [M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records source fixes and unresolved executable verification. G11 remains unverified and acceptance pending. This is an isolated implementation branch, not an accepted `main` capability. The M9 sustained transport hold remains mandatory.
+**Current M11 source audit (2026-11-08):** [Fourth correctness audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) records creation-cutoff exception-list cursors and complete immutable-history paging with scoped role redaction. Runtime build, migration and browser verification remain NOT EXECUTED. G11-S01 BLOCKED, G11 acceptance pending, PR #31 unmerged and the M9 sustained transport hold unchanged.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 

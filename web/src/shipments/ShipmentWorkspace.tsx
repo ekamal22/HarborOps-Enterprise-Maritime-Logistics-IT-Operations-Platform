@@ -382,7 +382,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     }
   }
 
-  const advancedFields: { key: keyof ShipmentAdvancedFilters; label: string }[] = [
+  const advancedFields: { key: Exclude<keyof ShipmentAdvancedFilters, "workflowStatus">; label: string }[] = [
     { key: "voyageId", label: "Current voyage UUID" },
     { key: "originPortId", label: "Origin port UUID" },
     { key: "destinationPortId", label: "Destination port UUID" },

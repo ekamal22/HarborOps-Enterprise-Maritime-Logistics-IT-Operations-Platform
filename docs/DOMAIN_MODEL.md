@@ -1,8 +1,14 @@
 # Domain Model and Invariants
 
+**M11 audit status (2026-11-07):** [Source correctness audit](M11_CORRECTNESS_AUDIT_20261107.md) documents corrected defects and outstanding verification. Draft implementation PR #31 is not merged, M11-P01 through M11-P12 and G11 acceptance pending, and the M9 transport hold remains in effect.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
+
+## M11 provisional persistence model
+
+SQL-only migration 14 adds tenant-bound `shipment_exceptions`, append-only `shipment_exception_history`, rule-versioned `shipment_exception_evaluations`, organization-unique `shipment_exception_replays`, and bounded-expiry `shipment_exception_proof_nonces`. Input checkpoints reference accepted M10 `shipment_tracking_input_versions.input_revision`, not a nonexistent `revision` column. This branch is not a migrated or accepted database baseline.
 
 ## Entities
 

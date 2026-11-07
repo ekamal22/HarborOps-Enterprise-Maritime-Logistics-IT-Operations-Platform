@@ -1,5 +1,8 @@
 # Project Status
 
+**Gate decision (2026-11-07):** G10 is ACCEPTED after S01 implementation-conformance and S25 independent-evidence review. The verified remediation branch is authorized for merge into `main`; integration is not yet recorded in this pre-merge checkpoint. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision record. Older G10 pending or blocked statements below are source-locked historical checkpoints, not current gate status. The M9 transport-processing hold remains mandatory.
+
+
 **As of:** 2026-11-07 (G0-G9 and G16 accepted on protected `main`; M10 remediation is on a separate branch; transport hold remains)
 **Default branch:** Protected `main` contains accepted M0-M9 and M16 implementations and verification records. Other unaccepted gates remain open.
 **M9/M16 integration:** G16 accepted on 2026-11-06 for combined tested runtime `79318c6`, following raw-evidence review and four approved integration decisions. [G16 gate closure](M16_G16_GATE_CLOSURE.md) and [executed combined verification](M9_M16_COMBINED_VERIFICATION.md) record the basis and limitations. A later final source-diff review identified an F001 generation-zero forgery gap and added a targeted correction; the correction at `8ba7727` then passed a source-locked gate extension (see the gate closure). The original G16 source-locked decision for `79318c6` is preserved. PR #25 was authorized and merged on 2026-11-06 at `47ba55e2c88556bc5ca0da7d50335ffc8c5ca56d` using `[skip ci]`.

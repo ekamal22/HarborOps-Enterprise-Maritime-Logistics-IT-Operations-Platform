@@ -1,5 +1,8 @@
 # M10 Event Timeline and Projection Rebuild: Implementation Register
 
+**Gate decision (2026-11-07):** G10 is ACCEPTED after S01 implementation-conformance and S25 independent-evidence review. The verified remediation branch is authorized for merge into `main`; integration is not yet recorded in this pre-merge checkpoint. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision record. Older G10 pending or blocked statements below are source-locked historical checkpoints, not current gate status. The M9 transport-processing hold remains mandatory.
+
+
 **As of:** 2026-11-05  
 **Branch:** `feat/m10-timeline-projections` (originally branched from accepted G9 SHA `b4f7b93`; now reconciled with the accepted G16 and PR #27 documentation baseline `25e89026737063294a32bbd081ced400d19c6b3d` by merge `82c5d6eec34469ac1813d99270b4108788c9435d`). [Integration reconciliation](M10_M16_SOURCE_RECONCILIATION.md) records the merge and remaining verification.  
 **State (updated 2026-11-07):** PR #23 merged the original M10 source; technical verification and independent evidence review apply only to frozen runtime `3e81b88`. The fourteen M10 local policies are now approved with L07/L14 revisions and conditional L06. Corrected source is committed separately at runtime candidate `3ef7a50859b5f023aa1457b373728888f6d1cba9`, and technical verification of the corrected source (final runtime `a26d19a`, one audit-metadata line after the candidate) was executed and passed; independent review is NOT EXECUTED. G10 acceptance pending. Earlier source-candidate and pre-approval subsections are retained as history.

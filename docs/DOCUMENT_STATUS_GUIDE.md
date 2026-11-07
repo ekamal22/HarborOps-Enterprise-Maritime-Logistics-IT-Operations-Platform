@@ -1,5 +1,8 @@
 # Documentation Status Guide
 
+**Gate decision (2026-11-07):** G10 is ACCEPTED after S01 implementation-conformance and S25 independent-evidence review. The verified remediation branch is authorized for merge into `main`; integration is not yet recorded in this pre-merge checkpoint. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision record. Older G10 pending or blocked statements below are source-locked historical checkpoints, not current gate status. The M9 transport-processing hold remains mandatory.
+
+
 **Current integrated baseline (2026-11-07):** M0-M9/G0-G9 and M16/G16 are accepted and merged into protected `main`. G16 merged through PR #25 at `47ba55e2` and its post-merge reconciliation through PR #26 at `2ff2f2df`. G10-G15 and G17-G24 remain unaccepted. The [project status](STATUS.md) is authoritative for current gates and changes.
 
 For the 2026-11-07 M10 policy and source reconciliation, see [G10 documentation reconciliation](M10_G10_DOCUMENTATION_RECONCILIATION_20261107.md). Earlier source-locked reports preserve their original evidence and dispositions; this reconciliation does not replace any of those results.

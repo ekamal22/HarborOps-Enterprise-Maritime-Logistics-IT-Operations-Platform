@@ -103,7 +103,8 @@ The M5 shipment Minimal API implements the documented routes and was verified an
 | GET | /organizations/{orgId}/exceptions | Shipment exceptions | Scoped operations |
 | PATCH | /organizations/{orgId}/exceptions/{id} | Acknowledge/resolve exception | Scoped operations |
 | GET | /organizations/{orgId}/analytics/overview | Documented operational KPIs | Scoped viewer |
-| GET | /organizations/{orgId}/exports/shipments | Scoped bounded CSV export | Explicit export permission |
+| GET | /organizations/{orgId}/shipments/search | M12 candidate advanced tenant-scoped search, protected UUID keyset and UTC filters | Typed shipment-read permission, G12 pending |
+| GET | /organizations/{orgId}/exports/shipments | M12 candidate bounded CSV and restricted export audit, G12 pending | Analyst/Manager typed export permission |
 | GET/POST | /operations/incidents | Incident list/create | IT operations role |
 | GET/PATCH | /operations/incidents/{id} | Incident detail and transitions | IT operations role |
 | GET | /health/live | Process liveness | Public, minimal metadata |

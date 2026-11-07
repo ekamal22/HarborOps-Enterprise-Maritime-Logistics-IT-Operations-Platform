@@ -332,6 +332,28 @@ public sealed class M11ExceptionRuntimeTests
             Assert.Equal("Acknowledged", record.GetProperty("state").GetString());
             Assert.Equal(3L, record.GetProperty("version").GetInt64());
         }
+        // Recorded lateness outranks an earlier acknowledged schedule warning,
+        // including when the result set is split across protected cursor pages.
+        string cursor;
+        using (var first = await manager.GetAsync(url + "/exceptions?limit=1"))
+        {
+            Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+            var json = await first.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("RecordedArrivalLate", Assert.Single(
+                json.GetProperty("items").EnumerateArray())
+                .GetProperty("ruleCode").GetString());
+            cursor = json.GetProperty("nextCursor").GetString()!;
+            Assert.False(string.IsNullOrEmpty(cursor));
+        }
+        using (var next = await manager.GetAsync(url + "/exceptions?limit=1&cursor=" +
+            Uri.EscapeDataString(cursor)))
+        {
+            Assert.Equal(HttpStatusCode.OK, next.StatusCode);
+            var json = await next.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("ArrivalScheduleOverdue", Assert.Single(
+                json.GetProperty("items").EnumerateArray())
+                .GetProperty("ruleCode").GetString());
+        }
         using (var resolved = await SendAction(manager, root,
             new { action = "Resolve", expectedVersion = 3L,
                 reason = "Reviewed the recorded workflow clearance" }, Guid.NewGuid()))

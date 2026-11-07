@@ -40,6 +40,7 @@ const m11SecondAudit = get("docs/M11_SECOND_CORRECTNESS_AUDIT_20261107.md");
 const m11ThirdAudit = get("docs/M11_THIRD_CORRECTNESS_AUDIT_20261108.md");
 const m11FourthAudit = get("docs/M11_FOURTH_CORRECTNESS_AUDIT_20261108.md");
 const m11FifthAudit = get("docs/M11_FIFTH_CORRECTNESS_AUDIT_20261108.md");
+const m11SixthAudit = get("docs/M11_SIXTH_CORRECTNESS_AUDIT_20261108.md");
 const m11Implementation = get("docs/M11_IMPLEMENTATION_STATUS.md");
 assert(m11SecondAudit.includes("G11 acceptance pending") &&
   m11ThirdAudit.includes("G11 acceptance pending") &&
@@ -50,6 +51,9 @@ assert(m11SecondAudit.includes("G11 acceptance pending") &&
   m11FifthAudit.includes("G11 acceptance pending") &&
   m11FifthAudit.includes("F11-036") &&
   m11FifthAudit.includes("NOT EXECUTED") &&
+  m11SixthAudit.includes("G11 acceptance pending") &&
+  m11SixthAudit.includes("F11-039") &&
+  m11SixthAudit.includes("NOT EXECUTED") &&
   m11Implementation.includes("G11 are NOT VERIFIED") &&
   m11Implementation.includes("G11-S01 is **BLOCKED**"),
   "M11 must retain the complete unverified, acceptance-pending disposition");
@@ -63,7 +67,7 @@ for (const [name, path] of [
   ["Test strategy", "docs/TEST_STRATEGY.md"],
   ["Operations", "docs/OPERATIONS.md"]
 ]) {
-  assert(get(path).includes("M11_FIFTH_CORRECTNESS_AUDIT_20261108.md"),
+  assert(get(path).includes("M11_SIXTH_CORRECTNESS_AUDIT_20261108.md"),
     name + " omits the current M11 source audit");
 }
 assert(storagePolicy.includes("Persistent project-specific writes to C: are prohibited"), "E-drive storage policy missing its persistent-storage prohibition");

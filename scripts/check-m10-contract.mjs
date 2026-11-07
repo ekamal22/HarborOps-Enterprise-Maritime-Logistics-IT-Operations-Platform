@@ -7,7 +7,6 @@ const authority = read("src/HarborOps.Infrastructure/Persistence/Migrations/2026
 const store = read("src/HarborOps.Infrastructure/Shipments/ShipmentTimelineStore.cs");
 const signer = read("src/HarborOps.Api/Shipments/M10CorrectionProofSigner.cs");
 const roles = read("src/HarborOps.Api/Audit/AuditRoleProvisioner.cs");
-const store = read("src/HarborOps.Infrastructure/Shipments/ShipmentTimelineStore.cs");
 const reducer = read("src/HarborOps.Domain/Tracking/TrackingTimelinePolicy.cs");
 const endpoints = read("src/HarborOps.Api/Shipments/ShipmentTimelineEndpoints.cs");
 const projector = read("src/HarborOps.Api/Shipments/TrackingProjectionHostedService.cs");

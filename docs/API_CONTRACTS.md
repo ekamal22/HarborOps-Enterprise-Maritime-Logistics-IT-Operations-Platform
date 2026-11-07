@@ -1,6 +1,6 @@
 # API Contracts
 
-**M11 audit status (2026-11-07):** [Source correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) documents corrected defects and outstanding verification. Draft implementation PR #31 is not merged, M11-P01 through M11-P12 and G11 acceptance pending, and the M9 transport hold remains in effect.
+**M11 audit status (2026-11-07):** [Source correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) documents corrected defects and outstanding verification. Draft implementation PR #31 is not merged, M11-P01 through M11-P12 and G11 acceptance pending, and the M9 transport hold remains in effect.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
@@ -87,6 +87,10 @@ The accepted [M4 architecture](M4_ARCHITECTURE_DESIGN.md) implements ten `/api/v
 [M5 architecture](M5_ARCHITECTURE_DESIGN.md) specifies scoped shipment GET list/detail/status changes, POST Draft creation, PATCH exact-version edits/transitions/restore and DELETE soft archive. M5 supplies bounded search, while M12 owns advanced search and CSV. `containerIds` and `voyageId` from older sample payloads are excluded until M6 assignments. Five-role permissions, CSRF/Origin and sanitized errors require [G5](M5_VERIFICATION_PLAN.md).
 
 The M5 shipment Minimal API implements the documented routes and was verified and accepted on 2026-11-02. See [G5 closure](M5_G5_GATE_CLOSURE.md) and [implementation status](M5_IMPLEMENTATION_STATUS.md).
+
+## Third-pass M11 API clarifications
+
+Exception lists use the provisional P09 rule order (`EquipmentConflict`, `RecordedArrivalLate`, `ArrivalScheduleOverdue`, `DepartureSlippageRisk`) followed by UUID, including across paged cursors. Competing evaluations or Manager dispositions return an explicit 409 when uncommitted. The signed evaluation proof binds timestamps at PostgreSQL microsecond precision under `m11-eval-v2`. Executable verification remains outstanding.
 
 ## M11 provisional request and response contract
 

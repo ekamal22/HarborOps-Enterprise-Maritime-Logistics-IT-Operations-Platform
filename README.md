@@ -1,6 +1,6 @@
 # HarborOps
 
-**M11 audited source candidate (2026-11-07):** [Correctness findings and residual risks](docs/M11_SECOND_CORRECTNESS_AUDIT_20261107.md) are recorded on draft PR #31. Source defects were corrected, but .NET/PostgreSQL/browser execution, local-policy decisions and G11 acceptance remain pending. This source has not been merged into accepted `main`; the M9 transport-event hold remains in force.
+**M11 audited source candidate (2026-11-07):** [Correctness findings and residual risks](docs/M11_THIRD_CORRECTNESS_AUDIT_20261108.md) are recorded on draft PR #31. Source defects were corrected, but .NET/PostgreSQL/browser execution, local-policy decisions and G11 acceptance remain pending. This source has not been merged into accepted `main`; the M9 transport-event hold remains in force.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](docs/M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 **Post-merge records:** [G10 gate closure](docs/M10_G10_GATE_CLOSURE_20261107.md) and [repository documentation reconciliation](docs/M10_G10_POST_MERGE_RECONCILIATION_20261107.md).

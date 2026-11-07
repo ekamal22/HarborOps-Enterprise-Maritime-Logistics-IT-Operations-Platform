@@ -1,6 +1,6 @@
 # M11 Delay Rules and Shipment Exceptions: Architecture
 
-**Current source audit (2026-11-07):** [M11 correctness audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
+**Current source audit (2026-11-07):** [M11 correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) records corrected defects and unresolved verification, local-policy and security boundaries. Runtime execution is not verified and G11 acceptance pending. The accepted M9 transport hold is unchanged.
 
 **Implementation checkpoint (2026-11-07):** A provisional source implementation exists on `feat/m11-delay-exception-lifecycle`, including additive migration 14, rule evaluation, scoped HTTP routes, guarded Manager actions, a shipment UI, and executable tests. The code has not been compiled or run against PostgreSQL in this review. M11 local policy choices remain proposed; G11-S01 is BLOCKED on policy approval; G11-S02 through G11-S25 remain NOT EXECUTED and acceptance pending. No merge, deployment, or transport-hold removal is authorized.
 
@@ -45,9 +45,13 @@ These are **recommendations for M11-01 approval**, not implemented or approved d
 
 Approval may alter the proposed rules. If a rule cannot be justified against accepted evidence, omit the rule rather than fabricate confidence. Explicitly distinguish `ActiveCondition`, `ClearedCondition`, `InsufficientEvidence` and `StaleInput`.
 
+## Third-pass signed authority and presentation contracts
+
+The provisional evaluation proof domain `m11-eval-v2` binds reference, threshold and due timestamps as canonical Unix microseconds; the Manager action remains `m11-action-v1`. Required SQL arguments and signatures are explicitly non-NULL. The proposed P09 list rank orders EquipmentConflict, RecordedArrivalLate, ArrivalScheduleOverdue and DepartureSlippageRisk, then UUID within the rule; the protected cursor follows the same composite key. Known evaluation uniqueness/serialization races are retried within a bounded budget. These source contracts are not yet verified or approved.
+
 ## Additional provisional source invariants
 
-An unchanged semantic result advances the evaluated-UTC and next-due checkpoint without adding duplicate immutable history. Manager dispositions require a matching, nonexpired checkpoint, and equipment dispositions require the accepted M10 projection to be no fresher than the checked input. Proof expiry comes from the PostgreSQL clock. UTC threshold arithmetic clamps safely at the maximum timestamp and schedules at the next representable microsecond. These are candidate source behaviors, not verified or approved policies; see the [second audit](M11_SECOND_CORRECTNESS_AUDIT_20261107.md).
+An unchanged semantic result advances the evaluated-UTC and next-due checkpoint without adding duplicate immutable history. Manager dispositions require a matching, nonexpired checkpoint, and equipment dispositions require the accepted M10 projection to be no fresher than the checked input. Proof expiry comes from the PostgreSQL clock. UTC threshold arithmetic clamps safely at the maximum timestamp and schedules at the next representable microsecond. These are candidate source behaviors, not verified or approved policies; see the [second audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md).
 
 ## 3. Evaluation and provenance semantics
 

@@ -15,7 +15,7 @@ public sealed record ShipmentTrackingView(
     bool MaterializationStale, DateTimeOffset? MaterializedAtUtc,
     IReadOnlyList<ShipmentTimelineEvent> Timeline, bool HasMore = false);
 
-public enum TrackingMutationResult { Applied, Replayed, NotFound, Conflict, Invalid, Forbidden, AuditUnavailable }
+public enum TrackingMutationResult { Applied, Replayed, NotFound, Conflict, Invalid, Forbidden, AuditUnavailable, DependencyUnavailable }
 
 public sealed record TrackingCorrection(Guid TargetReceiptId, Guid? ReplacementReceiptId,
     long ExpectedGeneration, string Reason);
@@ -494,6 +494,10 @@ public sealed class ShipmentTimelineStore(HarborOpsDbContext db, bool restricted
             catch (PostgresException pg) when ((pg.SqlState is "40001" or "40P01") && attempt < 2)
             {
                 // Entire failed serializable transaction is discarded.
+            }
+            catch (PostgresException pg) when (pg.SqlState == "PZ002")
+            {
+                return (TrackingMutationResult.DependencyUnavailable, 0);
             }
             catch (PostgresException pg) when (pg.SqlState == "PZ001")
             {

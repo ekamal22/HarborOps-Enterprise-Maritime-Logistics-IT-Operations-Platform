@@ -136,9 +136,16 @@ test("M5 unsaved edits survive a background refresh that is still in flight", as
   const firstHeld = new Promise(resolve => { entered = resolve; });
   await page.route("**/api/v1/organizations/*/shipments**", async route => {
     const url = new URL(route.request().url());
-    const read = route.request().method() === "GET" &&
-      /\/shipments(\/search|\/[0-9a-f-]{36})?$/.test(url.pathname);
-    if (hold && read) { heldRequests++; entered(); await gate; }
+    const isSearchRead = route.request().method() === "GET" &&
+      url.pathname.endsWith("/shipments/search");
+    const isDetailRead = route.request().method() === "GET" &&
+      /\/shipments\/[0-9a-f-]{36}$/.test(url.pathname);
+    if (hold && (isSearchRead || isDetailRead)) {
+      heldRequests++;
+      // Resolve only for an actual list refresh, not a coincident detail fetch.
+      if (isSearchRead) entered();
+      await gate;
+    }
     await route.continue();
   });
   await page.bringToFront();

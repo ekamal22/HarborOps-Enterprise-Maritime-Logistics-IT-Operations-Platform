@@ -1,13 +1,15 @@
 # M10 Correction Authority and Atomic Audit Remediation
 
 **Decision:** M10 local policies approved on 2026-11-07, with L07 and L14 modified and L06 conditional.  
-**Source:** `fix/m10-g10-l07-l14-remediation`; last runtime-code revision `3ef7a50859b5f023aa1457b373728888f6d1cba9`. Later commits reconcile documentation only.  
-**Status:** Source changes and regression tests committed. Compilation, migration execution, database security tests and G10 supplemental evidence are **NOT EXECUTED** in this review environment. G10 acceptance pending.  
+**Source:** `fix/m10-g10-l07-l14-remediation`; supplied runtime candidate `3ef7a50859b5f023aa1457b373728888f6d1cba9`; final verified runtime `a26d19acd57308033bdf6fe7e25c61287cd17b0b` differs by one line (the audit metadata `changedFields` list).
+
+**Status:** Source changes and regression tests committed. Compilation, migration, restricted-login database security tests, mutations and the real-stack check were executed on `a26d19a` (see the [verification record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)). Independent review is **NOT EXECUTED**. G10 acceptance pending.
+
 **Baseline:** The branch descends from independently reviewed G10 verification code. The original A1-A7 raw evidence applies only to frozen runtime `3e81b884b6a4cc782f84c58510793666786c5796`.
 
 ## Source and evidence provenance
 
-The last runtime-code commit was `3ef7a50859b5f023aa1457b373728888f6d1cba9`; it is a source candidate, not a passing test baseline. The original G10 independent evidence package (A1-A7, 23 PASS) belongs only to `3e81b884b6a4cc782f84c58510793666786c5796` and its twelve migrations. New-source changes add a thirteenth migration and must receive their own source-locked compile, upgrade, authorization, failure-injection and focused regression checks before any S01 implementation or S25 gate decision. Current living status is in [STATUS](STATUS.md), while [DECISIONS](DECISIONS.md) records policy approval.
+The supplied runtime candidate `3ef7a50859b5f023aa1457b373728888f6d1cba9` passed technical verification after one correction, as final runtime `a26d19acd57308033bdf6fe7e25c61287cd17b0b`. The original G10 independent evidence package (A1-A7, 23 PASS) belongs only to `3e81b884b6a4cc782f84c58510793666786c5796` and its twelve migrations. New-source changes add a thirteenth migration and must receive their own source-locked compile, upgrade, authorization, failure-injection and focused regression checks before any S01 implementation or S25 gate decision. Current living status is in [STATUS](STATUS.md), while [DECISIONS](DECISIONS.md) records policy approval.
 
 ## Implemented changes
 
@@ -38,7 +40,7 @@ Missing HTTP key configuration returns a sanitized HTTP 503. Missing database ve
 - G10 stack source assertions and mutation variants cover the new database boundary, and check that a successful correction adds central M16 audit evidence.
 - Static contract checks assert the signed operation, restricted grants, sanitized audit and absence of a direct correction INSERT in the store.
 
-**Required execution:** Source-lock a new local run, execute compilation and affected unit, contract, integration, restricted-role, migration/upgrade, concurrent-revocation and audit outage tests. Confirm negative proofs against real separate PostgreSQL login identities. Apply focused effective security mutations to the changed boundary and run any impacted M9/M16 regressions. Preserve original failures. Do not automatically rerun the complete accepted G10 campaign.
+**Required execution (performed 2026-11-07, see the verification record):** Source-lock a new local run, execute compilation and affected unit, contract, integration, restricted-role, migration/upgrade, concurrent-revocation and audit outage tests. Confirm negative proofs against real separate PostgreSQL login identities. Apply focused effective security mutations to the changed boundary and run any impacted M9/M16 regressions. Preserve original failures. Do not automatically rerun the complete accepted G10 campaign.
 
 ## Residual risks and boundaries
 
@@ -46,4 +48,4 @@ The signing secret is protected against compromise of only the restricted API da
 
 The existing M9 transport-event hold, 10,000 unresolved-work cap, M16 accepted audit access and retention policy, projector default-off state and all historical source evidence remain unchanged.
 
-**Acceptance boundary:** The source implementation has not passed a new runtime verification. Do not mark S01 implementation compliant or S25 accepted until new raw evidence is reviewed. There is no merge, release, deployment or GitHub Actions authorization.
+**Acceptance boundary:** The source implementation passed the technical verification recorded in the [verification record](M10_G10_REMEDIATION_VERIFICATION_20261107.md), after one runtime audit-metadata correction. Do not mark S01 implementation compliant or S25 accepted until that raw evidence has had independent review. There is no merge, release, deployment or GitHub Actions authorization.

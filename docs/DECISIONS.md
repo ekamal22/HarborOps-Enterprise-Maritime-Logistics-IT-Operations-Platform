@@ -12,7 +12,7 @@ The accepted M0 baseline uses the hardened rootless PostgreSQL container and .NE
 
 M10-L01 through M10-L14 are approved, with modifications to L07 and L14 and a condition on L06. L07 mandates atomic M16 audit evidence for every successful correction, without duplication on replay. L14 removes unrestricted direct SQL correction INSERT by the API identity and requires nonforgeable, session-bound authority at the database boundary. L06 Manager-only correction semantics depend on verification of L14. The decision details are recorded under [M10 local policy selection for G10](#m10-local-policy-selection-for-g10-2026-11-07).
 
-The implementation is committed on `fix/m10-g10-l07-l14-remediation` but has not passed new-source .NET compilation, database execution or supplemental security verification. Policy selection is resolved; S01 source conformance and S25 gate acceptance remain pending. [Implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+The implementation is committed on `fix/m10-g10-l07-l14-remediation` and passed new-source .NET compilation, database execution and targeted security verification on `a26d19a` ([record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)). Policy selection is resolved; independent review, S01 source conformance and S25 gate acceptance remain pending. [Implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 
 ## Accepted baseline decisions
 
@@ -127,4 +127,4 @@ M10-L01 through M10-L14 were approved with modifications to **L07** and **L14**,
 
 **L14:** Ordinary API-role direct correction INSERT is no longer authorized as the target contract. The replacement constrained database operation must validate live authority and nonforgeable request provenance, even against a database-credential-only attacker who can read session IDs. Worker and projector rights stay restricted. Existing M16 audit and M9 operational boundaries remain unchanged.
 
-The [targeted remediation plan](M10_G10_L07_L14_REMEDIATION_PLAN.md) specifies implementation, test criteria and evidence requirements. This is a **policy decision**, not proof of code implementation. S01 policy selection is decided, but its verified implementation and G10 S25 gate acceptance are pending. No merge, deployment or release is authorized.
+The [targeted remediation plan](M10_G10_L07_L14_REMEDIATION_PLAN.md) specifies implementation, test criteria and evidence requirements. This is a **policy decision**, not proof of code implementation; its technical verification is recorded in the [verification record](M10_G10_REMEDIATION_VERIFICATION_20261107.md). S01 policy selection is decided, but independent review of the implementation and G10 S25 gate acceptance are pending. No merge, deployment or release is authorized.

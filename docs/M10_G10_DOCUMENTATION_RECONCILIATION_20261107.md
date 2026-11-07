@@ -3,7 +3,7 @@
 **Date:** 2026-11-07  
 **Branch:** `fix/m10-g10-l07-l14-remediation`  
 **Last runtime-code revision:** `3ef7a50859b5f023aa1457b373728888f6d1cba9`  
-**Status:** Documentation reconciled with the committed source candidate. New-source build, PostgreSQL execution and independent supplemental review are NOT EXECUTED. G10 acceptance pending.
+**Status:** Documentation reconciled with the committed source candidate. New-source build and PostgreSQL execution were later performed (see the [verification record](M10_G10_REMEDIATION_VERIFICATION_20261107.md)); independent supplemental review is NOT EXECUTED. G10 acceptance pending.
 
 ## Current authoritative state
 
@@ -11,7 +11,7 @@
 2. PR #23 merged the original M10 source before G10 acceptance. Independently reviewed A1-A7 technical results support 23 PASS scenarios on frozen runtime `3e81b884b6a4cc782f84c58510793666786c5796`, with S01 BLOCKED at the time and S25 NOT EXECUTED.
 3. M10-L01 through M10-L14 were approved on 2026-11-07 with changes to L07 and L14 and a condition on L06. Policy selection is resolved, but implementation conformance under S01 requires new-source verification.
 4. The separate remediation branch contains signed correction authority, private database proof verification, removal of direct API correction INSERT, guarded correction replay and transactionally inserted M16 correction audit evidence. It adds SQL-only migration `20261107120000_M10CorrectionAuthority`, bringing the new-source inventory to thirteen.
-5. The remediation source has not been compiled or run against PostgreSQL in this session. It has no new source-locked test result. S25 formal acceptance and any merge/release/deployment decision remain separate and pending.
+5. When this reconciliation was written the remediation source had not been compiled or run against PostgreSQL. Source-locked results now exist for `a26d19acd57308033bdf6fe7e25c61287cd17b0b` in the [verification record](M10_G10_REMEDIATION_VERIFICATION_20261107.md). S25 formal acceptance and any merge/release/deployment decision remain separate and pending.
 6. The accepted M9 sustained transport-processing hold and 10,000 unresolved-work cap remain mandatory. M10 currently does not resolve parked ARRI/DEPA transport traffic or compute ETA.
 
 ## Living documents reconciled

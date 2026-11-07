@@ -193,7 +193,7 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Evaluation authority denied' USING ERRCODE='42501';
                 END IF;
                 SELECT secret INTO signing_key
-                FROM public.m10_correction_proof_keys WHERE key_id=1 FOR SHARE;
+                FROM m10_correction_proof_keys WHERE key_id=1 FOR SHARE;
                 IF signing_key IS NULL THEN
                     RAISE EXCEPTION 'Evaluation verifier unavailable' USING ERRCODE='PZ002';
                 END IF;
@@ -213,22 +213,22 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Evaluation authority denied' USING ERRCODE='42501';
                 END IF;
 
-                SELECT status INTO current_org FROM public.organizations
+                SELECT status INTO current_org FROM organizations
                     WHERE id=p_org FOR SHARE;
                 IF current_org IS DISTINCT FROM 'Active' THEN
                     RAISE EXCEPTION 'Inactive evaluation organization' USING ERRCODE='42501';
                 END IF;
-                SELECT version INTO current_version FROM public.shipments
+                SELECT version INTO current_version FROM shipments
                     WHERE organization_id=p_org AND id=p_shipment FOR UPDATE;
                 IF current_version IS NULL THEN
                     RAISE EXCEPTION 'Shipment not found' USING ERRCODE='PZ003';
                 END IF;
                 SELECT COALESCE(v.revision,0) INTO current_input
-                    FROM public.shipment_tracking_input_versions v
+                    FROM shipment_tracking_input_versions v
                     WHERE v.organization_id=p_org AND v.shipment_id=p_shipment;
                 current_input := COALESCE(current_input,0);
                 SELECT COALESCE(h.generation,0) INTO current_generation
-                    FROM public.shipment_tracking_correction_heads h
+                    FROM shipment_tracking_correction_heads h
                     WHERE h.organization_id=p_org AND h.shipment_id=p_shipment;
                 current_generation := COALESCE(current_generation,0);
                 IF current_version <> p_ship_version
@@ -240,7 +240,7 @@ public sealed class ShipmentExceptions : Migration
                 IF p_rule='EquipmentConflict' AND p_condition IN ('Active','Inactive') THEN
                     SELECT observed_state,input_revision,correction_generation
                     INTO current_state,current_projection_revision,current_projection_generation
-                    FROM public.shipment_tracking_projections
+                    FROM shipment_tracking_projections
                     WHERE organization_id=p_org AND shipment_id=p_shipment;
                     IF current_projection_revision IS DISTINCT FROM current_input
                        OR current_projection_generation IS DISTINCT FROM current_generation
@@ -250,7 +250,7 @@ public sealed class ShipmentExceptions : Migration
                     END IF;
                 END IF;
 
-                INSERT INTO public.shipment_exception_proof_nonces
+                INSERT INTO shipment_exception_proof_nonces
                     (nonce,organization_id,shipment_id,operation,expires_at_utc)
                 VALUES (p_nonce,p_org,p_shipment,'Evaluation',to_timestamp(p_expires));
                 payload := jsonb_build_object('reasonCode',p_reason,'confidence',p_confidence,
@@ -261,7 +261,7 @@ public sealed class ShipmentExceptions : Migration
                 END IF;
                 SELECT condition_state,source_fingerprint
                     INTO stored_condition,previous_fp
-                FROM public.shipment_exception_evaluations
+                FROM shipment_exception_evaluations
                 WHERE organization_id=p_org AND shipment_id=p_shipment AND rule_code=p_rule
                 FOR UPDATE;
                 IF stored_condition=p_condition AND previous_fp=p_fingerprint THEN
@@ -270,16 +270,16 @@ public sealed class ShipmentExceptions : Migration
 
                 SELECT id,lifecycle_state,condition_state
                     INTO existing_id,existing_state,existing_condition
-                FROM public.shipment_exceptions
+                FROM shipment_exceptions
                 WHERE organization_id=p_org AND shipment_id=p_shipment
                   AND rule_code=p_rule AND lifecycle_state<>'Resolved'
                 FOR UPDATE;
 
                 IF p_condition='Active' AND existing_id IS NULL THEN
                     SELECT COALESCE(MAX(occurrence),0)+1 INTO next_occurrence
-                    FROM public.shipment_exceptions WHERE organization_id=p_org
+                    FROM shipment_exceptions WHERE organization_id=p_org
                         AND shipment_id=p_shipment AND rule_code=p_rule;
-                    INSERT INTO public.shipment_exceptions
+                    INSERT INTO shipment_exceptions
                         (organization_id,shipment_id,rule_code,occurrence,condition_state,
                          lifecycle_state,severity,confidence,reason_code,source_fingerprint,
                          shipment_version,tracking_input_revision,correction_generation,
@@ -288,12 +288,12 @@ public sealed class ShipmentExceptions : Migration
                         p_confidence,p_reason,p_fingerprint,p_ship_version,p_input_revision,
                         p_generation,p_reference,p_threshold,p_next,payload)
                     RETURNING id INTO exception_id;
-                    INSERT INTO public.shipment_exception_history
+                    INSERT INTO shipment_exception_history
                         (organization_id,exception_id,action,new_state,actor_kind,source_fingerprint)
                     VALUES (p_org,exception_id,'Opened','Open','System',p_fingerprint);
                 ELSIF existing_id IS NOT NULL THEN
                     IF p_condition='Inactive' THEN
-                        UPDATE public.shipment_exceptions SET
+                        UPDATE shipment_exceptions SET
                             lifecycle_state='Resolved',condition_state=p_condition,
                             resolved_at_utc=clock_timestamp(),last_evaluated_at_utc=clock_timestamp(),
                             version=version+1,source_fingerprint=p_fingerprint,
@@ -301,13 +301,13 @@ public sealed class ShipmentExceptions : Migration
                             shipment_version=p_ship_version,tracking_input_revision=p_input_revision,
                             correction_generation=p_generation
                         WHERE id=existing_id;
-                        INSERT INTO public.shipment_exception_history
+                        INSERT INTO shipment_exception_history
                             (organization_id,exception_id,action,old_state,new_state,actor_kind,
                              source_fingerprint)
                         VALUES (p_org,existing_id,'AutoResolved',existing_state,
                             'Resolved','System',p_fingerprint);
                     ELSE
-                        UPDATE public.shipment_exceptions SET
+                        UPDATE shipment_exceptions SET
                             condition_state=p_condition,severity=p_severity,confidence=p_confidence,
                             reason_code=p_reason,source_fingerprint=p_fingerprint,
                             shipment_version=p_ship_version,tracking_input_revision=p_input_revision,
@@ -316,7 +316,7 @@ public sealed class ShipmentExceptions : Migration
                             next_evaluation_at_utc=p_next,evidence=payload,
                             last_evaluated_at_utc=clock_timestamp(),version=version+1
                         WHERE id=existing_id;
-                        INSERT INTO public.shipment_exception_history
+                        INSERT INTO shipment_exception_history
                             (organization_id,exception_id,action,old_state,new_state,actor_kind,
                              source_fingerprint)
                         VALUES (p_org,existing_id,
@@ -326,7 +326,7 @@ public sealed class ShipmentExceptions : Migration
                     END IF;
                 END IF;
 
-                INSERT INTO public.shipment_exception_evaluations
+                INSERT INTO shipment_exception_evaluations
                     (organization_id,shipment_id,rule_code,condition_state,source_fingerprint,
                      shipment_version,tracking_input_revision,correction_generation,
                      next_evaluation_at_utc)
@@ -376,7 +376,7 @@ public sealed class ShipmentExceptions : Migration
                    OR p_expires < now_epoch OR p_expires > now_epoch+60 THEN
                     RAISE EXCEPTION 'Exception action authority denied' USING ERRCODE='42501';
                 END IF;
-                SELECT secret INTO signing_key FROM public.m10_correction_proof_keys
+                SELECT secret INTO signing_key FROM m10_correction_proof_keys
                 WHERE key_id=1 FOR SHARE;
                 IF signing_key IS NULL THEN
                     RAISE EXCEPTION 'Exception action verifier unavailable' USING ERRCODE='PZ002';
@@ -397,18 +397,18 @@ public sealed class ShipmentExceptions : Migration
 
                 -- Match the established organization-first lock order before
                 -- locking the session or exception row.
-                SELECT status INTO current_org FROM public.organizations
+                SELECT status INTO current_org FROM organizations
                     WHERE id=p_org FOR SHARE;
                 IF current_org IS DISTINCT FROM 'Active' THEN
                     RAISE EXCEPTION 'Exception action authority denied' USING ERRCODE='42501';
                 END IF;
                 -- A valid UUID is not a grant. Lock the live session and role before mutation.
                 SELECT EXISTS (
-                    SELECT 1 FROM public.auth_sessions s
-                    JOIN public.users u ON u.id=s.user_id
-                    JOIN public.organization_memberships m
+                    SELECT 1 FROM auth_sessions s
+                    JOIN users u ON u.id=s.user_id
+                    JOIN organization_memberships m
                       ON m.user_id=s.user_id AND m.organization_id=s.selected_organization_id
-                    JOIN public.organizations o ON o.id=s.selected_organization_id
+                    JOIN organizations o ON o.id=s.selected_organization_id
                     WHERE s.id=p_session AND s.user_id=p_actor
                       AND s.selected_organization_id=p_org
                       AND s.revoked_at_utc IS NULL
@@ -425,12 +425,12 @@ public sealed class ShipmentExceptions : Migration
 
                 -- Read the immutable scope first, then lock the shipment before
                 -- the exception, matching the evaluation mutation lock order.
-                SELECT shipment_id INTO row_shipment FROM public.shipment_exceptions
+                SELECT shipment_id INTO row_shipment FROM shipment_exceptions
                     WHERE id=p_exception AND organization_id=p_org;
                 IF row_shipment IS NULL THEN
                     RAISE EXCEPTION 'Exception not found' USING ERRCODE='PZ003';
                 END IF;
-                SELECT record_status INTO row_shipment_state FROM public.shipments
+                SELECT record_status INTO row_shipment_state FROM shipments
                     WHERE organization_id=p_org AND id=row_shipment FOR SHARE;
                 IF row_shipment_state IS DISTINCT FROM 'Active' THEN
                     RAISE EXCEPTION 'Exception scope inactive' USING ERRCODE='42501';
@@ -439,11 +439,11 @@ public sealed class ShipmentExceptions : Migration
                     tracking_input_revision,correction_generation
                 INTO row_state,row_condition,row_version,row_shipment_version,
                     row_input_revision,row_generation
-                FROM public.shipment_exceptions
+                FROM shipment_exceptions
                 WHERE id=p_exception AND organization_id=p_org FOR UPDATE;
 
                 SELECT request_digest,response_version INTO saved_digest,saved_version
-                FROM public.shipment_exception_replays
+                FROM shipment_exception_replays
                 WHERE organization_id=p_org AND exception_id=p_exception
                   AND actor_user_id=p_actor AND idempotency_key=p_idempotency;
                 IF FOUND THEN
@@ -465,39 +465,39 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Exception cannot be resolved' USING ERRCODE='PZ005';
                 END IF;
                 IF row_shipment_version IS DISTINCT FROM (
-                    SELECT version FROM public.shipments WHERE organization_id=p_org
+                    SELECT version FROM shipments WHERE organization_id=p_org
                         AND id=row_shipment
                 ) OR row_input_revision IS DISTINCT FROM COALESCE((
-                    SELECT revision FROM public.shipment_tracking_input_versions
+                    SELECT revision FROM shipment_tracking_input_versions
                     WHERE organization_id=p_org AND shipment_id=row_shipment
                 ),0) OR row_generation IS DISTINCT FROM COALESCE((
-                    SELECT generation FROM public.shipment_tracking_correction_heads
+                    SELECT generation FROM shipment_tracking_correction_heads
                     WHERE organization_id=p_org AND shipment_id=row_shipment
                 ),0) THEN
                     RAISE EXCEPTION 'Exception source changed' USING ERRCODE='PZ004';
                 END IF;
 
-                INSERT INTO public.shipment_exception_proof_nonces
+                INSERT INTO shipment_exception_proof_nonces
                     (nonce,organization_id,shipment_id,operation,expires_at_utc)
                 VALUES (p_nonce,p_org,row_shipment,'Disposition',to_timestamp(p_expires));
 
-                UPDATE public.shipment_exceptions SET
+                UPDATE shipment_exceptions SET
                     lifecycle_state=CASE WHEN p_action='Acknowledge'
                         THEN 'Acknowledged' ELSE 'Resolved' END,
                     resolved_at_utc=CASE WHEN p_action='Resolve'
                         THEN clock_timestamp() ELSE NULL END,
                     version=version+1
                 WHERE id=p_exception;
-                INSERT INTO public.shipment_exception_history
+                INSERT INTO shipment_exception_history
                     (organization_id,exception_id,action,old_state,new_state,actor_kind,
                      actor_user_id,actor_session_id,reason,source_fingerprint)
                 SELECT p_org,p_exception,CASE WHEN p_action='Acknowledge'
                     THEN 'Acknowledged' ELSE 'Resolved' END,row_state,
                     CASE WHEN p_action='Acknowledge' THEN 'Acknowledged' ELSE 'Resolved' END,
                     'Human',p_actor,p_session,p_reason,source_fingerprint
-                FROM public.shipment_exceptions WHERE id=p_exception;
+                FROM shipment_exceptions WHERE id=p_exception;
                 BEGIN
-                    INSERT INTO public.audit_entries
+                    INSERT INTO audit_entries
                         (organization_id,event_type,event_schema_version,outcome,actor_kind,
                          actor_user_id,actor_session_id,actor_role,
                          resource_type,resource_id,correlation_id,metadata)
@@ -511,7 +511,7 @@ public sealed class ShipmentExceptions : Migration
                 EXCEPTION WHEN OTHERS THEN
                     RAISE EXCEPTION 'Exception action audit unavailable' USING ERRCODE='PZ001';
                 END;
-                INSERT INTO public.shipment_exception_replays
+                INSERT INTO shipment_exception_replays
                     (organization_id,exception_id,actor_user_id,idempotency_key,
                      request_digest,response_version,action)
                 VALUES (p_org,p_exception,p_actor,p_idempotency,digest_value,
@@ -526,6 +526,24 @@ public sealed class ShipmentExceptions : Migration
                 uuid,uuid,uuid,uuid,varchar,bigint,varchar,uuid,uuid,bigint,varchar)
                 FROM PUBLIC;
             REVOKE ALL ON shipment_exception_proof_nonces FROM PUBLIC;
+
+            -- Bind SECURITY DEFINER lookups to the schema where the migration
+            -- was applied. This also supports isolated populated-upgrade tests
+            -- whose accepted M10 objects live outside the public schema.
+            DO $m11_schema$
+            DECLARE target_schema text := current_schema();
+            BEGIN
+                EXECUTE format(
+                    'ALTER FUNCTION %1$I.m11_apply_signed_evaluation(
+                        uuid,uuid,varchar,varchar,varchar,varchar,varchar,varchar,
+                        timestamptz,timestamptz,timestamptz,bigint,bigint,bigint,
+                        uuid,bigint,varchar)
+                     SET search_path TO pg_catalog,%1$I,public', target_schema);
+                EXECUTE format(
+                    'ALTER FUNCTION %1$I.m11_apply_signed_action(
+                        uuid,uuid,uuid,uuid,varchar,bigint,varchar,uuid,uuid,bigint,varchar)
+                     SET search_path TO pg_catalog,%1$I,public', target_schema);
+            END $m11_schema$;
             """);
     }
 

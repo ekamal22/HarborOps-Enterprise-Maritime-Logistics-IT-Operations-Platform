@@ -32,3 +32,7 @@ The supplemental sealed archive `g10fm-final-evidence-20261107.tar.gz` matches S
 ## Integration and documentation follow-up
 
 The security remediation merge is authorized, subject to unchanged source, ordinary protected-branch checks and use of `[skip ci]` without running or enabling GitHub Actions. Record the actual PR and merge commit in a post-merge reconciliation; do not claim `main` changed before that action succeeds. Existing failed attempts and raw evidence remain preserved at their original source-locked locations.
+
+## Integration completed, 2026-11-07
+
+The authorized security remediation merged into protected `main` through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) on 2026-11-07 at merge commit `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. The merge retained the accepted remediation branch history and used `[skip ci]`. No deployment, release or change to the M9 transport-processing hold was authorized. The separate post-merge documentation reconciliation records the resulting integrated baseline.

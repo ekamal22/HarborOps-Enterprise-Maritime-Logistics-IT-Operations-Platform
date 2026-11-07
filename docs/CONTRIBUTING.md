@@ -1,10 +1,12 @@
 # Engineering and Documentation Conventions
 
-**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
+
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 ## Current G10 contribution boundary
 
-M10-L01 through M10-L14 were approved on 2026-11-07 with modified L07/L14 and conditional L06. The source remediation is committed on `fix/m10-g10-l07-l14-remediation`, with an additive thirteenth migration and targeted tests. Compilation, database execution and independent new-source review remain NOT EXECUTED. Before gate acceptance, record the exact source SHA, real test outcomes, evidence hashes and independent findings. Do not merge, run GitHub Actions, deploy or release as part of this documentation reconciliation. The accepted M9 transport hold remains mandatory. [Implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) and [status](STATUS.md).
+M10-L01 through M10-L14 were approved on 2026-11-07 with revised L07/L14 and conditional L06, verified for S01/S25 conformance and merged via [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). The thirteenth migration, restricted signed corrections and atomic audit are accepted. Preserve source-locked historical evidence and the M9 transport hold.
 
 ## Working approach
 
@@ -95,7 +97,7 @@ The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLE
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. The completed M1 pull request included schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and the historical GitHub Actions evidence in [G1 Verification](M1_VERIFICATION_PLAN.md). This does not authorize any additional workflow runs. No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.
 
-Do not conflate architecture approval with milestone acceptance. **G0-G9 and G16 are explicitly accepted and merged into protected `main` through 2026-11-06.** G16's [closure](M16_G16_GATE_CLOSURE.md) includes the independent combined evidence and post-acceptance F001 gate extension. G10-G15 and G17-G24 remain acceptance pending. [Status](STATUS.md) alone is authoritative for current gate status, while historical source-locked records preserve earlier run outcomes. The dedicated final accessibility gate remains M24-04.
+Do not conflate architecture approval with milestone acceptance. **G0-G10 and G16 are explicitly accepted and integrated into protected `main` by 2026-11-07.** All other gates remain subject to their own reviews. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). No deployment is implied.
 
 ## Documentation hygiene
 

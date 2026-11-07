@@ -1,9 +1,9 @@
 # Implementation Notes
 
-**G10 accepted (2026-11-07):** M10/G10 S01 and S25 are closed by [the gate decision](M10_G10_GATE_CLOSURE_20261107.md). The final signed-correction and historical-upgrade source is verified at `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343`; its integration into `main` is authorized and still pending at this pre-merge checkpoint. Earlier unaccepted-state passages remain historical evidence references. No hosting, release or M9 transport-hold change is authorized.
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
-**Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
+**Current accepted baseline (2026-11-07):** G0-G10 and G16 are integrated into protected `main`; G10 remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following independently reviewed [gate closure](M10_G10_GATE_CLOSURE_20261107.md). G11-G15 and G17-G24 remain unaccepted. Sustained M9 transport-event processing remains held.
 
 **Status:** Supporting engineering guidance. This file is not an independent roadmap or authoritative dependency ledger.
 
@@ -11,7 +11,7 @@ The [Product Requirements Document](PRD.md) defines user outcomes and release bo
 
 ## M10/G10 implementation boundary
 
-**Current M10/G10 source checkpoint (2026-11-07):** All fourteen M10-local policy decisions are approved with revised L07/L14 and conditional L06. The L07/L14 correction-security changes are committed on `fix/m10-g10-l07-l14-remediation` (thirteenth migration, signed restricted database correction operation, same-transaction M16 audit event and replay safeguards). New-source build, database execution, supplemental security verification and independent review are NOT EXECUTED. The prior 23 PASS technical evidence is source-locked to `3e81b88` and is not proof of the changes. S01 implementation conformance and S25 formal acceptance remain pending. No merge, release, deployment or GitHub Actions execution is authorized. The M9 transport hold and 10,000 unresolved-work cap remain mandatory. See [implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) and [verification plan](M10_G10_L07_L14_REMEDIATION_PLAN.md).
+**Current M10/G10 implementation checkpoint (2026-11-07):** G10 S01/S25 accepted and merged via PR #28. Thirteen additive migrations, restricted signed corrections, atomic M16 audit, historical upgrade and corrected default Compose environment were verified on their respective source locks. [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision; historical implementation notes below preserve prior status.
 
 ## Work-package execution contract
 

@@ -1,11 +1,11 @@
 # API Contracts
 
-**G10 accepted (2026-11-07):** M10/G10 S01 and S25 are closed by [the gate decision](M10_G10_GATE_CLOSURE_20261107.md). The final signed-correction and historical-upgrade source is verified at `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343`; its integration into `main` is authorized and still pending at this pre-merge checkpoint. Earlier unaccepted-state passages remain historical evidence references. No hosting, release or M9 transport-hold change is authorized.
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
 ## Contract status
 
-M0-M9 APIs, including durable tracking receipt intake and scoped M9 work query/redrive, are accepted on `main`. M16 Auditor-only tenant-scoped audit read APIs were separately accepted and merged through [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25); see [G16 closure](M16_G16_GATE_CLOSURE.md). M10 tracking timeline/projection endpoints merged through PR #23 but G10 remains unaccepted. Original frozen runtime `3e81b88` has independently reviewed technical evidence; the separately committed L07/L14 security remediation has no executed runtime verification. Full public OpenAPI generation is still planned.
+M0-M10 APIs, including the M10 timeline, projection and signed Manager correction routes, are accepted and integrated into `main`. M16 Auditor-only tenant-scoped audit APIs are also accepted. Original M10 PR #23 and remediation [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) establish the current contract. The M9 parked-transport hold and the projector default-off setting remain mandatory. See [G10 closure](M10_G10_GATE_CLOSURE_20261107.md).
 
 ## Observed M0 contract verification
 
@@ -179,7 +179,7 @@ The accepted [G16 gate closure](M16_G16_GATE_CLOSURE.md) and integrated [PR #25]
 
 Successful audit reads record their own audit-access events. Sensitive mutations and their audit entries commit in the same database transaction or fail closed. Responses use `Cache-Control: no-store`; there is no public audit write, export or global search route. The actor/source context and fixed metadata allowlist exclude secrets and raw tracking payloads. Retention policy is 365 days online followed by separately verified archival, without implemented automatic purge. M9 worker attempt/effect history remains a distinct immutable audit-of-record surface. The audit cursor retains its documented late-commit ordering caveat; see [G16 closure](M16_G16_GATE_CLOSURE.md).
 
-## M10 tracking timeline and projection endpoints (source committed, G10 unaccepted)
+## M10 tracking timeline and projection endpoints (G10 accepted and merged)
 
 The [source-reconciled M10 candidate](M10_M16_SOURCE_RECONCILIATION.md) adds four authenticated routes under `/api/v1/organizations/{organizationId}/shipments/{shipmentId}`. These do **not** supersede the accepted M5 manual shipment workflow or the accepted M16 Auditor-only audit routes.
 
@@ -190,4 +190,4 @@ The [source-reconciled M10 candidate](M10_M16_SOURCE_RECONCILIATION.md) adds fou
 | POST | `/tracking-corrections` | Manager-only CSRF/Origin checks, current membership and session revalidation, UUID `Idempotency-Key`, append-only reasoned correction and generation precondition. |
 | POST | `/tracking-projection/rebuild` | Manager-only CSRF/Origin checks and UUID idempotency key; serializable scope locking, atomically refreshed projection, unchanged input -> unchanged materialization revision. |
 
-Frozen G10 testing covered these routes against the earlier twelve-migration source. The approved L07/L14 changes are committed separately: the correction endpoint now signs short-lived, scope-bound proofs; the constrained PostgreSQL operation verifies live Manager/session authority; a successful correction writes one atomic M16 audit entry and rejects unauthorized replay. Missing required authority or audit dependencies must produce a sanitized HTTP 503. Ordinary API database credentials must not permit direct correction INSERT or arbitrary audit writes. These changes use the additional thirteenth SQL migration and require new-source verification before acceptance. The sustained transport-event hold remains in force. See [implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+The original G10 tests verified twelve-migration routes on `3e81b88`. Subsequent accepted remediation added a signed, short-lived, scope-bound HTTP correction proof; restricted PostgreSQL verifies live Manager/session authority, writes one atomic M16 audit event and denies unauthorized replay. Correction authority was tested on `a26d19a`, and final migration/default-Compose changes on `e3002bd`. See [G10 closure](M10_G10_GATE_CLOSURE_20261107.md). Missing authority or required audit dependencies fail closed.

@@ -1,12 +1,12 @@
 # HarborOps Delivery Roadmap
 
-**Gate decision (2026-11-07):** G10 is ACCEPTED after S01 implementation-conformance and S25 independent-evidence review. The verified remediation branch is authorized for merge into `main`; integration is not yet recorded in this pre-merge checkpoint. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision record. Older G10 pending or blocked statements below are source-locked historical checkpoints, not current gate status. The M9 transport-processing hold remains mandatory.
+**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
 **Updated status:** 2026-11-07  
-**State:** M0/G0 through M9/G9 and M16/G16 accepted and merged into protected `main`. G16 integrated through PR #25 at `47ba55e2` after the source-locked F001 correction extension. G10-G15 and G17-G24 remain open. Accepted M9 sustained transport-event processing restrictions remain.
+**State:** M0/G0 through M10/G10 and M16/G16 are accepted and integrated into protected `main`. G10 closed after S01/S25 review and remediation PR #28 (merge `9b6c801fde4004a4c0021ec7a6296efe28cf1544`). G11-G15 and G17-G24 remain open. The M9 transport-processing hold remains mandatory.
 
 ## Authority and rationale
 
@@ -191,7 +191,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Ordered history, current status and explicit correction handling.
 **Entry:** G9 accepted before respective dependent work packages.
 **Required work packages:** M10-01 Specify deterministic event ordering; M10-02 Implement accepted timeline API; M10-03 Implement versioned projections; M10-04 Verify projection rebuild.
-**Exit G10:** PR #23 merged the original M10 source on 2026-11-06. The frozen twelve-migration campaign and [independent technical review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md) supported 23 PASS scenarios on `3e81b88` without granting acceptance. All fourteen M10 policies were approved on 2026-11-07 with modified L07/L14 and conditional L06. The [security remediation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) is committed separately with a thirteenth migration, but has not been compiled or executed against PostgreSQL. Remaining mandatory work is source-locked remediation tests, real-role authorization and atomic audit failure injection, populated upgrade, affected M9/M16 regression checks, independent supplemental evidence review, S01 conformance decision and a separate explicit S25 gate decision. PR #22 remains a historical planning reference. Neither merge nor deployment is authorized.
+**Exit G10:** ACCEPTED on 2026-11-07 after approved fourteen-policy contract, source-locked technical verification, S01 conformance and S25 independent evidence review. The original source PR #23 and signed correction remediation [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) are merged. See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). No transport hold removal, deployment or release follows from this milestone.
 **Not covered by this milestone:** Delay classification, notifications and dashboard metrics.
 
 #### M11: Delay rules and shipment exceptions
@@ -355,7 +355,7 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M9/G0-G9 and M16/G16 accepted and integrated into protected `main` as of 2026-11-06. G10-G15 and G17-G24 remain open. M10 and independent M12/M17 work may advance on accepted baselines; M14 requires D-004 and M19 requires D-008 before implementation. M9 sustained transport-event processing remains held until separately approved and verified backlog handling exists. The combined M9/M16 integration decisions, migrations and security/browser/outage checks were closed by the [G16 gate decision](M16_G16_GATE_CLOSURE.md) and PR #25 merge. Public hosting and release acceptance remain pending.
+M0-M10/G0-G10 and M16/G16 are accepted and integrated into protected `main` as of 2026-11-07. G11-G15 and G17-G24 remain open. G10 acceptance permits downstream work such as M11 under the existing execution graph. M9 sustained transport-event processing remains held until separately approved and verified cap-safe backlog handling exists. Public hosting and G24 release acceptance remain pending.
 
 ## M24-03 pre-release reconciliation reminder
 

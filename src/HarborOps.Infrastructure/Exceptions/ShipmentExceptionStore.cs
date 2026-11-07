@@ -29,6 +29,9 @@ public sealed record ShipmentExceptionDueBatch(
 public sealed record ShipmentExceptionDetail(
     ShipmentExceptionRecord Exception, IReadOnlyList<ShipmentExceptionHistory> History,
     bool HistoryTruncated);
+public sealed record ShipmentExceptionHistoryPage(
+    IReadOnlyList<ShipmentExceptionHistory> Items,
+    DateTimeOffset? NextAfterAtUtc, Guid? NextAfterId);
 public enum M11StoreResult { Applied, Replayed, NotFound, Conflict, Invalid, Forbidden, DependencyUnavailable, AuditUnavailable }
 
 public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfiguration configuration)
@@ -163,6 +166,52 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
             var truncated = history.Count > 500;
             if (truncated) history.RemoveAt(500);
             return new ShipmentExceptionDetail(record, history, truncated);
+        }
+        finally { await database.Database.CloseConnectionAsync(); }
+    }
+
+    // Immutable history can exceed the initial 500-event detail preview.
+    // Use the same occurred-at plus UUID ordering as that preview. Every
+    // request rechecks the exception's organization before accessing rows.
+    public async Task<ShipmentExceptionHistoryPage?> HistoryPageAsync(
+        Guid org, Guid exception, DateTimeOffset? afterUtc, Guid? afterId,
+        int limit, CancellationToken ct)
+    {
+        if (limit is < 1 or > 100 || afterUtc.HasValue != afterId.HasValue)
+            throw new ArgumentOutOfRangeException(nameof(limit));
+        await database.Database.OpenConnectionAsync(ct);
+        try
+        {
+            await using (var exists = Command(Connection, null,
+                "SELECT 1 FROM shipment_exceptions WHERE organization_id=@org AND id=@id",
+                ("org", org), ("id", exception)))
+                if (await exists.ExecuteScalarAsync(ct) is null) return null;
+
+            await using var query = Command(Connection, null, """
+                SELECT id,exception_id,action,old_state,new_state,
+                    actor_kind,actor_user_id,occurred_at_utc,reason
+                FROM shipment_exception_history
+                WHERE organization_id=@org AND exception_id=@id
+                  AND (@at::timestamptz IS NULL
+                       OR (occurred_at_utc,id)>(@at,@afterId))
+                ORDER BY occurred_at_utc,id LIMIT @limit
+                """, ("org", org), ("id", exception), ("at", afterUtc),
+                    ("afterId", afterId), ("limit", limit + 1));
+            var found = new List<ShipmentExceptionHistory>();
+            await using var reader = await query.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+                found.Add(new ShipmentExceptionHistory(
+                    reader.GetGuid(0), reader.GetGuid(1), reader.GetString(2),
+                    reader.IsDBNull(3) ? null : reader.GetString(3),
+                    reader.GetString(4), reader.GetString(5),
+                    reader.IsDBNull(6) ? null : reader.GetGuid(6),
+                    reader.GetFieldValue<DateTimeOffset>(7),
+                    reader.IsDBNull(8) ? null : reader.GetString(8)));
+            var more = found.Count > limit;
+            if (more) found.RemoveAt(limit);
+            return new ShipmentExceptionHistoryPage(found,
+                more ? found[^1].OccurredAtUtc : null,
+                more ? found[^1].Id : null);
         }
         finally { await database.Database.CloseConnectionAsync(); }
     }

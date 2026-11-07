@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# M10/G16 combined source-locked local verification (twelve migrations: M16 audit, M9 worker, M10 projections).
+# M10/G16 combined source-locked local verification (13 migrations: M16, M9, M10 and correction authority).
 # Derived from the accepted scripts/verify-combined-local.sh, which stays unchanged. It runs the .NET 10 SDK
 # in a container because the host has no .NET 10 SDK, and layers the accepted combined Compose files.
 # Must execute on a Windows E: checkout. No GitHub Actions, shared database, non-E: project storage or
@@ -37,6 +37,8 @@ sha256sum scripts/verify-g10-local.sh scripts/check-g10-stack.mjs scripts/run-co
   scripts/check-m10-contract.mjs scripts/check-m10-m16-integration.mjs scripts/configure-m10-projector-db.sql \
   scripts/prepare-m10-browser-fixtures.mjs tests/browser/specs/tracking-timeline.spec.mjs \
   compose.g16.verify.yaml compose.m9.worker.yaml compose.cg16.override.yaml compose.g10.verify.yaml \
+  compose.m10.correction-authority.override.yaml \
+  src/HarborOps.Infrastructure/Persistence/Migrations/20261107120000_M10CorrectionAuthority.cs \
   > "$evidence/verification-script-hashes.txt"
 export HARBOROPS_SOURCE_SHA="$revision"
 export HARBOROPS_CG16_PG_IMAGE="harborops-g10-postgres:${revision:0:12}"
@@ -46,7 +48,7 @@ export DOCKER_HOST="npipe:////./pipe/dockerDesktopLinuxEngine"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
 export HARBOROPS_BROWSER_BASE_URL="http://localhost:5176"
 # Windows Compose joins multiple files with a semicolon.
-export COMPOSE_FILE="$(cygpath -w "$(pwd)/compose.g16.verify.yaml");$(cygpath -w "$(pwd)/compose.m9.worker.yaml");$(cygpath -w "$(pwd)/compose.cg16.override.yaml")"
+export COMPOSE_FILE="$(cygpath -w "$(pwd)/compose.g16.verify.yaml");$(cygpath -w "$(pwd)/compose.m9.worker.yaml");$(cygpath -w "$(pwd)/compose.cg16.override.yaml");$(cygpath -w "$(pwd)/compose.m10.correction-authority.override.yaml")"
 export COMPOSE_PROJECT_DIRECTORY="$(cygpath -w "$(pwd)")"
 for var in TEMP TMP NPM_CONFIG_CACHE PLAYWRIGHT_BROWSERS_PATH NUGET_PACKAGES DOTNET_CLI_HOME XDG_CACHE_HOME; do
   mkdir -p "$root/cache/$var"
@@ -68,6 +70,11 @@ for key in HARBOROPS_DB_PASSWORD HARBOROPS_API_DB_PASSWORD HARBOROPS_WORKER_DB_P
     export "$key=$(node -e 'process.stdout.write(require("node:crypto").randomBytes(24).toString("hex"))')"
   fi
 done
+if [[ -z "${HARBOROPS_M10_CORRECTION_PROOF_KEY:-}" ]]; then
+  export HARBOROPS_M10_CORRECTION_PROOF_KEY="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64"))')"
+fi
+node -e 'const x=Buffer.from(process.env.HARBOROPS_M10_CORRECTION_PROOF_KEY,"base64");if(x.length!==32) process.exit(2)' ||
+  { echo "M10 proof key must be 32 random bytes encoded as base64" >&2; exit 2; }
 [[ "$HARBOROPS_DB_PASSWORD" != "$HARBOROPS_API_DB_PASSWORD" &&
    "$HARBOROPS_DB_PASSWORD" != "$HARBOROPS_WORKER_DB_PASSWORD" &&
    "$HARBOROPS_API_DB_PASSWORD" != "$HARBOROPS_WORKER_DB_PASSWORD" ]] ||

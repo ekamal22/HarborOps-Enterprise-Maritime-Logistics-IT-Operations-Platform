@@ -2,6 +2,10 @@
 
 **Current accepted baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and integrated into protected `main`; see [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md). M10 source was merged into `main` through [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) on 2026-11-06 (merge `5edf003`); G10 acceptance is pending and its runtime verification is recorded in [the M10 executed verification](M10_EXECUTED_VERIFICATION.md). The mandatory M9 hold on sustained transport-event processing remains until a separately approved, verified backlog solution prevents exhaustion of the 10,000 unresolved-work-item limit. No deployment or public application hosting is authorized.
 
+## Current G10 contribution boundary
+
+M10-L01 through M10-L14 were approved on 2026-11-07 with modified L07/L14 and conditional L06. The source remediation is committed on `fix/m10-g10-l07-l14-remediation`, with an additive thirteenth migration and targeted tests. Compilation, database execution and independent new-source review remain NOT EXECUTED. Before gate acceptance, record the exact source SHA, real test outcomes, evidence hashes and independent findings. Do not merge, run GitHub Actions, deploy or release as part of this documentation reconciliation. The accepted M9 transport hold remains mandatory. [Implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md) and [status](STATUS.md).
+
 ## Working approach
 
 - Keep changes limited to the named milestone and its explicit dependencies.

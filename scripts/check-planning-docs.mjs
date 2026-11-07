@@ -40,7 +40,7 @@ const m11SecondAudit = get("docs/M11_SECOND_CORRECTNESS_AUDIT_20261107.md");
 const m11Implementation = get("docs/M11_IMPLEMENTATION_STATUS.md");
 assert(m11SecondAudit.includes("G11 acceptance pending") &&
   m11SecondAudit.includes("NOT EXECUTED") &&
-  m11Implementation.includes("G11 NOT VERIFIED"),
+  m11Implementation.includes("G11 are NOT VERIFIED"),
   "M11 must retain an unverified, acceptance-pending disposition");
 for (const [name, path] of [
   ["README", "README.md"],

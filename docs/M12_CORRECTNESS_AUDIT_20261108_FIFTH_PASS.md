@@ -3,6 +3,7 @@
 **Date:** 2026-11-08  
 **Branch:** `feat/m12-shipment-search-export`, draft PR #32  
 **Accepted comparison:** `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`  
+**Final code checkpoint before documentation reconciliation:** `4147992055204bd870b9d6a51e867240dd1f4a32`  
 **Disposition:** Two further source defects remediated. No new G12 scenario is claimed PASS. M12 policy and acceptance pending.
 
 ## Reviewed surfaces

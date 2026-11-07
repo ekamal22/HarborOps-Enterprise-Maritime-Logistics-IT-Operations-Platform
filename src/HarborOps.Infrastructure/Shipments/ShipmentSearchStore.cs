@@ -43,6 +43,14 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
         if (user is null || user.Status != "Active" ||
             user.SecurityVersion != current.SecurityVersion)
             return OrganizationAccessError.Revoked;
+        // Lock live membership until the read or export transaction commits.
+        var membership = await db.OrganizationMemberships.FromSqlInterpolated(
+            $"SELECT * FROM organization_memberships WHERE organization_id = {org} AND user_id = {session.UserId} FOR SHARE")
+            .AsNoTracking().SingleOrDefaultAsync(ct);
+        if (membership is null || membership.Status != "Active" ||
+            !OrganizationPolicy.ParseRole(membership.Role, out var role) ||
+            !OrganizationPolicy.Allows(role, permission))
+            return OrganizationAccessError.Forbidden;
         var result = await organizations.ResolveAsync(session.UserId, session.SessionId, org,
             permission, ct);
         return result.Value is null ? result.Error : OrganizationAccessError.None;
@@ -120,7 +128,7 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
             return new(null, OrganizationAccessError.Conflict, "export_row_limit");
 
         var csv = new StringBuilder();
-        var heading = string.Join(',', ShipmentCsv.Headers.Select(ShipmentCsv.Cell)) + "\r\n";
+        var heading = string.Join(",", ShipmentCsv.Headers.Select(ShipmentCsv.Cell)) + "\r\n";
         csv.Append(heading);
         var totalBytes = Encoding.UTF8.GetByteCount(heading);
         foreach (var s in rows)
@@ -135,7 +143,7 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
                 s.CreatedAtUtc.ToString("O", CultureInfo.InvariantCulture),
                 s.UpdatedAtUtc.ToString("O", CultureInfo.InvariantCulture)
             };
-            var line = string.Join(',', fields.Select(ShipmentCsv.Cell)) + "\r\n";
+            var line = string.Join(",", fields.Select(ShipmentCsv.Cell)) + "\r\n";
             totalBytes += Encoding.UTF8.GetByteCount(line);
             if (totalBytes > ShipmentCsv.MaximumBytes)
                 return new(null, OrganizationAccessError.Conflict, "export_byte_limit");

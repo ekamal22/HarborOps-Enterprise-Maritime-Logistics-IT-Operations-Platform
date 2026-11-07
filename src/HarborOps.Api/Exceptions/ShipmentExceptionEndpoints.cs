@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HarborOps.Api.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using HarborOps.Domain.Organizations;
 using HarborOps.Infrastructure.Exceptions;
 using HarborOps.Infrastructure.Identity;
@@ -11,6 +12,39 @@ namespace HarborOps.Api.Exceptions;
 
 public static class ShipmentExceptionEndpoints
 {
+    private sealed record ExceptionCursor(Guid OrganizationId, Guid? ShipmentId,
+        string? State, Guid Last);
+
+    private static ITimeLimitedDataProtector CursorProtector(IDataProtectionProvider provider) =>
+        provider.CreateProtector("HarborOps.M11.ExceptionCursor.v1")
+            .ToTimeLimitedDataProtector();
+
+    private static bool TryCursor(HttpContext ctx, IDataProtectionProvider provider,
+        Guid org, Guid? shipment, string? state, out Guid? after)
+    {
+        after = null;
+        if (!ctx.Request.Query.TryGetValue("cursor", out var token)) return true;
+        if (token.Count != 1 || token.ToString().Length is < 1 or > 2048) return false;
+        try
+        {
+            var data = JsonSerializer.Deserialize<ExceptionCursor>(
+                CursorProtector(provider).Unprotect(token.ToString()));
+            if (data is null || data.Last == Guid.Empty || data.OrganizationId != org ||
+                data.ShipmentId != shipment || data.State != state) return false;
+            after = data.Last;
+            return true;
+        }
+        catch (System.Security.Cryptography.CryptographicException) { return false; }
+        catch (JsonException) { return false; }
+        catch (FormatException) { return false; }
+    }
+
+    private static string? ProtectNext(IDataProtectionProvider provider,
+        Guid org, Guid? shipment, string? state, Guid? after) =>
+        after.HasValue ? CursorProtector(provider).Protect(
+            JsonSerializer.Serialize(new ExceptionCursor(org, shipment, state, after.Value)),
+            TimeSpan.FromMinutes(20)) : null;
+
     private static CurrentSession Session(HttpContext ctx) =>
         (CurrentSession)ctx.Items["IdentitySession"]!;
 
@@ -109,28 +143,32 @@ public static class ShipmentExceptionEndpoints
         routes.MapGet("/shipments/{shipmentId}/exceptions", async
             (string organizationId, string shipmentId, HttpContext ctx,
             OrganizationStore organizations, ShipmentExceptionStore store,
-            CancellationToken ct) =>
+            IDataProtectionProvider protection, CancellationToken ct) =>
         {
             if (!Id(organizationId, out var org) ||
                 !Id(shipmentId, out var shipment) ||
-                !SingleQuery(ctx, "after", "limit") ||
-                !TryPage(ctx, out var after, out var limit))
+                !SingleQuery(ctx, "cursor", "limit") ||
+                !TryPage(ctx, out var limit))
                 return Fail(ctx, 400, "invalid_request");
             var denied = await Guard(ctx, organizations, org, false, ct);
             if (denied is not null) return denied;
             if (!await store.ShipmentExistsAsync(org, shipment, ct))
                 return Fail(ctx, 404, "resource_not_found");
-            return Results.Ok(await store.ListAsync(org, shipment, null, after, limit, ct));
+            if (!TryCursor(ctx, protection, org, shipment, null, out var after))
+                return Fail(ctx, 409, "stale_or_invalid_cursor");
+            var page = await store.ListAsync(org, shipment, null, after, limit, ct);
+            return Results.Ok(new { items = page.Items,
+                nextCursor = ProtectNext(protection, org, shipment, null, page.NextAfter) });
         }).RequireRateLimiting("audit-read");
 
         routes.MapGet("/exceptions", async
             (string organizationId, HttpContext ctx,
             OrganizationStore organizations, ShipmentExceptionStore store,
-            CancellationToken ct) =>
+            IDataProtectionProvider protection, CancellationToken ct) =>
         {
             if (!Id(organizationId, out var org) ||
-                !SingleQuery(ctx, "shipmentId", "state", "after", "limit") ||
-                !TryPage(ctx, out var after, out var limit))
+                !SingleQuery(ctx, "shipmentId", "state", "cursor", "limit") ||
+                !TryPage(ctx, out var limit))
                 return Fail(ctx, 400, "invalid_request");
             Guid? shipment = null;
             if (ctx.Request.Query.TryGetValue("shipmentId", out var shipmentValue))
@@ -144,8 +182,13 @@ public static class ShipmentExceptionEndpoints
                 return Fail(ctx, 400, "invalid_request");
             var denied = await Guard(ctx, organizations, org, false, ct);
             if (denied is not null) return denied;
-            return Results.Ok(await store.ListAsync(org, shipment,
-                state.Length == 0 ? null : state, after, limit, ct));
+            var normalizedState = state.Length == 0 ? null : state;
+            if (!TryCursor(ctx, protection, org, shipment, normalizedState, out var after))
+                return Fail(ctx, 409, "stale_or_invalid_cursor");
+            var page = await store.ListAsync(org, shipment, normalizedState, after, limit, ct);
+            return Results.Ok(new { items = page.Items,
+                nextCursor = ProtectNext(protection, org, shipment,
+                    normalizedState, page.NextAfter) });
         }).RequireRateLimiting("audit-read");
 
         routes.MapGet("/exceptions/{exceptionId}", async
@@ -210,15 +253,9 @@ public static class ShipmentExceptionEndpoints
         }).RequireRateLimiting("m10-mutations");
     }
 
-    private static bool TryPage(HttpContext ctx, out Guid? after, out int limit)
+    private static bool TryPage(HttpContext ctx, out int limit)
     {
-        after = null;
         limit = 25;
-        if (ctx.Request.Query.TryGetValue("after", out var cursor))
-        {
-            if (!Id(cursor.ToString(), out var parsed)) return false;
-            after = parsed;
-        }
         return !ctx.Request.Query.ContainsKey("limit") ||
             (int.TryParse(ctx.Request.Query["limit"], out limit) && limit is >= 1 and <= 100);
     }

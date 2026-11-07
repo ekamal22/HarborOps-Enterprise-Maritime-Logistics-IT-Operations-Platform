@@ -72,13 +72,26 @@ public static class AuditRoleProvisioner
                        AND to_regclass('public.shipment_tracking_corrections') IS NOT NULL
                        AND to_regclass('public.shipment_tracking_operation_replays') IS NOT NULL
                        AND to_regclass('public.shipment_projection_applications') IS NOT NULL THEN
-                        GRANT INSERT ON shipment_tracking_corrections,
-                            shipment_tracking_operation_replays,
+                        GRANT INSERT ON shipment_tracking_operation_replays,
                             shipment_tracking_projections,
                             shipment_projection_applications TO harborops_api;
                         GRANT UPDATE ON shipment_tracking_projections TO harborops_api;
                     END IF;
                 END $m10_roles$;
+                -- The previous M10 grant is removed on upgraded databases too.
+                DO $m10_authority$
+                BEGIN
+                    IF to_regclass('public.shipment_tracking_corrections') IS NOT NULL THEN
+                        REVOKE INSERT ON shipment_tracking_corrections FROM harborops_api;
+                    END IF;
+                    IF to_regclass('public.m10_correction_proof_keys') IS NOT NULL THEN
+                        REVOKE ALL ON m10_correction_proof_keys,
+                            m10_correction_proof_nonces FROM harborops_api;
+                        GRANT EXECUTE ON FUNCTION m10_apply_signed_correction(
+                            uuid,uuid,uuid,uuid,bigint,uuid,uuid,varchar,varchar,
+                            varchar,uuid,uuid,bigint,varchar) TO harborops_api;
+                    END IF;
+                END $m10_authority$;
 
                 GRANT EXECUTE ON FUNCTION
                     m16_record_audit_access(uuid,varchar,uuid,uuid,uuid,varchar) TO harborops_api;
@@ -196,6 +209,45 @@ public static class AuditRoleProvisioner
         }
         finally
         {
+            if (close) await connection.CloseAsync();
+        }
+        await ProvisionCorrectionKeyAsync(database,
+            configuration["M10CorrectionProof:Key"], ct);
+    }
+
+    // The migration identity alone provisions the verifier key. Production API
+    // requests fail closed when the key has not been provisioned.
+    public static async Task ProvisionCorrectionKeyAsync(HarborOpsDbContext database,
+        string? encodedKey, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(encodedKey)) return;
+        byte[] secret;
+        try { secret = Convert.FromBase64String(encodedKey); }
+        catch (FormatException error)
+        {
+            throw new InvalidOperationException("Invalid correction proof key encoding", error);
+        }
+        if (secret.Length != 32)
+            throw new InvalidOperationException("Correction proof key must contain 32 bytes");
+        var connection = (NpgsqlConnection)database.Database.GetDbConnection();
+        var close = connection.State != ConnectionState.Open;
+        if (close) await connection.OpenAsync(ct);
+        try
+        {
+            await using var check = new NpgsqlCommand(
+                "SELECT to_regclass('public.m10_correction_proof_keys') IS NOT NULL", connection);
+            if (await check.ExecuteScalarAsync(ct) is not true) return;
+            await using var put = new NpgsqlCommand("""
+                INSERT INTO public.m10_correction_proof_keys (key_id, secret)
+                VALUES (1,@key)
+                ON CONFLICT (key_id) DO UPDATE SET secret=EXCLUDED.secret
+                """, connection);
+            put.Parameters.AddWithValue("key", secret);
+            await put.ExecuteNonQueryAsync(ct);
+        }
+        finally
+        {
+            System.Security.Cryptography.CryptographicOperations.ZeroMemory(secret);
             if (close) await connection.CloseAsync();
         }
     }

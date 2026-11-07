@@ -2,6 +2,8 @@
 
 **M12 implementation candidate (2026-11-07):** New search and export services, UI and test sources exist on `feat/m12-shipment-search-export` only. No G12 tests, migrations, browser suites, scans or independent review have been executed in this source-editing environment. Acceptance pending. See [M12 status](M12_IMPLEMENTATION_STATUS.md), [architecture](M12_ARCHITECTURE_DESIGN.md), [policy](M12_PLANNING_STATUS.md) and [G12 verification](M12_VERIFICATION_PLAN.md). The M11/M12 migration-14 collision requires coordination before integration; the M9 hold remains unchanged.
 
+**M12 source audit and G12 boundary (2026-11-07):** [Correctness findings and fixes](M12_CORRECTNESS_AUDIT_20261107.md) record signed export authorization, key provisioning, replay and metadata guards, protected cursors and authored tests. No .NET, PostgreSQL, browser, scan or mutation test ran in this audit environment. Acceptance pending; the accepted M9 hold and canonical dependency graph remain unchanged.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 

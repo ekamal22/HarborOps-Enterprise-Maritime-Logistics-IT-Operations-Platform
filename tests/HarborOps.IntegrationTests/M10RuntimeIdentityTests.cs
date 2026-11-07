@@ -393,6 +393,37 @@ public sealed class M10RuntimeIdentityTests
             ("expires", DateTimeOffset.UtcNow.AddSeconds(30).ToUnixTimeSeconds()),
             ("signature", new string('a', 64)));
         Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, forged.SqlState);
+
+        // Even a correctly signed request cannot be moved to another
+        // idempotency key, scope or payload by someone with SQL credentials.
+        var originalKey = Guid.NewGuid();
+        var genuineProof = M10CorrectionProofSigner.Sign(
+            ReferenceDataHttpTests.CorrectionProofKey, s.Fixture.A,
+            s.Target.Shipment, s.Actor, managerSession, originalKey, correction);
+        Assert.NotNull(genuineProof);
+        var substituted = await Denied(s.Roles.Api, """
+            SELECT m10_apply_signed_correction(
+                @org::uuid,@shipment::uuid,@target::uuid,NULL::uuid,
+                1::bigint,@actor::uuid,@session::uuid,
+                @reason::varchar,'g10-proof'::varchar,@digest::varchar,
+                @key::uuid,@nonce::uuid,@expires::bigint,@signature::varchar)
+            """, ("org", s.Fixture.A), ("shipment", s.Target.Shipment),
+            ("target", target), ("actor", s.Actor), ("session", managerSession),
+            ("reason", correction.Reason), ("digest", digest),
+            ("key", Guid.NewGuid()), ("nonce", genuineProof!.Nonce),
+            ("expires", genuineProof.ExpiresEpoch),
+            ("signature", genuineProof.Signature));
+        Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, substituted.SqlState);
+
+        var replayForgery = await Denied(s.Roles.Api, """
+            INSERT INTO shipment_tracking_operation_replays
+                (organization_id,shipment_id,actor_user_id,idempotency_key,
+                 operation_kind,request_digest,response_revision,response_generation)
+            VALUES (@org,@shipment,@actor,@key,'Correction',@digest,1,1)
+            """, ("org", s.Fixture.A), ("shipment", s.Target.Shipment),
+            ("actor", s.Actor), ("key", Guid.NewGuid()), ("digest", digest));
+        Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, replayForgery.SqlState);
+
         Assert.Equal(0, await Count(s.Roles.Admin, """
             SELECT COUNT(*) FROM shipment_tracking_corrections
             WHERE organization_id=@o AND shipment_id=@s

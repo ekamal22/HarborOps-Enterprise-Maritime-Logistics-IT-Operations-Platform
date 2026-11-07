@@ -8,14 +8,11 @@ The mandatory [Local Storage Policy](LOCAL_STORAGE_POLICY.md) requires E-drive s
 
 The accepted M0 baseline uses the hardened rootless PostgreSQL container and .NET 10. The prior upstream `gosu` findings were closed in the immutable-image high/critical scan performed during GitHub Actions run #2. G0 was accepted on 2026-10-31; future image changes require scanning.
 
-## Pending M10-local policy decisions, 2026-11-06
+## Approved M10-local policy decisions, 2026-11-07
 
-Fourteen proposed choices M10-L01 through M10-L14 remain unapproved despite the [independent G10 technical evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVIEW.md). S01 is BLOCKED and no technical result grants a policy decision. Two questions merit explicit resolution:
+M10-L01 through M10-L14 are approved, with modifications to L07 and L14 and a condition on L06. L07 mandates atomic M16 audit evidence for every successful correction, without duplication on replay. L14 removes unrestricted direct SQL correction INSERT by the API identity and requires nonforgeable, session-bound authority at the database boundary. L06 Manager-only correction semantics depend on verification of L14. The decision details are recorded under [M10 local policy selection for G10](#m10-local-policy-selection-for-g10-2026-11-07).
 
-- **L07 correction audit:** Determine whether M10's separate append-only correction ledger satisfies accepted [M16-D03](M16_POLICY_DECISIONS.md) or whether an atomic M16 audit row or explicitly approved scoped exception is required.
-- **L14 direct SQL grant:** Determine whether `harborops_api` direct INSERT on corrections with caller-supplied actor is acceptable without a database-level Manager/session check. Consider narrower write privileges and targeted verification if the trust boundary changes.
-
-All other proposed M10 decisions remain pending. The accepted M9 transport hold and G16 audit/role contracts are unchanged. This is an open decision register, not approval.
+The implementation is committed on `fix/m10-g10-l07-l14-remediation` but has not passed new-source .NET compilation, database execution or supplemental security verification. Policy selection is resolved; S01 source conformance and S25 gate acceptance remain pending. [Implementation record](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
 
 ## Accepted baseline decisions
 

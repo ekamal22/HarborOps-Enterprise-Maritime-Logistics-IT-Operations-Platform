@@ -132,7 +132,7 @@ public static class ShipmentExceptionPolicy
             else
             {
                 var condition = evaluationAtUtc > arrivalBoundary ? "Active" : "Inactive";
-                var nextDue = condition == "Active" ? null : arrivalBoundary.AddTicks(1);
+                var nextDue = condition == "Active" ? null : arrivalBoundary.AddMilliseconds(1);
                 results.Add(Build(ArrivalScheduleOverdue, condition, "Warning",
                     condition == "Active" ? "scheduled_arrival_overdue_unconfirmed"
                         : "scheduled_arrival_not_yet_overdue",

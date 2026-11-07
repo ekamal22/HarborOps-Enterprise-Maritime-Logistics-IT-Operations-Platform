@@ -58,6 +58,10 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         last_evaluated_at_utc,resolved_at_utc,version
         """;
 
+    public Task<bool> ShipmentExistsAsync(Guid org, Guid shipment, CancellationToken ct) =>
+        database.Shipments.AsNoTracking().AnyAsync(x =>
+            x.OrganizationId == org && x.Id == shipment, ct);
+
     public async Task<ShipmentExceptionPage> ListAsync(Guid org, Guid? shipment,
         string? state, Guid? after, int limit, CancellationToken ct)
     {
@@ -187,8 +191,17 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                 // Use PostgreSQL time rather than the host's timezone.
                 DateTimeOffset now;
                 await using (var query = Command(Connection, tx, "SELECT clock_timestamp()"))
-                    now = (DateTimeOffset)(await query.ExecuteScalarAsync(ct)
-                        ?? throw new InvalidOperationException("Database clock unavailable"));
+                {
+                    var value = await query.ExecuteScalarAsync(ct)
+                        ?? throw new InvalidOperationException("Database clock unavailable");
+                    now = value switch
+                    {
+                        DateTimeOffset offset => offset.ToUniversalTime(),
+                        DateTime datetime => new DateTimeOffset(
+                            DateTime.SpecifyKind(datetime, DateTimeKind.Utc)),
+                        _ => throw new InvalidOperationException("Database clock invalid")
+                    };
+                }
                 var results = ShipmentExceptionPolicy.Evaluate(input, now);
                 foreach (var signal in results)
                 {
@@ -218,7 +231,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                 await tx.CommitAsync(ct);
                 return (M11StoreResult.Applied, results.Count);
             }
-            catch (PostgresException ex) when (ex.SqlState is "40001" or "40P01" && attempt < 2)
+            catch (PostgresException ex) when ((ex.SqlState is "40001" or "40P01") && attempt < 2)
             {
                 // Failed serializable transaction is discarded before retry.
             }
@@ -320,7 +333,12 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                             OR e.tracking_input_revision<>COALESCE(v.revision,0)
                             OR e.correction_generation<>COALESCE(h.generation,0)
                             OR (e.next_evaluation_at_utc IS NOT NULL
-                                AND e.next_evaluation_at_utc<=clock_timestamp()))))
+                                AND e.next_evaluation_at_utc<=clock_timestamp())
+                            OR EXISTS (
+                                SELECT 1 FROM shipment_tracking_projections p
+                                WHERE p.organization_id=s.organization_id
+                                  AND p.shipment_id=s.id
+                                  AND p.refreshed_at_utc>e.evaluated_at_utc))))
                 ORDER BY s.organization_id,s.id LIMIT @limit
                 """, ("afterOrg", afterOrg), ("afterShip", afterShip),
                 ("limit", limit));

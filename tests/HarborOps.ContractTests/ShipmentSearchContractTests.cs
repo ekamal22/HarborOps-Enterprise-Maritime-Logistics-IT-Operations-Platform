@@ -28,7 +28,7 @@ public sealed class ShipmentSearchContractTests
         Assert.False(codec.TryDecode(token, org, actor, Guid.NewGuid(),
             "FINGERPRINT", now, out _));
         Assert.False(codec.TryDecode(token, org, actor, session, "FINGERPRINT", now.AddMinutes(16), out _));
-        Assert.False(codec.TryDecode(token + "X", org, "FINGERPRINT", now, out _));
+        Assert.False(codec.TryDecode(token + "X", org, actor, session, "FINGERPRINT", now, out _));
     }
 
     [Fact]

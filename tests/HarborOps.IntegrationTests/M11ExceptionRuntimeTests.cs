@@ -561,6 +561,76 @@ public sealed class M11ExceptionRuntimeTests
     }
 
     [Fact]
+    public async Task LongImmutableHistoryCanBePagedWithRoleRedaction()
+    {
+        var s = await Prepare();
+        using var adminFactory = s.Factory; using var runtime = s.Runtime;
+        using var setupAdmin = s.Fixture.Admin;
+        using var setupManager = s.Fixture.Manager;
+        using var setupAnalyst = s.Fixture.Analyst;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        var exception = await EvaluateAndFind(s, await ScheduledShipment(s));
+        var path = Collection(s.Fixture.A) + "/" + exception;
+        await using var adminDb = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>()
+                .UseNpgsql(s.Roles.Admin).Options);
+        // Use only synthetic, append-only rows. Production evidence is never
+        // changed by this disposable-database regression.
+        Assert.Equal(505, await adminDb.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO shipment_exception_history
+                (organization_id,exception_id,action,old_state,new_state,
+                 actor_kind,reason,source_fingerprint)
+            SELECT e.organization_id,e.id,'Reevaluated','Open','Open',
+                'System','Synthetic history pagination review',e.source_fingerprint
+            FROM shipment_exceptions e CROSS JOIN generate_series(1,505)
+            WHERE e.organization_id={s.Fixture.A} AND e.id={exception}
+            """));
+        string cursor;
+        var seen = new HashSet<Guid>();
+        using (var detail = await manager.GetAsync(path))
+        {
+            Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+            var data = await detail.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.True(data.GetProperty("historyTruncated").GetBoolean());
+            var events = data.GetProperty("history");
+            Assert.Equal(500, events.GetArrayLength());
+            foreach (var item in events.EnumerateArray())
+                Assert.True(seen.Add(item.GetProperty("id").GetGuid()));
+            cursor = data.GetProperty("nextHistoryCursor").GetString()!;
+            Assert.False(string.IsNullOrEmpty(cursor));
+        }
+        using (var analystPage = await analyst.GetAsync(
+            path + "/history?limit=1&cursor=" + Uri.EscapeDataString(cursor)))
+        {
+            Assert.Equal(HttpStatusCode.OK, analystPage.StatusCode);
+            var events = (await analystPage.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("items");
+            Assert.All(events.EnumerateArray(), item =>
+            {
+                Assert.Equal(JsonValueKind.Null, item.GetProperty("reason").ValueKind);
+                Assert.Equal(JsonValueKind.Null, item.GetProperty("actorUserId").ValueKind);
+            });
+        }
+        using (var wrongOrg = await manager.GetAsync(
+            Collection(s.Fixture.B) + "/" + exception +
+            "/history?cursor=" + Uri.EscapeDataString(cursor)))
+            Assert.Equal(HttpStatusCode.NotFound, wrongOrg.StatusCode);
+        for (var n = 0; n < 10 && cursor is not null; n++)
+        {
+            using var response = await manager.GetAsync(path +
+                "/history?limit=100&cursor=" + Uri.EscapeDataString(cursor));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var page = await response.Content.ReadFromJsonAsync<JsonElement>();
+            foreach (var item in page.GetProperty("items").EnumerateArray())
+                Assert.True(seen.Add(item.GetProperty("id").GetGuid()));
+            cursor = page.GetProperty("nextCursor").GetString()!;
+        }
+        Assert.Null(cursor);
+        Assert.Equal(506, seen.Count);
+    }
+
+    [Fact]
     public async Task NullSchedulesAreUnknownNotInventedDelays()
     {
         var s = await Prepare();

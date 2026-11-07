@@ -297,9 +297,11 @@ public sealed class CombinedRestrictedRoleTests
         Assert.False(await Has("harborops_api", "audit_entries", "INSERT"));
         // M10 is an additive API capability. The accepted M16 audit and M9
         // worker grant matrix remains unchanged; only these scoped API writes expand.
-        foreach (var table in new[] { "shipment_tracking_corrections",
-                     "shipment_tracking_operation_replays", "shipment_tracking_projections",
-                     "shipment_projection_applications" })
+        Assert.False(await Has("harborops_api", "shipment_tracking_corrections", "INSERT"));
+        Assert.False(await Has("harborops_api", "m10_correction_proof_keys", "SELECT"));
+        Assert.False(await Has("harborops_api", "m10_correction_proof_nonces", "SELECT"));
+        foreach (var table in new[] { "shipment_tracking_operation_replays",
+                     "shipment_tracking_projections", "shipment_projection_applications" })
             Assert.True(await Has("harborops_api", table, "INSERT"), $"M10 api INSERT {table}");
         Assert.True(await Has("harborops_api", "shipment_tracking_projections", "UPDATE"));
         foreach (var table in new[] { "shipment_tracking_timeline_entries",
@@ -348,6 +350,8 @@ public sealed class CombinedRestrictedRoleTests
         {
             "audit_entries:INSERT", "audit_entries:UPDATE", "audit_entries:DELETE", "audit_entries:TRUNCATE",
             "tracking_processing_effects:INSERT", "tracking_processing_effects:UPDATE",
+            "shipment_tracking_corrections:INSERT", "m10_correction_proof_keys:SELECT",
+            "m10_correction_proof_nonces:SELECT",
             "tracking_work_attempt_events:UPDATE", "tracking_work_attempt_events:DELETE",
             "tracking_inbox_receipts:UPDATE", "tracking_accepted_events:UPDATE",
             "users:DELETE", "auth_sessions:DELETE", "organizations:DELETE", "organizations:TRUNCATE"

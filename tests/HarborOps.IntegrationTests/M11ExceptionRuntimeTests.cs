@@ -228,6 +228,39 @@ public sealed class M11ExceptionRuntimeTests
     }
 
     [Fact]
+    public async Task UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory()
+    {
+        var s = await Prepare();
+        using var adminFactory = s.Factory; using var runtime = s.Runtime;
+        using var setupAdmin = s.Fixture.Admin;
+        using var setupManager = s.Fixture.Manager;
+        using var setupAnalyst = s.Fixture.Analyst;
+        using var manager = s.Manager;
+        using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+
+        var shipment = await ScheduledShipment(s);
+        var exception = await EvaluateAndFind(s, shipment);
+        await using var db = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>()
+                .UseNpgsql(s.Roles.Admin).Options);
+        var query = "SELECT evaluated_at_utc AS \"Value\" FROM shipment_exception_evaluations " +
+            "WHERE organization_id={0} AND shipment_id={1} AND rule_code='ArrivalScheduleOverdue'";
+        var before = await db.Database.SqlQueryRaw<DateTimeOffset>(query,
+            s.Fixture.A, shipment).SingleAsync();
+        await Task.Delay(30);
+        using (var evaluate = await ReferenceDataHttpTests.Send(manager, HttpMethod.Post,
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, evaluate.StatusCode);
+        var after = await db.Database.SqlQueryRaw<DateTimeOffset>(query,
+            s.Fixture.A, shipment).SingleAsync();
+        Assert.True(after > before, "Repeated evaluation must advance its due checkpoint.");
+        Assert.Equal(1L, await db.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM shipment_exception_history WHERE exception_id={0}",
+            exception).SingleAsync());
+    }
+
+    [Fact]
     public async Task AcknowledgedExceptionCanBeResolvedAfterSourceClearance()
     {
         var s = await Prepare();
@@ -271,6 +304,63 @@ public sealed class M11ExceptionRuntimeTests
         Assert.Equal(1L, await db.Database.SqlQueryRaw<long>(
             "SELECT COUNT(*) AS \"Value\" FROM audit_entries WHERE resource_id={0} AND event_type='shipment.exception_resolved'",
             id).SingleAsync());
+    }
+
+    [Fact]
+    public async Task ExpiredRuleCheckpointBlocksResolveUntilFreshReevaluation()
+    {
+        var s = await Prepare();
+        using var adminFactory = s.Factory; using var runtime = s.Runtime;
+        using var setupAdmin = s.Fixture.Admin;
+        using var setupManager = s.Fixture.Manager;
+        using var setupAnalyst = s.Fixture.Analyst;
+        using var manager = s.Manager;
+        using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+
+        var shipment = await ScheduledShipment(s);
+        var exception = await EvaluateAndFind(s, shipment);
+        var path = Collection(s.Fixture.A) + "/" + exception;
+        using (var ack = await SendAction(manager, path,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Reviewing the synthetic exception" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, ack.StatusCode);
+        var shipmentPath = $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}";
+        using (var transit = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, shipmentPath,
+            new { expectedVersion = 3L, workflowStatus = "InTransit" }))
+            Assert.Equal(HttpStatusCode.OK, transit.StatusCode);
+        using (var arrival = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, shipmentPath,
+            new { expectedVersion = 4L, workflowStatus = "Arrived" }))
+            Assert.Equal(HttpStatusCode.OK, arrival.StatusCode);
+        using (var review = await ReferenceDataHttpTests.Send(manager,
+            HttpMethod.Post, shipmentPath + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, review.StatusCode);
+        await using (var connection = new NpgsqlConnection(s.Roles.Admin))
+        {
+            await connection.OpenAsync();
+            await using var expire = new NpgsqlCommand("""
+                UPDATE shipment_exception_evaluations
+                SET next_evaluation_at_utc=clock_timestamp()-interval '2 seconds'
+                WHERE organization_id=@org AND shipment_id=@shipment
+                    AND rule_code='ArrivalScheduleOverdue'
+                """, connection);
+            expire.Parameters.AddWithValue("org", s.Fixture.A);
+            expire.Parameters.AddWithValue("shipment", shipment);
+            Assert.Equal(1, await expire.ExecuteNonQueryAsync());
+        }
+        using (var blocked = await SendAction(manager, path,
+            new { action = "Resolve", expectedVersion = 3L,
+                reason = "Reviewed cleared condition after expiry" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.Conflict, blocked.StatusCode);
+        using (var reevaluate = await ReferenceDataHttpTests.Send(manager,
+            HttpMethod.Post, shipmentPath + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, reevaluate.StatusCode);
+        using (var allowed = await SendAction(manager, path,
+            new { action = "Resolve", expectedVersion = 3L,
+                reason = "Reviewed cleared condition after refresh" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, allowed.StatusCode);
     }
 
     [Fact]

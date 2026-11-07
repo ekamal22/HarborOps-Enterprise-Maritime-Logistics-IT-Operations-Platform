@@ -53,6 +53,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const serial = useRef(0);
+  const detailSerial = useRef(0);
 
   const invalidate = useCallback((cause: unknown) => {
     if (revoked(cause)) onAccessInvalidated(organizationError(cause));
@@ -60,6 +61,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
 
   const refresh = useCallback(async () => {
     const run = ++serial.current;
+    detailSerial.current++;
     setLoading(true); setError(""); setDetail(null); setCursor(null);
     try {
       const page = await getJson<ExceptionPage>(shipmentRoot + "/exceptions?limit=25");
@@ -75,7 +77,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
 
   useEffect(() => {
     void refresh();
-    return () => { serial.current++; };
+    return () => { serial.current++; detailSerial.current++; };
   }, [refresh]);
 
   const more = async () => {
@@ -110,13 +112,17 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
   const showDetail = async (id: string) => {
     setError(""); setDetail(null);
     const run = serial.current;
+    const detailRun = ++detailSerial.current;
     try {
       const result = await getJson<ExceptionDetail>(root + "/exceptions/" +
         encodeURIComponent(id));
-      if (run === serial.current) setDetail(result);
+      if (run === serial.current && detailRun === detailSerial.current)
+        setDetail(result);
     } catch (cause) {
-      if (run === serial.current) setError(organizationError(cause));
-      invalidate(cause);
+      if (run === serial.current && detailRun === detailSerial.current) {
+        setError(organizationError(cause));
+        invalidate(cause);
+      }
     }
   };
 

@@ -227,6 +227,11 @@ public static class ShipmentExceptionEndpoints
                 !Id(shipmentId, out var shipment) ||
                 ctx.Request.Query.Count != 0 || ctx.Request.ContentLength is > 0)
                 return Fail(ctx, 400, "invalid_request");
+            // A chunked body can have no Content-Length. The contract still
+            // requires an empty request body, so inspect one bounded byte.
+            var marker = new byte[1];
+            if (await ctx.Request.Body.ReadAsync(marker.AsMemory(), ct) != 0)
+                return Fail(ctx, 400, "invalid_request");
             if (!await Mutation(ctx, app, antiforgery))
                 return Fail(ctx, 403, "csrf_invalid");
             var denied = await Guard(ctx, organizations, org, true, ct);

@@ -1,6 +1,6 @@
 # Documentation Status Guide
 
-**Current integrated baseline (2026-11-06):** M0-M9/G0-G9 and M16/G16 are accepted and merged into protected `main`. G16 merged through PR #25 at `47ba55e2` and its post-merge reconciliation through PR #26 at `2ff2f2df`. G10-G15 and G17-G24 remain unaccepted. The [project status](STATUS.md) is authoritative for current gates and changes.
+**Current integrated baseline (2026-11-07):** M0-M9/G0-G9 and M16/G16 are accepted and merged into protected `main`. G16 merged through PR #25 at `47ba55e2` and its post-merge reconciliation through PR #26 at `2ff2f2df`. G10-G15 and G17-G24 remain unaccepted. The [project status](STATUS.md) is authoritative for current gates and changes.
 
 ## Sources of truth
 

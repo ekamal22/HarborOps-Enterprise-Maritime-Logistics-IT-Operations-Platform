@@ -117,6 +117,12 @@ Migration `20261104190000_TrackingWorker` and the matching EF model are integrat
 
 **Operating condition:** M9 sustained transport-event processing remains disabled until M10 or a separately approved and verified mechanism handles the parked backlog under the 10,000 unresolved-work-item limit. M16 audit logging and access hardening was independently verified, accepted and merged on 2026-11-06; M9 attempt/effect history remains the worker audit of record. Shipment projection remains planned M10 work without accepted G10 evidence.
 
+## M10 correction-security data model, 2026-11-07
+
+The approved L07/L14 source remediation adds one SQL-only thirteenth migration after the original twelve-migration M10 projections. The private `m10_correction_proof_keys` and append-only `m10_correction_proof_nonces` support signed, short-lived correction authority; a restricted database function checks live Manager/session scope and validates the proof. A successful correction must also persist a scoped `audit_entries` row of type `shipment.tracking_correction_created` with privacy-allowlisted metadata in the same transaction. The original M10 corrections remain immutable and M8/M9 history is not rewritten.
+
+The new source is committed, not executed or accepted. L06 remains conditional on verified L14 conformance, and G10 S25 remains pending. No ETA is inferred and parked transport traffic remains held. [Implementation](M10_G10_CORRECTION_AUTHORITY_IMPLEMENTATION.md).
+
 ## M10 indexed timeline candidate after accepted G16
 
 Unaccepted M10 adds SQL-only `shipment_tracking_timeline_entries`, `shipment_tracking_input_versions`, `shipment_tracking_projections`, `shipment_tracking_corrections`, `shipment_tracking_correction_heads`, `shipment_tracking_operation_replays` and `shipment_projection_applications`. The new timeline rows derive from immutable M8 events and M9 receipt-unique resolution effects, never from guessed transport references; an indexed page is separate from the retained source-of-truth records. M10 input versions advance when an M9 effect or an M10 correction commits, and stale projections surface as unknown/pending until rebuilt. M5 manual shipment workflow and accepted M16 business-audit persistence remain separate. The accepted G16 EF snapshot stays unchanged because these M10 tables are additive, SQL-only derived models. See [M10/G16 source reconciliation](M10_M16_SOURCE_RECONCILIATION.md). **G10 technical verification and acceptance pending.**

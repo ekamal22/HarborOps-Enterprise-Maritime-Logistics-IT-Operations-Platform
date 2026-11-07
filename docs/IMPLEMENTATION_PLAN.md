@@ -1,5 +1,7 @@
 # Implementation Notes
 
+**M12 second-pass verification status, 2026-11-08:** The [latest correctness audit](M12_CORRECTNESS_AUDIT_20261108.md) records implemented source fixes and authored tests for export role coverage, nine proof substitutions, rollback protection, URL limits and SQL/total request deadlines. These are NOT EXECUTED test sources, not G12 scenario PASS results. Full .NET, PostgreSQL, browser, security, Q2 snapshot and independent raw-evidence review remain required. Acceptance pending.
+
 **M12 candidate, not accepted (2026-11-07):** `feat/m12-shipment-search-export` implements scoped advanced search and restricted CSV export in isolated source. Runtime G12 evidence and independent review NOT EXECUTED; G12 acceptance pending. See [M12 architecture](M12_ARCHITECTURE_DESIGN.md), [implementation status](M12_IMPLEMENTATION_STATUS.md), [policy decisions](M12_PLANNING_STATUS.md) and [verification](M12_VERIFICATION_PLAN.md). M11 convergence requires migration and shared-surface coordination; M9 hold remains unchanged.
 
 **M12 source audit and G12 boundary (2026-11-07):** [Correctness findings and committed fixes](M12_CORRECTNESS_AUDIT_20261107.md) include independent signed export proof, replay prevention, browser-origin denial, actor/session cursor isolation and verification test sources. No executable G12 technical campaign or independent evidence review was performed. G12 and M11 integration acceptance pending.

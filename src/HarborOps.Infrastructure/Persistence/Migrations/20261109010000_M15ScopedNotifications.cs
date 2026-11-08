@@ -76,6 +76,11 @@ public sealed class M15ScopedNotifications : Migration
                 operation varchar(16) NOT NULL CHECK(operation IN ('MarkRead','Acknowledge')),
                 expected_version bigint NOT NULL CHECK(expected_version > 0),
                 result_version bigint NOT NULL CHECK(result_version > 0),
+                result_read_at_utc timestamptz NOT NULL,
+                result_acknowledged_at_utc timestamptz,
+                CONSTRAINT ck_m15_replay_state CHECK
+                    (result_acknowledged_at_utc IS NULL OR
+                     result_acknowledged_at_utc >= result_read_at_utc),
                 occurred_at_utc timestamptz NOT NULL DEFAULT clock_timestamp(),
                 PRIMARY KEY(organization_id,recipient_user_id,idempotency_key)
             );
@@ -271,7 +276,8 @@ public sealed class M15ScopedNotifications : Migration
             CREATE FUNCTION m15_apply_personal_action(
                 p_org uuid,p_user uuid,p_session uuid,p_notification uuid,
                 p_action varchar,p_expected_version bigint,p_idempotency uuid,p_correlation varchar)
-            RETURNS TABLE(result_code text,result_version bigint)
+            RETURNS TABLE(result_code text,result_version bigint,
+                result_read_at_utc timestamptz,result_acknowledged_at_utc timestamptz)
             LANGUAGE plpgsql SECURITY DEFINER
                 SET search_path=pg_catalog,public AS $m15$
             DECLARE
@@ -281,7 +287,8 @@ public sealed class M15ScopedNotifications : Migration
                 next_version bigint;
                 current_role text;
                 now_utc timestamptz;
-                changing boolean;
+                next_read_at timestamptz;
+                next_acknowledged_at timestamptz;
             BEGIN
                 IF session_user <> 'harborops_api'
                     OR p_action NOT IN ('MarkRead','Acknowledge')
@@ -290,18 +297,18 @@ public sealed class M15ScopedNotifications : Migration
                     OR p_idempotency='00000000-0000-0000-0000-000000000000'::uuid
                     OR p_correlation IS NULL OR length(p_correlation) NOT BETWEEN 1 AND 64
                     OR NOT m11_read_allowed(p_org) THEN
-                    RETURN QUERY SELECT 'Forbidden'::text,0::bigint; RETURN;
+                    RETURN QUERY SELECT 'Forbidden'::text,0::bigint,NULL::timestamptz,NULL::timestamptz; RETURN;
                 END IF;
                 fields := string_to_array(current_setting('harborops.m11_read_scope',true),'|');
                 IF fields[2]::uuid <> p_user OR fields[3]::uuid <> p_session THEN
-                    RETURN QUERY SELECT 'Forbidden'::text,0::bigint; RETURN;
+                    RETURN QUERY SELECT 'Forbidden'::text,0::bigint,NULL::timestamptz,NULL::timestamptz; RETURN;
                 END IF;
 
                 -- Match accepted M2 organization-first lock discipline before a write.
                 PERFORM 1 FROM organizations o
                     WHERE o.id=p_org AND o.status='Active' FOR SHARE;
                 IF NOT FOUND THEN
-                    RETURN QUERY SELECT 'Forbidden'::text,0::bigint; RETURN;
+                    RETURN QUERY SELECT 'Forbidden'::text,0::bigint,NULL::timestamptz,NULL::timestamptz; RETURN;
                 END IF;
                 -- Hold the live identity and session against concurrent revocation
                 -- through commit, after acquiring the organization row lock.
@@ -315,13 +322,13 @@ public sealed class M15ScopedNotifications : Migration
                         AND u.status='Active'
                     FOR SHARE OF a,u;
                 IF NOT FOUND THEN
-                    RETURN QUERY SELECT 'Forbidden'::text,0::bigint; RETURN;
+                    RETURN QUERY SELECT 'Forbidden'::text,0::bigint,NULL::timestamptz,NULL::timestamptz; RETURN;
                 END IF;
                 SELECT n.* INTO item FROM m15_user_notifications n
                     WHERE n.id=p_notification AND n.organization_id=p_org
                         AND n.recipient_user_id=p_user FOR UPDATE;
                 IF NOT FOUND THEN
-                    RETURN QUERY SELECT 'NotFound'::text,0::bigint; RETURN;
+                    RETURN QUERY SELECT 'NotFound'::text,0::bigint,NULL::timestamptz,NULL::timestamptz; RETURN;
                 END IF;
                 -- Hold the exact membership version against role changes or removal.
                 PERFORM 1 FROM organization_memberships member
@@ -334,7 +341,7 @@ public sealed class M15ScopedNotifications : Migration
                     FOR SHARE;
                 IF NOT FOUND OR NOT m15_can_read(p_org,p_user,item.membership_id,
                     item.membership_version,item.shipment_id) THEN
-                    RETURN QUERY SELECT 'NotFound'::text,0::bigint; RETURN;
+                    RETURN QUERY SELECT 'NotFound'::text,0::bigint,NULL::timestamptz,NULL::timestamptz; RETURN;
                 END IF;
 
                 SELECT r.* INTO old_replay FROM m15_notification_replays r
@@ -345,32 +352,32 @@ public sealed class M15ScopedNotifications : Migration
                         AND old_replay.actor_session_id=p_session
                         AND old_replay.operation=p_action
                         AND old_replay.expected_version=p_expected_version THEN
-                        RETURN QUERY SELECT 'Replayed'::text,old_replay.result_version;
+                        RETURN QUERY SELECT 'Replayed'::text,old_replay.result_version,
+                            old_replay.result_read_at_utc,old_replay.result_acknowledged_at_utc;
                     ELSE
-                        RETURN QUERY SELECT 'Conflict'::text,0::bigint;
+                        RETURN QUERY SELECT 'Conflict'::text,0::bigint,NULL::timestamptz,NULL::timestamptz;
                     END IF;
                     RETURN;
                 END IF;
                 IF item.version <> p_expected_version THEN
-                    RETURN QUERY SELECT 'Conflict'::text,0::bigint; RETURN;
+                    RETURN QUERY SELECT 'Conflict'::text,0::bigint,NULL::timestamptz,NULL::timestamptz; RETURN;
                 END IF;
                 IF (p_action='MarkRead' AND item.read_at_utc IS NOT NULL)
                     OR (p_action='Acknowledge' AND item.acknowledged_at_utc IS NOT NULL) THEN
-                    RETURN QUERY SELECT 'Invalid'::text,item.version; RETURN;
+                    RETURN QUERY SELECT 'Invalid'::text,item.version,
+                        NULL::timestamptz,NULL::timestamptz; RETURN;
                 END IF;
                 now_utc := clock_timestamp();
-                changing := CASE WHEN p_action='MarkRead'
-                    THEN item.read_at_utc IS NULL ELSE item.acknowledged_at_utc IS NULL END;
-                next_version := item.version;
-                IF changing THEN
-                    next_version := item.version+1;
-                    UPDATE m15_user_notifications SET
-                        read_at_utc=COALESCE(read_at_utc,now_utc),
-                        acknowledged_at_utc=CASE WHEN p_action='Acknowledge'
-                            THEN now_utc ELSE acknowledged_at_utc END,
-                        version=next_version
-                    WHERE id=p_notification;
-                    IF p_action='Acknowledge' THEN
+                next_read_at := COALESCE(item.read_at_utc,now_utc);
+                next_acknowledged_at := CASE WHEN p_action='Acknowledge'
+                    THEN now_utc ELSE item.acknowledged_at_utc END;
+                next_version := item.version+1;
+                UPDATE m15_user_notifications SET
+                    read_at_utc=next_read_at,
+                    acknowledged_at_utc=next_acknowledged_at,
+                    version=next_version
+                WHERE id=p_notification;
+                IF p_action='Acknowledge' THEN
                         SELECT m.role INTO current_role FROM organization_memberships m
                             WHERE m.id=item.membership_id;
                         BEGIN
@@ -387,13 +394,14 @@ public sealed class M15ScopedNotifications : Migration
                                 USING ERRCODE='PZ001';
                         END;
                     END IF;
-                END IF;
                 INSERT INTO m15_notification_replays
                     (organization_id,recipient_user_id,idempotency_key,
-                     notification_id,actor_session_id,operation,expected_version,result_version)
+                     notification_id,actor_session_id,operation,expected_version,result_version,
+                     result_read_at_utc,result_acknowledged_at_utc)
                 VALUES (p_org,p_user,p_idempotency,p_notification,p_session,p_action,
-                    p_expected_version,next_version);
-                RETURN QUERY SELECT 'Applied'::text,next_version;
+                    p_expected_version,next_version,next_read_at,next_acknowledged_at);
+                RETURN QUERY SELECT 'Applied'::text,next_version,
+                    next_read_at,next_acknowledged_at;
             END $m15$;
 
             REVOKE ALL ON m15_notification_outbox,m15_user_notifications,

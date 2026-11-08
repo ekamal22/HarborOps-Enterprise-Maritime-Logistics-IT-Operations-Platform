@@ -17,7 +17,8 @@ public sealed record NotificationPage(
     IReadOnlyList<NotificationRecord> Items, DateTimeOffset SnapshotAtUtc,
     DateTimeOffset? NextAfterUtc, Guid? NextAfterId);
 
-public sealed record NotificationMutation(string Code, long Version);
+public sealed record NotificationMutation(string Code, long Version,
+    DateTimeOffset? ReadAtUtc, DateTimeOffset? AcknowledgedAtUtc);
 
 public static class NotificationText
 {
@@ -216,7 +217,8 @@ public sealed class NotificationStore(
             await SetReadScopeAsync(tx, org, user, session, ct);
             NotificationMutation result;
             await using (var cmd = Command(Connection, tx, """
-                SELECT result_code,result_version FROM m15_apply_personal_action(
+                SELECT result_code,result_version,result_read_at_utc,
+                    result_acknowledged_at_utc FROM m15_apply_personal_action(
                     @org::uuid,@user::uuid,@session::uuid,@notification::uuid,
                     @action::varchar,@version::bigint,@replay::uuid,@correlation::varchar)
                 """,("org",org),("user",user),("session",session),
@@ -227,7 +229,9 @@ public sealed class NotificationStore(
             {
                 if (!await reader.ReadAsync(ct))
                     throw new InvalidOperationException("Notification authority unavailable");
-                result = new NotificationMutation(reader.GetString(0),reader.GetInt64(1));
+                result = new NotificationMutation(reader.GetString(0),reader.GetInt64(1),
+                    reader.IsDBNull(2) ? null : reader.GetFieldValue<DateTimeOffset>(2),
+                    reader.IsDBNull(3) ? null : reader.GetFieldValue<DateTimeOffset>(3));
             }
             await tx.CommitAsync(ct);
             return result;
@@ -236,7 +240,7 @@ public sealed class NotificationStore(
         {
             // Different-target use of the same replay key or a serialization
             // conflict cannot turn into a successful second receipt mutation.
-            return new NotificationMutation("Conflict",0);
+            return new NotificationMutation("Conflict",0,null,null);
         }
         finally { await Connection.CloseAsync(); }
     }

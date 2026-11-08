@@ -262,7 +262,12 @@ public static class NotificationEndpoints
                     return MutationResult(ctx,result);
                 var item = await store.GetAsync(org,principal.UserId,principal.SessionId,id,ct);
                 return item is null ? Fail(ctx,404,"notification_not_found")
-                    : Results.Ok(Item(item));
+                    : Results.Ok(Item(item with
+                    {
+                        Version = result.Version,
+                        ReadAtUtc = result.ReadAtUtc,
+                        AcknowledgedAtUtc = result.AcknowledgedAtUtc
+                    }));
             }
             catch (Npgsql.PostgresException e) when (e.SqlState == "PZ001")
             {

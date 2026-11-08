@@ -1,5 +1,7 @@
 # HarborOps
 
+**Current integrated source audit (2026-11-08):** [Combined M11/M12 source audit](docs/M11_M12_COMBINED_SOURCE_AUDIT_20261108.md) distinguishes reconciled code and approved M11 policies from unexecuted verification. Complete M11 conflict-event lineage and independent SQL read isolation remain open technical blockers; G11/G12 independent evidence reviews and acceptance pending. The merged-source candidate has not been tested or deployed.
+
 **Combined M11/M12 implementation checkpoint (2026-11-08):** The new isolated integration branch includes both source candidates, reconciled shared files, M11 policy resolution and new unexecuted regressions. [M11 local contract](docs/M11_LOCAL_CONTRACT_DECISION_20261108.md) records the delegated rule and lifecycle decisions; M12 local policies remain pending. This supersedes earlier statements in this document that the combined branch does not exist or that M11 policies are still wholly undecided. G11/G12 technical verification, independent S25 reviews and gate acceptance remain pending; the M9 hold and protected `main` are unchanged.
 
 **M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](docs/M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). The combined M11/M12 source integration and coordinated source-locked verification approach is approved as a future strategy. The feature branches remain unmerged and both gates remain unaccepted.

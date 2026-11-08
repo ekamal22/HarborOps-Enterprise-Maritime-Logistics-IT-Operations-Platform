@@ -1,5 +1,7 @@
 # Project Status
 
+**Current integrated source audit (2026-11-08):** [Combined M11/M12 source audit](M11_M12_COMBINED_SOURCE_AUDIT_20261108.md) distinguishes reconciled code and approved M11 policies from unexecuted verification. Complete M11 conflict-event lineage and independent SQL read isolation remain open technical blockers; G11/G12 independent evidence reviews and acceptance pending. The merged-source candidate has not been tested or deployed.
+
 **Current M11/M12 combined candidate (2026-11-08):** The isolated `feat/m11-m12-combined-integration` branch has been assembled from accepted `main` and both feature sources. [M11 local policies](M11_LOCAL_CONTRACT_DECISION_20261108.md) are now recorded, including clearance through Unknown/Stale and reviewed historical late-arrival resolution. This supersedes earlier pending-policy and no-combined-source snapshots in this document. Source-only corrections and authored tests are not executed evidence. G11/G12 technical verification, independent S25 review and acceptance pending. Protected `main`, M9 operating hold and deployment boundary are unchanged.
 
 **M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). This is delivery-strategy approval, not an integrated implementation or executed result. G11-S01 remains BLOCKED, G11-S02..S25 and G12-S02..S25 remain NOT EXECUTED, and G12-S01 policy disposition is pending.

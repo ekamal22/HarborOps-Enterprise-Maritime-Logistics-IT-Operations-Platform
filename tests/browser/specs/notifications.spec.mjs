@@ -23,16 +23,21 @@ test("G15 scoped notification center displays neutral event and personal state",
     eventLabel:"Opened",createdAtUtc:"2026-11-08T17:00:00Z",
     readAtUtc:null,acknowledgedAtUtc:null,version:1
   };
-  await page.route("**/notifications?*", route => route.fulfill({
-    status:200,contentType:"application/json",
-    body:JSON.stringify({items:[notice],nextCursor:null,
-      snapshotAtUtc:"2026-11-08T17:01:00Z"})
-  }));
-  await page.route("**/notifications/unread-count", route => route.fulfill({
-    status:200,contentType:"application/json",
-    body:JSON.stringify({unreadCount:1,asOfUtc:"2026-11-08T17:01:00Z"})
-  }));
   await signIn(page);
+  const north = await page.locator("#current-organization option")
+    .filter({hasText:"M3 North Terminal (Manager)"}).getAttribute("value");
+  expect(north).toBeTruthy();
+  await page.route("**/organizations/" + north + "/notifications?*", route =>
+    route.fulfill({
+      status:200,contentType:"application/json",
+      body:JSON.stringify({items:[notice],nextCursor:null,
+        snapshotAtUtc:"2026-11-08T17:01:00Z"})
+    }));
+  await page.route("**/organizations/" + north + "/notifications/unread-count", route =>
+    route.fulfill({
+      status:200,contentType:"application/json",
+      body:JSON.stringify({unreadCount:1,asOfUtc:"2026-11-08T17:01:00Z"})
+    }));
   await page.locator("#current-organization")
     .selectOption({ label:"M3 North Terminal (Manager)" });
   const center = page.getByRole("region",{name:"In-app shipment notifications"});
@@ -45,7 +50,7 @@ test("G15 scoped notification center displays neutral event and personal state",
   await page.locator("#current-organization")
     .selectOption({label:"M3 East Terminal (Manager)"});
   await expect(center.getByText("Planned arrival overdue; physical arrival unconfirmed"))
-    .toHaveCount(1);
+    .toHaveCount(0);
 });
 
 test("G15 notification center never grants administrator shipment visibility", async ({page}) => {

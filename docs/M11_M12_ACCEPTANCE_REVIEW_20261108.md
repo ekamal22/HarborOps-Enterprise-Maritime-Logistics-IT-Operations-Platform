@@ -32,6 +32,8 @@ This is an evidence sufficiency and code/test-source review, not an independent 
 
 Do not certify S25 until an independent reviewer can access the E:-backed raw TRX/JSON/SQL/browser/scan evidence, verify a SHA-256 manifest, validate exact tested source and mandatory failures/negative controls, and issue separate written S25 decisions. Technical policy selections for M12-P01..P16 remain subject to formal G12-S01 reconciliation. The Q2 production snapshot applicability is documented as NOT APPLICABLE for a known repository-owned dataset; this does not waive the successfully executed populated 13-to-15 upgrade.
 
+See [targeted local closure runbook](M11_M12_LOCAL_CLOSURE_RUNBOOK_20261108.md) for exact isolated probes and raw evidence capture. The runbook is planned, not executed.
+
 ## Minimum efficient remaining local execution
 
 1. Freeze `f56d017d9b2619be56fe533f73ba1d11f63974c0` in a clean E:-backed worktree. Reuse existing verified 341/341 evidence where appropriate; do not repeat the whole suite without a functional change.

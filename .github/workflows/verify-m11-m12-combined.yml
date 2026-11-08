@@ -1,0 +1,213 @@
+name: Verify combined M11 M12
+
+on:
+  push:
+    branches:
+      - feat/m11-m12-combined-integration
+    paths:
+      - .github/workflows/verify-m11-m12-combined.yml
+      - src/**
+      - tests/**
+      - web/**
+      - scripts/**
+      - docs/**
+      - compose.yaml
+      - README.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-m11-m12-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  source:
+    name: Source, build, unit and contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Establish source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/source
+          git rev-parse HEAD | tee .verification/source/source-sha.txt
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+          test -z "$(git status --porcelain)"
+          dotnet --version | tee .verification/source/dotnet-version.txt
+          node --version | tee .verification/source/node-version.txt
+      - name: Check source contracts and documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/check-m11-contract.mjs 2>&1 | tee .verification/source/m11-contract.log
+          node scripts/render-execution-graph.mjs --check 2>&1 | tee .verification/source/graph.log
+          node scripts/check-planning-docs.mjs 2>&1 | tee .verification/source/planning.log
+          find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
+          node --check scripts/check-g10-stack.mjs
+          docker compose config --quiet
+      - name: Build .NET solution
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet restore HarborOps.sln 2>&1 | tee .verification/source/restore.log
+          dotnet build HarborOps.sln -c Release --no-restore -warnaserror 2>&1 | tee .verification/source/build.log
+      - name: Unit and contract tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-build --logger 'trx;LogFileName=unit.trx' --results-directory .verification/source 2>&1 | tee .verification/source/unit.log
+          dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --no-build --logger 'trx;LogFileName=contracts.trx' --results-directory .verification/source 2>&1 | tee .verification/source/contracts.log
+      - name: Web dependency, tests, and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix web ci --no-audit --no-fund 2>&1 | tee .verification/source/web-install.log
+          npm --prefix web test 2>&1 | tee .verification/source/web-test.log
+          npm --prefix web run build 2>&1 | tee .verification/source/web-build.log
+      - name: Seal source diagnostics
+        if: always()
+        shell: bash
+        run: |
+          set -u
+          mkdir -p .verification/source
+          git rev-parse HEAD > .verification/source/final-sha.txt
+          (cd .verification/source && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .verification/source/
+          if-no-files-found: warn
+          retention-days: 7
+
+  g11:
+    name: G11 restricted PostgreSQL runtime
+    needs: source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g11-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g11-only;Pooling=false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Verify frozen source and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/g11
+          git rev-parse HEAD | tee .verification/g11/source-sha.txt
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g11/build.log
+      - name: Execute G11 runtime tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M11ExceptionRuntimeTests' --logger 'trx;LogFileName=g11.trx' --results-directory .verification/g11 2>&1 | tee .verification/g11/runtime.log
+      - name: Seal G11 diagnostics
+        if: always()
+        shell: bash
+        run: |
+          set -u
+          mkdir -p .verification/g11
+          git rev-parse HEAD > .verification/g11/final-sha.txt
+          (cd .verification/g11 && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload G11 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-g11-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .verification/g11/
+          if-no-files-found: warn
+          retention-days: 7
+
+  g12:
+    name: G12 exclusive PostgreSQL runtime
+    needs: source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g12-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g12-only;Pooling=false"
+      HARBOROPS_G12_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Verify exclusive server and frozen source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/g12
+          git rev-parse HEAD | tee .verification/g12/source-sha.txt
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+          test "$HARBOROPS_G12_EXCLUSIVE_POSTGRES" = 1
+          test "$(docker ps -q --filter ancestor=postgres:16.15 | wc -l)" -eq 1
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g12/build.log
+      - name: Execute G12 runtime tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~ShipmentSearchHttpTests' --logger 'trx;LogFileName=g12.trx' --results-directory .verification/g12 2>&1 | tee .verification/g12/runtime.log
+      - name: Seal G12 diagnostics
+        if: always()
+        shell: bash
+        run: |
+          set -u
+          mkdir -p .verification/g12
+          git rev-parse HEAD > .verification/g12/final-sha.txt
+          (cd .verification/g12 && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload G12 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-g12-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .verification/g12/
+          if-no-files-found: warn
+          retention-days: 7

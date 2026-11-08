@@ -573,4 +573,122 @@ public sealed class M13OperationalKpiRuntimeTests
             (await analyst.GetAsync(Root(fixture.B) + "/overview" + filter)).StatusCode);
     }
 
+
+    [ExclusiveM13PostgresFact]
+    public async Task ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var fixtureFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var f = await ReferenceDataHttpTests.Setup(fixtureFactory);
+        using var seedAdmin = f.Admin;
+        using var seedManager = f.Manager;
+        using var seedAnalyst = f.Analyst;
+        var seed = await AssignmentHttpTests.Seed(f);
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var analyst = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        using var secondSession = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        using var administrator = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(analyst, f.AnalystEmail);
+        await ReferenceDataHttpTests.Login(secondSession, f.AnalystEmail);
+        await ReferenceDataHttpTests.Login(administrator, f.AdminEmail);
+        foreach (var client in new[] { analyst, secondSession, administrator })
+            await ReferenceDataHttpTests.Select(client, f.A);
+        var endpoint = Root(f.A);
+        var report = await Json(await analyst.GetAsync(endpoint + "/overview"));
+        var token = report.GetProperty("reportToken").GetString();
+        Assert.False(string.IsNullOrEmpty(token));
+        Assert.NotEqual(Guid.Empty, report.GetProperty("reportId").GetGuid());
+
+        using (var other = MemberRequest(f.A.ToString(), report, "K01"))
+            Assert.Equal(HttpStatusCode.Conflict,
+                (await secondSession.SendAsync(other)).StatusCode);
+        using (var denied = MemberRequest(f.A.ToString(), report, "K01"))
+            Assert.Equal(HttpStatusCode.Forbidden,
+                (await administrator.SendAsync(denied)).StatusCode);
+        using (var forged = MemberRequest(f.A.ToString(), report, "K01"))
+        {
+            forged.Headers.Remove("X-HarborOps-Report");
+            forged.Headers.TryAddWithoutValidation("X-HarborOps-Report", token![..^2] + "xx");
+            Assert.Equal(HttpStatusCode.Conflict,
+                (await analyst.SendAsync(forged)).StatusCode);
+        }
+        using (var wrong = MemberRequest(f.A.ToString(), report, "D05"))
+            Assert.Equal(HttpStatusCode.BadRequest,
+                (await analyst.SendAsync(wrong)).StatusCode);
+        using (var invalid = MemberRequest(f.A.ToString(), report, "K99"))
+            Assert.Equal(HttpStatusCode.BadRequest,
+                (await analyst.SendAsync(invalid)).StatusCode);
+        using (var wrongDim = new HttpRequestMessage(HttpMethod.Get,
+            endpoint + "/reports/" + report.GetProperty("reportId").GetGuid() +
+                "/members?metricCode=K01&dimension=Cancelled"))
+        {
+            wrongDim.Headers.TryAddWithoutValidation("X-HarborOps-Report", token);
+            Assert.Equal(HttpStatusCode.BadRequest,
+                (await analyst.SendAsync(wrongDim)).StatusCode);
+        }
+        foreach (var suffix in new[] {
+            "?metricCode=K01&limit=101",
+            "?metricCode=K01&limit=0",
+            "?metricCode=K01&after=not-a-uuid",
+            "?metricCode=K01&metricCode=K02",
+            "?metricCode=K01%27%3BDROP%20TABLE%20shipments%3B--",
+            "?metricCode=K12&dimension=Injected"
+        })
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Get,
+                endpoint + "/reports/" + report.GetProperty("reportId").GetGuid() +
+                "/members" + suffix);
+            req.Headers.TryAddWithoutValidation("X-HarborOps-Report", token);
+            using var response = await analyst.SendAsync(req);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await analyst.GetAsync(Root(f.B) + "/overview")).StatusCode);
+
+        // Real restricted database identity without M11 signed read scope
+        // must not see the materialized report, even knowing its exact UUID.
+        await using (var db = new NpgsqlConnection(roles.Api))
+        {
+            await db.OpenAsync();
+            foreach (var table in new[] {
+                "operational_kpi_reports", "operational_kpi_members" })
+            {
+                await using var count = new NpgsqlCommand(
+                    "SELECT COUNT(*) FROM " + table + " WHERE organization_id=@org", db);
+                count.Parameters.AddWithValue("org", f.A);
+                Assert.Equal(0L, Convert.ToInt64(await count.ExecuteScalarAsync()));
+            }
+            await using var directUpdate = new NpgsqlCommand(
+                "UPDATE operational_kpi_reports SET policy_version='m13-kpi-v1'", db);
+            var failure = await Assert.ThrowsAsync<PostgresException>(
+                () => directUpdate.ExecuteNonQueryAsync());
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, failure.SqlState);
+        }
+
+        // A committed report can persist as a row but must become unusable
+        // immediately after its SQL-backed expiry boundary.
+        await Task.Delay(1200);
+        await using (var adminDb = new NpgsqlConnection(roles.Admin))
+        {
+            await adminDb.OpenAsync();
+            await using var expire = new NpgsqlCommand("""
+                UPDATE operational_kpi_reports
+                SET expires_at_utc=created_at_utc + interval '1 microsecond'
+                WHERE id=@report AND organization_id=@org
+                """, adminDb);
+            expire.Parameters.AddWithValue("report", report.GetProperty("reportId").GetGuid());
+            expire.Parameters.AddWithValue("org", f.A);
+            Assert.Equal(1, await expire.ExecuteNonQueryAsync());
+        }
+        using (var expired = MemberRequest(f.A.ToString(), report, "K01"))
+            Assert.Equal(HttpStatusCode.Conflict,
+                (await analyst.SendAsync(expired)).StatusCode);
+        var fresh = await Json(await analyst.GetAsync(endpoint + "/overview"));
+        Assert.NotEqual(report.GetProperty("reportId").GetGuid(),
+            fresh.GetProperty("reportId").GetGuid());
+    }
+
 }

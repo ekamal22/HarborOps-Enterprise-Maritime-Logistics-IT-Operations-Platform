@@ -1,20 +1,7 @@
 # Source-locked M11/M12 technical campaign, 2026-11-08
 name: Verify combined M11 M12 browser behavior
 on:
-  push:
-    branches:
-      - feat/m11-m12-combined-integration
-    paths:
-      - .github/workflows/verify-m11-m12-browser.yml
-      - tests/browser/specs/shipment-exceptions.spec.mjs
-      - tests/browser/specs/shipment-search.spec.mjs
-      - tests/browser/specs/shipment.spec.mjs
-      - tests/browser/specs/shipment-draft.spec.mjs
-      - src/HarborOps.Infrastructure/Exceptions/**
-      - src/HarborOps.Infrastructure/Persistence/Migrations/20261107180000_ShipmentExceptions.cs
-      - web/src/shipments/**
-      - src/HarborOps.Api/Exceptions/**
-      - src/HarborOps.Api/Search/**
+  workflow_dispatch:
 
 jobs:
   browsers:

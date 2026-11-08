@@ -1,12 +1,8 @@
 # Source-locked M11/M12 technical campaign, 2026-11-08
 name: Verify M11 M12 effective security mutants
 on:
-  push:
-    branches:
-      - feat/m11-m12-combined-integration
-    paths:
-      - .github/workflows/verify-m11-m12-mutations.yml
   workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

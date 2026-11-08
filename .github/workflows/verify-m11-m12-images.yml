@@ -1,15 +1,8 @@
 # Source-locked M11/M12 technical campaign, 2026-11-08
 name: Verify combined M11 M12 image vulnerabilities
 on:
-  push:
-    branches:
-      - feat/m11-m12-combined-integration
-    paths:
-      - .github/workflows/verify-m11-m12-images.yml
-      - src/**
-      - web/**
-      - docker/**
-      - compose.yaml
+  workflow_dispatch:
+
 jobs:
   scan:
     runs-on: ubuntu-latest

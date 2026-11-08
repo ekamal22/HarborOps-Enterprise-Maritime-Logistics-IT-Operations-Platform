@@ -1,13 +1,8 @@
 # Source-locked M11/M12 technical campaign, 2026-11-08
 name: Verify M11 and M12 database boundaries
 on:
-  push:
-    branches:
-      - feat/m11-m12-combined-integration
-    paths:
-      - .github/workflows/verify-m11-m12-database.yml
-      - src/**
-      - tests/**
+  workflow_dispatch:
+
 jobs:
   g11:
     name: G11 signed exception and lifecycle runtime

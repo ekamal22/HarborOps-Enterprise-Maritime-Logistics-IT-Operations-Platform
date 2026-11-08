@@ -1,13 +1,8 @@
 # Source-locked M11/M12 technical campaign, 2026-11-08
 name: Verify M11 direct SQL read isolation
 on:
-  push:
-    branches:
-      - feat/m11-m12-combined-integration
-    paths:
-      - .github/workflows/verify-m11-read-scope.yml
-      - src/**
-      - tests/HarborOps.IntegrationTests/M11ExceptionRuntimeTests.cs
+  workflow_dispatch:
+
 jobs:
   direct-sql:
     runs-on: ubuntu-latest

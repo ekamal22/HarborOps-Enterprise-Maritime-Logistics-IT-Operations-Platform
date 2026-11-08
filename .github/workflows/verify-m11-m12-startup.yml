@@ -2,16 +2,8 @@
 # Source-locked M11/M12 technical campaign, 2026-11-08
 name: Verify combined M11 M12 source
 on:
-  push:
-    branches:
-      - feat/m11-m12-combined-integration
-    paths:
-      - .github/workflows/verify-m11-m12-startup.yml
-      - scripts/**
-      - src/**
-      - web/**
-      - tests/**
-      - docs/**
+  workflow_dispatch:
+
 jobs:
   source:
     runs-on: ubuntu-latest

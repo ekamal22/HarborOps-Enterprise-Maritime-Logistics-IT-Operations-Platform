@@ -19,6 +19,10 @@ public sealed class M15ScopedNotifications : Migration
                 rule_code varchar(40) NOT NULL,
                 created_at_utc timestamptz NOT NULL,
                 completed_at_utc timestamptz,
+                attempt_count integer NOT NULL DEFAULT 0 CHECK(attempt_count BETWEEN 0 AND 5),
+                next_attempt_at_utc timestamptz NOT NULL DEFAULT clock_timestamp(),
+                last_error_code varchar(32),
+                quarantined_at_utc timestamptz,
                 CONSTRAINT fk_m15_outbox_exception FOREIGN KEY (exception_id,organization_id)
                     REFERENCES shipment_exceptions(id,organization_id) ON DELETE RESTRICT,
                 CONSTRAINT fk_m15_outbox_shipment FOREIGN KEY (organization_id,shipment_id)
@@ -29,7 +33,8 @@ public sealed class M15ScopedNotifications : Migration
                     ('EquipmentConflict','ArrivalScheduleOverdue','RecordedArrivalLate','DepartureSlippageRisk'))
             );
             CREATE INDEX ix_m15_outbox_pending ON m15_notification_outbox
-                (created_at_utc,source_history_id) WHERE completed_at_utc IS NULL;
+                (next_attempt_at_utc,created_at_utc,source_history_id)
+                WHERE completed_at_utc IS NULL AND quarantined_at_utc IS NULL;
 
             CREATE TABLE m15_user_notifications (
                 id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -106,6 +111,9 @@ public sealed class M15ScopedNotifications : Migration
             DECLARE
                 evt record;
                 delivered integer := 0;
+                recipient_count integer;
+                next_count integer;
+                error_code varchar(32);
             BEGIN
                 IF session_user <> 'harborops_api' OR p_limit IS NULL
                     OR p_limit NOT BETWEEN 1 AND 20 THEN
@@ -114,31 +122,88 @@ public sealed class M15ScopedNotifications : Migration
                 END IF;
                 FOR evt IN
                     SELECT * FROM m15_notification_outbox
-                    WHERE completed_at_utc IS NULL
-                    ORDER BY created_at_utc,source_history_id
+                    WHERE completed_at_utc IS NULL AND quarantined_at_utc IS NULL
+                        AND next_attempt_at_utc <= clock_timestamp()
+                    ORDER BY next_attempt_at_utc,created_at_utc,source_history_id
                     FOR UPDATE SKIP LOCKED LIMIT p_limit
                 LOOP
-                    INSERT INTO m15_user_notifications
-                        (source_history_id,organization_id,recipient_user_id,
-                         membership_id,membership_version,shipment_id,exception_id,
-                         event_type,rule_code,created_at_utc)
-                    SELECT evt.source_history_id,evt.organization_id,m.user_id,
-                        m.id,m.version,evt.shipment_id,evt.exception_id,
-                        evt.event_type,evt.rule_code,evt.created_at_utc
-                    FROM organizations o
-                    JOIN shipments s ON s.organization_id=o.id
-                        AND s.id=evt.shipment_id
-                    JOIN organization_memberships m ON m.organization_id=o.id
-                    JOIN users u ON u.id=m.user_id
-                    WHERE o.id=evt.organization_id AND o.status='Active'
-                        AND m.status='Active' AND u.status='Active'
-                        AND m.role IN ('Analyst','Manager','Auditor')
-                    ON CONFLICT (source_history_id,recipient_user_id) DO NOTHING;
-                    UPDATE m15_notification_outbox SET completed_at_utc=clock_timestamp()
+                    BEGIN
+                        -- Bound recipient fanout on the same repeatable-read snapshot
+                        -- that is used by the following INSERT. No partial audience
+                        -- or silent truncation is allowed if the limit is exceeded.
+                        SELECT COUNT(*)::integer INTO recipient_count FROM (
+                            SELECT 1
+                            FROM organizations o
+                            JOIN shipments s ON s.organization_id=o.id
+                                AND s.id=evt.shipment_id
+                            JOIN organization_memberships m ON m.organization_id=o.id
+                            JOIN users u ON u.id=m.user_id
+                            WHERE o.id=evt.organization_id AND o.status='Active'
+                                AND m.status='Active' AND u.status='Active'
+                                AND m.role IN ('Analyst','Manager','Auditor')
+                            LIMIT 1001
+                        ) bounded;
+                        IF recipient_count > 1000 THEN
+                            RAISE EXCEPTION 'Notification recipient limit exceeded'
+                                USING ERRCODE='PZ015';
+                        END IF;
+                        INSERT INTO m15_user_notifications
+                            (source_history_id,organization_id,recipient_user_id,
+                             membership_id,membership_version,shipment_id,exception_id,
+                             event_type,rule_code,created_at_utc)
+                        SELECT evt.source_history_id,evt.organization_id,m.user_id,
+                            m.id,m.version,evt.shipment_id,evt.exception_id,
+                            evt.event_type,evt.rule_code,evt.created_at_utc
+                        FROM organizations o
+                        JOIN shipments s ON s.organization_id=o.id
+                            AND s.id=evt.shipment_id
+                        JOIN organization_memberships m ON m.organization_id=o.id
+                        JOIN users u ON u.id=m.user_id
+                        WHERE o.id=evt.organization_id AND o.status='Active'
+                            AND m.status='Active' AND u.status='Active'
+                            AND m.role IN ('Analyst','Manager','Auditor')
+                        ON CONFLICT (source_history_id,recipient_user_id) DO NOTHING;
+                        UPDATE m15_notification_outbox SET completed_at_utc=clock_timestamp(),
+                            last_error_code=NULL
+                            WHERE source_history_id=evt.source_history_id;
+                        delivered := delivered+1;
+                    EXCEPTION WHEN OTHERS THEN
+                        -- The exception subtransaction discards every partial
+                        -- recipient insert. Only a sanitized retry state survives.
+                        next_count := LEAST(evt.attempt_count + 1,5);
+                        error_code := CASE WHEN SQLSTATE='PZ015' THEN 'recipient_limit'
+                            ELSE 'delivery_failure' END;
+                        UPDATE m15_notification_outbox SET
+                            attempt_count=next_count,
+                            last_error_code=error_code,
+                            next_attempt_at_utc=clock_timestamp()+
+                                make_interval(secs=>30 * (1 << LEAST(next_count-1,4))),
+                            quarantined_at_utc=CASE WHEN next_count>=5
+                                THEN clock_timestamp() ELSE NULL END
                         WHERE source_history_id=evt.source_history_id;
-                    delivered := delivered+1;
+                    END;
                 END LOOP;
                 RETURN delivered;
+            END $m15$;
+
+            CREATE FUNCTION m15_delivery_status()
+            RETURNS TABLE(pending bigint,deferred bigint,quarantined bigint)
+            LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog,public AS $m15$
+            BEGIN
+                IF session_user <> 'harborops_api' THEN
+                    RAISE EXCEPTION 'Notification dispatcher unavailable'
+                        USING ERRCODE='42501';
+                END IF;
+                RETURN QUERY
+                    SELECT count(*) FILTER (WHERE completed_at_utc IS NULL
+                        AND quarantined_at_utc IS NULL AND
+                            next_attempt_at_utc<=clock_timestamp()),
+                        count(*) FILTER (WHERE completed_at_utc IS NULL
+                        AND quarantined_at_utc IS NULL AND
+                            next_attempt_at_utc>clock_timestamp()),
+                        count(*) FILTER (WHERE quarantined_at_utc IS NOT NULL)
+                    FROM m15_notification_outbox;
             END $m15$;
 
             -- Reuses M11's accepted session-bound signed read scope. A plain
@@ -299,6 +364,7 @@ public sealed class M15ScopedNotifications : Migration
                 m15_notification_replays FROM PUBLIC;
             REVOKE ALL ON FUNCTION m15_capture_exception_history() FROM PUBLIC;
             REVOKE ALL ON FUNCTION m15_deliver_pending(integer) FROM PUBLIC;
+            REVOKE ALL ON FUNCTION m15_delivery_status() FROM PUBLIC;
             REVOKE ALL ON FUNCTION m15_can_read(uuid,uuid,uuid,bigint,uuid) FROM PUBLIC;
             REVOKE ALL ON FUNCTION m15_apply_personal_action(
                 uuid,uuid,uuid,uuid,varchar,bigint,uuid,varchar) FROM PUBLIC;
@@ -311,6 +377,8 @@ public sealed class M15ScopedNotifications : Migration
                 EXECUTE format('ALTER FUNCTION %1$I.m15_capture_exception_history()
                     SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m15_deliver_pending(integer)
+                    SET search_path TO pg_catalog,%1$I,public',s);
+                EXECUTE format('ALTER FUNCTION %1$I.m15_delivery_status()
                     SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m15_can_read(uuid,uuid,uuid,bigint,uuid)
                     SET search_path TO pg_catalog,%1$I,public',s);
@@ -338,6 +406,7 @@ public sealed class M15ScopedNotifications : Migration
                 uuid,uuid,uuid,uuid,varchar,bigint,uuid,varchar);
             DROP FUNCTION m15_can_read(uuid,uuid,uuid,bigint,uuid);
             DROP FUNCTION m15_deliver_pending(integer);
+            DROP FUNCTION m15_delivery_status();
             DROP TABLE m15_notification_replays;
             DROP TABLE m15_user_notifications;
             DROP TABLE m15_notification_outbox;

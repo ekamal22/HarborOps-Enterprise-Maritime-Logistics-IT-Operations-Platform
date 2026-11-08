@@ -10,6 +10,8 @@ The authoritative work-package dataset is [execution-graph.json](execution-graph
 
 The [PRD](PRD.md) defines product scope; [Roadmap](ROADMAP.md) defines milestone boundaries and gate obligations; [Requirements](REQUIREMENTS.md) owns atomic FR/NFR identifiers; [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) defines checks; [Status](STATUS.md) exclusively records executed evidence, progress, and acceptance. Graph nodes are planned work and cannot be treated as implemented solely because they exist.
 
+**Gate-status clarification (2026-11-08):** G0-G12 and G16 are accepted on `main`; G11 and G12 were integrated via PR #33. The generic verification phrases in individual DAG gate rows, including `acceptance pending until explicitly confirmed`, describe the gate's required exit procedure, not its current disposition. Read [Status](STATUS.md) and [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) for observed acceptance. The M9 hold and deployment restrictions remain binding.
+
 **Granularity:** 25 independently gated milestones, 101 scoped work packages, 25 verification gates, 244 dependency edges across 6 delivery stages.
 
 ## Navigation

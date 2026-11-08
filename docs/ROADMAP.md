@@ -240,6 +240,9 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 #### M15: Scoped in-app notifications
 
+**Implementation source checkpoint (2026-11-08):** [M15 implementation status](M15_IMPLEMENTATION_STATUS.md) records the candidate notification outbox, recipient API, optional delivery service and React interface on the separate feature branch. Runtime verification and G15 acceptance remain pending. M13 integration, additive migration order and local policy decisions require reconciliation before a merge.
+
+
 **Scope:** Authorized event and incident exception messaging.
 **Entry:** G11 accepted before respective dependent work packages.
 **Required work packages:** M15-01 Define recipient and deduplication rules; M15-02 Implement notification persistence; M15-03 Implement notification interface; M15-04 Verify recipient isolation.

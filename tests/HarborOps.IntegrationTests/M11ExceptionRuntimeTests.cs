@@ -39,6 +39,21 @@ public sealed class M11ExceptionRuntimeTests
         return await client.SendAsync(request);
     }
 
+    private static async Task<HttpResponseMessage> SendCorrection(
+        HttpClient client, string path, object payload)
+    {
+        using var csrfResponse = await client.GetAsync("/api/v1/auth/csrf");
+        csrfResponse.EnsureSuccessStatusCode();
+        var token = await csrfResponse.Content.ReadFromJsonAsync<JsonElement>();
+        using var request = new HttpRequestMessage(HttpMethod.Post,path);
+        request.Headers.TryAddWithoutValidation("Origin","http://localhost");
+        request.Headers.TryAddWithoutValidation("X-HarborOps-CSRF",
+            token.GetProperty("token").GetString());
+        request.Headers.TryAddWithoutValidation("Idempotency-Key",Guid.NewGuid().ToString());
+        request.Content = JsonContent.Create(payload);
+        return await client.SendAsync(request);
+    }
+
     private sealed record Setup(
         M10RuntimeIdentityTests.Roles Roles,
         ReferenceDataHttpTests.ApiFactory Factory,
@@ -190,6 +205,51 @@ public sealed class M11ExceptionRuntimeTests
             incoming.GetProperty("replacementCorrectionId").ValueKind);
         Assert.Equal(JsonValueKind.Null,
             outgoing.GetProperty("replacementCorrectionId").ValueKind);
+
+        // A retained correction must replace, rather than invent, the evidence
+        // used by the active M11 conflict witness.
+        var replacementReceipt = await G9Support.Accept(factory,source,
+            G9Support.EquipmentPayload("m11-out-replacement-"+suffix,target.Reference,
+                occurredAt:occurred,code:"GTOT"));
+        var replacementEvent = await db.TrackingAcceptedEvents.AsNoTracking()
+            .SingleAsync(e=>e.ReceiptId==replacementReceipt);
+        var replacementClaim = await worker.ClaimOneAsync(s.Fixture.A,CancellationToken.None);
+        Assert.NotNull(replacementClaim);
+        Assert.Equal(TrackingWorkDisposition.Processed,
+            await worker.FinalizeAsync(replacementClaim!,CancellationToken.None));
+
+        using (var correction = await SendCorrection(restrictedManager,
+            shipmentUrl+"/tracking-corrections",
+            new {targetReceiptId=receiptOut,replacementReceiptId=(Guid?)replacementReceipt,
+                expectedGeneration=0L,reason="Replace superseded synthetic observation"}))
+            Assert.Equal(HttpStatusCode.OK,correction.StatusCode);
+
+        var correctionId = await db.Database.SqlQueryRaw<Guid>(
+            "SELECT id AS \"Value\" FROM shipment_tracking_corrections "+
+            "WHERE organization_id={0} AND shipment_id={1} AND target_receipt_id={2}",
+            s.Fixture.A,target.Shipment,receiptOut).SingleAsync();
+        using (var reevaluated = await ReferenceDataHttpTests.Send(restrictedManager,
+            HttpMethod.Post,shipmentUrl+"/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK,reevaluated.StatusCode);
+        using var updated = await restrictedManager.GetAsync(
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/{target.Shipment}/exceptions");
+        Assert.Equal(HttpStatusCode.OK,updated.StatusCode);
+        var updatedRows = (await updated.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("items");
+        var current = Assert.Single(updatedRows.EnumerateArray(),
+            e=>e.GetProperty("ruleCode").GetString()=="EquipmentConflict");
+        Assert.Equal("Active",current.GetProperty("condition").GetString());
+        var currentEvidence = current.GetProperty("evidence");
+        Assert.Equal(1,currentEvidence.GetProperty("correctionGeneration").GetInt64());
+        var correctedWitness = currentEvidence.GetProperty("conflictWitness");
+        Assert.Equal(receiptIn,correctedWitness.GetProperty("in")
+            .GetProperty("receiptId").GetGuid());
+        Assert.Equal(replacementReceipt,correctedWitness.GetProperty("out")
+            .GetProperty("receiptId").GetGuid());
+        Assert.Equal(replacementEvent.Id,correctedWitness.GetProperty("out")
+            .GetProperty("eventId").GetGuid());
+        Assert.Equal(correctionId,correctedWitness.GetProperty("out")
+            .GetProperty("replacementCorrectionId").GetGuid());
     }
 
     [Fact]

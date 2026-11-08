@@ -105,12 +105,9 @@ public sealed class OperationalKpiStore(
         if (role is "Analyst" or "Manager") return true;
         if (role != "Auditor") return false;
         await using var command = Command(Connection, tx, """
-            SELECT g.active FROM operational_kpi_auditor_grants g
-            JOIN organization_memberships m ON m.organization_id=g.organization_id
-                AND m.user_id=g.user_id AND m.role='Auditor' AND m.status='Active'
-                AND m.version=g.membership_version
-            WHERE g.organization_id=@org AND g.user_id=@actor FOR SHARE OF g
-            """, U("org", org), U("actor", session.UserId));
+            SELECT m13_lock_auditor_grant(@org,@actor,@session)
+            """, U("org", org), U("actor", session.UserId),
+            U("session", session.SessionId));
         return await command.ExecuteScalarAsync(ct) is true;
     }
 
@@ -456,13 +453,10 @@ public sealed class OperationalKpiStore(
             if (await guard.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Forbidden);
         await using (var check = Command(Connection, sqlTx, """
-            SELECT 1 FROM operational_kpi_reports WHERE id=@report AND organization_id=@org
-                AND actor_user_id=@actor AND actor_session_id=@session
-                AND expires_at_utc>clock_timestamp() AND filters_sha256=@fingerprint
-              AND policy_version='m13-kpi-v1' FOR SHARE
+            SELECT m13_lock_report(@org,@actor,@session,@report,@fingerprint)
             """, U("report", report), U("org", org), U("actor", session.UserId),
             U("session", session.SessionId), S("fingerprint", filtersSha256)))
-            if (await check.ExecuteScalarAsync(ct) is null)
+            if (await check.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Conflict, "report_expired");
 
         var items = new List<KpiMember>();

@@ -415,4 +415,77 @@ public sealed class ShipmentSearchHttpTests
             Assert.Contains("filterDigest", e.MetadataJson, StringComparison.Ordinal);
         });
     }
+
+    [Fact]
+    public async Task ExportRowLimitRejectsFiveThousandAndOneWithoutPreparingAudit()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var manager = fixture.Manager;
+        var seed = await AssignmentHttpTests.Seed(fixture);
+        var prefix = "G12CAP" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+            var inserted = await db.Database.ExecuteSqlRawAsync("""
+                INSERT INTO shipments
+                    (id, organization_id, reference_code, external_reference, display_name,
+                     origin_port_id, destination_port_id, planned_departure_at_utc,
+                     planned_arrival_at_utc, workflow_status, record_status,
+                     source_kind, version, created_at_utc, updated_at_utc,
+                     archived_at_utc, changed_by_user_id)
+                SELECT gen_random_uuid(), s.organization_id,
+                    {0} || '-' || lpad(n::text, 5, '0'), NULL, NULL,
+                    s.origin_port_id, s.destination_port_id, NULL, NULL,
+                    'Draft', 'Active', 'Synthetic', 1, now(), now(),
+                    NULL, s.changed_by_user_id
+                FROM shipments s CROSS JOIN generate_series(1, 5001) AS n
+                WHERE s.id = {1}
+                """, prefix, seed.Shipment);
+            Assert.Equal(5001, inserted);
+        }
+
+        using var response = await manager.GetAsync(
+            Root(fixture.A) + "/exports/shipments?q=" + prefix);
+        Assert.Equal((HttpStatusCode)413, response.StatusCode);
+        Assert.NotEqual("text/csv", response.Content.Headers.ContentType?.MediaType);
+        var error = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("export_row_limit", error.GetProperty("code").GetString());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var audit = verification.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Empty(await audit.AuditEntries.AsNoTracking().Where(e =>
+            e.OrganizationId == fixture.A && e.EventType == "shipment.export_prepared").ToListAsync());
+    }
+
+    [Fact]
+    public async Task DatabaseReadLockTimesOutBeforeProxyBudgetWithoutExportOrPartialCsv()
+    {
+        using var factory = new ReferenceDataHttpTests.ApiFactory(TestDatabase.ConnectionString());
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var manager = fixture.Manager;
+        var seed = await AssignmentHttpTests.Seed(fixture);
+        await using var blocker = new NpgsqlConnection(TestDatabase.ConnectionString());
+        await blocker.OpenAsync();
+        await using var transaction = await blocker.BeginTransactionAsync();
+        await using (var lockCommand = new NpgsqlCommand(
+            "LOCK TABLE shipments IN ACCESS EXCLUSIVE MODE", blocker, transaction))
+            await lockCommand.ExecuteNonQueryAsync();
+
+        var duration = System.Diagnostics.Stopwatch.StartNew();
+        using var response = await manager.GetAsync(
+            Root(fixture.A) + "/exports/shipments?q=G12-NO-MATCH");
+        duration.Stop();
+        await transaction.RollbackAsync();
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.NotEqual("text/csv", response.Content.Headers.ContentType?.MediaType);
+        Assert.InRange(duration.Elapsed.TotalSeconds, 10.0, 30.0);
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var audit = verification.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        Assert.Empty(await audit.AuditEntries.AsNoTracking().Where(e =>
+            e.OrganizationId == fixture.A && e.EventType == "shipment.export_prepared").ToListAsync());
+    }
+
 }

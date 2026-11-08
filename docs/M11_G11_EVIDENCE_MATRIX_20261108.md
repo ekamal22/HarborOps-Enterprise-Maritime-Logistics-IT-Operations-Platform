@@ -1,40 +1,43 @@
 # G11 Source-Locked Scenario Evidence Matrix
 
-**Reviewed:** 2026-11-08
-**Frozen application SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`
-**Basis:** GitHub run logs and source inspection. This is not an independently sealed raw evidence archive.
-**Gate:** Acceptance pending. Individual EXECUTED CHECKS rows describe demonstrated tests, not a closed whole-scenario Sxx gate.
+**Reviewed:** 2026-11-08 (local closure update)
+**Frozen hosted application SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`
+**Local verification SHAs:** `5dedbb70b4d2f4088f117d905e90d59f23a26915` (export retry fix plus focused tests, final run) and `3d450ac320b00538b106f2ad6d4b86c88661d7a4` (test-only supplement)
+**Basis:** local execution against disposable PostgreSQL 16.15 servers with raw TRX retained on E:, plus the hosted run logs for items marked hosted. Not an independent review.
+**Gate:** G11 acceptance pending. Dispositions below are traceability statements, not an acceptance decision.
+**Totals:** BLOCKED 2, NOT EXECUTED 1, PARTIAL 6, PASS 16
 
-| Scenario | Evidence state | Demonstrated evidence | Remaining requirement |
+**Disposition key:** PASS = every required check of the scenario has executed local evidence. PARTIAL = executed subset passed, remainder NOT EXECUTED; the scenario is not closed and counts as not accepted. BLOCKED = needs an external or independent decision. NOT EXECUTED = no local execution. NOT APPLICABLE = justified.
+**Evidence root (E:):** `E:\HarborOps-Verification\evidence\m11m12-local-01` (final run `final/`, amended G11 supplement `final-supplement/`, historical failed attempts under `raw/` and `logs/`, sealed by `MANIFEST.sha256`). See [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).
+
+| Scenario | Disposition | Executed evidence | Remaining requirement or caveat |
 | --- | --- | --- | --- |
-| G11-S01 | POLICY RECORDED | M11-P01..P12 and P10b documented | Formal S01 independent reconciliation |
-| G11-S02 | EXECUTED CHECKS | source 291 unit, 46 contract, web, Release build | Consolidate onto reviewed source evidence package |
-| G11-S03 | EXECUTED SUBSET | UTC strict and DST boundary unit tests | Independently map exact truth table |
-| G11-S04 | EXECUTED SUBSET | ScheduleOverdueIsScopedAuditedAndIdempotentForManager | Retain output and boundary fixture |
-| G11-S05 | EXECUTED SUBSET | ExplicitWorkflowArrivalIsDistinguishedFromUnconfirmedSchedule | Reconcile transition provenance against detailed fixture |
-| G11-S06 | EXECUTED SUBSET | DepartureRiskNeedsRecordedWorkflowAndFutureArrival | Full real HTTP and source-confidence matrix |
-| G11-S07 | EXECUTED SUBSET | StaleProjectionIsNeverUsedAsConfirmedConflict; NullSchedulesAreUnknownNotInventedDelays | Absent/manual/stale negative matrix |
-| G11-S08 | EXECUTED SUBSET | EquipmentConflictCarriesExactAcceptedEventAndContainerWitness: corrected replacement, two conflicts, count=2 and truncation=true | Independent deterministic selection and bounded lineage review, additional negative source cases |
-| G11-S09 | EXECUTED SUBSET | Correction-witness replacement, accepted M9/M10 regressions | Cross-check late/out-of-order/duplicate/superseded permutations |
-| G11-S10 | EXECUTED SUBSET | SameFingerprintWithStaleSeverityWritesAttributedReevaluation, correction generation | Rebuild drift and interruption evidence |
-| G11-S11 | EXECUTED CHECKS | PopulatedAcceptedThirteenMigrationDatabaseSurvivesFifteenMigrationUpgrade and fresh install | Raw migration diff and SQL role manifest |
-| G11-S12 | EXECUTED CHECKS | DirectApiSqlCannotReadExceptionsOrHistoryWithoutSignedSession; SQL read isolation run | Raw real-role probe and cross-join review |
-| G11-S13 | EXECUTED SUBSET | Restricted Manager/Analyst/Administrator fixture and browser | Full five-role matrix, Support and Auditor |
-| G11-S14 | NOT FULLY EVIDENCED | General session tests exist in accepted baseline | M11 live revoke/logout/org suspension at transaction boundary |
-| G11-S15 | EXECUTED SUBSET | ScheduleOverdueIsScopedAuditedAndIdempotentForManager | Forced audit failure and exact immutable history proof |
-| G11-S16 | EXECUTED SUBSET | VerifiedClearancePersistsAcrossUnknownBeforeRecurrence; late arrival Manager resolve | Concurrent recurrence/late-source edge cases |
-| G11-S17 | EXECUTED SUBSET | ReplayKeyCannotBeReusedForAnotherException | Same-key response and wrong-actor replay matrix |
-| G11-S18 | EXECUTED SUBSET | ConcurrentFirstEvaluationsDoNotDuplicateOccurrenceOrHistory | Acknowledge, rearchive and cancel concurrency race |
-| G11-S19 | NOT FULLY EVIDENCED | Audited successful Manager lifecycle | Injected audit write rejection with full rollback |
-| G11-S20 | NOT FULLY EVIDENCED | UTC boundary policy unit tests and due cursor logic | Missed timer and process restart due-scan recovery |
-| G11-S21 | NOT FULLY EVIDENCED | General accepted recovery regressions | M11 evaluator outage and process crash before/after commit |
-| G11-S22 | EXECUTED CHECKS | 36/36 three-engine browser run with M11 and M12 plus M5 | Retain raw browser results and source/fixture identities |
-| G11-S23 | EXECUTED CHECKS | 341/341 full suite, 40/40 impacted | Explicit signed M9 hold and final source reconciliation |
-| G11-S24 | EXECUTED SUBSET | 5/5 targeted effective mutants; SQL access and image/dependency scans | Broader required attack families, evidence safety and raw scans |
-| G11-S25 | BLOCKED | Run logs and TRX hash reported; no downloadable raw artifacts found | Independent reparse, manifest validation, complete S01..S24 dispositions |
+| G11-S01 | BLOCKED | M11-P01..P12 and P10b recorded; `check-m11-contract.mjs` PASS. | Formal policy reconciliation is an acceptance decision, not a test. |
+| G11-S02 | PASS | Release build with warnings as errors 0/0, 291/291 unit, 46/46 contract at `5dedbb7` (`final/raw/unit.trx`, `contract.trx`, `logs/build.log`). | Web build/test not rerun locally (hosted log only; web unchanged). |
+| G11-S03 | PASS | Strict UTC and DST boundary unit tests inside the 291/291 unit run. | Reviewer truth-table mapping is an S25 task. |
+| G11-S04 | PASS | `ScheduleOverdueIsScopedAuditedAndIdempotentForManager` (19/19 M11 runtime, `final/raw/g11-existing-and-upgrade.trx`), plus replay and rejected-audit cases below. |  |
+| G11-S05 | PARTIAL | `ExplicitWorkflowArrivalIsDistinguishedFromUnconfirmedSchedule` PASS locally. | Transition-provenance detailed fixture NOT EXECUTED. |
+| G11-S06 | PARTIAL | `DepartureRiskNeedsRecordedWorkflowAndFutureArrival` PASS locally. | Full real HTTP and source-confidence matrix NOT EXECUTED. |
+| G11-S07 | PARTIAL | `StaleProjectionIsNeverUsedAsConfirmedConflict`, `NullSchedulesAreUnknownNotInventedDelays` PASS locally. | Absent/manual/stale negative matrix NOT EXECUTED. |
+| G11-S08 | PASS | `EquipmentConflictWitnessIsDeterministicAttributableAndCountsLargeSets`: duplicate same-instant GTIN/GTOT from two sources (earliest received wins), 55 conflicting containers (count 55, above the 50-container projection sample), witness equals the minimum container UUID by PostgreSQL ordering, GTIN/GTOT arrival-order permutations, late event creates conflict (55 to 56), older GTIN does not, superseded GTOT with no replacement removes one conflict (56 to 55), every witness id resolves to an accepted effective event and no superseded receipt, repeated rebuild/evaluate leaves one exception and unchanged history. Plus the earlier two-container and corrected-replacement test. | Equal `received_at` ties (source id, source event id, receipt, event ordering) cannot be forced through the API and are covered by source inspection only. |
+| G11-S09 | PASS | Late, out-of-order, duplicate and superseded permutations in the S08 test, plus the accepted M9/M10 regressions in the hosted 341/341. |  |
+| G11-S10 | PASS | `SameFingerprintWithStaleSeverityWritesAttributedReevaluation`; repeated rebuild/evaluate in the S08 test yields identical witness JSON and no extra history; evaluator interruption cases (S21). |  |
+| G11-S11 | PASS | `PopulatedAcceptedThirteenMigrationDatabaseSurvivesFifteenMigrationUpgrade` PASS locally (`M11M12UpgradeTests`, included in the 20/20); SQL role and grant manifest captured (`final/env/sql-role-and-grant-manifest.txt`): runtime role has SELECT only on exception, history and evaluation tables, EXECUTE on the signed functions, nothing on nonce, replay or key tables. |  |
+| G11-S12 | PASS | `DirectApiSqlCannotReadExceptionsOrHistoryWithoutSignedSession` and `MigrationIsAdditiveAndRuntimeSqlCannotModifyExceptionTables` PASS locally. |  |
+| G11-S13 | PASS | `FiveRoleMatrixAndWrongActorReplayAreRejectedWithoutStateChange`: Manager, Analyst and Auditor read; Administrator and Support are refused; only Manager can disposition; refused attempts change nothing. |  |
+| G11-S14 | PASS | `ManagerDispositionRevalidatesLiveAuthorityAtTheTransactionBoundary` 7/7: positive control applies once; session revoked, membership removed, role downgraded, organization suspended, account disabled and security version bump committed while the request is queued each yield 403 with exception, history, replay, audit and nonce rows unchanged. |  |
+| G11-S15 | PASS | Rejected-audit case: exception, history, replay, audit and nonce rows identical to baseline after an injected audit rejection; immutable history retained. |  |
+| G11-S16 | PARTIAL | `VerifiedClearancePersistsAcrossUnknownBeforeRecurrence` and late-arrival resolve PASS locally. | Concurrent recurrence/late-source edge cases NOT EXECUTED. |
+| G11-S17 | PASS | `ReplayKeyCannotBeReusedForAnotherException`; wrong-actor replay of an applied key refused (409) with no change; same key with changed expected version refused (409). |  |
+| G11-S18 | PASS | Two concurrent acknowledgements: exactly 200 and 409, one history row, one audit. Archive (DELETE) and cancellation mutations queued behind a held shipment lock with the disposition: counts consistent. Shipment change committed first (`3d450ac` supplement): archive refused 403, cancellation refused 409, no change to any row. | In the queued race the disposition won both runs; the opposite order is covered by the deterministic supplement case. |
+| G11-S19 | PASS | `RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable`: trigger-injected audit failure returns 503 `audit_unavailable`, every state count unchanged, then the same replay key succeeds once the fault is removed. |  |
+| G11-S20 | PASS | `MissedCheckpointIsRecoveredAfterRestartAndDatabaseOutageWithoutDuplicates`: checkpoint not due, API host disposed, runtime login disabled and backends terminated, schedule and checkpoint moved three hours past (SIMULATED clock advance, database clock cannot be advanced), login restored, new host with the opt-in evaluator opens exactly one exception after restoration; 20 seconds of further scanning adds no duplicate; four evaluations remain. | Real wall-clock wait, OS process kill of the API and a PostgreSQL container stop were not performed. |
+| G11-S21 | PASS | `EvaluatorKilledBeforeOrAfterCommitLeavesNoPartialStateAndRecoversExactlyOnce`: 14 backend terminations swept from immediate to after completion in each of two runs (final run: 4 rolled back to an empty state and 10 already completed; supplement: 2 and 12); every iteration was all-or-nothing (0 or exactly 1 exception, 4 evaluations, 1 Opened) and two clean evaluations converged to exactly one of each. | The narrow window where commit succeeds and the reply is lost was not observed in 14 attempts. |
+| G11-S22 | NOT EXECUTED | 36/36 three-engine browser run reported in the hosted log for `f56d017`. | Raw browser JSON was not retained and browsers were not rerun locally. The only application change since is the export retry (API-internal, no UI change). |
+| G11-S23 | PARTIAL | Hosted 341/341 and 40/40 at `f56d017`; local change-impact at `5dedbb7`: every M11 and M12 test class, upgrade, unit, contract (details in the results record). | Full 341-case suite at `5dedbb7` NOT EXECUTED; one method changed. Explicit signed M9 hold reconciliation pending. |
+| G11-S24 | PARTIAL | Hosted 5/5 effective mutants and scans at `f56d017`; local negative authorization cases (S14/S17/S19) are controls, not mutants. | Broader mutation families and raw scan output NOT EXECUTED locally. Evidence safety scan of the local package: 0 hits. |
+| G11-S25 | BLOCKED | Local package sealed and read back (257 files at first seal). | Independent reviewer must reparse the raw evidence and issue a separate written decision. |
 
 ## Review outcome
 
-All rows are traceability and sufficiency observations. No unresolved scenario is silently promoted to PASS. Source and log evidence alone does not fulfill the separate S25 independent raw-evidence review. Historical failures remain valid for their superseded source and are recorded in [run index](M11_M12_EXECUTED_RUN_INDEX_20261108.json).
-
-See [coordinated readiness review](M11_M12_ACCEPTANCE_REVIEW_20261108.md) and [verification plan](M11_VERIFICATION_PLAN.md).
+PARTIAL rows are not promoted. Independent S25 raw-evidence review is required before any acceptance decision. Historical failed attempts remain recorded in the [run index](M11_M12_EXECUTED_RUN_INDEX_20261108.json) and in the retained local logs. See the [acceptance review](M11_M12_ACCEPTANCE_REVIEW_20261108.md) and the [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).

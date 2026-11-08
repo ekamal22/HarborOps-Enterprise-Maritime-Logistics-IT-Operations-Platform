@@ -4,7 +4,7 @@
 **Branch:** `feat/m11-m12-combined-integration`  
 **Application verification SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`  
 **Accepted baseline:** protected `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`  
-**Status:** Planned local checks, **NOT EXECUTED** by this runbook. Technical S25 acceptance pending.
+**Status:** Executed 2026-11-08 (see [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md)); the plan text below is retained as written. Technical S25 acceptance pending.
 
 ## Rules and prerequisites
 

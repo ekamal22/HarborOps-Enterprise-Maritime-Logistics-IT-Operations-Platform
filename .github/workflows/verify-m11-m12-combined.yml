@@ -158,7 +158,7 @@ jobs:
           export HARBOROPS_VERIFICATION_ROOT="$PWD/.verification"
           mkdir -p .verification/m15-browser
           printf '%s\n' "$GITHUB_SHA" > .verification/m15-browser/source-sha.txt
-          project="ho-m15-${GITHUB_RUN_ID}"
+          project="ho-verify-m15-${GITHUB_RUN_ID}"
           cleanup() {
             code=$?
             docker compose -p "$project" ps || true

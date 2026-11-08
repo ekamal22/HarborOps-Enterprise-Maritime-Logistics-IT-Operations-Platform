@@ -1,5 +1,6 @@
 # G11 Independent Raw Evidence Review
 
+**Historical review scope (post-acceptance notice):** This record describes the first local evidence package and its historical NOT PASS disposition. Its original SHA-specific findings, limitations and failed or pending checks remain preserved. M11/G11 and M12/G12 were subsequently accepted on the second closure package and merged through [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). See [formal G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) for the independent second-package re-review and current disposition. No deployment or M9 hold clearance was authorized.
 **Review date:** 2026-11-08  
 **Gate:** G11, shipment exception lifecycle  
 **Reviewed technical source:** `5dedbb70b4d2f4088f117d905e90d59f23a26915`  

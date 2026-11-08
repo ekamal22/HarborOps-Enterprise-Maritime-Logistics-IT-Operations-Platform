@@ -59,6 +59,45 @@ public sealed class M15NotificationRuntimeTests
         Assert.Equal(HttpStatusCode.NotFound,foreignDenied.StatusCode);
 
         var notificationId = managerItem.GetProperty("id").GetGuid();
+
+        // A database-only caller can know the real recipient/session IDs,
+        // but without the API's HMAC proof it still cannot read personal rows.
+        await using (var administratorSql = new NpgsqlConnection(s.Roles.Admin))
+        await using (var apiSql = new NpgsqlConnection(s.Roles.Api))
+        {
+            await administratorSql.OpenAsync();
+            await apiSql.OpenAsync();
+            Guid recipientId,sessionId;
+            await using (var lookup = new NpgsqlCommand("""
+                SELECT n.recipient_user_id,a.id
+                FROM m15_user_notifications n
+                JOIN auth_sessions a ON a.user_id=n.recipient_user_id
+                    AND a.selected_organization_id=n.organization_id
+                    AND a.revoked_at_utc IS NULL
+                WHERE n.id=@notification
+                LIMIT 1
+                """,administratorSql))
+            {
+                lookup.Parameters.AddWithValue("notification",notificationId);
+                await using var rows = await lookup.ExecuteReaderAsync();
+                Assert.True(await rows.ReadAsync());
+                recipientId = rows.GetGuid(0);
+                sessionId = rows.GetGuid(1);
+            }
+            var expires = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 25;
+            var forged = $"{s.Fixture.A:D}|{recipientId:D}|{sessionId:D}|{expires}|"+
+                new string('0',64);
+            await using (var config = new NpgsqlCommand(
+                "SELECT set_config('harborops.m11_read_scope',@scope,false)",apiSql))
+            {
+                config.Parameters.AddWithValue("scope",forged);
+                await config.ExecuteScalarAsync();
+            }
+            await using (var count = new NpgsqlCommand(
+                "SELECT COUNT(*) FROM m15_user_notifications",apiSql))
+                Assert.Equal(0L,Convert.ToInt64(await count.ExecuteScalarAsync()));
+        }
+
         using var countBefore = await manager.GetAsync(url+"/unread-count");
         var beforeBody = await countBefore.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(1,beforeBody.GetProperty("unreadCount").GetInt64());
@@ -158,6 +197,21 @@ public sealed class M15NotificationRuntimeTests
             "SELECT COUNT(*) FROM m15_user_notifications",connection))
         {
             Assert.Equal(0L,Convert.ToInt64(await unscoped.ExecuteScalarAsync()));
+        }
+
+        await using var worker = new NpgsqlConnection(roles.Worker);
+        await worker.OpenAsync();
+        foreach (var sql in new[] {
+            "SELECT COUNT(*) FROM m15_notification_outbox",
+            "SELECT COUNT(*) FROM m15_user_notifications",
+            "SELECT pending FROM m15_delivery_status()",
+            "SELECT m15_deliver_pending(1)"
+        })
+        {
+            await using var command = new NpgsqlCommand(sql,worker);
+            var denied = await Assert.ThrowsAsync<PostgresException>(
+                () => command.ExecuteScalarAsync());
+            Assert.Equal("42501",denied.SqlState);
         }
     }
 }

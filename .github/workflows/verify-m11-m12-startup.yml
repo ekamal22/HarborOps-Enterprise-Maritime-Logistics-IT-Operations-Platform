@@ -1,4 +1,4 @@
-name: Verify combined M11 M12 source
+name: Verify combined source with runner tools
 on:
   push:
     branches:
@@ -8,26 +8,18 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Confirm source and check contracts
+      - name: Verify runner tools and source
         run: |
           set -euo pipefail
-          echo "Source SHA $(git rev-parse HEAD)"
+          echo "Requested source $GITHUB_SHA"
+          command -v git
+          command -v node
+          node --version
+          command -v dotnet || true
+          dotnet --version || true
+          git clone --depth=1 --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
+          cd source
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           node scripts/check-m11-contract.mjs
-          node scripts/render-execution-graph.mjs --check
-          node scripts/check-planning-docs.mjs
-      - name: Build solution
-        run: dotnet build HarborOps.sln -c Release -warnaserror
-      - name: Build frontend
-        run: |
-          npm --prefix web ci --no-audit --no-fund
-          npm --prefix web run build

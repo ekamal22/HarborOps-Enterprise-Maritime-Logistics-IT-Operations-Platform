@@ -6,6 +6,12 @@
 
 **Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents corrected inactive rule severity, metadata-aware signed reevaluation and explicitly typed due-work cursors. Regression tests are authored but unexecuted. G11-S01 remains BLOCKED on policy; G11-S02 through S25 remain NOT EXECUTED, and acceptance pending. Draft PR #31 is unmerged; M9 transport processing remains held.
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Combined API verification must cover M11 exception routes and M12 search/export routes together without changing accepted M5 shipment list/detail/mutation semantics, tenant isolation, sessions or audit requirements.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records separate unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**M12 candidate status (2026-11-08):** [Draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) contains scoped shipment search, bounded signed CSV export and source-level correctness repairs. [Latest audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md), [implementation status](M12_IMPLEMENTATION_STATUS.md) and [G12 plan](M12_VERIFICATION_PLAN.md) distinguish authored tests from executed evidence. The fifth pass adds exclusive PostgreSQL role-test gating and CSV cancellation checks. Earlier source fixes remain in force. G12 execution and independent acceptance remain pending. Protected `main` and the M9 transport hold are unchanged.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
@@ -133,7 +139,8 @@ The feature branch implements `GET /api/v1/organizations/{organizationId}/shipme
 | GET | /organizations/{orgId}/exceptions | Shipment exceptions | Scoped operations |
 | PATCH | /organizations/{orgId}/exceptions/{id} | Acknowledge/resolve exception | Scoped operations |
 | GET | /organizations/{orgId}/analytics/overview | Documented operational KPIs | Scoped viewer |
-| GET | /organizations/{orgId}/exports/shipments | Scoped bounded CSV export | Explicit export permission |
+| GET | /organizations/{orgId}/shipments/search | M12 candidate advanced tenant-scoped search, protected UUID keyset and UTC filters | Typed shipment-read permission, G12 pending |
+| GET | /organizations/{orgId}/exports/shipments | M12 candidate bounded CSV and signed nonreplayable preparation audit, G12 pending | Analyst/Manager typed export permission with verifier key |
 | GET/POST | /operations/incidents | Incident list/create | IT operations role |
 | GET/PATCH | /operations/incidents/{id} | Incident detail and transitions | IT operations role |
 | GET | /health/live | Process liveness | Public, minimal metadata |

@@ -67,7 +67,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
             Encoding.UTF8.GetBytes(message))).ToLowerInvariant();
     }
 
-    private async Task SetReadScopeAsync(NpgsqlTransaction tx, Guid organization,
+    public async Task SetReadScopeAsync(NpgsqlTransaction tx, Guid organization,
         Guid actor, Guid session, CancellationToken ct)
     {
         var expires = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;

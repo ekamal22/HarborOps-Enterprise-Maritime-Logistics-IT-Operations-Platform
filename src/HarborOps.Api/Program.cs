@@ -10,6 +10,7 @@ using HarborOps.Api.Integrations;
 using HarborOps.Api.Audit;
 using HarborOps.Api.Exceptions;
 using HarborOps.Api.Notifications;
+using HarborOps.Api.Reporting;
 using HarborOps.Infrastructure.Notifications;
 using HarborOps.Infrastructure.Audit;
 using Microsoft.AspNetCore.Diagnostics;
@@ -177,6 +178,7 @@ app.MapTrackingWorkEndpoints();
 app.MapShipmentTimelineEndpoints();
 app.MapShipmentExceptionEndpoints();
 app.MapNotificationEndpoints();
+app.MapOperationalKpiEndpoints();
 app.MapAuditEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions

@@ -131,6 +131,25 @@ public static class AuditRoleProvisioner
                 END $m12_export$;
 
 
+                -- M13 reporting storage is scoped by signed session RLS. Grants
+                -- mutate only through the Administrator-authorized definer.
+                DO $m13_roles$
+                BEGIN
+                    IF to_regclass('public.operational_kpi_reports') IS NOT NULL THEN
+                        GRANT SELECT, INSERT, DELETE ON operational_kpi_reports,
+                            operational_kpi_members TO harborops_api;
+                        GRANT SELECT ON operational_kpi_auditor_grants TO harborops_api;
+                        GRANT EXECUTE ON FUNCTION m13_scoped_role(uuid),
+                            m13_scope_matches(uuid,uuid,uuid),m13_can_view(uuid),
+                            m13_can_manage(uuid),m13_member_access(uuid,uuid),
+                            m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean),
+                            m13_prune_expired(uuid,integer),
+                            m13_lock_auditor_grant(uuid,uuid,uuid),
+                            m13_lock_report(uuid,uuid,uuid,uuid,varchar)
+                            TO harborops_api;
+                    END IF;
+                END $m13_roles$;
+
                 -- M15 is SQL-only and independently ordered from M13.
                 -- The broad runtime SELECT grant above must not expose the
                 -- recipient table or the unscoped outbox/replay tables.

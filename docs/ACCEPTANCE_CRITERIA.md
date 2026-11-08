@@ -162,3 +162,7 @@ Additional gate rules:
 ## Release refusal conditions
 
 A release must not be described as verified if core data can cross organization boundaries, accepted events disappear silently, backups have never been restored, essential tests fail, or the documentation misstates current delivery status.
+
+## M13 operational KPI gate
+
+D-005 Option A defines 14 metrics K01-K14. G13 requires exact source-backed counts, member sets and eligible denominators, strict versus 60-minute arrival tolerance, missing and stale source disclosure, current versus historical distinctions, race-safe report snapshot drill, tenant/role-safe restricted PostgreSQL, current Auditor grant security, migration and fault evidence, 170k-shipment capacity, three-engine browser journeys, mutation evidence and independent G13-S25 review. [Authored implementation](M13_IMPLEMENTATION_STATUS_20261109.md) does not constitute a technical PASS or authorize a merge or deployment.

@@ -223,8 +223,10 @@ public sealed class M15NotificationBoundaryTests
         using var changedFilter=await manager.GetAsync(
             root+"?limit=1&state=Unread&cursor="+Uri.EscapeDataString(cursor!));
         Assert.Equal(HttpStatusCode.BadRequest,changedFilter.StatusCode);
-        var last=cursor![^1];
-        var altered=cursor[..^1]+(last=='A'?'B':'A');
+        // Change a significant leading Base64Url character, not unused
+        // trailing padding bits that could decode to identical bytes.
+        var initial=cursor![0];
+        var altered=(initial=='A'?'B':'A')+cursor[1..];
         using var tampered=await manager.GetAsync(
             root+"?limit=1&state=All&cursor="+Uri.EscapeDataString(altered));
         Assert.Equal(HttpStatusCode.BadRequest,tampered.StatusCode);

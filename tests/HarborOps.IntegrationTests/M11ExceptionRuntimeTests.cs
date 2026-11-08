@@ -455,6 +455,141 @@ public sealed class M11ExceptionRuntimeTests
     }
 
     [Fact]
+    public async Task VerifiedClearancePersistsAcrossUnknownBeforeRecurrence()
+    {
+        var s = await Prepare();
+        using var f = s.Factory; using var runtime = s.Runtime;
+        using var admin = s.Fixture.Admin; using var fixtureManager = s.Fixture.Manager;
+        using var analyst = s.Fixture.Analyst;
+        using var manager = s.Manager; using var reader = s.Analyst;
+        using var administrator = s.Administrator;
+        var shipment = await ScheduledShipment(s);
+        var original = await EvaluateAndFind(s, shipment);
+        var detailPath = Collection(s.Fixture.A) + "/" + original;
+        var route = $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}";
+        using (var ack = await SendAction(manager, detailPath,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Acknowledged for clearance recurrence review" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, ack.StatusCode);
+
+        using (var cleared = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, route,
+            new { expectedVersion = 3L,
+                plannedArrivalAtUtc = Utc(DateTimeOffset.UtcNow.AddHours(4)) }))
+            Assert.Equal(HttpStatusCode.OK, cleared.StatusCode);
+        using (var evaluated = await ReferenceDataHttpTests.Send(manager,
+            HttpMethod.Post, route + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, evaluated.StatusCode);
+
+        using (var unknown = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, route,
+            new { expectedVersion = 4L, plannedArrivalAtUtc = (string?)null }))
+            Assert.Equal(HttpStatusCode.OK, unknown.StatusCode);
+        using (var evaluated = await ReferenceDataHttpTests.Send(manager,
+            HttpMethod.Post, route + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, evaluated.StatusCode);
+        using (var detail = await manager.GetAsync(detailPath))
+        {
+            var item = (await detail.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("exception");
+            Assert.Equal("Acknowledged", item.GetProperty("state").GetString());
+            Assert.Equal("Unknown", item.GetProperty("condition").GetString());
+        }
+
+        using (var recurred = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, route,
+            new { expectedVersion = 5L,
+                plannedArrivalAtUtc = Utc(DateTimeOffset.UtcNow.AddHours(-3)) }))
+            Assert.Equal(HttpStatusCode.OK, recurred.StatusCode);
+        using (var evaluated = await ReferenceDataHttpTests.Send(manager,
+            HttpMethod.Post, route + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, evaluated.StatusCode);
+        using var listing = await manager.GetAsync(route + "/exceptions");
+        var rows = (await listing.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("items").EnumerateArray().ToArray();
+        Assert.Equal(2, rows.Length);
+        Assert.Equal("Resolved", rows.Single(x =>
+            x.GetProperty("id").GetGuid() == original).GetProperty("state").GetString());
+        var latest = rows.Single(x => x.GetProperty("id").GetGuid() != original);
+        Assert.Equal("Open", latest.GetProperty("state").GetString());
+        Assert.Equal(2, latest.GetProperty("occurrence").GetInt32());
+    }
+
+    [Fact]
+    public async Task RecordedArrivalLateMayBeClosedWithoutErasingHistoricalFact()
+    {
+        var s = await Prepare();
+        using var f = s.Factory; using var runtime = s.Runtime;
+        using var admin = s.Fixture.Admin; using var fixtureManager = s.Fixture.Manager;
+        using var analyst = s.Fixture.Analyst;
+        using var manager = s.Manager; using var reader = s.Analyst;
+        using var administrator = s.Administrator;
+        var shipment = await ScheduledShipment(s);
+        var route = $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}";
+        using (var departure = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, route,
+            new { expectedVersion = 3L, workflowStatus = "InTransit" }))
+            Assert.Equal(HttpStatusCode.OK, departure.StatusCode);
+        using (var arrival = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, route,
+            new { expectedVersion = 4L, workflowStatus = "Arrived" }))
+            Assert.Equal(HttpStatusCode.OK, arrival.StatusCode);
+        using (var evaluated = await ReferenceDataHttpTests.Send(manager,
+            HttpMethod.Post, route + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, evaluated.StatusCode);
+
+        Guid lateId;
+        using (var listing = await manager.GetAsync(route + "/exceptions"))
+        {
+            var rows = (await listing.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("items").EnumerateArray().ToArray();
+            var late = rows.Single(x =>
+                x.GetProperty("ruleCode").GetString() == "RecordedArrivalLate");
+            lateId = late.GetProperty("id").GetGuid();
+            Assert.Equal("Active", late.GetProperty("condition").GetString());
+        }
+        var detailPath = Collection(s.Fixture.A) + "/" + lateId;
+        using (var ack = await SendAction(manager, detailPath,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Confirmed historical recorded arrival lateness" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, ack.StatusCode);
+        using (var close = await SendAction(manager, detailPath,
+            new { action = "Resolve", expectedVersion = 2L,
+                reason = "Completed review of recorded late arrival fact" }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, close.StatusCode);
+
+        using (var changed = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch, route,
+            new { expectedVersion = 5L,
+                displayName = "Reviewed recorded arrival history" }))
+            Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
+        for (var i = 0; i < 2; i++)
+        {
+            using var reevaluation = await ReferenceDataHttpTests.Send(manager,
+                HttpMethod.Post, route + "/exceptions/evaluate");
+            Assert.Equal(HttpStatusCode.OK, reevaluation.StatusCode);
+        }
+        using (var listing = await manager.GetAsync(route + "/exceptions"))
+        {
+            var rows = (await listing.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("items").EnumerateArray().ToArray()
+                .Where(x => x.GetProperty("ruleCode").GetString() == "RecordedArrivalLate")
+                .ToArray();
+            var late = Assert.Single(rows);
+            Assert.Equal(lateId, late.GetProperty("id").GetGuid());
+            Assert.Equal("Resolved", late.GetProperty("state").GetString());
+            Assert.Equal("Active", late.GetProperty("condition").GetString());
+        }
+        await using var db = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>()
+                .UseNpgsql(s.Roles.Admin).Options);
+        Assert.Equal(1L, await db.Database.SqlQueryRaw<long>(
+            "SELECT COUNT(*) AS \"Value\" FROM shipment_exception_history " +
+            "WHERE exception_id={0} AND action='Resolved' AND actor_kind='Human'",
+            lateId).SingleAsync());
+    }
+
+    [Fact]
     public async Task AcknowledgedExceptionCanBeResolvedAfterSourceClearance()
     {
         var s = await Prepare();

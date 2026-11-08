@@ -110,6 +110,12 @@ jobs:
             --filter 'FullyQualifiedName~M15NotificationRuntimeTests|FullyQualifiedName~M11ExceptionRuntimeTests|FullyQualifiedName~M11M12UpgradeTests|FullyQualifiedName~MigrationSnapshotTests|FullyQualifiedName~M10UpgradeTests' \
             --logger 'trx;LogFileName=m15-integration.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/integration.log
+          # Fault-injection boundary tests can modify database-wide constraints.
+          # Run them separately from unrelated integration suites on this exclusive server.
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
+            --filter 'FullyQualifiedName~M15NotificationBoundaryTests' \
+            --logger 'trx;LogFileName=m15-boundaries.trx' --results-directory .verification/m15 \
+            2>&1 | tee .verification/m15/boundaries.log
       - name: Hash evidence and mark source
         if: always()
         run: |

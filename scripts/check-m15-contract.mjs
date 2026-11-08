@@ -68,3 +68,7 @@ for (let number=1;number<=25;number++)
     "missing mandatory G15 scenario "+number);
 assert.match(status,/G15/);
 console.log("M15 source-contract source checks passed. Runtime verification is separate.");
+
+assert.match(read("compose.yaml"),/M15__EnableDelivery:.*HARBOROPS_M15_ENABLE_DELIVERY:-false/);
+assert.match(read(".env.example"),/HARBOROPS_M15_ENABLE_DELIVERY=false/);
+assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),/FullyQualifiedName~M15NotificationBoundaryTests/);

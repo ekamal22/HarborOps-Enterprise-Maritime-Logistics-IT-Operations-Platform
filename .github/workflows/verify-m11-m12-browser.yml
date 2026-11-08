@@ -25,6 +25,7 @@ jobs:
           set -euo pipefail
           git clone --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
           cd source
+          git checkout --detach "$GITHUB_SHA"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           export HARBOROPS_SOURCE_SHA="$GITHUB_SHA"
           export HARBOROPS_DB_PASSWORD="$(openssl rand -hex 24)"

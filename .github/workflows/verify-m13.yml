@@ -1,6 +1,9 @@
 name: Verify M13 operational KPIs
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - plan/m13-operational-kpi-dashboards-20261108
 permissions:
   contents: read
 concurrency:

@@ -1,0 +1,165 @@
+{
+  "format": "harborops.m11m12.run-evidence-index.v1",
+  "recordedDate": "2026-11-08",
+  "frozenApplicationSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+  "branchAtReview": "0edbe06ff5c0b61ba124f20b3de315425e4f73b3",
+  "acceptedMainSha": "6ead1d076946dd96b53401265a31efc35c4a666c",
+  "coverageBasis": "GitHub Actions run/job conclusions and selected log contents. Raw TRX/browser/SQL artifacts were not uploaded.",
+  "retainedRawArtifacts": false,
+  "independentlyValidatedRawFileChecksums": false,
+  "finalIntegrationTrxSha256FromRunnerLog": "6b6559da3a968e4f9f7c1732d1d78674929a160c7b25c3f90b375ff07c6ea786",
+  "finalIntegrationTrxSha256IndependentlyRecomputed": false,
+  "runs": [
+    {
+      "scope": "source and build",
+      "runId": 42443225317,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443225317",
+      "sourceSha": "4b9cd458abd015ac4d8db0f1e2df1bdb6b0c4ba1",
+      "conclusion": "success",
+      "observation": "291 unit, 46 contract, Release 0 errors/warnings, web checks"
+    },
+    {
+      "scope": "docs and generated view",
+      "runId": 42443225302,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443225302",
+      "sourceSha": "4b9cd458abd015ac4d8db0f1e2df1bdb6b0c4ba1",
+      "conclusion": "success",
+      "observation": "historical checkpoint only"
+    },
+    {
+      "scope": "full PostgreSQL integration",
+      "runId": 42443065884,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065884",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "success",
+      "observation": "341/341, 0 failed, 0 not executed; logged TRX SHA256"
+    },
+    {
+      "scope": "impacted PostgreSQL integration",
+      "runId": 42443065810,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065810",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "success",
+      "observation": "40/40; populated 13-to-15 upgrade"
+    },
+    {
+      "scope": "G11 database authority",
+      "runId": 42443065861,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065861",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "success",
+      "observation": "19/19, exclusive G12 separate job"
+    },
+    {
+      "scope": "G12 database export",
+      "runId": 42443065861,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065861",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "success",
+      "observation": "4/4, exclusive PostgreSQL server"
+    },
+    {
+      "scope": "three-engine browsers",
+      "runId": 42443065925,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065925",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "success",
+      "observation": "36/36 total, Chromium/Firefox/WebKit"
+    },
+    {
+      "scope": "security mutants",
+      "runId": 42443065914,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065914",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "success",
+      "observation": "5/5 effective mutants killed"
+    },
+    {
+      "scope": "dependency/source scan",
+      "runId": 42443065915,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065915",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "success",
+      "observation": "configured HIGH/CRITICAL threshold"
+    },
+    {
+      "scope": "runtime images scan",
+      "runId": 42443065956,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065956",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "success",
+      "observation": "PostgreSQL, API and web image threshold"
+    },
+    {
+      "scope": "direct M11 SQL read boundary",
+      "runId": 42443065978,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065978",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "success",
+      "observation": "restricted SQL read/forgery denial"
+    },
+    {
+      "scope": "source earlier attempt",
+      "runId": 42443065858,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065858",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "failure",
+      "observation": "later corrected on 4b9cd458"
+    },
+    {
+      "scope": "docs earlier attempt",
+      "runId": 42443065940,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065940",
+      "sourceSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+      "conclusion": "failure",
+      "observation": "later corrected on 4b9cd458"
+    },
+    {
+      "scope": "previous full regression",
+      "runId": 42442170451,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42442170451",
+      "sourceSha": "239f3cd9574dd4bd197071d54e51ebd37a44c094",
+      "conclusion": "success",
+      "observation": "340/340"
+    },
+    {
+      "scope": "previous early full regression",
+      "runId": 42440935080,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42440935080",
+      "sourceSha": "4b5d5c2692311cbc00a00475e1f28f29c3f55685",
+      "conclusion": "success",
+      "observation": "338/338"
+    },
+    {
+      "scope": "historical failed full regression",
+      "runId": 42433586007,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42433586007",
+      "sourceSha": "0287c449101a93875a822906aa88f4907859e747",
+      "conclusion": "failure",
+      "observation": "318/336 before remediation"
+    },
+    {
+      "scope": "historical SQL leakage",
+      "runId": 42434283623,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42434283623",
+      "sourceSha": "a6716a320a686e1b4ae805654a3ea602d08d91f9",
+      "conclusion": "failure",
+      "observation": "real prior unscoped runtime SQL read"
+    },
+    {
+      "scope": "historical mutant invalid",
+      "runId": 42441183635,
+      "url": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441183635",
+      "sourceSha": "d9f3955b43265e2d9f77daa7e0fb2a44ba83c1ae",
+      "conclusion": "failure",
+      "observation": "later corrected by valid effective 5/5 run"
+    }
+  ],
+  "review": {
+    "g11": "S25 BLOCKED: raw evidence package and complete scenario reconciliation unavailable",
+    "g12": "S25 BLOCKED: raw evidence package and complete scenario reconciliation unavailable",
+    "gateAcceptance": "pending",
+    "merge": false,
+    "deploy": false
+  }
+}

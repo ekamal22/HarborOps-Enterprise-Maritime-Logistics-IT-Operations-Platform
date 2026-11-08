@@ -173,8 +173,12 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {definitions.filter(d => d.code !== "K02" && d.code !== "K12").map(d => {
             const n = denominator(d.code); const den = d.denominatorCode ? denominator(d.denominatorCode) : null;
-            const value = den !== null && ["K05", "K06", "K13"].includes(d.code)
-              ? fraction(n, den) : n.toLocaleString();
+            const hasEvaluatedRisk = !["K07", "K08", "K09", "K10"].includes(d.code) ||
+              den !== 0;
+            const value = !hasEvaluatedRisk && denominator("D13") > 0
+              ? "Not assessed"
+              : den !== null && ["K05", "K06", "K13"].includes(d.code)
+                ? fraction(n, den) : n.toLocaleString();
             return <button type="button" key={d.code} onClick={() => select(d.code, d.label)}
               className="rounded-lg border border-slate-700 bg-slate-950/80 p-4 text-left hover:border-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
               <span className="text-xs uppercase tracking-wide text-slate-400">{d.label}</span>

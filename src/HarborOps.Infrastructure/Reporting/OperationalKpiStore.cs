@@ -306,7 +306,10 @@ public sealed class OperationalKpiStore(
                       OR old.correction_generation<>h.generation)) AS version_drift,
                 (h.event_count>0 AND (h.projection_policy IS DISTINCT FROM 'm10-equipment-v2'
                     OR h.projection_revision IS DISTINCT FROM h.input_revision
-                    OR h.projection_generation IS DISTINCT FROM h.generation)) AS bad_projection
+                    OR h.projection_generation IS DISTINCT FROM h.generation
+                    OR EXISTS (SELECT 1 FROM evaluated equipment
+                        WHERE equipment.id=h.id AND equipment.rule_code='EquipmentConflict'
+                          AND equipment.evaluated_at_utc<h.projection_refreshed_at))) AS bad_projection
             FROM heads h LEFT JOIN evaluated e ON e.id=h.id
             WHERE h.record_status='Active' AND h.workflow_status NOT IN ('Draft','Cancelled')
             GROUP BY h.id,h.version,h.input_revision,h.generation,h.event_count,
@@ -455,7 +458,7 @@ public sealed class OperationalKpiStore(
             SELECT 1 FROM operational_kpi_reports WHERE id=@report AND organization_id=@org
                 AND actor_user_id=@actor AND actor_session_id=@session
                 AND expires_at_utc>clock_timestamp() AND filters_sha256=@fingerprint
-              AND policy_version='m13-kpi-v1'
+              AND policy_version='m13-kpi-v1' FOR SHARE
             """, U("report", report), U("org", org), U("actor", session.UserId),
             U("session", session.SessionId), S("fingerprint", filtersSha256)))
             if (await check.ExecuteScalarAsync(ct) is null)

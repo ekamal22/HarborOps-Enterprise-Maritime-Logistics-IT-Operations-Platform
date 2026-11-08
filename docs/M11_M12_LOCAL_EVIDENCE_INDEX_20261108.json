@@ -178,6 +178,41 @@
       ],
       "combinedValidKills": 17,
       "rawArchiveImmutable": true
+    },
+    "hostedN01FollowUp": {
+      "result": "PASS",
+      "runId": 42508864681,
+      "runUrl": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42508864681",
+      "verificationBranch": "verify/m11m12-n01-20261108",
+      "verificationSha": "1966fe2dd7a3cfc4ec0cf97199759c8789e169d1",
+      "correctedDeliveryCommit": "df54a13d07d9df5015712eb45ea250660a83c825",
+      "sourceApplicationSha": "2eee441fa37c17101846516cf133a92c7e59335c",
+      "fixture": "isolated 5,000-row Nginx/Kestrel/PostgreSQL stack",
+      "checksPerExecution": 5,
+      "executions": 2,
+      "passed": 10,
+      "skipped": 0,
+      "auditIncrements": [
+        2,
+        2
+      ],
+      "exportBytes": 4870215,
+      "artifactId": 13628771146,
+      "earlierHarnessFailures": [
+        {
+          "runId": 42508215822,
+          "reason": "shallow checkout prevented the M11 baseline comparison"
+        },
+        {
+          "runId": 42508335311,
+          "reason": "Compose restarted dependencies during fixture account setup"
+        },
+        {
+          "runId": 42508573213,
+          "reason": "Compose restarted the migrator during fixture account setup"
+        }
+      ],
+      "note": "Verification-only branch replaces the registered manual workflow path there; the delivery branch and protected main workflow files are unchanged. The historical closure archive remains immutable."
     }
   },
   "defects": [

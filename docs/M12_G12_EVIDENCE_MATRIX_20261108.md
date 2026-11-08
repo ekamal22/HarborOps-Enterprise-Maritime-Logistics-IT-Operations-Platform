@@ -7,6 +7,9 @@
 **Gate:** G12 acceptance pending.
 **Totals:** BLOCKED 2, NOT APPLICABLE 1, PASS 22
 
+**Focused N01 audit-correction follow-up (2026-11-08):** [GitHub Actions run 42508864681](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42508864681) passed all ten checks across two N01 invocations on the isolated real Nginx, Kestrel and PostgreSQL stack. Each invocation generated exactly two additional signed preparation audits for the proxy and direct requests, irrespective of previously retained audits. The correction is on the combined delivery branch at `df54a13`; the successful workflow SHA `1966fe2` is a separate verification-only branch and has identical application code. This adds evidence to G12-S17/S18/S19 without changing gate dispositions or representing independent S25 approval.
+
+
 **Independent review history:** the first evidence package was reviewed on 2026-11-08 ([G12 independent evidence review](M12_G12_INDEPENDENT_EVIDENCE_REVIEW_20261108.md)) and returned G12-S25 NOT PASS with open real-proxy, cancellation, PARTIAL-row, final-SHA regression and S01 findings. The closure campaign below addresses those findings; a new independent re-review of the closure package is required.
 
 **Disposition key:** PASS = every required check of the scenario has executed local evidence. PARTIAL = executed subset passed, remainder not executed. BLOCKED = needs an external or independent decision. NOT EXECUTED = no local execution. NOT APPLICABLE = justified.

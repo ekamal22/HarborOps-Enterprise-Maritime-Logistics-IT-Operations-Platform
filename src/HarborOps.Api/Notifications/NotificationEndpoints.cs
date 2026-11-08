@@ -105,6 +105,8 @@ public static class NotificationEndpoints
         createdAtUtc = row.CreatedAtUtc,
         readAtUtc = row.ReadAtUtc,
         acknowledgedAtUtc = row.AcknowledgedAtUtc,
+        state = row.AcknowledgedAtUtc.HasValue ? "Acknowledged" :
+            row.ReadAtUtc.HasValue ? "Read" : "Unread",
         version = row.Version
     };
 

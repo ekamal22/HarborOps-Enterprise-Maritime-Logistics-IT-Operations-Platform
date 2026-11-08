@@ -11,6 +11,7 @@ export type NotificationItem = {
   createdAtUtc: string;
   readAtUtc: string | null;
   acknowledgedAtUtc: string | null;
+  state: "Unread" | "Read" | "Acknowledged";
   version: number;
 };
 

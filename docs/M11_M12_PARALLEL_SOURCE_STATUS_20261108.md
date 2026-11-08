@@ -1,5 +1,7 @@
 # M11 and M12 Parallel Source Status
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). The combined integration and shared source-locked verification strategy was approved on 2026-11-08, but integration has not been performed. Original M11/M12 branches, their distinct migrations, unresolved source risks, blocked/pending policies and separate G11/G12 gate decisions are unchanged.
+
 **As of:** 2026-11-08  
 **Scope:** Two independent, unmerged implementation candidates and their shared integration boundary. This is a source-status record, not evidence of executable verification, gate acceptance or permission to merge.
 

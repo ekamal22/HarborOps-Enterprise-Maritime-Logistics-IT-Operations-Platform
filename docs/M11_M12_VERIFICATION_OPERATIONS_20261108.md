@@ -1,15 +1,11 @@
 # M11/M12 Verification Operations
 
-**Closure campaign update (2026-11-08):** Independent raw-evidence reviews of the first local package were performed ([G11](M11_G11_INDEPENDENT_EVIDENCE_REVIEW_20261108.md), [G12](M12_G12_INDEPENDENT_EVIDENCE_REVIEW_20261108.md)) and returned S25 NOT PASS. The [closure campaign](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md) then ran the complete 388-case integration suite with no skips, 291 unit and 46 contract tests, measured query plans, an isolated Nginx, Kestrel and PostgreSQL stack (G11 process and database faults 12/12, G12 real network path 32/32), 48/48 three-engine browser tests, 17/17 effective mutants killed and clean dependency, source and image scans, and fixed two defects (export serialization retry, explicit UTC designator). The [G11](M11_G11_EVIDENCE_MATRIX_20261108.md) and [G12](M12_G12_EVIDENCE_MATRIX_20261108.md) matrices carry the dispositions (G11 PASS 23, BLOCKED 2; G12 PASS 22, NOT APPLICABLE 1, BLOCKED 2). A new independent re-review of the closure package, the formal S01 policy decisions and the signed M9 hold reconciliation remain pending, so acceptance is pending for both gates. Protected `main`, the M9 hold and all deployment restrictions are unchanged.
-
-**Final M11/M12 technical verification (2026-11-08):** [Run reconciliation](M11_M12_VERIFIED_COVERAGE_RECONCILIATION_20261108.md) confirms **341/341 integration PASS** on `f56d017` with no skips, plus 40/40 impacted, G11 19/19, G12 4/4, three-engine browser 36/36, effective mutants 5/5, SQL read isolation and security scans. [G11/G12 acceptance sufficiency review](M11_M12_ACCEPTANCE_REVIEW_20261108.md), [G11 matrix](M11_G11_EVIDENCE_MATRIX_20261108.md) and [G12 matrix](M12_G12_EVIDENCE_MATRIX_20261108.md) record exact remaining evidence gaps. Independent S25 reviews and acceptance pending. Older 340-case and 'in progress' notes below describe historical checkpoints, not current execution.
-
-**Current executed evidence (2026-11-08):** [M11/M12 verification reconciliation](M11_M12_VERIFIED_COVERAGE_RECONCILIATION_20261108.md) is the authoritative run-by-run record: 340/340 earlier whole integration, 40/40 impacted tests including 13-to-15 populated upgrade, G11 19/19, G12 4/4, 36/36 three-engine browser, 5/5 effective mutants, restricted SQL isolation and security scans, plus 291/291 unit and 46/46 contract on their individually identified SHAs. Full run `42443065884` is still in progress. Preserve historical failures and pending independent G11-S25/G12-S25 reviews; no acceptance, merge or deployment is implied.
+**Post-acceptance status (2026-11-08):** The combined M11/M12 source passed independent evidence reconciliation and targeted hosted N01 confirmation. G11 and G12 were formally accepted and merged into `main` via [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). See [gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) for accepted policy, S25 review and M9 restrictions. Earlier runbook, governance and candidate-stage statements are preserved as dated historical checkpoints, not current blockers. No deployment or M9 hold release.
 
 **Date:** 2026-11-08  
 **Branch:** `feat/m11-m12-combined-integration`  
 **Accepted main:** `6ead1d076946dd96b53401265a31efc35c4a666c`  
-**Disposition:** Verification governance only. G11 and G12 acceptance, merge and deployment remain pending.
+**Disposition:** Verification governance was adopted for the closure campaign. G11 and G12 were subsequently accepted and merged through PR #33. Deployment remains unauthorized.
 
 ## Verification source of truth
 
@@ -35,6 +31,6 @@ Switching workflows to manual-only does not cancel runs already in flight. Monit
 
 ## Safety and repository boundaries
 
-Protected `main` remains unchanged until separate merge authorization. Do not authorize production migrations, deployment, G11/G12 acceptance or M9 hold clearance from this governance update. ARRI/DEPA remain parked, the unresolved-work-item cap is 10,000, the M10 projector is disabled by default and ETA remains null. Retain existing evidence, worktrees and databases. Persistent local storage belongs on E:, with unavoidable short-lived temporary C: use permitted.
+This governance record itself did not authorize merging. The subsequent explicit G11/G12 acceptance and PR #33 merge were completed as documented in the gate closure. It still does not authorize production migrations, deployment or M9 hold clearance. ARRI/DEPA remain parked, the unresolved-work-item cap is 10,000, the M10 projector is disabled by default and ETA remains null. Retain existing evidence, worktrees and databases. Persistent local storage belongs on E:, with unavoidable short-lived temporary C: use permitted.
 
 For ongoing state consult [STATUS](STATUS.md), [combined plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md), [G11 plan](M11_VERIFICATION_PLAN.md), [G12 plan](M12_VERIFICATION_PLAN.md) and the [progress register](M11_M12_VERIFICATION_PROGRESS_20261108.md). Older source-only and failed results remain historical, not current implementation claims.

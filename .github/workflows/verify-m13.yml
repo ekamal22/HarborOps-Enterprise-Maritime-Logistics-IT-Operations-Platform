@@ -162,6 +162,17 @@ jobs:
           cd tests/browser
           npx playwright install --with-deps chromium firefox webkit
           for engine in chromium firefox webkit; do
+            # Each engine begins with an isolated, fresh in-memory auth limiter
+            # and a ready HTTP runtime. Preserve the shared disposable fixtures.
+            docker compose -p "$project" restart api
+            ready=0
+            for attempt in $(seq 1 45); do
+              if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null; then
+                ready=1; break
+              fi
+              sleep 2
+            done
+            test "$ready" = "1"
             export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/browser/m13-$engine.json"
             npx playwright test specs/operational-kpis.spec.mjs --project="$engine" --workers=1
             node -e 'const r=require(process.env.HARBOROPS_G3_JSON_REPORT);const s=r.stats;if(!s||s.expected<3||s.skipped>0||s.unexpected>0)process.exit(2)'

@@ -151,6 +151,7 @@ async function g12() {
   const waitAudit = async n => waitFor(() => audit(org) >= n, 5000);
 
   // N01 real Nginx-to-Kestrel forwarding.
+  const auditBeforeN01 = audit(org);
   const viaProxy = await mgr.get(EXPORT, { raw: true });
   const direct = new Client(API); direct.jar = new Map(mgr.jar);
   const viaApi = await direct.get(EXPORT, { raw: true });
@@ -164,7 +165,11 @@ async function g12() {
     `${viaProxy.headers.get("content-type")}, ${viaProxy.headers.get("x-content-type-options")}, ${viaProxy.headers.get("cache-control")}`,
     /text\/csv/.test(viaProxy.headers.get("content-type") ?? "") && /^nosniff(, nosniff)*$/.test(viaProxy.headers.get("x-content-type-options") ?? "") && /no-store/.test(viaProxy.headers.get("cache-control") ?? ""),
     "Nginx and Kestrel each add X-Content-Type-Options, so the value is repeated (benign)");
-  record("N01", "two exports prepared two audits", 2, audit(org) , audit(org) >= 2, "includes direct request");
+  const newN01Audits = audit(org) - auditBeforeN01;
+  record("N01", "two exports create exactly two new preparation audits", 2,
+    newN01Audits, newN01Audits === 2, "proxy and direct requests, measured against the pre-request baseline");
+  // A focused run must not execute unrelated fault-injection and cancellation phases.
+  if (only.length === 1 && only[0] === "N01") return;
 
   if (on("N02")) {
   // N02 15-second PostgreSQL statement timeout through the proxy.

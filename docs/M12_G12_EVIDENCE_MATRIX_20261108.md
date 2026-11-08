@@ -37,7 +37,7 @@
 | G12-S21 | NOT APPLICABLE | Q2 2026 snapshot not applicable (documented); populated 13-to-15 upgrade PASS in the 388/388. | Reopen if an external production snapshot is supplied. |
 | G12-S22 | PASS | Same 48/48 three-engine browser run: shipment-search 3 per engine through Nginx, plus exceptions, maritime and M5 regressions. |  |
 | G12-S23 | PASS | `final/raw/integration-full.trx` 388/388 at `2eee441`, 291/291 unit, 46/46 contract at the final application source (two defects fixed since the hosted 341/341). | The signed M9 operating-hold reconciliation is an acceptance-time decision. |
-| G12-S24 | PASS | Local effective mutation campaign 17/17 killed, including auditor export bypass, CSV formula defense, tenant filter, row cap, same-origin check, export lease release, cursor actor binding, serialization retry and UTC designator. Scans clean as for G11-S24. Evidence safety scan 0 hits. |  |
+| G12-S24 | PASS | Local effective mutation campaign 17/17 killed across three source-attributed passes (10 at `ed58449`, 5 plus 2 at `6e90295`; see the corrected evidence index), including auditor export bypass, CSV formula defense, tenant filter, row cap, same-origin check, export lease release, cursor actor binding, serialization retry and UTC designator. Scans clean as for G11-S24. Evidence safety scan 0 hits. |  |
 | G12-S25 | BLOCKED | Closure package sealed with SHA-256 manifest and independent read-back; first package reviewed NOT PASS. | A new independent raw-evidence re-review and written decision are required. |
 
 ## Review outcome

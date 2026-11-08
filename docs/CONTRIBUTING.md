@@ -81,7 +81,7 @@ Use one branch/worktree per independent milestone, from an accepted baseline. Es
 
 ## Accepted M5 shipment module
 
-The M5 shipment implementation and [G5 acceptance](M5_G5_GATE_CLOSURE.md) are integrated into `main`. Preserve its tenant-scoped state history, optimistic concurrency and authorization behavior in later work. M6 allocations are also integrated and [G6 accepted](M6_G6_GATE_CLOSURE.md). Use local E:-backed verification, `[skip ci]` commits and pull requests to protected `main`; keep GitHub Actions disabled.
+The M5 shipment implementation and [G5 acceptance](M5_G5_GATE_CLOSURE.md) are integrated into `main`. Preserve its tenant-scoped state history, optimistic concurrency and authorization behavior in later work. M6 allocations are also integrated and [G6 accepted](M6_G6_GATE_CLOSURE.md). Use local E:-backed verification, `[skip ci]` commits and pull requests to protected `main`; do not run GitHub Actions without explicit authorization.
 
 ## Accepted M4 module and contribution boundary
 
@@ -95,7 +95,7 @@ The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLE
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. The completed M1 pull request included schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and the historical GitHub Actions evidence in [G1 Verification](M1_VERIFICATION_PLAN.md). This does not authorize any additional workflow runs. No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.
 
-Do not conflate architecture approval with milestone acceptance. **G0-G10 and G16 are explicitly accepted and integrated into protected `main` by 2026-11-07.** All other gates remain subject to their own reviews. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). No deployment is implied.
+Do not conflate architecture approval with milestone acceptance. **G0-G12 and G16 are explicitly accepted and integrated into protected `main` by 2026-11-08.** Remaining gates require their own separate reviews. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). No deployment is implied.
 
 ## Documentation hygiene
 

@@ -2,8 +2,6 @@
 
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. M11/G11 and M12/G12 closed through [formal acceptance](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. [Project status](STATUS.md) is authoritative for execution and release state; dated source reviews and early gate reports retain only their historical meaning. M9 ARRI/DEPA processing remains held under the 10,000-item limit, with M10 projector default-off, ETA null and M11 evaluator opt-in. Deployment remains unauthorized.
 
-**Current accepted baseline (2026-11-07):** G0-G10 and G16 are integrated into protected `main`; G10 remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following independently reviewed [gate closure](M10_G10_GATE_CLOSURE_20261107.md). G11-G15 and G17-G24 remain unaccepted. Sustained M9 transport-event processing remains held.
-
 **Version:** 3.0 parallel delivery alignment  
 **Date:** 2026-10-30  
 **State:** Product direction confirmed; complete PRD acceptance pending  
@@ -177,4 +175,4 @@ M4 uses accepted M3 vessel/port UUIDs for scoped voyage routes and schedules wit
 
 Product-scope changes beyond PD-01 through PD-07 require updating this PRD, affected atomic requirements, the [Roadmap](ROADMAP.md) and [execution graph](EXECUTION_GRAPH.md) when sequence changes, plus acceptance criteria and decisions where applicable. Status is updated only from implementation evidence. Proposed scope expansions do not become accepted requirements merely because a branch or issue exists.
 
-**Current state (2026-11-07):** G0-G10 and G16 are accepted and integrated on `main`. G10 closed after independent S01/S25 review and signed correction remediation PR #28; [gate closure](M10_G10_GATE_CLOSURE_20261107.md) records scope. The full PRD and downstream gates remain separately subject to acceptance. No release or M9 transport-hold change is authorized.
+**Current state (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`; G11/G12 closed through [formal gate acceptance](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. The remaining M13-M15 and M17-M24 gates are open. No release, production migration or M9 transport-hold change is authorized.

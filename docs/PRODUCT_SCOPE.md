@@ -2,8 +2,6 @@
 
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. M11/G11 and M12/G12 closed through [formal acceptance](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. [Project status](STATUS.md) is authoritative for execution and release state; dated source reviews and early gate reports retain only their historical meaning. M9 ARRI/DEPA processing remains held under the 10,000-item limit, with M10 projector default-off, ETA null and M11 evaluator opt-in. Deployment remains unauthorized.
 
-**Current milestone status (2026-11-07):** G0-G10 and G16 are accepted and merged into `main`. G10 correction authority and upgrade-safe migration 13 integrated via [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). The earlier M9 transport-backlog operating condition remains mandatory, so sustained ARRI/DEPA processing is held until separately verified cap-safe behavior is approved. No deployment or release authorization.
-
 **Supporting scope detail:** The [Product Requirements Document](PRD.md) is authoritative for product vision, users, priorities, and release boundaries. Preserve domain-specific detail here without introducing a competing scope baseline. Actual state is recorded in [Status](STATUS.md).
 
 ## Vision

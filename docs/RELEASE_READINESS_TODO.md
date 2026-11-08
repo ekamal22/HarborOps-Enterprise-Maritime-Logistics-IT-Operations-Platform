@@ -19,6 +19,6 @@
 
 ## Workstation controls
 
-Keep controlled worktrees, caches, databases, Compose/WSL data and verification evidence on E:. Use C: only for unavoidable cleaned temporary activity. Preserve existing retained artifacts and databases. GitHub Actions must remain disabled; commit with `[skip ci]` and no attribution trailers.
+Keep controlled worktrees, caches, databases, Compose/WSL data and verification evidence on E:. Use C: only for unavoidable cleaned temporary activity. Preserve existing retained artifacts and databases. GitHub Actions runs require explicit, separate authorization; documentation-only commits use `[skip ci]` and no attribution trailers.
 
 **Boundary:** This checklist is part of existing M24-03, not a new gate or authorization to host or deploy.

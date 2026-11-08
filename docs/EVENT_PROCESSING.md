@@ -8,7 +8,7 @@ M11 list pagination now excludes exception occurrences created after the first p
 
 ## M11 provisional classification boundary
 
-The isolated M11 evaluator uses M5 workflow UTC records and corrected M10 equipment projections, with an opt-in bounded candidate scanner that is independent of M9 worker processing. It does not consume parked transport ARRI/DEPA events, loosen the 10,000-work cap or infer vessel ETA. Source and rule versions inform reevaluation. These behaviors require executable G11 evidence.
+The isolated M11 evaluator uses M5 workflow UTC records and corrected M10 equipment projections, with an opt-in bounded candidate scanner that is independent of M9 worker processing. It does not consume parked transport ARRI/DEPA events, loosen the 10,000-work cap or infer vessel ETA. Source and rule versions inform reevaluation. These behaviors were verified and accepted under [G11](M11_M12_G11_G12_GATE_CLOSURE_20261108.md); the M9 hold remains unchanged.
 
 ## Purpose
 

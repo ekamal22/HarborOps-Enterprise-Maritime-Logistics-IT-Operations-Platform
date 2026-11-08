@@ -129,10 +129,11 @@ public sealed class M13OperationalKpis : Migration
             EXCEPTION WHEN OTHERS THEN RETURN false;
             END $view$;
             CREATE FUNCTION m13_can_manage(p_org uuid)
-            RETURNS boolean LANGUAGE sql SECURITY DEFINER
+            RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
                 SET search_path=pg_catalog,public AS $manage$
-                SELECT m13_scoped_role(p_org)='Administrator';
-            $manage$;
+            BEGIN
+                RETURN m13_scoped_role(p_org)='Administrator';
+            END $manage$;
             CREATE FUNCTION m13_member_access(p_org uuid,p_report uuid)
             RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
                 SET search_path=pg_catalog,public AS $member$

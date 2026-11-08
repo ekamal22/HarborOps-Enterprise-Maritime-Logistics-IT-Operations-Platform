@@ -1,5 +1,7 @@
 # Domain Model and Invariants
 
+**Current combined-source record (2026-11-08):** `feat/m11-m12-combined-integration` now includes the M11 and M12 source candidates and reconciliation of the shared API, EF migrations, role provisioning and React workspace. The [M11 local policy decision](M11_LOCAL_CONTRACT_DECISION_20261108.md) is recorded, with M11 lifecycle source fixes and unexecuted tests. Earlier parallel-only or M11-policy-pending statements in this document describe historical branch status, not the latest combined candidate. G11/G12 executable verification and independent acceptance remain pending. No protected-main merge, deployment or M9 hold release is authorized.
+
 **M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). The integrated candidate must preserve the M11 exception/history model, M12 shipment search/export contracts, accepted M5 shipment invariants, M10 observation provenance and M16 audit atomicity.
 
 **Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.

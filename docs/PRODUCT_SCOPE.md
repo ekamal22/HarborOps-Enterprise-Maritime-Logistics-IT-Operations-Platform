@@ -1,5 +1,7 @@
 # Product Scope
 
+**Current combined-source record (2026-11-08):** `feat/m11-m12-combined-integration` now includes the M11 and M12 source candidates and reconciliation of the shared API, EF migrations, role provisioning and React workspace. The [M11 local policy decision](M11_LOCAL_CONTRACT_DECISION_20261108.md) is recorded, with M11 lifecycle source fixes and unexecuted tests. Earlier parallel-only or M11-policy-pending statements in this document describe historical branch status, not the latest combined candidate. G11/G12 executable verification and independent acceptance remain pending. No protected-main merge, deployment or M9 hold release is authorized.
+
 **M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). M11 exception functionality and M12 shipment search/export will be tested together on a future reconciled candidate; product scope, independent policy decisions and the no-deployment boundary are unchanged.
 
 **Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records draft M11 PR #31 alongside draft M12 PR #32, with different additive migration IDs and an unresolved shared API/UI/role integration boundary. Both are source candidates, not merged or runtime-verified; G11-S01 BLOCKED, G11-S02..S25 NOT EXECUTED, G12 technical verification pending. Accepted `main` and the M9 transport hold remain unchanged.

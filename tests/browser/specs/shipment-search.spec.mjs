@@ -23,7 +23,7 @@ test("M12 advanced search keeps shipment draft intact", async ({ page }) => {
   const s = shipments(page);
   await expect(s.getByText("Advanced shipment search")).toBeVisible();
   await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
-  await expect(s.getByText("M5-DEMO-NORTH", { exact: true })).toBeVisible();
+  await expect(s.getByText("M5-DEMO-NORTH", { exact: true }).first()).toBeVisible();
   await s.getByRole("button", { name: "View shipment" }).first().click();
   await s.getByLabel("Shipment display name").fill("Unsubmitted local change");
   await expect(s.getByLabel("Shipment workflow")).toHaveCount(1);
@@ -36,7 +36,7 @@ test("M12 advanced search keeps shipment draft intact", async ({ page }) => {
   await expect(s.getByText("No shipments match this filter.")).toBeVisible();
   await expect(s.getByLabel("Shipment display name")).toHaveValue("Unsubmitted local change");
   await s.getByRole("button", { name: "Clear advanced filters" }).click();
-  await expect(s.getByText("M5-DEMO-NORTH", { exact: true })).toBeVisible();
+  await expect(s.getByText("M5-DEMO-NORTH", { exact: true }).first()).toBeVisible();
   await expect(s.getByLabel("Shipment display name")).toHaveValue("Unsubmitted local change");
 });
 
@@ -64,6 +64,6 @@ test("M12 Auditor can search but cannot request export in the UI", async ({ page
   const s = shipments(page);
   await expect(s.getByText("Advanced shipment search")).toBeVisible();
   await s.getByLabel("Search shipments").fill("M5-DEMO-NORTH");
-  await expect(s.getByText("M5-DEMO-NORTH", { exact: true })).toBeVisible();
+  await expect(s.getByText("M5-DEMO-NORTH", { exact: true }).first()).toBeVisible();
   await expect(s.getByRole("button", { name: "Export matching shipments as CSV" })).toHaveCount(0);
 });

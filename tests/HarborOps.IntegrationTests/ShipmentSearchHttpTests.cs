@@ -414,6 +414,22 @@ public sealed class ShipmentSearchHttpTests
             Assert.DoesNotContain("password", e.MetadataJson, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("filterDigest", e.MetadataJson, StringComparison.Ordinal);
         });
+
+        // The Manager has already made four export-route requests (including
+        // rejected requests). Exhaust the remaining six permits and verify the
+        // per-principal policy denies the next request, without creating an audit.
+        for (var i = 0; i < 6; i++)
+        {
+            using var allowed = await manager.GetAsync(search + "?q=" + code);
+            Assert.Equal(HttpStatusCode.OK, allowed.StatusCode);
+        }
+        using var throttled = await manager.GetAsync(search + "?q=" + code);
+        Assert.Equal(HttpStatusCode.TooManyRequests, throttled.StatusCode);
+        Assert.NotEqual("text/csv", throttled.Content.Headers.ContentType?.MediaType);
+        var newAuditCount = await verification.AuditEntries.AsNoTracking()
+            .CountAsync(e => e.OrganizationId == fixture.A &&
+                e.EventType == "shipment.export_prepared");
+        Assert.Equal(events.Count + 6, newAuditCount);
     }
 
     [Fact]

@@ -151,6 +151,17 @@ public sealed class M11ExceptionRuntimeTests
         await using (var forgedRead = new NpgsqlCommand(
             "SELECT count(*) FROM shipment_exceptions",restricted,tx))
             Assert.Equal(0L,(long)(await forgedRead.ExecuteScalarAsync())!);
+        await using (var forgedDue = new NpgsqlCommand(
+            "SELECT set_config('harborops.m11_due_scope',@scope,true)",restricted,tx))
+        {
+            forgedDue.Parameters.AddWithValue("scope",
+                $"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()+20}|"+
+                new string('0',64));
+            await forgedDue.ExecuteNonQueryAsync();
+        }
+        await using (var forgedDueRead = new NpgsqlCommand(
+            "SELECT count(*) FROM shipment_exception_evaluations",restricted,tx))
+            Assert.Equal(0L,(long)(await forgedDueRead.ExecuteScalarAsync())!);
         await tx.CommitAsync();
     }
 

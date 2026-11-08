@@ -1,5 +1,7 @@
 # HarborOps Delivery Roadmap
 
+**Combined M11/M12 implementation checkpoint (2026-11-08):** The new isolated integration branch includes both source candidates, reconciled shared files, M11 policy resolution and new unexecuted regressions. [M11 local contract](M11_LOCAL_CONTRACT_DECISION_20261108.md) records the delegated rule and lifecycle decisions; M12 local policies remain pending. This supersedes earlier statements in this document that the combined branch does not exist or that M11 policies are still wholly undecided. G11/G12 technical verification, independent S25 reviews and gate acceptance remain pending; the M9 hold and protected `main` are unchanged.
+
 **M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). The next proposed coordinated activity, when separately authorized, is integration of M11 and M12 from verified accepted main followed by one combined evidence campaign. G11 and G12 retain separate acceptance and current execution-graph dependencies.
 
 **Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.

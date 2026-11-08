@@ -1,11 +1,13 @@
 # M11/M12 Verified Coverage Reconciliation
 
-**As checked:** 2026-11-08, after the 03:39 UTC full-suite result
+**As checked:** 2026-11-08, after the 04:09 UTC final full-suite result
 **Repository:** `ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`
 **Candidate branch:** `feat/m11-m12-combined-integration`
-**Branch HEAD at review:** `223fe592e93cdcae65d5889a14ecc4ecce0b51d8`
+**Historical branch HEAD when initial record was created:** `223fe592e93cdcae65d5889a14ecc4ecce0b51d8`
 **Accepted protected main:** `6ead1d076946dd96b53401265a31efc35c4a666c`
 **Disposition:** Substantial successful M11/M12 execution on separately identified revisions. G11/G12 independent acceptance, protected-main merge and deployment pending.
+
+**Current acceptance evidence:** [Combined sufficiency review](M11_M12_ACCEPTANCE_REVIEW_20261108.md), [G11 scenario matrix](M11_G11_EVIDENCE_MATRIX_20261108.md), [G12 scenario matrix](M12_G12_EVIDENCE_MATRIX_20261108.md) and [indexed run results](M11_M12_EXECUTED_RUN_INDEX_20261108.json). G11/G12 independent S25 raw-evidence acceptance remains pending. 
 
 ## Exact run coverage
 
@@ -13,7 +15,7 @@
 | --- | --- | --- | --- |
 | Whole PostgreSQL integration suite, earlier expanded candidate | **340/340 PASS**, 0 failed, 0 not executed | `239f3cd9574dd4bd197071d54e51ebd37a44c094` | [42442170451](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42442170451) |
 | Earlier whole integration suite | **338/338 PASS**, 0 failed/skipped | `4b5d5c2692311cbc00a00475e1f28f29c3f55685` | [42440935080](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42440935080) |
-| Final-cohort full integration rerun | **IN PROGRESS**, no conclusion or test count to claim | `f56d017d9b2619be56fe533f73ba1d11f63974c0` | [42443065884](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065884) |
+| Final-cohort full integration rerun | **PASS: 341/341, 0 failures, 0 not executed, TRX hash logged** | `f56d017d9b2619be56fe533f73ba1d11f63974c0` | [42443065884](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065884) |
 | Impacted PostgreSQL integration, including populated migration | **40/40 PASS** | `f56d017d9b2619be56fe533f73ba1d11f63974c0` | [42443065810](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065810) |
 | G11 signed exception, tenant isolation and lifecycle runtime | **19/19 PASS** | `f56d017d9b2619be56fe533f73ba1d11f63974c0` | [42443065861](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065861) |
 | G12 exclusive PostgreSQL export and SQL authority | **4/4 PASS** | `f56d017d9b2619be56fe533f73ba1d11f63974c0` | [42443065861](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065861) |
@@ -25,7 +27,7 @@
 | Source: Release build, unit, contract and web checks | **PASS**, 0 build errors/warnings, 291/291 unit and 46/46 contract | `4b9cd458abd015ac4d8db0f1e2df1bdb6b0c4ba1` | [42443225317](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443225317) |
 | Documentation consistency and generated view | **PASS** | `4b9cd458abd015ac4d8db0f1e2df1bdb6b0c4ba1` | [42443225302](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443225302) |
 
-**Coverage interpretation:** These successes do not all belong to a single SHA. Later commits through `223fe592e93cdcae65d5889a14ecc4ecce0b51d8` changed verification workflow configuration and documentation; there is no claim of a subsequent comprehensive source-locked run on that documentation-only branch tip. The full-cohort integration run on `f56d017` has not completed. Exact outcome and coverage may change when it reaches a terminal state.
+**Coverage interpretation:** These successes do not all belong to a single SHA. Later commits through `223fe592e93cdcae65d5889a14ecc4ecce0b51d8` changed verification workflow configuration and documentation; there is no claim of a subsequent comprehensive source-locked run on that documentation-only branch tip. The final-cohort integration run on `f56d017` completed successfully with 341/341. The later commits to the documentation/workflow branch do not require reclassifying that application verification source.
 
 ## Specific live PostgreSQL scenarios verified
 
@@ -37,16 +39,16 @@ G12 execution covered restricted runtime export under actual credentials, search
 
 Negative-control PostgreSQL error lines within a successful suite may be expected denial assertions. Determine an individual scenario outcome from the test runner and assertions, not from the mere existence of a database ERROR log.
 
-## Failed, superseded and still-running attempts
+## Failed and superseded attempts
 
 - [42443065858](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065858), the `f56d017` source workflow, **FAILED overall** even though its .NET compilation and unit/contract executions passed. The later [42443225317](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443225317) source workflow **PASSED** on `4b9cd458`.
 - [42443065940](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065940), the `f56d017` documentation workflow, **FAILED**. The later [42443225302](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443225302) documentation check **PASSED** on `4b9cd458`.
 - Earlier [42433586007](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42433586007) was a genuine **318/336** integration failure on older source. The subsequent 338/338 and 340/340 passes are separately attributed.
 - Earlier [42434283623](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42434283623) exposed real M11 restricted SQL read privilege leakage. The corrected M11 read isolation is exercised in the successful latest SQL runs.
 - Earlier mutation runs [42441183635](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441183635) and [42441543253](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441543253) had invalid/ineffective SQL-mutant or harness evidence. Later effective control and correction-witness mutation runs passed.
-- [42443065884](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065884) remains **IN PROGRESS**, not PASS, FAIL or SKIPPED. Do not date a completion or infer its result.
+- [42443065884](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42443065884) completed **PASS: 341/341**, zero failed/skipped, logged TRX SHA-256 `6b6559da3a968e4f9f7c1732d1d78674929a160c7b25c3f90b375ff07c6ea786`. That hash has not been independently recomputed from a retained raw TRX.
 
-At this checkpoint GitHub reported **121 total repository Actions runs, 120 terminal and 1 in progress**, counting older M0-M10 verification history as well as M11/M12. The completion watch should reconcile any later run or terminal result before final reporting.
+At final review GitHub reported **121 repository Actions runs, all 121 terminal, none running or queued**, including the older M0-M10 history. Older failures remain historical and are not silently erased.
 
 ## Gate requirements not established by the runs
 

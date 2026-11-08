@@ -225,6 +225,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Entry:** G11 accepted, G12 accepted before respective dependent work packages. Resolve D-005 before applicable feature implementation. KPI definitions may begin after G11, but aggregate-query integration waits for G12.
 **Required work packages:** M13-01 Finalize KPI catalog and cutoffs; M13-02 Implement aggregate query services; M13-03 Build dashboard visualizations; M13-04 Verify dashboard correctness.
 **Exit G13:** All applicable tasks, negative tests, runtime evidence and documentation for M13 recorded; acceptance pending until explicitly confirmed.
+**Implementation branch status (2026-11-09):** [Source register](M13_IMPLEMENTATION_STATUS_20261109.md) tracks M13-01 to M13-03 source and M13-04 test entrypoints. D-005 is approved. Executed G13 evidence, independent review, accepted merge and deployment are not yet present.
 **Not covered by this milestone:** Maps and notification delivery.
 
 #### M14: Route mapping and geographic context

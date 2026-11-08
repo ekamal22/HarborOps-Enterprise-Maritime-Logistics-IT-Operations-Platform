@@ -4,7 +4,7 @@
 **State:** PLAN ONLY. NO G13 SCENARIO HAS BEEN EXECUTED.
 **Accepted baseline inspected:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Planning branch:** plan/m13-operational-kpi-dashboards-20261108
-**Policy and authorization:** [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md). Application implementation still requires a separate authorization. GitHub Actions is the exclusive future M13 verification environment after implementation authorization. Independent G13-S25 review and separate G13 acceptance remain mandatory.
+**Policy and authorization:** [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md). Application implementation is authorized and source has been authored as recorded in [implementation status](M13_IMPLEMENTATION_STATUS_20261109.md). GitHub Actions is the exclusive M13 verification environment after implementation completion. Independent G13-S25 review and separate G13 acceptance remain mandatory.
 **Requirement coverage:** FR-012, FR-002, NFR-007, NFR-008; related session, least-privilege and regression boundaries.
 **Reference documents:** M13_D005_KPI_DECISION_PROPOSAL.md, M13_ARCHITECTURE_DESIGN.md, M13_IMPLEMENTATION_PLAN.md, REQUIREMENTS.md, M11_LOCAL_CONTRACT_DECISION_20261108.md, M12_LOCAL_CONTRACT_DECISION_20261108.md and M11_M12_G11_G12_GATE_CLOSURE_20261108.md.
 
@@ -63,7 +63,7 @@ The fixture must be seeded into disposable, isolated PostgreSQL only. No product
 
 **Tier 4, independent review:** Freeze evidence, audit manifest/hashes and 25 dispositions, retain failed attempts with fixes attributed to correct source SHAs, request separate S25 review and subsequent G13 decision. Neither S25 nor G13 can be self-certified merely from passing scripts.
 
-**Execution boundary:** GitHub Actions is exclusively authorized for M13 verification after separate M13 implementation authorization. Use manually dispatched, source-locked jobs on ephemeral runners with disposable build, browser and database storage and appropriately redacted retained artifacts. No local verification alternative is authorized. No workflow may be started, enabled, triggered or rerun during this documentation-only approval, and no production migration or deployment is permitted. The E:-drive policy still applies to any later separately authorized Windows-local activity.
+**Execution boundary:** Use GitHub Actions exclusively for M13 source-locked verification after completed implementation. Isolate disposable PostgreSQL, browser and build environments, retain redacted evidence, and do not use local tests. Workflows do not authorize production migration, merge or deployment. The E:-drive restriction remains for any separately authorized Windows-local activity.
 
 ## 4. Evidence manifest and reporting discipline
 

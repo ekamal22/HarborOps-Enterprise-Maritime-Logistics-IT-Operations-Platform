@@ -1,5 +1,7 @@
 # G11 Source-Locked Scenario Evidence Matrix
 
+**Completed integration, 2026-11-08:** G11 and G12 ACCEPTED and integrated into `main` via [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33), merge `fa2f6c36740c7f00e1d21aba63560cd962c418ad`. [Formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records separate S01/S25 approvals and preserved evidence. The accepted M9 ARRI/DEPA hold, 10,000-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator are unchanged; deployment is not authorized. Older status notes below are historical.
+
 **Reviewed:** 2026-11-08 (closure campaign update)
 **Frozen hosted application SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`
 **Closure application source:** two defect fixes on top of the hosted source (export serialization retry `5dedbb7`, explicit UTC designator `b2a72bf`); complete suite at `2eee441`, stack probe correction `ed58449`, final test supplement `6e90295`

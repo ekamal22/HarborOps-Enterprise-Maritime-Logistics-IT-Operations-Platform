@@ -393,6 +393,23 @@ public sealed class M13OperationalKpiRuntimeTests
             .Select(row => row.GetProperty("memberKey").GetGuid()).ToHashSet();
     }
 
+    private static async Task<HashSet<Guid>> G13StoredIds(
+        NpgsqlConnection db, Guid org, JsonElement report, string metric)
+    {
+        await using var cmd = new NpgsqlCommand("""
+            SELECT member_key FROM operational_kpi_members
+            WHERE organization_id=@org AND report_id=@report AND metric_code=@metric
+            """, db);
+        cmd.Parameters.AddWithValue("org", org);
+        cmd.Parameters.AddWithValue("report", report.GetProperty("reportId").GetGuid());
+        cmd.Parameters.AddWithValue("metric", metric);
+        var items = new HashSet<Guid>();
+        await using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+            Assert.True(items.Add(reader.GetGuid(0)), "Duplicate report member ID");
+        return items;
+    }
+
     [ExclusiveM13PostgresFact]
     public async Task TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers()
     {
@@ -537,7 +554,7 @@ public sealed class M13OperationalKpiRuntimeTests
             .SetEquals(new[] { first, late, tolerated }));
         Assert.True((await G13MemberIds(analyst, fixture.A, report, "K04"))
             .SetEquals(new[] { cancelled }));
-        Assert.True((await G13MemberIds(analyst, fixture.A, report, "D05"))
+        Assert.True((await G13StoredIds(db, fixture.A, report, "D05"))
             .SetEquals(new[] { first, late, tolerated }));
         Assert.True((await G13MemberIds(analyst, fixture.A, report, "K05"))
             .SetEquals(new[] { first }));
@@ -545,9 +562,11 @@ public sealed class M13OperationalKpiRuntimeTests
             .SetEquals(new[] { first, tolerated }));
         Assert.True((await G13MemberIds(analyst, fixture.A, report, "K01"))
             .SetEquals(booked.Append(seed.OtherShipment)));
-        Assert.True((await G13MemberIds(analyst, fixture.A, report, "D13"))
+        Assert.True((await G13StoredIds(db, fixture.A, report, "D13"))
             .SetEquals(booked.Concat(new[] { early, first, late })));
-        foreach (var metric in new[] { "K01", "K03", "D05", "D13" })
+        Assert.True((await G13StoredIds(db, fixture.A, report, "Q01"))
+            .SetEquals(booked.Concat(new[] { early, first, late })));
+        foreach (var metric in new[] { "K01", "K03", "K05", "K14" })
             Assert.DoesNotContain((await G13MemberIds(analyst, fixture.A, report, metric)),
                 id => foreign.Contains(id));
         Assert.Equal(HttpStatusCode.NotFound,

@@ -41,7 +41,22 @@ jobs:
         working-directory: source
         run: |
           set -euo pipefail
+          mkdir -p .verification
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --blame-hang-timeout 10m --logger 'console;verbosity=normal' --logger 'trx;LogFileName=integration.trx' --results-directory .verification
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          path = Path('.verification/integration.trx')
+          root = ET.parse(path).getroot()
+          ns = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
+          counters = root.find('.//t:Counters', ns)
+          if counters is None:
+              raise SystemExit('Missing integration test counters')
+          values = {key: int(counters.get(key, '-1')) for key in ('total', 'passed', 'failed', 'notExecuted')}
+          print('Source-locked full integration counters:', values)
+          if values['total'] < 300 or values['passed'] != values['total'] or values['failed'] != 0 or values['notExecuted'] != 0:
+              raise SystemExit('Full integration run missing expected coverage, has skips or has failures')
+          PY
       - name: Summarize exact run identity and retained evidence hash
         if: always()
         working-directory: source

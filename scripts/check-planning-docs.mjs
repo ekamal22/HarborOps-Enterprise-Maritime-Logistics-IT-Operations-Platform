@@ -68,8 +68,8 @@ for (const [name, path] of [
   ["Test strategy", "docs/TEST_STRATEGY.md"],
   ["Operations", "docs/OPERATIONS.md"]
 ]) {
-  assert(get(path).includes("M11_SIXTH_CORRECTNESS_AUDIT_20261108.md"),
-    name + " omits the current M11 source audit");
+  assert(get(path).includes("M11_M12_G11_G12_GATE_CLOSURE_20261108.md"),
+    name + " omits the formal M11 and M12 gate closure");
 }
 assert(storagePolicy.includes("Persistent project-specific writes to C: are prohibited"), "E-drive storage policy missing its persistent-storage prohibition");
 // The policy names the E: requirement generically; a workstation-specific folder name is

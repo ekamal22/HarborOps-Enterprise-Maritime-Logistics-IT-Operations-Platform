@@ -223,3 +223,7 @@ The [original security review](docs/PUBLIC_REPOSITORY_SECURITY_AUDIT_2026-11-02.
 ### Current state
 
 M0-M12/G0-G12 and M16/G16 are accepted and integrated into `main` as of 2026-11-08. The [G11/G12 gate closure](docs/M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33) record the accepted integration. M10 projection remains default-off, ETA stays null and M11 evaluation remains opt-in. The M9 10,000-item transport hold is binding. No public hosting, production migration or release is authorized.
+
+## M13 operational KPI implementation branch
+
+[D-005 Option A](docs/M13_D005_POLICY_APPROVAL_20261108.md) approved the versioned operational KPI catalog. The isolated M13 branch contains scoped reporting, a protected report/member snapshot, a React dashboard and membership-version-bound Auditor grants. See [M13 implementation status](docs/M13_IMPLEMENTATION_STATUS_20261109.md) and [G13 verification matrix](docs/M13_VERIFICATION_PLAN.md). This feature remains unverified, unmerged and undeployed; M15 notification delivery remains independent.

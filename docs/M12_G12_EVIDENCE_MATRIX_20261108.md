@@ -4,8 +4,8 @@
 **Frozen hosted application SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`
 **Closure application source:** two defect fixes on top of the hosted source (export serialization retry `5dedbb7`, explicit UTC designator `b2a72bf`); complete suite at `2eee441`, stack probe correction `ed58449`, final test supplement `6e90295`
 **Basis:** local execution on disposable PostgreSQL servers and an isolated Nginx, Kestrel and PostgreSQL Compose stack with raw reports retained on E:. Not an independent review.
-**Gate:** G12 acceptance pending.
-**Totals:** BLOCKED 2, NOT APPLICABLE 1, PASS 22
+**Gate:** G12 ACCEPTED, 2026-11-08. See [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md).
+**Totals after formal decisions:** PASS 24, NOT APPLICABLE 1 (22 executed technical PASS, separately approved S01 and S25)
 
 **Focused N01 audit-correction follow-up (2026-11-08):** [GitHub Actions run 42508864681](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42508864681) passed all ten checks across two N01 invocations on the isolated real Nginx, Kestrel and PostgreSQL stack. Each invocation generated exactly two additional signed preparation audits for the proxy and direct requests, irrespective of previously retained audits. The correction is on the combined delivery branch at `df54a13`; the successful workflow SHA `1966fe2` is a separate verification-only branch and has identical application code. This adds evidence to G12-S17/S18/S19 without changing gate dispositions or representing independent S25 approval.
 
@@ -17,7 +17,7 @@
 
 | Scenario | Disposition | Executed evidence | Remaining requirement or caveat |
 | --- | --- | --- | --- |
-| G12-S01 | BLOCKED | M12-P01..P16 selected; per-instance lease and rate limit (P10), 45 second proof (P12) and 5,000 rows (P10) confirmed by executed tests; a recommendation for the formal decision is in the closure results record. | Formal policy approval is an acceptance-time decision. |
+| G12-S01 | PASS | Formal adoption of M12-P01..P16 on 2026-11-08. Existing selected contract and measured limits retained. | Policy approval is a separate documented decision, not a new runtime test. |
 | G12-S02 | PASS | Release build 0/0, 291/291 unit, 46/46 contract, `final/raw/integration-full.trx` 388/388 at `2eee441`. |  |
 | G12-S03 | PASS | `TextStatusPortVoyageWindowAndInputMatrixIsExactAndTenantScoped`: case-insensitive text over reference, external reference and display name, trimming, null columns, Active/Archived/All, workflow status, invalid status 400, and literal `%` and `_` (no wildcard expansion). |  |
 | G12-S04 | PASS | Same test: open assignment only; closed, future-start and superseded assignments excluded; latest assignment wins; unknown voyage empty. |  |
@@ -41,8 +41,8 @@
 | G12-S22 | PASS | Same 48/48 three-engine browser run: shipment-search 3 per engine through Nginx, plus exceptions, maritime and M5 regressions. |  |
 | G12-S23 | PASS | `final/raw/integration-full.trx` 388/388 at `2eee441`, 291/291 unit, 46/46 contract at the final application source (two defects fixed since the hosted 341/341). | The signed M9 operating-hold reconciliation is an acceptance-time decision. |
 | G12-S24 | PASS | Local effective mutation campaign 17/17 killed across three source-attributed passes (10 at `ed58449`, 5 plus 2 at `6e90295`; see the corrected evidence index), including auditor export bypass, CSV formula defense, tenant filter, row cap, same-origin check, export lease release, cursor actor binding, serialization retry and UTC designator. Scans clean as for G11-S24. Evidence safety scan 0 hits. |  |
-| G12-S25 | BLOCKED | Closure package sealed with SHA-256 manifest and independent read-back; first package reviewed NOT PASS. | A new independent raw-evidence re-review and written decision are required. |
+| G12-S25 | PASS | Independent second-archive raw re-review: 562 manifest checks, 54 TRX cross-checks, 388/388 integration, 48/48 browser, 17/17 source-attributed effective mutants, real outage and network probes, and hosted N01 10/10 correction. | Earlier first-package independent review remains historically NOT PASS. Disclosed limits and the mandatory M9 hold remain binding. |
 
 ## Review outcome
 
-All dispositions are traceability statements, not an acceptance decision. Historical failed attempts are retained, not erased. An independent S25 re-review of the closure package, the formal S01 decision and the signed M9 hold reconciliation remain separate decisions. See the [acceptance review](M11_M12_ACCEPTANCE_REVIEW_20261108.md) and the [closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).
+All dispositions are traceability statements, not an acceptance decision. Historical failed attempts are retained, not erased. The independent second-archive S25 re-review, formal S01 approval and binding M9 hold reconciliation are separately recorded in the formal gate closure. See the [acceptance review](M11_M12_ACCEPTANCE_REVIEW_20261108.md) and the [closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).

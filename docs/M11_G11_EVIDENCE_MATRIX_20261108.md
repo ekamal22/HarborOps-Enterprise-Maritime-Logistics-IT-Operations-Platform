@@ -4,8 +4,8 @@
 **Frozen hosted application SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`
 **Closure application source:** two defect fixes on top of the hosted source (export serialization retry `5dedbb7`, explicit UTC designator `b2a72bf`); complete suite at `2eee441`, stack probe correction `ed58449`, final test supplement `6e90295`
 **Basis:** local execution on disposable PostgreSQL servers and an isolated Nginx, Kestrel and PostgreSQL Compose stack with raw reports retained on E:. Not an independent review.
-**Gate:** G11 acceptance pending.
-**Totals:** BLOCKED 2, PASS 23
+**Gate:** G11 ACCEPTED, 2026-11-08. See [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md).
+**Totals after formal decisions:** PASS 25 (23 executed technical PASS, separately approved S01 and S25)
 
 **Independent review history:** the first evidence package was reviewed on 2026-11-08 ([G11 independent evidence review](M11_G11_INDEPENDENT_EVIDENCE_REVIEW_20261108.md)) and returned G11-S25 NOT PASS with open S21, PARTIAL-row, final-SHA regression and S01 findings. The closure campaign below addresses those findings; a new independent re-review of the closure package is required.
 
@@ -14,7 +14,7 @@
 
 | Scenario | Disposition | Executed evidence | Remaining requirement or caveat |
 | --- | --- | --- | --- |
-| G11-S01 | BLOCKED | M11-P01..P12 recorded and enforced by `check-m11-contract.mjs` PASS; a recommendation for the formal decision is in the closure results record. | Formal policy reconciliation is an acceptance-time decision, not a test. |
+| G11-S01 | PASS | Formal adoption of M11-P01..P12 and P10b on 2026-11-08. Existing selected contract and measured limits retained. | Policy approval is a separate documented decision, not a new runtime test. |
 | G11-S02 | PASS | Release build with warnings as errors 0/0, 291/291 unit, 46/46 contract and `final/raw/integration-full.trx` 388/388 at `2eee441` (`final/logs/build.log`, `unit.trx`, `contract.trx`). | The web build ran inside the web image build and the browser runs. |
 | G11-S03 | PASS | Strict UTC and DST boundary unit tests inside 291/291; the explicit-UTC parser now rejects offset-less instants (defect F-M4-01, below). | Reviewer truth-table mapping is an S25 task. |
 | G11-S04 | PASS | Scoped, audited, idempotent schedule-overdue disposition in the 388/388 suite; replay, wrong-actor and rejected-audit cases in `M11ResidualRuntimeTests`. |  |
@@ -38,8 +38,8 @@
 | G11-S22 | PASS | 48/48 browser tests across Chromium, Firefox and WebKit through Nginx (`final/browser/*.json`, expected 48, unexpected 0, skipped 0, flaky 0): shipment-exceptions 7, shipment-search 3, maritime 4 and two M5 regressions per engine. The first attempt failed because the driver's API restart silently did not run (login limiter accumulated); it is retained in `final/browser-attempt1-no-api-restart`. |  |
 | G11-S23 | PASS | Complete integration suite 388/388 with no skips on the exclusive disposable server at `2eee441`, 291/291 unit, 46/46 contract. The M9 ARRI/DEPA hold, the 10,000 unresolved-work cap and null M10 ETA are covered by accepted suites inside the 388 (`TrackingInboxQuotaBoundaryTests`, `TrackingProjectionG10Tests`) and the evaluator and M10 projector stay default off in the compose files. | The signed M9 operating-hold reconciliation is an acceptance-time decision. |
 | G11-S24 | PASS | Local effective mutation campaign 17/17 killed across three source-attributed passes (10 at `ed58449`, 5 plus 2 at `6e90295`; see the corrected evidence index) (`final/mutations/summary.json`; clean controls passed first): the five hosted mutants plus witness order, witness collation tie-break, session revocation ignored, audit failure swallowed, replay actor binding removed, tenant filter removed, row cap widened, same-origin check removed, export lease never released, cursor actor binding removed, serialization retry removed and UTC designator check removed. Dependency scans clean (dotnet, npm web and browser), Trivy source 0 HIGH or CRITICAL, three runtime images 0 HIGH or CRITICAL with revision label equal to the source SHA. Evidence safety scan: 0 hits. |  |
-| G11-S25 | BLOCKED | Closure package sealed with SHA-256 manifest and independent read-back; first package reviewed NOT PASS. | A new independent raw-evidence re-review and written decision are required. |
+| G11-S25 | PASS | Independent second-archive raw re-review: 562 manifest checks, 54 TRX cross-checks, 388/388 integration, 48/48 browser, 17/17 source-attributed effective mutants, real outage and network probes, and hosted N01 10/10 correction. | Earlier first-package independent review remains historically NOT PASS. Disclosed limits and the mandatory M9 hold remain binding. |
 
 ## Review outcome
 
-All dispositions are traceability statements, not an acceptance decision. Historical failed attempts are retained, not erased. An independent S25 re-review of the closure package, the formal S01 decision and the signed M9 hold reconciliation remain separate decisions. See the [acceptance review](M11_M12_ACCEPTANCE_REVIEW_20261108.md) and the [closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).
+All dispositions are traceability statements, not an acceptance decision. Historical failed attempts are retained, not erased. The independent second-archive S25 re-review, formal S01 approval and binding M9 hold reconciliation are separately recorded in the formal gate closure. See the [acceptance review](M11_M12_ACCEPTANCE_REVIEW_20261108.md) and the [closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).

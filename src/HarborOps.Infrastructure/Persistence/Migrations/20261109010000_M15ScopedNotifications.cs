@@ -427,6 +427,7 @@ public sealed class M15ScopedNotifications : Migration
                     RAISE EXCEPTION 'M15 downgrade would destroy delivery evidence';
                 END IF;
             END $m15_guard$;
+            DROP POLICY m15_personal_read ON m15_user_notifications;
             DROP TRIGGER tr_m15_capture_m11_history ON shipment_exception_history;
             DROP FUNCTION m15_capture_exception_history();
             DROP FUNCTION m15_apply_personal_action(

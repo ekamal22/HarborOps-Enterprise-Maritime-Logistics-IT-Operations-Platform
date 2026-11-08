@@ -172,6 +172,8 @@ public sealed class ShipmentExceptions : Migration
                 message text;
                 now_epoch bigint := floor(extract(epoch from clock_timestamp()))::bigint;
                 current_version bigint;
+                current_record_status text;
+                current_workflow_status text;
                 current_input bigint;
                 current_generation bigint;
                 current_state text;
@@ -235,7 +237,9 @@ public sealed class ShipmentExceptions : Migration
                 IF current_org IS DISTINCT FROM 'Active' THEN
                     RAISE EXCEPTION 'Inactive evaluation organization' USING ERRCODE='42501';
                 END IF;
-                SELECT version INTO current_version FROM shipments
+                SELECT version,record_status,workflow_status
+                    INTO current_version,current_record_status,current_workflow_status
+                FROM shipments
                     WHERE organization_id=p_org AND id=p_shipment FOR UPDATE;
                 IF current_version IS NULL THEN
                     RAISE EXCEPTION 'Shipment not found' USING ERRCODE='PZ003';
@@ -254,7 +258,17 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Evaluation input changed' USING ERRCODE='40001';
                 END IF;
 
-                IF p_rule='EquipmentConflict' AND p_condition IN ('Active','Inactive') THEN
+                -- Archived, cancelled and Draft shipments have no current
+                -- equipment-risk eligibility. Their signed Inactive clearance
+                -- must not depend on a projection that may be absent or stale.
+                IF current_record_status IS DISTINCT FROM 'Active'
+                   OR current_workflow_status IN ('Cancelled','Draft') THEN
+                    IF p_condition IS DISTINCT FROM 'Inactive'
+                       OR p_reason IS DISTINCT FROM 'shipment_not_eligible' THEN
+                        RAISE EXCEPTION 'Ineligible shipment evaluation changed'
+                            USING ERRCODE='40001';
+                    END IF;
+                ELSIF p_rule='EquipmentConflict' AND p_condition IN ('Active','Inactive') THEN
                     SELECT observed_state,input_revision,correction_generation
                     INTO current_state,current_projection_revision,current_projection_generation
                     FROM shipment_tracking_projections

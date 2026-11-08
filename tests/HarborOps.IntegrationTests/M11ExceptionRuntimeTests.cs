@@ -168,8 +168,8 @@ public sealed class M11ExceptionRuntimeTests
             $"/api/v1/organizations/{s.Fixture.A}/shipments/{target.Shipment}/exceptions");
         Assert.Equal(HttpStatusCode.OK,response.StatusCode);
         var data = await response.Content.ReadFromJsonAsync<JsonElement>();
-        var row = Assert.Single(data.GetProperty("items").EnumerateArray()
-            .Where(e=>e.GetProperty("ruleCode").GetString()=="EquipmentConflict"));
+        var row = Assert.Single(data.GetProperty("items").EnumerateArray(),
+            e=>e.GetProperty("ruleCode").GetString()=="EquipmentConflict");
         Assert.Equal("Active",row.GetProperty("condition").GetString());
         var evidence = row.GetProperty("evidence");
         Assert.Equal(1,evidence.GetProperty("conflictContainerCount").GetInt32());

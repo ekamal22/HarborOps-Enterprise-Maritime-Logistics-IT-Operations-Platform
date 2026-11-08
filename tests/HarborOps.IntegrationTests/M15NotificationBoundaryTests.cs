@@ -118,6 +118,7 @@ public sealed class M15NotificationBoundaryTests
         var result=await Task.WhenAll(one.DeliverPendingAsync(CancellationToken.None),
             two.DeliverPendingAsync(CancellationToken.None));
         Assert.True(result.Sum() >= 1);
+        await M15NotificationRuntimeTests.EnsureShipmentDelivered(s,shipment);
         var route=$"/api/v1/organizations/{s.Fixture.A}/notifications";
         using var initial=await manager.GetAsync(route);
         Assert.Equal(HttpStatusCode.OK,initial.StatusCode);
@@ -159,14 +160,12 @@ public sealed class M15NotificationBoundaryTests
     [Fact]
     public async Task RequiredAuditFailureRollsBackReceiptAndReplay()
     {
-        var (s,_,_) = await OpenException();
+        var (s,shipment,_) = await OpenException();
         using var adminFactory=s.Factory; using var runtime=s.Runtime;
         using var manager=s.Manager; using var analyst=s.Analyst; using var admin=s.Administrator;
         using var originalAdmin=s.Fixture.Admin; using var originalManager=s.Fixture.Manager;
         using var originalAnalyst=s.Fixture.Analyst;
-        await using var scope=s.Runtime.Services.CreateAsyncScope();
-        var store=scope.ServiceProvider.GetRequiredService<NotificationStore>();
-        Assert.True(await store.DeliverPendingAsync(CancellationToken.None)>=1);
+        await M15NotificationRuntimeTests.EnsureShipmentDelivered(s,shipment);
         var root=$"/api/v1/organizations/{s.Fixture.A}/notifications";
         using var page=await manager.GetAsync(root);
         var body=await page.Content.ReadFromJsonAsync<JsonElement>();

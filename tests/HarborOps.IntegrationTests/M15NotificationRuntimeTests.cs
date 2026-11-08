@@ -12,6 +12,29 @@ namespace HarborOps.IntegrationTests;
 // Tests are committed as regression source, not claimed to have been executed.
 public sealed class M15NotificationRuntimeTests
 {
+    internal static async Task EnsureShipmentDelivered(
+        M11ExceptionRuntimeTests.Setup s, Guid shipment)
+    {
+        // Other accepted-M11 tests share the disposable server and can leave
+        // older pending intents. Verify this event, not an arbitrary batch.
+        await using var scope = s.Runtime.Services.CreateAsyncScope();
+        var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+        await using var sql = new NpgsqlConnection(s.Roles.Admin);
+        await sql.OpenAsync();
+        for (var iteration=0; iteration<100; iteration++)
+        {
+            await store.DeliverPendingAsync(CancellationToken.None);
+            await using var count = new NpgsqlCommand("""
+                SELECT COUNT(*) FROM m15_user_notifications
+                WHERE organization_id=@org AND shipment_id=@shipment
+                """,sql);
+            count.Parameters.AddWithValue("org",s.Fixture.A);
+            count.Parameters.AddWithValue("shipment",shipment);
+            if (Convert.ToInt64(await count.ExecuteScalarAsync()) > 0) return;
+        }
+        Assert.True(false,"The scoped M15 event was not delivered within 100 bounded batches");
+    }
+
     [Fact]
     public async Task M11HistoryProducesScopedDeduplicatedPersonalReceipts()
     {
@@ -28,14 +51,7 @@ public sealed class M15NotificationRuntimeTests
         var shipment = await M11ExceptionRuntimeTests.ScheduledShipment(s);
         var exceptionId = await M11ExceptionRuntimeTests.EvaluateAndFind(s,shipment);
 
-        await using (var scope = apiFactory.Services.CreateAsyncScope())
-        {
-            var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
-            Assert.True(await store.DeliverPendingAsync(CancellationToken.None) >= 1);
-            // Other isolated test fixtures can leave separate pending intents.
-            // This event's unique recipient row, not a global empty queue,
-            // is the source-specific effect-once invariant.
-        }
+        await EnsureShipmentDelivered(s, shipment);
 
         var url = $"/api/v1/organizations/{s.Fixture.A}/notifications";
         using var managerResult = await manager.GetAsync(url);

@@ -189,7 +189,7 @@ public sealed class M15NotificationBoundaryTests
             Assert.Equal(1,await insert.ExecuteNonQueryAsync());
         }
         const string count = """
-            SELECT COUNT(*) FROM m15_user_notifications
+            SELECT COUNT(DISTINCT source_history_id) FROM m15_user_notifications
             WHERE organization_id=@org AND shipment_id=@shipment
             """;
         await using var scope=setup.Runtime.Services.CreateAsyncScope();

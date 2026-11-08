@@ -1,6 +1,11 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
+using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Exceptions;
+using HarborOps.Infrastructure.Integrations;
+using HarborOps.Infrastructure.Shipments;
+using Microsoft.Extensions.DependencyInjection;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -233,6 +238,87 @@ public sealed class M11ClosureRuntimeTests(ITestOutputHelper output)
             WHERE h.exception_id=@e AND h.action='AutoResolved'
             """, ("e", first)));
         Note($"S16 concurrent recurrence: results={string.Join(",", results.Select(r => r.Result))} occurrences=2");
+    }
+
+    // ------------------------------------------------------------------ S08 forced equal-instant tie
+
+    [Fact]
+    public async Task WitnessTieBreaksOnSourceThenCollationOrderedSourceEventWhenReceiptInstantsAreEqual()
+    {
+        RequireExclusive();
+        var s = await M11ExceptionRuntimeTests.Prepare();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var administrator = s.Fixture.Admin; using var manager = s.Fixture.Manager; using var analyst = s.Fixture.Analyst;
+        using var restrictedManager = s.Manager; using var restrictedAnalyst = s.Analyst; using var restrictedAdministrator = s.Administrator;
+        var admin = s.Roles.Admin;
+        var target = await G9Support.SeedResolvable(factory, s.Fixture);
+        var sourceA = await G9Support.NewSource(factory, s.Fixture.A, "m11_tie_a");
+        var sourceB = await G9Support.NewSource(factory, s.Fixture.A, "m11_tie_b");
+        var shipmentUrl = $"/api/v1/organizations/{s.Fixture.A}/shipments/{target.Shipment}";
+        using (var booked = await ReferenceDataHttpTests.Send(s.Fixture.Manager, HttpMethod.Patch, shipmentUrl,
+            new { expectedVersion = 1L, workflowStatus = "Booked" }))
+            Assert.Equal(HttpStatusCode.OK, booked.StatusCode);
+        const string at = "2026-11-03T10:00:00Z";
+        // Uppercase Z sorts before lowercase a under the C collation but after it in linguistic collations.
+        await G9Support.Accept(factory, sourceA, G9Support.EquipmentPayload("tie-Z", target.Reference, at, "GTIN"));
+        await G9Support.Accept(factory, sourceA, G9Support.EquipmentPayload("tie-a", target.Reference, at, "GTIN"));
+        await G9Support.Accept(factory, sourceB, G9Support.EquipmentPayload("tie-Z", target.Reference, at, "GTIN"));
+        await G9Support.Accept(factory, sourceB, G9Support.EquipmentPayload("tie-a", target.Reference, at, "GTIN"));
+        await G9Support.Accept(factory, sourceA, G9Support.EquipmentPayload("tie-out-a", target.Reference, at, "GTOT"));
+        await G9Support.Accept(factory, sourceB, G9Support.EquipmentPayload("tie-out-b", target.Reference, at, "GTOT"));
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var worker = new TrackingWorkStore(db, new TrackingWorkerSettings());
+        for (var i = 0; i < 6; i++)
+        {
+            var claim = await worker.ClaimOneAsync(s.Fixture.A, CancellationToken.None);
+            Assert.NotNull(claim);
+            Assert.Equal(TrackingWorkDisposition.Processed, await worker.FinalizeAsync(claim!, CancellationToken.None));
+        }
+        Assert.Equal(TrackingMutationResult.Applied,
+            (await new ShipmentTimelineStore(db).RebuildAsync(s.Fixture.A, target.Shipment, CancellationToken.None)).Result);
+
+        // Make every candidate arrive at the same instant. The timeline is append-only for ordinary roles, so the
+        // fixture bypasses its guard in an administrator session; the evaluation under test is unchanged.
+        await using (var tie = new NpgsqlConnection(admin))
+        {
+            await tie.OpenAsync();
+            await using var command = new NpgsqlCommand("""
+                SET session_replication_role = replica;
+                UPDATE shipment_tracking_timeline_entries SET received_at_utc = timestamptz '2026-11-03T12:00:00Z'
+                WHERE shipment_id = @s
+                """, tie);
+            command.Parameters.AddWithValue("s", target.Shipment);
+            Assert.Equal(6, await command.ExecuteNonQueryAsync());
+        }
+        using (var evaluated = await ReferenceDataHttpTests.Send(restrictedManager, HttpMethod.Post, shipmentUrl + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, evaluated.StatusCode);
+        using var list = await restrictedManager.GetAsync(shipmentUrl + "/exceptions");
+        var row = (await list.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("items").EnumerateArray()
+            .Single(e => e.GetProperty("ruleCode").GetString() == "EquipmentConflict");
+        var witness = row.GetProperty("evidence").GetProperty("conflictWitness");
+
+        // Independent expectation: lowest source id by UUID byte order, then lowest source event id by ordinal order.
+        bool AFirst = string.CompareOrdinal(sourceA.Id.ToString("D"), sourceB.Id.ToString("D")) < 0;
+        var expectedIn = AFirst ? (sourceA.Id, "tie-Z") : (sourceB.Id, "tie-Z");
+        var expectedOut = AFirst ? (sourceA.Id, "tie-out-a") : (sourceB.Id, "tie-out-b");
+        Assert.True(string.CompareOrdinal("tie-Z", "tie-a") < 0);
+        Assert.Equal(expectedIn.Item1, witness.GetProperty("in").GetProperty("sourceId").GetGuid());
+        Assert.Equal(expectedIn.Item2, witness.GetProperty("in").GetProperty("sourceEventId").GetString());
+        Assert.Equal(expectedOut.Item1, witness.GetProperty("out").GetProperty("sourceId").GetGuid());
+        Assert.Equal(expectedOut.Item2, witness.GetProperty("out").GetProperty("sourceEventId").GetString());
+        // Repeating the evaluation selects the same witness and adds no history.
+        var historyBefore = await Scalar<long>(admin, "SELECT count(*) FROM shipment_exception_history WHERE exception_id=@e",
+            ("e", row.GetProperty("id").GetGuid()));
+        using (var again = await ReferenceDataHttpTests.Send(restrictedManager, HttpMethod.Post, shipmentUrl + "/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, again.StatusCode);
+        using var list2 = await restrictedManager.GetAsync(shipmentUrl + "/exceptions");
+        var row2 = (await list2.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("items").EnumerateArray()
+            .Single(e => e.GetProperty("ruleCode").GetString() == "EquipmentConflict");
+        Assert.Equal(witness.GetRawText(), row2.GetProperty("evidence").GetProperty("conflictWitness").GetRawText());
+        Assert.Equal(historyBefore, await Scalar<long>(admin, "SELECT count(*) FROM shipment_exception_history WHERE exception_id=@e",
+            ("e", row.GetProperty("id").GetGuid())));
+        Note($"S08 forced tie: AFirst={AFirst} witness in={expectedIn.Item2} out={expectedOut.Item2}");
     }
 
     // ------------------------------------------------------------------ S05 / S06 / S07 matrix

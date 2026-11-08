@@ -1,0 +1,175 @@
+name: Verify M13 operational KPIs
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: verify-m13-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build and source identity
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          dotnet build HarborOps.sln -c Release -warnaserror
+          echo "M13 source SHA: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Unit and contract scenarios
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/m13
+          dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj -c Release --no-build --logger 'trx;LogFileName=unit.trx' --results-directory .verification/m13
+          dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj -c Release --no-build --logger 'trx;LogFileName=contracts.trx' --results-directory .verification/m13
+          npm --prefix web ci --no-audit --no-fund
+          npm --prefix web run build
+          npm --prefix web test
+      - name: Preserve source hashes and test results
+        if: always()
+        run: |
+          mkdir -p .verification/m13
+          git ls-files src/HarborOps.Api/Reporting src/HarborOps.Domain/Reporting src/HarborOps.Infrastructure/Reporting web/src/analytics tests/HarborOps.UnitTests/OperationalKpiPolicyTests.cs | xargs -r sha256sum > .verification/m13/source-sha256.txt
+          find .verification/m13 -type f -print0 | sort -z | xargs -0 -r sha256sum >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m13-source-${{ github.sha }}
+          path: .verification/m13
+          if-no-files-found: warn
+          retention-days: 14
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-private
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-private;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build and verify exclusive PostgreSQL
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(docker ps --filter ancestor=postgres:16.15 --format '{{.ID}}' | wc -l)" -eq 1
+          dotnet build HarborOps.sln -c Release -warnaserror
+      - name: Execute real-role and migration checks
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/m13
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --blame-hang-timeout 10m --filter 'FullyQualifiedName~M13OperationalKpiRuntimeTests|FullyQualifiedName~MigrationSnapshotTests|FullyQualifiedName~M11M12UpgradeTests' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=integration.trx' --results-directory .verification/m13
+      - name: Preserve exact source identity and logs
+        if: always()
+        run: |
+          echo "M13 database source SHA: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          find .verification/m13 -type f -print0 | sort -z | xargs -0 -r sha256sum >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m13-database-${{ github.sha }}
+          path: .verification/m13
+          if-no-files-found: warn
+          retention-days: 14
+  browsers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Exercise isolated browser fixtures in three engines
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export HARBOROPS_SOURCE_SHA="$GITHUB_SHA"
+          export HARBOROPS_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_API_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_WORKER_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_M10_CORRECTION_PROOF_KEY="$(openssl rand -base64 32)"
+          export HARBOROPS_M12_EXPORT_PROOF_KEY="$(openssl rand -base64 32)"
+          export HARBOROPS_TEST_USER_PASSWORD="$(openssl rand -hex 22)"
+          for name in HARBOROPS_DB_PASSWORD HARBOROPS_API_DB_PASSWORD HARBOROPS_WORKER_DB_PASSWORD HARBOROPS_M10_CORRECTION_PROOF_KEY HARBOROPS_M12_EXPORT_PROOF_KEY HARBOROPS_TEST_USER_PASSWORD; do
+            echo "::add-mask::$(printenv "$name")"
+          done
+          export HARBOROPS_BROWSER_BASE_URL=http://localhost:5173
+          export HARBOROPS_M5_FIXTURES=1 HARBOROPS_M12_FIXTURES=1 HARBOROPS_M13_FIXTURES=1
+          export HARBOROPS_VERIFICATION_ROOT="$PWD/.verification"
+          mkdir -p .verification/browser
+          project=ho-verify-m13
+          cleanup() {
+            code=$?
+            echo "M13 browser source: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+            docker compose -p "$project" down --volumes --remove-orphans || true
+            exit "$code"
+          }
+          trap cleanup EXIT
+          bash scripts/smoke-compose.sh --project "$project" --confirm-disposable
+          for entry in \
+            "m3-admin-a@example.test|M3 North Administrator" \
+            "m3-admin-b@example.test|M3 East Administrator" \
+            "m3-manager@example.test|M3 Manager" \
+            "m3-analyst@example.test|M3 Analyst" \
+            "m4-analyst-east@example.test|M4 East Analyst" \
+            "m4-support@example.test|M4 Support" \
+            "m4-auditor@example.test|M4 Auditor"; do
+            email="$(printf '%s' "$entry" | cut -d'|' -f1)"
+            title="$(printf '%s' "$entry" | cut -d'|' -f2)"
+            printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" |
+              docker compose -p "$project" run --rm -T -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision "$email" "$title"
+          done
+          for entry in \
+            "m3-north|M3 North Terminal|m3-admin-a@example.test" \
+            "m3-east|M3 East Terminal|m3-admin-b@example.test" \
+            "m3-pagination|M3 Pagination Fixtures|m3-admin-a@example.test" \
+            "m3-revocation-chromium|M3 Revocation chromium|m3-admin-a@example.test" \
+            "m3-revocation-firefox|M3 Revocation firefox|m3-admin-a@example.test" \
+            "m3-revocation-webkit|M3 Revocation webkit|m3-admin-a@example.test"; do
+            slug="$(printf '%s' "$entry" | cut -d'|' -f1)"
+            title="$(printf '%s' "$entry" | cut -d'|' -f2)"
+            email="$(printf '%s' "$entry" | cut -d'|' -f3)"
+            docker compose -p "$project" run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api --organization-cli bootstrap "$slug" "$title" "$email"
+          done
+          node scripts/prepare-m3-browser-fixtures.mjs
+          node scripts/prepare-m4-browser-fixtures.mjs
+          node scripts/prepare-m5-browser-fixtures.mjs
+          npm --prefix tests/browser ci --no-audit --no-fund
+          cd tests/browser
+          npx playwright install --with-deps chromium firefox webkit
+          for engine in chromium firefox webkit; do
+            export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/browser/m13-$engine.json"
+            npx playwright test specs/operational-kpis.spec.mjs --project="$engine" --workers=1
+            node -e 'const r=require(process.env.HARBOROPS_G3_JSON_REPORT);const s=r.stats;if(!s||s.expected<3||s.skipped>0||s.unexpected>0)process.exit(2)'
+            sha256sum "$HARBOROPS_G3_JSON_REPORT" >> "$GITHUB_STEP_SUMMARY"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m13-browser-${{ github.sha }}
+          path: |
+            .verification/browser
+            tests/browser/test-results
+          if-no-files-found: warn
+          retention-days: 14

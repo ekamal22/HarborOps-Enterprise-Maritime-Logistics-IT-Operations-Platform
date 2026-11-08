@@ -205,7 +205,9 @@ public static class ShipmentExceptionEndpoints
             if (!TryCursor(ctx, protection, org, shipment, null,
                     out var after, out var snapshot))
                 return Fail(ctx, 409, "stale_or_invalid_cursor");
-            var page = await store.ListAsync(org, shipment, null, after, snapshot, limit, ct);
+            var authenticated = Session(ctx);
+            var page = await store.ListAsync(org, authenticated.UserId,
+                authenticated.SessionId, shipment, null, after, snapshot, limit, ct);
             return Results.Ok(new { items = page.Items,
                 nextCursor = ProtectNext(protection, org, shipment, null,
                     page.NextAfter, page.SnapshotAtUtc) });
@@ -236,7 +238,9 @@ public static class ShipmentExceptionEndpoints
             if (!TryCursor(ctx, protection, org, shipment, normalizedState,
                     out var after, out var snapshot))
                 return Fail(ctx, 409, "stale_or_invalid_cursor");
-            var page = await store.ListAsync(org, shipment, normalizedState,
+            var authenticated = Session(ctx);
+            var page = await store.ListAsync(org, authenticated.UserId,
+                authenticated.SessionId, shipment, normalizedState,
                 after, snapshot, limit, ct);
             return Results.Ok(new { items = page.Items,
                 nextCursor = ProtectNext(protection, org, shipment,
@@ -253,7 +257,9 @@ public static class ShipmentExceptionEndpoints
                 return Fail(ctx, 400, "invalid_request");
             var denied = await Guard(ctx, organizations, org, false, ct);
             if (denied is not null) return denied;
-            var result = await store.DetailAsync(org, id, ct);
+            var authenticated = Session(ctx);
+            var result = await store.DetailAsync(org, authenticated.UserId,
+                authenticated.SessionId, id, ct);
             if (result is null) return Fail(ctx, 404, "resource_not_found");
             // Analysts can inspect the operational exception lifecycle without
             // receiving free-form Manager reasons or actor identifiers.
@@ -290,8 +296,10 @@ public static class ShipmentExceptionEndpoints
             if (!TryHistoryCursor(ctx, protection, org, exception,
                     out var afterUtc, out var afterId))
                 return Fail(ctx, 409, "stale_or_invalid_cursor");
+            var authenticated = Session(ctx);
             var page = await store.HistoryPageAsync(
-                org, exception, afterUtc, afterId, limit, ct);
+                org, authenticated.UserId, authenticated.SessionId,
+                exception, afterUtc, afterId, limit, ct);
             if (page is null) return Fail(ctx, 404, "resource_not_found");
             var visible = ctx.Items["M11AuthorizedRole"] is OrganizationRole.Analyst
                 ? page.Items.Select(item => item with

@@ -125,8 +125,9 @@ Every operation is denied without an authenticated subject, required permission,
 ## Reporting definitions
 
 - Active shipment: not archived, cancelled, or completed at the query cutoff.
-- On-time arrival: actual arrival timestamp is no later than planned arrival, for completed eligible shipments.
-- At risk: a rule-identified shipment with an unconfirmed future delay indicator.
-- Delayed: latest accepted projected or actual milestone exceeds the plan under documented tolerance rules.
+- Strict on-time recorded workflow arrival (M13 K05): the first M5 Arrived transition is no later than the source-proven planned-arrival reference for an eligible completed shipment. This is not proof of physical arrival.
+- Tolerated recorded workflow arrival (M13 K06): the same eligible denominator but within the approved 60-minute M11 grace. Display separately from strict on-time.
+- Departure slippage risk (K09): a current, fresh M11 rule condition; not a predictive ETA.
+- Recorded late arrival versus schedule overdue (K07/K08): separate M11 facts. Schedule overdue means arrival is unconfirmed, not an observed physical delay. Archived/cancelled current shipments are excluded.
 - Incident count: tickets that are not resolved or closed at query time.
 - KPI denominators, exclusions, and query windows must accompany displayed results.

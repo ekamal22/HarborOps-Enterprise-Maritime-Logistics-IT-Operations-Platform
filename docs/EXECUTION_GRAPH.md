@@ -1141,4 +1141,4 @@ flowchart TD
 
 ## Current starting point
 
-G0-G10 and G16 are accepted and integrated into protected main. M11 has a separate unverified implementation candidate and G11 acceptance pending. M12-01, M14-01, M17-01, M19-01, M20-01, M21-01, and M23-01 are eligible under their exact prerequisites and outstanding decisions. M13 and M15 still require G11. The M9 transport-event hold remains in force. Status is authoritative for observed work. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
+G0-G12 and G16 are accepted and integrated into protected main as of 2026-11-08. M11 and M12 passed their separate G11 and G12 gates and were integrated through PR #33. Future milestones remain subject to their exact graph prerequisites and separate gate decisions. The M9 ARRI/DEPA processing hold, 10,000 unresolved-work-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain mandatory. No deployment is authorized. See [Status](STATUS.md), [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [Local Storage Policy](LOCAL_STORAGE_POLICY.md).

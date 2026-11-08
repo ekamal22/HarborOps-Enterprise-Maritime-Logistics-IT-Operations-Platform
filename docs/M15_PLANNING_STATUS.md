@@ -1,6 +1,6 @@
 # M15 Scoped In-App Notifications: Planning Status
 
-**Current implementation checkpoint (2026-11-08):** An M15 source candidate is committed on `feat/m15-scoped-notifications-20261108`. See [M15 Implementation Status](M15_IMPLEMENTATION_STATUS.md) for exact files and unresolved risks. The earlier proposal below is preserved as the planning reference where compatible. Current source uses bounded transaction-scoped SKIP LOCKED delivery instead of persistent leased claims, and reuses the accepted signed M11 read scope instead of a new M15 verifier key. These deviations require explicit policy reconciliation. Runtime tests and G15 acceptance remain NOT EXECUTED; no deployment, merge or GitHub Actions are authorized.
+**Current source/evidence checkpoint (2026-11-09):** The implementation candidate is on `feat/m15-scoped-notifications-20261108`. The authoritative [implementation register](M15_IMPLEMENTATION_STATUS.md) and [executed verification record](M15_EXECUTED_VERIFICATION_20261109.md) show 299 unit, 46 contract and 26 targeted PostgreSQL tests passing at frozen SHA `82dac56`; the three-browser test job failed during fixture preparation before Playwright. Later browser fixture and idempotent replay changes are committed but not run. Policy M15-P01..P14 and independent G15 acceptance remain pending. M13 has separate application code and migration requiring shared-source integration. The planning-only statements below are historical proposals where not superseded by dated implementation records. No merge or deployment is authorized.
 
 
 **Date:** 2026-11-08  
@@ -58,9 +58,9 @@ The entries below are **recommended defaults only**. Neither creating these docu
 | Package | Current source state | Gate state |
 | --- | --- | --- |
 | M15-01 | Event catalog, entitlement and dedup rules implemented as candidate defaults; P01-P14 not approved | Policy acceptance pending |
-| M15-02 | SQL-only outbox/personal receipt migration, restricted SQL store, opt-in dispatcher and API grants committed | Not compiled or verified |
-| M15-03 | Namespaced HTTP routes, React notification center and authorized shipment/exception navigation committed | Not compiled or browser-verified |
-| M15-04 | Unit/integration/browser and static contract test source committed | NOT EXECUTED |
+| M15-02 | SQL-only outbox/receipt migration, restricted SQL store, opt-in dispatcher and grants committed. Earlier source passed targeted PostgreSQL tests; replay revision not yet executed. | Latest source and full G15 pending |
+| M15-03 | HTTP routes and React center committed. Earlier source compiled and web build passed; browser fixtures failed before Playwright. | Three-engine browser execution pending |
+| M15-04 | Unit, contract, PostgreSQL and source checks executed on frozen earlier SHA; browser tests authored but not executed. | G15-S01..S25 not fully verified |
 | G15 | Full G15-S01..S25 plan exists, independent review outstanding | NOT ACCEPTED |
 
 ## 5. M13 interface negotiation and ownership

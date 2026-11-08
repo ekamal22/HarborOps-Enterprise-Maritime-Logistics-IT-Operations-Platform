@@ -164,7 +164,7 @@ jobs:
                       text=True).splitlines()
                   if len(containers) != 1:
                       sys.exit('SQL mutant requires exactly one disposable PostgreSQL container')
-                  dbname = 'harborops_mutant_witness'
+                  dbname = 'harborops_test'
                   subprocess.run(['docker', 'exec', containers[0], 'createdb',
                       '-U', 'harborops', '-O', 'harborops', dbname], check=True)
                   os.environ['HARBOROPS_TEST_DB'] = original_db.replace(
@@ -176,6 +176,13 @@ jobs:
               finally:
                   os.environ['HARBOROPS_TEST_DB'] = original_db
               killed = rc != 0 and counts is not None and counts['failed'] > 0 and counts['total'] > 0
+              if v['project'] == integration_project:
+                  test_log = (evidence / (v['id'] + '.log')).read_text()
+                  killed = killed and (
+                      'Failed HarborOps.IntegrationTests.M11ExceptionRuntimeTests.'
+                      + v['test']) in test_log
+                  killed = killed and 'Integration tests require database' not in test_log
+                  killed = killed and 'relation "__EFMigrationsHistory" does not exist' not in test_log
               status = 'KILLED' if killed else 'SURVIVED_OR_INVALID'
               summary.append({'mutant': v['id'], 'status': status, 'counts': counts})
               print(json.dumps(summary[-1]), flush=True)

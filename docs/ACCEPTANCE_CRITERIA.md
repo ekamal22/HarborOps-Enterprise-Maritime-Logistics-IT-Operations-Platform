@@ -1,5 +1,8 @@
 # Acceptance Criteria
 
+**M15 source checkpoint (2026-11-08):** The isolated [M15 implementation](M15_IMPLEMENTATION_PLAN.md) now has a draft SQL-only additive notification outbox migration, live-authorized personal notification API and React workspace. [M15 architecture](M15_ARCHITECTURE_DESIGN.md), [G15 verification specification](M15_VERIFICATION_PLAN.md) and [planning status](M15_PLANNING_STATUS.md) remain implementation and decision references, not evidence of G15 acceptance. The notification receipt lifecycle is distinct from M11 exception disposition and cannot define M13 KPI truth. M15-P01 through M15-P14 remain acceptance pending. Do not enable M9 ARRI/DEPA work, the M10 projector or the M11 evaluator by default; no merge, deployment or production migration is authorized.
+
+
 **Current status (2026-11-08):** G0-G12 and G16 are accepted and merged into `main`. G11 and G12 have separately approved S01 policies and S25 evidence reviews in the [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Earlier pending, unverified and source-candidate checkpoints below remain historical if explicitly dated. The M9 ARRI/DEPA transport hold and 10,000 unresolved-item cap remain binding. M10 projector defaults off, ETA remains null and M11 evaluator is opt-in. No production deployment or migration is authorized.
 
 ## Status convention

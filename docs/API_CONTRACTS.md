@@ -1,5 +1,8 @@
 # API Contracts
 
+**M15 source checkpoint (2026-11-08):** The isolated [M15 implementation](M15_IMPLEMENTATION_PLAN.md) now has a draft SQL-only additive notification outbox migration, live-authorized personal notification API and React workspace. [M15 architecture](M15_ARCHITECTURE_DESIGN.md), [G15 verification specification](M15_VERIFICATION_PLAN.md) and [planning status](M15_PLANNING_STATUS.md) remain implementation and decision references, not evidence of G15 acceptance. The notification receipt lifecycle is distinct from M11 exception disposition and cannot define M13 KPI truth. M15-P01 through M15-P14 remain acceptance pending. Do not enable M9 ARRI/DEPA work, the M10 projector or the M11 evaluator by default; no merge, deployment or production migration is authorized.
+
+
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) govern current M11 delay exceptions and M12 scoped search/export behavior. Earlier source-only and verification checkpoints are historical. The M9 ARRI/DEPA processing hold and 10,000 unresolved-item limit remain binding; M10 projector default-off, ETA null, M11 evaluator opt-in. No deployment or release is authorized.
 
 ## Contract status

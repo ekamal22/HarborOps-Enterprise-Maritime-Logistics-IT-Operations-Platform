@@ -182,7 +182,6 @@ jobs:
                       'Failed HarborOps.IntegrationTests.M11ExceptionRuntimeTests.'
                       + v['test']) in test_log
                   killed = killed and 'Integration tests require database' not in test_log
-                  killed = killed and 'relation "__EFMigrationsHistory" does not exist' not in test_log
               status = 'KILLED' if killed else 'SURVIVED_OR_INVALID'
               summary.append({'mutant': v['id'], 'status': status, 'counts': counts})
               print(json.dumps(summary[-1]), flush=True)

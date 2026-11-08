@@ -156,7 +156,7 @@ jobs:
           export HARBOROPS_M5_FIXTURES=1
           export HARBOROPS_M12_FIXTURES=1
           export HARBOROPS_VERIFICATION_ROOT="$PWD/.verification"
-          mkdir -p .verification/m15-browser
+          mkdir -p .verification/evidence .verification/m15-browser
           printf '%s\n' "$GITHUB_SHA" > .verification/m15-browser/source-sha.txt
           project="ho-verify-m15-${GITHUB_RUN_ID}"
           cleanup() {

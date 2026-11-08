@@ -87,6 +87,18 @@ public sealed class M15NotificationRuntimeTests
         Assert.Equal(3,(await acknowledgment.Content.ReadFromJsonAsync<JsonElement>())
             .GetProperty("version").GetInt64());
 
+        // A retry of the first committed action returns its original receipt
+        // snapshot even after a separate request has acknowledged the notice.
+        using var lateReplay = await M11ExceptionRuntimeTests.SendAction(manager,
+            itemUrl,new { action="MarkRead",expectedVersion=1L },replay);
+        Assert.Equal(HttpStatusCode.OK,lateReplay.StatusCode);
+        var lateBody = await lateReplay.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(2,lateBody.GetProperty("version").GetInt64());
+        Assert.Equal(JsonValueKind.Null,lateBody.GetProperty("acknowledgedAtUtc").ValueKind);
+        using var latest = await manager.GetAsync(itemUrl);
+        Assert.Equal(3,(await latest.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("version").GetInt64());
+
         using var countAfter = await manager.GetAsync(url+"/unread-count");
         Assert.Equal(0,(await countAfter.Content.ReadFromJsonAsync<JsonElement>())
             .GetProperty("unreadCount").GetInt64());

@@ -31,3 +31,7 @@ The recorded G11 matrix also identifies **S05, S06, S07, S16 and S24** as partia
 **G11-S25: REVIEWED WITH OPEN MANDATORY FINDINGS, NOT PASS.** The raw local evidence is internally consistent, and the new tests materially reduce risk. It does not yet justify full G11 acceptance because G11-S21's required outcome is incomplete, the other matrix PARTIAL/NOT EXECUTED scenarios remain unresolved, there is no final-source full-suite acceptance evidence, and S01 formal policy reconciliation is still open.
 
 Targeted closure: capture a deterministic commit-succeeds/reply-lost case and a real evaluator/API process termination or an explicitly approved equivalent; reconcile all other G11 matrix PARTIAL/NOT EXECUTED rows with actually executed evidence; run or approve a final-SHA source-change regression decision; obtain an explicit G11-S01 decision; re-review the complete record. No protected-main merge, deployment, production migration or M9 hold clearance is implied.
+
+## Subsequent remediation
+
+The findings above were addressed by the closure campaign recorded in [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md). This review is retained as written for the first package; an independent re-review of the closure package is pending.

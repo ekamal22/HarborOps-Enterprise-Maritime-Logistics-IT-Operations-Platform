@@ -33,3 +33,7 @@ Independently parsed all **23 retained warm EXPLAIN (ANALYZE, BUFFERS, FORMAT JS
 **G12-S25: REVIEWED WITH OPEN MANDATORY FINDINGS, NOT PASS.** The local package, defect remediation and query-plan results are internally consistent. Formal G12 acceptance is not recommended until the real proxy/stream-cancellation boundary is tested or explicitly waived, the remaining PARTIAL/NOT EXECUTED matrix items are closed with evidence, final-source regression coverage is reconciled, and S01 is formally decided.
 
 No protected-main merge, deployment, production migration, GitHub Actions run or M9 hold modification is authorized by this review.
+
+## Subsequent remediation
+
+The findings above were addressed by the closure campaign recorded in [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md). This review is retained as written for the first package; an independent re-review of the closure package is pending.

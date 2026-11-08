@@ -1,6 +1,6 @@
 # M11/M12 Verified Coverage Reconciliation
 
-**Local closure update (2026-11-08):** [Local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md) add locally retained raw evidence for the residual G11 and G12 scenarios; this hosted reconciliation is otherwise unchanged.
+**Local closure update (2026-11-08):** [Local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md) add locally retained raw evidence for the G11 and G12 scenarios, including the complete 388-case suite on the final application source; the first local package was independently reviewed NOT PASS and the closure package awaits re-review. This hosted reconciliation is otherwise unchanged and remains historical.
 
 **As checked:** 2026-11-08, after the 04:09 UTC final full-suite result
 **Repository:** `ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform`

@@ -1,180 +1,145 @@
 {
-  "format": "harborops.m11m12.local-evidence-index.v1",
+  "format": "harborops.m11m12.local-evidence-index.v2",
   "recordedDate": "2026-11-08",
   "branch": "feat/m11-m12-combined-integration",
-  "frozenHostedApplicationSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
-  "finalRunSha": "5dedbb70b4d2f4088f117d905e90d59f23a26915",
-  "supplementSha": "3d450ac320b00538b106f2ad6d4b86c88661d7a4",
   "acceptedMainSha": "6ead1d076946dd96b53401265a31efc35c4a666c",
-  "applicationDiffVsFrozen": "src/HarborOps.Infrastructure/Shipments/ShipmentSearchStore.cs, 34 insertions, 1 deletion (defect F-M12-01 export serialization-failure retry)",
-  "evidenceRoot": "E:\\HarborOps-Verification\\evidence\\m11m12-local-01",
-  "evidenceFiles": 277,
-  "manifestSha256": "7cadf6cb1edfd27ebaf7f65c357ace7496f1c331b3ee1d6d4fbb5abfbcfc12ba",
-  "archive": {
-    "path": "E:\\HarborOps-Verification\\archives\\m11m12-local-evidence-20261108.tar.gz",
-    "sha256": "35d43c916bc4242cafa5ecf232d437aee9e1ef7918855f3cc866de8453b69b4d"
+  "hostedApplicationSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+  "independentReviews": {
+    "g11": "NOT PASS",
+    "g12": "NOT PASS",
+    "reviewedPackage": "m11m12-local-01",
+    "documents": [
+      "docs/M11_G11_INDEPENDENT_EVIDENCE_REVIEW_20261108.md",
+      "docs/M12_G12_INDEPENDENT_EVIDENCE_REVIEW_20261108.md"
+    ]
   },
-  "independentReadBack": {
+  "firstPackage": {
+    "root": "E:\\HarborOps-Verification\\evidence\\m11m12-local-01",
     "files": 277,
-    "problems": 0
+    "manifestSha256": "7cadf6cb1edfd27ebaf7f65c357ace7496f1c331b3ee1d6d4fbb5abfbcfc12ba",
+    "archiveSha256": "35d43c916bc4242cafa5ecf232d437aee9e1ef7918855f3cc866de8453b69b4d",
+    "shas": [
+      "5dedbb70b4d2f4088f117d905e90d59f23a26915",
+      "3d450ac320b00538b106f2ad6d4b86c88661d7a4"
+    ]
   },
-  "safetyScanHits": 0,
-  "independentReviewCompleted": false,
-  "acceptanceGranted": false,
-  "finalStages": [
-    {
-      "stage": "build",
-      "result": "0 warnings, 0 errors"
+  "closurePackage": {
+    "root": "E:\\HarborOps-Verification\\evidence\\m11m12-local-02",
+    "files": 562,
+    "manifestSha256": "25b8c25097c703635628d7ca57985edef475a9a9e629a9007f946b3cf3f6700f",
+    "archive": {
+      "path": "E:\\HarborOps-Verification\u0007rchives\\m11m12-local-02-evidence-20261108.tar.gz",
+      "sha256": "caa8f6a1c3d43d545f9e39a7e5b95dfce785d24371d7a4426016025f989c8969"
     },
-    {
-      "stage": "unit",
-      "trx": "final/raw/unit.trx",
-      "total": 291,
-      "passed": 291
+    "independentReadBack": {
+      "files": 562,
+      "problems": 0
     },
-    {
-      "stage": "contract",
-      "trx": "final/raw/contract.trx",
-      "total": 46,
-      "passed": 46
-    },
-    {
-      "stage": "g11-existing-and-upgrade",
-      "trx": "final/raw/g11-existing-and-upgrade.trx",
-      "total": 20,
-      "passed": 20
-    },
-    {
-      "stage": "g12-existing-and-residual",
-      "trx": "final/raw/g12-existing-and-residual.trx",
-      "total": 40,
-      "passed": 40
-    },
-    {
-      "stage": "g12-query-plans",
-      "trx": "final/raw/g12-query-plans.trx",
-      "total": 1,
-      "passed": 1
-    },
-    {
-      "stage": "g11-residual-supplement",
-      "trx": "final-supplement/raw/g11-residual-class.trx",
-      "total": 15,
-      "passed": 15
-    }
-  ],
-  "historicalFailedOrSupersededAttempts": [
-    "raw/g11-residual-run1-2of13-failed.trx",
-    "raw/g11-residual-run2-recovery-pass-s08-failed.trx",
-    "raw/g12-residual-run1-defect-before-fix.trx",
-    "raw/g12-residual-run2-fix-insufficient.trx",
-    "raw/t1-plan-run1-FAILED.trx",
-    "raw/t1-plan-run2-FAILED.trx",
-    "raw/t1-plan-run3-FAILED.trx",
-    "raw/t1-plan-run4-FAILED.trx"
-  ],
-  "allTrx": {
-    "final-supplement/raw/g11-residual-class.trx": {
-      "total": 15,
-      "passed": 15,
-      "failed": 0
-    },
-    "final/raw/contract.trx": {
-      "total": 46,
-      "passed": 46,
-      "failed": 0
-    },
-    "final/raw/g11-existing-and-upgrade.trx": {
-      "total": 20,
-      "passed": 20,
-      "failed": 0
-    },
-    "final/raw/g12-existing-and-residual.trx": {
-      "total": 40,
-      "passed": 40,
-      "failed": 0
-    },
-    "final/raw/g12-query-plans.trx": {
-      "total": 1,
-      "passed": 1,
-      "failed": 0
-    },
-    "final/raw/unit.trx": {
-      "total": 291,
-      "passed": 291,
-      "failed": 0
-    },
-    "raw/g11-residual-run1-2of13-failed.trx": {
-      "total": 13,
-      "passed": 11,
-      "failed": 2
-    },
-    "raw/g11-residual-run2-recovery-pass-s08-failed.trx": {
-      "total": 2,
-      "passed": 1,
-      "failed": 1
-    },
-    "raw/g11-s08-run3.trx": {
-      "total": 1,
-      "passed": 1,
-      "failed": 0
-    },
-    "raw/g12-residual-run1-defect-before-fix.trx": {
-      "total": 23,
-      "passed": 15,
-      "failed": 8
-    },
-    "raw/g12-residual-run2-fix-insufficient.trx": {
-      "total": 23,
-      "passed": 15,
-      "failed": 8
-    },
-    "raw/g12-residual-run3.trx": {
-      "total": 23,
-      "passed": 23,
-      "failed": 0
-    },
-    "raw/t1-plan-run1-FAILED.trx": {
-      "total": 1,
-      "passed": 0,
-      "failed": 1
-    },
-    "raw/t1-plan-run2-FAILED.trx": {
-      "total": 1,
-      "passed": 0,
-      "failed": 1
-    },
-    "raw/t1-plan-run3-FAILED.trx": {
-      "total": 1,
-      "passed": 0,
-      "failed": 1
-    },
-    "raw/t1-plan-run4-FAILED.trx": {
-      "total": 1,
-      "passed": 0,
-      "failed": 1
-    },
-    "raw/t1-plan-run5.trx": {
-      "total": 1,
-      "passed": 1,
-      "failed": 0
+    "safetyScanHits": 0,
+    "applicationSourceShaForSuite": "2eee441fa37c17101846516cf133a92c7e59335c",
+    "stackProbeCorrectionSha": "ed58449c2fe4eab20ef23c2cdb7f2b5778a2fd14",
+    "supplementSha": "6e9029562becc27bf197a1568a60e3d676de83e6",
+    "applicationSourceChangesSinceHosted": [
+      "src/HarborOps.Infrastructure/Shipments/ShipmentSearchStore.cs",
+      "src/HarborOps.Domain/Maritime/MaritimePolicy.cs"
+    ],
+    "stages": [
+      {
+        "stage": "build",
+        "result": "0 warnings, 0 errors"
+      },
+      {
+        "stage": "unit",
+        "trx": "final/raw/unit.trx",
+        "total": 291,
+        "passed": 291
+      },
+      {
+        "stage": "contract",
+        "trx": "final/raw/contract.trx",
+        "total": 46,
+        "passed": 46
+      },
+      {
+        "stage": "integration-full",
+        "trx": "final/raw/integration-full.trx",
+        "total": 388,
+        "passed": 388,
+        "skipped": 0
+      },
+      {
+        "stage": "query-plans",
+        "trx": "final/raw/query-plans.trx",
+        "total": 1,
+        "passed": 1,
+        "plans": 23
+      },
+      {
+        "stage": "g11-process-and-database-faults",
+        "report": "final/stack/g11-faults.json",
+        "checks": 12,
+        "passed": 12
+      },
+      {
+        "stage": "g12-real-network-path",
+        "report": "final/stack/g12-network-rerun.json",
+        "checks": 32,
+        "passed": 32
+      },
+      {
+        "stage": "browsers",
+        "reports": "final/browser/*.json",
+        "expected": 48,
+        "unexpected": 0,
+        "skipped": 0,
+        "flaky": 0
+      },
+      {
+        "stage": "effective-mutants",
+        "report": "final/mutations/summary.json",
+        "variants": 17,
+        "killed": 17
+      },
+      {
+        "stage": "scans",
+        "reports": "final/scans/",
+        "dotnetVulnerable": 0,
+        "npmWeb": 0,
+        "npmBrowser": 0,
+        "trivySource": 0,
+        "trivyImages": 0
+      },
+      {
+        "stage": "supplement-m11-closure-class",
+        "trx": "final-supplement/raw/m11-closure-class.trx",
+        "total": 7,
+        "passed": 7
+      }
+    ],
+    "dispositions": {
+      "g11": {
+        "PASS": 23,
+        "BLOCKED": 2
+      },
+      "g12": {
+        "PASS": 22,
+        "NOT APPLICABLE": 1,
+        "BLOCKED": 2
+      }
     }
   },
   "defects": [
     {
       "id": "F-M12-01",
-      "summary": "Export at REPEATABLE READ failed with 503 on SQLSTATE 40001 caused by session-row updates of concurrent requests or in-flight revocation; fail-closed but wrong status and spurious failure",
-      "fixSha": "5dedbb70b4d2f4088f117d905e90d59f23a26915",
-      "verifiedBy": "M12ResidualBoundaryTests 23/23, ShipmentSearchHttpTests 4/4"
+      "summary": "Export at REPEATABLE READ returned 503 on SQLSTATE 40001 caused by session-row updates of concurrent requests or in-flight revocation; fail-closed, wrong status and spurious failure",
+      "fixSha": "5dedbb70b4d2f4088f117d905e90d59f23a26915"
+    },
+    {
+      "id": "F-M4-01",
+      "summary": "Instants without a UTC designator were accepted and parsed in the host time zone",
+      "fixSha": "b2a72bf872e2ede53e23e1e16dcd76d9c8466d97"
     }
   ],
-  "notExecutedLocally": [
-    "full 341-case suite at final SHA",
-    "three-engine browsers",
-    "effective mutation campaign",
-    "dependency and image scans",
-    "real nginx proxy path",
-    "OS process kill and container stop",
-    "CPU-bound export deadline"
-  ]
+  "acceptanceGranted": false,
+  "independentReReviewCompleted": false
 }

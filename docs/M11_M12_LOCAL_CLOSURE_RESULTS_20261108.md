@@ -1,108 +1,117 @@
 # M11/M12 Local Closure Results
 
-**Independent archive review, 2026-11-08:** [G11](M11_G11_INDEPENDENT_EVIDENCE_REVIEW_20261108.md) and [G12](M12_G12_INDEPENDENT_EVIDENCE_REVIEW_20261108.md) independently reconciled the manifest, raw tests and measured plans. The archive is internally consistent, but **both S25 reviews are NOT PASS** because required acceptance scenarios remain open. The previous recommendations below were made before this separate evidence review.
-
 **Date:** 2026-11-08
 **Branch:** `feat/m11-m12-combined-integration`
-**Frozen hosted application SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`
-**Local verification SHAs:** `5dedbb70b4d2f4088f117d905e90d59f23a26915` (export retry fix plus focused tests, final run) and `3d450ac320b00538b106f2ad6d4b86c88661d7a4` (test-only supplement)
+**Hosted application SHA (earlier evidence):** `f56d017d9b2619be56fe533f73ba1d11f63974c0`
+**Closure application source:** hosted source plus two fixes, `5dedbb7` (export serialization retry) and `b2a72bf` (explicit UTC designator). Application source is identical from `2eee441` onward; later commits change tests and the stack probe only.
 **Accepted baseline:** protected `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`, unchanged
-**Status:** Technical evidence prepared for independent S25 review. **G11 and G12 acceptance pending.** No merge, deployment, release or production migration occurred.
+**Status:** Technical evidence for the independent S25 re-reviews. **G11 and G12 acceptance pending.** No merge, deployment, release or production migration occurred.
 
-This record executes the targeted plan in the [local closure runbook](M11_M12_LOCAL_CLOSURE_RUNBOOK_20261108.md). It does not repeat the hosted 341-case suite. Scenario dispositions are in the [G11 matrix](M11_G11_EVIDENCE_MATRIX_20261108.md) and [G12 matrix](M12_G12_EVIDENCE_MATRIX_20261108.md). The machine-readable index is [M11_M12_LOCAL_EVIDENCE_INDEX_20261108.json](M11_M12_LOCAL_EVIDENCE_INDEX_20261108.json).
+Dispositions are in the [G11 matrix](M11_G11_EVIDENCE_MATRIX_20261108.md) and [G12 matrix](M12_G12_EVIDENCE_MATRIX_20261108.md); the machine-readable index is [M11_M12_LOCAL_EVIDENCE_INDEX_20261108.json](M11_M12_LOCAL_EVIDENCE_INDEX_20261108.json).
+
+## History
+
+1. **First local campaign** (`5dedbb7`, `3d450ac`, documentation `8571050`): focused tests, measured plans and one defect fix; package `m11m12-local-01`, 277 files.
+2. **Independent reviews** (2026-11-08): [G11](M11_G11_INDEPENDENT_EVIDENCE_REVIEW_20261108.md) and [G12](M12_G12_INDEPENDENT_EVIDENCE_REVIEW_20261108.md) verified the package and returned **G11-S25 NOT PASS** and **G12-S25 NOT PASS** with open mandatory findings. The recommendations in the first version of this record were made before those reviews.
+3. **Closure campaign** (this record): addresses every named finding on the final application source; package `m11m12-local-02`.
+
+## Review findings and the evidence that answers them
+
+| Open finding | Closure evidence |
+| --- | --- |
+| G11-S21 commit succeeds and the reply is lost | `EvaluationWithLostCommitOutcomeRecoversWithoutDuplicates` (durable commit with the reply dropped: 1 exception, 4 evaluations, 1 Opened; commit never delivered: 0/0/0; both converge to one set) and `DispositionWithLostReplyIsReplayedByIdempotencyKeyWithoutDuplicates` (committed version 2, same-key retry Replayed, one replay row, one audit) through a disposable commit socket proxy |
+| G11-S21 real evaluator process termination | Compose stack `g11-faults.json`, 12/12: SIGKILL with the evaluation transaction open (0 exceptions, 0 opened, rule not Active) then restart completes exactly once; SIGKILL after the commit is visible (1/4/1 stable for 40 s); PostgreSQL SIGKILL with crash recovery and orderly stop and start (1/4/1); no duplicates anywhere |
+| G11-S20 simulated clock | `CheckpointCrossedInRealTimeWhileTheHostIsDownIsRecoveredOnRestart`: host stopped before the stored checkpoint, 52 s of real time pass it with no stored data changed, the restarted evaluator opens exactly one exception (supplement at `6e90295`, 7/7); the earlier simulated case remains, labelled |
+| G11-S08 equal-instant tie never forced | `WitnessTieBreaksOnSourceThenCollationOrderedSourceEventWhenReceiptInstantsAreEqual`: receipt instants set equal, witness follows source id then C-collation source event id (`tie-Z` over `tie-a`) in both source orders, computed independently by ordinal comparison |
+| G11 S05, S06, S07, S16 partial | `RuleStateAndSourceConfidenceMatrixHoldsThroughHttpAndRestrictedSql` (10 cases) and `ConcurrentEvaluatorsOpenExactlyOneRecurrenceOccurrence` |
+| G11/G12 S22 browsers not local | 48/48 across Chromium, Firefox and WebKit through Nginx with raw JSON (expected 48, unexpected 0, skipped 0, flaky 0) |
+| G11/G12 S23 final-SHA regression | complete integration suite **388/388, no skips** on an exclusive disposable PostgreSQL server at `2eee441`, with 291/291 unit and 46/46 contract; no change-impact waiver is needed |
+| G11/G12 S24 hosted-only mutants and scans | 17/17 effective mutants killed locally; dependency, source and three image scans with 0 HIGH or CRITICAL |
+| G12-S17/S19 real proxy, mid-download, CPU | Compose stack `g12-network-rerun.json`, 32/32 (below) |
+| G12 S03 to S08, S10, S12 partial | `M12MatrixRuntimeTests` (3 tests) |
+| S01 formal decisions, signed M9 hold | recommendations below; decisions remain separate |
 
 ## What was executed
 
-Disposable PostgreSQL 16.15 servers (two, one exclusive for role-changing tests) and the .NET 10.0.403 SDK container, with all caches, databases and evidence on E:. Source identity, working-tree cleanliness (empty before and after), container image ids, server versions, SQL grants and the hashes of migrations and scripts are recorded in `final/env/`.
-
-| Stage | Result | Raw report |
+| Stage | Result | Raw report (under `E:\HarborOps-Verification\evidence\m11m12-local-02`) |
 | --- | --- | --- |
 | Release build, warnings as errors, no incremental | 0 warnings, 0 errors | `final/logs/build.log` |
 | Unit tests | 291/291 | `final/raw/unit.trx` |
 | Contract tests | 46/46 | `final/raw/contract.trx` |
-| Existing M11 runtime (19) plus populated 13-to-15 upgrade (1) | 20/20 | `final/raw/g11-existing-and-upgrade.trx` |
-| Existing G12 search/export (4) plus new G11 residual (13) plus new G12 residual (23) | 40/40 | `final/raw/g12-existing-and-residual.trx` |
-| Measured query plans (1 test, 23 plans) | 1/1 | `final/raw/g12-query-plans.trx`, `final/plans/` |
-| Amended G11 residual class at `3d450ac` (15 tests) | 15/15 | `final-supplement/raw/g11-residual-class.trx` |
+| Source contract, graph and planning checks | pass | `final/logs/source-contract-checks.log` |
+| **Complete integration suite** | **388/388, no skips** | `final/raw/integration-full.trx` |
+| Measured query plans (23 plans) | 1/1 | `final/raw/query-plans.trx`, `final/plans/` |
+| G11 process and database faults, Compose stack | 12/12 | `final/stack/g11-faults.json` |
+| G12 real Nginx path, Compose stack | 32/32 | `final/stack/g12-network-rerun.json` |
+| Browsers, three engines | 48/48 | `final/browser/*.json` |
+| Effective mutants | 17/17 killed | `final/mutations/summary.json` |
+| Dependency scans (dotnet, npm web, npm browser) | clean | `final/scans/` |
+| Trivy source and postgres, api, web images | 0 HIGH or CRITICAL; image revision label equals the source SHA | `final/scans/` |
+| Test supplement `M11ClosureRuntimeTests` at `6e90295` | 7/7 | `final-supplement/raw/m11-closure-class.trx` |
 
-The hosted browser, mutation and scan campaigns were not rerun locally. The full 341-case suite was not rerun on the final SHA (see Outstanding).
+The 388 cases run on a single exclusive server in one invocation, including the populated 13-to-15 upgrade, the restricted-role tests and every accepted M0 to M10 and M16 suite. The query-plan probe runs separately because it seeds 170,000 rows that would slow the evaluator sweep in the suite.
 
-## Defect found and fixed: F-M12-01
+## Defects found and fixed
 
-**Symptom.** An authorized export could fail with 503, and a caller whose access was revoked while the export was in flight received 503 instead of 403 or 404. The failure was closed: no CSV bytes and no audit row.
+**F-M12-01, export failed with 503 on a serialization conflict (`5dedbb7`).** The export runs at REPEATABLE READ and locks the caller's session row. Every authenticated request updates that row, so a concurrent request from the same session, or a revocation, raised SQLSTATE 40001, which the API reported as 503. It failed closed (no CSV, no audit) but a valid export could fail spuriously and a revoked caller received the wrong status. The fix retries up to three attempts inside the one 25 second budget and matches the exception chain (the EF provider wraps the error; a first fix that did not match the wrapped exception was ineffective and is retained as evidence).
 
-**Root cause.** The export runs at REPEATABLE READ and locks the caller's session row. Every authenticated request updates that row (last-seen and idle expiry). A concurrent request from the same session, or a revocation, therefore raised PostgreSQL SQLSTATE 40001 (`could not serialize access due to concurrent update`) when the scope check locked the row. The EF Core provider wraps that error in an `InvalidOperationException`, and the API reports database failures as 503.
+**F-M4-01, instants without a UTC designator were accepted (`b2a72bf`).** The shared parser used an optional offset specifier, so `2026-03-01T00:00:00` parsed in the host's local zone and passed the zero-offset check only on UTC hosts, contrary to the explicit-UTC contract and dependent on the host time zone. The parser now requires `Z`, `+00:00` or `-00:00`. Unit cases added; 66 impacted integration tests and later the complete suite pass.
 
-**Evidence.** Seven of eight export revocation cases and the per-instance test failed: `logs/30-g12-residual-run1-DEFECT-...log` and `raw/g12-residual-run1-defect-before-fix.trx`. A first fix that caught only a bare `PostgresException` did not take effect (`logs/31-...FIX-INSUFFICIENT...log`); the host log showed the wrapped exception (`logs/32-debug-...log`).
+## Real network and fault measurements
 
-**Fix.** `ShipmentSearchStore.ExportAsync` retries up to three attempts on a fresh snapshot when any exception in the chain is SQLSTATE 40001, inside the one existing 25 second budget so the 30 second proxy envelope is unchanged. Nothing is committed before the final audit call, so a retry cannot duplicate an audit. A genuine revocation is then reported as 403 or 404. Change size: 35 lines in one file. **After the fix** all 23 G12 residual tests passed and the final run is 40/40.
+Compose stack `ho-verify-m11m12` (Nginx 1.30.6, Kestrel, PostgreSQL 16.15), own ports and subnet, other stacks untouched.
 
-## Other findings and observations (no defect unless stated)
+| Case | Observed |
+| --- | --- |
+| Export via Nginx versus direct Kestrel | byte-identical, 4,870,215 bytes (worst-case 5,000 rows, 46% of 10 MiB) |
+| 15 second PostgreSQL statement timeout | 503 at 15.02 s, JSON body, no CSV, no audit |
+| 25 second application budget | 503 at 25.02 s, body names the request budget, no audit |
+| Upstream stalled (container paused) with the request in flight | Nginx 504 at 30.18 s, no CSV, no leaked backend, lease released |
+| CPU starvation, 3,500 microseconds per second | 503 at 27.88 s (internal budget expired; 2.9 s over the 25 s budget), no audit |
+| CPU starvation, 4,000 microseconds per second | 200 at 25.86 s, complete CSV, one audit |
+| CPU starvation, 5,000 microseconds per second | 200 at 14.92 s, complete CSV, one audit |
+| Client reset after paused headers and after 64 KiB | partial body only, 0 idle-in-transaction, backends unchanged, next export 200 and byte-identical |
+| Client disconnect while queued on a database lock | 0 waiting backends while the lock is still held (cancellation reached PostgreSQL through Nginx and Kestrel), no audit, lease released |
+| Session revoked while queued behind Nginx | 403, no CSV, no audit |
 
-1. **Free-text search scales with the whole table for large tenants.** For the largest tenant (70% of 170,000 rows) the plan is a parallel sequential scan of the entire shipments heap (4,974 buffers, 32 to 49 ms). The small tenant uses an index and 300 buffers. The leading-wildcard `LIKE` cannot use the existing btree indexes. Acceptable at the tested size; a trigram index would be the remediation if text search must scale to millions of rows. Not changed.
-2. **The 10 MiB export limit cannot be reached over HTTP.** Field limits (32, 80 and 160 characters) bound a worst-case 5,000-row export to 4,870,215 bytes (46% of the limit, measured). The limit is enforced and verified at the SQL function (10,485,760 accepted, 10,485,761 refused) and remains defense in depth.
-3. **The M11 evaluator is an opt-in hosted service** (`M11:EnableEvaluator`, default off). The recovery test enables it explicitly. Its due scan pages 25 shipments per 200 ms when nothing is due, so one sweep takes about N/125 seconds for N shipments (computed from the code, not measured).
-4. **Export lease and rate limit are per API instance** (documented M12-P10). Two instances admit two concurrent exports for one principal and 10 attempts per minute each. There is no cross-instance aggregate limit.
-5. **The export audit proves preparation, not receipt** (documented M12-P12). A client that discards the body after the headers still leaves exactly one prepared audit.
-6. **Estimate versus actual ratios** in the plan summary are dominated by `LIMIT` early termination and are not a planner-quality signal. Raw plans are retained for reviewers.
-7. **Limitations of the simulations.** The clock advance in the recovery test is simulated by moving the schedule and checkpoint into the past. Database outage is simulated by disabling the runtime login and terminating backends, and crashes by terminating backends at 14 instants per run (final run: 4 rolled back, 10 already complete; supplement: 2 and 12). The window where a commit succeeds and the reply is lost was not observed. No OS process kill, container stop or real nginx proxy path was run, and the in-memory test server cannot interrupt a download mid-body.
+## Findings and observations (no defect unless stated)
 
-## G12-S20 measured plans
+1. **Free-text search scales with the whole table for large tenants.** For the largest tenant (70% of 170,000 rows) the plan is a parallel sequential scan of the whole shipments heap (4,974 buffers, 35 to 60 ms). The small tenant uses an index and 300 buffers. All other statements use indexes (at most 12 ms). A trigram index is the remediation if text search must serve millions of rows. Not changed.
+2. **The 10 MiB export limit cannot be reached over HTTP** (maximum about 4.9 MB). It is enforced and verified at the SQL function (10,485,760 accepted, 10,485,761 refused).
+3. **End-to-end time under extreme CPU starvation can exceed the 25 second application budget** (27.88 s observed); the proxy envelope still cut or answered within 30 s in every case and no partial CSV appeared. M12-P10 already states preparation deadlines do not guarantee network timing.
+4. **The M11 evaluator is opt-in** (`M11:EnableEvaluator`, default off, kept off). Its due scan pages 25 shipments per 200 ms, so a sweep takes about N/125 seconds for N shipments; with 5,000 unevaluated shipments a new shipment waited behind the sweep in a rehearsal. Index a due queue before enabling it by default.
+5. **Export lease and rate limit are per API instance** (documented M12-P10); there is no cross-instance aggregate. Retained unchanged.
+6. **The export audit proves preparation, not receipt** (documented M12-P12); a reset client still leaves one prepared audit.
+7. **Equivalent mutants.** Removing only the cursor actor binding, or only the replay actor comparison, survives because the session binding and the request digest independently cover the same cases; the effective mutants remove both. Removing `COLLATE "C"` is unobservable on the Alpine image (bytewise ordering) and is killed on a Debian `en_US.utf8` cluster. These survivors are retained with reasons in the mutation summary (the attempt 2 raw report for the collation variant was overwritten by its rerun; its result is kept in `summary-subset-attempt2.json`).
+8. **Simulations and limits.** One S20 case still moves stored data to simulate a clock advance and a login outage (labelled); the real-elapsed-time case supersedes it. The in-memory host cannot interrupt a body, so mid-download interruption uses the real stack. A production-like cluster, node loss and sustained load were not exercised.
 
-170,000 shipments over three tenants (120,000, 40,000 and 10,000) with 40 ports and 150 voyages each, 60% voyage-assigned, 8% archived, planner statistics refreshed. Requests went through the restricted `harborops_api` login; the exact SQL emitted by the API was captured with an EF interceptor and replayed read-only under that role with `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)`, cold and warm. Criteria were fixed before the first measured run: search statements under 1,000 ms, export statements under 3,000 ms, small-tenant statements without a sequential scan and under 2,500 buffers, and the exactly-5,000 export returning 5,001 CSV lines with one audit.
+## Historical failures retained
 
-| Case | Rows | Warm ms | Buffers | Plan |
-| --- | ---: | ---: | ---: | --- |
-| Text, unique reference (big) | 1 | 32.4 | 4,974 | parallel Seq Scan, sort |
-| Text, broad, first page | 26 | 44.7 | 4,974 | parallel Seq Scan, sort |
-| Text, 5,000 matches | 26 | 36.2 | 4,974 | parallel Seq Scan, sort |
-| Text, no match | 0 | 33.6 | 4,974 | parallel Seq Scan, sort |
-| Workflow status | 26 | 0.11 | 29 | Index Scan `IX_..._WorkflowStatus_Id` |
-| Record status Archived | 26 | 0.07 | 29 | Index Scan `IX_..._RecordStatus_Id` |
-| Record status All, limit 100 | 101 | 0.15 | 105 | Index Scan `AK_..._Id` |
-| Origin and destination ports | 26 | 2.5 | 3,004 | Index Scan origin, sort |
-| Voyage assignment | 26 | 3.3 | 5,835 | merge join with `IX_m6_voyage_shipment` |
-| Departure UTC window | 26 | 0.44 | 601 | Index Scan |
-| Arrival UTC window | 26 | 0.47 | 430 | Index Scan |
-| Combined status, port, window | 24 | 2.3 | 3,004 | Index Scan origin, sort |
-| Keyset page 2 after cursor | 26 | 0.07 | 29 | Index Scan |
-| Keyset 60,000 rows deep | 26 | 0.12 | 30 | Index Scan |
-| Small tenant: text, status, no match | 26, 26, 0 | 8.8, 0.07, 6.1 | 300, 29, 300 | index and bitmap, no Seq Scan |
-| Export, text matches (4,600 active) | 4,600 | 49.3 | 4,974 | parallel Seq Scan |
-| Export, exactly 5,000 (all statuses) | 5,000 | 35.6 | 4,974 | parallel Seq Scan |
-| Export, 5,001-row refusal (Draft) | 5,001 | 3.9 | 5,043 | Index Scan |
-| Export, ports / window+status / small tenant | 158 / 1,480 / 300 | 2.5 / 7.8 / 0.21 | 3,004 / 2,553 / 305 | Index Scan, sort |
+First package: five plan-probe attempts, two G11 residual attempts, the F-M12-01 failing runs and the first insufficient fix. Closure package: Trivy source scan (the `mirror.gcr.io` database host did not resolve; rerun from `ghcr.io` passed), stack G12 attempts (probe mistakes: raw response text, pause after completion, CPU limit not removed by `--cpus 0`, minimum CPU quota, revoke ordering, scope of an audit baseline), the load-count check, browser fixtures output directory, the first browser run (per-spec API restart silently skipped, so the login limiter accumulated), the first mutation pass (database not reset, so six migration-SQL variants were invalid) and the equivalent-mutant survivors. All are under `logs/`, `final/` attempt directories and the first package.
 
-All declared criteria were met. Raw JSON for every statement, the SQL text with parameters and the dataset inventory (index sizes, server settings) are in `final/plans/`.
+## Evidence package
 
-## Scenario dispositions
+- Directory: `E:\HarborOps-Verification\evidence\m11m12-local-02` (562 files).
+- Manifest: `MANIFEST.sha256`, SHA-256 `25b8c25097c703635628d7ca57985edef475a9a9e629a9007f946b3cf3f6700f`. Independent read-back: `READBACK.txt` (562 files re-hashed, 0 problems, every TRX re-parsed and compared with `trx-summary.json`). Safety scan: `safety-scan.json`, 0 hits.
+- Transfer archive: `E:\HarborOps-Verification\archives\m11m12-local-02-evidence-20261108.tar.gz`, SHA-256 `caa8f6a1c3d43d545f9e39a7e5b95dfce785d24371d7a4426016025f989c8969`; the extracted copy was verified against the manifest.
+- The first package `m11m12-local-01` is unchanged (manifest SHA-256 `7cadf6cb1edfd27ebaf7f65c357ace7496f1c331b3ee1d6d4fbb5abfbcfc12ba`, archive SHA-256 `35d43c916bc4242cafa5ecf232d437aee9e1ef7918855f3cc866de8453b69b4d`).
+- Runners are retained in `final/env/`, `final-supplement/env/` and `scripts/`; the stack compose file `compose.m11m12.verify.yaml` and the probe `scripts/check-m11m12-stack.mjs` are in the repository.
 
-Original local campaign disposition: G11 PASS 16, PARTIAL 6, NOT EXECUTED 1, BLOCKED 2; G12 PASS 9, PARTIAL 12, NOT EXECUTED 1, NOT APPLICABLE 1, BLOCKED 2. **Independent review adjustment:** G11-S21 is PARTIAL rather than PASS because post-commit lost-reply and operating-system process termination were not executed. Current G11 count: PASS 15, PARTIAL 7, NOT EXECUTED 1, BLOCKED 2. G12 count remains unchanged. PARTIAL means the executed subset passed and the remainder was not run; those rows are not accepted. The partial G12 rows (S03 to S08, S10, S12) are HTTP matrices outside the targeted plan. Remaining items are listed per row in the matrices.
+## Policy and hold reconciliation (recommendations only)
 
-## Evidence package for the independent S25 reviews
-
-- Directory: `E:\HarborOps-Verification\evidence\m11m12-local-01` (277 files).
-- Manifest: `MANIFEST.sha256`, SHA-256 `7cadf6cb1edfd27ebaf7f65c357ace7496f1c331b3ee1d6d4fbb5abfbcfc12ba`. The first seal of 257 files is kept as `scripts/MANIFEST-first-seal-257-files.sha256`.
-- Read-back: `READBACK.txt` (277 files re-hashed, 0 problems, every TRX re-parsed and compared with `trx-summary.json`).
-- Safety scan: `safety-scan.json`, 0 hits for passwords, bearer tokens, cookies, 32-byte keys, private keys and tokens. Console host log lines were excluded from the retained logs; test data is synthetic.
-- Archive for transfer: `E:\HarborOps-Verification\archives\m11m12-local-evidence-20261108.tar.gz`, SHA-256 `35d43c916bc4242cafa5ecf232d437aee9e1ef7918855f3cc866de8453b69b4d`; the extracted copy was verified against the manifest.
-- Historical failures are retained, not erased: five plan-probe attempts (four test-code defects), two G11 residual attempts and two rehearsals (evaluator opt-in flag, `min(uuid)` absent in PostgreSQL 16, a selector, and an archive-route test error that had silently skipped the archive) and two G12 attempts (the F-M12-01 defect and an insufficient first fix).
-- Reproduce: `scripts/final-run.sh`, `supplement-run.sh`, `sdk.sh` (the exact runners) against a clean checkout of the stated SHAs.
-
-A reviewer for each gate should re-hash the files, reparse the TRX files, confirm the source SHA and an empty working-tree record, confirm the application diff against the frozen SHA is only the 35-line export change, read the historical failures, and issue a separate written G11-S25 and G12-S25 decision. This record is not that review.
+- **G11-S01, M11-P01 to P12:** recommend approval as written. P03 lineage is now evidenced by S08 including the forced tie; P07 thresholds (60 minutes) remain versioned demonstrator rules; P12 held under real process and database faults. Record the evaluator sweep latency (finding 4) as an operating note, not a blocker.
+- **G12-S01, M12-P01 to P16:** recommend approval with two recorded notes: P10 per-instance limits are retained and preparation deadlines do not guarantee end-to-end timing (consider lowering the 25 second budget to widen the margin under starvation, a policy change not made here), and text search needs a trigram index before production-scale volumes. P16 stays NOT APPLICABLE for a repository-owned Q2 snapshot.
+- **Signed M9 operating-hold reconciliation:** the campaign changed two files under `src` and none in M9 or M10; the hold on sustained ARRI/DEPA transport processing, the 10,000 unresolved-work cap, the default-off M10 projector and null M10 ETA are covered by accepted suites inside the 388 and are unchanged. Recommend recording the hold as unchanged. The signature is a separate decision.
+- **Change-impact waiver:** not requested; the complete suite ran on the final application source.
 
 ## Outstanding
 
-1. **Independent G11-S25 and G12-S25 reviews** and the separate acceptance decisions.
-2. **Full 341-case suite at the final SHA.** One method changed after the hosted run. Local change-impact coverage is complete for the touched area, but G11-S23 and G12-S23 stay PARTIAL until the full suite is run once (about 30 to 40 minutes locally), or the reviewers accept the change-impact argument.
-3. **Browser, mutation and scan reruns** if the reviewers require locally retained raw reports (hosted logs only today).
-4. **Real proxy path and mid-download interruption** (nginx in front of Kestrel with a TCP client), and a CPU-bound deadline case, for G12-S17 and S19.
-5. **PARTIAL scenario matrices** listed in the two evidence matrices, if the gates require them.
-6. Signed M9 hold reconciliation and the formal G11-S01 and G12-S01 policy decisions.
+1. Independent G11-S25 and G12-S25 re-reviews of the closure package and the separate acceptance decisions.
+2. The formal S01 decisions and the signed M9 hold reconciliation.
+3. Items outside this campaign: production-like cluster and sustained-load behaviour, a trigram index decision, and the optional indexed due queue for the evaluator.
 
 ## Technical recommendations
 
-- **G11:** ready for independent S25 review. Technical evidence for S08 and S14 to S21 is complete within the stated simulations. Do not accept before items 1 and 2 and the PARTIAL rows are decided.
-- **G12:** ready for independent S25 review. S09, S13, S18 and S20 are closed; F-M12-01 is fixed and verified. Do not accept before items 1, 2 and 4 and the PARTIAL rows are decided. Consider a trigram index only if text search must scale past the tested volume.
-
-These are recommendations, not acceptance. Protected `main`, the M9 ARRI/DEPA hold, the 10,000 unresolved-work cap, the disabled-by-default M10 projector and null M10 ETA are unchanged.
+- **G11:** ready for independent re-review; all 23 technical scenarios have executed evidence and S01 and S25 are the only open rows.
+- **G12:** ready for independent re-review under the same terms, with findings 1 to 3 recorded as accepted limits or follow-up.
+- **Combined branch:** technically ready for a final merge review once the re-reviews and decisions above are recorded. This record does not authorize a merge. Protected `main`, the M9 hold, the 10,000 unresolved-work cap, the default-off M10 projector, null M10 ETA and the no-deployment boundary are unchanged.

@@ -26,14 +26,18 @@ public sealed class M12MigrationSafetyTests
         var migration = new M12ShipmentExportAudit();
         var statements = string.Join("\n",
             migration.UpOperations.OfType<SqlOperation>().Select(x => x.Sql));
-        Assert.Contains("CREATE TABLE public.m12_export_proof_keys", statements,
+        Assert.Contains("CREATE TABLE m12_export_proof_keys", statements,
             StringComparison.Ordinal);
-        Assert.Contains("REVOKE ALL ON TABLE public.m12_export_proof_keys FROM PUBLIC",
+        Assert.Contains("REVOKE ALL ON TABLE m12_export_proof_keys FROM PUBLIC",
             statements, StringComparison.Ordinal);
         Assert.Contains("public.hmac(", statements, StringComparison.Ordinal);
+        Assert.Contains("DECLARE target_schema text := current_schema()", statements,
+            StringComparison.Ordinal);
+        Assert.Contains("SET search_path TO pg_catalog,%1$I,public", statements,
+            StringComparison.Ordinal);
         Assert.Contains("CREATE UNIQUE INDEX uq_m12_export_prepared_correlation",
             statements, StringComparison.Ordinal);
-        Assert.Contains("REVOKE ALL ON FUNCTION public.m12_record_shipment_export(",
+        Assert.Contains("REVOKE ALL ON FUNCTION m12_record_shipment_export(",
             statements, StringComparison.Ordinal);
     }
 }

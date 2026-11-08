@@ -78,7 +78,8 @@ public sealed class OrganizationUpgradeAndConstraintTests
                     "20261103190000_TrackingInboxAndHistory",
                     "20261104180000_AuditEntries",
                     "20261104190000_TrackingWorker",
-                    "20261105180000_ShipmentTrackingProjections", "20261107120000_M10CorrectionAuthority", "20261107180000_ShipmentExceptions"
+                    "20261105180000_ShipmentTrackingProjections", "20261107120000_M10CorrectionAuthority", "20261107180000_ShipmentExceptions",
+                    "20261107230000_M12ShipmentExportAudit"
                 ],
                 (await db.Database.GetAppliedMigrationsAsync()).ToArray());
             var identity = scope.ServiceProvider.GetRequiredService<IdentityStore>();

@@ -103,13 +103,24 @@ public sealed class AuditHardeningTests
             Assert.Contains(item.Key, allowed);
         });
 
-        var fields = new List<string>();
+        var fields = new List<(string EventType, string Field)>();
         await using (var command = new NpgsqlCommand("""
-            SELECT DISTINCT f FROM audit_entries, jsonb_array_elements_text(metadata->'changedFields') AS f
+            SELECT DISTINCT a.event_type, f
+            FROM audit_entries a, jsonb_array_elements_text(a.metadata->'changedFields') AS f
             """, connection))
         await using (var reader = await command.ExecuteReaderAsync())
-            while (await reader.ReadAsync()) fields.Add(reader.GetString(0));
-        Assert.All(fields, field => Assert.Contains(field, SafeFields));
+            while (await reader.ReadAsync())
+                fields.Add((reader.GetString(0), reader.GetString(1)));
+        Assert.All(fields, item =>
+        {
+            // M11 signed dispositions add an explicit safe lifecycle field
+            // without expanding the accepted M16 fields for other events.
+            if (item.Field == "lifecycle_state" &&
+                item.EventType is "shipment.exception_acknowledged" or
+                    "shipment.exception_resolved")
+                return;
+            Assert.Contains(item.Field, SafeFields);
+        });
 
         // Values of sensitive columns must never be present anywhere in stored metadata.
         await using var leak = new NpgsqlCommand("""

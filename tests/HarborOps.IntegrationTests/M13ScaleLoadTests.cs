@@ -17,6 +17,86 @@ public sealed class M13ScaleLoadTests
                       x.GetProperty("dimension").GetString() == dimension)
           .Sum(x => x.GetProperty("count").GetInt64());
 
+
+    private static async Task CapturePrivilegedPlan(
+        NpgsqlConnection db, Guid org, Guid actor)
+    {
+        Guid session;
+        await using (var lookup = new NpgsqlCommand("""
+            SELECT id FROM auth_sessions
+            WHERE user_id=@actor AND selected_organization_id=@org
+              AND revoked_at_utc IS NULL
+            ORDER BY issued_at_utc DESC LIMIT 1
+            """, db))
+        {
+            lookup.Parameters.AddWithValue("actor", actor);
+            lookup.Parameters.AddWithValue("org", org);
+            session = Assert.IsType<Guid>(await lookup.ExecuteScalarAsync());
+        }
+        var query = (string?)typeof(HarborOps.Infrastructure.Reporting.OperationalKpiStore)
+            .GetField("MemberSql",
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Static)?.GetValue(null);
+        Assert.False(string.IsNullOrWhiteSpace(query));
+        var now = DateTimeOffset.UtcNow;
+        var end = new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero);
+        var report = Guid.NewGuid();
+        await using var tx = await db.BeginTransactionAsync();
+        try
+        {
+            await using (var create = new NpgsqlCommand("""
+                INSERT INTO operational_kpi_reports
+                  (id,organization_id,actor_user_id,actor_session_id,
+                   policy_version,filters_sha256,from_utc,before_utc,
+                   evaluated_at_utc,expires_at_utc)
+                VALUES (@report,@org,@actor,@session,'m13-kpi-v1',
+                    repeat('0',64),@from,@before,@now,
+                    clock_timestamp()+interval '10 minutes')
+                """, db, tx))
+            {
+                create.Parameters.AddWithValue("report", report);
+                create.Parameters.AddWithValue("org", org);
+                create.Parameters.AddWithValue("actor", actor);
+                create.Parameters.AddWithValue("session", session);
+                create.Parameters.AddWithValue("from", end.AddDays(-7));
+                create.Parameters.AddWithValue("before", end);
+                create.Parameters.AddWithValue("now", now);
+                Assert.Equal(1, await create.ExecuteNonQueryAsync());
+            }
+            await using var explain = new NpgsqlCommand(
+                "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + query,
+                db, tx) { CommandTimeout = 300 };
+            explain.Parameters.AddWithValue("org", org);
+            explain.Parameters.AddWithValue("report", report);
+            explain.Parameters.AddWithValue("from", end.AddDays(-7));
+            explain.Parameters.AddWithValue("before", end);
+            explain.Parameters.AddWithValue("now", now);
+            explain.Parameters.AddWithValue("bucket", "day");
+            foreach (var key in new[] { "origin", "destination", "voyage" })
+                explain.Parameters.Add(key, NpgsqlTypes.NpgsqlDbType.Uuid).Value = DBNull.Value;
+            explain.Parameters.Add("source", NpgsqlTypes.NpgsqlDbType.Text).Value = DBNull.Value;
+            explain.Parameters.AddWithValue("maxrows", 500001);
+            var duration = Stopwatch.StartNew();
+            var raw = Assert.IsType<string>(await explain.ExecuteScalarAsync());
+            duration.Stop();
+            Directory.CreateDirectory(".verification/g13-scale");
+            await File.WriteAllTextAsync(
+                ".verification/g13-scale/explain-admin-170k.json", raw);
+            Console.WriteLine($"G13_170K privileged_explain_analyze_ms={duration.Elapsed.TotalMilliseconds:F0} plan_chars={raw.Length}");
+        }
+        catch (Exception e)
+        {
+            Directory.CreateDirectory(".verification/g13-scale");
+            await File.WriteAllTextAsync(".verification/g13-scale/explain-error.txt",
+                e.GetType().Name + ": " + e.Message);
+            Console.WriteLine($"G13_170K privileged_explain_error={e.GetType().Name}: {e.Message}");
+        }
+        finally
+        {
+            await tx.RollbackAsync();
+        }
+    }
+
     [ExclusiveM13PostgresFact]
     public async Task Mixed170kShipmentsProduceExactBoundedReport()
     {
@@ -72,6 +152,7 @@ public sealed class M13ScaleLoadTests
         }
         timer.Stop();
         Console.WriteLine($"G13_170K seeded=170000 existing=2 seed_ms={timer.Elapsed.TotalMilliseconds:F0}");
+        await CapturePrivilegedPlan(db, f.A, actor);
         using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
         using var analyst = runtime.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
         analyst.Timeout = TimeSpan.FromMinutes(5);

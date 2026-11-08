@@ -52,6 +52,12 @@ public static class MaritimePolicy
             CultureInfo.InvariantCulture, DateTimeStyles.None, out var time) ||
             time.Offset != TimeSpan.Zero)
             throw new ArgumentException("Timestamp must be an explicit UTC instant");
+        // The K specifier also matches an absent designator, which parses in the server's
+        // local zone. Require the instant to name UTC explicitly so the result never depends
+        // on the host time zone.
+        if (!(value.EndsWith('Z') || value.EndsWith("+00:00", StringComparison.Ordinal) ||
+              value.EndsWith("-00:00", StringComparison.Ordinal)))
+            throw new ArgumentException("Timestamp must be an explicit UTC instant");
         return time.ToUniversalTime();
     }
     public static void ValidateTimes(DateTimeOffset? plannedDeparture, DateTimeOffset? plannedArrival,

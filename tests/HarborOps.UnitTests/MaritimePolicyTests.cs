@@ -82,6 +82,13 @@ public sealed class MaritimePolicyTests
         Assert.Null(MaritimePolicy.Utc(null));
         Assert.Throws<ArgumentException>(() => MaritimePolicy.Utc("2026-10-31T10:00:00+03:00"));
         Assert.Throws<ArgumentException>(() => MaritimePolicy.Utc("2026-10-31"));
+        // An instant without a designator would otherwise take the host's local zone.
+        Assert.Throws<ArgumentException>(() => MaritimePolicy.Utc("2026-10-31T10:00:00"));
+        Assert.Throws<ArgumentException>(() => MaritimePolicy.Utc("2026-10-31T10:00:00.123"));
+        Assert.Equal(new DateTimeOffset(2026, 10, 31, 10, 0, 0, TimeSpan.Zero),
+            MaritimePolicy.Utc("2026-10-31T10:00:00+00:00"));
+        Assert.Equal(new DateTimeOffset(2026, 10, 31, 10, 0, 0, TimeSpan.Zero),
+            MaritimePolicy.Utc("2026-10-31T10:00:00.000000Z"));
     }
     [Fact]
     public void RoleGrantsStayWithinBusinessPermissions()

@@ -1,0 +1,55 @@
+# Source-locked M11/M12 technical campaign, 2026-11-08
+name: Verify M11 direct SQL read isolation
+on:
+  workflow_dispatch:
+
+jobs:
+  direct-sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-m11-read-scope
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-m11-read-scope;Pooling=false"
+    steps:
+      - name: Create scoped exception fixtures in disposable PostgreSQL
+        run: |
+          set -euo pipefail
+          git clone --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
+          cd source
+          git checkout --detach "$GITHUB_SHA"
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release             --filter 'FullyQualifiedName~M11ExceptionRuntimeTests.ScheduleOverdueIsScopedAuditedAndIdempotentForManager'             --logger 'console;verbosity=normal'
+      - name: Probe effective SQL reader privileges without an HTTP session
+        run: |
+          set -euo pipefail
+          pg="$(docker ps -q --filter ancestor=postgres:16.15)"
+          test -n "$pg"
+          result="$(docker exec "$pg" psql -X -U harborops -d harborops_integration -At -c             "SELECT has_table_privilege('harborops_api','shipment_exceptions','SELECT')::text || '|' || c.relrowsecurity::text || '|' || (SELECT COUNT(*) FROM shipment_exceptions)::text FROM pg_class c WHERE c.oid='shipment_exceptions'::regclass")"
+          echo "SQL privilege, RLS enabled, fixture rows: $result"
+          rows="${result##*|}"
+          if test "$rows" -eq 0; then
+            echo "No synthetic exception rows; scope probe is incomplete"
+            exit 2
+          fi
+          test "$result" = "true|true|1" || {
+            echo "G11 policy precondition failure: expected enabled RLS and seeded exception"
+            exit 1
+          }
+          for table in shipment_exceptions shipment_exception_history shipment_exception_evaluations; do
+            actual="$(docker exec "$pg" psql -X -U harborops -d harborops_integration -At               -c "BEGIN; SET ROLE harborops_api; SELECT COUNT(*) FROM $table; ROLLBACK;")"
+            number="$(printf '%s\n' "$actual" | grep -E '^[0-9]+$' | tail -1)"
+            if test "$number" != 0; then
+              echo "G11 direct SQL scope FAIL: $table exposes $number rows"
+              exit 1
+            fi
+          done
+          echo "G11 direct unscoped SQL reads return no rows for all protected tables"
+          echo "G11-S12: RLS direct-read check PASS on $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"

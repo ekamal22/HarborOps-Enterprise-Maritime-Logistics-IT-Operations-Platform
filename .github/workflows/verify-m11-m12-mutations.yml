@@ -1,0 +1,197 @@
+# Source-locked M11/M12 technical campaign, 2026-11-08
+name: Verify M11 M12 effective security mutants
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+jobs:
+  mutations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-mutant-only
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-mutant-only;Pooling=false"
+      HARBOROPS_G12_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - name: Fetch exact combined revision
+        run: |
+          set -euo pipefail
+          git clone --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
+          cd source
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo "Mutation campaign source: $GITHUB_SHA"
+      - name: Run clean controls and effective mutations
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import sys
+          import xml.etree.ElementTree as ET
+
+          root = Path.cwd()
+          source = root / 'source'
+          evidence = root / 'mutation-evidence'
+          evidence.mkdir(exist_ok=True)
+          unit_project = 'tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj'
+          integration_project = 'tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj'
+          variants = [
+              {
+                  'id': 'm11-boundary-strictness',
+                  'path': 'src/HarborOps.Domain/Exceptions/ShipmentExceptionPolicy.cs',
+                  'before': 'evaluationAtUtc > arrivalBoundary ? "Active" : "Inactive";',
+                  'after': 'evaluationAtUtc >= arrivalBoundary ? "Active" : "Inactive";',
+                  'project': unit_project,
+                  'test': 'ArrivalScheduleBoundaryIsStrictAndDoesNotClaimPhysicalArrival',
+              },
+              {
+                  'id': 'm11-stale-projection',
+                  'path': 'src/HarborOps.Domain/Exceptions/ShipmentExceptionPolicy.cs',
+                  'before': 'results.Add(input.TrackingMaterializationStale',
+                  'after': 'results.Add(false && input.TrackingMaterializationStale',
+                  'project': unit_project,
+                  'test': 'StaleProjectionIsNeverUsedAsConfirmedConflict',
+              },
+              {
+                  'id': 'm12-auditor-export-bypass',
+                  'path': 'src/HarborOps.Domain/Organizations/OrganizationPolicy.cs',
+                  'before': '(permission == OrganizationPermission.ExportShipmentData && role is (OrganizationRole.Analyst or OrganizationRole.Manager))',
+                  'after': '(permission == OrganizationPermission.ExportShipmentData && role is (OrganizationRole.Analyst or OrganizationRole.Manager or OrganizationRole.Auditor))',
+                  'project': unit_project,
+                  'test': 'ExportPermissionIsNotImpliedByShipmentRead',
+              },
+              {
+                  'id': 'm12-csv-formula-defense',
+                  'path': 'src/HarborOps.Domain/Shipments/ShipmentSearchPolicy.cs',
+                  'before': "if (first < text.Length && text[first] is ('=' or '+' or '-' or '@'))",
+                  'after': "if (false && first < text.Length && text[first] is ('=' or '+' or '-' or '@'))",
+                  'project': unit_project,
+                  'test': 'CsvEscapesAndDefangsFormulas',
+              },
+              {
+                  'id': 'm11-corrected-event-witness',
+                  'path': 'src/HarborOps.Infrastructure/Persistence/Migrations/20261107180000_ShipmentExceptions.cs',
+                  'before': 'AND superseded.id IS NULL',
+                  'after': 'AND superseded.id IS NOT NULL',
+                  'project': integration_project,
+                  'test': 'EquipmentConflictCarriesExactAcceptedEventAndContainerWitness',
+              },
+          ]
+
+          def execute(where, label, cmd, timeout=900):
+              proc = subprocess.run(cmd, cwd=where, stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT, text=True, timeout=timeout)
+              output = evidence / (label + '.log')
+              output.write_text(proc.stdout)
+              digest = hashlib.sha256(output.read_bytes()).hexdigest()
+              print(json.dumps({'stage': label, 'exit': proc.returncode, 'sha256': digest,
+                                'tail': proc.stdout[-1600:]}), flush=True)
+              return proc.returncode
+
+          def results(label):
+              trx = list((evidence / label).glob('*.trx'))
+              if len(trx) != 1:
+                  return None
+              tree = ET.parse(trx[0])
+              ns = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
+              node = tree.find('.//t:Counters', ns)
+              if node is None:
+                  return None
+              return {
+                  'total': int(node.attrib.get('total', 0)),
+                  'passed': int(node.attrib.get('passed', 0)),
+                  'failed': int(node.attrib.get('failed', 0)),
+                  'notExecuted': int(node.attrib.get('notExecuted', 0)),
+              }
+
+          def test(where, label, project, method):
+              (evidence / label).mkdir(exist_ok=True)
+              rc = execute(where, label,
+                  ['dotnet', 'test', project, '-c', 'Release', '--no-build',
+                   '--filter', 'FullyQualifiedName~' + method,
+                   '--logger', 'trx;LogFileName=results.trx',
+                   '--results-directory', str(evidence / label)])
+              return rc, results(label)
+
+          if execute(source, 'control-build',
+                     ['dotnet', 'build', 'HarborOps.sln', '-c', 'Release', '-warnaserror']) != 0:
+              sys.exit('Clean control compilation failed')
+          controls = list({(v['project'], v['test']) for v in variants})
+          for ix, (project, method) in enumerate(controls):
+              rc, counts = test(source, 'control-' + str(ix), project, method)
+              if rc != 0 or not counts or counts['total'] < 1 or counts['passed'] != counts['total']:
+                  sys.exit('Clean control failed for ' + method)
+          print('All clean controls passed', flush=True)
+
+          summary = []
+          for v in variants:
+              where = root / ('mutant-' + v['id'])
+              shutil.copytree(source, where, ignore=shutil.ignore_patterns(
+                  '.git', 'bin', 'obj', 'node_modules', '.verification'))
+              file = where / v['path']
+              old = file.read_text()
+              if old.count(v['before']) != 1:
+                  sys.exit('Nonunique mutation anchor: ' + v['id'])
+              file.write_text(old.replace(v['before'], v['after'], 1))
+              build_rc = execute(where, v['id'] + '-build',
+                  ['dotnet', 'build', 'HarborOps.sln', '-c', 'Release', '-warnaserror'])
+              if build_rc != 0:
+                  summary.append({'mutant': v['id'], 'status': 'INVALID_BUILD'})
+                  continue
+              original_db = os.environ['HARBOROPS_TEST_DB']
+              if v['project'] == integration_project:
+                  # The control has already applied the accepted migration.
+                  # An SQL mutant needs a distinct database to execute its own DDL.
+                  containers = subprocess.check_output([
+                      'docker', 'ps', '-q', '--filter', 'ancestor=postgres:16.15'],
+                      text=True).splitlines()
+                  if len(containers) != 1:
+                      sys.exit('SQL mutant requires exactly one disposable PostgreSQL container')
+                  dbname = 'harborops_test'
+                  subprocess.run(['docker', 'exec', containers[0], 'createdb',
+                      '-U', 'harborops', '-O', 'harborops', dbname], check=True)
+                  os.environ['HARBOROPS_TEST_DB'] = original_db.replace(
+                      'Database=harborops_integration', 'Database=' + dbname)
+                  if os.environ['HARBOROPS_TEST_DB'] == original_db:
+                      sys.exit('SQL mutant database isolation failed')
+              try:
+                  rc, counts = test(where, v['id'], v['project'], v['test'])
+              finally:
+                  os.environ['HARBOROPS_TEST_DB'] = original_db
+              killed = rc != 0 and counts is not None and counts['failed'] > 0 and counts['total'] > 0
+              if v['project'] == integration_project:
+                  test_log = (evidence / (v['id'] + '.log')).read_text()
+                  killed = killed and (
+                      'Failed HarborOps.IntegrationTests.M11ExceptionRuntimeTests.'
+                      + v['test']) in test_log
+                  killed = killed and 'Integration tests require database' not in test_log
+              status = 'KILLED' if killed else 'SURVIVED_OR_INVALID'
+              summary.append({'mutant': v['id'], 'status': status, 'counts': counts})
+              print(json.dumps(summary[-1]), flush=True)
+
+          (evidence / 'summary.json').write_text(json.dumps({
+              'sourceSha': os.environ['GITHUB_SHA'], 'mutants': summary}, indent=2))
+          print('Final mutation results:', json.dumps(summary), flush=True)
+          if any(v['status'] != 'KILLED' for v in summary):
+              sys.exit('At least one effective mutant was not killed')
+          PY
+      - name: Record evidence identity
+        if: always()
+        run: |
+          echo "Mutation source SHA: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          find mutation-evidence -type f -print0 | sort -z | xargs -0 -r sha256sum | tee -a "$GITHUB_STEP_SUMMARY"
+          if test -f mutation-evidence/summary.json; then cat mutation-evidence/summary.json; fi

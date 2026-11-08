@@ -134,6 +134,18 @@ public static class AuthenticationSetup
                         QueueLimit = 0, AutoReplenishment = true
                     }));
         });
+        services.AddRateLimiter(options =>
+        {
+            options.AddPolicy("m12-export", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                        ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1), PermitLimit = 10,
+                        QueueLimit = 0, AutoReplenishment = true
+                    }));
+        });
         services.AddSingleton<IdentityAttemptLimiter>();
         return services;
     }

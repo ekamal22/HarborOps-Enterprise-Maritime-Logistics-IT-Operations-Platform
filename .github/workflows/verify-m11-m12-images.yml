@@ -1,0 +1,42 @@
+# Source-locked M11/M12 technical campaign, 2026-11-08
+name: Verify combined M11 M12 image vulnerabilities
+on:
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - name: Build and scan exact source images
+        run: |
+          set -euo pipefail
+          git clone --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
+          cd source
+          git checkout --detach "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export HARBOROPS_SOURCE_SHA="$GITHUB_SHA"
+          export HARBOROPS_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_API_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_WORKER_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_M10_CORRECTION_PROOF_KEY="$(openssl rand -base64 32)"
+          export HARBOROPS_M12_EXPORT_PROOF_KEY="$(openssl rand -base64 32)"
+          for key in HARBOROPS_DB_PASSWORD HARBOROPS_API_DB_PASSWORD HARBOROPS_WORKER_DB_PASSWORD HARBOROPS_M10_CORRECTION_PROOF_KEY HARBOROPS_M12_EXPORT_PROOF_KEY; do echo "::add-mask::${!key}"; done
+          project=ho-verify-images
+          docker compose -p "$project" build postgres api web
+          mkdir -p .verification/image-scans
+          for service in postgres api web; do
+            case "$service" in
+              postgres) tag=harborops-postgres:16.15-rootless ;;
+              api) tag=ho-verify-images-api:latest ;;
+              web) tag=ho-verify-images-web:latest ;;
+            esac
+            id="$(docker image inspect --format '{{.Id}}' "$tag")"
+            test -n "$id"
+            revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$id")"
+            test "$revision" = "$GITHUB_SHA"
+            echo "Scanning image for $service with revision $revision"
+            docker run --rm --pull always               -v /var/run/docker.sock:/var/run/docker.sock               -v "$PWD/.verification/image-scans:/reports"               aquasec/trivy:0.76.1 image --image-src docker               --scanners vuln --severity HIGH,CRITICAL --exit-code 1               --format json --output "/reports/$service.json" "$id"
+            sha256sum ".verification/image-scans/$service.json" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+          echo "All three runtime image scans completed at $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"

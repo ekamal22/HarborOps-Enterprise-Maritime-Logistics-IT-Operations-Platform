@@ -1141,4 +1141,4 @@ flowchart TD
 
 ## Current starting point
 
-G0-G5 are accepted and integrated into main. M6, M7, M16, M17, M19, and initial M20 and M23 packages are eligible independent starts; M6 still requires its own G6 verification. Status is authoritative for executed work. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
+G0-G10 and G16 are accepted and integrated into protected main. M11 has a separate unverified implementation candidate and G11 acceptance pending. M12-01, M14-01, M17-01, M19-01, M20-01, M21-01, and M23-01 are eligible under their exact prerequisites and outstanding decisions. M13 and M15 still require G11. The M9 transport-event hold remains in force. Status is authoritative for observed work. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).

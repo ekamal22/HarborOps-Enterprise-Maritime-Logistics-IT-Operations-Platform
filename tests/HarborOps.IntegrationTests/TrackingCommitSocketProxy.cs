@@ -10,7 +10,7 @@ namespace HarborOps.IntegrationTests;
 // No production service registers or invokes this type.
 public sealed class TrackingCommitSocketProxy : IAsyncDisposable
 {
-    public enum CutPoint { BeforeCommitForward, AfterCommitServerReady }
+    public enum CutPoint { BeforeCommitForward, AfterCommitServerReady, AfterArmedStatementReady }
 
     private readonly TcpListener listener = new(IPAddress.Loopback, 0);
     private readonly CancellationTokenSource stop = new();
@@ -92,8 +92,11 @@ public sealed class TrackingCommitSocketProxy : IAsyncDisposable
                         if (text.Contains(armingStatement,
                                 StringComparison.Ordinal))
                             Volatile.Write(ref armed, 1);
+                        // AfterArmedStatementReady targets a single autocommit statement:
+                        // the statement itself is the commit, so no COMMIT message follows.
                         var commit = Volatile.Read(ref armed) == 1 &&
-                            text.Contains("COMMIT", StringComparison.Ordinal);
+                            (cut == CutPoint.AfterArmedStatementReady ||
+                             text.Contains("COMMIT", StringComparison.Ordinal));
                         trailing = text.Length > 512 ? text[^512..] : text;
 
                         if (commit && Interlocked.CompareExchange(ref triggered, 1, 0) == 0)
@@ -117,7 +120,7 @@ public sealed class TrackingCommitSocketProxy : IAsyncDisposable
                     {
                         var count = await incoming.ReadAsync(buffer, stop.Token);
                         if (count == 0) break;
-                        if (cut == CutPoint.AfterCommitServerReady &&
+                        if (cut is CutPoint.AfterCommitServerReady or CutPoint.AfterArmedStatementReady &&
                             Volatile.Read(ref commitForwarded) == 1)
                         {
                             // The server emitted ReadyForQuery (Z, length=5, idle=I)

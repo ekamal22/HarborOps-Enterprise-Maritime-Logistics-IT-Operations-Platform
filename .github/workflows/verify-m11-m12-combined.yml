@@ -1,0 +1,58 @@
+name: Verify combined M11 M12
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify source SHA
+        run: |
+          mkdir -p .verification
+          git rev-parse HEAD | tee .verification/source-sha.txt
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+      - name: Source and planning contracts
+        run: |
+          set -euo pipefail
+          node scripts/check-m11-contract.mjs 2>&1 | tee .verification/m11-contract.log
+          node scripts/render-execution-graph.mjs --check 2>&1 | tee .verification/graph.log
+          node scripts/check-planning-docs.mjs 2>&1 | tee .verification/planning.log
+          find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
+      - name: Build solution and execute unit contracts
+        run: |
+          set -euo pipefail
+          dotnet restore HarborOps.sln 2>&1 | tee .verification/restore.log
+          dotnet build HarborOps.sln --configuration Release --no-restore -warnaserror 2>&1 | tee .verification/build.log
+          dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj --configuration Release --no-build --logger 'trx;LogFileName=unit.trx' --results-directory .verification 2>&1 | tee .verification/unit.log
+          dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj --configuration Release --no-build --logger 'trx;LogFileName=contract.trx' --results-directory .verification 2>&1 | tee .verification/contract.log
+      - name: Verify web build
+        run: |
+          set -euo pipefail
+          npm --prefix web ci --no-audit --no-fund 2>&1 | tee .verification/npm.log
+          npm --prefix web test 2>&1 | tee .verification/web-test.log
+          npm --prefix web run build 2>&1 | tee .verification/web-build.log
+      - name: Seal source evidence
+        if: always()
+        run: |
+          git rev-parse HEAD > .verification/final-sha.txt
+          (cd .verification && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-source-${{ github.run_id }}
+          path: .verification/
+          retention-days: 7

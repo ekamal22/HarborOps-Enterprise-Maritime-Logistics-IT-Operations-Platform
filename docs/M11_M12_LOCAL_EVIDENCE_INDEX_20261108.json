@@ -1,0 +1,232 @@
+{
+  "format": "harborops.m11m12.local-evidence-index.v2",
+  "recordedDate": "2026-11-08",
+  "branch": "feat/m11-m12-combined-integration",
+  "acceptedMainSha": "6ead1d076946dd96b53401265a31efc35c4a666c",
+  "hostedApplicationSha": "f56d017d9b2619be56fe533f73ba1d11f63974c0",
+  "independentReviews": {
+    "g11": "NOT PASS",
+    "g12": "NOT PASS",
+    "reviewedPackage": "m11m12-local-01",
+    "documents": [
+      "docs/M11_G11_INDEPENDENT_EVIDENCE_REVIEW_20261108.md",
+      "docs/M12_G12_INDEPENDENT_EVIDENCE_REVIEW_20261108.md"
+    ]
+  },
+  "firstPackage": {
+    "root": "E:\\HarborOps-Verification\\evidence\\m11m12-local-01",
+    "files": 277,
+    "manifestSha256": "7cadf6cb1edfd27ebaf7f65c357ace7496f1c331b3ee1d6d4fbb5abfbcfc12ba",
+    "archiveSha256": "35d43c916bc4242cafa5ecf232d437aee9e1ef7918855f3cc866de8453b69b4d",
+    "shas": [
+      "5dedbb70b4d2f4088f117d905e90d59f23a26915",
+      "3d450ac320b00538b106f2ad6d4b86c88661d7a4"
+    ]
+  },
+  "closurePackage": {
+    "root": "E:\\HarborOps-Verification\\evidence\\m11m12-local-02",
+    "files": 562,
+    "manifestSha256": "25b8c25097c703635628d7ca57985edef475a9a9e629a9007f946b3cf3f6700f",
+    "archive": {
+      "path": "E:\\HarborOps-Verification\\archives\\m11m12-local-02-evidence-20261108.tar.gz",
+      "sha256": "caa8f6a1c3d43d545f9e39a7e5b95dfce785d24371d7a4426016025f989c8969"
+    },
+    "independentReadBack": {
+      "files": 562,
+      "problems": 0
+    },
+    "safetyScanHits": 0,
+    "applicationSourceShaForSuite": "2eee441fa37c17101846516cf133a92c7e59335c",
+    "stackProbeCorrectionSha": "ed58449c2fe4eab20ef23c2cdb7f2b5778a2fd14",
+    "supplementSha": "6e9029562becc27bf197a1568a60e3d676de83e6",
+    "applicationSourceChangesSinceHosted": [
+      "src/HarborOps.Infrastructure/Shipments/ShipmentSearchStore.cs",
+      "src/HarborOps.Domain/Maritime/MaritimePolicy.cs"
+    ],
+    "stages": [
+      {
+        "stage": "build",
+        "result": "0 warnings, 0 errors"
+      },
+      {
+        "stage": "unit",
+        "trx": "final/raw/unit.trx",
+        "total": 291,
+        "passed": 291
+      },
+      {
+        "stage": "contract",
+        "trx": "final/raw/contract.trx",
+        "total": 46,
+        "passed": 46
+      },
+      {
+        "stage": "integration-full",
+        "trx": "final/raw/integration-full.trx",
+        "total": 388,
+        "passed": 388,
+        "skipped": 0
+      },
+      {
+        "stage": "query-plans",
+        "trx": "final/raw/query-plans.trx",
+        "total": 1,
+        "passed": 1,
+        "plans": 23
+      },
+      {
+        "stage": "g11-process-and-database-faults",
+        "report": "final/stack/g11-faults.json",
+        "checks": 12,
+        "passed": 12
+      },
+      {
+        "stage": "g12-real-network-path",
+        "report": "final/stack/g12-network-rerun.json",
+        "checks": 32,
+        "passed": 32
+      },
+      {
+        "stage": "browsers",
+        "reports": "final/browser/*.json",
+        "expected": 48,
+        "unexpected": 0,
+        "skipped": 0,
+        "flaky": 0
+      },
+      {
+        "stage": "effective-mutants",
+        "report": "final/mutations/summary.json",
+        "variants": 17,
+        "killed": 17
+      },
+      {
+        "stage": "scans",
+        "reports": "final/scans/",
+        "dotnetVulnerable": 0,
+        "npmWeb": 0,
+        "npmBrowser": 0,
+        "trivySource": 0,
+        "trivyImages": 0
+      },
+      {
+        "stage": "supplement-m11-closure-class",
+        "trx": "final-supplement/raw/m11-closure-class.trx",
+        "total": 7,
+        "passed": 7
+      }
+    ],
+    "dispositions": {
+      "g11": {
+        "PASS": 23,
+        "BLOCKED": 2
+      },
+      "g12": {
+        "PASS": 22,
+        "NOT APPLICABLE": 1,
+        "BLOCKED": 2
+      }
+    },
+    "mutationSourceProvenance": {
+      "note": "17 effective kills across three passes on application-equivalent sources. Initial attempt also contains invalid or equivalent non-kills; retain those historical records without promoting them.",
+      "suiteApplicationSha": "2eee441fa37c17101846516cf133a92c7e59335c",
+      "passes": [
+        {
+          "pass": "attempt1",
+          "sourceSha": "ed58449c2fe4eab20ef23c2cdb7f2b5778a2fd14",
+          "report": "final/mutations-attempt1-db-not-reset-sql-mutants-invalid/summary.json",
+          "validKills": 10,
+          "variantIds": [
+            "m11-boundary-strictness",
+            "m11-stale-projection",
+            "m12-auditor-export-bypass",
+            "m12-csv-formula-defense",
+            "m12-tenant-filter-removed",
+            "m12-row-cap-widened",
+            "m12-same-origin-check-removed",
+            "m12-export-lease-never-released",
+            "m12-serialization-retry-removed",
+            "m4-utc-designator-check-removed"
+          ],
+          "caveat": "Six migration SQL mutants used an already migrated database, and one actor-only cursor mutation was equivalent. Their non-kills are excluded from this valid-kill count."
+        },
+        {
+          "pass": "attempt2",
+          "sourceSha": "6e9029562becc27bf197a1568a60e3d676de83e6",
+          "report": "final/mutations/summary-subset-attempt2.json",
+          "validKills": 5,
+          "variantIds": [
+            "m11-corrected-event-witness",
+            "m11-witness-order-reversed",
+            "m11-action-session-revocation-ignored",
+            "m11-audit-failure-swallowed",
+            "m12-cursor-actor-and-session-binding-removed"
+          ],
+          "caveat": "Fresh PostgreSQL database per integration mutation; raw logs retained except overwritten collation attempt report, whose prior outcome remains in the subset summary."
+        },
+        {
+          "pass": "attempt3",
+          "sourceSha": "6e9029562becc27bf197a1568a60e3d676de83e6",
+          "report": "final/mutations/summary-subset.json",
+          "validKills": 2,
+          "variantIds": [
+            "m11-witness-tiebreak-collation",
+            "m11-replay-actor-and-digest-binding-removed"
+          ],
+          "caveat": "Collation variant tested under Debian en_US.utf8; replay mutant removes both redundant actor and digest guards."
+        }
+      ],
+      "combinedValidKills": 17,
+      "rawArchiveImmutable": true
+    },
+    "hostedN01FollowUp": {
+      "result": "PASS",
+      "runId": 42508864681,
+      "runUrl": "https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42508864681",
+      "verificationBranch": "verify/m11m12-n01-20261108",
+      "verificationSha": "1966fe2dd7a3cfc4ec0cf97199759c8789e169d1",
+      "correctedDeliveryCommit": "df54a13d07d9df5015712eb45ea250660a83c825",
+      "sourceApplicationSha": "2eee441fa37c17101846516cf133a92c7e59335c",
+      "fixture": "isolated 5,000-row Nginx/Kestrel/PostgreSQL stack",
+      "checksPerExecution": 5,
+      "executions": 2,
+      "passed": 10,
+      "skipped": 0,
+      "auditIncrements": [
+        2,
+        2
+      ],
+      "exportBytes": 4870215,
+      "artifactId": 13628771146,
+      "earlierHarnessFailures": [
+        {
+          "runId": 42508215822,
+          "reason": "shallow checkout prevented the M11 baseline comparison"
+        },
+        {
+          "runId": 42508335311,
+          "reason": "Compose restarted dependencies during fixture account setup"
+        },
+        {
+          "runId": 42508573213,
+          "reason": "Compose restarted the migrator during fixture account setup"
+        }
+      ],
+      "note": "Verification-only branch replaces the registered manual workflow path there; the delivery branch and protected main workflow files are unchanged. The historical closure archive remains immutable."
+    }
+  },
+  "defects": [
+    {
+      "id": "F-M12-01",
+      "summary": "Export at REPEATABLE READ returned 503 on SQLSTATE 40001 caused by session-row updates of concurrent requests or in-flight revocation; fail-closed, wrong status and spurious failure",
+      "fixSha": "5dedbb70b4d2f4088f117d905e90d59f23a26915"
+    },
+    {
+      "id": "F-M4-01",
+      "summary": "Instants without a UTC designator were accepted and parsed in the host time zone",
+      "fixSha": "b2a72bf872e2ede53e23e1e16dcd76d9c8466d97"
+    }
+  ],
+  "acceptanceGranted": false,
+  "independentReReviewCompleted": false
+}

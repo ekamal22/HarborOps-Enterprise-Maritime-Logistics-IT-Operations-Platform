@@ -1,0 +1,89 @@
+# Source-locked M11/M12 technical campaign, 2026-11-08
+name: Verify M11 and M12 database boundaries
+on:
+  workflow_dispatch:
+
+jobs:
+  g11:
+    name: G11 signed exception and lifecycle runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g11-only
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g11-only;Pooling=false"
+    steps:
+      - name: Checkout frozen combined source
+        run: |
+          set -euo pipefail
+          git clone --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
+          cd source
+          git checkout --detach "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo "G11 verification SHA $GITHUB_SHA"
+          dotnet --version
+      - name: Build combined solution
+        working-directory: source
+        run: dotnet build HarborOps.sln -c Release -warnaserror
+      - name: Execute G11 provenance, lifecycle and SQL isolation tests
+        working-directory: source
+        run: |
+          set -euo pipefail
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M11ExceptionRuntimeTests' --logger 'console;verbosity=normal'
+      - name: Record source and scoped result
+        if: always()
+        run: |
+          echo "G11 source SHA: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tests: M11ExceptionRuntimeTests, disposable PostgreSQL" >> "$GITHUB_STEP_SUMMARY"
+          echo "G11 gate acceptance remains separate." >> "$GITHUB_STEP_SUMMARY"
+  g12:
+    name: G12 exclusive export and SQL authority runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g12-only
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g12-only;Pooling=false"
+      HARBOROPS_G12_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - name: Checkout frozen combined source and confirm isolation
+        run: |
+          set -euo pipefail
+          git clone --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
+          cd source
+          git checkout --detach "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$HARBOROPS_G12_EXCLUSIVE_POSTGRES" = "1"
+          echo "G12 isolated verification SHA $GITHUB_SHA"
+          echo "PostgreSQL containers: $(docker ps --filter ancestor=postgres:16.15 --format '{{.ID}}' | wc -l)"
+          test "$(docker ps --filter ancestor=postgres:16.15 --format '{{.ID}}' | wc -l)" -eq 1
+      - name: Build combined solution
+        working-directory: source
+        run: dotnet build HarborOps.sln -c Release -warnaserror
+      - name: Execute G12 scoped export, rate, cap and timeout tests
+        working-directory: source
+        run: |
+          set -euo pipefail
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~ShipmentSearchHttpTests' --logger 'console;verbosity=normal'
+      - name: Record source and scoped result
+        if: always()
+        run: |
+          echo "G12 source SHA: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tests: ShipmentSearchHttpTests, exclusive disposable PostgreSQL" >> "$GITHUB_STEP_SUMMARY"
+          echo "G12 gate acceptance remains separate." >> "$GITHUB_STEP_SUMMARY"

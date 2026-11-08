@@ -1,0 +1,73 @@
+using System.Net;
+using HarborOps.Api.Search;
+using Microsoft.AspNetCore.DataProtection;
+using Xunit;
+
+namespace HarborOps.ContractTests;
+
+public sealed class ShipmentSearchContractTests
+{
+    [Fact]
+    public void CursorRequiresMatchingOrganizationAndFilters()
+    {
+        var codec = new ShipmentCursorCodec(new EphemeralDataProtectionProvider());
+        var org = Guid.NewGuid();
+        var actor = Guid.NewGuid();
+        var session = Guid.NewGuid();
+        var after = Guid.NewGuid();
+        var now = new DateTimeOffset(2026, 11, 7, 16, 0, 0, TimeSpan.Zero);
+        var token = codec.Encode(org, actor, session, "FINGERPRINT", after, now, now);
+
+        Assert.True(codec.TryDecode(token, org, actor, session, "FINGERPRINT", now.AddMinutes(1), out var parsed));
+        Assert.NotNull(parsed);
+        Assert.Equal(after, parsed.After);
+        Assert.False(codec.TryDecode(token, Guid.NewGuid(), actor, session, "FINGERPRINT", now, out _));
+        Assert.False(codec.TryDecode(token, org, actor, session, "OTHER", now, out _));
+        Assert.False(codec.TryDecode(token, org, Guid.NewGuid(), session,
+            "FINGERPRINT", now, out _));
+        Assert.False(codec.TryDecode(token, org, actor, Guid.NewGuid(),
+            "FINGERPRINT", now, out _));
+        Assert.False(codec.TryDecode(token, org, actor, session, "FINGERPRINT", now.AddMinutes(16), out _));
+        Assert.False(codec.TryDecode(token + "X", org, actor, session, "FINGERPRINT", now, out _));
+    }
+
+    [Fact]
+    public void CursorDoesNotCrossKeyRings()
+    {
+        var first = new ShipmentCursorCodec(new EphemeralDataProtectionProvider());
+        var second = new ShipmentCursorCodec(new EphemeralDataProtectionProvider());
+        var now = DateTimeOffset.UtcNow;
+        var org = Guid.NewGuid();
+        var actor = Guid.NewGuid();
+        var session = Guid.NewGuid();
+        var token = first.Encode(org, actor, session, "SCOPE", Guid.NewGuid(), now, now);
+        Assert.False(second.TryDecode(token, org, actor, session, "SCOPE", now, out _));
+    }
+
+    [Fact]
+    public void ExportGateAllowsOneInFlightOperationPerUser()
+    {
+        var gate = new ShipmentExportGate();
+        var user = Guid.NewGuid();
+        var anotherUser = Guid.NewGuid();
+        Assert.True(gate.TryEnter(user));
+        Assert.False(gate.TryEnter(user));
+        Assert.True(gate.TryEnter(anotherUser));
+        gate.Leave(user);
+        Assert.True(gate.TryEnter(user));
+        gate.Leave(user);
+        gate.Leave(anotherUser);
+    }
+
+    [Theory]
+    [InlineData("/api/v1/organizations/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/shipments/search")]
+    [InlineData("/api/v1/organizations/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/exports/shipments")]
+    public async Task SearchAndExportRequireAuthenticatedSession(string path)
+    {
+        using var factory = new ApiFactory();
+        using var client = factory.CreateClient();
+        using var response = await client.GetAsync(path);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("no-store", string.Join(",", response.Headers.GetValues("Cache-Control")));
+    }
+}

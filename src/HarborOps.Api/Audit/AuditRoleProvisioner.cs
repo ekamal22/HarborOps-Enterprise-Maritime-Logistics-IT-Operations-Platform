@@ -93,8 +93,42 @@ public static class AuditRoleProvisioner
                     END IF;
                 END $m10_authority$;
 
+                -- M11 tables are read-only to the HTTP login. All exception
+                -- state changes and central audit writes pass through signed
+                -- migration-owned functions. Nonces are never exposed.
+                DO $m11_roles$
+                BEGIN
+                    IF to_regclass('public.shipment_exceptions') IS NOT NULL
+                       AND to_regclass('public.shipment_exception_proof_nonces') IS NOT NULL THEN
+                        REVOKE ALL ON shipment_exception_proof_nonces,
+                            shipment_exception_replays FROM harborops_api;
+                        GRANT EXECUTE ON FUNCTION m11_read_allowed(uuid),
+                            m11_due_allowed() TO harborops_api;
+                        GRANT EXECUTE ON FUNCTION m11_apply_signed_evaluation(
+                            uuid,uuid,varchar,varchar,varchar,varchar,varchar,varchar,
+                            timestamptz,timestamptz,timestamptz,bigint,bigint,bigint,
+                            uuid,bigint,varchar) TO harborops_api;
+                        GRANT EXECUTE ON FUNCTION m11_apply_signed_action(
+                            uuid,uuid,uuid,uuid,varchar,bigint,varchar,uuid,uuid,bigint,varchar)
+                            TO harborops_api;
+                    END IF;
+                END $m11_roles$;
+
                 GRANT EXECUTE ON FUNCTION
                     m16_record_audit_access(uuid,varchar,uuid,uuid,uuid,varchar) TO harborops_api;
+                DO $m12_export$
+                BEGIN
+                    IF to_regclass('public.m12_export_proof_keys') IS NOT NULL THEN
+                        REVOKE ALL ON TABLE public.m12_export_proof_keys
+                            FROM harborops_api, harborops_worker;
+                        GRANT EXECUTE ON FUNCTION m12_record_shipment_export(
+                            uuid,uuid,uuid,integer,bigint,varchar,varchar,bigint,varchar)
+                            TO harborops_api;
+                        REVOKE ALL ON FUNCTION m12_record_shipment_export(
+                            uuid,uuid,uuid,integer,bigint,varchar,varchar,bigint,varchar)
+                            FROM harborops_worker;
+                    END IF;
+                END $m12_export$;
 
                 -- Worker starts read-only against the accepted M8 schema.
                 -- M9-specific column grants are activated only if M9 is present.
@@ -213,6 +247,8 @@ public static class AuditRoleProvisioner
         }
         await ProvisionCorrectionKeyAsync(database,
             configuration["M10CorrectionProof:Key"], ct);
+        await ProvisionExportKeyAsync(database,
+            configuration["M12ExportProof:Key"], ct);
     }
 
     // The migration identity alone provisions the verifier key. Production API
@@ -252,6 +288,47 @@ public static class AuditRoleProvisioner
         {
             System.Security.Cryptography.CryptographicOperations.ZeroMemory(secret);
             if (close) await connection.CloseAsync();
+        }
+    }
+
+    // Only the privileged migration identity provisions or rotates this key.
+    // It must never be granted directly to the API/worker runtime identities.
+    public static async Task ProvisionExportKeyAsync(HarborOpsDbContext database,
+        string? encodedKey, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(encodedKey)) return;
+        byte[] secret;
+        try { secret = Convert.FromBase64String(encodedKey); }
+        catch (FormatException error)
+        {
+            throw new InvalidOperationException("Invalid export proof key encoding", error);
+        }
+        if (secret.Length != 32)
+        {
+            System.Security.Cryptography.CryptographicOperations.ZeroMemory(secret);
+            throw new InvalidOperationException("Export proof key must contain 32 bytes");
+        }
+        var connection = (NpgsqlConnection)database.Database.GetDbConnection();
+        var close = connection.State != ConnectionState.Open;
+        try
+        {
+            if (close) await connection.OpenAsync(ct);
+            await using var check = new NpgsqlCommand(
+                "SELECT to_regclass('public.m12_export_proof_keys') IS NOT NULL", connection);
+            if (await check.ExecuteScalarAsync(ct) is not true) return;
+            await using var put = new NpgsqlCommand("""
+                INSERT INTO public.m12_export_proof_keys (key_id, secret)
+                VALUES (1,@key)
+                ON CONFLICT (key_id) DO UPDATE SET secret=EXCLUDED.secret
+                """, connection);
+            put.Parameters.AddWithValue("key", secret);
+            await put.ExecuteNonQueryAsync(ct);
+        }
+        finally
+        {
+            System.Security.Cryptography.CryptographicOperations.ZeroMemory(secret);
+            if (close && connection.State == System.Data.ConnectionState.Open)
+                await connection.CloseAsync();
         }
     }
 

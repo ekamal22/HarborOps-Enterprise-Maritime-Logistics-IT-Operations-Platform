@@ -266,6 +266,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
           {(selection.role === "Analyst" || selection.role === "Manager" || selection.role === "Auditor") &&
             <ShipmentWorkspace key={"shipment:" + selection.id + ":" + selection.role}
               organizationId={selection.id} canManage={selection.role !== "Auditor"}
+               canManageExceptions={selection.role === "Manager"}
               onAccessInvalidated={onReferenceAccessInvalidated} />}
           {selection.role === "Administrator" && (
             <div className="mt-5 border-t border-slate-700 pt-5">

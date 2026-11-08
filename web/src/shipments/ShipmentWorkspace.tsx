@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { getJson, organizationError, OrganizationRequestError } from "../auth/organizationClient";
-import { archiveShipment, changeShipment, createShipment, listShipments, shipmentHistory, shipmentDetail,
+import { archiveShipment, changeShipment, createShipment, shipmentHistory, shipmentDetail,
   type ShipmentChange, type ShipmentRow, type ShipmentWorkflow } from "./shipmentClient";
 import type { ReferenceRow } from "../references/referenceClient";
 import { isDirty, mergeLatest, scheduleEditable, serverChanged, workflowOptions } from "../lib/shipmentDraft.mjs";
 import ShipmentAssignmentsPanel from "../assignments/ShipmentAssignmentsPanel";
 import ShipmentTrackingTimeline from "./ShipmentTrackingTimeline";
+import ShipmentExceptionPanel from "./ShipmentExceptionPanel";
+import { searchShipments, exportShipmentsCsv, emptyAdvancedFilters,
+  type ShipmentAdvancedFilters, type ShipmentSearchFilters } from "./shipmentSearchClient";
 
 type Form = {
   referenceCode: string; externalReference: string; displayName: string;
@@ -54,11 +57,19 @@ async function loadPorts(org: string): Promise<ReferenceRow[]> {
   } while (cursor);
   return all;
 }
-export default function ShipmentWorkspace({ organizationId, canManage, onAccessInvalidated }: {
-  organizationId: string; canManage: boolean; onAccessInvalidated: (message: string) => void;
+export default function ShipmentWorkspace({ organizationId, canManage, canManageExceptions, onAccessInvalidated }: {
+  organizationId: string; canManage: boolean; canManageExceptions: boolean;
+  onAccessInvalidated: (message: string) => void;
 }) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"Active" | "Archived" | "All">("Active");
+  const [advancedDraft, setAdvancedDraft] = useState<ShipmentAdvancedFilters>(emptyAdvancedFilters);
+  const [advancedApplied, setAdvancedApplied] = useState<ShipmentAdvancedFilters>(emptyAdvancedFilters);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
+  const exportAbortRef = useRef<AbortController | null>(null);
+  const filters: ShipmentSearchFilters = useMemo(() =>
+    ({ q, recordStatus: status, ...advancedApplied }), [q, status, advancedApplied]);
   const [items, setItems] = useState<ShipmentRow[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   // `selected` is the server snapshot the open form started from; `form` is the user's draft.
@@ -124,16 +135,16 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     setLoading(true); setRefreshing(false); setPaging(false); setError(""); setStale("");
     setItems([]); setCursor(null);
     try {
-      const page = await listShipments(organizationId, q, status);
+      const page = await searchShipments(organizationId, filters);
       if (version !== listSerial.current) return;
-      setItems(page.shipments); setCursor(page.nextAfter);
+      setItems(page.shipments); setCursor(page.nextCursor);
     } catch (cause) {
       if (version !== listSerial.current) return;
       setError(organizationError(cause)); invalidate(cause);
     } finally {
       if (version === listSerial.current) setLoading(false);
     }
-  }, [organizationId, q, status, invalidate]);
+  }, [organizationId, filters, invalidate]);
 
   // Background list refresh: keeps the rows on screen, never clears them on failure, and is
   // discarded if a list reset started in the meantime.
@@ -143,11 +154,11 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     const version = ++backgroundSerial.current;
     setRefreshing(true);
     try {
-      const page = await listShipments(organizationId, q, status);
+      const page = await searchShipments(organizationId, filters);
       if (reset !== listSerial.current || version !== backgroundSerial.current) return;
       ++pageSerial.current;
       setPaging(false);
-      setItems(page.shipments); setCursor(page.nextAfter); setStale("");
+      setItems(page.shipments); setCursor(page.nextCursor); setStale("");
     } catch (cause) {
       if (reset !== listSerial.current || version !== backgroundSerial.current) return;
       if (denied(cause)) invalidate(cause);
@@ -155,7 +166,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     } finally {
       if (version === backgroundSerial.current) setRefreshing(false);
     }
-  }, [organizationId, q, status, invalidate]);
+  }, [organizationId, filters, invalidate]);
 
   // Background check of the open shipment. A newer server version is held aside as `remote`
   // and never applied to the form on its own.
@@ -192,6 +203,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     const visible = () => { if (document.visibilityState === "visible") backgroundRef.current(); };
     document.addEventListener("visibilitychange", visible);
     return () => {
+      exportAbortRef.current?.abort();
       document.removeEventListener("visibilitychange", visible);
       listSerial.current++; backgroundSerial.current++; pageSerial.current++;
       selectionSerial.current++; mutationSerial.current++;
@@ -242,10 +254,10 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     const revision = listSerial.current, page = ++pageSerial.current;
     setPaging(true);
     try {
-      const next = await listShipments(organizationId, q, status, cursor);
+      const next = await searchShipments(organizationId, filters, cursor);
       if (revision !== listSerial.current || page !== pageSerial.current) return;
       setItems(old => [...old, ...next.shipments.filter(r => !old.some(x => x.id === r.id))]);
-      setCursor(next.nextAfter);
+      setCursor(next.nextCursor);
     } catch (cause) {
       if (revision !== listSerial.current || page !== pageSerial.current) return;
       setError(organizationError(cause)); setItems([]); setCursor(null);
@@ -350,6 +362,38 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
     } finally { if (mutation === mutationSerial.current) setBusy(false); }
   }
 
+
+  async function downloadExport() {
+    if (!canManage || exporting) return;
+    const controller = new AbortController();
+    exportAbortRef.current?.abort();
+    exportAbortRef.current = controller;
+    setExporting(true);
+    setExportError("");
+    try {
+      await exportShipmentsCsv(organizationId, filters, controller.signal);
+    } catch (cause) {
+      if (controller.signal.aborted) return;
+      setExportError(organizationError(cause));
+      invalidate(cause);
+    } finally {
+      if (exportAbortRef.current === controller) {
+        exportAbortRef.current = null;
+        setExporting(false);
+      }
+    }
+  }
+
+  const advancedFields: { key: Exclude<keyof ShipmentAdvancedFilters, "workflowStatus">; label: string }[] = [
+    { key: "voyageId", label: "Current voyage UUID" },
+    { key: "originPortId", label: "Origin port UUID" },
+    { key: "destinationPortId", label: "Destination port UUID" },
+    { key: "plannedDepartureFromUtc", label: "Departure from UTC (inclusive)" },
+    { key: "plannedDepartureBeforeUtc", label: "Departure before UTC (exclusive)" },
+    { key: "plannedArrivalFromUtc", label: "Arrival from UTC (inclusive)" },
+    { key: "plannedArrivalBeforeUtc", label: "Arrival before UTC (exclusive)" }
+  ];
+
   const field = (key: keyof Form, label: string, locked = false) => (
     <label key={key} className="block text-sm">{label}
       <input aria-label={label} value={form[key]} disabled={locked || !canManage}
@@ -391,6 +435,50 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
         }}
         className="rounded border border-cyan-500 px-3 py-2 text-sm disabled:opacity-50">Create shipment</button>}
     </div>
+
+    <details className="mt-3 rounded border border-slate-700 p-3">
+      <summary className="cursor-pointer text-sm">Advanced shipment search</summary>
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <label className="text-sm">Filter by workflow status
+          <select value={advancedDraft.workflowStatus}
+            onChange={e => setAdvancedDraft(old => ({ ...old,
+              workflowStatus: e.target.value as ShipmentAdvancedFilters["workflowStatus"] }))}
+            className="mt-1 block w-full rounded bg-slate-950 p-2">
+            {["", "Draft", "Booked", "InTransit", "Arrived", "Completed", "Cancelled"].map(x =>
+              <option key={x} value={x}>{x || "Any workflow"}</option>)}
+          </select>
+        </label>
+        {advancedFields.map(item => <label key={item.key} className="text-sm">{item.label}
+          <input value={advancedDraft[item.key]} placeholder={item.key.endsWith("Utc") ?
+            "2026-11-01T00:00:00Z" : "UUID"}
+            onChange={e => setAdvancedDraft(old => ({ ...old, [item.key]: e.target.value }))}
+            className="mt-1 block w-full rounded bg-slate-950 p-2" />
+        </label>)}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button type="button" onClick={() => setAdvancedApplied({ ...advancedDraft })}
+          className="rounded border border-cyan-500 px-3 py-2 text-sm">
+          Apply advanced filters
+        </button>
+        <button type="button" onClick={() => {
+          setAdvancedDraft({ ...emptyAdvancedFilters });
+          setAdvancedApplied({ ...emptyAdvancedFilters });
+        }} className="rounded border border-slate-600 px-3 py-2 text-sm">
+          Clear advanced filters
+        </button>
+      </div>
+    </details>
+    {canManage && <div className="mt-3">
+      <button type="button" disabled={exporting || busy || loading}
+        onClick={() => void downloadExport()}
+        className="rounded border border-cyan-500 px-3 py-2 text-sm disabled:opacity-50">
+        {exporting ? "Preparing CSV..." : "Export matching shipments as CSV"}
+      </button>
+      <p className="mt-1 text-xs text-slate-400">
+        Export is restricted to this organization and matching filters. Maximum 5,000 rows.
+      </p>
+      {exportError && <p role="alert" className="mt-2 text-sm text-rose-300">{exportError}</p>}
+    </div>}
     {loading && <p className="mt-3 text-sm text-slate-400">Loading shipments...</p>}
     {refreshing && !loading && <p role="status" className="mt-3 text-xs text-slate-400">Updating list...</p>}
     {stale && <p role="status" className="mt-3 text-xs text-amber-300">{stale}</p>}
@@ -471,6 +559,10 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
         key={`tracking:${organizationId}:${selected.id}`}
         organizationId={organizationId} shipmentId={selected.id}
         onAccessInvalidated={onAccessInvalidated} />}
+      {!creating && selected && <ShipmentExceptionPanel
+        key={`exceptions:${organizationId}:${selected.id}`}
+        organizationId={organizationId} shipmentId={selected.id}
+        isManager={canManageExceptions} onAccessInvalidated={onAccessInvalidated} />}
       {!creating && selected && <div className="mt-4">
         <h6 className="font-medium">Manual status history</h6>
         {history.length === 0 ? <p className="text-xs text-slate-400">No status changes loaded.</p> :

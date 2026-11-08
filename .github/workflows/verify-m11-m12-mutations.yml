@@ -155,7 +155,26 @@ jobs:
               if build_rc != 0:
                   summary.append({'mutant': v['id'], 'status': 'INVALID_BUILD'})
                   continue
-              rc, counts = test(where, v['id'], v['project'], v['test'])
+              original_db = os.environ['HARBOROPS_TEST_DB']
+              if v['project'] == integration_project:
+                  # The control has already applied the accepted migration.
+                  # An SQL mutant needs a distinct database to execute its own DDL.
+                  containers = subprocess.check_output([
+                      'docker', 'ps', '-q', '--filter', 'ancestor=postgres:16.15'],
+                      text=True).splitlines()
+                  if len(containers) != 1:
+                      sys.exit('SQL mutant requires exactly one disposable PostgreSQL container')
+                  dbname = 'harborops_mutant_witness'
+                  subprocess.run(['docker', 'exec', containers[0], 'createdb',
+                      '-U', 'harborops', '-O', 'harborops', dbname], check=True)
+                  os.environ['HARBOROPS_TEST_DB'] = original_db.replace(
+                      'Database=harborops_integration', 'Database=' + dbname)
+                  if os.environ['HARBOROPS_TEST_DB'] == original_db:
+                      sys.exit('SQL mutant database isolation failed')
+              try:
+                  rc, counts = test(where, v['id'], v['project'], v['test'])
+              finally:
+                  os.environ['HARBOROPS_TEST_DB'] = original_db
               killed = rc != 0 and counts is not None and counts['failed'] > 0 and counts['total'] > 0
               status = 'KILLED' if killed else 'SURVIVED_OR_INVALID'
               summary.append({'mutant': v['id'], 'status': status, 'counts': counts})

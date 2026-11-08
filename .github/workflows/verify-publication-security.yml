@@ -18,6 +18,10 @@ concurrency:
   group: harborops-m11m12-n01
   cancel-in-progress: false
 
+env:
+  HARBOROPS_SOURCE_SHA: ${{ github.sha }}
+  HARBOROPS_M11_ENABLE_EVALUATOR: "false"
+
 jobs:
   focused:
     runs-on: ubuntu-24.04

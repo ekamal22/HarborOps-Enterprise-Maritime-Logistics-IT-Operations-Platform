@@ -145,3 +145,7 @@ M10's correction security is accepted and merged via [PR #28](https://github.com
 ## Accepted M10 indexed timeline and projection model
 
 Accepted M10 includes the SQL-only timeline entries, input-version tracking, projections, corrections, correction heads and operation replay records. Migration 13 adds restricted signed correction authority and atomic M16 audit, while delivering a historical-upgrade-safe projector scope function. See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md).
+
+## M13 reporting read models, implementation branch
+
+The SQL-owned `operational_kpi_auditor_grants` table binds an active read-only Auditor grant to an organization/user and exact current membership version. `operational_kpi_reports` stores the selected actor, session, organization, filters digest, policy version, UTC cutoffs and short-lived expiry. `operational_kpi_members` records KPI code, dimension, shipment or exception occurrence identity and UTC trend bucket under RLS. Source records remain owned by M5/M6/M10/M11; reporting does not turn transport backlog or schedule projections into physical arrival evidence. See [M13 implementation status](M13_IMPLEMENTATION_STATUS_20261109.md). G13 has not accepted the code.

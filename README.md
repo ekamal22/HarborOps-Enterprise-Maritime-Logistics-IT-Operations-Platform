@@ -1,5 +1,7 @@
 # HarborOps
 
+**M13 implementation checkpoint (2026-11-09):** The isolated M13 backend, migration, API, React dashboard and test sources are authored. [Source-locked Actions run 42533241124](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42533241124) passed against `28c4a913e2880cdec26508cd0456616801cd40b3`: 304 unit, 52 contract, six selected PostgreSQL integration and nine browser tests. This is a focused implementation verification, **not G13 gate acceptance**. Full 12+2 fixture, performance/fault/mutation/security negative campaigns, M15 integration and independent S25 review remain pending. Nothing is merged or deployed. See [M13 verification](docs/M13_VERIFICATION_STATUS_20261109.md).
+
 **Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](docs/M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](docs/STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
 
 ## Enterprise Maritime Logistics & IT Operations Platform

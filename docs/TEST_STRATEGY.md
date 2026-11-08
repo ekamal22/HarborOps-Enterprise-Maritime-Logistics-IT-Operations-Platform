@@ -1,5 +1,7 @@
 # Test and Verification Strategy
 
+**M13 focused verification (2026-11-09):** [Run 42533241124](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42533241124) passed 304 unit, 52 contract, six selected restricted PostgreSQL integration and nine three-engine browser tests against source `28c4a913e2880cdec26508cd0456616801cd40b3`. This does not close the 25-scenario G13 matrix; reference fixture reconciliation, 170,000-shipment plans, failures/retries, mutations, negative security, M15 combined regression and independent S25 review remain required. No G13 acceptance, merge or deployment is claimed. [Status](M13_VERIFICATION_STATUS_20261109.md).
+
 **Current verified baseline (2026-11-08):** G0-G12 and G16 accepted and merged. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records the 388/388 integration, 48/48 browser, 17/17 effective mutant and N01 10/10 evidence. Earlier source-only and pending verification banners are historical, not current. Preserve the M9 ARRI/DEPA hold, 10,000 unresolved-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator; no deployment.
 
 ## Current G10 source verification boundary

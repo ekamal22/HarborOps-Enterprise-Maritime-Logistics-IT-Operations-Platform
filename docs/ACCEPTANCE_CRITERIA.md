@@ -1,5 +1,7 @@
 # Acceptance Criteria
 
+**M13 focused verification (2026-11-09):** [Run 42533241124](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42533241124) passed 304 unit, 52 contract, six selected restricted PostgreSQL integration and nine three-engine browser tests against source `28c4a913e2880cdec26508cd0456616801cd40b3`. This does not close the 25-scenario G13 matrix; reference fixture reconciliation, 170,000-shipment plans, failures/retries, mutations, negative security, M15 combined regression and independent S25 review remain required. No G13 acceptance, merge or deployment is claimed. [Status](M13_VERIFICATION_STATUS_20261109.md).
+
 **Current status (2026-11-08):** G0-G12 and G16 are accepted and merged into `main`. G11 and G12 have separately approved S01 policies and S25 evidence reviews in the [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Earlier pending, unverified and source-candidate checkpoints below remain historical if explicitly dated. The M9 ARRI/DEPA transport hold and 10,000 unresolved-item cap remain binding. M10 projector defaults off, ETA remains null and M11 evaluator is opt-in. No production deployment or migration is authorized.
 
 ## Status convention

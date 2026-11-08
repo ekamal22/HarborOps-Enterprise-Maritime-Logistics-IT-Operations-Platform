@@ -176,6 +176,12 @@ public static class OperationalKpiEndpoints
         { return Fail(ctx, 403, "access_denied", "Access denied"); }
         catch (Npgsql.PostgresException e) when (e.SqlState == "23514")
         { return Fail(ctx, 409, "grant_conflict", "Grant eligibility changed"); }
+        catch (Npgsql.PostgresException e) when (e.SqlState == "57014")
+        { return Fail(ctx, 503, "report_timeout", "The query exceeded its reporting budget"); }
+        catch (TimeoutException)
+        { return Fail(ctx, 503, "report_timeout", "The reporting dependency timed out"); }
+        catch (Npgsql.NpgsqlException e) when (e.IsTransient)
+        { return Fail(ctx, 503, "report_dependency_unavailable", "The reporting database is unavailable"); }
     }
 
     public static void MapOperationalKpiEndpoints(this WebApplication app)

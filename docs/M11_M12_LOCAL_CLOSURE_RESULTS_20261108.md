@@ -1,5 +1,7 @@
 # M11/M12 Local Closure Results
 
+**Formal gate decision, 2026-11-08:** M11/G11 and M12/G12 ACCEPTED following separately approved S01 contracts and second-archive S25 re-review. See [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Prior planning-stage, source-only and gate-pending passages remain historical. The M9 ARRI/DEPA hold, 10,000 cap, null ETA and default-off projectors/evaluator remain binding. Merge authorized, deployment not authorized.
+
 **Date:** 2026-11-08
 **Branch:** `feat/m11-m12-combined-integration`
 **Hosted application SHA (earlier evidence):** `f56d017d9b2619be56fe533f73ba1d11f63974c0`

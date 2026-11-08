@@ -1,5 +1,8 @@
 # Pre-release Documentation and Evidence Checklist
 
+**M15 implementation note (2026-11-08):** Scoped shipment-exception notifications are in development on an independent branch, documented in [M15 architecture](M15_ARCHITECTURE_DESIGN.md), [implementation plan](M15_IMPLEMENTATION_PLAN.md), [verification](M15_VERIFICATION_PLAN.md) and [status](M15_PLANNING_STATUS.md). Infrastructure monitoring alerts, external notification delivery, M13 dashboards and transport processing remain outside M15. G15 verification and acceptance are pending, and no deployment or merge is authorized.
+
+
 **Current project state (2026-11-08):** G0-G12 and G16 are accepted and integrated on `main` following [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. Earlier source-only and gate-pending notes are superseded; retained dated evidence still describes its original run. M9's ARRI/DEPA hold and 10,000-item cap remain mandatory, M10 projector defaults off, ETA null, M11 evaluator opt-in. There is no authorization for deployment or additional GitHub Actions runs.
 
 **Opened:** 2026-11-06  

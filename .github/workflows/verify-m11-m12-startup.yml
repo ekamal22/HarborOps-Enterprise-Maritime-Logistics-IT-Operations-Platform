@@ -1,4 +1,4 @@
-name: Verify runner availability
+name: Verify combined M11 M12 source
 on:
   push:
     branches:
@@ -9,5 +9,25 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Confirm hosted runner
-        run: echo "Runner available for $GITHUB_SHA"
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm source and check contracts
+        run: |
+          set -euo pipefail
+          echo "Source SHA $(git rev-parse HEAD)"
+          node scripts/check-m11-contract.mjs
+          node scripts/render-execution-graph.mjs --check
+          node scripts/check-planning-docs.mjs
+      - name: Build solution
+        run: dotnet build HarborOps.sln -c Release -warnaserror
+      - name: Build frontend
+        run: |
+          npm --prefix web ci --no-audit --no-fund
+          npm --prefix web run build

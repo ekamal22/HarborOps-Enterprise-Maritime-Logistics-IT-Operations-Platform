@@ -1,5 +1,11 @@
 # Test and Verification Strategy
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). The coordinated campaign will prioritize fast change-impact checks, then 13-to-15 migrations, restricted SQL proof boundaries, adversarial and outage checks, shared three-engine browser verification, affected regressions and independent gate reviews. G12's login-changing test needs an exclusive disposable PostgreSQL server.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) records correction of inactive severity and same-fingerprint metadata drift, plus typed due-work cursor keys. Tests are authored but unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending; M9 transport processing held and PR #31 unmerged.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 
@@ -9,7 +15,7 @@
 
 **Current M10/G10 verification checkpoint (2026-11-07):** G10 S01/S25 reviewed and accepted; [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) integrated the remediation. The correction-authority campaign is source-locked to `a26d19a`, while final upgrade, configuration and targeted tests are source-locked to `e3002bd`. Preserve original A1-A7 evidence separately. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md).
 
-**Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. Independent review (G10-S25) and the S01 conformance disposition are NOT EXECUTED. Acceptance pending.
+**Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. At this intermediate source-review checkpoint, G10-S25 and S01 were not yet executed. Both were subsequently reconciled and G10 accepted on 2026-11-07; the G10 gate closure is authoritative.
 
 ## Reviewed G10 technical evidence
 
@@ -20,6 +26,22 @@ Future changes require focused, source-locked verification of affected contracts
 ## M7 source-locked verification boundary
 
 The accepted M7 implementation contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 was accepted on 2026-11-03; the pinned reference snapshots are checked by `scripts/verify-dcsa-reference.mjs` and the M7 contract tests; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
+
+## Sixth-pass M11 rule-calibration checks, unexecuted
+
+Add source-locked checks for recorded arrival within grace (Inactive, Info), not-yet-overdue arrival schedule (Inactive, Info), inactive departure-slippage risk (Info) and active late/overdue warnings. A clean disposable database fixture must corrupt a synthetic severity under migration-role access, then confirm the signed evaluator repairs it by appending exactly one Reevaluated event despite unchanged fingerprint, followed by a true no-op. Verify null and populated UUID keyset bounds for the due scanner. Static assertions are not runtime evidence.
+
+## Fifth-pass M11 recurrence regression, not executed
+
+Source-locked integration verification must exercise direct Acknowledged/Inactive-to-Active recurrence with old AutoResolved history and a fresh Open occurrence; repeated reevaluation must not duplicate either. Test the manager UI hides Resolve on Open/Inactive. Confirm expected replay-primary-key conflicts map to HTTP 409 while unrelated SQL 23505 failures surface as actual errors. These new focused checks do not replace G11-S01 policy decisions or S02-S25 execution.
+
+## Fourth-pass M11 focused verification, unexecuted
+
+Source changes require testing a database-clock first-page cutoff and new exception creation during list pagination, then mutable lifecycle status changes between stateless pages. For immutable history, generate more than 500 synthetic entries in a disposable database and verify the first preview, subsequent `(occurred_at_utc,id)` pages, protected token expiry/tampering, tenant and exception swapping, per-page Analyst redaction, unmodified retained rows, and Chromium/Firefox/WebKit loading and cancellation behavior. This extends the existing G11-S11/S12/S17/S20-S24 matrix. The [fourth audit](M11_FOURTH_CORRECTNESS_AUDIT_20261108.md) is source-level only.
+
+## M11 candidate verification, not executed
+
+[Source and limitations](M11_IMPLEMENTATION_STATUS.md) and the [25-scenario G11 matrix](M11_VERIFICATION_PLAN.md) define the required rule-boundary, M10 correction, tenant/session/SQL-role, atomic M16 audit, populated upgrade, failure recovery, browser and mutation checks. The E:-backed [focused runner](../scripts/verify-g11-local.sh) can gather development evidence but is not a completed G11 campaign. No G11 scenarios are claimed passing; policy decisions and acceptance pending.
 
 ## Philosophy
 
@@ -105,7 +127,7 @@ The independent G16 main-evidence review checked 162/162 standalone files; the S
 
 After G16 acceptance, a final source review found a possible generation-zero `Redriven` forgery. Correction source `8ba7727` passed 17/17 focused restricted-role tests and 286/286 full PostgreSQL integration tests; reverting the old guard caused the new regression to fail. The extension archive matched 47/47 file hashes. [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) merged only after that gate extension. No extra browsers, outages or image scans were claimed on the corrected SHA because those paths were unchanged. G10 has independently reviewed technical evidence on its original frozen source but no gate acceptance; its later correction-security remediation has no executed runtime evidence. No GitHub Actions are authorized.
 
-## M10/G16 combined verification (executed locally, acceptance pending)
+## Historical M10/G16 combined technical verification (subsequently accepted)
 
 The [M10/G16 source reconciliation](M10_M16_SOURCE_RECONCILIATION.md) extends the accepted eleven-migration G16/M9 baseline with M10's SQL-only twelfth migration and its immutable effect-derived timeline index. The M16 Auditor API, audit insertion triggers and accepted M9 restricted worker behavior must remain unchanged. New focused tests extend the exact restricted API/worker grant matrix, correction-head security-definer trigger, twelve-migration inventory and downgrade counts. Full `G10-S01` through `G10-S25` source-locked execution must include the combined suites, real-role SQL, concurrency and outage/restart scenarios, three browser engines, vulnerability and mutation checks, preserved evidence and independent review. These checks were executed on frozen source `3e81b88` with the real `harborops_api`, `harborops_worker` and `harborops_projector` logins, real overlapping PostgreSQL sessions proved by lock waits, a populated-history upgrade, a 12,001-event history, a projector killed before COMMIT, three browser engines and 29 mutation variants; see [M10 executed verification](M10_EXECUTED_VERIFICATION.md) for counts, attempts, defects and the scenario dispositions. Historical G16 results remain accepted and were not rerun; only the M10 interaction surfaces were.
 

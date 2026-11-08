@@ -1,15 +1,37 @@
 # Security Model
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). A combined candidate must retain M11 signed SQL evaluation/disposition authority and a distinct M12 export-audit proof key, without key reuse, role widening or audit bypass. Real restricted-role SQL, live revocation and atomicity require independent runtime proofs.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) records correction of inactive severity and same-fingerprint metadata drift, plus typed due-work cursor keys. Tests are authored but unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending; M9 transport processing held and PR #31 unmerged.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
 **Current accepted baseline (2026-11-07):** G0-G10 and G16 are integrated into protected `main`; G10 remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following independently reviewed [gate closure](M10_G10_GATE_CLOSURE_20261107.md). G11-G15 and G17-G24 remain unaccepted. Sustained M9 transport-event processing remains held.
 
+## Sixth-pass provisional rule-metadata integrity
+
+The signed rule evaluator must not let an unchanged fingerprint hide a divergence in visible severity, confidence, reason or time boundaries. Its no-op path now verifies this stored metadata and falls through to an immutable versioned rule reevaluation when it differs. This is a source-level correctness control, not a replacement for transaction, role-grant or audit-failure tests. The existing broad API database SELECT boundary and incomplete conflict-event lineage remain unresolved.
+
+## Fifth-pass provisional M11 disposition error boundary
+
+The signed action store treats only the replay table's known unique primary-key constraint as a routine 409 uniqueness conflict. Unexpected PostgreSQL 23505 errors are not concealed as idempotency collisions; transaction serialization, deadlock and explicit source-version PZ004 conflicts remain recognized. The signed recurrence transition closes a verified inactive Acknowledged row before reopening a new occurrence in the same database transaction. These source claims require real SQL, audit and session-race evidence.
+
+## Provisional M11 history and list read security
+
+Exception-list cursors carry a database-clock creation cutoff in the v2 protected token; the cutoff limits new occurrence inclusion but is not a frozen status snapshot. History continuation uses a separate 20-minute protected cursor bound to organization and exception, validated after live selected-organization authorization. Analyst history projections redact human free-form reasons and actor identifiers on every page; Manager and Auditor access remains scoped by the existing permission matrix. All of these claims require executable role and cross-tenant tests. The inherited broad API SQL SELECT trust boundary remains a G11 review risk.
+
+## Provisional M11 signed evaluation security
+
+The [third correctness audit](M11_THIRD_CORRECTNESS_AUDIT_20261108.md) fixed a NULL-sensitive HMAC validation path by rejecting absent required SQL fields/signatures before comparison. The `m11-eval-v2` domain binds timestamp fields to microsecond precision; the Manager action retains `m11-action-v1`. Restricted-role SQL negative test source exists but has not been executed. The inherited API SQL read permissions and provisional M11 policies remain gate risks.
+
 ## M10 correction authority security boundary, 2026-11-07
 
 **M10/G10 checkpoint (2026-11-07):** Fourteen M10 local policies are approved (L07/L14 revised, L06 conditional and verified). Signed restricted correction authority, same-transaction M16 audit and upgrade-safe thirteenth migration are accepted and merged via PR #28. Original G10 evidence is source-locked to `3e81b88`, correction authority to `a26d19a`, and final historical upgrade and default Compose tests to `e3002bd`. See [G10 closure](M10_G10_GATE_CLOSURE_20261107.md).
 
-**Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. Independent review (G10-S25) and the S01 conformance disposition are NOT EXECUTED. Acceptance pending.
+**Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. At this intermediate source-review checkpoint, G10-S25 and S01 were not yet executed. Both were subsequently reconciled and G10 accepted on 2026-11-07; the G10 gate closure is authoritative.
 
 The accepted remediation removes unrestricted direct correction INSERT from `harborops_api` on `main`. Human corrections require an authenticated HTTP request, short-lived signed proof bound to actor, session, tenant, shipment, payload, generation and idempotency key, plus live Manager/session verification inside a constrained PostgreSQL function. Central M16 audit and correction effects are atomic. The migrator and API require a private proof key, not the worker or web. [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) records the tested limits.
 

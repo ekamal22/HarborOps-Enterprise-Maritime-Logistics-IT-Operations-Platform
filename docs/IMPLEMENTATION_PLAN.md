@@ -1,5 +1,11 @@
 # Implementation Notes
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Future authorized sequence: verify main and both feature heads, create isolated combined candidate, reconcile API/UI/migrations/role provisioning/config/tests, run fast checks, freeze final SHA, run the combined campaign and report two separate gate ledgers. This entry is documentation only.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents informational severity on inactive outcomes, versioned rule-metadata reconciliation and typed due-work continuation. The source changes and new tests are unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport-processing hold remains in force.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
@@ -12,6 +18,10 @@ The [Product Requirements Document](PRD.md) defines user outcomes and release bo
 ## M10/G10 implementation boundary
 
 **Current M10/G10 implementation checkpoint (2026-11-07):** G10 S01/S25 accepted and merged via PR #28. Thirteen additive migrations, restricted signed corrections, atomic M16 audit, historical upgrade and corrected default Compose environment were verified on their respective source locks. [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision; historical implementation notes below preserve prior status.
+
+## M11 source candidate
+
+After accepted G10, M11-01 rule policy, M11-02 evaluation, M11-03 exception lifecycle and M11-04 integrated API/UI are represented by a feature-branch source candidate. See [M11 source status](M11_IMPLEMENTATION_STATUS.md), [architecture](M11_ARCHITECTURE_DESIGN.md), [delivery plan](M11_IMPLEMENTATION_PLAN.md) and [G11 gate](M11_VERIFICATION_PLAN.md). The policy has not been approved, the code has not been executed, and G11 acceptance is pending. M9's transport hold continues.
 
 ## Work-package execution contract
 

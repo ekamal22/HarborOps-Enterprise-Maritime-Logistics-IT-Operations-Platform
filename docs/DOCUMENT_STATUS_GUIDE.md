@@ -1,5 +1,11 @@
 # Documentation Status Guide
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). This combined integration plan is an approved orchestration document, not executed source, a gate-closure report or accepted policy. Preserve historical audits and distinguish future evidence from present planning.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents corrected inactive rule severity, metadata-aware signed reevaluation and explicitly typed due-work cursors. Regression tests are authored but unexecuted. G11-S01 remains BLOCKED on policy; G11-S02 through S25 remain NOT EXECUTED, and acceptance pending. Draft PR #31 is unmerged; M9 transport processing remains held.
+
 **Current integrated baseline (2026-11-07):** M0-M10/G0-G10 and M16/G16 are accepted and integrated into protected `main`. Original M10 PR #23 plus remediation [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` complete the G10 integration. G11-G15 and G17-G24 remain unaccepted. The [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) and [project status](STATUS.md) are authoritative for current decisions.
 **Current documentation reconciliation:** [G10 post-merge record](M10_G10_POST_MERGE_RECONCILIATION_20261107.md) indexes the current-state changes without rewriting historical evidence reports.
 
@@ -20,6 +26,8 @@ For the 2026-11-07 M10 policy and source reconciliation, see [G10 documentation 
 Source-locked plans, proposal files, audit reports and executed-verification registers preserve their original time-specific dispositions. Words like `BLOCKED`, `NOT EXECUTED` or `acceptance pending` can be correct for their initial runs even when later separate gate decisions closed the milestone. Do not silently rewrite failed attempts, original SHA associations, historical risk findings or decision-time records. Consult [G8 closure](M8_G8_GATE_CLOSURE.md), [G9 closure](M9_G9_GATE_CLOSURE.md) and [G16 closure](M16_G16_GATE_CLOSURE.md) for later accepted dispositions.
 
 ## Currently unaccepted work and restrictions
+
+- M11 implementation source exists on an isolated feature branch. [M11 source status](M11_IMPLEMENTATION_STATUS.md) records the code and unexecuted tests. [Architecture](M11_ARCHITECTURE_DESIGN.md), [implementation plan](M11_IMPLEMENTATION_PLAN.md) and [G11 matrix](M11_VERIFICATION_PLAN.md) remain conditional on local policy approval, independent verification and explicit G11 acceptance.
 
 - M10 planning [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) and original source [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) preceded G10 acceptance. The original frozen 23 PASS / S01 BLOCKED / S25 NOT EXECUTED evidence remains historical. On 2026-11-07 S01/S25 were closed through separately verified remediation and review, and [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) integrated the accepted source. See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md).
 - Older open documentation [PR #21](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/21) and G16 supplement [PR #24](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/24) may contain superseded current-state wording. Their historical content must be reconciled before any merge and is not a replacement for current `main`.

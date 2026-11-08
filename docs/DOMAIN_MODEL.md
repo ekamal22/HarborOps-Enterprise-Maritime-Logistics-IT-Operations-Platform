@@ -1,8 +1,26 @@
 # Domain Model and Invariants
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). The integrated candidate must preserve the M11 exception/history model, M12 shipment search/export contracts, accepted M5 shipment invariants, M10 observation provenance and M16 audit atomicity.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents informational severity on inactive outcomes, versioned rule-metadata reconciliation and typed due-work continuation. The source changes and new tests are unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport-processing hold remains in force.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
+
+## M11 provisional recurrence identity
+
+A verified inactive Acknowledged occurrence is closed on direct recurrence, preserving immutable system AutoResolved history. The newly active incident receives a separate UUID and incremented occurrence under the existing partial unique index. Unknown/Stale does not establish clearance. This remains source-only and subject to M11-P10 approval.
+
+## M11 scoped immutable-history retrieval
+
+The underlying `shipment_exception_history` rows retain a composite scoped FK and append-only trigger. The new `HistoryPageAsync` query uses an ordered `(occurred_at_utc,id)` keyset. Protected history continuation cursors are request tokens, not stored business records; the first 500 detail events are a preview rather than an irreversible retention ceiling. Runtime verification and conflict-specific event lineage remain pending.
+
+## M11 provisional persistence model
+
+SQL-only migration 14 adds tenant-bound `shipment_exceptions`, append-only `shipment_exception_history`, rule-versioned `shipment_exception_evaluations`, organization-unique `shipment_exception_replays`, and bounded-expiry `shipment_exception_proof_nonces`. Input checkpoints reference accepted M10 `shipment_tracking_input_versions.input_revision`, not a nonexistent `revision` column. This branch is not a migrated or accepted database baseline.
 
 ## Entities
 

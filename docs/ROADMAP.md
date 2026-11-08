@@ -1,5 +1,11 @@
 # HarborOps Delivery Roadmap
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). The next proposed coordinated activity, when separately authorized, is integration of M11 and M12 from verified accepted main followed by one combined evidence campaign. G11 and G12 retain separate acceptance and current execution-graph dependencies.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) records correction of inactive severity and same-fingerprint metadata drift, plus typed due-work cursor keys. Tests are authored but unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending; M9 transport processing held and PR #31 unmerged.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 
 
@@ -196,15 +202,20 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 #### M11: Delay rules and shipment exceptions
 
+**Current parallel source checkpoint (2026-11-08):** Draft PR #31 has a sixth-pass source-audited M11 implementation candidate, but G11-S01 is BLOCKED and the G11 runtime campaign is NOT EXECUTED. See [parallel status](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md).
+
 **Scope:** Explainable at-risk, delay and conflict detection.
 **Entry:** G10 accepted before respective dependent work packages.
 **Required work packages:** M11-01 Specify delay classification rules; M11-02 Implement exception evaluation; M11-03 Implement exception lifecycle; M11-04 Verify end-to-end exception flow.
 **Exit G11:** All applicable tasks, negative tests, runtime evidence and documentation for M11 recorded; acceptance pending until explicitly confirmed.
-**Not covered by this milestone:** Notifications and high-level KPI visualization.
+**Not covered by this milestone:** Notifications and high-level KPI visualization, transport backlog resolution or predictive ETA.
+**Implementation candidate:** [source status](M11_IMPLEMENTATION_STATUS.md), [architecture](M11_ARCHITECTURE_DESIGN.md), [implementation plan](M11_IMPLEMENTATION_PLAN.md) and [G11-S01 to S25 verification](M11_VERIFICATION_PLAN.md). Source implementation is not a passed G11 gate; policies and acceptance pending. No execution-graph dependency change.
 
 ### P2: Operational workspaces
 
 #### M12: Shipment search and authorized export
+
+**Current parallel source checkpoint (2026-11-08):** Draft PR #32 has a fifth-pass source-audited M12 implementation candidate, but G12 verification and acceptance remain pending. See [parallel status](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md).
 
 **Scope:** Scoped filtering, detail navigation and CSV output.
 **Entry:** G5 accepted before respective dependent work packages.

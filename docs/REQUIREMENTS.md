@@ -1,5 +1,11 @@
 # Requirements
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Shared verification is a delivery choice, not an amendment of FR-010, the shipment search/export requirements or any NFR. Each requirement still needs executed source-locked evidence and separate gate disposition.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) records correction of inactive severity and same-fingerprint metadata drift, plus typed due-work cursor keys. Tests are authored but unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending; M9 transport processing held and PR #31 unmerged.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
@@ -15,7 +21,7 @@ The [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and version 3.0 [Exe
 
 ## Requirement status
 
-Requirements describe the intended complete product. G0 through G7 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
+Requirements describe the intended complete product. G0 through G10 and G16 are accepted. FR-001 was implemented in M1 and FR-002 organization authorization in M2; both are integrated into `main` following explicit acceptance on 2026-10-31. A requirement is considered accepted only after its tests and acceptance evidence appear in [Status](STATUS.md) and the corresponding gate is explicitly accepted.
 
 ## Observed baseline and storage boundary
 
@@ -49,6 +55,10 @@ All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_PO
 | FR-020 | Should | Track incident root cause and associated remediation actions | Incident workflow tests |
 | FR-021 | Could | Add an optional adapter for permitted external tracking APIs | Sandbox contract tests |
 | FR-022 | Could | Add external SSO and enterprise identity mapping | Integration/security review |
+
+## M11 FR-010 implementation candidate
+
+The [M11 source candidate](M11_IMPLEMENTATION_STATUS.md) proposes FR-010 schedule-risk and equipment-conflict rules on accepted M5 workflow data and fresh M10 equipment projections. FR-002/NFR-002 secure tenant-scoped reads, Manager actions and M16 audit, and NFR-007 requires UTC time comparisons. M11-P01 through P12 and G11 acceptance pending. This source has not been executed, and it cannot consume parked transport events or infer ETA.
 
 ## M1 identity requirement allocation
 

@@ -7,6 +7,7 @@ using HarborOps.Api.Shipments;
 using HarborOps.Api.Assignments;
 using HarborOps.Api.Integrations;
 using HarborOps.Api.Audit;
+using HarborOps.Api.Exceptions;
 using HarborOps.Infrastructure.Audit;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
@@ -18,6 +19,7 @@ using HarborOps.Infrastructure;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using HarborOps.Infrastructure.Shipments;
+using HarborOps.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -37,6 +39,9 @@ builder.Services.AddHarborOpsAuthentication(builder.Configuration);
 builder.Services.AddSingleton<IntegrationRequestLimiter>();
 builder.Services.AddScoped<TrackingWorkAdminStore>();
 builder.Services.AddScoped<ShipmentTimelineStore>();
+builder.Services.AddScoped<ShipmentExceptionStore>();
+if (builder.Configuration.GetValue<bool>("M11:EnableEvaluator"))
+    builder.Services.AddHostedService<ShipmentExceptionEvaluationService>();
 if (builder.Configuration.GetValue<bool>("M10:EnableProjector"))
 {
     var projectorConnection = builder.Configuration.GetConnectionString("HarborOpsProjector");
@@ -161,6 +166,7 @@ app.MapAssignmentEndpoints();
 app.MapTrackingEndpoints();
 app.MapTrackingWorkEndpoints();
 app.MapShipmentTimelineEndpoints();
+app.MapShipmentExceptionEndpoints();
 app.MapAuditEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions

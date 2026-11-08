@@ -1,5 +1,11 @@
 # API Contracts
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Combined API verification must cover M11 exception routes and M12 search/export routes together without changing accepted M5 shipment list/detail/mutation semantics, tenant isolation, sessions or audit requirements.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents corrected inactive rule severity, metadata-aware signed reevaluation and explicitly typed due-work cursors. Regression tests are authored but unexecuted. G11-S01 remains BLOCKED on policy; G11-S02 through S25 remain NOT EXECUTED, and acceptance pending. Draft PR #31 is unmerged; M9 transport processing remains held.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
@@ -85,6 +91,32 @@ The accepted [M4 architecture](M4_ARCHITECTURE_DESIGN.md) implements ten `/api/v
 [M5 architecture](M5_ARCHITECTURE_DESIGN.md) specifies scoped shipment GET list/detail/status changes, POST Draft creation, PATCH exact-version edits/transitions/restore and DELETE soft archive. M5 supplies bounded search, while M12 owns advanced search and CSV. `containerIds` and `voyageId` from older sample payloads are excluded until M6 assignments. Five-role permissions, CSRF/Origin and sanitized errors require [G5](M5_VERIFICATION_PLAN.md).
 
 The M5 shipment Minimal API implements the documented routes and was verified and accepted on 2026-11-02. See [G5 closure](M5_G5_GATE_CLOSURE.md) and [implementation status](M5_IMPLEMENTATION_STATUS.md).
+
+## Third-pass M11 API clarifications
+
+Exception lists use the provisional P09 rule order (`EquipmentConflict`, `RecordedArrivalLate`, `ArrivalScheduleOverdue`, `DepartureSlippageRisk`) followed by UUID, including across paged cursors. Competing evaluations or Manager dispositions return an explicit 409 when uncommitted. The signed evaluation proof binds timestamps at PostgreSQL microsecond precision under `m11-eval-v2`. Executable verification remains outstanding.
+
+## Fourth-pass M11 list and history continuation
+
+The scoped exception-list cursor now binds `organizationId`, optional filters, rule-ranked last ID and a PostgreSQL-clock `SnapshotAtUtc`. Rows opened after the first page are excluded, but lifecycle changes are not an immutable SQL snapshot and may affect later filtered pages. The detail response supplies `nextHistoryCursor` only when the 500-item preview is truncated. `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}/history?limit=100&cursor=...` returns `{ items, nextCursor }` using immutable `(occurred_at_utc,id)` paging. Each token expires after 20 minutes, is bound to the selected tenant and exception, and cannot expose foreign history. Analyst reads redact `reason` and `actorUserId` on every page. These contracts are implemented in source, not G11-verified.
+
+## Sixth-pass M11 rule severity and reevaluation
+
+An Inactive `RecordedArrivalLate` signal from an on-time recorded arrival now uses Info severity, as do not-yet-overdue arrival schedules and inactive departure risks. Active recorded lateness remains High, and active schedule/departure risks remain Warning. A signed reevaluation with an identical source fingerprint now updates a still-active exception if its severity, confidence, reason or reference/threshold/next-due timestamp differs, appending one versioned Reevaluated history entry. Repeated identical metadata remains a genuine no-op. These candidate contracts require G11 execution and local policy approval.
+
+## Fifth-pass M11 provisional lifecycle and API behaviors
+
+If an Acknowledged incident was explicitly evaluated Inactive and later becomes Active again, the signed evaluator now closes the previous occurrence as a system AutoResolved event and creates a separate Open occurrence with the next occurrence number. The Resolve action is allowed only for an Acknowledged/Inactive occurrence. Known replay-key uniqueness, serialization and deadlock collisions return 409; unrelated database uniqueness failures are not mislabeled as ordinary conflicts. These are unverified source contracts, and the decisions for recurrence across Unknown/Stale and a persistent RecordedArrivalLate condition remain pending.
+
+## M11 provisional request and response contract
+
+The scoped list returns `{ items, nextCursor }` with a short-lived protected cursor bound to organization, optional shipment and state. A tampered or foreign cursor returns 409 `stale_or_invalid_cursor`. Detail returns `{ exception, history, historyTruncated }`. The first 500 historical events are previewed with explicit truncation; a protected `nextHistoryCursor` now supports full-history continuation through the separate history route, pending runtime verification. `exception.evidence` includes bounded policy and revision context, not raw tracking payload.
+
+Manager actions use a CSRF-protected empty evaluation `POST` or `PATCH /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`, with an `Idempotency-Key` UUID header and exactly `action`, `expectedVersion` and `reason` in the body. Keys are organization-unique and conflicting reuse yields 409. Analyst detail redacts free-form human reasons and actor IDs. These are source contracts only, not verified endpoints or ETA.
+
+## Unaccepted M11 exception API candidate
+
+The feature branch implements `GET /api/v1/organizations/{organizationId}/shipments/{shipmentId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`, Manager-only `POST /api/v1/organizations/{organizationId}/shipments/{shipmentId}/exceptions/evaluate`, and Manager-only, idempotent `PATCH /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`. List cursors are protected and bound to tenant/filter. The contracts are a source candidate only, unverified and not accepted. See [M11 architecture](M11_ARCHITECTURE_DESIGN.md) and [status](M11_IMPLEMENTATION_STATUS.md). They do not represent ETA or processed ARRI/DEPA records.
 
 ## Proposed resource map
 

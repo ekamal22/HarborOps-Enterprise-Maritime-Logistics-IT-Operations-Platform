@@ -117,12 +117,18 @@ await check("stack-services-ready", async () => {
 
 await check("fresh-volume-migrations-applied", async () => {
   const row = scalar(`SELECT count(*) || '|' || bool_or("MigrationId" LIKE '%_TrackingWorker') FROM "__EFMigrationsHistory"`);
-  assert.equal(row, "13|true", "all thirteen migrations, including M16 audit, M9 worker, M10 projections and correction authority, must be applied");
+  const hasM11 = row === "14|true";
+  assert.ok(row === "13|true" || hasM11,
+    "expected the 13-migration accepted G10 baseline or the additive 14-migration M11 candidate; got " + row);
+  const latest = hasM11 ? 5 : 4;
   const order = scalar(`SELECT string_agg(split_part("MigrationId",'_',2),',' ORDER BY "MigrationId") FROM (
-    SELECT "MigrationId" FROM "__EFMigrationsHistory" ORDER BY "MigrationId" DESC LIMIT 4) t`);
-  assert.equal(order, "AuditEntries,TrackingWorker,ShipmentTrackingProjections,M10CorrectionAuthority",
-    "Accepted migrations must precede M10 correction authority");
-  return "thirteen migrations applied in order";
+    SELECT "MigrationId" FROM "__EFMigrationsHistory"
+    ORDER BY "MigrationId" DESC LIMIT ${latest}) t`);
+  const expected = "AuditEntries,TrackingWorker,ShipmentTrackingProjections,M10CorrectionAuthority" +
+    (hasM11 ? ",ShipmentExceptions" : "");
+  assert.equal(order, expected,
+    "Accepted G10 migration order must be preserved before the M11 addition");
+  return (hasM11 ? "fourteen" : "thirteen") + " migrations applied in order";
 });
 
 await check("provision-accounts-and-organization", async () => {

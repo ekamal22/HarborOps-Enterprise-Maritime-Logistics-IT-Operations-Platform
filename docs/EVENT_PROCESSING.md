@@ -1,8 +1,22 @@
 # Tracking Event Processing
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). M11 optional reevaluation must not activate M9 transport processing. The combined G11/G12 campaign must verify parked ARRI/DEPA, the unresolved-work-item cap and null ETA on final integrated source.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records draft M11 PR #31 alongside draft M12 PR #32, with different additive migration IDs and an unresolved shared API/UI/role integration boundary. Both are source candidates, not merged or runtime-verified; G11-S01 BLOCKED, G11-S02..S25 NOT EXECUTED, G12 technical verification pending. Accepted `main` and the M9 transport hold remain unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents informational severity on inactive outcomes, versioned rule-metadata reconciliation and typed due-work continuation. The source changes and new tests are unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport-processing hold remains in force.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
+
+## M11 source-only history and list read boundaries
+
+M11 list pagination now excludes exception occurrences created after the first page's database-clock cutoff; it cannot freeze later lifecycle updates. Append-only exception history is independently pageable without rewriting accepted tracking events, M9 worker effects, M10 projections or M16 audit records. The bounded evaluator and M9 transport hold remain unchanged. Test this concurrency behavior in the G11 campaign.
+
+## M11 provisional classification boundary
+
+The isolated M11 evaluator uses M5 workflow UTC records and corrected M10 equipment projections, with an opt-in bounded candidate scanner that is independent of M9 worker processing. It does not consume parked transport ARRI/DEPA events, loosen the 10,000-work cap or infer vessel ETA. Source and rule versions inform reevaluation. These behaviors require executable G11 evidence.
 
 ## Purpose
 

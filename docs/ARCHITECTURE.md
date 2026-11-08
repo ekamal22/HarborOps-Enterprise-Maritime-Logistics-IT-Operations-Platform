@@ -1,5 +1,11 @@
 # Architecture
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Future integration must preserve the M11 delay/exception domain and the M12 independent search/export domain, while reconciling Program.cs, role provisioner, EF migrations, Compose and shipment workspace. No combined source is implemented yet.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents corrected inactive rule severity, metadata-aware signed reevaluation and explicitly typed due-work cursors. Regression tests are authored but unexecuted. G11-S01 remains BLOCKED on policy; G11-S02 through S25 remain NOT EXECUTED, and acceptance pending. Draft PR #31 is unmerged; M9 transport processing remains held.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 
@@ -12,6 +18,10 @@
 **M10/G10 checkpoint (2026-11-07):** Fourteen M10 local policies are approved (L07/L14 revised, L06 conditional and verified). Signed restricted correction authority, same-transaction M16 audit and upgrade-safe thirteenth migration are accepted and merged via PR #28. Original G10 evidence is source-locked to `3e81b88`, correction authority to `a26d19a`, and final historical upgrade and default Compose tests to `e3002bd`. See [G10 closure](M10_G10_GATE_CLOSURE_20261107.md).
 
 The accepted correction-security layer adds an SQL-only thirteenth migration after the immutable original twelve, including the NULL-safe projector-scope function replacement. HTTP proof signing is separated from the restricted PostgreSQL verifier; the correction and M16 audit event commit atomically. The optional projector remains off by default and restricted. See [gate closure](M10_G10_GATE_CLOSURE_20261107.md).
+
+## M11 provisional exception architecture, not verified
+
+The [M11 source candidate](M11_IMPLEMENTATION_STATUS.md) extends M5 UTC schedules and M10 equipment projections with a versioned rule engine, additively migrated exception tables, signed SQL authority, scoped API and UI, M16 atomic audit and an optional bounded reevaluator. [M11 architecture](M11_ARCHITECTURE_DESIGN.md), [work-package sequence](M11_IMPLEMENTATION_PLAN.md), and [G11 specification](M11_VERIFICATION_PLAN.md) are proposed. Local policy approval and all executable verification remain pending, so no M11 runtime behavior is represented as accepted. The M9 transport hold and null ETA remain.
 
 ## Parallel implementation and integration contracts
 

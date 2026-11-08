@@ -1,0 +1,53 @@
+# M11 and M12 Parallel Source Status
+
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). The combined integration and shared source-locked verification strategy was approved on 2026-11-08, but integration has not been performed. Original M11/M12 branches, their distinct migrations, unresolved source risks, blocked/pending policies and separate G11/G12 gate decisions are unchanged.
+
+**As of:** 2026-11-08  
+**Scope:** Two independent, unmerged implementation candidates and their shared integration boundary. This is a source-status record, not evidence of executable verification, gate acceptance or permission to merge.
+
+## Accepted baseline and authoritative documents
+
+Protected `main` was verified at `6ead1d076946dd96b53401265a31efc35c4a666c`. G0 through G10 and G16 are accepted and integrated. The accepted G10 authority remediation was merged through PR #28; none of the M11/M12 source described here has entered `main`.
+
+The [PRD](PRD.md) defines scope, [Roadmap](ROADMAP.md) defines milestone/gate boundaries, [execution-graph.json](execution-graph.json) is the authoritative dependency dataset, [Execution Graph](EXECUTION_GRAPH.md) renders the graph, [Requirements](REQUIREMENTS.md) and [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) govern checks, and [Status](STATUS.md) distinguishes implemented source, executed evidence and accepted gates. The graph is v3.0: 25 milestones, 101 work packages, 25 gates and 244 dependency edges. No graph dependency or accepted-gate change is proposed by these draft branches.
+
+The accepted M9 restriction remains mandatory. ARRI/DEPA transport arrivals/departures stay parked for reconciliation, the 10,000 unresolved-work-item cap still applies, sustained transport processing is on hold, M10 ETA remains null, and the M10 projector is disabled by default. Neither M11 nor M12 changes this restriction. There is no production deployment, public hosting, release or transport-hold clearance.
+
+## Independent source workstreams
+
+| Workstream | Implementation and latest observed source checkpoint | Status and evidence boundary |
+| --- | --- | --- |
+| **M11, Delay Rules and Shipment Exceptions** | `feat/m11-delay-exception-lifecycle`, draft [PR #31](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/31), source checkpoint `50f3bd09a8920a4371846420d5b423df1b5b0a44`. Separate documentation-only planning [PR #30](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/30). | M11-P01..P12 proposed, not approved. **G11-S01 BLOCKED** on policy approval; **G11-S02..S25 NOT EXECUTED**. Source reviewed through a sixth correctness audit. Acceptance pending. |
+| **M12, Shipment Search and Authorized Export** | `feat/m12-shipment-search-export`, draft [PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32), source checkpoint `527fb5bbf5cc1605c438490867250bf70009a94f`. | M12-P01..P16 proposed, not approved. G12 technical campaign and S25 independent review **NOT EXECUTED**; G12-S01 disposition pending. Source reviewed through a fifth correctness audit. Acceptance pending. |
+
+These checkpoint SHAs identify the source as inspected before this documentation reconciliation; branch heads can advance through subsequent documentation-only commits. Check current PR heads for current values.
+
+### M11 scope and known limits
+
+M11 implements a provisional `m11-rules-v1` rule system for `EquipmentConflict`, `ArrivalScheduleOverdue`, `RecordedArrivalLate`, and `DepartureSlippageRisk`, using accepted M5 schedules/workflow records and fresh M10 equipment evidence. Candidate semantics distinguish manual recorded lateness, schedule risk, unknown/stale data and physical arrival evidence. The 60-minute UTC grace period is a **proposal**, not an approved threshold. Do not infer vessel ETA, transport movement or physical arrival from GTIN/GTOT.
+
+The [M11 implementation status](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m11-delay-exception-lifecycle/docs/M11_IMPLEMENTATION_STATUS.md), [architecture](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m11-delay-exception-lifecycle/docs/M11_ARCHITECTURE_DESIGN.md), [G11 verification plan](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m11-delay-exception-lifecycle/docs/M11_VERIFICATION_PLAN.md) and [sixth correctness audit](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m11-delay-exception-lifecycle/docs/M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) track the detailed implementation and all earlier audits. The candidate includes an additive database migration, signed SQL evaluation and Manager dispositions, tenant-scoped read/detail/history endpoints, append-only lifecycle history with protected continuation cursors, a React exception panel, and an optional bounded reevaluator. The reevaluator is **off by default** and does not activate M9 transport processing.
+
+Unresolved source/policy questions include recurrence across Unknown/Stale states, treatment of immutable recorded late arrival under clear-only manual resolution, complete conflicting-container/event provenance, inherited broad API database SELECT grants, mutable lifecycle state across stateless list pages, and execution of the history-paging/concurrency/SQL-security tests. Source-only corrections to severity, metadata-aware reevaluation, signed proofs and due-keyset typing do not establish G11 acceptance.
+
+### M12 scope and known limits
+
+M12 implements a dedicated authenticated `GET /shipments/search` endpoint with tenant/session/filter-bound protected UUID keyset cursors, current M6 voyage association, case-insensitive text, archive/workflow/port/UTC filters, bounded input, and live (not immutable) pages. It preserves the existing accepted M5 shipment list/detail/mutation API. A separate `GET /exports/shipments` produces a 12-column, quoted UTF-8 CSV with spreadsheet formula protection. **Proposed** export permission is Analyst/Manager only; Auditor may search but not export, and Administrator/Support cannot use either M12 route.
+
+CSV uses a 5,000-row/10-MiB cap, per-principal 10/min rate limit, one in-flight export per API process, 15-second PostgreSQL statement limits and 25-second store budgets within the existing 30-second Nginx read timeout. The budgets begin after authentication middleware and do not guarantee total HTTP duration. The HTTP runtime signs a short-lived domain-separated proof, and a migration-owned restricted SQL verifier writes a required atomic `shipment.export_prepared` audit event; this proves preparation authorization, **not download receipt**. An unrelated M12 signing key must not be shared with M10/M11.
+
+The [M12 implementation status](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m12-shipment-search-export/docs/M12_IMPLEMENTATION_STATUS.md), [architecture](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m12-shipment-search-export/docs/M12_ARCHITECTURE_DESIGN.md), [G12 verification plan](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m12-shipment-search-export/docs/M12_VERIFICATION_PLAN.md), and [fifth correctness audit](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m12-shipment-search-export/docs/M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md) contain the source inventory, fixes, policies and evidence boundary. The restricted-role SQL fixture must be run on a dedicated disposable PostgreSQL **server**, with `HARBOROPS_G12_EXCLUSIVE_POSTGRES=1`; otherwise it is **SKIPPED**, not PASS. The same-assembly xUnit collection is nonparallel; external test processes still need isolation. G12 includes the Q2 historical snapshot compatibility check.
+
+## Migration, integration and downstream dependencies
+
+Both branches fork the accepted thirteen-migration `main` baseline. M11 adds `20261107180000_ShipmentExceptions`, and M12 adds `20261107230000_M12ShipmentExportAudit`. They have **different migration IDs**, although each is migration fourteen when checked alone. A combined, fully reconciled source would discover fifteen migrations in timestamp order. Neither feature's successful compilation, database upgrade, rollback behavior or combined upgrade has been demonstrated by these source audits.
+
+Shared or conflicting integration surfaces include `src/HarborOps.Api/Program.cs`, `src/HarborOps.Api/Audit/AuditRoleProvisioner.cs`, the shipment workspace React components, EF migration discovery/snapshot and migration-count assertions, database role provisioning and secrets, test fixtures and browser routes, `compose.yaml`, and living documentation. Any eventual combined integration requires its own source SHA, full migration/authority review and actual regression evidence. **Neither branch is a substitute for merging the other.** M12 development depends on accepted G5, **not** G11. M13 has dependencies on both G11 and G12; M15 depends on G11. No execution graph edge has changed.
+
+## Evidence, operational controls and next decision boundaries
+
+All M11 and M12 unit, contract, restricted-PostgreSQL, end-to-end browser and source-lock verification described in their audit documents were **authored or reviewed, not executed** by the connected source-editing environment. No local .NET 10 SDK, E:-backed full checkout, Docker, PostgreSQL or browser fixtures were available during those source audits. G11/G12 technical evidence and independent S25 reviews are still required, and acceptance remains pending. Preserve historical failed attempts and raw source-locked evidence; never turn test source or static checks into PASS.
+
+Worktrees, caches, Docker/WSL volumes, PostgreSQL, browser profiles, reports and retained evidence belong on E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Only unavoidable short-lived C: activity is tolerated. No destructive cleanup, GitHub Actions execution, merge, deployment or production database mutation is implied or authorized by this documentation record.
+
+**This is a snapshot of parallel source status and integration risk, not a new work assignment or gate decision.**

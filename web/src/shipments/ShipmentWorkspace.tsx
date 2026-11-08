@@ -6,6 +6,7 @@ import type { ReferenceRow } from "../references/referenceClient";
 import { isDirty, mergeLatest, scheduleEditable, serverChanged, workflowOptions } from "../lib/shipmentDraft.mjs";
 import ShipmentAssignmentsPanel from "../assignments/ShipmentAssignmentsPanel";
 import ShipmentTrackingTimeline from "./ShipmentTrackingTimeline";
+import ShipmentExceptionPanel from "./ShipmentExceptionPanel";
 
 type Form = {
   referenceCode: string; externalReference: string; displayName: string;
@@ -54,8 +55,9 @@ async function loadPorts(org: string): Promise<ReferenceRow[]> {
   } while (cursor);
   return all;
 }
-export default function ShipmentWorkspace({ organizationId, canManage, onAccessInvalidated }: {
-  organizationId: string; canManage: boolean; onAccessInvalidated: (message: string) => void;
+export default function ShipmentWorkspace({ organizationId, canManage, canManageExceptions, onAccessInvalidated }: {
+  organizationId: string; canManage: boolean; canManageExceptions: boolean;
+  onAccessInvalidated: (message: string) => void;
 }) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"Active" | "Archived" | "All">("Active");
@@ -471,6 +473,10 @@ export default function ShipmentWorkspace({ organizationId, canManage, onAccessI
         key={`tracking:${organizationId}:${selected.id}`}
         organizationId={organizationId} shipmentId={selected.id}
         onAccessInvalidated={onAccessInvalidated} />}
+      {!creating && selected && <ShipmentExceptionPanel
+        key={`exceptions:${organizationId}:${selected.id}`}
+        organizationId={organizationId} shipmentId={selected.id}
+        isManager={canManageExceptions} onAccessInvalidated={onAccessInvalidated} />}
       {!creating && selected && <div className="mt-4">
         <h6 className="font-medium">Manual status history</h6>
         {history.length === 0 ? <p className="text-xs text-slate-400">No status changes loaded.</p> :

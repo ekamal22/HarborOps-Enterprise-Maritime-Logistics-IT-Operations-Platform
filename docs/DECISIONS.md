@@ -1,5 +1,11 @@
 # Architecture Decisions
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Approved orchestration choice dated 2026-11-08: one combined source candidate and shared efficient verification campaign, with separate gate matrices, policy decisions and independent S25 reviews. M11-P01..P12 and M12-P01..P16 are not approved by this choice.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents corrected inactive rule severity, metadata-aware signed reevaluation and explicitly typed due-work cursors. Regression tests are authored but unexecuted. G11-S01 remains BLOCKED on policy; G11-S02 through S25 remain NOT EXECUTED, and acceptance pending. Draft PR #31 is unmerged; M9 transport processing remains held.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted and integrated into protected `main`. The [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md) records S01 and S25 acceptance; the M10 security remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544`. Historical source-locked reports retain their earlier blocked or pending dispositions. The M9 transport-processing hold remains in force. No deployment or release is authorized.
 
 
@@ -17,7 +23,7 @@ M10-L01 through M10-L14 are approved, with modifications to L07 and L14 and a co
 
 The revised L07/L14 and conditional L06 implementations are accepted after executed security verification. S01 and S25 closed on 2026-11-07, and the remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28). See [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) for source and evidence boundaries.
 
-**Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. Independent review (G10-S25) and the S01 conformance disposition are NOT EXECUTED. Acceptance pending.
+**Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. At this intermediate source-review checkpoint, G10-S25 and S01 were not yet executed. Both were subsequently reconciled and G10 accepted on 2026-11-07; the G10 gate closure is authoritative.
 
 ## Accepted baseline decisions
 

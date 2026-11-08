@@ -148,6 +148,7 @@ public static class NotificationEndpoints
             "Forbidden" => Fail(ctx,403,"access_denied"),
             "NotFound" => Fail(ctx,404,"notification_not_found"),
             "Conflict" => Fail(ctx,409,"notification_conflict"),
+            "Invalid" => Fail(ctx,422,"invalid_notification_transition"),
             _ => Fail(ctx,503,"notification_authority_unavailable")
         };
 
@@ -262,6 +263,10 @@ public static class NotificationEndpoints
                 var item = await store.GetAsync(org,principal.UserId,principal.SessionId,id,ct);
                 return item is null ? Fail(ctx,404,"notification_not_found")
                     : Results.Ok(Item(item));
+            }
+            catch (Npgsql.PostgresException e) when (e.SqlState == "PZ001")
+            {
+                return Fail(ctx,503,"audit_unavailable");
             }
             catch (InvalidOperationException)
             {

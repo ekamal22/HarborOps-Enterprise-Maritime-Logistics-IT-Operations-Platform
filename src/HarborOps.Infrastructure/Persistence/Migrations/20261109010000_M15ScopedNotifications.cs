@@ -327,6 +327,10 @@ public sealed class M15ScopedNotifications : Migration
                 IF item.version <> p_expected_version THEN
                     RETURN QUERY SELECT 'Conflict'::text,0::bigint; RETURN;
                 END IF;
+                IF (p_action='MarkRead' AND item.read_at_utc IS NOT NULL)
+                    OR (p_action='Acknowledge' AND item.acknowledged_at_utc IS NOT NULL) THEN
+                    RETURN QUERY SELECT 'Invalid'::text,item.version; RETURN;
+                END IF;
                 now_utc := clock_timestamp();
                 changing := CASE WHEN p_action='MarkRead'
                     THEN item.read_at_utc IS NULL ELSE item.acknowledged_at_utc IS NULL END;
@@ -342,14 +346,19 @@ public sealed class M15ScopedNotifications : Migration
                     IF p_action='Acknowledge' THEN
                         SELECT m.role INTO current_role FROM organization_memberships m
                             WHERE m.id=item.membership_id;
-                        INSERT INTO audit_entries
-                            (organization_id,event_type,event_schema_version,outcome,
-                             actor_kind,actor_user_id,actor_session_id,actor_role,
-                             resource_type,resource_id,correlation_id,metadata)
-                        VALUES (p_org,'notification.receipt_acknowledged',1,'Succeeded',
-                            'Human',p_user,p_session,current_role,
-                            'notification',p_notification,p_correlation,
-                            '{"action":"Acknowledge"}'::jsonb);
+                        BEGIN
+                            INSERT INTO audit_entries
+                                (organization_id,event_type,event_schema_version,outcome,
+                                 actor_kind,actor_user_id,actor_session_id,actor_role,
+                                 resource_type,resource_id,correlation_id,metadata)
+                            VALUES (p_org,'notification.receipt_acknowledged',1,'Succeeded',
+                                'Human',p_user,p_session,current_role,
+                                'notification',p_notification,p_correlation,
+                                '{"action":"Acknowledge"}'::jsonb);
+                        EXCEPTION WHEN OTHERS THEN
+                            RAISE EXCEPTION 'Notification audit unavailable'
+                                USING ERRCODE='PZ001';
+                        END;
                     END IF;
                 END IF;
                 INSERT INTO m15_notification_replays

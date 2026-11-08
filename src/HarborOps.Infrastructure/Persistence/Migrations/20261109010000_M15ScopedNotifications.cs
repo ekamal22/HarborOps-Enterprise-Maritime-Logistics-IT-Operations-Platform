@@ -211,9 +211,35 @@ public sealed class M15ScopedNotifications : Migration
                 IF NOT FOUND THEN
                     RETURN QUERY SELECT 'Forbidden'::text,0::bigint; RETURN;
                 END IF;
+                -- Hold the live identity and session against concurrent revocation
+                -- through commit, after acquiring the organization row lock.
+                PERFORM 1 FROM auth_sessions a JOIN users u ON u.id=a.user_id
+                    WHERE a.id=p_session AND a.user_id=p_user
+                        AND a.selected_organization_id=p_org
+                        AND a.revoked_at_utc IS NULL
+                        AND a.idle_expires_at_utc>clock_timestamp()
+                        AND a.absolute_expires_at_utc>clock_timestamp()
+                        AND a.security_version=u.security_version
+                        AND u.status='Active'
+                    FOR SHARE OF a,u;
+                IF NOT FOUND THEN
+                    RETURN QUERY SELECT 'Forbidden'::text,0::bigint; RETURN;
+                END IF;
                 SELECT n.* INTO item FROM m15_user_notifications n
                     WHERE n.id=p_notification AND n.organization_id=p_org
                         AND n.recipient_user_id=p_user FOR UPDATE;
+                IF NOT FOUND THEN
+                    RETURN QUERY SELECT 'NotFound'::text,0::bigint; RETURN;
+                END IF;
+                -- Hold the exact membership version against role changes or removal.
+                PERFORM 1 FROM organization_memberships member
+                    WHERE member.id=item.membership_id
+                        AND member.user_id=p_user
+                        AND member.organization_id=p_org
+                        AND member.status='Active'
+                        AND member.version=item.membership_version
+                        AND member.role IN ('Analyst','Manager','Auditor')
+                    FOR SHARE;
                 IF NOT FOUND OR NOT m15_can_read(p_org,p_user,item.membership_id,
                     item.membership_version,item.shipment_id) THEN
                     RETURN QUERY SELECT 'NotFound'::text,0::bigint; RETURN;

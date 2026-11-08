@@ -225,6 +225,12 @@ public sealed class NotificationStore(
             await tx.CommitAsync(ct);
             return result;
         }
+        catch (PostgresException error) when (error.SqlState is "23505" or "40001" or "40P01")
+        {
+            // Different-target use of the same replay key or a serialization
+            // conflict cannot turn into a successful second receipt mutation.
+            return new NotificationMutation("Conflict",0);
+        }
         finally { await Connection.CloseAsync(); }
     }
 

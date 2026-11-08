@@ -216,7 +216,7 @@ public static class ShipmentSearchEndpoints
             }
             catch (OperationCanceledException) when (!ct.IsCancellationRequested)
             {
-                // The internal 30-second export budget expired, not a client abort.
+                // The internal 25-second export budget expired, not a client abort.
                 return Error(ctx, 503, "dependency_unavailable",
                     "Export could not be prepared within the request budget");
             }

@@ -148,6 +148,44 @@ public sealed class M13OperationalKpis : Migration
             EXCEPTION WHEN OTHERS THEN RETURN false;
             END $member$;
 
+            -- Row locks are obtained by the migration owner, not by giving
+            -- the API unrestricted UPDATE privileges on read-only tables.
+            CREATE FUNCTION m13_lock_auditor_grant(
+                p_org uuid,p_actor uuid,p_session uuid)
+            RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog,public AS $lockgrant$
+            DECLARE granted boolean;
+            BEGIN
+                IF session_user<>'harborops_api'
+                    OR NOT m13_scope_matches(p_org,p_actor,p_session)
+                    OR m13_scoped_role(p_org)<>'Auditor' THEN RETURN false; END IF;
+                SELECT g.active INTO granted FROM operational_kpi_auditor_grants g
+                JOIN organization_memberships m ON m.organization_id=g.organization_id
+                    AND m.user_id=g.user_id AND m.role='Auditor' AND m.status='Active'
+                    AND m.version=g.membership_version
+                WHERE g.organization_id=p_org AND g.user_id=p_actor FOR SHARE OF g;
+                RETURN COALESCE(granted,false);
+            EXCEPTION WHEN OTHERS THEN RETURN false;
+            END $lockgrant$;
+
+            CREATE FUNCTION m13_lock_report(
+                p_org uuid,p_actor uuid,p_session uuid,p_report uuid,p_fingerprint varchar)
+            RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog,public AS $lockreport$
+            BEGIN
+                IF session_user<>'harborops_api'
+                    OR NOT m13_scope_matches(p_org,p_actor,p_session)
+                    OR NOT m13_can_view(p_org) THEN RETURN false; END IF;
+                PERFORM 1 FROM operational_kpi_reports
+                WHERE id=p_report AND organization_id=p_org
+                    AND actor_user_id=p_actor AND actor_session_id=p_session
+                    AND policy_version='m13-kpi-v1'
+                    AND filters_sha256=p_fingerprint
+                    AND expires_at_utc>clock_timestamp() FOR SHARE;
+                RETURN FOUND;
+            EXCEPTION WHEN OTHERS THEN RETURN false;
+            END $lockreport$;
+
             -- A report build may prune only expired reports of its selected
             -- organization. Cleanup is bounded and must be authorized by the
             -- same signed M11 session scope as reporting reads.
@@ -228,7 +266,9 @@ public sealed class M13OperationalKpis : Migration
                 m13_scope_matches(uuid,uuid,uuid),m13_can_view(uuid),
                 m13_can_manage(uuid),m13_member_access(uuid,uuid),
                 m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean),
-                m13_prune_expired(uuid,integer) FROM PUBLIC;
+                m13_prune_expired(uuid,integer),
+                m13_lock_auditor_grant(uuid,uuid,uuid),
+                m13_lock_report(uuid,uuid,uuid,uuid,varchar) FROM PUBLIC;
 
             ALTER TABLE operational_kpi_auditor_grants ENABLE ROW LEVEL SECURITY;
             ALTER TABLE operational_kpi_reports ENABLE ROW LEVEL SECURITY;
@@ -269,6 +309,11 @@ public sealed class M13OperationalKpis : Migration
                     SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m13_member_access(uuid,uuid)
                     SET search_path TO pg_catalog,%1$I,public',s);
+                EXECUTE format('ALTER FUNCTION %1$I.m13_lock_auditor_grant(uuid,uuid,uuid)
+                    SET search_path TO pg_catalog,%1$I,public',s);
+                EXECUTE format('ALTER FUNCTION %1$I.m13_lock_report(
+                    uuid,uuid,uuid,uuid,varchar)
+                    SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m13_prune_expired(uuid,integer)
                     SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m13_set_auditor_grant(
@@ -294,6 +339,8 @@ public sealed class M13OperationalKpis : Migration
             DROP TABLE operational_kpi_auditor_grants;
             DROP FUNCTION m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean);
             DROP FUNCTION m13_prune_expired(uuid,integer);
+            DROP FUNCTION m13_lock_report(uuid,uuid,uuid,uuid,varchar);
+            DROP FUNCTION m13_lock_auditor_grant(uuid,uuid,uuid);
             DROP FUNCTION m13_member_access(uuid,uuid);
             DROP FUNCTION m13_can_manage(uuid);
             DROP FUNCTION m13_can_view(uuid);

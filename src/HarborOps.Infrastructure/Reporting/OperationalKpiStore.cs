@@ -209,14 +209,6 @@ public sealed class OperationalKpiStore(
 
         if (count > OperationalKpiPolicy.MaximumReportMembers)
             return new(null, OrganizationAccessError.Conflict, "report_capacity_exceeded");
-        // The report row is immutable after commit; update within the same
-        // transaction while the approved snapshot is being constructed.
-        await using (var update = Command(Connection, sqlTx,
-            "UPDATE operational_kpi_reports SET member_count=@count WHERE id=@id AND organization_id=@org",
-            I("count", count), U("id", report), U("org", org)))
-            if (await update.ExecuteNonQueryAsync(ct) != 1)
-                throw new InvalidOperationException("Report capacity write unavailable");
-
         var counts = await ReadCountsAsync(sqlTx, org, report, ct);
         await tx.CommitAsync(ct);
         return new(new KpiReport(report, org, sha, f.FromUtc, f.BeforeUtc,

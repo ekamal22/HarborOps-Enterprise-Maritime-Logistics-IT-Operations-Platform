@@ -33,7 +33,6 @@ public sealed class M13OperationalKpis : Migration
                 evaluated_at_utc timestamptz NOT NULL,
                 created_at_utc timestamptz NOT NULL DEFAULT clock_timestamp(),
                 expires_at_utc timestamptz NOT NULL,
-                member_count integer NOT NULL DEFAULT 0 CHECK (member_count >= 0),
                 CONSTRAINT ck_m13_report_window CHECK (before_utc>from_utc AND
                     before_utc<=from_utc+interval '366 days'),
                 CONSTRAINT ck_m13_report_expiry CHECK (expires_at_utc>created_at_utc

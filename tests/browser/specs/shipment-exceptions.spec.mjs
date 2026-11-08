@@ -122,3 +122,31 @@ test("G11 Resolve is unavailable for an unacknowledged inactive occurrence", asy
   await expect(panel.getByRole("button", { name: "Resolve" })).toHaveCount(0);
   await expect(panel.getByRole("button", { name: "Acknowledge" })).toHaveCount(0);
 });
+
+test("G11 reviewed recorded arrival remains attributable after Manager resolution", async ({ page }) => {
+  test.skip(!enabled, "Disposable M5 fixture required");
+  const panel = await openShipment(page, "Manager");
+  const record = {
+    id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    ruleCode: "RecordedArrivalLate", occurrence: 1,
+    condition: "Active", state: "Acknowledged", severity: "High",
+    confidence: "RecordedWorkflow", reasonCode: "recorded_arrival_after_grace",
+    lastEvaluatedAtUtc: "2026-11-08T12:00:00Z"
+  };
+  await page.route("**/shipments/*/exceptions?*", route =>
+    route.fulfill({ status: 200, contentType: "application/json",
+      body: JSON.stringify({ items: [record], nextCursor: null }) }));
+  await panel.getByRole("button", { name: "Refresh exceptions" }).click();
+  await expect(panel.getByText("Active / Acknowledged")).toBeVisible();
+  const resolve = panel.getByRole("button", { name: "Resolve" });
+  await expect(resolve).toBeVisible();
+  await panel.locator('input[id^="reason-"]').fill("Historical recorded lateness reviewed");
+  await expect(resolve).toBeEnabled();
+
+  record.state = "Resolved";
+  await panel.getByRole("button", { name: "Refresh exceptions" }).click();
+  await expect(panel.getByText("Active / Resolved")).toBeVisible();
+  await expect(panel.getByText("Resolution closes this occurrence", { exact: false }))
+    .toBeVisible();
+  await expect(panel.getByRole("button", { name: "Resolve" })).toHaveCount(0);
+});

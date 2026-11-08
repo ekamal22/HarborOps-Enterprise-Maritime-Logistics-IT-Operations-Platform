@@ -112,8 +112,12 @@ public sealed class NotificationStore(
             await SetReadScopeAsync(tx, org, user, session, ct);
             DateTimeOffset snapshot;
             await using (var clock = Command(Connection, tx, "SELECT clock_timestamp()"))
-                snapshot = cutoff ?? (DateTimeOffset)(await clock.ExecuteScalarAsync(ct)
-                    ?? throw new InvalidOperationException("Database clock unavailable"));
+            await using (var clockReader = await clock.ExecuteReaderAsync(ct))
+            {
+                if (!await clockReader.ReadAsync(ct))
+                    throw new InvalidOperationException("Database clock unavailable");
+                snapshot = cutoff ?? clockReader.GetFieldValue<DateTimeOffset>(0);
+            }
 
             var rows = new List<NotificationRecord>(limit + 1);
             await using (var cmd = Command(Connection, tx, $"""

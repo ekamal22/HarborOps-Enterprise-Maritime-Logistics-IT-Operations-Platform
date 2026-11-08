@@ -728,6 +728,101 @@ public sealed class ShipmentExceptions : Migration
                         uuid,uuid,uuid,uuid,varchar,bigint,varchar,uuid,uuid,bigint,varchar)
                      SET search_path TO pg_catalog,%1$I,public', target_schema);
             END $m11_schema$;
+
+            -- Direct API reads need a server-signed, transaction-scoped proof.
+            -- An arbitrary user-controlled PostgreSQL setting is not authority.
+            CREATE FUNCTION m11_read_allowed(p_org uuid)
+            RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog,public AS $read$
+            DECLARE
+                fields text[];
+                secret_key bytea;
+                expires bigint;
+                epoch bigint;
+                actor uuid;
+                selected_session uuid;
+                expected text;
+            BEGIN
+                IF session_user<>'harborops_api' OR p_org IS NULL THEN RETURN false; END IF;
+                fields := string_to_array(current_setting('harborops.m11_read_scope',true),'|');
+                IF COALESCE(array_length(fields,1),0)<>5
+                    OR fields[1] IS DISTINCT FROM p_org::text
+                    OR fields[4] !~ '^[0-9]{10,11}$'
+                    OR fields[5] !~ '^[0-9a-f]{64}$' THEN RETURN false; END IF;
+                actor := fields[2]::uuid;
+                selected_session := fields[3]::uuid;
+                expires := fields[4]::bigint;
+                epoch := floor(extract(epoch FROM clock_timestamp()))::bigint;
+                IF expires<epoch OR expires>epoch+45 THEN RETURN false; END IF;
+                SELECT secret INTO secret_key FROM m10_correction_proof_keys WHERE key_id=1;
+                IF secret_key IS NULL THEN RETURN false; END IF;
+                expected := encode(public.hmac(convert_to(
+                    'm11-read-v1|'||replace(p_org::text,'-','')||
+                    '|'||replace(actor::text,'-','')||
+                    '|'||replace(selected_session::text,'-','')||
+                    '|'||fields[4], 'UTF8'), secret_key,'sha256'),'hex');
+                IF expected IS DISTINCT FROM fields[5] THEN RETURN false; END IF;
+                PERFORM 1 FROM auth_sessions s
+                    JOIN users u ON u.id=s.user_id
+                    JOIN organizations o ON o.id=p_org
+                    JOIN organization_memberships m
+                        ON m.organization_id=p_org AND m.user_id=u.id
+                WHERE s.id=selected_session AND s.user_id=actor
+                    AND s.selected_organization_id=p_org
+                    AND s.revoked_at_utc IS NULL
+                    AND s.idle_expires_at_utc>clock_timestamp()
+                    AND s.absolute_expires_at_utc>clock_timestamp()
+                    AND s.security_version=u.security_version
+                    AND u.status='Active' AND o.status='Active'
+                    AND m.status='Active';
+                RETURN FOUND;
+            EXCEPTION WHEN OTHERS THEN RETURN false;
+            END $read$;
+
+            -- Scheduled evaluation has a separate proof, not an interactive read grant.
+            CREATE FUNCTION m11_due_allowed()
+            RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog,public AS $due$
+            DECLARE
+                fields text[];
+                secret_key bytea;
+                expires bigint;
+                epoch bigint;
+            BEGIN
+                IF session_user<>'harborops_api' THEN RETURN false; END IF;
+                fields := string_to_array(current_setting('harborops.m11_due_scope',true),'|');
+                IF COALESCE(array_length(fields,1),0)<>2
+                    OR fields[1] !~ '^[0-9]{10,11}$'
+                    OR fields[2] !~ '^[0-9a-f]{64}$' THEN RETURN false; END IF;
+                expires := fields[1]::bigint;
+                epoch := floor(extract(epoch FROM clock_timestamp()))::bigint;
+                IF expires<epoch OR expires>epoch+45 THEN RETURN false; END IF;
+                SELECT secret INTO secret_key FROM m10_correction_proof_keys WHERE key_id=1;
+                RETURN secret_key IS NOT NULL AND fields[2]=encode(public.hmac(
+                    convert_to('m11-due-v1|'||fields[1],'UTF8'),
+                    secret_key,'sha256'),'hex');
+            EXCEPTION WHEN OTHERS THEN RETURN false;
+            END $due$;
+
+            REVOKE ALL ON FUNCTION m11_read_allowed(uuid) FROM PUBLIC;
+            REVOKE ALL ON FUNCTION m11_due_allowed() FROM PUBLIC;
+            ALTER TABLE shipment_exceptions ENABLE ROW LEVEL SECURITY;
+            ALTER TABLE shipment_exception_history ENABLE ROW LEVEL SECURITY;
+            ALTER TABLE shipment_exception_evaluations ENABLE ROW LEVEL SECURITY;
+            CREATE POLICY m11_exception_read ON shipment_exceptions FOR SELECT
+                USING (m11_read_allowed(organization_id));
+            CREATE POLICY m11_history_read ON shipment_exception_history FOR SELECT
+                USING (m11_read_allowed(organization_id));
+            CREATE POLICY m11_evaluation_read ON shipment_exception_evaluations FOR SELECT
+                USING (m11_read_allowed(organization_id) OR m11_due_allowed());
+            DO $scope_schema$
+            DECLARE target_schema text := current_schema();
+            BEGIN
+                EXECUTE format('ALTER FUNCTION %1$I.m11_read_allowed(uuid)
+                    SET search_path TO pg_catalog,%1$I,public',target_schema);
+                EXECUTE format('ALTER FUNCTION %1$I.m11_due_allowed()
+                    SET search_path TO pg_catalog,%1$I,public',target_schema);
+            END $scope_schema$;
             """);
     }
 
@@ -756,6 +851,8 @@ public sealed class ShipmentExceptions : Migration
             DROP TABLE shipment_exception_history;
             DROP TABLE shipment_exception_evaluations;
             DROP TABLE shipment_exceptions;
+            DROP FUNCTION m11_read_allowed(uuid);
+            DROP FUNCTION m11_due_allowed();
             """);
     }
 }

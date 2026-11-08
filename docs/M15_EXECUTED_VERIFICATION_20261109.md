@@ -1,0 +1,61 @@
+# M15 Executed Verification and Remaining Gate Evidence
+
+**Recorded:** 2026-11-09, Türkiye local date.  
+**Implementation branch:** `feat/m15-scoped-notifications-20261108`  
+**Gate decision:** G15 acceptance pending; this document records executed technical checks and failed attempts, not a release decision.  
+**Production disposition:** No merge, deployment, production database change or rollout.
+
+## 1. Executed source-locked evidence
+
+| Run | Source SHA | Observed result | Evidence boundary |
+| --- | --- | --- | --- |
+| [42526983899](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42526983899) | `e9064925c687904473319f72837d658794a1923a` | FAIL before compile, inherited historical Git commit absent in shallow checkout | Verification harness setup only |
+| [42527214008](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42527214008) | `09debcbb800fb728e5a50aa4a5af49e073c9a98b` | FAIL on stale M11 planning assertion after M11 and M15 source-contract checks passed | Documentation gate mismatch |
+| [42527425709](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42527425709) | `7a6e3c8aea51cba8293a5418c4cf65493d920a91` | FAIL on outdated reference to historical sixth M11 source audit | Historical checker mismatch |
+| [42527741929](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42527741929) | `f7b5dea327d423b8b6eb0e958bfe7799080e96c6` | Source PASS; PostgreSQL FAIL: 3 M15 downgrade dependency errors and 1 overly broad queue-empty test assertion | Four findings recorded and remediated in later commits |
+| [42528679584](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42528679584) | `8fc433d2d54687033e4a2d0de24b6f60f1847917` | FAIL on malformed source during an incomplete migration edit | Superseded by rebuild from last clean migration |
+| [42528936587](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42528936587) | `b0831e34aae477f5a59b834ed2895f163bd0e3ad` | Source PASS; PostgreSQL PASS; browser FAIL before Playwright because disposable Compose project name was not allowlisted | Project-name fix committed later |
+| [42530770493](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42530770493) | `82dac56bc00443cc022ecae0b38cd945d3db8f59` | Source PASS, database PASS, browser FAIL during fixture preparation before Playwright | Current latest executed source/DB evidence |
+
+### Measurements from run 42530770493
+
+- Source identity confirmed by GitHub Actions: `82dac56bc00443cc022ecae0b38cd945d3db8f59`.
+- .NET 10 warning-as-error Release build: **0 warnings, 0 errors**.
+- HarborOps.UnitTests: **299 passed, 0 failed, 0 skipped**.
+- HarborOps.ContractTests: **46 passed, 0 failed, 0 skipped**.
+- Selected PostgreSQL/M11/M12/M15 integration: **26 passed, 0 failed, 0 skipped**, approximately 3 minutes 13 seconds of test execution. These are targeted tests, not the entire integration project.
+- M11 and M15 source-contract checks: PASS. Generated graph check: PASS. Planning checker: PASS, 25 milestones, 126 graph nodes, 187 Markdown files.
+- Web tests and production build: completed successfully in the source job.
+- Browser job: FAIL before Playwright. The first browser blocker was the disposable Compose project naming rule; the next was a missing `.verification/evidence` folder required by `prepare-m5-browser-fixtures.mjs`. Fixes committed in later source revisions. **No browser test is claimed as passed on run 42530770493.**
+
+### Evidence artifacts from that frozen run
+
+- [Source build, unit and contract logs](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42530770493/artifacts/13637646035).
+- [PostgreSQL integration logs and TRX](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42530770493/artifacts/13637512365).
+- [Failed browser setup evidence](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42530770493/artifacts/13637143519).
+
+These are hosted temporary artifacts; retention is seven days under the workflow configuration. Each run reports its own source SHA. Passing counts cannot be transferred to later edited source revisions.
+
+## 2. Subsequent implementation source not yet run
+
+The following changes postdate `82dac56`, and therefore **do not inherit its PASS**:
+
+- Browser fixture evidence-directory initialization under the disposable Compose workflow.
+- An atomic receipt replay snapshot in `m15_notification_replays` containing the original result version and read/ack timestamps.
+- API replay response restoration from the original committed receipt result, instead of returning a potentially later personal state.
+- Added focused regression that first marks a receipt read, acknowledges it separately, then replays the earlier MarkRead key and checks the original read-only snapshot.
+- Additional replay snapshot source-contract assertions.
+
+**Verification dependency:** A new source-locked Actions run on the final M15 commit is necessary for compile, migration and three-browser evidence. The connected dispatch service returned an account task-limit error when attempting to start the updated run; no successful new dispatch was reported after that error. The workflow is still manually dispatchable from the GitHub repository on the M15 branch. Do not infer a PASS from source inspection alone.
+
+## 3. M13 parallel implementation boundary
+
+M13's separate branch `plan/m13-operational-kpi-dashboards-20261108` advanced to `4e717bd45011b0a75b3d764b3f298bfcfb1d9056` during this work. It now contains KPI application code and an additive `20261109020000_M13OperationalKpis` migration. M15 uses provisional `20261109010000_M15ScopedNotifications`. These timestamps imply M15-before-M13 ordering on a future combined branch, but compatibility has **not** been validated on one combined source SHA.
+
+Shared files requiring an explicit merge reconciliation include `src/HarborOps.Api/Program.cs`, `src/HarborOps.Api/Audit/AuditRoleProvisioner.cs`, `web/src/auth/OrganizationWorkspace.tsx`, current-head migration assertions in `MigrationSnapshotTests.cs` and `M11M12UpgradeTests.cs`, plus coordinated identity and API permissions. Keep M13's dedicated dashboard-read permission separate from M15's `ViewShipmentData` business-notification entitlement. M13 KPI results must not be derived from notification delivery or read state. Neither branch is merged.
+
+## 4. Remaining G15 gate work
+
+G15-S01 remains blocked on explicit dispositions of M15-P01 through M15-P14. G15-S25 requires independent review of executed raw evidence. G15-S02 through G15-S24 are **partially covered** by the executed checks above, not globally PASS. In particular, the complete three-engine browser campaign, concurrent crash/recovery, signed SQL scope mutations, pagination/cursor expiry and malicious replay cases require execution and review on a final frozen SHA. Operational retention cleanup remains intentionally disabled while policy P12 is acceptance pending.
+
+Preserve M9 ARRI/DEPA NeedsReconciliation hold, the 10,000 unresolved-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator. Keep the M15 dispatcher default-off until explicitly approved after G15. Any acceptance, merge or deployment requires a separate decision.

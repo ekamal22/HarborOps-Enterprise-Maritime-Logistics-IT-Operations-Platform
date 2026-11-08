@@ -47,7 +47,7 @@ public sealed class TrackingInboxMigrationTests
             Assert.NotNull(await store.ValidateAsync(source.Bearer, CancellationToken.None));
 
             await db.Database.MigrateAsync();
-            Assert.Equal(14, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(15, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Empty(await db.Database.GetPendingMigrationsAsync());
             Assert.False(db.Database.HasPendingModelChanges());
             var after = await db.IntegrationCredentials.AsNoTracking()
@@ -64,7 +64,7 @@ public sealed class TrackingInboxMigrationTests
             Assert.Equal(8, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.NotNull(await store.ValidateAsync(source.Bearer, CancellationToken.None));
             await db.Database.MigrateAsync();
-            Assert.Equal(14, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(15, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.NotNull(await store.ValidateAsync(source.Bearer, CancellationToken.None));
         }
         finally

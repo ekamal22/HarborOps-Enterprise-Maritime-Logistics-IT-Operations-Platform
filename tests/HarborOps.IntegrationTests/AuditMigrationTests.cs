@@ -43,7 +43,7 @@ public sealed class AuditMigrationTests
             Assert.Equal("Original Organization", existing.DisplayName);
 
             await database.Database.MigrateAsync();
-            Assert.Equal(14, (await database.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(15, (await database.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Empty(await database.Database.GetPendingMigrationsAsync());
             Assert.Empty(await database.AuditEntries.AsNoTracking().ToListAsync());
             Assert.Equal("Original Organization", (await database.Organizations.AsNoTracking()

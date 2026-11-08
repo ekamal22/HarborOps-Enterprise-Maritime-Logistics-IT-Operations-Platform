@@ -419,8 +419,9 @@ public sealed class OperationalKpiStore(
     }
 
     public async Task<KpiOperation<KpiMemberPage>> MembersAsync(
-        CurrentSession session, Guid org, Guid report, string metric, string dimension,
-        DateTimeOffset? bucket, Guid? after, int limit, CancellationToken ct)
+        CurrentSession session, Guid org, Guid report, string filtersSha256,
+        string metric, string dimension, DateTimeOffset? bucket, Guid? after,
+        int limit, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var error = await ScopeAsync(session, org, false, ct);
@@ -436,9 +437,10 @@ public sealed class OperationalKpiStore(
         await using (var check = Command(Connection, sqlTx, """
             SELECT 1 FROM operational_kpi_reports WHERE id=@report AND organization_id=@org
                 AND actor_user_id=@actor AND actor_session_id=@session
-                AND expires_at_utc>clock_timestamp()
+                AND expires_at_utc>clock_timestamp() AND filters_sha256=@fingerprint
+              AND policy_version='m13-kpi-v1'
             """, U("report", report), U("org", org), U("actor", session.UserId),
-            U("session", session.SessionId)))
+            U("session", session.SessionId), S("fingerprint", filtersSha256)))
             if (await check.ExecuteScalarAsync(ct) is null)
                 return new(null, OrganizationAccessError.Conflict, "report_expired");
 

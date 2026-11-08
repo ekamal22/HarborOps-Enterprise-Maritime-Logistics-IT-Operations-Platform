@@ -33,7 +33,7 @@ type Props = {
   onAccessInvalidated: (message: string) => void;
 };
 
-export default function OperationalDashboard({ organizationId, onAccessInvalidated }: Props) {
+export default function OperationalDashboard({ organizationId, onAccessInvalidated, isAuditor }: Props & { isAuditor: boolean }) {
   const [draft, setDraft] = useState<KpiFilterValues>(initial);
   const [applied, setApplied] = useState<KpiFilterValues>(initial);
   const [definitions, setDefinitions] = useState<KpiDefinition[]>([]);
@@ -235,6 +235,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
         {selection && <KpiDrillPanel key={report.reportId + selection.metricCode +
           selection.dimension + (selection.bucketStartUtc ?? "")}
           organizationId={organizationId} report={report} selection={selection}
+          isAuditor={isAuditor}
           onAccessInvalidated={onAccessInvalidated}
           onClose={() => setSelection(null)} />}
       </>}

@@ -225,7 +225,7 @@ public static class OperationalKpiEndpoints
             if (!Id(organizationId, out var org) || !Id(reportId, out var report) ||
                 !SingleQuery(ctx, "metricCode", "dimension", "bucketStartUtc", "after", "limit"))
                 return Fail(ctx, 400, "invalid_request", "Invalid member request");
-            if (!TryToken(ctx, provider, org, report, out _))
+            if (!TryToken(ctx, provider, org, report, out var protectedReport))
                 return Fail(ctx, 409, "report_expired", "Report token is invalid or expired");
             var metric = Q(ctx, "metricCode") ?? "";
             var dimension = Q(ctx, "dimension") ?? "";
@@ -250,7 +250,7 @@ public static class OperationalKpiEndpoints
                 limit is < 1 or > OperationalKpiPolicy.MaximumMemberPage)
                 return Fail(ctx, 400, "invalid_limit", "Invalid page size");
             var result = await store.MembersAsync(Session(ctx), org, report,
-                metric, dimension, bucket, after, limit, ct);
+                protectedReport!.FiltersSha256, metric, dimension, bucket, after, limit, ct);
             return result.Value is { } page
                 ? Results.Ok(new { items = page.Items, nextAfter = page.NextAfter,
                     metricCode = metric, dimension, bucketStartUtc = bucket,

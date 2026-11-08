@@ -4,12 +4,12 @@ import { shipmentDetail, type ShipmentRow } from "../shipments/shipmentClient";
 import { members, type DrillSelection, type KpiMember, type KpiReport } from "./analyticsClient";
 
 type Props = {
-  organizationId: string; report: KpiReport; selection: DrillSelection;
+  organizationId: string; report: KpiReport; selection: DrillSelection; isAuditor: boolean;
   onAccessInvalidated: (message: string) => void; onClose: () => void;
 };
 
 export default function KpiDrillPanel({
-  organizationId, report, selection, onAccessInvalidated, onClose
+  organizationId, report, selection, isAuditor, onAccessInvalidated, onClose
 }: Props) {
   const [rows, setRows] = useState<KpiMember[]>([]);
   const [after, setAfter] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export default function KpiDrillPanel({
     try {
       const latest = await shipmentDetail(organizationId, row.shipmentId);
       setDetail(latest);
-      if (row.exceptionId) {
+      if (row.exceptionId && !isAuditor) {
         const item = await getJson<{ exception: {
           lifecycleState: string; conditionState: string; ruleCode: string;
         } }>("/api/v1/organizations/" + encodeURIComponent(organizationId) +

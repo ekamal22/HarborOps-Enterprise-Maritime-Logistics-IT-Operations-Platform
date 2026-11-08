@@ -272,7 +272,8 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
               onAccessInvalidated={onReferenceAccessInvalidated} />}
           {(selection.role === "Analyst" || selection.role === "Manager" || selection.role === "Auditor") &&
             <OperationalDashboard key={"analytics:" + selection.id + ":" + selection.role}
-              organizationId={selection.id} onAccessInvalidated={onReferenceAccessInvalidated} />}
+              organizationId={selection.id} isAuditor={selection.role === "Auditor"}
+              onAccessInvalidated={onReferenceAccessInvalidated} />}
           {selection.role === "Administrator" && (
             <KpiGrantPanel key={"kpi-grants:" + selection.id}
               organizationId={selection.id} members={members}

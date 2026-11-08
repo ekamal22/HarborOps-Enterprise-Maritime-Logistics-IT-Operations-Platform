@@ -67,9 +67,29 @@ jobs:
           npm --prefix tests/browser ci --no-audit --no-fund
           cd tests/browser
           npx playwright install --with-deps chromium firefox webkit
-          export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/browser/m11-m12.json"
-          npx playwright test specs/shipment-exceptions.spec.mjs specs/shipment-search.spec.mjs             --project=chromium --project=firefox --project=webkit --workers=1 --reporter=line
-          node -e 'const r=require(process.env.HARBOROPS_G3_JSON_REPORT);const specs=r.suites.flatMap(x=>x.suites||[]);console.log("M11/M12 browser report present: "+r.suites.length+" suites");if(!r.suites.length)process.exit(2)'
-          export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/browser/m5-regression.json"
-          npx playwright test specs/shipment.spec.mjs specs/shipment-draft.spec.mjs             --grep 'M5 deferred shipment response cannot cross organization switch|M5 unsaved edits survive a background refresh'             --project=chromium --project=firefox --project=webkit --workers=1 --reporter=line
-          node -e 'const r=require(process.env.HARBOROPS_G3_JSON_REPORT);if(!r.suites.length)process.exit(2);console.log("M5 browser regression suites: "+r.suites.length)'
+          for engine in chromium firefox webkit; do
+            for spec in shipment-exceptions shipment-search; do
+              docker compose -p "$project" restart api
+              ready=0
+              for attempt in $(seq 1 45); do
+                if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null; then ready=1; break; fi
+                sleep 2
+              done
+              test "$ready" = "1"
+              export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/browser/$engine-$spec.json"
+              npx playwright test "specs/$spec.spec.mjs" --project="$engine" --workers=1
+              node -e 'const r=require(process.env.HARBOROPS_G3_JSON_REPORT);const s=r.stats;if(!s||s.expected<1||s.skipped>0||s.unexpected>0)process.exit(2);console.log("Browser check "+s.expected+" executed, "+s.unexpected+" failed")'
+            done
+            for spec in shipment shipment-draft; do
+              docker compose -p "$project" restart api
+              ready=0
+              for attempt in $(seq 1 45); do
+                if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null; then ready=1; break; fi
+                sleep 2
+              done
+              test "$ready" = "1"
+              export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/browser/$engine-m5-$spec.json"
+              npx playwright test "specs/$spec.spec.mjs"                 --grep 'M5 deferred shipment response cannot cross organization switch|M5 unsaved edits survive a background refresh'                 --project="$engine" --workers=1
+              node -e 'const r=require(process.env.HARBOROPS_G3_JSON_REPORT);const s=r.stats;if(!s||s.expected<1||s.skipped>0||s.unexpected>0)process.exit(2);console.log("M5 regression "+s.expected+" executed, "+s.unexpected+" failed")'
+            done
+          done

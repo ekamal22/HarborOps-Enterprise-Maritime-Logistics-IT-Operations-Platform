@@ -145,11 +145,13 @@ public static class OperationalKpiEndpoints
         if (ctx.Request.ContentLength is > 256) return null;
         using var ms = new MemoryStream();
         var buffer = new byte[257];
-        var read = await ctx.Request.Body.ReadAsync(buffer.AsMemory(), ctx.RequestAborted);
-        if (read > 256) return null;
-        ms.Write(buffer, 0, read);
-        if (await ctx.Request.Body.ReadAsync(buffer.AsMemory(0, 1), ctx.RequestAborted) > 0)
-            return null;
+        int read;
+        while ((read = await ctx.Request.Body.ReadAsync(buffer.AsMemory(),
+            ctx.RequestAborted)) > 0)
+        {
+            if (ms.Length + read > 256) return null;
+            ms.Write(buffer, 0, read);
+        }
         try
         {
             using var doc = JsonDocument.Parse(ms.ToArray());

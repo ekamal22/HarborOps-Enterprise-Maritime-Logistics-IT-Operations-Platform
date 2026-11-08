@@ -23,7 +23,7 @@ export default function KpiGrantPanel({ organizationId, members, onAccessInvalid
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(target.trim())) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(target.trim())) {
       setError("Choose an Auditor account"); return;
     }
     setBusy(true); setError(""); setNotice("");
@@ -52,6 +52,11 @@ export default function KpiGrantPanel({ organizationId, members, onAccessInvalid
           {members.filter(m => m.role === "Auditor" && m.status === "Active").map(m =>
             <option key={m.userId} value={m.userId}>{m.displayName} ({m.email})</option>)}
         </select>
+      </label>
+      <label>Or enter Auditor UUID
+        <input type="text" value={target} placeholder="Account UUID"
+          onChange={e => setTarget(e.target.value)}
+          className="mt-1 block max-w-sm rounded border border-slate-600 bg-slate-950 p-2" />
       </label>
       <label>Access
         <select value={enabled ? "enable" : "disable"}

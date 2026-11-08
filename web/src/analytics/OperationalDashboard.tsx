@@ -59,10 +59,12 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
       if (!controller.signal.aborted) { setDefinitions(result.definitions); setAllowed(true); }
     }).catch(cause => {
       if (controller.signal.aborted) return;
-      if (cause instanceof OrganizationRequestError && cause.status === 403)
+      if (cause instanceof OrganizationRequestError && cause.code === "access_denied") {
         setAllowed(false);
-      else setError(organizationError(cause));
-      denied(cause);
+      } else {
+        setError(organizationError(cause));
+        denied(cause);
+      }
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [organizationId, denied]);
@@ -98,7 +100,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
   }
   const figures = useMemo(() => {
     const rows = report?.counts ?? [];
-    return Object.fromEntries([...definitions.map(d => d.code), "D01", "D05", "D13",
+    return Object.fromEntries([...definitions.map(d => d.code), "D01", "D05", "D07", "D08", "D09", "D10", "D13",
       ...Object.keys(qualityLabels)].map(code => [code, count(rows, code)]));
   }, [report, definitions]);
   const denominator = (code: string) => figures[code] ?? 0;
@@ -171,13 +173,13 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {definitions.filter(d => d.code !== "K02" && d.code !== "K12").map(d => {
             const n = denominator(d.code); const den = d.denominatorCode ? denominator(d.denominatorCode) : null;
-            const value = den === null ? n.toLocaleString() : (d.code === "K01" ?
-              n.toLocaleString() : fraction(n, den));
+            const value = den !== null && ["K05", "K06", "K13"].includes(d.code)
+              ? fraction(n, den) : n.toLocaleString();
             return <button type="button" key={d.code} onClick={() => select(d.code, d.label)}
               className="rounded-lg border border-slate-700 bg-slate-950/80 p-4 text-left hover:border-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
               <span className="text-xs uppercase tracking-wide text-slate-400">{d.label}</span>
               <span className="mt-2 block text-2xl font-semibold text-cyan-200">{value}</span>
-              {den !== null && <span className="mt-1 block text-xs text-slate-400">{n.toLocaleString()} / {den.toLocaleString()}</span>}
+              {den !== null && <span className="mt-1 block text-xs text-slate-400">{n.toLocaleString()} / {den.toLocaleString()} {["K07","K08","K09","K10"].includes(d.code) ? "evaluated" : ""}</span>}
               {partial && ["K07", "K08", "K09", "K10", "K11"].includes(d.code) &&
                 <span className="mt-1 block text-xs text-amber-300">Partial assessment. Zero is not confirmed risk-free.</span>}
               <span className="mt-2 block text-xs text-slate-500">{d.description}</span>

@@ -94,16 +94,21 @@ public sealed class OperationalKpiStore(
         return resolved.Value is null ? resolved.Error : OrganizationAccessError.None;
     }
 
-    private async Task<bool> AuthorizeAsync(CurrentSession session, Guid org,
-        bool administrator, NpgsqlTransaction tx, CancellationToken ct)
+    // Hold the Auditor entitlement row for the duration of each report read.
+    // A concurrent grant revocation must wait for the reporting transaction.
+    private async Task<bool> LockAuditorGrantAsync(CurrentSession session,
+        Guid org, NpgsqlTransaction tx, CancellationToken ct)
     {
-        if (await ScopeAsync(session, org, administrator, ct) != OrganizationAccessError.None)
-            return false;
-        await exceptions.SetReadScopeAsync(tx, org, session.UserId, session.SessionId, ct);
-        await using var cmd = Command(Connection, tx,
-            administrator ? "SELECT m13_can_manage(@org)" : "SELECT m13_can_view(@org)",
-            U("org", org));
-        return await cmd.ExecuteScalarAsync(ct) is true;
+        await using var roleCommand = Command(Connection, tx,
+            "SELECT m13_scoped_role(@org)", U("org", org));
+        var role = await roleCommand.ExecuteScalarAsync(ct) as string;
+        if (role is "Analyst" or "Manager") return true;
+        if (role != "Auditor") return false;
+        await using var command = Command(Connection, tx, """
+            SELECT active FROM operational_kpi_auditor_grants
+            WHERE organization_id=@org AND user_id=@actor FOR SHARE
+            """, U("org", org), U("actor", session.UserId));
+        return await command.ExecuteScalarAsync(ct) is true;
     }
 
     public async Task<KpiOperation<bool>> CanViewAsync(CurrentSession session,
@@ -114,6 +119,9 @@ public sealed class OperationalKpiStore(
         if (error != OrganizationAccessError.None) return new(null, error);
         await exceptions.SetReadScopeAsync((NpgsqlTransaction)tx.GetDbTransaction(), org,
             session.UserId, session.SessionId, ct);
+        if (!await LockAuditorGrantAsync(session, org,
+            (NpgsqlTransaction)tx.GetDbTransaction(), ct))
+            return new(null, OrganizationAccessError.Forbidden);
         await using var cmd = Command(Connection, (NpgsqlTransaction)tx.GetDbTransaction(),
             "SELECT m13_can_view(@org)", U("org", org));
         var allowed = await cmd.ExecuteScalarAsync(ct) is true;
@@ -153,6 +161,8 @@ public sealed class OperationalKpiStore(
         if (error != OrganizationAccessError.None) return new(null, error);
         var sqlTx = (NpgsqlTransaction)tx.GetDbTransaction();
         await exceptions.SetReadScopeAsync(sqlTx, org, session.UserId, session.SessionId, ct);
+        if (!await LockAuditorGrantAsync(session, org, sqlTx, ct))
+            return new(null, OrganizationAccessError.Forbidden);
         await using (var guard = Command(Connection, sqlTx, "SELECT m13_can_view(@org)", U("org", org)))
             if (await guard.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Forbidden);
@@ -349,6 +359,23 @@ public sealed class OperationalKpiStore(
                 WHERE e.organization_id=@org AND e.first_detected_at_utc>=@from
                   AND e.first_detected_at_utc<@before
             UNION ALL
+            SELECT CASE e.rule_code WHEN 'RecordedArrivalLate' THEN 'D07'
+                WHEN 'ArrivalScheduleOverdue' THEN 'D08'
+                WHEN 'DepartureSlippageRisk' THEN 'D09' END,
+                '',h.id,h.id,NULL,NULL FROM heads h JOIN evaluated e ON e.id=h.id
+                WHERE h.record_status='Active' AND h.workflow_status NOT IN ('Draft','Cancelled')
+                  AND e.rule_code IN ('RecordedArrivalLate','ArrivalScheduleOverdue','DepartureSlippageRisk')
+                  AND e.condition_state IN ('Active','Inactive')
+            UNION ALL
+            SELECT 'D10','',h.id,h.id,NULL,NULL
+                FROM heads h JOIN evaluated e ON e.id=h.id
+                WHERE h.record_status='Active'
+                  AND h.workflow_status NOT IN ('Draft','Cancelled')
+                  AND e.rule_code='EquipmentConflict' AND e.condition_state IN ('Active','Inactive')
+                  AND h.projection_policy='m10-equipment-v2'
+                  AND h.projection_revision=h.input_revision
+                  AND h.projection_generation=h.generation
+            UNION ALL
             SELECT 'D13','',q.id,q.id,NULL,NULL FROM quality q
             UNION ALL
             SELECT 'K13','',q.id,q.id,NULL,NULL FROM quality q WHERE q.fresh_rules=4
@@ -400,6 +427,8 @@ public sealed class OperationalKpiStore(
         if (error != OrganizationAccessError.None) return new(null, error);
         var sqlTx = (NpgsqlTransaction)tx.GetDbTransaction();
         await exceptions.SetReadScopeAsync(sqlTx, org, session.UserId, session.SessionId, ct);
+        if (!await LockAuditorGrantAsync(session, org, sqlTx, ct))
+            return new(null, OrganizationAccessError.Forbidden);
         await using (var guard = Command(Connection, sqlTx, "SELECT m13_can_view(@org)",
             U("org", org)))
             if (await guard.ExecuteScalarAsync(ct) is not true)

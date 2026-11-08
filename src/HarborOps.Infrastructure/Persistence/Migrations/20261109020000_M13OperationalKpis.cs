@@ -61,7 +61,7 @@ public sealed class M13OperationalKpis : Migration
                     REFERENCES shipment_exceptions(id,organization_id) ON DELETE RESTRICT,
                 CONSTRAINT ck_m13_metric CHECK (metric_code IN (
                     'K01','K02','K03','K04','K05','K06','K07','K08','K09','K10',
-                    'K11','K12','K13','K14','D01','D05','D13',
+                    'K11','K12','K13','K14','D01','D05','D13','D07','D08','D09','D10',
                     'Q01','Q02','Q03','Q04')),
                 CONSTRAINT ck_m13_member_dimension CHECK (
                     (metric_code='K02' AND dimension IN
@@ -201,7 +201,10 @@ public sealed class M13OperationalKpis : Migration
             ALTER TABLE operational_kpi_reports ENABLE ROW LEVEL SECURITY;
             ALTER TABLE operational_kpi_members ENABLE ROW LEVEL SECURITY;
             CREATE POLICY m13_grants_select ON operational_kpi_auditor_grants
-                FOR SELECT USING (m13_can_manage(organization_id));
+                FOR SELECT USING (m13_can_manage(organization_id)
+                    OR (m13_scoped_role(organization_id)='Auditor'
+                        AND user_id::text=split_part(
+                            current_setting('harborops.m11_read_scope',true),'|',2)));
             CREATE POLICY m13_report_select ON operational_kpi_reports
                 FOR SELECT USING (m13_can_view(organization_id)
                     AND m13_scope_matches(organization_id,actor_user_id,actor_session_id));

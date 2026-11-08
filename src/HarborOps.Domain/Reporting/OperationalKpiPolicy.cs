@@ -27,14 +27,14 @@ public static partial class OperationalKpiPolicy
         new("K04", "Cancelled workflows", "RECORDED_WORKFLOW_EVENT", null, "First recorded Cancelled transition in the UTC window"),
         new("K05", "Strict on-time recorded arrivals", "RECORDED_WORKFLOW_EVENT", "D05", "First recorded Arrived at or before the proven planned arrival"),
         new("K06", "Within 60-minute tolerance", "RECORDED_WORKFLOW_EVENT", "D05", "First recorded Arrived no later than proven plan plus 60 minutes"),
-        new("K07", "Recorded late arrivals", "CURRENT_EXCEPTION", null, "Current confirmed RecordedArrivalLate condition"),
-        new("K08", "Schedule overdue, unconfirmed", "CURRENT_EXCEPTION", null, "Current schedule-overdue condition, not a physical arrival claim"),
-        new("K09", "Departure slippage risk", "CURRENT_EXCEPTION", null, "Current recorded-workflow departure risk, not a forecast ETA"),
-        new("K10", "Equipment conflicts", "CURRENT_TRACKING_QUALITY", null, "Fresh M10 conflict corroborated by current M11 evaluation"),
+        new("K07", "Recorded late arrivals", "CURRENT_EXCEPTION", "D07", "Current confirmed RecordedArrivalLate condition"),
+        new("K08", "Schedule overdue, unconfirmed", "CURRENT_EXCEPTION", "D08", "Current schedule-overdue condition, not a physical arrival claim"),
+        new("K09", "Departure slippage risk", "CURRENT_EXCEPTION", "D09", "Current recorded-workflow departure risk, not a forecast ETA"),
+        new("K10", "Equipment conflicts", "CURRENT_TRACKING_QUALITY", "D10", "Fresh M10 conflict corroborated by current M11 evaluation"),
         new("K11", "Open or acknowledged exceptions", "CURRENT_EXCEPTION", null, "Active current exception occurrences not marked Resolved"),
         new("K12", "Exception openings", "RECORDED_EXCEPTION_EVENT", null, "Distinct occurrence IDs first detected in UTC buckets"),
         new("K13", "Evaluator coverage", "CURRENT_EXCEPTION", "D13", "Eligible shipments with all four current rule evaluations"),
-        new("K14", "Unassessed or stale", "CURRENT_EXCEPTION", null, "Eligible shipments missing current reliable evaluations")
+        new("K14", "Unassessed or stale", "CURRENT_EXCEPTION", "D13", "Eligible shipments missing current reliable evaluations")
     ];
 
     [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|\+00:00)$",

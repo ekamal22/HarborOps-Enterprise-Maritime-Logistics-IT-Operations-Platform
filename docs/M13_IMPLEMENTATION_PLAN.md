@@ -4,7 +4,7 @@
 **State:** PLANNED, NOT AUTHORIZED FOR FEATURE IMPLEMENTATION
 **Accepted baseline:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Planning branch:** plan/m13-operational-kpi-dashboards-20261108
-**Dependencies:** G11 and G12 accepted; [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md) with safeguards. Application implementation still requires separate authorization and engineering contract closure. M15 may progress independently.
+**Dependencies:** G11 and G12 accepted; [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md) with safeguards. M13 application implementation was separately authorized and is authored on this branch; [actual source register](M13_IMPLEMENTATION_STATUS_20261109.md). Technical evidence and G13 acceptance remain pending. M15 may progress independently.
 
 ## 1. Scope, completion definition and decision gates
 
@@ -153,4 +153,4 @@ M15 notification read/unread/delivery state is never an M13 numerator, denominat
 | API/proxy timeout | Partially served dashboards or stalled connections | Safe pre-response build, cancellation/rollback and Nginx/Kestrel fault tests |
 | Historical checkpoint limitations | Unsupported upgrade confidence | Fresh and populated 15-to-next migration tests; retain accepted data untouched |
 
-**Authorization status:** D-005 Option A is approved as policy. Application implementation remains unauthorized in this documentation-only turn; source fixtures, permission/migration contracts and measured limits still need closure. GitHub Actions-only M13 verification is authorized for use after separate implementation authorization, not now. G13 acceptance, merge, release and deployment remain unauthorized.
+**Delivery status (2026-11-09):** D-005 Option A and application implementation are authorized. The [implementation register](M13_IMPLEMENTATION_STATUS_20261109.md) supersedes earlier proposed file names where implementations were consolidated. Real-role tests, scale/fault campaigns, source-locked evidence and independent review are pending. GitHub Actions is the exclusive verification environment. G13 acceptance, merge, release and deployment remain unauthorized.

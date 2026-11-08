@@ -268,3 +268,7 @@ The additive thirteenth migration passed fresh and populated historical upgrade 
 - Free-text search on a tenant that holds most of the table scans the whole shipments heap (measured 32 to 49 ms at 170,000 rows). Plan a trigram index before text search must serve millions of rows.
 - Export concurrency and rate limits are per API instance. Behind several instances the effective limits multiply.
 - Evidence and retained plans: [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).
+
+## M13 KPI reporting source branch, pending G13
+
+Analytics requests are organization-scoped, session-bound and read-only except for Administrator-managed Auditor grants. Reports use a repeatable-read database snapshot and a provisional ten-minute membership token. The implementation fails closed above its initial 500,000-row member ceiling and uses initial 15-second SQL/25-second overall build budgets. **These limits are not yet measured or approved at scale.** An expired or replaced report requires a fresh overview, never an invisible fallback to live search. A build prunes a bounded number of expired scoped reports. M10 projector stays default-off, M11 evaluator stays opt-in and the M9 ARRI/DEPA hold stays binding. No production migration or deployment has occurred. See [implementation status](M13_IMPLEMENTATION_STATUS_20261109.md).

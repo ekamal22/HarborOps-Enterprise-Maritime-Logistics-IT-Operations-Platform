@@ -5,6 +5,10 @@ on:
       - feat/m11-m12-combined-integration
     paths:
       - .github/workflows/verify-m11-m12-images.yml
+      - src/**
+      - web/**
+      - docker/**
+      - compose.yaml
 jobs:
   scan:
     runs-on: ubuntu-latest

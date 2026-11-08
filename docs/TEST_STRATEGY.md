@@ -203,3 +203,7 @@ New-source execution on `a26d19acd57308033bdf6fe7e25c61287cd17b0b` is recorded i
 ## M11/M12 local closure addendum (2026-11-08)
 
 Residual scenarios are verified with focused tests on disposable PostgreSQL servers rather than another full-suite repeat: revocation and atomicity are interleaved with a held organization or shipment lock, recovery uses backend termination and runtime-login disabling, and query plans replay the SQL captured from the real API under the restricted role. Role-changing cases require an exclusive server and `HARBOROPS_G12_EXCLUSIVE_POSTGRES=1`. Simulated clock advance and outage are labelled as simulations in the evidence. See [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).
+
+## M13 G13 branch verification
+
+The [G13 S01-S25 matrix](M13_VERIFICATION_PLAN.md) requires independently reconciled KPI source membership, UTC boundaries, M11 freshness and rule semantics, restricted-role SQL, Auditor grant/revocation, same-session and cross-org report-token negatives, successful populated upgrades, cancellation/fault handling, realistic 170k-tenant performance, Chromium/Firefox/WebKit journeys and effective mutation evidence. Unit, contract, integration and browser test sources and a GitHub Actions-only verification workflow are authored in [M13 status](M13_IMPLEMENTATION_STATUS_20261109.md). No unexecuted or skipped tests can be marked PASS, and G13 acceptance is separate from successful CI.

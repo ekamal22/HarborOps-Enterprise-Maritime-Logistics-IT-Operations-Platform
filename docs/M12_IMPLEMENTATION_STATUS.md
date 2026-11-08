@@ -1,34 +1,6 @@
 # M12 Implementation Status
 
-**Current source and gate status (2026-11-08):** G0-G12 and G16 are accepted and merged into `main`. M11/G11 and M12/G12 were independently reconciled and formally accepted through [gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md); their prior candidate and verification notes below are historical when dated earlier. M9 ARRI/DEPA sustained processing remains held at the 10,000 unresolved-item boundary; M10 projector default-off, ETA null and M11 evaluator opt-in. No deployment or production migration is authorized.
-
-**Executed verification reconciliation (2026-11-08):** [M11/M12 source-locked evidence](M11_M12_VERIFIED_COVERAGE_RECONCILIATION_20261108.md) establishes 340/340 earlier full integration, 40/40 updated impacted regressions including populated 13-to-15 migration, G11 19/19, G12 4/4, 36/36 browser tests, 5/5 killed mutants, restricted SQL isolation and security scans on individually identified commits. The updated source gate passed 291/291 unit and 46/46 contract tests. Final full rerun `42443065884` is still in progress. Gate matrices, independent S25 reviews, and acceptance remain pending. Historical source-only statements below are not current test results.
-
-**Current verification policy (2026-11-08):** [M11/M12 verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) now requires manual, coordinated, source-locked workflows instead of automatic push-triggered campaigns. [Run-by-run progress](M11_M12_VERIFICATION_PROGRESS_20261108.md) is the current verification checkpoint; older reports and source-only notes below are historical. G11/G12 independent S25 review and acceptance remain pending. Protected `main`, the M9 transport hold, and deployment restrictions are unchanged.
-
-**Verification reconciliation, 2026-11-08:** The [source-locked M11/M12 evidence register](M11_M12_VERIFICATION_PROGRESS_20261108.md) records 338/338 passing full integration tests on the previously tested source, 291/291 unit, 46/46 contract, 19/19 G11, 4/4 G12, 36/36 three-engine browsers, five effective mutants killed and runtime-image vulnerability checks. A newer expanded full integration run and populated 13-to-15 upgrade test were still in progress at this checkpoint. Older 18/18, 36/36 and source-only statements below are historical. [M12-P01..P16 local contract](M12_LOCAL_CONTRACT_DECISION_20261108.md) is selected for verification, not independent gate acceptance; [Q2 applicability](M12_Q2_HISTORICAL_SNAPSHOT_APPLICABILITY_20261108.md) is recorded separately. Independent G11/G12 evidence reviews and gate acceptance pending, with protected `main` and the M9 hold unchanged.
-
-**Historical hosted verification checkpoint:** [Executed M11/M12 run register](M11_M12_HOSTED_VERIFICATION_20261108.md) records a successful .NET and frontend source gate, G11 18/18 scoped PostgreSQL tests, G12 2/2 exclusive PostgreSQL tests, 36/36 impacted integration regressions, and direct SQL isolation of exception, history and evaluation tables with forged-scope denial. Updated source/dependency and runtime-image security scans passed. The three-engine browser rerun passed 36/36 tests, with 12/12 each in Chromium, Firefox and WebKit, including M11 exception journeys, M12 search/export and targeted M5 regressions. G11-S08 conflict-specific provenance remains open; M12 local policy decisions and independent G11/G12 S25 reviews remain pending. No G11/G12 acceptance, merge or deployment is authorized. Historical source-only notes below are retained as previous checkpoints.
-
-**Earlier hosted verification checkpoint (before SQL remediation):** [Hosted run register](M11_M12_HOSTED_VERIFICATION_20261108.md) records successful corrected-source checks, G11 17/17 and G12 2/2 targeted PostgreSQL tests, dependency and runtime-image scans, and a confirmed **G11-S12 SQL read-isolation FAIL**. The current HTTP database login can read M11 exception rows without scoped-session authority. The browser and full integration campaigns remain in progress at the recorded checkpoint. Independent G11/G12 gate reviews and acceptance pending.
-
-**Historical combined-source checkpoint (before hosted verification):** M11 and M12 are assembled on `feat/m11-m12-combined-integration`; shared API, role provisioning, React and migration-count surfaces have been reconciled, and M11 lifecycle code and tests updated under the [recorded M11 policies](M11_LOCAL_CONTRACT_DECISION_20261108.md). Earlier descriptions of missing combined integration or pending M11 policy choices are superseded. G11/G12 executable security and browser evidence does not yet exist, M12 local policies are still pending, and no gate acceptance, protected-main merge, deployment or M9 hold release is authorized.
-
-**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). M12 remains an independent source candidate in draft PR #32, with no executed G12 technical gate. Shared verification strategy approval does not establish a combined source SHA, executable correctness or M12 acceptance.
-
-**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records M11 draft PR #31 and M12 draft PR #32 with different additive migration IDs, shared API/UI/role integration surfaces and no combined execution. G11-S01 is BLOCKED, G11-S02..S25 NOT EXECUTED and G12 verification pending. Accepted `main` and the M9 transport hold remain unchanged.
-
-**Last source audit:** 2026-11-08. **Branch:** `feat/m12-shipment-search-export`.
-**Accepted baseline:** `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`.
-**Current disposition:** M12/G12 ACCEPTED and integrated into `main` through PR #33 on 2026-11-08, following the source-locked technical campaign and separate S25 review. Earlier candidate-stage notes below remain historical; no deployment occurred.
-
-| Package | Candidate implementation | Gate |
-| --- | --- | --- |
-| M12-01 | Shared typed filter and CSV policies, protected cursor and role contract | Policy decisions pending |
-| M12-02 | New tenant-scoped search route, M6 voyage and M5 port/status/date predicates | Authored, runtime unverified |
-| M12-03 | Restricted Analyst/Manager CSV export, size limits, role/audit migration | Authored, runtime unverified |
-| M12-04 | React UI plus new unit, contract, real-PostgreSQL HTTP and three-engine browser test sources | Authored, NOT EXECUTED |
-| G12 | Source-locked campaign, Q2 snapshot, raw evidence, independent S25 and decision | NOT EXECUTED |
+**Current status (2026-11-08):** G0-G12 and G16 are accepted and merged into `main`. G11 and G12 have separately approved S01 policies and S25 evidence reviews in the [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Earlier pending, unverified and source-candidate checkpoints below remain historical if explicitly dated. The M9 ARRI/DEPA transport hold and 10,000 unresolved-item cap remain binding. M10 projector defaults off, ETA remains null and M11 evaluator is opt-in. No production deployment or migration is authorized.
 
 ## Changed source and tests
 
@@ -65,6 +37,6 @@ The [2026-11-08 fifth-pass source audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PA
 - Coordinate M11 and M12 migration discovery on a combined SHA: their IDs are distinct (`20261107180000` and `20261107230000`), but separate branch migration-count tests and shared integrations must be reconciled.
 - Execute the new signed-proof, key rotation/mismatch, same-origin GET, worker denial, forged caller, duplicate-correlation, role change and audit-failure tests against real restricted PostgreSQL credentials. Source hardening is not runtime proof.
 - Perform G12 Q2 historical-volume compatibility on a safe copy, or document NOT APPLICABLE with discovery evidence.
-- Independent G12-S25 review and explicit G12 acceptance pending.
+- At this earlier implementation checkpoint, G12-S25 review and explicit acceptance were pending. Both were subsequently completed in the [gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md).
 
-No GitHub Actions were run. The M9 transport hold, no-deployment status and accepted main remain unchanged.
+No GitHub Actions were run during this earlier source-only audit. Later targeted hosted verification and acceptance are recorded in the gate closure. The M9 transport hold and no-deployment restriction remain unchanged.

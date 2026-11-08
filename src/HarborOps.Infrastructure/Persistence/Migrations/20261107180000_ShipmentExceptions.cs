@@ -188,6 +188,8 @@ public sealed class ShipmentExceptions : Migration
                 stored_condition text;
                 exception_id uuid;
                 payload jsonb;
+                conflict_provenance jsonb;
+                conflict_container_count integer;
                 current_org text;
             BEGIN
                 IF session_user <> 'harborops_api'
@@ -310,6 +312,90 @@ public sealed class ShipmentExceptions : Migration
                                 AND input_revision=p_input_revision
                                 AND correction_generation=p_generation)
                         ELSE NULL END);
+                IF p_rule='EquipmentConflict' AND p_condition='Active' THEN
+                    -- Reconstruct the conflict from immutable accepted M10 events,
+                    -- not the projection's 50-container presentation sample.
+                    -- A correction removes its target receipt from the effective
+                    -- stream; its replacement may carry the correction identity.
+                    -- A bounded first witness and total count avoid unbounded JSON.
+                    WITH effective AS MATERIALIZED (
+                        SELECT e.container_id,e.event_id,e.receipt_id,e.source_id,
+                            e.source_event_id,e.event_code,e.occurred_at_utc,
+                            e.received_at_utc,replacement.id AS correction_id
+                        FROM shipment_tracking_timeline_entries e
+                        LEFT JOIN shipment_tracking_corrections superseded
+                          ON superseded.organization_id=e.organization_id
+                         AND superseded.shipment_id=e.shipment_id
+                         AND superseded.target_receipt_id=e.receipt_id
+                        LEFT JOIN shipment_tracking_corrections replacement
+                          ON replacement.organization_id=e.organization_id
+                         AND replacement.shipment_id=e.shipment_id
+                         AND replacement.replacement_receipt_id=e.receipt_id
+                        WHERE e.organization_id=p_org AND e.shipment_id=p_shipment
+                          AND e.event_code IN ('GTIN','GTOT')
+                          AND superseded.id IS NULL
+                    ),
+                    latest AS (
+                        SELECT container_id,MAX(occurred_at_utc) AS occurred_at_utc
+                        FROM effective GROUP BY container_id
+                    ),
+                    witnesses AS (
+                        SELECT latest.container_id,latest.occurred_at_utc,
+                            incoming.event_id AS in_event,
+                            incoming.receipt_id AS in_receipt,
+                            incoming.source_id AS in_source,
+                            incoming.source_event_id AS in_source_event,
+                            incoming.correction_id AS in_correction,
+                            outgoing.event_id AS out_event,
+                            outgoing.receipt_id AS out_receipt,
+                            outgoing.source_id AS out_source,
+                            outgoing.source_event_id AS out_source_event,
+                            outgoing.correction_id AS out_correction
+                        FROM latest
+                        JOIN LATERAL (
+                            SELECT e.* FROM effective e
+                            WHERE e.container_id=latest.container_id
+                              AND e.occurred_at_utc=latest.occurred_at_utc
+                              AND e.event_code='GTIN'
+                            ORDER BY e.occurred_at_utc,e.received_at_utc,
+                                e.source_id,e.source_event_id COLLATE "C",
+                                e.receipt_id,e.event_id LIMIT 1
+                        ) incoming ON true
+                        JOIN LATERAL (
+                            SELECT e.* FROM effective e
+                            WHERE e.container_id=latest.container_id
+                              AND e.occurred_at_utc=latest.occurred_at_utc
+                              AND e.event_code='GTOT'
+                            ORDER BY e.occurred_at_utc,e.received_at_utc,
+                                e.source_id,e.source_event_id COLLATE "C",
+                                e.receipt_id,e.event_id LIMIT 1
+                        ) outgoing ON true
+                    )
+                    SELECT COUNT(*) OVER()::integer,
+                        jsonb_build_object(
+                            'containerId',w.container_id,
+                            'occurredAtUtc',w.occurred_at_utc,
+                            'in',jsonb_build_object(
+                                'eventId',w.in_event,'receiptId',w.in_receipt,
+                                'sourceId',w.in_source,
+                                'sourceEventId',w.in_source_event,
+                                'replacementCorrectionId',w.in_correction),
+                            'out',jsonb_build_object(
+                                'eventId',w.out_event,'receiptId',w.out_receipt,
+                                'sourceId',w.out_source,
+                                'sourceEventId',w.out_source_event,
+                                'replacementCorrectionId',w.out_correction))
+                    INTO conflict_container_count,conflict_provenance
+                    FROM witnesses w ORDER BY w.container_id LIMIT 1;
+                    IF conflict_container_count IS NULL OR conflict_provenance IS NULL THEN
+                        RAISE EXCEPTION 'M10 conflict has no effective accepted-event witness'
+                            USING ERRCODE='PZ002';
+                    END IF;
+                    payload := payload || jsonb_build_object(
+                        'conflictWitness',conflict_provenance,
+                        'conflictContainerCount',conflict_container_count,
+                        'conflictWitnessTruncated',conflict_container_count>1);
+                END IF;
                 IF pg_column_size(payload) > 2048 THEN
                     RAISE EXCEPTION 'Evaluation metadata invalid' USING ERRCODE='23514';
                 END IF;

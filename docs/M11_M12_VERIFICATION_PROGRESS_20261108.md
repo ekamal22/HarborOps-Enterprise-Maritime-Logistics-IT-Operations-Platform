@@ -1,0 +1,37 @@
+# M11/M12 Source-Locked Verification Progress
+
+**Review date:** 2026-11-08
+**Branch:** `feat/m11-m12-combined-integration`
+**Accepted baseline:** protected `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`
+**Disposition:** Technical verification is underway. G11 and G12 gate acceptance, independent S25 reviews, protected-main merge, production migrations and deployment are not established.
+
+## Verified source-locked checks
+
+| Check | GitHub Actions run | Exact checked source | Observed result |
+| --- | --- | --- | --- |
+| Complete PostgreSQL integration regression prior to expanded G12 tests | [42440935080](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42440935080) | `4b5d5c2692311cbc00a00475e1f28f29c3f55685` | **338/338 PASS**, zero failures and zero not-executed TRX cases; 0 build warnings/errors |
+| Expanded M11/G11 and G12 database verification | [42441855284](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441855284) | `bb43d58d5a11b95335ce6ee646573cc9678e01a7` | G11 **19/19 PASS**; G12 **4/4 PASS**, including >5000 row rejection and real blocking-query timeout |
+| Export rate-cap amendment | [42442313537](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42442313537) | `749c814ba5088050b7876ff86088f3d6c4e4231c` | G12 role/export test executed with per-principal rate-cap and audit exclusion assertions; targeted G12 **4/4 PASS** |
+| Strict compiler, unit, contract and web | [42442011533](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42442011533) | `9ae741fd002d993f5d35a6ea6123a7c4fb56ccf4` | 0 errors/warnings, **291/291 unit**, **46/46 contract**, frontend source/build checks passed |
+| Browser M11/M12 and relevant M5 workflows | [42441281977](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441281977) | `c311cb08d405de5583e706c1d2ded6ea7bccd461` | **36/36 PASS**, twelve each in Chromium, Firefox and WebKit, zero skips |
+| PostgreSQL/API/web built image vulnerability scans | [42441289745](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441289745) | `a2fa6e910b10430bbbe748478b7726b8870c835a` | Three source-labeled built images pass HIGH/CRITICAL Trivy threshold |
+| Effective bounded mutation checks | [42441556859](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441556859) | `90ff5f6c1cdc8810b3f950017c1c6fe7ea039d06` | Five clean controls passed, **5/5 effective mutants killed**, including fresh disposable SQL correction-witness mutation |
+| Earlier restricted SQL read isolation and forged-proof denial | [42438331704](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42438331704) | `a9ca544c2f5db7527d405558cfe18b57ac0f7a83` | SQL RLS isolation and forged authorization proofs denied |
+
+These are *per-run* source-locked results on multiple revisions, not one final immutable G11/G12 evidence package. The full **340-case** integration rerun at [42442170451](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42442170451) and the newly authored populated 13-to-15 upgrade test at [42442477170](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42442477170) were pending when this checkpoint was drafted. Both must be reconciled by their actual recorded outcomes; neither is a PASS merely because the workflow was started.
+
+## Failed and superseded runs
+
+The original full integration run [42433586007](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42433586007) passed 318/336 and failed 18 on older source. The SQL read-boundary run [42434283623](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42434283623) confirmed a real prior security failure, subsequently corrected and executed under actual restricted credentials.
+
+The first verification mutation attempt [42441183635](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441183635) failed its SQL mutation. The superficially successful [42441371408](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441371408) was not an acceptable SQL-mutant kill because the test rejected an unapproved disposable database name. [42441543253](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42441543253) exposed an overstrict harness bootstrap predicate. The accepted *technical mutation checkpoint* is **42441556859**, which uses an isolated allowed database and confirms the exact intended test failed. Preserve all previous results rather than relabeling them.
+
+## Contract and scenario boundaries
+
+M11 local policy groups are recorded in [M11 contract](M11_LOCAL_CONTRACT_DECISION_20261108.md). The technical M12-P01..P16 selection is recorded in [M12 contract](M12_LOCAL_CONTRACT_DECISION_20261108.md), while G12-S01 final reconciliation is pending. [M12 Q2 applicability](M12_Q2_HISTORICAL_SNAPSHOT_APPLICABILITY_20261108.md) documents NOT APPLICABLE for a repository-owned Q2 2026 production snapshot and does not waive actual 13-to-15 populated upgrades.
+
+G11-S08 now has an actual accepted-event and replacement-correction witness test and an effective source SQL mutant. Multiple-conflict completeness and bounded-truncation semantics still require an independent review against the exact G11-S08 contract; these tests do not establish every possible lineage.
+
+The scenario matrices in [G11 verification specification](M11_VERIFICATION_PLAN.md) and [G12 verification specification](M12_VERIFICATION_PLAN.md) retain their independent S01..S25 dispositions. Successful component suites do not make previously unexecuted fault, timing, recovery, capacity, proxy-envelope, or raw-evidence scenarios PASS automatically. The current GitHub logs preserve test names, summaries and selected TRX hashes, but they are not yet complete exported and independently reconciled raw artifacts with a signed checksum manifest.
+
+**G11-S25 and G12-S25 independent review remains pending.** There is no gate acceptance, main merge or release authorization. Keep the accepted M9 transport-processing hold, parked ARRI/DEPA, 10,000 unresolved-work cap, disabled M10 projector and null ETA unchanged.

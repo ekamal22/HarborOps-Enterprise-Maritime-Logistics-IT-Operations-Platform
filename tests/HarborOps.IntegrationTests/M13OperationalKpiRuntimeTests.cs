@@ -606,7 +606,7 @@ public sealed class M13OperationalKpiRuntimeTests
             Assert.Equal(HttpStatusCode.Conflict,
                 (await secondSession.SendAsync(other)).StatusCode);
         using (var denied = MemberRequest(f.A.ToString(), report, "K01"))
-            Assert.Equal(HttpStatusCode.Forbidden,
+            Assert.Equal(HttpStatusCode.Conflict,
                 (await administrator.SendAsync(denied)).StatusCode);
         using (var forged = MemberRequest(f.A.ToString(), report, "K01"))
         {

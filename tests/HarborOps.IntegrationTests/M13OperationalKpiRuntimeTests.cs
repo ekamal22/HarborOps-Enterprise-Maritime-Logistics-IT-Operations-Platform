@@ -206,6 +206,42 @@ public sealed class M13OperationalKpiRuntimeTests
     }
 
     [ExclusiveM13PostgresFact]
+    public async Task RealM11OverdueEvaluationProducesDistinctDashboardRisk()
+    {
+        var setup = await M11ExceptionRuntimeTests.Prepare();
+        using var migrator = setup.Factory;
+        using var api = setup.Runtime;
+        using var seedManager = setup.Fixture.Manager;
+        using var seedAdmin = setup.Fixture.Admin;
+        using var seedAnalyst = setup.Fixture.Analyst;
+        using var manager = setup.Manager;
+        using var analyst = setup.Analyst;
+        using var admin = setup.Administrator;
+
+        var shipment = await M11ExceptionRuntimeTests.ScheduledShipment(setup);
+        var exceptionId = await M11ExceptionRuntimeTests.EvaluateAndFind(setup, shipment);
+        var dashboard = Root(setup.Fixture.A);
+        var result = await Json(await manager.GetAsync(dashboard + "/overview"));
+        Assert.Equal(1, Count(result, "K08"));
+        Assert.Equal(0, Count(result, "K07"));
+        Assert.Equal(0, Count(result, "K09"));
+        Assert.Equal(1, Count(result, "D08"));
+        Assert.True(Count(result, "K11") >= 1);
+        Assert.Equal(HttpStatusCode.Forbidden,
+            (await admin.GetAsync(dashboard + "/catalog")).StatusCode);
+
+        using var request = MemberRequest(setup.Fixture.A.ToString(), result, "K08");
+        var rows = await Json(await manager.SendAsync(request));
+        Assert.Contains(rows.GetProperty("items").EnumerateArray(),
+            x => x.GetProperty("shipmentId").GetGuid() == shipment);
+        using var occurrences = MemberRequest(setup.Fixture.A.ToString(), result, "K11");
+        var opened = await Json(await manager.SendAsync(occurrences));
+        Assert.Contains(opened.GetProperty("items").EnumerateArray(),
+            x => x.GetProperty("exceptionId").GetGuid() == exceptionId);
+        Assert.NotEqual(result.GetProperty("reportId").GetGuid(), Guid.Empty);
+    }
+
+    [ExclusiveM13PostgresFact]
     public async Task AuditorGrantRevocationDeniesDashboardAndOldReportMembers()
     {
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();
@@ -269,6 +305,24 @@ public sealed class M13OperationalKpiRuntimeTests
             using var response = await auditor.SendAsync(mine);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
+
+        // A role change increments membership version and must invalidate the
+        // previous grant even if the role later returns to Auditor.
+        using (var changed = await ReferenceDataHttpTests.Send(seedAdmin,
+            HttpMethod.Put, $"/api/v1/organizations/{f.A}/memberships/{auditorId}",
+            new { role = "Support", status = "Active", expectedVersion = 1L }))
+            Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
+        using (var restored = await ReferenceDataHttpTests.Send(seedAdmin,
+            HttpMethod.Put, $"/api/v1/organizations/{f.A}/memberships/{auditorId}",
+            new { role = "Auditor", status = "Active", expectedVersion = 2L }))
+            Assert.Equal(HttpStatusCode.OK, restored.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden,
+            (await auditor.GetAsync(url + "/catalog")).StatusCode);
+        using (var renewed = await ReferenceDataHttpTests.Send(admin,
+            HttpMethod.Put, url + "/grants/" + auditorId, new { enabled = true }))
+            Assert.Equal(HttpStatusCode.OK, renewed.StatusCode);
+        Assert.Equal(HttpStatusCode.OK,
+            (await auditor.GetAsync(url + "/catalog")).StatusCode);
 
         using (var revoked = await ReferenceDataHttpTests.Send(admin,
             HttpMethod.Put, url + "/grants/" + auditorId, new { enabled = false }))

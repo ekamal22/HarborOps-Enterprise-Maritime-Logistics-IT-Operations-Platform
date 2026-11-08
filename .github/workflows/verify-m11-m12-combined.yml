@@ -1,4 +1,5 @@
-name: Verify combined M11 M12
+name: Verify M15 scoped notifications
+run-name: M15 source, database and browser verification
 on:
   workflow_dispatch:
 
@@ -7,6 +8,7 @@ permissions:
 
 jobs:
   source:
+    name: M15 source and regression checks
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:

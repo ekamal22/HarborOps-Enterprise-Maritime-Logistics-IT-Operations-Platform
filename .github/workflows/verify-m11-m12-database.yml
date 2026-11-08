@@ -80,7 +80,7 @@ jobs:
       - name: Build combined solution
         working-directory: source
         run: dotnet build HarborOps.sln -c Release -warnaserror
-      - name: Execute G12 restricted-role and export tests
+      - name: Execute G12 scoped export, rate, cap and timeout tests
         working-directory: source
         run: |
           set -euo pipefail

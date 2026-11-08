@@ -2,8 +2,6 @@
 
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. M11/G11 and M12/G12 closed through [formal acceptance](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. [Project status](STATUS.md) is authoritative for execution and release state; dated source reviews and early gate reports retain only their historical meaning. M9 ARRI/DEPA processing remains held under the 10,000-item limit, with M10 projector default-off, ETA null and M11 evaluator opt-in. Deployment remains unauthorized.
 
-**Current accepted baseline (2026-11-07):** G0-G10 and G16 are integrated into protected `main`; G10 remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following independently reviewed [gate closure](M10_G10_GATE_CLOSURE_20261107.md). G11-G15 and G17-G24 remain unaccepted. Sustained M9 transport-event processing remains held.
-
 **Status:** Supporting engineering guidance. This file is not an independent roadmap or authoritative dependency ledger.
 
 The [Product Requirements Document](PRD.md) defines user outcomes and release boundaries. The [Delivery Roadmap](ROADMAP.md) owns M0-M24 scope and verification gates, while [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) governs concurrent workstreams and integration. The [Execution Graph](EXECUTION_GRAPH.md), generated from [execution-graph.json](execution-graph.json), owns work-package IDs and dependency edges. [Status](STATUS.md) alone owns what is actually implemented and verified.
@@ -12,9 +10,9 @@ The [Product Requirements Document](PRD.md) defines user outcomes and release bo
 
 **Current M10/G10 implementation checkpoint (2026-11-07):** G10 S01/S25 accepted and merged via PR #28. Thirteen additive migrations, restricted signed corrections, atomic M16 audit, historical upgrade and corrected default Compose environment were verified on their respective source locks. [G10 closure](M10_G10_GATE_CLOSURE_20261107.md) is the current decision; historical implementation notes below preserve prior status.
 
-## M11 source candidate
+## Accepted M11 implementation
 
-After accepted G10, M11-01 rule policy, M11-02 evaluation, M11-03 exception lifecycle and M11-04 integrated API/UI are represented by a feature-branch source candidate. See [M11 source status](M11_IMPLEMENTATION_STATUS.md), [architecture](M11_ARCHITECTURE_DESIGN.md), [delivery plan](M11_IMPLEMENTATION_PLAN.md) and [G11 gate](M11_VERIFICATION_PLAN.md). The policy has not been approved, the code has not been executed, and G11 acceptance is pending. M9's transport hold continues.
+M11-01 rule policy, M11-02 evaluation, M11-03 exception lifecycle and M11-04 integrated API/UI were implemented, verified, formally accepted under G11 and merged through PR #33. See [M11 source status](M11_IMPLEMENTATION_STATUS.md), [architecture](M11_ARCHITECTURE_DESIGN.md), [delivery plan](M11_IMPLEMENTATION_PLAN.md) and [G11 accepted matrix](M11_G11_EVIDENCE_MATRIX_20261108.md). The M9 transport hold remains binding.
 
 ## Work-package execution contract
 

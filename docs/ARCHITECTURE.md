@@ -2,8 +2,6 @@
 
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) govern current M11 delay exceptions and M12 scoped search/export behavior. Earlier source-only and verification checkpoints are historical. The M9 ARRI/DEPA processing hold and 10,000 unresolved-item limit remain binding; M10 projector default-off, ETA null, M11 evaluator opt-in. No deployment or release is authorized.
 
-**Current accepted baseline (2026-11-07):** G0-G10 and G16 are integrated into protected `main`; G10 remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following independently reviewed [gate closure](M10_G10_GATE_CLOSURE_20261107.md). G11-G15 and G17-G24 remain unaccepted. Sustained M9 transport-event processing remains held.
-
 **Accepted implementation:** G0-G7 were integrated by 2026-11-03; M8/G8 and D-006 Option A were accepted 2026-11-04 following [independent raw evidence review](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md). Durable intake returns HTTP 202 only after the atomic PostgreSQL receipt/event/Pending work commit. M7 negative validation and source credential safeguards remain intact. M9/G9 is accepted and integrated into `main`; its separate opt-in worker was integrated from [M9 draft PR #18](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/18), with [executed G9 technical evidence](M9_EXECUTED_VERIFICATION.md), a passing [browser supplement](M9_BROWSER_SUPPLEMENT.md), and all six [M9-01 contract decision](M9_LOCAL_CONTRACT_DECISION.md) choices approved with a transport-backlog condition. The formal G9 evidence review and gate acceptance are recorded in [G9 closure](M9_G9_GATE_CLOSURE.md). See [G8 gate closure](M8_G8_GATE_CLOSURE.md).
 
 ## M10 correction authority and audit integration, 2026-11-07
@@ -12,9 +10,9 @@
 
 The accepted correction-security layer adds an SQL-only thirteenth migration after the immutable original twelve, including the NULL-safe projector-scope function replacement. HTTP proof signing is separated from the restricted PostgreSQL verifier; the correction and M16 audit event commit atomically. The optional projector remains off by default and restricted. See [gate closure](M10_G10_GATE_CLOSURE_20261107.md).
 
-## M11 provisional exception architecture, not verified
+## Accepted M11 delay and exception architecture
 
-The [M11 source candidate](M11_IMPLEMENTATION_STATUS.md) extends M5 UTC schedules and M10 equipment projections with a versioned rule engine, additively migrated exception tables, signed SQL authority, scoped API and UI, M16 atomic audit and an optional bounded reevaluator. [M11 architecture](M11_ARCHITECTURE_DESIGN.md), [work-package sequence](M11_IMPLEMENTATION_PLAN.md), and [G11 specification](M11_VERIFICATION_PLAN.md) are proposed. Local policy approval and all executable verification remain pending, so no M11 runtime behavior is represented as accepted. The M9 transport hold and null ETA remain.
+The accepted M11 implementation extends M5 UTC schedules and M10 equipment projections with a versioned rule engine, additive exception tables, signed SQL authority, scoped API and UI, M16 atomic audit and an opt-in bounded reevaluator. The [M11 architecture](M11_ARCHITECTURE_DESIGN.md), [work packages](M11_IMPLEMENTATION_PLAN.md) and [G11 evidence matrix](M11_G11_EVIDENCE_MATRIX_20261108.md) record its accepted scope and verification. The M9 transport hold and null ETA remain.
 
 ## Parallel implementation and integration contracts
 

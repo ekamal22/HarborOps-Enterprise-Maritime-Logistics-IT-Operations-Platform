@@ -91,11 +91,11 @@ Exception lists use the provisional P09 rule order (`EquipmentConflict`, `Record
 
 ## Fourth-pass M11 list and history continuation
 
-The scoped exception-list cursor now binds `organizationId`, optional filters, rule-ranked last ID and a PostgreSQL-clock `SnapshotAtUtc`. Rows opened after the first page are excluded, but lifecycle changes are not an immutable SQL snapshot and may affect later filtered pages. The detail response supplies `nextHistoryCursor` only when the 500-item preview is truncated. `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}/history?limit=100&cursor=...` returns `{ items, nextCursor }` using immutable `(occurred_at_utc,id)` paging. Each token expires after 20 minutes, is bound to the selected tenant and exception, and cannot expose foreign history. Analyst reads redact `reason` and `actorUserId` on every page. These contracts are implemented in source, not G11-verified.
+The scoped exception-list cursor now binds `organizationId`, optional filters, rule-ranked last ID and a PostgreSQL-clock `SnapshotAtUtc`. Rows opened after the first page are excluded, but lifecycle changes are not an immutable SQL snapshot and may affect later filtered pages. The detail response supplies `nextHistoryCursor` only when the 500-item preview is truncated. `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}/history?limit=100&cursor=...` returns `{ items, nextCursor }` using immutable `(occurred_at_utc,id)` paging. Each token expires after 20 minutes, is bound to the selected tenant and exception, and cannot expose foreign history. Analyst reads redact `reason` and `actorUserId` on every page. These contracts were subsequently verified and accepted for G11; this earlier API note retains its original design details.
 
 ## Sixth-pass M11 rule severity and reevaluation
 
-An Inactive `RecordedArrivalLate` signal from an on-time recorded arrival now uses Info severity, as do not-yet-overdue arrival schedules and inactive departure risks. Active recorded lateness remains High, and active schedule/departure risks remain Warning. A signed reevaluation with an identical source fingerprint now updates a still-active exception if its severity, confidence, reason or reference/threshold/next-due timestamp differs, appending one versioned Reevaluated history entry. Repeated identical metadata remains a genuine no-op. These candidate contracts require G11 execution and local policy approval.
+An Inactive `RecordedArrivalLate` signal from an on-time recorded arrival now uses Info severity, as do not-yet-overdue arrival schedules and inactive departure risks. Active recorded lateness remains High, and active schedule/departure risks remain Warning. A signed reevaluation with an identical source fingerprint now updates a still-active exception if its severity, confidence, reason or reference/threshold/next-due timestamp differs, appending one versioned Reevaluated history entry. Repeated identical metadata remains a genuine no-op. These contracts were subsequently exercised and formally approved under G11.
 
 ## Fifth-pass M11 provisional lifecycle and API behaviors
 
@@ -107,9 +107,9 @@ The scoped list returns `{ items, nextCursor }` with a short-lived protected cur
 
 Manager actions use a CSRF-protected empty evaluation `POST` or `PATCH /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`, with an `Idempotency-Key` UUID header and exactly `action`, `expectedVersion` and `reason` in the body. Keys are organization-unique and conflicting reuse yields 409. Analyst detail redacts free-form human reasons and actor IDs. These are source contracts only, not verified endpoints or ETA.
 
-## Unaccepted M11 exception API candidate
+## Accepted M11 exception API
 
-The feature branch implements `GET /api/v1/organizations/{organizationId}/shipments/{shipmentId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`, Manager-only `POST /api/v1/organizations/{organizationId}/shipments/{shipmentId}/exceptions/evaluate`, and Manager-only, idempotent `PATCH /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`. List cursors are protected and bound to tenant/filter. The contracts are a source candidate only, unverified and not accepted. See [M11 architecture](M11_ARCHITECTURE_DESIGN.md) and [status](M11_IMPLEMENTATION_STATUS.md). They do not represent ETA or processed ARRI/DEPA records.
+The feature branch implements `GET /api/v1/organizations/{organizationId}/shipments/{shipmentId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions`, `GET /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`, Manager-only `POST /api/v1/organizations/{organizationId}/shipments/{shipmentId}/exceptions/evaluate`, and Manager-only, idempotent `PATCH /api/v1/organizations/{organizationId}/exceptions/{exceptionId}`. List cursors are protected and bound to tenant/filter. The contracts were verified and accepted under G11 in [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). See [M11 architecture](M11_ARCHITECTURE_DESIGN.md) and [status](M11_IMPLEMENTATION_STATUS.md). They do not represent ETA or processed ARRI/DEPA records.
 
 ## Proposed resource map
 
@@ -126,8 +126,8 @@ The feature branch implements `GET /api/v1/organizations/{organizationId}/shipme
 | GET | /organizations/{orgId}/exceptions | Shipment exceptions | Scoped operations |
 | PATCH | /organizations/{orgId}/exceptions/{id} | Acknowledge/resolve exception | Scoped operations |
 | GET | /organizations/{orgId}/analytics/overview | Documented operational KPIs | Scoped viewer |
-| GET | /organizations/{orgId}/shipments/search | M12 candidate advanced tenant-scoped search, protected UUID keyset and UTC filters | Typed shipment-read permission, G12 pending |
-| GET | /organizations/{orgId}/exports/shipments | M12 candidate bounded CSV and signed nonreplayable preparation audit, G12 pending | Analyst/Manager typed export permission with verifier key |
+| GET | /organizations/{orgId}/shipments/search | Accepted M12 tenant-scoped advanced search, protected UUID keyset and UTC filters | Typed shipment-read permission, G12 accepted |
+| GET | /organizations/{orgId}/exports/shipments | Accepted M12 bounded CSV and signed nonreplayable preparation audit | Analyst/Manager typed export permission with verifier key, G12 accepted |
 | GET/POST | /operations/incidents | Incident list/create | IT operations role |
 | GET/PATCH | /operations/incidents/{id} | Incident detail and transitions | IT operations role |
 | GET | /health/live | Process liveness | Public, minimal metadata |

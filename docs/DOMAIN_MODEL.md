@@ -2,26 +2,22 @@
 
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) govern current M11 delay exceptions and M12 scoped search/export behavior. Earlier source-only and verification checkpoints are historical. The M9 ARRI/DEPA processing hold and 10,000 unresolved-item limit remain binding; M10 projector default-off, ETA null, M11 evaluator opt-in. No deployment or release is authorized.
 
-## M12 search and export model candidate, 2026-11-07
+## Accepted M12 search and export model
 
 M12 on [draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) adds no mutable shipment or voyage domain entity. Advanced search uses existing M5 shipment columns and M6 tenant-scoped voyage-assignment intervals, with half-open UTC windows and live reauthorization. Export has a fixed twelve-column CSV view over authorized shipment data.
 
-The additive, SQL-only `20261107230000_M12ShipmentExportAudit` migration introduces `m12_export_proof_keys`, a restricted verifier table not mapped as a domain entity, plus `m12_record_shipment_export` and a unique partial index on M16 `audit_entries` for `shipment.export_prepared` correlation. It does not rewrite accepted migrations or change the EF model snapshot. The audit entry records bounded row count, byte count, filter fingerprint and schema version, but not CSV contents. See [architecture](M12_ARCHITECTURE_DESIGN.md) and [correctness audit](M12_CORRECTNESS_AUDIT_20261107.md). G12 acceptance pending.
+The additive, SQL-only `20261107230000_M12ShipmentExportAudit` migration introduces `m12_export_proof_keys`, a restricted verifier table not mapped as a domain entity, plus `m12_record_shipment_export` and a unique partial index on M16 `audit_entries` for `shipment.export_prepared` correlation. It does not rewrite accepted migrations or change the EF model snapshot. The audit entry records bounded row count, byte count, filter fingerprint and schema version, but not CSV contents. See [architecture](M12_ARCHITECTURE_DESIGN.md) and [correctness audit](M12_CORRECTNESS_AUDIT_20261107.md). G12 accepted and merged through PR #33.
 
 
-**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
+## Accepted M11 recurrence identity
 
-**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
-
-## M11 provisional recurrence identity
-
-A verified inactive Acknowledged occurrence is closed on direct recurrence, preserving immutable system AutoResolved history. The newly active incident receives a separate UUID and incremented occurrence under the existing partial unique index. Unknown/Stale does not establish clearance. This remains source-only and subject to M11-P10 approval.
+A verified inactive Acknowledged occurrence is closed on direct recurrence, preserving immutable system AutoResolved history. The newly active incident receives a separate UUID and incremented occurrence under the existing partial unique index. Unknown/Stale does not establish clearance. This recurrence contract was verified and formally approved under M11-P10.
 
 ## M11 scoped immutable-history retrieval
 
 The underlying `shipment_exception_history` rows retain a composite scoped FK and append-only trigger. The new `HistoryPageAsync` query uses an ordered `(occurred_at_utc,id)` keyset. Protected history continuation cursors are request tokens, not stored business records; the first 500 detail events are a preview rather than an irreversible retention ceiling. Runtime verification and conflict-specific event lineage remain pending.
 
-## M11 provisional persistence model
+## Accepted M11 persistence model
 
 SQL-only migration 14 adds tenant-bound `shipment_exceptions`, append-only `shipment_exception_history`, rule-versioned `shipment_exception_evaluations`, organization-unique `shipment_exception_replays`, and bounded-expiry `shipment_exception_proof_nonces`. Input checkpoints reference accepted M10 `shipment_tracking_input_versions.input_revision`, not a nonexistent `revision` column. This branch is not a migrated or accepted database baseline.
 

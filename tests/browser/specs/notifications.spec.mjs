@@ -132,6 +132,11 @@ test("G15 rejected notification refresh drops protected data and organization se
     .filter({hasText:"M3 North Terminal (Manager)"}).getAttribute("value");
   expect(north).toBeTruthy();
   let revoked=false;
+  // Simulate a real membership removal as well as the notification denial.
+  // The authoritative organization refresh must not select a revoked tenant.
+  await page.route("**/api/v1/me/organizations",route=>
+    revoked ? route.fulfill({status:200,contentType:"application/json",
+      body:JSON.stringify({organizations:[]})}) : route.continue());
   await page.route("**/organizations/"+north+"/notifications?*",route=>
     route.fulfill({
       status:revoked?403:200,contentType:"application/json",

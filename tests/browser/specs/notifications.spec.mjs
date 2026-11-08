@@ -208,5 +208,7 @@ test("G15 live M11 event is delivered and navigable from the real notification A
   await liveNotice.getByRole("button",{name:"Open shipment exception"}).click();
   const panel = page.getByRole("region",{name:"Shipment exceptions"});
   await expect(panel).toBeVisible();
-  await expect(panel.getByText("ArrivalScheduleOverdue",{exact:false})).toBeVisible();
+  await expect(panel.getByText(
+    "Planned arrival is overdue; physical arrival is unconfirmed",
+    {exact:false}).first()).toBeVisible();
 });

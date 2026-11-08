@@ -157,6 +157,85 @@ public sealed class M15NotificationBoundaryTests
         Assert.Equal(HttpStatusCode.NotFound,mutation.StatusCode);
     }
 
+
+    [Fact]
+    public async Task CursorPaginationIsStableAndRejectsCrossFilterAndTamperedTokens()
+    {
+        var (setup,shipment,exceptionId) = await OpenException();
+        using var factory=setup.Factory; using var runtime=setup.Runtime;
+        using var manager=setup.Manager; using var analyst=setup.Analyst;
+        using var administrator=setup.Administrator;
+        using var originalAdmin=setup.Fixture.Admin;
+        using var originalManager=setup.Fixture.Manager;
+        using var originalAnalyst=setup.Fixture.Analyst;
+        await using var sql=new NpgsqlConnection(setup.Roles.Admin);
+        await sql.OpenAsync();
+
+        // Two additional immutable source-history UUIDs create distinct
+        // delivery intents for a source-locked pagination fixture.
+        for (var i=0; i<2; i++)
+        {
+            await using var insert=new NpgsqlCommand("""
+                INSERT INTO shipment_exception_history
+                    (organization_id,exception_id,action,old_state,new_state,
+                     actor_kind,source_fingerprint)
+                SELECT e.organization_id,e.id,'Opened',NULL,'Open','System',
+                    e.source_fingerprint
+                FROM shipment_exceptions e
+                WHERE e.id=@exception AND e.organization_id=@org
+                """,sql);
+            insert.Parameters.AddWithValue("exception",exceptionId);
+            insert.Parameters.AddWithValue("org",setup.Fixture.A);
+            Assert.Equal(1,await insert.ExecuteNonQueryAsync());
+        }
+        const string count = """
+            SELECT COUNT(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """;
+        await using var scope=setup.Runtime.Services.CreateAsyncScope();
+        var store=scope.ServiceProvider.GetRequiredService<NotificationStore>();
+        for (var attempt=0; attempt<100; attempt++)
+        {
+            await store.DeliverPendingAsync(CancellationToken.None);
+            if (await Count(sql,count,("org",setup.Fixture.A),
+                ("shipment",shipment))>=3) break;
+        }
+        Assert.Equal(3,await Count(sql,count,
+            ("org",setup.Fixture.A),("shipment",shipment)));
+
+        var root=$"/api/v1/organizations/{setup.Fixture.A}/notifications";
+        using var first=await manager.GetAsync(root+"?limit=1&state=All");
+        Assert.Equal(HttpStatusCode.OK,first.StatusCode);
+        var firstData=await first.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Single(firstData.GetProperty("items").EnumerateArray());
+        var id=firstData.GetProperty("items")[0].GetProperty("id").GetGuid();
+        var cursor=firstData.GetProperty("nextCursor").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(cursor));
+
+        var continuation=root+"?limit=1&state=All&cursor="+
+            Uri.EscapeDataString(cursor!);
+        using var second=await manager.GetAsync(continuation);
+        Assert.Equal(HttpStatusCode.OK,second.StatusCode);
+        var secondData=await second.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Single(secondData.GetProperty("items").EnumerateArray());
+        Assert.NotEqual(id,secondData.GetProperty("items")[0].GetProperty("id").GetGuid());
+
+        using var changedFilter=await manager.GetAsync(
+            root+"?limit=1&state=Unread&cursor="+Uri.EscapeDataString(cursor!));
+        Assert.Equal(HttpStatusCode.BadRequest,changedFilter.StatusCode);
+        var last=cursor![^1];
+        var altered=cursor[..^1]+(last=='A'?'B':'A');
+        using var tampered=await manager.GetAsync(
+            root+"?limit=1&state=All&cursor="+Uri.EscapeDataString(altered));
+        Assert.Equal(HttpStatusCode.BadRequest,tampered.StatusCode);
+
+        // Duplicate/unknown query parameters cannot bypass cursor scoping.
+        using var duplicates=await manager.GetAsync(root+"?limit=1&limit=50");
+        Assert.Equal(HttpStatusCode.BadRequest,duplicates.StatusCode);
+        using var unknown=await manager.GetAsync(root+"?recipientId="+Guid.NewGuid());
+        Assert.Equal(HttpStatusCode.BadRequest,unknown.StatusCode);
+    }
+
     [Fact]
     public async Task RequiredAuditFailureRollsBackReceiptAndReplay()
     {

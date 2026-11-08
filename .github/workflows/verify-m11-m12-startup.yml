@@ -1,25 +1,63 @@
-name: Verify combined source with runner tools
+name: Verify combined M11 M12 source
 on:
   push:
     branches:
       - feat/m11-m12-combined-integration
     paths:
       - .github/workflows/verify-m11-m12-startup.yml
+      - scripts/**
+      - src/**
+      - web/**
+      - tests/**
+      - docs/**
 jobs:
-  probe:
+  source:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 50
     steps:
-      - name: Verify runner tools and source
+      - name: Checkout complete source and verify identity
         run: |
           set -euo pipefail
-          echo "Requested source $GITHUB_SHA"
-          command -v git
-          command -v node
-          node --version
-          command -v dotnet || true
-          dotnet --version || true
-          git clone --depth=1 --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
+          git clone --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
           cd source
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git cat-file -e 6ead1d076946dd96b53401265a31efc35c4a666c^{commit}
+          echo "Source SHA: $(git rev-parse HEAD)"
+          echo "Main baseline: 6ead1d076946dd96b53401265a31efc35c4a666c"
+          node --version
+          dotnet --version
+      - name: Validate contracts, docs, and syntax
+        working-directory: source
+        run: |
+          set -euo pipefail
           node scripts/check-m11-contract.mjs
+          node scripts/render-execution-graph.mjs --check
+          node scripts/check-planning-docs.mjs
+          find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
+          node --check scripts/check-g10-stack.mjs
+          docker compose config --quiet
+      - name: Restore and build Release with warnings as errors
+        working-directory: source
+        run: |
+          set -euo pipefail
+          dotnet restore HarborOps.sln
+          dotnet build HarborOps.sln --configuration Release --no-restore -warnaserror
+      - name: Unit and contract suites
+        working-directory: source
+        run: |
+          set -euo pipefail
+          dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj --configuration Release --no-build --logger 'console;verbosity=normal'
+          dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj --configuration Release --no-build --logger 'console;verbosity=normal'
+      - name: Web tests and production build
+        working-directory: source
+        run: |
+          set -euo pipefail
+          npm --prefix web ci --no-audit --no-fund
+          npm --prefix web test
+          npm --prefix web run build
+      - name: Record verification status
+        if: always()
+        run: |
+          echo "Run: $GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Scope: combined M11/M12 source, unit, contract and web build" >> "$GITHUB_STEP_SUMMARY"

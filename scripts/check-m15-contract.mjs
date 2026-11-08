@@ -37,6 +37,14 @@ assert.match(migration,/recipient_limit/);
 assert.match(migration,/FOR SHARE OF a,u/);
 assert.match(migration,/FOR SHARE;/);
 assert.match(migration,/notification\.receipt_acknowledged/);
+assert.match(migration,/result_read_at_utc timestamptz NOT NULL/);
+assert.match(migration,/result_acknowledged_at_utc timestamptz/);
+assert.match(migration,/old_replay\.result_read_at_utc,old_replay\.result_acknowledged_at_utc/);
+assert.match(migration,/next_read_at,next_acknowledged_at/);
+assert.match(store,/result_read_at_utc,/);
+assert.match(api,/ReadAtUtc = result\.ReadAtUtc/);
+assert.match(read("tests/HarborOps.IntegrationTests/M15NotificationRuntimeTests.cs"),
+  /lateReplay\.Content\.ReadFromJsonAsync/);
 assert.match(migration,/M15 downgrade would destroy delivery evidence/);
 assert.match(grants,/REVOKE ALL ON m15_notification_outbox/);
 assert.match(grants,/GRANT SELECT ON m15_user_notifications TO harborops_api/);

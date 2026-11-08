@@ -19,7 +19,7 @@ jobs:
           cd source
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git cat-file -e 6ead1d076946dd96b53401265a31efc35c4a666c^{commit}
-          git diff --check 6ead1d076946dd96b53401265a31efc35c4a666c...HEAD
+          git diff --check 325b660f99a05145f7fdd436bf7ca96e95229a2f...HEAD
           node scripts/check-planning-docs.mjs
           node scripts/render-execution-graph.mjs --check
           node scripts/check-m11-contract.mjs

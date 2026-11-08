@@ -4,6 +4,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using HarborOps.Api.Audit;
 using HarborOps.Infrastructure.Exceptions;
+using HarborOps.Infrastructure.Integrations;
+using HarborOps.Infrastructure.Shipments;
+using Microsoft.Extensions.DependencyInjection;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -104,6 +107,89 @@ public sealed class M11ExceptionRuntimeTests
         return row.GetProperty("id").GetGuid();
     }
 
+
+    [Fact]
+    public async Task EquipmentConflictCarriesExactAcceptedEventAndContainerWitness()
+    {
+        var s = await Prepare();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var administrator = s.Fixture.Admin;
+        using var manager = s.Fixture.Manager;
+        using var analyst = s.Fixture.Analyst;
+        using var restrictedManager = s.Manager;
+        using var restrictedAnalyst = s.Analyst;
+        using var restrictedAdministrator = s.Administrator;
+
+        var target = await G9Support.SeedResolvable(factory, s.Fixture);
+        var source = await G9Support.NewSource(factory,s.Fixture.A,"m11_conflict");
+        var suffix = Guid.NewGuid().ToString("N")[..12];
+        const string occurred = "2026-11-03T10:00:00Z";
+        var receiptIn = await G9Support.Accept(factory,source,
+            G9Support.EquipmentPayload("m11-in-"+suffix,target.Reference,
+                occurredAt:occurred,code:"GTIN"));
+        var receiptOut = await G9Support.Accept(factory,source,
+            G9Support.EquipmentPayload("m11-out-"+suffix,target.Reference,
+                occurredAt:occurred,code:"GTOT"));
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
+        var worker = new TrackingWorkStore(db,new TrackingWorkerSettings());
+        for (var i=0; i<2; i++)
+        {
+            var claim = await worker.ClaimOneAsync(s.Fixture.A,CancellationToken.None);
+            Assert.NotNull(claim);
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await worker.FinalizeAsync(claim!,CancellationToken.None));
+        }
+        var acceptedIn = await db.TrackingAcceptedEvents.AsNoTracking()
+            .SingleAsync(e=>e.ReceiptId==receiptIn);
+        var acceptedOut = await db.TrackingAcceptedEvents.AsNoTracking()
+            .SingleAsync(e=>e.ReceiptId==receiptOut);
+        var timeline = new ShipmentTimelineStore(db);
+        var rebuilt = await timeline.RebuildAsync(s.Fixture.A,target.Shipment,
+            CancellationToken.None);
+        Assert.Equal(TrackingMutationResult.Applied,rebuilt.Result);
+        var projection = await timeline.ReadBoundedAsync(s.Fixture.A,target.Shipment,
+            CancellationToken.None);
+        Assert.NotNull(projection);
+        Assert.Equal("Conflict",projection!.State.ObservedTrackingState);
+
+        var shipmentUrl = $"/api/v1/organizations/{s.Fixture.A}/shipments/{target.Shipment}";
+        using (var booked = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Patch,shipmentUrl,new { expectedVersion=1L, workflowStatus="Booked" }))
+            Assert.Equal(HttpStatusCode.OK,booked.StatusCode);
+
+        using (var evaluated = await ReferenceDataHttpTests.Send(restrictedManager,
+            HttpMethod.Post,shipmentUrl+"/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK,evaluated.StatusCode);
+
+        using var response = await restrictedManager.GetAsync(
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/{target.Shipment}/exceptions");
+        Assert.Equal(HttpStatusCode.OK,response.StatusCode);
+        var data = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var row = Assert.Single(data.GetProperty("items").EnumerateArray()
+            .Where(e=>e.GetProperty("ruleCode").GetString()=="EquipmentConflict"));
+        Assert.Equal("Active",row.GetProperty("condition").GetString());
+        var evidence = row.GetProperty("evidence");
+        Assert.Equal(1,evidence.GetProperty("conflictContainerCount").GetInt32());
+        Assert.False(evidence.GetProperty("conflictWitnessTruncated").GetBoolean());
+        var witness = evidence.GetProperty("conflictWitness");
+        Assert.Equal(target.Container,witness.GetProperty("containerId").GetGuid());
+        var incoming = witness.GetProperty("in");
+        var outgoing = witness.GetProperty("out");
+        Assert.Equal(receiptIn,incoming.GetProperty("receiptId").GetGuid());
+        Assert.Equal(receiptOut,outgoing.GetProperty("receiptId").GetGuid());
+        Assert.Equal(acceptedIn.Id,incoming.GetProperty("eventId").GetGuid());
+        Assert.Equal(acceptedOut.Id,outgoing.GetProperty("eventId").GetGuid());
+        Assert.Equal(source.Id,incoming.GetProperty("sourceId").GetGuid());
+        Assert.Equal(source.Id,outgoing.GetProperty("sourceId").GetGuid());
+        Assert.Equal("m11-in-"+suffix,incoming.GetProperty("sourceEventId").GetString());
+        Assert.Equal("m11-out-"+suffix,outgoing.GetProperty("sourceEventId").GetString());
+        Assert.Equal(JsonValueKind.Null,
+            incoming.GetProperty("replacementCorrectionId").ValueKind);
+        Assert.Equal(JsonValueKind.Null,
+            outgoing.GetProperty("replacementCorrectionId").ValueKind);
+    }
 
     [Fact]
     public async Task DirectApiSqlCannotReadExceptionsOrHistoryWithoutSignedSession()

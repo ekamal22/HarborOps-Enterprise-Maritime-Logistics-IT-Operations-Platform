@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Data;
 using System.Text.Json;
 using HarborOps.Domain.Exceptions;
@@ -49,6 +51,44 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         return command;
     }
 
+
+    private string SignReadScope(long expires, Guid? organization = null,
+        Guid? actor = null, Guid? session = null)
+    {
+        var encoded = configuration["M10CorrectionProof:Key"]
+            ?? throw new InvalidOperationException("M11 read authority is unavailable");
+        var key = Convert.FromBase64String(encoded);
+        if (key.Length != 32)
+            throw new InvalidOperationException("M11 read authority key length is invalid");
+        var message = organization.HasValue && actor.HasValue && session.HasValue
+            ? $"m11-read-v1|{organization.Value:N}|{actor.Value:N}|{session.Value:N}|{expires}"
+            : $"m11-due-v1|{expires}";
+        return Convert.ToHexString(HMACSHA256.HashData(key,
+            Encoding.UTF8.GetBytes(message))).ToLowerInvariant();
+    }
+
+    private async Task SetReadScopeAsync(NpgsqlTransaction tx, Guid organization,
+        Guid actor, Guid session, CancellationToken ct)
+    {
+        var expires = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;
+        var scope = $"{organization:D}|{actor:D}|{session:D}|{expires}|"+
+            SignReadScope(expires, organization, actor, session);
+        await using var command = Command(Connection,tx,
+            "SELECT set_config('harborops.m11_read_scope',@scope,true)",
+            ("scope",scope));
+        await command.ExecuteNonQueryAsync(ct);
+    }
+
+    private async Task SetDueScopeAsync(NpgsqlTransaction tx, CancellationToken ct)
+    {
+        var expires = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;
+        var scope = $"{expires}|"+SignReadScope(expires);
+        await using var command = Command(Connection,tx,
+            "SELECT set_config('harborops.m11_due_scope',@scope,true)",
+            ("scope",scope));
+        await command.ExecuteNonQueryAsync(ct);
+    }
+
     private static JsonElement ParseEvidence(NpgsqlDataReader reader)
     {
         using var document = JsonDocument.Parse(reader.GetString(20));
@@ -79,7 +119,8 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         database.Shipments.AsNoTracking().AnyAsync(x =>
             x.OrganizationId == org && x.Id == shipment, ct);
 
-    public async Task<ShipmentExceptionPage> ListAsync(Guid org, Guid? shipment,
+    public async Task<ShipmentExceptionPage> ListAsync(Guid org, Guid actor, Guid session,
+        Guid? shipment,
         string? state, Guid? after, DateTimeOffset? snapshot, int limit,
         CancellationToken ct)
     {
@@ -90,12 +131,15 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
             // A database-time creation cutoff excludes exceptions opened after
             // page one. Existing lifecycle fields can still change between
             // stateless requests, so this is not an MVCC snapshot of updates.
-            var snapshotAtUtc = snapshot ?? await DatabaseNowAsync(Connection, null, ct);
+            await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
+                IsolationLevel.ReadCommitted, ct);
+            await SetReadScopeAsync(tx,org,actor,session,ct);
+            var snapshotAtUtc = snapshot ?? await DatabaseNowAsync(Connection, tx, ct);
             // The rule-precedence contract is presentation-only. Retain all
             // occurrences while keeping list order and keyset cursor identical.
             // The protected cursor contains an ID whose rule rank is resolved
             // within the already organization-scoped query.
-            await using var command = Command(Connection, null,
+            await using var command = Command(Connection, tx,
                 $"""
                 WITH scoped AS (
                     SELECT *, CASE rule_code
@@ -120,8 +164,9 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                 ("after", after), ("snapshot", snapshotAtUtc),
                 ("limit", limit + 1));
             var found = new List<ShipmentExceptionRecord>();
-            await using var reader = await command.ExecuteReaderAsync(ct);
-            while (await reader.ReadAsync(ct)) found.Add(Record(reader));
+            await using (var reader = await command.ExecuteReaderAsync(ct))
+                while (await reader.ReadAsync(ct)) found.Add(Record(reader));
+            await tx.CommitAsync(ct);
             var more = found.Count > limit;
             if (more) found.RemoveAt(limit);
             return new ShipmentExceptionPage(found,
@@ -130,7 +175,8 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         finally { await database.Database.CloseConnectionAsync(); }
     }
 
-    public async Task<ShipmentExceptionDetail?> DetailAsync(Guid org, Guid exception,
+    public async Task<ShipmentExceptionDetail?> DetailAsync(Guid org, Guid actor,
+        Guid session, Guid exception,
         CancellationToken ct)
     {
         await database.Database.OpenConnectionAsync(ct);
@@ -138,6 +184,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         {
             await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
                 IsolationLevel.RepeatableRead, ct);
+            await SetReadScopeAsync(tx,org,actor,session,ct);
             ShipmentExceptionRecord? record;
             await using (var command = Command(Connection, tx,
                 $"SELECT {Columns} FROM shipment_exceptions WHERE organization_id=@org AND id=@id",
@@ -174,7 +221,8 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
     // Use the same occurred-at plus UUID ordering as that preview. Every
     // request rechecks the exception's organization before accessing rows.
     public async Task<ShipmentExceptionHistoryPage?> HistoryPageAsync(
-        Guid org, Guid exception, DateTimeOffset? afterUtc, Guid? afterId,
+        Guid org, Guid actor, Guid session, Guid exception,
+        DateTimeOffset? afterUtc, Guid? afterId,
         int limit, CancellationToken ct)
     {
         if (limit is < 1 or > 100 || afterUtc.HasValue != afterId.HasValue)
@@ -182,12 +230,15 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         await database.Database.OpenConnectionAsync(ct);
         try
         {
-            await using (var exists = Command(Connection, null,
+            await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
+                IsolationLevel.ReadCommitted, ct);
+            await SetReadScopeAsync(tx,org,actor,session,ct);
+            await using (var exists = Command(Connection, tx,
                 "SELECT 1 FROM shipment_exceptions WHERE organization_id=@org AND id=@id",
                 ("org", org), ("id", exception)))
                 if (await exists.ExecuteScalarAsync(ct) is null) return null;
 
-            await using var query = Command(Connection, null, """
+            await using var query = Command(Connection, tx, """
                 SELECT id,exception_id,action,old_state,new_state,
                     actor_kind,actor_user_id,occurred_at_utc,reason
                 FROM shipment_exception_history
@@ -198,15 +249,16 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                 """, ("org", org), ("id", exception), ("at", afterUtc),
                     ("afterId", afterId), ("limit", limit + 1));
             var found = new List<ShipmentExceptionHistory>();
-            await using var reader = await query.ExecuteReaderAsync(ct);
-            while (await reader.ReadAsync(ct))
-                found.Add(new ShipmentExceptionHistory(
+            await using (var reader = await query.ExecuteReaderAsync(ct))
+                while (await reader.ReadAsync(ct))
+                    found.Add(new ShipmentExceptionHistory(
                     reader.GetGuid(0), reader.GetGuid(1), reader.GetString(2),
                     reader.IsDBNull(3) ? null : reader.GetString(3),
                     reader.GetString(4), reader.GetString(5),
                     reader.IsDBNull(6) ? null : reader.GetGuid(6),
                     reader.GetFieldValue<DateTimeOffset>(7),
                     reader.IsDBNull(8) ? null : reader.GetString(8)));
+            await tx.CommitAsync(ct);
             var more = found.Count > limit;
             if (more) found.RemoveAt(limit);
             return new ShipmentExceptionHistoryPage(found,
@@ -436,7 +488,10 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
         await database.Database.OpenConnectionAsync(ct);
         try
         {
-            await using var command = Command(Connection, null, """
+            await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
+                IsolationLevel.ReadCommitted, ct);
+            await SetDueScopeAsync(tx,ct);
+            await using var command = Command(Connection, tx, """
                 WITH candidate AS MATERIALIZED (
                     SELECT s.organization_id,s.id,s.version
                     FROM shipments s
@@ -478,7 +533,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
             var due = new List<(Guid Organization, Guid Shipment)>();
             Guid? lastOrg = null, lastShipment = null;
             int scanned = 0;
-            await using var reader = await command.ExecuteReaderAsync(ct);
+            await using (var reader = await command.ExecuteReaderAsync(ct))
             while (await reader.ReadAsync(ct))
             {
                 lastOrg = reader.GetGuid(0);
@@ -487,6 +542,7 @@ public sealed class ShipmentExceptionStore(HarborOpsDbContext database, IConfigu
                 if (reader.GetBoolean(2))
                     due.Add((lastOrg.Value, lastShipment.Value));
             }
+            await tx.CommitAsync(ct);
             return new ShipmentExceptionDueBatch(due,lastOrg,lastShipment,scanned);
         }
         finally { await database.Database.CloseConnectionAsync(); }

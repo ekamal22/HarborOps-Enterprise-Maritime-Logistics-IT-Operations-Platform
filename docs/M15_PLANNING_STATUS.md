@@ -68,6 +68,10 @@ The M13 workstream independently owns KPI catalog, query service, dashboard char
 
 Do not assume another session approved an API DTO, migration order or component signature. Record a joint decision before a shared-source edit. Current planning avoids touching all shared implementation files and the other branch.
 
+### M13 planning checkpoint read-back, 2026-11-08
+
+A subsequent read-only comparison found the separate M13 planning branch at cf7afa4d58ac3c1e17d9eb66ef83aac32eecaca1, four documentation files ahead of main and still unmerged. M13 proposes a **dedicated dashboard-read permission** for Analyst/Manager and an **explicit read-only Auditor grant** subject to D-005 approval. This is not the current ViewShipmentData permission, so it does not authorize or revoke M15 delivery to an existing M11-read-entitled Auditor. M13 also proposes bounded transactional report/member snapshots with a 10-minute report-token lifetime; M15's proposed 20-minute notification list cursor is independent and is not a report snapshot. Both proposals have unallocated additive schema work, so no migration ordering, new permission enum, shared shell route, or EF snapshot has been approved across tracks. The M13 branch received no M15 writes.
+
 ## 6. Risks and remaining blockers
 
 1. **P01-P14 contract approvals:** Must be explicit; G15-S01 cannot pass through technical tests alone.

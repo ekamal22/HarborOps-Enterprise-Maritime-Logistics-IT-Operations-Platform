@@ -102,6 +102,8 @@ Before either workstream implements shared changes, reconcile:
 
 An integration branch, merge, deployment or shared-source modification requires a separate instruction. A planning PR is not that authorization.
 
+**Observed M13 planning checkpoint (2026-11-08):** M13's separate plan at cf7afa4d58ac3c1e17d9eb66ef83aac32eecaca1 proposes D-005 dashboard-read entitlement distinct from ViewShipmentData, with an explicit Auditor dashboard grant, and a 10-minute report snapshot token. These are M13-only proposals, not approved M15 roles or shared source edits. M15's 20-minute feed cursor and existing shipment-read recipient choice stay separate. Both tracks propose new database persistence without fixed migration IDs; reconcile one migration order and permission matrix before implementation.
+
 ## 9. Stop condition
 
 Planning may be published only as M15-specific Markdown documentation. Do not create implementation files, run migrations/verification, touch governance files, edit M13 documents, dispatch workflows, merge, deploy or mark G15 accepted. Implementation begins only after approval of outstanding M15-P policies and explicit implementation authorization.

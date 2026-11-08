@@ -894,6 +894,41 @@ public sealed class M11ExceptionRuntimeTests
     }
 
     [Fact]
+    public async Task CombinedSearchAndExceptionRoutesPreserveM5ShipmentDetail()
+    {
+        var s = await Prepare();
+        using var f = s.Factory; using var runtime = s.Runtime;
+        using var admin = s.Fixture.Admin; using var fixtureManager = s.Fixture.Manager;
+        using var fixtureAnalyst = s.Fixture.Analyst;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        var shipment = await ScheduledShipment(s);
+        var exception = await EvaluateAndFind(s, shipment);
+        var route = $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}";
+        using var detailResponse = await manager.GetAsync(route);
+        Assert.Equal(HttpStatusCode.OK, detailResponse.StatusCode);
+        var detail = await detailResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var code = detail.GetProperty("referenceCode").GetString();
+        Assert.False(string.IsNullOrEmpty(code));
+
+        using var searchResponse = await analyst.GetAsync(
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/search?q=" +
+            Uri.EscapeDataString(code!));
+        Assert.Equal(HttpStatusCode.OK, searchResponse.StatusCode);
+        var search = await searchResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Contains(search.GetProperty("shipments").EnumerateArray(),
+            row => row.GetProperty("id").GetGuid() == shipment);
+
+        using var exceptionsResponse = await analyst.GetAsync(route + "/exceptions");
+        Assert.Equal(HttpStatusCode.OK, exceptionsResponse.StatusCode);
+        var exceptions = await exceptionsResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Contains(exceptions.GetProperty("items").EnumerateArray(),
+            row => row.GetProperty("id").GetGuid() == exception);
+        using var preservedDetail = await analyst.GetAsync(route);
+        Assert.Equal(HttpStatusCode.OK, preservedDetail.StatusCode);
+    }
+
+    [Fact]
     public async Task CursorCannotBeReusedAgainstDifferentFiltersOrTenant()
     {
         var s = await Prepare();

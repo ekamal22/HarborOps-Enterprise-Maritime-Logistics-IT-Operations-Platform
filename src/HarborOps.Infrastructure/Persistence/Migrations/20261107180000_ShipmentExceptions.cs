@@ -33,6 +33,8 @@ public sealed class ShipmentExceptions : Migration
                 next_evaluation_at_utc timestamptz,
                 first_detected_at_utc timestamptz NOT NULL DEFAULT clock_timestamp(),
                 last_evaluated_at_utc timestamptz NOT NULL DEFAULT clock_timestamp(),
+                -- Verified clearance survives an intervening Unknown/Stale reading.
+                last_confirmed_inactive_at_utc timestamptz,
                 resolved_at_utc timestamptz,
                 version bigint NOT NULL DEFAULT 1,
                 evidence jsonb NOT NULL,
@@ -178,6 +180,7 @@ public sealed class ShipmentExceptions : Migration
                 existing_id uuid;
                 existing_state text;
                 existing_condition text;
+                last_confirmed_inactive_utc timestamptz;
                 previous_fp text;
                 next_occurrence integer;
                 stored_condition text;
@@ -336,21 +339,20 @@ public sealed class ShipmentExceptions : Migration
                     RETURN;
                 END IF;
 
-                SELECT id,lifecycle_state,condition_state
-                    INTO existing_id,existing_state,existing_condition
+                SELECT id,lifecycle_state,condition_state,last_confirmed_inactive_at_utc
+                    INTO existing_id,existing_state,existing_condition,last_confirmed_inactive_utc
                 FROM shipment_exceptions
                 WHERE organization_id=p_org AND shipment_id=p_shipment
                   AND rule_code=p_rule AND lifecycle_state<>'Resolved'
                 FOR UPDATE;
 
-                -- An Acknowledged occurrence whose condition was confirmed
-                -- inactive represents a cleared historical incident. If the
-                -- condition recurs before Manager review, close that incident
-                -- and open a separate, actionable occurrence. Unknown/Stale
-                -- is not proof of clearance and never starts a new occurrence.
+                -- Confirmed clearance is durable across later Unknown/Stale
+                -- observations. An active recurrence after a verified clearance
+                -- closes the acknowledged occurrence and opens a new incident;
+                -- uncertainty alone never establishes clearance.
                 IF p_condition='Active' AND existing_id IS NOT NULL
                    AND existing_state='Acknowledged'
-                   AND existing_condition='Inactive' THEN
+                   AND last_confirmed_inactive_utc IS NOT NULL THEN
                     UPDATE shipment_exceptions SET
                         lifecycle_state='Resolved',
                         resolved_at_utc=clock_timestamp(),
@@ -368,7 +370,21 @@ public sealed class ShipmentExceptions : Migration
                     existing_id := NULL;
                 END IF;
 
-                IF p_condition='Active' AND existing_id IS NULL THEN
+                IF p_condition='Active' AND existing_id IS NULL
+                   AND NOT (p_rule='RecordedArrivalLate' AND EXISTS (
+                       SELECT 1 FROM shipment_exceptions previous
+                       JOIN shipment_exception_history disposition
+                         ON disposition.exception_id=previous.id
+                        AND disposition.organization_id=previous.organization_id
+                        AND disposition.action='Resolved'
+                        AND disposition.actor_kind='Human'
+                       WHERE previous.organization_id=p_org
+                         AND previous.shipment_id=p_shipment
+                         AND previous.rule_code='RecordedArrivalLate'
+                         AND previous.lifecycle_state='Resolved'
+                         AND previous.reference_at_utc IS NOT DISTINCT FROM p_reference
+                         AND previous.threshold_at_utc IS NOT DISTINCT FROM p_threshold
+                   )) THEN
                     SELECT COALESCE(MAX(occurrence),0)+1 INTO next_occurrence
                     FROM shipment_exceptions WHERE organization_id=p_org
                         AND shipment_id=p_shipment AND rule_code=p_rule;
@@ -394,6 +410,7 @@ public sealed class ShipmentExceptions : Migration
                         UPDATE shipment_exceptions SET
                             lifecycle_state='Resolved',condition_state=p_condition,
                             resolved_at_utc=clock_timestamp(),last_evaluated_at_utc=clock_timestamp(),
+                            last_confirmed_inactive_at_utc=clock_timestamp(),
                             version=version+1,source_fingerprint=p_fingerprint,
                             confidence=p_confidence,severity=p_severity,
                             reason_code=p_reason,evidence=payload,
@@ -415,7 +432,10 @@ public sealed class ShipmentExceptions : Migration
                             correction_generation=p_generation,
                             reference_at_utc=p_reference,threshold_at_utc=p_threshold,
                             next_evaluation_at_utc=p_next,evidence=payload,
-                            last_evaluated_at_utc=clock_timestamp(),version=version+1
+                            last_evaluated_at_utc=clock_timestamp(),
+                            last_confirmed_inactive_at_utc=CASE WHEN p_condition='Inactive'
+                                THEN clock_timestamp() ELSE last_confirmed_inactive_at_utc END,
+                            version=version+1
                         WHERE id=existing_id;
                         INSERT INTO shipment_exception_history
                             (organization_id,exception_id,action,old_state,new_state,actor_kind,
@@ -572,7 +592,9 @@ public sealed class ShipmentExceptions : Migration
                     RAISE EXCEPTION 'Exception cannot be acknowledged' USING ERRCODE='PZ005';
                 END IF;
                 IF p_action='Resolve' AND
-                    (row_state <> 'Acknowledged' OR row_condition <> 'Inactive') THEN
+                    (row_state <> 'Acknowledged' OR NOT (
+                        row_condition='Inactive' OR
+                        (row_rule='RecordedArrivalLate' AND row_condition='Active'))) THEN
                     RAISE EXCEPTION 'Exception cannot be resolved' USING ERRCODE='PZ005';
                 END IF;
                 -- Prevent actions against a rule that has reached an elapsed

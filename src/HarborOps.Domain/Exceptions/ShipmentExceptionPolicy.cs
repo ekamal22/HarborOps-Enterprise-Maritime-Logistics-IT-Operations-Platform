@@ -42,7 +42,7 @@ public static class ShipmentExceptionPolicy
     public const string RecordedArrivalLate = "RecordedArrivalLate";
     public const string DepartureSlippageRisk = "DepartureSlippageRisk";
 
-    // Local demonstrator defaults are provisional until the M11 policy decision is accepted.
+    // Approved M11 rule thresholds. Revisions require a new policy decision.
     public static readonly TimeSpan ArrivalGrace = TimeSpan.FromMinutes(60);
     public static readonly TimeSpan DepartureTolerance = TimeSpan.FromMinutes(60);
 

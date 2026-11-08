@@ -21,10 +21,10 @@ namespace HarborOps.IntegrationTests;
 // They are never a substitute for the separate source-locked G11 evidence campaign.
 public sealed class M11ExceptionRuntimeTests
 {
-    private static string Utc(DateTimeOffset value) =>
+    internal static string Utc(DateTimeOffset value) =>
         value.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss'Z'", CultureInfo.InvariantCulture);
 
-    private static async Task<HttpResponseMessage> SendAction(HttpClient client,
+    internal static async Task<HttpResponseMessage> SendAction(HttpClient client,
         string path, object body, Guid key)
     {
         using var tokenResponse = await client.GetAsync("/api/v1/auth/csrf");
@@ -39,7 +39,7 @@ public sealed class M11ExceptionRuntimeTests
         return await client.SendAsync(request);
     }
 
-    private static async Task<HttpResponseMessage> SendCorrection(
+    internal static async Task<HttpResponseMessage> SendCorrection(
         HttpClient client, string path, object payload)
     {
         using var csrfResponse = await client.GetAsync("/api/v1/auth/csrf");
@@ -54,14 +54,14 @@ public sealed class M11ExceptionRuntimeTests
         return await client.SendAsync(request);
     }
 
-    private sealed record Setup(
+    internal sealed record Setup(
         M10RuntimeIdentityTests.Roles Roles,
         ReferenceDataHttpTests.ApiFactory Factory,
         ReferenceDataHttpTests.Fixture Fixture,
         ReferenceDataHttpTests.ApiFactory Runtime,
         HttpClient Manager, HttpClient Analyst, HttpClient Administrator);
 
-    private static async Task<Setup> Prepare()
+    internal static async Task<Setup> Prepare()
     {
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();
         var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
@@ -81,7 +81,7 @@ public sealed class M11ExceptionRuntimeTests
             await Login(fixture.AdminEmail));
     }
 
-    private static async Task<Guid> ScheduledShipment(Setup setup)
+    internal static async Task<Guid> ScheduledShipment(Setup setup)
     {
         var seed = await AssignmentHttpTests.Seed(setup.Fixture);
         var url = $"/api/v1/organizations/{setup.Fixture.A}/shipments/{seed.Shipment}";
@@ -99,10 +99,10 @@ public sealed class M11ExceptionRuntimeTests
         return seed.Shipment;
     }
 
-    private static string Collection(Guid org) =>
+    internal static string Collection(Guid org) =>
         $"/api/v1/organizations/{org}/exceptions";
 
-    private static async Task<Guid> EvaluateAndFind(Setup setup, Guid shipment)
+    internal static async Task<Guid> EvaluateAndFind(Setup setup, Guid shipment)
     {
         var route = $"/api/v1/organizations/{setup.Fixture.A}/shipments/{shipment}/exceptions";
         using (var evaluate = await ReferenceDataHttpTests.Send(setup.Manager,

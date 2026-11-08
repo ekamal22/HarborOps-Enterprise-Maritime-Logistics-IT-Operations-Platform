@@ -9,6 +9,7 @@ using HarborOps.Infrastructure.Organizations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 
 namespace HarborOps.Infrastructure.Shipments;
 
@@ -126,9 +127,41 @@ public sealed class ShipmentSearchStore(HarborOpsDbContext db, OrganizationStore
         CurrentSession session, Guid org, ShipmentSearchFilters filter,
         string correlationId, CancellationToken ct)
     {
+        // One 25-second budget covers every attempt, so a retry cannot extend the
+        // response beyond the 30-second reverse-proxy read timeout.
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
         budget.CancelAfter(TimeSpan.FromSeconds(25));
-        var operationToken = budget.Token;
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                return await ExportOnceAsync(session, org, filter, correlationId, budget.Token);
+            }
+            catch (Exception error) when (attempt < 2 && IsSerializationFailure(error))
+            {
+                // Every authenticated request updates its session row. Under
+                // REPEATABLE READ, a concurrent request of the same session (or a
+                // revocation) raises 40001 when the scope check locks that row.
+                // Nothing was committed, so restart on a fresh snapshot; a genuine
+                // revocation is then reported as such instead of as an outage.
+            }
+        }
+    }
+
+    // The EF Core provider wraps transient PostgreSQL failures in an
+    // InvalidOperationException, so inspect the whole exception chain.
+    private static bool IsSerializationFailure(Exception error)
+    {
+        for (var current = error; current is not null; current = current.InnerException)
+            if (current is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure })
+                return true;
+        return false;
+    }
+
+    private async Task<ShipmentSearchResult<byte[]>> ExportOnceAsync(
+        CurrentSession session, Guid org, ShipmentSearchFilters filter,
+        string correlationId, CancellationToken operationToken)
+    {
         await using var tx = await db.Database.BeginTransactionAsync(
             IsolationLevel.RepeatableRead, operationToken);
         await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '15s'",

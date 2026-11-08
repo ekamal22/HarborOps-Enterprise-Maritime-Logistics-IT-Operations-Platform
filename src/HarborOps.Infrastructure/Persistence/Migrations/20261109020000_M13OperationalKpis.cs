@@ -62,7 +62,8 @@ public sealed class M13OperationalKpis : Migration
                     REFERENCES shipment_exceptions(id,organization_id) ON DELETE RESTRICT,
                 CONSTRAINT ck_m13_metric CHECK (metric_code IN (
                     'K01','K02','K03','K04','K05','K06','K07','K08','K09','K10',
-                    'K11','K12','K13','K14','D01','D05','D13')),
+                    'K11','K12','K13','K14','D01','D05','D13',
+                    'Q01','Q02','Q03','Q04')),
                 CONSTRAINT ck_m13_member_dimension CHECK (
                     (metric_code='K02' AND dimension IN
                         ('Draft','Booked','InTransit','Arrived','Completed','Cancelled'))

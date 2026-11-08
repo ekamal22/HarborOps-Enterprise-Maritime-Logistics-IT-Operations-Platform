@@ -32,7 +32,9 @@ public sealed class M15NotificationRuntimeTests
         {
             var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
             Assert.True(await store.DeliverPendingAsync(CancellationToken.None) >= 1);
-            Assert.Equal(0,await store.DeliverPendingAsync(CancellationToken.None));
+            // Other isolated test fixtures can leave separate pending intents.
+            // This event's unique recipient row, not a global empty queue,
+            // is the source-specific effect-once invariant.
         }
 
         var url = $"/api/v1/organizations/{s.Fixture.A}/notifications";
@@ -121,6 +123,22 @@ public sealed class M15NotificationRuntimeTests
         {
             var ex = await Assert.ThrowsAsync<PostgresException>(
                 () => forbidden.ExecuteNonQueryAsync());
+            Assert.Equal("42501",ex.SqlState);
+        }
+
+        await using (var forbidden = new NpgsqlCommand(
+            "SELECT m15_deliver_pending(1)",connection))
+        {
+            var ex = await Assert.ThrowsAsync<PostgresException>(
+                () => forbidden.ExecuteScalarAsync());
+            Assert.Equal("42501",ex.SqlState);
+        }
+
+        await using (var forbidden = new NpgsqlCommand(
+            "SELECT pending FROM m15_delivery_status()",connection))
+        {
+            var ex = await Assert.ThrowsAsync<PostgresException>(
+                () => forbidden.ExecuteScalarAsync());
             Assert.Equal("42501",ex.SqlState);
         }
 

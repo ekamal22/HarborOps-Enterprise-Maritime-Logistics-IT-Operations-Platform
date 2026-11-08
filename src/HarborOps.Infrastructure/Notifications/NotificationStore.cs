@@ -258,6 +258,12 @@ public sealed class NotificationStore(
             await tx.CommitAsync(ct);
             return count;
         }
+        catch (PostgresException error) when (error.SqlState is "40001" or "40P01")
+        {
+            // Concurrent SKIP LOCKED claims can lose a repeatable-read
+            // serialization race. A future poll safely retries the intent.
+            return 0;
+        }
         finally { await Connection.CloseAsync(); }
     }
 

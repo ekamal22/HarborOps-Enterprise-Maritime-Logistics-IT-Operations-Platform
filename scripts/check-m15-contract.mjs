@@ -29,6 +29,11 @@ assert.match(migration,/PRIMARY KEY\(organization_id,recipient_user_id,idempoten
 assert.match(migration,/uq_m15_event_recipient UNIQUE\(source_history_id,recipient_user_id\)/);
 assert.match(migration,/CREATE POLICY m15_personal_read/);
 assert.match(migration,/m11_read_allowed\(p_org\)/);
+assert.match(migration,/m15_dispatch_allowed\(\)/);
+assert.match(migration,/m15-dispatch-v1/);
+assert.match(migration,/attempt_count integer NOT NULL/);
+assert.match(migration,/quarantined_at_utc/);
+assert.match(migration,/recipient_limit/);
 assert.match(migration,/FOR SHARE OF a,u/);
 assert.match(migration,/FOR SHARE;/);
 assert.match(migration,/notification\.receipt_acknowledged/);

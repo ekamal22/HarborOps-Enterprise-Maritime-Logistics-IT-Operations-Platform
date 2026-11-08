@@ -1,5 +1,7 @@
 # M12 Local Search and Export Contract Decision
 
+**Current verification policy (2026-11-08):** [M11/M12 verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) now requires manual, coordinated, source-locked workflows instead of automatic push-triggered campaigns. [Run-by-run progress](M11_M12_VERIFICATION_PROGRESS_20261108.md) is the current verification checkpoint; older reports and source-only notes below are historical. G11/G12 independent S25 review and acceptance remain pending. Protected `main`, the M9 transport hold, and deployment restrictions are unchanged.
+
 **Decision recorded:** 2026-11-08
 **Scope:** M12-P01 through M12-P16 on the combined M11/M12 candidate
 **Disposition:** Select the existing documented M12 implementation defaults as the local technical contract for verification. These choices implement the 2026-11-08 instruction to finish M11/M12 verification; they do not constitute G12-S01 execution proof, independent evidence review, final gate acceptance, merge or deployment authorization.

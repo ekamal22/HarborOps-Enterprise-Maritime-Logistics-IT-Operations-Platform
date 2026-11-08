@@ -1,5 +1,7 @@
 # M11/M12 Source-Locked Verification Progress
 
+**Current verification policy (2026-11-08):** [M11/M12 verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) now requires manual, coordinated, source-locked workflows instead of automatic push-triggered campaigns. [Run-by-run progress](M11_M12_VERIFICATION_PROGRESS_20261108.md) is the current verification checkpoint; older reports and source-only notes below are historical. G11/G12 independent S25 review and acceptance remain pending. Protected `main`, the M9 transport hold, and deployment restrictions are unchanged.
+
 **Review date:** 2026-11-08
 **Branch:** `feat/m11-m12-combined-integration`
 **Accepted baseline:** protected `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`
@@ -35,3 +37,7 @@ G11-S08 now has an actual accepted-event and replacement-correction witness test
 The scenario matrices in [G11 verification specification](M11_VERIFICATION_PLAN.md) and [G12 verification specification](M12_VERIFICATION_PLAN.md) retain their independent S01..S25 dispositions. Successful component suites do not make previously unexecuted fault, timing, recovery, capacity, proxy-envelope, or raw-evidence scenarios PASS automatically. The current GitHub logs preserve test names, summaries and selected TRX hashes, but they are not yet complete exported and independently reconciled raw artifacts with a signed checksum manifest.
 
 **G11-S25 and G12-S25 independent review remains pending.** There is no gate acceptance, main merge or release authorization. Keep the accepted M9 transport-processing hold, parked ARRI/DEPA, 10,000 unresolved-work cap, disabled M10 projector and null ETA unchanged.
+
+## Workflow fan-out correction, 2026-11-08
+
+The previous `push` configuration generated ten simultaneous source-locked jobs at commit `f56d017`. Manual-only dispatch has replaced automatic triggers for the ten M11/M12 verification workflows. This prevents ordinary documentation and source pushes from creating an unnecessary full verification campaign. Existing runs were not cancelled or converted into PASS. See [verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) for staged execution, source-locking, evidence preservation and independent G11/G12 review. Any run still active at the last snapshot remains pending until its actual terminal GitHub conclusion is checked.

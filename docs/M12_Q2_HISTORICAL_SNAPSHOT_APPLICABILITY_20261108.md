@@ -1,5 +1,7 @@
 # M12 Q2 Historical Snapshot Applicability
 
+**Current verification policy (2026-11-08):** [M11/M12 verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) now requires manual, coordinated, source-locked workflows instead of automatic push-triggered campaigns. [Run-by-run progress](M11_M12_VERIFICATION_PROGRESS_20261108.md) is the current verification checkpoint; older reports and source-only notes below are historical. G11/G12 independent S25 review and acceptance remain pending. Protected `main`, the M9 transport hold, and deployment restrictions are unchanged.
+
 **Date:** 2026-11-08
 **Scope:** G12-S21 and M12-P16 for the repository's current synthetic-only M12 candidate
 **Disposition:** NOT APPLICABLE to a Q2 2026 HarborOps production database snapshot, with a conditional recheck if older external data is ever introduced. This is a historical-data applicability finding, not migration execution proof or gate acceptance.

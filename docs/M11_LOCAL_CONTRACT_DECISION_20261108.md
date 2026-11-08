@@ -1,5 +1,7 @@
 # M11 Local Rule and Exception Lifecycle Decision
 
+**Current verification policy (2026-11-08):** [M11/M12 verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) now requires manual, coordinated, source-locked workflows instead of automatic push-triggered campaigns. [Run-by-run progress](M11_M12_VERIFICATION_PROGRESS_20261108.md) is the current verification checkpoint; older reports and source-only notes below are historical. G11/G12 independent S25 review and acceptance remain pending. Protected `main`, the M9 transport hold, and deployment restrictions are unchanged.
+
 **Decision date:** 2026-11-08
 **Scope:** M11-P01 through M11-P12, on the combined M11/M12 integration candidate only.
 **Disposition:** Policy choices approved under the delegated M11 correctness and policy instruction. This decision is not G11 technical verification, source acceptance, merge or deployment authorization.

@@ -1,20 +1,6 @@
 # Reproducible Demonstration Scenarios
 
-**Current project state (2026-11-08):** G0-G12 and G16 are accepted and integrated on `main` following [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. Earlier source-only and gate-pending notes are superseded; retained dated evidence still describes its original run. M9's ARRI/DEPA hold and 10,000-item cap remain mandatory, M10 projector defaults off, ETA null, M11 evaluator opt-in. There is no authorization for deployment or additional GitHub Actions runs.
-
-**Current executed evidence (2026-11-08):** [M11/M12 verification reconciliation](M11_M12_VERIFIED_COVERAGE_RECONCILIATION_20261108.md) is the authoritative run-by-run record: 340/340 earlier whole integration, 40/40 impacted tests including 13-to-15 populated upgrade, G11 19/19, G12 4/4, 36/36 three-engine browser, 5/5 effective mutants, restricted SQL isolation and security scans, plus 291/291 unit and 46/46 contract on their individually identified SHAs. Full run `42443065884` is still in progress. Preserve historical failures and pending independent G11-S25/G12-S25 reviews; no acceptance, merge or deployment is implied.
-
-**Current verification policy (2026-11-08):** [M11/M12 verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) now requires manual, coordinated, source-locked workflows instead of automatic push-triggered campaigns. [Run-by-run progress](M11_M12_VERIFICATION_PROGRESS_20261108.md) is the current verification checkpoint; older reports and source-only notes below are historical. G11/G12 independent S25 review and acceptance remain pending. Protected `main`, the M9 transport hold, and deployment restrictions are unchanged.
-
-**Combined-source checkpoint (2026-11-08):** The isolated `feat/m11-m12-combined-integration` candidate now contains both M11 and M12 implementations with reconciled shared API, React, SQL role, Compose and EF migration surfaces. [M11 policy decisions](M11_LOCAL_CONTRACT_DECISION_20261108.md) are recorded for the combined candidate; earlier parallel-only and M11-policy-pending statements below describe the previous branches. M12 policy approval, executed G11/G12 source-locked verification, independent S25 reviews and gate acceptance remain pending. The accepted M9 hold and protected `main` remain unchanged.
-
-**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). A future combined M11 exception and M12 search/export demo must use the same integrated source; a demonstration cannot substitute for separate G11/G12 gates or lift the M9 hold.
-
-**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents corrected inactive rule severity, metadata-aware signed reevaluation and explicitly typed due-work cursors. Regression tests are authored but unexecuted. G11-S01 remains BLOCKED on policy; G11-S02 through S25 remain NOT EXECUTED, and acceptance pending. Draft PR #31 is unmerged; M9 transport processing remains held.
-
-**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). A future combined M11 exception and M12 search/export demo must use the same integrated source; a demonstration cannot substitute for separate G11/G12 gates or lift the M9 hold.
-
-**Current G9 disposition (2026-11-05):** M9/G9 accepted and merged into `main` via planning PR #16 (`43fe326`) and implementation PR #18 (`4684352`). [G9 closure](M9_G9_GATE_CLOSURE.md) preserves the reviewed evidence and limitations. Sustained transport-event processing is held until M10 or another explicitly approved, verified backlog mechanism handles parked events within the 10,000 unresolved-work cap. No production deployment is authorized.
+**Current verified baseline (2026-11-08):** G0-G12 and G16 accepted and merged. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records the 388/388 integration, 48/48 browser, 17/17 effective mutant and N01 10/10 evidence. Earlier source-only and pending verification banners are historical, not current. Preserve the M9 ARRI/DEPA hold, 10,000 unresolved-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator; no deployment.
 
 ## Demo dataset contract
 

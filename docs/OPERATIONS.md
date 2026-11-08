@@ -8,9 +8,9 @@ The [latest M12 audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md) identifies 
 
 The export now checks cancellation through synchronous CSV generation and encoding. Real CPU-stall, database-stall and Nginx response-time tests remain unexecuted; the store's 25-second budget does not include authentication or delivery. Keep E: as the backing store for disposable verification volumes and evidence.
 
-## M12 export proof provisioning candidate, 2026-11-07
+## Accepted M12 export proof provisioning
 
-M12 is present only on the isolated feature branch, not accepted or deployed. See the [source audit](M12_CORRECTNESS_AUDIT_20261107.md) and [G12 verification plan](M12_VERIFICATION_PLAN.md). The accepted main stack and M9 transport hold remain unchanged.
+M12 export proof provisioning is integrated and accepted on `main` following [G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Its initial [source audit](M12_CORRECTNESS_AUDIT_20261107.md) and [verification plan](M12_VERIFICATION_PLAN.md) remain historical. The M9 transport hold remains unchanged; no production deployment.
 
 The SQL-only M12 migration creates `m12_export_proof_keys`, the restricted `m12_record_shipment_export` function and a unique event/correlation index. To enable CSV export in a **disposable, approved M12 verification stack**, generate an independent 32-byte random base64 key, for example with `node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('base64'))"`. Place it in the untracked, E:-backed local secret configuration as `HARBOROPS_M12_EXPORT_PROOF_KEY`, distinct from the M10 key and database passwords. `compose.yaml` passes it to the one-shot privileged migrator and HTTP API as `M12ExportProof__Key`, not the worker, web or projector. No key value belongs in the repository, terminal logs or evidence.
 
@@ -19,8 +19,6 @@ The M12 Compose variable is optional so existing accepted-stack tests are not fo
 The proposed G12 PostgreSQL role test reprovisions server-wide `harborops_api` and `harborops_worker` passwords. It requires a dedicated disposable PostgreSQL instance and must never run concurrently with other mutable verification tests or touch the primary database. All worktrees, images, caches, credentials, volumes and raw evidence belong on E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Run `docker compose config --quiet` and source-locked checks only when a suitable local runtime is available and approved; this audit did not run them.
 
 
-**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
-
 
 **Accepted M9/G9 baseline (2026-11-05):** G9 was accepted with the mandatory [M9-01 transport-backlog operating condition](M9_LOCAL_CONTRACT_DECISION.md). M9 is integrated into `main` through PR #16 (`43fe326`) and PR #18 (`4684352`). The [G9 gate closure](M9_G9_GATE_CLOSURE.md) records the evidence review and residual limitations. No production or public deployment is authorized; sustained transport-event processing is held until M10 or another explicitly approved backlog mechanism is verified. Earlier planning or acceptance-pending language in historical subsections reflects the earlier project phase.
 
@@ -28,7 +26,7 @@ The proposed G12 PostgreSQL role test reprovisions server-wide `harborops_api` a
 
 The optional due scanner still uses a bounded organization/shipment UUID keyset with explicit casts. Repeated no-op evaluations refresh their due checkpoint; changed visible metadata requires a full versioned rule update, not an unnoticed stale display. Under G11 verification, track both event counts and scan progression while simulating an inactive/active severity recalibration. No production evaluator enablement is authorized.
 
-## M11 unverified pagination operating boundary
+## Accepted M11 exception pagination operating boundary
 
 The provisional exception-list cursor has a 20-minute expiry and includes a PostgreSQL creation cutoff. It is not a stable snapshot of mutable lifecycle fields, so a read requiring fresh state must restart pagination. Immutable history is initially previewed at 500 entries and continued through bounded 100-entry pages with separate 20-minute protected cursors. The selected organization and role are revalidated on each page. These operations have not been volume/restart or database-outage tested. The M11 evaluator remains opt-in and separate from M9 transport intake.
 
@@ -44,7 +42,7 @@ The [original G10 independent evidence review](M10_G10_INDEPENDENT_EVIDENCE_REVI
 - Demonstration: disposable cloud environment activated only when required.
 - Production: not in scope for initial milestone acceptance.
 
-**Source publication:** The repository is public for inspection under the restrictive LICENSE, but that does not create a hosted application or approve production operations. `main` is protected, GitHub Actions is disabled, and all controllable verification and operational evidence must remain on E:. Any internet-facing deployment requires separate TLS, secrets, reverse-proxy and operational clearance; see [Publication Safety Status](PUBLICATION_SAFETY_STATUS.md) and [Security](SECURITY.md).
+**Source publication:** The repository is public for inspection under the restrictive LICENSE, but that does not create a hosted application or approve production operations. `main` is protected, additional GitHub Actions runs require separate authorization, and all controllable verification and operational evidence must remain on E:. Any internet-facing deployment requires separate TLS, secrets, reverse-proxy and operational clearance; see [Publication Safety Status](PUBLICATION_SAFETY_STATUS.md) and [Security](SECURITY.md).
 
 M0 local Compose infrastructure was started on a clean volume and verified on Windows 11 at code revision `4fb34eb`. The stack was stopped after testing, and no hosted service is running. The configured stack contains PostgreSQL, one-shot database migration/seed, HTTP API, and static frontend. New M0 hardening verification is recorded separately in [M0 Hardening Verification](M0_HARDENING_VERIFICATION.md). The worker shell is intentionally not part of the running stack until tracking processing is implemented.
 

@@ -2,9 +2,9 @@
 
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. M11/G11 and M12/G12 closed through [formal acceptance](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. [Project status](STATUS.md) is authoritative for execution and release state; dated source reviews and early gate reports retain only their historical meaning. M9 ARRI/DEPA processing remains held under the 10,000-item limit, with M10 projector default-off, ETA null and M11 evaluator opt-in. Deployment remains unauthorized.
 
-## M12 scoped search/export security candidate, 2026-11-07
+## Accepted M12 scoped search and export security
 
-The M12 implementation remains unaccepted in draft [PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32). All G12 runtime and security checks are NOT EXECUTED. The [correctness audit](M12_CORRECTNESS_AUDIT_20261107.md) records source remediation and the open verification obligations.
+M12 scoped search and export security is accepted in `main` via PR #33. [G12 gate evidence](M12_G12_EVIDENCE_MATRIX_20261108.md) and the [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) record the executed authorization, SQL, signed-audit and proxy checks. The original [draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) and [first audit](M12_CORRECTNESS_AUDIT_20261107.md) are historical.
 
 Shipment search revalidates selected organization, session, user and permitted membership inside a transaction. Protected cursor payloads bind tenant, user, login session, filter fingerprint and expiry. The CSV route requires Analyst or Manager `ExportShipmentData` permission and a same-origin browser request. Auditor shipment-read permission does not imply export. Every exported row is tenant-scoped, output capped at 5,000 rows and 10 MiB, and fixed CSV columns are escaped against spreadsheet formulas.
 
@@ -13,10 +13,6 @@ The M12 migration creates a distinct restricted HMAC-SHA256 verifier key table, 
 Use a **separate** private `HARBOROPS_M12_EXPORT_PROOF_KEY`, 32 random bytes encoded in base64, only for migrator and API. Missing key returns 503 without CSV, while malformed configured material blocks privileged key provisioning. It is never sent to the worker, web frontend, repository, logs or artifacts. Restricted-role SQL and key-rotation verification remain mandatory before G12 acceptance.
 
 
-**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
-
-
-**Current accepted baseline (2026-11-07):** G0-G10 and G16 are integrated into protected `main`; G10 remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following independently reviewed [gate closure](M10_G10_GATE_CLOSURE_20261107.md). G11-G15 and G17-G24 remain unaccepted. Sustained M9 transport-event processing remains held.
 
 ## Sixth-pass provisional rule-metadata integrity
 

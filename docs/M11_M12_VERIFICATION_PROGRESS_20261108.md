@@ -1,5 +1,8 @@
 # M11/M12 Source-Locked Verification Progress
 
+**Latest verified coverage reconciliation (2026-11-08):** [M11/M12 executed source-locked matrix](M11_M12_VERIFIED_COVERAGE_RECONCILIATION_20261108.md) records 340/340 passing full integration on `239f3cd9`, the latest 40/40 impacted PostgreSQL tests and 19/19 G11 plus 4/4 G12 checks on `f56d017`, 36/36 browsers, 5/5 killed mutants, signed read isolation, security scans, populated 13-to-15 migration coverage and 291/291 unit plus 46/46 contract tests on `4b9cd458`. Final full integration run `42443065884` is still in progress. Superseded failures and SHA differences are preserved; G11/G12 independent S25 evidence reviews and acceptance pending. Entries below are historical checkpoints.
+
+
 **Current verification policy (2026-11-08):** [M11/M12 verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) now requires manual, coordinated, source-locked workflows instead of automatic push-triggered campaigns. [Run-by-run progress](M11_M12_VERIFICATION_PROGRESS_20261108.md) is the current verification checkpoint; older reports and source-only notes below are historical. G11/G12 independent S25 review and acceptance remain pending. Protected `main`, the M9 transport hold, and deployment restrictions are unchanged.
 
 **Review date:** 2026-11-08

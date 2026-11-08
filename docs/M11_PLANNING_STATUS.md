@@ -1,5 +1,7 @@
 # M11 Planning Register
 
+**Current M11/M12 combined candidate (2026-11-08):** The isolated `feat/m11-m12-combined-integration` branch has been assembled from accepted `main` and both feature sources. [M11 local policies](M11_LOCAL_CONTRACT_DECISION_20261108.md) are now recorded, including clearance through Unknown/Stale and reviewed historical late-arrival resolution. This supersedes earlier pending-policy and no-combined-source snapshots in this document. Source-only corrections and authored tests are not executed evidence. G11/G12 technical verification, independent S25 review and acceptance pending. Protected `main`, M9 operating hold and deployment boundary are unchanged.
+
 **M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Shared verification orchestration has been approved, not M11-P01..P12 rule decisions. G11-S01 remains BLOCKED, other G11 scenarios unexecuted; a future combined candidate will retain its own G11 evidence ledger and S25 review.
 
 **Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records draft M11 PR #31 alongside draft M12 PR #32, with different additive migration IDs and an unresolved shared API/UI/role integration boundary. Both are source candidates, not merged or runtime-verified; G11-S01 BLOCKED, G11-S02..S25 NOT EXECUTED, G12 technical verification pending. Accepted `main` and the M9 transport hold remain unchanged.
@@ -53,4 +55,4 @@ M11 migration, runtime code, browser test source and API changes exist on the is
 
 ## Next execution boundary
 
-Approve or revise the M11 local policy table and independently audit the implemented candidate on its isolated feature branch. Run tiered real PostgreSQL and three-engine G11 verification, then perform a source-locked independent evidence review. Any merge still requires separate authorization. Preserve historical evidence and the accepted M9 hold.
+The M11 local policy table was decided on 2026-11-08 for the combined source candidate. Independently review the implementation, resolve remaining technical blockers and independently audit the implemented candidate on its isolated feature branch. Run tiered real PostgreSQL and three-engine G11 verification, then perform a source-locked independent evidence review. Any merge still requires separate authorization. Preserve historical evidence and the accepted M9 hold.

@@ -1,5 +1,7 @@
 # Architecture Decisions
 
+**Current M11/M12 combined candidate (2026-11-08):** The isolated `feat/m11-m12-combined-integration` branch has been assembled from accepted `main` and both feature sources. [M11 local policies](M11_LOCAL_CONTRACT_DECISION_20261108.md) are now recorded, including clearance through Unknown/Stale and reviewed historical late-arrival resolution. This supersedes earlier pending-policy and no-combined-source snapshots in this document. Source-only corrections and authored tests are not executed evidence. G11/G12 technical verification, independent S25 review and acceptance pending. Protected `main`, M9 operating hold and deployment boundary are unchanged.
+
 **M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Approved orchestration choice dated 2026-11-08: one combined source candidate and shared efficient verification campaign, with separate gate matrices, policy decisions and independent S25 reviews. M11-P01..P12 and M12-P01..P16 are not approved by this choice.
 
 **Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.

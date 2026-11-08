@@ -27,7 +27,12 @@ jobs:
           docker compose -p "$project" build postgres api web
           mkdir -p .verification/image-scans
           for service in postgres api web; do
-            id="$(docker compose -p "$project" images -q "$service")"
+            case "$service" in
+              postgres) tag=harborops-postgres:16.15-rootless ;;
+              api) tag=ho-verify-images-api:latest ;;
+              web) tag=ho-verify-images-web:latest ;;
+            esac
+            id="$(docker image inspect --format '{{.Id}}' "$tag")"
             test -n "$id"
             revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$id")"
             test "$revision" = "$GITHUB_SHA"

@@ -6,6 +6,23 @@
 
 **Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) records correction of inactive severity and same-fingerprint metadata drift, plus typed due-work cursor keys. Tests are authored but unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending; M9 transport processing held and PR #31 unmerged.
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). A combined candidate must retain M11 signed SQL evaluation/disposition authority and a distinct M12 export-audit proof key, without key reuse, role widening or audit bypass. Real restricted-role SQL, live revocation and atomicity require independent runtime proofs.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records separate unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**M12 candidate status (2026-11-08):** [Draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) contains scoped shipment search, bounded signed CSV export and source-level correctness repairs. [Latest audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md), [implementation status](M12_IMPLEMENTATION_STATUS.md) and [G12 plan](M12_VERIFICATION_PLAN.md) distinguish authored tests from executed evidence. The fifth pass adds exclusive PostgreSQL role-test gating and CSV cancellation checks. Earlier source fixes remain in force. G12 execution and independent acceptance remain pending. Protected `main` and the M9 transport hold are unchanged.
+
+## M12 scoped search/export security candidate, 2026-11-07
+
+The M12 implementation remains unaccepted in draft [PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32). All G12 runtime and security checks are NOT EXECUTED. The [correctness audit](M12_CORRECTNESS_AUDIT_20261107.md) records source remediation and the open verification obligations.
+
+Shipment search revalidates selected organization, session, user and permitted membership inside a transaction. Protected cursor payloads bind tenant, user, login session, filter fingerprint and expiry. The CSV route requires Analyst or Manager `ExportShipmentData` permission and a same-origin browser request. Auditor shipment-read permission does not imply export. Every exported row is tenant-scoped, output capped at 5,000 rows and 10 MiB, and fixed CSV columns are escaped against spreadsheet formulas.
+
+The M12 migration creates a distinct restricted HMAC-SHA256 verifier key table, a SECURITY DEFINER export-audit function and a unique export-event/correlation index. The HTTP runtime signs only a 45-second proof bound to actor, session, tenant, row/byte counts, filter digest and correlation. The API SQL login cannot SELECT the verifier key. M16 audit records `shipment.export_prepared` atomically before returning bytes; this is not a delivery receipt or cryptographic hash of the CSV. Neither a database-only impersonator without the signing key nor an expired/replayed proof may forge another event. Full HTTP-runtime compromise and privileged migrator/superuser access remain outside the database-only guarantee.
+
+Use a **separate** private `HARBOROPS_M12_EXPORT_PROOF_KEY`, 32 random bytes encoded in base64, only for migrator and API. Missing key returns 503 without CSV, while malformed configured material blocks privileged key provisioning. It is never sent to the worker, web frontend, repository, logs or artifacts. Restricted-role SQL and key-rotation verification remain mandatory before G12 acceptance.
+
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 

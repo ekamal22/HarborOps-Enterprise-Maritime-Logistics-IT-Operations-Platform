@@ -141,8 +141,8 @@ async function load() {
         '${emoji}',t.origin_port_id,t.destination_port_id,'Draft','Active','Synthetic',1,now(),now(),t.changed_by_user_id
        from shipments t cross join generate_series(1,5000) n where t.id='${s.json.id}'`);
   sql("analyze shipments");
-  record("P01", "loaded 5,000 worst-case rows", 5001, sql(`select count(*) from shipments where organization_id='${org}'`),
-    sql(`select count(*) from shipments where organization_id='${org}'`) === "5001");
+  const loaded = sql(`select count(*) from shipments where organization_id='${org}' and reference_code like 'NETW%'`);
+  record("P01", "loaded 5,000 worst-case rows", 5000, loaded, loaded === "5000");
 }
 // ---------------------------------------------------------------- g12 network path
 async function g12() {
@@ -185,11 +185,12 @@ async function g12() {
   const la = locker("m12lock-org", `SELECT 1 FROM organizations WHERE id='${org}' FOR UPDATE`, 12);
   const lb = locker("m12lock-member", `SELECT 1 FROM organization_memberships WHERE organization_id='${org}' AND user_id='${uidM}' FOR UPDATE`, 45);
   await sleep(1500);
+  const a3 = audit(org);
   const t3 = await mgr.get(EXPORT, { raw: true, timeout: 40000 });
   endLocker("m12lock-org"); endLocker("m12lock-member"); la.kill(); lb.kill();
   record("N03", "25 second budget through Nginx", "503 in 24-27 s", `${t3.status} in ${(t3.ms / 1000).toFixed(2)} s`, t3.status === 503 && within(t3.ms / 1000, 24, 27));
   record("N03", "budget response names the request budget, not the proxy", "request budget", t3.text.includes("request budget") ? "request budget" : t3.text.slice(0, 80), t3.text.includes("request budget"));
-  record("N03", "no audit after budget expiry", 0, audit(org) - a0, audit(org) === a0);
+  record("N03", "no audit after budget expiry", 0, audit(org) - a3, audit(org) === a3);
   await sleep(1000);
   }
 

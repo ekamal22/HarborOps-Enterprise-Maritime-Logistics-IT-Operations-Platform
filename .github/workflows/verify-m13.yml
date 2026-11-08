@@ -120,7 +120,7 @@ jobs:
           export HARBOROPS_BROWSER_BASE_URL=http://localhost:5173
           export HARBOROPS_M5_FIXTURES=1 HARBOROPS_M12_FIXTURES=1 HARBOROPS_M13_FIXTURES=1
           export HARBOROPS_VERIFICATION_ROOT="$PWD/.verification"
-          mkdir -p .verification/browser
+          mkdir -p .verification/browser .verification/evidence
           project=ho-verify-m13
           cleanup() {
             code=$?

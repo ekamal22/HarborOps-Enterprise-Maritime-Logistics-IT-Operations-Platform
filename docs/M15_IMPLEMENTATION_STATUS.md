@@ -43,6 +43,12 @@ The connected Actions dispatch service reached its task limit when a further run
 
 At the latest read, M13's independent branch was `4e717bd45011b0a75b3d764b3f298bfcfb1d9056`. M13 now has a distinct KPI migration `20261109020000_M13OperationalKpis` and application implementation. A combined branch must reconcile `Program.cs`, `AuditRoleProvisioner.cs`, `OrganizationWorkspace.tsx`, `MigrationSnapshotTests.cs`, `M11M12UpgradeTests.cs`, permissions and migration order. M15's `20261109010000` and M13's `20261109020000` do not by themselves prove compatible upgrades. Preserve separate M13 dashboard authorization and KPI source truth; M15 personal receipts must not change KPI measures.
 
+## Additional unverified source improvements after the frozen run
+
+The current M15 source now includes a Compose-controlled `HARBOROPS_M15_ENABLE_DELIVERY` setting with default `false`. The isolated verification job alone sets it to `true` to exercise the hosted dispatcher. It now runs the separate M15 notification fault-injection boundary suite after the older targeted integration tests, and prepares a live browser fixture: M5 Draft shipment -> authorized M11 evaluation -> committed M15 outbox -> hosted fanout -> scoped API -> shipment-exception navigation in Chromium, Firefox and WebKit. Browser mocks still separately cover receipt transitions, organization revocation and inaccessible targets. No operational workloads are enabled by these changes.
+
+The SQL security tests also now attempt an invalid HMAC read proof using real organization/recipient/session identifiers, and verify `harborops_worker` cannot read or dispatch M15 notification rows. All new tests are **authored, not executed** as of this checkpoint. The Actions dispatch connector reported a usage-limit blocker after the prior run; no newer success has been inferred.
+
 ## Exit checklist
 
 - [x] M15 source candidate and end-to-end event/data/API/UI path committed on separate branch

@@ -206,3 +206,7 @@ New-source execution on `a26d19acd57308033bdf6fe7e25c61287cd17b0b` is recorded i
 ## M11/M12 local closure addendum (2026-11-08)
 
 Residual scenarios are verified with focused tests on disposable PostgreSQL servers rather than another full-suite repeat: revocation and atomicity are interleaved with a held organization or shipment lock, recovery uses backend termination and runtime-login disabling, and query plans replay the SQL captured from the real API under the restricted role. Role-changing cases require an exclusive server and `HARBOROPS_G12_EXCLUSIVE_POSTGRES=1`. Simulated clock advance and outage are labelled as simulations in the evidence. See [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).
+
+## M15 gated verification expansion
+
+The M15 source-locked workflow includes warning-as-error .NET build, unit and contract tests, web build, targeted accepted-M11 migration/exception regression, and a **separate** `M15NotificationBoundaryTests` invocation on an exclusive disposable PostgreSQL database. The separate invocation avoids running database-wide fault-injection constraints concurrently with unrelated test classes. The M15 browser job enables delivery only in its disposable Docker Compose project, prepares a real M11 event and M15 row, and runs `notifications.spec.mjs` across Chromium, Firefox and WebKit. The results for these newly added checks are pending. The prior [frozen evidence](M15_EXECUTED_VERIFICATION_20261109.md) remains restricted to the exact tested SHA, never automatically inherited by later commits.

@@ -271,3 +271,9 @@ The additive thirteenth migration passed fresh and populated historical upgrade 
 - Free-text search on a tenant that holds most of the table scans the whole shipments heap (measured 32 to 49 ms at 170,000 rows). Plan a trigram index before text search must serve millions of rows.
 - Export concurrency and rate limits are per API instance. Behind several instances the effective limits multiply.
 - Evidence and retained plans: [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).
+
+## M15 scoped notification delivery control
+
+The API-hosted M15 dispatcher is controlled only by `M15:EnableDelivery` (`HARBOROPS_M15_ENABLE_DELIVERY` in Compose). Its default and the shipped `.env.example` value are `false`. Do not set it to `true` in production until explicit M15 policy approval, G15 acceptance, required key/provisioner evidence, deployment authorization and an approved rollback/retention plan. This switch never enables M9 ARRI/DEPA transport processing, the M10 projector, ETA computation or the M11 evaluator.
+
+For isolated disposable verification only, `.github/workflows/verify-m11-m12-combined.yml` runs with the M15 delivery environment flag enabled and `scripts/prepare-m15-browser-fixtures.mjs` seeds a real M11-to-M15 delivery in the disposable stack. Persistent outbox retries and quarantines are reported by the dispatcher through sanitized event counts; never print proof keys, cookies or request bodies in operational logs.

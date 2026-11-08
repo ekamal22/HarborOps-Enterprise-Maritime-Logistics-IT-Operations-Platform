@@ -59,3 +59,9 @@ Shared files requiring an explicit merge reconciliation include `src/HarborOps.A
 G15-S01 remains blocked on explicit dispositions of M15-P01 through M15-P14. G15-S25 requires independent review of executed raw evidence. G15-S02 through G15-S24 are **partially covered** by the executed checks above, not globally PASS. In particular, the complete three-engine browser campaign, concurrent crash/recovery, signed SQL scope mutations, pagination/cursor expiry and malicious replay cases require execution and review on a final frozen SHA. Operational retention cleanup remains intentionally disabled while policy P12 is acceptance pending.
 
 Preserve M9 ARRI/DEPA NeedsReconciliation hold, the 10,000 unresolved-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator. Keep the M15 dispatcher default-off until explicitly approved after G15. Any acceptance, merge or deployment requires a separate decision.
+
+## Subsequent M15 source delivery configuration and browser coverage
+
+The implementation branch now exposes `HARBOROPS_M15_ENABLE_DELIVERY=false` in `.env.example` and `compose.yaml` (API-only). The isolated browser verification workflow explicitly sets it to `true` on an `ho-verify-*` project. A committed preparation script opens a real manual M11 evaluation, waits for a genuine M15 personal row from the hosted dispatcher and records source-locked disposable fixture IDs. Playwright checks the real notification UI and authorized shipment-exception navigation as well as mocked receipt, revocation and inaccessible-target scenarios.
+
+The workflow now runs `M15NotificationBoundaryTests` separately from the 26 previously measured integration cases to protect their database-wide fault-injection constraints. The M15 restricted-role test now includes forged read-scope proof and worker-role negative probes. These changes postdate the frozen PASS SHA and have not been executed. No G15-S22, G15-S24 or new migration result is claimed from them.

@@ -33,6 +33,10 @@ The signed disposition function permits Manager Resolve for the Active `Recorded
 
 The additive M11 migration is independently numbered `20261107180000_ShipmentExceptions` and the M12 export migration is `20261107230000_M12ShipmentExportAudit`; the combined candidate expects fifteen migrations in timestamp order.
 
+## Live list pagination semantics
+
+Exception list pagination uses an initial database-clock creation cutoff to exclude later-created occurrences, with stable rule-priority and UUID ordering. It is intentionally **not** an immutable snapshot of mutable lifecycle fields. Acknowledgments, resolutions and reevaluations can appear in later pages; every Manager mutation performs fresh version and authority checks. The interface must disclose this behavior. A focused integration regression checks that a disposition between pages is visible while a newly created occurrence remains excluded by the original cutoff. This contract does not waive concurrent execution verification.
+
 ## G11-S01 interpretation and remaining obligations
 
 The twelve M11 policy groups now have a recorded decision, including explicit P10 recurrence and immutable-history disposition. **G11-S01 policy approval is recorded but G11-S01 is not marked PASS** in the absence of independent gate reconciliation. G11-S02 through S25 remain NOT EXECUTED until source-locked results exist.

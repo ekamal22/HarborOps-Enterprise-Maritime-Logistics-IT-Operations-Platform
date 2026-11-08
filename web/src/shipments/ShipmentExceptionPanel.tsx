@@ -202,6 +202,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
       These rule outcomes use manual workflow records and accepted equipment observations.
       Schedule overdue does not establish a physical delay, and no ETA is calculated.
       Results reflect the last evaluation and may be stale until reevaluated.
+      Exception status is live and can change while you move between pages.
     </p>
     {loading && <p role="status" className="mt-2 text-xs">Loading exceptions...</p>}
     {message && <p role="status" className="mt-2 text-xs text-cyan-300">{message}</p>}

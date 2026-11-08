@@ -937,13 +937,24 @@ public sealed class M11ExceptionRuntimeTests
         using var ___ = s.Fixture.Analyst;
         using var manager = s.Manager; using var analyst = s.Analyst;
         using var administrator = s.Administrator;
-        await EvaluateAndFind(s, await ScheduledShipment(s));
-        await EvaluateAndFind(s, await ScheduledShipment(s));
+        var firstException = await EvaluateAndFind(s, await ScheduledShipment(s));
+        var secondException = await EvaluateAndFind(s, await ScheduledShipment(s));
         using var page = await manager.GetAsync(Collection(s.Fixture.A) + "?limit=1");
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
         var body = await page.Content.ReadFromJsonAsync<JsonElement>();
         var token = body.GetProperty("nextCursor").GetString();
         Assert.False(string.IsNullOrWhiteSpace(token));
+        // Pages use a database-clock creation cutoff, but lifecycle fields
+        // are intentionally live. A disposition between pages must be visible.
+        var firstPageId = Assert.Single(body.GetProperty("items").EnumerateArray())
+            .GetProperty("id").GetGuid();
+        var remaining = firstPageId == firstException ? secondException : firstException;
+        using (var acknowledge = await SendAction(manager,
+            Collection(s.Fixture.A) + "/" + remaining,
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Reviewing this exception during live pagination" },
+            Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, acknowledge.StatusCode);
         // A new occurrence opened after the first page must not enter its
         // database-clock creation-cutoff window.
         var later = await EvaluateAndFind(s, await ScheduledShipment(s));
@@ -958,7 +969,11 @@ public sealed class M11ExceptionRuntimeTests
             Assert.Equal(HttpStatusCode.OK, next.StatusCode);
             var json = await next.Content.ReadFromJsonAsync<JsonElement>();
             foreach (var item in json.GetProperty("items").EnumerateArray())
+            {
                 Assert.True(seen.Add(item.GetProperty("id").GetGuid()));
+                if (item.GetProperty("id").GetGuid() == remaining)
+                    Assert.Equal("Acknowledged", item.GetProperty("state").GetString());
+            }
             cursor = json.GetProperty("nextCursor").GetString();
         }
         Assert.Equal(2, seen.Count);

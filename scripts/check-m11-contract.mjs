@@ -13,6 +13,7 @@ const grants = read("src/HarborOps.Api/Audit/AuditRoleProvisioner.cs");
 const web = read("web/src/shipments/ShipmentExceptionPanel.tsx");
 const program = read("src/HarborOps.Api/Program.cs");
 const snapshot = read("tests/HarborOps.IntegrationTests/MigrationSnapshotTests.cs");
+const m11RuntimeTests = read("tests/HarborOps.IntegrationTests/M11ExceptionRuntimeTests.cs");
 
 assert.match(policy, /m11-rules-v1/);
 for (const rule of ["EquipmentConflict", "ArrivalScheduleOverdue",
@@ -21,6 +22,8 @@ for (const rule of ["EquipmentConflict", "ArrivalScheduleOverdue",
 }
 assert.match(migration, /20261107180000_ShipmentExceptions/);
 assert.match(snapshot, /20261107180000_ShipmentExceptions/);
+assert.match(snapshot, /20261107230000_M12ShipmentExportAudit/);
+assert.match(program, /MapShipmentSearchEndpoints/);
 for (const table of ["shipment_exceptions", "shipment_exception_history",
                      "shipment_exception_evaluations", "shipment_exception_replays",
                      "shipment_exception_proof_nonces"]) {
@@ -42,7 +45,9 @@ assert.ok(!/\bv\.revision\b/.test(migration + store),
 assert.match(migration, /ix_m11_nonce_expiry/);
 assert.match(migration, /LIMIT 64 FOR UPDATE SKIP LOCKED/);
 assert.match(migration, /rule_policy_version/);
-assert.match(migration, /IF stored_condition=p_condition AND previous_fp=p_fingerprint THEN[\s\S]*?evaluated_at_utc=clock_timestamp\(\)/);
+assert.match(migration, /IF stored_condition=p_condition AND previous_fp=p_fingerprint[\s\S]*?AND NOT EXISTS/);
+assert.match(migration, /last_confirmed_inactive_at_utc/);
+assert.match(migration, /last_confirmed_inactive_utc IS NOT NULL/);
 assert.match(migration, /Exception reevaluation required/);
 assert.match(migration, /Equipment reevaluation required/);
 assert.match(migration, /p\.refreshed_at_utc <= e\.evaluated_at_utc/);
@@ -60,13 +65,15 @@ assert.match(store, /IsEvaluationRace/);
 assert.match(store, /shipment_exception_evaluations_pkey/);
 assert.match(store, /IsActionRace/);
 assert.match(store, /shipment_exception_replays_pkey/);
-assert.match(web, /item.state === "Acknowledged" && item.condition === "Inactive"/);
+assert.match(web, /item.state === "Acknowledged" && \(item.condition === "Inactive"/);
 assert.match(migration, /PRIMARY KEY \(organization_id,idempotency_key\)/);
 assert.match(migration, /existing_state='Open' OR p_reason='shipment_not_eligible'/);
-assert.match(migration, /existing_state='Acknowledged'[\s\S]*existing_condition='Inactive'/);
+assert.match(migration, /existing_state='Acknowledged'[\s\S]*last_confirmed_inactive_utc IS NOT NULL/);
+assert.match(migration, /row_rule='RecordedArrivalLate' AND row_condition='Active'/);
+assert.match(migration, /previous\.reference_at_utc IS NOT DISTINCT FROM p_reference/);
 assert.match(migration, /Prior cleared occurrence superseded by recurrence/);
 assert.match(migration, /existing_id := NULL;/);
-assert.match(web, /item.state === "Acknowledged" && item.condition === "Inactive"/);
+assert.match(web, /item.state === "Acknowledged" && \(item.condition === "Inactive"/);
 assert.match(store, /error.ConstraintName == "shipment_exception_replays_pkey"/);
 assert.match(m11RuntimeTests, /RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence/);
 assert.match(policy, /input.WorkflowStatus == "InTransit"/);
@@ -84,8 +91,9 @@ assert.match(endpoints, /DateTimeOffset SnapshotAtUtc/);
 assert.match(endpoints, /HistoryCursor/);
 assert.match(endpoints, /\/exceptions\/\{exceptionId\}\/history/);
 assert.match(web, /Load more history/);
-const m11RuntimeTests = read("tests/HarborOps.IntegrationTests/M11ExceptionRuntimeTests.cs");
 assert.match(m11RuntimeTests, /LongImmutableHistoryCanBePagedWithRoleRedaction/);
+assert.match(m11RuntimeTests, /VerifiedClearancePersistsAcrossUnknownBeforeRecurrence/);
+assert.match(m11RuntimeTests, /RecordedArrivalLateMayBeClosedWithoutErasingHistoricalFact/);
 assert.match(m11RuntimeTests, /database-clock creation-cutoff window/);
 
 assert.match(grants, /REVOKE ALL ON shipment_exception_proof_nonces/);

@@ -183,3 +183,7 @@ The [M9 source correctness audit](M9_CORRECTNESS_AUDIT_20261104.md) was source i
 - Export audit failure paths were exercised: expired and not-yet-valid proofs, key rotation, removed verifier key, injected audit rejection (503, no CSV, no audit) and downgrade refusal after a retained export.
 - Defect F-M12-01 (export returned 503 on SQLSTATE 40001 from concurrent session activity or revocation) was fixed with a bounded retry inside the 25 second budget; the failure had been closed and exposed no data.
 - Export lease and rate limit are per API instance (M12-P10); there is no cross-instance aggregate limit.
+
+## M13 reporting branch security boundary
+
+M13 source adds dedicated role-gated analytics. Analyst and Manager have dashboard viewing; an Auditor requires an active, explicitly authorized organization-scoped grant bound to its membership version. Support and Administrator have no implicit KPI view; Administrator grant writes require CSRF, same Origin and an audited SQL definer transaction. M11 signed scope is verified before source reads; SQL report/member tables enforce tenant, actor, session, expiry and typed permissions with RLS. No worker role, broad grant writes, raw tracking payload or free-form exception reasons are exposed. A role or membership version change invalidates the old Auditor grant. This is authored code, not yet restricted-login verified G13 evidence. See [M13 implementation register](M13_IMPLEMENTATION_STATUS_20261109.md).

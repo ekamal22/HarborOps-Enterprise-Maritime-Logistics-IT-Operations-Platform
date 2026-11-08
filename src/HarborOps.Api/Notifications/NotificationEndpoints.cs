@@ -7,6 +7,7 @@ using HarborOps.Infrastructure.Notifications;
 using HarborOps.Infrastructure.Organizations;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HarborOps.Api.Notifications;
 

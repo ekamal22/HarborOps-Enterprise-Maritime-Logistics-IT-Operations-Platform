@@ -44,7 +44,7 @@ The entries below are **recommended defaults only**. Neither creating these docu
 | M15-P09 | Personal acknowledgment has one transaction-coupled M16 notification.receipt_acknowledged audit event, with no event for MarkRead; failed required audit rolls back. | Audit volume and atomicity |
 | M15-P10 | Additive M11 history AFTER INSERT trigger stores outbox intent atomically; trigger failure rolls back the originating M11 transaction rather than silently lose a notice. | New coupling to accepted M11 correctness |
 | M15-P11 | M15 dispatcher independently opt-in, DB lease and bounded retries; no automatic historical backfill on rollout, no M9/M10/M11 service enablement. | Operational controls and source history |
-| M15-P12 | Proposed online notice retention 90 days with 30 days after personal ack and 180-day upper bound subject to holds; immutable M11/M16 source evidence untouched. Cleanup remains off pending approval. | Privacy, archival and legal hold policy |
+| M15-P12 | Proposed online notice retention of 90 days for Unread/Read rows and 30 days after personal acknowledgment; any legal/incident holds and any future absolute limit require separate approval. Immutable M11/M16 evidence untouched; cleanup stays off. | Privacy, archival and legal hold policy |
 | M15-P13 | Namespaced notification API and isolated React component; shared shell, permission enum additions, DI, migrations and EF snapshot require prior M13 reconciliation. No M13 KPI derivation from notices. | Parallel workstream ownership |
 | M15-P14 | Treat archived/cancelled targets as historical only and authorize current deep link independently; removed or inaccessible targets are hidden without existence disclosure. | Resource lifecycle and broken-link safety |
 

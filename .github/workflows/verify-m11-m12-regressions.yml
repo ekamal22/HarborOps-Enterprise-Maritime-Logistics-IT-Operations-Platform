@@ -1,3 +1,4 @@
+# Source-locked M11/M12 technical campaign, 2026-11-08
 name: Verify combined integration regressions
 on:
   push:
@@ -55,7 +56,7 @@ jobs:
               raise SystemExit('Missing integration test counters')
           values = {key: int(counters.get(key, '-1')) for key in ('total', 'passed', 'failed', 'notExecuted')}
           print('Source-locked full integration counters:', values)
-          if values['total'] < 340 or values['passed'] != values['total'] or values['failed'] != 0 or values['notExecuted'] != 0:
+          if values['total'] < 341 or values['passed'] != values['total'] or values['failed'] != 0 or values['notExecuted'] != 0:
               raise SystemExit('Full integration run missing expected coverage, has skips or has failures')
           PY
       - name: Summarize exact run identity and retained evidence hash

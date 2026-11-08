@@ -1,3 +1,4 @@
+# Source-locked M11/M12 technical campaign, 2026-11-08
 name: Verify M11 and M12 database boundaries
 on:
   push:

@@ -1,5 +1,8 @@
 # Architecture Decisions
 
+**M15 parallel source checkpoint (2026-11-08):** M15 implementation has begun only on the isolated feature branch. An additive notification outbox, personal-row persistence, opt-in fanout, scoped API and React center are source candidates; they are not verified or accepted. The [M15 planning and policy ledger](M15_PLANNING_STATUS.md), [implementation plan](M15_IMPLEMENTATION_PLAN.md), [architecture](M15_ARCHITECTURE_DESIGN.md) and [G15 matrix](M15_VERIFICATION_PLAN.md) describe decisions and the future gate. M13 independently owns KPI definitions and dashboards; shared navigation, permission schema, startup services and migration sequencing require reconciliation before integration. No GitHub Actions, merge, release, production migration or processing-hold removal is authorized.
+
+
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) govern current M11 delay exceptions and M12 scoped search/export behavior. Earlier source-only and verification checkpoints are historical. The M9 ARRI/DEPA processing hold and 10,000 unresolved-item limit remain binding; M10 projector default-off, ETA null, M11 evaluator opt-in. No deployment or release is authorized.
 
 This document records accepted architecture decisions and outstanding choices. D-003 was explicitly accepted on 2026-11-01 alongside G4 after independent evidence review. D-002 Option A and M7/G7 were accepted on 2026-11-03; see [G7 closure](M7_G7_GATE_CLOSURE.md). D-006 Option A and M8/G8 were explicitly accepted on 2026-11-04 after independently reviewed source-locked evidence. See [gate closure](M8_G8_GATE_CLOSURE.md).

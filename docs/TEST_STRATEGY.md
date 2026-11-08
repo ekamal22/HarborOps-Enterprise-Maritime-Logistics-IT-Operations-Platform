@@ -1,5 +1,8 @@
 # Test and Verification Strategy
 
+**M15 parallel source checkpoint (2026-11-08):** M15 implementation has begun only on the isolated feature branch. An additive notification outbox, personal-row persistence, opt-in fanout, scoped API and React center are source candidates; they are not verified or accepted. The [M15 planning and policy ledger](M15_PLANNING_STATUS.md), [implementation plan](M15_IMPLEMENTATION_PLAN.md), [architecture](M15_ARCHITECTURE_DESIGN.md) and [G15 matrix](M15_VERIFICATION_PLAN.md) describe decisions and the future gate. M13 independently owns KPI definitions and dashboards; shared navigation, permission schema, startup services and migration sequencing require reconciliation before integration. No GitHub Actions, merge, release, production migration or processing-hold removal is authorized.
+
+
 **Current verified baseline (2026-11-08):** G0-G12 and G16 accepted and merged. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records the 388/388 integration, 48/48 browser, 17/17 effective mutant and N01 10/10 evidence. Earlier source-only and pending verification banners are historical, not current. Preserve the M9 ARRI/DEPA hold, 10,000 unresolved-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator; no deployment.
 
 ## Current G10 source verification boundary

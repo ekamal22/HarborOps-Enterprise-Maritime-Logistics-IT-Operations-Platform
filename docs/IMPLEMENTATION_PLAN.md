@@ -1,5 +1,8 @@
 # Implementation Notes
 
+**M15 parallel source checkpoint (2026-11-08):** M15 implementation has begun only on the isolated feature branch. An additive notification outbox, personal-row persistence, opt-in fanout, scoped API and React center are source candidates; they are not verified or accepted. The [M15 planning and policy ledger](M15_PLANNING_STATUS.md), [implementation plan](M15_IMPLEMENTATION_PLAN.md), [architecture](M15_ARCHITECTURE_DESIGN.md) and [G15 matrix](M15_VERIFICATION_PLAN.md) describe decisions and the future gate. M13 independently owns KPI definitions and dashboards; shared navigation, permission schema, startup services and migration sequencing require reconciliation before integration. No GitHub Actions, merge, release, production migration or processing-hold removal is authorized.
+
+
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. M11/G11 and M12/G12 closed through [formal acceptance](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. [Project status](STATUS.md) is authoritative for execution and release state; dated source reviews and early gate reports retain only their historical meaning. M9 ARRI/DEPA processing remains held under the 10,000-item limit, with M10 projector default-off, ETA null and M11 evaluator opt-in. Deployment remains unauthorized.
 
 **Status:** Supporting engineering guidance. This file is not an independent roadmap or authoritative dependency ledger.

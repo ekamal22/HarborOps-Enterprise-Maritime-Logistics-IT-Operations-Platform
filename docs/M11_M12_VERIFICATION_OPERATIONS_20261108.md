@@ -1,5 +1,7 @@
 # M11/M12 Verification Operations
 
+**Current executed evidence (2026-11-08):** [M11/M12 verification reconciliation](M11_M12_VERIFIED_COVERAGE_RECONCILIATION_20261108.md) is the authoritative run-by-run record: 340/340 earlier whole integration, 40/40 impacted tests including 13-to-15 populated upgrade, G11 19/19, G12 4/4, 36/36 three-engine browser, 5/5 effective mutants, restricted SQL isolation and security scans, plus 291/291 unit and 46/46 contract on their individually identified SHAs. Full run `42443065884` is still in progress. Preserve historical failures and pending independent G11-S25/G12-S25 reviews; no acceptance, merge or deployment is implied.
+
 **Date:** 2026-11-08  
 **Branch:** `feat/m11-m12-combined-integration`  
 **Accepted main:** `6ead1d076946dd96b53401265a31efc35c4a666c`  

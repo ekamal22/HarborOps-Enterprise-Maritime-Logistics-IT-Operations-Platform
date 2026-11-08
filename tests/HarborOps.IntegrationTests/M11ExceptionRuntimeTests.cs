@@ -250,6 +250,56 @@ public sealed class M11ExceptionRuntimeTests
             .GetProperty("eventId").GetGuid());
         Assert.Equal(correctionId,correctedWitness.GetProperty("out")
             .GetProperty("replacementCorrectionId").GetGuid());
+
+        // Add another independently conflicting container to the same shipment.
+        // The bounded response must acknowledge multiple witnesses instead of
+        // implying that the first returned pair is the entire conflict set.
+        var secondCode = "G11-WIT-" + suffix.ToUpperInvariant();
+        var equipmentReference = "SYN-BOX-G11" + suffix.ToUpperInvariant();
+        using var createdContainer = await ReferenceDataHttpTests.Send(s.Fixture.Manager,
+            HttpMethod.Post,$"/api/v1/organizations/{s.Fixture.A}/containers",
+            new { referenceCode=secondCode, identifierKind="Synthetic",
+                containerIdentifier=equipmentReference, equipmentType="Dry20" });
+        Assert.Equal(HttpStatusCode.Created,createdContainer.StatusCode);
+        var secondContainer = (await createdContainer.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("id").GetGuid();
+        using var assignment = await ReferenceDataHttpTests.Send(s.Fixture.Analyst,
+            HttpMethod.Post,shipmentUrl+"/container-assignments",
+            new { containerId=secondContainer, startsAtUtc="2026-11-03T09:00:00Z" });
+        Assert.Equal(HttpStatusCode.Created,assignment.StatusCode);
+        var secondIn = await G9Support.Accept(factory,source,
+            G9Support.EquipmentPayload("m11-multi-in-"+suffix,equipmentReference,
+                occurredAt:occurred,code:"GTIN"));
+        var secondOut = await G9Support.Accept(factory,source,
+            G9Support.EquipmentPayload("m11-multi-out-"+suffix,equipmentReference,
+                occurredAt:occurred,code:"GTOT"));
+        for(var i=0;i<2;i++)
+        {
+            var nextClaim = await worker.ClaimOneAsync(s.Fixture.A,CancellationToken.None);
+            Assert.NotNull(nextClaim);
+            Assert.Equal(TrackingWorkDisposition.Processed,
+                await worker.FinalizeAsync(nextClaim!,CancellationToken.None));
+        }
+        Assert.Equal(TrackingMutationResult.Applied,
+            (await timeline.RebuildAsync(s.Fixture.A,target.Shipment,
+                CancellationToken.None)).Result);
+        using (var refreshed = await ReferenceDataHttpTests.Send(restrictedManager,
+            HttpMethod.Post,shipmentUrl+"/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK,refreshed.StatusCode);
+        using var multi = await restrictedManager.GetAsync(
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/{target.Shipment}/exceptions");
+        Assert.Equal(HttpStatusCode.OK,multi.StatusCode);
+        var multiEvidence = Assert.Single(
+            (await multi.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("items")
+                .EnumerateArray(),
+            x => x.GetProperty("ruleCode").GetString()=="EquipmentConflict")
+                .GetProperty("evidence");
+        Assert.Equal(2,multiEvidence.GetProperty("conflictContainerCount").GetInt32());
+        Assert.True(multiEvidence.GetProperty("conflictWitnessTruncated").GetBoolean());
+        var firstContainer = multiEvidence.GetProperty("conflictWitness")
+            .GetProperty("containerId").GetGuid();
+        Assert.Contains(firstContainer,new[] {target.Container,secondContainer});
+        Assert.NotEqual(secondIn,secondOut);
     }
 
     [Fact]

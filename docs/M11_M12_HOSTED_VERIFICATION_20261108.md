@@ -1,5 +1,7 @@
 # M11/M12 Hosted Verification Record
 
+**Verification reconciliation, 2026-11-08:** The [M11/M12 source-locked evidence register](M11_M12_VERIFICATION_PROGRESS_20261108.md) records the prior complete 338/338 integration run, 291/291 unit, 46/46 contract, 19/19 G11, 4/4 G12, 36/36 browser tests, five valid security mutants killed and successful runtime-image scans on their recorded source commits. The expanded 340-case full integration run, populated 13-to-15 migration test and final source lock were pending at this checkpoint. Earlier 18/18, 36/36 and source-only statements below are historical. [M12 selected contract](M12_LOCAL_CONTRACT_DECISION_20261108.md) and [Q2 applicability](M12_Q2_HISTORICAL_SNAPSHOT_APPLICABILITY_20261108.md) are recorded. Independent G11/G12 S25 review, raw evidence package and gate acceptance remain pending, with `main`, the M9 operating hold and deployment boundary unchanged.
+
 ## Latest verified checkpoint
 
 | Check | Run | Source SHA | Result |

@@ -37,7 +37,7 @@ jobs:
       - name: Build combined solution
         working-directory: source
         run: dotnet build HarborOps.sln -c Release -warnaserror
-      - name: Execute G11 PostgreSQL and HTTP tests
+      - name: Execute G11 provenance, lifecycle and SQL isolation tests
         working-directory: source
         run: |
           set -euo pipefail

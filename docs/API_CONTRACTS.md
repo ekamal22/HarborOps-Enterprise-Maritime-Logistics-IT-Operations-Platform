@@ -125,7 +125,7 @@ The feature branch implements `GET /api/v1/organizations/{organizationId}/shipme
 | POST | /integrations/v1/tracking-events | Source-authenticated event intake | Integration principal |
 | GET | /organizations/{orgId}/exceptions | Shipment exceptions | Scoped operations |
 | PATCH | /organizations/{orgId}/exceptions/{id} | Acknowledge/resolve exception | Scoped operations |
-| GET | /organizations/{orgId}/analytics/overview | Documented operational KPIs | Scoped viewer |
+| GET | /organizations/{orgId}/analytics/overview | M13 D-005 versioned operational report with protected member token, implementation branch | Analyst/Manager, or explicitly granted Auditor |
 | GET | /organizations/{orgId}/shipments/search | Accepted M12 tenant-scoped advanced search, protected UUID keyset and UTC filters | Typed shipment-read permission, G12 accepted |
 | GET | /organizations/{orgId}/exports/shipments | Accepted M12 bounded CSV and signed nonreplayable preparation audit | Analyst/Manager typed export permission with verifier key, G12 accepted |
 | GET/POST | /operations/incidents | Incident list/create | IT operations role |
@@ -223,3 +223,14 @@ The original G10 tests verified twelve-migration routes on `3e81b88`. Subsequent
 - Export and search return 403 (`organization_access_revoked` or `access_denied`) or 404 when access is revoked or the session organization changes while a request is in flight. Export retries up to three attempts internally on a serialization conflict and does not surface it as 503 unless the database remains unavailable.
 - Deadlines measured locally: 15 second statement timeout and 25 second internal budget both return 503 `dependency_unavailable` with no body of CSV bytes; the budget response names the request budget.
 - A worst-case 5,000-row export is about 4.9 MB, so the 10 MiB limit is enforced at the SQL function but not reachable over HTTP.
+
+## M13 operational KPI reporting contract (implementation branch)
+
+All routes below are prefixed with `/api/v1/organizations/{organizationId}/analytics` and require a live authenticated, organization-selected session. These sources are not yet G13 verified or merged:
+
+- `GET /catalog`: `policyVersion=m13-kpi-v1`, K01-K14 descriptors and UTC window limit.
+- `GET /overview`: paired `fromUtc` and `beforeUtc` UTC instants (half-open, up to 366 days), or `defaultWindow=last7CompleteDays`. Optional allowlisted `bucket=day|week`, origin/destination port UUIDs, voyage UUID and record source. Responds with `reportId`, protected `reportToken`, UTC evaluated/expiry instants, exact numerator/denominator counts and UTC buckets.
+- `GET /reports/{reportId}/members?metricCode=Kxx&dimension=...&bucketStartUtc=...&after=UUID&limit=1..100`: `X-HarborOps-Report` header carries the token bound to actor, session, organization, normalized filter digest, policy version and expiry. Returns stable stored member IDs and shipment reference codes only. Every page reauthorizes and never silently switches to live M12 search.
+- `GET /grants` and CSRF/Origin-protected `PUT /grants/{targetId}` with one boolean `enabled`: Administrator-only Auditor read-only grant management. The active grant must match the current Auditor organization membership version, and does not authorize exports or exception mutations. Administrator and Support cannot view KPI data by default.
+
+Error codes include `invalid_filters` (400), `access_denied` (403), `report_expired` (409), `report_capacity_exceeded` (413), `report_in_progress` (429) and `report_timeout` (503). The report expires provisionally after ten minutes and fails closed at its bounded capacity. G13 runtime and browser evidence is required before treating these as accepted contracts. See [implementation register](M13_IMPLEMENTATION_STATUS_20261109.md).

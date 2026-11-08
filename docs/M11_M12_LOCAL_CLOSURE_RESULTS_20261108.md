@@ -77,7 +77,7 @@ All declared criteria were met. Raw JSON for every statement, the SQL text with 
 
 ## Scenario dispositions
 
-G11: PASS 16, PARTIAL 6, NOT EXECUTED 1, BLOCKED 2. G12: PASS 9, PARTIAL 12, NOT EXECUTED 1, NOT APPLICABLE 1, BLOCKED 2. PARTIAL means the executed subset passed and the remainder was not run; those rows are not accepted. The partial G12 rows (S03 to S08, S10, S12) are HTTP matrices outside the targeted plan. Remaining items are listed per row in the matrices.
+Original local campaign disposition: G11 PASS 16, PARTIAL 6, NOT EXECUTED 1, BLOCKED 2; G12 PASS 9, PARTIAL 12, NOT EXECUTED 1, NOT APPLICABLE 1, BLOCKED 2. **Independent review adjustment:** G11-S21 is PARTIAL rather than PASS because post-commit lost-reply and operating-system process termination were not executed. Current G11 count: PASS 15, PARTIAL 7, NOT EXECUTED 1, BLOCKED 2. G12 count remains unchanged. PARTIAL means the executed subset passed and the remainder was not run; those rows are not accepted. The partial G12 rows (S03 to S08, S10, S12) are HTTP matrices outside the targeted plan. Remaining items are listed per row in the matrices.
 
 ## Evidence package for the independent S25 reviews
 

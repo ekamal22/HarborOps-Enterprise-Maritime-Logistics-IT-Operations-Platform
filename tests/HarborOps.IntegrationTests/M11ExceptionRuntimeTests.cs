@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using HarborOps.Api.Audit;
 using HarborOps.Infrastructure.Exceptions;
+using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Shipments;
 using Microsoft.Extensions.DependencyInjection;

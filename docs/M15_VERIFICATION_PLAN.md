@@ -1,0 +1,80 @@
+# M15 / G15 Source-Locked Verification Plan
+
+**Status:** Proposed scenario specification only. All G15-S01 through G15-S25 are NOT EXECUTED. G15 not accepted.  
+**Planning base:** main eb529368a2447061fc1838cd3967b0ffedae669d, 2026-11-08.  
+**Source prerequisites:** Accepted G11, G0-G12 and G16. Regressions are impact-based but G15 is independently gated.
+
+This matrix defines future assertions and raw artifacts, not test results. The selected runtime source SHA must be frozen **after** M13 shared-boundary and migration reconciliation if both are integrated. Separate workstream gate results cannot be combined into a fictional single-source PASS.
+
+## 1. G15-S01 to G15-S25 mandatory matrix
+
+| ID | Scenario and expected result | Fixture, test class and minimum evidence |
+| --- | --- | --- |
+| G15-S01 | All M15-P01 to P14 policy choices explicitly approved, including source catalog, five-role recipients, timing, revocation, receipt state, outbox failure coupling, retention, audit and M13 boundary. Otherwise BLOCKED. | Signed-off local contract decision, policy truth table, reviewed API and SQL threats. |
+| G15-S02 | Clean .NET 10 warning-as-error build, static/contract checks, React typecheck and production build at exact SHA. No endpoint collision or schema mismatch. | Build logs, NotificationPolicyTests, NotificationContractTests and web build output with versions and exit codes. |
+| G15-S03 | Exactly the approved M11 Opened, Resolved and AutoResolved actions create correct cataloged intents; Reevaluated, InputUnavailable and Acknowledged do not; descriptions never claim verified transport/ETA. | M11 rule/action fixture table, NotificationPolicyTests, raw DB outbox queries and API JSON snapshots. |
+| G15-S04 | New occurrence and recurrence produce separate event identities; prior occurrence AutoResolved and newly Opened are distinguishable; re-evaluation without new history produces none. | M11 P10/P10b recurrence fixture and NotificationDeliveryRuntimeTests with immutable history IDs. |
+| G15-S05 | Active selected-org Analyst, Manager and Auditor can see only eligible personal alerts, correct templates and target; no extra business action inherited. | Five-role HTTP matrix, authorized shipment and exception detail comparisons. |
+| G15-S06 | Administrator and Support cannot receive/read/ack business alerts solely by admin/support role. Unknown role and inactive account fail closed. | Five-role membership scenarios and direct seeded DB login tests. |
+| G15-S07 | Two valid organizations and valid foreign IDs never permit cross-tenant, foreign-recipient, foreign shipment or foreign exception list/detail/count/update. Negative responses do not reveal existence. | Cross-tenant two-org fixtures, NotificationSqlBoundaryTests plus HTTP 403/404 equivalence probes. |
+| G15-S08 | Recipient source membership selection is correct at fanout; current membership version and role are checked on every read/count/action; post-removal and rejoin do not resurrect old alerts. | Membership version-change fixture with SQL snapshot and HTTP denial after regrant. |
+| G15-S09 | Session expiry, logout, logout-all, disable, security-version change, org switch and org suspension invalidate access immediately, including an in-flight mutation. | IdentityLifecycleTests impact cases plus NotificationHttpTests with concurrent commits and session selection. |
+| G15-S10 | Archived/cancelled shipment alerts are historical only; authorized archived detail works if existing M11 permits; removed or unauthorized targets are hidden, foreign resource never opens. | Archived, cancelled, missing and foreign shipment/exception fixtures; cross-check actual M11 read API. |
+| G15-S11 | Duplicate M11 source history/dispatch/retries create one outbox row per source history UUID and one user row per recipient, with no duplicate unread count. | Unique-constraint SQL proof, repeat dispatch, duplicate callback and NotificationDeliveryRuntimeTests. |
+| G15-S12 | Two dispatcher instances and concurrent fanout, lease expiry and retry have one persistent effect per recipient and no stuck claimed source or unauthorized fanout. | SKIP LOCKED/lease fencing, competing SQL sessions, trace of transactions and row counts. |
+| G15-S13 | Kill process before and after M11 history commit, intent claim, fanout commit and API response; safe recoveries resume pending work and never invent a notification for rolled-back source. | Disposable process interruption script, DB snapshots, restart logs and exact committed row IDs. |
+| G15-S14 | Intent trigger failure rolls back M11 history and source action together under proposed fail-closed policy; no orphan history/intent. Demonstrate intact M11 Manager audit and affected M11 regressions. | Fault-injected trigger function and PostgreSQL transaction/audit observations. |
+| G15-S15 | Fresh additive migration and populated accepted-main upgrade preserve prior M11/M12/M16 rows and constraints; correct migration order and snapshot consistency with M13. | Fresh and populated disposable migrations, before/after schema/count/hash, rollback policy proof, migration source diff. |
+| G15-S16 | Real harborops_api and harborops_worker restricted SQL logins cannot read others' notifications, outbox, verifier or replay rows, cannot forge signed scope or write arbitrary recipient state. | Dedicated exclusive disposable PostgreSQL server, role grants, RLS/SECURITY DEFINER attacks, signed/unsigned proof negative queries. |
+| G15-S17 | Notification list, detail/count and protected cursor pagination obey limit 1..50, stable descending keyset, 20-minute expiry, tenant/user/session/filter binding; mutable state not falsely advertised as immutable snapshot. | 100+ row fixture, changed read state between pages, new row after first cutoff, swap/tamper/expiry cases, raw HTTP captures. |
+| G15-S18 | Unread -> Read -> Acknowledged transitions enforce expectedVersion; Acknowledge from Unread sets both timestamps; stale/invalid transition and concurrent incompatible writes return correct 409/422. | NotificationHttpTests, SQL versions and before/after timestamps, no M11 state mutation. |
+| G15-S19 | Same-key same-payload replay returns original committed result once, including after response loss; different payload, recipient/session or target conflicts without duplicate state/audit. | Replay SQL tables, UUID key fixtures, post-commit timeout/retry and conflict codes. |
+| G15-S20 | M16 notification receipt audit is atomic, allowlisted, scoped and private; audit outage rolls back acknowledgement, replay does not duplicate audit. MarkRead retains the approved low-noise audit behavior. | Restricted M16 function test, forced audit failure, audit row diff and metadata redaction proof. |
+| G15-S21 | Cancellation, slow PostgreSQL, DB outage, timeouts, stopped dispatcher and recovery produce no cross-scope partial data, no unbounded claims or false delivered state. | Real HTTP/dependency fault logs, cancel tokens, bounded dispatcher and retry/backoff evidence. |
+| G15-S22 | Browser in Chromium, Firefox and WebKit renders new/read/ack feed, unread count, empty/error/loading, cursor continuation, authorized navigation and archived/unavailable target; org switch, logout and delayed responses clear protected state. | tests/browser/specs/notifications.spec.mjs, three-engine JUnit/Playwright output, safe screenshots and network assertions. |
+| G15-S23 | Changed M11, M2, M5, M10, M12 and M16 surfaces retain accepted behavior; M9 transport hold/cap, default-off projector, null ETA and opt-in M11 evaluator remain unchanged. M13 KPI totals remain independent when integrated. | Targeted accepted regression TRX, SQL checks, actual config assertions and isolated G13/G15 integration-impact report. |
+| G15-S24 | Effective negative mutations are killed for tenant predicate, personal row filter, membership version, session binding, source-history uniqueness, receipt CAS, proof validation and audit atomicity; no unresolved HIGH/CRITICAL scanned findings or leaked secrets. | Clean controls first, each mutation diff and targeted failing assertion, scanners, sanitized logs, source-locked inventory. |
+| G15-S25 | Independent reviewer verifies exact source SHA, raw test records and counts, failed/skipped attempts, manifests, migration/grant proofs, M13 reconciliation and policy record before separate G15 decision. | Read-back of E:-backed SHA-256 manifest and all referenced artifacts, review disposition, residual limitations. |
+
+## 2. Required fixture families
+
+- **Roles:** Two independent Active organizations; separate Administrator, Support, Analyst, Manager, Auditor and inactive/disabled users. At least one person belongs to both organizations with different roles and live session selection.
+- **M11 evidence:** All four accepted rule codes, Opened, Human Resolved, system AutoResolved, repeated Reevaluated, InputUnavailable, acknowledged-then-cleared-then-recurred, and permanently active manually resolved RecordedArrivalLate. Include strict UTC threshold equality and missing/stale M10 observations only as upstream M11 controls.
+- **Resource lifetime:** Two active shipments, one archived, one cancelled, foreign shipment and foreign exception IDs, optionally an absent target in an isolated synthetic case. Do not try to delete immutable historical M11 rows on a retained DB.
+- **Identity:** Valid and revoked sessions, changed securityVersion, suspended/removed/re-added membership, role reassignment, suspended organization and org selection switch while a page, mutation or detail request is pending.
+- **Delivery:** Duplicate history admission attempt, same source dispatched twice, two parallel dispatcher connections, expired lease, pre-commit and post-commit crash, audit rejection, proof key mismatch, forged signed-context GUC, canceled HTTP, background dispatcher disabled.
+- **Volume:** 100+ personal notification rows for paging; synthetic 1,000,000 rows for EXPLAIN/latency only on a disposable isolated database; 250-member fanout case and backlog recovery. No claim that such a volume has been executed.
+
+## 3. Planned test source and evidence structure
+
+Proposed test classes/files, all future work:
+
+| Layer | Test source | Evidence |
+| --- | --- | --- |
+| Domain | tests/HarborOps.UnitTests/NotificationPolicyTests.cs | Fixed event truth tables and pure state transitions |
+| API contract | tests/HarborOps.ContractTests/NotificationContractTests.cs | Wire schema, headers, cursors and sanitized error contract |
+| PostgreSQL restricted runtime | tests/HarborOps.IntegrationTests/NotificationSqlBoundaryTests.cs | Real restricted role GRANT/RLS/proof attacks and SQL transaction observation |
+| Fanout and recovery | tests/HarborOps.IntegrationTests/NotificationDeliveryRuntimeTests.cs | Unique/cursor/lease/commit-interruption rows and SQL trace |
+| Authenticated HTTP | tests/HarborOps.IntegrationTests/NotificationHttpTests.cs | Five-role access, revocation, version conflicts, link access and audit |
+| Browser | tests/browser/specs/notifications.spec.mjs | Chromium, Firefox and WebKit scoped user flows |
+| Isolated runner | scripts/verify-g15-local.sh | Source SHA, config fingerprint without secrets, stage commands/exit codes, test records, scans and SHA-256 manifest |
+
+Use independent fixture organizations, sessions and disposable DBs, not manually altered retained application tables. M12/G12 role-provisioning tests can change database server roles globally: put any role-password mutation on a **dedicated exclusive disposable PostgreSQL server**, with no other test suites or processes sharing that server. Do not assume a disposable database name alone suffices.
+
+## 4. Efficient future execution order
+
+1. **Contract and policy review:** Approve S01 separately, inspect changed M11/OrganizationPolicy/M16 trust paths, assemble only impact-based tests. No G15 source can be accepted from documentation alone.
+2. **Fast feedback:** .NET build with warnings treated as errors, unit, API contract, frontend typecheck/build and PostgreSQL DDL review. Implement fixtures first to ensure a clean control.
+3. **Focused integration:** Fresh/populated migrations, actual restricted-role tests on exclusive server, trigger and lease interruption, complete five-role HTTP matrix, SQL negative/tenant tests, audit rollback, resource navigation and measured EXPLAIN.
+4. **Integrated browser and resilience:** Three-engine tests, real local same-origin app, runtime faults, control+targeted mutations and change-impact accepted milestone regressions. M13 and M15 combined source must preserve independently attributable G13 and G15 results.
+5. **Evidence and gate:** Freeze final SHA before final required campaign. Store raw evidence under an E:-backed immutable attempt directory, retain all failures, independently verify file hashes and source, reconcile S01..S25. An independent S25 review and explicit G15 acceptance are separate from technical execution.
+
+Never rerun every historical gate unchanged without an affected contract reason. No GitHub Actions are authorized for this planning task or by this plan. No M24-04 accessibility audit is transferred into G15.
+
+## 5. Source lock, raw evidence and negative controls
+
+Every executed stage must record repository and branch, full 40-character immutable commit SHA, clean/dirty state, migration list and hashes, sanitized dependency/config versions, test command and arguments, environment identity, timing, exit code, accurate pass/fail/skip counts and raw TRX/JUnit/Playwright/SQL/HTTP evidence. Record server version, role grants, transaction isolation, UTC conversion and actual plans; do not treat compilation or synthetic mocks as database proof.
+
+Manifest all evidence files with SHA-256 and verify on read-back. Retain failed runs and explain whether any later result is the same source SHA or a changed source. Effective mutations need a passing clean control and the intended targeted failure, not merely a nonzero exit. Prevent passwords, cookies, proof secrets, original request bodies and private user data from reaching logs, screenshots, GitHub or artifacts.
+
+Permitted dispositions are PASS, FAIL, BLOCKED, NOT EXECUTED, or justified NOT APPLICABLE only where the scenario itself genuinely does not apply. Policy approval must never be inferred from test success. No G15-S25 review can pass from a self-authored success summary without independent raw evidence inspection. G15 acceptance remains pending until separately confirmed.

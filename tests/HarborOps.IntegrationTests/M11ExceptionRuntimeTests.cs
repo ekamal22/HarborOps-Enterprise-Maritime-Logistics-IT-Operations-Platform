@@ -104,6 +104,56 @@ public sealed class M11ExceptionRuntimeTests
         return row.GetProperty("id").GetGuid();
     }
 
+
+    [Fact]
+    public async Task DirectApiSqlCannotReadExceptionsOrHistoryWithoutSignedSession()
+    {
+        var s = await Prepare();
+        using var fixture = s.Factory; using var runtime = s.Runtime;
+        using var administrator = s.Fixture.Admin;
+        using var manager = s.Fixture.Manager;
+        using var analyst = s.Fixture.Analyst;
+        using var authorizedManager = s.Manager;
+        using var authorizedAnalyst = s.Analyst;
+        using var authorizedAdministrator = s.Administrator;
+        var exception = await EvaluateAndFind(s, await ScheduledShipment(s));
+
+        await using var privileged = new NpgsqlConnection(s.Roles.Admin);
+        await privileged.OpenAsync();
+        await using (var actual = new NpgsqlCommand(
+            "SELECT count(*) FROM shipment_exceptions WHERE id=@id",privileged))
+        {
+            actual.Parameters.AddWithValue("id",exception);
+            Assert.Equal(1L,(long)(await actual.ExecuteScalarAsync())!);
+        }
+
+        await using var restricted = new NpgsqlConnection(s.Roles.Api);
+        await restricted.OpenAsync();
+        foreach (var table in new[]
+            { "shipment_exceptions", "shipment_exception_history",
+              "shipment_exception_evaluations" })
+        {
+            await using var query = new NpgsqlCommand(
+                "SELECT count(*) FROM " + table,restricted);
+            Assert.Equal(0L,(long)(await query.ExecuteScalarAsync())!);
+        }
+
+        await using var tx = await restricted.BeginTransactionAsync();
+        await using (var forged = new NpgsqlCommand(
+            "SELECT set_config('harborops.m11_read_scope',@scope,true)",restricted,tx))
+        {
+            forged.Parameters.AddWithValue("scope",
+                $"{s.Fixture.A:D}|{Guid.NewGuid():D}|{Guid.NewGuid():D}|"+
+                $"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()+20}|"+
+                new string('0',64));
+            await forged.ExecuteNonQueryAsync();
+        }
+        await using (var forgedRead = new NpgsqlCommand(
+            "SELECT count(*) FROM shipment_exceptions",restricted,tx))
+            Assert.Equal(0L,(long)(await forgedRead.ExecuteScalarAsync())!);
+        await tx.CommitAsync();
+    }
+
     [Fact]
     public async Task MigrationIsAdditiveAndRuntimeSqlCannotModifyExceptionTables()
     {

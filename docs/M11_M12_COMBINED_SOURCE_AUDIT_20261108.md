@@ -1,5 +1,7 @@
 # M11 and M12 Combined Source Reconciliation and Correctness Audit
 
+**Hosted verification checkpoint (2026-11-08):** [Hosted run register](M11_M12_HOSTED_VERIFICATION_20261108.md) records successful corrected-source checks, G11 17/17 and G12 2/2 targeted PostgreSQL tests, dependency and runtime-image scans, and a confirmed **G11-S12 SQL read-isolation FAIL**. The current HTTP database login can read M11 exception rows without scoped-session authority. The browser and full integration campaigns remain in progress at the recorded checkpoint. Independent G11/G12 gate reviews and acceptance pending.
+
 **Date:** 2026-11-08
 **Branch:** `feat/m11-m12-combined-integration`
 **Accepted main baseline:** `6ead1d076946dd96b53401265a31efc35c4a666c`

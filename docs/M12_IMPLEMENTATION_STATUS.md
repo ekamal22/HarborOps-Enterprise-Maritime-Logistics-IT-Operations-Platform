@@ -1,5 +1,7 @@
 # M12 Implementation Status
 
+**Hosted verification checkpoint (2026-11-08):** [Hosted run register](M11_M12_HOSTED_VERIFICATION_20261108.md) records successful corrected-source checks, G11 17/17 and G12 2/2 targeted PostgreSQL tests, dependency and runtime-image scans, and a confirmed **G11-S12 SQL read-isolation FAIL**. The current HTTP database login can read M11 exception rows without scoped-session authority. The browser and full integration campaigns remain in progress at the recorded checkpoint. Independent G11/G12 gate reviews and acceptance pending.
+
 **Combined-source checkpoint (2026-11-08):** M11 and M12 are assembled on `feat/m11-m12-combined-integration`; shared API, role provisioning, React and migration-count surfaces have been reconciled, and M11 lifecycle code and tests updated under the [recorded M11 policies](M11_LOCAL_CONTRACT_DECISION_20261108.md). Earlier descriptions of missing combined integration or pending M11 policy choices are superseded. G11/G12 executable security and browser evidence does not yet exist, M12 local policies are still pending, and no gate acceptance, protected-main merge, deployment or M9 hold release is authorized.
 
 **M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). M12 remains an independent source candidate in draft PR #32, with no executed G12 technical gate. Shared verification strategy approval does not establish a combined source SHA, executable correctness or M12 acceptance.

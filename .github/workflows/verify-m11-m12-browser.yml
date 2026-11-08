@@ -5,6 +5,10 @@ on:
       - feat/m11-m12-combined-integration
     paths:
       - .github/workflows/verify-m11-m12-browser.yml
+      - tests/browser/specs/shipment-exceptions.spec.mjs
+      - web/src/shipments/**
+      - src/HarborOps.Api/Exceptions/**
+      - src/HarborOps.Api/Search/**
 
 jobs:
   browsers:

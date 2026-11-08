@@ -5,6 +5,8 @@ on:
       - feat/m11-m12-combined-integration
     paths:
       - .github/workflows/verify-m11-m12-impacted.yml
+      - src/**
+      - tests/**
 jobs:
   impacted:
     runs-on: ubuntu-latest

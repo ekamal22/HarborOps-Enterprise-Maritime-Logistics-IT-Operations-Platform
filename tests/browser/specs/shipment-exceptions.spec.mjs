@@ -98,8 +98,12 @@ test("G11 history continuation displays additional immutable entries without dup
   await expect(panel.getByText("Additional retained records are available", {
     exact: false })).toBeVisible();
   await panel.getByRole("button", { name: "Load more history" }).click();
-  await expect(panel.getByText("Reevaluated", { exact: false })).toHaveCount(1);
-  await expect(panel.getByText("Opened", { exact: false })).toHaveCount(1);
+  // Count the actual immutable history rows, not text matches that differ
+  // between browser engines when ancestor elements share matching text.
+  const historyItems = panel.locator("ol > li");
+  await expect(historyItems).toHaveCount(2);
+  await expect(historyItems.nth(0)).toContainText("Opened");
+  await expect(historyItems.nth(1)).toContainText("Reevaluated");
   await expect(panel.getByRole("button", { name: "Load more history" })).toHaveCount(0);
 });
 

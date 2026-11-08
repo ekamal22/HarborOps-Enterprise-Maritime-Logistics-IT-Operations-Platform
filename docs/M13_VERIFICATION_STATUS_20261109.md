@@ -5,7 +5,7 @@
 **Policy:** D-005 Option A, `m13-kpi-v1`
 **Feature candidate:** Implemented source, API, migration, dashboard and verification code documented in [implementation register](M13_IMPLEMENTATION_STATUS_20261109.md).
 **Execution environment:** GitHub Actions only, restricted to the M13 implementation branch.
-**Evidence state:** Source-locked job outcomes and raw artifacts are required. Do not claim G13 PASS based on this record.
+**Evidence state:** The targeted source/build, restricted PostgreSQL and three-engine browser campaign passed against frozen SHA `28c4a913e2880cdec26508cd0456616801cd40b3`. Comprehensive G13 scenario closure and acceptance remain pending.
 
 ## Scope
 
@@ -27,4 +27,20 @@ Run [42532775669](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logi
 
 The browser job loaded all disposable fixtures. Chromium M13 scenarios 3/3 PASS; Firefox 0/3 PASS at the shared post-login organization workspace assertion, and WebKit NOT EXECUTED because the script stopped on failure. The per-engine runtime restart and readiness gate were added following the precedent of the accepted M11/M12 browser campaign. Do not promote these remediations to PASS until the next frozen run provides successful output.
 
-**Pending:** the source-locked third run must execute before reporting successful implementation verification; the 25-scenario G13 matrix, reference 12+2 member fixture, scale evidence, mutations, M15 combined integration and independent review are still distinct acceptance work.
+## Third source-locked campaign: focused PASS
+
+Run [42533241124](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42533241124) checked the exact implementation SHA `28c4a913e2880cdec26508cd0456616801cd40b3`. **All three jobs completed successfully.**
+
+| Job | Verified results | Scope |
+| --- | --- | --- |
+| source | .NET Release warnings-as-errors build with 0 errors and warnings; **304/304 unit**, **52/52 contract** tests; React production build and web tests | Focused source, domain, API and web checks |
+| database | Exclusive disposable PostgreSQL, restricted API login, migration and HTTP checks: **6/6 selected tests PASS** | Targeted M13 runtime, grants/revocation, migration snapshot, historical upgrade |
+| browsers | Chromium **3/3**, Firefox **3/3**, WebKit **3/3**, totaling **9/9 M13 browser journeys PASS** | Tested Manager, ungranted Auditor and Administrator paths with the isolated fixture |
+
+The job logs and the source, database and browser artifacts are retained on the linked run. The two historical failed runs above remain historical failures; their results do not change retroactively.
+
+## Remaining acceptance work
+
+This focused campaign does **not** establish all 25 G13 scenarios. The approved 12+2 reference fixture and complete member reconciliation, 170,000-shipment volume/performance benchmark, measured quotas and expiry behavior, fault/crash/retry injection, full tenant/session/SQL security negatives, effective mutations, affected legacy regressions, coordinated M15 combined integration and independent G13-S25 evidence review remain unexecuted or incomplete. Their exit criteria remain binding.
+
+**Implementation candidate:** complete source and targeted technical PASS at the above SHA. **G13 gate:** not accepted. No main merge, production migration, deployment or M9 transport-hold release is authorized.

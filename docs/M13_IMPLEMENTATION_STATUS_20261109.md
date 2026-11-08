@@ -4,7 +4,7 @@
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
 **Accepted baseline:** `eb529368a2447061fc1838cd3967b0ffedae669d`
 **Policy:** D-005 Option A approved, `m13-kpi-v1`
-**Status:** Implementation source is authored on an isolated branch; no source-locked G13 verification or acceptance is claimed. M13 is not merged or deployed.
+**Status:** M13 application code, reporting migration, API, dashboard and test entrypoints are authored. Targeted source/build, restricted PostgreSQL and three-engine browser verification PASSED at `28c4a913e2880cdec26508cd0456616801cd40b3`, [run 42533241124](M13_VERIFICATION_STATUS_20261109.md). Full G13 gate requirements remain open and M13 is not merged or deployed.
 
 ## Implemented source inventory
 
@@ -41,10 +41,10 @@ G11/G12/G16 accepted status, the parked M9 ARRI/DEPA transport hold, 10,000 unre
 ## G13 and release status
 
 - D-005: APPROVED with safeguards.
-- M13-01 to M13-03: code authored, verification pending.
-- M13-04: verification sources and workflow authored, results pending.
-- G13-S01: POLICY APPROVED, RECONCILIATION PENDING.
-- G13-S02 to S25: NOT EXECUTED until source-locked evidence is obtained.
+- M13-01 through M13-03: application implementation authored; targeted checks PASSED on the frozen source.
+- M13-04: targeted implementation verification PASSED, but full G13-S01 through S25 gate evidence remains incomplete.
+- G13-S01: POLICY APPROVED, FULL SOURCE/FIXTURE AND RESOURCE LIMIT RECONCILIATION PENDING.
+- G13-S02 to S25: narrower tests have PASS evidence, but no scenario is declared fully PASS without its complete exit criteria.
 - G13: NOT ACCEPTED. No merge, deployment, or production migration authorization.
 
 GitHub Actions is the exclusive verification environment, and failed or skipped jobs must not be described as PASS. See [G13 verification matrix](M13_VERIFICATION_PLAN.md) and [D-005 approval](M13_D005_POLICY_APPROVAL_20261108.md).

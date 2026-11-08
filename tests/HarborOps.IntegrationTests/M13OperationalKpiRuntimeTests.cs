@@ -53,13 +53,15 @@ public sealed class M13OperationalKpiRuntimeTests
     {
         var code = "M13-" + Guid.NewGuid().ToString("N")[..14].ToUpperInvariant() +
             "-" + index;
-        var created = await Json(await ReferenceDataHttpTests.Send(
+        using var response = await ReferenceDataHttpTests.Send(
             client, HttpMethod.Post, root, new {
                 referenceCode = code, originPortId = origin,
                 destinationPortId = destination,
                 plannedDepartureAtUtc = Utc(plan.AddDays(-2)),
                 plannedArrivalAtUtc = Utc(plan)
-            }));
+            });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<JsonElement>();
         return created.GetProperty("id").GetGuid();
     }
 

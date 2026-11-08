@@ -105,13 +105,16 @@ public sealed class OperationalKpiStore(
         if (role is "Analyst" or "Manager") return true;
         if (role != "Auditor") return false;
         await using var command = Command(Connection, tx, """
-            SELECT active FROM operational_kpi_auditor_grants
-            WHERE organization_id=@org AND user_id=@actor FOR SHARE
+            SELECT g.active FROM operational_kpi_auditor_grants g
+            JOIN organization_memberships m ON m.organization_id=g.organization_id
+                AND m.user_id=g.user_id AND m.role='Auditor' AND m.status='Active'
+                AND m.version=g.membership_version
+            WHERE g.organization_id=@org AND g.user_id=@actor FOR SHARE OF g
             """, U("org", org), U("actor", session.UserId));
         return await command.ExecuteScalarAsync(ct) is true;
     }
 
-    public async Task<KpiOperation<bool>> CanViewAsync(CurrentSession session,
+    public async Task<KpiOperation<bool?>> CanViewAsync(CurrentSession session,
         Guid org, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -193,8 +196,12 @@ public sealed class OperationalKpiStore(
 
         DateTimeOffset now;
         await using (var current = Command(Connection, sqlTx, "SELECT clock_timestamp()"))
-            now = (DateTimeOffset)(await current.ExecuteScalarAsync(ct)
-                ?? throw new InvalidOperationException("Database clock unavailable"));
+        await using (var reader = await current.ExecuteReaderAsync(ct))
+        {
+            if (!await reader.ReadAsync(ct))
+                throw new InvalidOperationException("Database clock unavailable");
+            now = reader.GetFieldValue<DateTimeOffset>(0);
+        }
         var expires = now + OperationalKpiPolicy.ProvisionalReportLifetime;
         var report = Guid.NewGuid();
         var canonical = string.Join("|", OperationalKpiPolicy.Version,
@@ -266,7 +273,8 @@ public sealed class OperationalKpiStore(
                 COALESCE(ch.generation,0) AS generation,
                 p.observed_state,p.policy_version AS projection_policy,
                 p.input_revision AS projection_revision,
-                p.correction_generation AS projection_generation
+                p.correction_generation AS projection_generation,
+                p.refreshed_at_utc AS projection_refreshed_at
             FROM scoped s
             LEFT JOIN shipment_tracking_input_versions iv
                 ON iv.organization_id=@org AND iv.shipment_id=s.id
@@ -275,7 +283,8 @@ public sealed class OperationalKpiStore(
             LEFT JOIN shipment_tracking_projections p
                 ON p.organization_id=@org AND p.shipment_id=s.id
         ), evaluated AS MATERIALIZED (
-            SELECT h.id,e.rule_code,e.condition_state
+            SELECT h.id,e.rule_code,e.condition_state,
+                e.evaluated_at_utc
             FROM heads h
             JOIN shipment_exception_evaluations e
                 ON e.organization_id=@org AND e.shipment_id=h.id
@@ -283,6 +292,7 @@ public sealed class OperationalKpiStore(
               AND e.shipment_version=h.version
               AND e.tracking_input_revision=h.input_revision
               AND e.correction_generation=h.generation
+              AND (e.next_evaluation_at_utc IS NULL OR e.next_evaluation_at_utc>@now)
         ), quality AS MATERIALIZED (
             SELECT h.id,
                 count(e.rule_code) AS fresh_rules,
@@ -348,6 +358,7 @@ public sealed class OperationalKpiStore(
                   AND h.projection_policy='m10-equipment-v2'
                   AND h.projection_revision=h.input_revision
                   AND h.projection_generation=h.generation
+                  AND e.evaluated_at_utc>=h.projection_refreshed_at
             UNION ALL
             SELECT 'K11','',e.id,e.shipment_id,e.id,NULL
                 FROM shipment_exceptions e JOIN scoped s
@@ -497,7 +508,7 @@ public sealed class OperationalKpiStore(
         return new(grants, OrganizationAccessError.None);
     }
 
-    public async Task<KpiOperation<long>> SetGrantAsync(CurrentSession session,
+    public async Task<KpiOperation<long?>> SetGrantAsync(CurrentSession session,
         Guid org, Guid target, bool enabled, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);

@@ -16,6 +16,7 @@ public sealed class M13OperationalKpis : Migration
                 organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE RESTRICT,
                 user_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
                 active boolean NOT NULL,
+                membership_version bigint NOT NULL CHECK (membership_version > 0),
                 version bigint NOT NULL DEFAULT 1 CHECK (version > 0),
                 changed_by_user_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
                 changed_at_utc timestamptz NOT NULL DEFAULT clock_timestamp(),
@@ -119,6 +120,10 @@ public sealed class M13OperationalKpis : Migration
                 IF role_name<>'Auditor' THEN RETURN false; END IF;
                 fields:=string_to_array(current_setting('harborops.m11_read_scope',true),'|');
                 RETURN EXISTS (SELECT 1 FROM operational_kpi_auditor_grants g
+                    JOIN organization_memberships m
+                        ON m.organization_id=g.organization_id AND m.user_id=g.user_id
+                        AND m.status='Active' AND m.role='Auditor'
+                        AND m.version=g.membership_version
                     WHERE g.organization_id=p_org AND g.user_id=fields[2]::uuid
                     AND g.active);
             EXCEPTION WHEN OTHERS THEN RETURN false;
@@ -170,7 +175,7 @@ public sealed class M13OperationalKpis : Migration
                 p_org uuid,p_actor uuid,p_session uuid,p_target uuid,p_enabled boolean)
             RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER
                 SET search_path=pg_catalog,public AS $grant$
-            DECLARE new_version bigint;
+            DECLARE new_version bigint; target_version bigint;
             BEGIN
                 IF session_user<>'harborops_api' OR p_enabled IS NULL
                     OR NOT m13_scope_matches(p_org,p_actor,p_session) THEN
@@ -192,15 +197,19 @@ public sealed class M13OperationalKpis : Migration
                 IF NOT FOUND OR NOT m13_can_manage(p_org) THEN
                     RAISE EXCEPTION 'Administrator required' USING ERRCODE='42501';
                 END IF;
-                PERFORM 1 FROM organization_memberships WHERE organization_id=p_org
+                SELECT version INTO target_version FROM organization_memberships WHERE organization_id=p_org
                     AND user_id=p_target AND (NOT p_enabled OR
                         (status='Active' AND role='Auditor')) FOR SHARE;
-                IF NOT FOUND THEN RAISE EXCEPTION 'Target not eligible' USING ERRCODE='42501'; END IF;
+                IF target_version IS NULL THEN
+                    RAISE EXCEPTION 'Target not eligible' USING ERRCODE='42501';
+                END IF;
                 INSERT INTO operational_kpi_auditor_grants
-                    (organization_id,user_id,active,changed_by_user_id)
-                VALUES (p_org,p_target,p_enabled,p_actor)
+                    (organization_id,user_id,active,membership_version,changed_by_user_id)
+                VALUES (p_org,p_target,p_enabled,target_version,p_actor)
                 ON CONFLICT (organization_id,user_id) DO UPDATE
-                SET active=EXCLUDED.active,version=operational_kpi_auditor_grants.version+1,
+                SET active=EXCLUDED.active,
+                    membership_version=EXCLUDED.membership_version,
+                    version=operational_kpi_auditor_grants.version+1,
                     changed_by_user_id=p_actor,changed_at_utc=clock_timestamp()
                 RETURNING version INTO new_version;
 

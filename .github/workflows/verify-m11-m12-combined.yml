@@ -13,6 +13,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -28,6 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/check-m11-contract.mjs 2>&1 | tee .verification/m11-contract.log
+          node scripts/check-m15-contract.mjs 2>&1 | tee .verification/m15-contract.log
           node scripts/render-execution-graph.mjs --check 2>&1 | tee .verification/graph.log
           node scripts/check-planning-docs.mjs 2>&1 | tee .verification/planning.log
           find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
@@ -56,3 +58,64 @@ jobs:
           name: combined-source-${{ github.run_id }}
           path: .verification/
           retention-days: 7
+          include-hidden-files: true
+
+  m15-database:
+    name: M15 scoped PostgreSQL and M11 migration regressions
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    needs: source
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-m15-postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-m15-postgres;Pooling=false"
+      HARBOROPS_G12_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify source SHA
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Build and execute M15 PostgreSQL acceptance-preparation tests
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/m15
+          dotnet restore HarborOps.sln 2>&1 | tee .verification/m15/restore.log
+          dotnet build HarborOps.sln -c Release --no-restore -warnaserror 2>&1 | tee .verification/m15/build.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
+            --filter 'FullyQualifiedName~M15NotificationRuntimeTests|FullyQualifiedName~M11ExceptionRuntimeTests|FullyQualifiedName~M11M12UpgradeTests|FullyQualifiedName~MigrationSnapshotTests|FullyQualifiedName~M10UpgradeTests' \
+            --logger 'trx;LogFileName=m15-integration.trx' --results-directory .verification/m15 \
+            2>&1 | tee .verification/m15/integration.log
+      - name: Hash evidence and mark source
+        if: always()
+        run: |
+          mkdir -p .verification/m15
+          printf '%s\n' "$GITHUB_SHA" > .verification/m15/source-sha.txt
+          (cd .verification/m15 && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+          echo "M15 PostgreSQL source: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload M15 database evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m15-database-${{ github.run_id }}
+          path: .verification/m15/
+          retention-days: 7
+          include-hidden-files: true

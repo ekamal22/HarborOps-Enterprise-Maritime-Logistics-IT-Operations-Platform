@@ -1,5 +1,7 @@
 # Acceptance Criteria
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). A shared source-locked run may support both gates only when it exercises each claimed scenario predicate. Keep G11-S01 and G12-S01 policy decisions separate; retain independent G11-S25 and G12-S25 reviews. Source inspection, written tests and shared setup are not PASS.
+
 **Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records independent unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
 
 **G11 sixth-pass acceptance impact:** [Current source findings](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) require tests for informational severity on inactive rules, one versioned reevaluation on changed visible metadata despite a stable fingerprint, and no duplicated history on identical follow-up evaluation. These are verification obligations rather than evidence of PASS.

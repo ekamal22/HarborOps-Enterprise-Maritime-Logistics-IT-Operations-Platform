@@ -1,5 +1,8 @@
 # M15 / G15 Source-Locked Verification Plan
 
+**Current implementation checkpoint (2026-11-08):** An M15 source candidate is committed on `feat/m15-scoped-notifications-20261108`. See [M15 Implementation Status](M15_IMPLEMENTATION_STATUS.md) for exact files and unresolved risks. The earlier proposal below is preserved as the planning reference where compatible. Current source uses bounded transaction-scoped SKIP LOCKED delivery instead of persistent leased claims, and reuses the accepted signed M11 read scope instead of a new M15 verifier key. These deviations require explicit policy reconciliation. Runtime tests and G15 acceptance remain NOT EXECUTED; no deployment, merge or GitHub Actions are authorized.
+
+
 **Status:** Proposed scenario specification only. All G15-S01 through G15-S25 are NOT EXECUTED. G15 not accepted.  
 **Planning base:** main eb529368a2447061fc1838cd3967b0ffedae669d, 2026-11-08.  
 **Source prerequisites:** Accepted G11, G0-G12 and G16. Regressions are impact-based but G15 is independently gated.

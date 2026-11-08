@@ -1,5 +1,8 @@
 # M15 Scoped In-App Notifications: Implementation Plan
 
+**Current implementation checkpoint (2026-11-08):** An M15 source candidate is committed on `feat/m15-scoped-notifications-20261108`. See [M15 Implementation Status](M15_IMPLEMENTATION_STATUS.md) for exact files and unresolved risks. The earlier proposal below is preserved as the planning reference where compatible. Current source uses bounded transaction-scoped SKIP LOCKED delivery instead of persistent leased claims, and reuses the accepted signed M11 read scope instead of a new M15 verifier key. These deviations require explicit policy reconciliation. Runtime tests and G15 acceptance remain NOT EXECUTED; no deployment, merge or GitHub Actions are authorized.
+
+
 **State:** Implementation-ready sequence proposed, planning only, acceptance pending.  
 **Source baseline:** main eb529368a2447061fc1838cd3967b0ffedae669d, verified 2026-11-08.  
 **Prerequisite:** G11 accepted and merged. **Separate track:** M13 planning and delivery.  
@@ -104,6 +107,6 @@ An integration branch, merge, deployment or shared-source modification requires 
 
 **Observed M13 planning checkpoint (2026-11-08):** M13's separate plan at cf7afa4d58ac3c1e17d9eb66ef83aac32eecaca1 proposes D-005 dashboard-read entitlement distinct from ViewShipmentData, with an explicit Auditor dashboard grant, and a 10-minute report snapshot token. These are M13-only proposals, not approved M15 roles or shared source edits. M15's 20-minute feed cursor and existing shipment-read recipient choice stay separate. Both tracks propose new database persistence without fixed migration IDs; reconcile one migration order and permission matrix before implementation.
 
-## 9. Stop condition
+## 9. Current execution authorization and remaining gate
 
-Planning may be published only as M15-specific Markdown documentation. Do not create implementation files, run migrations/verification, touch governance files, edit M13 documents, dispatch workflows, merge, deploy or mark G15 accepted. Implementation begins only after approval of outstanding M15-P policies and explicit implementation authorization.
+The subsequent task authorized an independent M15 source implementation branch and repository-wide documentation reconciliation. The candidate backend, frontend, tests and opt-in dispatcher are recorded in [M15 Implementation Status](M15_IMPLEMENTATION_STATUS.md). The planning-only restriction below is superseded for the new authorized feature branch, but separate approval remains required for policy decisions, GitHub Actions, merge, production migration, release and deployment. G15 verification has not run. Reconcile the described dispatcher and key-management design deviations before any acceptance recommendation.

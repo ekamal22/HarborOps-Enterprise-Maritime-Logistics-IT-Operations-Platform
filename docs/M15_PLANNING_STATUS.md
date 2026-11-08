@@ -1,5 +1,8 @@
 # M15 Scoped In-App Notifications: Planning Status
 
+**Current implementation checkpoint (2026-11-08):** An M15 source candidate is committed on `feat/m15-scoped-notifications-20261108`. See [M15 Implementation Status](M15_IMPLEMENTATION_STATUS.md) for exact files and unresolved risks. The earlier proposal below is preserved as the planning reference where compatible. Current source uses bounded transaction-scoped SKIP LOCKED delivery instead of persistent leased claims, and reuses the accepted signed M11 read scope instead of a new M15 verifier key. These deviations require explicit policy reconciliation. Runtime tests and G15 acceptance remain NOT EXECUTED; no deployment, merge or GitHub Actions are authorized.
+
+
 **Date:** 2026-11-08  
 **State:** Planning package published for review. All runtime implementation, G15 verification and milestone acceptance are **not started**.  
 **Reviewed main:** eb529368a2447061fc1838cd3967b0ffedae669d  
@@ -52,13 +55,13 @@ The entries below are **recommended defaults only**. Neither creating these docu
 
 ## 4. M15 work package readiness
 
-| Work package | Prerequisite | Planning state | Implementation state |
-| --- | --- | --- | --- |
-| M15-01 Recipient and dedup rules | Accepted G11 | Architecture and proposed policy matrix prepared | NOT STARTED; explicit P01-P14 decision required |
-| M15-02 Notification persistence | M15-01 | Additive schema, signed DB access, fanout, reliability plan prepared | NOT STARTED; migration order and security contract unresolved |
-| M15-03 Notification interface | M15-01 | Namespaced API/React interface and navigation contract prepared | NOT STARTED; M13 shared-shell integration pending |
-| M15-04 Recipient isolation verification | M15-02 and M15-03 | G15-S01..S25 verification specification prepared | NOT EXECUTED |
-| G15 independent evidence and acceptance | All M15 work packages | Exit obligations defined | NOT EXECUTED, NOT ACCEPTED |
+| Package | Current source state | Gate state |
+| --- | --- | --- |
+| M15-01 | Event catalog, entitlement and dedup rules implemented as candidate defaults; P01-P14 not approved | Policy acceptance pending |
+| M15-02 | SQL-only outbox/personal receipt migration, restricted SQL store, opt-in dispatcher and API grants committed | Not compiled or verified |
+| M15-03 | Namespaced HTTP routes, React notification center and authorized shipment/exception navigation committed | Not compiled or browser-verified |
+| M15-04 | Unit/integration/browser and static contract test source committed | NOT EXECUTED |
+| G15 | Full G15-S01..S25 plan exists, independent review outstanding | NOT ACCEPTED |
 
 ## 5. M13 interface negotiation and ownership
 
@@ -81,8 +84,6 @@ A subsequent read-only comparison found the separate M13 planning branch at cf7a
 5. **Delivery failure/backlog and retention:** Dispatcher capacity, memory and lease behavior require measured performance; privacy retention and hold/disposal have no approval.
 6. **Evidence:** No M15 test, SQL migration, role test, browser run, security mutation, independent review or G15 gate has been executed. No shared integrated source SHA exists.
 
-## 7. Authorization boundary and next decision
+## 7. Current authorization and next decision
 
-Planning documentation is the only authorized GitHub modification for this assignment, on the independent M15 planning branch, using [skip ci]. A draft planning PR may be opened without merging. No application implementation, migrations, verification, workflow run, production deployment or release is authorized.
-
-**Recommendation:** M15 planning is ready for review, but implementation authorization and M15-P01 to P14 decisions are still required. After policy disposition and explicit implementation authorization, build M15-01 first, then M15-02/M15-03 in isolated files, coordinate the shared shell/migration changes with M13, execute G15-S01 through G15-S25, obtain independent evidence review and seek a separate G15 acceptance decision.
+Subsequent authorization allowed feature-branch M15 source implementation and repository-wide documentation reconciliation. This does not approve M15-P01 to P14, GitHub Actions, merging, production migration, release or deployment. The source remains a candidate until runtime verification is completed and an independent G15 review obtains explicit acceptance. Source-level implementation status is in [M15 Implementation Status](M15_IMPLEMENTATION_STATUS.md).

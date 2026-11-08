@@ -335,4 +335,222 @@ public sealed class M13OperationalKpiRuntimeTests
         Assert.Equal(HttpStatusCode.Forbidden,
             (await auditor.GetAsync(url + "/overview")).StatusCode);
     }
+
+    private static async Task<Guid> G13Insert(
+        NpgsqlConnection db, Guid org, Guid origin, Guid destination,
+        Guid actor, DateTimeOffset planned, string prefix)
+    {
+        var id = Guid.NewGuid();
+        await using var cmd = new NpgsqlCommand("""
+            INSERT INTO shipments (
+              id,organization_id,reference_code,origin_port_id,destination_port_id,
+              planned_departure_at_utc,planned_arrival_at_utc,workflow_status,
+              record_status,source_kind,version,created_at_utc,updated_at_utc,
+              changed_by_user_id)
+            VALUES (@id,@org,@code,@origin,@destination,@departure,@arrival,
+              'Draft','Active','Synthetic',1,clock_timestamp(),clock_timestamp(),@actor)
+            """, db);
+        cmd.Parameters.AddWithValue("id", id);
+        cmd.Parameters.AddWithValue("org", org);
+        cmd.Parameters.AddWithValue("code", prefix + Guid.NewGuid().ToString("N")[..12].ToUpperInvariant());
+        cmd.Parameters.AddWithValue("origin", origin);
+        cmd.Parameters.AddWithValue("destination", destination);
+        cmd.Parameters.AddWithValue("departure", planned.AddDays(-2));
+        cmd.Parameters.AddWithValue("arrival", planned);
+        cmd.Parameters.AddWithValue("actor", actor);
+        Assert.Equal(1, await cmd.ExecuteNonQueryAsync());
+        return id;
+    }
+
+    private static async Task G13Transition(
+        NpgsqlConnection db, Guid shipment, Guid actor, string status)
+    {
+        await using var cmd = new NpgsqlCommand("""
+            UPDATE shipments SET workflow_status=@status,version=version+1,
+              updated_at_utc=clock_timestamp(),changed_by_user_id=@actor
+            WHERE id=@shipment
+            """, db);
+        cmd.Parameters.AddWithValue("status", status);
+        cmd.Parameters.AddWithValue("actor", actor);
+        cmd.Parameters.AddWithValue("shipment", shipment);
+        Assert.Equal(1, await cmd.ExecuteNonQueryAsync());
+    }
+
+    private static async Task G13Complete(
+        NpgsqlConnection db, Guid shipment, Guid actor)
+    {
+        foreach (var status in new[] { "Booked", "InTransit", "Arrived", "Completed" })
+            await G13Transition(db, shipment, actor, status);
+    }
+
+    private static async Task<HashSet<Guid>> G13MemberIds(
+        HttpClient client, Guid org, JsonElement overview, string metric)
+    {
+        using var request = MemberRequest(org.ToString(), overview, metric);
+        var response = await Json(await client.SendAsync(request));
+        Assert.Equal(JsonValueKind.Null, response.GetProperty("nextAfter").ValueKind);
+        return response.GetProperty("items").EnumerateArray()
+            .Select(row => row.GetProperty("memberKey").GetGuid()).ToHashSet();
+    }
+
+    [ExclusiveM13PostgresFact]
+    public async Task TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var setupFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(setupFactory);
+        using var seedAdmin = fixture.Admin;
+        using var seedManager = fixture.Manager;
+        using var seedAnalyst = fixture.Analyst;
+        var seed = await AssignmentHttpTests.Seed(fixture);
+        using var seedResponse = await seedManager.GetAsync(seed.Root + "/" + seed.Shipment);
+        var rootShipment = await seedResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var origin = rootShipment.GetProperty("originPortId").GetGuid();
+        var destination = rootShipment.GetProperty("destinationPortId").GetGuid();
+
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        var actor = await new NpgsqlCommand(
+            $"SELECT changed_by_user_id FROM shipments WHERE id='{seed.Shipment}'", db)
+            .ExecuteScalarAsync();
+        var actorId = Assert.IsType<Guid>(actor);
+        // A fresh B tenant has its own ports, user and two Draft shipments.
+        var bOrigin = Guid.NewGuid();
+        var bDestination = Guid.NewGuid();
+        Guid bActor;
+        await using (var bUser = new NpgsqlCommand("""
+            SELECT user_id FROM organization_memberships
+            WHERE organization_id=@org AND role='Administrator' AND status='Active'
+            """, db))
+        {
+            bUser.Parameters.AddWithValue("org", fixture.B);
+            bActor = Assert.IsType<Guid>(await bUser.ExecuteScalarAsync());
+        }
+        foreach (var (id, code) in new[] {
+            (bOrigin, "M13-B-PORT-A"), (bDestination, "M13-B-PORT-B") })
+        {
+            await using var port = new NpgsqlCommand("""
+                INSERT INTO ports
+                  (id,organization_id,reference_code,name,country_code,status,
+                    source_kind,version,created_at_utc,updated_at_utc)
+                VALUES (@id,@org,@code,'M13 decoy port','US','Active',
+                    'Synthetic',1,clock_timestamp(),clock_timestamp())
+                """, db);
+            port.Parameters.AddWithValue("id", id);
+            port.Parameters.AddWithValue("org", fixture.B);
+            port.Parameters.AddWithValue("code", code);
+            Assert.Equal(1, await port.ExecuteNonQueryAsync());
+        }
+        var now = DateTimeOffset.UtcNow;
+        var foreign = new List<Guid>();
+        for (var i = 0; i < 2; i++)
+            foreign.Add(await G13Insert(db, fixture.B, bOrigin, bDestination,
+                bActor, now.AddDays(3), "M13B-"));
+
+        // The first completion predates the requested reporting window.
+        var early = await G13Insert(db, fixture.A, origin, destination,
+            actorId, now.AddHours(2), "M13A-");
+        await G13Complete(db, early, actorId);
+        DateTimeOffset earlyCompleted;
+        await using (var firstEvent = new NpgsqlCommand("""
+            SELECT changed_at_utc FROM shipment_status_changes
+            WHERE organization_id=@org AND shipment_id=@shipment
+              AND to_status='Completed'
+            """, db))
+        {
+            firstEvent.Parameters.AddWithValue("org", fixture.A);
+            firstEvent.Parameters.AddWithValue("shipment", early);
+            earlyCompleted = Assert.IsType<DateTimeOffset>(await firstEvent.ExecuteScalarAsync());
+        }
+        await Task.Delay(1250);
+        var from = earlyCompleted.AddSeconds(1);
+        var first = await G13Insert(db, fixture.A, origin, destination,
+            actorId, now.AddHours(2), "M13A-");
+        var late = await G13Insert(db, fixture.A, origin, destination,
+            actorId, now.AddMinutes(-85), "M13A-");
+        var tolerated = await G13Insert(db, fixture.A, origin, destination,
+            actorId, now.AddMinutes(-30), "M13A-");
+        foreach (var completed in new[] { first, late, tolerated })
+            await G13Complete(db, completed, actorId);
+
+        await using (var archive = new NpgsqlCommand("""
+            UPDATE shipments SET record_status='Archived', archived_at_utc=clock_timestamp(),
+                version=version+1,updated_at_utc=clock_timestamp(),changed_by_user_id=@actor
+            WHERE id=@id
+            """, db))
+        {
+            archive.Parameters.AddWithValue("actor", actorId);
+            archive.Parameters.AddWithValue("id", tolerated);
+            Assert.Equal(1, await archive.ExecuteNonQueryAsync());
+        }
+        var cancelled = await G13Insert(db, fixture.A, origin, destination,
+            actorId, now.AddHours(2), "M13A-");
+        await G13Transition(db, cancelled, actorId, "Cancelled");
+        var booked = new List<Guid> { seed.Shipment };
+        await G13Transition(db, seed.Shipment, actorId, "Booked");
+        for (var i = 0; i < 5; i++)
+        {
+            var id = await G13Insert(db, fixture.A, origin, destination,
+                actorId, now.AddDays(3), "M13A-");
+            await G13Transition(db, id, actorId, "Booked");
+            booked.Add(id);
+        }
+
+        // Twelve A shipments (including one archived), two B decoys.
+        await using (var count = new NpgsqlCommand("""
+            SELECT COUNT(*) FROM shipments WHERE organization_id=@org
+            """, db))
+        {
+            count.Parameters.AddWithValue("org", fixture.A);
+            Assert.Equal(12L, Convert.ToInt64(await count.ExecuteScalarAsync()));
+            count.Parameters["org"].Value = fixture.B;
+            Assert.Equal(2L, Convert.ToInt64(await count.ExecuteScalarAsync()));
+        }
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var analyst = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(analyst, fixture.AnalystEmail);
+        await ReferenceDataHttpTests.Select(analyst, fixture.A);
+        var filter = "?fromUtc=" + Uri.EscapeDataString(Utc(from)) +
+            "&beforeUtc=" + Uri.EscapeDataString(Utc(DateTimeOffset.UtcNow.AddHours(2))) +
+            "&bucket=day";
+        var report = await Json(await analyst.GetAsync(Root(fixture.A) + "/overview" + filter));
+        Assert.Equal(11L, Count(report, "D01"));
+        Assert.Equal(7L, Count(report, "K01"));
+        Assert.Equal(6L, Count(report, "K02", "Booked"));
+        Assert.Equal(1L, Count(report, "K02", "Draft"));
+        Assert.Equal(3L, Count(report, "K02", "Completed"));
+        Assert.Equal(1L, Count(report, "K02", "Cancelled"));
+        Assert.Equal(3L, Count(report, "K03"));
+        Assert.Equal(1L, Count(report, "K04"));
+        Assert.Equal(3L, Count(report, "D05"));
+        Assert.Equal(1L, Count(report, "K05"));
+        Assert.Equal(2L, Count(report, "K06"));
+        Assert.Equal(9L, Count(report, "D13"));
+        Assert.Equal(9L, Count(report, "K14"));
+        Assert.Equal(9L, Count(report, "Q01"));
+        Assert.Equal(0L, Count(report, "K13"));
+
+        Assert.True((await G13MemberIds(analyst, fixture.A, report, "K03"))
+            .SetEquals(new[] { first, late, tolerated }));
+        Assert.True((await G13MemberIds(analyst, fixture.A, report, "K04"))
+            .SetEquals(new[] { cancelled }));
+        Assert.True((await G13MemberIds(analyst, fixture.A, report, "D05"))
+            .SetEquals(new[] { first, late, tolerated }));
+        Assert.True((await G13MemberIds(analyst, fixture.A, report, "K05"))
+            .SetEquals(new[] { first }));
+        Assert.True((await G13MemberIds(analyst, fixture.A, report, "K06"))
+            .SetEquals(new[] { first, tolerated }));
+        Assert.True((await G13MemberIds(analyst, fixture.A, report, "K01"))
+            .SetEquals(booked.Append(seed.OtherShipment)));
+        Assert.True((await G13MemberIds(analyst, fixture.A, report, "D13"))
+            .SetEquals(booked.Concat(new[] { early, first, late })));
+        foreach (var metric in new[] { "K01", "K03", "D05", "D13" })
+            Assert.DoesNotContain((await G13MemberIds(analyst, fixture.A, report, metric)),
+                id => foreign.Contains(id));
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await analyst.GetAsync(Root(fixture.B) + "/overview" + filter)).StatusCode);
+    }
+
 }

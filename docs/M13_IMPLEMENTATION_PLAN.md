@@ -1,7 +1,7 @@
 # M13 Operational KPI Implementation Plan
 
 **Date:** 2026-11-08
-**State:** PLANNED, NOT AUTHORIZED FOR FEATURE IMPLEMENTATION
+**State:** M13 FEATURE IMPLEMENTATION AUTHORIZED AND AUTHORED; TARGETED SOURCE-LOCKED VERIFICATION PASSED; FULL G13 GATE PENDING
 **Accepted baseline:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Planning branch:** plan/m13-operational-kpi-dashboards-20261108
 **Dependencies:** G11 and G12 accepted; [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md) with safeguards. M13 application implementation was separately authorized and is authored on this branch; [actual source register](M13_IMPLEMENTATION_STATUS_20261109.md). Technical evidence and G13 acceptance remain pending. M15 may progress independently.

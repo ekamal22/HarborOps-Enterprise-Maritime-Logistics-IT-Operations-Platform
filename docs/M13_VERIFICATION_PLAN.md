@@ -1,7 +1,7 @@
 # M13 G13 Verification Plan
 
 **Prepared:** 2026-11-08
-**State:** PLAN ONLY. NO G13 SCENARIO HAS BEEN EXECUTED.
+**State:** TARGETED IMPLEMENTATION CHECKS PASSED at `28c4a913e2880cdec26508cd0456616801cd40b3`; full G13 scenario reconciliation and gate acceptance are outstanding.
 **Accepted baseline inspected:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Planning branch:** plan/m13-operational-kpi-dashboards-20261108
 **Policy and authorization:** [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md). Application implementation is authorized and source has been authored as recorded in [implementation status](M13_IMPLEMENTATION_STATUS_20261109.md). GitHub Actions is the exclusive M13 verification environment after implementation completion. Independent G13-S25 review and separate G13 acceptance remain mandatory.
@@ -10,7 +10,7 @@
 
 ## 1. Gate matrix
 
-The D-005 policy decision resolves the policy prerequisite, but S01 still requires source/fixture and numerical-bound reconciliation before PASS. No G13 runtime verification has executed. S02 through S25 remain NOT EXECUTED.
+The D-005 policy decision resolves the policy prerequisite, but S01 still requires source/fixture and measured-limit reconciliation. The targeted [GitHub Actions run 42533241124](M13_VERIFICATION_STATUS_20261109.md) executed and passed against the frozen implementation, covering a subset of source, PostgreSQL, migration and browser checks. Scenario statuses below remain open until each full requirement, including negative cases and source-backed proof, is documented. A NOT EXECUTED full-scenario designation does not negate the narrower executed checks.
 
 | Scenario | Pre-execution status | Required test and unambiguous success condition | Evidence to retain |
 | --- | --- | --- | --- |
@@ -69,7 +69,7 @@ The fixture must be seeded into disposable, isolated PostgreSQL only. No product
 
 For each S01-S25 record: disposition PASS/FAIL/BLOCKED/NOT EXECUTED/NOT APPLICABLE with rationale, exact source commit, branch and clean status, UTC start/end, environment/tool versions, PostgreSQL identity and migration count, seed and policy SHA, command/args with secrets excluded, actual exit code, unedited raw stdout/stderr, TRX/JUnit, SQL and HTTP outcomes, screenshot/browser results where applicable, independently recalculated expected versus actual member IDs, retained failures, and evidence SHA-256.
 
-Preserve a machine-readable index and separate human-readable gate matrix, with manifest integrity checks. A test skipped because of missing real-role exclusivity is **NOT EXECUTED**, not PASS. A prior accepted G11/G12 PASS proves the inbound baseline but not M13. No G13 test execution or acceptance is claimed by this planning package.
+Preserve a machine-readable index and separate human-readable gate matrix, with manifest integrity checks. A test skipped because of missing real-role exclusivity is **NOT EXECUTED**, not PASS. A prior accepted G11/G12 PASS proves the inbound baseline but not M13. The targeted campaign has recorded technical PASS evidence, but the complete matrix and G13 acceptance remain separate and unresolved.
 
 ## 5. Acceptance blockers
 
@@ -81,4 +81,4 @@ Preserve a machine-readable index and separate human-readable gate matrix, with 
 - Coordinated M15 migration order, shared API registration, React navigation ownership and combined regression plan.
 - Final implementation source, raw verification, independent S25 decision and explicit G13 acceptance.
 
-**G13 state as of this document: NOT EXECUTED and NOT ACCEPTED.**
+**G13 state as of this document: TARGETED TECHNICAL PASS, COMPLETE 25-SCENARIO GATE PENDING, NOT ACCEPTED.**

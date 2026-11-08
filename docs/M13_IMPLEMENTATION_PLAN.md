@@ -4,7 +4,7 @@
 **State:** PLANNED, NOT AUTHORIZED FOR FEATURE IMPLEMENTATION
 **Accepted baseline:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Planning branch:** plan/m13-operational-kpi-dashboards-20261108
-**Dependencies:** G11 and G12 accepted. D-005 must be explicitly approved before feature implementation. M15 may progress independently.
+**Dependencies:** G11 and G12 accepted; [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md) with safeguards. Application implementation still requires separate authorization and engineering contract closure. M15 may progress independently.
 
 ## 1. Scope, completion definition and decision gates
 
@@ -16,7 +16,7 @@ Canonical execution graph sequence:
 
 | Work package | Depends on | Target deliverable | Exit evidence |
 | --- | --- | --- | --- |
-| M13-01 Finalize KPI catalog and cutoffs | Accepted G11; explicit D-005 resolution | Approved m13-kpi-v1 policy, fixture ledger, permissions, snapshot consistency and display labels | Signed-off D-005 decision and independently checked fixture arithmetic |
+| M13-01 Finalize KPI catalog and cutoffs | Accepted G11; D-005 Option A approved | Reconcile approved m13-kpi-v1 policy to source-backed fixtures, Auditor grant and resource bounds | Recorded approval plus independently reconciled fixture arithmetic and remaining contract decisions |
 | M13-02 Implement aggregate query services | Approved M13-01 and accepted G12 | Tenant-safe SQL/EF aggregate services, API, report/member snapshot, scoped authorization and measured query plans | Unit, contract, actual PostgreSQL/HTTP and real-role denial tests |
 | M13-03 Build dashboard visualizations | Approved M13-01 | React cards, trends, coverage, filter state and snapshot-bound drill-through | Three-engine browser journeys and UI state controls |
 | M13-04 Verify dashboard correctness | M13-02 and M13-03 | Complete source-locked G13-S01..S24 technical campaign and consolidated evidence | Exact reconciliation, security, migration, concurrency and failure evidence |
@@ -28,16 +28,16 @@ M13-02 and M13-03 can be developed in parallel after the approved M13-01 contrac
 
 ## 2. M13-01: policy, fixture and implementation contract
 
-1. Review docs/M13_D005_KPI_DECISION_PROPOSAL.md with the accepted requirements, domain model, rule contracts and permissions. Record exact approval, revisions or refusal. Do not update docs/DECISIONS.md or the canonical graph without a separately authorized coordinated change.
+1. Apply the recorded [D-005 Option A approval](M13_D005_POLICY_APPROVAL_20261108.md) to source-backed fixtures, requirements, domain rules and permissions. Only the D-005 decision row is reconciled on this branch; the canonical execution graph and unrelated shared documents remain unchanged.
 2. Decide strict on-time versus grace-tolerant recorded arrival. Keep distinct recorded event, schedule-unconfirmed and risk labels. Freeze every catalog entry's source class, eligibility, numerator, denominator, missing/stale behavior, archived/cancelled handling, rule version and output precision.
 3. Prove whether a planned arrival recorded today is an applicable historical plan for a completed M5 workflow. Verify from accepted M5 migration and API update policy, including legacy upgrades. If not provable, choose an explicit unknown classification or an approved new plan-history fact before reporting historical accuracy.
 4. Freeze filter set: required UTC half-open window or seven-complete-day default, maximum 366 days, origin/destination port, current voyage as of evaluation, optional business source, day/week bucket. Do not reuse M12 arbitrary text search in expensive aggregate paths without fresh index evidence.
-5. Decide snapshot model: repeatable-read overview plus bounded committed report members (recommended) or a clearly disclosed non-frozen live drill protocol. Decide precise TTL, retention, per-tenant/report limits and refusal mode. Define owner-only and live-revocation protections.
-6. Decide typed dashboard authorization, especially how an Auditor obtains and loses an explicit read-only grant given existing one-role-per-membership schema. Default is deny without a recorded grant; Administrator/Support do not inherit visibility.
+5. Use the approved repeatable-read overview with bounded committed report members. Measure and finalize the provisional ten-minute TTL, retention, per-tenant/report limits and atomic refusal mode. Define owner-only and live-revocation protections. A live-only alternative requires a new policy decision.
+6. Apply the approved typed permission: Analyst/Manager scoped allow, Auditor only with an explicit active scoped read-only grant, Administrator/Support deny. Choose and independently test its grant storage and revocation mechanism.
 7. Freeze response DTOs and error codes with sample values for all K01-K14 and report-drill token field binding. Maintain M11/m13 policy version separation.
 8. Build a deterministic test fixture manifest with one tenant A and one tenant B, IDs, timestamps relative to a captured database UTC reference, role assignments, accepted M5 status transitions, M6 association intervals, M10 revisions/corrections and M11 rule occurrences. Include exact numeric totals, source-row membership and graph bucket expectations, rather than counts only.
 
-M13-01 exit: policy is explicitly approved, no open contradictory wording between proposed specification and fixture, and fixture rows can be independently enumerated for every KPI. Planning documents are not that approval.
+M13-01 exit: D-005 policy approval is recorded, but source-backed fixture membership, historical plan provenance, grant mechanism and measured limits still require closure. No M13-01 or G13 scenario may be marked PASS based on documentation alone.
 
 ## 3. M13-02: backend work breakdown
 
@@ -111,13 +111,13 @@ Follow docs/M13_VERIFICATION_PLAN.md exactly, with G13-S01..S25, a frozen candid
 
 Stages:
 1. Source review, clean Release build with warnings treated as errors, unit/contract and web build. Cross-check M11/M12 accepted contracts. Stop on failures before expensive stages.
-2. Disposable E:-backed PostgreSQL fresh and populated accepted-15-migration upgrades, real-role HTTP/SQL security, fixed fixture totals, equality cutoff, duplicate/correction and rule-history tests.
+2. Ephemeral GitHub Actions runners with exclusive disposable PostgreSQL fresh and populated accepted-15-migration upgrades, real-role HTTP/SQL security, fixed fixture totals, equality cutoff, duplicate/correction and rule-history tests.
 3. Concurrent update, tenant suspension, membership revocation, session logout, report expiration, cancellation, outage/restart and cleanup. Test no partial or stale leaks.
 4. Real 170,000-row skewed-tenant query plan and report build budget; repeat for empty and medium tenant. Measure actual SQL and HTTP path including proxy envelope.
 5. Three-engine browser flow including M5/M11/M12 regressions and M15-neutral navigation. Use independently isolated browser ports and profiles.
 6. Freeze source and manifest exact commands, tool versions, DB snapshot, policy version, SQL plans, TRX/JUnit, browser reports, mutation provenance, failures and SHA-256. Independent S25 reviewer separately verifies raw evidence. Only then request explicit G13 acceptance.
 
-No past G11/G12 PASS can be copied into G13 results. Do not execute GitHub Actions merely because planning has been published. Do not claim that a source-level review proves runtime performance.
+No past G11/G12 PASS can be copied into G13 results. GitHub Actions is the **exclusive permitted environment for future M13 verification after separate M13 implementation authorization**. Do not start workflows now or substitute local test execution. Source review is not runtime performance evidence.
 
 ## 6. Parallel M15 interface and migration coordination
 
@@ -142,7 +142,7 @@ M15 notification read/unread/delivery state is never an M13 numerator, denominat
 
 | Risk | Impact | Mitigation and evidence |
 | --- | --- | --- |
-| Unapproved D-005 choice | Policy mismatch or misleading metrics | Block feature implementation until explicit decision; preserve proposal as proposed |
+| Deviation from approved D-005 rules | Policy mismatch or misleading metrics | Enforce approved Option A, require source-proven arrival plans and demand a new versioned decision for formula changes |
 | Missing historical plan values | False on-time percentages | Prove plan immutability or exclude unknown, add new plan-version storage only by approval |
 | Stale/default-off M10 and M11 | False zero conflict or risk | Coverage and freshness warnings; no prediction; opt-in processing not enabled by reporting |
 | M11 protected SQL read policy | Direct SQL leak or empty unreadable aggregate | Restricted-role and RLS testing, constrained signed report-read authority |
@@ -153,4 +153,4 @@ M15 notification read/unread/delivery state is never an M13 numerator, denominat
 | API/proxy timeout | Partially served dashboards or stalled connections | Safe pre-response build, cancellation/rollback and Nginx/Kestrel fault tests |
 | Historical checkpoint limitations | Unsupported upgrade confidence | Fresh and populated 15-to-next migration tests; retain accepted data untouched |
 
-**Authorization recommendation:** M13 is ready for policy review and implementation scheduling after D-005 and shared permission/migration contracts are approved. It is not ready for application implementation authorization, G13 acceptance, merge, release, production migration or deployment at this planning checkpoint.
+**Authorization status:** D-005 Option A is approved as policy. Application implementation remains unauthorized in this documentation-only turn; source fixtures, permission/migration contracts and measured limits still need closure. GitHub Actions-only M13 verification is authorized for use after separate implementation authorization, not now. G13 acceptance, merge, release and deployment remain unauthorized.

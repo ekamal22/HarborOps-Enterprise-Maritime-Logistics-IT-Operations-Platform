@@ -3,7 +3,7 @@
 **Date:** 2026-11-08
 **Status:** PLANNED ONLY, NOT IMPLEMENTED
 **Accepted source:** main eb529368a2447061fc1838cd3967b0ffedae669d
-**Prerequisites:** G11 and G12 accepted; D-005 remains pending explicit approval.
+**Prerequisites:** G11 and G12 accepted; [D-005 Option A approved with safeguards](M13_D005_POLICY_APPROVAL_20261108.md). Implementation contracts and measurement remain open.
 **Canonical work:** M13-01, M13-02, M13-03, M13-04 and G13.
 
 ## 1. Verified code and data inventory
@@ -34,7 +34,7 @@ M11 exception SQL is protected by special restricted-reader read-scope controls 
 6. Drill endpoint reauthorizes every request, reads only the report's stored member set and returns a deterministic keyset page. A downstream link to M12 shipment detail or M11 exception detail requires fresh authorization and can display newer state with a visible date distinction.
 7. Report member deletion is bounded by TTL and quotas; database outages fail closed. No background evaluation, projector reconfiguration, transport processing or notification delivery is triggered by a read.
 
-This is a proposal pending D-005 and performance validation, not an implemented storage or consistency guarantee.
+D-005 approves the versioned KPI and exact-reconciliation policy. Storage, performance and security implementation remain unbuilt, and their behavior cannot be claimed until verified.
 
 ## 3. Read and computation model
 
@@ -99,7 +99,7 @@ HTTP access: 401 unauthenticated; 403 forbidden role/revoked scoped grant; 404 f
 
 The role model currently allows Analyst, Manager and Auditor to ViewShipmentData; Support and Administrator cannot. The requirements matrix allows dashboard viewing for Analyst and Manager, requires an explicit read-only grant for Auditor and denies Support/Administrator by default.
 
-Introduce a separate OrganizationPermission.ViewOperationalKpis. Proposed initial allowlist: Analyst true, Manager true, Auditor false unless a specifically scoped, currently active read-only grant exists, Support false, Administrator false. The existing one-role-per-membership schema contains no general resource grant table, so M13-01 must approve either a narrow organization/user dashboard entitlement table or an equivalent existing policy facility if independently proven. Do not silently map all Auditors to true on the basis of shipment-read permission. A granted Auditor can see only sanitized read-only metrics and authorized underlying shipment/exception detail; no CSV export authorization is implied.
+Introduce a separate OrganizationPermission.ViewOperationalKpis. Approved allowlist: Analyst true, Manager true, Auditor false unless a specifically scoped, currently active read-only grant exists, Support false, Administrator false. The existing one-role-per-membership schema contains no general resource grant table, so M13-01 must select and validate a narrow organization/user dashboard entitlement table or an equivalent existing policy facility if independently proven. Do not silently map all Auditors to true on the basis of shipment-read permission. A granted Auditor can see only sanitized read-only metrics and authorized underlying shipment/exception detail; no CSV export authorization is implied.
 
 Validate scope at HTTP boundary, inside the report generation transaction and on every drill request. Enforce organization_id predicates in every join, application query and database report object. Test direct SQL as harborops_api: all M11 RLS policy paths, read-scope signed controls, table grants and possible SECURITY DEFINER functions. Never expose SQL helper keys, permit arbitrary organization selection via a token or grant direct table SELECT to evade M11 isolation.
 
@@ -129,4 +129,4 @@ A future read model may accelerate reporting, but it must derive exclusively fro
 
 ## 9. Architectural decisions requiring closure
 
-Before M13-02: explicit D-005 catalog, cutoff, strict-vs-tolerated arrival, snapshot consistency and retention choice; Auditor grant storage and read-only semantics; selected report-member encoding and quotas; M11 read authority boundary under harborops_api; index and endpoint budget; M15 migration and shared UI navigation ownership. All are proposals until reviewed. G13 requires executed evidence and a separate acceptance decision.
+D-005 already approves the catalog, UTC boundaries, separate strict/tolerated arrival metrics, source safeguards and snapshot-to-drill consistency. Before M13-02: reconcile exact fixture membership and historical plans, finalize Auditor grant storage, measure and select snapshot-member encoding, expiry/quotas, restricted M11 SQL read authority, indexes and request budgets, and coordinate M15 migrations/navigation. Feature implementation still requires separate authorization. G13 requires executed evidence and a separate acceptance decision.

@@ -63,7 +63,7 @@ Human browser login uses ASP.NET Core 10 cookie authentication with protected ti
 
 ## Decision deadlines under parallel delivery
 
-Each D-number belongs to the first applicable implementing work package and must be resolved before that package, even when another milestone proceeds independently. D-003 (accepted for M4), D-002 (accepted for M7), D-006 (accepted for M8), D-005 for M13, D-004 for M14, D-008 for M19, and D-007 for M22 remain milestone-specific; parallel execution does not permit bypassing these decisions. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md). Accepted M0-M3 decisions are unchanged.
+Each D-number belongs to the first applicable implementing work package and must be resolved before that package, even when another milestone proceeds independently. D-003 (accepted for M4), D-002 (accepted for M7), D-006 (accepted for M8), D-005 (approved Option A on unmerged M13 planning branch), D-004 for M14, D-008 for M19, and D-007 for M22 remain milestone-specific; parallel execution does not permit bypassing these decisions. See [Parallel Delivery Policy](PARALLEL_DELIVERY_POLICY.md) and [Execution Graph](EXECUTION_GRAPH.md). Accepted M0-M3 decisions are unchanged.
 
 ## M3 reference-data design choices (implemented and accepted)
 
@@ -92,10 +92,14 @@ See the accepted [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for
 | --- | --- | --- | --- |
 | D-002 | DCSA reference release/subset | Accepted 2026-11-03, Option A: DCSA Track & Trace 2.2.0 as the reference baseline for the deliberately narrower, HarborOps-specific, non-conformant profile `tnt-2.2-harborops-v1`, pinned by SHA-256 as local snapshots (not official immutable releases); the supported subset is unchanged. See the [decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [reference snapshots](../third_party/dcsa-track-and-trace/README.md) | M7 |
 | D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
-| D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M13 |
+| D-005 | Exact operational KPI tolerances | **Approved 2026-11-08, Option A with safeguards.** [Decision record](M13_D005_POLICY_APPROVAL_20261108.md). Fourteen m13-kpi-v1 definitions, separate strict and 60-minute recorded on-time measures, UTC and historical-plan safeguards, distinct risks, Unknown/Stale treatment, exact report-member reconciliation and scoped read permissions. Ten-minute expiry is provisional; numeric limits, source fixtures and grant/storage mechanisms require validation. Policy acceptance is not implementation or G13 acceptance. | M13 |
 | D-006 | Transactional inbox, source-key replay, collision, pending cap, retention and future worker/dead-letter durability | **Accepted 2026-11-04, Option A.** PostgreSQL transactional receipt/event/Pending work with permanent source event identity and a 10,000 Pending cap, followed by M9 worker/retry/dead-letter transitions. See [D-006 decision](M8_D006_DURABILITY_PROPOSAL.md), [independent evidence](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md) and [gate closure](M8_G8_GATE_CLOSURE.md). | M8-01 and M9 |
 | D-007 | Hosting account and budget ceiling | Local only until credit and spending restrictions checked | M22 |
 | D-008 | Backup retention and recovery objectives | Define measurable targets based on demo environment | M19 |
+
+## D-005: M13 KPI decision on the unmerged planning branch
+
+D-005 Option A is approved on 2026-11-08 under [the M13 decision record](M13_D005_POLICY_APPROVAL_20261108.md), with measured engineering limits and source-backed fixture reconciliation outstanding. GitHub Actions is the exclusive future M13 verification environment after separate feature implementation authorization; nothing authorizes a workflow run for recording this approval. The M9 hold and all other milestone policies are unchanged.
 
 ## D-006: Durable inbox and future worker handoff
 

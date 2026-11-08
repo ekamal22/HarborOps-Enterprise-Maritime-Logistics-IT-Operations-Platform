@@ -1,10 +1,12 @@
-# M13 D-005 Operational KPI Decision Proposal
+# M13 D-005 Operational KPI Policy and Original Proposal
 
 **Date:** 2026-11-08
-**Status:** PROPOSED, NOT APPROVED
+**Status:** D-005 OPTION A APPROVED on 2026-11-08 with safeguards. Original proposal alternatives are retained for traceability.
 **Accepted source:** main at eb529368a2447061fc1838cd3967b0ffedae669d
-**Decision owner:** Explicit project policy approval required before M13-01 closure or M13 application implementation.
+**Decision record:** [Approved D-005 Option A](M13_D005_POLICY_APPROVAL_20261108.md). Policy approval is not M13-01 technical closure or feature implementation authorization.
 **Scope:** FR-012, FR-002, NFR-007, NFR-008. This document does not authorize G13 acceptance, deployment, migrations or a change to accepted M9-M12 rules.
+
+**Approved policy scope:** K01-K14 source definitions, historical exclusions, rule thresholds, UTC windows, unknown/stale reporting, and exact report-to-drill reconciliation below are binding for m13-kpi-v1. Historical planned arrival must be source-proven or excluded as unknown. Ten-minute report expiry is a provisional target only; exact quotas, latency thresholds and storage mechanisms require measured evidence. No code or verification execution is authorized in this documentation-only update.
 
 ## 1. Source facts and invariants
 
@@ -51,10 +53,10 @@ All counts are tenant-local. A shipment counts once in a shipment-count numerato
 ## 4. UTC, snapshot and window contract
 
 - All instants are UTC ISO 8601 with explicit Z or +00:00; reject offset-less, date-only and non-zero-offset timestamps. Apply half-open [fromUtc,beforeUtc), strictly from inclusive and before exclusive. Reject reversed, equal or single-ended intervals; recommend maximum span 366 days, matching M12 where filters overlap.
-- Recommend default reporting window trailing seven complete UTC days ending at the most recent 00:00 UTC; user-selected windows are explicit. Never infer local timezone from a browser display. Daily buckets start at 00:00 UTC, weekly buckets at Monday 00:00 UTC. The last partial bucket is visibly marked if permitted.
+- Use a default reporting window of the trailing seven complete UTC days ending at the most recent 00:00 UTC; user-selected windows are explicit. Never infer local timezone from a browser display. Daily buckets start at 00:00 UTC, weekly buckets at Monday 00:00 UTC. The last partial bucket is visibly marked if permitted.
 - Current metrics K01/K02/K07-K11/K13/K14 describe a **fresh transactional snapshot** and use database-provided evaluatedAtUtc plus policy/version and freshness metadata. Historical metrics K03-K06/K12 use accepted event facts in the requested window, evaluated against that same snapshot. An arbitrary historical asOfUtc supplied by a client must not rewrite current mutable values.
 - Recommend one PostgreSQL REPEATABLE READ transaction per overview build, using a common source snapshot and separately captured database UTC evaluation instant. Revalidate selected organization, live user/session/security version, active membership and typed dashboard permission while holding scoped locks until snapshot materialization commits. Handle serialization retries with bounded attempts. The UTC timestamp labels computation, not a guarantee that PostgreSQL MVCC has a wall-clock-perfect rewind point.
-- **Recommendation for exact cross-request drill parity:** persist a short-lived, server-owned report snapshot and its minimal metric member keys within the aggregation transaction. Bind an opaque protected report token to actor, session, selected organization, filter hash, catalog version, snapshot ID and expiration. Recommend 10-minute expiration, no renewal without recomputation, one active report per principal/organization and a bounded per-tenant row budget determined by benchmarks. On expiry return 409 report_expired; never silently switch to live M12 search.
+- **Approved exact cross-request drill parity:** persist a short-lived, server-owned report snapshot and its minimal metric member keys within the aggregation transaction. Bind an opaque protected report token to actor, session, selected organization, filter hash, catalog version, snapshot ID and expiration. Treat 10 minutes as a provisional expiry target subject to measurement, with no renewal without recomputation. Finalize per-principal concurrency and per-tenant report-member budgets from verified capacity results. On expiry return 409 report_expired; never silently switch to live M12 search.
 - Drill pages read ONLY stored snapshot members, use a deterministic (metric ID, bucket, shipment ID, occurrence ID) keyset, and reauthorize live identity, membership, organization and read-only grant on every request. Snapshot columns contain only scoped IDs, metric memberships, bucket and safe display summaries. No raw tracking payload, actor details or free-form reasons. Current shipment detail links always revalidate and may have changed since the snapshot. Label such differences clearly.
 - If durable report materialization exceeds approved resource caps, return a bounded failure without partial counts. Do not create an unbounded PostgreSQL transaction or pretend a capped sample is a complete total. An alternate live-only overview is permitted only with an explicit policy revision stating that drill pages can drift.
 - No cache shared across tenants, sessions or roles. Use Cache-Control: private, no-store and clear state on account, membership, organization or role changes. Expired reports and membership rows require measured cleanup, retention and quota tests.
@@ -75,7 +77,7 @@ Expected tenant A values: K01 **7**, K02 **11 unarchived** with Draft 1, Booked 
 
 Negative controls: move S03 arrival from +60 minutes to +60 minutes plus one microsecond, move a completion to exactly beforeUtc, archive S07, change M10 correction generation for S09, duplicate S08 occurrence history, and revoke the session between overview and drill. Recompute all impacted expectations explicitly. The integration fixture must ensure the relative-to-T event and cutoff spacing is large enough not to cross a boundary during a run.
 
-## 7. Alternatives and requested approval
+## 7. Alternatives considered during approval
 
 | Choice | Recommended default | Alternative and tradeoff |
 | --- | --- | --- |
@@ -87,4 +89,4 @@ Negative controls: move S03 arrival from +60 minutes to +60 minutes plus one mic
 | Evaluator lag | Unknown/partial display with coverage and freshness | Treating missing evaluations as zero creates false operational assurance |
 | Access | Dedicated dashboard-read permission; Analyst/Manager default, Auditor explicitly granted read-only, Support/Administrator denied | Reusing broad shipment-read permission would implicitly grant an unapproved dashboard privilege |
 
-**Approve or revise D-005 explicitly**: m13-kpi-v1 catalog and labels; 60-minute comparison semantics; strict on-time denominator; archived/cancelled/history handling; seven-day defaults and 366-day maximum; current versus historical boundary; ten-minute report snapshots and member retention/quotas; freshness treatment; exact fixture expectations; typed Auditor read-only grant model and relevant privacy/performance ceilings. This document is a recommendation, not approval. If approval changes the catalog, reconcile the implementation and G13 fixture contracts before writing code.
+**Disposition:** D-005 Option A is approved with the safeguards in [the decision record](M13_D005_POLICY_APPROVAL_20261108.md). Fixture targets require source-backed reconciliation. Numeric performance, retention and storage limits are not approved without measurement. M13 code implementation, G13 scenario PASS, merge and deployment remain separate decisions.

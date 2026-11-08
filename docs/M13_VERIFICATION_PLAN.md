@@ -4,17 +4,17 @@
 **State:** PLAN ONLY. NO G13 SCENARIO HAS BEEN EXECUTED.
 **Accepted baseline inspected:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Planning branch:** plan/m13-operational-kpi-dashboards-20261108
-**Required authorization:** Explicit D-005 decision before M13 implementation; independent G13-S25 review and separate G13 acceptance after source-locked evidence.
+**Policy and authorization:** [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md). Application implementation still requires a separate authorization. GitHub Actions is the exclusive future M13 verification environment after implementation authorization. Independent G13-S25 review and separate G13 acceptance remain mandatory.
 **Requirement coverage:** FR-012, FR-002, NFR-007, NFR-008; related session, least-privilege and regression boundaries.
 **Reference documents:** M13_D005_KPI_DECISION_PROPOSAL.md, M13_ARCHITECTURE_DESIGN.md, M13_IMPLEMENTATION_PLAN.md, REQUIREMENTS.md, M11_LOCAL_CONTRACT_DECISION_20261108.md, M12_LOCAL_CONTRACT_DECISION_20261108.md and M11_M12_G11_G12_GATE_CLOSURE_20261108.md.
 
 ## 1. Gate matrix
 
-Dispositions in this planning document are proposed pre-execution statuses, not claims of technical success. S01 is BLOCKED on an explicit policy decision. All other scenarios are NOT EXECUTED until actual source-locked evidence exists.
+The D-005 policy decision resolves the policy prerequisite, but S01 still requires source/fixture and numerical-bound reconciliation before PASS. No G13 runtime verification has executed. S02 through S25 remain NOT EXECUTED.
 
 | Scenario | Pre-execution status | Required test and unambiguous success condition | Evidence to retain |
 | --- | --- | --- | --- |
-| **G13-S01** | **BLOCKED** | D-005 explicitly approves or revises every m13-kpi-v1 definition, strict/tolerated on-time distinction, numerators, denominators, window cutoffs, source precedence, stale/unknown handling, archive/cancellation/history handling, rounding, snapshot strategy, Auditor grants and resource ceilings. Confirm final fixture expectations against the approved version. | Decision record, policy version, revised fixture ledger, approval reference; policy adoption alone is not executable test evidence |
+| **G13-S01** | **POLICY APPROVED, RECONCILIATION PENDING** | Verify the approved m13-kpi-v1 definitions and source-backed fixture member sets; finalize exact Auditor grant mechanism, report storage and measured numerical capacity thresholds. Policy approval alone cannot establish source/fixture compliance or a PASS. | [D-005 approval](M13_D005_POLICY_APPROVAL_20261108.md), independently reconciled fixture ledger, numerical resource decisions and policy version |
 | **G13-S02** | NOT EXECUTED | Clean warnings-as-errors .NET Release build, domain and API contract test execution, React typecheck/production build and documentation consistency against a frozen candidate; no undocumented API drift from M11/M12. | Commands, tool versions, exit codes, TRX/JUnit, build logs, source SHA, file hashes |
 | **G13-S03** | NOT EXECUTED | K01/K02 current active/status distribution exactly reconcile to one source shipment per ID, include/exclude Draft/Completed/Cancelled and Archived correctly; tenant A reference counts are K01=7 and status total=11 plus Archived=1, subject to approved D-005. | Database row inventory, exact count SQL, response JSON, membership ID sets and signed fixture digest |
 | **G13-S04** | NOT EXECUTED | K03/K04 distinct first Completed/Cancelled transitions within [fromUtc,beforeUtc); subsequently archived shipments remain in historical throughput while cancellations never count as completions. Reference K03=3, K04=1. | Transition rows, UTC timestamps, report/member results, independent aggregate recalculation |
@@ -53,17 +53,17 @@ The fixture must be seeded into disposable, isolated PostgreSQL only. No product
 
 ## 3. Execution tiers and resource isolation
 
-**Tier 0, before implementation:** D-005 approval and exact freeze of catalog/DTO/permission/snapshot contracts. Confirm no independently allocated M13/M15 migration IDs. Do not turn S01 PASS from a proposal.
+**Tier 0, before implementation:** D-005 approved; reconcile source-backed fixtures, exact DTO/grant mechanism, measured report limits and M13/M15 migration allocation. Do not turn S01 PASS from policy approval alone.
 
-**Tier 1, fast source checks:** Release build warnings as errors, unit and contract tests, TypeScript build, documentation link validation, API schema checks, static permission diff and targeted pure-rule tests. Stop on source failure. No Actions.
+**Tier 1, fast source checks:** After implementation authorization, use manually dispatched GitHub Actions for Release build warnings as errors, unit and contract tests, TypeScript build, documentation link validation, API schema checks, static permission diff and targeted pure-rule tests. Stop on source failure. No local execution.
 
-**Tier 2, real database and HTTP:** Disposable fresh/populated accepted-15 migration upgrades, restricted login/RLS, reference fixture row-by-row reconciliation, typed grant/revocation races, report snapshot pagination, concurrent M11 source changes, outage and cancellation. If a restricted-role suite provisions shared PostgreSQL login names, use an exclusive disposable PostgreSQL **server**, not merely a separate database. Never set an isolation override without verifying exclusivity.
+**Tier 2, real database and HTTP:** In isolated GitHub Actions runners, execute disposable fresh/populated accepted-15 migration upgrades, restricted login/RLS, reference fixture row-by-row reconciliation, typed grant/revocation races, report snapshot pagination, concurrent M11 source changes, outage and cancellation. If a restricted-role suite provisions shared PostgreSQL login names, use an exclusive disposable PostgreSQL **server**, not merely a separate database. Never set an isolation override without verifying exclusivity.
 
-**Tier 3, frozen candidate:** Capture one implementation SHA and changed-file hashes. Run the complete applicable regression, network/proxy bounds, performance plans, multiple-instance admission test, three browser engines and effective mutation campaign. Non-conflicting tests can be parallelized only when ports, DB state, browser profiles and E:-backed output directories are isolated. Avoid repeated full suites on unchanged source.
+**Tier 3, frozen candidate:** Capture one implementation SHA and changed-file hashes. Run the complete applicable regression, network/proxy bounds, performance plans, multiple-instance admission test, three browser engines and effective mutation campaign. Non-conflicting jobs can be parallelized only with separate runner state, isolated ports, exclusive database instances, browser profiles and artifact namespaces. Avoid repeated full suites on unchanged source.
 
 **Tier 4, independent review:** Freeze evidence, audit manifest/hashes and 25 dispositions, retain failed attempts with fixes attributed to correct source SHAs, request separate S25 review and subsequent G13 decision. Neither S25 nor G13 can be self-certified merely from passing scripts.
 
-All controllable source/worktrees, temp build caches, Docker volumes, browser caches and evidence belong under E:. Unavoidable system temporary usage on C: is permitted. Do not run, enable, dispatch or rerun GitHub Actions without a separate authorization, and do not deploy or migrate production.
+**Execution boundary:** GitHub Actions is exclusively authorized for M13 verification after separate M13 implementation authorization. Use manually dispatched, source-locked jobs on ephemeral runners with disposable build, browser and database storage and appropriately redacted retained artifacts. No local verification alternative is authorized. No workflow may be started, enabled, triggered or rerun during this documentation-only approval, and no production migration or deployment is permitted. The E:-drive policy still applies to any later separately authorized Windows-local activity.
 
 ## 4. Evidence manifest and reporting discipline
 
@@ -73,7 +73,7 @@ Preserve a machine-readable index and separate human-readable gate matrix, with 
 
 ## 5. Acceptance blockers
 
-- D-005 approval and its exact numeric fixture expectations.
+- Source-backed numeric fixture reconciliation to approved D-005 Option A, plus final reporting implementation contracts and measured resource limits.
 - Explicit Auditor read-only grant mechanism without broadening current default permissions.
 - Feasible M11 restricted-SQL read architecture for aggregation.
 - A validated snapshot member representation, bounded TTL/quota and consistent authorization/revocation behavior.

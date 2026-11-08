@@ -143,8 +143,8 @@ public static class AuditRoleProvisioner
                         GRANT SELECT ON m15_user_notifications TO harborops_api;
                         GRANT EXECUTE ON FUNCTION m15_can_read(
                             uuid,uuid,uuid,bigint,uuid) TO harborops_api;
-                        GRANT EXECUTE ON FUNCTION m15_deliver_pending(integer)
-                            TO harborops_api;
+                        GRANT EXECUTE ON FUNCTION m15_deliver_pending(integer),
+                            m15_delivery_status() TO harborops_api;
                         GRANT EXECUTE ON FUNCTION m15_apply_personal_action(
                             uuid,uuid,uuid,uuid,varchar,bigint,uuid,varchar)
                             TO harborops_api;

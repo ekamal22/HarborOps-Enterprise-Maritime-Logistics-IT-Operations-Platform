@@ -239,9 +239,32 @@ public sealed class NotificationStore(
         await Connection.OpenAsync(ct);
         try
         {
-            await using var cmd = Command(Connection, null, 
-                "SELECT m15_deliver_pending(@take::integer)",("take",10));
-            return Convert.ToInt32(await cmd.ExecuteScalarAsync(ct));
+            // A repeatable-read snapshot keeps audience size and the committed
+            // eligible recipient set consistent for the entire fanout batch.
+            await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
+                IsolationLevel.RepeatableRead,ct);
+            int count;
+            await using (var cmd = Command(Connection,tx,
+                "SELECT m15_deliver_pending(@take::integer)",("take",10)))
+                count = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct));
+            await tx.CommitAsync(ct);
+            return count;
+        }
+        finally { await Connection.CloseAsync(); }
+    }
+
+    public async Task<(long Pending,long Deferred,long Quarantined)> DeliveryStatusAsync(
+        CancellationToken ct)
+    {
+        await Connection.OpenAsync(ct);
+        try
+        {
+            await using var cmd = Command(Connection,null,
+                "SELECT pending,deferred,quarantined FROM m15_delivery_status()");
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            if (!await reader.ReadAsync(ct))
+                throw new InvalidOperationException("Notification delivery status unavailable");
+            return (reader.GetInt64(0),reader.GetInt64(1),reader.GetInt64(2));
         }
         finally { await Connection.CloseAsync(); }
     }

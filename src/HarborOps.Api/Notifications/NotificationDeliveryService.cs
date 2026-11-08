@@ -11,6 +11,7 @@ public sealed class NotificationDeliveryService(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        long lastQuarantined = -1;
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -18,6 +19,15 @@ public sealed class NotificationDeliveryService(
                 using var scope = scopes.CreateScope();
                 var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
                 var count = await store.DeliverPendingAsync(stoppingToken);
+                if (count == 0)
+                {
+                    var status = await store.DeliveryStatusAsync(stoppingToken);
+                    if (status.Quarantined > 0 && status.Quarantined != lastQuarantined)
+                        logger.LogWarning(
+                            "Notification delivery has {Quarantined} quarantined intents and {Deferred} deferred retries",
+                            status.Quarantined,status.Deferred);
+                    lastQuarantined = status.Quarantined;
+                }
                 await Task.Delay(count == 0
                     ? TimeSpan.FromSeconds(15) : TimeSpan.FromMilliseconds(300), stoppingToken);
             }

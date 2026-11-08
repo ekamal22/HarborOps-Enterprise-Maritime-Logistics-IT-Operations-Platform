@@ -79,6 +79,8 @@ Source adapters, inbound event inbox, validation, normalization, replay, project
 ### Analytics
 Read-optimized queries and aggregates with reproducible definitions and drill-down references.
 
+The isolated M13 implementation adds `m13-kpi-v1` source-reconciled reporting, a REPEATABLE READ report/member snapshot, a signed M11 read-scope-dependent tenant query path and typed Auditor grants bound to active membership versions. The analytics module is confined to `/analytics` and `web/src/analytics`; it does not use parked M9 transport events or notification state. See [implementation register](M13_IMPLEMENTATION_STATUS_20261109.md). Runtime correctness remains unverified until G13.
+
 ### IT Operations
 Health data, service incidents, evidence, investigation notes, state transitions, and remediation tracking.
 

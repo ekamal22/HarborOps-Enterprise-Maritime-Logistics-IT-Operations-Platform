@@ -141,7 +141,8 @@ public static class AuditRoleProvisioner
                         GRANT EXECUTE ON FUNCTION m13_scoped_role(uuid),
                             m13_scope_matches(uuid,uuid,uuid),m13_can_view(uuid),
                             m13_can_manage(uuid),m13_member_access(uuid,uuid),
-                            m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean)
+                            m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean),
+                            m13_prune_expired(uuid,integer)
                             TO harborops_api;
                     END IF;
                 END $m13_roles$;

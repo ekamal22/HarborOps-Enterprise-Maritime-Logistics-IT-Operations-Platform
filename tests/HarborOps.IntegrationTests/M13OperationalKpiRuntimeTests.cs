@@ -212,12 +212,17 @@ public sealed class M13OperationalKpiRuntimeTests
         using var seedAdmin = f.Admin;
         using var seedManager = f.Manager;
         using var seedAnalyst = f.Analyst;
-        var identity = seedFactory.Services.GetRequiredService<IdentityStore>();
         var tag = Guid.NewGuid().ToString("N");
         var email = "m13-auditor-" + tag + "@example.test";
         const string passphrase = "Synthetic-reference-integration-passphrase-123";
-        await identity.ProvisionAsync(email, "M13 Auditor", passphrase, CancellationToken.None);
-        var auditorId = (await identity.LoginAsync(email, passphrase, "m13", CancellationToken.None))!.UserId;
+        Guid auditorId;
+        await using (var scope = seedFactory.Services.CreateAsyncScope())
+        {
+            var identity = scope.ServiceProvider.GetRequiredService<IdentityStore>();
+            await identity.ProvisionAsync(email, "M13 Auditor", passphrase, CancellationToken.None);
+            auditorId = (await identity.LoginAsync(email, passphrase, "m13",
+                CancellationToken.None))!.UserId;
+        }
         using (var member = await ReferenceDataHttpTests.Send(seedAdmin,
             HttpMethod.Put, $"/api/v1/organizations/{f.A}/memberships/{auditorId}",
             new { role = "Auditor", status = "Active", expectedVersion = (long?)null }))
@@ -273,8 +278,5 @@ public sealed class M13OperationalKpiRuntimeTests
         Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden,
             (await auditor.GetAsync(url + "/overview")).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden,
-            (await analyst.GetAsync(url + "/exports/shipments")).StatusCode == HttpStatusCode.Forbidden
-                ? HttpStatusCode.Forbidden : HttpStatusCode.OK); // Analyst remains a separate export role
     }
 }

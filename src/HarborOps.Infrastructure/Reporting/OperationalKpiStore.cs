@@ -175,6 +175,12 @@ public sealed class OperationalKpiStore(
             if (await lockCmd.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Conflict, "report_in_progress");
 
+        // Bound expired-report maintenance to this selected organization.
+        // No cross-tenant sweep or unbounded cleanup is exposed to runtime.
+        await using (var prune = Command(Connection, sqlTx,
+            "SELECT m13_prune_expired(@org,@limit)", U("org", org), I("limit", 8)))
+            await prune.ExecuteScalarAsync(ct);
+
         // Only this actor's existing report may be retired; retained member rows
         // are deleted via scoped FK cascade. Other sessions are not affected.
         await using (var cleanup = Command(Connection, sqlTx, """

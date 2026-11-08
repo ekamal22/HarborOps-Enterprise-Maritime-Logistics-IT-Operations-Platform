@@ -143,6 +143,29 @@ public sealed class M13OperationalKpis : Migration
             EXCEPTION WHEN OTHERS THEN RETURN false;
             END $member$;
 
+            -- A report build may prune only expired reports of its selected
+            -- organization. Cleanup is bounded and must be authorized by the
+            -- same signed M11 session scope as reporting reads.
+            CREATE FUNCTION m13_prune_expired(p_org uuid,p_limit integer)
+            RETURNS integer LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog,public AS $prune$
+            DECLARE n integer;
+            BEGIN
+                IF session_user<>'harborops_api' OR NOT m13_can_view(p_org)
+                    OR p_limit NOT BETWEEN 1 AND 16 THEN
+                    RAISE EXCEPTION 'Invalid report pruning scope' USING ERRCODE='42501';
+                END IF;
+                WITH victims AS (
+                    SELECT id FROM operational_kpi_reports
+                    WHERE organization_id=p_org AND expires_at_utc<=clock_timestamp()
+                    ORDER BY expires_at_utc,id LIMIT p_limit FOR UPDATE SKIP LOCKED
+                )
+                DELETE FROM operational_kpi_reports r USING victims v
+                WHERE r.id=v.id AND r.organization_id=p_org;
+                GET DIAGNOSTICS n=ROW_COUNT;
+                RETURN n;
+            END $prune$;
+
             CREATE FUNCTION m13_set_auditor_grant(
                 p_org uuid,p_actor uuid,p_session uuid,p_target uuid,p_enabled boolean)
             RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER
@@ -195,7 +218,8 @@ public sealed class M13OperationalKpis : Migration
             REVOKE ALL ON FUNCTION m13_scoped_role(uuid),
                 m13_scope_matches(uuid,uuid,uuid),m13_can_view(uuid),
                 m13_can_manage(uuid),m13_member_access(uuid,uuid),
-                m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean) FROM PUBLIC;
+                m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean),
+                m13_prune_expired(uuid,integer) FROM PUBLIC;
 
             ALTER TABLE operational_kpi_auditor_grants ENABLE ROW LEVEL SECURITY;
             ALTER TABLE operational_kpi_reports ENABLE ROW LEVEL SECURITY;
@@ -236,6 +260,8 @@ public sealed class M13OperationalKpis : Migration
                     SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m13_member_access(uuid,uuid)
                     SET search_path TO pg_catalog,%1$I,public',s);
+                EXECUTE format('ALTER FUNCTION %1$I.m13_prune_expired(uuid,integer)
+                    SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m13_set_auditor_grant(
                     uuid,uuid,uuid,uuid,boolean)
                     SET search_path TO pg_catalog,%1$I,public',s);
@@ -258,6 +284,7 @@ public sealed class M13OperationalKpis : Migration
             DROP TABLE operational_kpi_reports;
             DROP TABLE operational_kpi_auditor_grants;
             DROP FUNCTION m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean);
+            DROP FUNCTION m13_prune_expired(uuid,integer);
             DROP FUNCTION m13_member_access(uuid,uuid);
             DROP FUNCTION m13_can_manage(uuid);
             DROP FUNCTION m13_can_view(uuid);

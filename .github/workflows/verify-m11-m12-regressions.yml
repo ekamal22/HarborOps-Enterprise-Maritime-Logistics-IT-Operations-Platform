@@ -29,6 +29,7 @@ jobs:
           set -euo pipefail
           git clone --branch feat/m11-m12-combined-integration "https://github.com/$GITHUB_REPOSITORY.git" source
           cd source
+          git checkout --detach "$GITHUB_SHA"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git cat-file -e 6ead1d076946dd96b53401265a31efc35c4a666c^{commit}
           echo "Integrated regression SHA $GITHUB_SHA"
@@ -54,7 +55,7 @@ jobs:
               raise SystemExit('Missing integration test counters')
           values = {key: int(counters.get(key, '-1')) for key in ('total', 'passed', 'failed', 'notExecuted')}
           print('Source-locked full integration counters:', values)
-          if values['total'] < 300 or values['passed'] != values['total'] or values['failed'] != 0 or values['notExecuted'] != 0:
+          if values['total'] < 340 or values['passed'] != values['total'] or values['failed'] != 0 or values['notExecuted'] != 0:
               raise SystemExit('Full integration run missing expected coverage, has skips or has failures')
           PY
       - name: Summarize exact run identity and retained evidence hash

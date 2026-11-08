@@ -6,6 +6,29 @@
 
 **Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents informational severity on inactive outcomes, versioned rule-metadata reconciliation and typed due-work continuation. The source changes and new tests are unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending. The M9 transport-processing hold remains in force.
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Reuse a shared disposable E:-backed stack where safe, but serialize outage and global-login tests. G12 login-changing verification requires a dedicated disposable PostgreSQL server. No deployment or M9 transport-hold release is authorized.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records separate unmerged source candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns are unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**M12 candidate status (2026-11-08):** [Draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) contains scoped shipment search, bounded signed CSV export and source-level correctness repairs. [Latest audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md), [implementation status](M12_IMPLEMENTATION_STATUS.md) and [G12 plan](M12_VERIFICATION_PLAN.md) distinguish authored tests from executed evidence. The fifth pass adds exclusive PostgreSQL role-test gating and CSV cancellation checks. Earlier source fixes remain in force. G12 execution and independent acceptance remain pending. Protected `main` and the M9 transport hold are unchanged.
+
+## M12 fifth-pass test execution boundary
+
+The [latest M12 audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md) identifies server-global PostgreSQL role mutation in the G12 restricted-runtime test. Use an exclusive disposable **server**, not only a disposable database. The test is explicitly SKIPPED unless `HARBOROPS_G12_EXCLUSIVE_POSTGRES=1` is set and performs a second fail-closed execution preflight. xUnit disables parallel execution for its collection within the assembly; concurrent test processes and other assemblies must be stopped separately. Review `HARBOROPS_TEST_DB` local host/database validation before selecting the G12 server. Do not apply the marker to a retained or shared instance.
+
+The export now checks cancellation through synchronous CSV generation and encoding. Real CPU-stall, database-stall and Nginx response-time tests remain unexecuted; the store's 25-second budget does not include authentication or delivery. Keep E: as the backing store for disposable verification volumes and evidence.
+
+## M12 export proof provisioning candidate, 2026-11-07
+
+M12 is present only on the isolated feature branch, not accepted or deployed. See the [source audit](M12_CORRECTNESS_AUDIT_20261107.md) and [G12 verification plan](M12_VERIFICATION_PLAN.md). The accepted main stack and M9 transport hold remain unchanged.
+
+The SQL-only M12 migration creates `m12_export_proof_keys`, the restricted `m12_record_shipment_export` function and a unique event/correlation index. To enable CSV export in a **disposable, approved M12 verification stack**, generate an independent 32-byte random base64 key, for example with `node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('base64'))"`. Place it in the untracked, E:-backed local secret configuration as `HARBOROPS_M12_EXPORT_PROOF_KEY`, distinct from the M10 key and database passwords. `compose.yaml` passes it to the one-shot privileged migrator and HTTP API as `M12ExportProof__Key`, not the worker, web or projector. No key value belongs in the repository, terminal logs or evidence.
+
+The M12 Compose variable is optional so existing accepted-stack tests are not forced to configure a future module, but export **fails closed with sanitized 503** if the key is missing or the database verifier does not match. A configured but malformed key aborts the privileged provisioning step. To rotate, coordinate the same new value in migrator and API, reprovision with the privileged identity on an isolated stack, then restart only the authorized API instance. Previous outstanding proofs are invalidated; audit records stay immutable. Do not perform this on retained environments without a separate maintenance approval.
+
+The proposed G12 PostgreSQL role test reprovisions server-wide `harborops_api` and `harborops_worker` passwords. It requires a dedicated disposable PostgreSQL instance and must never run concurrently with other mutable verification tests or touch the primary database. All worktrees, images, caches, credentials, volumes and raw evidence belong on E: under [Local Storage Policy](LOCAL_STORAGE_POLICY.md). Run `docker compose config --quiet` and source-locked checks only when a suitable local runtime is available and approved; this audit did not run them.
+
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The signed-correction security remediation merged in [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) at `9b6c801fde4004a4c0021ec7a6296efe28cf1544` after [G10 S01/S25 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Historical reports retain their original source-locked results. The M9 transport-processing hold continues. No deployment or release is authorized.
 
 

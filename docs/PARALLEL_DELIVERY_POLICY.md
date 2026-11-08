@@ -6,6 +6,12 @@
 
 **Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) records correction of inactive severity and same-fingerprint metadata drift, plus typed due-work cursor keys. Tests are authored but unexecuted. G11-S01 BLOCKED, G11-S02 through S25 NOT EXECUTED, acceptance pending; M9 transport processing held and PR #31 unmerged.
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). For M11/M12, approved future convergence is one isolated combined candidate with both original branches preserved. Reconcile sources and permissions first, reuse safe test infrastructure and keep independent gate acceptance. No branch merge or combined test has yet occurred.
+
+**Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records separate unmerged implementation candidates in draft PRs #31 and #32. M11 policy approval is blocked, both technical gate campaigns remain unexecuted, and acceptance pending. Protected `main` and the M9 transport hold are unchanged.
+
+**M12 candidate status (2026-11-08):** [Draft PR #32](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/32) contains scoped shipment search, bounded signed CSV export and source-level correctness repairs. [Latest audit](M12_CORRECTNESS_AUDIT_20261108_FIFTH_PASS.md), [implementation status](M12_IMPLEMENTATION_STATUS.md) and [G12 plan](M12_VERIFICATION_PLAN.md) distinguish authored tests from executed evidence. The fifth pass adds exclusive PostgreSQL role-test gating and CSV cancellation checks. Earlier source fixes remain in force. G12 execution and independent acceptance remain pending. Protected `main` and the M9 transport hold are unchanged.
+
 **Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
 
 
@@ -41,8 +47,8 @@ The dependency is expressed by **work-package ID**. Gate `Gx` does not inherit a
 | M7 tracking source contract | Completed and merged | G7 and D-002 Option A accepted 2026-11-03; see [closure](M7_G7_GATE_CLOSURE.md) |
 | M8 durable receipt implementation | G8 accepted and merged 2026-11-04 via PR #14 | G6/G7 accepted; D-006 Option A and independent source-locked G8 evidence reviewed; see [closure](M8_G8_GATE_CLOSURE.md) |
 | M9 worker and reconciliation | G9 accepted 2026-11-05, merged | [G9 closure](M9_G9_GATE_CLOSURE.md) records the reviewed evidence and mandatory transport-backlog restriction. M16 integration was separately completed and accepted as G16 on 2026-11-06. |
-| M11 delay rules and exceptions | M11-01 through M11-04 source candidate, draft PR #31 | G10 accepted. M11-P01..P12 and G11 approval pending; SQL, API and UI source must be reconciled independently before integration. |
-| M12 shipment search/export | M12-01 through M12-04 source candidate, draft PR #32 | G5 accepted. M12-P01..P16 and G12 approval pending; separate migration 14 with a different ID, shared source and Compose integration must be verified. |
+| M11 delay rules and exceptions | M11-01 through M11-04 source candidate, draft PR #31 | G10 accepted. M11-P01..P12 and G11 approval pending; its distinct migration 14, SQL authority, API and UI must be reconciled with M12 on a combined source. |
+| M12 shipment search/export | M12-01 through M12-04 source candidate, draft PR #32 | G5 accepted. M12-P01..P16 and G12 approval pending; separate migration 14 with a different ID, shared code and Compose integration must be verified; keep independent test resources. |
 | M14 route mapping | M14-01 | G4 accepted; map licensing and fallback must be decided before implementation |
 | M16 audit and access hardening | G16 accepted 2026-11-06, merged via PR #25 | [G16 closure](M16_G16_GATE_CLOSURE.md) records reviewed standalone, combined and F001 extension evidence, four accepted integration decisions and residual limits. No deployment authorized. |
 | M17 observability | M17-01 | G3 accepted; use stable telemetry conventions without coupling to incomplete business tables |

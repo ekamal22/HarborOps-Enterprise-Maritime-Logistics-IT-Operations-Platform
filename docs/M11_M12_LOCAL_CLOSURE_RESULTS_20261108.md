@@ -1,13 +1,13 @@
 # M11/M12 Local Closure Results
 
-**Formal gate decision, 2026-11-08:** M11/G11 and M12/G12 ACCEPTED following separately approved S01 contracts and second-archive S25 re-review. See [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Prior planning-stage, source-only and gate-pending passages remain historical. The M9 ARRI/DEPA hold, 10,000 cap, null ETA and default-off projectors/evaluator remain binding. Merge authorized, deployment not authorized.
+**Current disposition (2026-11-08):** M11/G11 and M12/G12 accepted following separate S01 policy and S25 evidence decisions; the combined source merged into `main` through [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). [Formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) supersede any earlier proposed, blocked or unmerged milestones in this dated record. The original evidence and earlier failed runs remain valid historical observations. M9 ARRI/DEPA hold remains binding; no deployment authorized.
 
 **Date:** 2026-11-08
 **Branch:** `feat/m11-m12-combined-integration`
 **Hosted application SHA (earlier evidence):** `f56d017d9b2619be56fe533f73ba1d11f63974c0`
 **Closure application source:** hosted source plus two fixes, `5dedbb7` (export serialization retry) and `b2a72bf` (explicit UTC designator). Application source is identical from `2eee441` onward; later commits change tests and the stack probe only.
 **Accepted baseline:** protected `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`, unchanged
-**Status:** Technical evidence for the independent S25 re-reviews. **G11 and G12 acceptance pending.** No merge, deployment, release or production migration occurred.
+**Status:** Complete technical closure evidence; G11 and G12 subsequently ACCEPTED, reviewed and merged through PR #33. No deployment, release or production migration occurred.
 
 Dispositions are in the [G11 matrix](M11_G11_EVIDENCE_MATRIX_20261108.md) and [G12 matrix](M12_G12_EVIDENCE_MATRIX_20261108.md); the machine-readable index is [M11_M12_LOCAL_EVIDENCE_INDEX_20261108.json](M11_M12_LOCAL_EVIDENCE_INDEX_20261108.json).
 
@@ -121,7 +121,7 @@ First package: five plan-probe attempts, two G11 residual attempts, the F-M12-01
 2. The formal S01 decisions and the signed M9 hold reconciliation.
 3. Items outside this campaign: production-like cluster and sustained-load behaviour, a trigram index decision, and the optional indexed due queue for the evaluator.
 
-## Technical recommendations
+## Historical technical recommendations (before formal acceptance)
 
 - **G11:** ready for independent re-review; all 23 technical scenarios have executed evidence and S01 and S25 are the only open rows.
 - **G12:** ready for independent re-review under the same terms, with findings 1 to 3 recorded as accepted limits or follow-up.

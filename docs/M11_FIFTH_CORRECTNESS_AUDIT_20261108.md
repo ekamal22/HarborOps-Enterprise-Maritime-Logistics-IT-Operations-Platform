@@ -1,5 +1,6 @@
 # M11 Fifth Correctness Audit and Source Remediation
 
+**Historical review scope (post-acceptance notice):** This is a point-in-time M11 source audit. Findings, source SHAs and unexecuted-test statements below refer to the audit date and must not be treated as the current G11 gate state. M11/G11 was subsequently verified, formally accepted and merged through [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). See the [G11 evidence matrix](M11_G11_EVIDENCE_MATRIX_20261108.md) and [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). The mandatory M9 hold remains unchanged.
 **Review date:** 2026-11-08
 **Isolated implementation:** `feat/m11-delay-exception-lifecycle`, draft PR #31
 **Accepted source baseline:** `main` `6ead1d076946dd96b53401265a31efc35c4a666c`

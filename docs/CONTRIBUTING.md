@@ -1,16 +1,6 @@
 # Engineering and Documentation Conventions
 
-**Verification closure (2026-11-08):** M11/M12 341/341 full integration tests passed at frozen application SHA `f56d017`; the [acceptance review](M11_M12_ACCEPTANCE_REVIEW_20261108.md), [targeted local runbook](M11_M12_LOCAL_CLOSURE_RUNBOOK_20261108.md), and separate G11/G12 scenario matrices define remaining independent raw evidence and local checks. G11/G12 acceptance pending; no new GitHub Actions campaign is authorized.
-
-**Current executed evidence (2026-11-08):** [M11/M12 verification reconciliation](M11_M12_VERIFIED_COVERAGE_RECONCILIATION_20261108.md) is the authoritative run-by-run record: 340/340 earlier whole integration, 40/40 impacted tests including 13-to-15 populated upgrade, G11 19/19, G12 4/4, 36/36 three-engine browser, 5/5 effective mutants, restricted SQL isolation and security scans, plus 291/291 unit and 46/46 contract on their individually identified SHAs. Full run `42443065884` is still in progress. Preserve historical failures and pending independent G11-S25/G12-S25 reviews; no acceptance, merge or deployment is implied.
-
-**Current verification policy (2026-11-08):** [M11/M12 verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) now requires manual, coordinated, source-locked workflows instead of automatic push-triggered campaigns. [Run-by-run progress](M11_M12_VERIFICATION_PROGRESS_20261108.md) is the current verification checkpoint; older reports and source-only notes below are historical. G11/G12 independent S25 review and acceptance remain pending. Protected `main`, the M9 transport hold, and deployment restrictions are unchanged.
-
-**Current M11 source audit (2026-11-08):** [Sixth correctness audit](M11_SIXTH_CORRECTNESS_AUDIT_20261108.md) documents corrected inactive rule severity, metadata-aware signed reevaluation and explicitly typed due-work cursors. Regression tests are authored but unexecuted. G11-S01 remains BLOCKED on policy; G11-S02 through S25 remain NOT EXECUTED, and acceptance pending. Draft PR #31 is unmerged; M9 transport processing remains held.
-
-**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
-
-**Current integrated baseline (2026-11-07):** G0-G10 and G16 are accepted on protected `main`. The M10 signed-correction remediation merged through [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) following S01/S25 independent review; see [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). Earlier G10 pending statements are historical source-locked records. The M9 transport-processing hold remains mandatory. No deployment or release is authorized.
+**Current status (2026-11-08):** G0-G12 and G16 are accepted and merged into `main`. G11 and G12 have separately approved S01 policies and S25 evidence reviews in the [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Earlier pending, unverified and source-candidate checkpoints below remain historical if explicitly dated. The M9 ARRI/DEPA transport hold and 10,000 unresolved-item cap remain binding. M10 projector defaults off, ETA remains null and M11 evaluator is opt-in. No production deployment or migration is authorized.
 
 ## Current G10 contribution boundary
 
@@ -91,7 +81,7 @@ Use one branch/worktree per independent milestone, from an accepted baseline. Es
 
 ## Accepted M5 shipment module
 
-The M5 shipment implementation and [G5 acceptance](M5_G5_GATE_CLOSURE.md) are integrated into `main`. Preserve its tenant-scoped state history, optimistic concurrency and authorization behavior in later work. M6 allocations are also integrated and [G6 accepted](M6_G6_GATE_CLOSURE.md). Use local E:-backed verification, `[skip ci]` commits and pull requests to protected `main`; keep GitHub Actions disabled.
+The M5 shipment implementation and [G5 acceptance](M5_G5_GATE_CLOSURE.md) are integrated into `main`. Preserve its tenant-scoped state history, optimistic concurrency and authorization behavior in later work. M6 allocations are also integrated and [G6 accepted](M6_G6_GATE_CLOSURE.md). Use local E:-backed verification, `[skip ci]` commits and pull requests to protected `main`; do not run GitHub Actions without explicit authorization.
 
 ## Accepted M4 module and contribution boundary
 
@@ -105,7 +95,7 @@ The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLE
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. The completed M1 pull request included schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and the historical GitHub Actions evidence in [G1 Verification](M1_VERIFICATION_PLAN.md). This does not authorize any additional workflow runs. No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.
 
-Do not conflate architecture approval with milestone acceptance. **G0-G10 and G16 are explicitly accepted and integrated into protected `main` by 2026-11-07.** All other gates remain subject to their own reviews. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md). No deployment is implied.
+Do not conflate architecture approval with milestone acceptance. **G0-G12 and G16 are explicitly accepted and integrated into protected `main` by 2026-11-08.** Remaining gates require their own separate reviews. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). No deployment is implied.
 
 ## Documentation hygiene
 
@@ -126,6 +116,6 @@ Preferred structure: scope, changed paths, behavior, tests actually executed, re
 
 ## Current accepted M9/M16 integration (2026-11-06)
 
-Accepted `main` includes M0-M10/G0-G10 and M16/G16. [G9 closure](M9_G9_GATE_CLOSURE.md) preserves 809/809 .NET tests, 14/14 mutation families and 174/174 browser executions. M16's accepted [combined gate](M16_G16_GATE_CLOSURE.md) records later independently reviewed security, migration, browser and F001 extension evidence. The mandatory G9 sustained transport-processing hold remains, and no production deployment is authorized.
+Accepted `main` includes M0-M12/G0-G12 and M16/G16. [G9 closure](M9_G9_GATE_CLOSURE.md) preserves 809/809 .NET tests, 14/14 mutation families and 174/174 browser executions. M16's accepted [combined gate](M16_G16_GATE_CLOSURE.md) records later independently reviewed security, migration, browser and F001 extension evidence. The mandatory G9 sustained transport-processing hold remains, and no production deployment is authorized.
 
 M16's standalone `e571157`, combined `79318c6` and post-acceptance F001 `8ba7727` records retain their separate source-locked evidence. The original S07/S08/S28 supplement was later reviewed, with its provenance limitation disclosed. G16 was accepted and [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) merged on 2026-11-06. Keep persisted resources on E:, preserve historical evidence, do not run GitHub Actions, and include `[skip ci]` in commits. [Documentation guide](DOCUMENT_STATUS_GUIDE.md) distinguishes living versus historical documents.

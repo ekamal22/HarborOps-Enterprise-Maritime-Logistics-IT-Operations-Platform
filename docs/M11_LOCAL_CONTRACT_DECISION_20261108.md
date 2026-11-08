@@ -1,21 +1,13 @@
 # M11 Local Rule and Exception Lifecycle Decision
 
-**Formal gate sign-off, 2026-11-08:** The policy choices documented below were explicitly adopted for G11-S01 and G12-S01 acceptance, as appropriate. See [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). This approval does not change any policy limit, M9 operating restriction or release boundary. Earlier decision-selection wording below is historical.
-
-**Closure campaign update (2026-11-08):** Independent raw-evidence reviews of the first local package were performed ([G11](M11_G11_INDEPENDENT_EVIDENCE_REVIEW_20261108.md), [G12](M12_G12_INDEPENDENT_EVIDENCE_REVIEW_20261108.md)) and returned S25 NOT PASS. The [closure campaign](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md) then ran the complete 388-case integration suite with no skips, 291 unit and 46 contract tests, measured query plans, an isolated Nginx, Kestrel and PostgreSQL stack (G11 process and database faults 12/12, G12 real network path 32/32), 48/48 three-engine browser tests, 17/17 effective mutants killed and clean dependency, source and image scans, and fixed two defects (export serialization retry, explicit UTC designator). The [G11](M11_G11_EVIDENCE_MATRIX_20261108.md) and [G12](M12_G12_EVIDENCE_MATRIX_20261108.md) matrices carry the dispositions (G11 PASS 23, BLOCKED 2; G12 PASS 22, NOT APPLICABLE 1, BLOCKED 2). A new independent re-review of the closure package, the formal S01 policy decisions and the signed M9 hold reconciliation remain pending, so acceptance is pending for both gates. Protected `main`, the M9 hold and all deployment restrictions are unchanged.
-
-**Final M11/M12 technical verification (2026-11-08):** [Run reconciliation](M11_M12_VERIFIED_COVERAGE_RECONCILIATION_20261108.md) confirms **341/341 integration PASS** on `f56d017` with no skips, plus 40/40 impacted, G11 19/19, G12 4/4, three-engine browser 36/36, effective mutants 5/5, SQL read isolation and security scans. [G11/G12 acceptance sufficiency review](M11_M12_ACCEPTANCE_REVIEW_20261108.md), [G11 matrix](M11_G11_EVIDENCE_MATRIX_20261108.md) and [G12 matrix](M12_G12_EVIDENCE_MATRIX_20261108.md) record exact remaining evidence gaps. Independent S25 reviews and acceptance pending. Older 340-case and 'in progress' notes below describe historical checkpoints, not current execution.
-
-**Current executed evidence (2026-11-08):** [M11/M12 verification reconciliation](M11_M12_VERIFIED_COVERAGE_RECONCILIATION_20261108.md) is the authoritative run-by-run record: 340/340 earlier whole integration, 40/40 impacted tests including 13-to-15 populated upgrade, G11 19/19, G12 4/4, 36/36 three-engine browser, 5/5 effective mutants, restricted SQL isolation and security scans, plus 291/291 unit and 46/46 contract on their individually identified SHAs. Full run `42443065884` is still in progress. Preserve historical failures and pending independent G11-S25/G12-S25 reviews; no acceptance, merge or deployment is implied.
-
-**Current verification policy (2026-11-08):** [M11/M12 verification operations](M11_M12_VERIFICATION_OPERATIONS_20261108.md) now requires manual, coordinated, source-locked workflows instead of automatic push-triggered campaigns. [Run-by-run progress](M11_M12_VERIFICATION_PROGRESS_20261108.md) is the current verification checkpoint; older reports and source-only notes below are historical. G11/G12 independent S25 review and acceptance remain pending. Protected `main`, the M9 transport hold, and deployment restrictions are unchanged.
+**Accepted implementation (2026-11-08):** M11/G11 was formally accepted and merged into `main` in [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). The [G11 gate matrix](M11_G11_EVIDENCE_MATRIX_20261108.md) and [formal closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) govern current evidence and the M11-P01..P12/P10b policy. The proposal, candidate and pending-test wording below records earlier planning checkpoints. The M11 evaluator stays opt-in and the M9 transport hold remains binding.
 
 **Decision date:** 2026-11-08
 **Scope:** M11-P01 through M11-P12, on the combined M11/M12 integration candidate only.
-**Disposition:** Policy choices approved under the delegated M11 correctness and policy instruction. This decision is not G11 technical verification, source acceptance, merge or deployment authorization.
+**Disposition:** M11-P01..P12 and P10b formally accepted for G11-S01 on 2026-11-08, with separate G11-S25 and gate acceptance recorded in the [formal closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). No deployment authorization.
 **Rule contract version:** `m11-rules-v1`.
-**Accepted baseline:** G0 through G10 and G16 on protected `main`, snapshot `6ead1d076946dd96b53401265a31efc35c4a666c`.
-**Integration source:** `feat/m11-m12-combined-integration`. Verify the current branch head before relying on any source-specific finding.
+**Policy selection baseline at the time:** G0 through G10 and G16 on protected `main`, snapshot `6ead1d076946dd96b53401265a31efc35c4a666c`.
+**Original integration source:** `feat/m11-m12-combined-integration`, subsequently merged through PR #33. Use the gate closure and final `main` for current accepted source.
 
 ## Approved local policies
 
@@ -61,4 +53,4 @@ The M9 hold is unchanged. ARRI and DEPA events stay parked, sustained transport 
 
 No GitHub Actions, merge to protected `main`, deployment, production migration or cleanup is authorized by this record. Historical M11 audits and unverified test results remain unchanged as historical records.
 
-**Status:** Policy recorded on the combined source candidate; G11 technical readiness and acceptance pending.
+**Current status:** M11 policy and G11 formally accepted and integrated, with the original source-only gate decisions retained as historical records.

@@ -1,10 +1,12 @@
 # M11/M12 Targeted Local Acceptance Evidence Closure
 
+**Post-acceptance status (2026-11-08):** The combined M11/M12 source passed independent evidence reconciliation and targeted hosted N01 confirmation. G11 and G12 were formally accepted and merged into `main` via [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). See [gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) for accepted policy, S25 review and M9 restrictions. Earlier runbook, governance and candidate-stage statements are preserved as dated historical checkpoints, not current blockers. No deployment or M9 hold release.
+
 **Date:** 2026-11-08  
 **Branch:** `feat/m11-m12-combined-integration`  
 **Application verification SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`  
 **Accepted baseline:** protected `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`  
-**Status:** Executed 2026-11-08 (see [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md)); the plan text below is retained as written. Technical S25 acceptance pending.
+**Status:** Executed 2026-11-08 (see [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md)); the plan text below is retained as written. Subsequent separate S25 decisions and gate acceptance are recorded in the formal gate closure.
 
 ## Rules and prerequisites
 

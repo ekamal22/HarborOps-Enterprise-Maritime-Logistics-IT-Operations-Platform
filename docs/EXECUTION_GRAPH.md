@@ -10,6 +10,8 @@ The authoritative work-package dataset is [execution-graph.json](execution-graph
 
 The [PRD](PRD.md) defines product scope; [Roadmap](ROADMAP.md) defines milestone boundaries and gate obligations; [Requirements](REQUIREMENTS.md) owns atomic FR/NFR identifiers; [Acceptance Criteria](ACCEPTANCE_CRITERIA.md) defines checks; [Status](STATUS.md) exclusively records executed evidence, progress, and acceptance. Graph nodes are planned work and cannot be treated as implemented solely because they exist.
 
+**Gate-status clarification (2026-11-08):** G0-G12 and G16 are accepted on `main`; G11 and G12 were integrated via PR #33. The generic verification phrases in individual DAG gate rows, including `acceptance pending until explicitly confirmed`, describe the gate's required exit procedure, not its current disposition. Read [Status](STATUS.md) and [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) for observed acceptance. The M9 hold and deployment restrictions remain binding.
+
 **Granularity:** 25 independently gated milestones, 101 scoped work packages, 25 verification gates, 244 dependency edges across 6 delivery stages.
 
 ## Navigation
@@ -1141,4 +1143,4 @@ flowchart TD
 
 ## Current starting point
 
-G0-G10 and G16 are accepted and integrated into protected main. M11 has a separate unverified implementation candidate and G11 acceptance pending. M12-01, M14-01, M17-01, M19-01, M20-01, M21-01, and M23-01 are eligible under their exact prerequisites and outstanding decisions. M13 and M15 still require G11. The M9 transport-event hold remains in force. Status is authoritative for observed work. See [Local Storage Policy](LOCAL_STORAGE_POLICY.md).
+G0-G12 and G16 are accepted and integrated into protected main as of 2026-11-08. M11 and M12 passed their separate G11 and G12 gates and were integrated through PR #33. Future milestones remain subject to their exact graph prerequisites and separate gate decisions. The M9 ARRI/DEPA processing hold, 10,000 unresolved-work-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain mandatory. No deployment is authorized. See [Status](STATUS.md), [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [Local Storage Policy](LOCAL_STORAGE_POLICY.md).

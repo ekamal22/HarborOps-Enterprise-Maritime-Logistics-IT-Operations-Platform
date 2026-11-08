@@ -1,12 +1,12 @@
 # Combined M11/M12 Evidence Sufficiency Review
 
-**Formal gate decision, 2026-11-08:** M11/G11 and M12/G12 ACCEPTED following separately approved S01 contracts and second-archive S25 re-review. See [formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Prior planning-stage, source-only and gate-pending passages remain historical. The M9 ARRI/DEPA hold, 10,000 cap, null ETA and default-off projectors/evaluator remain binding. Merge authorized, deployment not authorized.
+**Current disposition (2026-11-08):** M11/G11 and M12/G12 accepted following separate S01 policy and S25 evidence decisions; the combined source merged into `main` through [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). [Formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) supersede any earlier proposed, blocked or unmerged milestones in this dated record. The original evidence and earlier failed runs remain valid historical observations. M9 ARRI/DEPA hold remains binding; no deployment authorized.
 
 **Date:** 2026-11-08
 **Reviewed candidate application SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`
 **Combined documentation/workflow branch at review:** `0edbe06ff5c0b61ba124f20b3de315425e4f73b3`
 **Accepted main:** `6ead1d076946dd96b53401265a31efc35c4a666c`
-**Recommendation:** Advance both milestones to targeted evidence closure, **do not grant G11 or G12 acceptance yet**. No merge, deployment, production database action or M9 transport-hold change.
+**Historical recommendation at this review checkpoint:** Advance both milestones to targeted evidence closure without granting acceptance based on this earlier incomplete evidence. The subsequent [gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records their formal acceptance and merge. Deployment and the M9 hold remain unchanged.
 
 ## Local closure and independent review update (2026-11-08)
 
@@ -40,7 +40,7 @@ Do not certify S25 until an independent reviewer can access the E:-backed raw TR
 
 See [targeted local closure runbook](M11_M12_LOCAL_CLOSURE_RUNBOOK_20261108.md) for exact isolated probes and raw evidence capture. The runbook is planned, not executed.
 
-## Minimum efficient remaining local execution
+## Originally recommended local execution (completed in the later closure campaign)
 
 1. Freeze `f56d017d9b2619be56fe533f73ba1d11f63974c0` in a clean E:-backed worktree. Reuse existing verified 341/341 evidence where appropriate; do not repeat the whole suite without a functional change.
 2. Perform targeted G11 evidence for deterministic multi-conflict selection and correction-order permutations, due-scan restart/missed checkpoint, injected M16 audit failure/rollback and crash-before/after commit. Retain exact fixtures, outcomes and transaction logs.

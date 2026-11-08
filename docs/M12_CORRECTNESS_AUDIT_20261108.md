@@ -1,5 +1,6 @@
 # M12 Second-Pass Source Correctness Audit
 
+**Historical review scope (post-acceptance notice):** This record describes the specific source-audit checkpoint. Its original SHA-specific findings, limitations and failed or pending checks remain preserved. M11/G11 and M12/G12 were subsequently accepted on the second closure package and merged through [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). See [formal G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) for the independent second-package re-review and current disposition. No deployment or M9 hold clearance was authorized.
 **Date:** 2026-11-08  
 **Scope:** `feat/m12-shipment-search-export`, draft PR #32, against accepted `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`.  
 **Code checkpoint after second-pass remediation, before final documentation reconciliation:** `d3970590f34220ad328db8b6770ffb87c2011d92`.  

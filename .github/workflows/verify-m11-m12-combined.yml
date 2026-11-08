@@ -1,8 +1,5 @@
 name: Verify combined M11 M12
 on:
-  push:
-    branches:
-      - feat/m11-m12-combined-integration
   workflow_dispatch:
 
 permissions:

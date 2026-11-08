@@ -54,8 +54,7 @@ public sealed class NotificationStore(
         return command;
     }
 
-    private string ReadSignature(Guid organizationId, Guid userId, Guid sessionId,
-        long expires)
+    private string Sign(string message)
     {
         var encoded = configuration["M10CorrectionProof:Key"]
             ?? throw new InvalidOperationException("Notification read authority is unavailable");
@@ -69,7 +68,6 @@ public sealed class NotificationStore(
             throw new InvalidOperationException("Notification read authority has invalid length");
         try
         {
-            var message = $"m11-read-v1|{organizationId:N}|{userId:N}|{sessionId:N}|{expires}";
             return Convert.ToHexString(HMACSHA256.HashData(
                 key, Encoding.UTF8.GetBytes(message))).ToLowerInvariant();
         }
@@ -81,11 +79,20 @@ public sealed class NotificationStore(
     {
         var expires = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;
         var scope = $"{org:D}|{user:D}|{session:D}|{expires}|"+
-            ReadSignature(org, user, session, expires);
+            Sign($"m11-read-v1|{org:N}|{user:N}|{session:N}|{expires}");
         await using var command = Command(Connection, tx,
             "SELECT set_config('harborops.m11_read_scope',@scope,true)",
             ("scope", scope));
         await command.ExecuteNonQueryAsync(ct);
+    }
+
+    private async Task SetDispatchScopeAsync(NpgsqlTransaction tx,CancellationToken ct)
+    {
+        var expires = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;
+        var scope = $"{expires}|"+Sign($"m15-dispatch-v1|{expires}");
+        await using var cmd = Command(Connection,tx,
+            "SELECT set_config('harborops.m15_dispatch_scope',@scope,true)",("scope",scope));
+        await cmd.ExecuteNonQueryAsync(ct);
     }
 
     private static NotificationRecord Read(NpgsqlDataReader r) => new(
@@ -243,6 +250,7 @@ public sealed class NotificationStore(
             // eligible recipient set consistent for the entire fanout batch.
             await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
                 IsolationLevel.RepeatableRead,ct);
+            await SetDispatchScopeAsync(tx,ct);
             int count;
             await using (var cmd = Command(Connection,tx,
                 "SELECT m15_deliver_pending(@take::integer)",("take",10)))
@@ -259,12 +267,19 @@ public sealed class NotificationStore(
         await Connection.OpenAsync(ct);
         try
         {
-            await using var cmd = Command(Connection,null,
-                "SELECT pending,deferred,quarantined FROM m15_delivery_status()");
-            await using var reader = await cmd.ExecuteReaderAsync(ct);
-            if (!await reader.ReadAsync(ct))
-                throw new InvalidOperationException("Notification delivery status unavailable");
-            return (reader.GetInt64(0),reader.GetInt64(1),reader.GetInt64(2));
+            await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(ct);
+            await SetDispatchScopeAsync(tx,ct);
+            (long Pending,long Deferred,long Quarantined) status;
+            await using (var cmd = Command(Connection,tx,
+                "SELECT pending,deferred,quarantined FROM m15_delivery_status()"))
+            await using (var reader = await cmd.ExecuteReaderAsync(ct))
+            {
+                if (!await reader.ReadAsync(ct))
+                    throw new InvalidOperationException("Notification delivery status unavailable");
+                status = (reader.GetInt64(0),reader.GetInt64(1),reader.GetInt64(2));
+            }
+            await tx.CommitAsync(ct);
+            return status;
         }
         finally { await Connection.CloseAsync(); }
     }

@@ -163,6 +163,9 @@ jobs:
           export HARBOROPS_BROWSER_BASE_URL="http://localhost:5173"
           export HARBOROPS_M5_FIXTURES=1
           export HARBOROPS_M12_FIXTURES=1
+          # Enable only for this isolated, disposable browser integration stack.
+          export HARBOROPS_M15_ENABLE_DELIVERY=true
+          export HARBOROPS_M15_LIVE_FIXTURE=1
           export HARBOROPS_VERIFICATION_ROOT="$PWD/.verification"
           mkdir -p .verification/evidence .verification/m15-browser
           printf '%s\n' "$GITHUB_SHA" > .verification/m15-browser/source-sha.txt
@@ -206,6 +209,7 @@ jobs:
           node scripts/prepare-m3-browser-fixtures.mjs
           node scripts/prepare-m4-browser-fixtures.mjs
           node scripts/prepare-m5-browser-fixtures.mjs
+          node scripts/prepare-m15-browser-fixtures.mjs
           npm --prefix tests/browser ci --no-audit --no-fund
           cd tests/browser
           npx playwright install --with-deps chromium firefox webkit

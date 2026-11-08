@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
 
 const enabled = process.env.HARBOROPS_M5_FIXTURES === "1" &&
   Boolean(process.env.HARBOROPS_TEST_USER_PASSWORD);
@@ -183,4 +185,28 @@ test("G15 unavailable shipment navigation fails closed without exposing the targ
     .locator("xpath=ancestor::section[1]");
   await expect(shipmentPanel.getByText(
     "The requested shipment or exception is no longer available.")).toBeVisible();
+});
+
+
+test("G15 live M11 event is delivered and navigable from the real notification API",
+  async ({ page }) => {
+  test.skip(!enabled || process.env.HARBOROPS_M15_LIVE_FIXTURE !== "1",
+    "Disposable opt-in M15 delivery fixture required");
+  const root = process.env.HARBOROPS_VERIFICATION_ROOT;
+  const fixture = JSON.parse(fs.readFileSync(
+    path.join(root,"m15-browser","live-fixture.json"),"utf8"));
+  expect(fixture.sourceSha).toBe(process.env.HARBOROPS_SOURCE_SHA);
+  await signIn(page);
+  await page.locator("#current-organization")
+    .selectOption({ label:"M3 North Terminal (Manager)" });
+  const center = page.getByRole("region",{name:"In-app shipment notifications"});
+  await expect(center).toBeVisible();
+  const liveNotice = center.locator("li").filter({hasText:fixture.title});
+  await expect(liveNotice).toHaveCount(1);
+  await expect(liveNotice.getByText(fixture.title)).toBeVisible();
+  await expect(liveNotice.getByText("Unread",{exact:false})).toBeVisible();
+  await liveNotice.getByRole("button",{name:"Open shipment exception"}).click();
+  const panel = page.getByRole("region",{name:"Shipment exceptions"});
+  await expect(panel).toBeVisible();
+  await expect(panel.getByText("ArrivalScheduleOverdue",{exact:false})).toBeVisible();
 });

@@ -215,6 +215,11 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
         <span className="ml-2">{item.condition} / {item.state}</span>
         <p className="mt-1 text-slate-400">Severity: {item.severity} | Evidence: {item.confidence}</p>
         <p className="text-slate-400">Reason: {item.reasonCode}</p>
+        {item.ruleCode === "RecordedArrivalLate" && item.state === "Resolved" &&
+          item.condition === "Active" && <p className="mt-1 text-slate-400">
+            Historical recorded lateness remains in the evidence after Manager review.
+            Resolution closes this occurrence, not the underlying workflow record.
+          </p>}
         <p className="text-slate-400">Evaluated: {item.lastEvaluatedAtUtc}</p>
         {item.thresholdAtUtc && <p className="text-slate-400">
           Rule threshold: {item.thresholdAtUtc}

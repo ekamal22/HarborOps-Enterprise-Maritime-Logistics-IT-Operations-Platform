@@ -113,6 +113,13 @@ public sealed class M11ResidualRuntimeTests(ITestOutputHelper output)
         Assert.Fail("Tracking work did not drain");
     }
 
+    private static Task<HttpResponseMessage> MutateShipment(HttpClient manager, string url,
+        string mutation, long version) =>
+        mutation == "archive"
+            ? ReferenceDataHttpTests.Send(manager, HttpMethod.Delete, url, new { expectedVersion = version })
+            : ReferenceDataHttpTests.Send(manager, HttpMethod.Patch, url,
+                new { expectedVersion = version, workflowStatus = "Cancelled" });
+
     // ---------------------------------------------------------------- G11-S14 / S18
 
     [Theory]
@@ -268,10 +275,7 @@ public sealed class M11ResidualRuntimeTests(ITestOutputHelper output)
                 await WaitForApiLockWaiter(admin);
                 var current = await Scalar<long>(admin,
                     "SELECT version FROM shipments WHERE id=@s", ("s", raceShipment));
-                var mutate = ReferenceDataHttpTests.Send(s.Fixture.Manager, HttpMethod.Patch, shipmentUrl,
-                    mutation == "archive"
-                        ? new { expectedVersion = current, recordStatus = "Archived" }
-                        : (object)new { expectedVersion = current, workflowStatus = "Cancelled" });
+                var mutate = MutateShipment(s.Fixture.Manager, shipmentUrl, mutation, current);
                 await Task.Delay(300);
                 await tx.CommitAsync();
                 committed = true;
@@ -279,6 +283,10 @@ public sealed class M11ResidualRuntimeTests(ITestOutputHelper output)
                 using var mutationResponse = await mutate;
                 var after = await Take(admin, raceException, raceShipment);
                 Note($"S18 {mutation} race: disposition={(int)dispositionResponse.StatusCode} mutation={(int)mutationResponse.StatusCode} before={baseline} after={after}");
+                Assert.Contains(mutationResponse.StatusCode, new[] { HttpStatusCode.OK, HttpStatusCode.NoContent });
+                var shipmentRecord = await Scalar<string>(admin,
+                    "SELECT record_status || '/' || workflow_status FROM shipments WHERE id=@s", ("s", raceShipment));
+                Assert.Equal(mutation == "archive" ? "Archived/Booked" : "Active/Cancelled", shipmentRecord);
                 if (dispositionResponse.StatusCode == HttpStatusCode.OK)
                 {
                     Assert.Equal("Acknowledged", after.State);
@@ -298,6 +306,40 @@ public sealed class M11ResidualRuntimeTests(ITestOutputHelper output)
                 if (!committed) await tx.RollbackAsync();
             }
         }
+    }
+
+    // The shipment change commits first; the later disposition must be refused with no state change.
+    [Theory]
+    [InlineData("archive")]
+    [InlineData("cancel")]
+    public async Task DispositionAfterCommittedArchiveOrCancellationIsRefusedWithoutStateChange(string mutation)
+    {
+        RequireExclusive();
+        var s = await M11ExceptionRuntimeTests.Prepare();
+        using var f = s.Factory; using var runtime = s.Runtime;
+        using var _ = s.Fixture.Admin; using var __ = s.Fixture.Manager; using var ___ = s.Fixture.Analyst;
+        using var manager = s.Manager; using var analyst = s.Analyst; using var administrator = s.Administrator;
+        var admin = s.Roles.Admin;
+        var shipment = await M11ExceptionRuntimeTests.ScheduledShipment(s);
+        var exception = await M11ExceptionRuntimeTests.EvaluateAndFind(s, shipment);
+        var url = M11ExceptionRuntimeTests.Collection(s.Fixture.A) + "/" + exception;
+        var shipmentUrl = $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}";
+        var before = await Take(admin, exception, shipment);
+        var current = await Scalar<long>(admin, "SELECT version FROM shipments WHERE id=@s", ("s", shipment));
+        using (var changed = await MutateShipment(s.Fixture.Manager, shipmentUrl, mutation, current))
+            Assert.Equal(mutation == "archive" ? HttpStatusCode.NoContent : HttpStatusCode.OK, changed.StatusCode);
+        using var late = await M11ExceptionRuntimeTests.SendAction(manager, url, new
+        {
+            action = "Acknowledge", expectedVersion = 1L, reason = "Disposition after committed " + mutation
+        }, Guid.NewGuid());
+        Assert.Contains(late.StatusCode, new[] { HttpStatusCode.Forbidden, HttpStatusCode.Conflict });
+        var after = await Take(admin, exception, shipment);
+        Assert.Equal(before.Version, after.Version);
+        Assert.Equal(before.State, after.State);
+        Assert.Equal(before.History, after.History);
+        Assert.Equal(before.Replays, after.Replays);
+        Assert.Equal(before.Audit, after.Audit);
+        Note($"S18 mutation-first {mutation}: disposition={(int)late.StatusCode} state={after.State} history={after.History} audit={after.Audit}");
     }
 
     [Fact]

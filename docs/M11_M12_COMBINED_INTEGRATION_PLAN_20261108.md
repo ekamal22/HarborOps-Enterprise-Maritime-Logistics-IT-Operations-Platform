@@ -1,10 +1,12 @@
 # M11 and M12 Combined Integration and Verification Plan
 
+**Combined candidate and M11 decision update (2026-11-08):** The isolated `feat/m11-m12-combined-integration` branch contains both source candidates and shared API, React, SQL role and migration reconciliations. [M11 policy decisions](M11_LOCAL_CONTRACT_DECISION_20261108.md) now establish the rule thresholds and lifecycle contract, including verified clearance through Unknown/Stale and reviewed active `RecordedArrivalLate` resolution. Earlier no-combined-source and M11-policy-pending descriptions below are pre-integration history. G11 and G12 technical execution, independent evidence review and acceptance remain pending; source integration and authored tests are not PASS.
+
 **Decision date:** 2026-11-08
 **Decision:** The combined-source integration and coordinated verification strategy is approved. This is a planning decision, not permission to execute integration, run tests, approve policies, merge or deploy.
 **Accepted baseline:** Protected `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`, with G0 through G10 and G16 accepted.
 **Inputs:** Draft M11 PR #31 (`feat/m11-delay-exception-lifecycle`), draft M12 PR #32 (`feat/m12-shipment-search-export`), and separate M11 documentation-only PR #30.
-**Execution status:** No combined implementation branch, combined frozen SHA, G11/G12 campaign, independent evidence review or gate acceptance is established.
+**Execution status:** The combined implementation branch has been created and common source surfaces reconciled. Final source-lock verification, independent review and gate acceptance are not established.
 
 ## 1. Approved orchestration and preserved boundaries
 
@@ -71,4 +73,4 @@ All local worktrees, caches, databases, browser fixtures and evidence must be pe
 - M11: [architecture](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m11-delay-exception-lifecycle/docs/M11_ARCHITECTURE_DESIGN.md), [source status](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m11-delay-exception-lifecycle/docs/M11_IMPLEMENTATION_STATUS.md), [G11 plan](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m11-delay-exception-lifecycle/docs/M11_VERIFICATION_PLAN.md)
 - M12: [architecture](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m12-shipment-search-export/docs/M12_ARCHITECTURE_DESIGN.md), [source status](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m12-shipment-search-export/docs/M12_IMPLEMENTATION_STATUS.md), [G12 plan](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feat/m12-shipment-search-export/docs/M12_VERIFICATION_PLAN.md)
 
-**Current disposition:** Approved coordination plan only. Original branches remain separate; no combined implementation, G11/G12 executable result, gate acceptance, merge or deployment is claimed.
+**Current disposition:** Combined source candidate assembled and policy remediation recorded, with original branches preserved. No G11/G12 executable result, independent review, gate acceptance, protected-main merge or deployment is claimed.

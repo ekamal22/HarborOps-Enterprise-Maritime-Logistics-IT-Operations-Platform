@@ -110,10 +110,15 @@ jobs:
         run: |
           set -euo pipefail
           dc() { docker compose -f compose.m11m12.verify.yaml -p ho-verify-m11m12 "$@"; }
+          db_before="$(docker inspect -f '{{.Id}}' ho-verify-m11m12-postgres-1)"
+          api_before="$(docker inspect -f '{{.Id}}' ho-verify-m11m12-api-1)"
           for entry in "m12net-admin@example.test|M12 Net Administrator" "m12net-manager@example.test|M12 Net Manager" "m12net-analyst@example.test|M12 Net Analyst"; do
-            printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | dc run --rm -T -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision "${entry%%|*}" "${entry#*|}"
+            printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" | dc run --rm --no-deps -T -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api --account-cli provision "${entry%%|*}" "${entry#*|}"
           done
-          dc run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api --organization-cli bootstrap m12-net "M12 Network Fixtures" m12net-admin@example.test
+          dc run --rm --no-deps -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api --organization-cli bootstrap m12-net "M12 Network Fixtures" m12net-admin@example.test
+          test "$db_before" = "$(docker inspect -f '{{.Id}}' ho-verify-m11m12-postgres-1)"
+          test "$api_before" = "$(docker inspect -f '{{.Id}}' ho-verify-m11m12-api-1)"
+          curl -fsS http://127.0.0.1:8091/health/ready >/dev/null
           node scripts/check-m11m12-stack.mjs prepare .verification/n01-prepare.json
           node scripts/check-m11m12-stack.mjs load .verification/n01-load.json
       - name: Execute N01 twice to prove exact audit increments

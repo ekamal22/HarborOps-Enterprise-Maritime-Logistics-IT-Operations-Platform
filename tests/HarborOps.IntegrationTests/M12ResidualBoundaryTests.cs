@@ -41,7 +41,7 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
         public override DateTimeOffset GetUtcNow() => DateTimeOffset.UtcNow + offset;
     }
 
-    private sealed record Ctx(ReferenceDataHttpTests.ApiFactory Seed,
+    internal sealed record Ctx(ReferenceDataHttpTests.ApiFactory Seed,
         ReferenceDataHttpTests.Fixture Fixture, ReferenceDataHttpTests.ApiFactory Runtime,
         string Admin, string ApiConnection, string ApiPassword, string WorkerPassword,
         HttpClient Manager, HttpClient Analyst, Guid Template, Guid ManagerId)
@@ -50,7 +50,7 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
         public string Search => $"/api/v1/organizations/{Fixture.A}/shipments/search";
     }
 
-    private static async Task<Ctx> Prepare(string? exportKey = null)
+    internal static async Task<Ctx> Prepare(string? exportKey = null)
     {
         if (Environment.GetEnvironmentVariable("HARBOROPS_G12_EXCLUSIVE_POSTGRES") != "1")
             throw new InvalidOperationException(
@@ -83,7 +83,7 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
             manager, analyst, maritime.Shipment, managerId);
     }
 
-    private static async Task<HttpClient> Client(WebApplicationFactory<Program> factory, string email, Guid org)
+    internal static async Task<HttpClient> Client(WebApplicationFactory<Program> factory, string email, Guid org)
     {
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
         await ReferenceDataHttpTests.Login(client, email);
@@ -91,7 +91,7 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
         return client;
     }
 
-    private static async Task<T> Scalar<T>(string connection, string sql,
+    internal static async Task<T> Scalar<T>(string connection, string sql,
         params (string Name, object Value)[] parameters)
     {
         await using var db = new NpgsqlConnection(connection);
@@ -102,7 +102,7 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
         return result is null or DBNull ? default! : (T)Convert.ChangeType(result, typeof(T));
     }
 
-    private static async Task Exec(string connection, string sql,
+    internal static async Task Exec(string connection, string sql,
         params (string Name, object Value)[] parameters)
     {
         await using var db = new NpgsqlConnection(connection);
@@ -112,7 +112,7 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
         await command.ExecuteNonQueryAsync();
     }
 
-    private static Task<long> AuditCount(Ctx c) => Scalar<long>(c.Admin,
+    internal static Task<long> AuditCount(Ctx c) => Scalar<long>(c.Admin,
         "SELECT count(*) FROM audit_entries WHERE organization_id=@o AND event_type='shipment.export_prepared'",
         ("o", c.Fixture.A));
 
@@ -133,7 +133,7 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
         Assert.Fail($"Expected {count} runtime request(s) blocked on a database lock");
     }
 
-    private static async Task InsertShipments(Ctx c, Guid org, string tag, int count,
+    internal static async Task InsertShipments(Ctx c, Guid org, string tag, int count,
         string displayExpression, string externalExpression, string codeExpression)
     {
         await using var db = new NpgsqlConnection(c.Admin);
@@ -156,7 +156,7 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
         await command.ExecuteNonQueryAsync();
     }
 
-    private static string Tag() => "W" + Guid.NewGuid().ToString("N")[..9].ToUpperInvariant();
+    internal static string Tag() => "W" + Guid.NewGuid().ToString("N")[..9].ToUpperInvariant();
 
     private static List<string[]> ParseCsv(string text)
     {

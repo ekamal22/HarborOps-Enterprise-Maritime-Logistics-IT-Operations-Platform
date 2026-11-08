@@ -1,5 +1,7 @@
 # M11/M12 Local Closure Results
 
+**Independent archive review, 2026-11-08:** [G11](M11_G11_INDEPENDENT_EVIDENCE_REVIEW_20261108.md) and [G12](M12_G12_INDEPENDENT_EVIDENCE_REVIEW_20261108.md) independently reconciled the manifest, raw tests and measured plans. The archive is internally consistent, but **both S25 reviews are NOT PASS** because required acceptance scenarios remain open. The previous recommendations below were made before this separate evidence review.
+
 **Date:** 2026-11-08
 **Branch:** `feat/m11-m12-combined-integration`
 **Frozen hosted application SHA:** `f56d017d9b2619be56fe533f73ba1d11f63974c0`

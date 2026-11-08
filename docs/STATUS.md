@@ -1,5 +1,8 @@
 # Project Status
 
+**M15 implementation checkpoint (2026-11-08):** An isolated M15 feature branch now contains a source candidate for the M11-history notification outbox, scoped personal notification API/store, opt-in delivery dispatcher and React notification center. The [M15 architecture](M15_ARCHITECTURE_DESIGN.md), [delivery plan](M15_IMPLEMENTATION_PLAN.md), [G15 matrix](M15_VERIFICATION_PLAN.md) and [M15 status](M15_PLANNING_STATUS.md) govern this work. Source modifications are not executed verification. M15 policies remain acceptance pending and G15 is NOT EXECUTED; no merge or deployment is authorized. M13 is independent, and the M9 transport hold, unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain binding.
+
+
 **Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
 
 ## G10 accepted and integrated, 2026-11-07

@@ -1,5 +1,8 @@
 # HarborOps Product Requirements Document
 
+**M15 implementation checkpoint (2026-11-08):** An isolated M15 feature branch now contains a source candidate for the M11-history notification outbox, scoped personal notification API/store, opt-in delivery dispatcher and React notification center. The [M15 architecture](M15_ARCHITECTURE_DESIGN.md), [delivery plan](M15_IMPLEMENTATION_PLAN.md), [G15 matrix](M15_VERIFICATION_PLAN.md) and [M15 status](M15_PLANNING_STATUS.md) govern this work. Source modifications are not executed verification. M15 policies remain acceptance pending and G15 is NOT EXECUTED; no merge or deployment is authorized. M13 is independent, and the M9 transport hold, unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain binding.
+
+
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. M11/G11 and M12/G12 closed through [formal acceptance](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. [Project status](STATUS.md) is authoritative for execution and release state; dated source reviews and early gate reports retain only their historical meaning. M9 ARRI/DEPA processing remains held under the 10,000-item limit, with M10 projector default-off, ETA null and M11 evaluator opt-in. Deployment remains unauthorized.
 
 **Version:** 3.0 parallel delivery alignment  

@@ -313,7 +313,8 @@ public sealed class OperationalKpiStore(
             FROM heads h LEFT JOIN evaluated e ON e.id=h.id
             WHERE h.record_status='Active' AND h.workflow_status NOT IN ('Draft','Cancelled')
             GROUP BY h.id,h.version,h.input_revision,h.generation,h.event_count,
-                h.projection_policy,h.projection_revision,h.projection_generation
+                h.projection_policy,h.projection_revision,h.projection_generation,
+                h.projection_refreshed_at
         ), prepared AS (
             SELECT 'D01'::varchar AS code,''::varchar AS dimension,s.id AS member_key,
                 s.id AS shipment_id,NULL::uuid AS exception_id,NULL::timestamptz AS bucket

@@ -1,5 +1,7 @@
 # M12 Implementation Status
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). M12 remains an independent source candidate in draft PR #32, with no executed G12 technical gate. Shared verification strategy approval does not establish a combined source SHA, executable correctness or M12 acceptance.
+
 **Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records M11 draft PR #31 and M12 draft PR #32 with different additive migration IDs, shared API/UI/role integration surfaces and no combined execution. G11-S01 is BLOCKED, G11-S02..S25 NOT EXECUTED and G12 verification pending. Accepted `main` and the M9 transport hold remain unchanged.
 
 **Last source audit:** 2026-11-08. **Branch:** `feat/m12-shipment-search-export`.

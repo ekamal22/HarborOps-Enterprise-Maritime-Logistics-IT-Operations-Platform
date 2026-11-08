@@ -1,5 +1,7 @@
 # M12 Local Contract Register
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). Combined test orchestration is approved, but M12-P01..P16 remain unapproved. G12-S01 policy disposition, executable campaign, Q2 historical compatibility and independent G12-S25 review remain pending; M12 does not depend on G11.
+
 **Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records M11 draft PR #31 and M12 draft PR #32 with different additive migration IDs, shared API/UI/role integration surfaces and no combined execution. G11-S01 is BLOCKED, G11-S02..S25 NOT EXECUTED and G12 verification pending. Accepted `main` and the M9 transport hold remain unchanged.
 
 **State:** Candidate implementation defaults on `feat/m12-shipment-search-export`. The request to implement M12 does not itself record formal acceptance of every local policy. G12 acceptance pending. G5 prerequisite accepted.

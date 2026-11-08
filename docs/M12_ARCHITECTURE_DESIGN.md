@@ -1,5 +1,7 @@
 # M12 Shipment Search and Authorized Export Architecture
 
+**M11/M12 coordination approved (2026-11-08):** [Combined integration and verification plan](M11_M12_COMBINED_INTEGRATION_PLAN_20261108.md). The future combined source must keep independent M12 HMAC export proof, restricted atomic export audit, safe CSV and live tenant-scoped search paging while integrating M11 exceptions and preserving accepted M5 shipment behavior. SQL roles and EF snapshot require combined runtime verification.
+
 **Parallel M11/M12 source status (2026-11-08):** [Source and integration register](M11_M12_PARALLEL_SOURCE_STATUS_20261108.md) records M11 draft PR #31 and M12 draft PR #32 with different additive migration IDs, shared API/UI/role integration surfaces and no combined execution. G11-S01 is BLOCKED, G11-S02..S25 NOT EXECUTED and G12 verification pending. Accepted `main` and the M9 transport hold remain unchanged.
 
 **State:** Implementation candidate on `feat/m12-shipment-search-export`. G12 acceptance pending. Accepted base: `main` at `6ead1d076946dd96b53401265a31efc35c4a666c`. G5 accepted, G11 not required.

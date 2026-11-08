@@ -460,7 +460,8 @@ public sealed class M13OperationalKpiRuntimeTests
         {
             firstEvent.Parameters.AddWithValue("org", fixture.A);
             firstEvent.Parameters.AddWithValue("shipment", early);
-            earlyCompleted = Assert.IsType<DateTimeOffset>(await firstEvent.ExecuteScalarAsync());
+            earlyCompleted = new DateTimeOffset(
+                Assert.IsType<DateTime>(await firstEvent.ExecuteScalarAsync()), TimeSpan.Zero);
         }
         await Task.Delay(1250);
         var from = earlyCompleted.AddSeconds(1);

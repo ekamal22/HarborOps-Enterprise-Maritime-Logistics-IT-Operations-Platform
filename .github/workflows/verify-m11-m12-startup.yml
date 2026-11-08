@@ -26,35 +26,57 @@ jobs:
           echo "Main baseline: 6ead1d076946dd96b53401265a31efc35c4a666c"
           node --version
           dotnet --version
-      - name: Validate contracts, docs, and syntax
+      - name: Validate contracts and syntax
+        id: contracts
+        continue-on-error: true
         working-directory: source
         run: |
           set -euo pipefail
           node scripts/check-m11-contract.mjs
           node scripts/render-execution-graph.mjs --check
-          node scripts/check-planning-docs.mjs
           find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
           node --check scripts/check-g10-stack.mjs
           docker compose config --quiet
+      - name: Validate documentation
+        id: documentation
+        continue-on-error: true
+        working-directory: source
+        run: node scripts/check-planning-docs.mjs
       - name: Restore and build Release with warnings as errors
+        id: build
+        continue-on-error: true
         working-directory: source
         run: |
           set -euo pipefail
           dotnet restore HarborOps.sln
           dotnet build HarborOps.sln --configuration Release --no-restore -warnaserror
       - name: Unit and contract suites
+        id: tests
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
         working-directory: source
         run: |
           set -euo pipefail
           dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj --configuration Release --no-build --logger 'console;verbosity=normal'
           dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj --configuration Release --no-build --logger 'console;verbosity=normal'
       - name: Web tests and production build
+        id: web
+        if: always()
+        continue-on-error: true
         working-directory: source
         run: |
           set -euo pipefail
           npm --prefix web ci --no-audit --no-fund
           npm --prefix web test
           npm --prefix web run build
+      - name: Enforce source verification results
+        if: always()
+        run: |
+          test "${{ steps.contracts.outcome }}" = success
+          test "${{ steps.documentation.outcome }}" = success
+          test "${{ steps.build.outcome }}" = success
+          test "${{ steps.tests.outcome }}" = success
+          test "${{ steps.web.outcome }}" = success
       - name: Record verification status
         if: always()
         run: |

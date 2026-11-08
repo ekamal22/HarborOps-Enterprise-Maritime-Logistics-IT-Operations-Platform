@@ -7,6 +7,8 @@ using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Shipments;
 using Microsoft.Extensions.DependencyInjection;
 using HarborOps.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
@@ -319,6 +321,83 @@ public sealed class M11ClosureRuntimeTests(ITestOutputHelper output)
         Assert.Equal(historyBefore, await Scalar<long>(admin, "SELECT count(*) FROM shipment_exception_history WHERE exception_id=@e",
             ("e", row.GetProperty("id").GetGuid())));
         Note($"S08 forced tie: AFirst={AFirst} witness in={expectedIn.Item2} out={expectedOut.Item2}");
+    }
+
+    // ------------------------------------------------------------------ S20 real elapsed time
+
+    [Fact]
+    public async Task CheckpointCrossedInRealTimeWhileTheHostIsDownIsRecoveredOnRestart()
+    {
+        RequireExclusive();
+        var s = await M11ExceptionRuntimeTests.Prepare();
+        using var f = s.Factory;
+        using var _ = s.Fixture.Admin; using var __ = s.Fixture.Manager; using var ___ = s.Fixture.Analyst;
+        var admin = s.Roles.Admin;
+        var seed = await AssignmentHttpTests.Seed(s.Fixture);
+        var url = $"/api/v1/organizations/{s.Fixture.A}/shipments/{seed.Shipment}";
+        // The arrival boundary is planned arrival plus the 60 minute grace. Place it about 50 seconds ahead
+        // of now so that it is crossed by real elapsed time, with no direct change to stored data.
+        var now = DateTimeOffset.UtcNow;
+        using (var plan = await ReferenceDataHttpTests.Send(s.Fixture.Manager, HttpMethod.Patch, url,
+            new { expectedVersion = 1L, plannedDepartureAtUtc = M11ExceptionRuntimeTests.Utc(now.AddDays(-2)),
+                plannedArrivalAtUtc = M11ExceptionRuntimeTests.Utc(now.AddMinutes(-60).AddSeconds(50)) }))
+            Assert.Equal(HttpStatusCode.OK, plan.StatusCode);
+        using (var booked = await ReferenceDataHttpTests.Send(s.Fixture.Manager, HttpMethod.Patch, url,
+            new { expectedVersion = 2L, workflowStatus = "Booked" }))
+            Assert.Equal(HttpStatusCode.OK, booked.StatusCode);
+        await using (var db = Context(s.Roles.Api))
+            Assert.Equal(M11StoreResult.Applied,
+                (await new ShipmentExceptionStore(db, Config()).EvaluateAsync(s.Fixture.A, seed.Shipment, CancellationToken.None)).Result);
+        Assert.Equal(0L, await Scalar<long>(admin, "SELECT count(*) FROM shipment_exceptions WHERE shipment_id=@s", ("s", seed.Shipment)));
+        var checkpoint = await Scalar<DateTime>(admin, """
+            SELECT next_evaluation_at_utc FROM shipment_exception_evaluations
+            WHERE shipment_id=@s AND rule_code='ArrivalScheduleOverdue'
+            """, ("s", seed.Shipment));
+        var checkpointUtc = new DateTimeOffset(DateTime.SpecifyKind(checkpoint, DateTimeKind.Utc));
+        Assert.InRange((checkpointUtc - DateTimeOffset.UtcNow).TotalSeconds, 10, 90);
+        var versionAtEvaluation = await Scalar<long>(admin, "SELECT version FROM shipments WHERE id=@s", ("s", seed.Shipment));
+        var updatedAt = await Scalar<DateTime>(admin, "SELECT updated_at_utc FROM shipments WHERE id=@s", ("s", seed.Shipment));
+        var checkpointStored = checkpoint;
+
+        // Take the API process down before the checkpoint, then let real time pass it.
+        s.Runtime.Dispose(); s.Manager.Dispose(); s.Analyst.Dispose(); s.Administrator.Dispose();
+        var waitStart = DateTimeOffset.UtcNow;
+        while (await Scalar<bool>(admin, "SELECT clock_timestamp() < @c", ("c", checkpoint)))
+            await Task.Delay(1000);
+        await Task.Delay(2000);
+        Assert.Equal(0L, await Scalar<long>(admin, "SELECT count(*) FROM shipment_exceptions WHERE shipment_id=@s", ("s", seed.Shipment)));
+        Note($"S20 real time: waited {(DateTimeOffset.UtcNow - waitStart).TotalSeconds:F0}s past planned checkpoint {checkpointUtc:O} with the host down");
+
+        // Only elapsed time made the work due: the shipment and its checkpoint row are untouched.
+        Assert.Equal(versionAtEvaluation, await Scalar<long>(admin, "SELECT version FROM shipments WHERE id=@s", ("s", seed.Shipment)));
+        Assert.Equal(updatedAt, await Scalar<DateTime>(admin, "SELECT updated_at_utc FROM shipments WHERE id=@s", ("s", seed.Shipment)));
+        Assert.Equal(checkpointStored, await Scalar<DateTime>(admin, """
+            SELECT next_evaluation_at_utc FROM shipment_exception_evaluations
+            WHERE shipment_id=@s AND rule_code='ArrivalScheduleOverdue'
+            """, ("s", seed.Shipment)));
+
+        using var restartedBase = new ReferenceDataHttpTests.ApiFactory(s.Roles.Api);
+        using var restarted = restartedBase.WithWebHostBuilder(host => host.UseSetting("M11:EnableEvaluator", "true"));
+        using var client = restarted.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        long count = 0;
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(120);
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            count = await Scalar<long>(admin,
+                "SELECT count(*) FROM shipment_exceptions WHERE shipment_id=@s AND rule_code='ArrivalScheduleOverdue'", ("s", seed.Shipment));
+            if (count > 0) break;
+            await Task.Delay(500);
+        }
+        Assert.Equal(1L, count);
+        var opened = await Scalar<DateTime>(admin,
+            "SELECT first_detected_at_utc FROM shipment_exceptions WHERE shipment_id=@s", ("s", seed.Shipment));
+        Assert.True(new DateTimeOffset(DateTime.SpecifyKind(opened, DateTimeKind.Utc)) > checkpointUtc);
+        await Task.Delay(TimeSpan.FromSeconds(15));
+        var final = await Count(admin, seed.Shipment);
+        Assert.Equal(1L, final.Exceptions);
+        Assert.Equal(4L, final.Evaluations);
+        Assert.Equal(1L, final.Opened);
+        Note($"S20 real time: exception opened {opened:O} after restart, counts {final}");
     }
 
     // ------------------------------------------------------------------ S05 / S06 / S07 matrix

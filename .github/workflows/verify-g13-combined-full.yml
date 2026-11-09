@@ -35,7 +35,6 @@ jobs:
           node scripts/render-execution-graph.mjs --check 2>&1 | tee .verification/graph.log
           find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
       - name: Reconcile historical documentation consistency
-        continue-on-error: true
         run: |
           set -euo pipefail
           node scripts/check-planning-docs.mjs 2>&1 | tee .verification/planning.log

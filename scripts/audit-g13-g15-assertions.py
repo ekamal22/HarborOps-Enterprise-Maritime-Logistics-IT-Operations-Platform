@@ -46,6 +46,13 @@ def validate_inventory() -> tuple[list[dict], list[str]]:
                 errors.append("Malformed assertion: " + str(marker))
             if not isinstance(item.get("evidence"), list):
                 errors.append("Evidence must be an explicit list: " + str(marker))
+            if item.get("assessment") not in (
+                "FULLY_TESTED", "PARTIALLY_TESTED", "MISSING_TEST", "MANUAL_REVIEW"):
+                errors.append("Unclassified assertion: " + str(marker))
+            if item.get("kind") != "automated" and item.get("assessment") != "MANUAL_REVIEW":
+                errors.append("Nonautomated assertion improperly marked tested: " + str(marker))
+            if item.get("kind") == "automated" and item.get("assessment") == "MANUAL_REVIEW":
+                errors.append("Automated assertion improperly marked manual: " + str(marker))
     if len(seen) != 242:
         errors.append("Expected 242 separately enumerated requirements, got " + str(len(seen)))
     return rows, errors
@@ -100,6 +107,12 @@ def gather() -> tuple[dict, bool]:
                     category = witness.get("kind")
                     if category == "test" and name and test_match(name, tests):
                         successful.append(witness)
+                    elif category == "job" and (
+                            data["job_results"].get(name) == "success"):
+                        successful.append(witness)
+                    elif category == "scan" and name == "dependencies" and (
+                            data["dependency_security_satisfied"] is True):
+                        successful.append(witness)
                     elif category == "scenario_reference" and name in candidate_executed:
                         successful.append(witness)
                     elif category == "browser" and name:
@@ -118,7 +131,16 @@ def gather() -> tuple[dict, bool]:
                         successful.append(witness)
                     else:
                         absent.append(witness)
-                verdict = "TECHNICAL_EVIDENCE_PRESENT" if not absent else "EVIDENCE_MISSING"
+                if absent:
+                    verdict = "EVIDENCE_MISSING"
+                elif item["assessment"] == "PARTIALLY_TESTED":
+                    verdict = "PARTIALLY_TESTED"
+                elif item["assessment"] == "MISSING_TEST":
+                    verdict = "MISSING_TEST"
+                elif item["assessment"] == "FULLY_TESTED":
+                    verdict = "TECHNICAL_EVIDENCE_PRESENT"
+                else:
+                    verdict = "INVENTORY_INVALID"
             states[verdict] = states.get(verdict, 0) + 1
             checked.append({
                 "assertion": item["id"], "requirement": item["requirement"],
@@ -139,7 +161,10 @@ def gather() -> tuple[dict, bool]:
         "integrity_issues": issues,
         "full_automated_assertion_coverage": (
             not issues and states.get("UNMAPPED", 0) == 0
-            and states.get("EVIDENCE_MISSING", 0) == 0),
+            and states.get("EVIDENCE_MISSING", 0) == 0
+            and states.get("PARTIALLY_TESTED", 0) == 0
+            and states.get("MISSING_TEST", 0) == 0
+            and states.get("INVENTORY_INVALID", 0) == 0),
         "independent_reviews_required": ["G13-S25", "G15-S25"],
         "permanent_storage_policy_pending": True,
         "milestone_acceptance": "PENDING",
@@ -173,13 +198,15 @@ def main() -> int:
     for scenario in report["scenarios"]:
         checked = scenario["assertions"]
         mapped = sum(x["verdict"] == "TECHNICAL_EVIDENCE_PRESENT" for x in checked)
-        missing = sum(x["verdict"] in ("UNMAPPED", "EVIDENCE_MISSING")
+        missing = sum(x["verdict"] in ("UNMAPPED", "EVIDENCE_MISSING",
+                                      "PARTIALLY_TESTED", "MISSING_TEST",
+                                      "INVENTORY_INVALID")
                       for x in checked)
         other = len(checked) - mapped - missing
         lines.append(f"| {scenario['id']} | {mapped} | {missing} | {other} |")
     lines += [
         "", "Policy decisions and independent S25 reviews are not automated PASS.",
-        "Any UNMAPPED or EVIDENCE_MISSING behavior blocks complete acceptance.",
+        "Any unmapped, missing or partially verified assertion blocks complete acceptance.",
         "An additional code review is required to confirm each mapped "
         "test actually asserts the specified behavior.",
         "No merger, activation or data deletion is authorized.", "",

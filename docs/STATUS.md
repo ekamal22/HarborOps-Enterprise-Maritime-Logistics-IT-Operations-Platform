@@ -2,7 +2,15 @@
 
 **Current G13/G15 verification checkpoint (2026-11-09):** [Run 42565412367](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42565412367) **FAILED** at `6f1f34b2fba4c13a75a85bedc482118755921e11`: 13 of 15 jobs passed. The M12 regression expected its older downgrade error, but M15 correctly blocked the downgrade first to preserve notification evidence. The evidence ledger failed closed on that regression. The corrected candidate on `verify/g13-g15-final-acceptance-20261109` has **not yet been reverified**. G13/G15 acceptance, independent S25 reviews, merge and deployment remain pending. [Final campaign](G13_G15_FINAL_VERIFICATION_20261109.md).
 
+**Later G13/G15 verification observation (2026-11-09):** [Run 42567231512](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42567231512) finished **FAILED** on `0a32e807404ab13b3e80a74e8dc553b76ba69f98`. Thirteen of fifteen jobs passed. The combined three-engine KPI and notification UI job and the G13/G15 evidence-reconciliation job failed. The earlier M12 downgrade expectation was corrected, but this later run does not approve either gate. Acceptance remains pending. This observation is not part of Turkish localization verification.
+
 **Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
+
+## English and Turkish interface localization
+
+The isolated `feature/turkish-localization-20261109` branch starts from source `0a32e807404ab13b3e80a74e8dc553b76ba69f98`. Frontend changes add English (`en`) and Turkish (`tr-TR`) presentation, a persistent selector visible before and after authentication, an English-source/Turkish-message catalog, and locale-aware numbers, currency and UTC timestamp display. Authentication, organizations, references, maritime operations, shipments, assignments, tracking, exception handling, operational KPIs and in-app notifications have been updated. API payloads, role identifiers, storage values and security policies have not been intentionally modified. See `web/src/i18n` for locale presentation and `web/tests/i18n.test.mjs` for its new checks.
+
+**Verification status:** Source-level review and catalog-key comparison completed on this branch. Frontend compilation, unit tests, runtime integration and two-language browser accessibility checks have not been executed in the repository working environment. This feature is not accepted or merged. No Actions workflow, production deployment or feature activation is authorized by this work. G13/G15 acceptance is independent and still pending.
 
 ## G10 accepted and integrated, 2026-11-07
 

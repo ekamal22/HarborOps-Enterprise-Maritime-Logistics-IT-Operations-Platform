@@ -67,16 +67,16 @@ export default function KpiGrantPanel({ organizationId, members, onAccessInvalid
       </label>
       <button disabled={busy || !target}
         className="rounded border border-cyan-500 px-3 py-2 disabled:opacity-50">
-        {busy ? "Saving..." : "Save grant"}
+        {t(busy ? "Saving..." : "Save grant")}
       </button>
     </form>
-    {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
-    {notice && <p role="status" className="mt-3 text-sm text-cyan-300">{notice}</p>}
+    {error && <p role="alert" className="mt-3 text-sm text-rose-300">{t(error)}</p>}
+    {notice && <p role="status" className="mt-3 text-sm text-cyan-300">{t(notice)}</p>}
     <ul className="mt-3 space-y-2 text-xs">
       {grants.map(g => <li key={g.userId} className="break-all text-slate-400">
         {members.find(m => m.userId === g.userId)?.displayName ?? g.userId}:
         <strong className={g.active ? "text-cyan-300" : "text-slate-500"}>
-          {g.active ? " Enabled" : " Revoked"}
+          {t(g.active ? " Enabled" : " Revoked")}
         </strong>
         <span>{t("(version")}{g.version})</span>
       </li>)}

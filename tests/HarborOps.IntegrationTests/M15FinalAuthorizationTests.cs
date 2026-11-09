@@ -146,8 +146,20 @@ public sealed class M15FinalAuthorizationTests
         }
         await using var scope = runtime.Services.CreateAsyncScope();
         var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
-        for (var i = 0; i < 10; i++)
+        async Task<long> DeliveredForFixture()
+        {
+            await using var count = new NpgsqlCommand("""
+                SELECT COUNT(DISTINCT source_history_id) FROM m15_user_notifications
+                WHERE organization_id=@org AND shipment_id=@shipment
+                """, db);
+            count.Parameters.AddWithValue("org", s.Fixture.A);
+            count.Parameters.AddWithValue("shipment", shipment);
+            return Convert.ToInt64(await count.ExecuteScalarAsync());
+        }
+        for (var attempt = 0; attempt < 100 &&
+             await DeliveredForFixture() < 3; attempt++)
             await store.DeliverPendingAsync(CancellationToken.None);
+        Assert.Equal(3L, await DeliveredForFixture());
 
         var root = $"/api/v1/organizations/{s.Fixture.A}/notifications";
         using var first = await manager.GetAsync(root + "?state=All&limit=1");
@@ -179,7 +191,10 @@ public sealed class M15FinalAuthorizationTests
             newest.Parameters.AddWithValue("exception", exceptionId);
             Assert.Equal(1, await newest.ExecuteNonQueryAsync());
         }
-        await store.DeliverPendingAsync(CancellationToken.None);
+        for (var attempt = 0; attempt < 100 &&
+             await DeliveredForFixture() < 4; attempt++)
+            await store.DeliverPendingAsync(CancellationToken.None);
+        Assert.Equal(4L, await DeliveredForFixture());
 
         var beforeCutoff = new HashSet<Guid> { initialId };
         string? next = cursor;

@@ -1,11 +1,13 @@
 # M13 Verification Campaign Status
 
+**Current source status (2026-11-09):** M13 code and verification entrypoints are implemented. Independent [targeted technical checks](M13_VERIFICATION_STATUS_20261109.md), [170,000 shipment / mutation / fault evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md), and [combined source-locked workflow 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on their respective source SHAs. The green combined source is older than the independent M13 member SELECT RLS optimization. Full G13-S01 through S24 evidence, final source synchronization and independent S25 remain open. No acceptance, merge or deployment.
+
 **Opened:** 2026-11-09
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
 **Policy:** D-005 Option A, `m13-kpi-v1`
 **Feature candidate:** Implemented source, API, migration, dashboard and verification code documented in [implementation register](M13_IMPLEMENTATION_STATUS_20261109.md).
 **Execution environment:** GitHub Actions only, restricted to the M13 implementation branch.
-**Evidence state:** M13 targeted source/real-role database/three-engine browser PASS on [42539385476](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385476) at `8175a28ac188b98f5b4cb3edaa7106b5d38ccb84`, with separate reference-fixture subset, 170k-scale, SQL fault, code mutation and SQL policy mutation PASS at the explicitly recorded SHAs. Expanded combined verification is still failing and G13 acceptance remains pending. [Expanded run ledger](M13_G13_EXPANDED_VERIFICATION_20261109.md).
+**Evidence state:** Initial and expanded technical verification, including combined full browser/DB PASS, are recorded at their frozen SHAs. M13 targeted source/real-role database/three-engine browser PASS on [42539385476](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385476) at `8175a28ac188b98f5b4cb3edaa7106b5d38ccb84`, with separate reference-fixture subset, 170k-scale, SQL fault, code mutation and SQL policy mutation PASS at the explicitly recorded SHAs. Expanded combined verification is still failing and G13 acceptance remains pending. [Expanded run ledger](M13_G13_EXPANDED_VERIFICATION_20261109.md).
 
 ## Scope
 

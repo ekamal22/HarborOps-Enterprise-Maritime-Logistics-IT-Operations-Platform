@@ -1,7 +1,9 @@
 # M13 G13 Verification Plan
 
+**Current source status (2026-11-09):** M13 code and verification entrypoints are implemented. Independent [targeted technical checks](M13_VERIFICATION_STATUS_20261109.md), [170,000 shipment / mutation / fault evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md), and [combined source-locked workflow 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on their respective source SHAs. The green combined source is older than the independent M13 member SELECT RLS optimization. Full G13-S01 through S24 evidence, final source synchronization and independent S25 remain open. No acceptance, merge or deployment.
+
 **Prepared:** 2026-11-08
-**State:** Focused M13 and selected supplemental scenarios have passed at individually frozen SHAs; expanded combined M13/M15 verification has unresolved failures. This is a coverage plan, not a declaration that G13-S01 through S24 are closed. [Executed evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md).
+**State:** Focused M13, selected supplements and expanded combined M13/M15 technical verification passed at independently recorded source SHAs. The newer M13 SELECT RLS policy still requires combined synchronization. G13 full scenario and independent acceptance review remain pending. This is a coverage plan, not a declaration that G13-S01 through S24 are closed. [Executed evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md).
 **Accepted baseline inspected:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Planning branch:** plan/m13-operational-kpi-dashboards-20261108
 **Policy and authorization:** [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md). Application implementation is authorized and source has been authored as recorded in [implementation status](M13_IMPLEMENTATION_STATUS_20261109.md). GitHub Actions is the exclusive M13 verification environment after implementation completion. Independent G13-S25 review and separate G13 acceptance remain mandatory.

@@ -1,5 +1,7 @@
 # M13 Operational KPI Planning and Delivery Status
 
+**Current source status (2026-11-09):** M13 code and verification entrypoints are implemented. Independent [targeted technical checks](M13_VERIFICATION_STATUS_20261109.md), [170,000 shipment / mutation / fault evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md), and [combined source-locked workflow 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on their respective source SHAs. The green combined source is older than the independent M13 member SELECT RLS optimization. Full G13-S01 through S24 evidence, final source synchronization and independent S25 remain open. No acceptance, merge or deployment.
+
 **Updated:** 2026-11-09
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
 **Inbound accepted main:** `eb529368a2447061fc1838cd3967b0ffedae669d`
@@ -25,7 +27,7 @@
 | G13-S02 through S25 | PARTIAL SOURCE-LOCKED EVIDENCE, FULL EXIT CRITERIA NOT YET MET |
 | G13 | NOT ACCEPTED |
 
-The 10-minute report expiry, 500,000 row materialization ceiling and timeouts are provisional. Large tenant sizing, fault, mutation, fixture and independent evidence checks are outstanding. The implementation does not turn an unassessed M11 rule, absent M10 projection, or parked ARRI/DEPA event into a verified no-risk or physical arrival fact.
+The 10-minute report expiry, 500,000 row materialization ceiling and timeouts are provisional. The 170,000-shipment technical run and focused fault and mutation checks have passed. Full risk/occurrence fixture reconciliation, concurrent capacity, final integrated security and independent G13 evidence review remain outstanding. The implementation does not turn an unassessed M11 rule, absent M10 projection, or parked ARRI/DEPA event into a verified no-risk or physical arrival fact.
 
 M15 uses an independent implementation branch, notification module and earlier timestamped migration `20261109010000_M15ScopedNotifications`. M13 owns only `20261109020000_M13OperationalKpis` and the analytics module. Shared migration, role, Program and UI changes still require combined integration review. Accepted main and the M9 transport hold remain unchanged.
 

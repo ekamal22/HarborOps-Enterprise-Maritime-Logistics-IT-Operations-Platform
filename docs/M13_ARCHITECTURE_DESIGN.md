@@ -1,7 +1,9 @@
 # M13 Operational KPI Architecture Design
 
+**Current source status (2026-11-09):** M13 code and verification entrypoints are implemented. Independent [targeted technical checks](M13_VERIFICATION_STATUS_20261109.md), [170,000 shipment / mutation / fault evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md), and [combined source-locked workflow 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on their respective source SHAs. The green combined source is older than the independent M13 member SELECT RLS optimization. Full G13-S01 through S24 evidence, final source synchronization and independent S25 remain open. No acceptance, merge or deployment.
+
 **Date:** 2026-11-08
-**Status:** PLANNED ONLY, NOT IMPLEMENTED
+**Document scope:** Original architecture baseline from 2026-11-08. Source is now implemented and technically exercised, but G13 remains unaccepted.
 **Accepted source:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Prerequisites:** G11 and G12 accepted; [D-005 Option A approved with safeguards](M13_D005_POLICY_APPROVAL_20261108.md). Implementation contracts and measurement remain open.
 **Canonical work:** M13-01, M13-02, M13-03, M13-04 and G13.

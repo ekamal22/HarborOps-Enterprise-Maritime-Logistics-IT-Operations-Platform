@@ -1,5 +1,7 @@
 # M13 Operational KPI Implementation Plan
 
+**Current source status (2026-11-09):** M13 code and verification entrypoints are implemented. Independent [targeted technical checks](M13_VERIFICATION_STATUS_20261109.md), [170,000 shipment / mutation / fault evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md), and [combined source-locked workflow 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on their respective source SHAs. The green combined source is older than the independent M13 member SELECT RLS optimization. Full G13-S01 through S24 evidence, final source synchronization and independent S25 remain open. No acceptance, merge or deployment.
+
 **Date:** 2026-11-08
 **State:** M13 FEATURE IMPLEMENTATION AUTHORIZED AND AUTHORED; TARGETED SOURCE-LOCKED VERIFICATION PASSED; FULL G13 GATE PENDING
 **Accepted baseline:** main eb529368a2447061fc1838cd3967b0ffedae669d
@@ -73,7 +75,7 @@ Proposed file: src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs. Register 
 - GET /api/v1/organizations/{organizationId}/analytics/overview: normalized filters, exact integer metrics, denominators, status series, rule/input freshness, transaction as-of instant and protected report token.
 - GET /api/v1/organizations/{organizationId}/analytics/reports/{reportId}/members: exact snapshot-member keyset paging with live reauthorization and session-bound protected token.
 
-The old docs/API_CONTRACTS.md proposed analytics/overview route is not implemented. Preserve its route namespace where compatible; confirm exact contract under M13-01.
+At this document's original planning date, the analytics/overview route was not yet implemented. It now exists in M13 source; see the implementation register. Preserve its route namespace where compatible; confirm exact contract under M13-01.
 
 Add OrganizationPermission.ViewOperationalKpis without granting it to every Auditor. If an explicit grant table is needed, add the smallest scope-locked schema and grant/revoke handling under separate reviewed ownership. Reuse existing selected organization and protected-cookie session middleware. Require active org, user, membership, unchanged security version and read-only dashboard grant at transaction and subsequent member request. For direct detail, preserve M5/M11 per-resource authorization.
 

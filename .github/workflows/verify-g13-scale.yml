@@ -6,6 +6,8 @@ on:
       - plan/m13-operational-kpi-dashboards-20261108
     paths:
       - tests/HarborOps.IntegrationTests/M13ScaleLoadTests.cs
+      - src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs
+      - src/HarborOps.Infrastructure/Persistence/Migrations/20261109020000_M13OperationalKpis.cs
       - .github/workflows/verify-g13-scale.yml
 permissions:
   contents: read

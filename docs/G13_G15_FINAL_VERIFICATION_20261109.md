@@ -1,5 +1,7 @@
 # Final G13/G15 Source-Locked Verification Campaign
 
+**Latest G13/G15 closure source audit (2026-11-09):** The dedicated [correctness audit](G13_G15_CLOSURE_CORRECTNESS_AUDIT_20261109.md) identifies and corrects verification-source issues on `verify/g13-g15-evidence-closure-20261109`. The previously passing run remains restricted to `e4bf9cd1527f85f554baf623e90805d96d08ac1a`; the revised branch has **not** been executed. G13/G15 scenario acceptance, merge and deployment remain pending.
+
 **Latest verified technical campaign (2026-11-09):** [Run 42569970541](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42569970541) passed all 15 jobs at source `e4bf9cd1527f85f554baf623e90805d96d08ac1a`, with 487 passed TRX cases, zero failed/skipped, all six browser suites passing, and artifact integrity PASS. This is **not** full milestone acceptance. The final ledger reports G13 and G15 each 1 PASS, 22 BLOCKED and 2 NOT EXECUTED. The [source-locked evidence review](G13_G15_SOURCE_LOCKED_EVIDENCE_REVIEW_20261109.md) records outstanding plan, capacity, recovery and mutation proof. Merge, production migration, deployment and runtime activation remain pending.
 
 

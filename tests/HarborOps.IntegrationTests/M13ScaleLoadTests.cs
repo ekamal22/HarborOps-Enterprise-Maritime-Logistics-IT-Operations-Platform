@@ -369,6 +369,16 @@ public sealed class M13ScaleLoadTests
             $"samples_ms=[{string.Join(",", latencies.Select(v=>v.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)))}]");
         Assert.True(median <= 15_000, $"Approved G13 p50 exceeded: {median:F0}ms");
         Assert.True(p95 <= 20_000, $"Approved G13 p95 exceeded: {p95:F0}ms");
+        // Measured provisional verification envelope, not a permanent
+        // production storage policy or permission to delete business evidence.
+        // Prior source-locked 30-report campaign: 1,630,085,120 final bytes
+        // and 608,702,464 peak process working-set bytes.
+        const long ProvisionalThirtyReportGrowthCeiling = 2L * 1024 * 1024 * 1024;
+        const long ProvisionalProcessWorkingSetCeiling = 1L * 1024 * 1024 * 1024;
+        Assert.InRange(finalStorage - initialStorage,
+            0L, ProvisionalThirtyReportGrowthCeiling);
+        Assert.InRange(process.PeakWorkingSet64,
+            0L, ProvisionalProcessWorkingSetCeiling);
         // High-volume EXPLAIN ANALYZE inserts rolled-back report rows. Run
         // those plans after the 30-sample storage/latency measurement so
         // EXPLAIN's dead tuples cannot contaminate the benchmark deltas.

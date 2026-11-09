@@ -149,3 +149,41 @@ test("M13 failed report clears old values and a retry builds a fresh snapshot", 
   await expect(d.getByRole("alert")).toHaveCount(0);
   await expect(d.getByText(/Current-state evaluation:/)).toBeVisible();
 });
+
+
+test("M13 ratio rendering uses exact member numerators and half-up percentages", async ({ page }) => {
+  test.skip(!enabled, "Disposable M13 browser fixture required");
+  await login(page, "m3-manager@example.test");
+  await page.route("**/analytics/overview*", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({
+      policyVersion: "m13-kpi-v1",
+      reportId: "e0000000-0000-4000-8000-000000000006",
+      reportToken: "disposable-fixture-report-token",
+      fromUtc: "2026-11-02T00:00:00Z",
+      beforeUtc: "2026-11-09T00:00:00Z",
+      evaluatedAtUtc: "2026-11-09T12:00:00Z",
+      expiresAtUtc: "2026-11-09T12:10:00Z",
+      memberCount: 9, bucket: "day",
+      counts: [
+        { metricCode: "D05", dimension: "", bucketStartUtc: null, count: 3 },
+        { metricCode: "K05", dimension: "", bucketStartUtc: null, count: 1 },
+        { metricCode: "K06", dimension: "", bucketStartUtc: null, count: 2 },
+        { metricCode: "D13", dimension: "", bucketStartUtc: null, count: 9 },
+        { metricCode: "K13", dimension: "", bucketStartUtc: null, count: 8 },
+        { metricCode: "K14", dimension: "", bucketStartUtc: null, count: 1 }
+      ]
+    })
+  }));
+  await page.locator("#current-organization").selectOption({
+    label: "M3 North Terminal (Manager)"
+  });
+  const d = dashboard(page);
+  await expect(d.getByRole("button", { name: /Strict on-time recorded arrivals/ })
+    .getByText("33.33%", { exact: true })).toBeVisible();
+  await expect(d.getByRole("button", { name: /Within 60-minute tolerance/ })
+    .getByText("66.67%", { exact: true })).toBeVisible();
+  await expect(d.getByRole("button", { name: /Evaluator coverage/ })
+    .getByText("88.89%", { exact: true })).toBeVisible();
+  await expect(d.getByText(/Partial assessment/).first()).toBeVisible();
+});

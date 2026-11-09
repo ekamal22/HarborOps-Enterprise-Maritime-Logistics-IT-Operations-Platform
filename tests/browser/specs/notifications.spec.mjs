@@ -5,6 +5,26 @@ import path from "node:path";
 const enabled = process.env.HARBOROPS_M5_FIXTURES === "1" &&
   Boolean(process.env.HARBOROPS_TEST_USER_PASSWORD);
 
+/*
+ * The audit-read limiter is per user (30 requests/minute). Each browser
+ * scenario starts a fresh workspace, whose notification center fetches before
+ * the scenario's individual routes can be installed. Intercept the incidental
+ * first paint for mocked scenarios so three browser engines do not consume
+ * real API quota. The separately named live scenario never installs mocks.
+ * Scenario-specific routes take precedence over these earlier fallbacks.
+ */
+test.beforeEach(async ({ page }, info) => {
+  if (info.title.includes("G15 live M11 event is delivered")) return;
+  const empty = { items:[], nextCursor:null,
+    snapshotAtUtc:"2026-11-08T18:00:00Z" };
+  await page.route("**/organizations/*/notifications?*", route =>
+    route.fulfill({ status:200, contentType:"application/json",
+      body:JSON.stringify(empty) }));
+  await page.route("**/organizations/*/notifications/unread-count", route =>
+    route.fulfill({ status:200, contentType:"application/json",
+      body:JSON.stringify({ unreadCount:0, asOfUtc:empty.snapshotAtUtc }) }));
+});
+
 async function signIn(page, role="Manager") {
   const root=process.env.HARBOROPS_VERIFICATION_ROOT;
   const filename=role==="Administrator" ? "m15-administrator.json" : "m15-manager.json";
@@ -262,13 +282,29 @@ test("G15 live M11 event is delivered and navigable from the real notification A
   const fixture = JSON.parse(fs.readFileSync(
     path.join(root,"m15-browser","live-fixture.json"),"utf8"));
   expect(fixture.sourceSha).toBe(process.env.HARBOROPS_SOURCE_SHA);
+  const liveHttpStatuses = [];
+  page.on("response", response => {
+    if (response.url().includes("/organizations/" + fixture.organizationId +
+      "/notifications")) liveHttpStatuses.push(response.status());
+  });
   await signIn(page);
   await page.locator("#current-organization")
     .selectOption({ label:"M3 North Terminal (Manager)" });
   const center = page.getByRole("region",{name:"In-app shipment notifications"});
   await expect(center).toBeVisible();
   const liveNotice = center.locator("li").filter({hasText:fixture.title});
-  await expect(liveNotice).toHaveCount(1);
+  try {
+    await expect(liveNotice).toHaveCount(1);
+  } catch (failure) {
+    // Report request outcomes without logging response bodies, cookies, or
+    // private fixture credentials. This distinguishes actual access failures
+    // from pagination and rendering bugs on the final browser engine.
+    const errors = await center.getByRole("alert").allTextContents();
+    const content = await center.locator("li p.font-medium").allTextContents();
+    throw new Error("Live M15 notification not visible. HTTP statuses: " +
+      liveHttpStatuses.join(",") + "; UI errors: " + errors.join(" | ") +
+      "; notification count: " + content.length, { cause:failure });
+  }
   await expect(liveNotice.getByText(fixture.title)).toBeVisible();
   await expect(liveNotice.getByText("Unread",{exact:false})).toBeVisible();
   await liveNotice.getByRole("button",{name:"Open shipment exception"}).click();

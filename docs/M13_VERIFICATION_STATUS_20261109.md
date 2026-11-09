@@ -1,6 +1,6 @@
 # M13 Verification Campaign Status
 
-**Current G13/G15 verification checkpoint (2026-11-09):** [Run 42565412367](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42565412367) **FAILED** at `6f1f34b2fba4c13a75a85bedc482118755921e11`: 13 of 15 jobs passed. M15's later retained-delivery safeguard correctly blocked the requested migration downgrade before the earlier M12 export-audit safeguard; one historical assertion failed and the evidence ledger rejected the run. The repaired test is committed on `verify/g13-g15-final-acceptance-20261109`, **verification pending**. G13/G15 acceptance, independent S25 reviews, merge and deployment remain pending. [Final campaign](G13_G15_FINAL_VERIFICATION_20261109.md).
+**Current G13/G15 verification checkpoint (2026-11-09):** [Run 42567231512](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42567231512) **FAILED** at `0a32e807404ab13b3e80a74e8dc553b76ba69f98` (13 of 15 jobs passed). A Firefox M15 revocation browser test clicked the disabled notification Refresh control before its initial request settled; the evidence ledger correctly rejected incomplete browser coverage. The test now waits for initial request completion and asserts protected UI removal after revocation. Revised verification branch awaits manual dispatch. G13/G15 technical completion, independent S25 reviews, acceptance, merge and deployment remain pending. [Final campaign](G13_G15_FINAL_VERIFICATION_20261109.md).
 
 
 **Opened:** 2026-11-09

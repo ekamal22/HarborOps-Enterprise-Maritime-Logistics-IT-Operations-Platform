@@ -201,6 +201,165 @@ public sealed class G13G15CrashRecoveryTests
             s.Fixture.ManagerEmail);
     }
 
+    // Dispatch is executed through the production SQL function using a real
+    // signed dispatcher scope. An uncommitted fanout must disappear on SIGKILL,
+    // while a committed fanout must survive and remain effect-once.
+    private static async Task StageFanoutCrash(string phase, bool commit)
+    {
+        var s = await M11ExceptionRuntimeTests.Prepare();
+        using var factory = s.Factory;
+        using var runtime = s.Runtime;
+        using var administrator = s.Administrator;
+        using var analyst = s.Analyst;
+        using var manager = s.Manager;
+        using var adminSeed = s.Fixture.Admin;
+        using var managerSeed = s.Fixture.Manager;
+        using var analystSeed = s.Fixture.Analyst;
+
+        var shipment = await M11ExceptionRuntimeTests.ScheduledShipment(s);
+        await M11ExceptionRuntimeTests.EvaluateAndFind(s, shipment);
+        Guid history;
+        await using (var adminDb = new NpgsqlConnection(s.Roles.Admin))
+        {
+            await adminDb.OpenAsync();
+            await using var command = new NpgsqlCommand("""
+                SELECT source_history_id FROM m15_notification_outbox
+                WHERE organization_id=@org AND shipment_id=@shipment
+                    AND completed_at_utc IS NULL
+                ORDER BY created_at_utc DESC LIMIT 1
+                """, adminDb);
+            command.Parameters.AddWithValue("org", s.Fixture.A);
+            command.Parameters.AddWithValue("shipment", shipment);
+            history = Assert.IsType<Guid>(await command.ExecuteScalarAsync());
+        }
+
+        await using var db = new NpgsqlConnection(s.Roles.Api);
+        await db.OpenAsync();
+        await using var tx = await db.BeginTransactionAsync();
+        var expiry = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;
+        var key = Convert.FromBase64String(ReferenceDataHttpTests.CorrectionProofKey);
+        var signature = Convert.ToHexString(
+            System.Security.Cryptography.HMACSHA256.HashData(key,
+                System.Text.Encoding.UTF8.GetBytes($"m15-dispatch-v1|{expiry}")))
+            .ToLowerInvariant();
+        await using (var scope = new NpgsqlCommand(
+            "SELECT set_config('harborops.m15_dispatch_scope',@scope,true)", db, tx))
+        {
+            scope.Parameters.AddWithValue("scope", $"{expiry}|{signature}");
+            await scope.ExecuteNonQueryAsync();
+        }
+        await using (var dispatch = new NpgsqlCommand(
+            "SELECT m15_deliver_pending(20)", db, tx))
+            Assert.True(Convert.ToInt32(await dispatch.ExecuteScalarAsync()) > 0);
+        if (commit)
+            await tx.CommitAsync();
+        await MarkAndHold(phase, s.Fixture.A, history, s.Fixture.ManagerEmail);
+    }
+
+    [G13G15CrashFact]
+    public Task G15BeforeFanoutCommit() =>
+        StageFanoutCrash("G15BeforeFanoutCommit", false);
+
+    [G13G15CrashFact]
+    public Task G15AfterFanoutCommit() =>
+        StageFanoutCrash("G15AfterFanoutCommit", true);
+
+    [G13G15CrashFact]
+    public async Task G15BeforeClaimCommit()
+    {
+        var s = await M11ExceptionRuntimeTests.Prepare();
+        using var factory = s.Factory;
+        using var runtime = s.Runtime;
+        using var administrator = s.Administrator;
+        using var analyst = s.Analyst;
+        using var manager = s.Manager;
+        using var adminSeed = s.Fixture.Admin;
+        using var managerSeed = s.Fixture.Manager;
+        using var analystSeed = s.Fixture.Analyst;
+        var shipment = await M11ExceptionRuntimeTests.ScheduledShipment(s);
+        await M11ExceptionRuntimeTests.EvaluateAndFind(s, shipment);
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        await using var tx = await db.BeginTransactionAsync();
+        await using var claim = new NpgsqlCommand("""
+            SELECT source_history_id FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@shipment
+                AND completed_at_utc IS NULL
+            FOR UPDATE SKIP LOCKED LIMIT 1
+            """, db, tx);
+        claim.Parameters.AddWithValue("org", s.Fixture.A);
+        claim.Parameters.AddWithValue("shipment", shipment);
+        var history = Assert.IsType<Guid>(await claim.ExecuteScalarAsync());
+        await MarkAndHold("G15BeforeClaimCommit", s.Fixture.A,
+            history, s.Fixture.ManagerEmail);
+    }
+
+    [G13G15CrashFact]
+    public async Task G15FanoutRecoveredInNewApiProcess()
+    {
+        var marker = await ReadMarker();
+        Assert.Contains(marker.Phase, new[]
+        {
+            "G15BeforeClaimCommit", "G15BeforeFanoutCommit", "G15AfterFanoutCommit"
+        });
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        async Task<long> Count(string table)
+        {
+            await using var sql = new NpgsqlCommand(
+                "SELECT COUNT(*) FROM " + table +
+                " WHERE source_history_id=@id AND organization_id=@org", db);
+            sql.Parameters.AddWithValue("id", marker.Target);
+            sql.Parameters.AddWithValue("org", marker.Organization);
+            return Convert.ToInt64(await sql.ExecuteScalarAsync());
+        }
+        Assert.Equal(1, await Count("m15_notification_outbox"));
+        var before = await Count("m15_user_notifications");
+        if (marker.Phase == "G15AfterFanoutCommit")
+            Assert.True(before > 0, "Committed fanout receipts disappeared");
+        else
+            Assert.Equal(0, before);
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        await using (var scope = runtime.Services.CreateAsyncScope())
+        {
+            var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+            await store.DeliverPendingAsync(CancellationToken.None);
+            await store.DeliverPendingAsync(CancellationToken.None);
+        }
+        var receipts = await Count("m15_user_notifications");
+        Assert.True(receipts > 0, "Committed source did not recover delivery");
+        Assert.Equal(receipts, await Count("m15_user_notifications"));
+        await using (var duplicates = new NpgsqlCommand("""
+            SELECT COUNT(*) FROM (
+                SELECT recipient_user_id FROM m15_user_notifications
+                WHERE source_history_id=@id GROUP BY recipient_user_id
+                HAVING COUNT(*) > 1
+            ) d
+            """, db))
+        {
+            duplicates.Parameters.AddWithValue("id", marker.Target);
+            Assert.Equal(0L, Convert.ToInt64(await duplicates.ExecuteScalarAsync()));
+        }
+        await using (var status = new NpgsqlCommand("""
+            SELECT completed_at_utc IS NOT NULL
+            FROM m15_notification_outbox WHERE source_history_id=@id
+            """, db))
+        {
+            status.Parameters.AddWithValue("id", marker.Target);
+            Assert.Equal(true, await status.ExecuteScalarAsync());
+        }
+        using var manager = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(manager, marker.Email);
+        await ReferenceDataHttpTests.Select(manager, marker.Organization);
+        using var response = await manager.GetAsync(
+            $"/api/v1/organizations/{marker.Organization}/notifications");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Console.WriteLine($"G15_CRASH phase={marker.Phase} recovered=true recipients={receipts}");
+    }
+
     [G13G15CrashFact]
     public async Task G13AfterReportCommitRecoveredInNewApiProcess()
     {

@@ -120,7 +120,11 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
         invalidate(cause);
       }
     } finally {
-      if (mounted.current && run === serial.current) setBusyId(null);
+      // refresh() intentionally advances serial.current after an applied action.
+      // Do not strand the mutation lock when that self-initiated refresh completes.
+      // Only clear the matching operation on the currently mounted workspace.
+      if (mounted.current)
+        setBusyId(current => current === item.id ? null : current);
     }
   };
 

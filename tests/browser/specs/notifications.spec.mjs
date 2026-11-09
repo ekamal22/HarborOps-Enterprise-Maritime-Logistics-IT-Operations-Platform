@@ -137,6 +137,9 @@ test("G15 personal receipt controls preserve a separate unread counter", async (
   await center.getByRole("button",{name:"Mark read"}).click();
   await expect(center.getByRole("button",{name:"Mark read"})).toHaveCount(0);
   await expect(center.getByText("0 unread",{exact:false})).toBeVisible();
+  // The successful MarkRead refresh must release its own busy lock.
+  await expect(center.getByRole("button",{name:"Acknowledge notification"}))
+    .toBeEnabled();
   await center.getByRole("button",{name:"Acknowledge notification"}).click();
   await expect(center.getByRole("button",{name:"Acknowledge notification"}))
     .toHaveCount(0);

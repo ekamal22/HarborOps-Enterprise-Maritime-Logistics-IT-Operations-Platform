@@ -290,7 +290,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .verification/g13-scale
-          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj             -c Release --no-build --filter 'FullyQualifiedName~M13ScaleLoadTests'             --logger 'console;verbosity=normal' --logger 'trx;LogFileName=scale.trx'             --results-directory .verification/g13-scale
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj             -c Release --no-build --filter 'FullyQualifiedName~M13ScaleLoadTests'             --logger 'console;verbosity=normal' --logger 'trx;LogFileName=scale.trx'             --results-directory .verification/g13-scale \
+            2>&1 | tee .verification/g13-scale/scale.log
       - name: Save evidence checksums
         if: always()
         run: |
@@ -429,7 +430,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify original control and kill nine source mutants
+      - name: Verify original control and thirteen source mutants
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"

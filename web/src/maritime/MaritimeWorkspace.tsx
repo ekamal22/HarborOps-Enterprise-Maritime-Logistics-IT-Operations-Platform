@@ -220,11 +220,11 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
   );
   return <section className="mt-6 border-t border-slate-700 pt-5">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <h4 className="font-semibold">Voyages and containers</h4>
+      <h4 className="font-semibold">{t("Voyages and containers")}</h4>
       <button type="button" disabled={busy || loading || paging} onClick={() => {
         setReferenceRefresh(value => value + 1); void reload();
       }}
-        className="rounded border border-slate-600 px-3 py-2 text-sm">Refresh maritime records</button>
+        className="rounded border border-slate-600 px-3 py-2 text-sm">{t("Refresh maritime records")}</button>
     </div>
     <div className="mt-3 flex flex-wrap gap-2">
       {(["voyages", "containers"] as const).map(value =>
@@ -240,12 +240,11 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
         </button>)}
     </div>
     <div className="mt-4 flex flex-wrap items-end gap-3">
-      <label className="text-sm">Search {kind}
+      <label className="text-sm">{t("Search")}{kind}
         <input value={q} maxLength={80} disabled={busy || paging}
           onChange={e => setQ(e.target.value)} className="mt-1 block rounded bg-slate-950 px-3 py-2" />
       </label>
-      <label className="text-sm">Record status
-        <select value={status} disabled={busy || paging} onChange={e => setStatus(e.target.value as typeof status)}
+      <label className="text-sm">{t("Record status")}<select value={status} disabled={busy || paging} onChange={e => setStatus(e.target.value as typeof status)}
           className="mt-1 block rounded bg-slate-950 px-3 py-2">
           {["Active", "Archived", "All"].map(v => <option key={v}>{v}</option>)}
         </select>
@@ -253,19 +252,17 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
       {canManage && <button type="button" disabled={busy || paging || loading ||
         (kind === "voyages" && (parentLoading || Boolean(parentError)))}
         onClick={() => { setCreating(true); setSelected(null); setForm(empty); setError(""); }}
-        className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">
-        Add {kind === "voyages" ? "voyage" : "container"}
+        className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">{t("Add")}{kind === "voyages" ? "voyage" : "container"}
       </button>}
     </div>
-    {loading && <p className="mt-3 text-sm text-slate-400">Loading {kind}...</p>}
+    {loading && <p className="mt-3 text-sm text-slate-400">{t("Loading")}{kind}...</p>}
     {kind === "voyages" && canManage && parentLoading &&
-      <p className="mt-3 text-sm text-slate-400">Loading voyage references...</p>}
+      <p className="mt-3 text-sm text-slate-400">{t("Loading voyage references...")}</p>}
     {kind === "voyages" && canManage && parentError &&
-      <p role="alert" className="mt-3 text-sm text-rose-300">
-        Voyage reference selection is unavailable: {parentError}
+      <p role="alert" className="mt-3 text-sm text-rose-300">{t("Voyage reference selection is unavailable:")}{parentError}
       </p>}
     {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
-    {!loading && !error && !items.length && <p className="mt-3 text-sm text-slate-400">No matching {kind}.</p>}
+    {!loading && !error && !items.length && <p className="mt-3 text-sm text-slate-400">{t("No matching")}{kind}.</p>}
     <ul className="mt-4 space-y-2">
       {items.map(row => <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 rounded border border-slate-700 p-3">
         <div>
@@ -293,8 +290,7 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
       </li>)}
     </ul>
     {nextAfter && <button type="button" disabled={busy || paging || loading}
-      onClick={() => void more()} className="mt-3 rounded border border-slate-600 px-3 py-2 text-sm">
-      Load more maritime records</button>}
+      onClick={() => void more()} className="mt-3 rounded border border-slate-600 px-3 py-2 text-sm">{t("Load more maritime records")}</button>}
     {(selected || creating) && <form onSubmit={e => void save(e)} className="mt-5 grid gap-3 rounded border border-slate-600 p-4 sm:grid-cols-2">
       <h5 className="col-span-full font-semibold">{creating ? "Add record" : "Record details"}</h5>
       {input("referenceCode", "Reference code", !creating)}
@@ -305,7 +301,7 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
             <select aria-label={field} value={form[field]} disabled={!canManage || !creating}
               onChange={e => setForm(old => ({ ...old, [field]: e.target.value }))}
               className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60">
-              <option value="">Select reference</option>
+              <option value="">{t("Select reference")}</option>
               {source.map(ref => <option key={ref.id} value={ref.id}>{ref.referenceCode}: {ref.name}</option>)}
             </select>
           </label>;
@@ -313,8 +309,7 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
         {input("plannedDepartureAtUtc", "Planned departure UTC (ISO 8601)", !creating && form.voyageStatus !== "Planned")}
         {input("plannedArrivalAtUtc", "Planned arrival UTC (ISO 8601)", !creating && form.voyageStatus !== "Planned")}
         {!creating && <>
-          <label className="text-sm">Voyage progress
-            <select aria-label="Voyage progress" value={form.voyageStatus} disabled={!canManage}
+          <label className="text-sm">{t("Voyage progress")}<select aria-label={t("Voyage progress")} value={form.voyageStatus} disabled={!canManage}
               onChange={e => setForm(old => ({ ...old, voyageStatus: e.target.value }))}
               className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60">
               {progress.map(v => <option key={v}>{v}</option>)}
@@ -324,23 +319,21 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
           {input("actualArrivalAtUtc", "Actual arrival UTC (ISO 8601)", Boolean(selected?.actualArrivalAtUtc))}
         </>}
       </> : <>
-        <label className="text-sm">Identifier kind
-          <select aria-label="Identifier kind" value={form.identifierKind} disabled={!creating || !canManage}
+        <label className="text-sm">{t("Identifier kind")}<select aria-label={t("Identifier kind")} value={form.identifierKind} disabled={!creating || !canManage}
             onChange={e => setForm(old => ({ ...old, identifierKind: e.target.value as Form["identifierKind"] }))}
             className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60">
-            <option value="ISO6346">ISO 6346 format</option><option value="Synthetic">{t("Synthetic")}</option>
+            <option value="ISO6346">{t("ISO 6346 format")}</option><option value="Synthetic">{t("Synthetic")}</option>
           </select>
         </label>
         {input("containerIdentifier", "Container identifier", !creating)}
-        <label className="text-sm">Equipment type
-          <select value={form.equipmentType} aria-label="Equipment type" disabled={!creating || !canManage}
+        <label className="text-sm">{t("Equipment type")}<select value={form.equipmentType} aria-label={t("Equipment type")} disabled={!creating || !canManage}
             onChange={e => setForm(old => ({ ...old, equipmentType: e.target.value }))}
             className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60">
             {formats.map(v => <option key={v}>{v}</option>)}
           </select>
         </label>
         {input("displayName", "Display name")}
-        {form.identifierKind === "Synthetic" && <p className="text-xs text-amber-200">Synthetic container reference. No registration is implied.</p>}
+        {form.identifierKind === "Synthetic" && <p className="text-xs text-amber-200">{t("Synthetic container reference. No registration is implied.")}</p>}
       </>}
       <div className="col-span-full flex gap-2">
         {canManage && (creating || selected?.recordStatus === "Active") &&

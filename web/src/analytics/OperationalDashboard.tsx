@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { organizationError, OrganizationRequestError } from "../auth/organizationClient";
 import { catalog, overview, type DrillSelection, type KpiCount,
@@ -34,6 +35,7 @@ type Props = {
 };
 
 export default function OperationalDashboard({ organizationId, onAccessInvalidated, isAuditor }: Props & { isAuditor: boolean }) {
+  const { t, date, number, locale } = useI18n();
   const [draft, setDraft] = useState<KpiFilterValues>(initial);
   const [applied, setApplied] = useState<KpiFilterValues>(initial);
   const [definitions, setDefinitions] = useState<KpiDefinition[]>([]);
@@ -115,60 +117,54 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
     setSelection({ metricCode, dimension, bucketStartUtc, label });
   }
 
-  return <section aria-label="Operational KPI dashboard" className="mt-6 rounded-xl border border-slate-700 bg-slate-900/80 p-4 sm:p-6">
+  return <section aria-label={t("Operational KPI dashboard")} className="mt-6 rounded-xl border border-slate-700 bg-slate-900/80 p-4 sm:p-6">
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <div><h3 className="text-xl font-semibold">Operational KPIs</h3>
-        <p className="mt-1 text-xs text-slate-400">Versioned source-reconciled reporting | m13-kpi-v1</p></div>
+      <div><h3 className="text-xl font-semibold">{t("Operational KPIs")}</h3>
+        <p className="mt-1 text-xs text-slate-400">{t("Versioned source-reconciled reporting | m13-kpi-v1")}</p></div>
       <button type="button" onClick={() => void refresh(applied)} disabled={busy || allowed !== true}
-        className="rounded-lg border border-cyan-500 px-3 py-2 text-sm disabled:opacity-50">Refresh report</button>
+        className="rounded-lg border border-cyan-500 px-3 py-2 text-sm disabled:opacity-50">{t("Refresh report")}</button>
     </div>
-    {loading && <p className="mt-3 text-sm" role="status">Checking dashboard permissions...</p>}
-    {allowed === false && <p className="mt-3 rounded border border-amber-700 p-3 text-sm text-amber-200">
-      Dashboard access requires an active explicit read-only grant for an Auditor.
-    </p>}
+    {loading && <p className="mt-3 text-sm" role="status">{t("Checking dashboard permissions...")}</p>}
+    {allowed === false && <p className="mt-3 rounded border border-amber-700 p-3 text-sm text-amber-200">{t("Dashboard access requires an active explicit read-only grant for an Auditor.")}</p>}
     {allowed === true && <>
       <form onSubmit={apply} className="mt-5 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-        <label>From (UTC, inclusive)
-          <input type="date" value={draft.fromDate} onChange={e => setDraft(p => ({ ...p, fromDate: e.target.value }))}
+        <label>{t("From (UTC, inclusive)")}<input type="date" value={draft.fromDate} onChange={e => setDraft(p => ({ ...p, fromDate: e.target.value }))}
             className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 p-2" />
         </label>
-        <label>Before (UTC, exclusive)
-          <input type="date" value={draft.beforeDate} onChange={e => setDraft(p => ({ ...p, beforeDate: e.target.value }))}
+        <label>{t("Before (UTC, exclusive)")}<input type="date" value={draft.beforeDate} onChange={e => setDraft(p => ({ ...p, beforeDate: e.target.value }))}
             className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 p-2" />
         </label>
-        <label>Trend bucket (UTC)
-          <select value={draft.bucket} onChange={e => setDraft(p => ({ ...p, bucket: e.target.value as "day" | "week" }))}
+        <label>{t("Trend bucket (UTC)")}<select value={draft.bucket} onChange={e => setDraft(p => ({ ...p, bucket: e.target.value as "day" | "week" }))}
             className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 p-2">
-            <option value="day">Daily</option><option value="week">Weekly</option>
+            <option value="day">{t("Daily")}</option><option value="week">{t("Weekly")}</option>
           </select>
         </label>
-        <label>Record source
-          <select value={draft.recordSource} onChange={e => setDraft(p => ({ ...p, recordSource: e.target.value as KpiFilterValues["recordSource"] }))}
+        <label>{t("Record source")}<select value={draft.recordSource} onChange={e => setDraft(p => ({ ...p, recordSource: e.target.value as KpiFilterValues["recordSource"] }))}
             className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 p-2">
-            <option value="">All sources</option><option value="UserProvided">User provided</option>
-            <option value="Synthetic">Synthetic</option>
+            <option value="">{t("All sources")}</option><option value="UserProvided">{t("User provided")}</option>
+            <option value="Synthetic">{t("Synthetic")}</option>
           </select>
         </label>
         {(["originPortId", "destinationPortId", "voyageId"] as const).map(key =>
           <label key={key}>{key === "voyageId" ? "Voyage ID" : key === "originPortId" ? "Origin port ID" : "Destination port ID"}
-            <input type="text" value={draft[key]} placeholder="Optional UUID"
+            <input type="text" value={draft[key]} placeholder={t("Optional UUID")}
               onChange={e => setDraft(p => ({ ...p, [key]: e.target.value }))}
               className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 p-2" />
           </label>)}
         <div className="flex items-end gap-2">
-          <button disabled={busy} className="rounded bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-50">Apply filters</button>
+          <button disabled={busy} className="rounded bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-50">{t("Apply filters")}</button>
           <button type="button" onClick={() => { setDraft(initial); setApplied({ ...initial }); }}
-            className="rounded border border-slate-600 px-3 py-2">Reset</button>
+            className="rounded border border-slate-600 px-3 py-2">{t("Reset")}</button>
         </div>
       </form>
-      <p className="mt-2 text-xs text-slate-400">Leave both dates blank for the previous seven complete UTC days. Current risk values are evaluated when the report is built, not reconstructed for the date range.</p>
-      {busy && <p className="mt-4 text-sm" role="status">Building an isolated report snapshot...</p>}
+      <p className="mt-2 text-xs text-slate-400">{t("Leave both dates blank for the previous seven complete UTC days. Current risk values are evaluated when the report is built, not reconstructed for the date range.")}</p>
+      {busy && <p className="mt-4 text-sm" role="status">{t("Building an isolated report snapshot...")}</p>}
       {error && <p className="mt-4 rounded border border-rose-700 p-3 text-sm text-rose-200" role="alert">{error}</p>}
       {report && <>
         <div className="mt-5 border-y border-slate-700 py-3 text-xs text-slate-400">
-          <p>Period: {fmt(report.fromUtc)} to {fmt(report.beforeUtc)} (end exclusive)</p>
-          <p>Current-state evaluation: {fmt(report.evaluatedAtUtc)} | Members: {report.memberCount.toLocaleString()}</p>
-          <p>Snapshot expires: {fmt(report.expiresAtUtc)}. Refresh creates a new report and replaces old drill membership.</p>
+          <p>{t("Period:")}{fmt(report.fromUtc)} to {fmt(report.beforeUtc)} (end exclusive)</p>
+          <p>{t("Current-state evaluation:")}{fmt(report.evaluatedAtUtc)} | Members: {report.memberCount.toLocaleString()}</p>
+          <p>{t("Snapshot expires:")}{fmt(report.expiresAtUtc)}. Refresh creates a new report and replaces old drill membership.</p>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {definitions.filter(d => d.code !== "K02" && d.code !== "K12").map(d => {
@@ -185,14 +181,14 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
               <span className="mt-2 block text-2xl font-semibold text-cyan-200">{value}</span>
               {den !== null && <span className="mt-1 block text-xs text-slate-400">{n.toLocaleString()} / {den.toLocaleString()} {["K07","K08","K09","K10"].includes(d.code) ? "evaluated" : ""}</span>}
               {partial && ["K07", "K08", "K09", "K10", "K11"].includes(d.code) &&
-                <span className="mt-1 block text-xs text-amber-300">Partial assessment. Zero is not confirmed risk-free.</span>}
+                <span className="mt-1 block text-xs text-amber-300">{t("Partial assessment. Zero is not confirmed risk-free.")}</span>}
               <span className="mt-2 block text-xs text-slate-500">{d.description}</span>
             </button>;
           })}
         </div>
         <section className="mt-6">
-          <h4 className="font-semibold">Current workflow distribution</h4>
-          <p className="mt-1 text-xs text-slate-400">Unarchived shipments only. Total {denominator("D01").toLocaleString()}.</p>
+          <h4 className="font-semibold">{t("Current workflow distribution")}</h4>
+          <p className="mt-1 text-xs text-slate-400">{t("Unarchived shipments only. Total")}{denominator("D01").toLocaleString()}.</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             {statuses.map(status => {
               const n = count(report.counts, "K02", status);
@@ -208,7 +204,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
           </div>
         </section>
         <section className="mt-6">
-          <h4 className="font-semibold">Assessment quality</h4>
+          <h4 className="font-semibold">{t("Assessment quality")}</h4>
           <p className="mt-2 text-sm text-slate-400">
             {denominator("K14")} distinct eligible shipments have missing, stale or unknown evidence.
             {partial ? " Risk figures are not complete." : " Current assessment coverage is complete for eligible shipments."}
@@ -219,13 +215,13 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
                 <dt className="text-slate-400">{label}</dt><dd className="mt-1 font-semibold">{denominator(code)}</dd>
               </div>)}
           </dl>
-          <p className="mt-2 text-xs text-slate-500">An individual shipment may have more than one evidence-quality reason.</p>
-          <p className="mt-2 text-xs text-slate-400">Completed workflows excluded from arrival percentage: {Math.max(0, denominator("K03") - denominator("D05"))} (missing authoritative plan or recorded Arrived event).</p>
+          <p className="mt-2 text-xs text-slate-500">{t("An individual shipment may have more than one evidence-quality reason.")}</p>
+          <p className="mt-2 text-xs text-slate-400">{t("Completed workflows excluded from arrival percentage:")}{Math.max(0, denominator("K03") - denominator("D05"))} (missing authoritative plan or recorded Arrived event).</p>
         </section>
         <section className="mt-6">
-          <h4 className="font-semibold">Exception occurrence openings</h4>
-          <p className="mt-1 text-xs text-slate-400">Recorded openings by UTC {report.bucket}, not reconstructed historical open status.</p>
-          {exceptionTrend.length === 0 && <p className="mt-3 text-sm text-slate-400">No recorded openings in this window.</p>}
+          <h4 className="font-semibold">{t("Exception occurrence openings")}</h4>
+          <p className="mt-1 text-xs text-slate-400">{t("Recorded openings by UTC")}{report.bucket}, not reconstructed historical open status.</p>
+          {exceptionTrend.length === 0 && <p className="mt-3 text-sm text-slate-400">{t("No recorded openings in this window.")}</p>}
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {exceptionTrend.map(row => <button
               key={row.dimension + row.bucketStartUtc} type="button"

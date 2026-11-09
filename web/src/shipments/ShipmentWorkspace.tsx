@@ -565,7 +565,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
                 {ports.map(port => <option key={port.id} value={port.id}>{port.referenceCode} {port.name}</option>)}
               </select>
             </label>)}
-        </> : <p className="text-sm text-slate-400">{t("Route:")} {selected?.originPortLabel || selected?.originPortId} {t("to")} {selected?.destinationPortLabel || selected?.destinationPortId}</p>}
+        </> : <p className="text-sm text-slate-400">{t("Route:")} {selected?.originPortLabel || selected?.originPortId} → {selected?.destinationPortLabel || selected?.destinationPortId}</p>}
         {field("plannedDepartureAtUtc", "Planned departure UTC (ISO 8601)", scheduleLocked)}
         {field("plannedArrivalAtUtc", "Planned arrival UTC (ISO 8601)", scheduleLocked)}
         {!creating && selected && <label className="text-sm">{t("Shipment workflow")}<select aria-label={t("Shipment workflow")} value={form.workflowStatus} disabled={readonly}
@@ -597,7 +597,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
         <h6 className="font-medium">{t("Manual status history")}</h6>
         {history.length === 0 ? <p className="text-xs text-slate-400">{t("No status changes loaded.")}</p> :
           <ol className="mt-2 space-y-1 text-xs text-slate-300">{history.map(x =>
-            <li key={x.id}>v{number(x.version)}: {t(x.fromStatus || "Created")} {t("to")} {t(x.toStatus)} {t("at")} {date(x.changedAtUtc)} UTC</li>)}</ol>}
+            <li key={x.id}>v{String(x.version)}: {t("Status changed from {from} to {to} at {timestamp}", { from: t(x.fromStatus || "Created"), to: t(x.toStatus), timestamp: date(x.changedAtUtc) + " UTC" })}</li>)}</ol>}
       </div>}
     </div>}
   </section>;

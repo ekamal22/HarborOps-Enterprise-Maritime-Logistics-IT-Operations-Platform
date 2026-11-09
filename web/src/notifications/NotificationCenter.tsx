@@ -145,7 +145,7 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
   return <section className="mt-5 rounded-lg border border-slate-700 p-4"
     aria-label={t("In-app shipment notifications")}>
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <h4 className="text-base font-semibold">{t("Shipment notifications")}{unread !== null ? "(" + unread + " unread)" : ""}
+      <h4 className="text-base font-semibold">{t("Shipment notifications")}{unread !== null ? "(" + number(unread) + " " + t("unread") + ")" : ""}
       </h4>
       <button type="button" onClick={() => void refresh()}
         disabled={loading || Boolean(busyId)}
@@ -156,20 +156,19 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
         setFilter(event.target.value as NotificationFilter)}
         className="ml-2 rounded border border-slate-600 bg-slate-950 px-2 py-1">
         {(["All","Unread","Read","Acknowledged"] as NotificationFilter[]).map(
-          value => <option key={value} value={value}>{value}</option>)}
+          value => <option key={value} value={value}>{t(value)}</option>)}
       </select>
     </label>
     {loading && <p role="status" className="mt-3 text-sm text-slate-300">{t("Loading notifications...")}</p>}
-    {error && <p role="alert" className="mt-3 text-xs text-amber-300">{error}</p>}
+    {error && <p role="alert" className="mt-3 text-xs text-amber-300">{t(error)}</p>}
     {!loading && items.length === 0 && !error && <p className="mt-3 text-sm text-slate-400">{t("No notifications are available for this filter. This does not prove there are no exceptions.")}</p>}
     <ul className="mt-3 space-y-2">
       {items.map(item => <li key={item.id}
         className="rounded border border-slate-700 p-3 text-sm">
-        <p className="font-medium">{item.title}</p>
+        <p className="font-medium">{t(item.title)}</p>
         <p className="text-xs text-slate-400">
-          {item.eventLabel} | {item.createdAtUtc} |
-          {" "}{item.acknowledgedAtUtc ? "Acknowledged" :
-            item.readAtUtc ? "Read" : "Unread"}
+          {t(item.eventLabel)} | {date(item.createdAtUtc)} UTC |
+          {" "}{t(item.acknowledgedAtUtc ? "Acknowledged" : item.readAtUtc ? "Read" : "Unread")}
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           <button type="button" onClick={() =>
@@ -188,7 +187,7 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
     {cursor && <button type="button" onClick={() => void loadMore()}
       disabled={loading || paging || Boolean(busyId)}
       className="mt-3 rounded border border-slate-600 px-3 py-1 text-sm disabled:opacity-50">
-      {paging ? "Loading..." : "Load more notifications"}
+      {t(paging ? "Loading..." : "Load more notifications")}
     </button>}
   </section>;
 }

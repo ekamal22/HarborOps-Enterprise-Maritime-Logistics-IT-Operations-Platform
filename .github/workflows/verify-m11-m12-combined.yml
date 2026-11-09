@@ -63,7 +63,7 @@ jobs:
         with:
           name: combined-source-${{ github.run_id }}
           path: .verification/
-          retention-days: 7
+          retention-days: 30
           include-hidden-files: true
 
   m15-database:
@@ -298,6 +298,7 @@ jobs:
           mkdir -p .verification/g13-scale
           printf '%s\n' "$GITHUB_SHA" > .verification/g13-scale/source-sha.txt
           sha256sum tests/HarborOps.IntegrationTests/M13ScaleLoadTests.cs > .verification/g13-scale/test-sha256.txt
+          (cd .verification/g13-scale && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
           find .verification/g13-scale -type f -print0 | sort -z | xargs -0 -r sha256sum >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
@@ -305,7 +306,7 @@ jobs:
           name: g13-scale-${{ github.sha }}
           path: .verification/g13-scale
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 30
 
 
   security-mutations:
@@ -341,6 +342,8 @@ jobs:
           mkdir -p .verification/g13-security-mutations
           test -z "$(git status --porcelain --untracked-files=no)"
           sha256sum scripts/g13-security-mutation-campaign.py > .verification/g13-security-mutations/runner-sha256.txt
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-security-mutations/source-sha.txt
+          (cd .verification/g13-security-mutations && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
           find .verification/g13-security-mutations -type f -print0 | sort -z | xargs -0 -r sha256sum >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
@@ -348,3 +351,138 @@ jobs:
           name: g13-security-mutations-${{ github.sha }}
           path: .verification/g13-security-mutations
           retention-days: 14
+
+
+  g13-faults:
+    name: G13 transaction rollback and recovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-fault
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-fault;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Execute real PostgreSQL report fault recovery
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g13-faults
+          dotnet build HarborOps.sln -c Release -warnaserror
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
+            -c Release --no-build --filter 'FullyQualifiedName~M13FaultRecoveryTests' \
+            --logger 'trx;LogFileName=g13-faults.trx' \
+            --results-directory .verification/g13-faults
+      - name: Seal fault evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g13-faults
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-faults/source-sha.txt
+          (cd .verification/g13-faults && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-faults-${{ github.run_id }}
+          path: .verification/g13-faults/
+          retention-days: 30
+
+  g13-mutations:
+    name: G13 source mutation sensitivity
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-mutation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-mutation;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify original control and kill nine source mutants
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 scripts/g13-mutation-campaign.py
+      - name: Seal mutation evidence and restore source
+        if: always()
+        run: |
+          mkdir -p .verification/g13-mutations
+          test -z "$(git status --porcelain --untracked-files=no)"
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-mutations/source-sha.txt
+          (cd .verification/g13-mutations && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-mutations-${{ github.run_id }}
+          path: .verification/g13-mutations/
+          retention-days: 30
+
+  gate-ledger:
+    name: Reconcile G13 and G15 scenario evidence without approving gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations]
+    if: always()
+    env:
+      GATE_JOB_SOURCE: ${{ needs.source.result }}
+      GATE_JOB_DATABASE: ${{ needs.m15-database.result }}
+      GATE_JOB_BROWSER: ${{ needs.m15-browser.result }}
+      GATE_JOB_SCALE: ${{ needs.scale.result }}
+      GATE_JOB_SECURITY: ${{ needs.security-mutations.result }}
+      GATE_JOB_FAULTS: ${{ needs.g13-faults.result }}
+      GATE_JOB_MUTATIONS: ${{ needs.g13-mutations.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          path: .verification/gate-input
+          pattern: '*'
+          merge-multiple: false
+      - name: Verify source and raw artifact integrity, then write gate ledger
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 scripts/verify-g13-g15-evidence.py
+      - name: Preserve review packet
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g13-g15-evidence-${{ github.run_id }}
+          path: .verification/gate-ledger/
+          if-no-files-found: warn
+          retention-days: 30
+

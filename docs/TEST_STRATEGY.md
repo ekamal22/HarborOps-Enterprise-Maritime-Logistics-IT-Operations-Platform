@@ -1,5 +1,8 @@
 # Test and Verification Strategy
 
+**M13/M15 combined integration checkpoint (2026-11-09):** [Current combined evidence and remediation](M13_M15_COMBINED_VERIFICATION_20261109.md) records a targeted three-job PASS at [42539272811](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539272811) and a distinct expanded source-PASS/database-FAIL/browser-FAIL run at [42539272790](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539272790). The 17-migration regression count and notification locator have been corrected on the integration branch. Full combined verification is not yet established and both feature branches remain separate. No merge, deployment or G13/G15 acceptance.
+
+
 **M15 current technical checkpoint (2026-11-09):** [M15 implementation](M15_IMPLEMENTATION_STATUS.md) and [executed evidence](M15_EXECUTED_VERIFICATION_20261109.md) record the latest measured source. Frozen revision `82dac56` passed 299 unit, 46 API contract and 26 selected PostgreSQL integration tests; browser fixture preparation failed before Playwright. Newer browser and receipt replay changes are committed but unverified. M15 policy approvals, full G15 and independent evidence review remain acceptance pending. M13 has a parallel implementation with overlapping startup, role provisioning, workspace and migration tests; reconcile both on a single future source SHA. Dispatcher remains opt-in, and no merge, deployment, release or production migration is authorized.
 
 

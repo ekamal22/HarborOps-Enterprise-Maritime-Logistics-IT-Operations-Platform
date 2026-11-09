@@ -1,5 +1,8 @@
 # M15 Executed Verification and Remaining Gate Evidence
 
+**Integration source note (2026-11-09):** This file records the originating feature branch and its earlier verification. The combined branch has a distinct source and additional failed and pending campaigns. Consult [M13/M15 combined verification](M13_M15_COMBINED_VERIFICATION_20261109.md) rather than transferring earlier PASS results.
+
+
 **Recorded:** 2026-11-09, Türkiye local date.  
 **Implementation branch:** `feat/m15-scoped-notifications-20261108`  
 **Gate decision:** G15 acceptance pending; this document records executed technical checks and failed attempts, not a release decision.  

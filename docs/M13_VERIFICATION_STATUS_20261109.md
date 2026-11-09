@@ -1,5 +1,8 @@
 # M13 Verification Campaign Status
 
+**Integration source note (2026-11-09):** This file records the originating feature branch and its earlier verification. The combined branch has a distinct source and additional failed and pending campaigns. Consult [M13/M15 combined verification](M13_M15_COMBINED_VERIFICATION_20261109.md) rather than transferring earlier PASS results.
+
+
 **Opened:** 2026-11-09
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
 **Policy:** D-005 Option A, `m13-kpi-v1`

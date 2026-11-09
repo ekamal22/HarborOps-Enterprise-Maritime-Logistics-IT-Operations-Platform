@@ -1,5 +1,8 @@
 # M13 Operational KPI Implementation Status
 
+**Integration source note (2026-11-09):** This file records the originating feature branch and its earlier verification. The combined branch has a distinct source and additional failed and pending campaigns. Consult [M13/M15 combined verification](M13_M15_COMBINED_VERIFICATION_20261109.md) rather than transferring earlier PASS results.
+
+
 **Updated:** 2026-11-09
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
 **Accepted baseline:** `eb529368a2447061fc1838cd3967b0ffedae669d`

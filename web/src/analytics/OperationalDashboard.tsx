@@ -159,7 +159,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
       </form>
       <p className="mt-2 text-xs text-slate-400">{t("Leave both dates blank for the previous seven complete UTC days. Current risk values are evaluated when the report is built, not reconstructed for the date range.")}</p>
       {busy && <p className="mt-4 text-sm" role="status">{t("Building an isolated report snapshot...")}</p>}
-      {error && <p className="mt-4 rounded border border-rose-700 p-3 text-sm text-rose-200" role="alert">{error}</p>}
+      {error && <p className="mt-4 rounded border border-rose-700 p-3 text-sm text-rose-200" role="alert">{t(error)}</p>}
       {report && <>
         <div className="mt-5 border-y border-slate-700 py-3 text-xs text-slate-400">
           <p>{t("Period:")} {fmt(report.fromUtc)} {t("to")} {fmt(report.beforeUtc)} {t("(end exclusive)")}</p>
@@ -216,7 +216,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
               </div>)}
           </dl>
           <p className="mt-2 text-xs text-slate-500">{t("An individual shipment may have more than one evidence-quality reason.")}</p>
-          <p className="mt-2 text-xs text-slate-400">{t("Completed workflows excluded from arrival percentage:")}{Math.max(0, denominator("K03") - denominator("D05"))} (missing authoritative plan or recorded Arrived event).</p>
+          <p className="mt-2 text-xs text-slate-400">{t("Completed workflows excluded from arrival percentage:")} {number(Math.max(0, denominator("K03") - denominator("D05")))} {t("Completed workflows without a proven planned arrival or recorded Arrived event.")}</p>
         </section>
         <section className="mt-6">
           <h4 className="font-semibold">{t("Exception occurrence openings")}</h4>
@@ -227,7 +227,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
               key={row.dimension + row.bucketStartUtc} type="button"
               onClick={() => select("K12", row.dimension + " openings", row.dimension, row.bucketStartUtc)}
               className="rounded border border-slate-700 bg-slate-950 p-3 text-left text-sm hover:border-cyan-500">
-              <span className="block text-slate-400">{row.bucketStartUtc ? fmt(row.bucketStartUtc) : "Unknown bucket"}</span>
+              <span className="block text-slate-400">{row.bucketStartUtc ? fmt(row.bucketStartUtc) : t("Unknown bucket")}</span>
               <span className="mt-1 block">{t(row.dimension)}: <strong>{number(row.count)}</strong></span>
             </button>)}
           </div>

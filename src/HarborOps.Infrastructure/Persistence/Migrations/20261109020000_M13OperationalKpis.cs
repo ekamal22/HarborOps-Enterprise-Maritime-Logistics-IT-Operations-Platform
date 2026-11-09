@@ -290,8 +290,22 @@ public sealed class M13OperationalKpis : Migration
                     AND m13_scope_matches(organization_id,actor_user_id,actor_session_id));
             CREATE POLICY m13_member_select ON operational_kpi_members
                 FOR SELECT USING (m13_member_access(organization_id,report_id));
+            -- A report builder first pins the selected report and tenant in
+            -- transaction-local settings. The uncorrelated membership authority
+            -- query becomes a one-time statement gate rather than being
+            -- evaluated separately for hundreds of thousands of member rows.
+            -- Equality on every inserted row still prevents a foreign report
+            -- or tenant even if a runtime caller forges both settings.
             CREATE POLICY m13_member_insert ON operational_kpi_members
-                FOR INSERT WITH CHECK (m13_member_access(organization_id,report_id));
+                FOR INSERT WITH CHECK (
+                    organization_id=current_setting(
+                        'harborops.m13_materialize_org',true)::uuid
+                    AND report_id=current_setting(
+                        'harborops.m13_materialize_report',true)::uuid
+                    AND (SELECT m13_member_access(
+                        current_setting('harborops.m13_materialize_org',true)::uuid,
+                        current_setting('harborops.m13_materialize_report',true)::uuid))
+                );
             CREATE POLICY m13_member_delete ON operational_kpi_members
                 FOR DELETE USING (m13_member_access(organization_id,report_id));
 

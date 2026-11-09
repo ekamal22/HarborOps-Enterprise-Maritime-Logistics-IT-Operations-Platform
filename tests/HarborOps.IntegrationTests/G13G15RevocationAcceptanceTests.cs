@@ -144,7 +144,7 @@ public sealed class G13G15RevocationAcceptanceTests
                     """,
                 "idle_expired" => """
                     UPDATE auth_sessions
-                    SET idle_expires_at_utc=clock_timestamp()-interval '1 second'
+                    SET idle_expires_at_utc=issued_at_utc+interval '1 microsecond'
                     WHERE id=@session
                     """,
                 "absolute_expired" => """

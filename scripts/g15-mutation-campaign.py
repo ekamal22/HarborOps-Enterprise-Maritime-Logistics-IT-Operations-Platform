@@ -26,7 +26,7 @@ MUTANTS = [
         "USING (m15_can_read(organization_id,recipient_user_id,\n"
         "                    membership_id,membership_version,shipment_id));",
         "USING (true);",
-        "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient",
+        "M11HistoryProducesScopedDeduplicatedPersonalReceipts",
     ),
     (
         "membership-version-revocation-ignored",

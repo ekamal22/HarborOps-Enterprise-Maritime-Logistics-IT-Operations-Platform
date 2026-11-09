@@ -750,7 +750,7 @@ jobs:
             2>&1 | tee .verification/combined-regressions/build.log
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
             -c Release --no-build \
-            --filter 'FullyQualifiedName~IdentityLifecycleTests|FullyQualifiedName~ShipmentBoundaryTests|FullyQualifiedName~M10CorrectionAuthorityTests|FullyQualifiedName~M11ResidualRuntimeTests|FullyQualifiedName~M12ResidualBoundaryTests|FullyQualifiedName~AuditIntegrityTests|FullyQualifiedName~AuditHardeningTests' \
+            --filter 'FullyQualifiedName~IdentityLifecycleTests|FullyQualifiedName~ShipmentBoundaryTests|FullyQualifiedName~M10RuntimeIdentityTests.StolenDatabaseSessionIdsCannotForgeAnM10Correction|FullyQualifiedName~M10RuntimeIdentityTests.M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards|FullyQualifiedName~M11ResidualRuntimeTests|FullyQualifiedName~M12ResidualBoundaryTests|FullyQualifiedName~AuditIntegrityTests|FullyQualifiedName~AuditHardeningTests' \
             --logger 'console;verbosity=normal' \
             --logger 'trx;LogFileName=combined-regressions.trx' \
             --results-directory .verification/combined-regressions \
@@ -840,7 +840,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify clean controls and four effective M15 mutations
+      - name: Verify clean controls and ten effective M15 mutations
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"

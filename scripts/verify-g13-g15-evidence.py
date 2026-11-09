@@ -45,7 +45,9 @@ REFERENCES = {
             "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         8: ["ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         6: ["PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"],
-        9: ["SUITE:M11ResidualRuntimeTests", "SUITE:M10ProjectorScopeUpgradeTests"],
+        9: ["SUITE:M11ResidualRuntimeTests",
+            "StolenDatabaseSessionIdsCannotForgeAnM10Correction",
+            "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"],
         11: ["SUITE:M12ResidualBoundaryTests"],
         10: ["ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         12: ["ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"],
@@ -407,7 +409,7 @@ def main() -> int:
         "g13-security-mutations": mutation_result(
             artifacts["g13-security-mutations"], "g13-security-mutations", 4),
         "g15-mutations": mutation_result(
-            artifacts["g15-mutations"], "g15-mutations", 8),
+            artifacts["g15-mutations"], "g15-mutations", 10),
     }
     if counters["Failed"] or counters["Skipped"] or counters["Other"]:
         fail("TRX contains failing, skipped or unexpected test outcomes")

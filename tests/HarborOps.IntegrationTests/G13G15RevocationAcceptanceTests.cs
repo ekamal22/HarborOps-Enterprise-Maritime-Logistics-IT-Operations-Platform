@@ -522,7 +522,8 @@ public sealed class G13G15RevocationAcceptanceTests
                     SELECT count(*) FROM pg_stat_activity
                     WHERE datname=current_database() AND pid<>pg_backend_pid()
                       AND wait_event_type='Lock'
-                      AND query ILIKE '%organizations%'
+                      AND (query ILIKE '%m15_apply_personal_action%'
+                           OR query ILIKE '%organizations%')
                     """, inspect);
                 if (Convert.ToInt32(await probe.ExecuteScalarAsync()) > 0)
                 {

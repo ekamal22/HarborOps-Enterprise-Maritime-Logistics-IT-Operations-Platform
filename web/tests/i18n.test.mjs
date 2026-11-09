@@ -164,3 +164,15 @@ test("newly introduced platform text and stable authentication errors are transl
   for (const match of body.matchAll(/:\s*"([^"]+)"/g))
     assert.ok(Object.hasOwn(TURKISH, match[1]), "Untranslated stable authentication error " + match[1]);
 });
+
+test("all translated interpolation placeholders match their English source", () => {
+  const keys = text => [...text.matchAll(/\{([A-Za-z][A-Za-z0-9_]*)\}/g)]
+    .map(match => match[1]).sort();
+  for (const [english, turkish] of Object.entries(TURKISH))
+    assert.deepEqual(keys(turkish), keys(english), "Placeholder contract changed for " + english);
+  assert.equal(translate("{count} unread notifications", "tr-TR", {count: "1.234"}),
+    "1.234 okunmamış bildirim");
+  assert.equal(translate("Status changed from {from} to {to} at {timestamp}", "tr-TR",
+    {from: "Taslak", to: "Varış yaptı", timestamp: "09.11.2026 UTC"}),
+    "Durum geçişi: Taslak → Varış yaptı (09.11.2026 UTC)");
+});

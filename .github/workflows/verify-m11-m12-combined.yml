@@ -117,6 +117,12 @@ jobs:
             --filter 'FullyQualifiedName~G13G15RevocationAcceptanceTests' \
             --logger 'trx;LogFileName=g13-g15-revocation.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/revocation.log
+          # Run assertion-specific reporting filter, keyset and query boundary tests
+          # separately from notification mutation tests on disposable PostgreSQL.
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
+            --filter 'FullyQualifiedName~G13FilterAcceptanceTests' \
+            --logger 'trx;LogFileName=g13-filter-acceptance.trx' --results-directory .verification/m15 \
+            2>&1 | tee .verification/m15/g13-filter-acceptance.log
           # Fault-injection boundary tests can modify database-wide constraints.
           # Run them separately from unrelated integration suites on this exclusive server.
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \

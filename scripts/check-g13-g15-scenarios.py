@@ -170,6 +170,11 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
     if scenario in ("G15-S17", "G15-S18", "G15-S23"):
         case.assertTrue(passed(
             "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"))
+    if scenario in ("G13-S06", "G13-S11", "G13-S23"):
+        case.assertTrue(passed("MalformedUtcAndForeignFiltersDoNotCreateKpiReports"))
+    if scenario == "G13-S11":
+        case.assertTrue(passed(
+            "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"))
     if scenario in ("G13-S19", "G15-S13"):
         phases = ("G13BeforeReportCommit", "G13AfterReportCommit") if gate == "G13" else (
             "G15BeforeHistoryCommit", "G15BeforeClaimCommit",

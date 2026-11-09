@@ -89,7 +89,7 @@ REFERENCES = {
         13: ["CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded",
              "CRASH:G15BeforeHistoryCommit", "CRASH:G15BeforeClaimCommit",
              "CRASH:G15BeforeFanoutCommit", "CRASH:G15AfterFanoutCommit",
-             "CRASH:G15AfterReceiptCommit"],
+             "CRASH:G15AfterReceiptCommit", "CRASH:G15AfterResponseDiscarded"],
         14: ["FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction"],
         15: ["SUITE:MigrationSnapshotTests"],
         16: ["RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient",
@@ -219,10 +219,10 @@ def crash_evidence(root: Path | None) -> dict[str, bool]:
     phases = ("G13BeforeReportCommit", "G15BeforeHistoryCommit",
               "G15BeforeClaimCommit", "G15BeforeFanoutCommit",
               "G15AfterFanoutCommit", "G13AfterReportCommit",
-              "G15AfterReceiptCommit")
+              "G15AfterReceiptCommit", "G15AfterResponseDiscarded")
     recovered = {"G15BeforeClaimCommit", "G15BeforeFanoutCommit",
                  "G15AfterFanoutCommit", "G13AfterReportCommit",
-                 "G15AfterReceiptCommit"}
+                 "G15AfterReceiptCommit", "G15AfterResponseDiscarded"}
     results = {phase: False for phase in phases}
     if root is None:
         return results

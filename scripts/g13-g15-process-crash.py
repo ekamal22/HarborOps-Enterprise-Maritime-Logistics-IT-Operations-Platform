@@ -25,6 +25,7 @@ PHASES = (
     ("G15AfterFanoutCommit", "G15FanoutRecoveredInNewApiProcess"),
     ("G13AfterReportCommit", "G13AfterReportCommitRecoveredInNewApiProcess"),
     ("G15AfterReceiptCommit", "G15AfterReceiptCommitRecoveredInNewApiProcess"),
+    ("G15AfterResponseDiscarded", "G15AfterReceiptCommitRecoveredInNewApiProcess"),
 )
 
 def digest(path: Path) -> str:
@@ -95,7 +96,7 @@ def verify_phase(container: str, phase: str, marker: dict) -> None:
                 raise AssertionError("Committed fanout receipts did not survive kill")
         elif receipts:
             raise AssertionError("Uncommitted claim/fanout exposed personal receipts")
-    elif phase == "G15AfterReceiptCommit":
+    elif phase in ("G15AfterReceiptCommit", "G15AfterResponseDiscarded"):
         count = sql_count(container,
             f"SELECT count(*) FROM m15_user_notifications "
             f"WHERE id='{target}'::uuid AND organization_id='{org}'::uuid "

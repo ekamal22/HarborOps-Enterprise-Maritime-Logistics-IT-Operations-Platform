@@ -711,11 +711,65 @@ jobs:
           path: .verification/dependency-security/
           retention-days: 30
 
+  combined-regressions:
+    name: M2 M5 M10 M11 M12 M16 cross-milestone restricted PostgreSQL regressions
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-combined-regression
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-combined-regression;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+      HARBOROPS_G12_EXCLUSIVE_POSTGRES: '1'
+      HARBOROPS_G11_EVIDENCE_DIR: '.verification/combined-regressions/g11'
+      HARBOROPS_G12_EVIDENCE_DIR: '.verification/combined-regressions/g12'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Execute source-locked accepted-milestone regressions
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/combined-regressions
+          dotnet build HarborOps.sln -c Release -warnaserror \
+            2>&1 | tee .verification/combined-regressions/build.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
+            -c Release --no-build \
+            --filter 'FullyQualifiedName~IdentityLifecycleTests|FullyQualifiedName~ShipmentBoundaryTests|FullyQualifiedName~M10CorrectionAuthorityTests|FullyQualifiedName~M11ResidualRuntimeTests|FullyQualifiedName~M12ResidualBoundaryTests|FullyQualifiedName~AuditIntegrityTests|FullyQualifiedName~AuditHardeningTests' \
+            --logger 'console;verbosity=normal' \
+            --logger 'trx;LogFileName=combined-regressions.trx' \
+            --results-directory .verification/combined-regressions \
+            2>&1 | tee .verification/combined-regressions/regressions.log
+      - name: Seal regression evidence
+        if: always()
+        run: |
+          mkdir -p .verification/combined-regressions
+          printf '%s\n' "$GITHUB_SHA" > .verification/combined-regressions/source-sha.txt
+          (cd .verification/combined-regressions && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: combined-regressions-${{ github.run_id }}
+          path: .verification/combined-regressions/
+          retention-days: 30
+
   gate-ledger:
     name: Reconcile G13 and G15 scenario evidence without approving gates
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations, g15-scale, g15-fanout, g13-concurrency, g13-g15-crashes, dependency-security]
+    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations, g15-scale, g15-fanout, g13-concurrency, g13-g15-crashes, dependency-security, combined-regressions]
     if: always()
     env:
       GATE_JOB_SOURCE: ${{ needs.source.result }}
@@ -731,6 +785,7 @@ jobs:
       GATE_JOB_G13_CONCURRENCY: ${{ needs.g13-concurrency.result }}
       GATE_JOB_G13_G15_CRASHES: ${{ needs.g13-g15-crashes.result }}
       GATE_JOB_DEPENDENCY_SECURITY: ${{ needs.dependency-security.result }}
+      GATE_JOB_COMBINED_REGRESSIONS: ${{ needs.combined-regressions.result }}
     steps:
       - uses: actions/checkout@v4
         with:

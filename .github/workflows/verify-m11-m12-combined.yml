@@ -1,14 +1,17 @@
-name: Verify M15 scoped notifications
-run-name: M15 source, database and browser verification
+name: Verify G13 M13 M15 full integration
+run-name: G13 combined source database and browsers
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - verify/g13-m13-m15-integration-20261109
 
 permissions:
   contents: read
 
 jobs:
   source:
-    name: M15 source and regression checks
+    name: Combined source and regression checks
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -67,7 +70,7 @@ jobs:
           include-hidden-files: true
 
   m15-database:
-    name: M15 scoped PostgreSQL and M11 migration regressions
+    name: Combined M13 M15 scoped PostgreSQL regressions
     runs-on: ubuntu-latest
     timeout-minutes: 85
     needs: source
@@ -87,6 +90,7 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 20
     env:
       HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-m15-postgres;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: "1"
       HARBOROPS_G12_EXCLUSIVE_POSTGRES: "1"
     steps:
       - uses: actions/checkout@v4
@@ -107,7 +111,7 @@ jobs:
           dotnet restore HarborOps.sln 2>&1 | tee .verification/m15/restore.log
           dotnet build HarborOps.sln -c Release --no-restore -warnaserror 2>&1 | tee .verification/m15/build.log
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
-            --filter 'FullyQualifiedName~M15NotificationRuntimeTests|FullyQualifiedName~M11ExceptionRuntimeTests|FullyQualifiedName~M11M12UpgradeTests|FullyQualifiedName~MigrationSnapshotTests|FullyQualifiedName~M10UpgradeTests' \
+            --filter 'FullyQualifiedName~M15NotificationRuntimeTests|FullyQualifiedName~M13OperationalKpiRuntimeTests|FullyQualifiedName~M13FaultRecoveryTests|FullyQualifiedName~M11ExceptionRuntimeTests|FullyQualifiedName~M11M12UpgradeTests|FullyQualifiedName~MigrationSnapshotTests|FullyQualifiedName~M10UpgradeTests' \
             --logger 'trx;LogFileName=m15-integration.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/integration.log
           # Fault-injection boundary tests can modify database-wide constraints.
@@ -133,7 +137,7 @@ jobs:
           include-hidden-files: true
 
   m15-browser:
-    name: M15 three-engine notification UI regression
+    name: Combined three-engine KPI and notification UI
     runs-on: ubuntu-latest
     timeout-minutes: 90
     needs: source
@@ -163,6 +167,7 @@ jobs:
           export HARBOROPS_BROWSER_BASE_URL="http://localhost:5173"
           export HARBOROPS_M5_FIXTURES=1
           export HARBOROPS_M12_FIXTURES=1
+          export HARBOROPS_M13_FIXTURES=1
           # Enable only for this isolated, disposable browser integration stack.
           export HARBOROPS_M15_ENABLE_DELIVERY=true
           export HARBOROPS_M15_LIVE_FIXTURE=1
@@ -172,8 +177,7 @@ jobs:
           project="ho-verify-m15-${GITHUB_RUN_ID}"
           cleanup() {
             code=$?
-            # Authentication cookie snapshots are disposable credentials.
-            # Never place them in test artifacts, summaries or trace uploads.
+            # Remove transient authentication state before any evidence upload.
             rm -f -- "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json" \
               "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
             rmdir -- "$HARBOROPS_VERIFICATION_ROOT/.private" 2>/dev/null || true
@@ -221,9 +225,25 @@ jobs:
           cd tests/browser
           npx playwright install --with-deps chromium firefox webkit
           for engine in chromium firefox webkit; do
-            export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/m15-browser/${engine}.json"
-            npx playwright test specs/notifications.spec.mjs --project="$engine" --workers=1
-            node -e 'const x=require(process.env.HARBOROPS_G3_JSON_REPORT).stats;if(!x||x.expected<1||x.skipped>0||x.unexpected>0)process.exit(2);console.log("M15 browser assertions passed:",x.expected,"failed:",x.unexpected)'
+            for suite in notifications operational-kpis; do
+              # M15 and M13 use the same authenticated manager. Running both
+              # suites inside a single limiter window exhausts the documented
+              # six-report-per-minute policy. Reset only the disposable API
+              # process between suites; retain all DB fixtures and policy.
+              docker compose -p "$project" restart api
+              ready=0
+              for attempt in $(seq 1 45); do
+                if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null; then
+                  ready=1; break
+                fi
+                sleep 2
+              done
+              test "$ready" = "1"
+              export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/m15-browser/${engine}-${suite}.json"
+              npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1
+              HARBOROPS_EXPECTED_CASES="$([ "$suite" = notifications ] && echo 7 || echo 3)" \
+                node -e 'const s=require(process.env.HARBOROPS_G3_JSON_REPORT).stats;const n=Number(process.env.HARBOROPS_EXPECTED_CASES);if(!s||s.expected!==n||s.skipped!==0||s.unexpected!==0)process.exit(2);console.log("Combined browser suite passed:",s.expected,"failed:",s.unexpected)'
+            done
           done
       - name: Capture browser evidence hashes
         if: always()

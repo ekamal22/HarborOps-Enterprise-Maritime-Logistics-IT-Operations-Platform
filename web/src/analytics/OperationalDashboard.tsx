@@ -146,7 +146,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
           </select>
         </label>
         {(["originPortId", "destinationPortId", "voyageId"] as const).map(key =>
-          <label key={key}>{key === "voyageId" ? "Voyage ID" : key === "originPortId" ? "Origin port ID" : "Destination port ID"}
+          <label key={key}>{t(key === "voyageId" ? "Voyage ID" : key === "originPortId" ? "Origin port ID" : "Destination port ID")}
             <input type="text" value={draft[key]} placeholder={t("Optional UUID")}
               onChange={e => setDraft(p => ({ ...p, [key]: e.target.value }))}
               className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 p-2" />

@@ -1,6 +1,8 @@
 # M15 Executed Verification and Remaining Gate Evidence
 
-**Recorded:** 2026-11-09, Türkiye local date.  
+**Evidence boundary (2026-11-09):** M15 [run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598), source `40aa049b88afbcf29d1ce40a3792524cf93ba990`, passed source and PostgreSQL but failed Chromium 5/6 on an ambiguous receipt-label locator; Firefox/WebKit did not run. The latest feature-branch source has subsequent locator and pagination-cancellation fixes that have not completed a new three-engine campaign. The [combined M13/M15 run 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on a different earlier SHA, not this M15 source. M15-P01..P14, full G15-S01..S24 and independent S25 remain pending; no merge or deployment. [Correctness audit](M15_CORRECTNESS_AUDIT_20261109.md).
+
+**Recorded:** 2026-11-09, Türkiye local date. Historical attempt rows remain source-specific; this register does not transfer combined-pass evidence to later M15 source.  
 **Implementation branch:** `feat/m15-scoped-notifications-20261108`  
 **Gate decision:** G15 acceptance pending; this document records executed technical checks and failed attempts, not a release decision.  
 **Production disposition:** No merge, deployment, production database change or rollout.

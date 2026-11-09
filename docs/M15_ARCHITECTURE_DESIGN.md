@@ -1,9 +1,9 @@
 # M15 Scoped In-App Notifications: Architecture Design
 
-**Current source/evidence checkpoint (2026-11-09):** The implementation candidate is on `feat/m15-scoped-notifications-20261108`. The authoritative [implementation register](M15_IMPLEMENTATION_STATUS.md) and [executed verification record](M15_EXECUTED_VERIFICATION_20261109.md) show 299 unit, 46 contract and 26 targeted PostgreSQL tests passing at frozen SHA `82dac56`; the three-browser test job failed during fixture preparation before Playwright. Later browser fixture and idempotent replay changes are committed but not run. Policy M15-P01..P14 and independent G15 acceptance remain pending. M13 has separate application code and migration requiring shared-source integration. The planning-only statements below are historical proposals where not superseded by dated implementation records. No merge or deployment is authorized.
+**Evidence boundary (2026-11-09):** M15 [run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598), source `40aa049b88afbcf29d1ce40a3792524cf93ba990`, passed source and PostgreSQL but failed Chromium 5/6 on an ambiguous receipt-label locator; Firefox/WebKit did not run. The latest feature-branch source has subsequent locator and pagination-cancellation fixes that have not completed a new three-engine campaign. The [combined M13/M15 run 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on a different earlier SHA, not this M15 source. M15-P01..P14, full G15-S01..S24 and independent S25 remain pending; no merge or deployment. [Correctness audit](M15_CORRECTNESS_AUDIT_20261109.md).
 
 
-**State:** Proposed M15-01 contract for review. Planning only, no implementation or G15 verification.  
+**Document scope:** Original M15-01 architecture proposal. Source has since been implemented and technically tested in part; full G15 acceptance remains pending.  
 **Planning baseline:** Accepted main at eb529368a2447061fc1838cd3967b0ffedae669d, inspected 2026-11-08.  
 **Requirements:** FR-019 (Should) and FR-002 (Must). **Entry:** accepted G11. **Exit:** separately verified and explicitly accepted G15.
 

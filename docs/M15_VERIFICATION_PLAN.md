@@ -1,9 +1,9 @@
 # M15 / G15 Source-Locked Verification Plan
 
-**Current source/evidence checkpoint (2026-11-09):** The implementation candidate is on `feat/m15-scoped-notifications-20261108`. The authoritative [implementation register](M15_IMPLEMENTATION_STATUS.md) and [executed verification record](M15_EXECUTED_VERIFICATION_20261109.md) show 299 unit, 46 contract and 26 targeted PostgreSQL tests passing at frozen SHA `82dac56`; the three-browser test job failed during fixture preparation before Playwright. Later browser fixture and idempotent replay changes are committed but not run. Policy M15-P01..P14 and independent G15 acceptance remain pending. M13 has separate application code and migration requiring shared-source integration. The planning-only statements below are historical proposals where not superseded by dated implementation records. No merge or deployment is authorized.
+**Evidence boundary (2026-11-09):** M15 [run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598), source `40aa049b88afbcf29d1ce40a3792524cf93ba990`, passed source and PostgreSQL but failed Chromium 5/6 on an ambiguous receipt-label locator; Firefox/WebKit did not run. The latest feature-branch source has subsequent locator and pagination-cancellation fixes that have not completed a new three-engine campaign. The [combined M13/M15 run 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on a different earlier SHA, not this M15 source. M15-P01..P14, full G15-S01..S24 and independent S25 remain pending; no merge or deployment. [Correctness audit](M15_CORRECTNESS_AUDIT_20261109.md).
 
 
-**Status:** Proposed scenario specification only. All G15-S01 through G15-S25 are NOT EXECUTED. G15 not accepted.  
+**Status:** Required G15-S01 through S25 scenario contract, not a current executed-results ledger. Some targeted checks have been executed, but full scenario reconciliation and independent S25 remain incomplete. G15 not accepted.  
 **Planning base:** main eb529368a2447061fc1838cd3967b0ffedae669d, 2026-11-08.  
 **Source prerequisites:** Accepted G11, G0-G12 and G16. Regressions are impact-based but G15 is independently gated.
 

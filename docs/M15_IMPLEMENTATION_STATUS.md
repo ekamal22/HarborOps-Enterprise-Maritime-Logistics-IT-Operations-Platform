@@ -1,5 +1,7 @@
 # M15 Scoped In-App Notifications: Implementation Status
 
+**Evidence boundary (2026-11-09):** M15 [run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598), source `40aa049b88afbcf29d1ce40a3792524cf93ba990`, passed source and PostgreSQL but failed Chromium 5/6 on an ambiguous receipt-label locator; Firefox/WebKit did not run. The latest feature-branch source has subsequent locator and pagination-cancellation fixes that have not completed a new three-engine campaign. The [combined M13/M15 run 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on a different earlier SHA, not this M15 source. M15-P01..P14, full G15-S01..S24 and independent S25 remain pending; no merge or deployment. [Correctness audit](M15_CORRECTNESS_AUDIT_20261109.md).
+
 **Current checkpoint:** 2026-11-09 (Türkiye local date).  
 **Implementation branch:** `feat/m15-scoped-notifications-20261108`  
 **Integration PR:** [Draft PR #37](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/37), not merged.  
@@ -24,7 +26,7 @@ At source SHA `51920dcb25cbe02109683852d4dc217dbf104c71`, [Actions run 425399509
 
 Later source revisions replace repeated Playwright logins with private, short-lived browser state copied from the real fixture sessions, with cleanup and no credential artifact uploads. These fixes require a source-locked rerun.
 
-The connected Actions dispatch service is at its task limit. The branch-local GitHub Actions workflow remains manually dispatchable; the latest source cannot be called verified until the source, database and all three browser jobs pass on the same frozen SHA and the raw evidence is reviewed.
+An earlier workflow dispatch encountered a task limit at that checkpoint; subsequent Actions runs executed and the latest browser result remains failed. The branch-local GitHub Actions workflow remains manually dispatchable; the latest source cannot be called verified until the source, database and all three browser jobs pass on the same frozen SHA and the raw evidence is reviewed.
 
 ## Latest browser failure and application repair
 

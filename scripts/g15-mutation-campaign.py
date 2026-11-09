@@ -36,8 +36,10 @@ MUTANTS = [
     ),
     (
         "dispatch-scope-proof-bypassed",
-        "IF session_user <> 'harborops_api' OR NOT m15_dispatch_allowed() THEN",
-        "IF session_user <> 'harborops_api' THEN",
+        "IF session_user <> 'harborops_api' OR NOT m15_dispatch_allowed()\n"
+        "                    OR p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 20 THEN",
+        "IF session_user <> 'harborops_api'\n"
+        "                    OR p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 20 THEN",
         "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient",
     ),
 ]

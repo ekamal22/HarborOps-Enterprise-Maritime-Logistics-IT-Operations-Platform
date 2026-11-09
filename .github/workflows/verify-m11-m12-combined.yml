@@ -270,7 +270,7 @@ jobs:
               test "$ready" = "1"
               export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/m15-browser/${engine}-${suite}.json"
               npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1
-              HARBOROPS_EXPECTED_CASES="$([ "$suite" = notifications ] && echo 7 || echo 3)" \
+              HARBOROPS_EXPECTED_CASES="$([ "$suite" = notifications ] && echo 10 || echo 8)" \
                 node -e 'const s=require(process.env.HARBOROPS_G3_JSON_REPORT).stats;const n=Number(process.env.HARBOROPS_EXPECTED_CASES);if(!s||s.expected!==n||s.skipped!==0||s.unexpected!==0)process.exit(2);console.log("Combined browser suite passed:",s.expected,"failed:",s.unexpected)'
             done
           done

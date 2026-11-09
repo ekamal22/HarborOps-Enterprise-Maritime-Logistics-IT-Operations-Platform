@@ -14,19 +14,18 @@ const qualityLabels: Record<string, string> = {
   Q01: "Missing evaluation", Q02: "Stale checkpoint",
   Q03: "Unknown evaluation", Q04: "Missing or stale equipment projection"
 };
-const fmt = (date: string) => new Date(date).toLocaleString("en-GB",
-  { year: "numeric", month: "short", day: "2-digit", hour: "2-digit",
-    minute: "2-digit", timeZone: "UTC" }) + " UTC";
+
 
 function count(rows: KpiCount[], code: string, dimension?: string): number {
   return rows.filter(row => row.metricCode === code &&
     (dimension === undefined || row.dimension === dimension))
     .reduce((sum, row) => sum + row.count, 0);
 }
-function fraction(n: number, d: number) {
+function fraction(n: number, d: number, locale: string) {
   if (d === 0) return "Not enough data";
   // Numerators are exact integers; round half up at two decimal points.
-  return (Math.floor((n * 100 / d + Number.EPSILON) * 100 + 0.5) / 100).toFixed(2) + "%";
+  const rounded = Math.floor((n * 100 / d + Number.EPSILON) * 100 + 0.5) / 100;
+  return new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(rounded) + "%";
 }
 
 type Props = {
@@ -36,6 +35,7 @@ type Props = {
 
 export default function OperationalDashboard({ organizationId, onAccessInvalidated, isAuditor }: Props & { isAuditor: boolean }) {
   const { t, date, number, locale } = useI18n();
+  const fmt = (value: string) => date(value, {timeZone: "UTC"}) + " UTC";
   const [draft, setDraft] = useState<KpiFilterValues>(initial);
   const [applied, setApplied] = useState<KpiFilterValues>(initial);
   const [definitions, setDefinitions] = useState<KpiDefinition[]>([]);
@@ -163,7 +163,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
       {report && <>
         <div className="mt-5 border-y border-slate-700 py-3 text-xs text-slate-400">
           <p>{t("Period:")}{fmt(report.fromUtc)} to {fmt(report.beforeUtc)} (end exclusive)</p>
-          <p>{t("Current-state evaluation:")}{fmt(report.evaluatedAtUtc)} | Members: {report.memberCount.toLocaleString()}</p>
+          <p>{t("Current-state evaluation:")}{fmt(report.evaluatedAtUtc)} | Members: {number(report.memberCount)}</p>
           <p>{t("Snapshot expires:")}{fmt(report.expiresAtUtc)}. Refresh creates a new report and replaces old drill membership.</p>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -172,29 +172,29 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
             const hasEvaluatedRisk = !["K07", "K08", "K09", "K10"].includes(d.code) ||
               den !== 0;
             const value = !hasEvaluatedRisk && denominator("D13") > 0
-              ? "Not assessed"
+              ? t("Not assessed")
               : den !== null && ["K05", "K06", "K13"].includes(d.code)
-                ? fraction(n, den) : n.toLocaleString();
+                ? fraction(n, den, locale) : number(n);
             return <button type="button" key={d.code} onClick={() => select(d.code, d.label)}
               className="rounded-lg border border-slate-700 bg-slate-950/80 p-4 text-left hover:border-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
-              <span className="text-xs uppercase tracking-wide text-slate-400">{d.label}</span>
+              <span className="text-xs uppercase tracking-wide text-slate-400">{t(d.label)}</span>
               <span className="mt-2 block text-2xl font-semibold text-cyan-200">{value}</span>
-              {den !== null && <span className="mt-1 block text-xs text-slate-400">{n.toLocaleString()} / {den.toLocaleString()} {["K07","K08","K09","K10"].includes(d.code) ? "evaluated" : ""}</span>}
+              {den !== null && <span className="mt-1 block text-xs text-slate-400">{number(n)} / {number(den)} {["K07","K08","K09","K10"].includes(d.code) ? "evaluated" : ""}</span>}
               {partial && ["K07", "K08", "K09", "K10", "K11"].includes(d.code) &&
                 <span className="mt-1 block text-xs text-amber-300">{t("Partial assessment. Zero is not confirmed risk-free.")}</span>}
-              <span className="mt-2 block text-xs text-slate-500">{d.description}</span>
+              <span className="mt-2 block text-xs text-slate-500">{t(d.description)}</span>
             </button>;
           })}
         </div>
         <section className="mt-6">
           <h4 className="font-semibold">{t("Current workflow distribution")}</h4>
-          <p className="mt-1 text-xs text-slate-400">{t("Unarchived shipments only. Total")}{denominator("D01").toLocaleString()}.</p>
+          <p className="mt-1 text-xs text-slate-400">{t("Unarchived shipments only. Total")}{number(denominator("D01"))}.</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             {statuses.map(status => {
               const n = count(report.counts, "K02", status);
               return <button key={status} onClick={() => select("K02", "Workflow: " + status, status)}
                 className="rounded border border-slate-700 bg-slate-950 p-3 text-left text-sm hover:border-cyan-500">
-                <span>{status}</span><span className="float-right font-semibold">{n}</span>
+                <span>{t(status)}</span><span className="float-right font-semibold">{n}</span>
                 <span className="mt-2 block h-1.5 rounded bg-slate-800">
                   <span className="block h-full rounded bg-cyan-400"
                     style={{ width: (denominator("D01") ? n / denominator("D01") * 100 : 0) + "%" }} />
@@ -206,13 +206,13 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
         <section className="mt-6">
           <h4 className="font-semibold">{t("Assessment quality")}</h4>
           <p className="mt-2 text-sm text-slate-400">
-            {denominator("K14")} distinct eligible shipments have missing, stale or unknown evidence.
+            {number(denominator("K14"))} {t("distinct eligible shipments have missing, stale or unknown evidence.")}
             {partial ? " Risk figures are not complete." : " Current assessment coverage is complete for eligible shipments."}
           </p>
           <dl className="mt-3 grid gap-2 sm:grid-cols-2">
             {Object.entries(qualityLabels).map(([code, label]) =>
               <div key={code} className="rounded border border-slate-700 p-3 text-sm">
-                <dt className="text-slate-400">{label}</dt><dd className="mt-1 font-semibold">{denominator(code)}</dd>
+                <dt className="text-slate-400">{t(label)}</dt><dd className="mt-1 font-semibold">{denominator(code)}</dd>
               </div>)}
           </dl>
           <p className="mt-2 text-xs text-slate-500">{t("An individual shipment may have more than one evidence-quality reason.")}</p>
@@ -220,7 +220,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
         </section>
         <section className="mt-6">
           <h4 className="font-semibold">{t("Exception occurrence openings")}</h4>
-          <p className="mt-1 text-xs text-slate-400">{t("Recorded openings by UTC")}{report.bucket}, not reconstructed historical open status.</p>
+          <p className="mt-1 text-xs text-slate-400">{t("Recorded openings by UTC")}{t(report.bucket === "day" ? "Daily" : "Weekly")}, {t("not reconstructed historical open status.")}</p>
           {exceptionTrend.length === 0 && <p className="mt-3 text-sm text-slate-400">{t("No recorded openings in this window.")}</p>}
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {exceptionTrend.map(row => <button
@@ -228,7 +228,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
               onClick={() => select("K12", row.dimension + " openings", row.dimension, row.bucketStartUtc)}
               className="rounded border border-slate-700 bg-slate-950 p-3 text-left text-sm hover:border-cyan-500">
               <span className="block text-slate-400">{row.bucketStartUtc ? fmt(row.bucketStartUtc) : "Unknown bucket"}</span>
-              <span className="mt-1 block">{row.dimension}: <strong>{row.count}</strong></span>
+              <span className="mt-1 block">{t(row.dimension)}: <strong>{number(row.count)}</strong></span>
             </button>)}
           </div>
         </section>

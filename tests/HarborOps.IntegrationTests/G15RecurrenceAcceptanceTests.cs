@@ -62,8 +62,8 @@ public sealed class G15RecurrenceAcceptanceTests
         var first = occurrences.Single(x => x.GetProperty("id").GetGuid() == original);
         Assert.Equal(1, first.GetProperty("occurrence").GetInt32());
         Assert.Equal("Resolved", first.GetProperty("state").GetString());
-        var reopened = Assert.Single(occurrences.Where(
-            x => x.GetProperty("id").GetGuid() != original));
+        var reopened = Assert.Single(occurrences,
+            x => x.GetProperty("id").GetGuid() != original);
         Assert.Equal(2, reopened.GetProperty("occurrence").GetInt32());
         Assert.Equal("Open", reopened.GetProperty("state").GetString());
         var newId = reopened.GetProperty("id").GetGuid();
@@ -102,12 +102,12 @@ public sealed class G15RecurrenceAcceptanceTests
         Assert.Equal(3, entries.Count);
         Assert.Equal(3, entries.Select(x => x.History).Distinct().Count());
         Assert.Equal(2, entries.Count(x => x.Event == "ExceptionOpened"));
-        Assert.Single(entries.Where(
-            x => x.Event == "ExceptionOpened" && x.Exception == original));
-        Assert.Single(entries.Where(
-            x => x.Event == "ExceptionAutoResolved" && x.Exception == original));
-        Assert.Single(entries.Where(
-            x => x.Event == "ExceptionOpened" && x.Exception == newId));
+        Assert.Single(entries,
+            x => x.Event == "ExceptionOpened" && x.Exception == original);
+        Assert.Single(entries,
+            x => x.Event == "ExceptionAutoResolved" && x.Exception == original);
+        Assert.Single(entries,
+            x => x.Event == "ExceptionOpened" && x.Exception == newId);
         Assert.Equal(0, entries.Count(x => x.Event == "ExceptionResolved"));
     }
 }

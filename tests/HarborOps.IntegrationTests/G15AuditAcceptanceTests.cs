@@ -68,6 +68,29 @@ public sealed class G15AuditAcceptanceTests
             new { action = "Acknowledge", expectedVersion = 2L }, acknowledgeKey))
             Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
         Assert.Equal(1L, await ReceiptAuditCount());
+        await using (var metadata = new NpgsqlCommand("""
+            SELECT event_type,resource_type,metadata::text,
+                actor_user_id,actor_session_id
+            FROM audit_entries
+            WHERE organization_id=@org AND resource_id=@id
+              AND event_type='notification.receipt_acknowledged'
+            """, db))
+        {
+            metadata.Parameters.AddWithValue("org", s.Fixture.A);
+            metadata.Parameters.AddWithValue("id", id);
+            await using var audit = await metadata.ExecuteReaderAsync();
+            Assert.True(await audit.ReadAsync());
+            Assert.Equal("notification.receipt_acknowledged", audit.GetString(0));
+            Assert.Equal("notification", audit.GetString(1));
+            using var body = JsonDocument.Parse(audit.GetString(2));
+            var fields = body.RootElement.EnumerateObject().ToArray();
+            Assert.Single(fields);
+            Assert.Equal("action", fields[0].Name);
+            Assert.Equal("Acknowledge", fields[0].Value.GetString());
+            Assert.NotEqual(Guid.Empty, audit.GetGuid(3));
+            Assert.NotEqual(Guid.Empty, audit.GetGuid(4));
+            Assert.False(await audit.ReadAsync());
+        }
         await using var receipt = new NpgsqlCommand("""
             SELECT version,read_at_utc IS NOT NULL,acknowledged_at_utc IS NOT NULL
             FROM m15_user_notifications WHERE id=@id AND organization_id=@org

@@ -15,6 +15,7 @@ INPUT = ROOT / ".verification" / "gate-input"
 OUTPUT = ROOT / ".verification" / "gate-ledger"
 SOURCE = os.environ["GITHUB_SHA"]
 RUN = os.environ["GITHUB_RUN_ID"]
+problems: list[str] = []
 JOBS = {
     "source": os.environ.get("GATE_JOB_SOURCE", "unknown"),
     "database": os.environ.get("GATE_JOB_DATABASE", "unknown"),

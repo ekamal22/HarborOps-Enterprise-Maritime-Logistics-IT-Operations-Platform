@@ -69,6 +69,7 @@ def gather() -> tuple[dict, bool]:
     rows, issues = validate_inventory()
     data = json.loads((OUTPUT / "index.json").read_text(encoding="utf-8"))
     tests, counts = gate.read_tests()
+    issues.extend(gate.problems)
     if not SHA or SHA != data.get("source_sha"):
         issues.append("Evidence ledger source differs from the executing commit")
     if data.get("technical_evidence_integrity") != "PASS":

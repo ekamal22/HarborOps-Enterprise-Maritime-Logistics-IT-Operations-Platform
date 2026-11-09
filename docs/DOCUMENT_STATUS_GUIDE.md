@@ -12,7 +12,7 @@
 - [Decisions](DECISIONS.md), [API Contracts](API_CONTRACTS.md), [Security](SECURITY.md), [Operations](OPERATIONS.md) and [Domain Model](DOMAIN_MODEL.md) distinguish accepted behavior from proposed work.
 
 - [Latest M13/M15 source-locked checkpoint](M13_M15_COMBINED_VERIFICATION_20261109.md) records the current isolated integration evidence, and [M13 expanded report](M13_G13_EXPANDED_VERIFICATION_20261109.md) records independent 170k/fault/mutation evidence. Historical M13/M15 plans and failed-run tables are read as time-scoped records, not the latest gate state.
-- [Repository-wide reconciliation](REPOWIDE_DOCUMENTATION_RECONCILIATION_20261108.md) indexes the 2026-11-08 review of current-state documentation, generated graph consistency and relative file links.
+- [Latest repository-wide M13/M15 documentation reconciliation](REPOWIDE_DOCUMENTATION_RECONCILIATION_20261109.md) records current source-locked results, the checked living docs and deliberately preserved historical evidence. The earlier [2026-11-08 reconciliation](REPOWIDE_DOCUMENTATION_RECONCILIATION_20261108.md) remains a dated main-baseline audit and indexes the 2026-11-08 review of current-state documentation, generated graph consistency and relative file links.
 - M11 and M12 are accepted on `main` following [formal G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). Their original draft PRs #31 and #32 are historical source branches, not unverified current implementation.
 
 ## Historical records

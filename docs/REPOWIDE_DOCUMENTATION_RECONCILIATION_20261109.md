@@ -3,8 +3,8 @@
 **Branch:** `verify/g13-m13-m15-integration-20261109`  
 **Accepted `main` baseline:** `eb529368a2447061fc1838cd3967b0ffedae669d`  
 **Latest verified combined runtime:** `6b05d84bf2f01741b182669c2dd17e39e63d9dda`  
-**Latest observed M13 feature-branch head:** `38abfb37d5a5677c8b7db8364fa7477aa2f7d7f9` (documentation only after its recorded test source).  
-**Latest observed M15 feature-branch head:** `40aa049b88afbcf29d1ce40a3792524cf93ba990` (standalone verification failed its browser job).  
+**Latest observed M13 feature-branch head at documentation audit:** `fe5d3396035012a4ccd97f16e9c244a78b9c4b3c` (documentation-only reconciliation after the independently tested source).  
+**Latest observed M15 feature-branch head at documentation audit:** `27d5d4ae81162bd3607cd35e5d3ec25425f61090` (subsequent source correctness and documentation changes; the last standalone verification remained a browser failure at `40aa049b88afbcf29d1ce40a3792524cf93ba990`).  
 **Disposition:** Documentation reconciliation only. Nothing here is a gate acceptance, merge, deployment, workflow authorization or permission-policy change.
 
 ## Verification anchors
@@ -27,6 +27,15 @@
 ## Link and source location correction
 
 The historical M13 campaign document lives in the combined branch, but `.github/workflows/verify-m13.yml` exists on the independent M13 feature branch rather than this combined branch. Its verification link now points to the exact feature-branch workflow, avoiding an incorrect same-branch relative link. The combined branch instead has its own `.github/workflows/verify-g13-combined.yml` and `.github/workflows/verify-g13-combined-full.yml` workflows.
+
+## Reviewed documentation and consistency checks
+
+- The isolated combined branch documentation reconciliation modified **35 Markdown files** without changing its previously verified application source. These include README, STATUS, ROADMAP, PRD, requirements, architecture, domain model, API contracts, security, operations, acceptance, test strategy, M13/M15 architecture/implementation/verification plans and reports, and this register.
+- On the independent M13 branch, **27 Markdown files** were reconciled after the prior M13 technical evidence register. Its application source and restricted security policy were not changed by the documentation work.
+- On the independent M15 branch, the current change history since the original documentation checkpoint includes **28 Markdown files**, including its separately authored correctness audit. M15 application and checker changes were also made in independent source work and are not part of this documentation-only combined-branch reconciliation.
+- A relative-link check of the current source-of-truth, verification and milestone-planning pages on the three branches found no remaining broken references in those inspected pages. One cross-branch link to the M13 workflow was corrected to target the independent M13 feature branch explicitly. Historical files are retained with their original frozen result and date; they are not converted to present-day PASS labels.
+- No change was made to `docs/execution-graph.json` or its generated `EXECUTION_GRAPH.md`, because dependencies and package identifiers are unchanged. Both remain planning artifacts, not an observed current gate ledger. No planning graph regeneration or hosted checks were executed as part of the documentation-only commits.
+- `main` remains unchanged, with accepted G0-G12 and G16. The current M13/M15 feature changes and green combined verification have **not** been merged or deployed. The separate existing main Actions checkout-history failure is not reinterpreted as a business regression or dismissed.
 
 ## Documentation handling
 

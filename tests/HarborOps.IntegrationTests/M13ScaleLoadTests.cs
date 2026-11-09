@@ -178,6 +178,9 @@ public sealed class M13ScaleLoadTests
                 scope.Parameters.AddWithValue("report", report);
                 await scope.ExecuteNonQueryAsync();
             }
+            await using (var timeout = new NpgsqlCommand(
+                "SET LOCAL statement_timeout = '15s'", db, tx))
+                await timeout.ExecuteNonQueryAsync();
             await using (var check = new NpgsqlCommand(
                 "SELECT m13_can_view(@org)", db, tx))
             {

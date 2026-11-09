@@ -585,6 +585,10 @@ public sealed class M15NotificationBoundaryTests
                     Assert.Equal(1,await due.ExecuteNonQueryAsync());
                 }
                 Assert.Equal(0,await delivery.DeliverPendingAsync(CancellationToken.None));
+                Assert.Equal(0,await Count(db, """
+                    SELECT COUNT(*) FROM m15_user_notifications
+                    WHERE organization_id=@org AND shipment_id=@shipment
+                    """,("org",s.Fixture.A),("shipment",shipment)));
                 await using var status = new NpgsqlCommand("""
                     SELECT attempt_count,last_error_code,
                            next_attempt_at_utc>clock_timestamp(),
@@ -603,10 +607,6 @@ public sealed class M15NotificationBoundaryTests
                 Assert.Equal(attempt==5,reader.GetBoolean(3));
                 Assert.True(reader.GetBoolean(4));
                 Assert.False(await reader.ReadAsync());
-                Assert.Equal(0,await Count(db, """
-                    SELECT COUNT(*) FROM m15_user_notifications
-                    WHERE organization_id=@org AND shipment_id=@shipment
-                    """,("org",s.Fixture.A),("shipment",shipment)));
             }
         }
         finally

@@ -28,6 +28,7 @@ JOBS = {
     "notification_fanout": os.environ.get("GATE_JOB_G15_FANOUT", "unknown"),
     "reporting_concurrency": os.environ.get("GATE_JOB_G13_CONCURRENCY", "unknown"),
     "crash_recovery": os.environ.get("GATE_JOB_G13_G15_CRASHES", "unknown"),
+    "dependency_security": os.environ.get("GATE_JOB_DEPENDENCY_SECURITY", "unknown"),
 }
 
 # References identify executed technical checks, not complete acceptance scenarios.
@@ -56,7 +57,8 @@ REFERENCES = {
              "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently",
              "BUDGET:G13"],
         21: ["BROWSER:operational-kpis"],
-        24: ["MUTATION:g13-mutations", "MUTATION:g13-security-mutations"],
+        24: ["MUTATION:g13-mutations", "MUTATION:g13-security-mutations",
+             "SCAN:dependencies"],
     },
     "G15": {
         3: ["OnlyImmutableM11OpeningAndClosureActionsGenerateOutboxRows"],
@@ -87,7 +89,7 @@ REFERENCES = {
         22: ["BROWSER:notifications"],
         23: ["M11ExceptionRuntimeTests",
              "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"],
-        24: ["MUTATION:g15-mutations"],
+        24: ["MUTATION:g15-mutations", "SCAN:dependencies"],
     },
 }
 
@@ -249,6 +251,25 @@ def reporting_budget(root: Path | None) -> bool:
         fail("G13 approved KPI budget exceeded or measured data invalid")
     return ok
 
+def scan_evidence(root: Path | None) -> bool:
+    if root is None:
+        return False
+    summary = root / "summary.json"
+    if not summary.is_file():
+        fail("Security review summary missing")
+        return False
+    try:
+        contents = json.loads(summary.read_text(encoding="utf-8"))
+        result = (contents.get("scan_completed") is True
+                  and contents.get("npm_high") == 0
+                  and contents.get("npm_critical") == 0
+                  and contents.get("dotnet_high_advisories") == 0)
+    except (ValueError, TypeError):
+        result = False
+    if not result:
+        fail("Dependency advisory or committed-secret campaign incomplete")
+    return result
+
 def policy_approvals() -> dict[str, str]:
     lines = (ROOT / "docs" / "M15_POLICY_RECOMMENDATIONS_20261109.md").read_text(
         encoding="utf-8").splitlines()
@@ -268,7 +289,10 @@ def policy_approvals() -> dict[str, str]:
 
 def reference_present(reference: str, tests: dict[str,str],
                       browsers: dict[str,bool], mutations: dict[str,bool],
-                      crash: dict[str,bool], budget: bool) -> bool:
+                      crash: dict[str,bool], budget: bool,
+                      scan: bool) -> bool:
+    if reference == "SCAN:dependencies":
+        return scan
     if reference.startswith("CRASH:"):
         return crash.get(reference.split(":", 1)[1], False)
     if reference == "BUDGET:G13":
@@ -284,14 +308,14 @@ def reference_present(reference: str, tests: dict[str,str],
 
 def build_gate(gate: str, tests: dict[str,str],
                browsers: dict[str,bool], mutations: dict[str,bool],
-               crash: dict[str,bool], budget: bool,
+               crash: dict[str,bool], budget: bool, scan: bool,
                clean: bool) -> list[dict]:
     results = []
     for number in range(1, 26):
         scenario = gate + "-S" + str(number).zfill(2)
         refs = REFERENCES[gate].get(number, [])
         present = [ref for ref in refs if reference_present(
-            ref, tests, browsers, mutations, crash, budget)]
+            ref, tests, browsers, mutations, crash, budget, scan)]
         missing = [ref for ref in refs if ref not in present]
         if number == 1:
             status = "BLOCKED"
@@ -330,7 +354,7 @@ def main() -> int:
                     "g13-scale", "g13-security-mutations",
                     "g13-faults", "g13-mutations", "g15-mutations",
                     "g15-scale", "g15-fanout", "g13-concurrency",
-                    "g13-g15-crashes")
+                    "g13-g15-crashes", "dependency-security")
     }
     for name, root in artifacts.items():
         if root is None:
@@ -343,6 +367,7 @@ def main() -> int:
     crash = crash_evidence(artifacts["g13-g15-crashes"])
     budget = reporting_budget(artifacts["g13-scale"])
     policies = policy_approvals()
+    scan = scan_evidence(artifacts["dependency-security"])
     browsers = browser_result(artifacts["m15-browser"])
     mutations = {
         "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 13),
@@ -373,9 +398,10 @@ def main() -> int:
         "mutations": mutations,
         "crash_recovery": crash,
         "g13_approved_budget_satisfied": budget,
+        "dependency_security_satisfied": scan,
         "policies": policies,
-        "g13": build_gate("G13", tests, browsers, mutations, crash, budget, clean),
-        "g15": build_gate("G15", tests, browsers, mutations, crash, budget, clean),
+        "g13": build_gate("G13", tests, browsers, mutations, crash, budget, scan, clean),
+        "g15": build_gate("G15", tests, browsers, mutations, crash, budget, scan, clean),
         "milestone_acceptance": "PENDING",
         "merge_authorization": False,
     }

@@ -314,7 +314,17 @@ public sealed class M13ScaleLoadTests
         }
         timer.Stop();
         Console.WriteLine($"G13_170K seeded=170000 existing=2 seed_ms={timer.Elapsed.TotalMilliseconds:F0}");
-        await CapturePrivilegedPlan(db, f.A, actor);
+        // The fixture makes 170k inserts and 60k workflow updates in one burst.
+        // Capture production-like fresh optimizer statistics before admission
+        // tests. The policy timeout and p50/p95 budgets remain unchanged.
+        await using (var statistics = new NpgsqlCommand("""
+            ANALYZE shipments;
+            ANALYZE shipment_status_changes;
+            ANALYZE shipment_exception_evaluations;
+            ANALYZE shipment_tracking_projections;
+            """, db) { CommandTimeout = 120 })
+            await statistics.ExecuteNonQueryAsync();
+
         using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
         using var analyst = runtime.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
         analyst.Timeout = TimeSpan.FromMinutes(5);
@@ -384,6 +394,9 @@ public sealed class M13ScaleLoadTests
         // EXPLAIN's dead tuples cannot contaminate the benchmark deltas.
         await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "skewed170k");
         await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "empty", Guid.NewGuid());
+        // Privileged EXPLAIN ANALYZE also rolls back large member inserts;
+        // run it after all 30 measurements to prevent dead-tuple pollution.
+        await CapturePrivilegedPlan(db, f.A, actor);
 
 
         // This is a separate cap-negative control after the 30 measured

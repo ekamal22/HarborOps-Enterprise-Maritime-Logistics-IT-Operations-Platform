@@ -80,7 +80,7 @@ export default function KpiDrillPanel({
   return <section aria-label={t("KPI report members")} className="mt-5 rounded-xl border border-cyan-900 bg-slate-950 p-4">
     <div className="flex items-center justify-between gap-2">
       <div>
-        <h4 className="text-base font-semibold">{selection.metricCode === "K02" ? t("Workflow: ") + t(selection.dimension) : selection.metricCode === "K12" ? t(selection.dimension) + t(" openings") : t(selection.label)} {t("members")}</h4>
+        <h4 className="text-base font-semibold">{selection.metricCode === "K02" ? t("Exception members for workflow {workflow}", {workflow: t(selection.dimension)}) : selection.metricCode === "K12" ? t("Exception members for rule {rule}", {rule: t(selection.dimension)}) : t("Exception members for KPI {label}", {label: t(selection.label)})}</h4>
         <p className="mt-1 text-xs text-slate-400">{t("Frozen report membership, evaluated")} {date(report.evaluatedAtUtc, {timeZone: "UTC"})} UTC</p>
       </div>
       <button onClick={onClose} className="rounded border border-slate-600 px-3 py-2 text-sm">{t("Close")}</button>

@@ -207,7 +207,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
           <h4 className="font-semibold">{t("Assessment quality")}</h4>
           <p className="mt-2 text-sm text-slate-400">
             {number(denominator("K14"))} {t("distinct eligible shipments have missing, stale or unknown evidence.")}
-            {partial ? " Risk figures are not complete." : " Current assessment coverage is complete for eligible shipments."}
+            {" "}{t(partial ? " Risk figures are not complete." : " Current assessment coverage is complete for eligible shipments.")}
           </p>
           <dl className="mt-3 grid gap-2 sm:grid-cols-2">
             {Object.entries(qualityLabels).map(([code, label]) =>

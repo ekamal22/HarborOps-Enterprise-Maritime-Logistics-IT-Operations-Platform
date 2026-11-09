@@ -291,8 +291,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
           {selection.role === "Administrator" && (
             <div className="mt-5 border-t border-slate-700 pt-5">
               <form onSubmit={e => void updateProfile(e)} className="flex flex-wrap items-end gap-2">
-                <label className="text-sm">Organization display name
-                  <input value={profileName} maxLength={160} required
+                <label className="text-sm">{t("Organization display name")}<input value={profileName} maxLength={160} required
                     onChange={e => setProfileName(e.target.value)}
                     className="mt-2 block rounded-lg bg-slate-950 px-3 py-2" />
                 </label>
@@ -301,19 +300,15 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
               </form>
               <h4 className="mt-6 font-semibold">{t("Memberships")}</h4>
               <form onSubmit={e => void addMember(e)} className="mt-3 flex flex-wrap items-end gap-2">
-                <label className="text-sm">Existing account ID
-                  <input required value={newUserId} onChange={e => setNewUserId(e.target.value)}
+                <label className="text-sm">{t("Existing account ID")}<input required value={newUserId} onChange={e => setNewUserId(e.target.value)}
                     placeholder={t("Account UUID")} className="mt-2 block rounded-lg bg-slate-950 px-3 py-2" />
                 </label>
-                <label className="text-sm">Role
-                  <select value={newRole} onChange={e => setNewRole(e.target.value as OrganizationItem["role"])}
+                <label className="text-sm">{t("Role")}<select value={newRole} onChange={e => setNewRole(e.target.value as OrganizationItem["role"])}
                     className="mt-2 block rounded-lg bg-slate-950 px-3 py-2">
                     {roles.map(role => <option key={role}>{role}</option>)}
                   </select>
                 </label>
-                <button disabled={busy} className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50">
-                  Add member
-                </button>
+                <button disabled={busy} className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50">{t("Add member")}</button>
               </form>
               <ul className="mt-5 space-y-3">
                 {members.map(member => <MembershipRow key={member.userId} member={member}
@@ -321,9 +316,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
                   onUpdate={updateMember} onRemove={removeMember} />)}
               </ul>
               {nextAfter && <button disabled={busy} onClick={() => void loadMore()}
-                className="mt-3 rounded border border-slate-600 px-3 py-2 text-sm disabled:opacity-50">
-                Load more members
-              </button>}
+                className="mt-3 rounded border border-slate-600 px-3 py-2 text-sm disabled:opacity-50">{t("Load more members")}</button>}
             </div>
           )}
         </div>

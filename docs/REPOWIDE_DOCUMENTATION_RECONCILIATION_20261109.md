@@ -26,6 +26,8 @@
 
 ## Documentation handling
 
+This reconciliation updated the current status and milestone planning documentation without rewriting historical acceptance source records. The independent M13/M15 feature branches retain separate histories, and protected `main` remains unchanged. Current and historical assertions are separated by the dated checkpoint links in each updated page.
+
 The project maintains a distinction between living current-state documents (README, STATUS, ROADMAP, TEST_STRATEGY, ACCEPTANCE_CRITERIA and relevant operational/contract pages), delivery plans (M13/M15 architecture, implementation and verification plans and execution graph), and immutable historical source-locked evidence reports. Earlier FAIL, NOT EXECUTED and planning-only entries are retained when explicitly dated or contextualized; they must not overwrite this newer checkpoint. The execution graph remains a dependency plan, not an observed milestone-state or acceptance record.
 
 [Current combined evidence](M13_M15_COMBINED_VERIFICATION_20261109.md) and [independent M13 evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md) are authoritative for the run IDs above. Acceptance remains pending.

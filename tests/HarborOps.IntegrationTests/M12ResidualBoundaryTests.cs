@@ -826,19 +826,32 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
             await Exec(c.Admin, "DROP FUNCTION IF EXISTS public.m12_test_reject_audit()");
         }
 
-        // Downgrade after a retained authorized export is refused and leaves the authority intact.
+        // Downgrading across M15 and M12 must stop at the first retained-evidence
+        // guard. M15 protects notifications before the older M12 audit guard runs.
+        // Both guards must preserve the export authorization and committed evidence.
+        async Task<(long Outbox, long Receipts, long Replays)> M15Rows() =>
+            (await Scalar<long>(c.Admin, "SELECT count(*) FROM m15_notification_outbox"),
+             await Scalar<long>(c.Admin, "SELECT count(*) FROM m15_user_notifications"),
+             await Scalar<long>(c.Admin, "SELECT count(*) FROM m15_notification_replays"));
+        var retainedM15 = await M15Rows();
+        var expectedGuard = retainedM15.Outbox + retainedM15.Receipts + retainedM15.Replays > 0
+            ? "M15 downgrade would destroy delivery evidence"
+            : "M12 audit history exists";
         await using (var scope = seed.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
             var migrator = db.GetService<IMigrator>();
             var failure = await Assert.ThrowsAnyAsync<Exception>(
                 () => migrator.MigrateAsync("20261107180000_ShipmentExceptions"));
-            Assert.Contains("M12 audit history exists", failure.ToString(), StringComparison.Ordinal);
+            Assert.Contains(expectedGuard, failure.ToString(), StringComparison.Ordinal);
         }
+        Assert.Equal(retainedM15, await M15Rows());
         Assert.True(await Scalar<bool>(c.Admin,
             "SELECT to_regprocedure('public.m12_record_shipment_export(uuid,uuid,uuid,integer,bigint,character varying,character varying,bigint,character varying)') IS NOT NULL"));
+        Assert.True(await Scalar<bool>(c.Admin,
+            "SELECT to_regprocedure('public.m15_delivery_status()') IS NOT NULL"));
         Assert.True(await Scalar<long>(c.Admin,
             "SELECT count(*) FROM audit_entries WHERE event_type='shipment.export_prepared'") >= 2);
-        Note("S18 remainder: expiry (both directions), rotation, key removal, audit rejection rollback, downgrade refusal verified");
+        Note($"S18 remainder: expiry, rotation, audit rejection, M12/M15 downgrade refusal ({expectedGuard}), retained evidence and authority verified");
     }
 }

@@ -30,16 +30,16 @@ function MembershipRow({ member, currentUserId, locked, onUpdate, onRemove }: {
       <div className="text-sm font-medium">{member.displayName} <span className="text-slate-400">{member.email}</span></div>
       <p className="mt-1 break-all text-xs text-slate-500">{member.userId}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <select aria-label={"Role for " + member.displayName} value={role} disabled={locked || own}
+        <select aria-label={t("Role for ") + member.displayName} value={role} disabled={locked || own}
           onChange={event => setRole(event.target.value as OrganizationItem["role"])}
           className="rounded bg-slate-950 p-2 text-sm">
-          {roles.map(option => <option key={option} value={option}>{option}</option>)}
+          {roles.map(option => <option key={option} value={option}>{t(option)}</option>)}
         </select>
-        <select aria-label={"Membership state for " + member.displayName} value={status}
+        <select aria-label={t("Membership state for ") + member.displayName} value={status}
           disabled={locked || own} onChange={event => setStatus(event.target.value as Membership["status"])}
           className="rounded bg-slate-950 p-2 text-sm">
           {["Active", "Suspended", "Removed"].map(option =>
-            <option key={option} value={option}>{option}</option>)}
+            <option key={option} value={option}>{t(option)}</option>)}
         </select>
         <button disabled={locked || own || (role === member.role && status === member.status)}
           onClick={() => void onUpdate(member, role, status)}
@@ -213,7 +213,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
   }
 
   async function removeMember(member: Membership) {
-    if (!selection || !window.confirm("Remove this member from the selected organization?")) return;
+    if (!selection || !window.confirm(t("Remove this member from the selected organization?"))) return;
     await act(() => mutate("DELETE",
       "/api/v1/organizations/" + selection.id + "/memberships/" + member.userId,
       { expectedVersion: member.version }));
@@ -253,14 +253,14 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
             className="mt-2 w-full max-w-md rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
             <option value="">{t("Select an organization")}</option>
             {organizations.map(org =>
-              <option key={org.id} value={org.id}>{org.displayName} ({org.role})</option>)}
+              <option key={org.id} value={org.id}>{org.displayName} ({t(org.role)})</option>)}
           </select>
         </div>
       )}
       {selection && profile && !loading && (
         <div className="mt-5 rounded-lg border border-slate-700 p-4">
           <p className="font-semibold">{profile.displayName}</p>
-          <p className="mt-1 text-xs text-slate-400">{t("Slug:")}{profile.slug} | Role: {selection.role}</p>
+          <p className="mt-1 text-xs text-slate-400">{t("Slug:")} {profile.slug} | {t("Role:")} {t(selection.role)}</p>
           {(selection.role === "Analyst" || selection.role === "Manager") &&
             <ReferenceDataWorkspace key={selection.id + ":" + selection.role}
               organizationId={selection.id} canManage={selection.role === "Manager"}
@@ -305,7 +305,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
                 </label>
                 <label className="text-sm">{t("Role")}<select value={newRole} onChange={e => setNewRole(e.target.value as OrganizationItem["role"])}
                     className="mt-2 block rounded-lg bg-slate-950 px-3 py-2">
-                    {roles.map(role => <option key={role}>{role}</option>)}
+                    {roles.map(role => <option key={role} value={role}>{t(role)}</option>)}
                   </select>
                 </label>
                 <button disabled={busy} className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50">{t("Add member")}</button>
@@ -321,7 +321,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
           )}
         </div>
       )}
-      {error && <p role="alert" className="mt-4 text-sm text-rose-300">{error}</p>}
+      {error && <p role="alert" className="mt-4 text-sm text-rose-300">{t(error)}</p>}
     </div>
   );
 }

@@ -408,6 +408,76 @@ public sealed class G13G15RevocationAcceptanceTests
     }
 
     [Fact]
+    public async Task QueuedKpiReportCannotPublishAfterCommittedSecurityRevocation()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var setupFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(setupFactory);
+        using var admin = fixture.Admin; using var manager = fixture.Manager;
+        using var analyst = fixture.Analyst;
+        await AssignmentHttpTests.Seed(fixture);
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var scoped = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(scoped, fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Select(scoped, fixture.A);
+        var route = $"/api/v1/organizations/{fixture.A}/analytics/overview";
+
+        await using var inspect = new NpgsqlConnection(roles.Admin);
+        await inspect.OpenAsync();
+        var actor = await User(inspect, fixture.ManagerEmail);
+        await using var hold = new NpgsqlConnection(roles.Admin);
+        await hold.OpenAsync();
+        await using var transaction = await hold.BeginTransactionAsync();
+        await using (var lockCommand = new NpgsqlCommand(
+            "SELECT id FROM organizations WHERE id=@org FOR UPDATE",
+            hold, transaction))
+        {
+            lockCommand.Parameters.AddWithValue("org", fixture.A);
+            Assert.Equal(fixture.A, await lockCommand.ExecuteScalarAsync());
+        }
+        Task<HttpResponseMessage>? pending = null;
+        try
+        {
+            pending = scoped.GetAsync(route);
+            var waiting = false;
+            for (var attempt = 0; attempt < 200; attempt++)
+            {
+                await Task.Delay(30);
+                await using var query = new NpgsqlCommand("""
+                    SELECT COUNT(*) FROM pg_stat_activity
+                    WHERE datname=current_database() AND pid<>pg_backend_pid()
+                      AND wait_event_type='Lock' AND query ILIKE '%organizations%'
+                    """, inspect);
+                if (Convert.ToInt32(await query.ExecuteScalarAsync()) > 0)
+                {
+                    waiting = true;
+                    break;
+                }
+            }
+            Assert.True(waiting, "The report must queue on its selected organization lock");
+            await Execute(inspect,
+                "UPDATE users SET security_version=security_version+1 WHERE id=@user",
+                ("user", actor));
+        }
+        finally
+        {
+            await transaction.CommitAsync();
+        }
+        Assert.NotNull(pending);
+        using var result = await pending!;
+        Assert.Contains(result.StatusCode,
+            new[] { HttpStatusCode.Forbidden, HttpStatusCode.Unauthorized });
+        await using var count = new NpgsqlCommand("""
+            SELECT COUNT(*) FROM operational_kpi_reports
+            WHERE organization_id=@org AND actor_user_id=@actor
+            """, inspect);
+        count.Parameters.AddWithValue("org", fixture.A);
+        count.Parameters.AddWithValue("actor", actor);
+        Assert.Equal(0L, Convert.ToInt64(await count.ExecuteScalarAsync()));
+    }
+
+    [Fact]
     public async Task QueuedNotificationAcknowledgmentCannotCommitAfterRevocation()
     {
         var s = await M11ExceptionRuntimeTests.Prepare();

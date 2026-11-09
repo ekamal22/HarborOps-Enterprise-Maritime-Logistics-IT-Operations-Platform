@@ -299,9 +299,17 @@ public sealed class G13G15RevocationAcceptanceTests
 
     [Theory]
     [InlineData("session_revoked")]
+    [InlineData("idle_expired")]
+    [InlineData("absolute_expired")]
+    [InlineData("logout")]
+    [InlineData("logout_all")]
     [InlineData("security_version")]
+    [InlineData("account_disabled")]
     [InlineData("organization_suspended")]
     [InlineData("membership_removed")]
+    [InlineData("membership_suspended")]
+    [InlineData("role_support")]
+    [InlineData("organization_changed")]
     public async Task ExistingKpiReportCannotBeReadAfterAuthorityRevocation(string change)
     {
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();
@@ -328,19 +336,64 @@ public sealed class G13G15RevocationAcceptanceTests
         await db.OpenAsync();
         var user = await User(db, fixture.ManagerEmail);
         var session = await LatestSession(db, fixture.ManagerEmail, fixture.A);
-        var sql = change switch
+        if (change is "logout" or "logout_all")
         {
-            "session_revoked" => "UPDATE auth_sessions SET revoked_at_utc=clock_timestamp() WHERE id=@session",
-            "security_version" => "UPDATE users SET security_version=security_version+1 WHERE id=@user",
-            "organization_suspended" => "UPDATE organizations SET status='Suspended' WHERE id=@org",
-            "membership_removed" => """
-                UPDATE organization_memberships
-                SET status='Removed',version=version+1,updated_at_utc=clock_timestamp()
-                WHERE user_id=@user AND organization_id=@org
-                """,
-            _ => throw new InvalidOperationException()
-        };
-        await Execute(db, sql, ("user", user), ("session", session), ("org", fixture.A));
+            var endpoint = change == "logout"
+                ? "/api/v1/auth/logout" : "/api/v1/auth/logout-all";
+            using var logout = await ReferenceDataHttpTests.Send(
+                manager, HttpMethod.Post, endpoint);
+            Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
+        }
+        else
+        {
+            var sql = change switch
+            {
+                "session_revoked" => """
+                    UPDATE auth_sessions SET revoked_at_utc=clock_timestamp() WHERE id=@session
+                    """,
+                "idle_expired" => """
+                    UPDATE auth_sessions SET idle_expires_at_utc=issued_at_utc+interval '1 microsecond'
+                    WHERE id=@session
+                    """,
+                "absolute_expired" => """
+                    UPDATE auth_sessions SET
+                        last_seen_at_utc=issued_at_utc,
+                        idle_expires_at_utc=issued_at_utc+interval '1 microsecond',
+                        absolute_expires_at_utc=issued_at_utc+interval '2 microseconds'
+                    WHERE id=@session
+                    """,
+                "security_version" => """
+                    UPDATE users SET security_version=security_version+1 WHERE id=@user
+                    """,
+                "account_disabled" => """
+                    UPDATE users SET status='Disabled',disabled_at_utc=clock_timestamp() WHERE id=@user
+                    """,
+                "organization_suspended" => """
+                    UPDATE organizations SET status='Suspended' WHERE id=@org
+                    """,
+                "membership_removed" => """
+                    UPDATE organization_memberships
+                    SET status='Removed',version=version+1,updated_at_utc=clock_timestamp()
+                    WHERE user_id=@user AND organization_id=@org
+                    """,
+                "membership_suspended" => """
+                    UPDATE organization_memberships
+                    SET status='Suspended',version=version+1,updated_at_utc=clock_timestamp()
+                    WHERE user_id=@user AND organization_id=@org
+                    """,
+                "role_support" => """
+                    UPDATE organization_memberships
+                    SET role='Support',version=version+1,updated_at_utc=clock_timestamp()
+                    WHERE user_id=@user AND organization_id=@org
+                    """,
+                "organization_changed" => """
+                    UPDATE auth_sessions SET selected_organization_id=@other WHERE id=@session
+                    """,
+                _ => throw new InvalidOperationException("Unknown revocation")
+            };
+            await Execute(db, sql, ("user", user), ("session", session),
+                ("org", fixture.A), ("other", fixture.B));
+        }
         using var drill = new HttpRequestMessage(HttpMethod.Get,
             root + "/reports/" + id + "/members?metricCode=K01");
         drill.Headers.TryAddWithoutValidation("X-HarborOps-Report", token);

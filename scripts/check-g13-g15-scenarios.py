@@ -205,6 +205,8 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
         case.assertTrue(passed("ReportingBuildLimiterRejectsSeventhRequestWithoutChangingTheCommittedSnapshot"))
     if scenario == "G13-S09":
         case.assertTrue(passed("ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress"))
+    if scenario in ("G15-S12", "G15-S21"):
+        case.assertTrue(passed("ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts"))
     if scenario in ("G13-S19", "G15-S13"):
         phases = ("G13BeforeReportCommit", "G13AfterReportCommit") if gate == "G13" else (
             "G15BeforeHistoryCommit", "G15BeforeClaimCommit",

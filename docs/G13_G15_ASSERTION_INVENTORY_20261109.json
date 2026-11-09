@@ -4880,19 +4880,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "InFlightCancellationRollsBackBlockedFanout"
-            },
-            {
-              "kind": "test",
-              "id": "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce"
+              "id": "ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Five actual failed dispatcher attempts must escalate sanitized backoff and quarantine without partial recipients, then remain isolated after repair. Pending exact-SHA CI."
         },
         {
           "id": "G15-S21-A04",

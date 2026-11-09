@@ -243,7 +243,7 @@ public sealed class M13OperationalKpiRuntimeTests
 
         await using var db = new NpgsqlConnection(roles.Admin);
         await db.OpenAsync();
-        await using var identities = new NpgsqlCommand("""
+        await using var sessionLookup = new NpgsqlCommand("""
             SELECT m.user_id,a.id,m.role FROM organization_memberships m
             JOIN auth_sessions a ON a.user_id=m.user_id
                 AND a.selected_organization_id=m.organization_id
@@ -252,10 +252,10 @@ public sealed class M13OperationalKpiRuntimeTests
                 AND (m.role='Administrator' OR m.user_id=@auditor)
             ORDER BY m.role,a.issued_at_utc DESC
             """, db);
-        identities.Parameters.AddWithValue("org", fixture.A);
-        identities.Parameters.AddWithValue("auditor", auditorId);
+        sessionLookup.Parameters.AddWithValue("org", fixture.A);
+        sessionLookup.Parameters.AddWithValue("auditor", auditorId);
         var actors = new Dictionary<Guid,(Guid Session,string Role)>();
-        await using (var reader = await identities.ExecuteReaderAsync())
+        await using (var reader = await sessionLookup.ExecuteReaderAsync())
         {
             while (await reader.ReadAsync())
             {

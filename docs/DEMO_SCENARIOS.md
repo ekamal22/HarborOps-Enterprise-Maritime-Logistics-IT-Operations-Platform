@@ -1,5 +1,7 @@
 # Reproducible Demonstration Scenarios
 
+**Current M15 source status (2026-11-09):** M15's [latest standalone Actions run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) passed source and PostgreSQL but failed one Chromium receipt selector (5/6 passed); Firefox/WebKit were not reached. Subsequent [correctness remediation](M15_CORRECTNESS_AUDIT_20261109.md) remains unverified on a fresh SHA. The separate [combined M13/M15 run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed 312 unit, 52 contract, 37 selected PostgreSQL and 27 three-engine browser checks on a different earlier source. Neither G13 nor G15 is accepted, and M15-P01 through P14 require approval. Accepted `main` remains G0-G12 and G16. No merge or deployment.
+
 **Current verified baseline (2026-11-08):** G0-G12 and G16 accepted and merged. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records the 388/388 integration, 48/48 browser, 17/17 effective mutant and N01 10/10 evidence. Earlier source-only and pending verification banners are historical, not current. Preserve the M9 ARRI/DEPA hold, 10,000 unresolved-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator; no deployment.
 
 ## Demo dataset contract

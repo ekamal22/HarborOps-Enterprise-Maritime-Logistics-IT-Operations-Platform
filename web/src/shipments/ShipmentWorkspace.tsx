@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { getJson, organizationError, OrganizationRequestError } from "../auth/organizationClient";
 import { archiveShipment, changeShipment, createShipment, shipmentHistory, shipmentDetail,
@@ -64,6 +65,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
   notificationTarget?: NotificationTarget | null;
   onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"Active" | "Archived" | "All">("Active");
   const [advancedDraft, setAdvancedDraft] = useState<ShipmentAdvancedFilters>(emptyAdvancedFilters);

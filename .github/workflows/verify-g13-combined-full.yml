@@ -500,11 +500,63 @@ jobs:
           path: .verification/g15-scale/
           retention-days: 30
 
+  g15-fanout:
+    name: G15 dual dispatcher 250-member 100-reader exercise
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g15-fanout
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g15-fanout;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+      HARBOROPS_G15_EXCLUSIVE_FANOUT: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build and run source-locked membership/concurrent-reader workload
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g15-fanout
+          dotnet build HarborOps.sln -c Release -warnaserror \
+            2>&1 | tee .verification/g15-fanout/build.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
+            -c Release --no-build --filter 'FullyQualifiedName~M15FanoutLoadTests' \
+            --logger 'console;verbosity=normal' \
+            --logger 'trx;LogFileName=g15-fanout.trx' \
+            --results-directory .verification/g15-fanout \
+            2>&1 | tee .verification/g15-fanout/workload.log
+      - name: Seal G15 fanout evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g15-fanout
+          printf '%s\n' "$GITHUB_SHA" > .verification/g15-fanout/source-sha.txt
+          sha256sum tests/HarborOps.IntegrationTests/M15FanoutLoadTests.cs > .verification/g15-fanout/test-sha256.txt
+          (cd .verification/g15-fanout && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g15-fanout-${{ github.run_id }}
+          path: .verification/g15-fanout/
+          retention-days: 30
+
   gate-ledger:
     name: Reconcile G13 and G15 scenario evidence without approving gates
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations, g15-scale]
+    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations, g15-scale, g15-fanout]
     if: always()
     env:
       GATE_JOB_SOURCE: ${{ needs.source.result }}
@@ -516,6 +568,7 @@ jobs:
       GATE_JOB_MUTATIONS: ${{ needs.g13-mutations.result }}
       GATE_JOB_G15_MUTATIONS: ${{ needs.g15-mutations.result }}
       GATE_JOB_G15_SCALE: ${{ needs.g15-scale.result }}
+      GATE_JOB_G15_FANOUT: ${{ needs.g15-fanout.result }}
     steps:
       - uses: actions/checkout@v4
         with:

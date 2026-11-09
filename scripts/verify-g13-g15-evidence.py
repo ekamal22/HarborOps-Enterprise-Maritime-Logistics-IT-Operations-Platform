@@ -24,6 +24,7 @@ JOBS = {
     "source_mutations": os.environ.get("GATE_JOB_MUTATIONS", "unknown"),
     "notification_mutations": os.environ.get("GATE_JOB_G15_MUTATIONS", "unknown"),
     "notification_scale": os.environ.get("GATE_JOB_G15_SCALE", "unknown"),
+    "notification_fanout": os.environ.get("GATE_JOB_G15_FANOUT", "unknown"),
 }
 
 # References identify executed technical checks, not complete acceptance scenarios.
@@ -51,7 +52,8 @@ REFERENCES = {
         7: ["ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"],
         8: ["ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"],
         11: ["M11HistoryProducesScopedDeduplicatedPersonalReceipts"],
-        12: ["ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"],
+        12: ["ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts",
+             "TwoDispatchersFanOutToTwoHundredFiftyAdditionalMembersAndServeOneHundredReaders"],
         14: ["FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction"],
         15: ["MigrationSnapshotTests"],
         16: ["RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"],
@@ -224,7 +226,7 @@ def main() -> int:
         for key in ("combined-source", "m15-database", "m15-browser",
                     "g13-scale", "g13-security-mutations",
                     "g13-faults", "g13-mutations", "g15-mutations",
-                    "g15-scale")
+                    "g15-scale", "g15-fanout")
     }
     for name, root in artifacts.items():
         if root is None:

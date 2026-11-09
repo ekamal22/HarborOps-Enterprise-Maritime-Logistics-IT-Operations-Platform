@@ -42,9 +42,9 @@ def run(args: list[str], *, env: dict[str,str] | None = None, timeout: int = 400
     return subprocess.run(args, cwd=ROOT, env=env, check=False,
                           text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           timeout=timeout)
-def db_call(container: str, sql: str):
+def db_call(container: str, sql: str, database: str):
     result=run(["docker","exec",container,"psql","-v","ON_ERROR_STOP=1",
-                "-U","harborops","-d","postgres","-c",sql],timeout=60)
+                "-U","harborops","-d",database,"-c",sql],timeout=60)
     if result.returncode:
         raise RuntimeError(f"Disposable database setup failed: {result.stdout[-1500:]}")
 
@@ -70,10 +70,18 @@ def main() -> int:
                 raise RuntimeError(f"Mutation {name} anchor count {original_text.count(before)}")
             source=original_text.replace(before,after) if before else original_text
             TARGET.write_text(source,encoding="utf-8")
-            database=f"g13_sec_{i}_{os.environ.get('GITHUB_RUN_ID','local')}"
+            database=match.group(1)
+            if database not in ("harborops_integration","harborops_test"):
+                raise RuntimeError("Only the explicitly disposable test database is permitted")
+            # The test harness intentionally rejects arbitrary database names.
+            # Restore an empty public schema between variants on this one
+            # exclusive GitHub-hosted PostgreSQL service.
+            db_call(container,
+                "DROP SCHEMA IF EXISTS public CASCADE; "
+                "CREATE SCHEMA public AUTHORIZATION harborops; "
+                "GRANT USAGE,CREATE ON SCHEMA public TO PUBLIC;",
+                database)
             env=os.environ.copy()
-            env["HARBOROPS_TEST_DB"]=base[:match.start(1)]+database+base[match.end(1):]
-            db_call(container,f'CREATE DATABASE "{database}"')
             start=time.monotonic()
             try:
                 result=run(["dotnet","test",
@@ -100,7 +108,7 @@ def main() -> int:
                 if name=="clean-control" and verdict!="PASS":
                     break
             finally:
-                db_call(container,f'DROP DATABASE "{database}" WITH (FORCE)')
+                pass  # Next variant resets this disposable database schema
                 TARGET.write_bytes(original)
     finally:
         TARGET.write_bytes(original)

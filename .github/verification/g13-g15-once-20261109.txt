@@ -7,3 +7,5 @@ This file is a one-time Actions trigger, not an acceptance decision.
 Relaunch after xUnit analyzer corrections on prior source 793ce1a20f42895ddbd0d2a12b1a74a520607b1a
 
 Successor launch after browser-count and queued mutation detector repairs, predecessor e227076b1663aecf39d711a72de075fdcef3c35f
+
+Dispatch after manager session refresh and malformed-query rate-budget fixes from d71f95f994b15a845d4be25f0a568a9e8a5f0f81

@@ -18,9 +18,9 @@ export default function App() {
   const { t, date, locale } = useI18n();
   useEffect(() => {
     syncDocumentLanguage();
-    document.title = locale === "tr-TR" ? "HarborOps | Sistem Durumu" : "HarborOps | Engineering Baseline";
+    document.title = locale === "tr-TR" ? "HarborOps | Operasyonlara Genel Bakış" : "HarborOps | Operations Overview";
     const description = document.querySelector('meta[name="description"]');
-    if (description) description.setAttribute("content", locale === "tr-TR" ? "HarborOps sistem durumu ve deniz taşımacılığı operasyonları" : "HarborOps engineering baseline");
+    if (description) description.setAttribute("content", locale === "tr-TR" ? "HarborOps deniz taşımacılığı operasyonları ve sistem durumu" : "HarborOps maritime operations and system status");
   }, [locale]);
   const [view, setView] = useState<ViewState>({ status: "loading" });
 

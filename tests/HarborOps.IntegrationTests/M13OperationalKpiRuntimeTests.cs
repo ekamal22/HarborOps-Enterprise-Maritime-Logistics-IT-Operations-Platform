@@ -784,6 +784,102 @@ public sealed class M13OperationalKpiRuntimeTests
     }
 
 
+
+    [ExclusiveM13PostgresFact]
+    public async Task ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var adminSeed = fixture.Admin;
+        using var managerSeed = fixture.Manager;
+        using var analystSeed = fixture.Analyst;
+        await AssignmentHttpTests.Seed(fixture);
+        Guid manager, session;
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        await using (var lookup = new NpgsqlCommand("""
+            SELECT a.user_id,a.id FROM auth_sessions a
+            JOIN organization_memberships m ON m.user_id=a.user_id
+                AND m.organization_id=a.selected_organization_id
+            WHERE a.selected_organization_id=@org AND m.role='Manager'
+                AND m.status='Active' AND a.revoked_at_utc IS NULL
+            ORDER BY a.issued_at_utc DESC LIMIT 1
+            """, db))
+        {
+            lookup.Parameters.AddWithValue("org", fixture.A);
+            await using var row = await lookup.ExecuteReaderAsync();
+            Assert.True(await row.ReadAsync());
+            manager = row.GetGuid(0);
+            session = row.GetGuid(1);
+        }
+        // Foreign synthetic rows deliberately have no application read scope.
+        // Their existence proves that a tenant-A cleanup cannot touch B rows.
+        foreach (var (org, amount) in new[] { (fixture.A, 12), (fixture.B, 3) })
+        {
+            await using var insert = new NpgsqlCommand("""
+                INSERT INTO operational_kpi_reports
+                    (id,organization_id,actor_user_id,actor_session_id,
+                     policy_version,filters_sha256,from_utc,before_utc,
+                     evaluated_at_utc,created_at_utc,expires_at_utc)
+                SELECT gen_random_uuid(),@org,@manager,@session,'m13-kpi-v1',
+                    repeat('0',64),clock_timestamp()-interval '9 days',
+                    clock_timestamp()-interval '2 days',
+                    clock_timestamp()-interval '2 hours',
+                    clock_timestamp()-interval '2 hours',
+                    clock_timestamp()-interval '110 minutes'
+                FROM generate_series(1,@amount)
+                """, db);
+            insert.Parameters.AddWithValue("org", org);
+            insert.Parameters.AddWithValue("manager", manager);
+            insert.Parameters.AddWithValue("session", session);
+            insert.Parameters.AddWithValue("amount", amount);
+            Assert.Equal(amount, await insert.ExecuteNonQueryAsync());
+        }
+        async Task<long> CountReports(Guid org)
+        {
+            await using var sql = new NpgsqlCommand("""
+                SELECT count(*) FROM operational_kpi_reports
+                WHERE organization_id=@org AND expires_at_utc<=clock_timestamp()
+                """, db);
+            sql.Parameters.AddWithValue("org", org);
+            return Convert.ToInt64(await sql.ExecuteScalarAsync());
+        }
+        Assert.Equal(12L, await CountReports(fixture.A));
+        Assert.Equal(3L, await CountReports(fixture.B));
+
+        async Task<long> SourceCount()
+        {
+            await using var sql = new NpgsqlCommand("""
+                SELECT count(*) FROM shipment_status_changes
+                WHERE organization_id=@org
+                """, db);
+            sql.Parameters.AddWithValue("org", fixture.A);
+            return Convert.ToInt64(await sql.ExecuteScalarAsync());
+        }
+        var sourceBefore = await SourceCount();
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var analyst = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(analyst, fixture.AnalystEmail);
+        await ReferenceDataHttpTests.Select(analyst, fixture.A);
+        using (var refreshed = await analyst.GetAsync(Root(fixture.A) + "/overview"))
+            Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
+        Assert.Equal(4L, await CountReports(fixture.A));
+        Assert.Equal(3L, await CountReports(fixture.B));
+        Assert.Equal(sourceBefore, await SourceCount());
+
+        await using var raw = new NpgsqlConnection(roles.Api);
+        await raw.OpenAsync();
+        await using var denied = new NpgsqlCommand(
+            "SELECT m13_prune_expired(@org,8)", raw);
+        denied.Parameters.AddWithValue("org", fixture.B);
+        var error = await Assert.ThrowsAsync<PostgresException>(
+            () => denied.ExecuteScalarAsync());
+        Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, error.SqlState);
+        Assert.Equal(3L, await CountReports(fixture.B));
+    }
+
     [ExclusiveM13PostgresFact]
     public async Task CommittedReportMembersRemainStableAcrossLaterWorkflowChanges()
     {

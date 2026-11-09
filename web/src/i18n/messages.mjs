@@ -501,5 +501,19 @@ export const TURKISH = Object.freeze({
   "Positive": "Olumlu",
   "Negative": "Olumsuz",
   "Reviewed": "İncelendi",
-  "Unresolved": "Çözülmedi"
+  "Unresolved": "Çözülmedi",
+  "Secure transport required": "Güvenli bağlantı gerekli",
+  "Request origin rejected": "İsteğin kaynağı reddedildi",
+  "Request validation failed": "İstek doğrulaması başarısız oldu",
+  "Unable to sign in with these credentials": "Bu kimlik bilgileriyle giriş yapılamadı",
+  "Too many sign-in attempts": "Çok fazla giriş denemesi yapıldı",
+  "Password confirmation failed": "Şifre doğrulaması başarısız oldu",
+  "Assign another active administrator before disabling this account": "Bu hesabı devre dışı bırakmadan önce başka bir etkin yönetici atayın",
+  "Evaluation completed against the current accepted records.": "Güncel kabul edilmiş kayıtlar üzerinden değerlendirme tamamlandı.",
+  "Exception disposition saved.": "İstisna kapatma işlemi kaydedildi.",
+  "The exception changed. Refresh and inspect the latest version before retrying.": "İstisna değişti. Tekrar denemeden önce yenileyin ve güncel sürümü inceleyin.",
+  "Reference pagination did not complete safely": "Referans sayfalaması güvenli şekilde tamamlanamadı",
+  "Current version {version} loaded.": "Güncel sürüm {version} yüklendi.",
+  "Your unsaved changes to {fields} were kept.": "{fields} alanlarındaki kaydedilmemiş değişiklikleriniz korundu.",
+  "The server also changed {fields}. Your value is shown and saving will replace the server's.": "Sunucu da {fields} alanlarını değiştirdi. Sizin değerleriniz gösteriliyor; kaydetmeniz sunucudaki değerlerin üzerine yazacak."
 });

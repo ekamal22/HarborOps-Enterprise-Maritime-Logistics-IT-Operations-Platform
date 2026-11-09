@@ -15,7 +15,9 @@
 | [42527741929](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42527741929) | `f7b5dea327d423b8b6eb0e958bfe7799080e96c6` | Source PASS; PostgreSQL FAIL: 3 M15 downgrade dependency errors and 1 overly broad queue-empty test assertion | Four findings recorded and remediated in later commits |
 | [42528679584](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42528679584) | `8fc433d2d54687033e4a2d0de24b6f60f1847917` | FAIL on malformed source during an incomplete migration edit | Superseded by rebuild from last clean migration |
 | [42528936587](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42528936587) | `b0831e34aae477f5a59b834ed2895f163bd0e3ad` | Source PASS; PostgreSQL PASS; browser FAIL before Playwright because disposable Compose project name was not allowlisted | Project-name fix committed later |
-| [42530770493](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42530770493) | `82dac56bc00443cc022ecae0b38cd945d3db8f59` | Source PASS, database PASS, browser FAIL during fixture preparation before Playwright | Current latest executed source/DB evidence |
+| [42530770493](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42530770493) | `82dac56bc00443cc022ecae0b38cd945d3db8f59` | Source PASS, database PASS, browser FAIL during fixture preparation before Playwright | Earlier source/DB evidence |
+| [42539491364](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539491364) | `1cad2e8128cc1799fdb229e20551cd3cb49db6c3` | FAIL compiling tests: xUnit2020 rejected `Assert.True(false,...)` in helper | Fixed by `Assert.Fail(...)`; DB/browser skipped |
+| [42539950914](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539950914) | `51920dcb25cbe02109683852d4dc217dbf104c71` | Source PASS, PostgreSQL PASS, browser FAIL after 2/6 Chromium tests; Firefox and WebKit not reached | Browser login limit exhausted during fixture and per-test login sequences |
 
 ### Measurements from run 42530770493
 
@@ -36,21 +38,23 @@
 
 These are hosted temporary artifacts; retention is seven days under the workflow configuration. Each run reports its own source SHA. Passing counts cannot be transferred to later edited source revisions.
 
-## 2. Subsequent implementation source not yet run
+## 2. Latest measured run and next source boundary
 
-The following changes postdate `82dac56`, and therefore **do not inherit its PASS**:
+[Source-locked Actions run 42539950914](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539950914), revision `51920dcb25cbe02109683852d4dc217dbf104c71`:
 
-- Browser fixture evidence-directory initialization under the disposable Compose workflow.
-- An atomic receipt replay snapshot in `m15_notification_replays` containing the original result version and read/ack timestamps.
-- API replay response restoration from the original committed receipt result, instead of returning a potentially later personal state.
-- Added focused regression that first marks a receipt read, acknowledges it separately, then replays the earlier MarkRead key and checks the original read-only snapshot.
-- Additional replay snapshot source-contract assertions.
+- Source job **PASS**: warning-as-error .NET build, 299/299 unit tests, 46/46 contract tests, frontend tests/build and M15 static contracts.
+- PostgreSQL job **PASS**: 26/26 selected integration tests, then 5/5 separately executed M15 security/fault-injection boundary tests. No skips.
+- Disposable end-to-end M11 event, opt-in M15 dispatcher, personal recipient and scoped API fixture: **PASS**.
+- Browser job **FAIL**: Chromium passed 2 of 6 specs. Four specs failed before their assertions while signing in. Firefox and WebKit were not reached. The 5-minute login source limiter allows 20 attempts, and the M3, M4, M5 and M15 preparation scripts together perform 18 successful HTTP logins before Playwright starts; two browser tests then logged in successfully. Subsequent login attempts in the same window could not reach the organization workspace. This is consistent with the configured rate-limit boundary. Production login limits have **not** been relaxed.
+- Raw evidence: [source job](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539950914), [PostgreSQL artifacts](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539950914/artifacts/13641535251), [browser artifact](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539950914/artifacts/13640803911).
 
-**Verification dependency:** A new source-locked Actions run on the final M15 commit is necessary for compile, migration and three-browser evidence. The connected dispatch service returned an account task-limit error when attempting to start the updated run; no successful new dispatch was reported after that error. The workflow is still manually dispatchable from the GitHub repository on the M15 branch. Do not infer a PASS from source inspection alone.
+Subsequent source revisions preserve the authenticated manager session already created during the real M15 fixture, create one additional authenticated administrator snapshot, and reuse these exact server-issued cookies across isolated Playwright contexts and the three browser engines. The source copies the original cookie attributes, stores the session snapshots only in `.verification/.private` (excluded by `.gitignore`), never uploads them as artifacts and deletes them from the disposable runner on exit. Browser tests fail closed if the required session snapshots are absent. The static contract was updated to require this fixture pattern.
+
+**These changes are not yet executed on the latest source SHA.** Do not transfer the earlier passing test counts to this source or mark G15 complete until a final source-locked run passes all jobs.
 
 ## 3. M13 parallel implementation boundary
 
-M13's separate branch `plan/m13-operational-kpi-dashboards-20261108` advanced to `4e717bd45011b0a75b3d764b3f298bfcfb1d9056` during this work. It now contains KPI application code and an additive `20261109020000_M13OperationalKpis` migration. M15 uses provisional `20261109010000_M15ScopedNotifications`. These timestamps imply M15-before-M13 ordering on a future combined branch, but compatibility has **not** been validated on one combined source SHA.
+M13's independent branch `plan/m13-operational-kpi-dashboards-20261108` is at `e5a7f70219bd9ad5aa5f4eccc0d894fffcda2127` at this checkpoint. An isolated integration verification branch also exists at `verify/g13-m13-m15-integration-20261109` (`6b05d84bf2f01741b182669c2dd17e39e63d9dda`). Its separate gate status is not imported into M15 acceptance. It now contains KPI application code and an additive `20261109020000_M13OperationalKpis` migration. M15 uses provisional `20261109010000_M15ScopedNotifications`. These timestamps imply M15-before-M13 ordering on a future combined branch, but compatibility has **not** been validated on one combined source SHA.
 
 Shared files requiring an explicit merge reconciliation include `src/HarborOps.Api/Program.cs`, `src/HarborOps.Api/Audit/AuditRoleProvisioner.cs`, `web/src/auth/OrganizationWorkspace.tsx`, current-head migration assertions in `MigrationSnapshotTests.cs` and `M11M12UpgradeTests.cs`, plus coordinated identity and API permissions. Keep M13's dedicated dashboard-read permission separate from M15's `ViewShipmentData` business-notification entitlement. M13 KPI results must not be derived from notification delivery or read state. Neither branch is merged.
 
@@ -64,4 +68,4 @@ Preserve M9 ARRI/DEPA NeedsReconciliation hold, the 10,000 unresolved-item cap, 
 
 The implementation branch now exposes `HARBOROPS_M15_ENABLE_DELIVERY=false` in `.env.example` and `compose.yaml` (API-only). The isolated browser verification workflow explicitly sets it to `true` on an `ho-verify-*` project. A committed preparation script opens a real manual M11 evaluation, waits for a genuine M15 personal row from the hosted dispatcher and records source-locked disposable fixture IDs. Playwright checks the real notification UI and authorized shipment-exception navigation as well as mocked receipt, revocation and inaccessible-target scenarios.
 
-The workflow now runs `M15NotificationBoundaryTests` separately from the 26 previously measured integration cases to protect their database-wide fault-injection constraints. The M15 restricted-role test now includes forged read-scope proof and worker-role negative probes. These changes postdate the frozen PASS SHA and have not been executed. No G15-S22, G15-S24 or new migration result is claimed from them.
+The workflow ran `M15NotificationBoundaryTests` separately from the 26 targeted integration cases. Both suites passed on frozen SHA `51920dcb`. The restricted-role suite includes forged read-scope proof, worker-role denials, and rollback of failed audit/history. These results do not certify subsequent cookie-reuse changes or the remaining G15 scenarios.

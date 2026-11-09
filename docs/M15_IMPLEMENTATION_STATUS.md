@@ -3,7 +3,7 @@
 **Current checkpoint:** 2026-11-09 (Türkiye local date).  
 **Implementation branch:** `feat/m15-scoped-notifications-20261108`  
 **Integration PR:** [Draft PR #37](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/37), not merged.  
-**Milestone disposition:** Source implementation candidate with targeted build and database PASS on an earlier frozen SHA; updated source and all-browser verification pending; G15 acceptance pending.
+**Milestone disposition:** Source implementation candidate with source and database PASS on frozen SHA `51920dcb`; browser verification failed at the test harness login limit. Updated harness requires a fresh three-engine run. G15 acceptance pending.
 
 The authoritative executed test record, including the failed runs and immutable evidence links, is [M15_EXECUTED_VERIFICATION_20261109.md](M15_EXECUTED_VERIFICATION_20261109.md). It must be read alongside this status. Do not treat test source, corrected workflows or earlier run results as an accepted G15 gate.
 
@@ -20,11 +20,11 @@ The authoritative executed test record, including the failed runs and immutable 
 
 ## Executed results, frozen source boundary
 
-On source SHA `82dac56bc00443cc022ecae0b38cd945d3db8f59`, [Actions run 42530770493](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42530770493) completed a warning-free .NET 10 build, 299/299 unit tests, 46/46 contract tests, 26/26 selected PostgreSQL integration tests, web build/test checks, M11/M15 source contracts and project documentation/graph checks. The browser job FAILED **before** executing Playwright because a required fixture evidence directory had not been created. This is a genuine failed campaign, not a full PASS.
+At source SHA `51920dcb25cbe02109683852d4dc217dbf104c71`, [Actions run 42539950914](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539950914) passed the warning-as-error .NET build, all 299 unit and 46 contract tests, all 26 targeted PostgreSQL tests and all five M15 security/fault-injection cases. The real M11-to-M15 delivery fixture also passed. The browser job FAILED: two Chromium tests passed, four were unable to complete sign-in after the 20-attempt source IP rate limit was exhausted by fixture preparation and per-test authentication. Firefox and WebKit were not reached. No gate-wide PASS is claimed.
 
-Subsequent commits corrected browser fixture initialization and added exact committed-state idempotency replay snapshots and regression assertions. The current branch differs from the measured SHA. A new source-locked build/DB/browser campaign must validate these changes.
+Later source revisions replace repeated Playwright logins with private, short-lived browser state copied from the real fixture sessions, with cleanup and no credential artifact uploads. These fixes require a source-locked rerun.
 
-The connected Actions dispatch service reached its task limit when a further run was requested. The repository workflow remains manually dispatchable on this feature branch. The latest source cannot be labeled verified until a resulting run succeeds and raw evidence is reviewed.
+The connected Actions dispatch service is at its task limit. The branch-local GitHub Actions workflow remains manually dispatchable; the latest source cannot be called verified until the source, database and all three browser jobs pass on the same frozen SHA and the raw evidence is reviewed.
 
 ## Implemented design choices requiring policy review
 
@@ -41,21 +41,21 @@ The connected Actions dispatch service reached its task limit when a further run
 
 ## Independent M13 implementation coordination
 
-At the latest read, M13's independent branch was `4e717bd45011b0a75b3d764b3f298bfcfb1d9056`. M13 now has a distinct KPI migration `20261109020000_M13OperationalKpis` and application implementation. A combined branch must reconcile `Program.cs`, `AuditRoleProvisioner.cs`, `OrganizationWorkspace.tsx`, `MigrationSnapshotTests.cs`, `M11M12UpgradeTests.cs`, permissions and migration order. M15's `20261109010000` and M13's `20261109020000` do not by themselves prove compatible upgrades. Preserve separate M13 dashboard authorization and KPI source truth; M15 personal receipts must not change KPI measures.
+At this checkpoint, M13's independent branch was `e5a7f70219bd9ad5aa5f4eccc0d894fffcda2127`. A separate integration verification branch exists at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`, with independent gate decisions. M13 now has a distinct KPI migration `20261109020000_M13OperationalKpis` and application implementation. A combined branch must reconcile `Program.cs`, `AuditRoleProvisioner.cs`, `OrganizationWorkspace.tsx`, `MigrationSnapshotTests.cs`, `M11M12UpgradeTests.cs`, permissions and migration order. M15's `20261109010000` and M13's `20261109020000` do not by themselves prove compatible upgrades. Preserve separate M13 dashboard authorization and KPI source truth; M15 personal receipts must not change KPI measures.
 
 ## Additional unverified source improvements after the frozen run
 
 The current M15 source now includes a Compose-controlled `HARBOROPS_M15_ENABLE_DELIVERY` setting with default `false`. The isolated verification job alone sets it to `true` to exercise the hosted dispatcher. It now runs the separate M15 notification fault-injection boundary suite after the older targeted integration tests, and prepares a live browser fixture: M5 Draft shipment -> authorized M11 evaluation -> committed M15 outbox -> hosted fanout -> scoped API -> shipment-exception navigation in Chromium, Firefox and WebKit. Browser mocks still separately cover receipt transitions, organization revocation and inaccessible targets. No operational workloads are enabled by these changes.
 
-The SQL security tests also now attempt an invalid HMAC read proof using real organization/recipient/session identifiers, and verify `harborops_worker` cannot read or dispatch M15 notification rows. All new tests are **authored, not executed** as of this checkpoint. The Actions dispatch connector reported a usage-limit blocker after the prior run; no newer success has been inferred.
+The SQL security tests verified invalid HMAC read proof rejection and `harborops_worker` denial in the five-case PostgreSQL boundary suite at `51920dcb`. The repeated browser authentication was subsequently replaced by source-locked, private, reusable fixtures with verified cookie attributes. Those fixture changes remain unexecuted. The Actions dispatch connector has a usage-limit blocker.
 
 ## Exit checklist
 
 - [x] M15 source candidate and end-to-end event/data/API/UI path committed on separate branch
 - [x] Previous-source .NET 10 build, 299 unit and 46 contract tests passed
-- [x] Previous-source 26 PostgreSQL tests passed including additive upgrade and restricted SQL roles
+- [x] Frozen-source 26 PostgreSQL tests and five M15 boundary cases passed
 - [x] Historical run failures and corrections disclosed with source identities
-- [ ] Updated receipt replay and browser-fixture source executed on a final SHA
+- [ ] Latest private-browser-session harness executed on a final frozen SHA
 - [ ] Chromium, Firefox and WebKit browser scenarios executed and passing, not skipped
 - [ ] Source-locked recovery, malicious scope/replay/cursor and security mutation evidence reconciled against G15-S01..S24
 - [ ] M13 combined migration, API and shell reconciliation completed on a shared tested integration SHA

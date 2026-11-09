@@ -4,7 +4,7 @@
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
 **Accepted baseline:** `eb529368a2447061fc1838cd3967b0ffedae669d`
 **Policy:** D-005 Option A approved, `m13-kpi-v1`
-**Status:** M13 application code, reporting migration, API, dashboard and test entrypoints are authored. Targeted source/build, restricted PostgreSQL and three-engine browser verification PASSED at `28c4a913e2880cdec26508cd0456616801cd40b3`, [run 42533241124](M13_VERIFICATION_STATUS_20261109.md). Full G13 gate requirements remain open and M13 is not merged or deployed.
+**Status:** Application implementation and expanded technical verification candidate. Latest targeted source/database/browser PASS at `8175a28ac188b98f5b4cb3edaa7106b5d38ccb84`, [42539385476](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385476); 170k benchmark, focused fault recovery, nine code mutants and two SQL mutants passed on independently documented frozen SHAs. The expanded M13/M15 integration run is not yet green. [Current evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md). G13 acceptance pending. No merge or deployment.
 
 ## Implemented source inventory
 

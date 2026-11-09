@@ -1,12 +1,14 @@
 # M13 G13 Verification Plan
 
 **Prepared:** 2026-11-08
-**State:** TARGETED IMPLEMENTATION CHECKS PASSED at `28c4a913e2880cdec26508cd0456616801cd40b3`; full G13 scenario reconciliation and gate acceptance are outstanding.
+**State:** Focused M13 and selected supplemental scenarios have passed at individually frozen SHAs; expanded combined M13/M15 verification has unresolved failures. This is a coverage plan, not a declaration that G13-S01 through S24 are closed. [Executed evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md).
 **Accepted baseline inspected:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Planning branch:** plan/m13-operational-kpi-dashboards-20261108
 **Policy and authorization:** [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md). Application implementation is authorized and source has been authored as recorded in [implementation status](M13_IMPLEMENTATION_STATUS_20261109.md). GitHub Actions is the exclusive M13 verification environment after implementation completion. Independent G13-S25 review and separate G13 acceptance remain mandatory.
 **Requirement coverage:** FR-012, FR-002, NFR-007, NFR-008; related session, least-privilege and regression boundaries.
 **Reference documents:** M13_D005_KPI_DECISION_PROPOSAL.md, M13_ARCHITECTURE_DESIGN.md, M13_IMPLEMENTATION_PLAN.md, REQUIREMENTS.md, M11_LOCAL_CONTRACT_DECISION_20261108.md, M12_LOCAL_CONTRACT_DECISION_20261108.md and M11_M12_G11_G12_GATE_CLOSURE_20261108.md.
+
+**Scenario accounting:** The pre-execution-status column below is the original gate plan; it is not updated to PASS solely because narrower tests now exist. Consult the executed run ledger, and reconcile all full-scenario requirements before changing gate status.
 
 ## 1. Gate matrix
 

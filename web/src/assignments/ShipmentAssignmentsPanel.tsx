@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { OrganizationRequestError, organizationError } from "../auth/organizationClient";
 import { listMaritime, type MaritimeKind, type MaritimeRow } from "../maritime/maritimeClient";
@@ -15,6 +16,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated, r
   onAccessInvalidated: (message: string) => void;
   revision: number; onUpdated: () => void;
 }) {
+  const { t, date, number } = useI18n();
   const [items, setItems] = useState<Assignment[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<MaritimeRow[]>([]);
@@ -209,6 +211,7 @@ export default function ShipmentAssignmentsPanel({ organizationId, shipment,
   organizationId: string; shipment: ShipmentRow; canManage: boolean;
   onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const [revision, setRevision] = useState(0);
   const [context, setContext] = useState<{ containers: Assignment[]; voyages: Assignment[] } | null>(null);
   const [contextError, setContextError] = useState("");

@@ -30,7 +30,7 @@ async function failure(response: Response): Promise<string> {
 }
 
 export default function AuthPanel() {
-  const { t, date } = useI18n();
+  const { t, localDate } = useI18n();
   const [current, setCurrent] = useState<SessionState | null>(null);
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
@@ -87,7 +87,7 @@ export default function AuthPanel() {
           <p className="mt-4 text-slate-300">{t("Signed in as")} <strong>{current.user.displayName}</strong></p>
           <p className="mt-1 text-sm text-slate-400">{current.user.email}</p>
           <p className="mt-1 break-all text-xs text-slate-500">{t("Account ID:")} {current.user.id}</p>
-          <p className="mt-2 text-xs text-slate-400">{t("Session expiration (local time):")} {date(current.session.expiresAtUtc, { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, timeZoneName: "short" })}</p>
+          <p className="mt-2 text-xs text-slate-400">{t("Session expiration (local time):")} {localDate(current.session.expiresAtUtc)}</p>
           <div className="mt-5 flex flex-wrap gap-3">
             <button disabled={busy} onClick={() => void operation("logout")} className="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-50">{t("Log out")}</button>
             <button disabled={busy} onClick={() => void operation("logout-all")} className="rounded-lg border border-slate-600 px-4 py-2 disabled:opacity-50">{t("Log out all devices")}</button>

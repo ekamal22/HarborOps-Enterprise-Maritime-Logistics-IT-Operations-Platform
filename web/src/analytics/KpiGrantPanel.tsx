@@ -78,7 +78,7 @@ export default function KpiGrantPanel({ organizationId, members, onAccessInvalid
         <strong className={g.active ? "text-cyan-300" : "text-slate-500"}>
           {t(g.active ? " Enabled" : " Revoked")}
         </strong>
-        <span>{t("(version")}{g.version})</span>
+        <span>{t("(version")} {number(g.version)})</span>
       </li>)}
     </ul>
   </section>;

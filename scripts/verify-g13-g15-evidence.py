@@ -49,7 +49,8 @@ REFERENCES = {
         11: ["SUITE:M12ResidualBoundaryTests"],
         10: ["ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         12: ["ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"],
-        13: ["AuditorGrantRevocationDeniesDashboardAndOldReportMembers"],
+        13: ["AuditorGrantRevocationDeniesDashboardAndOldReportMembers",
+             "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"],
         14: ["AuditorGrantRevocationDeniesDashboardAndOldReportMembers"],
         15: ["CommittedReportMembersRemainStableAcrossLaterWorkflowChanges",
              "RepeatableReadReportIgnoresUncommittedConcurrentShipmentTransition"],
@@ -67,6 +68,7 @@ REFERENCES = {
              "SUITE:M11ResidualRuntimeTests", "SUITE:M12ResidualBoundaryTests",
              "SUITE:AuditHardeningTests"],
         23: ["ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports",
+             "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData",
              "MUTATION:g13-security-mutations"],
         24: ["MUTATION:g13-mutations", "MUTATION:g13-security-mutations",
              "SCAN:dependencies"],
@@ -403,7 +405,7 @@ def main() -> int:
     mutations = {
         "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 13),
         "g13-security-mutations": mutation_result(
-            artifacts["g13-security-mutations"], "g13-security-mutations", 2),
+            artifacts["g13-security-mutations"], "g13-security-mutations", 4),
         "g15-mutations": mutation_result(
             artifacts["g15-mutations"], "g15-mutations", 8),
     }

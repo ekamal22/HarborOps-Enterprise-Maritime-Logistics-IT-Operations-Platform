@@ -13,7 +13,8 @@ import time
 ROOT = Path(__file__).resolve().parent.parent
 TARGET = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261109020000_M13OperationalKpis.cs"
 OUT = ROOT / ".verification/g13-security-mutations"
-FILTER = "FullyQualifiedName~M13OperationalKpiRuntimeTests.ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
+FILTER = ("FullyQualifiedName~M13OperationalKpiRuntimeTests.ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
+          "|FullyQualifiedName~M13OperationalKpiRuntimeTests.SignedAdminAndUngrantedAuditorScopesCannotReadKpiData")
 MUTANTS = [
     ("report-select-unrestricted",
         """CREATE POLICY m13_report_select ON operational_kpi_reports
@@ -21,6 +22,14 @@ MUTANTS = [
                     AND m13_scope_matches(organization_id,actor_user_id,actor_session_id));""",
         """CREATE POLICY m13_report_select ON operational_kpi_reports
                 FOR SELECT USING (true);"""),
+    ("administrator-sql-grant-bypass",
+        "IF role_name<>'Auditor' THEN RETURN false; END IF;",
+        "IF role_name<>'Auditor' THEN RETURN true; END IF;",
+        "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"),
+    ("auditor-sql-grant-bypass",
+        "IF role_name<>'Auditor' THEN RETURN false; END IF;",
+        "IF role_name<>'Auditor' THEN RETURN false; END IF; RETURN true;",
+        "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"),
     ("member-select-unrestricted",
         """CREATE POLICY m13_member_select ON operational_kpi_members
                 FOR SELECT USING (
@@ -65,7 +74,10 @@ def main() -> int:
     original_text=original.decode()
     results=[]
     try:
-        for i,(name,before,after) in enumerate([("clean-control","","")]+MUTANTS):
+        for i,case in enumerate([("clean-control","","")]+MUTANTS):
+            name,before,after,*case_target = case
+            active_filter = ("FullyQualifiedName~" + case_target[0]
+                             if case_target else FILTER)
             if before and original_text.count(before)!=1:
                 raise RuntimeError(f"Mutation {name} anchor count {original_text.count(before)}")
             source=original_text.replace(before,after) if before else original_text
@@ -86,7 +98,7 @@ def main() -> int:
             try:
                 result=run(["dotnet","test",
                             "tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj",
-                            "-c","Release","--filter",FILTER,
+                            "-c","Release","--filter",active_filter,
                             "--logger","console;verbosity=normal"],env=env)
                 (OUT / f"{name}.log").write_text(result.stdout,encoding="utf-8")
                 if "error CS" in result.stdout or "Build FAILED" in result.stdout or result.returncode==124:
@@ -96,7 +108,8 @@ def main() -> int:
                 elif result.returncode==0:
                     verdict="SURVIVED"
                 elif ("Failed " in result.stdout or "[FAIL]" in result.stdout) and (
-                    "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports" in result.stdout):
+                    (case_target[0] if case_target else
+                     "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports") in result.stdout):
                     verdict="KILLED"
                 else:
                     verdict="INVALID"

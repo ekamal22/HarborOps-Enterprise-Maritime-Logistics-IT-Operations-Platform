@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getJson, organizationError, OrganizationRequestError } from "../auth/organizationClient";
 
@@ -16,6 +17,7 @@ type Projection = { observedTrackingState: string; lastOccurredAtUtc: string | n
 export default function ShipmentTrackingTimeline({ organizationId, shipmentId, onAccessInvalidated }: {
   organizationId: string; shipmentId: string; onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const path = "/api/v1/organizations/" + encodeURIComponent(organizationId) +
     "/shipments/" + encodeURIComponent(shipmentId);
   const [events, setEvents] = useState<EventRow[]>([]);

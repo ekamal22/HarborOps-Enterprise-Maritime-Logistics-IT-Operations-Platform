@@ -768,23 +768,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "NullSchedulesAreUnknownNotInventedDelays"
-            },
-            {
-              "kind": "test",
-              "id": "ExpiredRuleCheckpointBlocksResolveUntilFreshReevaluation"
-            },
-            {
-              "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
-            },
-            {
-              "kind": "test",
-              "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Source-locked reference oracle now mutates correction generations and verifies K13 decrease, K14 increase, and risk exclusion after staleness; candidate evidence pending latest SHA execution"
         },
         {
           "id": "G13-S08-A03",
@@ -818,23 +806,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "NullSchedulesAreUnknownNotInventedDelays"
-            },
-            {
-              "kind": "test",
-              "id": "ExpiredRuleCheckpointBlocksResolveUntilFreshReevaluation"
-            },
-            {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
-            },
-            {
-              "kind": "test",
-              "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
+              "id": "M10ProjectorAndM11EvaluatorRequireExplicitOptIn"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Dedicated test checks shipped appsettings defaults and Program.cs configuration gates; candidate evidence pending latest SHA execution"
         },
         {
           "id": "G13-S08-A05",
@@ -1068,18 +1044,10 @@
             {
               "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
-            },
-            {
-              "kind": "test",
-              "id": "RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence"
-            },
-            {
-              "kind": "test",
-              "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Reference oracle checks distinct K11/K12 members and changed evaluation generation preserving unknown instead of false freshness; candidate evidence pending latest SHA execution"
         }
       ]
     },
@@ -3895,24 +3863,24 @@
         },
         {
           "id": "G15-S12-A02",
-          "requirement": "Recover expired leases and failed attempts with bounded retries",
+          "requirement": "Recover transaction-scoped SKIP LOCKED claims after process interruption or rollback without a durable lease",
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "TwoDispatchersFanOutToTwoHundredFiftyAdditionalMembersAndServeOneHundredReaders"
+              "kind": "crash",
+              "id": "G15BeforeClaimCommit"
+            },
+            {
+              "kind": "crash",
+              "id": "G15BeforeFanoutCommit"
             },
             {
               "kind": "test",
               "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "M15 dispatcher uses transaction-duration row locks, not persistent leases; SIGKILL and rollback recovery prove the corresponding failure semantics"
         },
         {
           "id": "G15-S12-A03",
@@ -4226,19 +4194,10 @@
         {
           "id": "G15-S14-A04",
           "requirement": "Apply the explicitly conditional P10 availability tradeoff",
-          "kind": "automated",
-          "evidence": [
-            {
-              "kind": "test",
-              "id": "FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction"
-            },
-            {
-              "kind": "test",
-              "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
-            }
-          ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "kind": "policy",
+          "evidence": [],
+          "assessment": "MANUAL_REVIEW",
+          "audit_note": "M15-P10 conditional availability acceptance is a policy review based on source-locked rollback/recovery evidence, not a test that grants approval"
         }
       ]
     },
@@ -4877,15 +4836,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
-            },
-            {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "id": "MarkReadIsLowNoiseWhileAcknowledgmentAuditIsAtomicAndReplayStable"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Dedicated integration test queries audit metadata and actor scope, enforcing one fixed allowlisted action field; candidate evidence pending latest SHA execution"
         }
       ]
     },

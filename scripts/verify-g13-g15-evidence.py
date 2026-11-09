@@ -23,6 +23,7 @@ JOBS = {
     "faults": os.environ.get("GATE_JOB_FAULTS", "unknown"),
     "source_mutations": os.environ.get("GATE_JOB_MUTATIONS", "unknown"),
     "notification_mutations": os.environ.get("GATE_JOB_G15_MUTATIONS", "unknown"),
+    "notification_scale": os.environ.get("GATE_JOB_G15_SCALE", "unknown"),
 }
 
 # References identify executed technical checks, not complete acceptance scenarios.
@@ -54,11 +55,13 @@ REFERENCES = {
         14: ["FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction"],
         15: ["MigrationSnapshotTests"],
         16: ["RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"],
-        17: ["MoreThanOneHundredPersonalRowsPageOnceThroughLiveReceiptChange"],
+        17: ["MoreThanOneHundredPersonalRowsPageOnceThroughLiveReceiptChange",
+             "OneMillionRowsPreserveBoundedScopedKeysetPagination"],
         18: ["M11HistoryProducesScopedDeduplicatedPersonalReceipts"],
         20: ["RequiredAuditFailureRollsBackReceiptAndReplay"],
         22: ["BROWSER:notifications"],
-        23: ["M11ExceptionRuntimeTests"],
+        23: ["M11ExceptionRuntimeTests",
+             "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"],
         24: ["MUTATION:g15-mutations"],
     },
 }
@@ -220,7 +223,8 @@ def main() -> int:
         key: find_artifact(key)
         for key in ("combined-source", "m15-database", "m15-browser",
                     "g13-scale", "g13-security-mutations",
-                    "g13-faults", "g13-mutations", "g15-mutations")
+                    "g13-faults", "g13-mutations", "g15-mutations",
+                    "g15-scale")
     }
     for name, root in artifacts.items():
         if root is None:

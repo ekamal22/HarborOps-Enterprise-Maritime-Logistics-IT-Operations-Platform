@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { organizationError, OrganizationRequestError } from "../auth/organizationClient";
 import {
@@ -45,6 +46,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
   canManage: boolean;
   onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const [kind, setKind] = useState<ReferenceKind>("ports");
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<ReferenceStatus | "All">("Active");
@@ -193,7 +195,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
         <label className="text-sm">Reference status
           <select value={status} disabled={busy || paging} onChange={event => setStatus(event.target.value as ReferenceStatus | "All")}
             className="mt-1 block rounded bg-slate-950 px-3 py-2">
-            <option>Active</option><option>Archived</option><option>All</option>
+            <option>{t("Active")}</option><option>Archived</option><option>{t("All")}</option>
           </select>
         </label>
         {canManage && <button type="button" disabled={busy || paging || loading}

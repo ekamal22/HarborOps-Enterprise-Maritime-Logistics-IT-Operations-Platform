@@ -216,7 +216,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
               </div>)}
           </dl>
           <p className="mt-2 text-xs text-slate-500">{t("An individual shipment may have more than one evidence-quality reason.")}</p>
-          <p className="mt-2 text-xs text-slate-400">{t("Completed workflows excluded from arrival percentage:")} {number(Math.max(0, denominator("K03") - denominator("D05")))} {t("Completed workflows without a proven planned arrival or recorded Arrived event.")}</p>
+          <p className="mt-2 text-xs text-slate-400">{t("Completed workflows excluded from arrival percentage:")} {number(Math.max(0, denominator("K03") - denominator("D05")))}. {t("These completed workflows lack a proven planned arrival or recorded Arrived transition.")}</p>
         </section>
         <section className="mt-6">
           <h4 className="font-semibold">{t("Exception occurrence openings")}</h4>

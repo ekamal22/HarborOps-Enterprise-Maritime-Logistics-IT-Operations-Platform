@@ -29,6 +29,7 @@ JOBS = {
     "reporting_concurrency": os.environ.get("GATE_JOB_G13_CONCURRENCY", "unknown"),
     "crash_recovery": os.environ.get("GATE_JOB_G13_G15_CRASHES", "unknown"),
     "dependency_security": os.environ.get("GATE_JOB_DEPENDENCY_SECURITY", "unknown"),
+    "combined_regressions": os.environ.get("GATE_JOB_COMBINED_REGRESSIONS", "unknown"),
 }
 
 # References identify executed technical checks, not complete acceptance scenarios.
@@ -43,13 +44,18 @@ REFERENCES = {
         7: ["RealM11OverdueEvaluationProducesDistinctDashboardRisk",
             "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         8: ["ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
+        6: ["PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"],
+        9: ["SUITE:M11ResidualRuntimeTests", "SUITE:M10CorrectionAuthorityTests"],
+        11: ["SUITE:M12ResidualBoundaryTests"],
         10: ["ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         12: ["ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"],
         13: ["AuditorGrantRevocationDeniesDashboardAndOldReportMembers"],
         14: ["AuditorGrantRevocationDeniesDashboardAndOldReportMembers"],
         15: ["CommittedReportMembersRemainStableAcrossLaterWorkflowChanges",
              "RepeatableReadReportIgnoresUncommittedConcurrentShipmentTransition"],
-        16: ["RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"],
+        16: ["RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots",
+             "FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows"],
+        17: ["WindowsAreStrictHalfOpenAndBounded", "RequiresExplicitRepresentableUtcTimestamp"],
         18: ["MigrationSnapshotTests"],
         19: ["BlockedMemberMaterializationRollsBackAndRecovers",
              "CRASH:G13BeforeReportCommit", "CRASH:G13AfterReportCommit"],
@@ -57,11 +63,19 @@ REFERENCES = {
              "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently",
              "BUDGET:G13"],
         21: ["BROWSER:operational-kpis"],
+        22: ["SUITE:IdentityLifecycleTests", "SUITE:ShipmentBoundaryTests",
+             "SUITE:M11ResidualRuntimeTests", "SUITE:M12ResidualBoundaryTests",
+             "SUITE:AuditHardeningTests"],
+        23: ["ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports",
+             "MUTATION:g13-security-mutations"],
         24: ["MUTATION:g13-mutations", "MUTATION:g13-security-mutations",
              "SCAN:dependencies"],
     },
     "G15": {
         3: ["OnlyImmutableM11OpeningAndClosureActionsGenerateOutboxRows"],
+        4: ["SUITE:M11ResidualRuntimeTests"],
+        9: ["SUITE:IdentityLifecycleTests"],
+        10: ["SUITE:ShipmentBoundaryTests"],
         5: ["M11HistoryProducesScopedDeduplicatedPersonalReceipts",
             "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"],
         6: ["M11HistoryProducesScopedDeduplicatedPersonalReceipts",
@@ -87,7 +101,8 @@ REFERENCES = {
         20: ["RequiredAuditFailureRollsBackReceiptAndReplay"],
         21: ["FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"],
         22: ["BROWSER:notifications"],
-        23: ["M11ExceptionRuntimeTests",
+        23: ["SUITE:M11ResidualRuntimeTests", "SUITE:M12ResidualBoundaryTests",
+             "SUITE:AuditHardeningTests",
              "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"],
         24: ["MUTATION:g15-mutations", "SCAN:dependencies"],
     },
@@ -293,6 +308,10 @@ def reference_present(reference: str, tests: dict[str,str],
                       scan: bool) -> bool:
     if reference == "SCAN:dependencies":
         return scan
+    if reference.startswith("SUITE:"):
+        marker = "." + reference.split(":", 1)[1] + "."
+        return any(marker in key and status == "Passed"
+                   for key, status in tests.items())
     if reference.startswith("CRASH:"):
         return crash.get(reference.split(":", 1)[1], False)
     if reference == "BUDGET:G13":
@@ -354,7 +373,8 @@ def main() -> int:
                     "g13-scale", "g13-security-mutations",
                     "g13-faults", "g13-mutations", "g15-mutations",
                     "g15-scale", "g15-fanout", "g13-concurrency",
-                    "g13-g15-crashes", "dependency-security")
+                    "g13-g15-crashes", "dependency-security",
+                    "combined-regressions")
     }
     for name, root in artifacts.items():
         if root is None:

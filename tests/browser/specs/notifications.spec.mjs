@@ -9,6 +9,9 @@ async function signIn(page, role="Manager") {
   const root=process.env.HARBOROPS_VERIFICATION_ROOT;
   const filename=role==="Administrator" ? "m15-administrator.json" : "m15-manager.json";
   const privateState=root ? path.join(root,".private",filename) : null;
+  if (process.env.HARBOROPS_M15_LIVE_FIXTURE === "1" &&
+      !(privateState && fs.existsSync(privateState)))
+    throw Error("Source-locked private browser session fixture missing");
   if (privateState && fs.existsSync(privateState)) {
     const state=JSON.parse(fs.readFileSync(privateState,"utf8"));
     const session=state.cookies.find(cookie=>cookie.name==="HarborOps.Session");

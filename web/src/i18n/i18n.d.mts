@@ -12,4 +12,5 @@ export function plural(count: number, forms: Partial<Record<Intl.LDMLPluralRule,
 export function formatNumber(value: number, locale?: Locale, options?: Intl.NumberFormatOptions): string;
 export function formatCurrency(value: number, currency: string, locale?: Locale): string;
 export function formatDateTime(value: string | number | Date, locale?: Locale, options?: Intl.DateTimeFormatOptions): string;
+export function formatLocalDateTime(value: string | number | Date, locale?: Locale, timeZone?: string): string;
 export function formatRelative(value: string | number | Date, locale?: Locale, now?: number): string;

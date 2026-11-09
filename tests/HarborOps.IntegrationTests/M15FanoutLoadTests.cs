@@ -25,6 +25,7 @@ public sealed class M15FanoutLoadTests
     {
         const int additional = 250;
         const int readers = 100;
+        const int databaseConcurrency = 32;
         var s = await M11ExceptionRuntimeTests.Prepare();
         using var factory = s.Factory;
         using var runtime = s.Runtime;
@@ -118,8 +119,9 @@ public sealed class M15FanoutLoadTests
         var fanoutMs = timer.ElapsedMilliseconds;
 
         // The API creates the proof from a real selected manager session.
-        // One hundred independent, scoped stores exercise concurrent SQL
-        // reads without the HTTP rate limiter masking database behavior.
+        // One hundred independently scheduled scoped calls exercise load
+        // with bounded 32-connection admission on a normal PostgreSQL runner.
+        // Queueing is part of the measured service behavior.
         Guid actor;
         Guid session;
         await using (var active = new NpgsqlCommand("""
@@ -141,13 +143,19 @@ public sealed class M15FanoutLoadTests
         }
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         var readClock = Stopwatch.StartNew();
+        using var admission = new SemaphoreSlim(databaseConcurrency);
         var outcomes = await Task.WhenAll(Enumerable.Range(0, readers).Select(async _ =>
         {
+            await admission.WaitAsync(deadline.Token);
+            try
+            {
             await using var scope = runtime.Services.CreateAsyncScope();
             var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
             var page = await store.ListAsync(s.Fixture.A, actor, session,
                 "All", null, null, null, 1, deadline.Token);
             return Assert.Single(page.Items).Id;
+            }
+            finally { admission.Release(); }
         }));
         readClock.Stop();
         Assert.Equal(readers, outcomes.Length);
@@ -155,6 +163,7 @@ public sealed class M15FanoutLoadTests
         Console.WriteLine(
             $"G15_FANOUT additional={additional} total={expected} " +
             $"dispatchers=2 fanout_ms={fanoutMs} readers={readers} " +
+            $"max_db_readers={databaseConcurrency} " +
             $"read_ms={readClock.ElapsedMilliseconds} exact_once=true");
     }
 }

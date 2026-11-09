@@ -18,7 +18,7 @@ The registered manual GitHub Actions workflow now contains eleven jobs. The sour
 | G15 failure recovery | Transactional outbox failure, dispatcher delivery failure with retry, no partial recipients or duplicates | Process-termination and after-commit response-loss remain separate mandatory acceptance cases |
 | G15 mutation quality | Eight effective SQL variants across source event capture, read RLS, membership version, signed dispatch, fail-closed trigger, session-bound replay, receipt CAS and audit | Each mutated source must build and the intended test must fail |
 | G15 large data | One million synthetic immutable source/outbox facts and matching scoped recipient rows; ten 50-row pages, duplicate exclusion and observed latency | This is a disposable index/keyset load, not a million genuine case occurrences |
-| G15 concurrency | Two dispatcher instances, 250 additional eligible memberships, exact-once fanout, 100 independently scoped concurrent SQL readers | SQL read concurrency is distinct from 100 live browser sessions |
+| G15 concurrency | Two dispatcher instances, 250 additional eligible memberships, exact-once fanout, 100 simultaneously scheduled scoped reads with 32-connection database admission | Only 32 PostgreSQL reads overlap; this is distinct from a genuine 100-connection or browser-session campaign |
 | Cross-milestone | Combined .NET/React contracts, restricted PostgreSQL integration, Chromium/Firefox/WebKit notification and KPI journeys | Neither milestone's S25 review is automatically certified |
 
 ## Required policy decisions

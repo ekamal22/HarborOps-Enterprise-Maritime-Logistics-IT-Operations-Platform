@@ -1160,6 +1160,29 @@ public sealed class M13OperationalKpiRuntimeTests
         Assert.True(allK02.SetEquals(Enumerable.Range(1, 12)
             .Where(i => i != 3).Select(i => ids[i])));
         Console.WriteLine("G13_REFERENCE_ORACLE all_14_metric_members=true tenant_a=12 tenant_b=2");
+        // A stale M11 correction generation must not be treated as fresh
+        // risk-free data. The second report is a fresh repeatable-read snapshot;
+        // the first report's members remain immutable.
+        await using (var drift = new NpgsqlCommand("""
+            UPDATE shipment_exception_evaluations
+            SET correction_generation=correction_generation+1
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, db))
+        {
+            drift.Parameters.AddWithValue("org", fixture.A);
+            drift.Parameters.AddWithValue("shipment", ids[8]);
+            Assert.Equal(4, await drift.ExecuteNonQueryAsync());
+        }
+        var afterDrift = await Json(await analyst.GetAsync(
+            Root(fixture.A) + "/overview" + window));
+        Assert.Equal(7L, Count(afterDrift, "K13"));
+        Assert.Equal(2L, Count(afterDrift, "K14"));
+        Assert.Equal(0L, Count(afterDrift, "K09"));
+        Assert.DoesNotContain(ids[8], await G13StoredIds(
+            db, fixture.A, afterDrift, "K13"));
+        Assert.Contains(ids[8], await G13StoredIds(
+            db, fixture.A, afterDrift, "K14"));
+        Console.WriteLine("G13_STALE_GENERATION freshness_rejected=true unknown_preserved=true");
     }
 
 

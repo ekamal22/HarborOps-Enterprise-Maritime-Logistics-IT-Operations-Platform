@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import ReferenceDataWorkspace from "../references/ReferenceDataWorkspace";
 import MaritimeWorkspace from "../maritime/MaritimeWorkspace";
@@ -19,6 +20,7 @@ function MembershipRow({ member, currentUserId, locked, onUpdate, onRemove }: {
   onUpdate: (member: Membership, role: OrganizationItem["role"], status: Membership["status"]) => Promise<void>;
   onRemove: (member: Membership) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [role, setRole] = useState(member.role);
   const [status, setStatus] = useState(member.status);
   useEffect(() => { setRole(member.role); setStatus(member.status); }, [member.role, member.status, member.version]);
@@ -41,18 +43,17 @@ function MembershipRow({ member, currentUserId, locked, onUpdate, onRemove }: {
         </select>
         <button disabled={locked || own || (role === member.role && status === member.status)}
           onClick={() => void onUpdate(member, role, status)}
-          className="rounded border border-cyan-500 px-3 py-2 text-xs disabled:opacity-50">Save membership</button>
+          className="rounded border border-cyan-500 px-3 py-2 text-xs disabled:opacity-50">{t("Save membership")}</button>
         <button disabled={locked || own || member.status === "Removed"} onClick={() => void onRemove(member)}
-          className="rounded border border-rose-700 px-3 py-2 text-xs text-rose-200 disabled:opacity-50">
-          Remove
-        </button>
+          className="rounded border border-rose-700 px-3 py-2 text-xs text-rose-200 disabled:opacity-50">{t("Remove")}</button>
       </div>
-      {own && <p className="mt-2 text-xs text-slate-400">Your own membership cannot be edited here.</p>}
+      {own && <p className="mt-2 text-xs text-slate-400">{t("Your own membership cannot be edited here.")}</p>}
     </li>
   );
 }
 
 export default function OrganizationWorkspace({ currentUserId }: { currentUserId: string }) {
+  const { t, date, number } = useI18n();
   const [organizations, setOrganizations] = useState<OrganizationItem[]>([]);
   const [selection, setSelection] = useState<OrganizationItem | null>(null);
   const [notificationTarget, setNotificationTarget] = useState<NotificationTarget | null>(null);
@@ -237,20 +238,20 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
   return (
     <div className="mt-7 border-t border-slate-700 pt-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold">Organization workspace</h3>
+        <h3 className="text-lg font-semibold">{t("Organization workspace")}</h3>
         <button onClick={() => void refresh()} disabled={busy || loading}
-          className="rounded border border-slate-600 px-3 py-2 text-sm disabled:opacity-50">Refresh access</button>
+          className="rounded border border-slate-600 px-3 py-2 text-sm disabled:opacity-50">{t("Refresh access")}</button>
       </div>
-      {loading && <p className="mt-3 text-sm text-slate-400">Loading organization access...</p>}
+      {loading && <p className="mt-3 text-sm text-slate-400">{t("Loading organization access...")}</p>}
       {!loading && organizations.length === 0 &&
-        <p className="mt-4 text-sm text-slate-400">No active organization membership. An administrator must grant access before organization operations are available.</p>}
+        <p className="mt-4 text-sm text-slate-400">{t("No active organization membership. An administrator must grant access before organization operations are available.")}</p>}
       {!loading && organizations.length > 0 && (
         <div className="mt-4">
-          <label htmlFor="current-organization" className="block text-sm text-slate-300">Active organization</label>
+          <label htmlFor="current-organization" className="block text-sm text-slate-300">{t("Active organization")}</label>
           <select id="current-organization" value={selection?.id ?? ""} disabled={busy}
             onChange={e => e.target.value ? void choose(e.target.value) : void clearSelection()}
             className="mt-2 w-full max-w-md rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
-            <option value="">Select an organization</option>
+            <option value="">{t("Select an organization")}</option>
             {organizations.map(org =>
               <option key={org.id} value={org.id}>{org.displayName} ({org.role})</option>)}
           </select>
@@ -259,7 +260,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
       {selection && profile && !loading && (
         <div className="mt-5 rounded-lg border border-slate-700 p-4">
           <p className="font-semibold">{profile.displayName}</p>
-          <p className="mt-1 text-xs text-slate-400">Slug: {profile.slug} | Role: {selection.role}</p>
+          <p className="mt-1 text-xs text-slate-400">{t("Slug:")}{profile.slug} | Role: {selection.role}</p>
           {(selection.role === "Analyst" || selection.role === "Manager") &&
             <ReferenceDataWorkspace key={selection.id + ":" + selection.role}
               organizationId={selection.id} canManage={selection.role === "Manager"}
@@ -296,13 +297,13 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
                     className="mt-2 block rounded-lg bg-slate-950 px-3 py-2" />
                 </label>
                 <button disabled={busy || profileName.trim() === profile.displayName}
-                  className="rounded border border-cyan-600 px-3 py-2 text-sm disabled:opacity-50">Update profile</button>
+                  className="rounded border border-cyan-600 px-3 py-2 text-sm disabled:opacity-50">{t("Update profile")}</button>
               </form>
-              <h4 className="mt-6 font-semibold">Memberships</h4>
+              <h4 className="mt-6 font-semibold">{t("Memberships")}</h4>
               <form onSubmit={e => void addMember(e)} className="mt-3 flex flex-wrap items-end gap-2">
                 <label className="text-sm">Existing account ID
                   <input required value={newUserId} onChange={e => setNewUserId(e.target.value)}
-                    placeholder="Account UUID" className="mt-2 block rounded-lg bg-slate-950 px-3 py-2" />
+                    placeholder={t("Account UUID")} className="mt-2 block rounded-lg bg-slate-950 px-3 py-2" />
                 </label>
                 <label className="text-sm">Role
                   <select value={newRole} onChange={e => setNewRole(e.target.value as OrganizationItem["role"])}

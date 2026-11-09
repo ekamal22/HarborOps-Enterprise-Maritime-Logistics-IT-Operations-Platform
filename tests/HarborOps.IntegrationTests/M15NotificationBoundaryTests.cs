@@ -549,6 +549,65 @@ public sealed class M15NotificationBoundaryTests
     }
 
     [Fact]
+    public async Task CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce()
+    {
+        var (setup, shipment, _) = await OpenException();
+        using var factory = setup.Factory;
+        using var runtime = setup.Runtime;
+        using var manager = setup.Manager;
+        using var analyst = setup.Analyst;
+        using var administrator = setup.Administrator;
+        using var seedAdmin = setup.Fixture.Admin;
+        using var seedManager = setup.Fixture.Manager;
+        using var seedAnalyst = setup.Fixture.Analyst;
+        await using var sql = new NpgsqlConnection(setup.Roles.Admin);
+        await sql.OpenAsync();
+        var pending = """
+            SELECT count(*) FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@shipment
+                AND completed_at_utc IS NULL AND attempt_count=0
+            """;
+        Assert.Equal(1L, await Count(sql, pending,
+            ("org", setup.Fixture.A), ("shipment", shipment)));
+        await using var scope = runtime.Services.CreateAsyncScope();
+        var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => store.DeliverPendingAsync(cancellation.Token));
+        Assert.Equal(1L, await Count(sql, pending,
+            ("org", setup.Fixture.A), ("shipment", shipment)));
+        Assert.Equal(0L, await Count(sql, """
+            SELECT count(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", setup.Fixture.A), ("shipment", shipment)));
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            await store.DeliverPendingAsync(CancellationToken.None);
+            if (await Count(sql, """
+                SELECT count(*) FROM m15_notification_outbox
+                WHERE organization_id=@org AND shipment_id=@shipment
+                    AND completed_at_utc IS NOT NULL
+                """, ("org", setup.Fixture.A), ("shipment", shipment)) == 1L)
+                break;
+        }
+        var deliveries = await Count(sql, """
+            SELECT count(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", setup.Fixture.A), ("shipment", shipment));
+        Assert.True(deliveries >= 2);
+        await store.DeliverPendingAsync(CancellationToken.None);
+        Assert.Equal(deliveries, await Count(sql, """
+            SELECT count(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", setup.Fixture.A), ("shipment", shipment)));
+        Assert.Equal(deliveries, await Count(sql, """
+            SELECT count(DISTINCT recipient_user_id) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", setup.Fixture.A), ("shipment", shipment)));
+    }
+
+    [Fact]
     public async Task ExistingReceiptsDoNotReappearAfterMembershipRemovalAndRejoin()
     {
         var (s, shipment, _) = await OpenException();

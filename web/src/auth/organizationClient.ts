@@ -70,6 +70,10 @@ export function organizationError(error: unknown): string {
     if (error.code === "organization_access_revoked") return "Your organization access has changed. Refresh the organization list.";
     if (error.code === "organization_selection_required") return "Select an active organization first.";
     if (error.code === "conflict") return "The record changed. Refresh and try again.";
+    if (error.code === "access_denied") return "Your account does not have access to this operation.";
+    if (error.code === "csrf_invalid") return "Request validation failed";
+    if (error.code === "authentication_required" || error.code === "session_expired")
+      return "Your session has expired. Sign in again.";
     return error.message;
   }
   return error instanceof Error ? error.message : "Organization request failed";

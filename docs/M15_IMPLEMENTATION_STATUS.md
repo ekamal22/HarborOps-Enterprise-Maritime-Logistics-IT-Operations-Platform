@@ -3,7 +3,7 @@
 **Current checkpoint:** 2026-11-09 (Türkiye local date).  
 **Implementation branch:** `feat/m15-scoped-notifications-20261108`  
 **Integration PR:** [Draft PR #37](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/37), not merged.  
-**Milestone disposition:** Source implementation candidate. On frozen `b1e79c8`, source and PostgreSQL passed, live M11-to-M15 delivery passed, and Chromium passed 5/6 tests. One receipt-transition test timed out due to a UI mutation-lock defect corrected in later source. Firefox and WebKit not reached. G15 acceptance pending.
+**Milestone disposition:** Source implementation candidate. Run [42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) passed the source and PostgreSQL jobs, live hosted delivery, and 5 of 6 Chromium notification scenarios. The remaining strict-mode failure was an ambiguous `Acknowledged` test locator, not a receipt processing failure. Firefox and WebKit did not run. Both that selector and a separate stale pagination-lock race have been corrected in later source, but not reverified. G15 acceptance pending.
 
 The authoritative executed test record, including the failed runs and immutable evidence links, is [M15_EXECUTED_VERIFICATION_20261109.md](M15_EXECUTED_VERIFICATION_20261109.md). It must be read alongside this status. Do not treat test source, corrected workflows or earlier run results as an accepted G15 gate.
 
@@ -69,3 +69,7 @@ The SQL security tests verified invalid HMAC read proof rejection and `harborops
 - [ ] G15-S25 independent evidence review, separate acceptance decision and release authorization
 
 Keep PR #37 in draft. No GitHub merge, production migration, deployment, or release is authorized by this status. All commits in this workstream retain `[skip ci]`.
+
+## Current correctness review
+
+The [targeted correctness audit](M15_CORRECTNESS_AUDIT_20261109.md) inspected the SQL, API, dispatcher, role checks, React state machine and failure evidence at code SHA `26c858d39c2b893f45f695cdbee737afed6c0aa3`. It records two repairs: `c5a03c42` narrows the ambiguous acknowledgment text assertion to a notification row; `26c858d3` releases the pagination lock after an overlapping refresh without accepting stale data, with a new three-engine browser regression. Source inspection and JavaScript syntax checks passed. These are **not** executable PASS results for this new SHA. Final Actions source/PostgreSQL/all three browser jobs, M13 integration, policy and independent acceptance remain pending.

@@ -131,20 +131,20 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated, r
 
   return <div className="mt-4 rounded border border-slate-700 p-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h6 className="font-medium">{label(kind)} assignments</h6>
+      <h6 className="font-medium">{t(label(kind))} {t("assignments")}</h6>
       <button type="button" className="rounded border border-slate-600 px-2 py-1 text-xs"
         disabled={loading || busy} onClick={refresh}>{t("Refresh assignments")}</button>
     </div>
     {loading && <p className="mt-2 text-xs text-slate-400">{t("Loading assignments...")}</p>}
-    {error && <p role="alert" className="mt-2 text-sm text-rose-300">{error}</p>}
+    {error && <p role="alert" className="mt-2 text-sm text-rose-300">{t(error)}</p>}
     <ul className="mt-2 space-y-2">
       {items.map(row => <li key={row.id} className="rounded bg-slate-900 p-2 text-xs">
-        <div className="break-all">{label(kind)}: {row.targetLabel ?? row.containerId ?? row.voyageId}</div>
-        <div>{t("From")}{row.startsAtUtc} to {row.endsAtUtc ?? "open"} | version {row.version}</div>
+        <div className="break-all">{t(label(kind))}: {row.targetLabel ?? row.containerId ?? row.voyageId}</div>
+        <div>{t("From")} {date(row.startsAtUtc)} UTC {t("to")} {row.endsAtUtc ? date(row.endsAtUtc) + " UTC" : t("open")} | {t("version")} {number(row.version)}</div>
         {canManage && row.endsAtUtc === null &&
           (closingId === row.id
             ? <form className="mt-2 flex flex-wrap items-end gap-2" onSubmit={event => void close(event, row)}>
-                <label>{t("End UTC (ISO 8601)")}<input aria-label={"End " + label(kind) + " assignment UTC"}
+                <label>{t("End UTC (ISO 8601)")}<input aria-label={t(kind === "container-assignments" ? "End container assignment UTC" : "End voyage assignment UTC")}
                     className="mt-1 block rounded bg-slate-950 p-2"
                     value={closeAt} onChange={e => setCloseAt(e.target.value)} required />
                 </label>
@@ -163,8 +163,8 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated, r
     {canManage && shipment.recordStatus === "Active" && shipment.workflowStatus !== "Cancelled" &&
       shipment.workflowStatus !== "Completed" && <>
       <form className="mt-4 grid gap-2" onSubmit={event => void create(event)}>
-        <label className="text-xs">{t("Select")}{label(kind).toLowerCase()}
-          <select aria-label={"Assign " + label(kind).toLowerCase()} required value={target}
+        <label className="text-xs">{t(kind === "container-assignments" ? "Select container" : "Select voyage")}
+          <select aria-label={t(kind === "container-assignments" ? "Assign container" : "Assign voyage")} required value={target}
             onChange={e => setTarget(e.target.value)}
             className="mt-1 block w-full rounded bg-slate-950 p-2">
             <option value="">{t("Select")}{label(kind).toLowerCase()}</option>
@@ -173,14 +173,14 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated, r
             </option>)}
           </select>
         </label>
-        <label className="text-xs">{t("Start UTC (ISO 8601)")}<input aria-label={"Start " + label(kind) + " assignment UTC"} required value={start}
+        <label className="text-xs">{t("Start UTC (ISO 8601)")}<input aria-label={t(kind === "container-assignments" ? "Start container assignment UTC" : "Start voyage assignment UTC")} required value={start}
             onChange={e => setStart(e.target.value)} className="mt-1 block w-full rounded bg-slate-950 p-2" />
         </label>
-        <label className="text-xs">{t("End UTC (optional)")}<input aria-label={"Optional end " + label(kind) + " assignment UTC"} value={end}
+        <label className="text-xs">{t("End UTC (optional)")}<input aria-label={t(kind === "container-assignments" ? "Optional end container assignment UTC" : "Optional end voyage assignment UTC")} value={end}
             onChange={e => setEnd(e.target.value)} className="mt-1 block w-full rounded bg-slate-950 p-2" />
         </label>
         <button disabled={busy || !target || !start.trim()}
-          className="rounded bg-cyan-300 px-3 py-2 text-xs font-medium text-slate-950 disabled:opacity-50">{t("Attach")}{label(kind).toLowerCase()}
+          className="rounded bg-cyan-300 px-3 py-2 text-xs font-medium text-slate-950 disabled:opacity-50">{t(kind === "container-assignments" ? "Attach container" : "Attach voyage")}
         </button>
       </form>
       {catalogError && <p role="alert" className="mt-2 text-xs text-amber-300">{t("Catalog unavailable:")}{catalogError}
@@ -255,13 +255,12 @@ export default function ShipmentAssignmentsPanel({ organizationId, shipment,
     <div className="mt-4 rounded border border-slate-700 p-3">
       <h6 className="font-medium">{t("Contextual container and voyage intervals")}</h6>
       <p className="text-xs text-slate-400">{t("Shared shipment allocations during intersecting intervals only. This is not evidence of physical loading.")}</p>
-      {contextError && <p role="alert" className="text-sm text-amber-300">{contextError}</p>}
+      {contextError && <p role="alert" className="text-sm text-amber-300">{t(contextError)}</p>}
       {context && <ul className="mt-2 space-y-1 text-xs">
         {context.containers.flatMap(container => context.voyages
           .filter(voyage => intersects(container, voyage))
           .map(voyage => <li key={container.id + ":" + voyage.id}>
-            {container.targetLabel ?? container.containerId} with {voyage.targetLabel ?? voyage.voyageId},
-            interval intersection
+            {container.targetLabel ?? container.containerId} {t("with")} {voyage.targetLabel ?? voyage.voyageId}, {t("interval intersection")}
           </li>))}
       </ul>}
       {context && !context.containers.some(container =>

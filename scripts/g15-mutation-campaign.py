@@ -83,24 +83,37 @@ def main() -> int:
             ], timeout=60)
             if reset.returncode:
                 raise RuntimeError("Disposable schema reset failed: " + reset.stdout[-500:])
-            test_filter = (
-                "FullyQualifiedName~M15NotificationBoundaryTests"
-                "|FullyQualifiedName~M15NotificationRuntimeTests"
-                if target is None else "FullyQualifiedName~" + target)
+            # The boundary suite intentionally alters global database constraints.
+            # Keep the clean controls in separate test processes to prevent
+            # collisions with the regular notification runtime suite.
+            filters = (
+                ["FullyQualifiedName~M15NotificationRuntimeTests",
+                 "FullyQualifiedName~M15NotificationBoundaryTests"]
+                if target is None else ["FullyQualifiedName~" + target])
+            test_filter = " ; ".join(filters)
             start = time.monotonic()
-            try:
-                proc = call([
-                    "dotnet", "test",
-                    "tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj",
-                    "-c", "Release", "--filter", test_filter,
-                    "--logger", "console;verbosity=normal"
-                ])
-                code, output = proc.returncode, proc.stdout
-            except subprocess.TimeoutExpired as exc:
-                raw = exc.stdout or b""
-                output = raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else raw
-                output += "\nTIMEOUT\n"
-                code = 124
+            code = 0
+            chunks = []
+            for active_filter in filters:
+                try:
+                    proc = call([
+                        "dotnet", "test",
+                        "tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj",
+                        "-c", "Release", "--filter", active_filter,
+                        "--logger", "console;verbosity=normal"
+                    ])
+                    chunks.append(proc.stdout)
+                    if proc.returncode:
+                        code = proc.returncode
+                        break
+                except subprocess.TimeoutExpired as exc:
+                    raw = exc.stdout or b""
+                    chunks.append(raw.decode("utf-8", errors="replace")
+                                  if isinstance(raw, bytes) else raw)
+                    chunks.append("\nTIMEOUT\n")
+                    code = 124
+                    break
+            output = "\n".join(chunks)
             (OUT / (name + ".log")).write_text(output, encoding="utf-8")
             if code == 124 or "Build FAILED" in output or "error CS" in output:
                 verdict = "INVALID"

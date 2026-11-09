@@ -98,3 +98,8 @@ assert.match(browserSpec,/if \(info\.title\.includes\("G15 live M11 event is del
 assert.match(browserSpec,/page\.route\("\*\*\/organizations\/\*\/notifications\?\*"/);
 assert.match(browserSpec,/page\.on\("response"/);
 assert.match(browserSpec,/liveHttpStatuses\.push\(response\.status\(\)\)/);
+assert.ok(
+  browserSpec.indexOf('test("G15 live M11 event is delivered') <
+  browserSpec.indexOf('test("G15 scoped notification center displays'),
+  "real browser verification must run before mocked scenarios"
+);

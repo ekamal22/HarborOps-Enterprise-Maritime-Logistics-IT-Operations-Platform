@@ -99,16 +99,24 @@ public sealed class G13FilterAcceptanceTests
             new WebApplicationFactoryClientOptions { HandleCookies = true });
         await ReferenceDataHttpTests.Login(scoped, fixture.AnalystEmail);
         await ReferenceDataHttpTests.Select(scoped, fixture.A);
+        using var scopedManager = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(scopedManager, fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Select(scopedManager, fixture.A);
         var all = await Build(scoped, fixture.A, "");
         Assert.Equal(3L, Count(all, "K01"));
         Assert.True((await Members(scoped, fixture.A, all))
             .SetEquals(new[] { seed.Shipment, seed.OtherShipment, alternate }));
 
+        var checkIndex = 0;
         async Task Check(string filter, params Guid[] expected)
         {
-            var report = await Build(scoped, fixture.A, filter);
+            // Ten builds in the fixture, at most five for either actor.
+            // Do not bypass or weaken the six-build-per-minute rate limit.
+            var reader = (++checkIndex % 2 == 1) ? scopedManager : scoped;
+            var report = await Build(reader, fixture.A, filter);
             Assert.Equal((long)expected.Length, Count(report, "K01"));
-            Assert.True((await Members(scoped, fixture.A, report)).SetEquals(expected),
+            Assert.True((await Members(reader, fixture.A, report)).SetEquals(expected),
                 "Filtered member set differs from the exact expected shipment IDs");
         }
         await Check("?originPortId=" + origin,

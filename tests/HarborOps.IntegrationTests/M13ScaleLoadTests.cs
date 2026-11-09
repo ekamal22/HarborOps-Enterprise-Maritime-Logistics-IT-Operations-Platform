@@ -387,7 +387,7 @@ public sealed class M13ScaleLoadTests
 
 
         // This is a separate cap-negative control after the 30 measured
-        // successful builds. Adding 18k Draft rows contributes three report
+        // successful builds. Adding 16,665 Draft rows contributes three report
         // member rows per shipment, taking the source-locked fixture over the
         // 500,000 member ceiling without changing any production limit.
         long beforeCapacityCount;
@@ -407,14 +407,14 @@ public sealed class M13ScaleLoadTests
                 @origin,@destination,'Draft','Active','Synthetic',1,
                 '2026-10-01T00:00:00Z'::timestamptz,
                 '2026-10-01T00:00:00Z'::timestamptz,@actor
-            FROM generate_series(170001,188000) AS n
+            FROM generate_series(170001,186665) AS n
             """, db) { CommandTimeout = 1200 })
         {
             extra.Parameters.AddWithValue("org", f.A);
             extra.Parameters.AddWithValue("origin", origin);
             extra.Parameters.AddWithValue("destination", destination);
             extra.Parameters.AddWithValue("actor", actor);
-            Assert.Equal(18000, await extra.ExecuteNonQueryAsync());
+            Assert.Equal(16665, await extra.ExecuteNonQueryAsync());
         }
         using (var overCapacity = await analyst.GetAsync(
             $"/api/v1/organizations/{f.A}/analytics/overview"))
@@ -432,6 +432,6 @@ public sealed class M13ScaleLoadTests
             Assert.Equal(beforeCapacityCount,
                 Convert.ToInt64(await existing.ExecuteScalarAsync()));
         }
-        Console.WriteLine("G13_500K_CAP extra_draft=18000 no_partial_report=true");
+        Console.WriteLine("G13_500K_CAP extra_draft=16665 no_partial_report=true");
     }
 }

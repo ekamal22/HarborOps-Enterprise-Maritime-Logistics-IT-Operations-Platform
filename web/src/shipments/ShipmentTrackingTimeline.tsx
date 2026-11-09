@@ -88,7 +88,7 @@ export default function ShipmentTrackingTimeline({ organizationId, shipmentId, o
         <span className="ml-2 text-xs text-slate-400">
           {projection.lastOccurredAtUtc ? date(projection.lastOccurredAtUtc) + " UTC" : t("No resolved event")}
         </span></p>
-      <p className="text-xs text-slate-400">{t("Materialization:")} {projection.materializationRevision ? number(projection.materializationRevision) : t("not yet materialized")}
+      <p className="text-xs text-slate-400">{t("Materialization:")} {projection.materializationRevision ? String(projection.materializationRevision) : t("not yet materialized")}
         {projection.materializationStale ? t(" (rebuild pending)") : ""}
       </p>
       {projection.containerObservations.length > 0 && <div className="mt-2 text-xs">

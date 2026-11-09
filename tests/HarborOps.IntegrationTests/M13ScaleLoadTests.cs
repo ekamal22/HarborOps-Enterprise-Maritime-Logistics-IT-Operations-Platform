@@ -315,8 +315,6 @@ public sealed class M13ScaleLoadTests
         timer.Stop();
         Console.WriteLine($"G13_170K seeded=170000 existing=2 seed_ms={timer.Elapsed.TotalMilliseconds:F0}");
         await CapturePrivilegedPlan(db, f.A, actor);
-        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "skewed170k");
-        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "empty", Guid.NewGuid());
         using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
         using var analyst = runtime.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
         analyst.Timeout = TimeSpan.FromMinutes(5);
@@ -371,5 +369,10 @@ public sealed class M13ScaleLoadTests
             $"samples_ms=[{string.Join(",", latencies.Select(v=>v.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)))}]");
         Assert.True(median <= 15_000, $"Approved G13 p50 exceeded: {median:F0}ms");
         Assert.True(p95 <= 20_000, $"Approved G13 p95 exceeded: {p95:F0}ms");
+        // High-volume EXPLAIN ANALYZE inserts rolled-back report rows. Run
+        // those plans after the 30-sample storage/latency measurement so
+        // EXPLAIN's dead tuples cannot contaminate the benchmark deltas.
+        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "skewed170k");
+        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "empty", Guid.NewGuid());
     }
 }

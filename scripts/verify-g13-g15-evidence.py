@@ -61,8 +61,10 @@ REFERENCES = {
         17: ["WindowsAreStrictHalfOpenAndBounded", "SUITE:OperationalKpiPolicyTests"],
         18: ["SUITE:MigrationSnapshotTests"],
         19: ["BlockedMemberMaterializationRollsBackAndRecovers",
+             "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant",
              "CRASH:G13BeforeReportCommit", "CRASH:G13AfterReportCommit"],
         20: ["Mixed170kShipmentsProduceExactBoundedReport",
+             "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant",
              "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently",
              "BUDGET:G13"],
         21: ["BROWSER:operational-kpis"],
@@ -277,8 +279,26 @@ def reporting_budget(root: Path | None) -> bool:
         return False
     count, p50, p95, initial, final = map(int, match.groups())
     ok = count >= 30 and p50 <= 15000 and p95 <= 20000 and final >= initial
+    for label in ("small", "medium10k", "skewed170k", "empty"):
+        plan = root / ("explain-api-" + label + ".json")
+        if not plan.is_file() or "G13_RESTRICTED_PLAN sample=" + label not in raw:
+            fail("G13 restricted application-role plan missing: " + label)
+            ok = False
+            continue
+        try:
+            rows = json.loads(plan.read_text(encoding="utf-8"))
+            if not isinstance(rows, list) or len(rows) != 1 or not isinstance(rows[0].get("Plan"), dict):
+                raise ValueError("Invalid EXPLAIN JSON")
+            result = rows[0]["Plan"]
+            if not isinstance(result.get("Actual Total Time"), (float, int)):
+                raise ValueError("EXPLAIN has no measured execution")
+            if not isinstance(rows[0].get("Execution Time"), (float, int)):
+                raise ValueError("EXPLAIN timing missing")
+        except (ValueError, TypeError, AttributeError, KeyError, json.JSONDecodeError) as exc:
+            fail("G13 application-role EXPLAIN malformed: " + label + ": " + str(exc))
+            ok = False
     if not ok:
-        fail("G13 approved KPI budget exceeded or measured data invalid")
+        fail("G13 approved KPI budget or required four application-role plans incomplete")
     return ok
 
 def scan_evidence(root: Path | None) -> bool:

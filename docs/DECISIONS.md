@@ -1,11 +1,13 @@
 # Architecture Decisions
 
-**M15 current technical checkpoint (2026-11-09):** [M15 implementation](M15_IMPLEMENTATION_STATUS.md) and [executed evidence](M15_EXECUTED_VERIFICATION_20261109.md) record the latest measured source. Frozen revision `82dac56` passed 299 unit, 46 API contract and 26 selected PostgreSQL integration tests; browser fixture preparation failed before Playwright. Newer browser and receipt replay changes are committed but unverified. M15 policy approvals, full G15 and independent evidence review remain acceptance pending. M13 has a parallel implementation with overlapping startup, role provisioning, workspace and migration tests; reconcile both on a single future source SHA. Dispatcher remains opt-in, and no merge, deployment, release or production migration is authorized.
+**M13/M15 source status (2026-11-09):** The isolated combined source `6b05d84bf2f01741b182669c2dd17e39e63d9dda` passed [expanded GitHub Actions run 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [targeted run 42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788). M13 and M15 remain separate, unaccepted feature branches with newer code/tests pending combined reconciliation. Standalone M15 [run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) passed source and PostgreSQL but failed one Chromium notification selector. G13/G15 independent evidence and approvals remain pending. Accepted `main` is still G0-G12 and G16; no merge or deployment. [Current checkpoint](M13_M15_COMBINED_VERIFICATION_20261109.md).
 
 
 **Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) govern current M11 delay exceptions and M12 scoped search/export behavior. Earlier source-only and verification checkpoints are historical. The M9 ARRI/DEPA processing hold and 10,000 unresolved-item limit remain binding; M10 projector default-off, ETA null, M11 evaluator opt-in. No deployment or release is authorized.
 
 This document records accepted architecture decisions and outstanding choices. D-003 was explicitly accepted on 2026-11-01 alongside G4 after independent evidence review. D-002 Option A and M7/G7 were accepted on 2026-11-03; see [G7 closure](M7_G7_GATE_CLOSURE.md). D-006 Option A and M8/G8 were explicitly accepted on 2026-11-04 after independently reviewed source-locked evidence. See [gate closure](M8_G8_GATE_CLOSURE.md).
+
+**M15 decision state:** M15-P01 through M15-P14 remain subject to explicit approval. Technical workflows do not settle these policy questions. [M15 plan](M15_VERIFICATION_PLAN.md).
 
 ## Local storage constraint
 
@@ -95,7 +97,7 @@ See the accepted [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for
 | --- | --- | --- | --- |
 | D-002 | DCSA reference release/subset | Accepted 2026-11-03, Option A: DCSA Track & Trace 2.2.0 as the reference baseline for the deliberately narrower, HarborOps-specific, non-conformant profile `tnt-2.2-harborops-v1`, pinned by SHA-256 as local snapshots (not official immutable releases); the supported subset is unchanged. See the [decision record](M7_D002_TRACKING_REFERENCE_PROPOSAL.md) and [reference snapshots](../third_party/dcsa-track-and-trace/README.md) | M7 |
 | D-004 | Map tile provider/license | Use compliant free source with local fallback | M14 |
-| D-005 | Exact operational KPI tolerances | Versioned business rules and deterministic fixtures | M13 |
+| D-005 | Exact operational KPI tolerances | **Option A approved** for `m13-kpi-v1` with safeguards; [signed decision](M13_D005_POLICY_APPROVAL_20261108.md). Verification and G13 acceptance remain separate. | M13 |
 | D-006 | Transactional inbox, source-key replay, collision, pending cap, retention and future worker/dead-letter durability | **Accepted 2026-11-04, Option A.** PostgreSQL transactional receipt/event/Pending work with permanent source event identity and a 10,000 Pending cap, followed by M9 worker/retry/dead-letter transitions. See [D-006 decision](M8_D006_DURABILITY_PROPOSAL.md), [independent evidence](M8_G8_INDEPENDENT_EVIDENCE_REVIEW.md) and [gate closure](M8_G8_GATE_CLOSURE.md). | M8-01 and M9 |
 | D-007 | Hosting account and budget ceiling | Local only until credit and spending restrictions checked | M22 |
 | D-008 | Backup retention and recovery objectives | Define measurable targets based on demo environment | M19 |

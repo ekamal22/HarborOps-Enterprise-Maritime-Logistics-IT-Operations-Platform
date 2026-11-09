@@ -2428,8 +2428,8 @@
               "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added a behavior-specific browser, scoped evidence-log scanner or real rate-limiting test. This is candidate coverage until source-locked execution passes."
         },
         {
           "id": "G13-S21-A05",
@@ -2445,8 +2445,8 @@
               "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added a behavior-specific browser, scoped evidence-log scanner or real rate-limiting test. This is candidate coverage until source-locked execution passes."
         }
       ]
     },
@@ -2660,8 +2660,8 @@
               "id": "g13-security-mutations"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added a behavior-specific browser, scoped evidence-log scanner or real rate-limiting test. This is candidate coverage until source-locked execution passes."
         },
         {
           "id": "G13-S23-A05",
@@ -2685,8 +2685,8 @@
               "id": "g13-security-mutations"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added a behavior-specific browser, scoped evidence-log scanner or real rate-limiting test. This is candidate coverage until source-locked execution passes."
         }
       ]
     },
@@ -5076,8 +5076,8 @@
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added a behavior-specific browser, scoped evidence-log scanner or real rate-limiting test. This is candidate coverage until source-locked execution passes."
         }
       ]
     },

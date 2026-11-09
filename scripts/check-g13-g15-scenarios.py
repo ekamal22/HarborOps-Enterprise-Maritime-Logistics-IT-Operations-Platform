@@ -175,6 +175,14 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
     if scenario == "G13-S11":
         case.assertTrue(passed(
             "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"))
+    if scenario in ("G15-S03", "G15-S11"):
+        case.assertTrue(passed(
+            "OnlyApprovedM11ActionsCreateDistinctCatalogedOutboxIntents"))
+    if scenario == "G13-S17":
+        case.assertTrue(passed(
+            "EmptyTenantNeverInventsPercentagesTrendsOrMembers"))
+        case.assertTrue(passed(
+            "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"))
     if scenario in ("G13-S19", "G15-S13"):
         phases = ("G13BeforeReportCommit", "G13AfterReportCommit") if gate == "G13" else (
             "G15BeforeHistoryCommit", "G15BeforeClaimCommit",

@@ -142,6 +142,34 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
         case.assertEqual(set(expected), set(entry["executed_checks"]))
     for name in EXTRA.get(scenario, ()):
         case.assertTrue(passed(name), scenario + ": failed or missing " + name)
+    if scenario in ("G15-S07", "G15-S09", "G13-S14"):
+        if scenario == "G15-S07":
+            case.assertTrue(passed(
+                "PersonalNotificationDetailHidesAnotherRecipientLikeAnUnknownId"))
+        if scenario == "G15-S09":
+            for mode in ("session_revoked", "idle_expired", "absolute_expired",
+                         "security_version", "account_disabled",
+                         "organization_suspended", "membership_removed",
+                         "role_support", "organization_changed", "logout",
+                         "logout_all"):
+                case.assertTrue(any(
+                    ".RevokedNotificationScopeCannotReadCountDetailOrAcknowledge(" in name
+                    and mode in name and result == "Passed"
+                    for name, result in tests.items()),
+                    "Missing notification revocation scenario: " + mode)
+            case.assertTrue(passed(
+                "QueuedNotificationAcknowledgmentCannotCommitAfterRevocation"))
+        if scenario == "G13-S14":
+            for mode in ("session_revoked", "security_version",
+                         "organization_suspended", "membership_removed"):
+                case.assertTrue(any(
+                    ".ExistingKpiReportCannotBeReadAfterAuthorityRevocation(" in name
+                    and mode in name and result == "Passed"
+                    for name, result in tests.items()),
+                    "Missing KPI report revocation scenario: " + mode)
+    if scenario in ("G15-S17", "G15-S18", "G15-S23"):
+        case.assertTrue(passed(
+            "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"))
     if scenario in ("G13-S19", "G15-S13"):
         phases = ("G13BeforeReportCommit", "G13AfterReportCommit") if gate == "G13" else (
             "G15BeforeHistoryCommit", "G15BeforeClaimCommit",

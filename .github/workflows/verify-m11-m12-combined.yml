@@ -111,6 +111,12 @@ jobs:
             --filter 'FullyQualifiedName~M15NotificationRuntimeTests|FullyQualifiedName~M15FinalAuthorizationTests|FullyQualifiedName~M13OperationalKpiRuntimeTests|FullyQualifiedName~M13FaultRecoveryTests|FullyQualifiedName~M11ExceptionRuntimeTests|FullyQualifiedName~M11M12UpgradeTests|FullyQualifiedName~MigrationSnapshotTests|FullyQualifiedName~M10UpgradeTests' \
             --logger 'trx;LogFileName=m15-integration.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/integration.log
+          # Revocation and queued-mutation acceptance tests use the same
+          # exclusive disposable PostgreSQL server after source regressions.
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
+            --filter 'FullyQualifiedName~G13G15RevocationAcceptanceTests' \
+            --logger 'trx;LogFileName=g13-g15-revocation.trx' --results-directory .verification/m15 \
+            2>&1 | tee .verification/m15/revocation.log
           # Fault-injection boundary tests can modify database-wide constraints.
           # Run them separately from unrelated integration suites on this exclusive server.
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \

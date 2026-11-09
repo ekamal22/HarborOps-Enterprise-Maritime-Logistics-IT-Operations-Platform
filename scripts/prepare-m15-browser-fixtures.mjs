@@ -6,6 +6,7 @@ const base = process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173";
 const password = process.env.HARBOROPS_TEST_USER_PASSWORD;
 const root = process.env.HARBOROPS_VERIFICATION_ROOT;
 const sha = process.env.HARBOROPS_SOURCE_SHA;
+const refreshOnly = process.argv.includes("--refresh-sessions-only");
 assert.ok(password?.length >= 20 && root && /^[a-f0-9]{40}$/.test(sha ?? ""),
   "M15 disposable browser fixture environment required");
 
@@ -78,6 +79,7 @@ const north = organizations.find(o => o.slug === "m3-north" && o.role === "Manag
 assert.ok(north?.id, "Missing authorized M15 manager fixture");
 await manager.request("PUT", "/api/v1/auth/session/organization",
   { organizationId: north.id });
+if (!refreshOnly) {
 const rootApi = "/api/v1/organizations/" + north.id;
 const rows = (await manager.request("GET",
   rootApi + "/shipments?recordStatus=All&q=M5-DEMO-NORTH&limit=100")).shipments;
@@ -133,6 +135,7 @@ const evidence = {
 const destination = path.join(root, "m15-browser", "live-fixture.json");
 fs.mkdirSync(path.dirname(destination), { recursive: true });
 fs.writeFileSync(destination, JSON.stringify(evidence, null, 2) + "\n");
+}
 
 // Reuse login cookies created by the real fixture setup. Separate browser
 // contexts retain test isolation, while new login attempts never consume the
@@ -151,6 +154,6 @@ for (const [filename,session] of [
   assert.ok(cookieState.cookies.some(row => row.name === "HarborOps.Session"),
     "Browser authentication cookie not issued");
   fs.writeFileSync(path.join(privateRoot,filename),
-    JSON.stringify(cookieState),{mode:0o600,flag:"wx"});
+    JSON.stringify(cookieState),{mode:0o600,flag:refreshOnly ? "w" : "wx"});
 }
 console.log("M15 live scoped receipt and private browser authentication prepared: PASS");

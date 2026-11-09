@@ -268,6 +268,12 @@ jobs:
                 sleep 2
               done
               test "$ready" = "1"
+              # Logout at the end of a browser engine revokes that fixture's
+              # server-side session. Refresh it before starting the next engine.
+              # This recreates only disposable authentication state, not M11 events.
+              if [ "$suite" = notifications ]; then
+                node "$GITHUB_WORKSPACE/scripts/prepare-m15-browser-fixtures.mjs" --refresh-sessions-only
+              fi
               export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/m15-browser/${engine}-${suite}.json"
               npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1
               HARBOROPS_EXPECTED_CASES="$([ "$suite" = notifications ] && echo 10 || echo 8)" \

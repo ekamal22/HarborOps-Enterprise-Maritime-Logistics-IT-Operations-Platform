@@ -875,19 +875,15 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
+              "id": "ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress"
             },
             {
               "kind": "test",
-              "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
-            },
-            {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+              "id": "LateWorkerEffectDuringRebuildIsNeverLostAndMarksTheProjectionStale"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Direct M8/M9 source-to-report test includes out-of-order GTOT/GTIN and checks frozen KPI workflow members; M10 separately proves late-event projection revision behavior. Technical execution on the successor SHA remains mandatory."
         },
         {
           "id": "G13-S09-A04",
@@ -896,19 +892,19 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
+              "id": "StolenDatabaseSessionIdsCannotForgeAnM10Correction"
             },
             {
               "kind": "test",
-              "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
+              "id": "LateWorkerEffectDuringRebuildIsNeverLostAndMarksTheProjectionStale"
             },
             {
               "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "M10 accepted corrections and replay guards are exercised under real restricted SQL roles; the 12+2 G13 oracle proves correction-generation mismatch excludes stale risk and records unassessed members. Technical execution on the successor SHA remains mandatory."
         },
         {
           "id": "G13-S09-A05",
@@ -1631,19 +1627,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RepeatableReadReportIgnoresUncommittedConcurrentShipmentTransition"
-            },
-            {
-              "kind": "test",
               "id": "CommittedReportMembersRemainStableAcrossLaterWorkflowChanges"
-            },
-            {
-              "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "G13 persisted members remain immutable after shipment workflow changes; the KPI drill component separately labels the authorized live detail as potentially changed since report evaluation. Technical execution on the successor SHA remains mandatory."
         },
         {
           "id": "G13-S15-A05",
@@ -3674,19 +3662,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
-            },
-            {
-              "kind": "test",
-              "id": "PersonalNotificationDetailHidesAnotherRecipientLikeAnUnknownId"
-            },
-            {
-              "kind": "browser",
-              "id": "notifications"
+              "id": "ArchivedShipmentKeepsHistoricalPersonalEventWithoutNewBusinessAuthority"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "A direct M15 integration test archives the target, keeps the historical notification, and only renders live target fields on an authorized M11 shipment-detail 200, otherwise hides the target. Technical execution on the successor SHA remains mandatory."
         },
         {
           "id": "G15-S10-A03",
@@ -4914,10 +4894,6 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
               "id": "InFlightCancellationRollsBackBlockedFanout"
             },
             {
@@ -4925,8 +4901,8 @@
               "id": "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Real PostgreSQL cancellation and replay tests preserve complete scoped results without partial receipts; the three-engine G15 browser error/retry case verifies safe unavailable response handling. Technical execution on the successor SHA remains mandatory."
         }
       ]
     },

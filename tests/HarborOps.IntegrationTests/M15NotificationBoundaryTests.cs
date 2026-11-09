@@ -561,7 +561,7 @@ public sealed class M15NotificationBoundaryTests
             .GetProperty("items").EnumerateArray()).GetProperty("id").GetGuid();
         await using var db = new NpgsqlConnection(s.Roles.Admin);
         await db.OpenAsync();
-        foreach (var status in new[] { "Inactive", "Active" })
+        foreach (var status in new[] { "Suspended", "Active" })
         {
             await using var change = new NpgsqlCommand("""
                 UPDATE organization_memberships

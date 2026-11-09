@@ -970,4 +970,60 @@ public sealed class M13OperationalKpiRuntimeTests
         Console.WriteLine("G13_REFERENCE_ORACLE all_14_metric_members=true tenant_a=12 tenant_b=2");
     }
 
+
+    [ExclusiveM13PostgresFact]
+    public async Task RepeatableReadReportIgnoresUncommittedConcurrentShipmentTransition()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var adminFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(adminFactory);
+        using var admin = fixture.Admin;
+        using var originalManager = fixture.Manager;
+        using var originalAnalyst = fixture.Analyst;
+        var seed = await AssignmentHttpTests.Seed(fixture);
+        using var existing = await originalManager.GetAsync(seed.Root + "/" + seed.Shipment);
+        var shipment = await existing.Content.ReadFromJsonAsync<JsonElement>();
+        var origin = shipment.GetProperty("originPortId").GetGuid();
+        var destination = shipment.GetProperty("destinationPortId").GetGuid();
+
+        using var api = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var manager = api.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(manager, fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Select(manager, fixture.A);
+        var id = await CreateShipment(manager, seed.Root, origin, destination,
+            DateTimeOffset.UtcNow.AddDays(2), 911);
+        var period = Window(DateTimeOffset.UtcNow);
+
+        await using var writer = new NpgsqlConnection(roles.Admin);
+        await writer.OpenAsync();
+        await using (var tx = await writer.BeginTransactionAsync())
+        {
+            await using var change = new NpgsqlCommand("""
+                UPDATE shipments SET workflow_status='Completed',version=version+1,
+                    updated_at_utc=clock_timestamp()
+                WHERE organization_id=@org AND id=@id
+                """, writer, tx);
+            change.Parameters.AddWithValue("org", fixture.A);
+            change.Parameters.AddWithValue("id", id);
+            Assert.Equal(1, await change.ExecuteNonQueryAsync());
+
+            // An independent restricted API connection builds against the
+            // last committed MVCC state while the writer holds its row lock.
+            var first = await Json(await manager.GetAsync(Root(fixture.A) +
+                "/overview" + period));
+            var beforeCommit = await G13MemberIds(manager, fixture.A, first, "K01");
+            Assert.Contains(id, beforeCommit);
+            await tx.CommitAsync();
+            var stillFrozen = await G13MemberIds(manager, fixture.A, first, "K01");
+            Assert.True(stillFrozen.SetEquals(beforeCommit));
+        }
+
+        var refreshed = await Json(await manager.GetAsync(Root(fixture.A) +
+            "/overview" + period));
+        Assert.DoesNotContain(id,
+            await G13MemberIds(manager, fixture.A, refreshed, "K01"));
+        Console.WriteLine("G13_CONCURRENT_SNAPSHOT uncommitted_update_hidden=true committed_update_visible=true");
+    }
+
 }

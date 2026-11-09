@@ -587,4 +587,80 @@ public sealed class M15NotificationBoundaryTests
             .GetProperty("unreadCount").GetInt64());
     }
 
+
+    [Fact]
+    public async Task CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded()
+    {
+        var (s, shipment, _) = await OpenException();
+        using var adminFactory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var originalAdmin = s.Fixture.Admin;
+        using var originalManager = s.Fixture.Manager;
+        using var originalAnalyst = s.Fixture.Analyst;
+        await M15NotificationRuntimeTests.EnsureShipmentDelivered(s, shipment);
+        var root = $"/api/v1/organizations/{s.Fixture.A}/notifications";
+        using var page = await manager.GetAsync(root);
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        var body = await page.Content.ReadFromJsonAsync<JsonElement>();
+        var id = Assert.Single(body.GetProperty("items").EnumerateArray())
+            .GetProperty("id").GetGuid();
+
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        Guid user;
+        Guid session;
+        await using (var active = new NpgsqlCommand("""
+            SELECT a.user_id,a.id FROM auth_sessions a
+            JOIN organization_memberships m ON m.user_id=a.user_id
+                AND m.organization_id=a.selected_organization_id
+            WHERE a.selected_organization_id=@org AND m.role='Manager'
+                AND m.status='Active' AND a.revoked_at_utc IS NULL
+                AND a.idle_expires_at_utc>clock_timestamp()
+                AND a.absolute_expires_at_utc>clock_timestamp()
+            ORDER BY a.last_seen_at_utc DESC,a.issued_at_utc DESC LIMIT 1
+            """, db))
+        {
+            active.Parameters.AddWithValue("org", s.Fixture.A);
+            await using var reader = await active.ExecuteReaderAsync();
+            Assert.True(await reader.ReadAsync());
+            user = reader.GetGuid(0);
+            session = reader.GetGuid(1);
+        }
+
+        var key = Guid.NewGuid();
+        // The committed internal result is deliberately discarded. A later
+        // HTTP retry must not attempt a second write or duplicate the audit.
+        await using (var scope = runtime.Services.CreateAsyncScope())
+        {
+            var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+            var committed = await store.UpdateAsync(
+                s.Fixture.A, user, session, id, "Acknowledge", 1L,
+                key, Guid.NewGuid().ToString("N"), CancellationToken.None);
+            Assert.Equal("Applied", committed.Code);
+            Assert.Equal(2L, committed.Version);
+        }
+
+        using var recovered = await M11ExceptionRuntimeTests.SendAction(
+            manager, root + "/" + id,
+            new { action = "Acknowledge", expectedVersion = 1L }, key);
+        Assert.Equal(HttpStatusCode.OK, recovered.StatusCode);
+        Assert.Equal(2L, (await recovered.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("version").GetInt64());
+        using var latest = await manager.GetAsync(root + "/" + id);
+        Assert.Equal(2L, (await latest.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("version").GetInt64());
+
+        await using var audit = new NpgsqlCommand("""
+            SELECT COUNT(*) FROM audit_entries
+            WHERE organization_id=@org
+                AND event_type='notification.receipt_acknowledged'
+                AND resource_id=@id
+            """, db);
+        audit.Parameters.AddWithValue("org", s.Fixture.A);
+        audit.Parameters.AddWithValue("id", id);
+        Assert.Equal(1L, Convert.ToInt64(await audit.ExecuteScalarAsync()));
+        Console.WriteLine("G15_AFTER_COMMIT_REPLAY no_second_write=true audit_once=true");
+    }
+
 }

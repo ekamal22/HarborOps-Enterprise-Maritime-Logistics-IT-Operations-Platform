@@ -1081,4 +1081,60 @@ public sealed class M13OperationalKpiRuntimeTests
             "leap_week_monday=true pre1970_ordering=true");
     }
 
+
+    [ExclusiveM13PostgresFact]
+    public async Task FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var admin = f.Admin;
+        using var managerSeed = f.Manager;
+        using var analystSeed = f.Analyst;
+        var seed = await AssignmentHttpTests.Seed(f);
+        using var originalResponse = await managerSeed.GetAsync(seed.Root + "/" + seed.Shipment);
+        var original = await originalResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var origin = original.GetProperty("originPortId").GetGuid();
+        var destination = original.GetProperty("destinationPortId").GetGuid();
+        var ids = new HashSet<Guid> { seed.Shipment, seed.OtherShipment };
+        await using var sql = new NpgsqlConnection(roles.Admin);
+        await sql.OpenAsync();
+        await using var actor = new NpgsqlCommand(
+            "SELECT changed_by_user_id FROM shipments WHERE id=@id", sql);
+        actor.Parameters.AddWithValue("id", seed.Shipment);
+        var actorId = Assert.IsType<Guid>(await actor.ExecuteScalarAsync());
+        for (var i = 0; i < 115; i++)
+            Assert.True(ids.Add(await G13Insert(sql, f.A, origin, destination,
+                actorId, DateTimeOffset.UtcNow.AddDays(1), "G13-PAGING-")));
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var analyst = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(analyst, f.AnalystEmail);
+        await ReferenceDataHttpTests.Select(analyst, f.A);
+        var report = await Json(await analyst.GetAsync(Root(f.A) + "/overview"));
+        Assert.Equal(117L, Count(report, "K01"));
+
+        string? after = null;
+        var observed = new HashSet<Guid>();
+        var pages = 0;
+        do
+        {
+            using var request = MemberRequest(f.A.ToString(), report, "K01", 50, after);
+            var result = await Json(await analyst.SendAsync(request));
+            var page = result.GetProperty("items").EnumerateArray().ToArray();
+            Assert.InRange(page.Length, 1, 50);
+            foreach (var item in page)
+                Assert.True(observed.Add(item.GetProperty("memberKey").GetGuid()),
+                    "Immutable KPI report returned a duplicate member");
+            var next = result.GetProperty("nextAfter");
+            after = next.ValueKind == JsonValueKind.Null ? null : next.GetGuid().ToString();
+            pages++;
+            Assert.InRange(pages, 1, 4);
+        } while (after is not null);
+        Assert.Equal(3, pages);
+        Assert.True(observed.SetEquals(ids));
+        Console.WriteLine("G13_DRILL pages=3 exact_distinct_members=117 stable_report=true");
+    }
+
 }

@@ -1,7 +1,7 @@
 # M15 Correctness Audit: Notification State and Browser Verification
 
 **Date:** 2026-11-09  
-**Audited application and browser source:** `26c858d39c2b893f45f695cdbee737afed6c0aa3` on `feat/m15-scoped-notifications-20261108`  
+**Audited application and browser source:** `6af26b31e87e4980d2d365f7c3e8edc1117b9560` on `feat/m15-scoped-notifications-20261108`  
 **Disposition:** Source-level remediation committed, final Actions verification pending. G15 not accepted. No merge, migration, delivery activation or deployment.
 
 ## Method and scope
@@ -27,7 +27,7 @@ This is a targeted repository source correctness audit supported by already exec
 
 **Root cause:** `tests/browser/specs/notifications.spec.mjs` selected `center.getByText("Acknowledged",{exact:false})`, matching both a filter `<option>` and the personal receipt display paragraph. The application had successfully performed its MarkRead and Acknowledge transitions. Playwright rejected the ambiguous locator before asserting the final state.
 
-**Remediation:** Assert `center.locator("li p").filter({hasText:/\\|\\s*Acknowledged$/})` instead of globally searching the notification region. The combined M13/M15 branch previously passed this class of list-scoped assertion in Chromium, Firefox and WebKit; that PASS is historical and cannot be transferred to this source.
+**Remediation:** Assert `center.locator("li p").filter({hasText:/\|\s*Acknowledged$/})` instead of globally searching the notification region. The combined M13/M15 branch previously passed this class of list-scoped assertion in Chromium, Firefox and WebKit; that PASS is historical and cannot be transferred to this source.
 
 **Source fix:** `c5a03c426cfd2eed413813981e3f2ec709721bbc`. The change does not alter authorization, receipts, SQL or runtime rate limits.
 
@@ -37,7 +37,7 @@ This is a targeted repository source correctness audit supported by already exec
 
 **Remediation:** Preserve the stale-response guard for data writes and errors, but always clear the pagination activity flag when the same component remains mounted. Notification center is keyed by selected organization and role in the workspace. Added a Playwright race regression that holds the cursor response, refreshes the first page, releases the stale response, and asserts Load more becomes enabled.
 
-**Source fix:** `26c858d39c2b893f45f695cdbee737afed6c0aa3`.
+**Source fixes:** `26c858d39c2b893f45f695cdbee737afed6c0aa3` initially repaired stale completion; `6af26b31e87e4980d2d365f7c3e8edc1117b9560` additionally aborts superseded pagination requests on refresh and unmount, immediately resets the activity flag and fences cleanup to the exact AbortController. This also covers requests that never settle, not just delayed responses. The regression holds an in-flight cursor request while a new first-page refresh occurs.
 
 ## Other reviewed invariants
 
@@ -49,6 +49,8 @@ This is a targeted repository source correctness audit supported by already exec
 | Dispatcher | Purpose-bound proof, bounded SKIP LOCKED batch, recipient upper bound, retry/quarantine; `M15:EnableDelivery` absent/false unless explicitly enabled | Real disposable hosted fanout passed; production capacity and crash recovery not accepted |
 | Browser identity handling | Disposable session cookies stored under ignored `.verification/.private` and deleted on exit, no change to production login limiter | Fixture and five Chromium browser cases passed on frozen run; next three-engine campaign pending |
 | M13 interaction | Independent M13 report member access, KPI source truth and M15 receipt state remain distinct | Combined source `6b05d84` passed both workflows, but its M13 RLS and M15 UI source differ from the newest feature branches |
+
+The source-contract checker now also enforces the pagination cancellation/fencing guards and the browser locator/race regression signatures. These checks do not establish browser execution.
 
 ## Static audit checks
 

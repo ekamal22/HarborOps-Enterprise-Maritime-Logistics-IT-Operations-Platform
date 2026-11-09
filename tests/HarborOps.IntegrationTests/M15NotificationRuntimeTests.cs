@@ -170,6 +170,130 @@ public sealed class M15NotificationRuntimeTests
         Assert.Equal(1L,Convert.ToInt64(await audit.ExecuteScalarAsync()));
     }
 
+
+    [Fact]
+    public async Task SignedRecipientContextCannotReadAnotherUserNotifications()
+    {
+        var setup = await M11ExceptionRuntimeTests.Prepare();
+        using var factory = setup.Factory;
+        using var runtime = setup.Runtime;
+        using var adminSeed = setup.Fixture.Admin;
+        using var managerSeed = setup.Fixture.Manager;
+        using var analystSeed = setup.Fixture.Analyst;
+        using var administrator = setup.Administrator;
+        using var analyst = setup.Analyst;
+        using var manager = setup.Manager;
+        var shipment = await M11ExceptionRuntimeTests.ScheduledShipment(setup);
+        await M11ExceptionRuntimeTests.EvaluateAndFind(setup, shipment);
+        await EnsureShipmentDelivered(setup, shipment);
+
+        var path = $"/api/v1/organizations/{setup.Fixture.A}/notifications";
+        using var response = await manager.GetAsync(path);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var item = Assert.Single(
+            (await response.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("items").EnumerateArray());
+        var id = item.GetProperty("id").GetGuid();
+
+        Guid user, session;
+        await using (var adminDb = new NpgsqlConnection(setup.Roles.Admin))
+        {
+            await adminDb.OpenAsync();
+            await using var lookup = new NpgsqlCommand("""
+                SELECT n.recipient_user_id,a.id FROM m15_user_notifications n
+                JOIN auth_sessions a ON a.user_id=n.recipient_user_id
+                    AND a.selected_organization_id=n.organization_id
+                    AND a.revoked_at_utc IS NULL
+                WHERE n.id=@id ORDER BY a.issued_at_utc DESC LIMIT 1
+                """, adminDb);
+            lookup.Parameters.AddWithValue("id", id);
+            await using var reader = await lookup.ExecuteReaderAsync();
+            Assert.True(await reader.ReadAsync());
+            user = reader.GetGuid(0);
+            session = reader.GetGuid(1);
+        }
+        var expiry = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;
+        var secret = Convert.FromBase64String(ReferenceDataHttpTests.CorrectionProofKey);
+        var sig = Convert.ToHexString(
+            System.Security.Cryptography.HMACSHA256.HashData(secret,
+                System.Text.Encoding.UTF8.GetBytes(
+                    $"m11-read-v1|{setup.Fixture.A:N}|{user:N}|{session:N}|{expiry}")))
+            .ToLowerInvariant();
+        var signedScope = $"{setup.Fixture.A:D}|{user:D}|{session:D}|{expiry}|{sig}";
+        await using var api = new NpgsqlConnection(setup.Roles.Api);
+        await api.OpenAsync();
+        await using var tx = await api.BeginTransactionAsync();
+        await using (var set = new NpgsqlCommand(
+            "SELECT set_config('harborops.m11_read_scope',@proof,true)", api, tx))
+        {
+            set.Parameters.AddWithValue("proof", signedScope);
+            await set.ExecuteNonQueryAsync();
+        }
+        await using (var check = new NpgsqlCommand("""
+            SELECT count(*),count(*) FILTER (WHERE recipient_user_id<>@user)
+            FROM m15_user_notifications WHERE organization_id=@org
+            """, api, tx))
+        {
+            check.Parameters.AddWithValue("org", setup.Fixture.A);
+            check.Parameters.AddWithValue("user", user);
+            await using var rows = await check.ExecuteReaderAsync();
+            Assert.True(await rows.ReadAsync());
+            Assert.Equal(1L, rows.GetInt64(0));
+            Assert.Equal(0L, rows.GetInt64(1));
+        }
+        await tx.RollbackAsync();
+    }
+
+    [Fact]
+    public async Task DuplicatePersonalReceiptDatabaseConstraintRejectsReplay()
+    {
+        var setup = await M11ExceptionRuntimeTests.Prepare();
+        using var factory = setup.Factory;
+        using var runtime = setup.Runtime;
+        using var adminSeed = setup.Fixture.Admin;
+        using var managerSeed = setup.Fixture.Manager;
+        using var analystSeed = setup.Fixture.Analyst;
+        using var administrator = setup.Administrator;
+        using var analyst = setup.Analyst;
+        using var manager = setup.Manager;
+        var shipment = await M11ExceptionRuntimeTests.ScheduledShipment(setup);
+        await M11ExceptionRuntimeTests.EvaluateAndFind(setup, shipment);
+
+        await using var admin = new NpgsqlConnection(setup.Roles.Admin);
+        await admin.OpenAsync();
+        var sql = """
+            INSERT INTO m15_user_notifications
+                (source_history_id,organization_id,recipient_user_id,
+                 membership_id,membership_version,shipment_id,exception_id,
+                 event_type,rule_code,created_at_utc)
+            SELECT o.source_history_id,o.organization_id,m.user_id,m.id,
+                m.version,o.shipment_id,o.exception_id,o.event_type,o.rule_code,
+                o.created_at_utc
+            FROM m15_notification_outbox o
+            JOIN organization_memberships m ON m.organization_id=o.organization_id
+                AND m.status='Active' AND m.role='Manager'
+            WHERE o.organization_id=@org AND o.shipment_id=@shipment
+            ORDER BY o.created_at_utc DESC LIMIT 1
+            """;
+        await using var insert = new NpgsqlCommand(sql, admin);
+        insert.Parameters.AddWithValue("org", setup.Fixture.A);
+        insert.Parameters.AddWithValue("shipment", shipment);
+        Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+        var rejected = await Assert.ThrowsAsync<PostgresException>(
+            () => insert.ExecuteNonQueryAsync());
+        Assert.Equal(PostgresErrorCodes.UniqueViolation, rejected.SqlState);
+        await using var duplicates = new NpgsqlCommand("""
+            SELECT count(*) FROM (
+                SELECT source_history_id,recipient_user_id
+                FROM m15_user_notifications WHERE organization_id=@org
+                GROUP BY source_history_id,recipient_user_id
+                HAVING count(*) > 1
+            ) items
+            """, admin);
+        duplicates.Parameters.AddWithValue("org", setup.Fixture.A);
+        Assert.Equal(0L, Convert.ToInt64(await duplicates.ExecuteScalarAsync()));
+    }
+
     [Fact]
     public async Task RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient()
     {

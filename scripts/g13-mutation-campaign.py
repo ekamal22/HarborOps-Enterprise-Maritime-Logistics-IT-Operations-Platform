@@ -15,6 +15,10 @@ EVIDENCE = ROOT / ".verification/g13-mutations"
 FILTER = "FullyQualifiedName~M13OperationalKpiRuntimeTests.TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
 ORACLE = "FullyQualifiedName~M13OperationalKpiRuntimeTests.ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
 MUTANTS = [
+    ("tenant-materialization-scope-removed",
+     "WHERE s.organization_id=@org\n                AND (@origin::uuid IS NULL OR s.origin_port_id=@origin)",
+     "WHERE s.organization_id IS NOT NULL\n                AND (@origin::uuid IS NULL OR s.origin_port_id=@origin)",
+     "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
     ("k01-include-completed",
      "WHERE s.record_status='Active' AND s.workflow_status NOT IN ('Completed','Cancelled')",
      "WHERE s.record_status='Active' AND s.workflow_status <> 'Cancelled'"),

@@ -107,7 +107,7 @@ jobs:
           dotnet restore HarborOps.sln 2>&1 | tee .verification/m15/restore.log
           dotnet build HarborOps.sln -c Release --no-restore -warnaserror 2>&1 | tee .verification/m15/build.log
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
-            --filter 'FullyQualifiedName~M15NotificationRuntimeTests|FullyQualifiedName~M13OperationalKpiRuntimeTests|FullyQualifiedName~M13FaultRecoveryTests|FullyQualifiedName~M11ExceptionRuntimeTests|FullyQualifiedName~M11M12UpgradeTests|FullyQualifiedName~MigrationSnapshotTests|FullyQualifiedName~M10UpgradeTests' \
+            --filter 'FullyQualifiedName~M15NotificationRuntimeTests|FullyQualifiedName~M15FinalAuthorizationTests|FullyQualifiedName~M13OperationalKpiRuntimeTests|FullyQualifiedName~M13FaultRecoveryTests|FullyQualifiedName~M11ExceptionRuntimeTests|FullyQualifiedName~M11M12UpgradeTests|FullyQualifiedName~MigrationSnapshotTests|FullyQualifiedName~M10UpgradeTests' \
             --logger 'trx;LogFileName=m15-integration.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/integration.log
           # Fault-injection boundary tests can modify database-wide constraints.

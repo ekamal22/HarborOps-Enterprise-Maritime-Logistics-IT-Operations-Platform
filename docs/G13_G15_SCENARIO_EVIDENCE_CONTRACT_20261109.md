@@ -1,5 +1,7 @@
 # G13/G15 Source-Locked Scenario Evidence Contract
 
+**Current G13/G15 assertion campaign (2026-11-09):** [The latest successful 15-job verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42632573516) passed against \`50ed2950bceaf3478172c3f9d9bf85186f874082\`. New behavioral cases and [atomic assertion audit](G13_G15_ATOMIC_COVERAGE_20261109.md) have since been committed and **are unverified at the newer HEAD**. All 242 assertions are classified (139 candidate fully tested, 89 partially tested, 14 requiring policy/independent review). M13 and M15 are implemented but G13/G15 milestone acceptance and main merge remain pending. Older checkpoints below remain historical for their stated SHAs.
+
 **Campaign branch:** `verify/g13-g15-evidence-closure-20261109`
 
 **Last verified predecessor:** [Run 42612086368](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42612086368) passed all 15 jobs, 499 TRX tests and artifact integrity at `38bf5f3b34babbb2652bc87b6202c51172e3589c`. Those results are historical, not evidence for a modified SHA.

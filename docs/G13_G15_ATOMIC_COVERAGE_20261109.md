@@ -1,0 +1,47 @@
+# G13/G15 Atomic Acceptance Coverage and Behavioral Verification
+
+**Updated:** 2026-11-09
+**Working branch:** \`verify/g13-g15-evidence-closure-20261109\`
+**Disposition:** Acceptance pending. No merge, deployment, production migration, activation or retention cleanup authorized.
+
+## Source-locked checkpoints
+
+The last fully successful execution is [G13/G15 workflow 42632573516](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42632573516), at commit \`50ed2950bceaf3478172c3f9d9bf85186f874082\`. It passed 15 of 15 GitHub Actions jobs, including 48 separately recorded technical scenario evidence checks. This run is not evidence for code subsequently authored on the same branch.
+
+## Assertion inventory and assessment
+
+The committed [assertion inventory](G13_G15_ASSERTION_INVENTORY_20261109.json) decomposes 50 scenarios into 242 separately classified assertions: 228 require automated technical evidence and 14 are policy or independent-review items. This is a **source-reviewed candidate coverage map**, not a claim that all tests have been executed on the newest commit.
+
+| Classification | Assertions | Interpretation |
+| --- | ---: | --- |
+| Candidate fully tested | 139 | Candidate source-linked witnesses must pass against the exact new source SHA before they can count |
+| Partially tested | 89 | An existing test covers part of a compound requirement; an explicit behavioral review or extra test is still required |
+| Manual policy or independent review | 14 | Cannot be auto-approved through CI |
+| **Total** | **242** | A passing run does not silently convert partial or manual items to accepted |
+
+The \`scripts/audit-g13-g15-assertions.py\` tool emits \`assertion-audit.json\` and \`assertion-audit.md\`. Missing/failed witnesses and partial categories remain explicit. \`--enforce-complete\` must fail while any automated assertion remains partially covered or missing. Each evidence file is retained with the same-run SHA-256 manifest. A separate \`scripts/check-g13-g15-scenarios.py\` gate checks 48 technical scenario contracts.
+
+## New behavioral coverage added after the successful run
+
+- G15: live notification list/count/detail/action denial after 11 distinct session, account, membership and organization changes; a queued acknowledgment loses authority after a committed change.
+- G13: previously persisted report tokens and overview after 12 independent revocation modes, plus an organization-lock queued report that must not publish after a committed security-version change.
+- G13/G15: direct SQL denials for restricted API and worker roles attempting to enumerate personal replay/outbox data or modify KPI materialization.
+- G13: origin, destination, active/future voyage assignment and allowed record-source filtering with exact member IDs; invalid UTC and filter requests leave report state unchanged.
+- G13: empty tenant and Draft-only denominator behavior; exact percentage rendering for 1/3, 2/3 and 8/9 in the browser.
+- G15: three approved event actions versus Reevaluated, InputUnavailable and Acknowledged; unique immutable history IDs; low-noise MarkRead, exactly-once acknowledgment audit and same-key replay; archived target scope and historical event preservation.
+- UI: notification dependency error/retry, delayed old-organization response denial, KPI empty-data error/retry and exact displayed ratios.
+- G13 performance: the existing 170,000-shipment / 30-successful-report sample retains the approved p50 <= 15 seconds and p95 <= 20 seconds envelope. A separate final overcapacity query seeds 18,000 extra Draft shipments, proves the 500,000-member cap fails closed with HTTP 413, and verifies that its failed transaction does not replace the prior committed report.
+- G13 measured provisional resource ceilings: 2 GiB additional report-table storage across the 30-report exercise, and 1 GiB peak working set. These are verification bounds justified by the prior 1.63 GB final-size and 609 MB peak-memory observation, **not approved permanent retention or production service limits**.
+
+## Required workflow
+
+Manually dispatch [Verify G13 G15 final integrated acceptance campaign](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/workflows/verify-m11-m12-combined.yml) on the exact working branch HEAD, after these changes. Both manual workflow entry files must remain identical. The existing source, PostgreSQL, browser, scale, mutation, SIGKILL, dependency and accepted-milestone regression jobs remain mandatory. All newly added tests execute in the exclusive disposable PostgreSQL server or three-engine browser job, and the same-run gate reconciles their TRX or Playwright results. If a required test fails, neither a skipped case nor a renamed test can substitute for passing evidence.
+
+## Remaining acceptance blockers
+
+1. Resolve the 89 partially covered atomic assertions by inspecting each actual test body and implementing a dedicated missing behavioral case where necessary. Do not mark a scenario fully accepted just because one candidate test passed.
+2. The permanent G13 report storage, quota, pruning and retention resource policy remains subject to explicit measured numerical approval. The temporary 2 GiB verification exercise ceiling is not permanent authority.
+3. M15-P10 requires source-locked rollback, process-kill recovery and accepted-M11 regression proof before its conditional approval is fully satisfied. M15-P12 allows provisional retention periods but no data deletion.
+4. G13-S25 and G15-S25 require independent review of all raw evidence and explicit milestone decisions. These cannot be replaced by an automated PASS.
+
+This campaign may establish that all currently enumerated **technical tests** passed. It cannot grant policy authority, sign off an independent review or authorize a main merge by itself.

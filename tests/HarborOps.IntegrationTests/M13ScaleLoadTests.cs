@@ -189,7 +189,14 @@ public sealed class M13ScaleLoadTests
         await ReferenceDataHttpTests.Select(analyst, f.A);
 
         var latencies = new List<double>();
-        for (var i = 0; i < 3; i++)
+        var cpuStart = Process.GetCurrentProcess().TotalProcessorTime;
+        long initialStorage;
+        await using (var storage = new NpgsqlCommand("""
+            SELECT pg_total_relation_size('operational_kpi_reports') +
+                   pg_total_relation_size('operational_kpi_members')
+            """, db))
+            initialStorage = Convert.ToInt64(await storage.ExecuteScalarAsync());
+        for (var i = 0; i < 30; i++)
         {
             var elapsed = Stopwatch.StartNew();
             using var result = await analyst.GetAsync($"/api/v1/organizations/{f.A}/analytics/overview");
@@ -207,8 +214,27 @@ public sealed class M13ScaleLoadTests
             Assert.Equal(0L, Count(report,"K04"));
             Assert.Equal(450006, report.GetProperty("memberCount").GetInt32());
             latencies.Add(elapsed.Elapsed.TotalMilliseconds);
+            // Keep the measurement below the accepted six-builds/minute user
+            // limiter without raising or disabling an application safeguard.
+            if (i < 29 && elapsed.Elapsed < TimeSpan.FromSeconds(11))
+                await Task.Delay(TimeSpan.FromSeconds(11) - elapsed.Elapsed);
         }
         latencies.Sort();
-        Console.WriteLine($"G13_170K p50_ms={latencies[1]:F0} p95_nearest_rank_ms={latencies[2]:F0}");
+        var median = latencies[(int)Math.Ceiling(latencies.Count * 0.50) - 1];
+        var p95 = latencies[(int)Math.Ceiling(latencies.Count * 0.95) - 1];
+        long finalStorage;
+        await using (var storage = new NpgsqlCommand("""
+            SELECT pg_total_relation_size('operational_kpi_reports') +
+                   pg_total_relation_size('operational_kpi_members')
+            """, db))
+            finalStorage = Convert.ToInt64(await storage.ExecuteScalarAsync());
+        var process = Process.GetCurrentProcess();
+        Console.WriteLine($"G13_BUDGET count={latencies.Count} p50_ms={median:F0} " +
+            $"p95_ms={p95:F0} initial_report_bytes={initialStorage} " +
+            $"final_report_bytes={finalStorage} peak_working_set_bytes={process.PeakWorkingSet64} " +
+            $"cpu_ms={(process.TotalProcessorTime-cpuStart).TotalMilliseconds:F0} " +
+            $"samples_ms=[{string.Join(",", latencies.Select(v=>v.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)))}]");
+        Assert.True(median <= 15_000, $"Approved G13 p50 exceeded: {median:F0}ms");
+        Assert.True(p95 <= 20_000, $"Approved G13 p95 exceeded: {p95:F0}ms");
     }
 }

@@ -1,7 +1,9 @@
 # M13 Operational KPI Implementation Plan
 
+**Current source-locked checkpoint (2026-11-09):** [Combined runs 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASS at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Expanded evidence: 312 unit, 52 contract, 37 PostgreSQL integration/security and 27 Chromium/Firefox/WebKit journeys. These runs do not include all newer independent M13/M15 changes and do not close the G13 or G15 gate. The latest [independent M15 run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS, one Chromium locator FAIL and Firefox/WebKit NOT EXECUTED. M13/G13-S25 and M15/G15-S25 independent decisions remain pending. [Current integration report](M13_M15_COMBINED_VERIFICATION_20261109.md).
+
 **Date:** 2026-11-08
-**State:** M13 FEATURE IMPLEMENTATION AUTHORIZED AND AUTHORED; TARGETED SOURCE-LOCKED VERIFICATION PASSED; FULL G13 GATE PENDING
+**State:** Application source implemented; M13 independent targeted, scale, mutation and fault supplements and combined targeted/expanded technical checks executed. Comprehensive G13-S01 through S24 and independent S25 acceptance pending.
 **Accepted baseline:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Planning branch:** plan/m13-operational-kpi-dashboards-20261108
 **Dependencies:** G11 and G12 accepted; [D-005 Option A approved](M13_D005_POLICY_APPROVAL_20261108.md) with safeguards. M13 application implementation was separately authorized and is authored on this branch; [actual source register](M13_IMPLEMENTATION_STATUS_20261109.md). Technical evidence and G13 acceptance remain pending. M15 may progress independently.
@@ -73,7 +75,7 @@ Proposed file: src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs. Register 
 - GET /api/v1/organizations/{organizationId}/analytics/overview: normalized filters, exact integer metrics, denominators, status series, rule/input freshness, transaction as-of instant and protected report token.
 - GET /api/v1/organizations/{organizationId}/analytics/reports/{reportId}/members: exact snapshot-member keyset paging with live reauthorization and session-bound protected token.
 
-The old docs/API_CONTRACTS.md proposed analytics/overview route is not implemented. Preserve its route namespace where compatible; confirm exact contract under M13-01.
+At the original 2026-11-08 planning checkpoint, the proposed analytics/overview route was not yet implemented. The subsequent M13 implementation contains the API route. Preserve its route namespace where compatible; confirm exact contract under M13-01.
 
 Add OrganizationPermission.ViewOperationalKpis without granting it to every Auditor. If an explicit grant table is needed, add the smallest scope-locked schema and grant/revoke handling under separate reviewed ownership. Reuse existing selected organization and protected-cookie session middleware. Require active org, user, membership, unchanged security version and read-only dashboard grant at transaction and subsequent member request. For direct detail, preserve M5/M11 per-resource authorization.
 

@@ -1,9 +1,9 @@
 # M15 Scoped In-App Notifications: Implementation Plan
 
-**Current source/evidence checkpoint (2026-11-09):** The implementation candidate is on `feat/m15-scoped-notifications-20261108`. The authoritative [implementation register](M15_IMPLEMENTATION_STATUS.md) and [executed verification record](M15_EXECUTED_VERIFICATION_20261109.md) show 299 unit, 46 contract and 26 targeted PostgreSQL tests passing at frozen SHA `82dac56`; the three-browser test job failed during fixture preparation before Playwright. Later browser fixture and idempotent replay changes are committed but not run. Policy M15-P01..P14 and independent G15 acceptance remain pending. M13 has separate application code and migration requiring shared-source integration. The planning-only statements below are historical proposals where not superseded by dated implementation records. No merge or deployment is authorized.
+**Current source-locked checkpoint (2026-11-09):** [Combined runs 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASS at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Expanded evidence: 312 unit, 52 contract, 37 PostgreSQL integration/security and 27 Chromium/Firefox/WebKit journeys. These runs do not include all newer independent M13/M15 changes and do not close the G13 or G15 gate. The latest [independent M15 run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS, one Chromium locator FAIL and Firefox/WebKit NOT EXECUTED. M13/G13-S25 and M15/G15-S25 independent decisions remain pending. [Current integration report](M13_M15_COMBINED_VERIFICATION_20261109.md).
 
 
-**State:** Implementation-ready sequence proposed, planning only, acceptance pending.  
+**Document scope:** Original 2026-11-08 implementation plan, subsequently implemented on an isolated feature branch. G15 gate and M15-P01..P14 decisions remain pending.  
 **Source baseline:** main eb529368a2447061fc1838cd3967b0ffedae669d, verified 2026-11-08.  
 **Prerequisite:** G11 accepted and merged. **Separate track:** M13 planning and delivery.  
 **Canonical graph:** M15-01 -> M15-02 and M15-03 -> M15-04 -> G15. No graph rewrite proposed.
@@ -14,7 +14,7 @@ M15 addresses FR-019 in-app scoped exception notifications and FR-002 authorizat
 
 G11 already approved the M11-P01..P12/P10b rules and verifies the four source rule codes, immutable history, live selected-org session checks, recurrence and two distinct SQL roles. Do not revise these contracts or re-label exceptions as physical-vessel facts.
 
-The current stack uses .NET 10, EF Core/PostgreSQL, Npgsql, ASP.NET protected cookie sessions and a React/Vite same-origin browser. Source names below are proposed additions, not implemented files.
+The current stack uses .NET 10, EF Core/PostgreSQL, Npgsql, ASP.NET protected cookie sessions and a React/Vite same-origin browser. At the original planning date, source names below were proposed additions rather than implemented paths files.
 
 ## 2. Cross-track ownership before source changes
 

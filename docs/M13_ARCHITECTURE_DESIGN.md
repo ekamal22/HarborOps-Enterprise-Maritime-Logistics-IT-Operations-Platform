@@ -1,7 +1,9 @@
 # M13 Operational KPI Architecture Design
 
+**Current source-locked checkpoint (2026-11-09):** [Combined runs 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASS at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Expanded evidence: 312 unit, 52 contract, 37 PostgreSQL integration/security and 27 Chromium/Firefox/WebKit journeys. These runs do not include all newer independent M13/M15 changes and do not close the G13 or G15 gate. The latest [independent M15 run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS, one Chromium locator FAIL and Firefox/WebKit NOT EXECUTED. M13/G13-S25 and M15/G15-S25 independent decisions remain pending. [Current integration report](M13_M15_COMBINED_VERIFICATION_20261109.md).
+
 **Date:** 2026-11-08
-**Status:** PLANNED ONLY, NOT IMPLEMENTED
+**Document scope:** Original 2026-11-08 design baseline. M13 is now implemented on its feature branch and has passed selected M13 and combined M13/M15 technical tests. This architecture document is not the acceptance ledger.
 **Accepted source:** main eb529368a2447061fc1838cd3967b0ffedae669d
 **Prerequisites:** G11 and G12 accepted; [D-005 Option A approved with safeguards](M13_D005_POLICY_APPROVAL_20261108.md). Implementation contracts and measurement remain open.
 **Canonical work:** M13-01, M13-02, M13-03, M13-04 and G13.

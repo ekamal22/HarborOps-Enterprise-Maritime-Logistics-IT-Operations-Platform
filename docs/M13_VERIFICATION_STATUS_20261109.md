@@ -1,6 +1,6 @@
 # M13 Verification Campaign Status
 
-**Integration source note (2026-11-09):** This file records the originating feature branch and its earlier verification. The combined branch has a distinct source and additional failed and pending campaigns. Consult [M13/M15 combined verification](M13_M15_COMBINED_VERIFICATION_20261109.md) rather than transferring earlier PASS results.
+**Current source-locked checkpoint (2026-11-09):** [Combined runs 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASS at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Expanded evidence: 312 unit, 52 contract, 37 PostgreSQL integration/security and 27 Chromium/Firefox/WebKit journeys. These runs do not include all newer independent M13/M15 changes and do not close the G13 or G15 gate. The latest [independent M15 run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS, one Chromium locator FAIL and Firefox/WebKit NOT EXECUTED. M13/G13-S25 and M15/G15-S25 independent decisions remain pending. [Current integration report](M13_M15_COMBINED_VERIFICATION_20261109.md).
 
 
 **Opened:** 2026-11-09
@@ -8,7 +8,7 @@
 **Policy:** D-005 Option A, `m13-kpi-v1`
 **Feature candidate:** Implemented source, API, migration, dashboard and verification code documented in [implementation register](M13_IMPLEMENTATION_STATUS_20261109.md).
 **Execution environment:** GitHub Actions only, restricted to the M13 implementation branch.
-**Evidence state:** The targeted source/build, restricted PostgreSQL and three-engine browser campaign passed against frozen SHA `28c4a913e2880cdec26508cd0456616801cd40b3`. Comprehensive G13 scenario closure and acceptance remain pending.
+**Evidence state:** The original targeted run [42533241124](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42533241124) PASSED; later M13 technical work and independent supplements, plus two green combined workflows, are indexed by [expanded M13 evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md) and [combined integration evidence](M13_M15_COMBINED_VERIFICATION_20261109.md). Full G13 scenario reconciliation and acceptance remain pending.
 
 ## Scope
 
@@ -42,8 +42,8 @@ Run [42533241124](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logi
 
 The job logs and the source, database and browser artifacts are retained on the linked run. The two historical failed runs above remain historical failures; their results do not change retroactively.
 
-## Remaining acceptance work
+## Expanded execution and remaining acceptance work
 
-This focused campaign does **not** establish all 25 G13 scenarios. The approved 12+2 reference fixture and complete member reconciliation, 170,000-shipment volume/performance benchmark, measured quotas and expiry behavior, fault/crash/retry injection, full tenant/session/SQL security negatives, effective mutations, affected legacy regressions, coordinated M15 combined integration and independent G13-S25 evidence review remain unexecuted or incomplete. Their exit criteria remain binding.
+The initial focused technical campaign was followed by a 12+2 structural fixture subset, [170,000-shipment scale PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42538812959), [nine source mutations PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42537538212), [two SQL policy mutations PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385498), [fault recovery PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42537768249), and [latest targeted M13 PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385476) on their individual frozen SHAs. The [expanded combined technical workflow](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [targeted combined workflow](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) passed on `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Historical failed runs remain recorded above.
 
-**Implementation candidate:** complete source and targeted technical PASS at the above SHA. **G13 gate:** not accepted. No main merge, production migration, deployment or M9 transport-hold release is authorized.
+The full K01-K14 approved 12+2 risk and occurrence fixture, concurrent authorization and snapshot races, process crash before/after commit, explicit throughput budgets, final branch synchronization, G13-S01 through S24 reconciliation and independent S25 still require completion. No G13 acceptance, merge, deployment or production migration is authorized.

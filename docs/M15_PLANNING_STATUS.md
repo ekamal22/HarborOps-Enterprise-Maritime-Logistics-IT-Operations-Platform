@@ -1,10 +1,10 @@
 # M15 Scoped In-App Notifications: Planning Status
 
-**Current source/evidence checkpoint (2026-11-09):** The implementation candidate is on `feat/m15-scoped-notifications-20261108`. The authoritative [implementation register](M15_IMPLEMENTATION_STATUS.md) and [executed verification record](M15_EXECUTED_VERIFICATION_20261109.md) show 299 unit, 46 contract and 26 targeted PostgreSQL tests passing at frozen SHA `82dac56`; the three-browser test job failed during fixture preparation before Playwright. Later browser fixture and idempotent replay changes are committed but not run. Policy M15-P01..P14 and independent G15 acceptance remain pending. M13 has separate application code and migration requiring shared-source integration. The planning-only statements below are historical proposals where not superseded by dated implementation records. No merge or deployment is authorized.
+**Current source-locked checkpoint (2026-11-09):** [Combined runs 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASS at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Expanded evidence: 312 unit, 52 contract, 37 PostgreSQL integration/security and 27 Chromium/Firefox/WebKit journeys. These runs do not include all newer independent M13/M15 changes and do not close the G13 or G15 gate. The latest [independent M15 run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS, one Chromium locator FAIL and Firefox/WebKit NOT EXECUTED. M13/G13-S25 and M15/G15-S25 independent decisions remain pending. [Current integration report](M13_M15_COMBINED_VERIFICATION_20261109.md).
 
 
 **Date:** 2026-11-08  
-**State:** Planning package published for review. All runtime implementation, G15 verification and milestone acceptance are **not started**.  
+**Planning-state snapshot (2026-11-08):** Planning had no runtime implementation or G15 verification. Subsequent source implementation and technical checks are recorded in the current checkpoint above; G15 acceptance remains pending.  
 **Reviewed main:** eb529368a2447061fc1838cd3967b0ffedae669d  
 **Planning branch:** plan/m15-scoped-notifications-20261108  
 **Required entry:** G11 accepted. **Canonical dependencies:** M15-01 -> M15-02/M15-03 -> M15-04 -> G15.

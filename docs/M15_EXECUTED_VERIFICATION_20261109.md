@@ -1,6 +1,6 @@
 # M15 Executed Verification and Remaining Gate Evidence
 
-**Integration source note (2026-11-09):** This file records the originating feature branch and its earlier verification. The combined branch has a distinct source and additional failed and pending campaigns. Consult [M13/M15 combined verification](M13_M15_COMBINED_VERIFICATION_20261109.md) rather than transferring earlier PASS results.
+**Current source-locked checkpoint (2026-11-09):** [Combined runs 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASS at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Expanded evidence: 312 unit, 52 contract, 37 PostgreSQL integration/security and 27 Chromium/Firefox/WebKit journeys. These runs do not include all newer independent M13/M15 changes and do not close the G13 or G15 gate. The latest [independent M15 run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS, one Chromium locator FAIL and Firefox/WebKit NOT EXECUTED. M13/G13-S25 and M15/G15-S25 independent decisions remain pending. [Current integration report](M13_M15_COMBINED_VERIFICATION_20261109.md).
 
 
 **Recorded:** 2026-11-09, Türkiye local date.  
@@ -19,6 +19,8 @@
 | [42528679584](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42528679584) | `8fc433d2d54687033e4a2d0de24b6f60f1847917` | FAIL on malformed source during an incomplete migration edit | Superseded by rebuild from last clean migration |
 | [42528936587](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42528936587) | `b0831e34aae477f5a59b834ed2895f163bd0e3ad` | Source PASS; PostgreSQL PASS; browser FAIL before Playwright because disposable Compose project name was not allowlisted | Project-name fix committed later |
 | [42530770493](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42530770493) | `82dac56bc00443cc022ecae0b38cd945d3db8f59` | Source PASS, database PASS, browser FAIL during fixture preparation before Playwright | Current latest executed source/DB evidence |
+| [42541604417](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541604417) | `b1e79c826de71daea195250c00b46dcd7ab9a1a6` | Source and PostgreSQL PASS; browser FAIL on disabled notification receipt action | Preceded the next receipt-lock correction; earlier failed result retained |
+| [42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) | `40aa049b88afbcf29d1ce40a3792524cf93ba990` | Source and PostgreSQL PASS; Chromium 5 PASS / 1 FAIL at strict `Acknowledged` locator; Firefox/WebKit NOT EXECUTED | Browser selector fix and same-source rerun required; do not mark G15 verified |
 
 ### Measurements from run 42530770493
 

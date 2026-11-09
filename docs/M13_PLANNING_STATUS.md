@@ -1,10 +1,12 @@
 # M13 Operational KPI Planning and Delivery Status
 
+**Current source-locked checkpoint (2026-11-09):** [Combined runs 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASS at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Expanded evidence: 312 unit, 52 contract, 37 PostgreSQL integration/security and 27 Chromium/Firefox/WebKit journeys. These runs do not include all newer independent M13/M15 changes and do not close the G13 or G15 gate. The latest [independent M15 run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS, one Chromium locator FAIL and Firefox/WebKit NOT EXECUTED. M13/G13-S25 and M15/G15-S25 independent decisions remain pending. [Current integration report](M13_M15_COMBINED_VERIFICATION_20261109.md).
+
 **Updated:** 2026-11-09
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
 **Inbound accepted main:** `eb529368a2447061fc1838cd3967b0ffedae669d`
 **D-005:** APPROVED, Option A, `m13-kpi-v1`.
-**M13:** Source implementation authored and focused GitHub Actions jobs PASSED at `28c4a913e2880cdec26508cd0456616801cd40b3` ([evidence](M13_VERIFICATION_STATUS_20261109.md)). Full G13 acceptance remains pending. Nothing is merged or deployed.
+**M13:** Source implemented; focused M13, 170,000 shipment, fault and mutation technical checks plus combined integration jobs PASS on explicitly documented SHAs ([independent evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md); [combined evidence](M13_M15_COMBINED_VERIFICATION_20261109.md)). Full G13 acceptance remains pending. Nothing is merged or deployed.
 
 ## Current artifacts
 
@@ -25,7 +27,7 @@
 | G13-S02 through S25 | PARTIAL SOURCE-LOCKED EVIDENCE, FULL EXIT CRITERIA NOT YET MET |
 | G13 | NOT ACCEPTED |
 
-The 10-minute report expiry, 500,000 row materialization ceiling and timeouts are provisional. Large tenant sizing, fault, mutation, fixture and independent evidence checks are outstanding. The implementation does not turn an unassessed M11 rule, absent M10 projection, or parked ARRI/DEPA event into a verified no-risk or physical arrival fact.
+The 10-minute report expiry, 500,000 member-row ceiling and timeouts remain provisional. A 170,000-shipment technical run, nine source mutations, two SQL-policy mutations and focused fault tests passed on their source SHAs. Complete risk/occurrence fixture reconciliation, measured concurrent budgets, crash/revocation races, final source integration and S25 independent review remain outstanding. The implementation does not turn an unassessed M11 rule, absent M10 projection, or parked ARRI/DEPA event into a verified no-risk or physical arrival fact.
 
 M15 uses an independent implementation branch, notification module and earlier timestamped migration `20261109010000_M15ScopedNotifications`. M13 owns only `20261109020000_M13OperationalKpis` and the analytics module. Shared migration, role, Program and UI changes still require combined integration review. Accepted main and the M9 transport hold remain unchanged.
 

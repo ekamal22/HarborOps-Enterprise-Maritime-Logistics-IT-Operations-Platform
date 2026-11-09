@@ -1,13 +1,13 @@
 # M13 Operational KPI Implementation Status
 
-**Integration source note (2026-11-09):** This file records the originating feature branch and its earlier verification. The combined branch has a distinct source and additional failed and pending campaigns. Consult [M13/M15 combined verification](M13_M15_COMBINED_VERIFICATION_20261109.md) rather than transferring earlier PASS results.
+**Current source-locked checkpoint (2026-11-09):** [Combined runs 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASS at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Expanded evidence: 312 unit, 52 contract, 37 PostgreSQL integration/security and 27 Chromium/Firefox/WebKit journeys. These runs do not include all newer independent M13/M15 changes and do not close the G13 or G15 gate. The latest [independent M15 run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS, one Chromium locator FAIL and Firefox/WebKit NOT EXECUTED. M13/G13-S25 and M15/G15-S25 independent decisions remain pending. [Current integration report](M13_M15_COMBINED_VERIFICATION_20261109.md).
 
 
 **Updated:** 2026-11-09
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
 **Accepted baseline:** `eb529368a2447061fc1838cd3967b0ffedae669d`
 **Policy:** D-005 Option A approved, `m13-kpi-v1`
-**Status:** M13 application code, reporting migration, API, dashboard and test entrypoints are authored. Targeted source/build, restricted PostgreSQL and three-engine browser verification PASSED at `28c4a913e2880cdec26508cd0456616801cd40b3`, [run 42533241124](M13_VERIFICATION_STATUS_20261109.md). Full G13 gate requirements remain open and M13 is not merged or deployed.
+**Status:** M13 source implemented. Last independent source-locked M13 target PASS in [42539385476](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385476), plus independent 170,000-shipment, 9 source mutation, 2 SQL policy mutation, and fault recovery PASS on their recorded SHAs. A separate combined technical PASS exists at `6b05d84bf2f01741b182669c2dd17e39e63d9dda` but does not contain the latest report-member SELECT RLS optimization from M13. [Expanded evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md). G13 acceptance pending; not merged or deployed.
 
 ## Implemented source inventory
 

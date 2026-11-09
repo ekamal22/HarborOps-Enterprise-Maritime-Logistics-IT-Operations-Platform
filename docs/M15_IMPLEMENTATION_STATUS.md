@@ -1,9 +1,11 @@
 # M15 Scoped In-App Notifications: Implementation Status
 
+**Current source-locked checkpoint (2026-11-09):** [Combined runs 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASS at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Expanded evidence: 312 unit, 52 contract, 37 PostgreSQL integration/security and 27 Chromium/Firefox/WebKit journeys. These runs do not include all newer independent M13/M15 changes and do not close the G13 or G15 gate. The latest [independent M15 run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS, one Chromium locator FAIL and Firefox/WebKit NOT EXECUTED. M13/G13-S25 and M15/G15-S25 independent decisions remain pending. [Current integration report](M13_M15_COMBINED_VERIFICATION_20261109.md).
+
 **Current checkpoint:** 2026-11-09 (Türkiye local date).  
 **Implementation branch:** `feat/m15-scoped-notifications-20261108`  
 **Integration PR:** [Draft PR #37](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/37), not merged.  
-**Milestone disposition:** Source implementation candidate with targeted build and database PASS on an earlier frozen SHA; updated source and all-browser verification pending; G15 acceptance pending.
+**Milestone disposition:** Source implementation complete enough for targeted and combined verification, but G15 acceptance pending. Independent M15 [42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) at `40aa049b88afbcf29d1ce40a3792524cf93ba990`: source and database PASS, Chromium 5/6 with strict `Acknowledged` locator FAIL, Firefox/WebKit not reached. Combined source `6b05d84bf2f01741b182669c2dd17e39e63d9dda` passed 27/27 browser journeys before the latest independent fixture changes. Source synchronization and policy review pending.
 
 The authoritative executed test record, including the failed runs and immutable evidence links, is [M15_EXECUTED_VERIFICATION_20261109.md](M15_EXECUTED_VERIFICATION_20261109.md). It must be read alongside this status. Do not treat test source, corrected workflows or earlier run results as an accepted G15 gate.
 
@@ -24,7 +26,7 @@ On source SHA `82dac56bc00443cc022ecae0b38cd945d3db8f59`, [Actions run 425307704
 
 Subsequent commits corrected browser fixture initialization and added exact committed-state idempotency replay snapshots and regression assertions. The current branch differs from the measured SHA. A new source-locked build/DB/browser campaign must validate these changes.
 
-The connected Actions dispatch service reached its task limit when a further run was requested. The repository workflow remains manually dispatchable on this feature branch. The latest source cannot be labeled verified until a resulting run succeeds and raw evidence is reviewed.
+The connected Actions dispatch service reached its task limit when a further run was requested. The repository workflow remains manually dispatchable on this feature branch. The latest independent source has been tested, with source and database PASS and a remaining browser FAIL. The branch cannot be marked fully verified until a new complete run succeeds and raw evidence is reviewed.
 
 ## Implemented design choices requiring policy review
 

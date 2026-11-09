@@ -171,11 +171,11 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
   return (
     <section className="mt-6 border-t border-slate-700 pt-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h4 className="font-semibold">Reference data</h4>
+        <h4 className="font-semibold">{t("Reference data")}</h4>
         <button className="rounded border border-slate-600 px-3 py-2 text-sm disabled:opacity-50"
-          disabled={loading || busy} onClick={() => void reload()}>Refresh references</button>
+          disabled={loading || busy} onClick={() => void reload()}>{t("Refresh references")}</button>
       </div>
-      <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Reference type">
+      <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={t("Reference type")}>
         {(["ports", "vessels"] as const).map(value =>
           <button key={value} type="button" disabled={busy || paging} onClick={() => {
             generation.current += 1; mutationGeneration.current += 1; setBusy(false);
@@ -187,26 +187,24 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
           </button>)}
       </div>
       <div className="mt-4 flex flex-wrap items-end gap-3">
-        <label className="text-sm">Search {kind}
+        <label className="text-sm">{t("Search")}{kind}
           <input value={q} maxLength={80} disabled={busy || paging} onChange={event => setQ(event.target.value)}
             className="mt-1 block rounded bg-slate-950 px-3 py-2"
-            placeholder="Name, reference, identifier" />
+            placeholder={t("Name, reference, identifier")} />
         </label>
-        <label className="text-sm">Reference status
-          <select value={status} disabled={busy || paging} onChange={event => setStatus(event.target.value as ReferenceStatus | "All")}
+        <label className="text-sm">{t("Reference status")}<select value={status} disabled={busy || paging} onChange={event => setStatus(event.target.value as ReferenceStatus | "All")}
             className="mt-1 block rounded bg-slate-950 px-3 py-2">
-            <option>{t("Active")}</option><option>Archived</option><option>{t("All")}</option>
+            <option>{t("Active")}</option><option>{t("Archived")}</option><option>{t("All")}</option>
           </select>
         </label>
         {canManage && <button type="button" disabled={busy || paging || loading}
           onClick={() => { setCreating(true); setSelected(null); setForm(empty); setError(""); }}
-          className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">
-          Add {kind === "ports" ? "port" : "vessel"}
+          className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">{t("Add")}{kind === "ports" ? "port" : "vessel"}
         </button>}
       </div>
-      {loading && <p className="mt-3 text-sm text-slate-400">Loading references...</p>}
+      {loading && <p className="mt-3 text-sm text-slate-400">{t("Loading references...")}</p>}
       {!loading && !items.length && !error &&
-        <p className="mt-3 text-sm text-slate-400">No matching {kind}.</p>}
+        <p className="mt-3 text-sm text-slate-400">{t("No matching")}{kind}.</p>}
       <ul className="mt-3 space-y-2">
         {items.map(item =>
           <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-slate-700 p-3">
@@ -233,47 +231,40 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
       </ul>
       {nextAfter && <button type="button" disabled={busy || paging || loading}
         className="mt-3 rounded border border-slate-600 px-3 py-2 text-sm disabled:opacity-50"
-        onClick={() => void loadMore()}>Load more references</button>}
+        onClick={() => void loadMore()}>{t("Load more references")}</button>}
       {(creating || selected) &&
         <div className="mt-5 rounded border border-slate-600 p-4">
           <h5 className="font-semibold">
             {creating ? "Add " + (kind === "ports" ? "port" : "vessel") : "Reference details"}
           </h5>
           <form onSubmit={event => void write(event)} className="mt-3 grid gap-3 sm:grid-cols-2">
-            <label className="text-sm">Reference code
-              <input required value={form.referenceCode} maxLength={32} disabled={!creating}
+            <label className="text-sm">{t("Reference code")}<input required value={form.referenceCode} maxLength={32} disabled={!creating}
                 onChange={e => setForm(value => ({ ...value, referenceCode: e.target.value }))}
                 className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60" />
             </label>
-            <label className="text-sm">Name
-              <input required maxLength={160} value={form.name} disabled={!canManage}
+            <label className="text-sm">{t("Name")}<input required maxLength={160} value={form.name} disabled={!canManage}
                 onChange={e => setForm(value => ({ ...value, name: e.target.value }))}
                 className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60" />
             </label>
             {kind === "ports" ? <>
-              <label className="text-sm">Country code
-                <input required value={form.countryCode} maxLength={2} disabled={!canManage}
+              <label className="text-sm">{t("Country code")}<input required value={form.countryCode} maxLength={2} disabled={!canManage}
                   onChange={e => setForm(value => ({ ...value, countryCode: e.target.value }))}
                   className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60" />
               </label>
-              <label className="text-sm">UN/LOCODE (optional)
-                <input value={form.unLocode} maxLength={6} disabled={!canManage}
+              <label className="text-sm">{t("UN/LOCODE (optional)")}<input value={form.unLocode} maxLength={6} disabled={!canManage}
                   onChange={e => setForm(value => ({ ...value, unLocode: e.target.value }))}
                   className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60" />
               </label>
             </> : <>
-              <label className="text-sm">IMO number (optional)
-                <input value={form.imoNumber} maxLength={11} disabled={!canManage}
+              <label className="text-sm">{t("IMO number (optional)")}<input value={form.imoNumber} maxLength={11} disabled={!canManage}
                   onChange={e => setForm(value => ({ ...value, imoNumber: e.target.value }))}
                   className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60" />
               </label>
-              <label className="text-sm">MMSI (optional)
-                <input value={form.mmsi} maxLength={9} disabled={!canManage}
+              <label className="text-sm">{t("MMSI (optional)")}<input value={form.mmsi} maxLength={9} disabled={!canManage}
                   onChange={e => setForm(value => ({ ...value, mmsi: e.target.value }))}
                   className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60" />
               </label>
-              <label className="text-sm">Flag country (optional)
-                <input value={form.flagCountryCode} maxLength={2} disabled={!canManage}
+              <label className="text-sm">{t("Flag country (optional)")}<input value={form.flagCountryCode} maxLength={2} disabled={!canManage}
                   onChange={e => setForm(value => ({ ...value, flagCountryCode: e.target.value }))}
                   className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60" />
               </label>
@@ -284,7 +275,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
                 {creating ? "Create reference" : "Save reference"}
               </button>}
               <button type="button" className="rounded border border-slate-600 px-3 py-2 text-sm"
-                onClick={() => { setSelected(null); setCreating(false); }}>Close details</button>
+                onClick={() => { setSelected(null); setCreating(false); }}>{t("Close details")}</button>
             </div>
           </form>
         </div>}

@@ -248,22 +248,52 @@ public sealed class G13G15CrashRecoveryTests
             scope.Parameters.AddWithValue("scope", $"{expiry}|{signature}");
             await scope.ExecuteNonQueryAsync();
         }
-        var targetDelivered = false;
-        for (var attempt = 0; attempt < 100 && !targetDelivered; attempt++)
+        // The API role intentionally has no direct SELECT access to the
+        // outbox. Establish the complete eligible batch with the disposable
+        // privileged test connection, then verify its dispatch count using
+        // only the production signed dispatcher function.
+        long readyCount;
+        await using (var inspect = new NpgsqlConnection(s.Roles.Admin))
         {
-            await using (var dispatch = new NpgsqlCommand(
-                "SELECT m15_deliver_pending(20)", db, tx))
-                await dispatch.ExecuteScalarAsync();
+            await inspect.OpenAsync();
+            await using (var due = new NpgsqlCommand("""
+                SELECT COUNT(*) FROM m15_notification_outbox
+                WHERE completed_at_utc IS NULL AND quarantined_at_utc IS NULL
+                    AND next_attempt_at_utc <= clock_timestamp()
+                """, inspect))
+                readyCount = Convert.ToInt64(await due.ExecuteScalarAsync());
+            await using (var targetReady = new NpgsqlCommand("""
+                SELECT COUNT(*) FROM m15_notification_outbox
+                WHERE source_history_id=@history AND completed_at_utc IS NULL
+                    AND quarantined_at_utc IS NULL
+                    AND next_attempt_at_utc <= clock_timestamp()
+                """, inspect))
+            {
+                targetReady.Parameters.AddWithValue("history", history);
+                Assert.Equal(1L, Convert.ToInt64(await targetReady.ExecuteScalarAsync()));
+            }
+        }
+        Assert.InRange(readyCount, 1L, 20L);
+        int delivered;
+        await using (var dispatch = new NpgsqlCommand(
+            "SELECT m15_deliver_pending(20)", db, tx))
+            delivered = Convert.ToInt32(await dispatch.ExecuteScalarAsync());
+        Assert.Equal(readyCount, (long)delivered);
+
+        if (commit)
+        {
+            await tx.CommitAsync();
+            // Only committed state is visible to the privileged observer.
+            // Before-commit rollback is verified after SIGKILL by the runner.
+            await using var inspect = new NpgsqlConnection(s.Roles.Admin);
+            await inspect.OpenAsync();
             await using var target = new NpgsqlCommand("""
                 SELECT completed_at_utc IS NOT NULL
                 FROM m15_notification_outbox WHERE source_history_id=@history
-                """, db, tx);
+                """, inspect);
             target.Parameters.AddWithValue("history", history);
-            targetDelivered = await target.ExecuteScalarAsync() is true;
+            Assert.Equal(true, await target.ExecuteScalarAsync());
         }
-        Assert.True(targetDelivered, "Target source was not dispatched in the bounded batch");
-        if (commit)
-            await tx.CommitAsync();
         await MarkAndHold(phase, s.Fixture.A, history, s.Fixture.ManagerEmail);
     }
 

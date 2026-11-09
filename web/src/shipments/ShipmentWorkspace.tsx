@@ -437,14 +437,14 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
     ? t("This shipment changed on the server (now version {remote}; you opened version {opened}). Your unsaved edits are preserved.", {remote: remote.version, opened: selected.version}) : "";
   const fieldNames = (value: string) => value.split(", ").map(part => t(part)).join(", ");
   const localizedConflict = (value: string) => t(value)
-    .replace(/Current version (\\d+) loaded\\./g, (_match, version: string) =>
+    .replace(/Current version (\d+) loaded\./g, (_match, version: string) =>
       t("Current version {version} loaded.", { version }))
-    .replace(/Your unsaved changes to (.+?) were kept\\./g, (_match, fields: string) =>
+    .replace(/Your unsaved changes to (.+?) were kept\./g, (_match, fields: string) =>
       t("Your unsaved changes to {fields} were kept.", { fields: fieldNames(fields) }))
-    .replace(/The server also changed (.+?)\\. Your value is shown and saving will replace the server's\\./g,
+    .replace(/The server also changed (.+?)\. Your value is shown and saving will replace the server's\./g,
       (_match, fields: string) => t("The server also changed {fields}. Your value is shown and saving will replace the server's.",
         { fields: fieldNames(fields) }))
-    .replace(/Your changes to (.+?) can no longer be applied and were not kept\\./g,
+    .replace(/Your changes to (.+?) can no longer be applied and were not kept\./g,
       (_match, fields: string) => t("Your changes to {fields} can no longer be applied and were not kept.",
         { fields: fieldNames(fields) }));
   const banner = conflict ? localizedConflict(conflict) : remoteNote;

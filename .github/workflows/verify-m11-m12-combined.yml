@@ -2,9 +2,6 @@ name: Verify G13 M13 M15 full integration
 run-name: G13 combined source database and browsers
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - verify/g13-m13-m15-integration-20261109
 
 permissions:
   contents: read
@@ -260,3 +257,94 @@ jobs:
           path: .verification/m15-browser/
           retention-days: 7
           include-hidden-files: true
+
+
+  scale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-scale
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-scale;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build frozen source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          dotnet build HarborOps.sln -c Release -warnaserror
+          echo "G13 170k source SHA: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Run 170k workload under restricted API role
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/g13-scale
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj             -c Release --no-build --filter 'FullyQualifiedName~M13ScaleLoadTests'             --logger 'console;verbosity=normal' --logger 'trx;LogFileName=scale.trx'             --results-directory .verification/g13-scale
+      - name: Save evidence checksums
+        if: always()
+        run: |
+          mkdir -p .verification/g13-scale
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-scale/source-sha.txt
+          sha256sum tests/HarborOps.IntegrationTests/M13ScaleLoadTests.cs > .verification/g13-scale/test-sha256.txt
+          find .verification/g13-scale -type f -print0 | sort -z | xargs -0 -r sha256sum >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-scale-${{ github.sha }}
+          path: .verification/g13-scale
+          if-no-files-found: warn
+          retention-days: 14
+
+
+  security-mutations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-security
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-security;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run clean SQL control and effective policy attacks
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 scripts/g13-security-mutation-campaign.py
+      - name: Verify source restoration and evidence hashes
+        if: always()
+        run: |
+          mkdir -p .verification/g13-security-mutations
+          test -z "$(git status --porcelain --untracked-files=no)"
+          sha256sum scripts/g13-security-mutation-campaign.py > .verification/g13-security-mutations/runner-sha256.txt
+          find .verification/g13-security-mutations -type f -print0 | sort -z | xargs -0 -r sha256sum >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-security-mutations-${{ github.sha }}
+          path: .verification/g13-security-mutations
+          retention-days: 14

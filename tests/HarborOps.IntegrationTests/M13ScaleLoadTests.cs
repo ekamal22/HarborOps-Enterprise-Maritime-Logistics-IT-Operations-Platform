@@ -79,15 +79,44 @@ public sealed class M13ScaleLoadTests
             var duration = Stopwatch.StartNew();
             var raw = Assert.IsType<string>(await explain.ExecuteScalarAsync());
             duration.Stop();
-            Directory.CreateDirectory(".verification/g13-scale");
+            var evidence = Path.Combine(
+                Environment.GetEnvironmentVariable("GITHUB_WORKSPACE")
+                    ?? Directory.GetCurrentDirectory(),
+                ".verification", "g13-scale");
+            Directory.CreateDirectory(evidence);
             await File.WriteAllTextAsync(
-                ".verification/g13-scale/explain-admin-170k.json", raw);
+                Path.Combine(evidence,"explain-admin-170k.json"), raw);
+            using (var parsed = JsonDocument.Parse(raw))
+            {
+                var plan = parsed.RootElement[0].GetProperty("Plan");
+                Console.WriteLine($"G13_170K top_node={plan.GetProperty("Node Type").GetString()} total_ms={plan.GetProperty("Actual Total Time").GetDouble():F0}");
+                var slow = new List<(string Node, double Ms, long Rows)>();
+                static void Walk(JsonElement element, List<(string Node,double Ms,long Rows)> slow)
+                {
+                    if (element.TryGetProperty("Node Type", out var node) &&
+                        element.TryGetProperty("Actual Total Time", out var ms))
+                    {
+                        var rows = element.TryGetProperty("Actual Rows", out var count) ? (long)count.GetDouble() : 0L;
+                        slow.Add((node.GetString() ?? "", ms.GetDouble(), rows));
+                    }
+                    if (element.TryGetProperty("Plans", out var children))
+                        foreach (var child in children.EnumerateArray())
+                            Walk(child, slow);
+                }
+                Walk(plan,slow);
+                foreach (var item in slow.OrderByDescending(x=>x.Ms).Take(12))
+                    Console.WriteLine($"G13_PLAN node={item.Node} ms={item.Ms:F0} rows={item.Rows}");
+            }
             Console.WriteLine($"G13_170K privileged_explain_analyze_ms={duration.Elapsed.TotalMilliseconds:F0} plan_chars={raw.Length}");
         }
         catch (Exception e)
         {
-            Directory.CreateDirectory(".verification/g13-scale");
-            await File.WriteAllTextAsync(".verification/g13-scale/explain-error.txt",
+            var evidence = Path.Combine(
+                Environment.GetEnvironmentVariable("GITHUB_WORKSPACE")
+                    ?? Directory.GetCurrentDirectory(),
+                ".verification", "g13-scale");
+            Directory.CreateDirectory(evidence);
+            await File.WriteAllTextAsync(Path.Combine(evidence,"explain-error.txt"),
                 e.GetType().Name + ": " + e.Message);
             Console.WriteLine($"G13_170K privileged_explain_error={e.GetType().Name}: {e.Message}");
         }

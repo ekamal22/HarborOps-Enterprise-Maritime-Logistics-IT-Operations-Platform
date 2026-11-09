@@ -82,3 +82,10 @@ assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),
   /\.private\/m15-manager\.json/);
 assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),/HARBOROPS_M15_ENABLE_DELIVERY=true/);
 assert.match(read("tests/browser/specs/notifications.spec.mjs"),/G15 live M11 event is delivered/);
+
+assert.match(react,/pagingAbort\.current\?\.abort\(\)/);
+assert.match(react,/pagingAbort\.current === controller/);
+assert.match(read("tests/browser/specs/notifications.spec.mjs"),
+  /G15 a cancelled pagination result cannot leave Load more disabled/);
+assert.match(read("tests/browser/specs/notifications.spec.mjs"),
+  /center\.locator\("li p"\)\.filter\(\{hasText:/);

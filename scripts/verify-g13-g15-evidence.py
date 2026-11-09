@@ -202,7 +202,7 @@ def browser_result(root: Path | None) -> dict[str, bool]:
     if root is None:
         return result
     for engine in ("chromium", "firefox", "webkit"):
-        for suite, expected in (("notifications", 9), ("operational-kpis", 5)):
+        for suite, expected in (("notifications", 9), ("operational-kpis", 6)):
             path = root / (engine + "-" + suite + ".json")
             key = engine + ":" + suite
             if not path.is_file():

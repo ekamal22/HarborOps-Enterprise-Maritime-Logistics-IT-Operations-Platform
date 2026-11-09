@@ -580,7 +580,9 @@ public sealed class M15NotificationBoundaryTests
             "The fanout must be blocked in SQL before cancellation is requested");
         cancel.Cancel();
         var failure = await Record.ExceptionAsync(async () =>
-            await active.WaitAsync(TimeSpan.FromSeconds(15)));
+        {
+            await active.WaitAsync(TimeSpan.FromSeconds(15));
+        });
         Assert.True(failure is OperationCanceledException or PostgresException
             { SqlState: "57014" },
             $"Expected a cancelled SQL operation, got {failure?.GetType().Name}");

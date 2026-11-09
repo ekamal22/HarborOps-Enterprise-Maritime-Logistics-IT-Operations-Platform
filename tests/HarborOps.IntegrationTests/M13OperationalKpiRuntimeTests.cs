@@ -205,6 +205,98 @@ public sealed class M13OperationalKpiRuntimeTests
         Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, denied.SqlState);
     }
 
+
+    [ExclusiveM13PostgresFact]
+    public async Task SignedAdminAndUngrantedAuditorScopesCannotReadKpiData()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var seedAdmin = fixture.Admin;
+        using var seedManager = fixture.Manager;
+        using var seedAnalyst = fixture.Analyst;
+        var email = "m13-scope-" + Guid.NewGuid().ToString("N") + "@example.test";
+        const string password = "Synthetic-reference-integration-passphrase-123";
+        Guid auditorId;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var identities = scope.ServiceProvider.GetRequiredService<IdentityStore>();
+            await identities.ProvisionAsync(email, "Scoped KPI Auditor", password,
+                CancellationToken.None);
+            auditorId = (await identities.LoginAsync(email, password, "m13-scope",
+                CancellationToken.None))!.UserId;
+        }
+        using (var membership = await ReferenceDataHttpTests.Send(seedAdmin,
+            HttpMethod.Put, $"/api/v1/organizations/{fixture.A}/memberships/{auditorId}",
+            new { role = "Auditor", status = "Active", expectedVersion = (long?)null }))
+            Assert.Equal(HttpStatusCode.OK, membership.StatusCode);
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var admin = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        using var auditor = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(admin, fixture.AdminEmail);
+        await ReferenceDataHttpTests.Login(auditor, email);
+        await ReferenceDataHttpTests.Select(admin, fixture.A);
+        await ReferenceDataHttpTests.Select(auditor, fixture.A);
+
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        await using var identities = new NpgsqlCommand("""
+            SELECT m.user_id,a.id,m.role FROM organization_memberships m
+            JOIN auth_sessions a ON a.user_id=m.user_id
+                AND a.selected_organization_id=m.organization_id
+                AND a.revoked_at_utc IS NULL
+            WHERE m.organization_id=@org
+                AND (m.role='Administrator' OR m.user_id=@auditor)
+            ORDER BY m.role,a.issued_at_utc DESC
+            """, db);
+        identities.Parameters.AddWithValue("org", fixture.A);
+        identities.Parameters.AddWithValue("auditor", auditorId);
+        var actors = new Dictionary<Guid,(Guid Session,string Role)>();
+        await using (var reader = await identities.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                var id = reader.GetGuid(0);
+                if (!actors.ContainsKey(id))
+                    actors.Add(id, (reader.GetGuid(1),reader.GetString(2)));
+            }
+        }
+        Assert.Equal(2, actors.Count);
+        foreach (var (user,details) in actors)
+        {
+            await using var sql = new NpgsqlConnection(roles.Api);
+            await sql.OpenAsync();
+            await using var tx = await sql.BeginTransactionAsync();
+            var expiry = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;
+            var message = System.Text.Encoding.UTF8.GetBytes(
+                $"m11-read-v1|{fixture.A:N}|{user:N}|{details.Session:N}|{expiry}");
+            var mac = System.Security.Cryptography.HMACSHA256.HashData(
+                Convert.FromBase64String(ReferenceDataHttpTests.CorrectionProofKey), message);
+            var authority = $"{fixture.A:D}|{user:D}|{details.Session:D}|{expiry}|"+
+                Convert.ToHexString(mac).ToLowerInvariant();
+            await using (var sign = new NpgsqlCommand(
+                "SELECT set_config('harborops.m11_read_scope',@scope,true)", sql, tx))
+            {
+                sign.Parameters.AddWithValue("scope", authority);
+                await sign.ExecuteNonQueryAsync();
+            }
+            await using var authorityCheck = new NpgsqlCommand("""
+                SELECT m13_scoped_role(@org),m13_can_view(@org)
+                """, sql, tx);
+            authorityCheck.Parameters.AddWithValue("org", fixture.A);
+            await using var values = await authorityCheck.ExecuteReaderAsync();
+            Assert.True(await values.ReadAsync());
+            Assert.Equal(details.Role, values.GetString(0));
+            Assert.False(values.GetBoolean(1),
+                "A signed session without KPI entitlement must remain unable to view");
+            await values.CloseAsync();
+            await tx.RollbackAsync();
+        }
+    }
+
     [ExclusiveM13PostgresFact]
     public async Task RealM11OverdueEvaluationProducesDistinctDashboardRisk()
     {

@@ -1,0 +1,25 @@
+# G13/G15 Source-Locked Scenario Evidence Contract
+
+**Campaign branch:** `verify/g13-g15-evidence-closure-20261109`
+
+**Last verified predecessor:** [Run 42612086368](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42612086368) passed all 15 jobs, 499 TRX tests and artifact integrity at `38bf5f3b34babbb2652bc87b6202c51172e3589c`. Those results are historical, not evidence for a modified SHA.
+
+## New verification work
+
+The existing integration, unit, contract, browser, mutation, scale and process-crash suites remain mandatory. The final job additionally runs `scripts/check-g13-g15-scenarios.py`. This executes 48 separate technical evidence checks against exact-source TRX, browser, fault, scale, policy, security, SQL mutation and SIGKILL artifacts. A missing required reference or ineffective named security mutation fails the new gate. Source SHA and every existing raw evidence manifest are still checked by the preceding verifier.
+
+New retained evidence: `technical-scenarios.json`, `technical-scenarios.xml`, `technical-scenarios.md`, and their SHA-256 entries.
+
+These are acceptance-evidence checks, not substitutes for application behavioral testing or independent source review. Source-locked passing evidence demonstrates executed coverage of the mapped assertions; it must not be interpreted as proving every qualitative clause in each scenario.
+
+## Decisions not replaceable by tests
+
+1. G13-S01 still requires an explicit numerical permanent report storage and bounded cleanup policy based on measured size and concurrency. The provisional 170,000 shipment and 30-report test envelope is not an operational capacity approval.
+2. M15-P10's conditional fail-closed history and outbox coupling must be reviewed with the actual rollback/recovery and M11 evidence. M15-P12 permits provisional durations, not deletion.
+3. G13-S25 and G15-S25 require an independent raw-artifact, source-lock and residual-risk review, then explicit acceptance. A self-authored automated summary cannot provide reviewer separation.
+
+No main merge, deployment, production migration, retention cleanup or dispatcher activation is included.
+
+## Launch
+
+Use the manual [G13/G15 verification workflow](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/workflows/verify-m11-m12-combined.yml) with ref `verify/g13-g15-evidence-closure-20261109`. Its alternate entry point `verify-g13-combined-full.yml` remains source-equivalent. Only one workflow should be dispatched for a given source commit.

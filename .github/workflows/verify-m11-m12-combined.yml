@@ -1,5 +1,5 @@
-name: Verify G13 G15 parallel acceptance evidence
-run-name: G13 G15 parallel acceptance verification
+name: Verify G13 G15 final integrated acceptance campaign
+run-name: G13 G15 source-locked final verification
 on:
   workflow_dispatch:
 
@@ -552,11 +552,104 @@ jobs:
           path: .verification/g15-fanout/
           retention-days: 30
 
+  g13-concurrency:
+    name: G13 four-principal source-locked reporting concurrency
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-concurrency
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-concurrency;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Execute four-principal admission and isolation tests
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g13-concurrency
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g13-concurrency/build.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
+            -c Release --no-build --filter 'FullyQualifiedName~M13ConcurrentAcceptanceTests' \
+            --logger 'console;verbosity=normal' \
+            --logger 'trx;LogFileName=g13-concurrency.trx' \
+            --results-directory .verification/g13-concurrency 2>&1 | tee .verification/g13-concurrency/concurrency.log
+      - name: Seal concurrency evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g13-concurrency
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-concurrency/source-sha.txt
+          (cd .verification/g13-concurrency && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-concurrency-${{ github.run_id }}
+          path: .verification/g13-concurrency/
+          retention-days: 30
+
+  g13-g15-crashes:
+    name: G13 G15 before-and-after commit testhost SIGKILL recovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-g15-crash
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-g15-crash;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+      HARBOROPS_G13_G15_CRASH_PROBE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build and run actual API testhost crash windows
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g13-g15-crash
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g13-g15-crash/build.log
+          python3 scripts/g13-g15-process-crash.py 2>&1 | tee .verification/g13-g15-crash/crash.log
+      - name: Seal recovery evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g13-g15-crash
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-g15-crash/source-sha.txt
+          (cd .verification/g13-g15-crash && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-g15-crashes-${{ github.run_id }}
+          path: .verification/g13-g15-crash/
+          retention-days: 30
+
   gate-ledger:
     name: Reconcile G13 and G15 scenario evidence without approving gates
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations, g15-scale, g15-fanout]
+    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations, g15-scale, g15-fanout, g13-concurrency, g13-g15-crashes]
     if: always()
     env:
       GATE_JOB_SOURCE: ${{ needs.source.result }}
@@ -569,6 +662,8 @@ jobs:
       GATE_JOB_G15_MUTATIONS: ${{ needs.g15-mutations.result }}
       GATE_JOB_G15_SCALE: ${{ needs.g15-scale.result }}
       GATE_JOB_G15_FANOUT: ${{ needs.g15-fanout.result }}
+      GATE_JOB_G13_CONCURRENCY: ${{ needs.g13-concurrency.result }}
+      GATE_JOB_G13_G15_CRASHES: ${{ needs.g13-g15-crashes.result }}
     steps:
       - uses: actions/checkout@v4
         with:

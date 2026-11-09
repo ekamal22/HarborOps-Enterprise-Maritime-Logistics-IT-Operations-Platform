@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getJson, mutate, organizationError, OrganizationRequestError } from "../auth/organizationClient";
 
@@ -43,6 +44,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
   focusExceptionId?: string; focusRequest?: number;
   onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const root = "/api/v1/organizations/" + encodeURIComponent(organizationId);
   const shipmentRoot = root + "/shipments/" + encodeURIComponent(shipmentId);
   const [rows, setRows] = useState<ExceptionRow[]>([]);
@@ -266,7 +268,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
           detailSerial.current++;
           setDetail(null);
           setHistoryPaging(false);
-        }} className="rounded border border-slate-500 px-2 py-1">Close</button>
+        }} className="rounded border border-slate-500 px-2 py-1">{t("Close")}</button>
       </div>
       {detail.nextHistoryCursor && <p role="status" className="mt-2 text-amber-300">
         Showing {detail.history.length} history entries. Additional retained records are available.

@@ -32,7 +32,7 @@ public sealed class M15NotificationRuntimeTests
             count.Parameters.AddWithValue("shipment",shipment);
             if (Convert.ToInt64(await count.ExecuteScalarAsync()) > 0) return;
         }
-        Assert.True(false,"The scoped M15 event was not delivered within 100 bounded batches");
+        Assert.Fail("The scoped M15 event was not delivered within 100 bounded batches");
     }
 
     [Fact]

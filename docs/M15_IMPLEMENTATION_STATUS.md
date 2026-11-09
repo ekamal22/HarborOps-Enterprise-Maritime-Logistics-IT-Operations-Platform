@@ -1,11 +1,11 @@
 # M15 Scoped In-App Notifications: Implementation Status
 
-**Verified source and gate boundary (2026-11-09):** Both [combined G13/M15 verification workflows](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Subsequent independent M15 [run 42545005498](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42545005498) passed source and PostgreSQL, Chromium 7/7 and Firefox 7/7 but failed WebKit 1/7 because the live M11 notice was not found. Its source and the independent M13 SELECT RLS optimization have not been reconciled into the older green combined source. Full G13/G15 scenario evidence, M15-P01..P14 and independent S25 reviews remain pending. No merge or deployment. [Combined register](M13_M15_COMBINED_VERIFICATION_20261109.md).
+**Current source and gate boundary (2026-11-09):** Standalone M15 [run 42547260912](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42547260912) **PASSED** all three jobs on `bbf4ba38c9742f4e78b9d184d5b60e8aabf6a04c`: warning-free Release build, 299/299 unit, 46/46 contract, 26/26 selected PostgreSQL, 5/5 separate security/fault tests and Chromium, Firefox, WebKit 7/7 each (21/21). Historical failed attempts remain recorded below. The successor `verify/g13-g15-m13-m15-successor-20261109` contains this source and the verified independent M13 RLS optimization as of application reconciliation `825520bde0086336f967e824a7060a0035914f6f`, but **combined successor GitHub Actions verification has not executed**. Earlier green combined source `6b05d84bf2f01741b182669c2dd17e39e63d9dda` remains historical evidence only. M15 policies P01-P14, G13/G15 full evidence and independent S25 reviews remain pending. No acceptance, merge, production activation or deployment. [Combined register](M13_M15_COMBINED_VERIFICATION_20261109.md).
 
 **Current checkpoint:** 2026-11-09 (Türkiye local date).  
 **Implementation branch:** `feat/m15-scoped-notifications-20261108`  
 **Integration PR:** [Draft PR #37](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/37), not merged.  
-**Milestone disposition:** M15 source candidate with selected source/PostgreSQL checks PASS. Latest standalone run [42545005498](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42545005498) at `27d5d4ae81162bd3607cd35e5d3ec25425f61090` passed Chromium 7/7, Firefox 7/7, WebKit 6/7 (live M11 notice missing). The browser job and workflow are FAIL; G15 acceptance pending.
+**Milestone disposition:** Latest standalone M15 technical candidate at `bbf4ba38c9742f4e78b9d184d5b60e8aabf6a04c` passed the full source, selected PostgreSQL and 21 three-engine browser executions in [run 42547260912](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42547260912). G15 acceptance pending; final successor combined technical verification has not run.
 
 The authoritative executed test record, including the failed runs and immutable evidence links, is [M15_EXECUTED_VERIFICATION_20261109.md](M15_EXECUTED_VERIFICATION_20261109.md). It must be read alongside this status. Do not treat test source, corrected workflows or earlier run results as an accepted G15 gate.
 
@@ -26,7 +26,7 @@ On source SHA `82dac56bc00443cc022ecae0b38cd945d3db8f59`, [Actions run 425307704
 
 Subsequent commits corrected browser fixture initialization and added exact committed-state idempotency replay snapshots and regression assertions. The current branch differs from the measured SHA. A new source-locked build/DB/browser campaign must validate these changes.
 
-The connected Actions dispatch service reached its task limit when a further run was requested. The repository workflow remains manually dispatchable on this feature branch. The latest independent source has been tested, with source and database PASS and a remaining browser FAIL. The branch cannot be marked fully verified until a new complete run succeeds and raw evidence is reviewed.
+An earlier manual dispatch dependency reached its task limit. Later standalone run 42547260912 succeeded across all three jobs on the corrected SHA. Historical browser failures remain recorded, but there is no outstanding standalone browser failure on that verified SHA. Combined successor verification and G15 acceptance remain separate.
 
 ## Implemented design choices requiring policy review
 
@@ -43,7 +43,7 @@ The connected Actions dispatch service reached its task limit when a further run
 
 ## Independent M13 implementation coordination
 
-At the latest read, M13's independent branch was `4e717bd45011b0a75b3d764b3f298bfcfb1d9056`. M13 now has a distinct KPI migration `20261109020000_M13OperationalKpis` and application implementation. A combined branch must reconcile `Program.cs`, `AuditRoleProvisioner.cs`, `OrganizationWorkspace.tsx`, `MigrationSnapshotTests.cs`, `M11M12UpgradeTests.cs`, permissions and migration order. M15's `20261109010000` and M13's `20261109020000` do not by themselves prove compatible upgrades. Preserve separate M13 dashboard authorization and KPI source truth; M15 personal receipts must not change KPI measures.
+At an earlier integration checkpoint, M13's independent branch was `4e717bd45011b0a75b3d764b3f298bfcfb1d9056`. The newer branch head is `fe5d3396035012a4ccd97f16e9c244a78b9c4b3c`, whose optimized source has been reconciled in the successor. M13 now has a distinct KPI migration `20261109020000_M13OperationalKpis` and application implementation. A combined branch must reconcile `Program.cs`, `AuditRoleProvisioner.cs`, `OrganizationWorkspace.tsx`, `MigrationSnapshotTests.cs`, `M11M12UpgradeTests.cs`, permissions and migration order. M15's `20261109010000` and M13's `20261109020000` do not by themselves prove compatible upgrades. Preserve separate M13 dashboard authorization and KPI source truth; M15 personal receipts must not change KPI measures.
 
 ## Additional unverified source improvements after the frozen run
 
@@ -57,8 +57,8 @@ The SQL security tests also now attempt an invalid HMAC read proof using real or
 - [x] Previous-source .NET 10 build, 299 unit and 46 contract tests passed
 - [x] Previous-source 26 PostgreSQL tests passed including additive upgrade and restricted SQL roles
 - [x] Historical run failures and corrections disclosed with source identities
-- [ ] Updated receipt replay and browser-fixture source executed on a final SHA
-- [ ] Chromium, Firefox and WebKit browser scenarios executed and passing, not skipped
+- [x] Updated receipt/browser fixture source executed on standalone M15 SHA `bbf4ba38c9742f4e78b9d184d5b60e8aabf6a04c`
+- [x] Chromium, Firefox and WebKit standalone M15 7/7 per engine, no skips, run 42547260912
 - [ ] Source-locked recovery, malicious scope/replay/cursor and security mutation evidence reconciled against G15-S01..S24
 - [ ] M13 combined migration, API and shell reconciliation completed on a shared tested integration SHA
 - [ ] M15-P01..P14 policy dispositions approved and G15-S01 no longer blocked

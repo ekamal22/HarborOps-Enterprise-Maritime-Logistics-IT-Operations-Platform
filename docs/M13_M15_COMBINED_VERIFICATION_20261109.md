@@ -1,15 +1,23 @@
 # M13/M15 Combined Integration: Verification and Failure Register
 
 **Recorded:** 2026-11-09.  
-**Combined branch:** `verify/g13-m13-m15-integration-20261109`; latest fully green tested application source `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Documentation-only updates after that SHA must not be mistaken for a new technical run.  
+**Historical combined branch:** `verify/g13-m13-m15-integration-20261109`; last fully green tested application source `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. **Successor branch:** `verify/g13-g15-m13-m15-successor-20261109`, reconciliation commit `825520bde0086336f967e824a7060a0035914f6f`. No successor Actions run has been confirmed. Documentation-only successors cannot inherit a technical PASS.  
 **Base:** accepted `main` at `eb529368a2447061fc1838cd3967b0ffedae669d`.  
 **Source integration:** independent M13 and M15 branches are preserved. M15 migration `20261109010000` precedes M13 `20261109020000` in this branch. This integration source has not been merged, deployed or accepted.
+
+## Successor reconciliation checkpoint, combined verification pending
+
+The successor branch preserves accepted main, independent M13, independent M15 and the previously successful combined integration branch. At source reconciliation commit `825520bde0086336f967e824a7060a0035914f6f`, it incorporates the M13 transaction-local report-member SELECT row-policy optimization and the verified M15 browser-session, receipt/pagination and real-notification fixture changes. The previously proven combined `Program.cs`, restricted-role provisioner, shared organization workspace, M15 notification store, tenant/session boundaries and 17-migration order remain unchanged. Supplemental M13 fault, scale, mutation and SQL security-policy workflows are retained on the successor.
+
+A source-level integration review checked the changed-file boundary, matching independent source blob identities, report/notification permission separation, migration order and default-off production services. It found and corrected two verification-integration problems: the combined browser job needed a seven-notification/three-KPI assertion per engine, and the registered manual verification workflow still ran a standalone M15-only job set. The registered entry point now runs the combined source, restricted PostgreSQL and three-engine browser workflow; disposable browser authentication state is removed before evidence upload.
+
+**Execution status:** No GitHub Actions run has been confirmed against this successor. No successful run or full runtime correctness verdict is claimed. Complete the frozen combined campaign and any required scale/security supplements before evidence reconciliation or gate decisions.
 
 ## Latest completed source-locked result
 
 Runs [42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) both completed **SUCCESS** against the same source `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. The expanded run recorded warning-free Release build; 312/312 unit tests; 52/52 contract tests; 32/32 selected combined PostgreSQL tests; 5/5 security and fault tests; and 27/27 browser journeys across Chromium, Firefox and WebKit (6 M15 and 3 M13 per engine). All six browser suite segments passed without skipped scenarios. The targeted three-job run also passed. These results supersede the preceding source-specific failures as an *integration checkpoint only*. Earlier failures remain preserved below.
 
-The latest independent M13 branch includes a report-member SELECT RLS optimization that is **absent** from this passing combined source. Independent M15 has newer private browser-session fixtures and test changes not in the same combined source. The combined success therefore cannot be transferred to either later feature SHA or used to close G13-S25/G15-S25. G13 and G15 remain **not accepted**.
+The historical green combined SHA lacks the independent M13 report-member SELECT RLS optimization and newer M15 private browser-session fixtures. Both were subsequently incorporated into the successor candidate. The combined success therefore cannot be transferred to either later feature SHA or used to close G13-S25/G15-S25. G13 and G15 remain **not accepted**.
 
 ## Workflow evidence
 
@@ -27,6 +35,7 @@ The latest independent M13 branch includes a report-member SELECT RLS optimizati
 | [42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) | `6b05d84bf2f01741b182669c2dd17e39e63d9dda` | Expanded source, PostgreSQL security/fault and three-engine browser jobs PASS | Confirmed 312 unit, 52 contract, 37 PostgreSQL, 27 browser; final synchronization and independent review still required |
 
 | [42545005498](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42545005498) | `27d5d4ae81162bd3607cd35e5d3ec25425f61090` | Standalone M15 source and PostgreSQL PASS; Chromium 7/7, Firefox 7/7, WebKit 6/7, 1 FAIL | Live M11 notice was absent from WebKit list (expected one matching row, observed zero). Not the same source as the green combined run. |
+| [42547260912](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42547260912) | `bbf4ba38c9742f4e78b9d184d5b60e8aabf6a04c` | Standalone M15 source, PostgreSQL and Chromium/Firefox/WebKit all PASS, 7/7 per browser engine | Current independent M15 technical PASS; does not establish a successor combined PASS |
 
 An individual passed job is not a passed workflow. A workflow pass on an earlier SHA is not a pass on later edited source.
 
@@ -42,7 +51,7 @@ An individual passed job is not a passed workflow. A workflow pass on an earlier
 
 **Unrelated main workflow.** [42539391710](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539391710) on the protected `main` SHA `eb529368...` failed before business regression because the documentation checker references historical commit `6ead1d076946dd96b53401265a31efc35c4a666c` absent from the shallow checkout. Correct the workflow checkout depth and rerun separately; it is not a demonstrated M13/M15 application regression.
 
-## Latest confirmed browser failure and isolation correction
+## Historical browser failure and isolation correction
 
 The diagnostic assertion in [expanded run 42540547857](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42540547857), source `a6041a10869714b3f6613190a456568d835bf881`, identified the exact M13 custom-window failure: **HTTP 429 Too Many Requests** on the correctly formed `fromUtc=2026-11-01T00:00:00Z` request. The API behaved according to its configured six-report-per-minute limiter. The combined browser runner had executed all M15 notification scenarios and M13 KPI scenarios against the same manager/session and in-memory limiter window. It had unintentionally exhausted reporting quota through unrelated fixture activity.
 
@@ -51,13 +60,13 @@ The combined workflow now runs the notification and KPI suites in separate phase
 ## Remaining integration and acceptance work
 
 1. The previous 42540547877 and 42540547857 outcomes are reconciled above, and later runs 42541135788/42541135825 both passed on `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. Preserve their raw artifacts, hashes and historical red runs. Do not repeat already completed work without a changed-source reason.
-2. Synchronize the combined branch with the *latest* M13 implementation and M15 implementation, including any security-sensitive report member RLS changes and M15 replay/browser fixes that advanced after the initial integration. Preserve both feature branches. Verify the exact final combined SHA again.
+2. The successor now includes latest independently verified M13 and M15 source, including report-member RLS and browser replay/fixture fixes, while preserving original branches. **Run a full combined source-locked verification on the final successor SHA; no successor result is yet available.**
 3. Run and reconcile all M13 and M15 selected contract, restricted-role SQL, migration upgrade/rollback, security-negative and Chromium/Firefox/WebKit journeys, plus the separate large-tenant G13 volume check on the final M13 source.
 4. Confirm full G13 reference ledger K01-K14, M11 rule and occurrence source membership, error/rollback/crash behavior, approved numerical budgets and audit integrity. Supplemental fixture coverage and partial green workflows do not close S01-S24.
 5. Close G13-S25 only after **independent** review of immutable raw evidence and an explicit acceptance decision. G15 has its own policy approvals and independent review. Never infer either milestone's acceptance from this integration work.
 
 **Historical standalone M15 update:** Run [42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598), source `40aa049b88afbcf29d1ce40a3792524cf93ba990`, finished with successful source and selected PostgreSQL jobs but a Chromium browser failure: 5/6 specs passed and one `Acknowledged` text locator matched two elements. Firefox and WebKit were not reached. This is a test selector defect that must be fixed and rerun on the independent M15 feature branch, not a failure of the earlier combined SHA.
 
-**Latest separate M15 result:** Run [42545005498](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42545005498) on `27d5d4ae81162bd3607cd35e5d3ec25425f61090` executed all three browser engines after source and PostgreSQL PASS. Chromium 7/7 and Firefox 7/7 PASS, WebKit 6/7 PASS with one failure on the live M11-to-M15 notification row. The expected notice count was one and the WebKit test observed zero; the underlying reason is not established by the log. This is the latest standalone M15 attempt, not a regression result for the green earlier combined source. Keep G15 acceptance pending and investigate this targeted failure before final source synchronization.
+**Latest separate M15 result:** [Run 42547260912](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42547260912) at `bbf4ba38c9742f4e78b9d184d5b60e8aabf6a04c` completed SUCCESS across source, PostgreSQL and Chromium/Firefox/WebKit (7/7 each). Run 42545005498 above remains a historical WebKit failure, not the current standalone result. G15 acceptance remains pending.
 
 **Operational protections:** Keep M9 ARRI/DEPA processing held, 10,000 unresolved-work cap, default-off M10 projector, null ETA, opt-in M11 evaluator and default-off M15 notification dispatcher. No main merge, production migration, deployment or release authorization.

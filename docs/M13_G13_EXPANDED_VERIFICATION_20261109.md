@@ -1,7 +1,9 @@
 # G13 Expanded GitHub Actions Evidence and Open Issues
 
+**Combined results observed after the original evidence register:** [Expanded combined 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [targeted 42541135788](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) PASSED source, PostgreSQL and Chromium/Firefox/WebKit at `6b05d84bf2f01741b182669c2dd17e39e63d9dda`. The later independent M13 member-SELECT RLS optimization and independent M15 browser changes were not included in this combined SHA; synchronized re-verification and independent gate review remain required. [standalone M15 failure](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) on a different M15 SHA does not invalidate the older combined PASS.
+
 **Recorded:** 2026-11-09.  
-**M13 branch:** `plan/m13-operational-kpi-dashboards-20261108`, observed head `8175a28ac188b98f5b4cb3edaa7106b5d38ccb84`.  
+**M13 branch:** `plan/m13-operational-kpi-dashboards-20261108`, last independently tested source `8175a28ac188b98f5b4cb3edaa7106b5d38ccb84`; subsequent M13 commits are documentation-only.  
 **Combined integration branch:** `verify/g13-m13-m15-integration-20261109`.  
 **Disposition:** M13 targeted and supplemental checks passed on their stated source SHAs. A full, final source-locked G13-S01 through S24 reconciliation and independent G13-S25 review are still required. G13 acceptance pending. No merge, deployment, production migration or operational-policy change.
 

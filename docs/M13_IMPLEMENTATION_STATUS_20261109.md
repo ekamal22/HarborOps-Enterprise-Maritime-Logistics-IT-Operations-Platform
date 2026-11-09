@@ -4,7 +4,7 @@
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
 **Accepted baseline:** `eb529368a2447061fc1838cd3967b0ffedae669d`
 **Policy:** D-005 Option A approved, `m13-kpi-v1`
-**Status:** Application implementation and expanded technical verification candidate. Latest targeted source/database/browser PASS at `8175a28ac188b98f5b4cb3edaa7106b5d38ccb84`, [42539385476](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385476); 170k benchmark, focused fault recovery, nine code mutants and two SQL mutants passed on independently documented frozen SHAs. The expanded M13/M15 integration run is not yet green. [Current evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md). G13 acceptance pending. No merge or deployment.
+**Status:** Implemented M13 candidate with source-locked targeted, scale, fault and mutation PASS. A separate combined M13/M15 technical campaign also passed, but the latest SELECT RLS security/performance changes must be carried onto and tested on the final integration source. Latest targeted source/database/browser PASS at `8175a28ac188b98f5b4cb3edaa7106b5d38ccb84`, [42539385476](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385476); 170k benchmark, focused fault recovery, nine code mutants and two SQL mutants passed on independently documented frozen SHAs. The expanded M13/M15 integration run is not yet green. [Current evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md). G13 acceptance pending. No merge or deployment.
 
 ## Implemented source inventory
 

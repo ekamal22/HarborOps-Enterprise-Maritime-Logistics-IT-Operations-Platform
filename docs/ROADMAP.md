@@ -1,11 +1,13 @@
 # HarborOps Delivery Roadmap
 
+**Updated M13 workstream checkpoint (2026-11-09):** M13 feature branch application source has [targeted PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385476), [170,000-shipment PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42538812959), [nine source mutations PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42537538212), [two SQL-policy mutations PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385498), and [fault-recovery PASS](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42537768249), each tied to its recorded SHA. M13/M15 [combined PASS runs](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) at combined source `6b05d84bf2f01741b182669c2dd17e39e63d9dda`, which **does not include** the later M13 member-SELECT RLS optimization or newer M15 fixture changes. M15's [standalone M15 failure](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) has source/database PASS and Chromium 5/6 FAIL. G13 and G15 remain acceptance pending; no merge or deployment. [M13 full evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md).
+
 **Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-08  
-**State:** G0-G12 and G16 accepted and integrated into `main` through PR #33 and PR #34. G13-G15 and G17-G24 remain open. The M9 transport-processing hold and all deployment restrictions remain mandatory.
+**Updated status:** 2026-11-09  
+**State:** G0-G12 and G16 accepted and integrated into `main`. M13 and M15 have independently implemented, unaccepted work with an earlier combined technical PASS. G13-G15 and G17-G24 remain open. The M9 transport-processing hold and all deployment restrictions remain mandatory.
 
 ## Authority and rationale
 

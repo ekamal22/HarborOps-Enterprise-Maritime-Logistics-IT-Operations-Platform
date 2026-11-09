@@ -63,13 +63,13 @@ test("all statically referenced translation messages exist in the Turkish catalo
   let assertions = 0;
   for (const name of components) {
     const source = readFileSync(resolve(root, "web", "src", name), "utf8");
-    for (const match of source.matchAll(/\\bt\\("([^"\\n]+)"/g)) {
+    for (const match of source.matchAll(/\bt\("([^"\n]+)"/g)) {
       assert.ok(Object.hasOwn(TURKISH, match[1]), name + ": missing " + match[1]);
       assertions++;
     }
-    for (const option of source.matchAll(/<option\\b([^>]*)>([\\s\\S]*?)<\\/option>/g)) {
+    for (const option of source.matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/g)) {
       if (option[2].includes("{t("))
-        assert.match(option[1], /\\bvalue\\s*=/,
+        assert.match(option[1], /\bvalue\s*=/,
           name + ": translated visible option must preserve the server-facing value");
     }
   }
@@ -80,7 +80,7 @@ test("all source-defined KPI labels and descriptions have Turkish presentations"
   const source = readFileSync(resolve(root,
     "src/HarborOps.Domain/Reporting/OperationalKpiPolicy.cs"), "utf8");
   let count = 0;
-  for (const match of source.matchAll(/new\\("K\\d{2}",\\s*"([^"]+)",\\s*"[^"]+",\\s*(?:null|"[^"]+"),\\s*"([^"]+)"\\)/g)) {
+  for (const match of source.matchAll(/new\("K\d{2}",\s*"([^"]+)",\s*"[^"]+",\s*(?:null|"[^"]+"),\s*"([^"]+)"\)/g)) {
     assert.ok(Object.hasOwn(TURKISH, match[1]), "Missing KPI label " + match[1]);
     assert.ok(Object.hasOwn(TURKISH, match[2]), "Missing KPI description " + match[2]);
     count++;
@@ -93,7 +93,7 @@ test("source-approved notification titles and events use catalog text, not alter
     "src/HarborOps.Infrastructure/Notifications/NotificationStore.cs"), "utf8");
   const section = source.split("public static class NotificationText")[1]
     .split("public sealed class NotificationStore")[0];
-  const sentences = [...section.matchAll(/=>\\s*"([^"]+)"/g)]
+  const sentences = [...section.matchAll(/=>\s*"([^"]+)"/g)]
     .map(match => match[1]);
   assert.ok(sentences.length >= 8);
   for (const text of sentences) assert.ok(Object.hasOwn(TURKISH, text),

@@ -1,25 +1,27 @@
 # G13/G15 Atomic Acceptance Coverage and Behavioral Verification
 
+**Current G13/G15 coverage checkpoint (2026-11-09):** The most recent successful [15-job run #42632573516](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42632573516) verified commit `50ed2950bceaf3478172c3f9d9bf85186f874082`. New source-locked behavioral suites and the [atomic coverage inventory](G13_G15_ASSERTION_INVENTORY_20261109.json) were added later on `verify/g13-g15-evidence-closure-20261109` and have not passed GitHub Actions at that newer SHA. The 242 atomic requirements are currently classified as 214 with candidate full behavioral coverage, 13 partially covered, and 15 needing policy or independent review. Candidate means source-mapped, **not verified**. The accepted main baseline, manual reviewer S25 gates, G13 permanent storage decision, M15 P10 conditional review and M15 P12 cleanup prohibition remain unchanged. No main merge or deployment has occurred.
+
 **Updated:** 2026-11-09
-**Working branch:** \`verify/g13-g15-evidence-closure-20261109\`
+**Working branch:** `verify/g13-g15-evidence-closure-20261109`
 **Disposition:** Acceptance pending. No merge, deployment, production migration, activation or retention cleanup authorized.
 
 ## Source-locked checkpoints
 
-The last fully successful execution is [G13/G15 workflow 42632573516](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42632573516), at commit \`50ed2950bceaf3478172c3f9d9bf85186f874082\`. It passed 15 of 15 GitHub Actions jobs, including 48 separately recorded technical scenario evidence checks. This run is not evidence for code subsequently authored on the same branch.
+The last fully successful execution is [G13/G15 workflow 42632573516](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42632573516), at commit `50ed2950bceaf3478172c3f9d9bf85186f874082`. It passed 15 of 15 GitHub Actions jobs, including 48 separately recorded technical scenario evidence checks. This run is not evidence for code subsequently authored on the same branch.
 
 ## Assertion inventory and assessment
 
-The committed [assertion inventory](G13_G15_ASSERTION_INVENTORY_20261109.json) decomposes 50 scenarios into 242 separately classified assertions: 228 require automated technical evidence and 14 are policy or independent-review items. This is a **source-reviewed candidate coverage map**, not a claim that all tests have been executed on the newest commit.
+The committed [assertion inventory](G13_G15_ASSERTION_INVENTORY_20261109.json) decomposes 50 scenarios into 242 separately classified assertions: 227 require automated technical evidence and 15 are policy or independent-review items. This is a **source-reviewed candidate coverage map**, not a claim that all tests have been executed on the newest commit.
 
 | Classification | Assertions | Interpretation |
 | --- | ---: | --- |
-| Candidate fully tested | 139 | Candidate source-linked witnesses must pass against the exact new source SHA before they can count |
-| Partially tested | 89 | An existing test covers part of a compound requirement; an explicit behavioral review or extra test is still required |
-| Manual policy or independent review | 14 | Cannot be auto-approved through CI |
+| Candidate fully tested | 214 | Candidate source-linked witnesses must pass against the exact new source SHA before they can count |
+| Partially tested | 13 | An existing test covers part of a compound requirement; an explicit behavioral review or extra test is still required |
+| Manual policy or independent review | 15 | Cannot be auto-approved through CI |
 | **Total** | **242** | A passing run does not silently convert partial or manual items to accepted |
 
-The \`scripts/audit-g13-g15-assertions.py\` tool emits \`assertion-audit.json\` and \`assertion-audit.md\`. Missing/failed witnesses and partial categories remain explicit. \`--enforce-complete\` must fail while any automated assertion remains partially covered or missing. Each evidence file is retained with the same-run SHA-256 manifest. A separate \`scripts/check-g13-g15-scenarios.py\` gate checks 48 technical scenario contracts.
+The `scripts/audit-g13-g15-assertions.py` tool emits `assertion-audit.json` and `assertion-audit.md`. Missing/failed witnesses and partial categories remain explicit. `--enforce-complete` must fail while any automated assertion remains partially covered or missing. Each evidence file is retained with the same-run SHA-256 manifest. A separate `scripts/check-g13-g15-scenarios.py` gate checks 48 technical scenario contracts.
 
 ## New behavioral coverage added after the successful run
 
@@ -30,7 +32,7 @@ The \`scripts/audit-g13-g15-assertions.py\` tool emits \`assertion-audit.json\` 
 - G13: empty tenant and Draft-only denominator behavior; exact percentage rendering for 1/3, 2/3 and 8/9 in the browser.
 - G15: three approved event actions versus Reevaluated, InputUnavailable and Acknowledged; unique immutable history IDs; low-noise MarkRead, exactly-once acknowledgment audit and same-key replay; archived target scope and historical event preservation.
 - UI: notification dependency error/retry, delayed old-organization response denial, KPI empty-data error/retry and exact displayed ratios.
-- G13 performance: the existing 170,000-shipment / 30-successful-report sample retains the approved p50 <= 15 seconds and p95 <= 20 seconds envelope. A separate final overcapacity query seeds 18,000 extra Draft shipments, proves the 500,000-member cap fails closed with HTTP 413, and verifies that its failed transaction does not replace the prior committed report.
+- G13 performance: the existing 170,000-shipment / 30-successful-report sample retains the approved p50 <= 15 seconds and p95 <= 20 seconds envelope. A separate final overcapacity query seeds 16,665 extra Draft shipments, proves the 500,000-member cap fails closed with HTTP 413, and verifies that its failed transaction does not replace the prior committed report.
 - G13 measured provisional resource ceilings: 2 GiB additional report-table storage across the 30-report exercise, and 1 GiB peak working set. These are verification bounds justified by the prior 1.63 GB final-size and 609 MB peak-memory observation, **not approved permanent retention or production service limits**.
 
 ## Required workflow

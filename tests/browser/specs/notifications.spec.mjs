@@ -214,6 +214,46 @@ test("G15 unavailable shipment navigation fails closed without exposing the targ
 });
 
 
+test("G15 a cancelled pagination result cannot leave Load more disabled", async ({ page }) => {
+  test.skip(!enabled, "Disposable organization fixtures required");
+  await signIn(page);
+  const north = await page.locator("#current-organization option")
+    .filter({ hasText:"M3 North Terminal (Manager)" }).getAttribute("value");
+  expect(north).toBeTruthy();
+  const notices = Array.from({ length:25 }, (_, index) => ({
+    id:"d0000000-0000-4000-8000-"+String(index+1).padStart(12,"0"),
+    shipmentId:"d1000000-0000-4000-8000-000000000001",
+    exceptionId:"d2000000-0000-4000-8000-000000000001",
+    eventType:"ExceptionOpened", ruleCode:"ArrivalScheduleOverdue",
+    title:"Planned arrival overdue; physical arrival unconfirmed",
+    eventLabel:"Opened", createdAtUtc:"2026-11-08T18:00:00Z",
+    readAtUtc:null, acknowledgedAtUtc:null, state:"Unread",version:1
+  }));
+  let releasePage;
+  await page.route("**/organizations/"+north+"/notifications?*", async route => {
+    const query = new URL(route.request().url()).searchParams;
+    if (query.has("cursor"))
+      await new Promise(resolve => { releasePage = resolve; });
+    return route.fulfill({ status:200, contentType:"application/json",
+      body:JSON.stringify({ items:query.has("cursor") ? [] : notices,
+        nextCursor:query.has("cursor") ? null : "synthetic-page-token",
+        snapshotAtUtc:"2026-11-08T18:01:00Z" }) });
+  });
+  await page.route("**/organizations/"+north+"/notifications/unread-count",
+    route => route.fulfill({ status:200,contentType:"application/json",
+      body:JSON.stringify({ unreadCount:25, asOfUtc:"2026-11-08T18:01:00Z" }) }));
+  await page.locator("#current-organization")
+    .selectOption({ label:"M3 North Terminal (Manager)" });
+  const center=page.getByRole("region",{name:"In-app shipment notifications"});
+  const more=center.getByRole("button",{name:"Load more notifications"});
+  await expect(more).toBeEnabled();
+  await more.click();
+  await expect.poll(() => typeof releasePage).toBe("function");
+  await center.getByRole("button",{name:"Refresh notifications"}).click();
+  releasePage();
+  await expect(more).toBeEnabled();
+});
+
 test("G15 live M11 event is delivered and navigable from the real notification API",
   async ({ page }) => {
   test.skip(!enabled || process.env.HARBOROPS_M15_LIVE_FIXTURE !== "1",

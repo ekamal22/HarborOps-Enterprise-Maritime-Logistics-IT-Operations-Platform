@@ -99,7 +99,9 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
         setError(organizationError(cause)); invalidate(cause);
       }
     } finally {
-      if (mounted.current && run === serial.current) setPaging(false);
+      // An overlapping refresh invalidates this page request but must not
+      // strand the pagination lock. The response is still discarded above.
+      if (mounted.current) setPaging(false);
     }
   };
 

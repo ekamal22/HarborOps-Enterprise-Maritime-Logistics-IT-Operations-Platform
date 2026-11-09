@@ -5,13 +5,32 @@ import path from "node:path";
 const enabled = process.env.HARBOROPS_M5_FIXTURES === "1" &&
   Boolean(process.env.HARBOROPS_TEST_USER_PASSWORD);
 
-async function signIn(page) {
+async function signIn(page, role="Manager") {
+  const root=process.env.HARBOROPS_VERIFICATION_ROOT;
+  const filename=role==="Administrator" ? "m15-administrator.json" : "m15-manager.json";
+  const privateState=root ? path.join(root,".private",filename) : null;
+  if (privateState && fs.existsSync(privateState)) {
+    const state=JSON.parse(fs.readFileSync(privateState,"utf8"));
+    const session=state.cookies.find(cookie=>cookie.name==="HarborOps.Session");
+    expect(session?.value).toBeTruthy();
+    await page.context().addCookies(state.cookies);
+  } else {
+    // Optional local smoke mode without a prepared disposable fixture.
+    await page.goto("/");
+    await page.getByLabel("Email").fill(role==="Administrator"
+      ? "m3-admin-a@example.test" : "m3-manager@example.test");
+    await page.getByLabel("Password",{exact:true})
+      .fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
+    const login=page.waitForResponse(response=>
+      response.url().endsWith("/api/v1/auth/login") &&
+      response.request().method()==="POST");
+    await page.getByRole("button",{name:"Sign in"}).click();
+    const response=await login;
+    expect(response.status(), "Disposable browser login HTTP status").toBe(200);
+  }
   await page.goto("/");
-  await page.getByLabel("Email").fill("m3-manager@example.test");
-  await page.getByLabel("Password", { exact: true })
-    .fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("heading", { name: "Organization workspace" })).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Organization workspace"}))
+    .toBeVisible();
 }
 
 test("G15 scoped notification center displays neutral event and personal state", async ({ page }) => {
@@ -57,11 +76,7 @@ test("G15 scoped notification center displays neutral event and personal state",
 
 test("G15 notification center never grants administrator shipment visibility", async ({page}) => {
   test.skip(!enabled,"Disposable organization fixtures required");
-  await page.goto("/");
-  await page.getByLabel("Email").fill("m3-admin-a@example.test");
-  await page.getByLabel("Password",{exact:true})
-    .fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
-  await page.getByRole("button",{name:"Sign in"}).click();
+  await signIn(page,"Administrator");
   await page.locator("#current-organization")
     .selectOption({label:"M3 North Terminal (Administrator)"});
   await expect(page.getByRole("region",{name:"In-app shipment notifications"}))

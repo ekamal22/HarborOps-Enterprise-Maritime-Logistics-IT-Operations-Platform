@@ -162,9 +162,9 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
       {error && <p className="mt-4 rounded border border-rose-700 p-3 text-sm text-rose-200" role="alert">{error}</p>}
       {report && <>
         <div className="mt-5 border-y border-slate-700 py-3 text-xs text-slate-400">
-          <p>{t("Period:")}{fmt(report.fromUtc)} to {fmt(report.beforeUtc)} (end exclusive)</p>
-          <p>{t("Current-state evaluation:")}{fmt(report.evaluatedAtUtc)} | Members: {number(report.memberCount)}</p>
-          <p>{t("Snapshot expires:")}{fmt(report.expiresAtUtc)}. Refresh creates a new report and replaces old drill membership.</p>
+          <p>{t("Period:")} {fmt(report.fromUtc)} {t("to")} {fmt(report.beforeUtc)} {t("(end exclusive)")}</p>
+          <p>{t("Current-state evaluation:")} {fmt(report.evaluatedAtUtc)} | {t("Members:")} {number(report.memberCount)}</p>
+          <p>{t("Snapshot expires:")} {fmt(report.expiresAtUtc)}. {t("Refresh creates a new report and replaces old drill membership.")}</p>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {definitions.filter(d => d.code !== "K02" && d.code !== "K12").map(d => {
@@ -178,8 +178,8 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
             return <button type="button" key={d.code} onClick={() => select(d.code, d.label)}
               className="rounded-lg border border-slate-700 bg-slate-950/80 p-4 text-left hover:border-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
               <span className="text-xs uppercase tracking-wide text-slate-400">{t(d.label)}</span>
-              <span className="mt-2 block text-2xl font-semibold text-cyan-200">{value}</span>
-              {den !== null && <span className="mt-1 block text-xs text-slate-400">{number(n)} / {number(den)} {["K07","K08","K09","K10"].includes(d.code) ? "evaluated" : ""}</span>}
+              <span className="mt-2 block text-2xl font-semibold text-cyan-200">{t(value)}</span>
+              {den !== null && <span className="mt-1 block text-xs text-slate-400">{number(n)} / {number(den)} {["K07","K08","K09","K10"].includes(d.code) ? t("evaluated") : ""}</span>}
               {partial && ["K07", "K08", "K09", "K10", "K11"].includes(d.code) &&
                 <span className="mt-1 block text-xs text-amber-300">{t("Partial assessment. Zero is not confirmed risk-free.")}</span>}
               <span className="mt-2 block text-xs text-slate-500">{t(d.description)}</span>
@@ -188,13 +188,13 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
         </div>
         <section className="mt-6">
           <h4 className="font-semibold">{t("Current workflow distribution")}</h4>
-          <p className="mt-1 text-xs text-slate-400">{t("Unarchived shipments only. Total")}{number(denominator("D01"))}.</p>
+          <p className="mt-1 text-xs text-slate-400">{t("Unarchived shipments only. Total")} {number(denominator("D01"))}.</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             {statuses.map(status => {
               const n = count(report.counts, "K02", status);
               return <button key={status} onClick={() => select("K02", "Workflow: " + status, status)}
                 className="rounded border border-slate-700 bg-slate-950 p-3 text-left text-sm hover:border-cyan-500">
-                <span>{t(status)}</span><span className="float-right font-semibold">{n}</span>
+                <span>{t(status)}</span><span className="float-right font-semibold">{number(n)}</span>
                 <span className="mt-2 block h-1.5 rounded bg-slate-800">
                   <span className="block h-full rounded bg-cyan-400"
                     style={{ width: (denominator("D01") ? n / denominator("D01") * 100 : 0) + "%" }} />
@@ -212,7 +212,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
           <dl className="mt-3 grid gap-2 sm:grid-cols-2">
             {Object.entries(qualityLabels).map(([code, label]) =>
               <div key={code} className="rounded border border-slate-700 p-3 text-sm">
-                <dt className="text-slate-400">{t(label)}</dt><dd className="mt-1 font-semibold">{denominator(code)}</dd>
+                <dt className="text-slate-400">{t(label)}</dt><dd className="mt-1 font-semibold">{number(denominator(code))}</dd>
               </div>)}
           </dl>
           <p className="mt-2 text-xs text-slate-500">{t("An individual shipment may have more than one evidence-quality reason.")}</p>
@@ -220,7 +220,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
         </section>
         <section className="mt-6">
           <h4 className="font-semibold">{t("Exception occurrence openings")}</h4>
-          <p className="mt-1 text-xs text-slate-400">{t("Recorded openings by UTC")}{t(report.bucket === "day" ? "Daily" : "Weekly")}, {t("not reconstructed historical open status.")}</p>
+          <p className="mt-1 text-xs text-slate-400">{t("Recorded openings by UTC")} {t(report.bucket === "day" ? "Daily" : "Weekly")}, {t("not reconstructed historical open status.")}</p>
           {exceptionTrend.length === 0 && <p className="mt-3 text-sm text-slate-400">{t("No recorded openings in this window.")}</p>}
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {exceptionTrend.map(row => <button

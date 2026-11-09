@@ -22,6 +22,7 @@ JOBS = {
     "sql_mutations": os.environ.get("GATE_JOB_SECURITY", "unknown"),
     "faults": os.environ.get("GATE_JOB_FAULTS", "unknown"),
     "source_mutations": os.environ.get("GATE_JOB_MUTATIONS", "unknown"),
+    "notification_mutations": os.environ.get("GATE_JOB_G15_MUTATIONS", "unknown"),
 }
 
 # References identify executed technical checks, not complete acceptance scenarios.
@@ -58,7 +59,7 @@ REFERENCES = {
         20: ["RequiredAuditFailureRollsBackReceiptAndReplay"],
         22: ["BROWSER:notifications"],
         23: ["M11ExceptionRuntimeTests"],
-        24: ["MUTATION:g13-security-mutations"],
+        24: ["MUTATION:g15-mutations"],
     },
 }
 
@@ -219,7 +220,7 @@ def main() -> int:
         key: find_artifact(key)
         for key in ("combined-source", "m15-database", "m15-browser",
                     "g13-scale", "g13-security-mutations",
-                    "g13-faults", "g13-mutations")
+                    "g13-faults", "g13-mutations", "g15-mutations")
     }
     for name, root in artifacts.items():
         if root is None:
@@ -234,6 +235,8 @@ def main() -> int:
         "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 9),
         "g13-security-mutations": mutation_result(
             artifacts["g13-security-mutations"], "g13-security-mutations", 2),
+        "g15-mutations": mutation_result(
+            artifacts["g15-mutations"], "g15-mutations", 4),
     }
     if counters["Failed"] or counters["Skipped"] or counters["Other"]:
         fail("TRX contains failing, skipped or unexpected test outcomes")

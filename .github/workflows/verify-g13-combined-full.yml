@@ -453,7 +453,7 @@ jobs:
     name: Reconcile G13 and G15 scenario evidence without approving gates
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations]
+    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations]
     if: always()
     env:
       GATE_JOB_SOURCE: ${{ needs.source.result }}
@@ -463,6 +463,7 @@ jobs:
       GATE_JOB_SECURITY: ${{ needs.security-mutations.result }}
       GATE_JOB_FAULTS: ${{ needs.g13-faults.result }}
       GATE_JOB_MUTATIONS: ${{ needs.g13-mutations.result }}
+      GATE_JOB_G15_MUTATIONS: ${{ needs.g15-mutations.result }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -484,5 +485,52 @@ jobs:
           name: g13-g15-evidence-${{ github.run_id }}
           path: .verification/gate-ledger/
           if-no-files-found: warn
+          retention-days: 30
+
+
+  g15-mutations:
+    name: G15 notification scope and delivery mutation sensitivity
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g15-mutation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g15-mutation;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify clean controls and four effective M15 mutations
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 scripts/g15-mutation-campaign.py
+      - name: Seal original-source evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g15-mutations
+          test -z "$(git status --porcelain --untracked-files=no)"
+          printf '%s\n' "$GITHUB_SHA" > .verification/g15-mutations/source-sha.txt
+          (cd .verification/g15-mutations && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g15-mutations-${{ github.run_id }}
+          path: .verification/g15-mutations/
           retention-days: 30
 

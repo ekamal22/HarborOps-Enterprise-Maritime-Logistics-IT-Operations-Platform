@@ -157,6 +157,10 @@ public sealed class G13FilterAcceptanceTests
             new WebApplicationFactoryClientOptions { HandleCookies = true });
         await ReferenceDataHttpTests.Login(scoped, fixture.AnalystEmail);
         await ReferenceDataHttpTests.Select(scoped, fixture.A);
+        using var scopedManager = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(scopedManager, fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Select(scopedManager, fixture.A);
         var baseUrl = $"/api/v1/organizations/{fixture.A}/analytics/overview";
         await using var db = new NpgsqlConnection(roles.Admin);
         await db.OpenAsync();
@@ -168,6 +172,7 @@ public sealed class G13FilterAcceptanceTests
             return Convert.ToInt64(await command.ExecuteScalarAsync());
         }
         var before = await Saved();
+        var attempted = 0;
         foreach (var suffix in new[]
         {
             "?fromUtc=2026-11-09T00:00:00Z",
@@ -181,11 +186,13 @@ public sealed class G13FilterAcceptanceTests
             "?arbitraryColumn=role"
         })
         {
-            using var rejected = await scoped.GetAsync(baseUrl + suffix);
+            var reader = (++attempted % 2 == 0) ? scopedManager : scoped;
+            using var rejected = await reader.GetAsync(baseUrl + suffix);
             Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
         }
         Assert.Equal(before, await Saved());
-        using var foreign = await scoped.GetAsync(
+        // Six requests per actor, retaining the real reporting limiter.
+        using var foreign = await scopedManager.GetAsync(
             $"/api/v1/organizations/{fixture.B}/analytics/overview");
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
         Assert.Equal(before, await Saved());

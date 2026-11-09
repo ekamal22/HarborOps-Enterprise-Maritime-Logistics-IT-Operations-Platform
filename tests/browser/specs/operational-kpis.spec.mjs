@@ -187,3 +187,82 @@ test("M13 ratio rendering uses exact member numerators and half-up percentages",
     .getByText("88.89%", { exact: true })).toBeVisible();
   await expect(d.getByText(/Partial assessment/).first()).toBeVisible();
 });
+
+
+test("M13 expired report drill shows no stale member data and refresh resets the drill", async ({ page }) => {
+  test.skip(!enabled, "Disposable M13 browser fixture required");
+  await login(page, "m3-manager@example.test");
+  await page.route("**/analytics/overview*", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({
+      policyVersion: "m13-kpi-v1",
+      reportId: "e0000000-0000-4000-8000-000000000008",
+      reportToken: "disposable-fixture-expired-token",
+      fromUtc: "2026-11-02T00:00:00Z",
+      beforeUtc: "2026-11-09T00:00:00Z",
+      evaluatedAtUtc: "2026-11-09T12:00:00Z",
+      expiresAtUtc: "2026-11-09T12:10:00Z",
+      memberCount: 1, bucket: "day",
+      counts: [{metricCode:"K01",dimension:"",bucketStartUtc:null,count:1}]
+    })
+  }));
+  await page.route("**/analytics/reports/*/members?*", route => route.fulfill({
+    status: 409, contentType: "application/json",
+    body: JSON.stringify({code:"report_expired",message:"Report snapshot expired"})
+  }));
+  await page.locator("#current-organization").selectOption({
+    label: "M3 North Terminal (Manager)"
+  });
+  const d = dashboard(page);
+  await expect(d.getByRole("button", {name:/Active shipments/})).toBeVisible();
+  await d.getByRole("button", {name:/Active shipments/}).click();
+  const drill = d.getByRole("region", {name:"KPI report members"});
+  await expect(drill.getByRole("alert")).toBeVisible();
+  await expect(drill.locator("tbody tr")).toHaveCount(0);
+  await d.getByRole("button", {name:"Refresh report"}).click();
+  await expect(drill).toHaveCount(0);
+});
+
+test("M13 switching organization discards the previous organization's report", async ({ page }) => {
+  test.skip(!enabled, "Disposable M13 browser fixture required");
+  await login(page, "m3-manager@example.test");
+  const options = page.locator("#current-organization option");
+  const north = await options.filter({hasText:"M3 North Terminal (Manager)"})
+    .getAttribute("value");
+  const east = await options.filter({hasText:"M3 East Terminal (Manager)"})
+    .getAttribute("value");
+  expect(north).toBeTruthy();
+  expect(east).toBeTruthy();
+  await page.route("**/analytics/overview*", route => {
+    const isNorth = route.request().url().includes("/organizations/" + north + "/");
+    return route.fulfill({
+      status:200,contentType:"application/json",
+      body:JSON.stringify({
+        policyVersion:"m13-kpi-v1",
+        reportId:isNorth ? "e0000000-0000-4000-8000-000000000009"
+          : "e0000000-0000-4000-8000-000000000010",
+        reportToken:"disposable-fixture-report-token",
+        fromUtc:"2026-11-02T00:00:00Z",
+        beforeUtc:"2026-11-09T00:00:00Z",
+        evaluatedAtUtc:"2026-11-09T12:00:00Z",
+        expiresAtUtc:"2026-11-09T12:10:00Z",
+        memberCount:isNorth?17:0,bucket:"day",
+        counts:isNorth?[{metricCode:"K01",dimension:"",bucketStartUtc:null,count:17}]:[]
+      })
+    });
+  });
+  await page.locator("#current-organization").selectOption({
+    label:"M3 North Terminal (Manager)"
+  });
+  let d = dashboard(page);
+  await expect(d.getByRole("button",{name:/Active shipments/})
+    .getByText("17",{exact:true})).toBeVisible();
+  await page.locator("#current-organization").selectOption({
+    label:"M3 East Terminal (Manager)"
+  });
+  d = dashboard(page);
+  await expect(d.getByRole("button",{name:/Active shipments/})
+    .getByText("0",{exact:true})).toBeVisible();
+  await expect(d.getByRole("button",{name:/Active shipments/})
+    .getByText("17",{exact:true})).toHaveCount(0);
+});

@@ -391,3 +391,37 @@ test("G15 late response from old organization never appears after switching", as
   await expect(center).toBeVisible();
   await expect(center.getByText("Old organization private notification")).toHaveCount(0);
 });
+
+
+test("G15 logout clears protected feed data before another authentication", async ({page}) => {
+  test.skip(!enabled, "Disposable organization fixtures required");
+  await signIn(page);
+  const north = await page.locator("#current-organization option")
+    .filter({hasText:"M3 North Terminal (Manager)"}).getAttribute("value");
+  expect(north).toBeTruthy();
+  await page.route("**/organizations/" + north + "/notifications?*", route =>
+    route.fulfill({status:200,contentType:"application/json",
+      body:JSON.stringify({
+        items:[{
+          id:"e0000000-0000-4000-8000-000000000011",
+          shipmentId:"e0000000-0000-4000-8000-000000000012",
+          exceptionId:"e0000000-0000-4000-8000-000000000013",
+          eventType:"ExceptionOpened",ruleCode:"ArrivalScheduleOverdue",
+          title:"Private scoped notice for logout verification",
+          eventLabel:"Opened",createdAtUtc:"2026-11-09T12:00:00Z",
+          readAtUtc:null,acknowledgedAtUtc:null,state:"Unread",version:1
+        }],
+        nextCursor:null,snapshotAtUtc:"2026-11-09T12:01:00Z"
+      })}));
+  await page.locator("#current-organization").selectOption({
+    label:"M3 North Terminal (Manager)"
+  });
+  const center=page.getByRole("region",{name:"In-app shipment notifications"});
+  await expect(center.getByText("Private scoped notice for logout verification"))
+    .toBeVisible();
+  await page.getByRole("button",{name:"Log out",exact:true}).click();
+  await expect(page.getByText("Private scoped notice for logout verification"))
+    .toHaveCount(0);
+  await expect(center).toHaveCount(0);
+  await expect(page.getByLabel("Email")).toBeVisible();
+});

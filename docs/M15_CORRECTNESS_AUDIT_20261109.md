@@ -1,7 +1,7 @@
 # M15 Correctness Audit: Notification State and Browser Verification
 
 **Date:** 2026-11-09  
-**Audited application and browser source:** `6af26b31e87e4980d2d365f7c3e8edc1117b9560` on `feat/m15-scoped-notifications-20261108`  
+**Audited application and browser source:** latest test/fixture audit extends through `f54ee9f6740e3a8506ff2bb83ccc8457757b4f36`; earlier application correction `6af26b31e87e4980d2d365f7c3e8edc1117b9560` on `feat/m15-scoped-notifications-20261108`  
 **Disposition:** Source-level remediation committed, final Actions verification pending. G15 not accepted. No merge, migration, delivery activation or deployment.
 
 ## Method and scope
@@ -38,6 +38,16 @@ This is a targeted repository source correctness audit supported by already exec
 **Remediation:** Preserve the stale-response guard for data writes and errors, but always clear the pagination activity flag when the same component remains mounted. Notification center is keyed by selected organization and role in the workspace. Added a Playwright race regression that holds the cursor response, refreshes the first page, releases the stale response, and asserts Load more becomes enabled.
 
 **Source fixes:** `26c858d39c2b893f45f695cdbee737afed6c0aa3` initially repaired stale completion; `6af26b31e87e4980d2d365f7c3e8edc1117b9560` additionally aborts superseded pagination requests on refresh and unmount, immediately resets the activity flag and fences cleanup to the exact AbortController. This also covers requests that never settle, not just delayed responses. The regression holds an in-flight cursor request while a new first-page refresh occurs.
+
+### F03: WebKit live notice absent after earlier browser scenarios
+
+[Run 42545005498](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42545005498) passed source and PostgreSQL; Chromium 7/7 and Firefox 7/7 passed; WebKit 6/7 passed. WebKit's last live M11 event navigation case could not find the expected personal notice in its rendered first page within 10 seconds. The run logged no individual HTTP response codes, so do not invent a confirmed 429 or attribute the cause to the backend without further evidence.
+
+**Root-cause hypothesis supported by source:** the authenticated `audit-read` limiter permits 30 requests per user per minute. Six mocked browser scenarios registered their explicit interceptors only after `signIn(page)` loaded the workspace. This made unintentional initial notification list/count calls against the actual API on each fresh test page, accumulating across three sequential browser engines and a reused manager principal. The last real WebKit test is therefore vulnerable to a shared rate-limit rejection that the React component would fail closed on.
+
+**Remediation:** a `test.beforeEach` interceptor supplies empty, non-secret notification list/count responses before navigation **only for mocked scenarios**; the live M11-to-M15 browser scenario is specifically excluded, runs first and uses real authenticated API responses. The live test captures response status codes and sanitized UI error details if its notice is absent. Tests retain their later scenario-specific routes. Production policy `audit-read`, database grants and authorization remain unchanged. Playwright routing precedence is defined to run the most recently registered matching route first.
+
+**Evidence boundary:** source changes are committed but not yet executed, and HTTP 429 has not been confirmed from the previous logs. Future execution must verify all seven cases on all three engines and, on failure, inspect the new diagnostic status list.
 
 ## Other reviewed invariants
 

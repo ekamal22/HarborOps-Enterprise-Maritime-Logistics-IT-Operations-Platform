@@ -515,5 +515,11 @@ export const TURKISH = Object.freeze({
   "Reference pagination did not complete safely": "Referans sayfalaması güvenli şekilde tamamlanamadı",
   "Current version {version} loaded.": "Güncel sürüm {version} yüklendi.",
   "Your unsaved changes to {fields} were kept.": "{fields} alanlarındaki kaydedilmemiş değişiklikleriniz korundu.",
-  "The server also changed {fields}. Your value is shown and saving will replace the server's.": "Sunucu da {fields} alanlarını değiştirdi. Sizin değerleriniz gösteriliyor; kaydetmeniz sunucudaki değerlerin üzerine yazacak."
+  "The server also changed {fields}. Your value is shown and saving will replace the server's.": "Sunucu da {fields} alanlarını değiştirdi. Sizin değerleriniz gösteriliyor; kaydetmeniz sunucudaki değerlerin üzerine yazacak.",
+  "Your changes to {fields} can no longer be applied and were not kept.": "{fields} alanlarındaki düzenlemeleriniz artık uygulanamıyor ve korunmadı.",
+  "display name": "görünen ad",
+  "planned departure": "planlanan kalkış",
+  "planned arrival": "planlanan varış",
+  "workflow status": "iş akışı durumu",
+  "From ": "Başlangıç: "
 });

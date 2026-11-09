@@ -1,6 +1,6 @@
 # M13 Verification Campaign Status
 
-**Current verification checkpoint (2026-11-09):** Combined successor [run 42552035939](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42552035939) **PASSED all five jobs** at `3150e5b67bace1801dfc3b02ff53c423b5af931c` (312 unit, 52 contract, 37 PostgreSQL, 30 browser, 170,000-shipment scale and two SQL security mutants). New acceptance campaign `verify/g13-g15-acceptance-campaign-20261109` adds tests and nine-job evidence packaging, but **is not executed at the new source SHA**. Full G13/G15 scenario proof, M15-P01..P14 approvals and S25 remain pending. No acceptance, merge or production activation. [Campaign](G13_G15_ACCEPTANCE_CAMPAIGN_20261109.md).
+**Current verification checkpoint (2026-11-09):** The nine-job [G13/G15 source-locked run 42555586856](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42555586856) PASSED at `ef2dd697df6c4a2dc8b53c55e7968ac37e41a745` with all 405 test records and 30 browser checks passing; its own ledger still left 48 of 50 full gate scenarios open. The newer eleven-job `verify/g13-g15-parallel-closure-20261109` branch remains **unverified** until manual dispatch. Both S25 reviews, M15 policy approvals, merge and deployment are pending. [Parallel completion record](G13_G15_PARALLEL_COMPLETION_20261109.md).
 
 
 **Opened:** 2026-11-09

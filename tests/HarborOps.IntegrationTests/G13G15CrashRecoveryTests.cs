@@ -285,7 +285,7 @@ public sealed class G13G15CrashRecoveryTests
             SELECT source_history_id FROM m15_notification_outbox
             WHERE organization_id=@org AND shipment_id=@shipment
                 AND completed_at_utc IS NULL
-            FOR UPDATE SKIP LOCKED LIMIT 1
+            LIMIT 1 FOR UPDATE SKIP LOCKED
             """, db, tx);
         claim.Parameters.AddWithValue("org", s.Fixture.A);
         claim.Parameters.AddWithValue("shipment", shipment);

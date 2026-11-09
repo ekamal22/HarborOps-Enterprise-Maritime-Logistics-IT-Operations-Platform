@@ -20,6 +20,9 @@ TYPE = "HarborOps.IntegrationTests.G13G15CrashRecoveryTests"
 PHASES = (
     ("G13BeforeReportCommit", None),
     ("G15BeforeHistoryCommit", None),
+    ("G15BeforeClaimCommit", "G15FanoutRecoveredInNewApiProcess"),
+    ("G15BeforeFanoutCommit", "G15FanoutRecoveredInNewApiProcess"),
+    ("G15AfterFanoutCommit", "G15FanoutRecoveredInNewApiProcess"),
     ("G13AfterReportCommit", "G13AfterReportCommitRecoveredInNewApiProcess"),
     ("G15AfterReceiptCommit", "G15AfterReceiptCommitRecoveredInNewApiProcess"),
 )
@@ -73,6 +76,25 @@ def verify_phase(container: str, phase: str, marker: dict) -> None:
             f"WHERE report_id='{target}'::uuid AND organization_id='{org}'::uuid")
         if count != 1 or members < 1:
             raise AssertionError("Committed report disappeared after process termination")
+    elif phase in ("G15BeforeClaimCommit", "G15BeforeFanoutCommit",
+                   "G15AfterFanoutCommit"):
+        outbox = sql_count(container,
+            f"SELECT count(*) FROM m15_notification_outbox "
+            f"WHERE source_history_id='{target}'::uuid "
+            f"AND organization_id='{org}'::uuid "
+            f"AND completed_at_utc IS "
+            + ("NOT NULL" if phase == "G15AfterFanoutCommit" else "NULL"))
+        receipts = sql_count(container,
+            f"SELECT count(*) FROM m15_user_notifications "
+            f"WHERE source_history_id='{target}'::uuid "
+            f"AND organization_id='{org}'::uuid")
+        if outbox != 1:
+            raise AssertionError(phase + ": outbox state did not survive as expected")
+        if phase == "G15AfterFanoutCommit":
+            if receipts < 1:
+                raise AssertionError("Committed fanout receipts did not survive kill")
+        elif receipts:
+            raise AssertionError("Uncommitted claim/fanout exposed personal receipts")
     elif phase == "G15AfterReceiptCommit":
         count = sql_count(container,
             f"SELECT count(*) FROM m15_user_notifications "

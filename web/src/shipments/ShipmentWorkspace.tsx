@@ -435,7 +435,19 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
   const scheduleLocked = readonly || (!creating && selected !== null && !scheduleEditable(selected.workflowStatus));
   const remoteNote = remote && selected
     ? t("This shipment changed on the server (now version {remote}; you opened version {opened}). Your unsaved edits are preserved.", {remote: remote.version, opened: selected.version}) : "";
-  const banner = conflict || remoteNote;
+  const fieldNames = (value: string) => value.split(", ").map(part => t(part)).join(", ");
+  const localizedConflict = (value: string) => t(value)
+    .replace(/Current version (\\d+) loaded\\./g, (_match, version: string) =>
+      t("Current version {version} loaded.", { version }))
+    .replace(/Your unsaved changes to (.+?) were kept\\./g, (_match, fields: string) =>
+      t("Your unsaved changes to {fields} were kept.", { fields: fieldNames(fields) }))
+    .replace(/The server also changed (.+?)\\. Your value is shown and saving will replace the server's\\./g,
+      (_match, fields: string) => t("The server also changed {fields}. Your value is shown and saving will replace the server's.",
+        { fields: fieldNames(fields) }))
+    .replace(/Your changes to (.+?) can no longer be applied and were not kept\\./g,
+      (_match, fields: string) => t("Your changes to {fields} can no longer be applied and were not kept.",
+        { fields: fieldNames(fields) }));
+  const banner = conflict ? localizedConflict(conflict) : remoteNote;
   return <section className="mt-6 border-t border-slate-700 pt-5">
     <div className="flex items-center justify-between gap-3">
       <h4 className="font-semibold">{t("Shipments")}</h4>
@@ -501,7 +513,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
     {refreshing && !loading && <p role="status" className="mt-3 text-xs text-slate-400">{t("Updating list...")}</p>}
     {stale && <p role="status" className="mt-3 text-xs text-amber-300">{t(stale)}</p>}
     {error && <p role="alert" className="mt-3 text-sm text-rose-300">{t(error)}</p>}
-    {banner && <div role="alert" className="mt-3 text-sm text-amber-300">{t(banner)}
+    {banner && <div role="alert" className="mt-3 text-sm text-amber-300">{banner}
       {selected && reviewable && <button type="button" onClick={() => void reviewCurrent()}
         className="ml-3 rounded border border-amber-500 px-2 py-1">{t("Load current version")}</button>}
     </div>}

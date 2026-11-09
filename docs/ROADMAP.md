@@ -1,11 +1,14 @@
 # HarborOps Delivery Roadmap
 
+**M15 workstream status (2026-11-09):** [Run 42545005498](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42545005498) verified frozen M15 SHA `27d5d4ae`: source and targeted PostgreSQL PASS, live M11/M15 delivery PASS in Chromium and Firefox, Chromium 7/7 PASS, Firefox 7/7 PASS, WebKit 6/7 PASS and one live-notice visibility failure. The cause was not conclusively logged. [Current audit](M15_CORRECTNESS_AUDIT_20261109.md) identifies unmocked first-paint API reads across three browser engines against a shared per-user 30/minute limit as a plausible test-fixture cause. New source installs mock routes before page navigation only for mocked scenarios; the real live API test remains unmocked, runs first and captures HTTP status diagnostics. Final three-engine verification is **pending**, not passed. Previous [combined M13/M15 run 42541135825](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed on an older shared SHA, not the latest independent branches. G13/G15 and M15-P01..P14 acceptance pending. Accepted `main` stays G0-G12 and G16; no merge or deployment.
+
+
 **Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-08  
-**State:** G0-G12 and G16 accepted and integrated into `main` through PR #33 and PR #34. G13-G15 and G17-G24 remain open. The M9 transport-processing hold and all deployment restrictions remain mandatory.
+**Updated status:** 2026-11-09  
+**State:** G0-G12 and G16 accepted and integrated into `main`. Independently implemented M13 and M15 work is unaccepted. Earlier combined technical PASS does not replace current M15 branch checks. G13-G15 and G17-G24 remain open. The M9 transport-processing hold and all deployment restrictions remain mandatory.
 
 ## Authority and rationale
 
@@ -236,6 +239,9 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Not covered by this milestone:** Notifications and general dashboard widgets.
 
 #### M15: Scoped in-app notifications
+
+**Implementation source checkpoint (2026-11-08):** [M15 implementation status](M15_IMPLEMENTATION_STATUS.md) records the candidate notification outbox, recipient API, optional delivery service and React interface on the separate feature branch. Runtime verification and G15 acceptance remain pending. M13 integration, additive migration order and local policy decisions require reconciliation before a merge.
+
 
 **Scope:** Authorized event and incident exception messaging.
 **Entry:** G11 accepted before respective dependent work packages.

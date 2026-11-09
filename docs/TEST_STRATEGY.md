@@ -1,5 +1,8 @@
 # Test and Verification Strategy
 
+**M15 workstream status (2026-11-09):** The [combined M13/M15 expanded run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [targeted run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) both PASS at combined source `6b05d84bf2f01741b182669c2dd17e39e63d9dda`, which predates newer independent M13 RLS and M15 changes. Latest standalone M15 [42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) PASSed source and PostgreSQL, but Chromium passed 5/6 with an ambiguous `Acknowledged` locator; Firefox/WebKit were not reached. The [correctness audit](M15_CORRECTNESS_AUDIT_20261109.md) records fixes at `26c858d39c2b893f45f695cdbee737afed6c0aa3` that still need a full new Actions run. G13/G15 and M15-P01..P14 approvals remain pending. Accepted `main` remains G0-G12 and G16; no merge or deployment.
+
+
 **Current verified baseline (2026-11-08):** G0-G12 and G16 accepted and merged. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records the 388/388 integration, 48/48 browser, 17/17 effective mutant and N01 10/10 evidence. Earlier source-only and pending verification banners are historical, not current. Preserve the M9 ARRI/DEPA hold, 10,000 unresolved-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator; no deployment.
 
 ## Current G10 source verification boundary
@@ -203,3 +206,7 @@ New-source execution on `a26d19acd57308033bdf6fe7e25c61287cd17b0b` is recorded i
 ## M11/M12 local closure addendum (2026-11-08)
 
 Residual scenarios are verified with focused tests on disposable PostgreSQL servers rather than another full-suite repeat: revocation and atomicity are interleaved with a held organization or shipment lock, recovery uses backend termination and runtime-login disabling, and query plans replay the SQL captured from the real API under the restricted role. Role-changing cases require an exclusive server and `HARBOROPS_G12_EXCLUSIVE_POSTGRES=1`. Simulated clock advance and outage are labelled as simulations in the evidence. See [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).
+
+## M15 gated verification expansion
+
+The M15 source-locked workflow includes warning-as-error .NET build, unit and contract tests, web build, targeted accepted-M11 migration/exception regression, and a **separate** `M15NotificationBoundaryTests` invocation on an exclusive disposable PostgreSQL database. The separate invocation avoids running database-wide fault-injection constraints concurrently with unrelated test classes. The M15 browser job enables delivery only in its disposable Docker Compose project, prepares a real M11 event and M15 row, and runs `notifications.spec.mjs` across Chromium, Firefox and WebKit. The results for these newly added checks are pending. The prior [frozen evidence](M15_EXECUTED_VERIFICATION_20261109.md) remains restricted to the exact tested SHA, never automatically inherited by later commits.

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import ReferenceDataWorkspace from "../references/ReferenceDataWorkspace";
 import MaritimeWorkspace from "../maritime/MaritimeWorkspace";
 import ShipmentWorkspace from "../shipments/ShipmentWorkspace";
+import NotificationCenter, { type NotificationTarget } from "../notifications/NotificationCenter";
 import {
   getJson, mutate, organizationError, OrganizationRequestError,
   type Membership, type OrganizationItem, type OrganizationProfile
@@ -52,6 +53,7 @@ function MembershipRow({ member, currentUserId, locked, onUpdate, onRemove }: {
 export default function OrganizationWorkspace({ currentUserId }: { currentUserId: string }) {
   const [organizations, setOrganizations] = useState<OrganizationItem[]>([]);
   const [selection, setSelection] = useState<OrganizationItem | null>(null);
+  const [notificationTarget, setNotificationTarget] = useState<NotificationTarget | null>(null);
   const [profile, setProfile] = useState<OrganizationProfile | null>(null);
   const [members, setMembers] = useState<Membership[]>([]);
   const [nextAfter, setNextAfter] = useState<string | null>(null);
@@ -72,6 +74,7 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
 
   const clearProtected = useCallback(() => {
     setProfile(null); setMembers([]); setNextAfter(null); setSelection(null);
+    setNotificationTarget(null);
     setProfileName("");
   }, []);
 
@@ -264,9 +267,14 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
               organizationId={selection.id} canManage={selection.role === "Manager"}
               onAccessInvalidated={onReferenceAccessInvalidated} />}
           {(selection.role === "Analyst" || selection.role === "Manager" || selection.role === "Auditor") &&
+            <NotificationCenter key={"notifications:" + selection.id + ":" + selection.role}
+              organizationId={selection.id} onOpen={setNotificationTarget}
+              onAccessInvalidated={onReferenceAccessInvalidated} />}
+          {(selection.role === "Analyst" || selection.role === "Manager" || selection.role === "Auditor") &&
             <ShipmentWorkspace key={"shipment:" + selection.id + ":" + selection.role}
               organizationId={selection.id} canManage={selection.role !== "Auditor"}
                canManageExceptions={selection.role === "Manager"}
+              notificationTarget={notificationTarget}
               onAccessInvalidated={onReferenceAccessInvalidated} />}
           {selection.role === "Administrator" && (
             <div className="mt-5 border-t border-slate-700 pt-5">

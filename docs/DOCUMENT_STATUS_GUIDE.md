@@ -1,6 +1,10 @@
 # Documentation Status Guide
 
+**M15 workstream status (2026-11-09):** The [combined M13/M15 expanded run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [targeted run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) both PASS at combined source `6b05d84bf2f01741b182669c2dd17e39e63d9dda`, which predates newer independent M13 RLS and M15 changes. Latest standalone M15 [42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) PASSed source and PostgreSQL, but Chromium passed 5/6 with an ambiguous `Acknowledged` locator; Firefox/WebKit were not reached. The [correctness audit](M15_CORRECTNESS_AUDIT_20261109.md) records fixes at `26c858d39c2b893f45f695cdbee737afed6c0aa3` that still need a full new Actions run. G13/G15 and M15-P01..P14 approvals remain pending. Accepted `main` remains G0-G12 and G16; no merge or deployment.
+
 **Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
+
+**Current M15 technical source:** [M15 evidence register](M15_EXECUTED_VERIFICATION_20261109.md) and [correctness audit](M15_CORRECTNESS_AUDIT_20261109.md). The combined green source belongs to a different frozen SHA, and the previous 2026-11-08 reconciliation is historical.
 
 ## Sources of truth
 

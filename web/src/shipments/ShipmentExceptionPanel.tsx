@@ -38,8 +38,9 @@ function revoked(cause: unknown): boolean {
 }
 
 export default function ShipmentExceptionPanel({ organizationId, shipmentId, isManager,
-  onAccessInvalidated }: {
+  focusExceptionId, focusRequest, onAccessInvalidated }: {
   organizationId: string; shipmentId: string; isManager: boolean;
+  focusExceptionId?: string; focusRequest?: number;
   onAccessInvalidated: (message: string) => void;
 }) {
   const root = "/api/v1/organizations/" + encodeURIComponent(organizationId);
@@ -128,6 +129,10 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
       }
     }
   };
+
+  useEffect(() => {
+    if (focusExceptionId) void showDetail(focusExceptionId);
+  }, [focusExceptionId, focusRequest]);
 
   const moreHistory = async () => {
     if (!detail?.nextHistoryCursor || historyPaging || loading) return;

@@ -1,5 +1,7 @@
 # Cost and Deployment Strategy
 
+**Current M15 source status (2026-11-09):** M15's [latest standalone Actions run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) passed source and PostgreSQL but failed one Chromium receipt selector (5/6 passed); Firefox/WebKit were not reached. Subsequent [correctness remediation](M15_CORRECTNESS_AUDIT_20261109.md) remains unverified on a fresh SHA. The separate [combined M13/M15 run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed 312 unit, 52 contract, 37 selected PostgreSQL and 27 three-engine browser checks on a different earlier source. Neither G13 nor G15 is accepted, and M15-P01 through P14 require approval. Accepted `main` remains G0-G12 and G16. No merge or deployment.
+
 **Current source and gate status (2026-11-08):** G0-G12 and G16 are accepted and merged into `main`. M11/G11 and M12/G12 were independently reconciled and formally accepted through [gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md); their prior candidate and verification notes below are historical when dated earlier. M9 ARRI/DEPA sustained processing remains held at the 10,000 unresolved-item boundary; M10 projector default-off, ETA null and M11 evaluator opt-in. No deployment or production migration is authorized.
 
 ## Primary constraint

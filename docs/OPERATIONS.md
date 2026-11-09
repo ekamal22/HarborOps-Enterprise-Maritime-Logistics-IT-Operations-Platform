@@ -1,5 +1,8 @@
 # Operations and Reliability
 
+**Current M15 source status (2026-11-09):** M15's [latest standalone Actions run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) passed source and PostgreSQL but failed one Chromium receipt selector (5/6 passed); Firefox/WebKit were not reached. Subsequent [correctness remediation](M15_CORRECTNESS_AUDIT_20261109.md) remains unverified on a fresh SHA. The separate [combined M13/M15 run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) passed 312 unit, 52 contract, 37 selected PostgreSQL and 27 three-engine browser checks on a different earlier source. Neither G13 nor G15 is accepted, and M15-P01 through P14 require approval. Accepted `main` remains G0-G12 and G16. No merge or deployment.
+
+
 **Current project state (2026-11-08):** G0-G12 and G16 are accepted and integrated on `main` following [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. Earlier source-only and gate-pending notes are superseded; retained dated evidence still describes its original run. M9's ARRI/DEPA hold and 10,000-item cap remain mandatory, M10 projector defaults off, ETA null, M11 evaluator opt-in. There is no authorization for deployment or additional GitHub Actions runs.
 
 ## M12 fifth-pass test execution boundary
@@ -268,3 +271,9 @@ The additive thirteenth migration passed fresh and populated historical upgrade 
 - Free-text search on a tenant that holds most of the table scans the whole shipments heap (measured 32 to 49 ms at 170,000 rows). Plan a trigram index before text search must serve millions of rows.
 - Export concurrency and rate limits are per API instance. Behind several instances the effective limits multiply.
 - Evidence and retained plans: [local closure results](M11_M12_LOCAL_CLOSURE_RESULTS_20261108.md).
+
+## M15 scoped notification delivery control
+
+The API-hosted M15 dispatcher is controlled only by `M15:EnableDelivery` (`HARBOROPS_M15_ENABLE_DELIVERY` in Compose). Its default and the shipped `.env.example` value are `false`. Do not set it to `true` in production until explicit M15 policy approval, G15 acceptance, required key/provisioner evidence, deployment authorization and an approved rollback/retention plan. This switch never enables M9 ARRI/DEPA transport processing, the M10 projector, ETA computation or the M11 evaluator.
+
+For isolated disposable verification only, `.github/workflows/verify-m11-m12-combined.yml` runs with the M15 delivery environment flag enabled and `scripts/prepare-m15-browser-fixtures.mjs` seeds a real M11-to-M15 delivery in the disposable stack. Persistent outbox retries and quarantines are reported by the dispatcher through sanitized event counts; never print proof keys, cookies or request bodies in operational logs.

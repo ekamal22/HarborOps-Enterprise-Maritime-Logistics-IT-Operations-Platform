@@ -34,6 +34,7 @@ jobs:
           node scripts/check-m15-contract.mjs 2>&1 | tee .verification/m15-contract.log
           node scripts/render-execution-graph.mjs --check 2>&1 | tee .verification/graph.log
           find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
+          python3 -m py_compile scripts/verify-g13-g15-evidence.py scripts/check-g13-g15-scenarios.py
       - name: Reconcile historical documentation consistency
         run: |
           set -euo pipefail

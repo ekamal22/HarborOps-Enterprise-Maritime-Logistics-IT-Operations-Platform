@@ -549,6 +549,80 @@ public sealed class M15NotificationBoundaryTests
     }
 
     [Fact]
+    public async Task InFlightCancellationRollsBackBlockedFanout()
+    {
+        var (setup, shipment, _) = await OpenException();
+        using var factory = setup.Factory;
+        using var runtime = setup.Runtime;
+        using var manager = setup.Manager;
+        using var analyst = setup.Analyst;
+        using var administrator = setup.Administrator;
+        using var seedAdmin = setup.Fixture.Admin;
+        using var seedManager = setup.Fixture.Manager;
+        using var seedAnalyst = setup.Fixture.Analyst;
+
+        await using var adminDb = new NpgsqlConnection(setup.Roles.Admin);
+        await adminDb.OpenAsync();
+        await using var blocker = new NpgsqlConnection(setup.Roles.Admin);
+        await blocker.OpenAsync();
+        await using var hold = await blocker.BeginTransactionAsync();
+        await using (var exclusive = new NpgsqlCommand(
+            "LOCK TABLE m15_user_notifications IN ACCESS EXCLUSIVE MODE",
+            blocker, hold))
+            await exclusive.ExecuteNonQueryAsync();
+
+        await using var scope = runtime.Services.CreateAsyncScope();
+        var delivery = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+        using var cancel = new CancellationTokenSource();
+        var active = delivery.DeliverPendingAsync(cancel.Token);
+        await Task.Delay(500);
+        Assert.False(active.IsCompleted,
+            "The fanout must be blocked in SQL before cancellation is requested");
+        cancel.Cancel();
+        var failure = await Record.ExceptionAsync(async () =>
+            await active.WaitAsync(TimeSpan.FromSeconds(15)));
+        Assert.True(failure is OperationCanceledException or PostgresException
+            { SqlState: "57014" },
+            $"Expected a cancelled SQL operation, got {failure?.GetType().Name}");
+        await hold.RollbackAsync();
+
+        Assert.Equal(1L, await Count(adminDb, """
+            SELECT COUNT(*) FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@shipment
+                AND completed_at_utc IS NULL AND attempt_count=0
+            """, ("org", setup.Fixture.A), ("shipment", shipment)));
+        Assert.Equal(0L, await Count(adminDb, """
+            SELECT COUNT(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", setup.Fixture.A), ("shipment", shipment)));
+
+        // Recovery uses a new scope rather than assuming a cancelled Npgsql
+        // connection remains reusable.
+        await using var recoveredScope = runtime.Services.CreateAsyncScope();
+        var recovered = recoveredScope.ServiceProvider.GetRequiredService<NotificationStore>();
+        for (var iteration = 0; iteration < 100; iteration++)
+        {
+            await recovered.DeliverPendingAsync(CancellationToken.None);
+            if (await Count(adminDb, """
+                SELECT COUNT(*) FROM m15_notification_outbox
+                WHERE organization_id=@org AND shipment_id=@shipment
+                    AND completed_at_utc IS NOT NULL
+                """, ("org", setup.Fixture.A), ("shipment", shipment)) == 1L)
+                break;
+        }
+        var recipients = await Count(adminDb, """
+            SELECT COUNT(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", setup.Fixture.A), ("shipment", shipment));
+        Assert.True(recipients >= 2);
+        Assert.Equal(recipients, await Count(adminDb, """
+            SELECT COUNT(DISTINCT recipient_user_id)
+            FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", setup.Fixture.A), ("shipment", shipment)));
+    }
+
+    [Fact]
     public async Task CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce()
     {
         var (setup, shipment, _) = await OpenException();

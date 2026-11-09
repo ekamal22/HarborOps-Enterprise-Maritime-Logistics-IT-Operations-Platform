@@ -242,7 +242,7 @@ public sealed class M13ScaleLoadTests
             await File.WriteAllTextAsync(
                 Path.Combine(directory, "explain-api-" + sample + ".json"), raw);
             Console.WriteLine($"G13_RESTRICTED_PLAN sample={sample} elapsed_ms={elapsed.Elapsed.TotalMilliseconds:F0} " +
-                $"role=harborops_api bytes={raw.Length} sha256={Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(raw)))}");
+                $"role=harborops_api bytes={System.Text.Encoding.UTF8.GetByteCount(raw)} sha256={Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(raw)))}");
         }
         finally
         {

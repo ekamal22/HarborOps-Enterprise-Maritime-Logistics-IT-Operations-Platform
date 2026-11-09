@@ -443,6 +443,28 @@ def main() -> int:
         fail("TRX contains failing, skipped or unexpected test outcomes")
     if not tests:
         fail("No executed test outcomes")
+    # A green job cannot substitute for a missing newly required test. Every
+    # closure-specific check must be present as a passed result at this SHA.
+    required_tests = (
+        "StolenDatabaseSessionIdsCannotForgeAnM10Correction",
+        "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards",
+        "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData",
+        "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant",
+        "SignedRecipientContextCannotReadAnotherUserNotifications",
+        "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay",
+        "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce",
+        "InFlightCancellationRollsBackBlockedFanout",
+    )
+    for required in required_tests:
+        if not any(name.endswith("." + required) and status == "Passed"
+                   for name, status in tests.items()):
+            fail("Required closure test not executed successfully: " + required)
+    if not all(crash.values()) or not crash:
+        fail("Required source-locked process-kill or restart evidence missing")
+    if not budget:
+        fail("Required restricted-role query plans or KPI limits missing")
+    if not scan:
+        fail("Required dependency and secret-scan evidence missing")
     if not all(browsers.values()) or len(browsers) != 6:
         fail("Three-engine browser evidence incomplete")
     if not all(mutations.values()):

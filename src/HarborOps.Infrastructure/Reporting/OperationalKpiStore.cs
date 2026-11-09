@@ -218,6 +218,16 @@ public sealed class OperationalKpiStore(
             T("before", f.BeforeUtc), T("now", now), T("expires", expires)))
             await create.ExecuteNonQueryAsync(ct);
 
+        // This statement-local claim is not an authority on its own. SQL RLS
+        // verifies the signed M11 session, selected tenant, report ownership,
+        // active membership and expiry once, and checks the org/report
+        // equality for every inserted member row.
+        await using (var claim = Command(Connection, sqlTx, """
+            SELECT set_config('harborops.m13_materialize_org',@org::text,true),
+                   set_config('harborops.m13_materialize_report',@report::text,true)
+            """, U("org", org), U("report", report)))
+            await claim.ExecuteNonQueryAsync(ct);
+
         int count;
         await using (var insert = Command(Connection, sqlTx, MemberSql,
             U("org", org), U("report", report), T("from", f.FromUtc),

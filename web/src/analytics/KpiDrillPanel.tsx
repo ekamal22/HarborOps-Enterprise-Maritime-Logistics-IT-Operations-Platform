@@ -81,7 +81,7 @@ export default function KpiDrillPanel({
     <div className="flex items-center justify-between gap-2">
       <div>
         <h4 className="text-base font-semibold">{selection.label} members</h4>
-        <p className="mt-1 text-xs text-slate-400">Frozen report membership, evaluated {new Date(report.evaluatedAtUtc).toLocaleString("en-GB", { timeZone: "UTC" })} UTC</p>
+        <p className="mt-1 text-xs text-slate-400">{t("Frozen report membership, evaluated")}{new Date(report.evaluatedAtUtc).toLocaleString("en-GB", { timeZone: "UTC" })} UTC</p>
       </div>
       <button onClick={onClose} className="rounded border border-slate-600 px-3 py-2 text-sm">{t("Close")}</button>
     </div>
@@ -112,8 +112,8 @@ export default function KpiDrillPanel({
     {detail && <div className="mt-4 rounded border border-slate-700 p-3 text-sm">
       <p className="font-semibold">{detail.referenceCode} | {detail.workflowStatus}</p>
       <p className="mt-1 text-xs text-slate-400">{t("Live detail may have changed since the report snapshot.")}</p>
-      <p className="mt-2">Record: {detail.recordStatus} | Source: {detail.displayName ?? "Not provided"}</p>
-      <p className="mt-1 text-xs text-slate-400">Planned arrival: {detail.plannedArrivalAtUtc ?? "Unknown"}</p>
+      <p className="mt-2">{t("Record:")}{detail.recordStatus} | Source: {detail.displayName ?? "Not provided"}</p>
+      <p className="mt-1 text-xs text-slate-400">{t("Planned arrival:")}{detail.plannedArrivalAtUtc ?? "Unknown"}</p>
       {exceptionState && <p className="mt-2 text-amber-200">{exceptionState}</p>}
     </div>}
   </section>;

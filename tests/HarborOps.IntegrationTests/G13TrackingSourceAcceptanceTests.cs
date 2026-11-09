@@ -4,6 +4,7 @@ using System.Text.Json;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Xunit;

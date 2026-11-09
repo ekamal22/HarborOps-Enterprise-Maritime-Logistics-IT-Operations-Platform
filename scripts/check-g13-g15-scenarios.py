@@ -78,7 +78,11 @@ EXTRA = {
 MUTANTS = {
     "g13-mutations": {"tenant-materialization-scope-removed",
                       "coverage-force-complete", "k06-remove-tolerance",
-                      "k11-include-resolved-occurrence", "k12-suppress-first-openings"},
+                      "k11-include-resolved-occurrence", "k12-suppress-first-openings",
+                      "k03-duplicate-status-history",
+                      "correction-generation-stale-accepted",
+                      "origin-member-filter-ignored",
+                      "malformed-kpi-member-cursor-admitted"},
     "g13-security-mutations": {"report-select-unrestricted",
                                "administrator-sql-grant-bypass",
                                "auditor-sql-grant-bypass", "member-select-unrestricted"},

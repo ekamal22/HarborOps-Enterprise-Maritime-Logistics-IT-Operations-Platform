@@ -434,7 +434,7 @@ def main() -> int:
     scan = scan_evidence(artifacts["dependency-security"])
     browsers = browser_result(artifacts["m15-browser"])
     mutations = {
-        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 14),
+        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 18),
         "g13-security-mutations": mutation_result(
             artifacts["g13-security-mutations"], "g13-security-mutations", 4),
         "g15-mutations": mutation_result(

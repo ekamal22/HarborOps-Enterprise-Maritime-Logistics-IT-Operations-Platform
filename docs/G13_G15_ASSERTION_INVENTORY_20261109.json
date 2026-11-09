@@ -2687,14 +2687,10 @@
             {
               "kind": "mutation",
               "id": "g13-security-mutations"
-            },
-            {
-              "kind": "scan",
-              "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "A deliberate K03 duplicate and correction-generation bypass must both be killed by the 12+2 fixture oracle. All outcomes require same-SHA execution and restored source checks."
         },
         {
           "id": "G13-S24-A04",
@@ -2708,14 +2704,10 @@
             {
               "kind": "mutation",
               "id": "g13-security-mutations"
-            },
-            {
-              "kind": "scan",
-              "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "An origin-filter bypass must be killed by exact filtered members; the previously effective cap comparison mutant must be killed by source-locked reference reporting. All outcomes require same-SHA execution and restored source checks."
         },
         {
           "id": "G13-S24-A05",
@@ -2729,14 +2721,10 @@
             {
               "kind": "mutation",
               "id": "g13-security-mutations"
-            },
-            {
-              "kind": "scan",
-              "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "A forged member cursor bypass must be killed by malformed-cursor HTTP tests; existing effective SQL report and grant bypass mutants must also be killed. All outcomes require same-SHA execution and restored source checks."
         },
         {
           "id": "G13-S24-A06",

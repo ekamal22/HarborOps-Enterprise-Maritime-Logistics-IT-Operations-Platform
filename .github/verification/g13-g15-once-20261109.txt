@@ -1,0 +1,5 @@
+G13/G15 acceptance verification source-locked launch
+Predecessor: eab1a5dc67dede6ff8a24ceaa9096e7cee51413e
+Verification workflow: verify-m11-m12-combined.yml
+Branch: verify/g13-g15-evidence-closure-20261109
+This file is a one-time Actions trigger, not an acceptance decision.

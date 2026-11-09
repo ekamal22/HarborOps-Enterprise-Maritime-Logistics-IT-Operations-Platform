@@ -1,0 +1,30 @@
+name: Launch G13 G15 source-locked acceptance once
+run-name: G13 G15 source-locked campaign launcher
+on:
+  push:
+    branches:
+      - verify/g13-g15-evidence-closure-20261109
+    paths:
+      - .github/verification/g13-g15-once-20261109.txt
+permissions:
+  actions: write
+  contents: read
+jobs:
+  dispatch:
+    name: Verify branch SHA and dispatch final acceptance workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch frozen verification branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_BRANCH: verify/g13-g15-evidence-closure-20261109
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "$EXPECTED_BRANCH"
+          current="$(gh api repos/${GITHUB_REPOSITORY}/git/ref/heads/${EXPECTED_BRANCH} --jq '.object.sha')"
+          test "$current" = "$GITHUB_SHA"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/workflows/verify-m11-m12-combined.yml/dispatches" \
+            -f ref="$EXPECTED_BRANCH"
+          echo "Source-locked campaign dispatched for $GITHUB_SHA"

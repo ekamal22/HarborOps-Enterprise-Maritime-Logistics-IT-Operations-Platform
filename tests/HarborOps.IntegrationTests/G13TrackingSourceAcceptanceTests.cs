@@ -94,13 +94,24 @@ public sealed class G13TrackingSourceAcceptanceTests
                     "\"eventCode\":\"ARRI\"","\"eventCode\":\"DEPA\"",
                     StringComparison.Ordinal));
         Assert.NotEqual(arr,depa);
+        // Received order is GTIN at 10:00, GTOT at 12:00, then a delayed
+        // GTIN event for 11:00. Event receipt order cannot become M5
+        // workflow arrival/completion or a predictive ETA.
+        await G9Support.Accept(fixtureFactory,source,
+            G9Support.EquipmentPayload(
+                "g13-gtot-" + Guid.NewGuid().ToString("N")[..12],
+                target.Reference,"2026-11-03T12:00:00Z","GTOT"));
+        await G9Support.Accept(fixtureFactory,source,
+            G9Support.EquipmentPayload(
+                "g13-late-" + Guid.NewGuid().ToString("N")[..12],
+                target.Reference,"2026-11-03T11:00:00Z","GTIN"));
 
         await using (var scope = fixtureFactory.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
             var worker = new TrackingWorkStore(db,new TrackingWorkerSettings());
             var dispositions = new List<TrackingWorkDisposition>();
-            for(var i=0;i<3;i++)
+            for(var i=0;i<5;i++)
             {
                 var claim = await worker.ClaimOneAsync(
                     fixture.A,CancellationToken.None);
@@ -108,7 +119,7 @@ public sealed class G13TrackingSourceAcceptanceTests
                 dispositions.Add(await worker.FinalizeAsync(
                     claim!,CancellationToken.None));
             }
-            Assert.Equal(1,dispositions.Count(
+            Assert.Equal(3,dispositions.Count(
                 x => x == TrackingWorkDisposition.Processed));
             Assert.Equal(2,dispositions.Count(
                 x => x == TrackingWorkDisposition.NeedsReconciliation));
@@ -135,6 +146,6 @@ public sealed class G13TrackingSourceAcceptanceTests
         Assert.Equal(0L,Metric(after,"K04"));
         Assert.Equal(0L,Metric(after,"K05"));
         Assert.Equal(0L,Metric(after,"K06"));
-        Console.WriteLine("G13_M8_M9_KPI duplicate_receipt_effect_once=true parked_transport=2 workflow_unchanged=true");
+        Console.WriteLine("G13_M8_M9_KPI duplicate_receipt_effect_once=true out_of_order_equipment=2 parked_transport=2 workflow_unchanged=true");
     }
 }

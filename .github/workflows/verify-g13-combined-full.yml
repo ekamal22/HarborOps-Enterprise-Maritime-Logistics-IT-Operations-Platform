@@ -1,5 +1,5 @@
-name: Verify G13 M13 M15 full integration
-run-name: G13 combined source database and browsers
+name: Verify G13 G15 parallel acceptance evidence
+run-name: G13 G15 parallel acceptance verification
 on:
   workflow_dispatch:
 
@@ -129,7 +129,7 @@ jobs:
         with:
           name: m15-database-${{ github.run_id }}
           path: .verification/m15/
-          retention-days: 7
+          retention-days: 30
           include-hidden-files: true
 
   m15-browser:
@@ -254,7 +254,7 @@ jobs:
         with:
           name: m15-browser-${{ github.run_id }}
           path: .verification/m15-browser/
-          retention-days: 7
+          retention-days: 30
           include-hidden-files: true
 
 

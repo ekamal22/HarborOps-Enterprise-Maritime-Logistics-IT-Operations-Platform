@@ -758,8 +758,8 @@
               "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S08-A02",
@@ -808,8 +808,8 @@
               "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S08-A04",
@@ -858,8 +858,8 @@
               "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         }
       ]
     },
@@ -994,8 +994,8 @@
               "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S10-A02",
@@ -1015,8 +1015,8 @@
               "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S10-A03",
@@ -1036,8 +1036,8 @@
               "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S10-A04",
@@ -1057,8 +1057,8 @@
               "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S10-A05",
@@ -1627,8 +1627,8 @@
               "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S15-A02",
@@ -1648,8 +1648,8 @@
               "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S15-A03",
@@ -1711,8 +1711,8 @@
               "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         }
       ]
     },
@@ -2242,8 +2242,8 @@
               "id": "G13"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S20-A02",
@@ -2263,8 +2263,8 @@
               "id": "G13"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S20-A03",
@@ -2284,8 +2284,8 @@
               "id": "G13"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S20-A04",
@@ -2305,8 +2305,8 @@
               "id": "G13"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S20-A05",
@@ -2326,8 +2326,8 @@
               "id": "G13"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S20-A06",
@@ -2347,8 +2347,8 @@
               "id": "G13"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S20-A07",
@@ -2377,8 +2377,8 @@
               "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S21-A02",
@@ -2394,8 +2394,8 @@
               "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S21-A03",
@@ -2411,8 +2411,8 @@
               "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S21-A04",
@@ -2471,8 +2471,8 @@
               "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S22-A02",
@@ -2492,8 +2492,8 @@
               "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S22-A03",
@@ -2513,8 +2513,8 @@
               "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S22-A04",
@@ -2534,8 +2534,8 @@
               "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S22-A05",
@@ -2555,8 +2555,8 @@
               "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         }
       ]
     },
@@ -2585,8 +2585,8 @@
               "id": "g13-security-mutations"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S23-A02",
@@ -2610,8 +2610,8 @@
               "id": "g13-security-mutations"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S23-A03",
@@ -2635,8 +2635,8 @@
               "id": "g13-security-mutations"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S23-A04",
@@ -2711,8 +2711,8 @@
               "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S24-A02",
@@ -2732,8 +2732,8 @@
               "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G13-S24-A03",
@@ -2816,8 +2816,8 @@
               "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         }
       ]
     },
@@ -3144,8 +3144,8 @@
               "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S04-A02",
@@ -3186,8 +3186,8 @@
               "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S04-A04",
@@ -3704,8 +3704,8 @@
               "id": "notifications"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S10-A02",
@@ -3746,8 +3746,8 @@
               "id": "notifications"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S10-A04",
@@ -3767,8 +3767,8 @@
               "id": "notifications"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         }
       ]
     },
@@ -3882,8 +3882,8 @@
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S12-A02",
@@ -3924,8 +3924,8 @@
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S12-A04",
@@ -3945,8 +3945,8 @@
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S12-A05",
@@ -3966,8 +3966,8 @@
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         }
       ]
     },
@@ -4178,8 +4178,8 @@
               "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S14-A02",
@@ -4195,8 +4195,8 @@
               "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S14-A03",
@@ -4212,8 +4212,8 @@
               "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S14-A04",
@@ -4808,8 +4808,8 @@
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S20-A02",
@@ -4825,8 +4825,8 @@
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S20-A03",
@@ -4842,8 +4842,8 @@
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S20-A04",
@@ -4859,8 +4859,8 @@
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S20-A05",
@@ -4902,8 +4902,8 @@
               "id": "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S21-A02",
@@ -4923,8 +4923,8 @@
               "id": "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S21-A03",
@@ -4965,8 +4965,8 @@
               "id": "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S21-A05",
@@ -5008,8 +5008,8 @@
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S22-A02",
@@ -5025,8 +5025,8 @@
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S22-A03",
@@ -5042,8 +5042,8 @@
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S22-A04",
@@ -5059,8 +5059,8 @@
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S22-A05",
@@ -5102,8 +5102,8 @@
               "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S23-A02",
@@ -5123,8 +5123,8 @@
               "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S23-A03",
@@ -5144,8 +5144,8 @@
               "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S23-A04",
@@ -5165,8 +5165,8 @@
               "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S23-A05",
@@ -5186,8 +5186,8 @@
               "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         }
       ]
     },
@@ -5212,8 +5212,8 @@
               "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S24-A02",
@@ -5233,8 +5233,8 @@
               "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S24-A03",
@@ -5254,8 +5254,8 @@
               "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S24-A04",
@@ -5275,8 +5275,8 @@
               "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         },
         {
           "id": "G15-S24-A05",
@@ -5296,8 +5296,8 @@
               "id": "dependencies"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
         }
       ]
     },

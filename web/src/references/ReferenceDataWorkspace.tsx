@@ -148,7 +148,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
 
   const changeStatus = async (row: ReferenceRow) => {
     if (!canManage || busy) return;
-    if (row.status === "Active" && !window.confirm("Archive this reference?")) return;
+    if (row.status === "Active" && !window.confirm(t("Archive this reference?"))) return;
     const serial = generation.current;
     const mutationSerial = mutationGeneration.current;
     setBusy(true); setError("");
@@ -183,48 +183,48 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
             setSelected(null); setCreating(false); setItems([]);
           }} className={"rounded px-3 py-2 text-sm " +
             (kind === value ? "bg-cyan-300 text-slate-950" : "border border-slate-600")}>
-            {value === "ports" ? "Ports" : "Vessels"}
+            {t(value === "ports" ? "Ports" : "Vessels")}
           </button>)}
       </div>
       <div className="mt-4 flex flex-wrap items-end gap-3">
-        <label className="text-sm">{t("Search")}{kind}
+        <label className="text-sm">{t(kind === "ports" ? "Search ports" : "Search vessels")}
           <input value={q} maxLength={80} disabled={busy || paging} onChange={event => setQ(event.target.value)}
             className="mt-1 block rounded bg-slate-950 px-3 py-2"
             placeholder={t("Name, reference, identifier")} />
         </label>
         <label className="text-sm">{t("Reference status")}<select value={status} disabled={busy || paging} onChange={event => setStatus(event.target.value as ReferenceStatus | "All")}
             className="mt-1 block rounded bg-slate-950 px-3 py-2">
-            <option>{t("Active")}</option><option>{t("Archived")}</option><option>{t("All")}</option>
+            <option value="Active">{t("Active")}</option><option value="Archived">{t("Archived")}</option><option value="All">{t("All")}</option>
           </select>
         </label>
         {canManage && <button type="button" disabled={busy || paging || loading}
           onClick={() => { setCreating(true); setSelected(null); setForm(empty); setError(""); }}
-          className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">{t("Add")}{kind === "ports" ? "port" : "vessel"}
+          className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">{t(kind === "ports" ? "Add port" : "Add vessel")}
         </button>}
       </div>
       {loading && <p className="mt-3 text-sm text-slate-400">{t("Loading references...")}</p>}
       {!loading && !items.length && !error &&
-        <p className="mt-3 text-sm text-slate-400">{t("No matching")}{kind}.</p>}
+        <p className="mt-3 text-sm text-slate-400">{t(kind === "ports" ? "No matching ports." : "No matching vessels.")}</p>}
       <ul className="mt-3 space-y-2">
         {items.map(item =>
           <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-slate-700 p-3">
             <div>
               <div className="text-sm font-medium">{item.name}</div>
               <p className="text-xs text-slate-400">
-                {item.referenceCode} · {item.status}
+                {item.referenceCode} · {t(item.status)}
                 {kind === "ports" ? " · " + (item.unLocode || item.countryCode) :
-                  " · " + (item.imoNumber || item.mmsi || "No external identifier")}
+                  " · " + (item.imoNumber || item.mmsi || t("No external identifier"))}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button type="button" className="rounded border border-slate-600 px-3 py-1 text-sm"
                 onClick={() => { setSelected(item); setCreating(false); setForm(formOf(item)); }}>
-                {canManage ? "View or edit" : "Details"}
+                {t(canManage ? "View or edit" : "Details")}
               </button>
               {canManage && <button type="button" disabled={busy || paging}
                 className="rounded border border-slate-600 px-3 py-1 text-sm disabled:opacity-50"
                 onClick={() => void changeStatus(item)}>
-                {item.status === "Active" ? "Archive" : "Restore"}
+                {t(item.status === "Active" ? "Archive" : "Restore")}
               </button>}
             </div>
           </li>)}
@@ -235,7 +235,7 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
       {(creating || selected) &&
         <div className="mt-5 rounded border border-slate-600 p-4">
           <h5 className="font-semibold">
-            {creating ? "Add " + (kind === "ports" ? "port" : "vessel") : "Reference details"}
+            {t(creating ? (kind === "ports" ? "Add port" : "Add vessel") : "Reference details")}
           </h5>
           <form onSubmit={event => void write(event)} className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="text-sm">{t("Reference code")}<input required value={form.referenceCode} maxLength={32} disabled={!creating}
@@ -272,14 +272,14 @@ export default function ReferenceDataWorkspace({ organizationId, canManage, onAc
             <div className="sm:col-span-2 flex flex-wrap gap-2">
               {canManage && <button type="submit" disabled={busy || paging}
                 className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50">
-                {creating ? "Create reference" : "Save reference"}
+                {t(creating ? "Create reference" : "Save reference")}
               </button>}
               <button type="button" className="rounded border border-slate-600 px-3 py-2 text-sm"
                 onClick={() => { setSelected(null); setCreating(false); }}>{t("Close details")}</button>
             </div>
           </form>
         </div>}
-      {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
+      {error && <p role="alert" className="mt-3 text-sm text-rose-300">{t(error)}</p>}
     </section>
   );
 }

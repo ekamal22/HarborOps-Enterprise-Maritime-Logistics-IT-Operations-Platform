@@ -120,7 +120,10 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
         invalidate(cause);
       }
     } finally {
-      if (mounted.current && run === serial.current) setBusyId(null);
+      // refresh(true) advances serial as part of a successful mutation.
+      // Do not leave the action permanently disabled after that refresh.
+      // A remounted organization has its own component instance.
+      if (mounted.current) setBusyId(null);
     }
   };
 

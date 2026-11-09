@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { getJson, organizationError, OrganizationRequestError } from "../auth/organizationClient";
 import { archiveMaritime, createMaritime, listMaritime, updateMaritime,
@@ -83,6 +84,7 @@ function classify(error: unknown): boolean {
 export default function MaritimeWorkspace({ organizationId, canManage, onAccessInvalidated }: {
   organizationId: string; canManage: boolean; onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const [kind, setKind] = useState<MaritimeKind>("voyages");
   const [status, setStatus] = useState<"Active" | "Archived" | "All">("Active");
   const [q, setQ] = useState("");
@@ -326,7 +328,7 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
           <select aria-label="Identifier kind" value={form.identifierKind} disabled={!creating || !canManage}
             onChange={e => setForm(old => ({ ...old, identifierKind: e.target.value as Form["identifierKind"] }))}
             className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60">
-            <option value="ISO6346">ISO 6346 format</option><option value="Synthetic">Synthetic</option>
+            <option value="ISO6346">ISO 6346 format</option><option value="Synthetic">{t("Synthetic")}</option>
           </select>
         </label>
         {input("containerIdentifier", "Container identifier", !creating)}
@@ -346,7 +348,7 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
             {creating ? "Create record" : "Save changes"}
           </button>}
         <button type="button" onClick={() => { setSelected(null); setCreating(false); }}
-          className="rounded border border-slate-600 px-4 py-2 text-sm">Close</button>
+          className="rounded border border-slate-600 px-4 py-2 text-sm">{t("Close")}</button>
       </div>
     </form>}
   </section>;

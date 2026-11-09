@@ -549,6 +549,89 @@ public sealed class M15NotificationBoundaryTests
     }
 
     [Fact]
+    public async Task ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts()
+    {
+        var (s, shipment, _) = await OpenException();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var seedAdmin = s.Fixture.Admin;
+        using var seedManager = s.Fixture.Manager;
+        using var seedAnalyst = s.Fixture.Analyst;
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        await using var scope = runtime.Services.CreateAsyncScope();
+        var delivery = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+        try
+        {
+            await using (var poison = new NpgsqlCommand("""
+                ALTER TABLE m15_user_notifications
+                ADD CONSTRAINT m15_test_reject_fanout CHECK (false) NOT VALID
+                """, db))
+                await poison.ExecuteNonQueryAsync();
+
+            for (var attempt = 1; attempt <= 5; attempt++)
+            {
+                if (attempt > 1)
+                {
+                    await using var due = new NpgsqlCommand("""
+                        UPDATE m15_notification_outbox
+                        SET next_attempt_at_utc=clock_timestamp()
+                        WHERE organization_id=@org AND shipment_id=@shipment
+                          AND quarantined_at_utc IS NULL
+                        """, db);
+                    due.Parameters.AddWithValue("org",s.Fixture.A);
+                    due.Parameters.AddWithValue("shipment",shipment);
+                    Assert.Equal(1,await due.ExecuteNonQueryAsync());
+                }
+                Assert.Equal(0,await delivery.DeliverPendingAsync(CancellationToken.None));
+                await using var status = new NpgsqlCommand("""
+                    SELECT attempt_count,last_error_code,
+                           next_attempt_at_utc>clock_timestamp(),
+                           quarantined_at_utc IS NOT NULL,
+                           completed_at_utc IS NULL
+                    FROM m15_notification_outbox
+                    WHERE organization_id=@org AND shipment_id=@shipment
+                    """,db);
+                status.Parameters.AddWithValue("org",s.Fixture.A);
+                status.Parameters.AddWithValue("shipment",shipment);
+                await using var reader = await status.ExecuteReaderAsync();
+                Assert.True(await reader.ReadAsync());
+                Assert.Equal(attempt,reader.GetInt32(0));
+                Assert.Equal("delivery_failure",reader.GetString(1));
+                Assert.True(reader.GetBoolean(2));
+                Assert.Equal(attempt==5,reader.GetBoolean(3));
+                Assert.True(reader.GetBoolean(4));
+                Assert.False(await reader.ReadAsync());
+                Assert.Equal(0,await Count(db, """
+                    SELECT COUNT(*) FROM m15_user_notifications
+                    WHERE organization_id=@org AND shipment_id=@shipment
+                    """,("org",s.Fixture.A),("shipment",shipment)));
+            }
+        }
+        finally
+        {
+            await using var cleanup = new NpgsqlCommand("""
+                ALTER TABLE m15_user_notifications
+                DROP CONSTRAINT IF EXISTS m15_test_reject_fanout
+                """,db);
+            await cleanup.ExecuteNonQueryAsync();
+        }
+
+        Assert.Equal(0,await delivery.DeliverPendingAsync(CancellationToken.None));
+        Assert.Equal(1,await Count(db, """
+            SELECT COUNT(*) FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@shipment
+                AND attempt_count=5 AND completed_at_utc IS NULL
+                AND quarantined_at_utc IS NOT NULL
+            """,("org",s.Fixture.A),("shipment",shipment)));
+        Assert.Equal(0,await Count(db, """
+            SELECT COUNT(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """,("org",s.Fixture.A),("shipment",shipment)));
+    }
+
+    [Fact]
     public async Task InFlightCancellationRollsBackBlockedFanout()
     {
         var (setup, shipment, _) = await OpenException();

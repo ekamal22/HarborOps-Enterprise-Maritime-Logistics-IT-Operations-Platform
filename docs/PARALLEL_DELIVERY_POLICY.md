@@ -1,5 +1,7 @@
 # Parallel Delivery and Integration Policy
 
+**M13 source and gate checkpoint (2026-11-09):** M13 is implemented on this isolated branch. [Latest targeted source, database and browser verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539385476), [170,000-shipment test](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42538812959), source and SQL mutations and focused fault recovery passed on their recorded SHAs. [Combined M13/M15 expanded technical verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) also passed on an earlier combined SHA, without M13's latest report-member SELECT RLS change. G13-S01 through S24 complete reconciliation and independent S25 remain acceptance pending; G15 is separate. No merge or deployment. [Executed evidence](M13_G13_EXPANDED_VERIFICATION_20261109.md).
+
 **Current project state (2026-11-08):** G0-G12 and G16 are accepted and integrated on `main` following [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. Earlier source-only and gate-pending notes are superseded; retained dated evidence still describes its original run. M9's ARRI/DEPA hold and 10,000-item cap remain mandatory, M10 projector defaults off, ETA null, M11 evaluator opt-in. There is no authorization for deployment or additional GitHub Actions runs.
 
 **Version:** 1.1  

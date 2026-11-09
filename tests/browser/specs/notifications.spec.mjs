@@ -320,3 +320,74 @@ test("G15 a cancelled pagination result cannot leave Load more disabled", async 
   releasePage();
   await expect(more).toBeEnabled();
 });
+
+
+test("G15 transient notification error is visible and retry clears it", async ({ page }) => {
+  test.skip(!enabled, "Disposable organization fixtures required");
+  await signIn(page);
+  const north = await page.locator("#current-organization option")
+    .filter({ hasText: "M3 North Terminal (Manager)" }).getAttribute("value");
+  expect(north).toBeTruthy();
+  let failing = true;
+  await page.route("**/organizations/" + north + "/notifications?*", route =>
+    route.fulfill({ status: failing ? 503 : 200,
+      contentType: "application/json",
+      body: JSON.stringify(failing
+        ? { code: "notification_authority_unavailable", message: "Temporarily unavailable" }
+        : { items: [], nextCursor: null, snapshotAtUtc: "2026-11-09T12:00:00Z" })
+    }));
+  await page.locator("#current-organization").selectOption({
+    label: "M3 North Terminal (Manager)"
+  });
+  const center = page.getByRole("region", { name: "In-app shipment notifications" });
+  await expect(center.getByRole("alert")).toBeVisible();
+  failing = false;
+  const refresh = center.getByRole("button", { name: "Refresh notifications" });
+  await expect(refresh).toBeEnabled();
+  await refresh.click();
+  await expect(center.getByRole("alert")).toHaveCount(0);
+  await expect(center.getByText(/No notifications are available for this filter/))
+    .toBeVisible();
+});
+
+test("G15 late response from old organization never appears after switching", async ({ page }) => {
+  test.skip(!enabled, "Disposable organization fixtures required");
+  await signIn(page);
+  const north = await page.locator("#current-organization option")
+    .filter({ hasText: "M3 North Terminal (Manager)" }).getAttribute("value");
+  expect(north).toBeTruthy();
+  let release;
+  let began;
+  const queued = new Promise(resolve => { began = resolve; });
+  await page.route("**/organizations/" + north + "/notifications?*", async route => {
+    began();
+    await new Promise(resolve => { release = resolve; });
+    await route.fulfill({
+      status: 200, contentType: "application/json",
+      body: JSON.stringify({
+        items: [{
+          id: "e0000000-0000-4000-8000-000000000003",
+          shipmentId: "e0000000-0000-4000-8000-000000000004",
+          exceptionId: "e0000000-0000-4000-8000-000000000005",
+          eventType: "ExceptionOpened", ruleCode: "ArrivalScheduleOverdue",
+          title: "Old organization private notification",
+          eventLabel: "Opened", createdAtUtc: "2026-11-09T12:00:00Z",
+          readAtUtc: null, acknowledgedAtUtc: null, state: "Unread", version: 1
+        }],
+        nextCursor: null, snapshotAtUtc: "2026-11-09T12:00:00Z"
+      })
+    }).catch(() => {});
+  });
+  await page.locator("#current-organization").selectOption({
+    label: "M3 North Terminal (Manager)"
+  });
+  await queued;
+  await page.locator("#current-organization").selectOption({
+    label: "M3 East Terminal (Manager)"
+  });
+  release();
+  await expect(page.getByText("Old organization private notification")).toHaveCount(0);
+  const center = page.getByRole("region", { name: "In-app shipment notifications" });
+  await expect(center).toBeVisible();
+  await expect(center.getByText("Old organization private notification")).toHaveCount(0);
+});

@@ -83,3 +83,69 @@ test("M13 Administrator has grant management but not KPI viewing", async ({ page
   await expect(page.getByRole("region", { name: "KPI Auditor grants" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Save grant" })).toBeDisabled();
 });
+
+
+test("M13 empty report shows insufficient denominators without false risk trends", async ({ page }) => {
+  test.skip(!enabled, "Disposable M13 browser fixture required");
+  await login(page, "m3-manager@example.test");
+  const now = "2026-11-09T12:00:00Z";
+  await page.route("**/analytics/overview*", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({
+      policyVersion: "m13-kpi-v1",
+      reportId: "e0000000-0000-4000-8000-000000000001",
+      reportToken: "disposable-fixture-report-token",
+      fromUtc: "2026-11-02T00:00:00Z",
+      beforeUtc: "2026-11-09T00:00:00Z",
+      evaluatedAtUtc: now, expiresAtUtc: "2026-11-09T12:10:00Z",
+      memberCount: 0, bucket: "day", originPortId: null,
+      destinationPortId: null, voyageId: null, sourceKind: null, counts: []
+    })
+  }));
+  await page.locator("#current-organization").selectOption({
+    label: "M3 North Terminal (Manager)"
+  });
+  const d = dashboard(page);
+  await expect(d.getByText(/Current-state evaluation:/)).toBeVisible();
+  for (const label of [
+    /Strict on-time recorded arrivals/,
+    /Within 60-minute tolerance/,
+    /Assessment coverage/
+  ]) {
+    await expect(d.getByRole("button", { name: label })
+      .getByText("Not enough data", { exact: true })).toBeVisible();
+  }
+  await expect(d.getByText("No recorded openings in this window.")).toBeVisible();
+  await expect(d.getByText("Unarchived shipments only. Total 0.")).toBeVisible();
+});
+
+test("M13 failed report clears old values and a retry builds a fresh snapshot", async ({ page }) => {
+  test.skip(!enabled, "Disposable M13 browser fixture required");
+  await login(page, "m3-manager@example.test");
+  let available = false;
+  await page.route("**/analytics/overview*", route => route.fulfill({
+    status: available ? 200 : 503, contentType: "application/json",
+    body: JSON.stringify(available ? {
+      policyVersion: "m13-kpi-v1",
+      reportId: "e0000000-0000-4000-8000-000000000002",
+      reportToken: "disposable-fixture-report-token",
+      fromUtc: "2026-11-02T00:00:00Z",
+      beforeUtc: "2026-11-09T00:00:00Z",
+      evaluatedAtUtc: "2026-11-09T12:00:00Z",
+      expiresAtUtc: "2026-11-09T12:10:00Z",
+      memberCount: 0, bucket: "day", counts: []
+    } : { code: "report_unavailable", message: "Unable to build report" })
+  }));
+  await page.locator("#current-organization").selectOption({
+    label: "M3 North Terminal (Manager)"
+  });
+  const d = dashboard(page);
+  await expect(d.getByRole("alert")).toBeVisible();
+  await expect(d.getByText(/Current-state evaluation:/)).toHaveCount(0);
+  available = true;
+  const refresh = d.getByRole("button", { name: "Refresh report" });
+  await expect(refresh).toBeEnabled();
+  await refresh.click();
+  await expect(d.getByRole("alert")).toHaveCount(0);
+  await expect(d.getByText(/Current-state evaluation:/)).toBeVisible();
+});

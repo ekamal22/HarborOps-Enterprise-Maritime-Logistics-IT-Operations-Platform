@@ -793,8 +793,12 @@ public sealed class M13OperationalKpiRuntimeTests
         foreach (var i in new[] { 7, 11 })
             await G13Transition(db, ids[i], actor, "Booked");
         foreach (var i in new[] { 8, 9, 12 })
+        {
+            await G13Transition(db, ids[i], actor, "Booked");
             await G13Transition(db, ids[i], actor, "InTransit");
-        await G13Transition(db, ids[10], actor, "Arrived");
+        }
+        foreach (var status in new[] { "Booked", "InTransit", "Arrived" })
+            await G13Transition(db, ids[10], actor, status);
         await using (var archive = new NpgsqlCommand("""
             UPDATE shipments SET record_status='Archived',archived_at_utc=clock_timestamp(),
                 version=version+1,updated_at_utc=clock_timestamp(),changed_by_user_id=@actor
@@ -995,6 +999,17 @@ public sealed class M13OperationalKpiRuntimeTests
             DateTimeOffset.UtcNow.AddDays(2), 911);
         var period = Window(DateTimeOffset.UtcNow);
 
+        // Establish the legal Arrived state before testing an in-flight
+        // Arrived-to-Completed transition. Status triggers enforce the M5 graph.
+        var shipmentPath = seed.Root + "/" + id;
+        foreach (var (version, status) in new[] {
+            (1L, "Booked"), (2L, "InTransit"), (3L, "Arrived") })
+        {
+            using var changed = await ReferenceDataHttpTests.Send(manager,
+                HttpMethod.Patch, shipmentPath,
+                new { expectedVersion = version, workflowStatus = status });
+            Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
+        }
         await using var writer = new NpgsqlConnection(roles.Admin);
         await writer.OpenAsync();
         await using (var tx = await writer.BeginTransactionAsync())

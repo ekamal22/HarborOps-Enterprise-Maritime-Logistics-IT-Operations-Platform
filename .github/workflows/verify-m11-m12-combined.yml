@@ -139,6 +139,10 @@ jobs:
             --filter 'FullyQualifiedName~G13RateLimitAcceptanceTests' \
             --logger 'trx;LogFileName=g13-rate-limit.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/g13-rate-limit.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
+            --filter 'FullyQualifiedName~G15RecurrenceAcceptanceTests' \
+            --logger 'trx;LogFileName=g15-recurrence.trx' --results-directory .verification/m15 \
+            2>&1 | tee .verification/m15/g15-recurrence.log
           # Fault-injection boundary tests can modify database-wide constraints.
           # Run them separately from unrelated integration suites on this exclusive server.
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \

@@ -3163,10 +3163,14 @@
             {
               "kind": "test",
               "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
+            },
+            {
+              "kind": "test",
+              "id": "AutoResolvedOldOccurrenceAndNewOpeningKeepDistinctHistoryAndIntents"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Dedicated recurrence test checks separate source history IDs and exact old AutoResolved/new Opened outbox linkage; pending same-SHA CI"
         },
         {
           "id": "G15-S04-A03",
@@ -3205,10 +3209,14 @@
             {
               "kind": "test",
               "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
+            },
+            {
+              "kind": "test",
+              "id": "AutoResolvedOldOccurrenceAndNewOpeningKeepDistinctHistoryAndIntents"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Dedicated recurrence test checks separate source history IDs and exact old AutoResolved/new Opened outbox linkage; pending same-SHA CI"
         }
       ]
     },

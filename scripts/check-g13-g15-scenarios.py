@@ -193,6 +193,8 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
     if scenario in ("G13-S12", "G13-S23", "G15-S16"):
         case.assertTrue(passed(
             "RestrictedRolesCannotModifyMaterializedReportingMembership"))
+    if scenario == "G15-S04":
+        case.assertTrue(passed("AutoResolvedOldOccurrenceAndNewOpeningKeepDistinctHistoryAndIntents"))
     if scenario in ("G15-S10", "G15-S22"):
         case.assertTrue(passed(
             "ArchivedShipmentKeepsHistoricalPersonalEventWithoutNewBusinessAuthority"))

@@ -46,8 +46,16 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   await d.getByLabel("From (UTC, inclusive)").fill("2026-11-01");
   await d.getByLabel("Before (UTC, exclusive)").fill("2026-11-09");
   await d.getByLabel("Trend bucket (UTC)").selectOption("week");
+  const filteredResponse = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname.endsWith("/analytics/overview") &&
+      url.searchParams.get("fromUtc") === "2026-11-01T00:00:00Z" &&
+      url.searchParams.get("beforeUtc") === "2026-11-09T00:00:00Z";
+  }, { timeout: 30000 });
   await d.getByRole("button", { name: "Apply filters" }).click();
-  await expect(d.getByText(/Period:/)).toContainText("01 Nov 2026");
+  const filtered = await filteredResponse;
+  expect(filtered.status(), "The combined stack must serve the requested UTC report").toBe(200);
+  await expect(d.getByText(/Period:/)).toContainText("01 Nov 2026", { timeout: 30000 });
   await d.getByRole("button", { name: "Reset" }).click();
   await expect(d.getByLabel("From (UTC, inclusive)")).toHaveValue("");
 });

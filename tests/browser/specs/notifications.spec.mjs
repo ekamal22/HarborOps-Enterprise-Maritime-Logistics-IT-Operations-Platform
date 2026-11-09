@@ -122,7 +122,7 @@ test("G15 personal receipt controls preserve a separate unread counter", async (
   await center.getByRole("button",{name:"Acknowledge notification"}).click();
   await expect(center.getByRole("button",{name:"Acknowledge notification"}))
     .toHaveCount(0);
-  await expect(center.getByText("Acknowledged",{exact:false})).toBeVisible();
+  await expect(center.locator("li p").filter({hasText:"Acknowledged"})).toBeVisible();
 });
 
 test("G15 rejected notification refresh drops protected data and organization selection",async({page})=>{

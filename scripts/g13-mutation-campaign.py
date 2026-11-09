@@ -11,6 +11,7 @@ import time
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs"
+ENDPOINT = ROOT / "src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs"
 EVIDENCE = ROOT / ".verification/g13-mutations"
 FILTER = "FullyQualifiedName~M13OperationalKpiRuntimeTests.TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
 ORACLE = "FullyQualifiedName~M13OperationalKpiRuntimeTests.ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
@@ -62,6 +63,31 @@ MUTANTS = [
      "WHERE e.organization_id=@org AND e.first_detected_at_utc>=@from",
      "WHERE e.organization_id=@org AND e.first_detected_at_utc>=@before",
      "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
+    ("k03-duplicate-status-history",
+     "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\\n"
+     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\\n"
+     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before",
+     "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\\n"
+     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\\n"
+     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before\\n"
+     "            UNION ALL\\n"
+     "            SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\\n"
+     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\\n"
+     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before",
+     "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
+    ("correction-generation-stale-accepted",
+     "AND e.correction_generation=h.generation",
+     "AND e.correction_generation IS NOT NULL",
+     "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
+    ("origin-member-filter-ignored",
+     "AND (@origin::uuid IS NULL OR s.origin_port_id=@origin)",
+     "AND (@origin::uuid IS NULL OR TRUE)",
+     "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"),
+    ("malformed-kpi-member-cursor-admitted",
+     "if (!Id(last, out var parsed))",
+     "if (!Id(last, out var parsed) && false)",
+     "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports",
+     "endpoints"),
 ]
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -91,7 +117,8 @@ def execute(label: str, test_filter: str = FILTER) -> tuple[int, str, float]:
 
 def main() -> int:
     EVIDENCE.mkdir(parents=True, exist_ok=True)
-    original = SOURCE.read_bytes()
+    originals = {SOURCE: SOURCE.read_bytes(), ENDPOINT: ENDPOINT.read_bytes()}
+    original = originals[SOURCE]
     source_sha = digest(original)
     identity = os.getenv("GITHUB_SHA", "local")
     records: list[dict[str, object]] = []
@@ -107,16 +134,18 @@ def main() -> int:
         if oracle_code:
             print("G13 oracle clean control failed. Mutations not attempted.")
             return 2
-        text = original.decode("utf-8")
         for case in MUTANTS:
             name, before, after, *target_case = case
-            test_filter = (ORACLE if target_case else FILTER)
+            test_filter = ("FullyQualifiedName~" + target_case[0] if target_case
+                           else FILTER)
             test_name = (target_case[0] if target_case else
                          "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers")
+            selected = ENDPOINT if len(target_case) > 1 and target_case[1] == "endpoints" else SOURCE
+            text = originals[selected].decode("utf-8")
             if text.count(before) != 1:
                 raise RuntimeError(f"{name}: expected exactly one replacement, found {text.count(before)}")
             changed = text.replace(before, after)
-            SOURCE.write_text(changed, encoding="utf-8")
+            selected.write_text(changed, encoding="utf-8")
             code, output, elapsed = execute(name, test_filter)
             if code == 124 or "Build FAILED" in output or "error CS" in output or "error xUnit" in output:
                 outcome = "INVALID"
@@ -130,11 +159,12 @@ def main() -> int:
             records.append({"name":name,"source_sha256":digest(changed.encode()),
                             "exit_code":code,"elapsed_seconds":elapsed,"outcome":outcome})
             print(f"G13_MUTANT {name}: {outcome} ({elapsed}s)", flush=True)
-            SOURCE.write_bytes(original)
+            selected.write_bytes(originals[selected])
     finally:
-        SOURCE.write_bytes(original)
-        if digest(SOURCE.read_bytes()) != source_sha:
-            raise RuntimeError("G13 mutant source not restored")
+        for target, content in originals.items():
+            target.write_bytes(content)
+            if digest(target.read_bytes()) != digest(content):
+                raise RuntimeError("G13 mutant source not restored: " + str(target))
         (EVIDENCE / "manifest.json").write_text(json.dumps({
             "source_commit":identity,"clean_source_sha256":source_sha,
             "filter":FILTER,"oracle_filter":ORACLE,

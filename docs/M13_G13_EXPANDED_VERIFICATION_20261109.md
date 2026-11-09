@@ -26,6 +26,10 @@ The initial 170,000-shipment report returned HTTP 503 at the 15-second SQL state
 
 On the combined branch, M15's original 16-migration assertions were wrong after adding the M13 reporting migration as migration 17. Corrected test expectations cannot, on their own, establish a PASS. The notification action busy-lock issue was fixed on the separate integration branch; the later notification test ambiguity was a Playwright selector matching both the filter option and the visible receipt state. The combined M13 custom-window failure must not be dismissed: on the failed run, the UI did not show the expected 1 November 2026 report period. Its test now asserts the exact filtered API response and preserves any future failure for diagnosis.
 
+## Combined browser root-cause refinement
+
+The expanded integration rerun [42540547857](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42540547857) at `a6041a10869714b3f6613190a456568d835bf881` passed its source and expanded PostgreSQL jobs, but **failed Chromium** on a valid M13 custom-window request because the API returned **HTTP 429**. The earlier apparent default-window mismatch was a stale report remaining after the requested new report failed to load, not proof of incorrect date filtering. The M13 reporting policy limits a user to six expensive report builds per minute. Combined browser fixtures exercised multiple M15 journeys with the same Manager before the M13 scenario and exhausted that accepted application limiter. A correction on the isolated combined branch `6b05d84bf2f01741b182669c2dd17e39e63d9dda` runs separate browser suites with a fresh **disposable API instance** between them, preserves the shared disposable database and does not raise production limits. Final source-locked combined test results are still required; the earlier failed run remains FAIL.
+
 ## Required closure sequence
 
 1. Re-run the full combined workflow on an exact frozen SHA after the 17-migration assertions and browser fixes, then inspect raw failures, skipping and result artifacts. Preserve both M13 and M15 implementation branches.

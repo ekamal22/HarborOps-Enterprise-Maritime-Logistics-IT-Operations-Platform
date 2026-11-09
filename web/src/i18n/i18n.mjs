@@ -80,6 +80,10 @@ export function formatDateTime(value, locale = getLocale(), options = {}) {
   }).format(date);
 }
 
+export function formatLocalDateTime(value, locale = getLocale(), timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  return formatDateTime(value, locale, { timeZone, timeZoneName: "short" });
+}
+
 export function formatRelative(value, locale = getLocale(), now = Date.now()) {
   const delta = new Date(value).getTime() - now;
   if (!Number.isFinite(delta)) return "";

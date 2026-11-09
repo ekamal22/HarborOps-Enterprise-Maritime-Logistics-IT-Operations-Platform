@@ -110,7 +110,7 @@ test("M13 empty report shows insufficient denominators without false risk trends
   for (const label of [
     /Strict on-time recorded arrivals/,
     /Within 60-minute tolerance/,
-    /Assessment coverage/
+    /Evaluator coverage/
   ]) {
     await expect(d.getByRole("button", { name: label })
       .getByText("Not enough data", { exact: true })).toBeVisible();

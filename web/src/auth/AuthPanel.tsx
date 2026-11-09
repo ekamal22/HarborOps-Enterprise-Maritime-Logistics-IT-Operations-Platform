@@ -5,6 +5,15 @@ import { useI18n } from "../i18n/useI18n";
 type User = { id: string; email: string; displayName: string };
 type SessionState = { user: User; session: { expiresAtUtc: string } };
 type ServerError = { code?: string; message?: string };
+const safeAuthMessages: Record<string, string> = {
+  invalid_credentials: "Unable to sign in with these credentials",
+  authentication_required: "Authentication required. Sign in again.",
+  session_expired: "Your session has expired. Sign in again.",
+  csrf_invalid: "Request validation failed",
+  rate_limited: "Too many sign-in attempts",
+  dependency_unavailable: "Authentication service is temporarily unavailable.",
+  internal_error: "The request could not be completed."
+};
 
 async function csrf(): Promise<string> {
   const response = await fetch("/api/v1/auth/csrf", { credentials: "same-origin", cache: "no-store" });
@@ -26,7 +35,7 @@ async function failure(response: Response): Promise<string> {
   const body = await response.json().catch(() => ({})) as ServerError;
   if (response.status === 429) return "Too many requests. Try again later.";
   if (response.status === 503) return "Authentication service is temporarily unavailable.";
-  return body.message || "The request could not be completed.";
+  return (body.code && safeAuthMessages[body.code]) || body.message || "The request could not be completed.";
 }
 
 export default function AuthPanel() {

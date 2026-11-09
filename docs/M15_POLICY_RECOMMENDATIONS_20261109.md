@@ -1,6 +1,6 @@
 # M15 Policy Recommendation Register
 
-**Prepared:** 2026-11-09. **Approval state:** All M15-P01 through P14 PENDING. These are recommendations, not approvals.
+**Prepared:** 2026-11-09. **Approval state:** All M15-P01 through P14 PENDING. These are recommendations, not approvals. Technical predecessor run 42555586856 PASSED; expanded eleven-job parallel candidate on `verify/g13-g15-parallel-closure-20261109` remains unexecuted. Neither technical result creates policy approval.
 
 | Decision | Recommended choice | Rationale | Approval |
 | --- | --- | --- | --- |

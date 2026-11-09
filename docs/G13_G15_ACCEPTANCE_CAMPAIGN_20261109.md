@@ -3,7 +3,7 @@
 **Prepared:** 2026-11-09.
 **Campaign branch:** `verify/g13-g15-acceptance-campaign-20261109`.
 **Frozen proven predecessor:** `3150e5b67bace1801dfc3b02ff53c423b5af931c`, five-job [PASS run 42552035939](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42552035939).
-**Disposition:** New tests and nine-job verification are authored, NOT EXECUTED on the current campaign SHA. G13/G15 acceptance and merge remain pending.
+**Disposition:** Nine-job campaign executed as [run 42555586856](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42555586856), PASS at `ef2dd697df6c4a2dc8b53c55e7968ac37e41a745`. The full scenario ledger still recorded only G13-S02 and G15-S02 PASS; remaining gate scenarios and acceptance are open. The newer eleven-job candidate is documented separately in [parallel completion](G13_G15_PARALLEL_COMPLETION_20261109.md).
 
 ## Added checks
 
@@ -15,7 +15,7 @@
 
 ## How to run
 
-Dispatch `.github/workflows/verify-m11-m12-combined.yml` manually on the campaign branch. Nine jobs run: combined source, PostgreSQL, Chromium/Firefox/WebKit, 170k scale, G13 SQL mutations, G13 faults, G13 source mutations, G15 mutants and gate ledger. Every PostgreSQL job uses an exclusive disposable service. The dispatcher is enabled only in ephemeral browser fixtures. Evidence retention is 30 days.
+Historical dispatch: `.github/workflows/verify-m11-m12-combined.yml` on the campaign branch. Nine jobs completed PASS: combined source, PostgreSQL, Chromium/Firefox/WebKit, 170k scale, G13 SQL mutations, G13 faults, G13 source mutations, G15 mutants and gate ledger. Every PostgreSQL job uses an exclusive disposable service. The dispatcher is enabled only in ephemeral browser fixtures. Evidence retention is 30 days.
 
 ## Remaining work and honest classification
 
@@ -23,7 +23,7 @@ The approved D-005 12+2 fixture has specific K07-K13 M11 source memberships and 
 
 G13 also requires two-session permission/snapshot interleavings, after-commit process crash recovery, realistic concurrency and skewed-volume budgets, and complete security-negative scenario proof. G15 requires cursor expiry/session swap, long backlog and fanout scale, pre/post-commit crash recovery and the rest of the required mutation/security matrix. Policy decisions M15-P01..P14 remain pending. See [policy recommendations](M15_POLICY_RECOMMENDATIONS_20261109.md).
 
-The evidence tool is conservative: it can report S02 PASS when full source/build evidence is sound, but marks partial technical coverage BLOCKED and missing coverage NOT EXECUTED. Technical workflow success is not acceptance.
+The run's evidence ledger verified exact-source checksums and recorded G13: 1 PASS, 14 BLOCKED, 10 NOT EXECUTED; G15: 1 PASS, 15 BLOCKED, 9 NOT EXECUTED. The evidence tool intentionally distinguishes technical workflow success from complete milestone acceptance.
 
 ## Review boundary
 

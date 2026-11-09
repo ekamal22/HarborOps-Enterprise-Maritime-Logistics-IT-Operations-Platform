@@ -691,4 +691,44 @@ public sealed class M13OperationalKpiRuntimeTests
             fresh.GetProperty("reportId").GetGuid());
     }
 
+
+    [ExclusiveM13PostgresFact]
+    public async Task CommittedReportMembersRemainStableAcrossLaterWorkflowChanges()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var source = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var f = await ReferenceDataHttpTests.Setup(source);
+        using var admin = f.Admin;
+        using var seedManager = f.Manager;
+        using var seedAnalyst = f.Analyst;
+        var seed = await AssignmentHttpTests.Seed(f);
+        using var baseResponse = await seedManager.GetAsync(seed.Root + "/" + seed.Shipment);
+        var original = await baseResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var origin = original.GetProperty("originPortId").GetGuid();
+        var destination = original.GetProperty("destinationPortId").GetGuid();
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var manager = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(manager, f.ManagerEmail);
+        await ReferenceDataHttpTests.Select(manager, f.A);
+        var newShipment = await CreateShipment(manager, seed.Root,
+            origin, destination, DateTimeOffset.UtcNow.AddDays(2), 81);
+        var period = Window(DateTimeOffset.UtcNow);
+        var first = await Json(await manager.GetAsync(Root(f.A) + "/overview" + period));
+        var initialMembers = await G13MemberIds(manager, f.A, first, "K01");
+        Assert.Contains(newShipment, initialMembers);
+
+        await AdvanceToCompleted(manager, seed.Root, newShipment);
+        var frozenMembers = await G13MemberIds(manager, f.A, first, "K01");
+        Assert.True(initialMembers.SetEquals(frozenMembers),
+            "Committed member snapshots must not drift with later workflow state");
+        var second = await Json(await manager.GetAsync(Root(f.A) + "/overview" + period));
+        var laterMembers = await G13MemberIds(manager, f.A, second, "K01");
+        Assert.DoesNotContain(newShipment, laterMembers);
+        Assert.Equal(initialMembers.Count - 1, laterMembers.Count);
+        Assert.NotEqual(first.GetProperty("reportId").GetGuid(),
+            second.GetProperty("reportId").GetGuid());
+        Console.WriteLine("G13_S15 snapshot_frozen=true later_report_current=true");
+    }
 }

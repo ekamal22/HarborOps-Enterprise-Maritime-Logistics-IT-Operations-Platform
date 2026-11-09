@@ -293,4 +293,84 @@ public sealed class M15NotificationBoundaryTests
             new { action="Acknowledge",expectedVersion=2L },Guid.NewGuid());
         Assert.Equal(HttpStatusCode.UnprocessableEntity,invalid.StatusCode);
     }
+
+    [Fact]
+    public async Task MoreThanOneHundredPersonalRowsPageOnceThroughLiveReceiptChange()
+    {
+        var (s, shipment, exceptionId) = await OpenException();
+        using var adminFactory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var originalAdmin = s.Fixture.Admin;
+        using var originalManager = s.Fixture.Manager;
+        using var originalAnalyst = s.Fixture.Analyst;
+        await using var sql = new NpgsqlConnection(s.Roles.Admin);
+        await sql.OpenAsync();
+        // The initial event is already committed. Add 104 unique source events
+        // with the same permitted action, each captured by the real trigger.
+        for (var i = 0; i < 104; i++)
+        {
+            await using var insert = new NpgsqlCommand("""
+                INSERT INTO shipment_exception_history
+                  (organization_id,exception_id,action,old_state,new_state,
+                   actor_kind,source_fingerprint)
+                SELECT e.organization_id,e.id,'Opened',NULL,'Open','System',
+                       e.source_fingerprint
+                FROM shipment_exceptions e
+                WHERE e.id=@exception AND e.organization_id=@org
+                """, sql);
+            insert.Parameters.AddWithValue("exception", exceptionId);
+            insert.Parameters.AddWithValue("org", s.Fixture.A);
+            Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+        }
+
+        await using var scope = s.Runtime.Services.CreateAsyncScope();
+        var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+        for (var attempt = 0; attempt < 40; attempt++)
+        {
+            await store.DeliverPendingAsync(CancellationToken.None);
+            if (await Count(sql, """
+                SELECT COUNT(DISTINCT source_history_id) FROM m15_user_notifications
+                WHERE organization_id=@org AND shipment_id=@shipment
+                """, ("org", s.Fixture.A), ("shipment", shipment)) == 105) break;
+        }
+        Assert.Equal(105, await Count(sql, """
+            SELECT COUNT(DISTINCT source_history_id) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", s.Fixture.A), ("shipment", shipment)));
+
+        var root = "/api/v1/organizations/" + s.Fixture.A + "/notifications";
+        string? cursor = null;
+        var seen = new HashSet<Guid>();
+        var pages = 0;
+        do
+        {
+            var url = root + "?limit=50&state=All";
+            if (cursor is not null)
+                url += "&cursor=" + Uri.EscapeDataString(cursor);
+            using var response = await manager.GetAsync(url);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var page = await response.Content.ReadFromJsonAsync<JsonElement>();
+            var items = page.GetProperty("items").EnumerateArray().ToArray();
+            Assert.InRange(items.Length, 1, 50);
+            foreach (var item in items)
+                Assert.True(seen.Add(item.GetProperty("id").GetGuid()),
+                    "Live keyset returned a duplicate receipt");
+            pages++;
+            if (pages == 1)
+            {
+                var id = items[0].GetProperty("id").GetGuid();
+                using var changed = await M11ExceptionRuntimeTests.SendAction(
+                    manager, root + "/" + id,
+                    new { action = "MarkRead", expectedVersion = 1L }, Guid.NewGuid());
+                Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
+            }
+            var next = page.GetProperty("nextCursor");
+            cursor = next.ValueKind == JsonValueKind.Null ? null : next.GetString();
+            Assert.InRange(pages, 1, 4);
+        } while (cursor is not null);
+        Assert.Equal(3, pages);
+        Assert.Equal(105, seen.Count);
+        Console.WriteLine("G15_S17 pages=3 distinct_receipts=105 read_mutation_between_pages=true");
+    }
 }

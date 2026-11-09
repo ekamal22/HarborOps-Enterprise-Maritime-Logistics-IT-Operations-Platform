@@ -5,7 +5,9 @@
 **Execution:** Manual GitHub Actions dispatch only. No workflow triggered by commits.
 **Baseline:** Prior [nine-job technical PASS 42555586856](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42555586856) at `ef2dd697df6c4a2dc8b53c55e7968ac37e41a745`.
 **Latest completed run:** [42561392681](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42561392681), FAILED at `895c20650e04f165116daf8a96327907cda09bf9`. Eight independent jobs succeeded; the G13 database and G13 mutation jobs failed on source-fixture illegal status transitions and the evidence aggregator correctly failed as a dependent gate. No technical or milestone PASS is claimed from that attempt.
-**Current final candidate:** Authored and committed, not executed. The branch is separate from main, prior feature branches and the previous verified campaign. The exact candidate SHA is frozen by the manual dispatch, not by this document.
+**Most recent fifteen-job run:** [42565412367](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42565412367) FAILED at `6f1f34b2fba4c13a75a85bedc482118755921e11`. Thirteen jobs passed, including G13 and G15 runtime, mutation, scale, browser, crash/restart, concurrent-load and dependency security checks. The only failing substantive test was the historical M12 downgrade assertion: the later M15 migration correctly prevents evidence loss before the older M12 export-audit guard can execute. The downstream evidence aggregator failed because a required test failed. The regression now asserts the first applicable retained-evidence safeguard, validates surviving M12/M15 authority, and verifies M15 outbox, receipt and replay rows remain unchanged.
+
+**Current final candidate:** The correction is committed and awaits manual source-locked GitHub Actions verification. The branch is separate from main, prior feature branches and the previous verified campaign. The exact candidate SHA is frozen by the manual dispatch, not by this document.
 
 ## Approved policies and limits
 

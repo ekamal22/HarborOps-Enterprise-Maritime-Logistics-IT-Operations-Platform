@@ -9,6 +9,12 @@
 
 **Current final candidate:** The correction is committed and awaits manual source-locked GitHub Actions verification. The branch is separate from main, prior feature branches and the previous verified campaign. The exact candidate SHA is frozen by the manual dispatch, not by this document.
 
+## Most recent failed source-locked run and correction
+
+[Run 42567231512](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42567231512) failed on source `0a32e807404ab13b3e80a74e8dc553b76ba69f98`: 13 of 15 jobs passed. Firefox's M15 rejected-notification-refresh browser test tried to click a disabled Refresh button while the organization-selection notification request was still loading. The 30-second Playwright timeout prevented the remainder of the browser matrix from running; the final evidence ledger correctly failed on missing browser coverage. All non-browser verification jobs passed, including the earlier corrected M12 combined regression.
+
+The test now explicitly waits until the authorized notification refresh finishes before setting the revocation flag and clicking Refresh. It checks both protected notification removal and removal of the revoked organization's selector. The revised source remains unverified until a new manual workflow run. No passing results from the previous source are retroactively attached to the new SHA.
+
 ## Approved policies and limits
 
 The latest [G13/G15 approval record](G13_G15_POLICY_APPROVAL_20261109.md) is binding. M15-P01 through P09, P11, P13 and P14 are approved; P10 fail-closed M11 history/outbox coupling is approved conditional on real recovery and accepted-M11 regression; P12 provisional 90-day unread/read and 30-day acknowledged windows are accepted, but deletion, legal hold bypass and automatic cleanup are **not** approved. Production dispatcher remains disabled.

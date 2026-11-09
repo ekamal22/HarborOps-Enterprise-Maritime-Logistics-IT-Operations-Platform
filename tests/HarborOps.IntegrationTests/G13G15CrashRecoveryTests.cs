@@ -361,6 +361,39 @@ public sealed class G13G15CrashRecoveryTests
     }
 
     [G13G15CrashFact]
+    public async Task G15AfterResponseDiscarded()
+    {
+        var setup = await M11ExceptionRuntimeTests.Prepare();
+        using var factory = setup.Factory;
+        using var runtime = setup.Runtime;
+        using var administrator = setup.Administrator;
+        using var analyst = setup.Analyst;
+        using var manager = setup.Manager;
+        using var originalAdmin = setup.Fixture.Admin;
+        using var originalManager = setup.Fixture.Manager;
+        using var originalAnalyst = setup.Fixture.Analyst;
+        var shipment = await M11ExceptionRuntimeTests.ScheduledShipment(setup);
+        await M11ExceptionRuntimeTests.EvaluateAndFind(setup, shipment);
+        await M15NotificationRuntimeTests.EnsureShipmentDelivered(setup, shipment);
+        var baseRoute = $"/api/v1/organizations/{setup.Fixture.A}/notifications";
+        using var listed = await manager.GetAsync(baseRoute);
+        Assert.Equal(HttpStatusCode.OK, listed.StatusCode);
+        var id = Assert.Single((await listed.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("items").EnumerateArray()).GetProperty("id").GetGuid();
+        using (var applied = await M11ExceptionRuntimeTests.SendAction(
+            manager, baseRoute + "/" + id,
+            new { action = "Acknowledge", expectedVersion = 1L },
+            Guid.NewGuid()))
+        {
+            Assert.Equal(HttpStatusCode.OK, applied.StatusCode);
+            // Discard the successful HTTP response without consuming the
+            // acknowledgement payload, then terminate the entire testhost.
+        }
+        await MarkAndHold("G15AfterResponseDiscarded", setup.Fixture.A, id,
+            setup.Fixture.ManagerEmail);
+    }
+
+    [G13G15CrashFact]
     public async Task G13AfterReportCommitRecoveredInNewApiProcess()
     {
         var marker = await ReadMarker();
@@ -394,7 +427,7 @@ public sealed class G13G15CrashRecoveryTests
     public async Task G15AfterReceiptCommitRecoveredInNewApiProcess()
     {
         var marker = await ReadMarker();
-        Assert.Equal("G15AfterReceiptCommit", marker.Phase);
+        Assert.Contains(marker.Phase, new[] { "G15AfterReceiptCommit", "G15AfterResponseDiscarded" });
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();
         using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
         using var manager = runtime.CreateClient(

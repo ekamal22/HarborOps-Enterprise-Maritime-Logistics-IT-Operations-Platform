@@ -56,6 +56,47 @@ async function signIn(page, role="Manager") {
     .toBeVisible();
 }
 
+test("G15 live M11 event is delivered and navigable from the real notification API",
+  async ({ page }) => {
+  test.skip(!enabled || process.env.HARBOROPS_M15_LIVE_FIXTURE !== "1",
+    "Disposable opt-in M15 delivery fixture required");
+  const root = process.env.HARBOROPS_VERIFICATION_ROOT;
+  const fixture = JSON.parse(fs.readFileSync(
+    path.join(root,"m15-browser","live-fixture.json"),"utf8"));
+  expect(fixture.sourceSha).toBe(process.env.HARBOROPS_SOURCE_SHA);
+  const liveHttpStatuses = [];
+  page.on("response", response => {
+    if (response.url().includes("/organizations/" + fixture.organizationId +
+      "/notifications")) liveHttpStatuses.push(response.status());
+  });
+  await signIn(page);
+  await page.locator("#current-organization")
+    .selectOption({ label:"M3 North Terminal (Manager)" });
+  const center = page.getByRole("region",{name:"In-app shipment notifications"});
+  await expect(center).toBeVisible();
+  const liveNotice = center.locator("li").filter({hasText:fixture.title});
+  try {
+    await expect(liveNotice).toHaveCount(1);
+  } catch (failure) {
+    // Report request outcomes without logging response bodies, cookies, or
+    // private fixture credentials. This distinguishes actual access failures
+    // from pagination and rendering bugs on the final browser engine.
+    const errors = await center.getByRole("alert").allTextContents();
+    const content = await center.locator("li p.font-medium").allTextContents();
+    throw new Error("Live M15 notification not visible. HTTP statuses: " +
+      liveHttpStatuses.join(",") + "; UI errors: " + errors.join(" | ") +
+      "; notification count: " + content.length, { cause:failure });
+  }
+  await expect(liveNotice.getByText(fixture.title)).toBeVisible();
+  await expect(liveNotice.getByText("Unread",{exact:false})).toBeVisible();
+  await liveNotice.getByRole("button",{name:"Open shipment exception"}).click();
+  const panel = page.getByRole("region",{name:"Shipment exceptions"});
+  await expect(panel).toBeVisible();
+  await expect(panel.getByText(
+    "Planned arrival is overdue; physical arrival is unconfirmed",
+    {exact:false}).first()).toBeVisible();
+});
+
 test("G15 scoped notification center displays neutral event and personal state", async ({ page }) => {
   test.skip(!enabled, "Disposable organization fixtures required");
   const id = "cddddd11-1111-4111-8111-111111111111";
@@ -272,45 +313,4 @@ test("G15 a cancelled pagination result cannot leave Load more disabled", async 
   await center.getByRole("button",{name:"Refresh notifications"}).click();
   releasePage();
   await expect(more).toBeEnabled();
-});
-
-test("G15 live M11 event is delivered and navigable from the real notification API",
-  async ({ page }) => {
-  test.skip(!enabled || process.env.HARBOROPS_M15_LIVE_FIXTURE !== "1",
-    "Disposable opt-in M15 delivery fixture required");
-  const root = process.env.HARBOROPS_VERIFICATION_ROOT;
-  const fixture = JSON.parse(fs.readFileSync(
-    path.join(root,"m15-browser","live-fixture.json"),"utf8"));
-  expect(fixture.sourceSha).toBe(process.env.HARBOROPS_SOURCE_SHA);
-  const liveHttpStatuses = [];
-  page.on("response", response => {
-    if (response.url().includes("/organizations/" + fixture.organizationId +
-      "/notifications")) liveHttpStatuses.push(response.status());
-  });
-  await signIn(page);
-  await page.locator("#current-organization")
-    .selectOption({ label:"M3 North Terminal (Manager)" });
-  const center = page.getByRole("region",{name:"In-app shipment notifications"});
-  await expect(center).toBeVisible();
-  const liveNotice = center.locator("li").filter({hasText:fixture.title});
-  try {
-    await expect(liveNotice).toHaveCount(1);
-  } catch (failure) {
-    // Report request outcomes without logging response bodies, cookies, or
-    // private fixture credentials. This distinguishes actual access failures
-    // from pagination and rendering bugs on the final browser engine.
-    const errors = await center.getByRole("alert").allTextContents();
-    const content = await center.locator("li p.font-medium").allTextContents();
-    throw new Error("Live M15 notification not visible. HTTP statuses: " +
-      liveHttpStatuses.join(",") + "; UI errors: " + errors.join(" | ") +
-      "; notification count: " + content.length, { cause:failure });
-  }
-  await expect(liveNotice.getByText(fixture.title)).toBeVisible();
-  await expect(liveNotice.getByText("Unread",{exact:false})).toBeVisible();
-  await liveNotice.getByRole("button",{name:"Open shipment exception"}).click();
-  const panel = page.getByRole("region",{name:"Shipment exceptions"});
-  await expect(panel).toBeVisible();
-  await expect(panel.getByText(
-    "Planned arrival is overdue; physical arrival is unconfirmed",
-    {exact:false}).first()).toBeVisible();
 });

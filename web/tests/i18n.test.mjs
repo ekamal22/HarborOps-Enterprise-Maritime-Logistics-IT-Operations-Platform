@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { TURKISH } from "../src/i18n/messages.mjs";
 import { normalizeLocale, initialLocale, translate, plural, formatNumber,
-  formatCurrency, formatDateTime, formatRelative, STORAGE_KEY,
+  formatCurrency, formatDateTime, formatLocalDateTime, formatRelative, STORAGE_KEY,
   changeLocale, getLocale, subscribeLocale } from "../src/i18n/i18n.mjs";
 
 test("explicit preference overrides the browser locale", () => {
@@ -98,4 +98,69 @@ test("source-approved notification titles and events use catalog text, not alter
   assert.ok(sentences.length >= 8);
   for (const text of sentences) assert.ok(Object.hasOwn(TURKISH, text),
     "Notification label unavailable in Turkish: " + text);
+});
+
+test("local session times are explicit and never silently use UTC", () => {
+  const instant = "2026-11-09T11:30:00Z";
+  const utc = formatDateTime(instant, "tr-TR", {timeZone: "UTC"});
+  const local = formatLocalDateTime(instant, "tr-TR", "Europe/Istanbul");
+  assert.match(utc, /11[:.]30/);
+  assert.match(local, /14[:.]30/);
+  assert.notEqual(local, utc);
+  assert.equal(formatLocalDateTime("invalid date", "tr-TR", "Europe/Istanbul"), "");
+});
+
+test("distinct roles and acknowledgment states remain understandable", () => {
+  assert.notEqual(translate("Manager", "tr-TR"), translate("Administrator", "tr-TR"));
+  assert.notEqual(translate("Acknowledged", "tr-TR"), translate("Exception acknowledged", "tr-TR"));
+  for (const role of ["Analyst", "Manager", "Support", "Administrator", "Auditor"]) {
+    assert.ok(Object.hasOwn(TURKISH, role), "Missing role " + role);
+    assert.notEqual(translate(role, "tr-TR"), role);
+  }
+  assert.equal(translate("Arrived", "tr-TR"), "Varış yaptı");
+  assert.match(translate("Disable this account and revoke every session?", "tr-TR"), /oturumlar sonlandırılsın/);
+});
+
+test("source-defined exception reasons and evidence states have localized explanations", () => {
+  const source = readFileSync(resolve(root,
+    "src/HarborOps.Domain/Exceptions/ShipmentExceptionPolicy.cs"), "utf8");
+  const reasons = [...new Set([...source.matchAll(/"((?:[a-z]+_)+[a-z]+)"/g)]
+    .map(match => match[1]))];
+  assert.equal(reasons.length, 16, "Unexpected exception reason-code contract change");
+  for (const code of reasons) {
+    assert.ok(Object.hasOwn(TURKISH, code), "Missing exception reason " + code);
+    assert.notEqual(translate(code, "tr-TR"), code);
+  }
+  for (const value of ["Info", "Warning", "High", "NotApplicable", "Unverified",
+    "RecordedEquipment", "RecordedWorkflow", "ScheduleOnly", "Conflict"]) {
+    assert.ok(Object.hasOwn(TURKISH, value), "Missing evidence label " + value);
+  }
+});
+
+test("source-defined maritime equipment types display Turkish without changing wire values", () => {
+  const policy = readFileSync(resolve(root,
+    "src/HarborOps.Domain/Maritime/MaritimePolicy.cs"), "utf8");
+  const match = policy.match(/Types = \[([^\]]+)\]/);
+  assert.ok(match, "Equipment type policy not found");
+  const types = [...match[1].matchAll(/"([^"]+)"/g)].map(m => m[1]);
+  assert.equal(types.length, 6);
+  for (const type of types) {
+    assert.ok(Object.hasOwn(TURKISH, type), "Missing equipment type " + type);
+    assert.notEqual(translate(type, "tr-TR"), type);
+  }
+  for (const code of ["GTIN", "GTOT", "ARRI", "DEPA"])
+    assert.ok(translate(code, "tr-TR").includes(code), "Display must retain event code " + code);
+});
+
+test("newly introduced platform text and stable authentication errors are translated", () => {
+  for (const source of ["Operations platform", "Maritime operations overview",
+    "Synthetic demo references are not live vessel positions or predictive ETA.",
+    "Authentication required. Sign in again.", "Unable to sign in with these credentials",
+    "Request validation failed", "The request could not be completed."]) {
+    assert.ok(Object.hasOwn(TURKISH, source), "Missing text " + source);
+  }
+  const source = readFileSync(resolve(root, "web/src/auth/AuthPanel.tsx"), "utf8");
+  const body = source.split("const safeAuthMessages:")[1].split("};")[0];
+  for (const match of body.matchAll(/:\s*"([^"]+)"/g))
+    assert.ok(Object.hasOwn(TURKISH, match[1]), "Untranslated stable authentication error " + match[1]);
 });

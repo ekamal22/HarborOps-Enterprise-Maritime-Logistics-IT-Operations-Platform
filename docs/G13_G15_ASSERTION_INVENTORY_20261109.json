@@ -849,19 +849,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
-            },
-            {
-              "kind": "test",
-              "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
-            },
-            {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+              "id": "ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Direct integration test reconciles M8 replays and M9 parked transport work against frozen K01 members and unchanged workflow counts. Pending execution on its own source SHA."
         },
         {
           "id": "G13-S09-A02",
@@ -870,19 +862,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
-            },
-            {
-              "kind": "test",
-              "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
-            },
-            {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+              "id": "ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Direct integration test reconciles M8 replays and M9 parked transport work against frozen K01 members and unchanged workflow counts. Pending execution on its own source SHA."
         },
         {
           "id": "G13-S09-A03",

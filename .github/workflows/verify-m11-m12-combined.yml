@@ -143,6 +143,10 @@ jobs:
             --filter 'FullyQualifiedName~G15RecurrenceAcceptanceTests' \
             --logger 'trx;LogFileName=g15-recurrence.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/g15-recurrence.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
+            --filter 'FullyQualifiedName~G13TrackingSourceAcceptanceTests' \
+            --logger 'trx;LogFileName=g13-tracking-source.trx' --results-directory .verification/m15 \
+            2>&1 | tee .verification/m15/g13-tracking-source.log
           # Fault-injection boundary tests can modify database-wide constraints.
           # Run them separately from unrelated integration suites on this exclusive server.
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \

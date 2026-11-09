@@ -203,6 +203,8 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
             "MarkReadIsLowNoiseWhileAcknowledgmentAuditIsAtomicAndReplayStable"))
     if scenario == "G13-S23":
         case.assertTrue(passed("ReportingBuildLimiterRejectsSeventhRequestWithoutChangingTheCommittedSnapshot"))
+    if scenario == "G13-S09":
+        case.assertTrue(passed("ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress"))
     if scenario in ("G13-S19", "G15-S13"):
         phases = ("G13BeforeReportCommit", "G13AfterReportCommit") if gate == "G13" else (
             "G15BeforeHistoryCommit", "G15BeforeClaimCommit",

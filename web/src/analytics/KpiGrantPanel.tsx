@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useEffect, useState, type FormEvent } from "react";
 import { organizationError, OrganizationRequestError, type Membership } from "../auth/organizationClient";
 import { auditorGrants, setAuditorGrant, type KpiGrant } from "./analyticsClient";
@@ -6,6 +7,7 @@ export default function KpiGrantPanel({ organizationId, members, onAccessInvalid
   organizationId: string; members: Membership[];
   onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number, locale } = useI18n();
   const [grants, setGrants] = useState<KpiGrant[]>([]);
   const [target, setTarget] = useState("");
   const [enabled, setEnabled] = useState(true);
@@ -41,29 +43,26 @@ export default function KpiGrantPanel({ organizationId, members, onAccessInvalid
         onAccessInvalidated(organizationError(cause));
     } finally { setBusy(false); }
   }
-  return <section className="mt-5 rounded border border-slate-700 p-4" aria-label="KPI Auditor grants">
-    <h4 className="font-semibold">KPI read-only Auditor grants</h4>
-    <p className="mt-1 text-xs text-slate-400">Only active Auditors with an explicit grant can view operational reports. This does not grant exports, edits or notification access.</p>
+  return <section className="mt-5 rounded border border-slate-700 p-4" aria-label={t("KPI Auditor grants")}>
+    <h4 className="font-semibold">{t("KPI read-only Auditor grants")}</h4>
+    <p className="mt-1 text-xs text-slate-400">{t("Only active Auditors with an explicit grant can view operational reports. This does not grant exports, edits or notification access.")}</p>
     <form onSubmit={e => void submit(e)} className="mt-3 flex flex-wrap items-end gap-3 text-sm">
-      <label>Auditor account
-        <select value={target} onChange={e => setTarget(e.target.value)}
+      <label>{t("Auditor account")}<select value={target} onChange={e => setTarget(e.target.value)}
           className="mt-1 block max-w-sm rounded border border-slate-600 bg-slate-950 p-2">
-          <option value="">Select Auditor</option>
+          <option value="">{t("Select Auditor")}</option>
           {members.filter(m => m.role === "Auditor" && m.status === "Active").map(m =>
             <option key={m.userId} value={m.userId}>{m.displayName} ({m.email})</option>)}
         </select>
       </label>
-      <label>Or enter Auditor UUID
-        <input type="text" value={target} placeholder="Account UUID"
+      <label>{t("Or enter Auditor UUID")}<input type="text" value={target} placeholder={t("Account UUID")}
           onChange={e => setTarget(e.target.value)}
           className="mt-1 block max-w-sm rounded border border-slate-600 bg-slate-950 p-2" />
       </label>
-      <label>Access
-        <select value={enabled ? "enable" : "disable"}
+      <label>{t("Access")}<select value={enabled ? "enable" : "disable"}
           onChange={e => setEnabled(e.target.value === "enable")}
           className="mt-1 block rounded border border-slate-600 bg-slate-950 p-2">
-          <option value="enable">Grant read-only</option>
-          <option value="disable">Revoke</option>
+          <option value="enable">{t("Grant read-only")}</option>
+          <option value="disable">{t("Revoke")}</option>
         </select>
       </label>
       <button disabled={busy || !target}

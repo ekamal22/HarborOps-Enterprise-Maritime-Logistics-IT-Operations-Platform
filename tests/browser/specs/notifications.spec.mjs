@@ -233,9 +233,15 @@ test("G15 rejected notification refresh drops protected data and organization se
     .selectOption({label:"M3 North Terminal (Manager)"});
   const center=page.getByRole("region",{name:"In-app shipment notifications"});
   await expect(center).toBeVisible();
+  // The initial organization selection starts its own notification refresh.
+  // Verify that the authorized request has settled before revoking access,
+  // so this test exercises the next refresh rather than racing the first one.
+  const refresh= center.getByRole("button",{name:"Refresh notifications"});
+  await expect(refresh).toBeEnabled();
   revoked=true;
-  await center.getByRole("button",{name:"Refresh notifications"}).click();
+  await refresh.click();
   await expect(center).toHaveCount(0);
+  await expect(page.locator("#current-organization")).toHaveValue("");
 });
 
 test("G15 unavailable shipment navigation fails closed without exposing the target",async({page})=>{

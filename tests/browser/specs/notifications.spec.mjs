@@ -241,7 +241,7 @@ test("G15 rejected notification refresh drops protected data and organization se
   revoked=true;
   await refresh.click();
   await expect(center).toHaveCount(0);
-  await expect(page.locator("#current-organization")).toHaveValue("");
+  await expect(page.locator("#current-organization")).toHaveCount(0);
 });
 
 test("G15 unavailable shipment navigation fails closed without exposing the target",async({page})=>{

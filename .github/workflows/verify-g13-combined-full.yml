@@ -219,18 +219,24 @@ jobs:
           cd tests/browser
           npx playwright install --with-deps chromium firefox webkit
           for engine in chromium firefox webkit; do
-            docker compose -p "$project" restart api
-            ready=0
-            for attempt in $(seq 1 45); do
-              if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null; then
-                ready=1; break
-              fi
-              sleep 2
+            for suite in notifications operational-kpis; do
+              # M15 and M13 use the same authenticated manager. Running both
+              # suites inside a single limiter window exhausts the documented
+              # six-report-per-minute policy. Reset only the disposable API
+              # process between suites; retain all DB fixtures and policy.
+              docker compose -p "$project" restart api
+              ready=0
+              for attempt in $(seq 1 45); do
+                if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null; then
+                  ready=1; break
+                fi
+                sleep 2
+              done
+              test "$ready" = "1"
+              export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/m15-browser/${engine}-${suite}.json"
+              npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1
+              node -e 'const x=require(process.env.HARBOROPS_G3_JSON_REPORT).stats;if(!x||x.expected<3||x.skipped>0||x.unexpected>0)process.exit(2);console.log("G13 suite passed:",x.expected,"failed:",x.unexpected)'
             done
-            test "$ready" = "1"
-            export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/m15-browser/${engine}.json"
-            npx playwright test specs/notifications.spec.mjs specs/operational-kpis.spec.mjs --project="$engine" --workers=1
-            node -e 'const x=require(process.env.HARBOROPS_G3_JSON_REPORT).stats;if(!x||x.expected<4||x.skipped>0||x.unexpected>0)process.exit(2);console.log("G13 combined browser assertions passed:",x.expected,"failed:",x.unexpected)'
           done
       - name: Capture browser evidence hashes
         if: always()

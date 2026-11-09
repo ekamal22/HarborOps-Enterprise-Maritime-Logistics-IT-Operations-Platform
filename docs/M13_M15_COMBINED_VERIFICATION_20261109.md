@@ -31,6 +31,12 @@ An individual passed job is not a passed workflow. A workflow pass on an earlier
 
 **Unrelated main workflow.** [42539391710](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539391710) on the protected `main` SHA `eb529368...` failed before business regression because the documentation checker references historical commit `6ead1d076946dd96b53401265a31efc35c4a666c` absent from the shallow checkout. Correct the workflow checkout depth and rerun separately; it is not a demonstrated M13/M15 application regression.
 
+## Latest confirmed browser failure and isolation correction
+
+The diagnostic assertion in [expanded run 42540547857](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42540547857), source `a6041a10869714b3f6613190a456568d835bf881`, identified the exact M13 custom-window failure: **HTTP 429 Too Many Requests** on the correctly formed `fromUtc=2026-11-01T00:00:00Z` request. The API behaved according to its configured six-report-per-minute limiter. The combined browser runner had executed all M15 notification scenarios and M13 KPI scenarios against the same manager/session and in-memory limiter window. It had unintentionally exhausted reporting quota through unrelated fixture activity.
+
+The combined workflow now runs the notification and KPI suites in separate phases for each browser, restarting only the disposable API process between phases, preserving database fixtures and **without changing or bypassing production rate limits**. The runner also preserves separate per-browser, per-suite JSON reports. This change is a verification isolation correction, not evidence of PASS until a new run succeeds. The same run's expanded PostgreSQL job passed after the 17-migration assertion correction.
+
 ## Remaining integration and acceptance work
 
 1. Obtain and inspect final results and raw artifacts for runs [42540547877](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42540547877) and [42540547857](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42540547857). If either is red, fix only the reported source or harness defect, then re-run against the new SHA. Do not suppress scenarios or treat skipped tests as PASS.

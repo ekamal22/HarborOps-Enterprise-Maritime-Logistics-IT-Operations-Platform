@@ -3,7 +3,7 @@
 **Prepared:** 2026-11-09.
 **Branch:** `verify/g13-g15-parallel-closure-20261109`.
 **Preserved proven source:** `ef2dd697df6c4a2dc8b53c55e7968ac37e41a745` and the nine-job [technical PASS run 42555586856](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42555586856).
-**Current state:** New completion source and tests authored. GitHub Actions has not been dispatched against this branch. Its gates remain unaccepted and it has not been merged or deployed.
+**Historical result:** The eleven-job [run 42561392681](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42561392681) FAILED at `895c20650e04f165116daf8a96327907cda09bf9` (8/11 successful; two illegal G13 lifecycle fixture transitions caused G13 SQL suite and mutation-control failures; evidence ledger failed accordingly). This supersedes the former unexecuted status. See the [later final campaign](G13_G15_FINAL_VERIFICATION_20261109.md).
 
 ## Parallel verification workstreams
 
@@ -27,9 +27,9 @@ M13 D-005 Option A is approved. G13 numerical performance, concurrency, report s
 
 M15-P01 through M15-P14 remain approval pending in [the policy register](M15_POLICY_RECOMMENDATIONS_20261109.md). Especially P10 governs transactional failure coupling to M11, P11 keeps production delivery default-off, and P12 does not authorize retention cleanup. No workflow can grant these approvals.
 
-## Manual execution
+## Historical manual execution
 
-Open the [registered combined verification workflow](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/workflows/verify-m11-m12-combined.yml). Select **Run workflow**, choose branch `verify/g13-g15-parallel-closure-20261109`, and dispatch once after the final source has been committed. GitHub selects the branch SHA automatically. Do not enter a SHA unless the workflow presents such an input. The reviewer must confirm the run head equals the branch head frozen for review.
+The historical run used the [registered combined verification workflow](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/workflows/verify-m11-m12-combined.yml). The later final branch must be selected instead of this historical eleven-job candidate. GitHub selects the branch SHA automatically. Do not enter a SHA unless the workflow presents such an input. The reviewer must confirm the run head equals the branch head frozen for review.
 
 The post-run ledger verifies source identifiers and checksums on raw artifact files, reads TRX and three-engine browser reports, checks 23 individual source/SQL mutation variants (13 G13 source, 2 G13 SQL and 8 G15 SQL), and records all fifty scenario dispositions conservatively. The runner cannot treat a green job as a complete milestone gate.
 

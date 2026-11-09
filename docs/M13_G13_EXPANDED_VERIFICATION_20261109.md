@@ -3,7 +3,9 @@
 **Recorded:** 2026-11-09.  
 **M13 branch:** `plan/m13-operational-kpi-dashboards-20261108`, last independently executed technical SHA `8175a28ac188b98f5b4cb3edaa7106b5d38ccb84`; newer branch commits are documentation-only at this checkpoint.  
 **Combined integration branch:** `verify/g13-m13-m15-integration-20261109`.  
-**Disposition:** M13 targeted and supplemental checks passed on their stated source SHAs, and combined integration workflows passed on the earlier isolated source. A full, final source-locked G13-S01 through S24 reconciliation and independent G13-S25 review are still required. G13 acceptance pending. No merge, deployment, production migration or operational-policy change.
+**Disposition:** M13 targeted and supplemental checks passed at their recorded SHAs. Combined successor run 42552035939 passed all five jobs at source `3150e5b67bace1801dfc3b02ff53c423b5af931c`. A full, final source-locked G13-S01 through S24 reconciliation and independent G13-S25 review are still required. G13 acceptance pending. No merge, deployment, production migration or operational-policy change.
+
+**Current verification checkpoint (2026-11-09):** Combined successor [run 42552035939](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42552035939) **PASSED all five jobs** on frozen `3150e5b67bace1801dfc3b02ff53c423b5af931c`: 312 unit, 52 contract, 37 PostgreSQL, 30 browser, 170k shipment scale and 2 SQL security mutations. The distinct acceptance-campaign branch introduces additional tests and nine-job evidence reconciliation but has not executed at its new SHA. G13/G15 full scenarios, M15-P01..P14 approvals and S25 reviews remain open. No main merge, acceptance, deployment or production activation. [Campaign](G13_G15_ACCEPTANCE_CAMPAIGN_20261109.md).
 
 ## Executed checks, scoped to each frozen source
 

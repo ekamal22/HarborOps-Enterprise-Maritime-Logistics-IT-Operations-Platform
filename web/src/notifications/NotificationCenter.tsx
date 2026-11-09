@@ -34,6 +34,7 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
   const openSerial = useRef(0);
   const mounted = useRef(true);
   const activeAbort = useRef<AbortController | null>(null);
+  const pagingAbort = useRef<AbortController | null>(null);
 
   const invalidate = useCallback((cause: unknown) => {
     if (revoked(cause)) onAccessInvalidated(organizationError(cause));
@@ -42,6 +43,10 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
   const refresh = useCallback(async (quiet = false) => {
     const run = ++serial.current;
     activeAbort.current?.abort();
+    // A fresh first page supersedes any in-flight pagination request.
+    pagingAbort.current?.abort();
+    pagingAbort.current = null;
+    setPaging(false);
     const controller = new AbortController();
     activeAbort.current = controller;
     if (!quiet) setLoading(true);
@@ -77,15 +82,18 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
       mounted.current = false;
       serial.current++;
       activeAbort.current?.abort();
+      pagingAbort.current?.abort();
+      pagingAbort.current = null;
       window.clearInterval(timer);
     };
   }, [refresh]);
 
   const loadMore = async () => {
-    if (!cursor || loading || paging || busyId) return;
+    if (!cursor || loading || paging || busyId || pagingAbort.current) return;
     const run = serial.current;
-    setPaging(true); setError("");
     const controller = new AbortController();
+    pagingAbort.current = controller;
+    setPaging(true); setError("");
     try {
       const page = await listNotifications(organizationId,filter,cursor,controller.signal);
       if (!mounted.current || run !== serial.current) return;
@@ -99,9 +107,11 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
         setError(organizationError(cause)); invalidate(cause);
       }
     } finally {
-      // An overlapping refresh invalidates this page request but must not
-      // strand the pagination lock. The response is still discarded above.
-      if (mounted.current) setPaging(false);
+      // An older aborted page must never release a newer page's lock.
+      if (pagingAbort.current === controller) {
+        pagingAbort.current = null;
+        if (mounted.current) setPaging(false);
+      }
     }
   };
 

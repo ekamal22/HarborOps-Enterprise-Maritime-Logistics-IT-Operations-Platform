@@ -1041,4 +1041,44 @@ public sealed class M13OperationalKpiRuntimeTests
         Console.WriteLine("G13_CONCURRENT_SNAPSHOT uncommitted_update_hidden=true committed_update_visible=true");
     }
 
+
+    [ExclusiveM13PostgresFact]
+    public async Task PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        var plan = new DateTimeOffset(2024, 2, 29, 12, 0, 0, TimeSpan.Zero);
+        foreach (var (arrival, accepted) in new[] {
+            (plan, true),
+            (plan.AddMinutes(60), true),
+            (plan.AddMinutes(60).AddTicks(10), false)
+        })
+        {
+            await using var cmd = new NpgsqlCommand("""
+                SELECT @arrival::timestamptz <=
+                       @planned::timestamptz + interval '60 minutes'
+                """, db);
+            cmd.Parameters.AddWithValue("arrival", arrival);
+            cmd.Parameters.AddWithValue("planned", plan);
+            Assert.Equal(accepted, Assert.IsType<bool>(await cmd.ExecuteScalarAsync()));
+        }
+        await using (var bucket = new NpgsqlCommand("""
+            SELECT date_trunc('week',
+                '2024-02-29T23:59:59.999999Z'::timestamptz
+                AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+            """, db))
+        {
+            var result = Assert.IsType<DateTime>(await bucket.ExecuteScalarAsync());
+            Assert.Equal(new DateTime(2024, 2, 26), result.Date);
+        }
+        await using (var historic = new NpgsqlCommand("""
+            SELECT '1969-12-31T23:59:59.999999Z'::timestamptz <
+                   '1970-01-01T00:00:00Z'::timestamptz
+            """, db))
+            Assert.True(Assert.IsType<bool>(await historic.ExecuteScalarAsync()));
+        Console.WriteLine("G13_UTC grace_plus_one_microsecond_fails=true " +
+            "leap_week_monday=true pre1970_ordering=true");
+    }
+
 }

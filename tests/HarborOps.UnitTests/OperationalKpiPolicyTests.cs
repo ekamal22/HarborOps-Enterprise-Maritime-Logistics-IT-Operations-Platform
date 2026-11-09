@@ -36,6 +36,13 @@ public sealed class OperationalKpiPolicyTests
     [InlineData("2026-11-09", false)]
     [InlineData("2026-11-09T00:00:00", false)]
     [InlineData("2026-11-09T03:00:00+03:00", false)]
+    [InlineData("1969-12-31T23:59:59.999999Z", true)]
+    [InlineData("2024-02-29T23:59:59.999999Z", true)]
+    [InlineData("2023-02-29T00:00:00Z", false)]
+    [InlineData("2026-11-09T00:00:00+00:01", false)]
+    [InlineData("2026-11-09T00:00:00-00:00", false)]
+    [InlineData("2026-11-09T24:00:00Z", false)]
+    [InlineData("2026-11-09T00:00:60Z", false)]
     [InlineData("", false)]
     public void RequiresExplicitRepresentableUtcTimestamp(string input, bool accepted)
     {

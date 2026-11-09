@@ -248,9 +248,20 @@ public sealed class G13G15CrashRecoveryTests
             scope.Parameters.AddWithValue("scope", $"{expiry}|{signature}");
             await scope.ExecuteNonQueryAsync();
         }
-        await using (var dispatch = new NpgsqlCommand(
-            "SELECT m15_deliver_pending(20)", db, tx))
-            Assert.True(Convert.ToInt32(await dispatch.ExecuteScalarAsync()) > 0);
+        var targetDelivered = false;
+        for (var attempt = 0; attempt < 100 && !targetDelivered; attempt++)
+        {
+            await using (var dispatch = new NpgsqlCommand(
+                "SELECT m15_deliver_pending(20)", db, tx))
+                await dispatch.ExecuteScalarAsync();
+            await using var target = new NpgsqlCommand("""
+                SELECT completed_at_utc IS NOT NULL
+                FROM m15_notification_outbox WHERE source_history_id=@history
+                """, db, tx);
+            target.Parameters.AddWithValue("history", history);
+            targetDelivered = await target.ExecuteScalarAsync() is true;
+        }
+        Assert.True(targetDelivered, "Target source was not dispatched in the bounded batch");
         if (commit)
             await tx.CommitAsync();
         await MarkAndHold(phase, s.Fixture.A, history, s.Fixture.ManagerEmail);

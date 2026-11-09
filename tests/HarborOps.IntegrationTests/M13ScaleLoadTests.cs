@@ -213,7 +213,7 @@ public sealed class M13ScaleLoadTests
             command.Parameters.AddWithValue("now", now);
             command.Parameters.AddWithValue("bucket", "day");
             command.Parameters.Add("origin", NpgsqlTypes.NpgsqlDbType.Uuid).Value =
-                origin.HasValue ? origin.Value : DBNull.Value;
+                (object?)origin ?? DBNull.Value;
             foreach (var name in new[] { "destination", "voyage" })
                 command.Parameters.Add(name, NpgsqlTypes.NpgsqlDbType.Uuid).Value = DBNull.Value;
             command.Parameters.Add("source", NpgsqlTypes.NpgsqlDbType.Text).Value = DBNull.Value;
@@ -262,6 +262,7 @@ public sealed class M13ScaleLoadTests
             owner.Parameters.AddWithValue("id", seed.Shipment);
             actor = Assert.IsType<Guid>(await owner.ExecuteScalarAsync());
         }
+        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "small");
         var timer = Stopwatch.StartNew();
         await using (var insert = new NpgsqlCommand("""
             INSERT INTO shipments (id,organization_id,reference_code,
@@ -271,14 +272,22 @@ public sealed class M13ScaleLoadTests
                @origin,@destination,'Draft','Active','Synthetic',1,
                '2026-10-01T00:00:00Z'::timestamptz,
                '2026-10-01T00:00:00Z'::timestamptz,@actor
-            FROM generate_series(1,170000) AS n
+            FROM generate_series(@start,@finish) AS n
             """, db) { CommandTimeout = 1200 })
         {
             insert.Parameters.AddWithValue("org", f.A);
             insert.Parameters.AddWithValue("origin", origin);
             insert.Parameters.AddWithValue("destination", destination);
             insert.Parameters.AddWithValue("actor", actor);
-            Assert.Equal(170000, await insert.ExecuteNonQueryAsync());
+            var start = insert.Parameters.Add("start", NpgsqlTypes.NpgsqlDbType.Integer);
+            var finish = insert.Parameters.Add("finish", NpgsqlTypes.NpgsqlDbType.Integer);
+            start.Value = 1;
+            finish.Value = 10000;
+            Assert.Equal(10000, await insert.ExecuteNonQueryAsync());
+            await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "medium10k");
+            start.Value = 10001;
+            finish.Value = 170000;
+            Assert.Equal(160000, await insert.ExecuteNonQueryAsync());
         }
         await using (var update = new NpgsqlCommand("""
             UPDATE shipments SET workflow_status='Cancelled',version=version+1,
@@ -295,6 +304,8 @@ public sealed class M13ScaleLoadTests
         timer.Stop();
         Console.WriteLine($"G13_170K seeded=170000 existing=2 seed_ms={timer.Elapsed.TotalMilliseconds:F0}");
         await CapturePrivilegedPlan(db, f.A, actor);
+        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "skewed170k");
+        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "empty", Guid.NewGuid());
         using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
         using var analyst = runtime.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
         analyst.Timeout = TimeSpan.FromMinutes(5);

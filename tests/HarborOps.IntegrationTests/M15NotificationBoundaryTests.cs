@@ -459,6 +459,10 @@ public sealed class M15NotificationBoundaryTests
         Assert.Equal(HttpStatusCode.OK, originalReplay.StatusCode);
         Assert.Equal(2L,(await originalReplay.Content.ReadFromJsonAsync<JsonElement>())
             .GetProperty("version").GetInt64());
+        using var staleAttempt = await M11ExceptionRuntimeTests.SendAction(
+            manager, root + "/" + id,
+            new { action = "MarkRead", expectedVersion = 1L }, Guid.NewGuid());
+        Assert.Equal(HttpStatusCode.Conflict, staleAttempt.StatusCode);
         using var invalidTransition = await M11ExceptionRuntimeTests.SendAction(
             manager, root + "/" + id,
             new { action = "MarkRead", expectedVersion = 2L }, Guid.NewGuid());

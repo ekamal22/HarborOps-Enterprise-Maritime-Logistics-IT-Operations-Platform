@@ -42,6 +42,30 @@ MUTANTS = [
         "                    OR p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 20 THEN",
         "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient",
     ),
+    (
+        "source-intent-failure-swallowed",
+        "RETURN NEW;\n            END $m15$;",
+        "RETURN NEW;\n            EXCEPTION WHEN OTHERS THEN RETURN NEW;\n            END $m15$;",
+        "FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction",
+    ),
+    (
+        "receipt-replay-session-unbound",
+        "AND old_replay.actor_session_id=p_session",
+        "AND true",
+        "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning",
+    ),
+    (
+        "receipt-cas-bypassed",
+        "IF item.version <> p_expected_version THEN",
+        "IF false THEN",
+        "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning",
+    ),
+    (
+        "receipt-audit-skipped",
+        "IF p_action='Acknowledge' THEN\n                        SELECT m.role",
+        "IF false THEN\n                        SELECT m.role",
+        "RequiredAuditFailureRollsBackReceiptAndReplay",
+    ),
 ]
 
 def sha(data: bytes) -> str:

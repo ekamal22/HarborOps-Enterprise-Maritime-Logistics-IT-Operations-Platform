@@ -64,15 +64,15 @@ MUTANTS = [
      "WHERE e.organization_id=@org AND e.first_detected_at_utc>=@before",
      "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
     ("k03-duplicate-status-history",
-     "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\\n"
-     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\\n"
+     "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\n"
+     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\n"
      "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before",
-     "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\\n"
-     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\\n"
-     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before\\n"
-     "            UNION ALL\\n"
-     "            SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\\n"
-     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\\n"
+     "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\n"
+     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\n"
+     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before\n"
+     "            UNION ALL\n"
+     "            SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\n"
+     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\n"
      "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before",
      "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
     ("correction-generation-stale-accepted",

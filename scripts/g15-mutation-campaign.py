@@ -61,6 +61,18 @@ MUTANTS = [
         "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning",
     ),
     (
+        "receipt-recipient-uniqueness-removed",
+        "CONSTRAINT uq_m15_event_recipient UNIQUE(source_history_id,recipient_user_id),",
+        "CONSTRAINT uq_m15_event_recipient CHECK (recipient_user_id IS NOT NULL),",
+        "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay",
+    ),
+    (
+        "signed-recipient-scope-unbound",
+        "IF fields[2]::uuid IS DISTINCT FROM p_recipient THEN RETURN false; END IF;",
+        "IF false THEN RETURN false; END IF;",
+        "SignedRecipientContextCannotReadAnotherUserNotifications",
+    ),
+    (
         "receipt-audit-skipped",
         "IF p_action='Acknowledge' THEN\n                        SELECT m.role",
         "IF false THEN\n                        SELECT m.role",

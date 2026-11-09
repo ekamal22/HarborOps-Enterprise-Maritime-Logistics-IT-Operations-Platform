@@ -45,7 +45,7 @@ REFERENCES = {
             "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         8: ["ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         6: ["PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"],
-        9: ["SUITE:M11ResidualRuntimeTests", "SUITE:M10CorrectionAuthorityTests"],
+        9: ["SUITE:M11ResidualRuntimeTests", "SUITE:M10ProjectorScopeUpgradeTests"],
         11: ["SUITE:M12ResidualBoundaryTests"],
         10: ["ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         12: ["ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"],
@@ -55,8 +55,8 @@ REFERENCES = {
              "RepeatableReadReportIgnoresUncommittedConcurrentShipmentTransition"],
         16: ["RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots",
              "FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows"],
-        17: ["WindowsAreStrictHalfOpenAndBounded", "RequiresExplicitRepresentableUtcTimestamp"],
-        18: ["MigrationSnapshotTests"],
+        17: ["WindowsAreStrictHalfOpenAndBounded", "SUITE:OperationalKpiPolicyTests"],
+        18: ["SUITE:MigrationSnapshotTests"],
         19: ["BlockedMemberMaterializationRollsBackAndRecovers",
              "CRASH:G13BeforeReportCommit", "CRASH:G13AfterReportCommit"],
         20: ["Mixed170kShipmentsProduceExactBoundedReport",
@@ -87,10 +87,13 @@ REFERENCES = {
         12: ["ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts",
              "TwoDispatchersFanOutToTwoHundredFiftyAdditionalMembersAndServeOneHundredReaders"],
         13: ["CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded",
-             "CRASH:G15BeforeHistoryCommit", "CRASH:G15AfterReceiptCommit"],
+             "CRASH:G15BeforeHistoryCommit", "CRASH:G15BeforeClaimCommit",
+             "CRASH:G15BeforeFanoutCommit", "CRASH:G15AfterFanoutCommit",
+             "CRASH:G15AfterReceiptCommit"],
         14: ["FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction"],
-        15: ["MigrationSnapshotTests"],
-        16: ["RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"],
+        15: ["SUITE:MigrationSnapshotTests"],
+        16: ["RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient",
+             "SignedRecipientContextCannotReadAnotherUserNotifications"],
         17: ["ShortLivedProtectedCursorExpiresAndNewEventsDoNotLeakIntoOldCutoff",
              "MoreThanOneHundredPersonalRowsPageOnceThroughLiveReceiptChange",
              "OneMillionRowsPreserveBoundedScopedKeysetPagination"],
@@ -104,7 +107,10 @@ REFERENCES = {
         23: ["SUITE:M11ResidualRuntimeTests", "SUITE:M12ResidualBoundaryTests",
              "SUITE:AuditHardeningTests",
              "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"],
-        24: ["MUTATION:g15-mutations", "SCAN:dependencies"],
+        24: ["MUTATION:g15-mutations",
+             "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay",
+             "SignedRecipientContextCannotReadAnotherUserNotifications",
+             "SCAN:dependencies"],
     },
 }
 
@@ -211,7 +217,12 @@ def browser_result(root: Path | None) -> dict[str, bool]:
 
 def crash_evidence(root: Path | None) -> dict[str, bool]:
     phases = ("G13BeforeReportCommit", "G15BeforeHistoryCommit",
-              "G13AfterReportCommit", "G15AfterReceiptCommit")
+              "G15BeforeClaimCommit", "G15BeforeFanoutCommit",
+              "G15AfterFanoutCommit", "G13AfterReportCommit",
+              "G15AfterReceiptCommit")
+    recovered = {"G15BeforeClaimCommit", "G15BeforeFanoutCommit",
+                 "G15AfterFanoutCommit", "G13AfterReportCommit",
+                 "G15AfterReceiptCommit"}
     results = {phase: False for phase in phases}
     if root is None:
         return results
@@ -233,11 +244,11 @@ def crash_evidence(root: Path | None) -> dict[str, bool]:
             marker = root / (phase + ".json")
             log = root / (phase + ".log")
             ok = (row.get("result") == "KILLED_AND_VERIFIED"
-                  and row.get("recovery") == ("PASS" if "After" in phase else "NOT_APPLICABLE")
+                  and row.get("recovery") == ("PASS" if phase in recovered else "NOT_APPLICABLE")
                   and marker.is_file() and log.is_file()
                   and digest(marker) == row.get("marker_sha256")
                   and digest(log) == row.get("log_sha256"))
-            if "After" in phase and not (root / (phase + "-recovery.log")).is_file():
+            if phase in recovered and not (root / (phase + "-recovery.log")).is_file():
                 ok = False
             if not ok:
                 fail("Missing complete crash proof: " + phase)

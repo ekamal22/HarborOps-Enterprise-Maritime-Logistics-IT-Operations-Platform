@@ -30,14 +30,21 @@ JOBS = {
 # References identify executed technical checks, not complete acceptance scenarios.
 REFERENCES = {
     "G13": {
-        3: ["TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"],
-        4: ["TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"],
-        5: ["TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"],
-        7: ["RealM11OverdueEvaluationProducesDistinctDashboardRisk"],
+        3: ["TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers",
+            "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
+        4: ["TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers",
+            "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
+        5: ["TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers",
+            "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
+        7: ["RealM11OverdueEvaluationProducesDistinctDashboardRisk",
+            "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
+        8: ["ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
+        10: ["ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"],
         12: ["ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"],
         13: ["AuditorGrantRevocationDeniesDashboardAndOldReportMembers"],
         14: ["AuditorGrantRevocationDeniesDashboardAndOldReportMembers"],
-        15: ["CommittedReportMembersRemainStableAcrossLaterWorkflowChanges"],
+        15: ["CommittedReportMembersRemainStableAcrossLaterWorkflowChanges",
+             "RepeatableReadReportIgnoresUncommittedConcurrentShipmentTransition"],
         16: ["RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"],
         18: ["MigrationSnapshotTests"],
         19: ["BlockedMemberMaterializationRollsBackAndRecovers"],
@@ -238,7 +245,7 @@ def main() -> int:
     tests, counters = read_tests()
     browsers = browser_result(artifacts["m15-browser"])
     mutations = {
-        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 9),
+        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 13),
         "g13-security-mutations": mutation_result(
             artifacts["g13-security-mutations"], "g13-security-mutations", 2),
         "g15-mutations": mutation_result(

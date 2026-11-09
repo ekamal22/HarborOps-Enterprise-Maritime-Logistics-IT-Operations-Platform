@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs"
 EVIDENCE = ROOT / ".verification/g13-mutations"
 FILTER = "FullyQualifiedName~M13OperationalKpiRuntimeTests.TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
+ORACLE = "FullyQualifiedName~M13OperationalKpiRuntimeTests.ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
 MUTANTS = [
     ("k01-include-completed",
      "WHERE s.record_status='Active' AND s.workflow_status NOT IN ('Completed','Cancelled')",
@@ -41,15 +42,31 @@ MUTANTS = [
     ("report-cap-wrong-comparison",
      "if (count > OperationalKpiPolicy.MaximumReportMembers)",
      "if (count < OperationalKpiPolicy.MaximumReportMembers)"),
+    ("k07-recorded-risk-dropped",
+     "AND e.rule_code IN ('RecordedArrivalLate','ArrivalScheduleOverdue','DepartureSlippageRisk')\n                    AND e.condition_state='Active'",
+     "AND e.rule_code IN ('ArrivalScheduleOverdue','DepartureSlippageRisk')\n                    AND e.condition_state='Active'",
+     "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
+    ("k10-fresh-equipment-conflict-hidden",
+     "AND h.observed_state='Conflict'",
+     "AND h.observed_state='Unknown'",
+     "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
+    ("k11-include-resolved-occurrence",
+     "AND e.lifecycle_state IN ('Open','Acknowledged')",
+     "AND e.lifecycle_state IN ('Open','Acknowledged','Resolved')",
+     "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
+    ("k12-suppress-first-openings",
+     "WHERE e.organization_id=@org AND e.first_detected_at_utc>=@from",
+     "WHERE e.organization_id=@org AND e.first_detected_at_utc>=@before",
+     "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
 ]
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
-def execute(label: str) -> tuple[int, str, float]:
+def execute(label: str, test_filter: str = FILTER) -> tuple[int, str, float]:
     args = [
         "dotnet", "test",
         "tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj",
-        "-c", "Release", "--filter", FILTER,
+        "-c", "Release", "--filter", test_filter,
         "--logger", "console;verbosity=normal",
     ]
     start = time.monotonic()
@@ -82,18 +99,26 @@ def main() -> int:
         if code:
             print("G13 mutation control failed. Mutations not attempted.")
             return 2
+        oracle_code, _, _ = execute("oracle-control", ORACLE)
+        if oracle_code:
+            print("G13 oracle clean control failed. Mutations not attempted.")
+            return 2
         text = original.decode("utf-8")
-        for name, before, after in MUTANTS:
+        for case in MUTANTS:
+            name, before, after, *target_case = case
+            test_filter = (ORACLE if target_case else FILTER)
+            test_name = (target_case[0] if target_case else
+                         "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers")
             if text.count(before) != 1:
                 raise RuntimeError(f"{name}: expected exactly one replacement, found {text.count(before)}")
             changed = text.replace(before, after)
             SOURCE.write_text(changed, encoding="utf-8")
-            code, output, elapsed = execute(name)
+            code, output, elapsed = execute(name, test_filter)
             if code == 124 or "Build FAILED" in output or "error CS" in output or "error xUnit" in output:
                 outcome = "INVALID"
             elif code == 0:
                 outcome = "SURVIVED"
-            elif "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers" in output and (
+            elif test_name in output and (
                 "Failed " in output or "[FAIL]" in output):
                 outcome = "KILLED"
             else:
@@ -108,7 +133,8 @@ def main() -> int:
             raise RuntimeError("G13 mutant source not restored")
         (EVIDENCE / "manifest.json").write_text(json.dumps({
             "source_commit":identity,"clean_source_sha256":source_sha,
-            "filter":FILTER,"records":records
+            "filter":FILTER,"oracle_filter":ORACLE,
+            "records":records
         }, indent=2) + "\n", encoding="utf-8")
     return 0 if records and all(x["outcome"] == "KILLED" for x in records[1:]) else 1
 

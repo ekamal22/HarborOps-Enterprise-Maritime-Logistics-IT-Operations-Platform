@@ -213,7 +213,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
     <ul className="mt-3 space-y-2">{rows.map(item =>
       <li key={item.id} className="rounded border border-slate-700 p-3 text-xs">
         <strong>{t(descriptions[item.ruleCode] ?? item.ruleCode)}</strong>
-        <span className="ml-2">{t(item.condition)} / {t(item.state)}</span>
+        <span className="ml-2">{t(item.condition)} / {t(item.state === "Acknowledged" ? "Exception acknowledged" : item.state)}</span>
         <p className="mt-1 text-slate-400">{t("Severity:")} {t(item.severity)} | {t("Evidence:")} {t(item.confidence)}</p>
         <p className="text-slate-400">{t("Reason:")} {t(item.reasonCode)}</p>
         {item.ruleCode === "RecordedArrivalLate" && item.state === "Resolved" &&
@@ -257,7 +257,7 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
       </div>
       {detail.nextHistoryCursor && <p role="status" className="mt-2 text-amber-300">{t("Showing")} {number(detail.history.length)} {t("history entries. Additional retained records are available.")}
       </p>}
-      <p className="mt-2 text-slate-400">{t("Rule policy:")} {detail.exception.evidence.rulePolicyVersion}; {t("input revision:")} {number(detail.exception.evidence.trackingInputRevision)}; {t("correction generation:")} {number(detail.exception.evidence.correctionGeneration)}
+      <p className="mt-2 text-slate-400">{t("Rule policy:")} {detail.exception.evidence.rulePolicyVersion}; {t("input revision:")} {String(detail.exception.evidence.trackingInputRevision)}; {t("correction generation:")} {String(detail.exception.evidence.correctionGeneration)}
       </p>
       {detail.exception.evidence.trackingInputDigest && <p className="mt-1 break-all text-slate-400">{t("M10 projection input digest:")}{detail.exception.evidence.trackingInputDigest}
       </p>}

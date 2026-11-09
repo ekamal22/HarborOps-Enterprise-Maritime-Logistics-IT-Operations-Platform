@@ -73,6 +73,12 @@ assert.match(read("compose.yaml"),/M15__EnableDelivery:.*HARBOROPS_M15_ENABLE_DE
 assert.match(read(".env.example"),/HARBOROPS_M15_ENABLE_DELIVERY=false/);
 assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),/FullyQualifiedName~M15NotificationBoundaryTests/);
 
-assert.match(read("scripts/prepare-m15-browser-fixtures.mjs"),/M15 real M11 event, opt-in fanout and scoped API fixture: PASS/);
+assert.match(read("scripts/prepare-m15-browser-fixtures.mjs"),
+  /M15 live scoped receipt and private browser authentication prepared: PASS/);
+assert.match(read("scripts/prepare-m15-browser-fixtures.mjs"),/storageState\(\)/);
+assert.match(read("tests/browser/specs/notifications.spec.mjs"),
+  /page\.context\(\)\.addCookies\(state\.cookies\)/);
+assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),
+  /\.private\/m15-manager\.json/);
 assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),/HARBOROPS_M15_ENABLE_DELIVERY=true/);
 assert.match(read("tests/browser/specs/notifications.spec.mjs"),/G15 live M11 event is delivered/);

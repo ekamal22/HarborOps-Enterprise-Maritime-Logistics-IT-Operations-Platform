@@ -24,6 +24,10 @@
 - M15 policy M15-P01..P14, full G15-S01 through S24 mapping and independent G15-S25 remain open. Default-off dispatcher and current business-read roles remain unchanged.
 - Preserve M9 ARRI/DEPA processing hold and 10,000-item backlog limit, default-off M10 projector, null ETA and opt-in M11 evaluator. No production migration, merge or deployment.
 
+## Link and source location correction
+
+The historical M13 campaign document lives in the combined branch, but `.github/workflows/verify-m13.yml` exists on the independent M13 feature branch rather than this combined branch. Its verification link now points to the exact feature-branch workflow, avoiding an incorrect same-branch relative link. The combined branch instead has its own `.github/workflows/verify-g13-combined.yml` and `.github/workflows/verify-g13-combined-full.yml` workflows.
+
 ## Documentation handling
 
 This reconciliation updated the current status and milestone planning documentation without rewriting historical acceptance source records. The independent M13/M15 feature branches retain separate histories, and protected `main` remains unchanged. Current and historical assertions are separated by the dated checkpoint links in each updated page.

@@ -373,4 +373,214 @@ public sealed class M15NotificationBoundaryTests
         Assert.Equal(105, seen.Count);
         Console.WriteLine("G15_S17 pages=3 distinct_receipts=105 read_mutation_between_pages=true");
     }
+
+    [Fact]
+    public async Task CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning()
+    {
+        var (s, shipment, exceptionId) = await OpenException();
+        using var adminFactory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var originalAdmin = s.Fixture.Admin;
+        using var originalManager = s.Fixture.Manager;
+        using var originalAnalyst = s.Fixture.Analyst;
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        for (var i = 0; i < 2; i++)
+        {
+            await using var insert = new NpgsqlCommand("""
+                INSERT INTO shipment_exception_history (
+                    organization_id,exception_id,action,old_state,new_state,
+                    actor_kind,source_fingerprint)
+                SELECT organization_id,id,'Opened',NULL,'Open','System',source_fingerprint
+                FROM shipment_exceptions WHERE id=@id
+                """, db);
+            insert.Parameters.AddWithValue("id", exceptionId);
+            Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+        }
+        await using (var scope = runtime.Services.CreateAsyncScope())
+        {
+            var delivery = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+            for (var attempt = 0; attempt < 10; attempt++)
+            {
+                await delivery.DeliverPendingAsync(CancellationToken.None);
+                if (await Count(db, """
+                    SELECT COUNT(DISTINCT source_history_id) FROM m15_user_notifications
+                    WHERE organization_id=@org AND shipment_id=@shipment
+                    """, ("org", s.Fixture.A), ("shipment", shipment)) >= 3) break;
+            }
+        }
+        Assert.Equal(3, await Count(db, """
+            SELECT COUNT(DISTINCT source_history_id) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", s.Fixture.A), ("shipment", shipment)));
+
+        using var separateSession = runtime.CreateClient(
+            new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
+            { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(separateSession, s.Fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Select(separateSession, s.Fixture.A);
+        var root = $"/api/v1/organizations/{s.Fixture.A}/notifications";
+        using var first = await manager.GetAsync(root + "?limit=1&state=All");
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        var body = await first.Content.ReadFromJsonAsync<JsonElement>();
+        var cursor = body.GetProperty("nextCursor").GetString();
+        Assert.False(string.IsNullOrEmpty(cursor));
+        var id = body.GetProperty("items")[0].GetProperty("id").GetGuid();
+
+        using var invalidSessionCursor = await separateSession.GetAsync(
+            root + "?limit=1&state=All&cursor=" + Uri.EscapeDataString(cursor!));
+        Assert.Equal(HttpStatusCode.BadRequest, invalidSessionCursor.StatusCode);
+        using var validOriginalCursor = await manager.GetAsync(
+            root + "?limit=1&state=All&cursor=" + Uri.EscapeDataString(cursor!));
+        Assert.Equal(HttpStatusCode.OK, validOriginalCursor.StatusCode);
+
+        var replay = Guid.NewGuid();
+        using var applied = await M11ExceptionRuntimeTests.SendAction(
+            manager, root + "/" + id,
+            new { action = "Acknowledge", expectedVersion = 1L }, replay);
+        Assert.Equal(HttpStatusCode.OK, applied.StatusCode);
+        var appliedReceipt = await applied.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(2L, appliedReceipt.GetProperty("version").GetInt64());
+        Assert.NotEqual(JsonValueKind.Null, appliedReceipt.GetProperty("readAtUtc").ValueKind);
+        Assert.NotEqual(JsonValueKind.Null,
+            appliedReceipt.GetProperty("acknowledgedAtUtc").ValueKind);
+        using var changedPayload = await M11ExceptionRuntimeTests.SendAction(
+            manager, root + "/" + id,
+            new { action = "MarkRead", expectedVersion = 1L }, replay);
+        Assert.Equal(HttpStatusCode.Conflict, changedPayload.StatusCode);
+        using var changedSession = await M11ExceptionRuntimeTests.SendAction(
+            separateSession, root + "/" + id,
+            new { action = "Acknowledge", expectedVersion = 1L }, replay);
+        Assert.Equal(HttpStatusCode.Conflict, changedSession.StatusCode);
+        using var originalReplay = await M11ExceptionRuntimeTests.SendAction(
+            manager, root + "/" + id,
+            new { action = "Acknowledge", expectedVersion = 1L }, replay);
+        Assert.Equal(HttpStatusCode.OK, originalReplay.StatusCode);
+        Assert.Equal(2L,(await originalReplay.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("version").GetInt64());
+        using var invalidTransition = await M11ExceptionRuntimeTests.SendAction(
+            manager, root + "/" + id,
+            new { action = "MarkRead", expectedVersion = 2L }, Guid.NewGuid());
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, invalidTransition.StatusCode);
+
+        Assert.Equal(1, await Count(db, """
+            SELECT COUNT(*) FROM m15_notification_replays
+            WHERE organization_id=@org AND idempotency_key=@key
+            """, ("org", s.Fixture.A), ("key", replay)));
+        Assert.Equal(1, await Count(db, """
+            SELECT COUNT(*) FROM audit_entries
+            WHERE organization_id=@org AND event_type='notification.receipt_acknowledged'
+              AND resource_id=@id
+            """, ("org", s.Fixture.A), ("id", id)));
+    }
+
+    [Fact]
+    public async Task FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients()
+    {
+        var (s, shipment, _) = await OpenException();
+        using var adminFactory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var originalAdmin = s.Fixture.Admin;
+        using var originalManager = s.Fixture.Manager;
+        using var originalAnalyst = s.Fixture.Analyst;
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        await using var scope = runtime.Services.CreateAsyncScope();
+        var delivery = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+        try
+        {
+            await using (var poison = new NpgsqlCommand("""
+                ALTER TABLE m15_user_notifications
+                ADD CONSTRAINT m15_test_reject_fanout CHECK (false) NOT VALID
+                """, db))
+                await poison.ExecuteNonQueryAsync();
+            await delivery.DeliverPendingAsync(CancellationToken.None);
+            Assert.Equal(0, await Count(db, """
+                SELECT COUNT(*) FROM m15_user_notifications
+                WHERE organization_id=@org AND shipment_id=@shipment
+                """, ("org", s.Fixture.A), ("shipment", shipment)));
+            Assert.Equal(1, await Count(db, """
+                SELECT COUNT(*) FROM m15_notification_outbox
+                WHERE organization_id=@org AND shipment_id=@shipment
+                  AND attempt_count=1 AND completed_at_utc IS NULL
+                    AND last_error_code='delivery_failure'
+                """, ("org", s.Fixture.A), ("shipment", shipment)));
+        }
+        finally
+        {
+            await using var restore = new NpgsqlCommand("""
+                ALTER TABLE m15_user_notifications
+                DROP CONSTRAINT IF EXISTS m15_test_reject_fanout
+                """, db);
+            await restore.ExecuteNonQueryAsync();
+        }
+        await using (var due = new NpgsqlCommand("""
+            UPDATE m15_notification_outbox
+            SET next_attempt_at_utc=clock_timestamp()
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, db))
+        {
+            due.Parameters.AddWithValue("org", s.Fixture.A);
+            due.Parameters.AddWithValue("shipment", shipment);
+            Assert.Equal(1, await due.ExecuteNonQueryAsync());
+        }
+        await delivery.DeliverPendingAsync(CancellationToken.None);
+        await delivery.DeliverPendingAsync(CancellationToken.None);
+        var recipientCount = await Count(db, """
+            SELECT COUNT(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", s.Fixture.A), ("shipment", shipment));
+        Assert.True(recipientCount >= 2);
+        Assert.Equal(recipientCount, await Count(db, """
+            SELECT COUNT(DISTINCT recipient_user_id) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", s.Fixture.A), ("shipment", shipment)));
+        Assert.Equal(1, await Count(db, """
+            SELECT COUNT(*) FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@shipment
+              AND completed_at_utc IS NOT NULL AND attempt_count=1
+            """, ("org", s.Fixture.A), ("shipment", shipment)));
+    }
+
+    [Fact]
+    public async Task ExistingReceiptsDoNotReappearAfterMembershipRemovalAndRejoin()
+    {
+        var (s, shipment, _) = await OpenException();
+        using var adminFactory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var originalAdmin = s.Fixture.Admin;
+        using var originalManager = s.Fixture.Manager;
+        using var originalAnalyst = s.Fixture.Analyst;
+        await M15NotificationRuntimeTests.EnsureShipmentDelivered(s, shipment);
+        var root = $"/api/v1/organizations/{s.Fixture.A}/notifications";
+        using var before = await manager.GetAsync(root);
+        var receipt = Assert.Single((await before.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("items").EnumerateArray()).GetProperty("id").GetGuid();
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        foreach (var status in new[] { "Inactive", "Active" })
+        {
+            await using var change = new NpgsqlCommand("""
+                UPDATE organization_memberships
+                SET status=@status,version=version+1,updated_at_utc=clock_timestamp()
+                WHERE id=(SELECT membership_id FROM m15_user_notifications WHERE id=@id)
+                """, db);
+            change.Parameters.AddWithValue("status", status);
+            change.Parameters.AddWithValue("id", receipt);
+            Assert.Equal(1, await change.ExecuteNonQueryAsync());
+        }
+        using var hidden = await manager.GetAsync(root + "/" + receipt);
+        Assert.Equal(HttpStatusCode.NotFound, hidden.StatusCode);
+        using var list = await manager.GetAsync(root);
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        Assert.Empty((await list.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("items").EnumerateArray());
+        using var count = await manager.GetAsync(root + "/unread-count");
+        Assert.Equal(0, (await count.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("unreadCount").GetInt64());
+    }
+
 }

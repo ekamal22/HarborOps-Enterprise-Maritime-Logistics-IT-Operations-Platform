@@ -960,7 +960,7 @@ public sealed class M13OperationalKpiRuntimeTests
         {
             var stored = await G13StoredIds(db, fixture.A, report, metric);
             Assert.True(stored.SetEquals(expected),
-                $"G13 reference {metric}: actual={string.Join(',', stored)} expected={string.Join(',', expected)}");
+                $"G13 reference {metric}: actual={string.Join(",", stored)} expected={string.Join(",", expected)}");
             Assert.DoesNotContain(foreignCompleted, stored);
             Assert.DoesNotContain(foreignBooked, stored);
         }

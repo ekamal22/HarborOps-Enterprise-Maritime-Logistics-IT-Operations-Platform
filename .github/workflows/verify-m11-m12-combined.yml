@@ -646,11 +646,76 @@ jobs:
           path: .verification/g13-g15-crash/
           retention-days: 30
 
+  dependency-security:
+    name: Source-locked dependency advisory and committed-secret inventory
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: source
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Capture advisory inventories and enforce high-severity clean result
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/dependency-security
+          dotnet restore HarborOps.sln > .verification/dependency-security/restore.log 2>&1
+          dotnet list HarborOps.sln package --vulnerable --include-transitive \
+            > .verification/dependency-security/dotnet-advisories.txt 2>&1
+          (cd web && npm ci --ignore-scripts --no-audit) \
+            > .verification/dependency-security/npm-ci.log 2>&1
+          (cd web && npm audit --audit-level=high --json) \
+            > .verification/dependency-security/npm-audit.json || \
+            echo npm_audit_nonzero > .verification/dependency-security/npm-audit-exit.txt
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path(".verification/dependency-security")
+          data = json.loads((root/"npm-audit.json").read_text())
+          audit_error = data.get("error")
+          metadata = data.get("metadata",{}).get("vulnerabilities",{})
+          high = int(metadata.get("high",0))
+          critical = int(metadata.get("critical",0))
+          if audit_error or high or critical:
+              raise SystemExit(f"High-severity npm advisories or scan error: high={high} critical={critical} error={bool(audit_error)}")
+          dotnet = (root/"dotnet-advisories.txt").read_text()
+          if "NU1903" in dotnet or "NU1904" in dotnet:
+              raise SystemExit("High or critical NuGet advisory reported")
+          (root/"summary.json").write_text(json.dumps({
+              "npm_high": high, "npm_critical": critical,
+              "dotnet_high_advisories": 0, "scan_completed": True
+          },indent=2)+"\n")
+          PY
+          if git grep -IlE 'AKIA[0-9A-Z]{16}|-----BEGIN (RSA|OPENSSH|EC) PRIVATE KEY-----' \
+            -- ':!*.lock' ':!docs/*' > .verification/dependency-security/possible-secret-paths.txt; then
+            echo 'Potential committed credentials require review' >&2
+            exit 1
+          fi
+      - name: Seal security evidence
+        if: always()
+        run: |
+          mkdir -p .verification/dependency-security
+          printf '%s\n' "$GITHUB_SHA" > .verification/dependency-security/source-sha.txt
+          (cd .verification/dependency-security && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-security-${{ github.run_id }}
+          path: .verification/dependency-security/
+          retention-days: 30
+
   gate-ledger:
     name: Reconcile G13 and G15 scenario evidence without approving gates
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations, g15-scale, g15-fanout, g13-concurrency, g13-g15-crashes]
+    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations, g15-scale, g15-fanout, g13-concurrency, g13-g15-crashes, dependency-security]
     if: always()
     env:
       GATE_JOB_SOURCE: ${{ needs.source.result }}
@@ -665,6 +730,7 @@ jobs:
       GATE_JOB_G15_FANOUT: ${{ needs.g15-fanout.result }}
       GATE_JOB_G13_CONCURRENCY: ${{ needs.g13-concurrency.result }}
       GATE_JOB_G13_G15_CRASHES: ${{ needs.g13-g15-crashes.result }}
+      GATE_JOB_DEPENDENCY_SECURITY: ${{ needs.dependency-security.result }}
     steps:
       - uses: actions/checkout@v4
         with:

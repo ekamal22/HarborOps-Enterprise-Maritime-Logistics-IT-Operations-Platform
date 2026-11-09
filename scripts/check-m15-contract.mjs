@@ -89,3 +89,12 @@ assert.match(read("tests/browser/specs/notifications.spec.mjs"),
   /G15 a cancelled pagination result cannot leave Load more disabled/);
 assert.match(read("tests/browser/specs/notifications.spec.mjs"),
   /center\.locator\("li p"\)\.filter\(\{hasText:/);
+
+const browserSpec = read("tests/browser/specs/notifications.spec.mjs");
+// Faked scenarios must intercept first-paint reads before loading the workspace.
+// A real hosted M11 to M15 browser check must never use that fallback.
+assert.match(browserSpec,/test\.beforeEach\(async \(\{ page \}, info\) =>/);
+assert.match(browserSpec,/if \(info\.title\.includes\("G15 live M11 event is delivered"\)\) return/);
+assert.match(browserSpec,/page\.route\("\*\*\/organizations\/\*\/notifications\?\*"/);
+assert.match(browserSpec,/page\.on\("response"/);
+assert.match(browserSpec,/liveHttpStatuses\.push\(response\.status\(\)\)/);

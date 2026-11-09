@@ -126,6 +126,119 @@ public sealed class M13ScaleLoadTests
         }
     }
 
+    // Exercise the actual materialization statement while logged in as
+    // harborops_api. The signed, live M11 scope and ephemeral report exist only
+    // inside this transaction; EXPLAIN ANALYZE is rolled back with its inserts.
+    private static async Task CaptureRestrictedPlan(string apiConnection,
+        string adminConnection, Guid org, Guid actor, string sample,
+        Guid? origin = null)
+    {
+        Guid session;
+        await using (var admin = new NpgsqlConnection(adminConnection))
+        {
+            await admin.OpenAsync();
+            await using var find = new NpgsqlCommand("""
+                SELECT id FROM auth_sessions
+                WHERE user_id=@actor AND selected_organization_id=@org
+                    AND revoked_at_utc IS NULL
+                ORDER BY issued_at_utc DESC LIMIT 1
+                """, admin);
+            find.Parameters.AddWithValue("actor", actor);
+            find.Parameters.AddWithValue("org", org);
+            session = Assert.IsType<Guid>(await find.ExecuteScalarAsync());
+        }
+        var query = (string?)typeof(HarborOps.Infrastructure.Reporting.OperationalKpiStore)
+            .GetField("MemberSql", System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Static)?.GetValue(null);
+        Assert.False(string.IsNullOrWhiteSpace(query));
+        var now = DateTimeOffset.UtcNow;
+        var end = new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero);
+        var report = Guid.NewGuid();
+        var expires = now.ToUnixTimeSeconds() + 30;
+        var data = System.Text.Encoding.UTF8.GetBytes(
+            $"m11-read-v1|{org:N}|{actor:N}|{session:N}|{expires}");
+        var digest = System.Security.Cryptography.HMACSHA256.HashData(
+            Convert.FromBase64String(ReferenceDataHttpTests.CorrectionProofKey), data);
+        var signature = Convert.ToHexString(digest).ToLowerInvariant();
+        var authority = $"{org:D}|{actor:D}|{session:D}|{expires}|{signature}";
+        await using var db = new NpgsqlConnection(apiConnection);
+        await db.OpenAsync();
+        await using var tx = await db.BeginTransactionAsync(
+            System.Data.IsolationLevel.RepeatableRead);
+        try
+        {
+            await using (var scope = new NpgsqlCommand("""
+                SELECT set_config('harborops.m11_read_scope',@authority,true),
+                    set_config('harborops.m13_materialize_org',@org::text,true),
+                    set_config('harborops.m13_materialize_report',@report::text,true)
+                """, db, tx))
+            {
+                scope.Parameters.AddWithValue("authority", authority);
+                scope.Parameters.AddWithValue("org", org);
+                scope.Parameters.AddWithValue("report", report);
+                await scope.ExecuteNonQueryAsync();
+            }
+            await using (var check = new NpgsqlCommand(
+                "SELECT m13_can_view(@org)", db, tx))
+            {
+                check.Parameters.AddWithValue("org", org);
+                Assert.Equal(true, await check.ExecuteScalarAsync());
+            }
+            await using (var create = new NpgsqlCommand("""
+                INSERT INTO operational_kpi_reports
+                    (id,organization_id,actor_user_id,actor_session_id,
+                     policy_version,filters_sha256,from_utc,before_utc,
+                     evaluated_at_utc,expires_at_utc)
+                VALUES (@report,@org,@actor,@session,'m13-kpi-v1',
+                    repeat('0',64),@from,@before,@now,@expires)
+                """, db, tx))
+            {
+                create.Parameters.AddWithValue("report", report);
+                create.Parameters.AddWithValue("org", org);
+                create.Parameters.AddWithValue("actor", actor);
+                create.Parameters.AddWithValue("session", session);
+                create.Parameters.AddWithValue("from", end.AddDays(-7));
+                create.Parameters.AddWithValue("before", end);
+                create.Parameters.AddWithValue("now", now);
+                create.Parameters.AddWithValue("expires", now.AddMinutes(10));
+                Assert.Equal(1, await create.ExecuteNonQueryAsync());
+            }
+            await using var command = new NpgsqlCommand(
+                "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + query, db, tx)
+                { CommandTimeout = 35 };
+            command.Parameters.AddWithValue("org", org);
+            command.Parameters.AddWithValue("report", report);
+            command.Parameters.AddWithValue("from", end.AddDays(-7));
+            command.Parameters.AddWithValue("before", end);
+            command.Parameters.AddWithValue("now", now);
+            command.Parameters.AddWithValue("bucket", "day");
+            command.Parameters.Add("origin", NpgsqlTypes.NpgsqlDbType.Uuid).Value =
+                origin.HasValue ? origin.Value : DBNull.Value;
+            foreach (var name in new[] { "destination", "voyage" })
+                command.Parameters.Add(name, NpgsqlTypes.NpgsqlDbType.Uuid).Value = DBNull.Value;
+            command.Parameters.Add("source", NpgsqlTypes.NpgsqlDbType.Text).Value = DBNull.Value;
+            command.Parameters.AddWithValue("maxrows", 500001);
+            var elapsed = Stopwatch.StartNew();
+            var raw = Assert.IsType<string>(await command.ExecuteScalarAsync());
+            elapsed.Stop();
+            using var result = JsonDocument.Parse(raw);
+            Assert.True(result.RootElement[0].GetProperty("Plan")
+                .GetProperty("Actual Total Time").GetDouble() >= 0);
+            var directory = Path.Combine(
+                Environment.GetEnvironmentVariable("GITHUB_WORKSPACE")
+                    ?? Directory.GetCurrentDirectory(), ".verification", "g13-scale");
+            Directory.CreateDirectory(directory);
+            await File.WriteAllTextAsync(
+                Path.Combine(directory, "explain-api-" + sample + ".json"), raw);
+            Console.WriteLine($"G13_RESTRICTED_PLAN sample={sample} elapsed_ms={elapsed.Elapsed.TotalMilliseconds:F0} " +
+                $"role=harborops_api bytes={raw.Length} sha256={Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(raw)))}");
+        }
+        finally
+        {
+            await tx.RollbackAsync();
+        }
+    }
+
     [ExclusiveM13PostgresFact]
     public async Task Mixed170kShipmentsProduceExactBoundedReport()
     {

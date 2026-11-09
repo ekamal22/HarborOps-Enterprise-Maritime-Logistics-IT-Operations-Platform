@@ -748,9 +748,19 @@ jobs:
           mkdir -p .verification/combined-regressions
           dotnet build HarborOps.sln -c Release -warnaserror \
             2>&1 | tee .verification/combined-regressions/build.log
+          # M10 provisions server-global PostgreSQL role credentials.
+          # Run its selected tests in their own process before the shared
+          # regression suite so role changes cannot race with M11/M12 tests.
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
             -c Release --no-build \
-            --filter 'FullyQualifiedName~IdentityLifecycleTests|FullyQualifiedName~ShipmentBoundaryTests|FullyQualifiedName~M10RuntimeIdentityTests.StolenDatabaseSessionIdsCannotForgeAnM10Correction|FullyQualifiedName~M10RuntimeIdentityTests.M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards|FullyQualifiedName~M11ResidualRuntimeTests|FullyQualifiedName~M12ResidualBoundaryTests|FullyQualifiedName~AuditIntegrityTests|FullyQualifiedName~AuditHardeningTests' \
+            --filter 'FullyQualifiedName~M10RuntimeIdentityTests.StolenDatabaseSessionIdsCannotForgeAnM10Correction|FullyQualifiedName~M10RuntimeIdentityTests.M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards' \
+            --logger 'console;verbosity=normal' \
+            --logger 'trx;LogFileName=m10-correction-regressions.trx' \
+            --results-directory .verification/combined-regressions \
+            2>&1 | tee .verification/combined-regressions/m10-correction-regressions.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
+            -c Release --no-build \
+            --filter 'FullyQualifiedName~IdentityLifecycleTests|FullyQualifiedName~ShipmentBoundaryTests|FullyQualifiedName~M11ResidualRuntimeTests|FullyQualifiedName~M12ResidualBoundaryTests|FullyQualifiedName~AuditIntegrityTests|FullyQualifiedName~AuditHardeningTests' \
             --logger 'console;verbosity=normal' \
             --logger 'trx;LogFileName=combined-regressions.trx' \
             --results-directory .verification/combined-regressions \

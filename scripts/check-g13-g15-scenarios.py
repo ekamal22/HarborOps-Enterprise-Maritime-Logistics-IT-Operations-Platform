@@ -193,6 +193,12 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
     if scenario in ("G13-S12", "G13-S23", "G15-S16"):
         case.assertTrue(passed(
             "RestrictedRolesCannotModifyMaterializedReportingMembership"))
+    if scenario in ("G15-S10", "G15-S22"):
+        case.assertTrue(passed(
+            "ArchivedShipmentKeepsHistoricalPersonalEventWithoutNewBusinessAuthority"))
+    if scenario in ("G15-S18", "G15-S20"):
+        case.assertTrue(passed(
+            "MarkReadIsLowNoiseWhileAcknowledgmentAuditIsAtomicAndReplayStable"))
     if scenario in ("G13-S19", "G15-S13"):
         phases = ("G13BeforeReportCommit", "G13AfterReportCommit") if gate == "G13" else (
             "G15BeforeHistoryCommit", "G15BeforeClaimCommit",

@@ -177,6 +177,10 @@ jobs:
           project="ho-verify-m15-${GITHUB_RUN_ID}"
           cleanup() {
             code=$?
+            # Remove transient authentication state before any evidence upload.
+            rm -f -- "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json" \
+              "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
+            rmdir -- "$HARBOROPS_VERIFICATION_ROOT/.private" 2>/dev/null || true
             docker compose -p "$project" ps || true
             docker compose -p "$project" down --volumes --remove-orphans || true
             exit "$code"
@@ -215,6 +219,8 @@ jobs:
           node scripts/prepare-m4-browser-fixtures.mjs
           node scripts/prepare-m5-browser-fixtures.mjs
           node scripts/prepare-m15-browser-fixtures.mjs
+          test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json"
+          test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
           npm --prefix tests/browser ci --no-audit --no-fund
           cd tests/browser
           npx playwright install --with-deps chromium firefox webkit
@@ -235,7 +241,8 @@ jobs:
               test "$ready" = "1"
               export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/m15-browser/${engine}-${suite}.json"
               npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1
-              node -e 'const x=require(process.env.HARBOROPS_G3_JSON_REPORT).stats;if(!x||x.expected<3||x.skipped>0||x.unexpected>0)process.exit(2);console.log("G13 suite passed:",x.expected,"failed:",x.unexpected)'
+              HARBOROPS_EXPECTED_CASES="$([ "$suite" = notifications ] && echo 7 || echo 3)" \
+                node -e 'const s=require(process.env.HARBOROPS_G3_JSON_REPORT).stats;const n=Number(process.env.HARBOROPS_EXPECTED_CASES);if(!s||s.expected!==n||s.skipped!==0||s.unexpected!==0)process.exit(2);console.log("Combined browser suite passed:",s.expected,"failed:",s.unexpected)'
             done
           done
       - name: Capture browser evidence hashes

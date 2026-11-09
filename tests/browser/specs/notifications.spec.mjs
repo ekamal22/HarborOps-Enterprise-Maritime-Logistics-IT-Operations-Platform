@@ -5,14 +5,97 @@ import path from "node:path";
 const enabled = process.env.HARBOROPS_M5_FIXTURES === "1" &&
   Boolean(process.env.HARBOROPS_TEST_USER_PASSWORD);
 
-async function signIn(page) {
+/*
+ * The audit-read limiter is per user (30 requests/minute). Each browser
+ * scenario starts a fresh workspace, whose notification center fetches before
+ * the scenario's individual routes can be installed. Intercept the incidental
+ * first paint for mocked scenarios so three browser engines do not consume
+ * real API quota. The separately named live scenario never installs mocks.
+ * Scenario-specific routes take precedence over these earlier fallbacks.
+ */
+test.beforeEach(async ({ page }, info) => {
+  if (info.title.includes("G15 live M11 event is delivered")) return;
+  const empty = { items:[], nextCursor:null,
+    snapshotAtUtc:"2026-11-08T18:00:00Z" };
+  await page.route("**/organizations/*/notifications?*", route =>
+    route.fulfill({ status:200, contentType:"application/json",
+      body:JSON.stringify(empty) }));
+  await page.route("**/organizations/*/notifications/unread-count", route =>
+    route.fulfill({ status:200, contentType:"application/json",
+      body:JSON.stringify({ unreadCount:0, asOfUtc:empty.snapshotAtUtc }) }));
+});
+
+async function signIn(page, role="Manager") {
+  const root=process.env.HARBOROPS_VERIFICATION_ROOT;
+  const filename=role==="Administrator" ? "m15-administrator.json" : "m15-manager.json";
+  const privateState=root ? path.join(root,".private",filename) : null;
+  if (process.env.HARBOROPS_M15_LIVE_FIXTURE === "1" &&
+      !(privateState && fs.existsSync(privateState)))
+    throw Error("Source-locked private browser session fixture missing");
+  if (privateState && fs.existsSync(privateState)) {
+    const state=JSON.parse(fs.readFileSync(privateState,"utf8"));
+    const session=state.cookies.find(cookie=>cookie.name==="HarborOps.Session");
+    expect(session?.value).toBeTruthy();
+    await page.context().addCookies(state.cookies);
+  } else {
+    // Optional local smoke mode without a prepared disposable fixture.
+    await page.goto("/");
+    await page.getByLabel("Email").fill(role==="Administrator"
+      ? "m3-admin-a@example.test" : "m3-manager@example.test");
+    await page.getByLabel("Password",{exact:true})
+      .fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
+    const login=page.waitForResponse(response=>
+      response.url().endsWith("/api/v1/auth/login") &&
+      response.request().method()==="POST");
+    await page.getByRole("button",{name:"Sign in"}).click();
+    const response=await login;
+    expect(response.status(), "Disposable browser login HTTP status").toBe(200);
+  }
   await page.goto("/");
-  await page.getByLabel("Email").fill("m3-manager@example.test");
-  await page.getByLabel("Password", { exact: true })
-    .fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("heading", { name: "Organization workspace" })).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Organization workspace"}))
+    .toBeVisible();
 }
+
+test("G15 live M11 event is delivered and navigable from the real notification API",
+  async ({ page }) => {
+  test.skip(!enabled || process.env.HARBOROPS_M15_LIVE_FIXTURE !== "1",
+    "Disposable opt-in M15 delivery fixture required");
+  const root = process.env.HARBOROPS_VERIFICATION_ROOT;
+  const fixture = JSON.parse(fs.readFileSync(
+    path.join(root,"m15-browser","live-fixture.json"),"utf8"));
+  expect(fixture.sourceSha).toBe(process.env.HARBOROPS_SOURCE_SHA);
+  const liveHttpStatuses = [];
+  page.on("response", response => {
+    if (response.url().includes("/organizations/" + fixture.organizationId +
+      "/notifications")) liveHttpStatuses.push(response.status());
+  });
+  await signIn(page);
+  await page.locator("#current-organization")
+    .selectOption({ label:"M3 North Terminal (Manager)" });
+  const center = page.getByRole("region",{name:"In-app shipment notifications"});
+  await expect(center).toBeVisible();
+  const liveNotice = center.locator("li").filter({hasText:fixture.title});
+  try {
+    await expect(liveNotice).toHaveCount(1);
+  } catch (failure) {
+    // Report request outcomes without logging response bodies, cookies, or
+    // private fixture credentials. This distinguishes actual access failures
+    // from pagination and rendering bugs on the final browser engine.
+    const errors = await center.getByRole("alert").allTextContents();
+    const content = await center.locator("li p.font-medium").allTextContents();
+    throw new Error("Live M15 notification not visible. HTTP statuses: " +
+      liveHttpStatuses.join(",") + "; UI errors: " + errors.join(" | ") +
+      "; notification count: " + content.length, { cause:failure });
+  }
+  await expect(liveNotice.getByText(fixture.title)).toBeVisible();
+  await expect(liveNotice.getByText("Unread",{exact:false})).toBeVisible();
+  await liveNotice.getByRole("button",{name:"Open shipment exception"}).click();
+  const panel = page.getByRole("region",{name:"Shipment exceptions"});
+  await expect(panel).toBeVisible();
+  await expect(panel.getByText(
+    "Planned arrival is overdue; physical arrival is unconfirmed",
+    {exact:false}).first()).toBeVisible();
+});
 
 test("G15 scoped notification center displays neutral event and personal state", async ({ page }) => {
   test.skip(!enabled, "Disposable organization fixtures required");
@@ -57,11 +140,7 @@ test("G15 scoped notification center displays neutral event and personal state",
 
 test("G15 notification center never grants administrator shipment visibility", async ({page}) => {
   test.skip(!enabled,"Disposable organization fixtures required");
-  await page.goto("/");
-  await page.getByLabel("Email").fill("m3-admin-a@example.test");
-  await page.getByLabel("Password",{exact:true})
-    .fill(process.env.HARBOROPS_TEST_USER_PASSWORD);
-  await page.getByRole("button",{name:"Sign in"}).click();
+  await signIn(page,"Administrator");
   await page.locator("#current-organization")
     .selectOption({label:"M3 North Terminal (Administrator)"});
   await expect(page.getByRole("region",{name:"In-app shipment notifications"}))
@@ -119,10 +198,13 @@ test("G15 personal receipt controls preserve a separate unread counter", async (
   await center.getByRole("button",{name:"Mark read"}).click();
   await expect(center.getByRole("button",{name:"Mark read"})).toHaveCount(0);
   await expect(center.getByText("0 unread",{exact:false})).toBeVisible();
+  // The successful MarkRead refresh must release its own busy lock.
+  await expect(center.getByRole("button",{name:"Acknowledge notification"}))
+    .toBeEnabled();
   await center.getByRole("button",{name:"Acknowledge notification"}).click();
   await expect(center.getByRole("button",{name:"Acknowledge notification"}))
     .toHaveCount(0);
-  await expect(center.locator("li p").filter({hasText:"Acknowledged"})).toBeVisible();
+  await expect(center.locator("li p").filter({hasText:/\|\s*Acknowledged$/})).toBeVisible();
 });
 
 test("G15 rejected notification refresh drops protected data and organization selection",async({page})=>{
@@ -193,27 +275,42 @@ test("G15 unavailable shipment navigation fails closed without exposing the targ
 });
 
 
-test("G15 live M11 event is delivered and navigable from the real notification API",
-  async ({ page }) => {
-  test.skip(!enabled || process.env.HARBOROPS_M15_LIVE_FIXTURE !== "1",
-    "Disposable opt-in M15 delivery fixture required");
-  const root = process.env.HARBOROPS_VERIFICATION_ROOT;
-  const fixture = JSON.parse(fs.readFileSync(
-    path.join(root,"m15-browser","live-fixture.json"),"utf8"));
-  expect(fixture.sourceSha).toBe(process.env.HARBOROPS_SOURCE_SHA);
+test("G15 a cancelled pagination result cannot leave Load more disabled", async ({ page }) => {
+  test.skip(!enabled, "Disposable organization fixtures required");
   await signIn(page);
+  const north = await page.locator("#current-organization option")
+    .filter({ hasText:"M3 North Terminal (Manager)" }).getAttribute("value");
+  expect(north).toBeTruthy();
+  const notices = Array.from({ length:25 }, (_, index) => ({
+    id:"d0000000-0000-4000-8000-"+String(index+1).padStart(12,"0"),
+    shipmentId:"d1000000-0000-4000-8000-000000000001",
+    exceptionId:"d2000000-0000-4000-8000-000000000001",
+    eventType:"ExceptionOpened", ruleCode:"ArrivalScheduleOverdue",
+    title:"Planned arrival overdue; physical arrival unconfirmed",
+    eventLabel:"Opened", createdAtUtc:"2026-11-08T18:00:00Z",
+    readAtUtc:null, acknowledgedAtUtc:null, state:"Unread",version:1
+  }));
+  let releasePage;
+  await page.route("**/organizations/"+north+"/notifications?*", async route => {
+    const query = new URL(route.request().url()).searchParams;
+    if (query.has("cursor"))
+      await new Promise(resolve => { releasePage = resolve; });
+    return route.fulfill({ status:200, contentType:"application/json",
+      body:JSON.stringify({ items:query.has("cursor") ? [] : notices,
+        nextCursor:query.has("cursor") ? null : "synthetic-page-token",
+        snapshotAtUtc:"2026-11-08T18:01:00Z" }) });
+  });
+  await page.route("**/organizations/"+north+"/notifications/unread-count",
+    route => route.fulfill({ status:200,contentType:"application/json",
+      body:JSON.stringify({ unreadCount:25, asOfUtc:"2026-11-08T18:01:00Z" }) }));
   await page.locator("#current-organization")
     .selectOption({ label:"M3 North Terminal (Manager)" });
-  const center = page.getByRole("region",{name:"In-app shipment notifications"});
-  await expect(center).toBeVisible();
-  const liveNotice = center.locator("li").filter({hasText:fixture.title});
-  await expect(liveNotice).toHaveCount(1);
-  await expect(liveNotice.getByText(fixture.title)).toBeVisible();
-  await expect(liveNotice.getByText("Unread",{exact:false})).toBeVisible();
-  await liveNotice.getByRole("button",{name:"Open shipment exception"}).click();
-  const panel = page.getByRole("region",{name:"Shipment exceptions"});
-  await expect(panel).toBeVisible();
-  await expect(panel.getByText(
-    "Planned arrival is overdue; physical arrival is unconfirmed",
-    {exact:false}).first()).toBeVisible();
+  const center=page.getByRole("region",{name:"In-app shipment notifications"});
+  const more=center.getByRole("button",{name:"Load more notifications"});
+  await expect(more).toBeEnabled();
+  await more.click();
+  await expect.poll(() => typeof releasePage).toBe("function");
+  await center.getByRole("button",{name:"Refresh notifications"}).click();
+  releasePage();
+  await expect(more).toBeEnabled();
 });

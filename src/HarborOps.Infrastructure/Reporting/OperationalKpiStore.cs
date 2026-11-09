@@ -469,6 +469,15 @@ public sealed class OperationalKpiStore(
             if (await check.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Conflict, "report_expired");
 
+        // Report key and selected tenant are transaction-local. The SELECT
+        // policy evaluates report authority once per statement and still
+        // compares the report and tenant for each returned member.
+        await using (var claim = Command(Connection, sqlTx, """
+            SELECT set_config('harborops.m13_materialize_org',@org::text,true),
+                   set_config('harborops.m13_materialize_report',@report::text,true)
+            """, U("org", org), U("report", report)))
+            await claim.ExecuteNonQueryAsync(ct);
+
         var items = new List<KpiMember>();
         await using (var cmd = Command(Connection, sqlTx, """
             SELECT m.member_key,m.shipment_id,m.exception_id,s.reference_code

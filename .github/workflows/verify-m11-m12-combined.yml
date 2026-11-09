@@ -172,6 +172,11 @@ jobs:
           project="ho-verify-m15-${GITHUB_RUN_ID}"
           cleanup() {
             code=$?
+            # Authentication cookie snapshots are disposable credentials.
+            # Never place them in test artifacts, summaries or trace uploads.
+            rm -f -- "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json" \
+              "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
+            rmdir -- "$HARBOROPS_VERIFICATION_ROOT/.private" 2>/dev/null || true
             docker compose -p "$project" ps || true
             docker compose -p "$project" down --volumes --remove-orphans || true
             exit "$code"
@@ -210,6 +215,8 @@ jobs:
           node scripts/prepare-m4-browser-fixtures.mjs
           node scripts/prepare-m5-browser-fixtures.mjs
           node scripts/prepare-m15-browser-fixtures.mjs
+          test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json"
+          test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
           npm --prefix tests/browser ci --no-audit --no-fund
           cd tests/browser
           npx playwright install --with-deps chromium firefox webkit

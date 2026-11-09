@@ -11,6 +11,38 @@ assert.ok(password?.length >= 20 && root && /^[a-f0-9]{40}$/.test(sha ?? ""),
 
 class Session {
   cookies = new Map();
+  browserCookies = new Map();
+
+  saveSetCookie(value) {
+    const parts = value.split(";").map(x => x.trim());
+    const pair = parts.shift()?.match(/^([^=;]+)=(.*)$/);
+    if (!pair) return;
+    const [, name, cookieValue] = pair;
+    const attributes = new Map(parts.map(raw => {
+      const equal = raw.indexOf("=");
+      return equal < 0 ? [raw.toLowerCase(), ""] :
+        [raw.slice(0, equal).toLowerCase(), raw.slice(equal + 1)];
+    }));
+    const site = (attributes.get("samesite") ?? "lax").toLowerCase();
+    const sameSite = site === "strict" ? "Strict" : site === "none" ? "None" : "Lax";
+    const parsedExpiry = attributes.has("expires")
+      ? Math.floor(Date.parse(attributes.get("expires")) / 1000) : -1;
+    const maxAge = Number(attributes.get("max-age"));
+    const expires = attributes.has("max-age") && Number.isFinite(maxAge)
+      ? Math.floor(Date.now() / 1000) + maxAge :
+      Number.isFinite(parsedExpiry) ? parsedExpiry : -1;
+    this.cookies.set(name, cookieValue);
+    this.browserCookies.set(name, {
+      name, value:cookieValue, domain:new URL(base).hostname,
+      path:attributes.get("path") || "/",
+      expires, httpOnly:attributes.has("httponly"),
+      secure:attributes.has("secure"), sameSite
+    });
+  }
+
+  storageState() {
+    return {cookies:[...this.browserCookies.values()],origins:[]};
+  }
 
   async request(method, url, payload) {
     const headers = { Origin: base };
@@ -25,10 +57,8 @@ class Session {
     const response = await fetch(base + url, {
       method, headers, ...(payload === undefined ? {} : { body: JSON.stringify(payload) })
     });
-    for (const value of response.headers.getSetCookie()) {
-      const cookie = value.match(/^([^=;]+)=([^;]*)/);
-      if (cookie) this.cookies.set(cookie[1], cookie[2]);
-    }
+    for (const value of response.headers.getSetCookie())
+      this.saveSetCookie(value);
     const raw = await response.text();
     let body;
     try { body = raw ? JSON.parse(raw) : null; }
@@ -103,4 +133,24 @@ const evidence = {
 const destination = path.join(root, "m15-browser", "live-fixture.json");
 fs.mkdirSync(path.dirname(destination), { recursive: true });
 fs.writeFileSync(destination, JSON.stringify(evidence, null, 2) + "\n");
-console.log("M15 real M11 event, opt-in fanout and scoped API fixture: PASS");
+
+// Reuse login cookies created by the real fixture setup. Separate browser
+// contexts retain test isolation, while new login attempts never consume the
+// accepted authentication rate limits during the three-engine campaign.
+// Authenticated browser state contains bearer-equivalent cookies: it must
+// never enter uploaded evidence, the repository or job output.
+const admin = new Session();
+await admin.request("POST", "/api/v1/auth/login",
+  { email:"m3-admin-a@example.test", password });
+const privateRoot = path.join(root, ".private");
+fs.mkdirSync(privateRoot,{recursive:true,mode:0o700});
+for (const [filename,session] of [
+  ["m15-manager.json",manager], ["m15-administrator.json",admin]
+]) {
+  const cookieState = session.storageState();
+  assert.ok(cookieState.cookies.some(row => row.name === "HarborOps.Session"),
+    "Browser authentication cookie not issued");
+  fs.writeFileSync(path.join(privateRoot,filename),
+    JSON.stringify(cookieState),{mode:0o600,flag:"wx"});
+}
+console.log("M15 live scoped receipt and private browser authentication prepared: PASS");

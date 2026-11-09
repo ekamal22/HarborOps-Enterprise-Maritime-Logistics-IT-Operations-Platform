@@ -34,6 +34,7 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
   const openSerial = useRef(0);
   const mounted = useRef(true);
   const activeAbort = useRef<AbortController | null>(null);
+  const pagingAbort = useRef<AbortController | null>(null);
 
   const invalidate = useCallback((cause: unknown) => {
     if (revoked(cause)) onAccessInvalidated(organizationError(cause));
@@ -42,6 +43,10 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
   const refresh = useCallback(async (quiet = false) => {
     const run = ++serial.current;
     activeAbort.current?.abort();
+    // A fresh first page supersedes any in-flight pagination request.
+    pagingAbort.current?.abort();
+    pagingAbort.current = null;
+    setPaging(false);
     const controller = new AbortController();
     activeAbort.current = controller;
     if (!quiet) setLoading(true);
@@ -77,15 +82,18 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
       mounted.current = false;
       serial.current++;
       activeAbort.current?.abort();
+      pagingAbort.current?.abort();
+      pagingAbort.current = null;
       window.clearInterval(timer);
     };
   }, [refresh]);
 
   const loadMore = async () => {
-    if (!cursor || loading || paging || busyId) return;
+    if (!cursor || loading || paging || busyId || pagingAbort.current) return;
     const run = serial.current;
-    setPaging(true); setError("");
     const controller = new AbortController();
+    pagingAbort.current = controller;
+    setPaging(true); setError("");
     try {
       const page = await listNotifications(organizationId,filter,cursor,controller.signal);
       if (!mounted.current || run !== serial.current) return;
@@ -99,7 +107,11 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
         setError(organizationError(cause)); invalidate(cause);
       }
     } finally {
-      if (mounted.current && run === serial.current) setPaging(false);
+      // An older aborted page must never release a newer page's lock.
+      if (pagingAbort.current === controller) {
+        pagingAbort.current = null;
+        if (mounted.current) setPaging(false);
+      }
     }
   };
 
@@ -120,10 +132,11 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
         invalidate(cause);
       }
     } finally {
-      // refresh(true) advances serial as part of a successful mutation.
-      // Do not leave the action permanently disabled after that refresh.
-      // A remounted organization has its own component instance.
-      if (mounted.current) setBusyId(null);
+      // refresh() intentionally advances serial.current after an applied action.
+      // Do not strand the mutation lock when that self-initiated refresh completes.
+      // Only clear the matching operation on the currently mounted workspace.
+      if (mounted.current)
+        setBusyId(current => current === item.id ? null : current);
     }
   };
 

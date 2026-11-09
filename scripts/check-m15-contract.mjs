@@ -73,6 +73,33 @@ assert.match(read("compose.yaml"),/M15__EnableDelivery:.*HARBOROPS_M15_ENABLE_DE
 assert.match(read(".env.example"),/HARBOROPS_M15_ENABLE_DELIVERY=false/);
 assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),/FullyQualifiedName~M15NotificationBoundaryTests/);
 
-assert.match(read("scripts/prepare-m15-browser-fixtures.mjs"),/M15 real M11 event, opt-in fanout and scoped API fixture: PASS/);
+assert.match(read("scripts/prepare-m15-browser-fixtures.mjs"),
+  /M15 live scoped receipt and private browser authentication prepared: PASS/);
+assert.match(read("scripts/prepare-m15-browser-fixtures.mjs"),/storageState\(\)/);
+assert.match(read("tests/browser/specs/notifications.spec.mjs"),
+  /page\.context\(\)\.addCookies\(state\.cookies\)/);
+assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),
+  /\.private\/m15-manager\.json/);
 assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),/HARBOROPS_M15_ENABLE_DELIVERY=true/);
 assert.match(read("tests/browser/specs/notifications.spec.mjs"),/G15 live M11 event is delivered/);
+
+assert.match(react,/pagingAbort\.current\?\.abort\(\)/);
+assert.match(react,/pagingAbort\.current === controller/);
+assert.match(read("tests/browser/specs/notifications.spec.mjs"),
+  /G15 a cancelled pagination result cannot leave Load more disabled/);
+assert.match(read("tests/browser/specs/notifications.spec.mjs"),
+  /center\.locator\("li p"\)\.filter\(\{hasText:/);
+
+const browserSpec = read("tests/browser/specs/notifications.spec.mjs");
+// Faked scenarios must intercept first-paint reads before loading the workspace.
+// A real hosted M11 to M15 browser check must never use that fallback.
+assert.match(browserSpec,/test\.beforeEach\(async \(\{ page \}, info\) =>/);
+assert.match(browserSpec,/if \(info\.title\.includes\("G15 live M11 event is delivered"\)\) return/);
+assert.match(browserSpec,/page\.route\("\*\*\/organizations\/\*\/notifications\?\*"/);
+assert.match(browserSpec,/page\.on\("response"/);
+assert.match(browserSpec,/liveHttpStatuses\.push\(response\.status\(\)\)/);
+assert.ok(
+  browserSpec.indexOf('test("G15 live M11 event is delivered') <
+  browserSpec.indexOf('test("G15 scoped notification center displays'),
+  "real browser verification must run before mocked scenarios"
+);

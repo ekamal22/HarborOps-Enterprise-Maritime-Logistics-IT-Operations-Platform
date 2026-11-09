@@ -1,0 +1,57 @@
+name: Verify G13 source mutations
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - plan/m13-operational-kpi-dashboards-20261108
+    paths:
+      - scripts/g13-mutation-campaign.py
+      - .github/workflows/verify-g13-mutations.yml
+permissions:
+  contents: read
+concurrency:
+  group: g13-mutations-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+jobs:
+  mutations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-mutation
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-mutation;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run clean control then real source mutations
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 scripts/g13-mutation-campaign.py
+      - name: Preserve SHA and evidence manifest
+        if: always()
+        run: |
+          mkdir -p .verification/g13-mutations
+          git status --short
+          test -z "$(git status --porcelain --untracked-files=no)"
+          sha256sum scripts/g13-mutation-campaign.py > .verification/g13-mutations/runner-sha256.txt
+          find .verification/g13-mutations -type f -print0 | sort -z | xargs -0 -r sha256sum >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-mutations-${{ github.sha }}
+          path: .verification/g13-mutations
+          if-no-files-found: warn
+          retention-days: 14

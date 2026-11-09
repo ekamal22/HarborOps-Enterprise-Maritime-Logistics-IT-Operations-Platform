@@ -288,8 +288,20 @@ public sealed class M13OperationalKpis : Migration
             CREATE POLICY m13_report_delete ON operational_kpi_reports
                 FOR DELETE USING (m13_can_view(organization_id)
                     AND m13_scope_matches(organization_id,actor_user_id,actor_session_id));
+            -- Reads are restricted to the one explicit report in the current
+            -- transaction. The uncorrelated access test is a statement-wide
+            -- InitPlan; row equality remains mandatory for each member.
+            -- Direct SQL without a valid signed session/report is denied.
             CREATE POLICY m13_member_select ON operational_kpi_members
-                FOR SELECT USING (m13_member_access(organization_id,report_id));
+                FOR SELECT USING (
+                    organization_id=current_setting(
+                        'harborops.m13_materialize_org',true)::uuid
+                    AND report_id=current_setting(
+                        'harborops.m13_materialize_report',true)::uuid
+                    AND (SELECT m13_member_access(
+                        current_setting('harborops.m13_materialize_org',true)::uuid,
+                        current_setting('harborops.m13_materialize_report',true)::uuid))
+                );
             -- A report builder first pins the selected report and tenant in
             -- transaction-local settings. The uncorrelated membership authority
             -- query becomes a one-time statement gate rather than being

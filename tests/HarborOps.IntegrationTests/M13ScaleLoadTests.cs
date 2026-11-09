@@ -167,6 +167,14 @@ public sealed class M13ScaleLoadTests
             System.Data.IsolationLevel.RepeatableRead);
         try
         {
+            await using (var who = new NpgsqlCommand(
+                "SELECT current_user, session_user", db, tx))
+            await using (var identity = await who.ExecuteReaderAsync())
+            {
+                Assert.True(await identity.ReadAsync());
+                Assert.Equal("harborops_api", identity.GetString(0));
+                Assert.Equal("harborops_api", identity.GetString(1));
+            }
             await using (var scope = new NpgsqlCommand("""
                 SELECT set_config('harborops.m11_read_scope',@authority,true),
                     set_config('harborops.m13_materialize_org',@org::text,true),

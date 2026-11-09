@@ -281,11 +281,19 @@ def reporting_budget(root: Path | None) -> bool:
     ok = count >= 30 and p50 <= 15000 and p95 <= 20000 and final >= initial
     for label in ("small", "medium10k", "skewed170k", "empty"):
         plan = root / ("explain-api-" + label + ".json")
-        if not plan.is_file() or "G13_RESTRICTED_PLAN sample=" + label not in raw:
-            fail("G13 restricted application-role plan missing: " + label)
+        receipt = re.search(
+            r"G13_RESTRICTED_PLAN sample=" + re.escape(label) +
+            r" elapsed_ms=([0-9]+) role=harborops_api bytes=([0-9]+) "
+            r"sha256=([0-9A-F]{64})", raw)
+        if not plan.is_file() or receipt is None:
+            fail("G13 verified application-role plan or source binding missing: " + label)
             ok = False
             continue
         try:
+            if plan.stat().st_size != int(receipt.group(2)):
+                raise ValueError("Reported plan length differs from archived bytes")
+            if digest(plan).upper() != receipt.group(3):
+                raise ValueError("Reported plan digest differs from archived bytes")
             rows = json.loads(plan.read_text(encoding="utf-8"))
             if not isinstance(rows, list) or len(rows) != 1 or not isinstance(rows[0].get("Plan"), dict):
                 raise ValueError("Invalid EXPLAIN JSON")

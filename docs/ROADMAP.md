@@ -1,17 +1,13 @@
 # HarborOps Delivery Roadmap
 
-**M13/M15 combined integration checkpoint (2026-11-09):** [Current combined evidence and remediation](M13_M15_COMBINED_VERIFICATION_20261109.md) records a targeted three-job PASS at [42539272811](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539272811) and a distinct expanded source-PASS/database-FAIL/browser-FAIL run at [42539272790](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42539272790). The 17-migration regression count and notification locator have been corrected on the integration branch. Full combined verification is not yet established and both feature branches remain separate. No merge, deployment or G13/G15 acceptance.
-
-
-**M15 current technical checkpoint (2026-11-09):** [Implementation register](M15_IMPLEMENTATION_STATUS.md) and [executed verification](M15_EXECUTED_VERIFICATION_20261109.md) record 299 unit, 46 contract and 26 selected PostgreSQL tests passing at frozen source `82dac56`. The browser job failed before Playwright during disposable fixture setup; that setup was corrected in later commits. Subsequent receipt replay changes and the final M15 source have not been rerun. M15-P01..P14 approval, complete G15 evidence and independent review remain acceptance pending. M13's independent implementation now requires shared-code and migration reconciliation. No merge, deployment or production migration is authorized.
-
+**Current M13/M15 technical checkpoint (2026-11-09):** On the isolated combined source `6b05d84bf2f01741b182669c2dd17e39e63d9dda`, the [expanded G13/M15 workflow](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [targeted combined workflow](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) both PASS. Expanded evidence: 312/312 unit, 52/52 contract, 32/32 selected PostgreSQL regression plus 5/5 security/fault, and 27/27 Chromium/Firefox/WebKit journeys, with zero skipped tests in the cited suites. **This is not final acceptance.** M13 and M15 feature-branch heads have newer work not yet reconciled into the passing combined source; G13-S01 to S24 full evidence reconciliation, G13-S25 independent review, M15-P01 to P14 decisions, G15 gate evidence and G15-S25 remain open. M15's separate [run 42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) passed source/database but FAILED Chromium 5/6 on a nonunique receipt label locator. `main` still contains only accepted G0-G12 and G16. No merge, deployment or production migration. [Verified source and open items](M13_M15_COMBINED_VERIFICATION_20261109.md).
 
 **Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-08  
-**State:** G0-G12 and G16 accepted and integrated into `main` through PR #33 and PR #34. G13-G15 and G17-G24 remain open. The M9 transport-processing hold and all deployment restrictions remain mandatory.
+**Updated status:** 2026-11-09  
+**State:** G0-G12 and G16 accepted in `main`. M13 and M15 implemented on independent branches with source-locked combined technical PASS at `6b05d84bf2f0`; both G13 and G15 acceptance remain pending. M14 and M17-M24 remain open. The M9 transport-processing hold and all deployment restrictions remain mandatory.
 
 ## Authority and rationale
 
@@ -243,7 +239,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 
 #### M15: Scoped in-app notifications
 
-**Implementation source checkpoint (2026-11-08):** [M15 implementation status](M15_IMPLEMENTATION_STATUS.md) records the candidate notification outbox, recipient API, optional delivery service and React interface on the separate feature branch. Runtime verification and G15 acceptance remain pending. M13 integration, additive migration order and local policy decisions require reconciliation before a merge.
+**Historical implementation source checkpoint (2026-11-08):** [M15 implementation status](M15_IMPLEMENTATION_STATUS.md) records the candidate notification outbox, recipient API, optional delivery service and React interface on the separate feature branch. Runtime verification and G15 acceptance remain pending. M13 integration, additive migration order and local policy decisions require reconciliation before a merge.
 
 
 **Scope:** Authorized event and incident exception messaging.

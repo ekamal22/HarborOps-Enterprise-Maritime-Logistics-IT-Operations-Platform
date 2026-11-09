@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { organizationError, OrganizationRequestError } from "../auth/organizationClient";
 import { listNotifications, notificationCount, updateNotification,
@@ -22,6 +23,7 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
   onAccessInvalidated: (message: string) => void;
   onOpen: (target: NotificationTarget) => void;
 }) {
+  const { t, date, number } = useI18n();
   const [filter, setFilter] = useState<NotificationFilter>("All");
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -141,36 +143,25 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
   };
 
   return <section className="mt-5 rounded-lg border border-slate-700 p-4"
-    aria-label="In-app shipment notifications">
+    aria-label={t("In-app shipment notifications")}>
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <h4 className="text-base font-semibold">
-        Shipment notifications {unread !== null ? "(" + unread + " unread)" : ""}
+      <h4 className="text-base font-semibold">{t("Shipment notifications")}{unread !== null ? "(" + unread + " unread)" : ""}
       </h4>
       <button type="button" onClick={() => void refresh()}
         disabled={loading || Boolean(busyId)}
-        className="rounded border border-slate-500 px-3 py-1 text-sm disabled:opacity-50">
-        Refresh notifications
-      </button>
+        className="rounded border border-slate-500 px-3 py-1 text-sm disabled:opacity-50">{t("Refresh notifications")}</button>
     </div>
-    <p className="mt-1 text-xs text-slate-400">
-      Based on the last recorded exception evaluation. These alerts do not confirm vessel
-      movement or calculate ETA. Your read state does not change the exception.
-    </p>
-    <label className="mt-3 block text-xs">Show
-      <select value={filter} onChange={event =>
+    <p className="mt-1 text-xs text-slate-400">{t("Based on the last recorded exception evaluation. These alerts do not confirm vessel movement or calculate ETA. Your read state does not change the exception.")}</p>
+    <label className="mt-3 block text-xs">{t("Show")}<select value={filter} onChange={event =>
         setFilter(event.target.value as NotificationFilter)}
         className="ml-2 rounded border border-slate-600 bg-slate-950 px-2 py-1">
         {(["All","Unread","Read","Acknowledged"] as NotificationFilter[]).map(
           value => <option key={value} value={value}>{value}</option>)}
       </select>
     </label>
-    {loading && <p role="status" className="mt-3 text-sm text-slate-300">
-      Loading notifications...
-    </p>}
+    {loading && <p role="status" className="mt-3 text-sm text-slate-300">{t("Loading notifications...")}</p>}
     {error && <p role="alert" className="mt-3 text-xs text-amber-300">{error}</p>}
-    {!loading && items.length === 0 && !error && <p className="mt-3 text-sm text-slate-400">
-      No notifications are available for this filter. This does not prove there are no exceptions.
-    </p>}
+    {!loading && items.length === 0 && !error && <p className="mt-3 text-sm text-slate-400">{t("No notifications are available for this filter. This does not prove there are no exceptions.")}</p>}
     <ul className="mt-3 space-y-2">
       {items.map(item => <li key={item.id}
         className="rounded border border-slate-700 p-3 text-sm">
@@ -184,19 +175,13 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
           <button type="button" onClick={() =>
             onOpen({ shipmentId:item.shipmentId, exceptionId:item.exceptionId,
               request:++openSerial.current })}
-            className="rounded border border-slate-500 px-2 py-1 text-xs">
-            Open shipment exception
-          </button>
+            className="rounded border border-slate-500 px-2 py-1 text-xs">{t("Open shipment exception")}</button>
           {!item.readAtUtc && <button type="button" disabled={Boolean(busyId)}
             onClick={() => void change(item,"MarkRead")}
-            className="rounded border border-cyan-500 px-2 py-1 text-xs disabled:opacity-50">
-            Mark read
-          </button>}
+            className="rounded border border-cyan-500 px-2 py-1 text-xs disabled:opacity-50">{t("Mark read")}</button>}
           {!item.acknowledgedAtUtc && <button type="button"
             disabled={Boolean(busyId)} onClick={() => void change(item,"Acknowledge")}
-            className="rounded border border-slate-600 px-2 py-1 text-xs disabled:opacity-50">
-            Acknowledge notification
-          </button>}
+            className="rounded border border-slate-600 px-2 py-1 text-xs disabled:opacity-50">{t("Acknowledge notification")}</button>}
         </div>
       </li>)}
     </ul>

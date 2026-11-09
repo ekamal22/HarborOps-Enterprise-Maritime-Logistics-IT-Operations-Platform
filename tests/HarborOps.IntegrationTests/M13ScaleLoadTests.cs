@@ -384,5 +384,54 @@ public sealed class M13ScaleLoadTests
         // EXPLAIN's dead tuples cannot contaminate the benchmark deltas.
         await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "skewed170k");
         await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "empty", Guid.NewGuid());
+
+
+        // This is a separate cap-negative control after the 30 measured
+        // successful builds. Adding 18k Draft rows contributes three report
+        // member rows per shipment, taking the source-locked fixture over the
+        // 500,000 member ceiling without changing any production limit.
+        long beforeCapacityCount;
+        await using (var existing = new NpgsqlCommand("""
+            SELECT COUNT(*) FROM operational_kpi_reports
+            WHERE organization_id=@org
+            """, db))
+        {
+            existing.Parameters.AddWithValue("org", f.A);
+            beforeCapacityCount = Convert.ToInt64(await existing.ExecuteScalarAsync());
+        }
+        await using (var extra = new NpgsqlCommand("""
+            INSERT INTO shipments (id,organization_id,reference_code,
+                origin_port_id,destination_port_id,workflow_status,record_status,
+                source_kind,version,created_at_utc,updated_at_utc,changed_by_user_id)
+            SELECT gen_random_uuid(),@org,'M13S-' || lpad(n::text,6,'0'),
+                @origin,@destination,'Draft','Active','Synthetic',1,
+                '2026-10-01T00:00:00Z'::timestamptz,
+                '2026-10-01T00:00:00Z'::timestamptz,@actor
+            FROM generate_series(170001,188000) AS n
+            """, db) { CommandTimeout = 1200 })
+        {
+            extra.Parameters.AddWithValue("org", f.A);
+            extra.Parameters.AddWithValue("origin", origin);
+            extra.Parameters.AddWithValue("destination", destination);
+            extra.Parameters.AddWithValue("actor", actor);
+            Assert.Equal(18000, await extra.ExecuteNonQueryAsync());
+        }
+        using (var overCapacity = await analyst.GetAsync(
+            $"/api/v1/organizations/{f.A}/analytics/overview"))
+        {
+            Assert.Equal(HttpStatusCode.RequestEntityTooLarge, overCapacity.StatusCode);
+            var denied = await overCapacity.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("report_capacity_exceeded", denied.GetProperty("code").GetString());
+        }
+        await using (var existing = new NpgsqlCommand("""
+            SELECT COUNT(*) FROM operational_kpi_reports
+            WHERE organization_id=@org
+            """, db))
+        {
+            existing.Parameters.AddWithValue("org", f.A);
+            Assert.Equal(beforeCapacityCount,
+                Convert.ToInt64(await existing.ExecuteScalarAsync()));
+        }
+        Console.WriteLine("G13_500K_CAP extra_draft=18000 no_partial_report=true");
     }
 }

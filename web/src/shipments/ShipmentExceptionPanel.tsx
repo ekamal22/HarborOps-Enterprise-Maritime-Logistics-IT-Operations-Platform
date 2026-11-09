@@ -204,25 +204,22 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
       </div>
     </div>
     <p className="mt-1 text-xs text-slate-400">
-      These rule outcomes use manual workflow records and accepted equipment observations.
-      Schedule overdue does not establish a physical delay, and no ETA is calculated.
-      Results reflect the last evaluation and may be stale until reevaluated.
-      Exception status is live and can change while you move between pages.
+      {t("These rule outcomes use manual workflow records and accepted equipment observations. Schedule overdue does not establish a physical delay, and no ETA is calculated. Results reflect the last evaluation and may be stale until reevaluated. Exception status is live and can change while you move between pages.")}
     </p>
     {loading && <p role="status" className="mt-2 text-xs">{t("Loading exceptions...")}</p>}
-    {message && <p role="status" className="mt-2 text-xs text-cyan-300">{message}</p>}
-    {error && <p role="alert" className="mt-2 text-xs text-amber-300">{error}</p>}
+    {message && <p role="status" className="mt-2 text-xs text-cyan-300">{t(message)}</p>}
+    {error && <p role="alert" className="mt-2 text-xs text-amber-300">{t(error)}</p>}
     {!loading && rows.length === 0 && <p className="mt-2 text-xs text-slate-400">{t("No recorded exception occurrences. This does not prove that no risk exists.")}</p>}
     <ul className="mt-3 space-y-2">{rows.map(item =>
       <li key={item.id} className="rounded border border-slate-700 p-3 text-xs">
-        <strong>{descriptions[item.ruleCode] ?? item.ruleCode}</strong>
-        <span className="ml-2">{item.condition} / {item.state}</span>
-        <p className="mt-1 text-slate-400">{t("Severity:")}{item.severity} | Evidence: {item.confidence}</p>
-        <p className="text-slate-400">{t("Reason:")}{item.reasonCode}</p>
+        <strong>{t(descriptions[item.ruleCode] ?? item.ruleCode)}</strong>
+        <span className="ml-2">{t(item.condition)} / {t(item.state)}</span>
+        <p className="mt-1 text-slate-400">{t("Severity:")} {t(item.severity)} | {t("Evidence:")} {t(item.confidence)}</p>
+        <p className="text-slate-400">{t("Reason:")} {t(item.reasonCode)}</p>
         {item.ruleCode === "RecordedArrivalLate" && item.state === "Resolved" &&
           item.condition === "Active" && <p className="mt-1 text-slate-400">{t("Historical recorded lateness remains in the evidence after Manager review. Resolution closes this occurrence, not the underlying workflow record.")}</p>}
-        <p className="text-slate-400">{t("Evaluated:")}{item.lastEvaluatedAtUtc}</p>
-        {item.thresholdAtUtc && <p className="text-slate-400">{t("Rule threshold:")}{item.thresholdAtUtc}
+        <p className="text-slate-400">{t("Evaluated:")} {date(item.lastEvaluatedAtUtc)} UTC</p>
+        {item.thresholdAtUtc && <p className="text-slate-400">{t("Rule threshold:")} {date(item.thresholdAtUtc)} UTC
         </p>}
         <div className="mt-2 flex flex-wrap gap-2">
           <button type="button" onClick={() => void showDetail(item.id)}
@@ -247,33 +244,31 @@ export default function ShipmentExceptionPanel({ organizationId, shipmentId, isM
       </li>)}</ul>
     {cursor && <button type="button" disabled={paging || busy || loading}
       onClick={() => void more()} className="mt-3 rounded border border-slate-500 px-2 py-1 text-xs">
-      {paging ? "Loading..." : "Load more exceptions"}
+      {t(paging ? "Loading..." : "Load more exceptions")}
     </button>}
     {detail && <div className="mt-3 rounded bg-slate-900 p-3 text-xs">
       <div className="flex items-center justify-between">
-        <strong>{t("Exception #")}{detail.exception.occurrence} history</strong>
+        <strong>{t("Exception #")} {number(detail.exception.occurrence)} {t("history")}</strong>
         <button type="button" onClick={() => {
           detailSerial.current++;
           setDetail(null);
           setHistoryPaging(false);
         }} className="rounded border border-slate-500 px-2 py-1">{t("Close")}</button>
       </div>
-      {detail.nextHistoryCursor && <p role="status" className="mt-2 text-amber-300">{t("Showing")}{detail.history.length} history entries. Additional retained records are available.
+      {detail.nextHistoryCursor && <p role="status" className="mt-2 text-amber-300">{t("Showing")} {number(detail.history.length)} {t("history entries. Additional retained records are available.")}
       </p>}
-      <p className="mt-2 text-slate-400">{t("Rule policy:")}{detail.exception.evidence.rulePolicyVersion};
-        input revision: {detail.exception.evidence.trackingInputRevision};
-        correction generation: {detail.exception.evidence.correctionGeneration}
+      <p className="mt-2 text-slate-400">{t("Rule policy:")} {detail.exception.evidence.rulePolicyVersion}; {t("input revision:")} {number(detail.exception.evidence.trackingInputRevision)}; {t("correction generation:")} {number(detail.exception.evidence.correctionGeneration)}
       </p>
       {detail.exception.evidence.trackingInputDigest && <p className="mt-1 break-all text-slate-400">{t("M10 projection input digest:")}{detail.exception.evidence.trackingInputDigest}
       </p>}
       <ol className="mt-2 space-y-1">{detail.history.map(entry =>
-        <li key={entry.id}>{entry.occurredAtUtc}: {entry.action}
+        <li key={entry.id}>{date(entry.occurredAtUtc)} UTC: {t(entry.action)}
           {entry.reason ? " | " + entry.reason : ""}
         </li>)}</ol>
       {detail.nextHistoryCursor && <button type="button" disabled={historyPaging || loading}
         onClick={() => void moreHistory()}
         className="mt-3 rounded border border-slate-500 px-2 py-1 disabled:opacity-50">
-        {historyPaging ? "Loading history..." : "Load more history"}
+        {t(historyPaging ? "Loading history..." : "Load more history")}
       </button>}
     </div>}
   </section>;

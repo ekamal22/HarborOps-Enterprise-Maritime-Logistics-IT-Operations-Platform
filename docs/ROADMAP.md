@@ -1,14 +1,14 @@
 # HarborOps Delivery Roadmap
 
-**M15 current technical checkpoint (2026-11-09):** [Implementation status](M15_IMPLEMENTATION_STATUS.md), [correctness audit](M15_CORRECTNESS_AUDIT_20261109.md) and [executed evidence](M15_EXECUTED_VERIFICATION_20261109.md) record frozen run [42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598): source PASS (299 unit, 46 contract), PostgreSQL PASS (26 integration and 5 boundary), live notification delivery PASS, Chromium 5/6 PASS with an ambiguous Acknowledged locator; Firefox and WebKit NOT EXECUTED. Source now fixes the selector and a separate stale-pagination-lock defect, but the new source has not been reverified. M15 policy, full G15 and independent acceptance are pending. Latest M13 RLS and M15 changes also require combined-source verification. No merge or deployment.
+**M15 workstream status (2026-11-09):** The [combined M13/M15 expanded run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135825) and [targeted run](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42541135788) both PASS at combined source `6b05d84bf2f01741b182669c2dd17e39e63d9dda`, which predates newer independent M13 RLS and M15 changes. Latest standalone M15 [42542518598](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42542518598) PASSed source and PostgreSQL, but Chromium passed 5/6 with an ambiguous `Acknowledged` locator; Firefox/WebKit were not reached. The [correctness audit](M15_CORRECTNESS_AUDIT_20261109.md) records fixes at `26c858d39c2b893f45f695cdbee737afed6c0aa3` that still need a full new Actions run. G13/G15 and M15-P01..P14 approvals remain pending. Accepted `main` remains G0-G12 and G16; no merge or deployment.
 
 
 **Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-08  
-**State:** G0-G12 and G16 accepted and integrated into `main` through PR #33 and PR #34. G13-G15 and G17-G24 remain open. The M9 transport-processing hold and all deployment restrictions remain mandatory.
+**Updated status:** 2026-11-09  
+**State:** G0-G12 and G16 accepted and integrated into `main`. Independently implemented M13 and M15 work is unaccepted. Earlier combined technical PASS does not replace current M15 branch checks. G13-G15 and G17-G24 remain open. The M9 transport-processing hold and all deployment restrictions remain mandatory.
 
 ## Authority and rationale
 

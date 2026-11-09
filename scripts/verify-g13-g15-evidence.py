@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
@@ -25,6 +26,8 @@ JOBS = {
     "notification_mutations": os.environ.get("GATE_JOB_G15_MUTATIONS", "unknown"),
     "notification_scale": os.environ.get("GATE_JOB_G15_SCALE", "unknown"),
     "notification_fanout": os.environ.get("GATE_JOB_G15_FANOUT", "unknown"),
+    "reporting_concurrency": os.environ.get("GATE_JOB_G13_CONCURRENCY", "unknown"),
+    "crash_recovery": os.environ.get("GATE_JOB_G13_G15_CRASHES", "unknown"),
 }
 
 # References identify executed technical checks, not complete acceptance scenarios.
@@ -47,8 +50,11 @@ REFERENCES = {
              "RepeatableReadReportIgnoresUncommittedConcurrentShipmentTransition"],
         16: ["RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"],
         18: ["MigrationSnapshotTests"],
-        19: ["BlockedMemberMaterializationRollsBackAndRecovers"],
-        20: ["Mixed170kShipmentsProduceExactBoundedReport"],
+        19: ["BlockedMemberMaterializationRollsBackAndRecovers",
+             "CRASH:G13BeforeReportCommit", "CRASH:G13AfterReportCommit"],
+        20: ["Mixed170kShipmentsProduceExactBoundedReport",
+             "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently",
+             "BUDGET:G13"],
         21: ["BROWSER:operational-kpis"],
         24: ["MUTATION:g13-mutations", "MUTATION:g13-security-mutations"],
     },
@@ -62,7 +68,8 @@ REFERENCES = {
         11: ["M11HistoryProducesScopedDeduplicatedPersonalReceipts"],
         12: ["ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts",
              "TwoDispatchersFanOutToTwoHundredFiftyAdditionalMembersAndServeOneHundredReaders"],
-        13: ["CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"],
+        13: ["CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded",
+             "CRASH:G15BeforeHistoryCommit", "CRASH:G15AfterReceiptCommit"],
         14: ["FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction"],
         15: ["MigrationSnapshotTests"],
         16: ["RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"],
@@ -182,8 +189,87 @@ def browser_result(root: Path | None) -> dict[str, bool]:
             result[key] = ok
     return result
 
+def crash_evidence(root: Path | None) -> dict[str, bool]:
+    phases = ("G13BeforeReportCommit", "G15BeforeHistoryCommit",
+              "G13AfterReportCommit", "G15AfterReceiptCommit")
+    results = {phase: False for phase in phases}
+    if root is None:
+        return results
+    manifest = root / "manifest.json"
+    if not manifest.is_file():
+        fail("Crash recovery manifest missing")
+        return results
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+        if data.get("source_commit") != SOURCE or not data.get("disposable_postgres"):
+            fail("Crash recovery source or database identity mismatch")
+            return results
+        records = data.get("records", [])
+        if [v.get("phase") for v in records] != list(phases):
+            fail("Crash recovery missing a required SIGKILL phase")
+            return results
+        for row in records:
+            phase = row["phase"]
+            marker = root / (phase + ".json")
+            log = root / (phase + ".log")
+            ok = (row.get("result") == "KILLED_AND_VERIFIED"
+                  and row.get("recovery") == ("PASS" if "After" in phase else "NOT_APPLICABLE")
+                  and marker.is_file() and log.is_file()
+                  and digest(marker) == row.get("marker_sha256")
+                  and digest(log) == row.get("log_sha256"))
+            if "After" in phase and not (root / (phase + "-recovery.log")).is_file():
+                ok = False
+            if not ok:
+                fail("Missing complete crash proof: " + phase)
+            results[phase] = ok
+    except (ValueError, TypeError, KeyError) as exc:
+        fail("Crash manifest malformed: " + str(exc))
+    return results
+
+def reporting_budget(root: Path | None) -> bool:
+    if root is None:
+        return False
+    path = root / "scale.log"
+    if not path.is_file():
+        fail("G13 thirty-sample benchmark log missing")
+        return False
+    raw = path.read_text(encoding="utf-8")
+    match = re.search(r"G13_BUDGET count=(\d+) p50_ms=(\d+)"
+                      r" p95_ms=(\d+) initial_report_bytes=(\d+)"
+                      r" final_report_bytes=(\d+)", raw)
+    if match is None:
+        fail("G13 source-locked numerical envelope missing")
+        return False
+    count, p50, p95, initial, final = map(int, match.groups())
+    ok = count >= 30 and p50 <= 15000 and p95 <= 20000 and final >= initial
+    if not ok:
+        fail("G13 approved KPI budget exceeded or measured data invalid")
+    return ok
+
+def policy_approvals() -> dict[str, str]:
+    lines = (ROOT / "docs" / "M15_POLICY_RECOMMENDATIONS_20261109.md").read_text(
+        encoding="utf-8").splitlines()
+    result = {}
+    for i in range(1, 15):
+        name = f"M15-P{i:02}"
+        row = next((line for line in lines if line.startswith("| " + name + " |")), None)
+        fields = row.split("|") if row else []
+        if len(fields) < 5 or "APPROVED" not in fields[4]:
+            fail("Missing source-locked M15 approval: " + name)
+            result[name] = "UNVERIFIED"
+        else:
+            result[name] = ("APPROVED WITH CONDITION" if i == 10 else
+                            "PROVISIONAL PERIOD, NO DELETION" if i == 12 else
+                            "APPROVED")
+    return result
+
 def reference_present(reference: str, tests: dict[str,str],
-                      browsers: dict[str,bool], mutations: dict[str,bool]) -> bool:
+                      browsers: dict[str,bool], mutations: dict[str,bool],
+                      crash: dict[str,bool], budget: bool) -> bool:
+    if reference.startswith("CRASH:"):
+        return crash.get(reference.split(":", 1)[1], False)
+    if reference == "BUDGET:G13":
+        return budget
     if reference.startswith("BROWSER:"):
         name = reference.split(":", 1)[1]
         return all(browsers.get(engine + ":" + name) is True
@@ -195,19 +281,20 @@ def reference_present(reference: str, tests: dict[str,str],
 
 def build_gate(gate: str, tests: dict[str,str],
                browsers: dict[str,bool], mutations: dict[str,bool],
+               crash: dict[str,bool], budget: bool,
                clean: bool) -> list[dict]:
     results = []
     for number in range(1, 26):
         scenario = gate + "-S" + str(number).zfill(2)
         refs = REFERENCES[gate].get(number, [])
         present = [ref for ref in refs if reference_present(
-            ref, tests, browsers, mutations)]
+            ref, tests, browsers, mutations, crash, budget)]
         missing = [ref for ref in refs if ref not in present]
         if number == 1:
             status = "BLOCKED"
             note = ("D-005 is approved, but complete fixture and numerical"
                     " resource reconciliation is outstanding" if gate == "G13"
-                    else "M15-P01 through P14 have no explicit approval")
+                    else "M15 policies approved; full source conformance remains under review")
         elif number == 25:
             status = "NOT EXECUTED"
             note = "Independent artifact review and separate gate decision required"
@@ -239,7 +326,8 @@ def main() -> int:
         for key in ("combined-source", "m15-database", "m15-browser",
                     "g13-scale", "g13-security-mutations",
                     "g13-faults", "g13-mutations", "g15-mutations",
-                    "g15-scale", "g15-fanout")
+                    "g15-scale", "g15-fanout", "g13-concurrency",
+                    "g13-g15-crashes")
     }
     for name, root in artifacts.items():
         if root is None:
@@ -249,6 +337,9 @@ def main() -> int:
             fail("Missing or mismatched source marker: " + name)
         verify_manifest(root)
     tests, counters = read_tests()
+    crash = crash_evidence(artifacts["g13-g15-crashes"])
+    budget = reporting_budget(artifacts["g13-scale"])
+    policies = policy_approvals()
     browsers = browser_result(artifacts["m15-browser"])
     mutations = {
         "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 13),
@@ -277,10 +368,11 @@ def main() -> int:
         "trx_counts": counters,
         "browser_suites": browsers,
         "mutations": mutations,
-        "policies": {"M15-P" + str(n).zfill(2): "APPROVAL PENDING"
-                     for n in range(1, 15)},
-        "g13": build_gate("G13", tests, browsers, mutations, clean),
-        "g15": build_gate("G15", tests, browsers, mutations, clean),
+        "crash_recovery": crash,
+        "g13_approved_budget_satisfied": budget,
+        "policies": policies,
+        "g13": build_gate("G13", tests, browsers, mutations, crash, budget, clean),
+        "g15": build_gate("G15", tests, browsers, mutations, crash, budget, clean),
         "milestone_acceptance": "PENDING",
         "merge_authorization": False,
     }
@@ -305,7 +397,7 @@ def main() -> int:
             lines.append("| " + row["scenario"] + " | " + row["status"]
                          + " | " + ", ".join(row["executed_checks"]) + " |")
     lines += [
-        "", "M15-P01 through P14: approval pending.",
+        "", "M15-P01 through P14: approved with P10 conditional and P12 no deletion.",
         "Independent S25 reviews and both milestone decisions: pending.",
         "Historical failures and earlier-source results must be retained.",
         "",

@@ -160,13 +160,17 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
             case.assertTrue(passed(
                 "QueuedNotificationAcknowledgmentCannotCommitAfterRevocation"))
         if scenario == "G13-S14":
-            for mode in ("session_revoked", "security_version",
-                         "organization_suspended", "membership_removed"):
+            for mode in ("session_revoked", "idle_expired", "absolute_expired",
+                         "logout", "logout_all", "security_version",
+                         "account_disabled", "organization_suspended",
+                         "membership_removed", "membership_suspended",
+                         "role_support", "organization_changed"):
                 case.assertTrue(any(
                     ".ExistingKpiReportCannotBeReadAfterAuthorityRevocation(" in name
                     and mode in name and result == "Passed"
                     for name, result in tests.items()),
                     "Missing KPI report revocation scenario: " + mode)
+            case.assertTrue(passed("QueuedKpiReportCannotPublishAfterCommittedSecurityRevocation"))
     if scenario in ("G15-S17", "G15-S18", "G15-S23"):
         case.assertTrue(passed(
             "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"))
@@ -183,6 +187,12 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
             "EmptyTenantNeverInventsPercentagesTrendsOrMembers"))
         case.assertTrue(passed(
             "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"))
+    if scenario in ("G13-S12", "G13-S23", "G15-S16", "G15-S24"):
+        case.assertTrue(passed(
+            "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"))
+    if scenario in ("G13-S12", "G13-S23", "G15-S16"):
+        case.assertTrue(passed(
+            "RestrictedRolesCannotModifyMaterializedReportingMembership"))
     if scenario in ("G13-S19", "G15-S13"):
         phases = ("G13BeforeReportCommit", "G13AfterReportCommit") if gate == "G13" else (
             "G15BeforeHistoryCommit", "G15BeforeClaimCommit",

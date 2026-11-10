@@ -12,6 +12,7 @@ import time
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs"
 ENDPOINT = ROOT / "src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs"
+RETENTION_MIGRATION = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261110010000_M13TenantReportCapacity.cs"
 EVIDENCE = ROOT / ".verification/g13-mutations"
 FILTER = "FullyQualifiedName~M13OperationalKpiRuntimeTests.TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
 ORACLE = "FullyQualifiedName~M13OperationalKpiRuntimeTests.ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
@@ -26,6 +27,10 @@ MUTANTS = [
     ("k05-count-all-arrivals",
      "WHERE c.arrived_at <= c.planned_arrival_at_utc\n",
      "WHERE c.arrived_at IS NOT NULL\n"),
+    ("k06-exact-sixty-minute-boundary",
+     "WHERE c.arrived_at <= c.planned_arrival_at_utc + interval '60 minutes'",
+     "WHERE c.arrived_at < c.planned_arrival_at_utc + interval '60 minutes'",
+     "MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater"),
     ("k06-remove-tolerance",
      "WHERE c.arrived_at <= c.planned_arrival_at_utc + interval '60 minutes'",
      "WHERE c.arrived_at <= c.planned_arrival_at_utc + interval '0 minutes'"),
@@ -83,6 +88,27 @@ MUTANTS = [
      "AND (@origin::uuid IS NULL OR s.origin_port_id=@origin)",
      "AND (@origin::uuid IS NULL OR TRUE)",
      "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"),
+    ("tenant-quota-rejection-rollback-bypassed",
+     """if (await quota.ExecuteScalarAsync(ct) is not true)
+                return new(null, OrganizationAccessError.Conflict,
+                    "report_tenant_capacity_exceeded");""",
+     """if (await quota.ExecuteScalarAsync(ct) is not true)
+            {
+                await tx.CommitAsync(ct);
+                return new(null, OrganizationAccessError.Conflict,
+                    "report_tenant_capacity_exceeded");
+            }""",
+     "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"),
+    ("tenant-quota-session-scope-bypassed",
+     "IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN",
+     "IF session_user<>'harborops_api' THEN",
+     "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
+     "retention_migration"),
+    ("tenant-quota-active-report-cap-bypassed",
+     "IF live_reports>4 THEN RETURN false; END IF;",
+     "IF live_reports>400 THEN RETURN false; END IF;",
+     "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
+     "retention_migration"),
     ("malformed-kpi-member-cursor-admitted",
      "if (!Id(last, out var parsed))",
      "if (!Id(last, out var parsed) && false)",
@@ -117,7 +143,8 @@ def execute(label: str, test_filter: str = FILTER) -> tuple[int, str, float]:
 
 def main() -> int:
     EVIDENCE.mkdir(parents=True, exist_ok=True)
-    originals = {SOURCE: SOURCE.read_bytes(), ENDPOINT: ENDPOINT.read_bytes()}
+    originals = {SOURCE: SOURCE.read_bytes(), ENDPOINT: ENDPOINT.read_bytes(),
+                 RETENTION_MIGRATION: RETENTION_MIGRATION.read_bytes()}
     original = originals[SOURCE]
     source_sha = digest(original)
     identity = os.getenv("GITHUB_SHA", "local")
@@ -140,7 +167,10 @@ def main() -> int:
                            else FILTER)
             test_name = (target_case[0] if target_case else
                          "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers")
-            selected = ENDPOINT if len(target_case) > 1 and target_case[1] == "endpoints" else SOURCE
+            selected = (RETENTION_MIGRATION
+                if len(target_case) > 1 and target_case[1] == "retention_migration"
+                else ENDPOINT if len(target_case) > 1 and target_case[1] == "endpoints"
+                else SOURCE)
             text = originals[selected].decode("utf-8")
             if text.count(before) != 1:
                 raise RuntimeError(f"{name}: expected exactly one replacement, found {text.count(before)}")

@@ -21,12 +21,6 @@ function count(rows: KpiCount[], code: string, dimension?: string): number {
     (dimension === undefined || row.dimension === dimension))
     .reduce((sum, row) => sum + row.count, 0);
 }
-function fraction(n: number, d: number, locale: string) {
-  if (d === 0) return "Not enough data";
-  // Numerators are exact integers; round half up at two decimal points.
-  const rounded = Math.floor((n * 100 / d + Number.EPSILON) * 100 + 0.5) / 100;
-  return new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(rounded) + "%";
-}
 
 type Props = {
   organizationId: string;
@@ -34,7 +28,7 @@ type Props = {
 };
 
 export default function OperationalDashboard({ organizationId, onAccessInvalidated, isAuditor }: Props & { isAuditor: boolean }) {
-  const { t, date, number, locale } = useI18n();
+  const { t, date, number, percent } = useI18n();
   const fmt = (value: string) => date(value, {timeZone: "UTC"}) + " UTC";
   const [draft, setDraft] = useState<KpiFilterValues>(initial);
   const [applied, setApplied] = useState<KpiFilterValues>(initial);
@@ -174,7 +168,7 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
             const value = !hasEvaluatedRisk && denominator("D13") > 0
               ? t("Not assessed")
               : den !== null && ["K05", "K06", "K13"].includes(d.code)
-                ? fraction(n, den, locale) : number(n);
+                ? percent(n, den) : number(n);
             return <button type="button" key={d.code} onClick={() => select(d.code, d.label)}
               className="rounded-lg border border-slate-700 bg-slate-950/80 p-4 text-left hover:border-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
               <span className="text-xs uppercase tracking-wide text-slate-400">{t(d.label)}</span>

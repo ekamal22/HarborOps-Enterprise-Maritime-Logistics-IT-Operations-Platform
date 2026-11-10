@@ -158,6 +158,13 @@ def _postgres_filter() -> list[str]:
     base = ["--filter", "ancestor=postgres:16.15"]
     return base + (["--filter", "name=^/" + name + "$"] if name else [])
 
+# Development rehearsal only: a comma separated subset of mutant names. A gate campaign
+# must leave this unset; the evidence reconciler rejects a manifest with fewer variants.
+_SUBSET = os.getenv("HARBOROPS_G13_MUTANT_SUBSET_DEV")
+if _SUBSET:
+    _names = set(_SUBSET.split(","))
+    MUTANTS = [case for case in MUTANTS if case[0] in _names]
+
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 

@@ -913,19 +913,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
-            },
-            {
-              "kind": "test",
-              "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
-            },
-            {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+              "id": "SourceCorrectionReevaluationKeepsFrozenRiskAndRefreshesCurrentRisk"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Direct regression exercises the accepted M11 state transition and G13 report members. Candidate source mapping only, pending source-locked GitHub Actions execution and gate reconciliation."
         }
       ]
     },
@@ -1606,19 +1598,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RepeatableReadReportIgnoresUncommittedConcurrentShipmentTransition"
-            },
-            {
-              "kind": "test",
-              "id": "CommittedReportMembersRemainStableAcrossLaterWorkflowChanges"
-            },
-            {
-              "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
+              "id": "ConcurrentManagerDispositionAndReportDoNotDoubleCountOccurrence"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Candidate source-locked witnesses exist, but this compound clause requires additional behavior-specific reconciliation"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Direct regression exercises the accepted M11 state transition and G13 report members. Candidate source mapping only, pending source-locked GitHub Actions execution and gate reconciliation."
         },
         {
           "id": "G13-S15-A04",

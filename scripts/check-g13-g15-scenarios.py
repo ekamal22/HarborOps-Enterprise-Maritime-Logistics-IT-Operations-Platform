@@ -209,6 +209,9 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
         case.assertTrue(passed("ReportingBuildLimiterRejectsSeventhRequestWithoutChangingTheCommittedSnapshot"))
     if scenario == "G13-S09":
         case.assertTrue(passed("ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress"))
+        case.assertTrue(passed("SourceCorrectionReevaluationKeepsFrozenRiskAndRefreshesCurrentRisk"))
+    if scenario == "G13-S15":
+        case.assertTrue(passed("ConcurrentManagerDispositionAndReportDoNotDoubleCountOccurrence"))
     if scenario in ("G15-S12", "G15-S21"):
         case.assertTrue(passed("ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts"))
     if scenario in ("G13-S19", "G15-S13"):

@@ -1,0 +1,131 @@
+export const LOCALES = ["en", "tr-TR"];
+export const STORAGE_KEY = "harborops.language";
+
+export function normalizeLocale(value) {
+  return typeof value === "string" && /^tr(?:[-_]|$)/i.test(value) ? "tr-TR" : "en";
+}
+
+export function initialLocale(storage, browserLanguages = []) {
+  const saved = storage?.getItem?.(STORAGE_KEY);
+  if (saved === "en" || saved === "tr-TR") return saved;
+  return normalizeLocale(browserLanguages[0] ?? "en");
+}
+
+let selected;
+const subscribers = new Set();
+let listeningForStorage = false;
+
+function onPreferenceStorage(event) {
+  if (event.key !== STORAGE_KEY && event.key !== null) return;
+  const next = event.newValue === "en" || event.newValue === "tr-TR"
+    ? event.newValue
+    : normalizeLocale(typeof navigator === "undefined" ? "en"
+      : navigator.languages?.[0] ?? navigator.language);
+  const changed = getLocale() !== next;
+  selected = next;
+  if (typeof document !== "undefined") document.documentElement.lang = next;
+  if (changed) for (const subscriber of subscribers) subscriber();
+}
+
+function environmentLocale() {
+  if (typeof window === "undefined") return "en";
+  try {
+    return initialLocale(window.localStorage,
+      window.navigator.languages?.length ? window.navigator.languages : [window.navigator.language]);
+  } catch {
+    return normalizeLocale(typeof navigator === "undefined" ? "en" :
+      navigator.languages?.[0] ?? navigator.language);
+  }
+}
+
+export function getLocale() {
+  if (!selected) selected = environmentLocale();
+  return selected;
+}
+
+export function subscribeLocale(listener) {
+  subscribers.add(listener);
+  if (typeof window !== "undefined" && !listeningForStorage) {
+    window.addEventListener("storage", onPreferenceStorage);
+    listeningForStorage = true;
+  }
+  return () => {
+    subscribers.delete(listener);
+    if (subscribers.size === 0 && listeningForStorage && typeof window !== "undefined") {
+      window.removeEventListener("storage", onPreferenceStorage);
+      listeningForStorage = false;
+    }
+  };
+}
+
+export function changeLocale(locale) {
+  if (locale !== "en" && locale !== "tr-TR") return;
+  const changed = getLocale() !== locale;
+  selected = locale;
+  if (typeof document !== "undefined") document.documentElement.lang = locale;
+  try {
+    if (typeof window !== "undefined") window.localStorage.setItem(STORAGE_KEY, locale);
+  } catch { /* Browser storage may be disabled. */ }
+  if (changed) for (const subscriber of subscribers) subscriber();
+}
+
+export function syncDocumentLanguage() {
+  if (typeof document !== "undefined") document.documentElement.lang = getLocale();
+}
+
+export function translate(message, locale = getLocale(), parameters = {}) {
+  if (typeof message !== "string") return message;
+  const resolved = locale === "tr-TR" && Object.hasOwn(TURKISH, message)
+    ? TURKISH[message] : message;
+  return resolved.replace(/\{([A-Za-z][A-Za-z0-9_]*)\}/g,
+    (match, key) => Object.hasOwn(parameters, key) ? String(parameters[key]) : match);
+}
+
+export function plural(count, forms, locale = getLocale()) {
+  const rule = new Intl.PluralRules(locale).select(count);
+  return translate(forms[rule] ?? forms.other ?? "", locale, { count });
+}
+
+export function formatNumber(value, locale = getLocale(), options) {
+  return new Intl.NumberFormat(locale, options).format(value);
+}
+
+export function formatPercentage(numerator, denominator, locale = getLocale()) {
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator <= 0)
+    return "Not enough data";
+  // Preserve the existing half-up rounding rule to two percentage decimals.
+  const rounded = Math.floor((numerator * 100 / denominator + Number.EPSILON) * 100 + 0.5) / 100;
+  return new Intl.NumberFormat(locale, {
+    style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2
+  }).format(rounded / 100);
+}
+
+export function formatCurrency(value, currency, locale = getLocale()) {
+  return new Intl.NumberFormat(locale, { style: "currency", currency }).format(value);
+}
+
+export function formatDateTime(value, locale = getLocale(), options = {}) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric", month: "short", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", timeZone: "UTC", ...options
+  }).format(date);
+}
+
+export function formatLocalDateTime(value, locale = getLocale(), timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  return formatDateTime(value, locale, { timeZone, timeZoneName: "short" });
+}
+
+export function formatRelative(value, locale = getLocale(), now = Date.now()) {
+  const delta = new Date(value).getTime() - now;
+  if (!Number.isFinite(delta)) return "";
+  const abs = Math.abs(delta);
+  const [unit, divisor] = abs >= 86_400_000 ? ["day", 86_400_000]
+    : abs >= 3_600_000 ? ["hour", 3_600_000]
+    : abs >= 60_000 ? ["minute", 60_000] : ["second", 1000];
+  return new Intl.RelativeTimeFormat(locale, { numeric: "auto" })
+    .format(Math.round(delta / divisor), unit);
+}
+
+import { TURKISH } from "./messages.mjs";

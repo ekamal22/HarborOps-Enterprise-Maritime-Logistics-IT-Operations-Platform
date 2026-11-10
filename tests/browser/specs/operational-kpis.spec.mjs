@@ -60,7 +60,14 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   await d.getByRole("button", { name: "Apply filters" }).click();
   const filtered = await filteredResponse;
   expect(filtered.status(), "The combined stack must serve the requested UTC report").toBe(200);
-  await expect(d.getByText(/Period:/)).toContainText("01 Nov 2026", { timeout: 30000 });
+  // Verify both UTC boundaries without assuming an English month/day ordering.
+  const displayedUtc = timestamp => new Intl.DateTimeFormat("en", {
+    year: "numeric", month: "short", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", timeZone: "UTC"
+  }).format(new Date(timestamp)) + " UTC";
+  const period = d.getByText(/Period:/);
+  await expect(period).toContainText(displayedUtc("2026-11-01T00:00:00Z"), { timeout: 30000 });
+  await expect(period).toContainText(displayedUtc("2026-11-09T00:00:00Z"));
   await d.getByRole("button", { name: "Reset" }).click();
   await expect(d.getByLabel("From (UTC, inclusive)")).toHaveValue("");
 });

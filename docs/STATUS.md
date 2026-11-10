@@ -1,5 +1,12 @@
 # Project Status
 
+## Turkish localization separate pre-merge compatibility campaign (2026-11-10)
+
+Turkish localization is isolated from G13/G15 gate acceptance. G13/G15 must complete technical acceptance and independent S25 review and merge alone to protected `main` before Turkish is reconciled against the updated mainline, independently verified, accepted and merged. No Turkish source belongs to the G13/G15 merge.
+
+The Turkish-only compatibility candidate is derived **without modifying** G13/G15 from pinned `d6e02bece67ab9ab898f051a645df8e3c9d5f4f7` on `feature/g13-g15-acceptance-closure-20261110` and overlays the Turkish frontend, translations, tests and a grouped verification workflow. It includes current G13 reporting capacity behavior and the expanded eight-case KPI and ten-case notification browser suites. All acceptance and integration decisions are pending. Prior Turkish grouped runs 42743803144 and 42744445558 failed on browser assertions (organization-selection timing, then English UTC date order); frontend tests and build passed on both. See [Turkish pre-merge verification record](TURKISH_LOCALIZATION_PREMERGE_VERIFICATION_20261110.md).
+
+
 **Current G13/G15 acceptance checkpoint (2026-11-10):** [Full source-locked run 42745334415](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42745334415) PASSED 15/15 jobs at `15cabd8c542159753c927c2bd65b4346223e84f6`, with 543/543 passed TRX tests, 227/227 technical assertion witnesses, 48/48 technical scenario checks and artifact integrity PASS. The separate [G13/G15 gate decisions](G13_G15_FORMAL_GATE_DECISIONS_20261110.md) record **G13 NOT ACCEPTED and G15 NOT ACCEPTED**, after [individual S25 assessments](G13_G15_REVIEW_MATRIX_20261110.md). G13 permanent tenant quota/idle cleanup enforcement and some exact mutation and HTTP-outage evidence remain open. P10 verification condition is satisfied; P12 cleanup/deletion remains disabled. Protected `main` is unmodified. No merge, deployment or activation is authorized.
 **Accepted `main` baseline:** G0-G12 and G16 are accepted in protected `main`. No production activation is authorized.
 

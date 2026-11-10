@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { OrganizationRequestError, organizationError } from "../auth/organizationClient";
 import { listMaritime, type MaritimeKind, type MaritimeRow } from "../maritime/maritimeClient";
@@ -15,6 +16,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated, r
   onAccessInvalidated: (message: string) => void;
   revision: number; onUpdated: () => void;
 }) {
+  const { t, date, number } = useI18n();
   const [items, setItems] = useState<Assignment[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<MaritimeRow[]>([]);
@@ -129,67 +131,60 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated, r
 
   return <div className="mt-4 rounded border border-slate-700 p-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h6 className="font-medium">{label(kind)} assignments</h6>
+      <h6 className="font-medium">{t(label(kind))} {t("assignments")}</h6>
       <button type="button" className="rounded border border-slate-600 px-2 py-1 text-xs"
-        disabled={loading || busy} onClick={refresh}>Refresh assignments</button>
+        disabled={loading || busy} onClick={refresh}>{t("Refresh assignments")}</button>
     </div>
-    {loading && <p className="mt-2 text-xs text-slate-400">Loading assignments...</p>}
-    {error && <p role="alert" className="mt-2 text-sm text-rose-300">{error}</p>}
+    {loading && <p className="mt-2 text-xs text-slate-400">{t("Loading assignments...")}</p>}
+    {error && <p role="alert" className="mt-2 text-sm text-rose-300">{t(error)}</p>}
     <ul className="mt-2 space-y-2">
       {items.map(row => <li key={row.id} className="rounded bg-slate-900 p-2 text-xs">
-        <div className="break-all">{label(kind)}: {row.targetLabel ?? row.containerId ?? row.voyageId}</div>
-        <div>From {row.startsAtUtc} to {row.endsAtUtc ?? "open"} | version {row.version}</div>
+        <div className="break-all">{t(label(kind))}: {row.targetLabel ?? row.containerId ?? row.voyageId}</div>
+        <div>{t("From")} {date(row.startsAtUtc)} UTC {t("to")} {row.endsAtUtc ? date(row.endsAtUtc) + " UTC" : t("open")} | {t("version")} {number(row.version)}</div>
         {canManage && row.endsAtUtc === null &&
           (closingId === row.id
             ? <form className="mt-2 flex flex-wrap items-end gap-2" onSubmit={event => void close(event, row)}>
-                <label>End UTC (ISO 8601)
-                  <input aria-label={"End " + label(kind) + " assignment UTC"}
+                <label>{t("End UTC (ISO 8601)")}<input aria-label={t(kind === "container-assignments" ? "End container assignment UTC" : "End voyage assignment UTC")}
                     className="mt-1 block rounded bg-slate-950 p-2"
                     value={closeAt} onChange={e => setCloseAt(e.target.value)} required />
                 </label>
-                <button className="rounded border border-cyan-500 px-2 py-1" disabled={busy}>Confirm closure</button>
+                <button className="rounded border border-cyan-500 px-2 py-1" disabled={busy}>{t("Confirm closure")}</button>
                 <button type="button" className="rounded border px-2 py-1"
-                  onClick={() => setClosingId("")}>Cancel</button>
+                  onClick={() => setClosingId("")}>{t("Cancel")}</button>
               </form>
             : <button type="button" disabled={busy}
                 onClick={() => { setClosingId(row.id); setCloseAt(""); }}
-                className="mt-2 rounded border border-slate-500 px-2 py-1">Close assignment</button>)}
+                className="mt-2 rounded border border-slate-500 px-2 py-1">{t("Close assignment")}</button>)}
       </li>)}
     </ul>
-    {items.length === 0 && !loading && <p className="mt-2 text-xs text-slate-400">No assignments recorded.</p>}
+    {items.length === 0 && !loading && <p className="mt-2 text-xs text-slate-400">{t("No assignments recorded.")}</p>}
     {cursor && <button type="button" disabled={busy || loading}
-      onClick={() => void more()} className="mt-2 rounded border px-2 py-1 text-xs">
-      Load more assignments
-    </button>}
+      onClick={() => void more()} className="mt-2 rounded border px-2 py-1 text-xs">{t("Load more assignments")}</button>}
     {canManage && shipment.recordStatus === "Active" && shipment.workflowStatus !== "Cancelled" &&
       shipment.workflowStatus !== "Completed" && <>
       <form className="mt-4 grid gap-2" onSubmit={event => void create(event)}>
-        <label className="text-xs">Select {label(kind).toLowerCase()}
-          <select aria-label={"Assign " + label(kind).toLowerCase()} required value={target}
+        <label className="text-xs">{t(kind === "container-assignments" ? "Select container" : "Select voyage")}
+          <select aria-label={t(kind === "container-assignments" ? "Assign container" : "Assign voyage")} required value={target}
             onChange={e => setTarget(e.target.value)}
             className="mt-1 block w-full rounded bg-slate-950 p-2">
-            <option value="">Select {label(kind).toLowerCase()}</option>
+            <option value="">{t(kind === "container-assignments" ? "Select container for assignment" : "Select voyage for assignment")}</option>
             {candidates.map(row => <option key={row.id} value={row.id}>
               {row.referenceCode} {row.containerIdentifier ?? row.displayName ?? ""}
             </option>)}
           </select>
         </label>
-        <label className="text-xs">Start UTC (ISO 8601)
-          <input aria-label={"Start " + label(kind) + " assignment UTC"} required value={start}
+        <label className="text-xs">{t("Start UTC (ISO 8601)")}<input aria-label={t(kind === "container-assignments" ? "Start container assignment UTC" : "Start voyage assignment UTC")} required value={start}
             onChange={e => setStart(e.target.value)} className="mt-1 block w-full rounded bg-slate-950 p-2" />
         </label>
-        <label className="text-xs">End UTC (optional)
-          <input aria-label={"Optional end " + label(kind) + " assignment UTC"} value={end}
+        <label className="text-xs">{t("End UTC (optional)")}<input aria-label={t(kind === "container-assignments" ? "Optional end container assignment UTC" : "Optional end voyage assignment UTC")} value={end}
             onChange={e => setEnd(e.target.value)} className="mt-1 block w-full rounded bg-slate-950 p-2" />
         </label>
         <button disabled={busy || !target || !start.trim()}
-          className="rounded bg-cyan-300 px-3 py-2 text-xs font-medium text-slate-950 disabled:opacity-50">
-          Attach {label(kind).toLowerCase()}
+          className="rounded bg-cyan-300 px-3 py-2 text-xs font-medium text-slate-950 disabled:opacity-50">{t(kind === "container-assignments" ? "Attach container" : "Attach voyage")}
         </button>
       </form>
-      {catalogError && <p role="alert" className="mt-2 text-xs text-amber-300">
-        Catalog unavailable: {catalogError}
-        <button type="button" className="ml-2 underline" onClick={() => setCatalogRetry(x => x + 1)}>Retry catalog</button>
+      {catalogError && <p role="alert" className="mt-2 text-xs text-amber-300">{t("Catalog unavailable:")}{catalogError}
+        <button type="button" className="ml-2 underline" onClick={() => setCatalogRetry(x => x + 1)}>{t("Retry catalog")}</button>
       </p>}
     </>}
   </div>;
@@ -209,6 +204,7 @@ export default function ShipmentAssignmentsPanel({ organizationId, shipment,
   organizationId: string; shipment: ShipmentRow; canManage: boolean;
   onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const [revision, setRevision] = useState(0);
   const [context, setContext] = useState<{ containers: Assignment[]; voyages: Assignment[] } | null>(null);
   const [contextError, setContextError] = useState("");
@@ -250,27 +246,26 @@ export default function ShipmentAssignmentsPanel({ organizationId, shipment,
     return () => { active = false; };
   }, [organizationId, shipment.id, revision, onAccessInvalidated]);
 
-  return <section aria-label="Shipment allocations" className="mt-4">
-    <h6 className="font-semibold">Shipment allocations</h6>
-    <p className="mt-1 text-xs text-slate-400">Administrative allocations only. No physical loading or tracking event is implied.</p>
+  return <section aria-label={t("Shipment allocations")} className="mt-4">
+    <h6 className="font-semibold">{t("Shipment allocations")}</h6>
+    <p className="mt-1 text-xs text-slate-400">{t("Administrative allocations only. No physical loading or tracking event is implied.")}</p>
     {kinds.map(kind => <AllocationList key={organizationId + ":" + shipment.id + ":" + kind}
       org={organizationId} shipment={shipment} kind={kind} canManage={canManage}
       onAccessInvalidated={onAccessInvalidated} revision={revision} onUpdated={changed} />)}
     <div className="mt-4 rounded border border-slate-700 p-3">
-      <h6 className="font-medium">Contextual container and voyage intervals</h6>
-      <p className="text-xs text-slate-400">Shared shipment allocations during intersecting intervals only. This is not evidence of physical loading.</p>
-      {contextError && <p role="alert" className="text-sm text-amber-300">{contextError}</p>}
+      <h6 className="font-medium">{t("Contextual container and voyage intervals")}</h6>
+      <p className="text-xs text-slate-400">{t("Shared shipment allocations during intersecting intervals only. This is not evidence of physical loading.")}</p>
+      {contextError && <p role="alert" className="text-sm text-amber-300">{t(contextError)}</p>}
       {context && <ul className="mt-2 space-y-1 text-xs">
         {context.containers.flatMap(container => context.voyages
           .filter(voyage => intersects(container, voyage))
           .map(voyage => <li key={container.id + ":" + voyage.id}>
-            {container.targetLabel ?? container.containerId} with {voyage.targetLabel ?? voyage.voyageId},
-            interval intersection
+            {container.targetLabel ?? container.containerId} {t("with")} {voyage.targetLabel ?? voyage.voyageId}, {t("interval intersection")}
           </li>))}
       </ul>}
       {context && !context.containers.some(container =>
         context.voyages.some(voyage => intersects(container, voyage))) &&
-        <p className="text-xs text-slate-400">No overlapping allocation intervals.</p>}
+        <p className="text-xs text-slate-400">{t("No overlapping allocation intervals.")}</p>}
     </div>
   </section>;
 }

@@ -16,3 +16,6 @@ Checks: release build, new scoped SQL regressions, 170k budget, 18 mutations.
 Acceptance pending. No merge or deployment.
 
 2026-11-10 preflight relaunch: corrected TrackingWorkerSettings namespace; prior preflight 42725878642 failed compilation.
+
+2026-11-10 acceptance closure: verify three remaining witnesses, enforce strict technical assertion coverage.
+Predecessor: 2ff99684fd952941d91c4645dc4473c2e6f62ba8

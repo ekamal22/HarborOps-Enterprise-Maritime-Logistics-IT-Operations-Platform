@@ -45,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .verification/g13-g15-preflight-regression
-          for suite in G13TrackingSourceAcceptanceTests G13M11SourceAcceptanceTests ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts; do
+          for suite in G13TrackingSourceAcceptanceTests G13M11SourceAcceptanceTests ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts G13G15FeatureDefaultAcceptanceTests M10RuntimeIdentityTests.LateWorkerEffectDuringRebuildIsNeverLostAndMarksTheProjectionStale; do
             dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
               -c Release --no-build --filter "FullyQualifiedName~${suite}" \
               --logger "trx;LogFileName=${suite}.trx" \

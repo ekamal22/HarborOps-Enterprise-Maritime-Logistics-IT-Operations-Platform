@@ -1275,20 +1275,37 @@ public sealed class M13OperationalKpiRuntimeTests
         var id=await G13Insert(db,fixture.A,origin,destination,
             actor,DateTimeOffset.UtcNow.AddHours(2),"G13-BOUNDARY-");
         await G13Complete(db,id,actor);
-        await using (var edge = new NpgsqlCommand("""
-            UPDATE shipments SET
-                planned_arrival_at_utc=(
-                    SELECT changed_at_utc - interval '60 minutes'
-                    FROM shipment_status_changes
-                    WHERE shipment_id=@id AND to_status='Arrived'
-                    ORDER BY changed_at_utc,id LIMIT 1),
-                version=version+1,updated_at_utc=clock_timestamp()
-            WHERE id=@id
-            """,db))
+
+        // The production M5 schedule is immutable after completion. In this
+        // exclusive disposable test fixture, position the immutable recorded
+        // Arrived event on the exact tolerance boundary, restoring the
+        // historical-table triggers before any reporting request.
+        async Task SetRecordedArrivalMicrosecondOffset(int offset)
         {
-            edge.Parameters.AddWithValue("id",id);
-            Assert.Equal(1,await edge.ExecuteNonQueryAsync());
+            await using (var disable = new NpgsqlCommand(
+                "ALTER TABLE shipment_status_changes DISABLE TRIGGER USER",db))
+                await disable.ExecuteNonQueryAsync();
+            try
+            {
+                await using var historicalFixture = new NpgsqlCommand("""
+                    UPDATE shipment_status_changes SET changed_at_utc =
+                        (SELECT planned_arrival_at_utc FROM shipments WHERE id=@id)
+                        + interval '60 minutes'
+                        + (@offset * interval '1 microsecond')
+                    WHERE shipment_id=@id AND to_status='Arrived'
+                    """,db);
+                historicalFixture.Parameters.AddWithValue("id",id);
+                historicalFixture.Parameters.AddWithValue("offset",offset);
+                Assert.Equal(1,await historicalFixture.ExecuteNonQueryAsync());
+            }
+            finally
+            {
+                await using var enable = new NpgsqlCommand(
+                    "ALTER TABLE shipment_status_changes ENABLE TRIGGER USER",db);
+                await enable.ExecuteNonQueryAsync();
+            }
         }
+        await SetRecordedArrivalMicrosecondOffset(0);
         using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
         using var analyst=runtime.CreateClient(new WebApplicationFactoryClientOptions
             { HandleCookies=true });
@@ -1299,16 +1316,7 @@ public sealed class M13OperationalKpiRuntimeTests
         Assert.Contains(id,await G13StoredIds(db,fixture.A,exact,"K06"));
         Assert.DoesNotContain(id,await G13StoredIds(db,fixture.A,exact,"K05"));
 
-        await using (var late = new NpgsqlCommand("""
-            UPDATE shipments SET
-                planned_arrival_at_utc=planned_arrival_at_utc - interval '1 microsecond',
-                version=version+1,updated_at_utc=clock_timestamp()
-            WHERE id=@id
-            """,db))
-        {
-            late.Parameters.AddWithValue("id",id);
-            Assert.Equal(1,await late.ExecuteNonQueryAsync());
-        }
+        await SetRecordedArrivalMicrosecondOffset(1);
         var outside=await Json(await analyst.GetAsync(route));
         Assert.DoesNotContain(id,await G13StoredIds(db,fixture.A,outside,"K06"));
     }

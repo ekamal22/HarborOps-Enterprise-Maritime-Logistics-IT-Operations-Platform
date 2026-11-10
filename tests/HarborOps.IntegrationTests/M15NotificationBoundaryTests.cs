@@ -63,6 +63,34 @@ public sealed class M15NotificationBoundaryTests
     }
 
     [Fact]
+    public async Task SourceHistoryOutboxPrimaryKeyRejectsDuplicateEvent()
+    {
+        var (s,_,_) = await OpenException();
+        using var factory=s.Factory; using var runtime=s.Runtime;
+        using var manager=s.Manager; using var analyst=s.Analyst; using var admin=s.Administrator;
+        using var originalAdmin=s.Fixture.Admin; using var originalManager=s.Fixture.Manager;
+        using var originalAnalyst=s.Fixture.Analyst;
+        await using var connection = new NpgsqlConnection(s.Roles.Admin);
+        await connection.OpenAsync();
+        await using var duplicate = new NpgsqlCommand("""
+            INSERT INTO m15_notification_outbox
+                (source_history_id,organization_id,shipment_id,exception_id,
+                 event_type,rule_code,created_at_utc)
+            SELECT source_history_id,organization_id,shipment_id,exception_id,
+                   event_type,rule_code,created_at_utc
+            FROM m15_notification_outbox WHERE organization_id=@org
+            ORDER BY created_at_utc LIMIT 1
+            """,connection);
+        duplicate.Parameters.AddWithValue("org",s.Fixture.A);
+        var denied = await Assert.ThrowsAsync<PostgresException>(
+            () => duplicate.ExecuteNonQueryAsync());
+        Assert.Equal(PostgresErrorCodes.UniqueViolation,denied.SqlState);
+        Assert.Equal(1,await Count(connection,
+            "SELECT count(*) FROM m15_notification_outbox WHERE organization_id=@org",
+            ("org",s.Fixture.A)));
+    }
+
+    [Fact]
     public async Task FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction()
     {
         var (s,_,exceptionId) = await OpenException();

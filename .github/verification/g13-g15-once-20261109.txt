@@ -1,9 +1,13 @@
 G13/G15 source-locked grouped preflight relaunch, 2026-11-10.
-Previous preflight: 42762094403, PASS 4/4 on 59111d14f47b6e06c6b26b9074a4a15387f4faef.
-Full campaign: 42763016174, combined M13/M15 PostgreSQL regressions failed four migration-count assertions.
-Cause: M13 tenant capacity adds the eighteenth migration; historical tests still expected seventeen,
-and the accepted thirteen-migration baseline now has five, not four, pending migrations.
-Correction: assert the current total and new migration identity without weakening data preservation,
-downgrade protection, restricted-role permissions, or migration rollback and reapplication checks.
-No change to application runtime behavior, capacity safeguards or cleanup scope.
-G13/G15 acceptance pending. No main merge, deployment, activation or retention deletion.
+Previous source-locked preflight 42762094403 PASSED 4/4 at 59111d14f47b6e06c6b26b9074a4a15387f4faef.
+Full campaign 42763016174 finished 12 PASS / 3 FAIL, evidence retained.
+Database failures: four outdated assertions expected 17 migrations, but M13 capacity adds migration 18.
+Accepted thirteen-migration baseline now has five, not four, pending migrations.
+Browser failure: WebKit live KPI Manager scenario failed after two other engines and
+notification suites instantiated real M13 reports in unrelated workspace mounts.
+Notification suite now stubs only incidental M13 overview reads, not notification APIs;
+dedicated KPI suite still verifies real M13 responses and asserts HTTP 200 admission.
+Evidence ledger failed due incomplete browser/DB outcomes and the unexecuted G15 HTTP outage witness.
+The full PostgreSQL campaign now executes G15HttpOutageAcceptanceTests against disposable PostgreSQL.
+No application safeguard, production configuration, retention deletion or acceptance state changed.
+Acceptance pending. No main merge, deployment, activation or notification retention deletion.

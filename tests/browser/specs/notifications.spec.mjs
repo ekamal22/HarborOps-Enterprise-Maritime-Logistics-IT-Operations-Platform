@@ -14,6 +14,22 @@ const enabled = process.env.HARBOROPS_M5_FIXTURES === "1" &&
  * Scenario-specific routes take precedence over these earlier fallbacks.
  */
 test.beforeEach(async ({ page }, info) => {
+  // The notification workspace also mounts the M13 dashboard. Keep its
+  // unrelated background report builds out of the notification scenarios,
+  // including the live M15 delivery case. The KPI suite tests real builds.
+  await page.route("**/analytics/overview*", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({
+      policyVersion: "m13-kpi-v1",
+      reportId: "e0000000-0000-4000-8000-000000000015",
+      reportToken: "notification-suite-kpi-fixture",
+      fromUtc: "2026-11-02T00:00:00Z",
+      beforeUtc: "2026-11-09T00:00:00Z",
+      evaluatedAtUtc: "2026-11-09T12:00:00Z",
+      expiresAtUtc: "2026-11-09T12:10:00Z",
+      memberCount: 0, bucket: "day", counts: []
+    })
+  }));
   if (info.title.includes("G15 live M11 event is delivered")) return;
   const empty = { items:[], nextCursor:null,
     snapshotAtUtc:"2026-11-08T18:00:00Z" };

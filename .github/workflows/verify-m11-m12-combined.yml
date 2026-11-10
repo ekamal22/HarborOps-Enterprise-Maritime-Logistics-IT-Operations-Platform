@@ -135,6 +135,12 @@ jobs:
             --filter 'FullyQualifiedName~G15AuditAcceptanceTests|FullyQualifiedName~G15HistoricalTargetAcceptanceTests' \
             --logger 'trx;LogFileName=g15-final-behavior.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/g15-final-behavior.log
+          # Exercise the actual HTTP notification dependency lock and recovery
+          # independently of fault tests that modify database-wide state.
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
+            --filter 'FullyQualifiedName~G15HttpOutageAcceptanceTests' \
+            --logger 'trx;LogFileName=g15-http-dependency-outage.trx' --results-directory .verification/m15 \
+            2>&1 | tee .verification/m15/g15-http-dependency-outage.log
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
             --filter 'FullyQualifiedName~G13RateLimitAcceptanceTests' \
             --logger 'trx;LogFileName=g13-rate-limit.trx' --results-directory .verification/m15 \

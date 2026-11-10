@@ -19,9 +19,14 @@ function dashboard(page) {
 test("M13 Manager sees scoped operational reporting and safe drill", async ({ page }) => {
   test.skip(!enabled, "Disposable M13 browser fixture required");
   await login(page, "m3-manager@example.test");
+  const overviewResponse = page.waitForResponse(response =>
+    response.url().includes("/analytics/overview") &&
+    response.request().method() === "GET", { timeout: 30000 });
   await page.locator("#current-organization").selectOption({
     label: "M3 North Terminal (Manager)"
   });
+  const response = await overviewResponse;
+  expect(response.status(), "Real KPI reporting must be admitted").toBe(200);
   const d = dashboard(page);
   await expect(d.getByRole("heading", { name: "Operational KPIs" })).toBeVisible();
   await expect(d.getByText("Current workflow distribution")).toBeVisible();

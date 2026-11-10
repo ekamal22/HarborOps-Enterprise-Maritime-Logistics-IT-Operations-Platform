@@ -16,6 +16,14 @@ HarborOps is a modular enterprise platform for shipment and container management
 
 HarborOps is designed to run locally with free, self-hosted development tools. Optional hosted demonstrations must remain within explicitly approved free tiers, credits, and operating limits.
 
+## Turkish localization combined verification, 2026-11-10
+
+The isolated verification candidate `verify/turkish-localization-combined-20261110` retains the final G13/G15 candidate `e4bf9cd1527f85f554baf623e90805d96d08ac1a`, including its latest M15 notification browser correction, and overlays the Turkish implementation from `feature/turkish-localization-20261109` at `38e77d94676b2f100076074dc79243ef549a0c83`. The original feature and verification branches remain unchanged. Localization keeps API identifiers unchanged, supplies 591 translation entries, source-locked tests, explicit UTC operational times, browser-local session time, cross-tab preference changes and Turkish KPI percentage formatting.
+
+The grouped `verify-turkish-localization.yml` campaign runs one pinned-source frontend job (`npm test`, `npm run build`) followed by one isolated disposable full-stack browser job. That browser job exercises the localization, operational KPI and notification suites across Chromium, Firefox and WebKit, including authenticated roles, responsive Turkish screens and basic accessible-name, document-language and keyboard checks. Source SHA, per-engine JSON summaries and logs are retained without uploading session cookies, browser traces or the private fixture directory.
+
+This is **verification in progress**, not a statement that the campaign passed. A successful localization campaign does not independently approve G13/G15, independent S25 review, protected-main integration, release or deployment. Full assistive-technology review, visual layout acceptance and G13/G15 gate acceptance remain separate decisions.
+
 ### Planning source of truth
 
 - [Product Requirements Document](docs/PRD.md) defines intended users, product scope, outcomes, and release priorities.

@@ -1,0 +1,180 @@
+name: Verify Turkish localization integrated frontend and browsers
+run-name: Turkish localization source-locked grouped verification
+on:
+  push:
+    branches:
+      - verify/turkish-localization-combined-20261110
+
+permissions:
+  contents: read
+
+concurrency:
+  group: Turkish-localization-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  frontend:
+    name: TypeScript build and complete frontend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate frozen source and install
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/turkish-source
+          printf '%s\n' "$GITHUB_SHA" > .verification/turkish-source/source-sha.txt
+          npm --prefix web ci --no-audit --no-fund 2>&1 | tee .verification/turkish-source/install.log
+      - name: Run complete Node frontend test suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix web test 2>&1 | tee .verification/turkish-source/web-tests.log
+      - name: Compile TypeScript and Vite production bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix web run build 2>&1 | tee .verification/turkish-source/web-build.log
+          node --check tests/browser/specs/localization.spec.mjs
+      - name: Record source hashes
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p .verification/turkish-source
+          git rev-parse HEAD > .verification/turkish-source/source-sha.txt
+          (cd .verification/turkish-source && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+          echo "Frontend verification source: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized frontend evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: turkish-frontend-${{ github.run_id }}
+          path: .verification/turkish-source/
+          retention-days: 21
+          include-hidden-files: true
+
+  browsers:
+    name: Authenticated Chromium Firefox WebKit and Turkish layout
+    needs: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run grouped three-engine disposable stack checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export HARBOROPS_SOURCE_SHA="$GITHUB_SHA"
+          export HARBOROPS_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_API_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_WORKER_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_M10_CORRECTION_PROOF_KEY="$(openssl rand -base64 32)"
+          export HARBOROPS_M12_EXPORT_PROOF_KEY="$(openssl rand -base64 32)"
+          export HARBOROPS_TEST_USER_PASSWORD="$(openssl rand -hex 22)"
+          for key in HARBOROPS_DB_PASSWORD HARBOROPS_API_DB_PASSWORD HARBOROPS_WORKER_DB_PASSWORD HARBOROPS_M10_CORRECTION_PROOF_KEY HARBOROPS_M12_EXPORT_PROOF_KEY HARBOROPS_TEST_USER_PASSWORD; do
+            echo "::add-mask::${!key}"
+          done
+          export HARBOROPS_BROWSER_BASE_URL="http://localhost:5173"
+          export HARBOROPS_M5_FIXTURES=1
+          export HARBOROPS_M12_FIXTURES=1
+          export HARBOROPS_M13_FIXTURES=1
+          export HARBOROPS_M15_ENABLE_DELIVERY=true
+          export HARBOROPS_M15_LIVE_FIXTURE=1
+          export HARBOROPS_VERIFICATION_ROOT="$PWD/.verification"
+          mkdir -p .verification/evidence .verification/turkish-browser .verification/m15-browser
+          printf '%s\n' "$GITHUB_SHA" > .verification/turkish-browser/source-sha.txt
+          project="ho-verify-tr-${GITHUB_RUN_ID}"
+          cleanup() {
+            result=$?
+            rm -f -- "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json" \
+              "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
+            rmdir -- "$HARBOROPS_VERIFICATION_ROOT/.private" 2>/dev/null || true
+            docker compose -p "$project" down --volumes --remove-orphans || true
+            exit "$result"
+          }
+          trap cleanup EXIT
+          bash scripts/smoke-compose.sh --project "$project" --confirm-disposable
+          for entry in \
+            "m3-admin-a@example.test|M3 North Administrator" \
+            "m3-admin-b@example.test|M3 East Administrator" \
+            "m3-manager@example.test|M3 Manager" \
+            "m3-analyst@example.test|M3 Analyst" \
+            "m4-analyst-east@example.test|M4 East Analyst" \
+            "m4-support@example.test|M4 Support" \
+            "m4-auditor@example.test|M4 Auditor"; do
+            email="${entry%%|*}"
+            title="${entry#*|}"
+            printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" |
+              docker compose -p "$project" run --rm -T -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
+                --account-cli provision "$email" "$title"
+          done
+          for entry in \
+            "m3-north|M3 North Terminal|m3-admin-a@example.test" \
+            "m3-east|M3 East Terminal|m3-admin-b@example.test" \
+            "m3-pagination|M3 Pagination Fixtures|m3-admin-a@example.test" \
+            "m3-revocation-chromium|M3 Revocation chromium|m3-admin-a@example.test" \
+            "m3-revocation-firefox|M3 Revocation firefox|m3-admin-a@example.test" \
+            "m3-revocation-webkit|M3 Revocation webkit|m3-admin-a@example.test"; do
+            slug="${entry%%|*}"
+            rest="${entry#*|}"
+            title="${rest%%|*}"
+            email="${rest#*|}"
+            docker compose -p "$project" run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+              --organization-cli bootstrap "$slug" "$title" "$email"
+          done
+          node scripts/prepare-m3-browser-fixtures.mjs
+          node scripts/prepare-m4-browser-fixtures.mjs
+          node scripts/prepare-m5-browser-fixtures.mjs
+          node scripts/prepare-m15-browser-fixtures.mjs
+          test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json"
+          test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
+          npm --prefix tests/browser ci --no-audit --no-fund
+          cd tests/browser
+          npx playwright install --with-deps chromium firefox webkit
+          for engine in chromium firefox webkit; do
+            for suite in localization operational-kpis notifications; do
+              # Reset the disposable process limiter between independent suites.
+              docker compose -p "$project" restart api
+              ready=0
+              for attempt in $(seq 1 45); do
+                if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null; then
+                  ready=1
+                  break
+                fi
+                sleep 2
+              done
+              test "$ready" = "1"
+              export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/turkish-browser/${engine}-${suite}.json"
+              npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1
+              node -e 'const fs=require("node:fs");const s=JSON.parse(fs.readFileSync(process.env.HARBOROPS_G3_JSON_REPORT,"utf8")).stats;if(!s||s.expected<3||s.skipped!==0||s.unexpected!==0||s.flaky!==0)process.exit(2);console.log("Suite pass:",s.expected,"cases, zero skipped or unexpected")'
+            done
+          done
+      - name: Record source and redacted evidence
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p .verification/turkish-browser
+          printf '%s\n' "$GITHUB_SHA" > .verification/turkish-browser/source-sha.txt
+          (cd .verification/turkish-browser && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+          echo "Three-engine browser source: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload browser verdicts only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: turkish-browser-${{ github.run_id }}
+          path: .verification/turkish-browser/
+          retention-days: 21
+          include-hidden-files: true

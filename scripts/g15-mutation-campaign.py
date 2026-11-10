@@ -94,6 +94,22 @@ def call(args: list[str], timeout: int = 400) -> subprocess.CompletedProcess[str
         args, cwd=ROOT, check=False, text=True, stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT, timeout=timeout, env=os.environ.copy())
 
+
+def _source_identity() -> str:
+    """Hosted runs use GITHUB_SHA. Local runs record the actual checked out HEAD."""
+    value = os.environ.get("GITHUB_SHA")
+    if value:
+        return value
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
+                          stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                          check=True).stdout.strip()
+
+def _postgres_filter() -> list[str]:
+    """Optional exact container name for local runs with several disposable servers."""
+    name = os.environ.get("HARBOROPS_EXCLUSIVE_PG_CONTAINER")
+    base = ["--filter", "ancestor=postgres:16.15"]
+    return base + (["--filter", "name=^/" + name + "$"] if name else [])
+
 def main() -> int:
     if os.getenv("HARBOROPS_G13_EXCLUSIVE_POSTGRES") != "1":
         raise RuntimeError("Exclusive disposable PostgreSQL is required")
@@ -101,7 +117,7 @@ def main() -> int:
     match = re.search(r"Database=([a-zA-Z0-9_]+)", db_connection)
     if not match or match.group(1) not in ("harborops_integration", "harborops_test"):
         raise RuntimeError("Expected a recognized disposable database")
-    found = call(["docker", "ps", "--filter", "ancestor=postgres:16.15",
+    found = call(["docker", "ps", *_postgres_filter(),
                   "--format", "{{.ID}}"])
     containers = found.stdout.strip().splitlines()
     if found.returncode or len(containers) != 1:
@@ -196,7 +212,7 @@ def main() -> int:
         if sha(SOURCE.read_bytes()) != sha(original):
             raise RuntimeError("Mutation source restoration failed")
         (OUT / "manifest.json").write_text(json.dumps({
-            "source_commit": os.getenv("GITHUB_SHA", ""),
+            "source_commit": _source_identity(),
             "source_sha256": sha(original),
             "records": records,
         }, indent=2) + "\n", encoding="utf-8")

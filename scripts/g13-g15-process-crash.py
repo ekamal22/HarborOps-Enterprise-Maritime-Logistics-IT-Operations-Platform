@@ -31,9 +31,25 @@ PHASES = (
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+
+def _source_identity() -> str:
+    """Hosted runs use GITHUB_SHA. Local runs record the actual checked out HEAD."""
+    value = os.environ.get("GITHUB_SHA")
+    if value:
+        return value
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
+                          stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                          check=True).stdout.strip()
+
+def _postgres_filter() -> list[str]:
+    """Optional exact container name for local runs with several disposable servers."""
+    name = os.environ.get("HARBOROPS_EXCLUSIVE_PG_CONTAINER")
+    base = ["--filter", "ancestor=postgres:16.15"]
+    return base + (["--filter", "name=^/" + name + "$"] if name else [])
+
 def docker_server() -> str:
     found = subprocess.run(
-        ["docker", "ps", "--filter", "ancestor=postgres:16.15",
+        ["docker", "ps", *_postgres_filter(),
          "--format", "{{.ID}}"], text=True, capture_output=True, check=True)
     containers = found.stdout.strip().splitlines()
     if len(containers) != 1:
@@ -176,7 +192,7 @@ def run() -> int:
         return 0
     finally:
         (OUT / "manifest.json").write_text(json.dumps({
-            "source_commit": os.environ.get("GITHUB_SHA", ""),
+            "source_commit": _source_identity(),
             "disposable_postgres": True, "records": records
         }, indent=2) + "\n", encoding="utf-8")
 

@@ -10,8 +10,13 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
-ARTIFACTS = ROOT / ".verification" / "gate-input"
-OUTPUT = ROOT / ".verification" / "gate-ledger"
+LOCAL = os.environ.get("HARBOROPS_EVIDENCE_MODE") == "local"
+if LOCAL:
+    ARTIFACTS = Path(os.environ["HARBOROPS_GATE_INPUT"])
+    OUTPUT = Path(os.environ["HARBOROPS_GATE_OUTPUT"])
+else:
+    ARTIFACTS = ROOT / ".verification" / "gate-input"
+    OUTPUT = ROOT / ".verification" / "gate-ledger"
 
 # These signatures require credential-shaped values, not mere mentions of
 # security headers or identifier strings in test names.
@@ -29,7 +34,8 @@ PATTERNS = {
         rb"(?i)m15-dispatch-v1\|[0-9]{10,11}\|[a-f0-9]{64}"),
 }
 EXTENSIONS = {".log", ".txt", ".json", ".trx", ".xml", ".md", ".jsonl"}
-SOURCE = os.environ.get("GITHUB_SHA", "")
+SOURCE = (os.environ.get("HARBOROPS_SOURCE_SHA", "") if LOCAL
+          else os.environ.get("GITHUB_SHA", ""))
 
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
@@ -53,7 +59,9 @@ def main() -> int:
             issues.append({"path": entry["path"], "rules": kinds})
     report = {
         "source_sha": SOURCE,
-        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_id": ("local:" + os.environ.get("HARBOROPS_CAMPAIGN_ID", "")) if LOCAL
+                  else os.environ.get("GITHUB_RUN_ID", ""),
+        "evidence_mode": "local" if LOCAL else "github-actions",
         "status": "PASS" if not issues else "FAIL",
         "inspected_files": len(files),
         "checks": checks,

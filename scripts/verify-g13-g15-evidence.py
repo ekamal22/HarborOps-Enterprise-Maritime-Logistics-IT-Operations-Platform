@@ -11,27 +11,72 @@ import sys
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent.parent
-INPUT = ROOT / ".verification" / "gate-input"
-OUTPUT = ROOT / ".verification" / "gate-ledger"
-SOURCE = os.environ["GITHUB_SHA"]
-RUN = os.environ["GITHUB_RUN_ID"]
 problems: list[str] = []
-JOBS = {
-    "source": os.environ.get("GATE_JOB_SOURCE", "unknown"),
-    "database": os.environ.get("GATE_JOB_DATABASE", "unknown"),
-    "browser": os.environ.get("GATE_JOB_BROWSER", "unknown"),
-    "scale": os.environ.get("GATE_JOB_SCALE", "unknown"),
-    "sql_mutations": os.environ.get("GATE_JOB_SECURITY", "unknown"),
-    "faults": os.environ.get("GATE_JOB_FAULTS", "unknown"),
-    "source_mutations": os.environ.get("GATE_JOB_MUTATIONS", "unknown"),
-    "notification_mutations": os.environ.get("GATE_JOB_G15_MUTATIONS", "unknown"),
-    "notification_scale": os.environ.get("GATE_JOB_G15_SCALE", "unknown"),
-    "notification_fanout": os.environ.get("GATE_JOB_G15_FANOUT", "unknown"),
-    "reporting_concurrency": os.environ.get("GATE_JOB_G13_CONCURRENCY", "unknown"),
-    "crash_recovery": os.environ.get("GATE_JOB_G13_G15_CRASHES", "unknown"),
-    "dependency_security": os.environ.get("GATE_JOB_DEPENDENCY_SECURITY", "unknown"),
-    "combined_regressions": os.environ.get("GATE_JOB_COMBINED_REGRESSIONS", "unknown"),
+
+# Two mutually exclusive evidence modes. Hosted mode (default) is unchanged and
+# requires the GitHub-provided identity. Local mode never reads or fabricates any
+# GITHUB_* value: it takes the actual source SHA, a local campaign id, the input
+# and output folders explicitly, and derives every job result from the recorded
+# exit status of each executed command (commands.tsv), never from a summary.
+LOCAL = os.environ.get("HARBOROPS_EVIDENCE_MODE") == "local"
+MODE = "local" if LOCAL else "github-actions"
+if LOCAL:
+    SOURCE = os.environ["HARBOROPS_SOURCE_SHA"]
+    CAMPAIGN = os.environ["HARBOROPS_CAMPAIGN_ID"]
+    RUN = "local:" + CAMPAIGN
+    INPUT = Path(os.environ["HARBOROPS_GATE_INPUT"])
+    OUTPUT = Path(os.environ["HARBOROPS_GATE_OUTPUT"])
+else:
+    SOURCE = os.environ["GITHUB_SHA"]
+    RUN = os.environ["GITHUB_RUN_ID"]
+    INPUT = ROOT / ".verification" / "gate-input"
+    OUTPUT = ROOT / ".verification" / "gate-ledger"
+
+JOB_ARTIFACTS = {
+    "source": "combined-source", "database": "m15-database",
+    "browser": "m15-browser", "scale": "g13-scale",
+    "sql_mutations": "g13-security-mutations", "faults": "g13-faults",
+    "source_mutations": "g13-mutations", "notification_mutations": "g15-mutations",
+    "notification_scale": "g15-scale", "notification_fanout": "g15-fanout",
+    "reporting_concurrency": "g13-concurrency", "crash_recovery": "g13-g15-crashes",
+    "dependency_security": "dependency-security",
+    "combined_regressions": "combined-regressions",
 }
+
+def local_job_result(prefix: str) -> str:
+    """success only when commands.tsv exists, is non empty and every exit is 0."""
+    folders = [p for p in INPUT.iterdir()
+               if p.is_dir() and p.name.startswith(prefix + "-")] if INPUT.is_dir() else []
+    if len(folders) != 1:
+        return "missing"
+    table = folders[0] / "commands.tsv"
+    if not table.is_file():
+        return "missing"
+    rows = [line.split("\t") for line in table.read_text(encoding="utf-8").splitlines()
+            if line.strip()]
+    if not rows or any(len(r) < 6 for r in rows):
+        return "malformed"
+    return "success" if all(r[3] == "0" for r in rows) else "failure"
+
+if LOCAL:
+    JOBS = {key: local_job_result(prefix) for key, prefix in JOB_ARTIFACTS.items()}
+else:
+    JOBS = {
+        "source": os.environ.get("GATE_JOB_SOURCE", "unknown"),
+        "database": os.environ.get("GATE_JOB_DATABASE", "unknown"),
+        "browser": os.environ.get("GATE_JOB_BROWSER", "unknown"),
+        "scale": os.environ.get("GATE_JOB_SCALE", "unknown"),
+        "sql_mutations": os.environ.get("GATE_JOB_SECURITY", "unknown"),
+        "faults": os.environ.get("GATE_JOB_FAULTS", "unknown"),
+        "source_mutations": os.environ.get("GATE_JOB_MUTATIONS", "unknown"),
+        "notification_mutations": os.environ.get("GATE_JOB_G15_MUTATIONS", "unknown"),
+        "notification_scale": os.environ.get("GATE_JOB_G15_SCALE", "unknown"),
+        "notification_fanout": os.environ.get("GATE_JOB_G15_FANOUT", "unknown"),
+        "reporting_concurrency": os.environ.get("GATE_JOB_G13_CONCURRENCY", "unknown"),
+        "crash_recovery": os.environ.get("GATE_JOB_G13_G15_CRASHES", "unknown"),
+        "dependency_security": os.environ.get("GATE_JOB_DEPENDENCY_SECURITY", "unknown"),
+        "combined_regressions": os.environ.get("GATE_JOB_COMBINED_REGRESSIONS", "unknown"),
+    }
 
 # References identify executed technical checks, not complete acceptance scenarios.
 REFERENCES = {
@@ -63,6 +108,8 @@ REFERENCES = {
         18: ["SUITE:MigrationSnapshotTests"],
         19: ["BlockedMemberMaterializationRollsBackAndRecovers",
              "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant",
+             "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
+             "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority",
              "CRASH:G13BeforeReportCommit", "CRASH:G13AfterReportCommit"],
         20: ["Mixed170kShipmentsProduceExactBoundedReport",
              "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant",
@@ -74,6 +121,7 @@ REFERENCES = {
              "SUITE:AuditHardeningTests"],
         23: ["ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports",
              "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData",
+             "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
              "MUTATION:g13-security-mutations"],
         24: ["MUTATION:g13-mutations", "MUTATION:g13-security-mutations",
              "SCAN:dependencies"],
@@ -456,6 +504,7 @@ def main() -> int:
         "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce",
         "InFlightCancellationRollsBackBlockedFanout",
         "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
+        "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority",
         "RealNotificationDatabaseLockReturnsBoundedScopedHttpFailureAndRecovers",
         "SourceHistoryOutboxPrimaryKeyRejectsDuplicateEvent",
         "MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater",
@@ -475,11 +524,29 @@ def main() -> int:
         fail("Three-engine browser evidence incomplete")
     if not all(mutations.values()):
         fail("Mutation evidence incomplete")
+    if LOCAL:
+        import subprocess
+        if not re.fullmatch(r"[0-9a-f]{40}", SOURCE):
+            fail("Local source SHA must be a full 40 character lowercase SHA")
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
+                              stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                              check=False).stdout.strip()
+        if head != SOURCE:
+            fail("Local campaign SHA differs from the checked out source HEAD")
+        dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"],
+                               cwd=ROOT, text=True, stdout=subprocess.PIPE,
+                               stderr=subprocess.DEVNULL, check=False).stdout.strip()
+        if dirty:
+            fail("Local source tree has tracked modifications")
     if set(JOBS.values()) != {"success"}:
-        fail("One or more required GitHub jobs did not succeed")
+        fail("One or more required " + ("local verification jobs" if LOCAL else "GitHub jobs")
+             + " did not succeed")
     clean = not problems
     data = {
         "source_sha": SOURCE,
+        "evidence_mode": MODE,
+        "campaign_id": os.environ.get("HARBOROPS_CAMPAIGN_ID", "") if LOCAL else "",
+        "derived_from_github_actions": not LOCAL,
         "workflow_run": RUN,
         "job_results": JOBS,
         "technical_evidence_integrity": "PASS" if clean else "FAIL",
@@ -501,6 +568,8 @@ def main() -> int:
     lines = [
         "# G13/G15 Source-Locked Acceptance Preparation",
         "",
+        "Evidence mode: " + MODE + (
+            " (local verification, not a GitHub Actions result)" if LOCAL else ""),
         "Run: " + RUN,
         "Source SHA: " + SOURCE,
         "Artifact integrity: " + data["technical_evidence_integrity"],

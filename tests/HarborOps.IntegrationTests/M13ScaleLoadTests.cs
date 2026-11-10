@@ -80,7 +80,8 @@ public sealed class M13ScaleLoadTests
             var raw = Assert.IsType<string>(await explain.ExecuteScalarAsync());
             duration.Stop();
             var evidence = Path.Combine(
-                Environment.GetEnvironmentVariable("GITHUB_WORKSPACE")
+                (Environment.GetEnvironmentVariable("HARBOROPS_EVIDENCE_WORKSPACE")
+                    ?? Environment.GetEnvironmentVariable("GITHUB_WORKSPACE"))
                     ?? Directory.GetCurrentDirectory(),
                 ".verification", "g13-scale");
             Directory.CreateDirectory(evidence);
@@ -112,7 +113,8 @@ public sealed class M13ScaleLoadTests
         catch (Exception e)
         {
             var evidence = Path.Combine(
-                Environment.GetEnvironmentVariable("GITHUB_WORKSPACE")
+                (Environment.GetEnvironmentVariable("HARBOROPS_EVIDENCE_WORKSPACE")
+                    ?? Environment.GetEnvironmentVariable("GITHUB_WORKSPACE"))
                     ?? Directory.GetCurrentDirectory(),
                 ".verification", "g13-scale");
             Directory.CreateDirectory(evidence);
@@ -236,7 +238,8 @@ public sealed class M13ScaleLoadTests
             Assert.True(result.RootElement[0].GetProperty("Plan")
                 .GetProperty("Actual Total Time").GetDouble() >= 0);
             var directory = Path.Combine(
-                Environment.GetEnvironmentVariable("GITHUB_WORKSPACE")
+                (Environment.GetEnvironmentVariable("HARBOROPS_EVIDENCE_WORKSPACE")
+                    ?? Environment.GetEnvironmentVariable("GITHUB_WORKSPACE"))
                     ?? Directory.GetCurrentDirectory(), ".verification", "g13-scale");
             Directory.CreateDirectory(directory);
             await File.WriteAllTextAsync(

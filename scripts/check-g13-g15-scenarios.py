@@ -14,15 +14,15 @@ import unittest
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent.parent
-LEDGER = ROOT / ".verification" / "gate-ledger"
-INPUT = ROOT / ".verification" / "gate-input"
-SOURCE = os.environ["GITHUB_SHA"]
 spec = importlib.util.spec_from_file_location(
     "source_evidence", ROOT / "scripts" / "verify-g13-g15-evidence.py")
 if spec is None or spec.loader is None:
     raise RuntimeError("Source evidence contract not available")
 source_evidence = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(source_evidence)
+LEDGER = source_evidence.OUTPUT
+INPUT = source_evidence.INPUT
+SOURCE = source_evidence.SOURCE
 data = json.loads((LEDGER / "index.json").read_text(encoding="utf-8"))
 tests, counters = source_evidence.read_tests()
 matrix = {r["scenario"]: r for gate in ("g13", "g15") for r in data[gate]}
@@ -280,7 +280,7 @@ def main() -> int:
     by_name = {name.removeprefix("test_").replace("_S", "-S"): row
                for name, row in sorted(outcomes.items())}
     report = {
-        "source_sha": SOURCE, "run_id": os.environ["GITHUB_RUN_ID"],
+        "source_sha": SOURCE, "run_id": source_evidence.RUN,
         "technical_evidence": technical, "scenarios": by_name,
         "independent_reviews_pending": ["G13-S25", "G15-S25"],
         "resource_decision_pending": "G13 permanent storage and cleanup limit",
@@ -299,7 +299,7 @@ def main() -> int:
     ET.ElementTree(xml).write(LEDGER / "technical-scenarios.xml",
                                encoding="utf-8", xml_declaration=True)
     lines = ["# G13/G15 Source-Locked Technical Scenario Evidence", "",
-             "Commit: " + SOURCE, "Workflow run: " + os.environ["GITHUB_RUN_ID"],
+             "Commit: " + SOURCE, "Workflow run: " + source_evidence.RUN,
              "Result: " + technical, "",
              "| Scenario | Technical evidence check |",
              "| --- | --- |"]

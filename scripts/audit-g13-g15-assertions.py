@@ -15,14 +15,15 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 INVENTORY = ROOT / "docs" / "G13_G15_ASSERTION_INVENTORY_20261109.json"
-OUTPUT = ROOT / ".verification" / "gate-ledger"
-SHA = os.getenv("GITHUB_SHA", "")
 spec = importlib.util.spec_from_file_location(
     "g13_g15_evidence", ROOT / "scripts" / "verify-g13-g15-evidence.py")
 if spec is None or spec.loader is None:
     raise RuntimeError("Source-locked evidence contract not importable")
 gate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gate)
+# Identity and folders come from the evidence contract so hosted and local modes agree.
+SHA = gate.SOURCE
+OUTPUT = gate.OUTPUT
 
 def validate_inventory() -> tuple[list[dict], list[str]]:
     payload = json.loads(INVENTORY.read_text(encoding="utf-8"))
@@ -53,8 +54,8 @@ def validate_inventory() -> tuple[list[dict], list[str]]:
                 errors.append("Nonautomated assertion improperly marked tested: " + str(marker))
             if item.get("kind") == "automated" and item.get("assessment") == "MANUAL_REVIEW":
                 errors.append("Automated assertion improperly marked manual: " + str(marker))
-    if len(seen) != 242:
-        errors.append("Expected 242 separately enumerated requirements, got " + str(len(seen)))
+    if len(seen) != 246:
+        errors.append("Expected 246 separately enumerated requirements, got " + str(len(seen)))
     return rows, errors
 
 def test_match(name: str, tests: dict[str, str]) -> bool:
@@ -155,7 +156,8 @@ def gather() -> tuple[dict, bool]:
         })
     report = {
         "source_sha": SHA,
-        "run_id": os.getenv("GITHUB_RUN_ID", ""),
+        "run_id": gate.RUN,
+        "evidence_mode": gate.MODE,
         "inventory_source": str(INVENTORY.relative_to(ROOT)),
         "assertion_count": sum(len(x["assertions"]) for x in scenarios),
         "classification": states,
@@ -187,6 +189,7 @@ def main() -> int:
         "# G13/G15 Atomic Acceptance Coverage Audit",
         "",
         "Source SHA: " + report["source_sha"],
+        "Evidence mode: " + report["evidence_mode"],
         "Run: " + report["run_id"],
         "Total requirements: " + str(report["assertion_count"]),
         "",

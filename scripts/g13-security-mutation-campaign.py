@@ -57,6 +57,22 @@ def db_call(container: str, sql: str, database: str):
     if result.returncode:
         raise RuntimeError(f"Disposable database setup failed: {result.stdout[-1500:]}")
 
+
+def _source_identity() -> str:
+    """Hosted runs use GITHUB_SHA. Local runs record the actual checked out HEAD."""
+    value = os.environ.get("GITHUB_SHA")
+    if value:
+        return value
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
+                          stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                          check=True).stdout.strip()
+
+def _postgres_filter() -> list[str]:
+    """Optional exact container name for local runs with several disposable servers."""
+    name = os.environ.get("HARBOROPS_EXCLUSIVE_PG_CONTAINER")
+    base = ["--filter", "ancestor=postgres:16.15"]
+    return base + (["--filter", "name=^/" + name + "$"] if name else [])
+
 def main() -> int:
     if os.getenv("HARBOROPS_G13_EXCLUSIVE_POSTGRES") != "1":
         raise RuntimeError("Exclusive disposable PostgreSQL required")
@@ -64,7 +80,7 @@ def main() -> int:
     match=re.search(r"Database=([a-zA-Z0-9_]+)",base)
     if not match:
         raise RuntimeError("No predictable disposable database name")
-    found=run(["docker","ps","--filter","ancestor=postgres:16.15","--format","{{.ID}}"])
+    found=run(["docker","ps",*_postgres_filter(),"--format","{{.ID}}"])
     active=found.stdout.strip().splitlines()
     if len(active)!=1:
         raise RuntimeError("Exactly one disposable PostgreSQL container required")
@@ -128,7 +144,7 @@ def main() -> int:
         if sha(TARGET.read_bytes())!=sha(original):
             raise RuntimeError("Source restoration failure")
         (OUT / "manifest.json").write_text(json.dumps({
-            "commit":os.getenv("GITHUB_SHA",""),"baseline_sha256":sha(original),
+            "commit":_source_identity(),"baseline_sha256":sha(original),
             "test_filter":FILTER,"results":results},indent=2)+"\n",encoding="utf-8")
     return 0 if len(results)==len(MUTANTS)+1 and results[0]["verdict"]=="PASS" and all(
         r["verdict"]=="KILLED" for r in results[1:]) else 1

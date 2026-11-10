@@ -3,7 +3,7 @@ run-name: Turkish localization source-locked grouped verification
 on:
   push:
     branches:
-      - verify/turkish-current-g13g15-compat-20261110
+      - verify/turkish-current-g13g15-compat-20261110-r2
 
 permissions:
   contents: read
@@ -96,17 +96,28 @@ jobs:
           export HARBOROPS_VERIFICATION_ROOT="$PWD/.verification"
           mkdir -p .verification/evidence .verification/turkish-browser .verification/m15-browser
           printf '%s\n' "$GITHUB_SHA" > .verification/turkish-browser/source-sha.txt
-          project="ho-verify-tr-${GITHUB_RUN_ID}"
-          cleanup() {
-            result=$?
+          project=""
+          clear_private() {
             rm -f -- "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json" \
               "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
             rmdir -- "$HARBOROPS_VERIFICATION_ROOT/.private" 2>/dev/null || true
-            docker compose -p "$project" down --volumes --remove-orphans || true
+          }
+          cleanup() {
+            result=$?
+            clear_private
+            if [ -n "$project" ]; then
+              docker compose -p "$project" down --volumes --remove-orphans || true
+            fi
             exit "$result"
           }
           trap cleanup EXIT
-          bash scripts/smoke-compose.sh --project "$project" --confirm-disposable
+          # Install once. Each engine below gets its own freshly provisioned,
+          # disposable PostgreSQL database and authentication fixtures.
+          npm --prefix tests/browser ci --no-audit --no-fund
+          (cd tests/browser && npx playwright install --with-deps chromium firefox webkit)
+          for engine in chromium firefox webkit; do
+            project="ho-verify-tr-${GITHUB_RUN_ID}-${engine}"
+            bash scripts/smoke-compose.sh --project "$project" --confirm-disposable
           for entry in \
             "m3-admin-a@example.test|M3 North Administrator" \
             "m3-admin-b@example.test|M3 East Administrator" \
@@ -141,10 +152,9 @@ jobs:
           node scripts/prepare-m15-browser-fixtures.mjs
           test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json"
           test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
-          npm --prefix tests/browser ci --no-audit --no-fund
-          cd tests/browser
-          npx playwright install --with-deps chromium firefox webkit
-          for engine in chromium firefox webkit; do
+            # G13 caps concurrent unexpired report snapshots per organization.
+            # Never reuse one database across browser engines: accumulated
+            # reports from another engine can legitimately yield HTTP 429.
             for suite in localization operational-kpis notifications; do
               # Reset the disposable process limiter between independent suites.
               docker compose -p "$project" restart api
@@ -163,7 +173,7 @@ jobs:
                 node "$GITHUB_WORKSPACE/scripts/prepare-m15-browser-fixtures.mjs" --refresh-sessions-only
               fi
               export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/turkish-browser/${engine}-${suite}.json"
-              npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1
+              (cd tests/browser && npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1)
               case "$suite" in
                 localization) expected=9 ;;
                 operational-kpis) expected=8 ;;
@@ -172,6 +182,11 @@ jobs:
               esac
               HARBOROPS_EXPECTED_CASES="$expected" node -e 'const fs=require("node:fs");const s=JSON.parse(fs.readFileSync(process.env.HARBOROPS_G3_JSON_REPORT,"utf8")).stats;const e=Number(process.env.HARBOROPS_EXPECTED_CASES);if(!s||s.expected!==e||s.skipped!==0||s.unexpected!==0||s.flaky!==0)process.exit(2);console.log("Suite pass:",s.expected,"cases, zero skipped or unexpected")'
             done
+            # End this engine's isolated test campaign without retaining any
+            # reporting snapshots, app sessions, database rows, or credentials.
+            clear_private
+            docker compose -p "$project" down --volumes --remove-orphans
+            project=""
           done
       - name: Record source and redacted evidence
         if: always()

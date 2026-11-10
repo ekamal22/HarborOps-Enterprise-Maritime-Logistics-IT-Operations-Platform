@@ -291,8 +291,17 @@ public sealed class M13ConcurrentAcceptanceTests
         var diagnostic = Environment.GetEnvironmentVariable("HARBOROPS_G13_REALISTIC_PLANS") == "1";
         if (diagnostic)
         {
-            await M13ScaleLoadTests.CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor,
-                $"realistic{shipments / 1000}k-default", null, 120, false);
+            try
+            {
+                await M13ScaleLoadTests.CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor,
+                    $"realistic{shipments / 1000}k-default", null, 40, false);
+            }
+            catch (PostgresException e)
+            {
+                // The signed scope is valid for at most 45 seconds, so a plan that
+                // needs longer fails closed (42501 or 57014) instead of completing.
+                Console.WriteLine($"G13_PLAN_DEFAULT_NOT_COMPLETED sample=realistic{shipments / 1000}k state={e.SqlState}");
+            }
             await M13ScaleLoadTests.CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor,
                 $"realistic{shipments / 1000}k-nestloop-off", null, 120, true);
         }

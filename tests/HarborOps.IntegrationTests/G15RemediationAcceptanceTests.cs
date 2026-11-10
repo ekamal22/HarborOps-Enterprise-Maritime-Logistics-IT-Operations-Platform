@@ -358,7 +358,7 @@ public sealed class G15RemediationAcceptanceTests
         for (var i = 0; i < 100 && await Count(db, """
             SELECT COUNT(*) FROM m15_user_notifications n
             JOIN users u ON u.id=n.recipient_user_id
-            WHERE n.organization_id=@org AND u.normalized_email=lower(@email)
+            WHERE n.organization_id=@org AND lower(u.normalized_email)=lower(@email)
             """, ("org", s.Fixture.A), ("email", auditorEmail)) == 0; i++)
         {
             await using var requeue = new NpgsqlCommand("""

@@ -391,7 +391,7 @@ public sealed class M13TenantCapacityAcceptanceTests
                 WHERE id=(SELECT r.id FROM operational_kpi_reports r
                           JOIN users u ON u.id=r.actor_user_id
                           WHERE r.organization_id=@org
-                            AND u.normalized_email=lower(@email)
+                            AND lower(u.normalized_email)=lower(@email)
                           ORDER BY r.created_at_utc LIMIT 1)
                 """, administratorDb))
             {

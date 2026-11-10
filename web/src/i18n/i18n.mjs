@@ -67,6 +67,16 @@ export function formatNumber(value, locale = getLocale(), options) {
   return new Intl.NumberFormat(locale, options).format(value);
 }
 
+export function formatPercentage(numerator, denominator, locale = getLocale()) {
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator <= 0)
+    return "Not enough data";
+  // Preserve the existing half-up rounding rule to two percentage decimals.
+  const rounded = Math.floor((numerator * 100 / denominator + Number.EPSILON) * 100 + 0.5) / 100;
+  return new Intl.NumberFormat(locale, {
+    style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2
+  }).format(rounded / 100);
+}
+
 export function formatCurrency(value, currency, locale = getLocale()) {
   return new Intl.NumberFormat(locale, { style: "currency", currency }).format(value);
 }

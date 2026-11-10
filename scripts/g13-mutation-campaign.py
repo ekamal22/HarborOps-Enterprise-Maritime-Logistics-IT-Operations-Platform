@@ -19,10 +19,11 @@ EVIDENCE = ROOT / ".verification/g13-mutations"
 FILTER = "FullyQualifiedName~M13OperationalKpiRuntimeTests.TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
 ORACLE = "FullyQualifiedName~M13OperationalKpiRuntimeTests.ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
 MUTANTS = [
-    ("tenant-materialization-scope-removed",
-     "WHERE s.organization_id=@org\n                AND (@origin::uuid IS NULL OR s.origin_port_id=@origin)",
-     "WHERE s.organization_id IS NOT NULL\n                AND (@origin::uuid IS NULL OR s.origin_port_id=@origin)",
-     "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
+    ("scoped-evaluations-authority-removed",
+     "AS $evals$\n            BEGIN\n                IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN",
+     "AS $evals$\n            BEGIN\n                IF session_user<>'harborops_api' THEN",
+     "ScopedReadersAndQuotaFunctionsRequireSignedReportingAuthority",
+     "retention_migration"),
     ("k01-include-completed",
      "WHERE s.record_status='Active' AND s.workflow_status NOT IN ('Completed','Cancelled')",
      "WHERE s.record_status='Active' AND s.workflow_status <> 'Cancelled'"),
@@ -74,17 +75,13 @@ MUTANTS = [
      "WHERE e.organization_id=@org AND e.first_detected_at_utc>=@from",
      "WHERE e.organization_id=@org AND e.first_detected_at_utc>=@before",
      "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
-    ("k03-duplicate-status-history",
+    ("k03-window-upper-bound-inclusive",
      "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\n"
      "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\n"
      "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before",
      "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\n"
      "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\n"
-     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before\n"
-     "            UNION ALL\n"
-     "            SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\n"
-     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\n"
-     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before",
+     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<=@before",
      "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
     ("correction-generation-stale-accepted",
      "AND e.correction_generation=h.generation",
@@ -111,8 +108,8 @@ MUTANTS = [
      "AuditorGrantRevocationDeniesDashboardAndOldReportMembers",
      "base_migration"),
     ("tenant-quota-session-scope-bypassed",
-     "IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN",
-     "IF session_user<>'harborops_api' THEN",
+     "DECLARE live_reports bigint; live_members bigint;\n            BEGIN\n                IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN",
+     "DECLARE live_reports bigint; live_members bigint;\n            BEGIN\n                IF session_user<>'harborops_api' THEN",
      "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
      "retention_migration"),
     ("tenant-quota-active-report-cap-bypassed",
@@ -120,6 +117,25 @@ MUTANTS = [
      "IF live_reports>400 THEN RETURN false; END IF;",
      "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
      "retention_migration"),
+    ("user-report-cap-bypassed",
+     "RETURN live_user<=2;",
+     "RETURN live_user<=200;",
+     "OneUserIsLimitedToTwoActiveReportsAcrossSessionsInsideTheTenantLimit",
+     "retention_migration"),
+    ("idle-cleanup-limit-guard-widened",
+     "p_limit NOT BETWEEN 1 AND 16",
+     "p_limit NOT BETWEEN 1 AND 1000",
+     "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority",
+     "retention_migration"),
+    ("scoped-exceptions-authority-removed",
+     "AS $exc$\n            BEGIN\n                IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN",
+     "AS $exc$\n            BEGIN\n                IF session_user<>'harborops_api' THEN",
+     "ScopedReadersAndQuotaFunctionsRequireSignedReportingAuthority",
+     "retention_migration"),
+    ("member-materialization-planner-guard-removed",
+     "\"SET LOCAL enable_nestloop = off\"",
+     "\"SET LOCAL enable_nestloop = on\"",
+     "RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds"),
     ("malformed-kpi-member-cursor-admitted",
      "if (!Id(last, out var parsed))",
      "if (!Id(last, out var parsed) && false)",
@@ -155,14 +171,14 @@ def execute(label: str, test_filter: str = FILTER) -> tuple[int, str, float]:
     start = time.monotonic()
     try:
         p = subprocess.run(args, cwd=ROOT, stdout=subprocess.PIPE,
-                           stderr=subprocess.STDOUT, text=True, timeout=300,
+                           stderr=subprocess.STDOUT, text=True, timeout=1200,
                            env=os.environ.copy(), check=False)
         output = p.stdout
         code = p.returncode
     except subprocess.TimeoutExpired as exc:
         raw = exc.stdout or b""
         output = raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else raw
-        output += "\nTIMEOUT after 300 seconds\n"
+        output += "\nTIMEOUT after 1200 seconds\n"
         code = 124
     seconds = round(time.monotonic() - start, 2)
     (EVIDENCE / f"{label}.log").write_text(output, encoding="utf-8")

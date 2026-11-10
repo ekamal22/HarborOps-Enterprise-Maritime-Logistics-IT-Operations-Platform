@@ -36,3 +36,7 @@ Pending. The separate G13/G15 acceptance and merge must happen first. The pre-me
 ## Current G13/G15 read-only compatibility baseline
 
 The candidate derives from `feature/g13-g15-acceptance-closure-20261110` at `d6e02bece67ab9ab898f051a645df8e3c9d5f4f7` and keeps that branch unchanged. The current G13 implementation adds tenant-wide report admission controls, an idle KPI cleanup service, a capacity-exceeded HTTP 429 response and expanded browser coverage. Turkish localization adds user-facing translations for the fixed KPI response strings while retaining API error codes. The newest G13 browser tests are retained, including eight KPI cases and ten G15 notification cases. This preliminary candidate must be reviewed and tested independently; it is not the accepted G13/G15 merge or the final Turkish integration source.
+
+## Added G13 localization coverage before audit closure
+
+Two authenticated browser checks verify the newest HTTP 429 report-tenant capacity response is understandable in Turkish and that G13 ratio values render with Turkish percentage placement and decimal comma. The complete localization browser suite now requires 9 passing cases per engine. The KPI suite requires 8 and notifications require 10 per engine. These are source requirements, not executed evidence until the grouped run finishes.

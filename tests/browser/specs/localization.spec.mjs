@@ -193,3 +193,69 @@ test("Turkish layouts remain contained and core controls have accessible names",
   await expect(language).toBeFocused();
 });
 
+
+
+async function managerKpiDashboard(page) {
+  const root = process.env.HARBOROPS_VERIFICATION_ROOT;
+  const fixture = root ? path.join(root, ".private", "m15-manager.json") : null;
+  expect(fixture && fs.existsSync(fixture),
+    "Source-locked disposable manager authentication required").toBeTruthy();
+  const state = JSON.parse(fs.readFileSync(fixture, "utf8"));
+  await page.context().addCookies(state.cookies);
+  await page.goto("/");
+  await expect(page.getByText("Signed in as")).toBeVisible();
+  const organizations = page.locator("#current-organization");
+  await organizations.selectOption({ label: "M3 North Terminal (Manager)" });
+  await expect.poll(() => organizations.inputValue()).not.toBe("");
+  await page.getByRole("combobox", { name: "Select language" }).selectOption("tr-TR");
+  const dashboard = page.getByRole("region", { name: "Operasyonel KPI panosu" });
+  await expect(dashboard).toBeVisible();
+  return dashboard;
+}
+
+test("current G13 tenant reporting-capacity rejection is explained in Turkish", async ({ page }) => {
+  test.skip(process.env.HARBOROPS_M15_LIVE_FIXTURE !== "1",
+    "Isolated authenticated G13 browser fixture required");
+  await page.route("**/analytics/overview*", route => route.fulfill({
+    status: 429, contentType: "application/json",
+    body: JSON.stringify({
+      code: "report_tenant_capacity_exceeded",
+      message: "The organization's reporting capacity is currently in use"
+    })
+  }));
+  const dashboard = await managerKpiDashboard(page);
+  await expect(dashboard.getByRole("alert")).toContainText(
+    "Kuruluşun raporlama kapasitesi şu anda kullanımda");
+  await expect(dashboard.getByText("KPI report members")).toHaveCount(0);
+  await expect(dashboard.getByText("Aktif sevkiyatlar")).toHaveCount(0);
+});
+
+test("G13 percentages keep numeric meaning and Turkish presentation", async ({ page }) => {
+  test.skip(process.env.HARBOROPS_M15_LIVE_FIXTURE !== "1",
+    "Isolated authenticated G13 browser fixture required");
+  await page.route("**/analytics/overview*", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({
+      policyVersion: "m13-kpi-v1",
+      reportId: "e0000000-0000-4000-8000-000000000091",
+      reportToken: "disposable-turkish-percentage-fixture",
+      fromUtc: "2026-11-02T00:00:00Z",
+      beforeUtc: "2026-11-09T00:00:00Z",
+      evaluatedAtUtc: "2026-11-09T12:00:00Z",
+      expiresAtUtc: "2026-11-09T12:10:00Z",
+      memberCount: 9, bucket: "day",
+      counts: [
+        { metricCode: "D05", dimension: "", bucketStartUtc: null, count: 3 },
+        { metricCode: "K05", dimension: "", bucketStartUtc: null, count: 1 },
+        { metricCode: "K06", dimension: "", bucketStartUtc: null, count: 2 },
+        { metricCode: "D13", dimension: "", bucketStartUtc: null, count: 9 },
+        { metricCode: "K13", dimension: "", bucketStartUtc: null, count: 8 },
+        { metricCode: "K14", dimension: "", bucketStartUtc: null, count: 1 }
+      ]
+    })
+  }));
+  const dashboard = await managerKpiDashboard(page);
+  await expect(dashboard.getByText("%33,33", { exact: true })).toBeVisible();
+  await expect(dashboard.getByText("%66,67", { exact: true })).toBeVisible();
+  await expect(dashboard.getByText("%88,89", { exact: true })).toBeVisible();
+});

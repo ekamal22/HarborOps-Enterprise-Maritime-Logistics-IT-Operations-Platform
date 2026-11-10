@@ -165,7 +165,7 @@ jobs:
               export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/turkish-browser/${engine}-${suite}.json"
               npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1
               case "$suite" in
-                localization) expected=7 ;;
+                localization) expected=9 ;;
                 operational-kpis) expected=8 ;;
                 notifications) expected=10 ;;
                 *) echo "Unexpected browser suite: $suite" >&2; exit 2 ;;

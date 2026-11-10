@@ -1,6 +1,5 @@
-G13/G15 acceptance-closure preflight relaunch after build correction
-Previous preflight: 42758020273, failed source compilation because BackgroundService was declared in infrastructure without a hosting reference.
-Correction: moved bounded idle maintenance host into API framework project; application and evidence remain unaccepted pending exact-source tests.
-Preflight SHA: 37532be486d7f3742261e8018b231cd8902e0cdc
-Full campaign only after all grouped preflight jobs pass.
-No main merge, production activation or notification deletion.
+G13/G15 source-locked closure preflight relaunch, 2026-11-10.
+Prior run 42758242432: 170,000-shipment scale passed; 9/10 targeted regressions passed; new historical-boundary test violated immutable schedule constraints; two migration mutants survived due stale installed schema.
+Corrections: disposable historical fixture, clean-target assertion controls, fresh migrated schema on SQL variants, unknown evidence and Auditor grant mutation, exact 24-mutant/25-record manifest consistency.
+Baseline parent: 43cd375769aa4c6f369f8bfade0817d29d74531f
+Acceptance remains pending. No main merge, deployment, service activation, or notification deletion.

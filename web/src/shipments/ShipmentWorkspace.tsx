@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { getJson, organizationError, OrganizationRequestError } from "../auth/organizationClient";
 import { archiveShipment, changeShipment, createShipment, shipmentHistory, shipmentDetail,
@@ -64,6 +65,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
   notificationTarget?: NotificationTarget | null;
   onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"Active" | "Archived" | "All">("Active");
   const [advancedDraft, setAdvancedDraft] = useState<ShipmentAdvancedFilters>(emptyAdvancedFilters);
@@ -123,7 +125,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
   const dirtyRef = useRef(false);
   dirtyRef.current = dirty;
   const confirmDiscard = () =>
-    !dirtyRef.current || window.confirm("Discard unsaved shipment changes?");
+    !dirtyRef.current || window.confirm(t("Discard unsaved shipment changes?"));
 
   const closePanel = useCallback(() => {
     selectionSerial.current++;
@@ -372,7 +374,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
     if (!canManage || busy) return;
     if (row.recordStatus === "Active" && !window.confirm(
       selected?.id === row.id && dirtyRef.current
-        ? "Archive this shipment? Your unsaved changes to it will be lost." : "Archive this shipment?")) return;
+        ? t("Archive this shipment? Your unsaved changes to it will be lost.") : t("Archive this shipment?"))) return;
     const mutation = mutationSerial.current;
     setBusy(true); setError("");
     try {
@@ -423,8 +425,8 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
   ];
 
   const field = (key: keyof Form, label: string, locked = false) => (
-    <label key={key} className="block text-sm">{label}
-      <input aria-label={label} value={form[key]} disabled={locked || !canManage}
+    <label key={key} className="block text-sm">{t(label)}
+      <input aria-label={t(label)} value={form[key]} disabled={locked || !canManage}
         onChange={e => setForm(old => ({ ...old, [key]: e.target.value }))}
         className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60" />
     </label>
@@ -432,27 +434,34 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
   const readonly = !canManage || (!creating && selected?.recordStatus === "Archived");
   const scheduleLocked = readonly || (!creating && selected !== null && !scheduleEditable(selected.workflowStatus));
   const remoteNote = remote && selected
-    ? "This shipment changed on the server (now version " + remote.version + "; you opened version " +
-      selected.version + "). Your unsaved edits are preserved." : "";
-  const banner = conflict || remoteNote;
+    ? t("This shipment changed on the server (now version {remote}; you opened version {opened}). Your unsaved edits are preserved.", {remote: remote.version, opened: selected.version}) : "";
+  const fieldNames = (value: string) => value.split(", ").map(part => t(part)).join(", ");
+  const localizedConflict = (value: string) => t(value)
+    .replace(/Current version (\d+) loaded\./g, (_match, version: string) =>
+      t("Current version {version} loaded.", { version }))
+    .replace(/Your unsaved changes to (.+?) were kept\./g, (_match, fields: string) =>
+      t("Your unsaved changes to {fields} were kept.", { fields: fieldNames(fields) }))
+    .replace(/The server also changed (.+?)\. Your value is shown and saving will replace the server's\./g,
+      (_match, fields: string) => t("The server also changed {fields}. Your value is shown and saving will replace the server's.",
+        { fields: fieldNames(fields) }))
+    .replace(/Your changes to (.+?) can no longer be applied and were not kept\./g,
+      (_match, fields: string) => t("Your changes to {fields} can no longer be applied and were not kept.",
+        { fields: fieldNames(fields) }));
+  const banner = conflict ? localizedConflict(conflict) : remoteNote;
   return <section className="mt-6 border-t border-slate-700 pt-5">
     <div className="flex items-center justify-between gap-3">
-      <h4 className="font-semibold">Shipments</h4>
+      <h4 className="font-semibold">{t("Shipments")}</h4>
       <button type="button" disabled={busy || loading || paging}
         onClick={() => { backgroundRefresh(); if (canManage) setPortRetry(x => x + 1); }}
-        className="rounded border border-slate-600 px-3 py-2 text-sm">
-        Refresh shipments
-      </button>
+        className="rounded border border-slate-600 px-3 py-2 text-sm">{t("Refresh shipments")}</button>
     </div>
     <div className="mt-4 flex flex-wrap items-end gap-3">
-      <label className="text-sm">Search shipments
-        <input value={q} maxLength={80} onChange={e => setQ(e.target.value)}
+      <label className="text-sm">{t("Search shipments")}<input value={q} maxLength={80} onChange={e => setQ(e.target.value)}
           className="mt-1 block rounded bg-slate-950 p-2" />
       </label>
-      <label className="text-sm">Shipment record status
-        <select value={status} onChange={e => setStatus(e.target.value as typeof status)}
+      <label className="text-sm">{t("Shipment record status")}<select value={status} onChange={e => setStatus(e.target.value as typeof status)}
           className="mt-1 block rounded bg-slate-950 p-2">
-          {["Active", "Archived", "All"].map(x => <option key={x}>{x}</option>)}
+          {["Active", "Archived", "All"].map(x => <option key={x} value={x}>{t(x)}</option>)}
         </select>
       </label>
       {canManage && <button type="button" disabled={busy || loading || portBusy || Boolean(portError) || ports.length < 2}
@@ -461,22 +470,21 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
           selectionSerial.current++; setCreating(true); setSelected(null); setRemote(null);
           setHistory([]); setForm(blank); setConflict(""); setReviewable(false);
         }}
-        className="rounded border border-cyan-500 px-3 py-2 text-sm disabled:opacity-50">Create shipment</button>}
+        className="rounded border border-cyan-500 px-3 py-2 text-sm disabled:opacity-50">{t("Create shipment")}</button>}
     </div>
 
     <details className="mt-3 rounded border border-slate-700 p-3">
-      <summary className="cursor-pointer text-sm">Advanced shipment search</summary>
+      <summary className="cursor-pointer text-sm">{t("Advanced shipment search")}</summary>
       <div className="mt-3 grid gap-3 md:grid-cols-2">
-        <label className="text-sm">Filter by workflow status
-          <select value={advancedDraft.workflowStatus}
+        <label className="text-sm">{t("Filter by workflow status")}<select value={advancedDraft.workflowStatus}
             onChange={e => setAdvancedDraft(old => ({ ...old,
               workflowStatus: e.target.value as ShipmentAdvancedFilters["workflowStatus"] }))}
             className="mt-1 block w-full rounded bg-slate-950 p-2">
             {["", "Draft", "Booked", "InTransit", "Arrived", "Completed", "Cancelled"].map(x =>
-              <option key={x} value={x}>{x || "Any workflow"}</option>)}
+              <option key={x} value={x}>{t(x || "Any workflow")}</option>)}
           </select>
         </label>
-        {advancedFields.map(item => <label key={item.key} className="text-sm">{item.label}
+        {advancedFields.map(item => <label key={item.key} className="text-sm">{t(item.label)}
           <input value={advancedDraft[item.key]} placeholder={item.key.endsWith("Utc") ?
             "2026-11-01T00:00:00Z" : "UUID"}
             onChange={e => setAdvancedDraft(old => ({ ...old, [item.key]: e.target.value }))}
@@ -485,69 +493,62 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" onClick={() => setAdvancedApplied({ ...advancedDraft })}
-          className="rounded border border-cyan-500 px-3 py-2 text-sm">
-          Apply advanced filters
-        </button>
+          className="rounded border border-cyan-500 px-3 py-2 text-sm">{t("Apply advanced filters")}</button>
         <button type="button" onClick={() => {
           setAdvancedDraft({ ...emptyAdvancedFilters });
           setAdvancedApplied({ ...emptyAdvancedFilters });
-        }} className="rounded border border-slate-600 px-3 py-2 text-sm">
-          Clear advanced filters
-        </button>
+        }} className="rounded border border-slate-600 px-3 py-2 text-sm">{t("Clear advanced filters")}</button>
       </div>
     </details>
     {canManage && <div className="mt-3">
       <button type="button" disabled={exporting || busy || loading}
         onClick={() => void downloadExport()}
         className="rounded border border-cyan-500 px-3 py-2 text-sm disabled:opacity-50">
-        {exporting ? "Preparing CSV..." : "Export matching shipments as CSV"}
+        {t(exporting ? "Preparing CSV..." : "Export matching shipments as CSV")}
       </button>
-      <p className="mt-1 text-xs text-slate-400">
-        Export is restricted to this organization and matching filters. Maximum 5,000 rows.
-      </p>
-      {exportError && <p role="alert" className="mt-2 text-sm text-rose-300">{exportError}</p>}
+      <p className="mt-1 text-xs text-slate-400">{t("Export is restricted to this organization and matching filters. Maximum 5,000 rows.")}</p>
+      {exportError && <p role="alert" className="mt-2 text-sm text-rose-300">{t(exportError)}</p>}
     </div>}
-    {loading && <p className="mt-3 text-sm text-slate-400">Loading shipments...</p>}
-    {refreshing && !loading && <p role="status" className="mt-3 text-xs text-slate-400">Updating list...</p>}
-    {stale && <p role="status" className="mt-3 text-xs text-amber-300">{stale}</p>}
-    {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
+    {loading && <p className="mt-3 text-sm text-slate-400">{t("Loading shipments...")}</p>}
+    {refreshing && !loading && <p role="status" className="mt-3 text-xs text-slate-400">{t("Updating list...")}</p>}
+    {stale && <p role="status" className="mt-3 text-xs text-amber-300">{t(stale)}</p>}
+    {error && <p role="alert" className="mt-3 text-sm text-rose-300">{t(error)}</p>}
     {banner && <div role="alert" className="mt-3 text-sm text-amber-300">{banner}
       {selected && reviewable && <button type="button" onClick={() => void reviewCurrent()}
-        className="ml-3 rounded border border-amber-500 px-2 py-1">Load current version</button>}
+        className="ml-3 rounded border border-amber-500 px-2 py-1">{t("Load current version")}</button>}
     </div>}
-    {portError && canManage && <div role="alert" className="mt-2 text-xs text-amber-300">
-      Port selector unavailable: {portError}
+    {portError && canManage && <div role="alert" className="mt-2 text-xs text-amber-300">{t("Port selector unavailable:")} {t(portError)}
       <button type="button" disabled={portBusy}
         onClick={() => setPortRetry(x => x + 1)}
-        className="ml-2 rounded border border-amber-500 px-2 py-1">Retry port catalog</button>
+        className="ml-2 rounded border border-amber-500 px-2 py-1">{t("Retry port catalog")}</button>
     </div>}
-    {!loading && items.length === 0 && <p className="mt-3 text-sm text-slate-400">No shipments match this filter.</p>}
+    {!loading && items.length === 0 && <p className="mt-3 text-sm text-slate-400">{t("No shipments match this filter.")}</p>}
     <ul className="mt-3 space-y-2">
       {items.map(row => <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-slate-700 p-3 text-sm">
         <div><strong>{row.referenceCode}</strong> <span className="text-slate-400">{row.displayName || ""}</span>
-          <div className="text-xs text-slate-400">{row.workflowStatus} | {row.recordStatus} | v{row.version}</div>
+          <div className="text-xs text-slate-400">{t(row.workflowStatus)} | {t(row.recordStatus)} | v{row.version}</div>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={() => void select(row)}
-            className="rounded border border-slate-500 px-3 py-2">View shipment</button>
+            className="rounded border border-slate-500 px-3 py-2">{t("View shipment")}</button>
           {canManage && <button type="button" disabled={busy}
             onClick={() => void archiveOrRestore(row)}
             className="rounded border border-slate-600 px-3 py-2">
-            {row.recordStatus === "Active" ? "Archive shipment" : "Restore shipment"}
+            {t(row.recordStatus === "Active" ? "Archive shipment" : "Restore shipment")}
           </button>}
         </div>
       </li>)}
     </ul>
     {cursor && <button type="button" disabled={paging || loading || busy} onClick={() => void more()}
       className="mt-3 rounded border border-slate-600 px-3 py-2 text-sm">
-      {paging ? "Loading next page..." : "Load more shipments"}
+      {t(paging ? "Loading next page..." : "Load more shipments")}
     </button>}
     {(creating || selected) && <div className="mt-5 rounded-lg border border-slate-600 p-4">
       <div className="flex items-center justify-between gap-2">
-        <h5 className="font-medium">{creating ? "Create shipment" : selected?.referenceCode}</h5>
-        {dirty && <span role="status" className="text-xs text-amber-300">Unsaved changes</span>}
+        <h5 className="font-medium">{creating ? t("Create shipment") : selected?.referenceCode}</h5>
+        {dirty && <span role="status" className="text-xs text-amber-300">{t("Unsaved changes")}</span>}
         <button type="button" onClick={() => { if (confirmDiscard()) closePanel(); }}
-          className="rounded border border-slate-600 px-2 py-1">Close detail</button>
+          className="rounded border border-slate-600 px-2 py-1">{t("Close detail")}</button>
       </div>
       <form onSubmit={e => void save(e)} className="mt-3 grid gap-3">
         {field("referenceCode", "Shipment reference code", !creating || readonly)}
@@ -555,28 +556,27 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
         {field("displayName", "Shipment display name", readonly)}
         {creating ? <>
           {(["originPortId", "destinationPortId"] as const).map(key =>
-            <label key={key} className="text-sm">{key === "originPortId" ? "Origin port" : "Destination port"}
-              <select aria-label={key === "originPortId" ? "Origin port" : "Destination port"}
+            <label key={key} className="text-sm">{t(key === "originPortId" ? "Origin port" : "Destination port")}
+              <select aria-label={t(key === "originPortId" ? "Origin port" : "Destination port")}
                 value={form[key]} required
                 onChange={e => setForm(old => ({ ...old, [key]: e.target.value }))}
                 className="mt-1 block w-full rounded bg-slate-950 p-2">
-                <option value="">Select port</option>
+                <option value="">{t("Select port")}</option>
                 {ports.map(port => <option key={port.id} value={port.id}>{port.referenceCode} {port.name}</option>)}
               </select>
             </label>)}
-        </> : <p className="text-sm text-slate-400">Route: {selected?.originPortLabel || selected?.originPortId} to {selected?.destinationPortLabel || selected?.destinationPortId}</p>}
+        </> : <p className="text-sm text-slate-400">{t("Route:")} {selected?.originPortLabel || selected?.originPortId} → {selected?.destinationPortLabel || selected?.destinationPortId}</p>}
         {field("plannedDepartureAtUtc", "Planned departure UTC (ISO 8601)", scheduleLocked)}
         {field("plannedArrivalAtUtc", "Planned arrival UTC (ISO 8601)", scheduleLocked)}
-        {!creating && selected && <label className="text-sm">Shipment workflow
-          <select aria-label="Shipment workflow" value={form.workflowStatus} disabled={readonly}
+        {!creating && selected && <label className="text-sm">{t("Shipment workflow")}<select aria-label={t("Shipment workflow")} value={form.workflowStatus} disabled={readonly}
             onChange={e => setForm(old => ({ ...old, workflowStatus: e.target.value as ShipmentWorkflow }))}
             className="mt-1 block w-full rounded bg-slate-950 p-2">
-            {workflowOptions(selected.workflowStatus).map((x: string) => <option key={x}>{x}</option>)}
+            {workflowOptions(selected.workflowStatus).map((x: string) => <option key={x} value={x}>{t(x)}</option>)}
           </select>
         </label>}
         {!readonly && <button type="submit" disabled={busy}
           className="rounded bg-cyan-300 px-3 py-2 text-sm font-medium text-slate-950 disabled:opacity-50">
-          {creating ? "Save new shipment" : "Save shipment changes"}
+          {t(creating ? "Save new shipment" : "Save shipment changes")}
         </button>}
       </form>
       {!creating && selected && <ShipmentAssignmentsPanel
@@ -594,10 +594,10 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
          focusExceptionId={focusedTarget?.exceptionId}
          focusRequest={focusedTarget?.request} />}
       {!creating && selected && <div className="mt-4">
-        <h6 className="font-medium">Manual status history</h6>
-        {history.length === 0 ? <p className="text-xs text-slate-400">No status changes loaded.</p> :
+        <h6 className="font-medium">{t("Manual status history")}</h6>
+        {history.length === 0 ? <p className="text-xs text-slate-400">{t("No status changes loaded.")}</p> :
           <ol className="mt-2 space-y-1 text-xs text-slate-300">{history.map(x =>
-            <li key={x.id}>v{x.version}: {x.fromStatus || "Created"} to {x.toStatus} at {x.changedAtUtc}</li>)}</ol>}
+            <li key={x.id}>v{String(x.version)}: {t("Status changed from {from} to {to} at {timestamp}", { from: t(x.fromStatus || "Created"), to: t(x.toStatus), timestamp: date(x.changedAtUtc) + " UTC" })}</li>)}</ol>}
       </div>}
     </div>}
   </section>;

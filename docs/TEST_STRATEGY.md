@@ -1,8 +1,6 @@
 # Test and Verification Strategy
 
-**Current verification checkpoint (2026-11-09):** Combined successor [run 42552035939](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42552035939) **PASSED all five jobs** on frozen `3150e5b67bace1801dfc3b02ff53c423b5af931c`: 312 unit, 52 contract, 37 PostgreSQL, 30 browser, 170k shipment scale and 2 SQL security mutations. The distinct acceptance-campaign branch introduces additional tests and nine-job evidence reconciliation but has not executed at its new SHA. G13/G15 full scenarios, M15-P01..P14 approvals and S25 reviews remain open. No main merge, acceptance, deployment or production activation. [Campaign](G13_G15_ACCEPTANCE_CAMPAIGN_20261109.md).
-
-**Current verified baseline (2026-11-08):** G0-G12 and G16 accepted and merged. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records the 388/388 integration, 48/48 browser, 17/17 effective mutant and N01 10/10 evidence. Earlier source-only and pending verification banners are historical, not current. Preserve the M9 ARRI/DEPA hold, 10,000 unresolved-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator; no deployment.
+**Current G13/G15 status (2026-11-10):** [Source-locked run 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) PASSED all 15 jobs at `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 TRX tests passed, none failed/skipped, evidence integrity PASS). The separate 242-assertion audit identifies 224 with executed technical evidence, 3 missing technical witnesses, 7 policy-review items and 8 independent-review items. G13/G15 acceptance, main merge and deployment remain pending. [Current evidence and open decisions](G13_G15_VERIFIED_EVIDENCE_20261110.md).
 
 ## Current G10 source verification boundary
 

@@ -2142,6 +2142,49 @@
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+        },
+        {
+          "id": "G13-S19-A07",
+          "requirement": "Admit four live reporting snapshots per tenant and deny the fifth with a bounded error that discloses no counts",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"
+            },
+            {
+              "kind": "mutation",
+              "id": "g13-mutations"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added 2026-11-10 during local closure: approved tenant snapshot quota and bounded cleanup behavior had no atomic assertion. Proof is contingent on this SHA's actual passing TRX and artifact checks"
+        },
+        {
+          "id": "G13-S19-A08",
+          "requirement": "Restore tenant capacity by removing an expired snapshot without removing any live snapshot or business record",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added 2026-11-10 during local closure: approved tenant snapshot quota and bounded cleanup behavior had no atomic assertion. Proof is contingent on this SHA's actual passing TRX and artifact checks"
+        },
+        {
+          "id": "G13-S19-A09",
+          "requirement": "Bound database-wide idle cleanup to sixteen deletions per call and reject invalid limits and non-runtime logins",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added 2026-11-10 during local closure: approved tenant snapshot quota and bounded cleanup behavior had no atomic assertion. Proof is contingent on this SHA's actual passing TRX and artifact checks"
         }
       ]
     },
@@ -2611,6 +2654,19 @@
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Added a behavior-specific browser, scoped evidence-log scanner or real rate-limiting test. This is candidate coverage until source-locked execution passes."
+        },
+        {
+          "id": "G13-S23-A06",
+          "requirement": "Prevent unsigned SQL logins from enumerating tenant report quota",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added 2026-11-10 during local closure: approved tenant snapshot quota and bounded cleanup behavior had no atomic assertion. Proof is contingent on this SHA's actual passing TRX and artifact checks"
         }
       ]
     },
@@ -5226,7 +5282,7 @@
       ]
     }
   ],
-  "reconciled_at": "2026-11-09",
+  "reconciled_at": "2026-11-10",
   "milestone_acceptance": "PENDING",
   "campaign": "G13-G15 source-locked assertion-level behavioral coverage audit"
 }

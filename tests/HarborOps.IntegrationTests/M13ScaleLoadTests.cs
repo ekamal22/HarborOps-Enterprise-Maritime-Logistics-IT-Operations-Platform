@@ -131,9 +131,9 @@ public sealed class M13ScaleLoadTests
     // Exercise the actual materialization statement while logged in as
     // harborops_api. The signed, live M11 scope and ephemeral report exist only
     // inside this transaction; EXPLAIN ANALYZE is rolled back with its inserts.
-    private static async Task CaptureRestrictedPlan(string apiConnection,
+    internal static async Task CaptureRestrictedPlan(string apiConnection,
         string adminConnection, Guid org, Guid actor, string sample,
-        Guid? origin = null)
+        Guid? origin = null, int timeoutSeconds = 15, bool nestedLoopsOff = false)
     {
         Guid session;
         await using (var admin = new NpgsqlConnection(adminConnection))
@@ -189,8 +189,12 @@ public sealed class M13ScaleLoadTests
                 await scope.ExecuteNonQueryAsync();
             }
             await using (var timeout = new NpgsqlCommand(
-                "SET LOCAL statement_timeout = '15s'", db, tx))
+                $"SET LOCAL statement_timeout = '{timeoutSeconds}s'", db, tx))
                 await timeout.ExecuteNonQueryAsync();
+            if (nestedLoopsOff)
+                await using (var plan = new NpgsqlCommand(
+                    "SET LOCAL enable_nestloop = off", db, tx))
+                    await plan.ExecuteNonQueryAsync();
             await using (var check = new NpgsqlCommand(
                 "SELECT m13_can_view(@org)", db, tx))
             {
@@ -218,7 +222,7 @@ public sealed class M13ScaleLoadTests
             }
             await using var command = new NpgsqlCommand(
                 "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + query, db, tx)
-                { CommandTimeout = 35 };
+                { CommandTimeout = timeoutSeconds + 20 };
             command.Parameters.AddWithValue("org", org);
             command.Parameters.AddWithValue("report", report);
             command.Parameters.AddWithValue("from", end.AddDays(-7));
@@ -244,6 +248,21 @@ public sealed class M13ScaleLoadTests
             Directory.CreateDirectory(directory);
             await File.WriteAllTextAsync(
                 Path.Combine(directory, "explain-api-" + sample + ".json"), raw);
+            var nodes = new List<(string Node, string Relation, double Ms, long Rows)>();
+            static void Collect(JsonElement e, List<(string, string, double, long)> into)
+            {
+                if (e.TryGetProperty("Node Type", out var n) &&
+                    e.TryGetProperty("Actual Total Time", out var t))
+                    into.Add((n.GetString() ?? "",
+                        e.TryGetProperty("Relation Name", out var r) ? r.GetString() ?? "" : "",
+                        t.GetDouble() * (e.TryGetProperty("Actual Loops", out var l) ? l.GetDouble() : 1),
+                        e.TryGetProperty("Actual Rows", out var rows) ? (long)rows.GetDouble() : 0L));
+                if (e.TryGetProperty("Plans", out var children))
+                    foreach (var child in children.EnumerateArray()) Collect(child, into);
+            }
+            Collect(result.RootElement[0].GetProperty("Plan"), nodes);
+            foreach (var node in nodes.OrderByDescending(x => x.Ms).Take(8))
+                Console.WriteLine($"G13_PLAN_NODE sample={sample} node={node.Node} rel={node.Relation} ms={node.Ms:F0} rows={node.Rows}");
             Console.WriteLine($"G13_RESTRICTED_PLAN sample={sample} elapsed_ms={elapsed.Elapsed.TotalMilliseconds:F0} " +
                 $"role=harborops_api bytes={System.Text.Encoding.UTF8.GetByteCount(raw)} sha256={Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(raw)))}");
         }

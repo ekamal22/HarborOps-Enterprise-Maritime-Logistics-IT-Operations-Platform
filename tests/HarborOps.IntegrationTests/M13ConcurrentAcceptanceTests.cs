@@ -285,6 +285,15 @@ public sealed class M13ConcurrentAcceptanceTests
             $"evaluations={evaluations} open_exceptions={openExceptions} " +
             $"seed_ms={seedClock.Elapsed.TotalMilliseconds:F0}");
 
+        // Rolled-back restricted-role plans of the real statement on this data,
+        // with the default planner and with nested loops disabled. They record
+        // where the time goes under row-level security and are kept as evidence.
+        var diagnostic = Environment.GetEnvironmentVariable("HARBOROPS_G13_REALISTIC_PLANS") == "1";
+        if (diagnostic)
+        {
+            await M13ScaleLoadTests.CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor,
+                $"realistic{shipments / 1000}k-nestloop-off", null, 120, true);
+        }
         var emails = new List<string> { f.ManagerEmail, f.AnalystEmail };
         await using (var scope = seedFactory.Services.CreateAsyncScope())
         {

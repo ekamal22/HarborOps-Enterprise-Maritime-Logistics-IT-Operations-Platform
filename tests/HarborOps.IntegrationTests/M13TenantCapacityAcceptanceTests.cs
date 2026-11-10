@@ -359,8 +359,6 @@ public sealed class M13TenantCapacityAcceptanceTests
 
             using var first = await clients[0].GetAsync(url);
             Assert.Equal(HttpStatusCode.OK, first.StatusCode);
-            var firstReport = (await first.Content.ReadFromJsonAsync<JsonElement>())
-                .GetProperty("reportId").GetGuid();
             using var second = await clients[1].GetAsync(url);
             Assert.Equal(HttpStatusCode.OK, second.StatusCode);
             Assert.Equal(2L, await Reports());
@@ -385,23 +383,20 @@ public sealed class M13TenantCapacityAcceptanceTests
                 Assert.Equal(HttpStatusCode.OK, refresh.StatusCode);
             Assert.Equal(3L, await Reports());
 
-            // Expiry of the user's second-session snapshot restores that user's slot.
+            // Expiry of the user's oldest snapshot restores that user's slot.
             await using (var expire = new NpgsqlCommand("""
                 UPDATE operational_kpi_reports
                 SET created_at_utc=clock_timestamp()-interval '15 minutes',
                     expires_at_utc=clock_timestamp()-interval '5 minutes'
-                WHERE id IN (
-                    SELECT r.id FROM operational_kpi_reports r
-                    WHERE r.organization_id=@org AND r.id<>@first
-                      AND r.actor_user_id=(SELECT actor_user_id FROM operational_kpi_reports
-                                           WHERE organization_id=@org AND id=@first)
-                      AND r.actor_session_id<>(SELECT actor_session_id FROM operational_kpi_reports
-                                           WHERE organization_id=@org AND id=@first)
-                    ORDER BY r.created_at_utc LIMIT 1)
+                WHERE id=(SELECT r.id FROM operational_kpi_reports r
+                          JOIN users u ON u.id=r.actor_user_id
+                          WHERE r.organization_id=@org
+                            AND u.normalized_email=lower(@email)
+                          ORDER BY r.created_at_utc LIMIT 1)
                 """, administratorDb))
             {
                 expire.Parameters.AddWithValue("org", fixture.A);
-                expire.Parameters.AddWithValue("first", firstReport);
+                expire.Parameters.AddWithValue("email", fixture.AnalystEmail);
                 Assert.Equal(1, await expire.ExecuteNonQueryAsync());
             }
             using var admitted = await clients[2].GetAsync(url);

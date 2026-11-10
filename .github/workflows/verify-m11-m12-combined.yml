@@ -141,6 +141,12 @@ jobs:
             --filter 'FullyQualifiedName~G15HttpOutageAcceptanceTests' \
             --logger 'trx;LogFileName=g15-http-dependency-outage.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/g15-http-dependency-outage.log
+          # Preserve an independent full-campaign witness for the tenant
+          # snapshot admission limit, fifth-request denial and expired pruning.
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
+            --filter 'FullyQualifiedName~M13TenantCapacityAcceptanceTests' \
+            --logger 'trx;LogFileName=g13-tenant-capacity.trx' --results-directory .verification/m15 \
+            2>&1 | tee .verification/m15/g13-tenant-capacity.log
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
             --filter 'FullyQualifiedName~G13RateLimitAcceptanceTests' \
             --logger 'trx;LogFileName=g13-rate-limit.trx' --results-directory .verification/m15 \

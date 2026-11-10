@@ -14,3 +14,10 @@ Assertion inventory correction: nineteen G13/G15 witnesses now match the renamed
 eighteen-migration upgrade test. Preflight 42765138638 on commit 2699419b4615473166ecaf6543dddc179d5327c2
 is superseded before acceptance dispatch; the source-SHA guard rejects stale dispatch.
 Acceptance pending. No main merge, deployment, activation or notification retention deletion.
+
+Campaign 42766571284 at 8c64aa087611f8cb363735e8fa21b648b515b1bb:
+all 14 technical jobs passed, 547 TRX results passed, 0 failed or skipped.
+The evidence ledger correctly blocked because M13TenantCapacityAcceptanceTests
+was omitted from the full campaign test filters, despite passing in preflight.
+The full source-locked campaign now records its independent test and TRX artifact.
+No evidence guard was weakened, and unsuccessful earlier runs remain retained.

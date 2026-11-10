@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
-namespace HarborOps.Infrastructure.Reporting;
+namespace HarborOps.Api.Reporting;
 
 // Performs bounded maintenance independently of report traffic. This process
 // never opens notification, replay, audit or source-history cleanup paths.

@@ -12,7 +12,6 @@ using HarborOps.Api.Exceptions;
 using HarborOps.Api.Notifications;
 using HarborOps.Api.Reporting;
 using HarborOps.Infrastructure.Notifications;
-using HarborOps.Infrastructure.Reporting;
 using HarborOps.Infrastructure.Audit;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;

@@ -103,6 +103,15 @@ public sealed class M15ScaleLoadTests
             fanout.Parameters.AddWithValue("version", version);
             Assert.True(await fanout.ExecuteNonQueryAsync() >= rows);
         }
+        // The load inserts a million rows in one burst. Production keeps statistics
+        // current through autovacuum; without them a state filtered read can pick a
+        // partial-index-plus-sort plan that applies the per-row policy to every
+        // row. Refresh statistics the way the G13 scale fixture does before the
+        // measured reads. Policy, timeouts and budgets are unchanged.
+        await using (var statistics = new NpgsqlCommand(
+            "ANALYZE m15_user_notifications; ANALYZE m15_notification_outbox;", sql)
+            { CommandTimeout = 300 })
+            await statistics.ExecuteNonQueryAsync();
         var readyMs = stopwatch.ElapsedMilliseconds;
         await using (var count = new NpgsqlCommand("""
             SELECT COUNT(*) FROM m15_user_notifications

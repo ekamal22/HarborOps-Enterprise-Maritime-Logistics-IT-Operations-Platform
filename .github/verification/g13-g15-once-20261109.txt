@@ -14,3 +14,5 @@ Dispatch after manager session refresh and malformed-query rate-budget fixes fro
 Preflight predecessor: ce021e8e53656d0fffc926807b3a23d8058450c1
 Checks: release build, new scoped SQL regressions, 170k budget, 18 mutations.
 Acceptance pending. No merge or deployment.
+
+2026-11-10 preflight relaunch: corrected TrackingWorkerSettings namespace; prior preflight 42725878642 failed compilation.

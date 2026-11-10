@@ -1254,6 +1254,59 @@ public sealed class M13OperationalKpiRuntimeTests
 
 
     [ExclusiveM13PostgresFact]
+    public async Task UnknownEvaluationDoesNotBecomeZeroRisk()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var admin=fixture.Admin; using var seedManager=fixture.Manager;
+        using var seedAnalyst=fixture.Analyst;
+        var seed=await AssignmentHttpTests.Seed(fixture);
+        using var prior=await seedManager.GetAsync(seed.Root + "/" + seed.Shipment);
+        var shipment=await prior.Content.ReadFromJsonAsync<JsonElement>();
+        await using var db=new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        await using var owner=new NpgsqlCommand(
+            "SELECT changed_by_user_id FROM shipments WHERE id=@id",db);
+        owner.Parameters.AddWithValue("id",seed.Shipment);
+        var actor=Assert.IsType<Guid>(await owner.ExecuteScalarAsync());
+        var id=await G13Insert(db,fixture.A,
+            shipment.GetProperty("originPortId").GetGuid(),
+            shipment.GetProperty("destinationPortId").GetGuid(),
+            actor,DateTimeOffset.UtcNow.AddHours(3),"G13-UNKNOWN-");
+        await G13Transition(db,id,actor,"Booked");
+
+        foreach (var rule in new[] {
+            "RecordedArrivalLate","ArrivalScheduleOverdue",
+            "DepartureSlippageRisk","EquipmentConflict" })
+        {
+            await using var insert=new NpgsqlCommand("""
+                INSERT INTO shipment_exception_evaluations
+                    (organization_id,shipment_id,rule_code,rule_policy_version,
+                     condition_state,source_fingerprint,shipment_version,
+                     tracking_input_revision,correction_generation)
+                SELECT organization_id,id,@rule,'m11-rules-v1',@state,
+                       repeat('a',64),version,0,0 FROM shipments WHERE id=@id
+                """,db);
+            insert.Parameters.AddWithValue("rule",rule);
+            insert.Parameters.AddWithValue("state",
+                rule=="RecordedArrivalLate" ? "Unknown":"Inactive");
+            insert.Parameters.AddWithValue("id",id);
+            Assert.Equal(1,await insert.ExecuteNonQueryAsync());
+        }
+
+        using var runtime=new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var analyst=runtime.CreateClient(new WebApplicationFactoryClientOptions
+            {HandleCookies=true});
+        await ReferenceDataHttpTests.Login(analyst,fixture.AnalystEmail);
+        await ReferenceDataHttpTests.Select(analyst,fixture.A);
+        var report=await Json(await analyst.GetAsync(Root(fixture.A)+
+            Window(DateTimeOffset.UtcNow)));
+        Assert.Contains(id,await G13StoredIds(db,fixture.A,report,"K14"));
+        Assert.Contains(id,await G13StoredIds(db,fixture.A,report,"Q03"));
+    }
+
+    [ExclusiveM13PostgresFact]
     public async Task MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater()
     {
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();

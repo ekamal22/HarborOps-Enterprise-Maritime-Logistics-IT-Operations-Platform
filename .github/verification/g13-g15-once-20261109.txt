@@ -1,6 +1,6 @@
-G13/G15 final acceptance-closure source preflight
-Candidate implementation parent: ff6244f1bfd2964e23cba31ade25f59a7d70c987
-Regression scope: tenant-report admission and idle expiration, source-history uniqueness, HTTP dependency outage, materialized exact K06 boundary, security mutations.
-Target: verify/g13-g15-evidence-closure-20261109
-Preflight must succeed before full 15-job source-locked verification.
-Current gate decision: NOT ACCEPTED. No main merge, deployment, activation or notification deletion.
+G13/G15 acceptance-closure preflight relaunch after build correction
+Previous preflight: 42758020273, failed source compilation because BackgroundService was declared in infrastructure without a hosting reference.
+Correction: moved bounded idle maintenance host into API framework project; application and evidence remain unaccepted pending exact-source tests.
+Preflight SHA: 37532be486d7f3742261e8018b231cd8902e0cdc
+Full campaign only after all grouped preflight jobs pass.
+No main merge, production activation or notification deletion.

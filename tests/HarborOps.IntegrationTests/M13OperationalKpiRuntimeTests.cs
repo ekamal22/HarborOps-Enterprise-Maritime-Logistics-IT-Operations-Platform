@@ -1364,7 +1364,7 @@ public sealed class M13OperationalKpiRuntimeTests
             { HandleCookies=true });
         await ReferenceDataHttpTests.Login(analyst,fixture.AnalystEmail);
         await ReferenceDataHttpTests.Select(analyst,fixture.A);
-        var route=Root(fixture.A)+Window(DateTimeOffset.UtcNow);
+        var route=Root(fixture.A)+"/overview"+Window(DateTimeOffset.UtcNow);
         var exact=await Json(await analyst.GetAsync(route));
         Assert.Contains(id,await G13StoredIds(db,fixture.A,exact,"K06"));
         Assert.DoesNotContain(id,await G13StoredIds(db,fixture.A,exact,"K05"));

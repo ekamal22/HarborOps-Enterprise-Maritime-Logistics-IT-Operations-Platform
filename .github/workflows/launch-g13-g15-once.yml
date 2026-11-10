@@ -47,7 +47,7 @@ jobs:
           mkdir -p .verification/g13-g15-preflight-regression
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
             -c Release --no-build \
-            --filter 'FullyQualifiedName~G13TrackingSourceAcceptanceTests|FullyQualifiedName~G13M11SourceAcceptanceTests|FullyQualifiedName~ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts|FullyQualifiedName~G13G15FeatureDefaultAcceptanceTests|FullyQualifiedName~LateWorkerEffectDuringRebuildIsNeverLostAndMarksTheProjectionStale|FullyQualifiedName~M13TenantCapacityAcceptanceTests|FullyQualifiedName~G15HttpOutageAcceptanceTests|FullyQualifiedName~SourceHistoryOutboxPrimaryKeyRejectsDuplicateEvent|FullyQualifiedName~MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater' \
+            --filter 'FullyQualifiedName~G13TrackingSourceAcceptanceTests|FullyQualifiedName~G13M11SourceAcceptanceTests|FullyQualifiedName~ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts|FullyQualifiedName~G13G15FeatureDefaultAcceptanceTests|FullyQualifiedName~LateWorkerEffectDuringRebuildIsNeverLostAndMarksTheProjectionStale|FullyQualifiedName~M13TenantCapacityAcceptanceTests|FullyQualifiedName~G15HttpOutageAcceptanceTests|FullyQualifiedName~SourceHistoryOutboxPrimaryKeyRejectsDuplicateEvent|FullyQualifiedName~MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater|FullyQualifiedName~UnknownEvaluationDoesNotBecomeZeroRisk' \
             --logger 'trx;LogFileName=closure-regressions.trx' \
             --results-directory .verification/g13-g15-preflight-regression \
             2>&1 | tee .verification/g13-g15-preflight-regression/closure-regressions.log

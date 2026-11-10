@@ -26,3 +26,11 @@ The preceding [15-job campaign](https://github.com/ekamal22/HarborOps-Enterprise
 ## S25 completion requirements
 
 On completion of the corrected technical campaign, perform a separate raw-artifact review of all final results, reconcile each G15 S01-S24 requirement, record explicit P10 condition disposition and P12 retention restriction, and issue an explicit written G15-S25 PASS or NOT PASS and separate gate recommendation. Until then S25 is NOT PASS. Nothing here authorizes main merge, deployment, dispatcher activation, notification deletion or production migrations.
+
+## Additional assertion-mapping quality findings
+
+The current G15-S24-A01 through A05 inventory entries each map to the overall `g15-mutations` campaign and an unrelated duplicate-personal-receipt database test. All ten mutants were killed, but the audit does not require a specific source-history uniqueness mutation or separately prove every stated tenant/personal-row, membership/session, signed-proof, source-history, receipt-CAS and audit-atomicity category by individual mutant ID. The latest ten-mutant manifest names a receipt-recipient uniqueness variant, which must not automatically be equated to the source-history/outbox uniqueness requirement without reviewing the actual SQL mutation.
+
+Also, G15-S21-A05 requires a bounded, correctly scoped HTTP response after dependency outages, yet its inventory evidence points to fanout cancellation and retry tests. These may establish delivery persistence but do not, by their names or scope alone, establish HTTP dependency-outage behavior. A direct HTTP outage test or a defensible source-locked reference must be established before independently closing this clause.
+
+These are evidence-contract review findings, not claims that production behavior is broken. Strict 227/227 witness matching is necessary but not sufficient to close them.

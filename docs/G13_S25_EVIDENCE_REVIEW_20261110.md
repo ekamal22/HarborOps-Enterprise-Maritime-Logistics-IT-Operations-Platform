@@ -22,3 +22,7 @@ The artifact packet includes 30 measured 170,000-shipment reports, four real res
 ## S25 completion requirements
 
 Read the new source-locked raw artifacts, match every artifact SHA and manifest, verify all 227 technical assertion witnesses and each G13 scenario, review settled D-005 metric definitions, approve and verify an enforceable numerical resource and cleanup policy, then record an explicit G13-S25 recommendation and a separate G13 gate decision. Until then this review is NOT PASS, not acceptance or merge authority. No production migrations, report cleanup changes or activation are authorized.
+
+## Additional assertion-mapping quality finding
+
+The current G13-S24-A01 through A06 inventory entries use suite-level evidence IDs (`g13-mutations` and `g13-security-mutations`) for several separate required negative mutations. The assertion audit verifies those whole campaigns passed but does not independently link each demanded tenant, Auditor-grant, unknown-to-zero, correction-generation, rollback, revocation and forged-cursor mutant to a particular killed source mutation and its detecting test. The 18-plus-4 mutation records show broad sensitivity, but the independent review must validate each required category by mutant ID, actual source diff and test failure. In particular, membership/session revocation bypass is not clearly identified as an individual G13 mutation in the retained manifest. An aggregate `TECHNICAL_EVIDENCE_PRESENT` verdict should not be treated as proof of every named G13-S24 clause without this additional mapping.

@@ -82,7 +82,12 @@ MUTANTS = {
                       "k03-duplicate-status-history",
                       "correction-generation-stale-accepted",
                       "origin-member-filter-ignored",
-                      "malformed-kpi-member-cursor-admitted"},
+                      "malformed-kpi-member-cursor-admitted",
+                      "tenant-quota-rejection-rollback-bypassed",
+                      "tenant-quota-session-scope-bypassed",
+                      "tenant-quota-active-report-cap-bypassed",
+                      "k06-exact-sixty-minute-boundary",
+                      "unknown-evaluation-suppressed"},
     "g13-security-mutations": {"report-select-unrestricted",
                                "administrator-sql-grant-bypass",
                                "auditor-sql-grant-bypass", "member-select-unrestricted"},
@@ -93,7 +98,8 @@ MUTANTS = {
                       "source-intent-failure-swallowed",
                       "receipt-replay-session-unbound", "receipt-cas-bypassed",
                       "receipt-recipient-uniqueness-removed",
-                      "signed-recipient-scope-unbound", "receipt-audit-skipped"},
+                      "signed-recipient-scope-unbound", "receipt-audit-skipped",
+                      "source-history-outbox-uniqueness-removed"},
 }
 
 def passed(name: str) -> bool:

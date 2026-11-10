@@ -135,7 +135,7 @@ jobs:
           import json,os,pathlib
           manifest=json.loads(pathlib.Path('.verification/g13-mutations/manifest.json').read_text())
           assert manifest['source_commit']==os.environ['GITHUB_SHA']
-          assert len(manifest['records'])==23
+          assert len(manifest['records'])==24
           assert manifest['records'][0]['outcome']=='PASS'
           assert all(x['outcome']=='KILLED' for x in manifest['records'][1:])
           PY

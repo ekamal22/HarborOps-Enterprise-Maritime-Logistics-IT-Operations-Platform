@@ -434,11 +434,11 @@ def main() -> int:
     scan = scan_evidence(artifacts["dependency-security"])
     browsers = browser_result(artifacts["m15-browser"])
     mutations = {
-        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 18),
+        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 23),
         "g13-security-mutations": mutation_result(
             artifacts["g13-security-mutations"], "g13-security-mutations", 4),
         "g15-mutations": mutation_result(
-            artifacts["g15-mutations"], "g15-mutations", 10),
+            artifacts["g15-mutations"], "g15-mutations", 11),
     }
     if counters["Failed"] or counters["Skipped"] or counters["Other"]:
         fail("TRX contains failing, skipped or unexpected test outcomes")
@@ -455,6 +455,11 @@ def main() -> int:
         "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay",
         "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce",
         "InFlightCancellationRollsBackBlockedFanout",
+        "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
+        "RealNotificationDatabaseLockReturnsBoundedScopedHttpFailureAndRecovers",
+        "SourceHistoryOutboxPrimaryKeyRejectsDuplicateEvent",
+        "MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater",
+        "UnknownEvaluationDoesNotBecomeZeroRisk",
     )
     for required in required_tests:
         if not any(name.endswith("." + required) and status == "Passed"

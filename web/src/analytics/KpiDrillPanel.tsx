@@ -19,14 +19,14 @@ export default function KpiDrillPanel({
   const [pageLoading, setPageLoading] = useState(false);
   const [error, setError] = useState("");
   const [detail, setDetail] = useState<ShipmentRow | null>(null);
-  const [exceptionState, setExceptionState] = useState("");
+  const [exceptionState, setExceptionState] = useState<{ ruleCode: string; condition: string; state: string } | null>(null);
   const [detailError, setDetailError] = useState("");
   const [detailBusy, setDetailBusy] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
     setRows([]); setAfter(null); setError(""); setDetail(null);
-    setExceptionState(""); setLoading(true);
+    setExceptionState(null); setLoading(true);
     void members(organizationId, report, selection, null, controller.signal)
       .then(page => {
         if (!controller.signal.aborted) { setRows(page.items); setAfter(page.nextAfter); }
@@ -57,17 +57,16 @@ export default function KpiDrillPanel({
   }
 
   async function open(row: KpiMember) {
-    setDetailBusy(true); setDetailError(""); setDetail(null); setExceptionState("");
+    setDetailBusy(true); setDetailError(""); setDetail(null); setExceptionState(null);
     try {
       const latest = await shipmentDetail(organizationId, row.shipmentId);
       setDetail(latest);
       if (row.exceptionId && !isAuditor) {
         const item = await getJson<{ exception: {
-          lifecycleState: string; conditionState: string; ruleCode: string;
+          state: string; condition: string; ruleCode: string;
         } }>("/api/v1/organizations/" + encodeURIComponent(organizationId) +
           "/exceptions/" + encodeURIComponent(row.exceptionId));
-        setExceptionState(item.exception.ruleCode + ": " +
-          item.exception.conditionState + ", " + item.exception.lifecycleState);
+        setExceptionState(item.exception);
       }
     } catch (cause) {
       setDetailError(organizationError(cause));
@@ -114,7 +113,7 @@ export default function KpiDrillPanel({
       <p className="mt-1 text-xs text-slate-400">{t("Live detail may have changed since the report snapshot.")}</p>
       <p className="mt-2">{t("Record:")} {t(detail.recordStatus)} | {t("Source:")} {detail.displayName ?? t("Not provided")}</p>
       <p className="mt-1 text-xs text-slate-400">{t("Planned arrival:")} {detail.plannedArrivalAtUtc ? date(detail.plannedArrivalAtUtc) + " UTC" : t("Unknown")}</p>
-      {exceptionState && <p className="mt-2 text-amber-200">{exceptionState.split(/(: |, )/).map(part => t(part)).join("")}</p>}
+      {exceptionState && <p className="mt-2 text-amber-200">{t("Exception state: {rule}, {condition}, {status}", { rule: t(exceptionState.ruleCode), condition: t(exceptionState.condition), status: t(exceptionState.state === "Acknowledged" ? "Exception acknowledged" : exceptionState.state) })}</p>}
     </div>}
   </section>;
 }

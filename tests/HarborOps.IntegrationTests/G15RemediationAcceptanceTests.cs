@@ -342,7 +342,8 @@ public sealed class G15RemediationAcceptanceTests
         // A notification id is never an exception id.
         using (var wrong = await M11ExceptionRuntimeTests.SendAction(manager,
             M11ExceptionRuntimeTests.Collection(s.Fixture.A) + "/" + id,
-            new { action = "Acknowledge", expectedVersion = 1L }, Guid.NewGuid()))
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Alert review attempt" }, Guid.NewGuid()))
             Assert.Equal(HttpStatusCode.NotFound, wrong.StatusCode);
         Assert.Equal(before, await M11Snapshot());
 
@@ -382,7 +383,8 @@ public sealed class G15RemediationAcceptanceTests
             Assert.Equal(HttpStatusCode.Forbidden, mutate.StatusCode);
         using (var action = await M11ExceptionRuntimeTests.SendAction(auditor,
             M11ExceptionRuntimeTests.Collection(s.Fixture.A) + "/" + exceptionId,
-            new { action = "Acknowledge", expectedVersion = 1L }, Guid.NewGuid()))
+            new { action = "Acknowledge", expectedVersion = 1L,
+                reason = "Alert review attempt" }, Guid.NewGuid()))
             Assert.Equal(HttpStatusCode.Forbidden, action.StatusCode);
         using (var export = await auditor.GetAsync(
             $"/api/v1/organizations/{s.Fixture.A}/exports/shipments"))
@@ -433,8 +435,9 @@ public sealed class G15RemediationAcceptanceTests
         var remaining = expiresAt - DateTimeOffset.UtcNow;
         Assert.InRange(remaining, TimeSpan.FromMinutes(19), TimeSpan.FromMinutes(20.1));
         using var limit50 = await manager.GetAsync(root + "?limit=50");
-        Assert.Equal(50, (await limit50.Content.ReadFromJsonAsync<JsonElement>())
-            .GetProperty("items").GetArrayLength());
+        var all = await limit50.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(41, all.GetProperty("items").GetArrayLength());
+        Assert.Equal(JsonValueKind.Null, all.GetProperty("nextCursor").ValueKind);
         using var over = await manager.GetAsync(root + "?limit=51");
         Assert.Equal(HttpStatusCode.BadRequest, over.StatusCode);
         using var zero = await manager.GetAsync(root + "?limit=0");
@@ -514,5 +517,211 @@ public sealed class G15RemediationAcceptanceTests
         using (var foreign = await manager.GetAsync(
             $"/api/v1/organizations/{s.Fixture.B}/notifications/{id}"))
             Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
+    }
+
+    // G15-S18-A03: a malformed or version-less action body never changes a receipt.
+    [ExclusiveM13PostgresFact]
+    public async Task MalformedOrVersionlessActionBodiesNeverChangeAReceipt()
+    {
+        var (s, shipment, _) = await OpenException();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var seedAdmin = s.Fixture.Admin; using var seedManager = s.Fixture.Manager;
+        using var seedAnalyst = s.Fixture.Analyst;
+        await M15NotificationRuntimeTests.EnsureShipmentDelivered(s, shipment);
+        var root = $"/api/v1/organizations/{s.Fixture.A}/notifications";
+        using var page = await manager.GetAsync(root);
+        var id = Assert.Single((await page.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("items").EnumerateArray()).GetProperty("id").GetGuid();
+        var bodies = new object[]
+        {
+            new { action = "Acknowledge" },
+            new { action = "Acknowledge", expectedVersion = 0L },
+            new { action = "Acknowledge", expectedVersion = -1L },
+            new { action = "Acknowledge", expectedVersion = "1" },
+            new { action = "Delete", expectedVersion = 1L },
+            new { expectedVersion = 1L },
+            new { action = "Acknowledge", expectedVersion = 1L, extra = "field" }
+        };
+        foreach (var body in bodies)
+        {
+            using var response = await M11ExceptionRuntimeTests.SendAction(manager,
+                root + "/" + id, body, Guid.NewGuid());
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+        using var unchanged = await manager.GetAsync(root + "/" + id);
+        var state = await unchanged.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(1, state.GetProperty("version").GetInt64());
+        Assert.Equal(JsonValueKind.Null, state.GetProperty("readAtUtc").ValueKind);
+        Assert.Equal(JsonValueKind.Null, state.GetProperty("acknowledgedAtUtc").ValueKind);
+    }
+
+    // G15-S14-A02 and A03: when the outbox intent cannot be written, the real M11
+    // evaluation action fails as a whole (no exception, no history, no intent) and
+    // a later retry succeeds.
+    [ExclusiveM13PostgresFact]
+    public async Task FailedOutboxIntentDuringARealM11EvaluationRollsBackTheWholeActionAndRetrySucceeds()
+    {
+        var setup = await M11ExceptionRuntimeTests.Prepare();
+        using var factory = setup.Factory; using var runtime = setup.Runtime;
+        using var manager = setup.Manager; using var analyst = setup.Analyst;
+        using var administrator = setup.Administrator;
+        using var seedAdmin = setup.Fixture.Admin; using var seedManager = setup.Fixture.Manager;
+        using var seedAnalyst = setup.Fixture.Analyst;
+        var shipment = await M11ExceptionRuntimeTests.ScheduledShipment(setup);
+        await using var db = new NpgsqlConnection(setup.Roles.Admin);
+        await db.OpenAsync();
+        var route = $"/api/v1/organizations/{setup.Fixture.A}/shipments/{shipment}/exceptions";
+        async Task<long> Rows(string table) => await Count(db,
+            $"SELECT COUNT(*) FROM {table} WHERE organization_id=@org",
+            ("org", setup.Fixture.A));
+        var exceptionsBefore = await Rows("shipment_exceptions");
+        var historyBefore = await Rows("shipment_exception_history");
+        var outboxBefore = await Rows("m15_notification_outbox");
+        try
+        {
+            await using (var fail = new NpgsqlCommand("""
+                ALTER TABLE m15_notification_outbox ADD CONSTRAINT m15_test_reject_intent
+                    CHECK (false) NOT VALID
+                """, db))
+                await fail.ExecuteNonQueryAsync();
+            using var evaluate = await ReferenceDataHttpTests.Send(setup.Manager,
+                HttpMethod.Post, route + "/evaluate");
+            Assert.True((int)evaluate.StatusCode >= 500,
+                $"Expected a bounded server failure, got {(int)evaluate.StatusCode}");
+            var body = await evaluate.Content.ReadAsStringAsync();
+            Assert.DoesNotContain("m15_test_reject_intent", body);
+            Assert.Equal(exceptionsBefore, await Rows("shipment_exceptions"));
+            Assert.Equal(historyBefore, await Rows("shipment_exception_history"));
+            Assert.Equal(outboxBefore, await Rows("m15_notification_outbox"));
+        }
+        finally
+        {
+            await using var drop = new NpgsqlCommand(
+                "ALTER TABLE m15_notification_outbox DROP CONSTRAINT IF EXISTS m15_test_reject_intent", db);
+            await drop.ExecuteNonQueryAsync();
+        }
+        using (var retry = await ReferenceDataHttpTests.Send(setup.Manager,
+            HttpMethod.Post, route + "/evaluate"))
+            Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
+        Assert.Equal(exceptionsBefore + 1, await Rows("shipment_exceptions"));
+        Assert.Equal(historyBefore + 1, await Rows("shipment_exception_history"));
+        Assert.Equal(outboxBefore + 1, await Rows("m15_notification_outbox"));
+    }
+
+    // G15-S12-A03 and A04: several intents, two competing dispatchers and
+    // readers that run during the fanout. Every intent completes once, every
+    // eligible recipient gets exactly one receipt per intent, readers never see
+    // a duplicate or a partial receipt set.
+    [ExclusiveM13PostgresFact]
+    public async Task CompetingDispatchersDeliverSeveralIntentsExactlyOnceWhileReadersRun()
+    {
+        var (s, shipment, exceptionId) = await OpenException();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var seedAdmin = s.Fixture.Admin; using var seedManager = s.Fixture.Manager;
+        using var seedAnalyst = s.Fixture.Analyst;
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        const int extraIntents = 11;
+        await using (var more = new NpgsqlCommand("""
+            INSERT INTO shipment_exception_history (organization_id,exception_id,action,
+                old_state,new_state,actor_kind,source_fingerprint)
+            SELECT e.organization_id,e.id,'Opened',NULL,'Open','System',e.source_fingerprint
+            FROM shipment_exceptions e CROSS JOIN generate_series(1,@n) AS g WHERE e.id=@id
+            """, db))
+        {
+            more.Parameters.AddWithValue("n", extraIntents);
+            more.Parameters.AddWithValue("id", exceptionId);
+            Assert.Equal(extraIntents, await more.ExecuteNonQueryAsync());
+        }
+        var intents = 1 + extraIntents;
+        var eligible = await Count(db, """
+            SELECT COUNT(*) FROM organization_memberships m JOIN users u ON u.id=m.user_id
+            WHERE m.organization_id=@org AND m.status='Active' AND u.status='Active'
+                AND m.role IN ('Analyst','Manager','Auditor')
+            """, ("org", s.Fixture.A));
+        // Keep unrelated pending intents from other suites out of this exercise.
+        await using (var defer = new NpgsqlCommand("""
+            UPDATE m15_notification_outbox SET next_attempt_at_utc=clock_timestamp()+interval '1 hour'
+            WHERE completed_at_utc IS NULL AND quarantined_at_utc IS NULL
+              AND NOT (organization_id=@org AND shipment_id=@shipment)
+            """, db))
+        {
+            defer.Parameters.AddWithValue("org", s.Fixture.A);
+            defer.Parameters.AddWithValue("shipment", shipment);
+            await defer.ExecuteNonQueryAsync();
+        }
+        Guid actor, session;
+        await using (var active = new NpgsqlCommand("""
+            SELECT a.user_id,a.id FROM auth_sessions a
+            JOIN organization_memberships m ON m.user_id=a.user_id
+                AND m.organization_id=a.selected_organization_id
+            WHERE a.selected_organization_id=@org AND m.role='Manager' AND m.status='Active'
+              AND a.revoked_at_utc IS NULL ORDER BY a.issued_at_utc DESC LIMIT 1
+            """, db))
+        {
+            active.Parameters.AddWithValue("org", s.Fixture.A);
+            await using var r = await active.ExecuteReaderAsync();
+            Assert.True(await r.ReadAsync());
+            actor = r.GetGuid(0); session = r.GetGuid(1);
+        }
+        var done = false;
+        var observed = new List<int>();
+        var readerTask = Task.Run(async () =>
+        {
+            while (!Volatile.Read(ref done))
+            {
+                await using var scope = runtime.Services.CreateAsyncScope();
+                var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
+                var page = await store.ListAsync(s.Fixture.A, actor, session, "All",
+                    null, null, null, 50, CancellationToken.None);
+                var ids = page.Items.Select(x => x.Id).ToArray();
+                Assert.Equal(ids.Length, ids.Distinct().Count());
+                lock (observed) observed.Add(ids.Length);
+                await Task.Delay(20);
+            }
+        });
+        var delivered = 0;
+        await using (var oneScope = runtime.Services.CreateAsyncScope())
+        await using (var twoScope = runtime.Services.CreateAsyncScope())
+        {
+            var one = oneScope.ServiceProvider.GetRequiredService<NotificationStore>();
+            var two = twoScope.ServiceProvider.GetRequiredService<NotificationStore>();
+            for (var round = 0; round < 40 && await Count(db, """
+                SELECT COUNT(*) FROM m15_notification_outbox
+                WHERE organization_id=@org AND shipment_id=@shipment
+                  AND completed_at_utc IS NULL AND quarantined_at_utc IS NULL
+                """, ("org", s.Fixture.A), ("shipment", shipment)) > 0; round++)
+            {
+                var results = await Task.WhenAll(one.DeliverPendingAsync(CancellationToken.None),
+                    two.DeliverPendingAsync(CancellationToken.None));
+                delivered += results.Sum();
+            }
+        }
+        Volatile.Write(ref done, true);
+        await readerTask;
+        Assert.Equal(intents, delivered);
+        Assert.Equal((long)intents, await Count(db, """
+            SELECT COUNT(*) FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@shipment
+              AND completed_at_utc IS NOT NULL AND quarantined_at_utc IS NULL
+            """, ("org", s.Fixture.A), ("shipment", shipment)));
+        Assert.Equal(intents * eligible, await Count(db, """
+            SELECT COUNT(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", s.Fixture.A), ("shipment", shipment)));
+        Assert.Equal(intents * eligible, await Count(db, """
+            SELECT COUNT(DISTINCT (source_history_id,recipient_user_id))
+            FROM m15_user_notifications WHERE organization_id=@org AND shipment_id=@shipment
+            """, ("org", s.Fixture.A), ("shipment", shipment)));
+        // Readers only ever observed complete per-intent receipt sets.
+        lock (observed)
+        {
+            Assert.NotEmpty(observed);
+            Assert.All(observed, n => Assert.InRange(n, 0, intents));
+        }
     }
 }

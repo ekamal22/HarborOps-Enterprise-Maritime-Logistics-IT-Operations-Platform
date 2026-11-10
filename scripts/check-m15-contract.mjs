@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -71,16 +71,12 @@ console.log("M15 source-contract source checks passed. Runtime verification is s
 
 assert.match(read("compose.yaml"),/M15__EnableDelivery:.*HARBOROPS_M15_ENABLE_DELIVERY:-false/);
 assert.match(read(".env.example"),/HARBOROPS_M15_ENABLE_DELIVERY=false/);
-assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),/FullyQualifiedName~M15NotificationBoundaryTests/);
 
 assert.match(read("scripts/prepare-m15-browser-fixtures.mjs"),
   /M15 live scoped receipt and private browser authentication prepared: PASS/);
 assert.match(read("scripts/prepare-m15-browser-fixtures.mjs"),/storageState\(\)/);
 assert.match(read("tests/browser/specs/notifications.spec.mjs"),
   /page\.context\(\)\.addCookies\(state\.cookies\)/);
-assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),
-  /\.private\/m15-manager\.json/);
-assert.match(read(".github/workflows/verify-m11-m12-combined.yml"),/HARBOROPS_M15_ENABLE_DELIVERY=true/);
 assert.match(read("tests/browser/specs/notifications.spec.mjs"),/G15 live M11 event is delivered/);
 
 assert.match(react,/pagingAbort\.current\?\.abort\(\)/);
@@ -103,3 +99,9 @@ assert.ok(
   browserSpec.indexOf('test("G15 scoped notification center displays'),
   "real browser verification must run before mocked scenarios"
 );
+
+// No workflow may switch the notification dispatcher on. Disposable verification
+// enables it only inside the local verification harness, never in committed CI.
+for (const name of readdirSync(resolve(root,".github/workflows")))
+  assert.doesNotMatch(read(".github/workflows/"+name),/HARBOROPS_M15_ENABLE_DELIVERY=true/,
+    name+" must not enable M15 delivery");

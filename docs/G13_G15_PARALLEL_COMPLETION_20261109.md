@@ -1,7 +1,8 @@
 # G13/G15 Parallel Acceptance Completion
 
-**Latest verified technical campaign (2026-11-09):** [Run 42569970541](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42569970541) passed all 15 jobs at source `e4bf9cd1527f85f554baf623e90805d96d08ac1a`, with 487 passed TRX cases, zero failed/skipped, all six browser suites passing, and artifact integrity PASS. This is **not** full milestone acceptance. The final ledger reports G13 and G15 each 1 PASS, 22 BLOCKED and 2 NOT EXECUTED. The [source-locked evidence review](G13_G15_SOURCE_LOCKED_EVIDENCE_REVIEW_20261109.md) records outstanding plan, capacity, recovery and mutation proof. Merge, production migration, deployment and runtime activation remain pending.
+**Verification reference (2026-11-10):** [G13/G15 15-job technical campaign](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed at `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 TRX passed, no failures/skips, integrity PASS). The atomic evidence audit reports 224 present and 3 missing technical witnesses, plus 15 policy/independent-review items. This is not G13/G15 acceptance or merge authorization. [Current record](G13_G15_VERIFIED_EVIDENCE_20261110.md).
 
+**Historical parallel-work record:** The source-specific plan and original unresolved matrix below remain part of the 2026-11-09 audit trail. They were superseded for current technical results by the successful 2026-11-10 15-job campaign. Do not treat older policy-pending text as the current P01-P14 decision register.
 
 **Prepared:** 2026-11-09.
 **Branch:** `verify/g13-g15-parallel-closure-20261109`.

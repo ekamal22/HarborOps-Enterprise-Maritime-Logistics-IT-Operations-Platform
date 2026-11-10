@@ -61,6 +61,9 @@ test("authenticated language changes preserve scoped operational workspaces and 
   const organizations = page.locator("#current-organization");
   await expect(organizations).toBeVisible();
   await organizations.selectOption({ label: "M3 North Terminal (Manager)" });
+  await expect.poll(() => organizations.inputValue(), {
+    message: "Authenticated organization selection should finish before changing language"
+  }).not.toBe("");
   const selectedOrganization = await organizations.inputValue();
   await expect(page.getByRole("region", { name: "Operational KPI dashboard" })).toBeVisible();
   await expect(page.getByRole("region", { name: "In-app shipment notifications" })).toBeVisible();

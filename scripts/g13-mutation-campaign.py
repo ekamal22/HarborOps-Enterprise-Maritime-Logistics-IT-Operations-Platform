@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -141,6 +142,32 @@ def execute(label: str, test_filter: str = FILTER) -> tuple[int, str, float]:
     (EVIDENCE / f"{label}.log").write_text(output, encoding="utf-8")
     return code, output, seconds
 
+def reset_disposable_migration_schema() -> None:
+    if os.getenv("HARBOROPS_G13_EXCLUSIVE_POSTGRES") != "1":
+        raise RuntimeError("Exclusive disposable PostgreSQL required")
+    match = re.search(r"Database=([A-Za-z0-9_]+)", os.getenv("HARBOROPS_TEST_DB", ""))
+    if not match or match.group(1) not in ("harborops_integration", "harborops_test"):
+        raise RuntimeError("Schema reset allowed only on the named disposable test database")
+    found = subprocess.run(
+        ["docker", "ps", "--filter", "ancestor=postgres:16.15",
+         "--format", "{{.ID}}"], cwd=ROOT, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        check=False, timeout=30)
+    instances = found.stdout.strip().splitlines()
+    if found.returncode or len(instances) != 1:
+        raise RuntimeError("Exactly one exclusive PostgreSQL container required")
+    reset = subprocess.run([
+        "docker", "exec", instances[0], "psql", "-v", "ON_ERROR_STOP=1",
+        "-U", "harborops", "-d", match.group(1), "-c",
+        "DROP SCHEMA IF EXISTS public CASCADE; "
+        "CREATE SCHEMA public AUTHORIZATION harborops; "
+        "GRANT USAGE,CREATE ON SCHEMA public TO PUBLIC;"
+    ], cwd=ROOT, text=True, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT, check=False, timeout=90)
+    if reset.returncode:
+        raise RuntimeError("Disposable schema reset failed")
+
+
 def main() -> int:
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     originals = {SOURCE: SOURCE.read_bytes(), ENDPOINT: ENDPOINT.read_bytes(),
@@ -161,6 +188,22 @@ def main() -> int:
         if oracle_code:
             print("G13 oracle clean control failed. Mutations not attempted.")
             return 2
+        # A failed clean targeted test must never count as an effective killed
+        # mutation. Run all distinct targeted assertions against unmodified
+        # source first and preserve their independent controls.
+        extra_targets = sorted(set(
+            case[3] for case in MUTANTS if len(case) > 3
+            and case[3] not in (
+                "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers",
+                "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys")
+        ))
+        for target in extra_targets:
+            target_code, _, _ = execute("control-" + target,
+                "FullyQualifiedName~" + target)
+            if target_code:
+                print("G13 targeted clean control failed: " + target)
+                return 2
+        migration_changed = False
         for case in MUTANTS:
             name, before, after, *target_case = case
             test_filter = ("FullyQualifiedName~" + target_case[0] if target_case
@@ -171,6 +214,12 @@ def main() -> int:
                 if len(target_case) > 1 and target_case[1] == "retention_migration"
                 else ENDPOINT if len(target_case) > 1 and target_case[1] == "endpoints"
                 else SOURCE)
+            # EF migrations already applied in a previous test process are
+            # not re-executed merely because their C# source is mutated.
+            # Rebuild the disposable schema for each effective SQL mutation.
+            if selected == RETENTION_MIGRATION or migration_changed:
+                reset_disposable_migration_schema()
+                migration_changed = selected == RETENTION_MIGRATION
             text = originals[selected].decode("utf-8")
             if text.count(before) != 1:
                 raise RuntimeError(f"{name}: expected exactly one replacement, found {text.count(before)}")
@@ -198,6 +247,7 @@ def main() -> int:
         (EVIDENCE / "manifest.json").write_text(json.dumps({
             "source_commit":identity,"clean_source_sha256":source_sha,
             "filter":FILTER,"oracle_filter":ORACLE,
+            "additional_clean_controls":extra_targets if 'extra_targets' in locals() else [],
             "records":records
         }, indent=2) + "\n", encoding="utf-8")
     return 0 if records and all(x["outcome"] == "KILLED" for x in records[1:]) else 1

@@ -249,7 +249,7 @@ public sealed class M13ConcurrentAcceptanceTests
                     var total = outcome.Root.GetProperty("counts").EnumerateArray()
                         .Where(x => x.GetProperty("metricCode").GetString() == "D01")
                         .Sum(x => x.GetProperty("count").GetInt64());
-                    Assert.Equal(shipments + 2L, total);
+                    Assert.Equal(shipments - shipments / 37 + 2L, total); // archived rows (every 37th) are not active
                     Assert.InRange(outcome.Root.GetProperty("memberCount").GetInt32(), 1, 500_000);
                     reports.Add(outcome.Root.GetProperty("reportId").GetGuid());
                 }

@@ -530,7 +530,7 @@ public sealed class M13ScaleLoadTests
             Assert.True(result.StatusCode == HttpStatusCode.OK,
                 $"Realistic report unavailable, HTTP {(int)result.StatusCode}: {body[..Math.Min(body.Length, 300)]}");
             using var parsed = JsonDocument.Parse(body);
-            Assert.Equal(shipments + 2L, Count(parsed.RootElement, "D01"));
+            Assert.Equal(shipments - shipments / 37 + 2L, Count(parsed.RootElement, "D01")); // archived rows (every 37th) are not active
             members = parsed.RootElement.GetProperty("memberCount").GetInt32();
             Assert.InRange(members, 1, 500_000);
             latencies.Add(elapsed.Elapsed.TotalMilliseconds);

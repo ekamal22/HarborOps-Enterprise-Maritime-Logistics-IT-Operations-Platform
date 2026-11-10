@@ -290,3 +290,20 @@ test("open tabs adopt external language preference changes without duplicating m
     changeLocale(prior);
   }
 });
+
+
+test("current G13 reporting errors remain localized without altering API error codes", () => {
+  const backend = readFileSync(resolve(root,
+    "src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs"), "utf8");
+  const errors = [...new Set([...backend.matchAll(/Fail\(ctx,\s*\d+,\s*[^,]+,\s*"([^"]+)"\)/g)]
+    .map(match => match[1]))];
+  assert.ok(errors.includes("The organization's reporting capacity is currently in use"),
+    "Missing tenant reporting capacity API contract");
+  assert.ok(errors.length >= 20, "Reporting error coverage unexpectedly reduced");
+  for (const message of errors) {
+    assert.ok(Object.hasOwn(TURKISH, message), "Untranslated reporting error " + message);
+    assert.notEqual(translate(message, "tr-TR"), message);
+  }
+  assert.match(translate("The organization's reporting capacity is currently in use", "tr-TR"),
+    /raporlama kapasitesi/);
+});

@@ -1,6 +1,7 @@
 # G13/G15 Verified Evidence and Acceptance Status, 2026-11-10
 
-**Current disposition:** Technical campaign PASS; G13 and G15 milestone acceptance pending. This is the current status reference for M13/M15. Historical 2026-11-09 plans, failed-run tables and source audits retain their original SHA-specific results.
+**Current G13/G15 acceptance checkpoint (2026-11-10):** [Full source-locked run 42745334415](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42745334415) PASSED 15/15 jobs at `15cabd8c542159753c927c2bd65b4346223e84f6`, with 543/543 passed TRX tests, 227/227 technical assertion witnesses, 48/48 technical scenario checks and artifact integrity PASS. The separate [G13/G15 gate decisions](G13_G15_FORMAL_GATE_DECISIONS_20261110.md) record **G13 NOT ACCEPTED and G15 NOT ACCEPTED**, after [individual S25 assessments](G13_G15_REVIEW_MATRIX_20261110.md). G13 permanent tenant quota/idle cleanup enforcement and some exact mutation and HTTP-outage evidence remain open. P10 verification condition is satisfied; P12 cleanup/deletion remains disabled. Protected `main` is unmodified. No merge, deployment or activation is authorized.
+**Historical predecessor disposition:** Technical campaign PASS; G13 and G15 milestone acceptance pending. This is the current status reference for M13/M15. Historical 2026-11-09 plans, failed-run tables and source audits retain their original SHA-specific results.
 
 ## Source lock and executed results
 

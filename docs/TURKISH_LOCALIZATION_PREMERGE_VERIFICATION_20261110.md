@@ -40,3 +40,11 @@ The candidate derives from `feature/g13-g15-acceptance-closure-20261110` at `d6e
 ## Added G13 localization coverage before audit closure
 
 Two authenticated browser checks verify the newest HTTP 429 report-tenant capacity response is understandable in Turkish and that G13 ratio values render with Turkish percentage placement and decimal comma. The complete localization browser suite now requires 9 passing cases per engine. The KPI suite requires 8 and notifications require 10 per engine. These are source requirements, not executed evidence until the grouped run finishes.
+
+## Source-locked run 42840754160 and browser isolation remediation
+
+The 2026-11-10 grouped run [42840754160](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42840754160) failed on the Turkish pre-merge compatibility candidate `f41a63b7edc627022412346ae2aac9d0f4393f7d`. The frontend passed 39/39 tests and the production build. Chromium and Firefox each passed all 27 browser cases. WebKit passed all 9 localization cases and 7/8 KPI cases; notification tests were not reached. The real KPI report admission assertion received HTTP 429 rather than HTTP 200 in WebKit.
+
+The G13 tenant-wide quota function permits up to five concurrent unexpired report snapshots per organization. Previously, all three engines ran against the same disposable PostgreSQL instance; real report requests used different authenticated sessions, so prior engine snapshots remained until expiry. This creates a credible inter-engine quota collision. The HTTP 429 response code itself does not establish which reporting quota code was returned, since the browser assertion recorded only the status. The remedy isolates each engine in a separately provisioned, disposable Compose project and database, preserves the G13 admission policy unchanged and runs all three required suites in each engine. Browser installations occur once, and credentials plus container volumes are destroyed after each engine. It remains essential that every real report is admitted within its isolated engine; no quota exceptions are suppressed.
+
+The next combined campaign must execute 39+ frontend tests plus the build and all 81 browser executions with zero skips or unexpected failures. This remains a pre-merge compatibility exercise, not Turkish acceptance on updated `main`.

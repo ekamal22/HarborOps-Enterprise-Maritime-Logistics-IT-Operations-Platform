@@ -1,5 +1,5 @@
 import { useMemo, useSyncExternalStore } from "react";
-import { getLocale, subscribeLocale, translate, formatNumber, formatCurrency,
+import { getLocale, subscribeLocale, translate, formatNumber, formatPercentage, formatCurrency,
   formatDateTime, formatLocalDateTime, formatRelative, plural, type Locale } from "./i18n.mjs";
 
 export function useI18n() {
@@ -10,6 +10,7 @@ export function useI18n() {
       translate(message, locale, values),
     number: (value: number, options?: Intl.NumberFormatOptions) =>
       formatNumber(value, locale, options),
+    percent: (numerator: number, denominator: number) => formatPercentage(numerator, denominator, locale),
     currency: (value: number, code: string) => formatCurrency(value, code, locale),
     date: (value: string | number | Date, options?: Intl.DateTimeFormatOptions) =>
       formatDateTime(value, locale, options),

@@ -231,32 +231,16 @@ public sealed class M13ConcurrentAcceptanceTests
             archive.Parameters.AddWithValue("actor", actor);
             await archive.ExecuteNonQueryAsync();
         }
+        // The shipment trigger writes the immutable status history for every
+        // legal transition above; direct inserts into it are forbidden.
         long history;
-        await using (var changes = new NpgsqlCommand("""
-            INSERT INTO shipment_status_changes (id,organization_id,shipment_id,
-                from_status,to_status,version,changed_at_utc,changed_by_user_id)
-            SELECT gen_random_uuid(),s.organization_id,s.id,t.f,t.t,t.v,
-                clock_timestamp()-interval '3 days'+t.v*interval '6 hours',@actor
-            FROM shipments s
-            JOIN (VALUES (1,NULL,'Draft'),(2,'Draft','Booked'),(3,'Booked','InTransit'),
-                         (4,'InTransit','Arrived'),(5,'Arrived','Completed'))
-                AS t(v,f,t) ON s.workflow_status<>'Cancelled' AND t.v<=CASE s.workflow_status
-                    WHEN 'Draft' THEN 1 WHEN 'Booked' THEN 2 WHEN 'InTransit' THEN 3
-                    WHEN 'Arrived' THEN 4 ELSE 5 END
-            WHERE s.organization_id=@org AND s.reference_code LIKE 'G13R-%'
-            UNION ALL
-            SELECT gen_random_uuid(),s.organization_id,s.id,t.f,t.t,t.v,
-                clock_timestamp()-interval '3 days'+t.v*interval '6 hours',@actor
-            FROM shipments s
-            JOIN (VALUES (1,NULL,'Draft'),(2,'Draft','Cancelled')) AS t(v,f,t)
-                ON s.workflow_status='Cancelled'
-            WHERE s.organization_id=@org AND s.reference_code LIKE 'G13R-%'
-            """, sql) { CommandTimeout = 1800 })
+        await using (var changes = new NpgsqlCommand(
+            "SELECT count(*) FROM shipment_status_changes WHERE organization_id=@org", sql))
         {
             changes.Parameters.AddWithValue("org", f.A);
-            changes.Parameters.AddWithValue("actor", actor);
-            history = await changes.ExecuteNonQueryAsync();
+            history = Convert.ToInt64(await changes.ExecuteScalarAsync());
         }
+        Assert.True(history >= shipments, "Transitions must have produced status history");
         long evaluations, openExceptions;
         await using (var evaluate = new NpgsqlCommand("""
             INSERT INTO shipment_exception_evaluations (organization_id,shipment_id,

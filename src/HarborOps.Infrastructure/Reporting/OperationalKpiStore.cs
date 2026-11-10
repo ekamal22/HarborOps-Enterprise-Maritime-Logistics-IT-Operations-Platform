@@ -277,6 +277,15 @@ public sealed class OperationalKpiStore(
             """, U("org", org), U("report", report)))
             await claim.ExecuteNonQueryAsync(ct);
 
+        // The materialized intermediate results (heads, evaluated, events) have no
+        // statistics, so the planner estimates them at one or a few hundred rows
+        // and chooses nested loops over what are 100,000 row sets on a realistic
+        // tenant. That made a 100,000-shipment build exceed ten minutes; with hash
+        // and merge joins the same statement completes in seconds. The setting is
+        // transaction-local and reverted straight after this one statement.
+        await using (var planGuard = Command(Connection, sqlTx,
+            "SET LOCAL enable_nestloop = off"))
+            await planGuard.ExecuteNonQueryAsync(ct);
         int count;
         await using (var insert = Command(Connection, sqlTx, MemberSql,
             U("org", org), U("report", report), T("from", f.FromUtc),
@@ -285,6 +294,9 @@ public sealed class OperationalKpiStore(
             U("voyage", f.VoyageId), S("source", f.SourceKind),
             I("maxrows", OperationalKpiPolicy.MaximumReportMembers + 1)))
             count = await insert.ExecuteNonQueryAsync(ct);
+        await using (var planRestore = Command(Connection, sqlTx,
+            "SET LOCAL enable_nestloop = on"))
+            await planRestore.ExecuteNonQueryAsync(ct);
 
         if (count > OperationalKpiPolicy.MaximumReportMembers)
             return new(null, OrganizationAccessError.Conflict, "report_capacity_exceeded");
@@ -297,6 +309,14 @@ public sealed class OperationalKpiStore(
             if (await quota.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Conflict,
                     "report_tenant_capacity_exceeded");
+        }
+        // Fairness inside the tenant limit: at most two live snapshots per user.
+        await using (var fairness = Command(Connection, sqlTx,
+            "SELECT m13_user_quota(@org)", U("org", org)))
+        {
+            if (await fairness.ExecuteScalarAsync(ct) is not true)
+                return new(null, OrganizationAccessError.Conflict,
+                    "report_user_capacity_exceeded");
         }
         var counts = await ReadCountsAsync(sqlTx, org, report, ct);
         await tx.CommitAsync(ct);

@@ -23,7 +23,8 @@ public sealed class ReferenceDataHttpTests
         System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
 
     internal sealed class ApiFactory(string connection, int? pendingLimit = null,
-        Action<IServiceCollection>? overrideServices = null) : WebApplicationFactory<Program>
+        Action<IServiceCollection>? overrideServices = null,
+        IReadOnlyDictionary<string, string>? settings = null) : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -37,6 +38,9 @@ public sealed class ReferenceDataHttpTests
             if (pendingLimit.HasValue)
                 builder.UseSetting("M8:PendingLimit", pendingLimit.Value.ToString(
                     System.Globalization.CultureInfo.InvariantCulture));
+            if (settings is not null)
+                foreach (var (key, value) in settings)
+                    builder.UseSetting(key, value);
             builder.UseSetting("Identity:AllowInsecureLoopbackHttp", "true");
             builder.UseSetting("Identity:KeyRingPath",
                 Path.Combine(Directory.GetCurrentDirectory(), ".identity-keys"));

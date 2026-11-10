@@ -1,5 +1,6 @@
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,10 +11,15 @@ namespace HarborOps.Api.Reporting;
 // Performs bounded maintenance independently of report traffic. This process
 // never opens notification, replay, audit or source-history cleanup paths.
 public sealed class OperationalKpiCleanupService(
-    IServiceScopeFactory scopes, ILogger<OperationalKpiCleanupService> logger)
+    IServiceScopeFactory scopes, IConfiguration configuration,
+    ILogger<OperationalKpiCleanupService> logger)
     : BackgroundService
 {
-    private static readonly TimeSpan PollInterval = TimeSpan.FromMinutes(5);
+    // The approved maintenance interval is at most five minutes. A shorter
+    // interval may be configured; a longer or invalid value is ignored.
+    private TimeSpan PollInterval => TimeSpan.FromSeconds(
+        configuration.GetValue<int?>("M13:IdleCleanupPollSeconds") is { } seconds
+            && seconds is >= 1 and <= 300 ? seconds : 300);
     private const int BatchSize = 16;
     private const int MaximumBatchesPerPoll = 8;
 

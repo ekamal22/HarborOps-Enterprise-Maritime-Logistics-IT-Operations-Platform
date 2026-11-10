@@ -81,6 +81,8 @@ public static class OperationalKpiEndpoints
             Fail(ctx, 413, failure, "Report is too large. Narrow the filters"),
         OrganizationAccessError.Conflict when failure == "report_tenant_capacity_exceeded" =>
             Fail(ctx, 429, failure, "The organization's reporting capacity is currently in use"),
+        OrganizationAccessError.Conflict when failure == "report_user_capacity_exceeded" =>
+            Fail(ctx, 429, failure, "You already hold the maximum number of active reports"),
         OrganizationAccessError.Conflict when failure == "report_in_progress" =>
             Fail(ctx, 429, failure, "A report is already being built"),
         OrganizationAccessError.Conflict when failure == "report_expired" =>

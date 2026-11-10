@@ -39,9 +39,12 @@ if (string.IsNullOrWhiteSpace(connectionString))
 // Reject invalid intake quotas before the API can accept any request.
 _ = TrackingInboxStore.ReadPendingLimit(builder.Configuration);
 builder.Services.AddHarborOpsPersistence(connectionString);
-// The narrow idle sweeper runs only under the dedicated restricted API login.
-// It removes expired reporting snapshots, never notification or M11 history.
-if (string.Equals(new Npgsql.NpgsqlConnectionStringBuilder(connectionString).Username,
+// The narrow idle sweeper is opt-in (default off) and, when enabled, runs only
+// under the dedicated restricted API login. It removes expired reporting
+// snapshots, never notification or M11 history. Request-scoped bounded expiry
+// handling during report builds stays active regardless of this switch.
+if (builder.Configuration.GetValue<bool>("M13:EnableIdleCleanup") &&
+    string.Equals(new Npgsql.NpgsqlConnectionStringBuilder(connectionString).Username,
     "harborops_api", StringComparison.Ordinal))
     builder.Services.AddHostedService<OperationalKpiCleanupService>();
 builder.Services.AddHarborOpsAuthentication(builder.Configuration);

@@ -724,4 +724,42 @@ public sealed class G15RemediationAcceptanceTests
             Assert.All(observed, n => Assert.InRange(n, 0, intents));
         }
     }
+
+    // The compare-and-set must reject a stale expected version even when the
+    // requested transition itself would be valid.
+    [ExclusiveM13PostgresFact]
+    public async Task StaleExpectedVersionOnAValidTransitionIsRejectedAsAConflict()
+    {
+        var (s, shipment, _) = await OpenException();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var seedAdmin = s.Fixture.Admin; using var seedManager = s.Fixture.Manager;
+        using var seedAnalyst = s.Fixture.Analyst;
+        await M15NotificationRuntimeTests.EnsureShipmentDelivered(s, shipment);
+        var root = $"/api/v1/organizations/{s.Fixture.A}/notifications";
+        using var page = await manager.GetAsync(root);
+        var id = Assert.Single((await page.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("items").EnumerateArray()).GetProperty("id").GetGuid();
+        using (var read = await M11ExceptionRuntimeTests.SendAction(manager, root + "/" + id,
+            new { action = "MarkRead", expectedVersion = 1L }, Guid.NewGuid()))
+        {
+            Assert.Equal(HttpStatusCode.OK, read.StatusCode);
+            Assert.Equal(2, (await read.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("version").GetInt64());
+        }
+        // Version 1 is stale now; Acknowledge is otherwise a legal next step.
+        using (var stale = await M11ExceptionRuntimeTests.SendAction(manager, root + "/" + id,
+            new { action = "Acknowledge", expectedVersion = 1L }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+        using (var unchanged = await manager.GetAsync(root + "/" + id))
+        {
+            var state = await unchanged.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(2, state.GetProperty("version").GetInt64());
+            Assert.Equal(JsonValueKind.Null, state.GetProperty("acknowledgedAtUtc").ValueKind);
+        }
+        using (var current = await M11ExceptionRuntimeTests.SendAction(manager, root + "/" + id,
+            new { action = "Acknowledge", expectedVersion = 2L }, Guid.NewGuid()))
+            Assert.Equal(HttpStatusCode.OK, current.StatusCode);
+    }
 }

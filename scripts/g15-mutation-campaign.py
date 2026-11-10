@@ -13,7 +13,9 @@ import time
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261109010000_M15ScopedNotifications.cs"
+STORE_API = ROOT / "src/HarborOps.Api/Notifications/NotificationEndpoints.cs"
 OUT = ROOT / ".verification/g15-mutations"
+# A mutant may name the file it changes: "sql" (default) or "api".
 MUTANTS = [
     (
         "history-action-filter-removed",
@@ -58,7 +60,7 @@ MUTANTS = [
         "receipt-cas-bypassed",
         "IF item.version <> p_expected_version THEN",
         "IF false THEN",
-        "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning",
+        "StaleExpectedVersionOnAValidTransitionIsRejectedAsAConflict",
     ),
     (
         "receipt-recipient-uniqueness-removed",
@@ -77,6 +79,46 @@ MUTANTS = [
         "IF fields[2]::uuid IS DISTINCT FROM p_recipient THEN RETURN false; END IF;",
         "IF false THEN RETURN false; END IF;",
         "SignedRecipientContextCannotReadAnotherUserNotifications",
+    ),
+    (
+        "receipt-audit-failure-swallowed",
+        "RAISE EXCEPTION 'Notification audit unavailable'\n"
+        "                                USING ERRCODE='PZ001';",
+        "NULL;",
+        "RequiredAuditFailureRollsBackReceiptAndReplay",
+    ),
+    (
+        "dispatcher-timeout-not-trapped",
+        "EXCEPTION WHEN OTHERS OR QUERY_CANCELED THEN",
+        "EXCEPTION WHEN OTHERS THEN",
+        "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents",
+    ),
+    (
+        "recipient-limit-removed",
+        "IF recipient_count > 1000 THEN",
+        "IF recipient_count > 100000 THEN",
+        "RecipientCapOfOneThousandQuarantinesWithoutPartialReceiptsAndDeliversAtExactlyTheCap",
+    ),
+    (
+        "cursor-session-binding-removed",
+        "parsed.SessionId != identity.SessionId ||",
+        "false ||",
+        "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning",
+        "api",
+    ),
+    (
+        "page-limit-upper-bound-removed",
+        "limit is < 1 or > 50",
+        "limit is < 1 or > 5000",
+        "DefaultPageSizeIsTwentyFiveAndCursorsExpireAfterTwentyMinutes",
+        "api",
+    ),
+    (
+        "cursor-lifetime-extended",
+        "TimeSpan.FromMinutes(20))",
+        "TimeSpan.FromMinutes(2000))",
+        "DefaultPageSizeIsTwentyFiveAndCursorsExpireAfterTwentyMinutes",
+        "api",
     ),
     (
         "receipt-audit-skipped",
@@ -125,14 +167,18 @@ def main() -> int:
     container = containers[0]
     original = SOURCE.read_bytes()
     clean = original.decode("utf-8")
+    api_original = STORE_API.read_bytes()
+    api_clean = api_original.decode("utf-8")
     OUT.mkdir(parents=True, exist_ok=True)
     records: list[dict] = []
     ordered = [("clean-control", None, None, None)] + MUTANTS
     try:
-        for name, before, after, target in ordered:
-            if before is not None and clean.count(before) != 1:
+        for name, before, after, target, *where in ordered:
+            in_api = bool(where) and where[0] == "api"
+            base = api_clean if in_api else clean
+            if before is not None and base.count(before) != 1:
                 raise RuntimeError(name + ": unique mutation anchor not found")
-            mutated = clean.replace(before, after) if before is not None else clean
+            mutated = base.replace(before, after) if before is not None else base
             if name == "source-history-outbox-uniqueness-removed":
                 # The dependent receipt FK and ON CONFLICT target must be moved
                 # with the removed primary key. Otherwise PostgreSQL rejects
@@ -146,7 +192,12 @@ def main() -> int:
                     if mutated.count(original_anchor) != 1:
                         raise RuntimeError(name + ": dependent anchor mismatch")
                     mutated = mutated.replace(original_anchor, changed_anchor)
-            SOURCE.write_text(mutated, encoding="utf-8")
+            if in_api:
+                STORE_API.write_text(mutated, encoding="utf-8")
+                SOURCE.write_bytes(original)
+            else:
+                SOURCE.write_text(mutated, encoding="utf-8")
+                STORE_API.write_bytes(api_original)
             reset = call([
                 "docker", "exec", container, "psql", "-v", "ON_ERROR_STOP=1",
                 "-U", "harborops", "-d", match.group(1), "-c",
@@ -161,7 +212,8 @@ def main() -> int:
             # collisions with the regular notification runtime suite.
             filters = (
                 ["FullyQualifiedName~M15NotificationRuntimeTests",
-                 "FullyQualifiedName~M15NotificationBoundaryTests"]
+                 "FullyQualifiedName~M15NotificationBoundaryTests",
+                 "FullyQualifiedName~G15RemediationAcceptanceTests"]
                 if target is None else ["FullyQualifiedName~" + target])
             test_filter = " ; ".join(filters)
             start = time.monotonic()
@@ -205,11 +257,14 @@ def main() -> int:
             })
             print("G15_MUTANT " + name + " " + verdict, flush=True)
             SOURCE.write_bytes(original)
+            STORE_API.write_bytes(api_original)
             if name == "clean-control" and verdict != "PASS":
                 break
     finally:
         SOURCE.write_bytes(original)
-        if sha(SOURCE.read_bytes()) != sha(original):
+        STORE_API.write_bytes(api_original)
+        if (sha(SOURCE.read_bytes()) != sha(original)
+                or sha(STORE_API.read_bytes()) != sha(api_original)):
             raise RuntimeError("Mutation source restoration failed")
         (OUT / "manifest.json").write_text(json.dumps({
             "source_commit": _source_identity(),

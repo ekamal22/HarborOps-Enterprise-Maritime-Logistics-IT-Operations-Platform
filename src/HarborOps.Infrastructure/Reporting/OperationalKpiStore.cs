@@ -155,7 +155,60 @@ public sealed class OperationalKpiStore(
     private async Task<KpiOperation<KpiReport>> BuildOnceAsync(CurrentSession session,
         Guid org, OperationalKpiFilters f, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+        // A dedicated connection holds the two admission locks before the
+        // reporting transaction takes its REPEATABLE READ MVCC snapshot.
+        // Per-actor acquisition is nonblocking; tenant admission is bounded
+        // by the request cancellation and SQL command deadline.
+        await using var admission = new NpgsqlConnection(db.Database.GetConnectionString());
+        await admission.OpenAsync(ct);
+        try
+        {
+            await using (var actor = new NpgsqlCommand(
+                "SELECT pg_try_advisory_lock(hashtextextended(@scope,0))",
+                admission) { CommandTimeout = 15 })
+            {
+                actor.Parameters.AddWithValue("scope",
+                    org.ToString("N") + ":" + session.UserId.ToString("N"));
+                if (await actor.ExecuteScalarAsync(ct) is not true)
+                    return new(null, OrganizationAccessError.Conflict,
+                        "report_in_progress");
+            }
+            await using (var tenant = new NpgsqlCommand(
+                "SELECT pg_advisory_lock(hashtextextended(@scope,0))",
+                admission) { CommandTimeout = 15 })
+            {
+                tenant.Parameters.AddWithValue("scope",
+                    "m13-report-quota:" + org.ToString("N"));
+                await tenant.ExecuteScalarAsync(ct);
+            }
+            return await BuildLockedOnceAsync(session, org, f, ct);
+        }
+        finally
+        {
+            if (admission.State == ConnectionState.Open)
+            {
+                // The connection belongs only to this admission attempt.
+                // Explicitly release session locks even if the pool is reused.
+                try
+                {
+                    await using var unlock = new NpgsqlCommand(
+                        "SELECT pg_advisory_unlock_all()", admission)
+                        { CommandTimeout = 5 };
+                    await unlock.ExecuteScalarAsync(CancellationToken.None);
+                }
+                catch (NpgsqlException)
+                {
+                    // A broken connection cannot retain a usable server lock.
+                }
+            }
+        }
+    }
+
+    private async Task<KpiOperation<KpiReport>> BuildLockedOnceAsync(
+        CurrentSession session, Guid org, OperationalKpiFilters f,
+        CancellationToken ct)
+    {
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
         await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '15s'", ct);
         var error = await ScopeAsync(session, org, false, ct);
         if (error != OrganizationAccessError.None) return new(null, error);
@@ -167,22 +220,9 @@ public sealed class OperationalKpiStore(
             if (await guard.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Forbidden);
 
-        // One builder per actor/org across all API instances. Reject contention
-        // rather than waiting behind a long-running report build.
-        await using (var lockCmd = Command(Connection, sqlTx,
-            "SELECT pg_try_advisory_xact_lock(hashtextextended(@scope,0))",
-            S("scope", org.ToString("N") + ":" + session.UserId.ToString("N"))))
-            if (await lockCmd.ExecuteScalarAsync(ct) is not true)
-                return new(null, OrganizationAccessError.Conflict, "report_in_progress");
-
-        // Serialize tenant admission after the actor lock. READ COMMITTED
-        // permits the next admitted report to see the prior committed quota
-        // state, while one materialization statement remains a single snapshot.
-        // The signed session locks remain held until this transaction commits.
-        await using (var tenantLock = Command(Connection, sqlTx,
-            "SELECT pg_advisory_xact_lock(hashtextextended(@scope,0))",
-            S("scope", "m13-report-quota:" + org.ToString("N"))))
-            await tenantLock.ExecuteNonQueryAsync(ct);
+        // Session advisory locks were acquired before opening this transaction.
+        // The entire materialization and tenant quota check share one stable
+        // MVCC snapshot. All early returns roll back the report transaction.
 
         // Bound expired-report maintenance to this selected organization.
         // No cross-tenant sweep or unbounded cleanup is exposed to runtime.

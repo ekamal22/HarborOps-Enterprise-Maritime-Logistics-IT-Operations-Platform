@@ -128,6 +128,10 @@ internal static class RealisticTenantFixture
             ANALYZE shipment_exception_evaluations; ANALYZE shipment_exceptions;
             """, sql) { CommandTimeout = 300 })
             await statistics.ExecuteNonQueryAsync();
+        // Flush the seed's dirty buffers so the measured builds are not charged for the
+        // seed's checkpoint I/O. A production tenant is not bulk loaded seconds before use.
+        await using (var checkpoint = new NpgsqlCommand("CHECKPOINT", sql) { CommandTimeout = 300 })
+            await checkpoint.ExecuteNonQueryAsync();
         seedClock.Stop();
         return (history, evaluations, openExceptions, seedClock.ElapsedMilliseconds);
     }

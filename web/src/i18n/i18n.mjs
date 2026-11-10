@@ -13,6 +13,19 @@ export function initialLocale(storage, browserLanguages = []) {
 
 let selected;
 const subscribers = new Set();
+let listeningForStorage = false;
+
+function onPreferenceStorage(event) {
+  if (event.key !== STORAGE_KEY && event.key !== null) return;
+  const next = event.newValue === "en" || event.newValue === "tr-TR"
+    ? event.newValue
+    : normalizeLocale(typeof navigator === "undefined" ? "en"
+      : navigator.languages?.[0] ?? navigator.language);
+  const changed = getLocale() !== next;
+  selected = next;
+  if (typeof document !== "undefined") document.documentElement.lang = next;
+  if (changed) for (const subscriber of subscribers) subscriber();
+}
 
 function environmentLocale() {
   if (typeof window === "undefined") return "en";
@@ -32,7 +45,17 @@ export function getLocale() {
 
 export function subscribeLocale(listener) {
   subscribers.add(listener);
-  return () => subscribers.delete(listener);
+  if (typeof window !== "undefined" && !listeningForStorage) {
+    window.addEventListener("storage", onPreferenceStorage);
+    listeningForStorage = true;
+  }
+  return () => {
+    subscribers.delete(listener);
+    if (subscribers.size === 0 && listeningForStorage && typeof window !== "undefined") {
+      window.removeEventListener("storage", onPreferenceStorage);
+      listeningForStorage = false;
+    }
+  };
 }
 
 export function changeLocale(locale) {

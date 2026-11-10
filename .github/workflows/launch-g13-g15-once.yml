@@ -1,21 +1,163 @@
-name: Launch G13 G15 source-locked acceptance once
-run-name: G13 G15 source-locked campaign launcher
+name: G13 G15 source-locked preflight and campaign launch
+run-name: G13 G15 preflight then source-locked campaign
 on:
   push:
     branches:
       - verify/g13-g15-evidence-closure-20261109
     paths:
       - .github/verification/g13-g15-once-20261109.txt
+
 permissions:
-  actions: write
   contents: read
+
 jobs:
+  regression:
+    name: New M13 M15 regressions and release build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-preflight-regression
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-preflight-regression;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+      HARBOROPS_G12_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build and verify runner syntax
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 -m py_compile scripts/g13-mutation-campaign.py scripts/verify-g13-g15-evidence.py scripts/check-g13-g15-scenarios.py scripts/audit-g13-g15-assertions.py
+          dotnet build HarborOps.sln -c Release -warnaserror
+      - name: Execute new source-locked regressions
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/g13-g15-preflight-regression
+          for suite in G13TrackingSourceAcceptanceTests G13M11SourceAcceptanceTests ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts; do
+            dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
+              -c Release --no-build --filter "FullyQualifiedName~${suite}" \
+              --logger "trx;LogFileName=${suite}.trx" \
+              --results-directory .verification/g13-g15-preflight-regression \
+              2>&1 | tee ".verification/g13-g15-preflight-regression/${suite}.log"
+          done
+      - name: Upload candidate regression evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preflight-regressions-${{ github.run_id }}
+          path: .verification/g13-g15-preflight-regression
+          retention-days: 30
+
+  scale:
+    name: 170k KPI admission and capacity preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-preflight-scale
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-preflight-scale;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build source and perform exact budget measurement
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          dotnet build HarborOps.sln -c Release -warnaserror
+          mkdir -p .verification/g13-scale
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
+            -c Release --no-build \
+            --filter 'FullyQualifiedName~M13ScaleLoadTests.Mixed170kShipmentsProduceExactBoundedReport' \
+            --logger 'trx;LogFileName=scale.trx' \
+            --results-directory .verification/g13-scale \
+            2>&1 | tee .verification/g13-scale/scale.log
+      - name: Upload source-locked scale evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preflight-scale-${{ github.run_id }}
+          path: .verification/g13-scale
+          retention-days: 30
+
+  mutations:
+    name: 18 effective G13 source mutants
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-preflight-mutations
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-preflight-mutations;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Execute source mutations and restore source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 scripts/g13-mutation-campaign.py
+          git diff --exit-code -- src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs
+          python3 - <<'PY'
+          import json,os,pathlib
+          manifest=json.loads(pathlib.Path('.verification/g13-mutations/manifest.json').read_text())
+          assert manifest['source_commit']==os.environ['GITHUB_SHA']
+          assert len(manifest['records'])==19
+          assert manifest['records'][0]['outcome']=='PASS'
+          assert all(x['outcome']=='KILLED' for x in manifest['records'][1:])
+          PY
+      - name: Upload source-locked mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preflight-mutations-${{ github.run_id }}
+          path: .verification/g13-mutations
+          retention-days: 30
+
   dispatch:
-    name: Verify branch SHA and dispatch final acceptance workflow
+    name: Dispatch only after all three preflights pass
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: [regression, scale, mutations]
+    permissions:
+      actions: write
+      contents: read
     steps:
-      - name: Dispatch frozen verification branch
+      - name: Check immutable verification branch and dispatch
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -27,4 +169,4 @@ jobs:
           test "$current" = "$GITHUB_SHA"
           gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/workflows/verify-m11-m12-combined.yml/dispatches" \
             -f ref="$EXPECTED_BRANCH"
-          echo "Source-locked campaign dispatched for $GITHUB_SHA"
+          echo "Full source-locked campaign dispatched for $GITHUB_SHA"

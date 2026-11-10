@@ -2185,6 +2185,86 @@
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Added 2026-11-10 during local closure: approved tenant snapshot quota and bounded cleanup behavior had no atomic assertion. Proof is contingent on this SHA's actual passing TRX and artifact checks"
+        },
+        {
+          "id": "G13-S19-A10",
+          "requirement": "Enforce the scoped 25 second member materialization boundary: a 20 second wait completes, a 28 second wait fails closed at about 25 seconds with no partial rows and recovers",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "BlockedMemberMaterializationRollsBackAndRecovers"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G13-S19-A11",
+          "requirement": "Never leak the planner or statement timeout settings to pooled API connections after success, refusal, timeout, cancellation and rollback",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "BlockedMemberMaterializationRollsBackAndRecovers"
+            },
+            {
+              "kind": "test",
+              "id": "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"
+            },
+            {
+              "kind": "test",
+              "id": "OneUserIsLimitedToTwoActiveReportsAcrossSessionsInsideTheTenantLimit"
+            },
+            {
+              "kind": "mutation",
+              "id": "g13-mutations"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G13-S19-A12",
+          "requirement": "Limit one user to two active reports across sessions inside the four-per-tenant limit, with a distinct refusal code",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "OneUserIsLimitedToTwoActiveReportsAcrossSessionsInsideTheTenantLimit"
+            },
+            {
+              "kind": "mutation",
+              "id": "g13-mutations"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G13-S19-A13",
+          "requirement": "Keep the idle report cleanup off unless explicitly enabled, bounded to sixteen deletions per call when enabled, and confined to expired snapshots",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "IdleCleanupIsOffByDefaultAndRunsOnlyWhenExplicitlyEnabled"
+            },
+            {
+              "kind": "test",
+              "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
+            },
+            {
+              "kind": "test",
+              "id": "M15DeliveryAndM13IdleCleanupRequireExplicitOptIn"
+            },
+            {
+              "kind": "mutation",
+              "id": "g13-mutations"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         }
       ]
     },
@@ -2324,6 +2404,53 @@
           "evidence": [],
           "assessment": "MANUAL_REVIEW",
           "audit_note": "Policy approval or numerical decision required"
+        },
+        {
+          "id": "G13-S20-A08",
+          "requirement": "Meet the approved p50 15 s and p95 20 s budgets and resource envelope on a realistic skewed 85,000 shipment tenant under the restricted API role",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole"
+            },
+            {
+              "kind": "budget",
+              "id": "G13"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G13-S20-A09",
+          "requirement": "Complete four simultaneous builders of a realistic 85,000 shipment tenant with no 503 inside the 30 second proxy envelope",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds"
+            },
+            {
+              "kind": "mutation",
+              "id": "g13-mutations"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G13-S20-A10",
+          "requirement": "Refuse an over-capacity realistic 170,000 shipment tenant with 413 report_capacity_exceeded for every builder and no timeout",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "RealisticSkewed170kShipmentTenantIsRefusedAsOverCapacityWithoutTimeouts"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         }
       ]
     },
@@ -2667,6 +2794,23 @@
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Added 2026-11-10 during local closure: approved tenant snapshot quota and bounded cleanup behavior had no atomic assertion. Proof is contingent on this SHA's actual passing TRX and artifact checks"
+        },
+        {
+          "id": "G13-S23-A07",
+          "requirement": "Require signed reporting authority for the scoped evaluation and exception readers and both quota functions",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "ScopedReadersAndQuotaFunctionsRequireSignedReportingAuthority"
+            },
+            {
+              "kind": "mutation",
+              "id": "g13-mutations"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         }
       ]
     },
@@ -2890,10 +3034,14 @@
             {
               "kind": "test",
               "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+            },
+            {
+              "kind": "test",
+              "id": "M15DeliveryAndM13IdleCleanupRequireExplicitOptIn"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         }
       ]
     },
@@ -3270,10 +3418,14 @@
             {
               "kind": "test",
               "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
+            },
+            {
+              "kind": "test",
+              "id": "AcknowledgingAnAlertNeverChangesM11StateAndAlertVisibilityGrantsNoMutationOrExport"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         }
       ]
     },
@@ -3309,10 +3461,14 @@
             {
               "kind": "test",
               "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
+            },
+            {
+              "kind": "test",
+              "id": "RecipientCapOfOneThousandQuarantinesWithoutPartialReceiptsAndDeliversAtExactlyTheCap"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S06-A03",
@@ -3678,10 +3834,14 @@
             {
               "kind": "browser",
               "id": "notifications"
+            },
+            {
+              "kind": "test",
+              "id": "CancelledAndArchivedTargetsKeepThePersonalEventAndGrantNothingNew"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S10-A02",
@@ -3691,10 +3851,14 @@
             {
               "kind": "test",
               "id": "ArchivedShipmentKeepsHistoricalPersonalEventWithoutNewBusinessAuthority"
+            },
+            {
+              "kind": "test",
+              "id": "CancelledAndArchivedTargetsKeepThePersonalEventAndGrantNothingNew"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "A direct M15 integration test archives the target, keeps the historical notification, and only renders live target fields on an authorized M11 shipment-detail 200, otherwise hides the target. Technical execution on the successor SHA remains mandatory."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S10-A03",
@@ -3712,10 +3876,14 @@
             {
               "kind": "browser",
               "id": "notifications"
+            },
+            {
+              "kind": "test",
+              "id": "CancelledAndArchivedTargetsKeepThePersonalEventAndGrantNothingNew"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S10-A04",
@@ -3890,10 +4058,14 @@
             {
               "kind": "test",
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
+            },
+            {
+              "kind": "test",
+              "id": "CompetingDispatchersDeliverSeveralIntentsExactlyOnceWhileReadersRun"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S12-A04",
@@ -3911,10 +4083,14 @@
             {
               "kind": "test",
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
+            },
+            {
+              "kind": "test",
+              "id": "CompetingDispatchersDeliverSeveralIntentsExactlyOnceWhileReadersRun"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S12-A05",
@@ -3932,10 +4108,31 @@
             {
               "kind": "test",
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
+            },
+            {
+              "kind": "test",
+              "id": "RecipientCapOfOneThousandQuarantinesWithoutPartialReceiptsAndDeliversAtExactlyTheCap"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G15-S12-A06",
+          "requirement": "Enforce the 1,000 recipient limit: retry then quarantine without partial receipts above it, exact delivery at it",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "RecipientCapOfOneThousandQuarantinesWithoutPartialReceiptsAndDeliversAtExactlyTheCap"
+            },
+            {
+              "kind": "mutation",
+              "id": "g15-mutations"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         }
       ]
     },
@@ -4161,10 +4358,14 @@
             {
               "kind": "test",
               "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
+            },
+            {
+              "kind": "test",
+              "id": "FailedOutboxIntentDuringARealM11EvaluationRollsBackTheWholeActionAndRetrySucceeds"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S14-A03",
@@ -4178,10 +4379,14 @@
             {
               "kind": "test",
               "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
+            },
+            {
+              "kind": "test",
+              "id": "FailedOutboxIntentDuringARealM11EvaluationRollsBackTheWholeActionAndRetrySucceeds"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S14-A04",
@@ -4435,10 +4640,18 @@
             {
               "kind": "test",
               "id": "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"
+            },
+            {
+              "kind": "test",
+              "id": "DefaultPageSizeIsTwentyFiveAndCursorsExpireAfterTwentyMinutes"
+            },
+            {
+              "kind": "mutation",
+              "id": "g15-mutations"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S17-A02",
@@ -4485,10 +4698,18 @@
             {
               "kind": "test",
               "id": "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"
+            },
+            {
+              "kind": "test",
+              "id": "DefaultPageSizeIsTwentyFiveAndCursorsExpireAfterTwentyMinutes"
+            },
+            {
+              "kind": "mutation",
+              "id": "g15-mutations"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S17-A04",
@@ -4564,6 +4785,19 @@
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+        },
+        {
+          "id": "G15-S17-A07",
+          "requirement": "Keep unread count and every state filter bounded at one million receipts, with the count exact up to 1,000 and capped beyond",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "OneMillionRowsPreserveBoundedScopedKeysetPagination"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         }
       ]
     },
@@ -4628,10 +4862,14 @@
             {
               "kind": "test",
               "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
+            },
+            {
+              "kind": "test",
+              "id": "MalformedOrVersionlessActionBodiesNeverChangeAReceipt"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S18-A04",
@@ -4670,10 +4908,14 @@
             {
               "kind": "test",
               "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
+            },
+            {
+              "kind": "test",
+              "id": "AcknowledgingAnAlertNeverChangesM11StateAndAlertVisibilityGrantsNoMutationOrExport"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         }
       ]
     },
@@ -4889,10 +5131,18 @@
             {
               "kind": "test",
               "id": "ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts"
+            },
+            {
+              "kind": "test",
+              "id": "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents"
+            },
+            {
+              "kind": "mutation",
+              "id": "g15-mutations"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Five actual failed dispatcher attempts must escalate sanitized backoff and quarantine without partial recipients, then remain isolated after repair. Pending exact-SHA CI."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S21-A04",
@@ -4927,10 +5177,31 @@
             {
               "kind": "test",
               "id": "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce"
+            },
+            {
+              "kind": "test",
+              "id": "RealNotificationDatabaseLockReturnsBoundedScopedHttpFailureAndRecovers"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Real PostgreSQL cancellation and replay tests preserve complete scoped results without partial receipts; the three-engine G15 browser error/retry case verifies safe unavailable response handling. Technical execution on the successor SHA remains mandatory."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G15-S21-A06",
+          "requirement": "Treat a dispatcher statement timeout as a counted retry that never aborts the batch or blocks later events",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents"
+            },
+            {
+              "kind": "mutation",
+              "id": "g15-mutations"
+            }
+          ],
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         }
       ]
     },
@@ -5156,7 +5427,7 @@
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S24-A02",
@@ -5195,10 +5466,14 @@
             {
               "kind": "scan",
               "id": "dependencies"
+            },
+            {
+              "kind": "test",
+              "id": "StaleExpectedVersionOnAValidTransitionIsRejectedAsAConflict"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S24-A04",
@@ -5216,10 +5491,14 @@
             {
               "kind": "scan",
               "id": "dependencies"
+            },
+            {
+              "kind": "test",
+              "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
         },
         {
           "id": "G15-S24-A05",
@@ -5282,7 +5561,7 @@
       ]
     }
   ],
-  "reconciled_at": "2026-11-10",
+  "reconciled_at": "2026-11-11",
   "milestone_acceptance": "PENDING",
   "campaign": "G13-G15 source-locked assertion-level behavioral coverage audit"
 }

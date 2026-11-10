@@ -54,8 +54,8 @@ def validate_inventory() -> tuple[list[dict], list[str]]:
                 errors.append("Nonautomated assertion improperly marked tested: " + str(marker))
             if item.get("kind") == "automated" and item.get("assessment") == "MANUAL_REVIEW":
                 errors.append("Automated assertion improperly marked manual: " + str(marker))
-    if len(seen) != 246:
-        errors.append("Expected 246 separately enumerated requirements, got " + str(len(seen)))
+    if len(seen) != 257:
+        errors.append("Expected 257 separately enumerated requirements, got " + str(len(seen)))
     return rows, errors
 
 def test_match(name: str, tests: dict[str, str]) -> bool:

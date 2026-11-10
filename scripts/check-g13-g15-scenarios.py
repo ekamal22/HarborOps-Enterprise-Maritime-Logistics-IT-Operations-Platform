@@ -76,10 +76,13 @@ EXTRA = {
     "G15-S24": ("DuplicatePersonalReceiptDatabaseConstraintRejectsReplay",),
 }
 MUTANTS = {
-    "g13-mutations": {"tenant-materialization-scope-removed",
+    "g13-mutations": {"scoped-evaluations-authority-removed",
+                      "user-report-cap-bypassed", "idle-cleanup-limit-guard-widened",
+                      "scoped-exceptions-authority-removed",
+                      "member-materialization-planner-guard-removed",
                       "coverage-force-complete", "k06-remove-tolerance",
                       "k11-include-resolved-occurrence", "k12-suppress-first-openings",
-                      "k03-duplicate-status-history",
+                      "k03-window-upper-bound-inclusive",
                       "correction-generation-stale-accepted",
                       "origin-member-filter-ignored",
                       "malformed-kpi-member-cursor-admitted",
@@ -100,7 +103,10 @@ MUTANTS = {
                       "receipt-replay-session-unbound", "receipt-cas-bypassed",
                       "receipt-recipient-uniqueness-removed",
                       "signed-recipient-scope-unbound", "receipt-audit-skipped",
-                      "source-history-outbox-uniqueness-removed"},
+                      "source-history-outbox-uniqueness-removed",
+                      "receipt-audit-failure-swallowed", "dispatcher-timeout-not-trapped",
+                      "recipient-limit-removed", "cursor-session-binding-removed",
+                      "page-limit-upper-bound-removed", "cursor-lifetime-extended"},
 }
 
 def passed(name: str) -> bool:

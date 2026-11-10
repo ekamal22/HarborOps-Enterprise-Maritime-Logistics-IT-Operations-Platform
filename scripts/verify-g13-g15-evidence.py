@@ -328,7 +328,19 @@ def reporting_budget(root: Path | None) -> bool:
         return False
     count, p50, p95, initial, final = map(int, match.groups())
     ok = count >= 30 and p50 <= 15000 and p95 <= 20000 and final >= initial
-    for label in ("small", "medium10k", "skewed170k", "empty"):
+    # The same approved budgets must also hold on the realistic skewed tenant.
+    realistic = re.search(r"G13_REALISTIC_BUDGET count=(\d+) p50_ms=(\d+)"
+                          r" p95_ms=(\d+) max_ms=(\d+) members=(\d+)", raw)
+    if realistic is None:
+        fail("G13 realistic skewed-tenant budget line missing")
+        ok = False
+    else:
+        r_count, r_p50, r_p95, _r_max, r_members = map(int, realistic.groups())
+        if not (r_count >= 30 and r_p50 <= 15000 and r_p95 <= 20000
+                and 0 < r_members <= 500000):
+            fail("G13 realistic skewed-tenant budget exceeded or incomplete")
+            ok = False
+    for label in ("small", "medium10k", "skewed170k", "empty", "realistic85k"):
         plan = root / ("explain-api-" + label + ".json")
         receipt = re.search(
             r"G13_RESTRICTED_PLAN sample=" + re.escape(label) +
@@ -482,11 +494,11 @@ def main() -> int:
     scan = scan_evidence(artifacts["dependency-security"])
     browsers = browser_result(artifacts["m15-browser"])
     mutations = {
-        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 24),
+        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 28),
         "g13-security-mutations": mutation_result(
             artifacts["g13-security-mutations"], "g13-security-mutations", 4),
         "g15-mutations": mutation_result(
-            artifacts["g15-mutations"], "g15-mutations", 11),
+            artifacts["g15-mutations"], "g15-mutations", 17),
     }
     if counters["Failed"] or counters["Skipped"] or counters["Other"]:
         fail("TRX contains failing, skipped or unexpected test outcomes")
@@ -509,6 +521,23 @@ def main() -> int:
         "SourceHistoryOutboxPrimaryKeyRejectsDuplicateEvent",
         "MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater",
         "UnknownEvaluationDoesNotBecomeZeroRisk",
+        # Round 1 S25 closure witnesses.
+        "RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds",
+        "RealisticSkewed170kShipmentTenantIsRefusedAsOverCapacityWithoutTimeouts",
+        "RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole",
+        "OneUserIsLimitedToTwoActiveReportsAcrossSessionsInsideTheTenantLimit",
+        "IdleCleanupIsOffByDefaultAndRunsOnlyWhenExplicitlyEnabled",
+        "ScopedReadersAndQuotaFunctionsRequireSignedReportingAuthority",
+        "M15DeliveryAndM13IdleCleanupRequireExplicitOptIn",
+        "RecipientCapOfOneThousandQuarantinesWithoutPartialReceiptsAndDeliversAtExactlyTheCap",
+        "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents",
+        "AcknowledgingAnAlertNeverChangesM11StateAndAlertVisibilityGrantsNoMutationOrExport",
+        "DefaultPageSizeIsTwentyFiveAndCursorsExpireAfterTwentyMinutes",
+        "CancelledAndArchivedTargetsKeepThePersonalEventAndGrantNothingNew",
+        "MalformedOrVersionlessActionBodiesNeverChangeAReceipt",
+        "FailedOutboxIntentDuringARealM11EvaluationRollsBackTheWholeActionAndRetrySucceeds",
+        "CompetingDispatchersDeliverSeveralIntentsExactlyOnceWhileReadersRun",
+        "StaleExpectedVersionOnAValidTransitionIsRejectedAsAConflict",
     )
     for required in required_tests:
         if not any(name.endswith("." + required) and status == "Passed"

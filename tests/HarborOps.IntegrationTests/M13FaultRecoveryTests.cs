@@ -44,6 +44,7 @@ public sealed class M13FaultRecoveryTests
             var error = await failed.Content.ReadFromJsonAsync<JsonElement>();
             Assert.Contains(error.GetProperty("code").GetString(),
                 new[] { "report_timeout", "report_dependency_unavailable" });
+            await PlannerGuard.AssertDefaultAsync(runtime.Services);
         }
         await using (var empty = new NpgsqlCommand("""
             SELECT COUNT(*) FROM operational_kpi_reports WHERE organization_id=@org
@@ -58,6 +59,7 @@ public sealed class M13FaultRecoveryTests
             var json = await recovered.Content.ReadFromJsonAsync<JsonElement>();
             Assert.NotEqual(Guid.Empty, json.GetProperty("reportId").GetGuid());
         }
+        await PlannerGuard.AssertDefaultAsync(runtime.Services);
         Console.WriteLine("G13_FAULT sql_timeout=503 rollback_empty=true recovery=200");
 
         // Reproducible client cancellation under the same disposable lock.
@@ -75,6 +77,7 @@ public sealed class M13FaultRecoveryTests
         {
             Assert.Equal(HttpStatusCode.OK, afterCancellation.StatusCode);
         }
+        await PlannerGuard.AssertDefaultAsync(runtime.Services);
         Console.WriteLine("G13_FAULT client_cancel=aborted recovery=200");
     }
 }

@@ -469,4 +469,92 @@ public sealed class M13ScaleLoadTests
         }
         Console.WriteLine("G13_500K_CAP extra_draft=16665 no_partial_report=true");
     }
+
+    // Plan S20: the approved latency and resource budgets must also hold on a
+    // realistic skewed tenant under the restricted API role, not only on the
+    // Draft and Cancelled reference load. 85,000 shipments with this mix produce
+    // about 425,000 report members, inside the 500,000 member capacity.
+    [ExclusiveM13PostgresFact]
+    public async Task RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole()
+    {
+        const int shipments = 85_000;
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var f = await ReferenceDataHttpTests.Setup(factory);
+        using var administrator = f.Admin;
+        using var manager = f.Manager;
+        using var analystSeed = f.Analyst;
+        var seed = await AssignmentHttpTests.Seed(f);
+        using var item = await manager.GetAsync(seed.Root + "/" + seed.Shipment);
+        var shipment = await item.Content.ReadFromJsonAsync<JsonElement>();
+        var origin = shipment.GetProperty("originPortId").GetGuid();
+        var destination = shipment.GetProperty("destinationPortId").GetGuid();
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        Guid actor;
+        await using (var owner = new NpgsqlCommand(
+            "SELECT changed_by_user_id FROM shipments WHERE id=@id", db))
+        {
+            owner.Parameters.AddWithValue("id", seed.Shipment);
+            actor = Assert.IsType<Guid>(await owner.ExecuteScalarAsync());
+        }
+        var seeded = await RealisticTenantFixture.SeedAsync(db, f.A, origin, destination, actor, shipments);
+        Console.WriteLine($"G13_REALISTIC_SEED shipments={shipments} history={seeded.History} " +
+            $"evaluations={seeded.Evaluations} open_exceptions={seeded.OpenExceptions} " +
+            $"seed_ms={seeded.Milliseconds}");
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var analyst = runtime.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        analyst.Timeout = TimeSpan.FromMinutes(5);
+        await ReferenceDataHttpTests.Login(analyst, f.AnalystEmail);
+        await ReferenceDataHttpTests.Select(analyst, f.A);
+        long Storage()
+        {
+            using var read = new NpgsqlCommand("""
+                SELECT pg_total_relation_size('operational_kpi_reports') +
+                       pg_total_relation_size('operational_kpi_members')
+                """, db);
+            return Convert.ToInt64(read.ExecuteScalar());
+        }
+        var initialStorage = Storage();
+        var cpuStart = Process.GetCurrentProcess().TotalProcessorTime;
+        var latencies = new List<double>();
+        var members = 0;
+        for (var i = 0; i < 30; i++)
+        {
+            var elapsed = Stopwatch.StartNew();
+            using var result = await analyst.GetAsync($"/api/v1/organizations/{f.A}/analytics/overview");
+            elapsed.Stop();
+            var body = await result.Content.ReadAsStringAsync();
+            Console.WriteLine($"G13_REALISTIC iteration={i + 1} status={(int)result.StatusCode} ms={elapsed.Elapsed.TotalMilliseconds:F0}");
+            Assert.True(result.StatusCode == HttpStatusCode.OK,
+                $"Realistic report unavailable, HTTP {(int)result.StatusCode}: {body[..Math.Min(body.Length, 300)]}");
+            using var parsed = JsonDocument.Parse(body);
+            Assert.Equal(shipments + 2L, Count(parsed.RootElement, "D01"));
+            members = parsed.RootElement.GetProperty("memberCount").GetInt32();
+            Assert.InRange(members, 1, 500_000);
+            latencies.Add(elapsed.Elapsed.TotalMilliseconds);
+            // Stay below the accepted six-builds-per-minute user limiter.
+            if (i < 29 && elapsed.Elapsed < TimeSpan.FromSeconds(11))
+                await Task.Delay(TimeSpan.FromSeconds(11) - elapsed.Elapsed);
+        }
+        latencies.Sort();
+        var median = latencies[(int)Math.Ceiling(latencies.Count * 0.50) - 1];
+        var p95 = latencies[(int)Math.Ceiling(latencies.Count * 0.95) - 1];
+        var finalStorage = Storage();
+        var process = Process.GetCurrentProcess();
+        Console.WriteLine($"G13_REALISTIC_BUDGET count={latencies.Count} p50_ms={median:F0} " +
+            $"p95_ms={p95:F0} max_ms={latencies[^1]:F0} members={members} " +
+            $"initial_report_bytes={initialStorage} final_report_bytes={finalStorage} " +
+            $"peak_working_set_bytes={process.PeakWorkingSet64} " +
+            $"cpu_ms={(process.TotalProcessorTime - cpuStart).TotalMilliseconds:F0}");
+        Assert.True(median <= 15_000, $"Approved G13 p50 exceeded on a realistic tenant: {median:F0}ms");
+        Assert.True(p95 <= 20_000, $"Approved G13 p95 exceeded on a realistic tenant: {p95:F0}ms");
+        Assert.InRange(finalStorage - initialStorage, 0L, 2L * 1024 * 1024 * 1024);
+        Assert.InRange(process.PeakWorkingSet64, 0L, 1L * 1024 * 1024 * 1024);
+        await PlannerGuard.AssertDefaultAsync(runtime.Services);
+        // The same statement as the application runs it (nested loops off, 15 s limit).
+        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "realistic85k",
+            null, 15, true);
+    }
 }

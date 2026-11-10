@@ -76,6 +76,7 @@ public sealed class M13TenantCapacityAcceptanceTests
                     error.GetProperty("code").GetString());
                 Assert.False(error.TryGetProperty("counts", out _));
             }
+            await PlannerGuard.AssertDefaultAsync(runtime.Services);
             Assert.Equal(4, await ReportCount());
 
             // No unsigned SQL connection can enumerate another user's quota.
@@ -163,6 +164,7 @@ public sealed class M13TenantCapacityAcceptanceTests
 
             using var admitted = await clients[4].GetAsync(url);
             Assert.Equal(HttpStatusCode.OK, admitted.StatusCode);
+            await PlannerGuard.AssertDefaultAsync(runtime.Services);
             Assert.Equal(4, await ReportCount());
 
             await using var noBusinessDeletion = new NpgsqlCommand("""
@@ -372,6 +374,7 @@ public sealed class M13TenantCapacityAcceptanceTests
                 Assert.Equal("report_user_capacity_exceeded", error.GetProperty("code").GetString());
                 Assert.False(error.TryGetProperty("counts", out _));
             }
+            await PlannerGuard.AssertDefaultAsync(runtime.Services);
             Assert.Equal(2L, await Reports());
 
             // The refusal is per user: another user is still admitted inside the
@@ -519,6 +522,91 @@ public sealed class M13TenantCapacityAcceptanceTests
         {
             count.Parameters.AddWithValue("org", fixture.A);
             Assert.Equal(shipmentsBefore, Convert.ToInt64(await count.ExecuteScalarAsync()));
+        }
+    }
+
+    private static string SignedAuthority(Guid org, Guid actor, Guid session)
+    {
+        var expires = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;
+        var data = System.Text.Encoding.UTF8.GetBytes(
+            $"m11-read-v1|{org:N}|{actor:N}|{session:N}|{expires}");
+        var digest = System.Security.Cryptography.HMACSHA256.HashData(
+            Convert.FromBase64String(ReferenceDataHttpTests.CorrectionProofKey), data);
+        return $"{org:D}|{actor:D}|{session:D}|{expires}|" +
+            Convert.ToHexString(digest).ToLowerInvariant();
+    }
+
+    // The migration-owned reporting readers and quota functions authorize every
+    // call: unsigned logins, an Administrator, and a scope for another tenant are
+    // all refused with insufficient_privilege; a signed Analyst reads.
+    [ExclusiveM13PostgresFact]
+    public async Task ScopedReadersAndQuotaFunctionsRequireSignedReportingAuthority()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var administrator = fixture.Admin;
+        using var originalManager = fixture.Manager;
+        using var originalAnalyst = fixture.Analyst;
+        await AssignmentHttpTests.Seed(fixture);
+        await using var admin = new NpgsqlConnection(roles.Admin);
+        await admin.OpenAsync();
+        async Task<(Guid User, Guid Session)> Principal(string email)
+        {
+            await using var find = new NpgsqlCommand("""
+                SELECT u.id,(SELECT a.id FROM auth_sessions a WHERE a.user_id=u.id
+                    AND a.selected_organization_id=@org AND a.revoked_at_utc IS NULL
+                    ORDER BY a.issued_at_utc DESC LIMIT 1)
+                FROM users u WHERE lower(u.normalized_email)=lower(@email)
+                """, admin);
+            find.Parameters.AddWithValue("org", fixture.A);
+            find.Parameters.AddWithValue("email", email);
+            await using var row = await find.ExecuteReaderAsync();
+            Assert.True(await row.ReadAsync());
+            return (row.GetGuid(0), row.GetGuid(1));
+        }
+        var analyst = await Principal(fixture.AnalystEmail);
+        var adminPrincipal = await Principal(fixture.AdminEmail);
+        string[] calls =
+        {
+            "SELECT count(*) FROM m13_scoped_evaluations(@org)",
+            "SELECT count(*) FROM m13_scoped_exceptions(@org)",
+            "SELECT m13_user_quota(@org)",
+            "SELECT m13_tenant_quota(@org)"
+        };
+        async Task<string?> Run(string sql, Guid org, string? authority)
+        {
+            await using var api = new NpgsqlConnection(roles.Api);
+            await api.OpenAsync();
+            await using var tx = await api.BeginTransactionAsync();
+            if (authority is not null)
+            {
+                await using var scope = new NpgsqlCommand(
+                    "SELECT set_config('harborops.m11_read_scope',@authority,true)", api, tx);
+                scope.Parameters.AddWithValue("authority", authority);
+                await scope.ExecuteNonQueryAsync();
+            }
+            try
+            {
+                await using var command = new NpgsqlCommand(sql, api, tx);
+                command.Parameters.AddWithValue("org", org);
+                await command.ExecuteScalarAsync();
+                return null;
+            }
+            catch (PostgresException e) { return e.SqlState; }
+            finally { await tx.RollbackAsync(); }
+        }
+        foreach (var sql in calls)
+        {
+            // Unsigned login, Administrator scope, and an Analyst scope aimed at another tenant.
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, await Run(sql, fixture.A, null));
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, await Run(sql, fixture.A,
+                SignedAuthority(fixture.A, adminPrincipal.User, adminPrincipal.Session)));
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, await Run(sql, fixture.B,
+                SignedAuthority(fixture.A, analyst.User, analyst.Session)));
+            // The authorized Analyst of the same tenant reads.
+            Assert.Null(await Run(sql, fixture.A,
+                SignedAuthority(fixture.A, analyst.User, analyst.Session)));
         }
     }
 }

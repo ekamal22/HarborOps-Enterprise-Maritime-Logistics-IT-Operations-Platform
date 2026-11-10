@@ -246,3 +246,47 @@ test("KPI arrival-transition descriptions do not use the obsolete Turkish wordin
     assert.match(translated, /varış/i);
   }
 });
+
+test("open tabs adopt external language preference changes without duplicating mutations", () => {
+  const existingWindow = globalThis.window;
+  const existingDocument = globalThis.document;
+  const prior = getLocale();
+  const events = [];
+  const handlers = new Map();
+  const added = [];
+  const removed = [];
+  globalThis.window = {
+    addEventListener: (name, callback) => { handlers.set(name, callback); added.push(name); },
+    removeEventListener: (name, callback) => {
+      if (handlers.get(name) === callback) handlers.delete(name);
+      removed.push(name);
+    },
+    localStorage: { setItem: () => { throw new Error("Not an application mutation"); } }
+  };
+  globalThis.document = { documentElement: { lang: prior } };
+  let unsubscribe;
+  try {
+    unsubscribe = subscribeLocale(() => events.push(getLocale()));
+    assert.ok(handlers.has("storage"));
+    handlers.get("storage")({ key: "unrelated", newValue: "tr-TR" });
+    assert.deepEqual(events, []);
+    handlers.get("storage")({ key: STORAGE_KEY, newValue: "tr-TR" });
+    assert.equal(getLocale(), "tr-TR");
+    assert.equal(globalThis.document.documentElement.lang, "tr-TR");
+    handlers.get("storage")({ key: STORAGE_KEY, newValue: "tr-TR" });
+    assert.equal(events.length, prior === "tr-TR" ? 0 : 1);
+    handlers.get("storage")({ key: STORAGE_KEY, newValue: "en" });
+    assert.equal(getLocale(), "en");
+    assert.equal(globalThis.document.documentElement.lang, "en");
+    assert.ok(events.length > 0);
+  } finally {
+    unsubscribe?.();
+    assert.deepEqual(added, ["storage"]);
+    assert.deepEqual(removed, ["storage"]);
+    if (existingWindow === undefined) delete globalThis.window;
+    else globalThis.window = existingWindow;
+    if (existingDocument === undefined) delete globalThis.document;
+    else globalThis.document = existingDocument;
+    changeLocale(prior);
+  }
+});

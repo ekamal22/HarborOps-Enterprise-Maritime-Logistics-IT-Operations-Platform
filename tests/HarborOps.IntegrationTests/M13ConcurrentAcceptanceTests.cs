@@ -367,6 +367,14 @@ public sealed class M13ConcurrentAcceptanceTests
                     Assert.False(outcome.Root.TryGetProperty("counts", out _));
                 }
             }
+            var summary = string.Join(",", outcomes
+                .GroupBy(x => (int)x.Status).OrderBy(x => x.Key)
+                .Select(x => x.Key + ":" + x.Count()));
+            var codes = string.Join(",", outcomes.Select(x =>
+                x.Status == HttpStatusCode.OK ? "ok" : x.Root.GetProperty("code").GetString()));
+            Console.WriteLine($"G13_REALISTIC shipments={shipments} outcomes={summary} codes={codes} " +
+                $"reports={reports.Count} elapsed_ms={clock.Elapsed.TotalMilliseconds:F0} " +
+                $"per_request_ms=[{string.Join(",", outcomes.Select(x => x.Ms.ToString("F0")))}]");
             Assert.Equal(reports.Count, reports.Distinct().Count());
             Assert.True(clock.Elapsed < TimeSpan.FromMinutes(2.5),
                 $"Concurrent realistic build exceeded the request envelope: {clock.Elapsed}");
@@ -386,14 +394,6 @@ public sealed class M13ConcurrentAcceptanceTests
                 "SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND granted", sql))
                 Assert.Equal(0L, Convert.ToInt64(await locks.ExecuteScalarAsync()));
 
-            var summary = string.Join(",", outcomes
-                .GroupBy(x => (int)x.Status).OrderBy(x => x.Key)
-                .Select(x => x.Key + ":" + x.Count()));
-            var codes = string.Join(",", outcomes.Select(x =>
-                x.Status == HttpStatusCode.OK ? "ok" : x.Root.GetProperty("code").GetString()));
-            Console.WriteLine($"G13_REALISTIC shipments={shipments} outcomes={summary} codes={codes} " +
-                $"reports={reports.Count} elapsed_ms={clock.Elapsed.TotalMilliseconds:F0} " +
-                $"per_request_ms=[{string.Join(",", outcomes.Select(x => x.Ms.ToString("F0")))}]");
         }
         finally
         {

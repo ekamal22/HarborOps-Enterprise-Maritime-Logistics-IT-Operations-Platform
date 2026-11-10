@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs"
 ENDPOINT = ROOT / "src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs"
 RETENTION_MIGRATION = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261110010000_M13TenantReportCapacity.cs"
+BASE_MIGRATION = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261109020000_M13OperationalKpis.cs"
 EVIDENCE = ROOT / ".verification/g13-mutations"
 FILTER = "FullyQualifiedName~M13OperationalKpiRuntimeTests.TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
 ORACLE = "FullyQualifiedName~M13OperationalKpiRuntimeTests.ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
@@ -104,6 +105,11 @@ MUTANTS = [
                     "report_tenant_capacity_exceeded");
             }""",
      "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"),
+    ("auditor-grant-version-revocation-bypassed",
+     "AND m.version=g.membership_version",
+     "AND true",
+     "AuditorGrantRevocationDeniesDashboardAndOldReportMembers",
+     "base_migration"),
     ("tenant-quota-session-scope-bypassed",
      "IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN",
      "IF session_user<>'harborops_api' THEN",
@@ -175,7 +181,8 @@ def reset_disposable_migration_schema() -> None:
 def main() -> int:
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     originals = {SOURCE: SOURCE.read_bytes(), ENDPOINT: ENDPOINT.read_bytes(),
-                 RETENTION_MIGRATION: RETENTION_MIGRATION.read_bytes()}
+                 RETENTION_MIGRATION: RETENTION_MIGRATION.read_bytes(),
+                 BASE_MIGRATION: BASE_MIGRATION.read_bytes()}
     original = originals[SOURCE]
     source_sha = digest(original)
     identity = os.getenv("GITHUB_SHA", "local")
@@ -216,17 +223,21 @@ def main() -> int:
                          "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers")
             selected = (RETENTION_MIGRATION
                 if len(target_case) > 1 and target_case[1] == "retention_migration"
+                else BASE_MIGRATION if len(target_case) > 1
+                    and target_case[1] == "base_migration"
                 else ENDPOINT if len(target_case) > 1 and target_case[1] == "endpoints"
                 else SOURCE)
             # EF migrations already applied in a previous test process are
             # not re-executed merely because their C# source is mutated.
             # Rebuild the disposable schema for each effective SQL mutation.
-            if selected == RETENTION_MIGRATION or migration_changed:
+            if selected in (RETENTION_MIGRATION,BASE_MIGRATION) or migration_changed:
                 reset_disposable_migration_schema()
-                migration_changed = selected == RETENTION_MIGRATION
+                migration_changed = selected in (RETENTION_MIGRATION,BASE_MIGRATION)
             text = originals[selected].decode("utf-8")
-            if text.count(before) != 1:
-                raise RuntimeError(f"{name}: expected exactly one replacement, found {text.count(before)}")
+            expected_replacements = (2
+                if name == "auditor-grant-version-revocation-bypassed" else 1)
+            if text.count(before) != expected_replacements:
+                raise RuntimeError(f"{name}: expected {expected_replacements} replacements, found {text.count(before)}")
             changed = text.replace(before, after)
             selected.write_text(changed, encoding="utf-8")
             code, output, elapsed = execute(name, test_filter)

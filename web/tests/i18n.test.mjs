@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { TURKISH } from "../src/i18n/messages.mjs";
 import { normalizeLocale, initialLocale, translate, plural, formatNumber,
-  formatCurrency, formatDateTime, formatLocalDateTime, formatRelative, STORAGE_KEY,
+  formatCurrency, formatPercentage, formatDateTime, formatLocalDateTime, formatRelative, STORAGE_KEY,
   changeLocale, getLocale, subscribeLocale } from "../src/i18n/i18n.mjs";
 
 test("explicit preference overrides the browser locale", () => {
@@ -117,7 +117,7 @@ test("distinct roles and acknowledgment states remain understandable", () => {
     assert.ok(Object.hasOwn(TURKISH, role), "Missing role " + role);
     assert.notEqual(translate(role, "tr-TR"), role);
   }
-  assert.equal(translate("Arrived", "tr-TR"), "Varış yaptı");
+  assert.equal(translate("Arrived", "tr-TR"), "Varış kaydedildi");
   assert.match(translate("Disable this account and revoke every session?", "tr-TR"), /oturumlar sonlandırılsın/);
 });
 
@@ -173,6 +173,76 @@ test("all translated interpolation placeholders match their English source", () 
   assert.equal(translate("{count} unread notifications", "tr-TR", {count: "1.234"}),
     "1.234 okunmamış bildirim");
   assert.equal(translate("Status changed from {from} to {to} at {timestamp}", "tr-TR",
-    {from: "Taslak", to: "Varış yaptı", timestamp: "09.11.2026 UTC"}),
-    "Durum geçişi: Taslak → Varış yaptı (09.11.2026 UTC)");
+    {from: "Taslak", to: "Varış kaydedildi", timestamp: "09.11.2026 UTC"}),
+    "Durum geçişi: Taslak → Varış kaydedildi (09.11.2026 UTC)");
+});
+
+test("Turkish percentages use locale-defined placement and preserved half-up rounding", () => {
+  assert.equal(formatPercentage(1, 8, "tr-TR"), "%12,50");
+  assert.equal(formatPercentage(1, 8, "en"), "12.50%");
+  assert.equal(formatPercentage(1, 3, "tr-TR"), "%33,33");
+  assert.equal(formatPercentage(0, 8, "tr-TR"), "%0,00");
+  assert.equal(formatPercentage(1, 0, "tr-TR"), "Not enough data");
+  assert.equal(formatPercentage(Number.NaN, 8, "tr-TR"), "Not enough data");
+  const dashboard = readFileSync(resolve(root,
+    "web/src/analytics/OperationalDashboard.tsx"), "utf8");
+  assert.match(dashboard, /const \{ t, date, number, percent \} = useI18n\(\)/);
+  assert.match(dashboard, /percent\(n, den\)/);
+  assert.doesNotMatch(dashboard, /format\(rounded\) \+ "%"/);
+});
+
+test("backend-defined tracking states all have Turkish presentation labels", () => {
+  const reducer = readFileSync(resolve(root,
+    "src/HarborOps.Domain/Tracking/TrackingTimelinePolicy.cs"), "utf8");
+  const names = ["EquipmentIn", "EquipmentOut", "Mixed", "Conflict", "Unknown"];
+  for (const name of names) {
+    assert.match(reducer, new RegExp('"' + name + '"'), "Expected backend tracking state " + name);
+    assert.ok(Object.hasOwn(TURKISH, name), "Untranslated tracking state " + name);
+    assert.notEqual(translate(name, "tr-TR"), name);
+  }
+  const timeline = readFileSync(resolve(root,
+    "web/src/shipments/ShipmentTrackingTimeline.tsx"), "utf8");
+  assert.match(timeline, /t\(projection.observedTrackingState\)/);
+  assert.match(timeline, /t\(item.observedState\)/);
+});
+
+test("assignment selectors use complete translated prompts while preserving IDs", () => {
+  const panel = readFileSync(resolve(root,
+    "web/src/assignments/ShipmentAssignmentsPanel.tsx"), "utf8");
+  assert.ok(panel.includes('t(kind === "container-assignments" ? "Select container for assignment" : "Select voyage for assignment")'));
+  assert.doesNotMatch(panel, /t\("Select"\)\}\{label\(kind\)\.toLowerCase\(\)/);
+  for (const key of ["Select container for assignment", "Select voyage for assignment"])
+    assert.notEqual(translate(key, "tr-TR"), key);
+  assert.match(panel, /<option value="">/);
+  assert.match(panel, /<option key=\{row.id\} value=\{row.id\}>/);
+});
+
+test("exception drill uses live API fields and a context-specific review label", () => {
+  const store = readFileSync(resolve(root,
+    "src/HarborOps.Infrastructure/Exceptions/ShipmentExceptionStore.cs"), "utf8");
+  assert.match(store, /string Condition, string State, string Severity/);
+  const drill = readFileSync(resolve(root, "web/src/analytics/KpiDrillPanel.tsx"), "utf8");
+  assert.match(drill, /state: string; condition: string; ruleCode: string/);
+  assert.match(drill, /setExceptionState\(item.exception\)/);
+  assert.doesNotMatch(drill, /lifecycleState|conditionState/);
+  assert.match(drill, /"Exception acknowledged"/);
+  assert.notEqual(translate("Acknowledged", "tr-TR"),
+    translate("Exception acknowledged", "tr-TR"));
+});
+
+test("Administrator role label reflects the organization permission boundary", () => {
+  const backend = readFileSync(resolve(root,
+    "src/HarborOps.Domain/Organizations/OrganizationPolicy.cs"), "utf8");
+  assert.match(backend, /public enum OrganizationRole \{ Analyst, Manager, Support, Administrator, Auditor \}/);
+  assert.equal(translate("Administrator", "tr-TR"), "Kuruluş Yöneticisi");
+  assert.notEqual(translate("Manager", "tr-TR"), translate("Administrator", "tr-TR"));
+});
+
+test("KPI arrival-transition descriptions do not use the obsolete Turkish wording", () => {
+  for (const key of ["First recorded Arrived at or before the proven planned arrival",
+    "First recorded Arrived no later than proven plan plus 60 minutes"]) {
+    const translated = translate(key, "tr-TR");
+    assert.doesNotMatch(translated, /Vardı/);
+    assert.match(translated, /varış/i);
+  }
 });

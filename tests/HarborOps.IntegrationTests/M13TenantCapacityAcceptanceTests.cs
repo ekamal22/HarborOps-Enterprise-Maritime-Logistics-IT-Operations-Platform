@@ -92,18 +92,46 @@ public sealed class M13TenantCapacityAcceptanceTests
                 expire.Parameters.AddWithValue("org", fixture.A);
                 Assert.Equal(1, await expire.ExecuteNonQueryAsync());
             }
-            await using (var maintenance = new NpgsqlCommand(
-                "SELECT m13_prune_expired_idle(16)", apiDb))
+            // Idle cleanup is database-wide. Earlier tests on the same
+            // disposable server can leave additional expired report snapshots.
+            // Every invocation must remain capped at 16, while this tenant's
+            // expired snapshot must actually be removed before readmission.
+            long expiredBacklog;
+            await using (var backlog = new NpgsqlCommand(
+                "SELECT count(*) FROM operational_kpi_reports WHERE expires_at_utc<=clock_timestamp()",
+                administratorDb))
             {
-                Assert.Equal(1, Convert.ToInt32(
-                    await maintenance.ExecuteScalarAsync()));
+                expiredBacklog = Convert.ToInt64(await backlog.ExecuteScalarAsync());
+            }
+            Assert.True(expiredBacklog >= 1);
+            var maxBatches = (expiredBacklog + 15) / 16;
+            for (var batch = 0L; batch < maxBatches; batch++)
+            {
+                await using var maintenance = new NpgsqlCommand(
+                    "SELECT m13_prune_expired_idle(16)", apiDb);
+                var removed = Convert.ToInt32(await maintenance.ExecuteScalarAsync());
+                Assert.InRange(removed, 1, 16);
+                if (await ReportCount() == 3)
+                    break;
             }
             Assert.Equal(3, await ReportCount());
-            await using (var safe = new NpgsqlCommand(
+            await using (var expiredReport = new NpgsqlCommand(
+                "SELECT count(*) FROM operational_kpi_reports WHERE id=@report AND organization_id=@org",
+                administratorDb))
+            {
+                expiredReport.Parameters.AddWithValue("report", committed[0]);
+                expiredReport.Parameters.AddWithValue("org", fixture.A);
+                Assert.Equal(0L, Convert.ToInt64(await expiredReport.ExecuteScalarAsync()));
+            }
+            // A repeated cleanup may still find other tenants' expired
+            // snapshots, but it must not remove any live snapshot here.
+            await using (var repeat = new NpgsqlCommand(
                 "SELECT m13_prune_expired_idle(16)", apiDb))
             {
-                Assert.Equal(0, Convert.ToInt32(await safe.ExecuteScalarAsync()));
+                var removed = Convert.ToInt32(await repeat.ExecuteScalarAsync());
+                Assert.InRange(removed, 0, 16);
             }
+            Assert.Equal(3, await ReportCount());
 
             using var admitted = await clients[4].GetAsync(url);
             Assert.Equal(HttpStatusCode.OK, admitted.StatusCode);

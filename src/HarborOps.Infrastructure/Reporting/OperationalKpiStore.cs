@@ -253,9 +253,11 @@ public sealed class OperationalKpiStore(
         // sessions without exposing their member rows to this API principal.
         await using (var quota = Command(Connection, sqlTx,
             "SELECT m13_tenant_quota(@org)", U("org", org)))
+        {
             if (await quota.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Conflict,
                     "report_tenant_capacity_exceeded");
+        }
         var counts = await ReadCountsAsync(sqlTx, org, report, ct);
         await tx.CommitAsync(ct);
         return new(new KpiReport(report, org, sha, f.FromUtc, f.BeforeUtc,

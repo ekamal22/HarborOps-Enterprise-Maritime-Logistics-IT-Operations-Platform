@@ -1254,6 +1254,66 @@ public sealed class M13OperationalKpiRuntimeTests
 
 
     [ExclusiveM13PostgresFact]
+    public async Task MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var admin = fixture.Admin; using var seedManager = fixture.Manager;
+        using var seedAnalyst = fixture.Analyst;
+        var seed = await AssignmentHttpTests.Seed(fixture);
+        using var source = await seedManager.GetAsync(seed.Root + "/" + seed.Shipment);
+        var shipment = await source.Content.ReadFromJsonAsync<JsonElement>();
+        var origin = shipment.GetProperty("originPortId").GetGuid();
+        var destination = shipment.GetProperty("destinationPortId").GetGuid();
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        await using var owner = new NpgsqlCommand(
+            "SELECT changed_by_user_id FROM shipments WHERE id=@shipment",db);
+        owner.Parameters.AddWithValue("shipment",seed.Shipment);
+        var actor=Assert.IsType<Guid>(await owner.ExecuteScalarAsync());
+        var id=await G13Insert(db,fixture.A,origin,destination,
+            actor,DateTimeOffset.UtcNow.AddHours(2),"G13-BOUNDARY-");
+        await G13Complete(db,id,actor);
+        await using (var edge = new NpgsqlCommand("""
+            UPDATE shipments SET
+                planned_arrival_at_utc=(
+                    SELECT changed_at_utc - interval '60 minutes'
+                    FROM shipment_status_changes
+                    WHERE shipment_id=@id AND to_status='Arrived'
+                    ORDER BY changed_at_utc,id LIMIT 1),
+                version=version+1,updated_at_utc=clock_timestamp()
+            WHERE id=@id
+            """,db))
+        {
+            edge.Parameters.AddWithValue("id",id);
+            Assert.Equal(1,await edge.ExecuteNonQueryAsync());
+        }
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var analyst=runtime.CreateClient(new WebApplicationFactoryClientOptions
+            { HandleCookies=true });
+        await ReferenceDataHttpTests.Login(analyst,fixture.AnalystEmail);
+        await ReferenceDataHttpTests.Select(analyst,fixture.A);
+        var route=Root(fixture.A)+Window(DateTimeOffset.UtcNow);
+        var exact=await Json(await analyst.GetAsync(route));
+        Assert.Contains(id,await G13StoredIds(db,fixture.A,exact,"K06"));
+        Assert.DoesNotContain(id,await G13StoredIds(db,fixture.A,exact,"K05"));
+
+        await using (var late = new NpgsqlCommand("""
+            UPDATE shipments SET
+                planned_arrival_at_utc=planned_arrival_at_utc - interval '1 microsecond',
+                version=version+1,updated_at_utc=clock_timestamp()
+            WHERE id=@id
+            """,db))
+        {
+            late.Parameters.AddWithValue("id",id);
+            Assert.Equal(1,await late.ExecuteNonQueryAsync());
+        }
+        var outside=await Json(await analyst.GetAsync(route));
+        Assert.DoesNotContain(id,await G13StoredIds(db,fixture.A,outside,"K06"));
+    }
+
+    [ExclusiveM13PostgresFact]
     public async Task PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact()
     {
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();

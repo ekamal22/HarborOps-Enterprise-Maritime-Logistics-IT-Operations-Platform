@@ -21,6 +21,12 @@ public sealed class OperationalKpiCleanupService(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            // Wait before the first pass. Starting a TestServer or new API
+            // instance must not immediately prune a fixture prepared by a
+            // separate transaction. Subsequent polls remain bounded.
+            try { await Task.Delay(PollInterval, stoppingToken); }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            { break; }
             try
             {
                 await SweepAsync(stoppingToken);
@@ -36,9 +42,6 @@ public sealed class OperationalKpiCleanupService(
                     error.GetType().Name);
             }
 
-            try { await Task.Delay(PollInterval, stoppingToken); }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            { break; }
         }
     }
 

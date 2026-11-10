@@ -145,7 +145,7 @@ export const TURKISH = Object.freeze({
   "Draft": "Taslak",
   "Booked": "Rezervasyon yapıldı",
   "InTransit": "Taşımada",
-  "Arrived": "Varış yaptı",
+  "Arrived": "Varış kaydedildi",
   "Completed": "Tamamlandı",
   "Cancelled": "İptal edildi",
   "Workflow: ": "İş akışı: ",
@@ -352,9 +352,9 @@ export const TURKISH = Object.freeze({
   "Cancelled workflows": "İptal edilen iş akışları",
   "First recorded Cancelled transition in the UTC window": "UTC aralığındaki ilk kaydedilmiş İptal Edildi geçişi",
   "Strict on-time recorded arrivals": "Tam zamanında kaydedilmiş varışlar",
-  "First recorded Arrived at or before the proven planned arrival": "Doğrulanmış planlanan varış zamanında veya öncesinde kaydedilmiş ilk Varış yaptı geçişi",
+  "First recorded Arrived at or before the proven planned arrival": "Doğrulanmış planlanan varış saatinden önce veya o saatte kaydedilen ilk “Varış” durum geçişi",
   "Within 60-minute tolerance": "60 dakikalık tolerans içinde",
-  "First recorded Arrived no later than proven plan plus 60 minutes": "Doğrulanmış planlanan varış zamanından en fazla 60 dakika sonra kaydedilmiş ilk Varış yaptı geçişi",
+  "First recorded Arrived no later than proven plan plus 60 minutes": "Doğrulanmış planlanan varış saatinden en geç 60 dakika sonra kaydedilen ilk “Varış” durum geçişi",
   "Recorded late arrivals": "Kaydedilmiş geç varışlar",
   "Current confirmed RecordedArrivalLate condition": "Güncel doğrulanmış geç varış koşulu (RecordedArrivalLate)",
   "Schedule overdue, unconfirmed": "Planlanan varış gecikmiş, doğrulanmamış",
@@ -588,5 +588,6 @@ export const TURKISH = Object.freeze({
   "Mixed": "Karma ekipman gözlemleri",
   "Select container for assignment": "Atamak için konteyner seçin",
   "Select voyage for assignment": "Atamak için sefer seçin",
-  "Exception state: {rule}, {condition}, {status}": "İstisna durumu: {rule}, {condition}, {status}"
+  "Exception state: {rule}, {condition}, {status}": "İstisna durumu: {rule}, {condition}, {status}",
+  "Tracked physical movement may not be inferred from manual workflow state.": "Manuel iş akışı durumundan fiziksel hareket çıkarımı yapılamaz."
 });

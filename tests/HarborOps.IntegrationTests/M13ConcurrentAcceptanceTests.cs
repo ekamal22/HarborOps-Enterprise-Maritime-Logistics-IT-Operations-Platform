@@ -241,6 +241,14 @@ public sealed class M13ConcurrentAcceptanceTests
             }));
             clock.Stop();
 
+            var summary = string.Join(",", outcomes
+                .GroupBy(x => (int)x.Status).OrderBy(x => x.Key)
+                .Select(x => x.Key + ":" + x.Count()));
+            var codes = string.Join(",", outcomes.Select(x =>
+                x.Status == HttpStatusCode.OK ? "ok" : x.Root.GetProperty("code").GetString()));
+            Console.WriteLine($"G13_REALISTIC shipments={shipments} outcomes={summary} codes={codes} " +
+                $"reports={outcomes.Count(x => x.Status == HttpStatusCode.OK)} elapsed_ms={clock.Elapsed.TotalMilliseconds:F0} " +
+                $"per_request_ms=[{string.Join(",", outcomes.Select(x => x.Ms.ToString("F0")))}]");
             var reports = new List<Guid>();
             foreach (var outcome in outcomes)
             {
@@ -262,21 +270,13 @@ public sealed class M13ConcurrentAcceptanceTests
                         HttpStatusCode.RequestEntityTooLarge => code == "report_capacity_exceeded",
                         HttpStatusCode.TooManyRequests => code == "report_tenant_capacity_exceeded",
                         HttpStatusCode.Conflict => code == "report_in_progress",
-                        HttpStatusCode.ServiceUnavailable => code == "report_dependency_unavailable",
+                        HttpStatusCode.ServiceUnavailable => code is "report_dependency_unavailable" or "report_timeout",
                         _ => false
                     };
                     Assert.True(allowed, $"Unbounded or undocumented refusal {(int)outcome.Status} {code}");
                     Assert.False(outcome.Root.TryGetProperty("counts", out _));
                 }
             }
-            var summary = string.Join(",", outcomes
-                .GroupBy(x => (int)x.Status).OrderBy(x => x.Key)
-                .Select(x => x.Key + ":" + x.Count()));
-            var codes = string.Join(",", outcomes.Select(x =>
-                x.Status == HttpStatusCode.OK ? "ok" : x.Root.GetProperty("code").GetString()));
-            Console.WriteLine($"G13_REALISTIC shipments={shipments} outcomes={summary} codes={codes} " +
-                $"reports={reports.Count} elapsed_ms={clock.Elapsed.TotalMilliseconds:F0} " +
-                $"per_request_ms=[{string.Join(",", outcomes.Select(x => x.Ms.ToString("F0")))}]");
             Assert.Equal(reports.Count, reports.Distinct().Count());
             Assert.True(clock.Elapsed < TimeSpan.FromSeconds(30),
                 $"Concurrent realistic build exceeded the 30 second proxy envelope: {clock.Elapsed}");

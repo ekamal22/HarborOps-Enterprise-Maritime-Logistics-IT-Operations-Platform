@@ -372,7 +372,7 @@ public sealed class OperationalKpiStore(
             SELECT h.id,e.rule_code,e.condition_state,
                 e.evaluated_at_utc
             FROM heads h
-            JOIN shipment_exception_evaluations e
+            JOIN m13_scoped_evaluations(@org) e
                 ON e.organization_id=@org AND e.shipment_id=h.id
             WHERE e.rule_policy_version='m11-rules-v1'
               AND e.shipment_version=h.version
@@ -451,7 +451,7 @@ public sealed class OperationalKpiStore(
                   AND e.evaluated_at_utc>=h.projection_refreshed_at
             UNION ALL
             SELECT 'K11','',e.id,e.shipment_id,e.id,NULL
-                FROM shipment_exceptions e JOIN scoped s
+                FROM m13_scoped_exceptions(@org) e JOIN scoped s
                     ON s.id=e.shipment_id AND s.organization_id=e.organization_id
                 WHERE e.organization_id=@org
                   AND s.record_status='Active'
@@ -461,7 +461,7 @@ public sealed class OperationalKpiStore(
             SELECT 'K12',e.rule_code,e.id,e.shipment_id,e.id,
                 (date_trunc(@bucket, e.first_detected_at_utc AT TIME ZONE 'UTC')
                     AT TIME ZONE 'UTC')
-                FROM shipment_exceptions e JOIN scoped s
+                FROM m13_scoped_exceptions(@org) e JOIN scoped s
                     ON s.id=e.shipment_id AND s.organization_id=e.organization_id
                 WHERE e.organization_id=@org AND e.first_detected_at_utc>=@from
                   AND e.first_detected_at_utc<@before

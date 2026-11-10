@@ -292,6 +292,8 @@ public sealed class M13ConcurrentAcceptanceTests
         if (diagnostic)
         {
             await M13ScaleLoadTests.CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor,
+                $"realistic{shipments / 1000}k-default", null, 120, false);
+            await M13ScaleLoadTests.CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor,
                 $"realistic{shipments / 1000}k-nestloop-off", null, 120, true);
         }
         var emails = new List<string> { f.ManagerEmail, f.AnalystEmail };

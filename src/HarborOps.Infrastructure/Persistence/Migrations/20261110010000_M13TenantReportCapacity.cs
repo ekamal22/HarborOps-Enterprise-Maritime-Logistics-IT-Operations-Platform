@@ -35,6 +35,34 @@ public sealed class M13TenantReportCapacity : Migration
                 RETURN live_members<=2000000;
             END $quota$;
 
+            -- Performance: the M11 row policies call m11_read_allowed once per row
+            -- (HMAC plus a four table join, about 190 microseconds). Reading 155,000
+            -- evaluation rows therefore cost about 30 seconds under the restricted
+            -- role. The report has already passed the stricter m13_can_view check for
+            -- the organization, so these two migration-owned readers authorize once
+            -- per call and return only rows of that organization. M11 policies are
+            -- unchanged and still govern every other read.
+            CREATE FUNCTION m13_scoped_evaluations(p_org uuid)
+            RETURNS SETOF shipment_exception_evaluations LANGUAGE plpgsql STABLE
+                SECURITY DEFINER SET search_path=pg_catalog,public ROWS 200000 AS $evals$
+            BEGIN
+                IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN
+                    RAISE EXCEPTION 'Reporting read authority denied' USING ERRCODE='42501';
+                END IF;
+                RETURN QUERY SELECT e.* FROM shipment_exception_evaluations e
+                    WHERE e.organization_id=p_org;
+            END $evals$;
+            CREATE FUNCTION m13_scoped_exceptions(p_org uuid)
+            RETURNS SETOF shipment_exceptions LANGUAGE plpgsql STABLE
+                SECURITY DEFINER SET search_path=pg_catalog,public ROWS 200000 AS $exc$
+            BEGIN
+                IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN
+                    RAISE EXCEPTION 'Reporting read authority denied' USING ERRCODE='42501';
+                END IF;
+                RETURN QUERY SELECT e.* FROM shipment_exceptions e
+                    WHERE e.organization_id=p_org;
+            END $exc$;
+
             -- Fairness: one user may hold at most two live snapshots across all of
             -- that user's sessions, inside the four-per-tenant limit. The caller
             -- is the signed actor and cannot name another user.
@@ -81,12 +109,17 @@ public sealed class M13TenantReportCapacity : Migration
             END $idle$;
 
             REVOKE ALL ON FUNCTION m13_tenant_quota(uuid),m13_user_quota(uuid),
+                m13_scoped_evaluations(uuid),m13_scoped_exceptions(uuid),
                 m13_prune_expired_idle(integer) FROM PUBLIC;
 
             DO $schema$
             DECLARE s text:=current_schema();
             BEGIN
                 EXECUTE format('ALTER FUNCTION %1$I.m13_tenant_quota(uuid)
+                    SET search_path TO pg_catalog,%1$I,public',s);
+                EXECUTE format('ALTER FUNCTION %1$I.m13_scoped_evaluations(uuid)
+                    SET search_path TO pg_catalog,%1$I,public',s);
+                EXECUTE format('ALTER FUNCTION %1$I.m13_scoped_exceptions(uuid)
                     SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m13_user_quota(uuid)
                     SET search_path TO pg_catalog,%1$I,public',s);
@@ -100,6 +133,8 @@ public sealed class M13TenantReportCapacity : Migration
     {
         migrationBuilder.Sql("""
             DROP FUNCTION m13_prune_expired_idle(integer);
+            DROP FUNCTION m13_scoped_exceptions(uuid);
+            DROP FUNCTION m13_scoped_evaluations(uuid);
             DROP FUNCTION m13_user_quota(uuid);
             DROP FUNCTION m13_tenant_quota(uuid);
             """);

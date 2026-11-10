@@ -166,23 +166,20 @@ public sealed class M13ConcurrentAcceptanceTests
         // Skewed status mix, about 3 percent archived, planned dates, a full
         // status-change history per shipment, four fresh rule evaluations for
         // every in-flight shipment and open exceptions for 5 percent of them.
+        // The shipment trigger only admits Draft version 1 rows, then legal
+        // single-step transitions with version increments, so the skew is
+        // built the same way production data is: insert, then transition.
         await using (var bulk = new NpgsqlCommand("""
             INSERT INTO shipments (id,organization_id,reference_code,origin_port_id,
                 destination_port_id,planned_departure_at_utc,planned_arrival_at_utc,
                 workflow_status,record_status,source_kind,version,created_at_utc,
-                updated_at_utc,archived_at_utc,changed_by_user_id)
+                updated_at_utc,changed_by_user_id)
             SELECT gen_random_uuid(),@org,'G13R-' || lpad(n::text,6,'0'),@origin,
                 @destination,
                 clock_timestamp()-interval '10 days'+(n%5000)*interval '1 minute',
                 clock_timestamp()-interval '5 days'+(n%5000)*interval '1 minute',
-                CASE WHEN n%100<35 THEN 'Draft' WHEN n%100<55 THEN 'Booked'
-                     WHEN n%100<75 THEN 'InTransit' WHEN n%100<87 THEN 'Arrived'
-                     WHEN n%100<96 THEN 'Completed' ELSE 'Cancelled' END,
-                CASE WHEN n%37=0 THEN 'Archived' ELSE 'Active' END,'Synthetic',
-                CASE WHEN n%100<35 THEN 1 WHEN n%100<55 THEN 2 WHEN n%100<75 THEN 3
-                     WHEN n%100<87 THEN 4 WHEN n%100<96 THEN 5 ELSE 2 END,
-                clock_timestamp()-interval '30 days',clock_timestamp()-interval '1 day',
-                CASE WHEN n%37=0 THEN clock_timestamp()-interval '1 day' END,@actor
+                'Draft','Active','Synthetic',1,
+                clock_timestamp()-interval '30 days',clock_timestamp()-interval '30 days',@actor
             FROM generate_series(1,@count) AS n
             """, sql) { CommandTimeout = 1800 })
         {
@@ -193,6 +190,47 @@ public sealed class M13ConcurrentAcceptanceTests
             bulk.Parameters.AddWithValue("count", shipments);
             Assert.Equal(shipments, await bulk.ExecuteNonQueryAsync());
         }
+        // Rank by the numeric suffix: 1 Draft 35%, 2 Booked 20%, 3 InTransit 20%,
+        // 4 Arrived 12%, 5 Completed 9%, 6 Cancelled 4%.
+        const string Rank = """
+            CASE WHEN right(reference_code,6)::int%100<35 THEN 1
+                 WHEN right(reference_code,6)::int%100<55 THEN 2
+                 WHEN right(reference_code,6)::int%100<75 THEN 3
+                 WHEN right(reference_code,6)::int%100<87 THEN 4
+                 WHEN right(reference_code,6)::int%100<96 THEN 5 ELSE 6 END
+            """;
+        var steps = new (string From, string To, string Condition)[]
+        {
+            ("Draft","Booked",$"({Rank}) BETWEEN 2 AND 5"),
+            ("Booked","InTransit",$"({Rank}) BETWEEN 3 AND 5"),
+            ("InTransit","Arrived",$"({Rank}) BETWEEN 4 AND 5"),
+            ("Arrived","Completed",$"({Rank})=5"),
+            ("Draft","Cancelled",$"({Rank})=6")
+        };
+        foreach (var step in steps)
+        {
+            await using var move = new NpgsqlCommand($"""
+                UPDATE shipments SET workflow_status='{step.To}',version=version+1,
+                    updated_at_utc=clock_timestamp(),changed_by_user_id=@actor
+                WHERE organization_id=@org AND reference_code LIKE 'G13R-%'
+                  AND workflow_status='{step.From}' AND {step.Condition}
+                """, sql) { CommandTimeout = 1800 };
+            move.Parameters.AddWithValue("org", f.A);
+            move.Parameters.AddWithValue("actor", actor);
+            await move.ExecuteNonQueryAsync();
+        }
+        // About 3 percent are archived afterwards.
+        await using (var archive = new NpgsqlCommand("""
+            UPDATE shipments SET record_status='Archived',archived_at_utc=clock_timestamp(),
+                version=version+1,updated_at_utc=clock_timestamp(),changed_by_user_id=@actor
+            WHERE organization_id=@org AND reference_code LIKE 'G13R-%'
+              AND right(reference_code,6)::int%37=0
+            """, sql) { CommandTimeout = 1800 })
+        {
+            archive.Parameters.AddWithValue("org", f.A);
+            archive.Parameters.AddWithValue("actor", actor);
+            await archive.ExecuteNonQueryAsync();
+        }
         long history;
         await using (var changes = new NpgsqlCommand("""
             INSERT INTO shipment_status_changes (id,organization_id,shipment_id,
@@ -202,7 +240,9 @@ public sealed class M13ConcurrentAcceptanceTests
             FROM shipments s
             JOIN (VALUES (1,NULL,'Draft'),(2,'Draft','Booked'),(3,'Booked','InTransit'),
                          (4,'InTransit','Arrived'),(5,'Arrived','Completed'))
-                AS t(v,f,t) ON t.v<=s.version AND s.workflow_status<>'Cancelled'
+                AS t(v,f,t) ON s.workflow_status<>'Cancelled' AND t.v<=CASE s.workflow_status
+                    WHEN 'Draft' THEN 1 WHEN 'Booked' THEN 2 WHEN 'InTransit' THEN 3
+                    WHEN 'Arrived' THEN 4 ELSE 5 END
             WHERE s.organization_id=@org AND s.reference_code LIKE 'G13R-%'
             UNION ALL
             SELECT gen_random_uuid(),s.organization_id,s.id,t.f,t.t,t.v,
@@ -223,7 +263,7 @@ public sealed class M13ConcurrentAcceptanceTests
                 rule_code,rule_policy_version,condition_state,source_fingerprint,
                 shipment_version,tracking_input_revision,correction_generation)
             SELECT s.organization_id,s.id,r.code,'m11-rules-v1',
-                CASE WHEN right(s.reference_code,2)::int%20=0 THEN 'Active' ELSE 'Inactive' END,
+                CASE WHEN right(s.reference_code,6)::int%20=0 THEN 'Active' ELSE 'Inactive' END,
                 repeat('a',64),s.version,0,0
             FROM shipments s
             CROSS JOIN (VALUES ('EquipmentConflict'),('ArrivalScheduleOverdue'),

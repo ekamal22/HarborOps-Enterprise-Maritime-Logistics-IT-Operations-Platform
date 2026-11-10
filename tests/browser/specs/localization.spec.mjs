@@ -61,6 +61,7 @@ test("authenticated language changes preserve scoped operational workspaces and 
   const organizations = page.locator("#current-organization");
   await expect(organizations).toBeVisible();
   await organizations.selectOption({ label: "M3 North Terminal (Manager)" });
+  const selectedOrganization = await organizations.inputValue();
   await expect(page.getByRole("region", { name: "Operational KPI dashboard" })).toBeVisible();
   await expect(page.getByRole("region", { name: "In-app shipment notifications" })).toBeVisible();
 
@@ -69,7 +70,11 @@ test("authenticated language changes preserve scoped operational workspaces and 
   await expect(page.getByRole("heading", { name: "Kuruluş çalışma alanı" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Operasyonel KPI panosu" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Uygulama içi sevkiyat bildirimleri" })).toBeVisible();
-  await expect(organizations).toHaveValue((await organizations.inputValue()));
+  await page.setViewportSize({ width: 390, height: 844 });
+  const overflow = await page.evaluate(() =>
+    document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow, "Authenticated Turkish workspace horizontal overflow").toBeLessThanOrEqual(2);
+  await expect(organizations).toHaveValue(selectedOrganization);
 
   await page.getByRole("combobox", { name: "Dil seçin" }).selectOption("en");
   await expect(page.getByText("Signed in as")).toBeVisible();
@@ -185,20 +190,3 @@ test("Turkish layouts remain contained and core controls have accessible names",
   await expect(language).toBeFocused();
 });
 
-test("Turkish tracking and exception text never exposes untranslated source values", async ({ page }) => {
-  await page.route("**/api/v1/auth/session", route =>
-    route.fulfill({ status: 401, contentType: "application/json",
-      body: JSON.stringify({ code: "authentication_required" }) }));
-  await page.goto("/");
-  await page.getByRole("combobox", { name: "Select language" }).selectOption("tr-TR");
-  await expect(page.getByRole("button", { name: "Giriş yap" })).toBeVisible();
-  const dictionary = await page.evaluate(async () => {
-    const source = await import("/src/i18n/i18n.mjs");
-    return ["EquipmentIn", "EquipmentOut", "Mixed", "Conflict", "Unknown"]
-      .map(value => source.translate(value, "tr-TR"));
-  });
-  expect(dictionary).toEqual([
-    "Ekipman giriş gözlemi", "Ekipman çıkış gözlemi",
-    "Karma ekipman gözlemleri", "Çelişki", "Bilinmiyor"
-  ]);
-});

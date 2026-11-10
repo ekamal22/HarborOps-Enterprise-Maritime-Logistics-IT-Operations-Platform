@@ -63,7 +63,7 @@ export const TURKISH = Object.freeze({
   "Analyst": "Analist",
   "Manager": "Operasyon Yöneticisi",
   "Support": "Destek Personeli",
-  "Administrator": "Sistem Yöneticisi",
+  "Administrator": "Kuruluş Yöneticisi",
   "Auditor": "Denetçi",
   "Active": "Etkin",
   "Suspended": "Askıya alındı",
@@ -352,9 +352,9 @@ export const TURKISH = Object.freeze({
   "Cancelled workflows": "İptal edilen iş akışları",
   "First recorded Cancelled transition in the UTC window": "UTC aralığındaki ilk kaydedilmiş İptal Edildi geçişi",
   "Strict on-time recorded arrivals": "Tam zamanında kaydedilmiş varışlar",
-  "First recorded Arrived at or before the proven planned arrival": "Doğrulanmış planlanan varış zamanında veya öncesinde kaydedilmiş ilk Vardı geçişi",
+  "First recorded Arrived at or before the proven planned arrival": "Doğrulanmış planlanan varış zamanında veya öncesinde kaydedilmiş ilk Varış yaptı geçişi",
   "Within 60-minute tolerance": "60 dakikalık tolerans içinde",
-  "First recorded Arrived no later than proven plan plus 60 minutes": "Doğrulanmış planlanan zamandan en fazla 60 dakika sonra kaydedilmiş ilk Vardı geçişi",
+  "First recorded Arrived no later than proven plan plus 60 minutes": "Doğrulanmış planlanan varış zamanından en fazla 60 dakika sonra kaydedilmiş ilk Varış yaptı geçişi",
   "Recorded late arrivals": "Kaydedilmiş geç varışlar",
   "Current confirmed RecordedArrivalLate condition": "Güncel doğrulanmış geç varış koşulu (RecordedArrivalLate)",
   "Schedule overdue, unconfirmed": "Planlanan varış gecikmiş, doğrulanmamış",
@@ -582,5 +582,11 @@ export const TURKISH = Object.freeze({
   "Application error": "Uygulama hatası",
   "Status changed from {from} to {to} at {timestamp}": "Durum geçişi: {from} → {to} ({timestamp})",
   "{count} unread notifications": "{count} okunmamış bildirim",
-  "These completed workflows lack a proven planned arrival or recorded Arrived transition.": "Bu tamamlanmış iş akışlarında doğrulanmış planlanan varış zamanı veya kaydedilmiş ayrı bir Arrived geçişi bulunmuyor."
+  "These completed workflows lack a proven planned arrival or recorded Arrived transition.": "Bu tamamlanmış iş akışlarında doğrulanmış planlanan varış zamanı veya kaydedilmiş ayrı bir Arrived geçişi bulunmuyor.",
+  "EquipmentIn": "Ekipman giriş gözlemi",
+  "EquipmentOut": "Ekipman çıkış gözlemi",
+  "Mixed": "Karma ekipman gözlemleri",
+  "Select container for assignment": "Atamak için konteyner seçin",
+  "Select voyage for assignment": "Atamak için sefer seçin",
+  "Exception state: {rule}, {condition}, {status}": "İstisna durumu: {rule}, {condition}, {status}"
 });

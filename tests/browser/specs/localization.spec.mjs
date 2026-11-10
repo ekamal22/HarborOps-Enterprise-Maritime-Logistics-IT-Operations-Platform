@@ -92,3 +92,31 @@ test.describe("local session time is not displayed as UTC", () => {
     await expect(page.getByText(/Oturum bitişi \(yerel saat\):.*14[:.]30/)).toBeVisible();
   });
 });
+
+test("language choice synchronizes across open tabs without a server mutation", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({
+    baseURL: baseURL || process.env.HARBOROPS_BROWSER_BASE_URL || "http://localhost:5173",
+    locale: "en-US"
+  });
+  try {
+    const first = await context.newPage();
+    const second = await context.newPage();
+    const writes = [];
+    for (const page of [first, second])
+      page.on("request", request => {
+        if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method()))
+          writes.push(request.url());
+      });
+    await first.goto("/");
+    await second.goto("/");
+    await first.getByRole("combobox", { name: "Select language" }).selectOption("tr-TR");
+    await expect(second.getByRole("combobox", { name: "Dil seçin" })).toHaveValue("tr-TR");
+    await expect(second.locator("html")).toHaveAttribute("lang", "tr-TR");
+    await second.getByRole("combobox", { name: "Dil seçin" }).selectOption("en");
+    await expect(first.getByRole("combobox", { name: "Select language" })).toHaveValue("en");
+    await expect(first.locator("html")).toHaveAttribute("lang", "en");
+    expect(writes).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});

@@ -167,7 +167,7 @@ function AllocationList({ org, shipment, kind, canManage, onAccessInvalidated, r
           <select aria-label={t(kind === "container-assignments" ? "Assign container" : "Assign voyage")} required value={target}
             onChange={e => setTarget(e.target.value)}
             className="mt-1 block w-full rounded bg-slate-950 p-2">
-            <option value="">{t("Select")}{label(kind).toLowerCase()}</option>
+            <option value="">{t(kind === "container-assignments" ? "Select container for assignment" : "Select voyage for assignment")}</option>
             {candidates.map(row => <option key={row.id} value={row.id}>
               {row.referenceCode} {row.containerIdentifier ?? row.displayName ?? ""}
             </option>)}

@@ -9,3 +9,8 @@ Relaunch after xUnit analyzer corrections on prior source 793ce1a20f42895ddbd0d2
 Successor launch after browser-count and queued mutation detector repairs, predecessor e227076b1663aecf39d711a72de075fdcef3c35f
 
 Dispatch after manager session refresh and malformed-query rate-budget fixes from d71f95f994b15a845d4be25f0a568a9e8a5f0f81
+
+2026-11-10: exact-source preflight required before next full G13/G15 dispatch.
+Preflight predecessor: ce021e8e53656d0fffc926807b3a23d8058450c1
+Checks: release build, new scoped SQL regressions, 170k budget, 18 mutations.
+Acceptance pending. No merge or deployment.

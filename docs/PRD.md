@@ -1,9 +1,6 @@
 # HarborOps Product Requirements Document
 
-**Current verification checkpoint (2026-11-09):** Combined successor [run 42552035939](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42552035939) **PASSED all five jobs** on frozen `3150e5b67bace1801dfc3b02ff53c423b5af931c`: 312 unit, 52 contract, 37 PostgreSQL, 30 browser, 170k shipment scale and 2 SQL security mutations. The distinct acceptance-campaign branch introduces additional tests and nine-job evidence reconciliation but has not executed at its new SHA. G13/G15 full scenarios, M15-P01..P14 approvals and S25 reviews remain open. No main merge, acceptance, deployment or production activation. [Campaign](G13_G15_ACCEPTANCE_CAMPAIGN_20261109.md).
-
-
-**Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. M11/G11 and M12/G12 closed through [formal acceptance](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. [Project status](STATUS.md) is authoritative for execution and release state; dated source reviews and early gate reports retain only their historical meaning. M9 ARRI/DEPA processing remains held under the 10,000-item limit, with M10 projector default-off, ETA null and M11 evaluator opt-in. Deployment remains unauthorized.
+**Current G13/G15 evidence (2026-11-10):** [Verified campaign 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed all 15 jobs at `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75`, with 541 passed tests, zero failures/skips and intact artifacts. The assertion audit still has 3 missing technical witnesses, 7 policy-review and 8 independent-review items. G13/G15 acceptance and integration remain pending. See [the current evidence and policy boundary](G13_G15_VERIFIED_EVIDENCE_20261110.md).
 
 **Version:** 3.0 parallel delivery alignment  
 **Date:** 2026-10-30  
@@ -178,4 +175,4 @@ M4 uses accepted M3 vessel/port UUIDs for scoped voyage routes and schedules wit
 
 Product-scope changes beyond PD-01 through PD-07 require updating this PRD, affected atomic requirements, the [Roadmap](ROADMAP.md) and [execution graph](EXECUTION_GRAPH.md) when sequence changes, plus acceptance criteria and decisions where applicable. Status is updated only from implementation evidence. Proposed scope expansions do not become accepted requirements merely because a branch or issue exists.
 
-**Accepted main boundary (2026-11-09):** G0-G12 and G16 are accepted and integrated into `main`; G13-G15 and G17-G24 remain unaccepted. M13/M15 implemented work and passing combined technical verification are recorded separately. No release, production migration or M9 transport-hold change is authorized.
+**Accepted main boundary (unchanged at 2026-11-10):** G0-G12 and G16 are accepted and integrated into `main`; G13-G15 and G17-G24 remain unaccepted. M13/M15 implemented work and passing combined technical verification are recorded separately. No release, production migration or M9 transport-hold change is authorized.

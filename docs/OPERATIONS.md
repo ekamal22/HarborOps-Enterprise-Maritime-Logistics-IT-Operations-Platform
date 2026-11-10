@@ -1,9 +1,6 @@
 # Operations and Reliability
 
-**Current verification checkpoint (2026-11-09):** Combined successor [run 42552035939](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42552035939) **PASSED all five jobs** on frozen `3150e5b67bace1801dfc3b02ff53c423b5af931c`: 312 unit, 52 contract, 37 PostgreSQL, 30 browser, 170k shipment scale and 2 SQL security mutations. The distinct acceptance-campaign branch introduces additional tests and nine-job evidence reconciliation but has not executed at its new SHA. G13/G15 full scenarios, M15-P01..P14 approvals and S25 reviews remain open. No main merge, acceptance, deployment or production activation. [Campaign](G13_G15_ACCEPTANCE_CAMPAIGN_20261109.md).
-
-
-**Current project state (2026-11-08):** G0-G12 and G16 are accepted and integrated on `main` following [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. Earlier source-only and gate-pending notes are superseded; retained dated evidence still describes its original run. M9's ARRI/DEPA hold and 10,000-item cap remain mandatory, M10 projector defaults off, ETA null, M11 evaluator opt-in. There is no authorization for deployment or additional GitHub Actions runs.
+**Current G13/G15 evidence (2026-11-10):** [Verified campaign 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed all 15 jobs at `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75`, with 541 passed tests, zero failures/skips and intact artifacts. The assertion audit still has 3 missing technical witnesses, 7 policy-review and 8 independent-review items. G13/G15 acceptance and integration remain pending. See [the current evidence and policy boundary](G13_G15_VERIFIED_EVIDENCE_20261110.md).
 
 ## M12 fifth-pass test execution boundary
 

@@ -1,13 +1,10 @@
 # Architecture Decisions
 
-**Current verification checkpoint (2026-11-09):** Combined successor [run 42552035939](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42552035939) **PASSED five jobs** at `3150e5b67bace1801dfc3b02ff53c423b5af931c` (312 unit, 52 contract, 37 PostgreSQL, 30 browser, 170k scale and 2 SQL security mutants). The separate G13/G15 acceptance campaign includes new tests and nine-job evidence preparation but is not yet executed at its new SHA. Full G13/G15 scenario gates, M15-P01..P14 approvals and S25 reviews remain pending. No main merge, milestone acceptance, deployment or production activation. [Campaign](G13_G15_ACCEPTANCE_CAMPAIGN_20261109.md).
-
-
-**Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) govern current M11 delay exceptions and M12 scoped search/export behavior. Earlier source-only and verification checkpoints are historical. The M9 ARRI/DEPA processing hold and 10,000 unresolved-item limit remain binding; M10 projector default-off, ETA null, M11 evaluator opt-in. No deployment or release is authorized.
+**Current G13/G15 evidence (2026-11-10):** [Verified campaign 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed all 15 jobs at `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75`, with 541 passed tests, zero failures/skips and intact artifacts. The assertion audit still has 3 missing technical witnesses, 7 policy-review and 8 independent-review items. G13/G15 acceptance and integration remain pending. See [the current evidence and policy boundary](G13_G15_VERIFIED_EVIDENCE_20261110.md).
 
 This document records accepted architecture decisions and outstanding choices. D-003 was explicitly accepted on 2026-11-01 alongside G4 after independent evidence review. D-002 Option A and M7/G7 were accepted on 2026-11-03; see [G7 closure](M7_G7_GATE_CLOSURE.md). D-006 Option A and M8/G8 were explicitly accepted on 2026-11-04 after independently reviewed source-locked evidence. See [gate closure](M8_G8_GATE_CLOSURE.md).
 
-**M15 decision state:** M15-P01 through M15-P14 remain subject to explicit approval. Technical workflows do not settle these policy questions. [M15 plan](M15_VERIFICATION_PLAN.md).
+**M15 decision state (2026-11-10):** P01-P09, P11, P13 and P14 are approved; P10 is conditionally approved, and P12 authorizes provisional periods only with cleanup disabled. Remaining conformance, independent reviews and gate acceptance are distinct from these decisions. [Binding policy decision](G13_G15_POLICY_APPROVAL_20261109.md), [M15 register](M15_POLICY_RECOMMENDATIONS_20261109.md).
 
 ## Local storage constraint
 

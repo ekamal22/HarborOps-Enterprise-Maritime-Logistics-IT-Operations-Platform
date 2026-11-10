@@ -1,3 +1,5 @@
+**Accepted M11/M12 gate reference (2026-11-08):** G11 and G12 were independently reviewed, explicitly accepted and integrated into protected `main`. See [formal G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Earlier source-only notes are historical. The M9 transport-processing hold remains active.
+
 # Test and Verification Strategy
 
 **Current G13/G15 status (2026-11-10):** [Source-locked run 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) PASSED all 15 jobs at `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 TRX tests passed, none failed/skipped, evidence integrity PASS). The separate 242-assertion audit identifies 224 with executed technical evidence, 3 missing technical witnesses, 7 policy-review items and 8 independent-review items. G13/G15 acceptance, main merge and deployment remain pending. [Current evidence and open decisions](G13_G15_VERIFIED_EVIDENCE_20261110.md).

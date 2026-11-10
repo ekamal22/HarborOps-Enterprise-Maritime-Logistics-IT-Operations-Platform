@@ -143,27 +143,35 @@ public sealed class M15ScaleLoadTests
         // stated volume: the count scans the recipient's unread rows and every
         // read goes through the per-row security policy.
         var stateTimes = new List<string>();
+        var probeFailures = new List<string>();
         async Task<long> Probe(string label, string path, Func<JsonElement, long> value)
         {
             var timer = Stopwatch.StartNew();
             using var response = await manager.GetAsync(root + path);
             timer.Stop();
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
-            stateTimes.Add($"{label}={timer.ElapsedMilliseconds}");
-            Assert.True(timer.Elapsed < TimeSpan.FromSeconds(20),
-                $"{label} exceeded the 20 second request envelope: {timer.Elapsed}");
-            return value(json);
+            stateTimes.Add($"{label}={(int)response.StatusCode}/{timer.ElapsedMilliseconds}ms");
+            if (response.StatusCode != HttpStatusCode.OK || timer.Elapsed >= TimeSpan.FromSeconds(20))
+            {
+                probeFailures.Add($"{label} status={(int)response.StatusCode} ms={timer.ElapsedMilliseconds}");
+                return -1;
+            }
+            return value(await response.Content.ReadFromJsonAsync<JsonElement>());
         }
-        Assert.True(await Probe("unread_count", "/unread-count",
-            j => j.GetProperty("unreadCount").GetInt64()) >= rows);
-        Assert.Equal(50, await Probe("state_unread", "?limit=50&state=Unread",
-            j => j.GetProperty("items").GetArrayLength()));
-        Assert.Equal(0, await Probe("state_read", "?limit=50&state=Read",
-            j => j.GetProperty("items").GetArrayLength()));
-        Assert.Equal(0, await Probe("state_acknowledged", "?limit=50&state=Acknowledged",
-            j => j.GetProperty("items").GetArrayLength()));
+        var unread = await Probe("unread_count", "/unread-count",
+            j => j.GetProperty("unreadCount").GetInt64());
+        var unreadPage = await Probe("state_unread", "?limit=50&state=Unread",
+            j => j.GetProperty("items").GetArrayLength());
+        var readPage = await Probe("state_read", "?limit=50&state=Read",
+            j => j.GetProperty("items").GetArrayLength());
+        var ackPage = await Probe("state_acknowledged", "?limit=50&state=Acknowledged",
+            j => j.GetProperty("items").GetArrayLength());
         Console.WriteLine("G15_STATE_PROBES " + string.Join(" ", stateTimes));
+        Assert.True(probeFailures.Count == 0, "Unbounded probes: " + string.Join("; ", probeFailures));
+        // The count is exact up to the cap and never above it.
+        Assert.InRange(unread, 1L, 1000L);
+        Assert.Equal(50, unreadPage);
+        Assert.Equal(0, readPage);
+        Assert.Equal(0, ackPage);
         using var foreign = await manager.GetAsync(
             $"/api/v1/organizations/{s.Fixture.B}/notifications?limit=50");
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);

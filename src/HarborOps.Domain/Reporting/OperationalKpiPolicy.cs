@@ -18,6 +18,12 @@ public static partial class OperationalKpiPolicy
     public const int MaximumMemberPage = 100;
     public const int MaximumReportMembers = 500_000; // provisional fail-closed capacity ceiling
     public static readonly TimeSpan ProvisionalReportLifetime = TimeSpan.FromMinutes(10);
+    // Approved scoped limit for the one member materialization statement only. Every
+    // other reporting statement keeps the 15 second limit. Four simultaneous builders of
+    // an 85,000 shipment tenant need 14 to 18 seconds each, and the whole request must
+    // stay inside the 30 second proxy envelope.
+    public static readonly TimeSpan MemberMaterializationTimeout = TimeSpan.FromSeconds(25);
+    public static readonly TimeSpan RequestEnvelope = TimeSpan.FromSeconds(28);
 
     public static readonly IReadOnlyList<OperationalKpiDefinition> Definitions =
     [

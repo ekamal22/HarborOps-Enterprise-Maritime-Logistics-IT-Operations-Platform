@@ -29,21 +29,45 @@ public sealed class M13FaultRecoveryTests
         var url = $"/api/v1/organizations/{fixture.A}/analytics/overview";
         await using var privileged = new NpgsqlConnection(roles.Admin);
         await privileged.OpenAsync();
+        // Timeout boundary 1: a source lock held for 20 seconds exceeds the 15 second
+        // general limit but stays inside the 25 second member materialization limit,
+        // so the build waits and completes.
         await using (var lockTx = await privileged.BeginTransactionAsync())
         {
             await using (var hold = new NpgsqlCommand(
                 "LOCK TABLE shipments IN ACCESS EXCLUSIVE MODE", privileged, lockTx))
                 await hold.ExecuteNonQueryAsync();
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var waiting = analyst.GetAsync(url);
+            await Task.Delay(TimeSpan.FromSeconds(20));
+            await lockTx.RollbackAsync();
+            using var completed = await waiting;
+            clock.Stop();
+            Assert.Equal(HttpStatusCode.OK, completed.StatusCode);
+            Assert.InRange(clock.Elapsed.TotalSeconds, 19, 25);
+        }
+        await PlannerGuard.AssertDefaultAsync(runtime.Services);
+        Console.WriteLine("G13_FAULT boundary_20s_wait=200");
+
+        // Timeout boundary 2: a lock held for 28 seconds exceeds the 25 second limit.
+        // The build fails closed with 503 at about 25 seconds, never returning partial
+        // metrics, and leaves nothing behind.
+        await using (var lockTx = await privileged.BeginTransactionAsync())
+        {
+            await using (var hold = new NpgsqlCommand(
+                "LOCK TABLE shipments IN ACCESS EXCLUSIVE MODE", privileged, lockTx))
+                await hold.ExecuteNonQueryAsync();
+            var clock = System.Diagnostics.Stopwatch.StartNew();
             var blocked = analyst.GetAsync(url);
-            // The report source statement must time out while an exclusive
-            // disposable test lock is held, never returning partial metrics.
-            await Task.Delay(TimeSpan.FromSeconds(17));
+            await Task.Delay(TimeSpan.FromSeconds(28));
             await lockTx.RollbackAsync();
             using var failed = await blocked;
+            clock.Stop();
             Assert.Equal(HttpStatusCode.ServiceUnavailable, failed.StatusCode);
             var error = await failed.Content.ReadFromJsonAsync<JsonElement>();
             Assert.Contains(error.GetProperty("code").GetString(),
                 new[] { "report_timeout", "report_dependency_unavailable" });
+            Assert.InRange(clock.Elapsed.TotalSeconds, 24, 30);
             await PlannerGuard.AssertDefaultAsync(runtime.Services);
         }
         await using (var empty = new NpgsqlCommand("""
@@ -51,7 +75,8 @@ public sealed class M13FaultRecoveryTests
             """, privileged))
         {
             empty.Parameters.AddWithValue("org", fixture.A);
-            Assert.Equal(0L, Convert.ToInt64(await empty.ExecuteScalarAsync()));
+            // Only the 20 second boundary build above committed a report.
+            Assert.Equal(1L, Convert.ToInt64(await empty.ExecuteScalarAsync()));
         }
         using (var recovered = await analyst.GetAsync(url))
         {
@@ -60,7 +85,7 @@ public sealed class M13FaultRecoveryTests
             Assert.NotEqual(Guid.Empty, json.GetProperty("reportId").GetGuid());
         }
         await PlannerGuard.AssertDefaultAsync(runtime.Services);
-        Console.WriteLine("G13_FAULT sql_timeout=503 rollback_empty=true recovery=200");
+        Console.WriteLine("G13_FAULT boundary_28s_timeout=503 rollback_no_partial=true recovery=200");
 
         // Reproducible client cancellation under the same disposable lock.
         await using (var secondLock = await privileged.BeginTransactionAsync())

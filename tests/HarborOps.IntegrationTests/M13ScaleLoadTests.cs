@@ -555,6 +555,6 @@ public sealed class M13ScaleLoadTests
         await PlannerGuard.AssertDefaultAsync(runtime.Services);
         // The same statement as the application runs it (nested loops off, 15 s limit).
         await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "realistic85k",
-            null, 15, true);
+            null, 25, true);
     }
 }

@@ -205,6 +205,7 @@ public sealed class OperationalKpiStore(
         // READ COMMITTED: the member set is materialized by one INSERT ... SELECT,
         // which reads a single consistent snapshot, and the quota check below must
         // see snapshots committed by other builders while this one was running.
+        var requestClock = System.Diagnostics.Stopwatch.StartNew();
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
         await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '15s'", ct);
         var error = await ScopeAsync(session, org, false, ct);
@@ -280,8 +281,9 @@ public sealed class OperationalKpiStore(
         // tenant. That made a 100,000-shipment build exceed ten minutes; with hash
         // and merge joins the same statement completes in seconds. The setting is
         // transaction-local and reverted straight after this one statement.
+        var materializationSeconds = (int)OperationalKpiPolicy.MemberMaterializationTimeout.TotalSeconds;
         await using (var planGuard = Command(Connection, sqlTx,
-            "SET LOCAL enable_nestloop = off"))
+            $"SET LOCAL enable_nestloop = off; SET LOCAL statement_timeout = '{materializationSeconds}s'"))
             await planGuard.ExecuteNonQueryAsync(ct);
         int count;
         await using (var insert = Command(Connection, sqlTx, MemberSql,
@@ -290,18 +292,25 @@ public sealed class OperationalKpiStore(
             U("origin", f.OriginPortId), U("destination", f.DestinationPortId),
             U("voyage", f.VoyageId), S("source", f.SourceKind),
             I("maxrows", OperationalKpiPolicy.MaximumReportMembers + 1)))
+        {
+            // The client deadline must outlive the scoped server limit by a margin.
+            insert.CommandTimeout = materializationSeconds + 5;
             count = await insert.ExecuteNonQueryAsync(ct);
+        }
         await using (var planRestore = Command(Connection, sqlTx,
-            "SET LOCAL enable_nestloop = on"))
+            "SET LOCAL enable_nestloop = on; SET LOCAL statement_timeout = '15s'"))
             await planRestore.ExecuteNonQueryAsync(ct);
 
         if (count > OperationalKpiPolicy.MaximumReportMembers)
             return new(null, OrganizationAccessError.Conflict, "report_capacity_exceeded");
         // Serialize only the quota decision and commit per organization. The
         // lock wait is bounded and, now that heavy work is outside it, short.
+        // Wait for the quota lock only for what is left of the request envelope.
+        var lockSeconds = (int)Math.Clamp(
+            OperationalKpiPolicy.RequestEnvelope.TotalSeconds - requestClock.Elapsed.TotalSeconds, 3, 15);
         await using (var tenant = new NpgsqlCommand(
             "SELECT pg_advisory_lock(hashtextextended(@scope,0))",
-            admission) { CommandTimeout = 15 })
+            admission) { CommandTimeout = lockSeconds })
         {
             tenant.Parameters.AddWithValue("scope",
                 "m13-report-quota:" + org.ToString("N"));

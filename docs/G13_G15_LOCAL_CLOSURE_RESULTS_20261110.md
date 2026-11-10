@@ -1,6 +1,6 @@
 # G13 and G15 Local Closure Verification Results, 2026-11-10
 
-**Status:** Technical verification PASSED locally on the frozen source below. Independent S25 reviews and the G13 and G15 acceptance decisions: **acceptance pending**. This record is not a gate decision, not a merge authorization and not a GitHub Actions result. No merge, deployment, migration, dispatcher, projector, evaluator or retention deletion is authorized.
+**Status:** Technical verification PASSED locally on the frozen source below. Round 1 of the independent S25 reviews returned **NOT PASS** for both gates (see "Independent review round 1" below). G13 and G15 acceptance decisions: **acceptance pending**. This record is not a gate decision, not a merge authorization and not a GitHub Actions result. No merge, deployment, migration, dispatcher, projector, evaluator or retention deletion is authorized.
 
 **Frozen tested source:** `5bcb7e5b2ec5e590bd26e64ffd659c17aaee1f92` on `feature/g13-g15-acceptance-closure-20261110` and `verify/g13-g15-evidence-closure-20261109` (both fast-forwarded from `1b878736e69be5431687868693a8df8bc65f5564`; protected `main` unchanged at `eb529368a2447061fc1838cd3967b0ffedae669d`). Commits after this SHA must change documentation only; every later commit is checked with `git diff --name-only 5bcb7e5 HEAD` and must list only files under `docs/` and `README.md`.
 
@@ -15,7 +15,7 @@ The [formal gate decisions](G13_G15_FORMAL_GATE_DECISIONS_20261110.md) at `15cab
 | 1. Per-tenant report quota and idle bounded cleanup, with concurrency and storage proof | Migration `20261110010000_M13TenantReportCapacity` and `OperationalKpiCleanupService`. `FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity` and the new `IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority` PASS. 170,000-shipment run and four-principal concurrency PASS. |
 | 2. Effective specific mutation witnesses for G13-S24 and G15-S24 with clean controls | G13 source: control PASS, 24 of 24 mutants KILLED. SQL security: control PASS, 4 of 4 KILLED. G15: control PASS, 11 of 11 KILLED, including `source-history-outbox-uniqueness-removed`. |
 | 3. Bounded tenant-safe G15 HTTP behavior during real dependency outage | `G15HttpOutageAcceptanceTests` PASS, including `RealNotificationDatabaseLockReturnsBoundedScopedHttpFailureAndRecovers`. |
-| 4. Assertion-level reconciliation of all scenarios with raw artifacts, then two new S25 recommendations | 246 atomic assertions reconciled with raw artifacts (below). S25 recommendations: **outstanding**, see [review brief](G13_G15_S25_REVIEW_BRIEF_20261110.md). |
+| 4. Assertion-level reconciliation of all scenarios with raw artifacts, then two new S25 recommendations | 246 atomic assertions reconciled with raw artifacts (below). S25 round 1: **NOT PASS** for both gates, see [G13 review](G13_S25_INDEPENDENT_REVIEW_ROUND1_20261110.md) and [G15 review](G15_S25_INDEPENDENT_REVIEW_ROUND1_20261110.md); brief in [review brief](G13_G15_S25_REVIEW_BRIEF_20261110.md). |
 | 5. Positive acceptance decisions and a fresh full campaign after source changes | Fresh full local campaign `c1` executed on the changed source. Positive decisions: **acceptance pending**. |
 
 ## Verification results by group
@@ -53,7 +53,7 @@ The inventory was recounted: 50 scenarios and 242 atomic assertions at the start
 | Independent review (S25) | 8 | not automated; outstanding |
 | Missing, partial or unmapped technical witness | 0 | `audit-g13-g15-assertions.py --enforce-complete` exit 0 |
 
-Each witness name was also confirmed to exist as a test method in the source. The audit proves that the named witness executed and passed; whether each witness truly proves its atomic clause is the content-adequacy question assigned to the independent S25 reviews. The author checked the four new mappings and the capacity tests directly (see "Test and harness changes").
+Each witness name was also confirmed to exist as a test method in the source. The audit proves that the named witness executed and passed; whether each witness truly proves its atomic clause is the content-adequacy question assigned to the independent S25 reviews. **Round 1 disputes that adequacy for a number of clauses** (listed in the reviews: for G15 at least 14 clauses lack a proving witness, for G13 several negative and scale witnesses are weaker than their text), so the 231 count means "named witness executed and passed" and must not be read as 231 clauses independently proven. The author checked the four new mappings and the capacity tests directly (see "Test and harness changes").
 
 ## Test and harness changes made in this closure
 
@@ -97,7 +97,19 @@ Binding decisions were left unchanged: M15 P01 to P14 (P10 fail-closed verified 
 - Three EF migrations are added and are applied only by the explicit migration command: `20261109010000_M15ScopedNotifications`, `20261109020000_M13OperationalKpis`, `20261110010000_M13TenantReportCapacity`. Populated upgrade and model snapshot tests pass.
 - **Item for reviewers:** `OperationalKpiCleanupService` is registered by default whenever the API connects as the restricted `harborops_api` login. It is the implementation of the selected G13 idle cleanup rule (at most 16 deletions per call, at most 8 calls per 5-minute poll, expired reporting snapshots only, never M11 history, M15 notifications, audit or source history). It is separate from the P12 notification retention cleanup, which remains absent. Confirm that this default-on snapshot cleanup is inside the intended boundary before any merge.
 - **Item for reviewers:** the branch adds dormant GitHub workflows and one trigger file under `.github` and rewrites `verify-m11-m12-combined.yml`. They were not used. Decide whether they should be part of a merge into `main`.
-- Remaining conditions: two independent S25 reviews and two positive gate decisions. The reviewed SHA is stable at `5bcb7e5` and all evidence in the packet matches it.
+- Remaining conditions: remediation of the round 1 findings (or written acceptance of residual risks), re-review, and two positive gate decisions. The reviewed SHA is stable at `5bcb7e5` and all evidence in the packet matches it.
+
+## Independent review round 1 (both NOT PASS)
+
+Two separate read-only sessions reviewed `5bcb7e5` from source and raw evidence: [G13-S25](G13_S25_INDEPENDENT_REVIEW_ROUND1_20261110.md) and [G15-S25](G15_S25_INDEPENDENT_REVIEW_ROUND1_20261110.md). Their independence from this closure session is not attested here. Both verified all 939 packet checksums, the 549 passing test results and the source lock, and both found **no tenant-isolation, security, data-loss or migration defect**. Both returned NOT PASS because of evidence gaps. This session did not rerun anything for round 1 and has not remediated any finding.
+
+| Gate | Principal findings |
+| --- | --- |
+| G13 | F1 (blocks PASS): the 170,000-shipment and four-principal runs use only Draft and Cancelled shipments with no history, exceptions or evaluations, and the four-principal test uses 5,002 rows; the plan requires concurrent load on skewed 170k data. A source reading predicts the third and fourth simultaneous builders would time out with 503 (not measured). F2: two of 24 mutants are killed by a primary or foreign key violation rather than a content assertion. F3: the "no business record removed" and "no counts" witnesses are weak. F4: one user with four sessions can hold the whole tenant quota (residual risk). F5: the cleanup service has no execution test, is enabled by login name rather than a flag, and its period is slightly over 5 minutes. |
+| G15 | M1: unread count and Unread filter are unmeasured at 1,000,000 rows (per-row security function, likely super-linear). M2: the 1,000-recipient cap has no runtime test and ends in a permanent quarantine with no runbook. M3: at least 14 clauses have no proving witness (examples: `M15:EnableDelivery` default-off, notification grants no mutation or export, Acknowledge leaves M11 state unchanged, two-dispatcher race over a single outbox row, archived-shipment test accepting 200 or 404, the HTTP outage test not mapped to any assertion). L1 to L7: mutants only touch SQL, crash windows partly surrogate, late-delivery cursor edge, narrower load tests, self-reported local results. |
+| Both | Do not merge the dormant `.github` workflows or the rewritten `verify-m11-m12-combined.yml` without a decision (it also breaks `check-m15-contract.mjs` if removed alone). Local-mode evidence is acceptable as technical evidence but not a substitute for one hosted run at the merge SHA. The default-registered `OperationalKpiCleanupService` was read as inside the intended boundary and distinct from P12, with a recommendation to add a documented kill switch or record that default-on is intended. |
+
+Closing these needs new tests, possibly application changes (a bounded unread count, a cleanup switch), a new frozen SHA and a fresh full campaign. Several items are decisions rather than engineering: whether 503 is the approved behavior for concurrent 170k builders, whether the single-user quota monopoly is accepted, whether the cleanup service needs a switch, whether the `.github` additions are merged, and whether a hosted run at the merge SHA is required. No acceptance is recorded for either gate.
 
 ## Evidence index
 

@@ -202,9 +202,9 @@ public static class NotificationEndpoints
             var principal = Session(ctx);
             try
             {
-                var (count,asOfUtc) = await store.UnreadAsync(
+                var (count,capped,asOfUtc) = await store.UnreadAsync(
                     org,principal.UserId,principal.SessionId,ct);
-                return Results.Ok(new { unreadCount=count, asOfUtc });
+                return Results.Ok(new { unreadCount=count, unreadCountCapped=capped, asOfUtc });
             }
             catch (InvalidOperationException)
             {

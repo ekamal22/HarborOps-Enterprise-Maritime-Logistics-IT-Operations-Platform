@@ -178,7 +178,13 @@ public sealed class NotificationStore(
         finally { await Connection.CloseAsync(); }
     }
 
-    public async Task<(long Count, DateTimeOffset AsOfUtc)> UnreadAsync(
+    // The per-row read policy makes an exact count over a very large unread
+    // backlog cost one policy evaluation per row, which exceeded the request
+    // envelope at one million rows. The count is therefore exact up to
+    // UnreadCountCap and reports a capped flag beyond it.
+    public const int UnreadCountCap = 1000;
+
+    public async Task<(long Count, bool Capped, DateTimeOffset AsOfUtc)> UnreadAsync(
         Guid org, Guid user, Guid session, CancellationToken ct)
     {
         await Connection.OpenAsync(ct);
@@ -189,10 +195,12 @@ public sealed class NotificationStore(
             long count;
             DateTimeOffset now;
             await using (var cmd = Command(Connection, tx, """
-                SELECT COUNT(*),clock_timestamp() FROM m15_user_notifications
-                WHERE organization_id=@org AND recipient_user_id=@user
-                    AND read_at_utc IS NULL
-                """, ("org",org),("user",user)))
+                SELECT COUNT(*),clock_timestamp() FROM (
+                    SELECT 1 FROM m15_user_notifications
+                    WHERE organization_id=@org AND recipient_user_id=@user
+                        AND read_at_utc IS NULL
+                    LIMIT @cap) bounded
+                """, ("org",org),("user",user),("cap",UnreadCountCap + 1)))
             await using (var reader = await cmd.ExecuteReaderAsync(ct))
             {
                 if (!await reader.ReadAsync(ct))
@@ -201,7 +209,7 @@ public sealed class NotificationStore(
                 now = reader.GetFieldValue<DateTimeOffset>(1);
             }
             await tx.CommitAsync(ct);
-            return (count, now);
+            return (Math.Min(count, UnreadCountCap), count > UnreadCountCap, now);
         }
         finally { await Connection.CloseAsync(); }
     }

@@ -26,6 +26,7 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [unread, setUnread] = useState<number | null>(null);
+  const [unreadCapped, setUnreadCapped] = useState(false);
   const [loading, setLoading] = useState(true);
   const [paging, setPaging] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -60,10 +61,11 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
       setItems(page.items);
       setCursor(page.nextCursor);
       setUnread(count.unreadCount);
+      setUnreadCapped(count.unreadCountCapped === true);
     } catch (cause) {
       if (!mounted.current || serial.current !== run ||
           controller.signal.aborted) return;
-      setItems([]); setCursor(null); setUnread(null);
+      setItems([]); setCursor(null); setUnread(null); setUnreadCapped(false);
       setError(organizationError(cause));
       invalidate(cause);
     } finally {
@@ -144,7 +146,7 @@ export default function NotificationCenter({ organizationId, onAccessInvalidated
     aria-label="In-app shipment notifications">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <h4 className="text-base font-semibold">
-        Shipment notifications {unread !== null ? "(" + unread + " unread)" : ""}
+        Shipment notifications {unread !== null ? "(" + unread + (unreadCapped ? "+" : "") + " unread)" : ""}
       </h4>
       <button type="button" onClick={() => void refresh()}
         disabled={loading || Boolean(busyId)}

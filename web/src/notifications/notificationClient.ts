@@ -47,7 +47,7 @@ export const listNotifications = (org: string, filter: NotificationFilter,
 };
 
 export const notificationCount = (org: string, signal?: AbortSignal) =>
-  read<{ unreadCount: number; asOfUtc: string }>(
+  read<{ unreadCount: number; unreadCountCapped?: boolean; asOfUtc: string }>(
     base(org) + "/unread-count", signal);
 
 export const notificationDetail = (org: string, id: string, signal?: AbortSignal) =>

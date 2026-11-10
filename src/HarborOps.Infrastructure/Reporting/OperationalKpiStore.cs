@@ -155,10 +155,12 @@ public sealed class OperationalKpiStore(
     private async Task<KpiOperation<KpiReport>> BuildOnceAsync(CurrentSession session,
         Guid org, OperationalKpiFilters f, CancellationToken ct)
     {
-        // A dedicated connection holds the two admission locks before the
-        // reporting transaction takes its REPEATABLE READ MVCC snapshot.
-        // Per-actor acquisition is nonblocking; tenant admission is bounded
-        // by the request cancellation and SQL command deadline.
+        // A dedicated connection holds the per-actor admission lock for the whole
+        // build and the tenant quota lock only for the short quota check and
+        // commit. Holding the tenant lock for the heavy materialization forced
+        // simultaneous builders of one organization to run one after another, so
+        // a third or fourth builder waited past the 15 second lock deadline and
+        // the 30 second proxy envelope even though each build was within budget.
         await using var admission = new NpgsqlConnection(db.Database.GetConnectionString());
         await admission.OpenAsync(ct);
         try
@@ -173,15 +175,7 @@ public sealed class OperationalKpiStore(
                     return new(null, OrganizationAccessError.Conflict,
                         "report_in_progress");
             }
-            await using (var tenant = new NpgsqlCommand(
-                "SELECT pg_advisory_lock(hashtextextended(@scope,0))",
-                admission) { CommandTimeout = 15 })
-            {
-                tenant.Parameters.AddWithValue("scope",
-                    "m13-report-quota:" + org.ToString("N"));
-                await tenant.ExecuteScalarAsync(ct);
-            }
-            return await BuildLockedOnceAsync(session, org, f, ct);
+            return await BuildLockedOnceAsync(session, org, f, admission, ct);
         }
         finally
         {
@@ -206,9 +200,12 @@ public sealed class OperationalKpiStore(
 
     private async Task<KpiOperation<KpiReport>> BuildLockedOnceAsync(
         CurrentSession session, Guid org, OperationalKpiFilters f,
-        CancellationToken ct)
+        NpgsqlConnection admission, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
+        // READ COMMITTED: the member set is materialized by one INSERT ... SELECT,
+        // which reads a single consistent snapshot, and the quota check below must
+        // see snapshots committed by other builders while this one was running.
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
         await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '15s'", ct);
         var error = await ScopeAsync(session, org, false, ct);
         if (error != OrganizationAccessError.None) return new(null, error);
@@ -300,9 +297,19 @@ public sealed class OperationalKpiStore(
 
         if (count > OperationalKpiPolicy.MaximumReportMembers)
             return new(null, OrganizationAccessError.Conflict, "report_capacity_exceeded");
-        // Check all live snapshots for this tenant under the transaction-scoped
-        // tenant admission lock. The migration-owned function counts other
-        // sessions without exposing their member rows to this API principal.
+        // Serialize only the quota decision and commit per organization. The
+        // lock wait is bounded and, now that heavy work is outside it, short.
+        await using (var tenant = new NpgsqlCommand(
+            "SELECT pg_advisory_lock(hashtextextended(@scope,0))",
+            admission) { CommandTimeout = 15 })
+        {
+            tenant.Parameters.AddWithValue("scope",
+                "m13-report-quota:" + org.ToString("N"));
+            await tenant.ExecuteScalarAsync(ct);
+        }
+        // Check all live snapshots for this tenant under the tenant admission
+        // lock. The migration-owned function counts other sessions without
+        // exposing their member rows to this API principal.
         await using (var quota = Command(Connection, sqlTx,
             "SELECT m13_tenant_quota(@org)", U("org", org)))
         {

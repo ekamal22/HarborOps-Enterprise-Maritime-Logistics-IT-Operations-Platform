@@ -1,27 +1,6 @@
-G13/G15 acceptance verification source-locked launch
-Predecessor: eab1a5dc67dede6ff8a24ceaa9096e7cee51413e
-Verification workflow: verify-m11-m12-combined.yml
-Branch: verify/g13-g15-evidence-closure-20261109
-This file is a one-time Actions trigger, not an acceptance decision.
-
-Relaunch after xUnit analyzer corrections on prior source 793ce1a20f42895ddbd0d2a12b1a74a520607b1a
-
-Successor launch after browser-count and queued mutation detector repairs, predecessor e227076b1663aecf39d711a72de075fdcef3c35f
-
-Dispatch after manager session refresh and malformed-query rate-budget fixes from d71f95f994b15a845d4be25f0a568a9e8a5f0f81
-
-2026-11-10: exact-source preflight required before next full G13/G15 dispatch.
-Preflight predecessor: ce021e8e53656d0fffc926807b3a23d8058450c1
-Checks: release build, new scoped SQL regressions, 170k budget, 18 mutations.
-Acceptance pending. No merge or deployment.
-
-2026-11-10 preflight relaunch: corrected TrackingWorkerSettings namespace; prior preflight 42725878642 failed compilation.
-
-2026-11-10 acceptance closure: verify three remaining witnesses, enforce strict technical assertion coverage.
-Predecessor: 2ff99684fd952941d91c4645dc4473c2e6f62ba8
-
-2026-11-10: correct current G11 acceptance wording in STATUS.md for established documentation consistency check.
-Previous source: a1fa2ee2bd1c742a1ac4529c49f28b9434501bb6
-
-2026-11-10: reconcile M11 and M12 formal acceptance links in architecture and test strategy.
-Predecessor: a1f50951bc7dc6174e5674e10ee4ca6028a72da0
+G13/G15 final acceptance-closure source preflight
+Candidate implementation parent: ff6244f1bfd2964e23cba31ade25f59a7d70c987
+Regression scope: tenant-report admission and idle expiration, source-history uniqueness, HTTP dependency outage, materialized exact K06 boundary, security mutations.
+Target: verify/g13-g15-evidence-closure-20261109
+Preflight must succeed before full 15-job source-locked verification.
+Current gate decision: NOT ACCEPTED. No main merge, deployment, activation or notification deletion.

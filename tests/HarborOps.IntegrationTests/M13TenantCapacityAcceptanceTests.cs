@@ -132,6 +132,16 @@ public sealed class M13TenantCapacityAcceptanceTests
                 Assert.InRange(removed, 0, 16);
             }
             Assert.Equal(3, await ReportCount());
+            // The three remaining rows are exactly the live snapshots, by identity.
+            foreach (var live in committed.Skip(1))
+            {
+                await using var liveReport = new NpgsqlCommand(
+                    "SELECT count(*) FROM operational_kpi_reports WHERE id=@report AND organization_id=@org AND expires_at_utc>clock_timestamp()",
+                    administratorDb);
+                liveReport.Parameters.AddWithValue("report", live);
+                liveReport.Parameters.AddWithValue("org", fixture.A);
+                Assert.Equal(1L, Convert.ToInt64(await liveReport.ExecuteScalarAsync()));
+            }
 
             using var admitted = await clients[4].GetAsync(url);
             Assert.Equal(HttpStatusCode.OK, admitted.StatusCode);
@@ -147,5 +157,120 @@ public sealed class M13TenantCapacityAcceptanceTests
         {
             foreach (var client in clients) client.Dispose();
         }
+    }
+
+    // The idle cleanup limit must be enforced by the database function itself,
+    // not only assumed by its caller. Forty synthetic snapshots are given the
+    // oldest possible expiry so they are removed first regardless of leftovers
+    // from other suites on the same disposable server.
+    [ExclusiveM13PostgresFact]
+    public async Task IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var administrator = fixture.Admin;
+        using var originalManager = fixture.Manager;
+        using var originalAnalyst = fixture.Analyst;
+        await AssignmentHttpTests.Seed(fixture);
+
+        await using var administratorDb = new NpgsqlConnection(roles.Admin);
+        await administratorDb.OpenAsync();
+        await using var apiDb = new NpgsqlConnection(roles.Api);
+        await apiDb.OpenAsync();
+
+        Guid manager, session;
+        await using (var lookup = new NpgsqlCommand("""
+            SELECT a.user_id,a.id FROM auth_sessions a
+            JOIN organization_memberships m ON m.user_id=a.user_id
+                AND m.organization_id=a.selected_organization_id
+            WHERE a.selected_organization_id=@org AND m.role='Manager'
+                AND m.status='Active' AND a.revoked_at_utc IS NULL
+            ORDER BY a.issued_at_utc DESC LIMIT 1
+            """, administratorDb))
+        {
+            lookup.Parameters.AddWithValue("org", fixture.A);
+            await using var row = await lookup.ExecuteReaderAsync();
+            Assert.True(await row.ReadAsync());
+            manager = row.GetGuid(0);
+            session = row.GetGuid(1);
+        }
+
+        await using (var insert = new NpgsqlCommand("""
+            INSERT INTO operational_kpi_reports
+                (id,organization_id,actor_user_id,actor_session_id,
+                 policy_version,filters_sha256,from_utc,before_utc,
+                 evaluated_at_utc,created_at_utc,expires_at_utc)
+            SELECT gen_random_uuid(),@org,@manager,@session,'m13-kpi-v1',
+                repeat('0',64),clock_timestamp()-interval '9 days',
+                clock_timestamp()-interval '2 days',
+                clock_timestamp()-interval '100 years',
+                clock_timestamp()-interval '100 years'+i*interval '1 second',
+                clock_timestamp()-interval '100 years'+i*interval '1 second'
+                    +interval '5 minutes'
+            FROM generate_series(1,40) AS i
+            """, administratorDb))
+        {
+            insert.Parameters.AddWithValue("org", fixture.A);
+            insert.Parameters.AddWithValue("manager", manager);
+            insert.Parameters.AddWithValue("session", session);
+            Assert.Equal(40, await insert.ExecuteNonQueryAsync());
+        }
+
+        async Task<long> Synthetic()
+        {
+            await using var query = new NpgsqlCommand("""
+                SELECT count(*) FROM operational_kpi_reports
+                WHERE organization_id=@org
+                    AND created_at_utc<clock_timestamp()-interval '50 years'
+                """, administratorDb);
+            query.Parameters.AddWithValue("org", fixture.A);
+            return Convert.ToInt64(await query.ExecuteScalarAsync());
+        }
+        async Task<int> Prune(int limit)
+        {
+            await using var command = new NpgsqlCommand(
+                "SELECT m13_prune_expired_idle(@limit)", apiDb);
+            command.Parameters.AddWithValue("limit", limit);
+            return Convert.ToInt32(await command.ExecuteScalarAsync());
+        }
+
+        Assert.Equal(40L, await Synthetic());
+        // The two oldest-first batches are exactly full while 40 candidates remain.
+        Assert.Equal(16, await Prune(16));
+        Assert.Equal(24L, await Synthetic());
+        Assert.Equal(16, await Prune(16));
+        Assert.Equal(8L, await Synthetic());
+        // The final call can only exceed eight when other expired snapshots exist,
+        // and still never exceeds the approved sixteen.
+        var last = await Prune(16);
+        Assert.InRange(last, 8, 16);
+        Assert.Equal(0L, await Synthetic());
+
+        // Invalid limits and any login other than the restricted runtime role
+        // are rejected by the function with insufficient_privilege.
+        foreach (var invalid in new object?[] { 0, 17, -1, 1000, null })
+        {
+            await using var command = new NpgsqlCommand(
+                "SELECT m13_prune_expired_idle(@limit)", apiDb);
+            command.Parameters.Add(new NpgsqlParameter("limit",
+                NpgsqlTypes.NpgsqlDbType.Integer) { Value = invalid ?? DBNull.Value });
+            var failure = await Assert.ThrowsAsync<PostgresException>(
+                () => command.ExecuteScalarAsync());
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, failure.SqlState);
+        }
+        await using (var privileged = new NpgsqlCommand(
+            "SELECT m13_prune_expired_idle(16)", administratorDb))
+        {
+            var failure = await Assert.ThrowsAsync<PostgresException>(
+                () => privileged.ExecuteScalarAsync());
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, failure.SqlState);
+        }
+
+        // Cleanup is limited to reporting snapshots: business records remain.
+        await using var business = new NpgsqlCommand(
+            "SELECT count(*) FROM shipments WHERE organization_id=@org", administratorDb);
+        business.Parameters.AddWithValue("org", fixture.A);
+        Assert.True(Convert.ToInt64(await business.ExecuteScalarAsync()) > 0);
     }
 }

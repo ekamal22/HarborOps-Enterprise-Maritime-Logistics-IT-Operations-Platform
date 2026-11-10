@@ -103,7 +103,7 @@ jobs:
           retention-days: 30
 
   mutations:
-    name: 18 effective G13 source mutants
+    name: 24 effective G13 source mutants
     runs-on: ubuntu-latest
     timeout-minutes: 110
     services:
@@ -135,7 +135,7 @@ jobs:
           import json,os,pathlib
           manifest=json.loads(pathlib.Path('.verification/g13-mutations/manifest.json').read_text())
           assert manifest['source_commit']==os.environ['GITHUB_SHA']
-          assert len(manifest['records'])==24
+          assert len(manifest['records'])==25
           assert manifest['records'][0]['outcome']=='PASS'
           assert all(x['outcome']=='KILLED' for x in manifest['records'][1:])
           PY

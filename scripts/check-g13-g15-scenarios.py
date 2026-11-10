@@ -86,6 +86,7 @@ MUTANTS = {
                       "tenant-quota-rejection-rollback-bypassed",
                       "tenant-quota-session-scope-bypassed",
                       "tenant-quota-active-report-cap-bypassed",
+                      "auditor-grant-version-revocation-bypassed",
                       "k06-exact-sixty-minute-boundary",
                       "unknown-evaluation-suppressed"},
     "g13-security-mutations": {"report-select-unrestricted",

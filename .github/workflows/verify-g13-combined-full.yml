@@ -477,7 +477,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify clean control and twenty-three effective G13 mutations
+      - name: Verify clean control and twenty-four effective G13 mutations
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"

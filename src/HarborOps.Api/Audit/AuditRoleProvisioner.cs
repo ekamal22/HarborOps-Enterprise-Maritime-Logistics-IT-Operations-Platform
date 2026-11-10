@@ -144,6 +144,8 @@ public static class AuditRoleProvisioner
                             m13_can_manage(uuid),m13_member_access(uuid,uuid),
                             m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean),
                             m13_prune_expired(uuid,integer),
+                            m13_prune_expired_idle(integer),
+                            m13_tenant_quota(uuid),
                             m13_lock_auditor_grant(uuid,uuid,uuid),
                             m13_lock_report(uuid,uuid,uuid,uuid,varchar)
                             TO harborops_api;

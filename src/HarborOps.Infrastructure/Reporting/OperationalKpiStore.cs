@@ -155,7 +155,7 @@ public sealed class OperationalKpiStore(
     private async Task<KpiOperation<KpiReport>> BuildOnceAsync(CurrentSession session,
         Guid org, OperationalKpiFilters f, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
         await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '15s'", ct);
         var error = await ScopeAsync(session, org, false, ct);
         if (error != OrganizationAccessError.None) return new(null, error);
@@ -174,6 +174,15 @@ public sealed class OperationalKpiStore(
             S("scope", org.ToString("N") + ":" + session.UserId.ToString("N"))))
             if (await lockCmd.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Conflict, "report_in_progress");
+
+        // Serialize tenant admission after the actor lock. READ COMMITTED
+        // permits the next admitted report to see the prior committed quota
+        // state, while one materialization statement remains a single snapshot.
+        // The signed session locks remain held until this transaction commits.
+        await using (var tenantLock = Command(Connection, sqlTx,
+            "SELECT pg_advisory_xact_lock(hashtextextended(@scope,0))",
+            S("scope", "m13-report-quota:" + org.ToString("N"))))
+            await tenantLock.ExecuteNonQueryAsync(ct);
 
         // Bound expired-report maintenance to this selected organization.
         // No cross-tenant sweep or unbounded cleanup is exposed to runtime.
@@ -239,6 +248,14 @@ public sealed class OperationalKpiStore(
 
         if (count > OperationalKpiPolicy.MaximumReportMembers)
             return new(null, OrganizationAccessError.Conflict, "report_capacity_exceeded");
+        // Check all live snapshots for this tenant under the transaction-scoped
+        // tenant admission lock. The migration-owned function counts other
+        // sessions without exposing their member rows to this API principal.
+        await using (var quota = Command(Connection, sqlTx,
+            "SELECT m13_tenant_quota(@org)", U("org", org)))
+            if (await quota.ExecuteScalarAsync(ct) is not true)
+                return new(null, OrganizationAccessError.Conflict,
+                    "report_tenant_capacity_exceeded");
         var counts = await ReadCountsAsync(sqlTx, org, report, ct);
         await tx.CommitAsync(ct);
         return new(new KpiReport(report, org, sha, f.FromUtc, f.BeforeUtc,

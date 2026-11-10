@@ -1,8 +1,8 @@
 # M15 Policy Recommendation Register
 
-**Current G13/G15 assertion campaign (2026-11-09):** [The latest successful 15-job verification](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42632573516) passed against \`50ed2950bceaf3478172c3f9d9bf85186f874082\`. New behavioral cases and [atomic assertion audit](G13_G15_ATOMIC_COVERAGE_20261109.md) have since been committed and **are unverified at the newer HEAD**. All 242 assertions are classified (139 candidate fully tested, 89 partially tested, 14 requiring policy/independent review). M13 and M15 are implemented but G13/G15 milestone acceptance and main merge remain pending. Older checkpoints below remain historical for their stated SHAs.
+**Current technical evidence (2026-11-10):** [15-job run 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed at `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75`, including 541 passing TRX tests, no failures/skips, and 48 passing technical scenario contract checks. The separate 242-assertion audit has 224 technical witnesses present, 3 missing, 7 policy-review and 8 independent-review items. Full G13/G15 acceptance remains pending. [Current source-locked evidence](G13_G15_VERIFIED_EVIDENCE_20261110.md).
 
-**Prepared:** 2026-11-09. **Decision:** P01-P09, P11, P13-P14 approved as recommended; P10 approved conditionally on verified transactional recovery and accepted-M11 regressions; P12 provisional periods approved without deletion authority. All approval scope recorded here is distinct from G15 acceptance, a merge, or production activation.
+**Prepared:** 2026-11-09. **Latest evidence:** 2026-11-10. **Decision:** P01-P09, P11, P13-P14 approved as recommended; P10 approved conditionally on verified transactional recovery and accepted-M11 regressions; P12 provisional periods approved without deletion authority. All approval scope recorded here is distinct from G15 acceptance, a merge, or production activation.
 
 | Decision | Recommended choice | Rationale | Approval |
 | --- | --- | --- | --- |
@@ -23,7 +23,7 @@
 
 ## Approval-critical decisions
 
-**P10:** Approved with an explicit availability tradeoff. An outbox capture failure can roll back an accepted M11 history write. Full targeted rollback, restart, latency, M11 audit and concurrency verification remains mandatory before gate acceptance.
+**P10:** Approved with an explicit availability tradeoff. An outbox capture failure can roll back an accepted M11 history write. The source-locked G13/G15 campaign has passing rollback, process-restart, M11 regression and concurrency tests; independent conformance and P10 conditional acceptance review remain necessary before gate acceptance.
 
 **P12:** Approved provisional periods do not authorize cleanup. Preserve immutable M11/M16 evidence, holds, replay history and undelivered intents. Cleanup stays OFF pending an explicit, legally informed disposal decision.
 
@@ -33,4 +33,4 @@
 
 Successor run [42552035939](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42552035939) measured p50 approximately 10,479 ms and a three-sample p95 approximately 10,540 ms on 170,000 shipments with about 450,006 materialized member rows. Three samples are insufficient for a concurrency or production SLA decision. Approved as an initial source-locked verification envelope: at 170,000 shipments (approximately 450,006 KPI members), p50 <= 15,000 ms and nearest-rank p95 <= 20,000 ms across at least 30 successful measured reports; request deadline 25 seconds; SQL statement timeout 15 seconds; member ceiling 500,000 (reject complete build if exceeded); report TTL 10 minutes; member page limit 100; and a separate four-principal concurrent request campaign. Store/report table and index bytes, elapsed CPU and memory, temp spill and cleanup backlog must be recorded; no arbitrary storage or permanent cleanup cap is approved until measured. If the envelope fails, G13-S20 fails, requiring explicit resolution rather than relaxing test expectations.
 
-**Status:** The stated policy decisions and provisional G13 thresholds are approved. Technical conformance, final storage/cleanup numerical decisions, S25 independent evidence reviews, milestone acceptance and merge remain pending. No production rollout or cleanup is authorized.
+**Status (2026-11-10):** Approved policy decisions remain unchanged. The combined technical campaign passed at the frozen SHA, but three atomic G13 witnesses remain missing and full scenario dispositions are still blocked. Final permanent G13 storage/cleanup numerical decisions, conditional P10 closure, independent S25 reviews, milestone acceptance and merge remain pending. No production rollout or cleanup is authorized.

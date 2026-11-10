@@ -199,11 +199,15 @@ public sealed class M15ScopedNotifications : Migration
                             last_error_code=NULL
                             WHERE source_history_id=evt.source_history_id;
                         delivered := delivered+1;
-                    EXCEPTION WHEN OTHERS THEN
+                    EXCEPTION WHEN OTHERS OR QUERY_CANCELED THEN
                         -- The exception subtransaction discards every partial
                         -- recipient insert. Only a sanitized retry state survives.
+                        -- A statement timeout (QUERY_CANCELED, not matched by OTHERS)
+                        -- is a counted retry too, so one slow event can neither abort
+                        -- the batch nor be retried forever without reaching quarantine.
                         next_count := LEAST(evt.attempt_count + 1,5);
                         error_code := CASE WHEN SQLSTATE='PZ015' THEN 'recipient_limit'
+                            WHEN SQLSTATE='57014' THEN 'delivery_timeout'
                             ELSE 'delivery_failure' END;
                         UPDATE m15_notification_outbox SET
                             attempt_count=next_count,

@@ -1,7 +1,7 @@
-G13/G15 source-locked grouped preflight rerun, 2026-11-10.
-Previous run: 42760038383. 170000-shipment KPI scale passed.
-Regressions: 9 passed, 1 failed. K06 boundary test sent GET /analytics rather than GET /analytics/overview, yielding 404.
-Mutation preflight stopped on the same failing clean control before any mutations.
-Correction: use the real overview route and include unknown-evidence acceptance in the grouped preflight.
-Run only the source-locked preflight first; full campaign dispatch requires all jobs successful.
-Acceptance pending. No merge, deployment, activation, or retention deletion.
+G13/G15 source-locked grouped preflight relaunch, 2026-11-10.
+Prior run: 42761125559, cancelled after regression and mutation control failures.
+Grouped regressions: 10 PASS, 1 FAIL, UnknownEvaluationDoesNotBecomeZeroRisk used /analytics instead of /analytics/overview.
+G13 mutation job: stopped at failing clean UnknownEvaluationDoesNotBecomeZeroRisk control, no effective mutants executed.
+Correction: use overview route, and verify negative quality controls to isolate Unknown in K14 and Q03.
+Last completed scale run 42760038383 PASS, current new source requires exact-SHA rerun.
+Current decisions G13/G15 NOT ACCEPTED, no main merge, deployment, production activation or notification retention deletion.

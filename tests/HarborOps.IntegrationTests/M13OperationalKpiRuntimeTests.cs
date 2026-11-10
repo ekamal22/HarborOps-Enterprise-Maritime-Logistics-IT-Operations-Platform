@@ -1301,9 +1301,16 @@ public sealed class M13OperationalKpiRuntimeTests
         await ReferenceDataHttpTests.Login(analyst,fixture.AnalystEmail);
         await ReferenceDataHttpTests.Select(analyst,fixture.A);
         var report=await Json(await analyst.GetAsync(Root(fixture.A)+
-            Window(DateTimeOffset.UtcNow)));
+            "/overview"+Window(DateTimeOffset.UtcNow)));
+        // The only reason this otherwise fully evaluated, current shipment
+        // is unassessed is the explicit Unknown condition. Keep an independent
+        // negative control so changing K14's unknown predicate is detected.
+        Assert.Contains(id,await G13StoredIds(db,fixture.A,report,"K13"));
         Assert.Contains(id,await G13StoredIds(db,fixture.A,report,"K14"));
         Assert.Contains(id,await G13StoredIds(db,fixture.A,report,"Q03"));
+        Assert.DoesNotContain(id,await G13StoredIds(db,fixture.A,report,"Q01"));
+        Assert.DoesNotContain(id,await G13StoredIds(db,fixture.A,report,"Q02"));
+        Assert.DoesNotContain(id,await G13StoredIds(db,fixture.A,report,"Q04"));
     }
 
     [ExclusiveM13PostgresFact]

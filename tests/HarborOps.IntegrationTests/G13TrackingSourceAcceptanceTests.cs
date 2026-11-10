@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc.Testing;

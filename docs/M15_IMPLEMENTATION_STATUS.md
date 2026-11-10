@@ -1,6 +1,6 @@
 # M15 Scoped In-App Notifications: Implementation Status
 
-**Current G13/G15 checkpoint (2026-11-09):** [Run 42569970541](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42569970541) **PASSED 15/15 jobs** at `e4bf9cd1527f85f554baf623e90805d96d08ac1a`: 487 successful TRX cases, six successful three-engine browser suites, 23 effective mutations killed, four process-kill probes, and technical evidence integrity PASS. This does **not** close the scenario ledger: each gate has 1 PASS, 22 BLOCKED and 2 NOT EXECUTED. The [evidence review](G13_G15_SOURCE_LOCKED_EVIDENCE_REVIEW_20261109.md) documents remaining source-locked acceptance gaps and the outstanding independent S25 decisions. No merge or deployment.
+**Source-locked successor checkpoint, 2026-11-10:** [G13/G15 workflow 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed 15/15 jobs on `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 tests passed, 0 failed/skipped). The separate atomic audit found 224 technical witnesses, 3 missing, 7 policy-review and 8 independent-review assertions; G13 and G15 acceptance remain pending. [Current detailed status](G13_G15_VERIFIED_EVIDENCE_20261110.md). Earlier source-specific reports below remain historical.
 
 **Current checkpoint:** 2026-11-09 (Türkiye local date).  
 **Implementation branch:** `feat/m15-scoped-notifications-20261108`  
@@ -13,7 +13,7 @@ The authoritative executed test record, including the failed runs and immutable 
 
 | Package | Files and behavior | Disposition |
 | --- | --- | --- |
-| M15-01 | M11 immutable-history events Opened, Resolved and AutoResolved only. Fixed evidence-safe rule text, explicit role/recipient matrix, personal receipt lifecycle | Implemented as policy defaults. P01-P14 acceptance pending |
+| M15-01 | M11 immutable-history events Opened, Resolved and AutoResolved only. Fixed evidence-safe rule text, explicit role/recipient matrix, personal receipt lifecycle | Implemented as policy defaults. P01-P09/P11/P13-P14 approved; P10 conditionally approved and P12 provisional without deletion authority |
 | M15-02 persistence | SQL-only `20261109010000_M15ScopedNotifications`, `NotificationStore.cs`, `AuditRoleProvisioner.cs` | Immutable outbox trigger, version-bound recipient rows, RLS and restricted SQL grants; additive migration upgrade and rollback exercised on previous source |
 | M15-02 fanout | `NotificationDeliveryService.cs`, signed `m15_dispatch_allowed` proof, bounded SKIP LOCKED batches, sanitized retry/backoff and quarantine counters | Implemented. Dispatcher defaults off through `M15:EnableDelivery` |
 | M15-03 API | `NotificationEndpoints.cs`, `Program.cs` | Personal list, protected 20-minute paging cursor, unread count, detail and CSRF-protected PATCH; current selected-org session and membership checks |

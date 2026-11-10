@@ -1,7 +1,6 @@
 # M15 Scoped In-App Notifications: Planning Status
 
-**Current G13/G15 checkpoint (2026-11-09):** [Run 42569970541](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42569970541) **PASSED 15/15 jobs** at `e4bf9cd1527f85f554baf623e90805d96d08ac1a`: 487 successful TRX cases, six successful three-engine browser suites, 23 effective mutations killed, four process-kill probes, and technical evidence integrity PASS. This does **not** close the scenario ledger: each gate has 1 PASS, 22 BLOCKED and 2 NOT EXECUTED. The [evidence review](G13_G15_SOURCE_LOCKED_EVIDENCE_REVIEW_20261109.md) documents remaining source-locked acceptance gaps and the outstanding independent S25 decisions. No merge or deployment.
-
+**Source-locked successor checkpoint, 2026-11-10:** [G13/G15 workflow 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed 15/15 jobs on `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 tests passed, 0 failed/skipped). The separate atomic audit found 224 technical witnesses, 3 missing, 7 policy-review and 8 independent-review assertions; G13 and G15 acceptance remain pending. [Current detailed status](G13_G15_VERIFIED_EVIDENCE_20261110.md). Earlier source-specific reports below remain historical.
 
 **Date:** 2026-11-08  
 **Planning-state snapshot (2026-11-08):** Planning had no runtime implementation or G15 verification. Subsequent source implementation and technical checks are recorded in the current checkpoint above; G15 acceptance remains pending.  
@@ -51,7 +50,7 @@ The entries below are **recommended defaults only**. Neither creating these docu
 | M15-P13 | Namespaced notification API and isolated React component; shared shell, permission enum additions, DI, migrations and EF snapshot require prior M13 reconciliation. No M13 KPI derivation from notices. | Parallel workstream ownership |
 | M15-P14 | Treat archived/cancelled targets as historical only and authorize current deep link independently; removed or inaccessible targets are hidden without existence disclosure. | Resource lifecycle and broken-link safety |
 
-**Approval ledger:** M15-P01 through M15-P14 acceptance pending; G15-S01 BLOCKED until dispositions recorded. No approval has been inferred. Changes to recommendations should amend the local decision record before starting implementation.
+**Approval ledger (updated 2026-11-10):** M15 P01-P09, P11, P13 and P14 approved, P10 approved conditionally on source-locked recovery conformance, and P12 provisional retention periods approved without cleanup authority. G15 full scenario acceptance remains pending. See [policy decision](G13_G15_POLICY_APPROVAL_20261109.md). Changes to recommendations should amend the local decision record before starting implementation.
 
 ## 4. M15 work package readiness
 

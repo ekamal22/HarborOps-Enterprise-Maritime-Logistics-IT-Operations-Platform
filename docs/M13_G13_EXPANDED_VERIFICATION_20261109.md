@@ -1,5 +1,9 @@
 # G13 Expanded GitHub Actions Evidence and Open Issues
 
+**Source-locked successor checkpoint, 2026-11-10:** [G13/G15 workflow 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed 15/15 jobs on `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 tests passed, 0 failed/skipped). The separate atomic audit found 224 technical witnesses, 3 missing, 7 policy-review and 8 independent-review assertions; G13 and G15 acceptance remain pending. [Current detailed status](G13_G15_VERIFIED_EVIDENCE_20261110.md). Earlier source-specific reports below remain historical.
+
+**Historical execution register:** The original tests, failures and source SHAs below are preserved without retroactive changes. The later 2026-11-10 technical campaign is recorded in the current source-locked evidence page.
+
 **Recorded:** 2026-11-09.  
 **M13 branch:** `plan/m13-operational-kpi-dashboards-20261108`, last independently executed technical SHA `8175a28ac188b98f5b4cb3edaa7106b5d38ccb84`; newer branch commits are documentation-only at this checkpoint.  
 **Combined integration branch:** `verify/g13-m13-m15-integration-20261109`.  

@@ -1,7 +1,8 @@
 # M15 Executed Verification and Remaining Gate Evidence
 
-**Current G13/G15 checkpoint (2026-11-09):** [Run 42569970541](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42569970541) **PASSED 15/15 jobs** at `e4bf9cd1527f85f554baf623e90805d96d08ac1a`: 487 successful TRX cases, six successful three-engine browser suites, 23 effective mutations killed, four process-kill probes, and technical evidence integrity PASS. This does **not** close the scenario ledger: each gate has 1 PASS, 22 BLOCKED and 2 NOT EXECUTED. The [evidence review](G13_G15_SOURCE_LOCKED_EVIDENCE_REVIEW_20261109.md) documents remaining source-locked acceptance gaps and the outstanding independent S25 decisions. No merge or deployment.
+**Source-locked successor checkpoint, 2026-11-10:** [G13/G15 workflow 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed 15/15 jobs on `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 tests passed, 0 failed/skipped). The separate atomic audit found 224 technical witnesses, 3 missing, 7 policy-review and 8 independent-review assertions; G13 and G15 acceptance remain pending. [Current detailed status](G13_G15_VERIFIED_EVIDENCE_20261110.md). Earlier source-specific reports below remain historical.
 
+**Historical execution register:** The original tests, failures and source SHAs below are preserved without retroactive changes. The later 2026-11-10 technical campaign is recorded in the current source-locked evidence page.
 
 **Recorded:** 2026-11-09, Türkiye local date.  
 **Implementation branch:** `feat/m15-scoped-notifications-20261108`  

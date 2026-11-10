@@ -1,7 +1,6 @@
 # M13 Operational KPI Implementation Status
 
-**Current G13/G15 checkpoint (2026-11-09):** The source-locked [15-job run 42569970541](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42569970541) **PASSED** at `e4bf9cd1527f85f554baf623e90805d96d08ac1a` (487 passed TRX tests, zero failed/skipped, 30 passing browser tests, technical evidence integrity PASS). The retained scenario ledger still records G13: 1 PASS / 22 BLOCKED / 2 NOT EXECUTED, and G15: 1 PASS / 22 BLOCKED / 2 NOT EXECUTED. [Source-locked evidence review](G13_G15_SOURCE_LOCKED_EVIDENCE_REVIEW_20261109.md) records outstanding restricted-role query-plan, storage policy, interruption, mutation and scenario-completeness requirements. G13/G15 acceptance and merge remain pending. No deployment or production activation is authorized.
-
+**Source-locked successor checkpoint, 2026-11-10:** [G13/G15 workflow 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed 15/15 jobs on `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 tests passed, 0 failed/skipped). The separate atomic audit found 224 technical witnesses, 3 missing, 7 policy-review and 8 independent-review assertions; G13 and G15 acceptance remain pending. [Current detailed status](G13_G15_VERIFIED_EVIDENCE_20261110.md). Earlier source-specific reports below remain historical.
 
 **Updated:** 2026-11-09
 **Branch:** `plan/m13-operational-kpi-dashboards-20261108`
@@ -45,8 +44,8 @@ G11/G12/G16 accepted status, the parked M9 ARRI/DEPA transport hold, 10,000 unre
 
 - D-005: APPROVED with safeguards.
 - M13-01 through M13-03: application implementation authored; targeted checks PASSED on the frozen source.
-- M13-04: targeted implementation verification PASSED, but full G13-S01 through S25 gate evidence remains incomplete.
-- G13-S01: POLICY APPROVED, FULL SOURCE/FIXTURE AND RESOURCE LIMIT RECONCILIATION PENDING.
+- M13-04: combined source-locked implementation verification PASSED at the 2026-11-10 SHA. Full G13 acceptance remains incomplete because three atomic witnesses and independent G13-S25 review are not closed.
+- G13-S01: D-005 policy approved, technical source/fixture verification passed in the combined campaign, but permanent storage and cleanup numerical policies and full scenario reconciliation remain pending.
 - G13-S02 to S25: narrower tests have PASS evidence, but no scenario is declared fully PASS without its complete exit criteria.
 - G13: NOT ACCEPTED. No merge, deployment, or production migration authorization.
 

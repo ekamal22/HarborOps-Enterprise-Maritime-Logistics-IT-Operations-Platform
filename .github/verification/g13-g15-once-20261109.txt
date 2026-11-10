@@ -10,4 +10,7 @@ dedicated KPI suite still verifies real M13 responses and asserts HTTP 200 admis
 Evidence ledger failed due incomplete browser/DB outcomes and the unexecuted G15 HTTP outage witness.
 The full PostgreSQL campaign now executes G15HttpOutageAcceptanceTests against disposable PostgreSQL.
 No application safeguard, production configuration, retention deletion or acceptance state changed.
+Assertion inventory correction: nineteen G13/G15 witnesses now match the renamed
+eighteen-migration upgrade test. Preflight 42765138638 on commit 2699419b4615473166ecaf6543dddc179d5327c2
+is superseded before acceptance dispatch; the source-SHA guard rejects stale dispatch.
 Acceptance pending. No main merge, deployment, activation or notification retention deletion.

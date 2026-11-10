@@ -369,7 +369,7 @@ public sealed class M11ExceptionRuntimeTests
         await using var db = new HarborOpsDbContext(
             new DbContextOptionsBuilder<HarborOpsDbContext>()
                 .UseNpgsql(roles.Admin).Options);
-        Assert.Equal(17, (await db.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.Equal(18, (await db.Database.GetAppliedMigrationsAsync()).Count());
         Assert.False(db.Database.HasPendingModelChanges());
 
         await using var restricted = new NpgsqlConnection(roles.Api);

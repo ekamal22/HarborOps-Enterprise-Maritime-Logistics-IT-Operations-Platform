@@ -1,7 +1,9 @@
 G13/G15 source-locked grouped preflight relaunch, 2026-11-10.
-Prior run: 42761125559, cancelled after regression and mutation control failures.
-Grouped regressions: 10 PASS, 1 FAIL, UnknownEvaluationDoesNotBecomeZeroRisk used /analytics instead of /analytics/overview.
-G13 mutation job: stopped at failing clean UnknownEvaluationDoesNotBecomeZeroRisk control, no effective mutants executed.
-Correction: use overview route, and verify negative quality controls to isolate Unknown in K14 and Q03.
-Last completed scale run 42760038383 PASS, current new source requires exact-SHA rerun.
-Current decisions G13/G15 NOT ACCEPTED, no main merge, deployment, production activation or notification retention deletion.
+Previous preflight: 42762094403, PASS 4/4 on 59111d14f47b6e06c6b26b9074a4a15387f4faef.
+Full campaign: 42763016174, combined M13/M15 PostgreSQL regressions failed four migration-count assertions.
+Cause: M13 tenant capacity adds the eighteenth migration; historical tests still expected seventeen,
+and the accepted thirteen-migration baseline now has five, not four, pending migrations.
+Correction: assert the current total and new migration identity without weakening data preservation,
+downgrade protection, restricted-role permissions, or migration rollback and reapplication checks.
+No change to application runtime behavior, capacity safeguards or cleanup scope.
+G13/G15 acceptance pending. No main merge, deployment, activation or retention deletion.

@@ -132,7 +132,7 @@ jobs:
             --logger 'trx;LogFileName=g13-g15-restricted-sql.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/g13-g15-restricted-sql.log
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
-            --filter 'FullyQualifiedName~G15AuditAcceptanceTests|FullyQualifiedName~G15HistoricalTargetAcceptanceTests' \
+            --filter 'FullyQualifiedName~G15AuditAcceptanceTests|FullyQualifiedName~G15HistoricalTargetAcceptanceTests|FullyQualifiedName~G15HttpOutageAcceptanceTests|FullyQualifiedName~M13TenantCapacityAcceptanceTests' \
             --logger 'trx;LogFileName=g15-final-behavior.trx' --results-directory .verification/m15 \
             2>&1 | tee .verification/m15/g15-final-behavior.log
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
@@ -900,7 +900,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify clean controls and ten effective M15 mutations
+      - name: Verify clean controls and eleven effective M15 mutations
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"

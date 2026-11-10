@@ -67,6 +67,12 @@ MUTANTS = [
         "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay",
     ),
     (
+        "source-history-outbox-uniqueness-removed",
+        "source_history_id uuid PRIMARY KEY REFERENCES shipment_exception_history(id) ON DELETE RESTRICT,",
+        "source_history_id uuid NOT NULL REFERENCES shipment_exception_history(id) ON DELETE RESTRICT,",
+        "SourceHistoryOutboxPrimaryKeyRejectsDuplicateEvent",
+    ),
+    (
         "signed-recipient-scope-unbound",
         "IF fields[2]::uuid IS DISTINCT FROM p_recipient THEN RETURN false; END IF;",
         "IF false THEN RETURN false; END IF;",
@@ -111,6 +117,19 @@ def main() -> int:
             if before is not None and clean.count(before) != 1:
                 raise RuntimeError(name + ": unique mutation anchor not found")
             mutated = clean.replace(before, after) if before is not None else clean
+            if name == "source-history-outbox-uniqueness-removed":
+                # The dependent receipt FK and ON CONFLICT target must be moved
+                # with the removed primary key. Otherwise PostgreSQL rejects
+                # DDL and the variant is not a valid effective mutation.
+                for original_anchor, changed_anchor in (
+                    ("REFERENCES m15_notification_outbox(source_history_id) ON DELETE RESTRICT,",
+                     "REFERENCES shipment_exception_history(id) ON DELETE RESTRICT,"),
+                    ("ON CONFLICT (source_history_id) DO NOTHING;",
+                     "ON CONFLICT DO NOTHING;"),
+                ):
+                    if mutated.count(original_anchor) != 1:
+                        raise RuntimeError(name + ": dependent anchor mismatch")
+                    mutated = mutated.replace(original_anchor, changed_anchor)
             SOURCE.write_text(mutated, encoding="utf-8")
             reset = call([
                 "docker", "exec", container, "psql", "-v", "ON_ERROR_STOP=1",

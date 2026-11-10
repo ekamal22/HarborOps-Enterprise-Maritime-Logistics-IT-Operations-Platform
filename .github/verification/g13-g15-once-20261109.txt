@@ -19,3 +19,6 @@ Acceptance pending. No merge or deployment.
 
 2026-11-10 acceptance closure: verify three remaining witnesses, enforce strict technical assertion coverage.
 Predecessor: 2ff99684fd952941d91c4645dc4473c2e6f62ba8
+
+2026-11-10: correct current G11 acceptance wording in STATUS.md for established documentation consistency check.
+Previous source: a1fa2ee2bd1c742a1ac4529c49f28b9434501bb6

@@ -1,5 +1,7 @@
 # Project Status
 
+**Accepted `main` baseline:** G0-G12 and G16 are accepted in protected `main`. No production activation is authorized.
+
 **Current G13/G15 status (2026-11-10):** [Source-locked run 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) PASSED all 15 jobs at `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 TRX tests passed, none failed/skipped, evidence integrity PASS). The separate 242-assertion audit identifies 224 with executed technical evidence, 3 missing technical witnesses, 7 policy-review items and 8 independent-review items. G13/G15 acceptance, main merge and deployment remain pending. [Current evidence and open decisions](G13_G15_VERIFIED_EVIDENCE_20261110.md).
 
 ## G10 accepted and integrated, 2026-11-07

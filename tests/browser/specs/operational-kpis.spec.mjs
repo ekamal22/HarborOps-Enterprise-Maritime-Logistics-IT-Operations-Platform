@@ -33,6 +33,34 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   await page.addInitScript(() => {
     window.__cspEvents = [];
     window.__styleWrites = [];
+    window.__styleSets = [];
+    for (const proto of [HTMLElement.prototype, SVGElement.prototype]) {
+      const descriptor = Object.getOwnPropertyDescriptor(proto, "style") ??
+        Object.getOwnPropertyDescriptor(Element.prototype, "style");
+      if (!descriptor?.get) continue;
+      Object.defineProperty(proto, "style", {
+        configurable: true,
+        get() {
+          const owner = this;
+          return new Proxy(descriptor.get.call(this), {
+            set(target, key, value) {
+              window.__styleSets.push(owner.tagName + "." + String(owner.getAttribute("class") ?? "").slice(0, 40) +
+                " " + String(key) + "=" + String(value).slice(0, 30));
+              target[key] = value;
+              return true;
+            },
+            get(target, key) {
+              const value = target[key];
+              if (key === "setProperty") return (name, v, prio) => {
+                window.__styleSets.push(owner.tagName + " setProperty " + name + "=" + v);
+                return target.setProperty(name, v, prio);
+              };
+              return typeof value === "function" ? value.bind(target) : value;
+            }
+          });
+        }
+      });
+    }
     new MutationObserver(records => {
       for (const record of records) {
         const el = record.target;
@@ -65,6 +93,7 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   const d = dashboard(page);
   await expect(d.getByRole("heading", { name: "Operational KPIs" })).toBeVisible();
   console.log("CSPCOUNT dashboard " + (await page.evaluate(() => window.__cspEvents.length)));
+  console.log("STYLESETS " + JSON.stringify(await page.evaluate(() => window.__styleSets)));
   await expect(d.getByText("Current workflow distribution")).toBeVisible();
   await expect(d.getByText("Assessment quality")).toBeVisible();
   await expect(d.getByText("Exception occurrence openings")).toBeVisible();

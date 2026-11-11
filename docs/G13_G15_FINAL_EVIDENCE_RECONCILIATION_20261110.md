@@ -1,5 +1,7 @@
 # G13/G15 Final Raw Evidence Reconciliation
 
+**Current gate boundary (2026-11-11):** G13-S25 round 3 returned NOT PASS on the c3-tested source. G13-S20 Option A has since been approved with a 250,000-member cap per report, superseding the former single-report shipment-scale requirement. Post-c3 source remediation and its unexecuted verification witnesses are tracked in [the current status](G13_POST_C3_REMEDIATION_20261111.md). Historical pass/failure records below remain unchanged and apply only to their recorded SHAs. G13 and G15 are not accepted; the G15-S25 round 3 verdict is not recorded here. No main merge, GitHub Actions, production activation or retention deletion is authorized.
+
 **Reviewed:** 2026-11-10  
 **Frozen implementation SHA:** `15cabd8c542159753c927c2bd65b4346223e84f6`  
 **Workflow:** [42745334415](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42745334415), completed SUCCESS, 15 of 15 jobs.  

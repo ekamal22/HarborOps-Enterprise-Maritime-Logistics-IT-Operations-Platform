@@ -1,5 +1,7 @@
 # G13/G15 Final Conditional Policy Decision Record
 
+**Current gate boundary (2026-11-11):** G13-S25 round 3 returned NOT PASS on the c3-tested source. G13-S20 Option A has since been approved with a 250,000-member cap per report, superseding the former single-report shipment-scale requirement. Post-c3 source remediation and its unexecuted verification witnesses are tracked in [the current status](G13_POST_C3_REMEDIATION_20261111.md). Historical pass/failure records below remain unchanged and apply only to their recorded SHAs. G13 and G15 are not accepted; the G15-S25 round 3 verdict is not recorded here. No main merge, GitHub Actions, production activation or retention deletion is authorized.
+
 > **Update (2026-11-10, later source):** The conditions and open items recorded here describe source `15cabd8c542159753c927c2bd65b4346223e84f6`. Tenant quota and bounded idle cleanup, the specific mutation witnesses and the real HTTP outage test were subsequently implemented and verified locally at `5bcb7e5b2ec5e590bd26e64ffd659c17aaee1f92`; see the [local closure results](G13_G15_LOCAL_CLOSURE_RESULTS_20261110.md), and for the later remediated source `3e63bd0e71bdf4a80cd8ea1d27e7cceca3c37524` the [round 2 results](G13_G15_LOCAL_CLOSURE_RESULTS_C2_20261111.md). This record's dispositions remain in force until new positive decisions are recorded after independent review. Acceptance pending.
 
 **Date:** 2026-11-10  

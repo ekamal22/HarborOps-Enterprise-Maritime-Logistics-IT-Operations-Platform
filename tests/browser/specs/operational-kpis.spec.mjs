@@ -18,7 +18,24 @@ function dashboard(page) {
 
 test("M13 Manager sees scoped operational reporting and safe drill", async ({ page }) => {
   test.skip(!enabled, "Disposable M13 browser fixture required");
+  // The web tier serves the dashboard under a strict content security policy. Any
+  // blocked inline script, style or connection would surface as a violation here.
+  const violations = [];
+  page.on("console", message => {
+    if (/Content Security Policy|violates the following/i.test(message.text()))
+      violations.push(message.text());
+  });
+  page.on("pageerror", error => {
+    if (/Content Security Policy/i.test(error.message)) violations.push(error.message);
+  });
   await login(page, "m3-manager@example.test");
+  const shell = await page.request.get("/");
+  const policy = shell.headers()["content-security-policy"] ?? "";
+  expect(policy).toContain("default-src 'self'");
+  expect(policy).toContain("frame-ancestors 'none'");
+  expect(policy).toContain("object-src 'none'");
+  expect(shell.headers()["x-frame-options"]).toBe("DENY");
+  expect(shell.headers()["x-content-type-options"]).toBe("nosniff");
   const overviewResponse = page.waitForResponse(response =>
     response.url().includes("/analytics/overview") &&
     response.request().method() === "GET", { timeout: 30000 });
@@ -63,6 +80,7 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   await expect(d.getByText(/Period:/)).toContainText("01 Nov 2026", { timeout: 30000 });
   await d.getByRole("button", { name: "Reset" }).click();
   await expect(d.getByLabel("From (UTC, inclusive)")).toHaveValue("");
+  expect(violations, "Content security policy violations on the KPI dashboard").toEqual([]);
 });
 
 test("M13 ungranted Auditor never sees report values or exported data", async ({ page }) => {

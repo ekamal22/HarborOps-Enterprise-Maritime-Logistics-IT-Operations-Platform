@@ -22,7 +22,7 @@ function dashboard(page) {
 // not claim that TLS hosting was deployed or that the entire hosted stack ran.
 test("M13 hosted CSP profile blocks inline execution in all browser engines", async ({ page }) => {
   const config = readFileSync(resolve(process.cwd(), "web/nginx.hosted.conf.template"), "utf8");
-  const policies = [...config.matchAll(/add_header\\s+Content-Security-Policy\\s+"([^"]+)"\\s+always;/g)];
+  const policies = [...config.matchAll(/add_header\s+Content-Security-Policy\s+"([^"]+)"\s+always;/g)];
   expect(policies).toHaveLength(1);
   const policy = policies[0][1];
   expect(policy).toContain("upgrade-insecure-requests");

@@ -46,6 +46,7 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
     });
   });
   await login(page, "m3-manager@example.test");
+  console.log("CSPCOUNT after-login " + (await page.evaluate(() => window.__cspEvents.length)));
   const shell = await page.request.get("/");
   const policy = shell.headers()["content-security-policy"] ?? "";
   expect(policy).toContain("default-src 'self'");
@@ -63,6 +64,7 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   expect(response.status(), "Real KPI reporting must be admitted").toBe(200);
   const d = dashboard(page);
   await expect(d.getByRole("heading", { name: "Operational KPIs" })).toBeVisible();
+  console.log("CSPCOUNT dashboard " + (await page.evaluate(() => window.__cspEvents.length)));
   await expect(d.getByText("Current workflow distribution")).toBeVisible();
   await expect(d.getByText("Assessment quality")).toBeVisible();
   await expect(d.getByText("Exception occurrence openings")).toBeVisible();
@@ -75,6 +77,7 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
 
   // A new report invalidates the old member set. The drill is scoped to its
   // originating report and current selected organization.
+  console.log("CSPCOUNT before-drill " + (await page.evaluate(() => window.__cspEvents.length)));
   await d.getByRole("button", { name: /Active shipments/ }).click();
   await expect(d.getByRole("region", { name: "KPI report members" })).toBeVisible();
   await d.getByRole("button", { name: "Refresh report" }).click();

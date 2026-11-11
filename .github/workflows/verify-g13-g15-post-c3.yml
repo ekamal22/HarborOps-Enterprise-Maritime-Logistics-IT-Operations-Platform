@@ -246,16 +246,24 @@ jobs:
               # six-report-per-minute policy. Reset only the disposable API
               # process between suites; retain all DB fixtures and policy.
               docker compose -p "$project" restart api
-              if [ "$suite" = notifications ]; then node scripts/prepare-m15-browser-fixtures.mjs --refresh-sessions-only; fi
-              if [ "$suite" = operational-kpis ]; then docker compose -p "$project" exec -T postgres psql -U harborops -d harborops -tA -c "WITH d AS (DELETE FROM operational_kpi_reports RETURNING 1) SELECT count(*) FROM d" > ".verification/m15-browser/${engine}-report-reset.txt"; fi
+              # Wait for both the API and the browser's nginx reverse proxy
+              # before refreshing sessions. Immediately requesting CSRF after
+              # restart produced HTTP 502 while the API was still starting.
               ready=0
               for attempt in $(seq 1 45); do
-                if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null; then
+                if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null &&
+                   curl --silent --fail --max-time 3 http://127.0.0.1:5173/api/v1/auth/csrf >/dev/null; then
                   ready=1; break
                 fi
                 sleep 2
               done
-              test "$ready" = "1"
+              if [ "$ready" != "1" ]; then
+                docker compose -p "$project" ps
+                echo "Disposable API/browser proxy did not become ready after restart" >&2
+                exit 1
+              fi
+              if [ "$suite" = notifications ]; then node scripts/prepare-m15-browser-fixtures.mjs --refresh-sessions-only; fi
+              if [ "$suite" = operational-kpis ]; then docker compose -p "$project" exec -T postgres psql -U harborops -d harborops -tA -c "WITH d AS (DELETE FROM operational_kpi_reports RETURNING 1) SELECT count(*) FROM d" > ".verification/m15-browser/${engine}-report-reset.txt"; fi
               export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/m15-browser/${engine}-${suite}.json"
               (cd tests/browser && npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1)
               HARBOROPS_EXPECTED_CASES="$([ "$suite" = notifications ] && echo 11 || echo 9)" \

@@ -269,8 +269,9 @@ public sealed class M13AdmissionControlAcceptanceTests
 
     // The planner and time limit changes must be transaction-local. Npgsql normally
     // resets a connection when it returns to the pool, which would hide a session
-    // level SET. This host disables the reset, so any setting that outlives a
-    // committed or refused build is still on the pooled connection when probed.
+    // level SET, and the shared test logins do not pool at all. This host pools its
+    // connections and disables the reset, so any setting that outlives a committed
+    // build is still on the pooled connection when probed.
     [ExclusiveM13PostgresFact]
     public async Task PlannerAndTimeoutSettingsNeverOutliveABuildOnAConnectionThatIsNotReset()
     {
@@ -281,8 +282,13 @@ public sealed class M13AdmissionControlAcceptanceTests
         using var originalManager = f.Manager;
         using var originalAnalyst = f.Analyst;
         await AssignmentHttpTests.Seed(f);
-        using var api = new ReferenceDataHttpTests.ApiFactory(
-            roles.Api + ";No Reset On Close=true");
+        // The shared test logins disable pooling, which would hand every probe a fresh
+        // session and hide a leaked setting. Pool the connections and keep their state.
+        var pooled = new NpgsqlConnectionStringBuilder(roles.Api)
+        {
+            Pooling = true, NoResetOnClose = true, MaxPoolSize = 40
+        }.ConnectionString;
+        using var api = new ReferenceDataHttpTests.ApiFactory(pooled);
         using var manager = await ClientFor(api, f.ManagerEmail, f.A);
         using var analyst = await ClientFor(api, f.AnalystEmail, f.A);
         foreach (var client in new[] { manager, analyst, manager, analyst })

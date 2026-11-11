@@ -1804,8 +1804,8 @@
               "id": "SerializationFailureAtAdmissionRetriesAndPublishesOnlyOneSnapshot"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "An injected genuine PostgreSQL 40001 from the migration-owned function will exercise the live API retry once a disposable source-locked run executes it."
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. SQL timeout, live materialization cancellation and a genuine PostgreSQL 40001 admission retry are each asserted by named tests. Require passing exact-SHA tests and the timeout mutation, not historical test names alone."
         },
         {
           "id": "G13-S19-A03",
@@ -1825,8 +1825,8 @@
               "id": "G13DuringLiveApiBuild"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "A new test kills the testhost during a live authenticated HTTP report build; source-locked execution is pending and historical hand-built crash remains identified as a surrogate."
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. The process harness kills a live authenticated API request mid-materialization and verifies fresh-process recovery before and after commit. Require every phase manifest entry and exact-SHA evidence."
         },
         {
           "id": "G13-S19-A04",
@@ -1846,8 +1846,8 @@
               "id": "InterruptedIdleCleanupRollsBackWithoutRemovingReportsOrBusinessEvidence"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "A new cancellation test pauses an actual idle-cleanup DELETE inside a PostgreSQL trigger and checks transaction rollback; not yet executed."
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. The cleanup test cancels a PostgreSQL DELETE while a real trigger is active and proves rollback, retry and retained business evidence. Require named tests on the frozen source."
         },
         {
           "id": "G13-S19-A05",
@@ -1882,10 +1882,14 @@
             {
               "kind": "test",
               "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
+            },
+            {
+              "kind": "test",
+              "id": "InterruptedIdleCleanupRollsBackWithoutRemovingReportsOrBusinessEvidence"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "M10 through M12 row-preservation checks were added after c3 and require a new source-locked execution"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. The cleanup test now fingerprints every row of the separate shipment, status, assignment, tracking, correction, evaluation, exception, exception-history and audit source tables before cancellation and after retry. Each per-table count and content digest must match, together with existing bounded-cleanup tests."
         },
         {
           "id": "G13-S19-A07",
@@ -2095,8 +2099,8 @@
               "id": "LateQuotaDecisionRefusesAndRollsBackWhenCapacityWasTakenAfterTheEarlyCheck"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Early admissions and late commit serialization now have distinct actual-SQL interleaving tests, pending execution."
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. Separate executed interleaving tests cover early slot accounting, late tenant lock and commit, cancellation rollback and late quota refusal. Advisory-lock removal must be killed on this source."
         }
       ]
     },
@@ -2170,10 +2174,15 @@
             {
               "kind": "test",
               "id": "RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole"
+            },
+            {
+              "kind": "postgres_resources",
+              "id": "G13",
+              "artifact": "g13-scale"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "PostgreSQL-side WAL, temp bytes and temp file counters plus a container CPU/memory sampler are now authored, but no new campaign has measured them. App-process metrics cannot substitute for PostgreSQL metrics."
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. The approved scale test records bounded report resources. Require exact-SHA resource-summary.json, sampled PostgreSQL container CPU/memory CSV, PostgreSQL WAL bytes, temp bytes and file counts, along with the numeric report budget and TRX. Application process readings alone are insufficient."
         },
         {
           "id": "G13-S20-A05",
@@ -2403,8 +2412,8 @@
               "id": "FailedTransitionLeavesNoPartialHistory"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Now cites explicit shipment lifecycle and upgrade witnesses, pending new source-locked execution."
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. The accepted shipment and assignment behavior must be proven with named M5/M6 regression, populated upgrade and failure-rollback tests, plus the combined regression job on this exact source."
         },
         {
           "id": "G13-S22-A02",
@@ -2474,8 +2483,8 @@
               "id": "ProvisionedRuntimeRolesCannotModifyAuditEvidenceOrRunDdl"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Now cites explicit M12 export and M16 audit tests, pending new source-locked execution."
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. The approved M12 search/CSV export and M16 append-only audit tests must all execute on the same SHA with successful combined regression and database jobs. Former gate status alone is not proof."
         },
         {
           "id": "G13-S22-A05",
@@ -2577,11 +2586,17 @@
             },
             {
               "kind": "browser_case",
-              "id": "M13 hosted CSP profile blocks inline execution in all browser engines"
+              "id": "M13 hosted CSP profile blocks inline execution in all browser engines",
+              "suite": "operational-kpis"
+            },
+            {
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "csp"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "The hosted nginx CSP is now exercised by a synthetic browser header control and a static policy-equivalence check. Real hosted TLS deployment remains outside this gate."
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. No-store, CSRF and same-origin rejection are exercised by live API tests. CSP is checked by a preflight hosted-policy contract and a named Chromium/Firefox/WebKit browser case. This does not substitute for production TLS verification."
         },
         {
           "id": "G13-S23-A04",
@@ -2593,8 +2608,8 @@
               "id": "KpiRequestsNeverPutTokensOrMemberIdentifiersInLogs"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "The real Set-Cookie value was not examined by c3; a corrected test is now unverified"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. The live HTTP response Set-Cookie is captured and inspected directly, and the test asserts no sensitive tokens or member identifiers are logged. Require the actual passing TRX on the current source."
         },
         {
           "id": "G13-S23-A05",
@@ -2659,8 +2674,8 @@
               "id": "live-report-count-expiry-filter-removed"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "The live-count reader authority, tenant and expiry witnesses were added after c3 and are awaiting execution"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. Both scoped SQL readers, user/tenant quota, and the live-report count function are denied to invalid authorities. Tenant/expiry/exclusion behavior and distinct killed mutants must pass on the same SHA."
         },
         {
           "id": "G13-S23-A08",
@@ -2718,10 +2733,15 @@
               "kind": "mutant",
               "artifact": "g13-security-mutations",
               "id": "auditor-sql-grant-bypass"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "member-sql-tenant-filter-silently-excludes-draft"
             }
           ],
-          "assessment": "PARTIALLY_TESTED",
-          "audit_note": "The member tenant-predicate mutant was killed by a database FK failure; silent filter loss remains untested"
+          "assessment": "FULLY_TESTED",
+          "audit_note": "Proposed complete technical witness map, conditional on same-source execution and source inspection. Source-mutant closure requires both fail-closed database constraint rejection for a removed shipment tenant predicate and a separate behavior-based mutation that silently excludes valid tenant Draft shipments, in addition to reader tenant-filter and unauthorized Auditor grant mutants. Every listed variant must be killed on the frozen source."
         },
         {
           "id": "G13-S24-A02",
@@ -5114,5 +5134,5 @@
   ],
   "reconciled_at": "2026-11-11",
   "milestone_acceptance": "PENDING",
-  "campaign": "post-c3 source candidate at feature/g13-post-c3-remediation-20261111; fresh source-locked campaign required"
+  "campaign": "post-c3 closure candidate; do not report complete until a fresh exact-SHA packet and all assertions pass"
 }

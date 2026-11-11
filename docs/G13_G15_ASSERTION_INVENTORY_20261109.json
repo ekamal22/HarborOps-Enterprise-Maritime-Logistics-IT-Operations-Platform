@@ -30,19 +30,15 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "CatalogHasFourteenDistinctVersionedMetricsAndClearDenominators"
-            },
-            {
-              "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
             },
             {
               "kind": "test",
-              "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
+              "id": "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
             },
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
+              "id": "CatalogHasFourteenDistinctVersionedMetricsAndClearDenominators"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -55,19 +51,15 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "CatalogHasFourteenDistinctVersionedMetricsAndClearDenominators"
-            },
-            {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
-            },
-            {
-              "kind": "test",
               "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
             },
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
+              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
+            },
+            {
+              "kind": "test",
+              "id": "RoleMatrixCoversCatalogOverviewAndDrillForEveryRole"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -88,19 +80,23 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "CatalogHasFourteenDistinctVersionedMetricsAndClearDenominators"
-            },
-            {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
-            },
-            {
-              "kind": "test",
-              "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
+              "id": "RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole"
             },
             {
               "kind": "test",
               "id": "Mixed170kShipmentsProduceExactBoundedReport"
+            },
+            {
+              "kind": "budget",
+              "id": "G13"
+            },
+            {
+              "kind": "test",
+              "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
+            },
+            {
+              "kind": "test",
+              "id": "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -117,16 +113,9 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "job",
-              "id": "source"
-            },
-            {
-              "kind": "test",
-              "id": "AllAnalyticsReadsRequireAuthenticatedSession"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "build"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -138,16 +127,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "job",
-              "id": "source"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "unit"
             },
             {
-              "kind": "test",
-              "id": "AllAnalyticsReadsRequireAuthenticatedSession"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "contract"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -159,16 +146,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "job",
-              "id": "source"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "web-build"
             },
             {
-              "kind": "test",
-              "id": "AllAnalyticsReadsRequireAuthenticatedSession"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "web-test"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -180,16 +165,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "job",
-              "id": "source"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "contracts"
             },
             {
-              "kind": "test",
-              "id": "AllAnalyticsReadsRequireAuthenticatedSession"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "planning"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -285,6 +268,10 @@
             {
               "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+            },
+            {
+              "kind": "test",
+              "id": "FirstRecordedEventWinsWhenArrivedAndCompletedAreRecordedAgainLater"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -336,6 +323,10 @@
             {
               "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+            },
+            {
+              "kind": "test",
+              "id": "FirstRecordedEventWinsWhenArrivedAndCompletedAreRecordedAgainLater"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -357,15 +348,11 @@
             },
             {
               "kind": "test",
-              "id": "PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"
+              "id": "FirstRecordedEventWinsWhenArrivedAndCompletedAreRecordedAgainLater"
             },
             {
               "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -378,19 +365,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
-            },
-            {
-              "kind": "test",
-              "id": "PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"
+              "id": "CompletedShipmentWithoutAProvenPlanIsCompletedButNeverInTheArrivalDenominator"
             },
             {
               "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
             },
             {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "d05-plan-predicate-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -403,7 +387,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
+              "id": "MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater"
             },
             {
               "kind": "test",
@@ -411,11 +395,17 @@
             },
             {
               "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             },
             {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k06-exact-sixty-minute-boundary"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k06-remove-tolerance"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -428,19 +418,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
+              "id": "EmptyTenantNeverInventsPercentagesTrendsOrMembers"
             },
             {
               "kind": "test",
-              "id": "PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"
+              "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
             },
             {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 empty report shows insufficient denominators without false risk trends"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -453,19 +440,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
-            },
-            {
-              "kind": "test",
-              "id": "PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"
-            },
-            {
-              "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
             },
             {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "test",
+              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
+            },
+            {
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 ratio rendering uses exact member numerators and half-up percentages"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -487,14 +471,6 @@
             },
             {
               "kind": "test",
-              "id": "WindowsAreStrictHalfOpenAndBounded"
-            },
-            {
-              "kind": "test",
-              "id": "PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"
-            },
-            {
-              "kind": "test",
               "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
             }
           ],
@@ -512,15 +488,7 @@
             },
             {
               "kind": "test",
-              "id": "WindowsAreStrictHalfOpenAndBounded"
-            },
-            {
-              "kind": "test",
               "id": "PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"
-            },
-            {
-              "kind": "test",
-              "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -533,15 +501,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RequiresExplicitRepresentableUtcTimestamp"
-            },
-            {
-              "kind": "test",
               "id": "WindowsAreStrictHalfOpenAndBounded"
-            },
-            {
-              "kind": "test",
-              "id": "PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"
             },
             {
               "kind": "test",
@@ -558,19 +518,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RequiresExplicitRepresentableUtcTimestamp"
-            },
-            {
-              "kind": "test",
-              "id": "WindowsAreStrictHalfOpenAndBounded"
+              "id": "MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater"
             },
             {
               "kind": "test",
               "id": "PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"
             },
             {
-              "kind": "test",
-              "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k06-exact-sixty-minute-boundary"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -583,19 +540,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RequiresExplicitRepresentableUtcTimestamp"
-            },
-            {
-              "kind": "test",
-              "id": "WindowsAreStrictHalfOpenAndBounded"
-            },
-            {
-              "kind": "test",
               "id": "PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact"
-            },
-            {
-              "kind": "test",
-              "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -617,15 +562,12 @@
             },
             {
               "kind": "test",
-              "id": "RecordedArrivalLateMayBeClosedWithoutErasingHistoricalFact"
-            },
-            {
-              "kind": "test",
-              "id": "EquipmentConflictCarriesExactAcceptedEventAndContainerWitness"
-            },
-            {
-              "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k07-recorded-risk-dropped"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -638,19 +580,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RealM11OverdueEvaluationProducesDistinctDashboardRisk"
-            },
-            {
-              "kind": "test",
               "id": "RecordedArrivalLateMayBeClosedWithoutErasingHistoricalFact"
-            },
-            {
-              "kind": "test",
-              "id": "EquipmentConflictCarriesExactAcceptedEventAndContainerWitness"
-            },
-            {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -663,15 +593,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RealM11OverdueEvaluationProducesDistinctDashboardRisk"
+              "id": "ReportingCatalogNeverLabelsScheduleRiskAsPhysicalArrival"
             },
             {
               "kind": "test",
-              "id": "RecordedArrivalLateMayBeClosedWithoutErasingHistoricalFact"
-            },
-            {
-              "kind": "test",
-              "id": "EquipmentConflictCarriesExactAcceptedEventAndContainerWitness"
+              "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
             },
             {
               "kind": "test",
@@ -688,19 +614,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RealM11OverdueEvaluationProducesDistinctDashboardRisk"
-            },
-            {
-              "kind": "test",
-              "id": "RecordedArrivalLateMayBeClosedWithoutErasingHistoricalFact"
-            },
-            {
-              "kind": "test",
               "id": "EquipmentConflictCarriesExactAcceptedEventAndContainerWitness"
             },
             {
               "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k10-fresh-equipment-conflict-hidden"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -713,19 +636,17 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RealM11OverdueEvaluationProducesDistinctDashboardRisk"
-            },
-            {
-              "kind": "test",
-              "id": "RecordedArrivalLateMayBeClosedWithoutErasingHistoricalFact"
-            },
-            {
-              "kind": "test",
-              "id": "EquipmentConflictCarriesExactAcceptedEventAndContainerWitness"
-            },
-            {
-              "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k07-recorded-risk-dropped"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k10-fresh-equipment-conflict-hidden"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -747,11 +668,7 @@
             },
             {
               "kind": "test",
-              "id": "ExpiredRuleCheckpointBlocksResolveUntilFreshReevaluation"
-            },
-            {
-              "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+              "id": "UnknownEvaluationDoesNotBecomeZeroRisk"
             },
             {
               "kind": "test",
@@ -769,6 +686,15 @@
             {
               "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+            },
+            {
+              "kind": "test",
+              "id": "SourceCorrectionReevaluationKeepsFrozenRiskAndRefreshesCurrentRisk"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "correction-generation-stale-accepted"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -781,7 +707,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "NullSchedulesAreUnknownNotInventedDelays"
+              "id": "UnknownEvaluationDoesNotBecomeZeroRisk"
             },
             {
               "kind": "test",
@@ -792,8 +718,9 @@
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
             },
             {
-              "kind": "test",
-              "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "unknown-evaluation-suppressed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -819,19 +746,21 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "NullSchedulesAreUnknownNotInventedDelays"
-            },
-            {
-              "kind": "test",
-              "id": "ExpiredRuleCheckpointBlocksResolveUntilFreshReevaluation"
-            },
-            {
-              "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
             },
             {
               "kind": "test",
-              "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
+              "id": "UnknownEvaluationDoesNotBecomeZeroRisk"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "coverage-force-complete"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "unassessed-suppress-missing"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -901,6 +830,11 @@
             {
               "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "correction-generation-stale-accepted"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -939,7 +873,12 @@
             },
             {
               "kind": "test",
-              "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
+              "id": "ConcurrentManagerDispositionAndReportDoNotDoubleCountOccurrence"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k11-include-resolved-occurrence"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -959,8 +898,9 @@
               "id": "RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence"
             },
             {
-              "kind": "test",
-              "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k12-suppress-first-openings"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -973,15 +913,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
-            },
-            {
-              "kind": "test",
               "id": "RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence"
             },
             {
               "kind": "test",
-              "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
+              "id": "VerifiedClearancePersistsAcrossUnknownBeforeRecurrence"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -994,15 +930,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
-            },
-            {
-              "kind": "test",
-              "id": "RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence"
-            },
-            {
-              "kind": "test",
               "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
+            },
+            {
+              "kind": "test",
+              "id": "ConcurrentManagerDispositionAndReportDoNotDoubleCountOccurrence"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1015,7 +947,15 @@
           "evidence": [
             {
               "kind": "test",
+              "id": "UnknownEvaluationDoesNotBecomeZeroRisk"
+            },
+            {
+              "kind": "test",
               "id": "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"
+            },
+            {
+              "kind": "test",
+              "id": "ConcurrentManagerDispositionAndReportDoNotDoubleCountOccurrence"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1036,8 +976,9 @@
               "id": "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"
             },
             {
-              "kind": "test",
-              "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "origin-member-filter-ignored"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1051,10 +992,6 @@
             {
               "kind": "test",
               "id": "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"
-            },
-            {
-              "kind": "test",
-              "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1070,8 +1007,9 @@
               "id": "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"
             },
             {
-              "kind": "test",
-              "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "voyage-assignment-end-ignored"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1085,10 +1023,6 @@
             {
               "kind": "test",
               "id": "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"
-            },
-            {
-              "kind": "test",
-              "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1099,10 +1033,6 @@
           "requirement": "Deny foreign UUID/port filters without revealing tenancy",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "test",
-              "id": "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"
-            },
             {
               "kind": "test",
               "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
@@ -1119,10 +1049,6 @@
             {
               "kind": "test",
               "id": "OriginDestinationSourceAndVoyageFiltersAgreeWithMaterializedMembers"
-            },
-            {
-              "kind": "test",
-              "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1140,19 +1066,15 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
+              "id": "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
             },
             {
               "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
+              "id": "MalformedUtcAndForeignFiltersDoNotCreateKpiReports"
             },
             {
               "kind": "test",
-              "id": "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
+              "id": "DirectPrivilegedReaderCallsReturnOnlyTheSelectedTenantsRows"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1169,15 +1091,7 @@
             },
             {
               "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
-            },
-            {
-              "kind": "test",
-              "id": "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
+              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1190,19 +1104,26 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
+              "id": "DirectPrivilegedReaderCallsReturnOnlyTheSelectedTenantsRows"
             },
             {
               "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
+              "id": "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
             },
             {
-              "kind": "test",
-              "id": "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "member-sql-shipment-tenant-predicate-removed"
             },
             {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "scoped-evaluations-organization-filter-removed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "scoped-exceptions-organization-filter-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1228,6 +1149,16 @@
             {
               "kind": "test",
               "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-security-mutations",
+              "id": "report-select-unrestricted"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-security-mutations",
+              "id": "member-select-unrestricted"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1240,19 +1171,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
-            },
-            {
-              "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
-            },
-            {
-              "kind": "test",
-              "id": "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
+              "id": "ForeignAndNonexistentKpiResourcesAreIndistinguishable"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1270,11 +1189,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
-            },
-            {
-              "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
+              "id": "RoleMatrixCoversCatalogOverviewAndDrillForEveryRole"
             },
             {
               "kind": "test",
@@ -1291,15 +1206,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
+              "id": "RoleMatrixCoversCatalogOverviewAndDrillForEveryRole"
             },
             {
               "kind": "test",
               "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
-            },
-            {
-              "kind": "test",
-              "id": "DedicatedPermissionDoesNotBroadenReadOrExportRights"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1316,11 +1227,7 @@
             },
             {
               "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
-            },
-            {
-              "kind": "test",
-              "id": "DedicatedPermissionDoesNotBroadenReadOrExportRights"
+              "id": "RoleMatrixCoversCatalogOverviewAndDrillForEveryRole"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1337,11 +1244,12 @@
             },
             {
               "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
+              "id": "ExistingKpiReportCannotBeReadAfterAuthorityRevocation"
             },
             {
-              "kind": "test",
-              "id": "DedicatedPermissionDoesNotBroadenReadOrExportRights"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "auditor-grant-version-revocation-bypassed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1354,15 +1262,20 @@
           "evidence": [
             {
               "kind": "test",
+              "id": "DedicatedPermissionDoesNotBroadenReadOrExportRights"
+            },
+            {
+              "kind": "test",
               "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
             },
             {
               "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
+              "id": "RoleMatrixCoversCatalogOverviewAndDrillForEveryRole"
             },
             {
-              "kind": "test",
-              "id": "DedicatedPermissionDoesNotBroadenReadOrExportRights"
+              "kind": "mutant",
+              "artifact": "g13-security-mutations",
+              "id": "auditor-sql-grant-bypass"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1375,15 +1288,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
-            },
-            {
-              "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
-            },
-            {
-              "kind": "test",
-              "id": "DedicatedPermissionDoesNotBroadenReadOrExportRights"
+              "id": "RoleMatrixCoversCatalogOverviewAndDrillForEveryRole"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1402,18 +1307,6 @@
             {
               "kind": "test",
               "id": "ExistingKpiReportCannotBeReadAfterAuthorityRevocation"
-            },
-            {
-              "kind": "test",
-              "id": "QueuedKpiReportCannotPublishAfterCommittedSecurityRevocation"
-            },
-            {
-              "kind": "test",
-              "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1430,15 +1323,7 @@
             },
             {
               "kind": "test",
-              "id": "QueuedKpiReportCannotPublishAfterCommittedSecurityRevocation"
-            },
-            {
-              "kind": "test",
               "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1455,15 +1340,7 @@
             },
             {
               "kind": "test",
-              "id": "QueuedKpiReportCannotPublishAfterCommittedSecurityRevocation"
-            },
-            {
-              "kind": "test",
               "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1479,16 +1356,9 @@
               "id": "ExistingKpiReportCannotBeReadAfterAuthorityRevocation"
             },
             {
-              "kind": "test",
-              "id": "QueuedKpiReportCannotPublishAfterCommittedSecurityRevocation"
-            },
-            {
-              "kind": "test",
-              "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 switching organization discards the previous organization's report"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1501,19 +1371,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ExistingKpiReportCannotBeReadAfterAuthorityRevocation"
-            },
-            {
-              "kind": "test",
               "id": "QueuedKpiReportCannotPublishAfterCommittedSecurityRevocation"
-            },
-            {
-              "kind": "test",
-              "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1525,20 +1383,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "ExistingKpiReportCannotBeReadAfterAuthorityRevocation"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 failed report clears old values and a retry builds a fresh snapshot"
             },
             {
-              "kind": "test",
-              "id": "QueuedKpiReportCannotPublishAfterCommittedSecurityRevocation"
-            },
-            {
-              "kind": "test",
-              "id": "AuditorGrantRevocationDeniesDashboardAndOldReportMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 switching organization discards the previous organization's report"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1561,10 +1413,6 @@
             {
               "kind": "test",
               "id": "CommittedReportMembersRemainStableAcrossLaterWorkflowChanges"
-            },
-            {
-              "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1582,10 +1430,6 @@
             {
               "kind": "test",
               "id": "CommittedReportMembersRemainStableAcrossLaterWorkflowChanges"
-            },
-            {
-              "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1612,6 +1456,11 @@
             {
               "kind": "test",
               "id": "CommittedReportMembersRemainStableAcrossLaterWorkflowChanges"
+            },
+            {
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 expired report drill shows no stale member data and refresh resets the drill"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1624,15 +1473,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RepeatableReadReportIgnoresUncommittedConcurrentShipmentTransition"
+              "id": "FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows"
             },
             {
               "kind": "test",
-              "id": "CommittedReportMembersRemainStableAcrossLaterWorkflowChanges"
-            },
-            {
-              "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
+              "id": "SixDistinctUsersGetExactlyFourReportsAndTwoCapacityRefusals"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1654,10 +1499,6 @@
             },
             {
               "kind": "test",
-              "id": "FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows"
-            },
-            {
-              "kind": "test",
               "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
@@ -1672,14 +1513,6 @@
             {
               "kind": "test",
               "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
-            },
-            {
-              "kind": "test",
-              "id": "FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1693,10 +1526,6 @@
             {
               "kind": "test",
               "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
-            },
-            {
-              "kind": "test",
-              "id": "FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows"
             },
             {
               "kind": "test",
@@ -1717,10 +1546,6 @@
             },
             {
               "kind": "test",
-              "id": "FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows"
-            },
-            {
-              "kind": "test",
               "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
@@ -1734,15 +1559,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
-            },
-            {
-              "kind": "test",
               "id": "FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows"
             },
             {
               "kind": "test",
               "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "malformed-kpi-member-cursor-admitted"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1767,12 +1593,9 @@
               "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
             },
             {
-              "kind": "test",
-              "id": "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 empty report shows insufficient denominators without false risk trends"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1785,19 +1608,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "EmptyTenantNeverInventsPercentagesTrendsOrMembers"
-            },
-            {
-              "kind": "test",
-              "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
-            },
-            {
-              "kind": "test",
               "id": "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
             },
             {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "test",
+              "id": "Mixed170kShipmentsProduceExactBoundedReport"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1809,20 +1624,9 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "EmptyTenantNeverInventsPercentagesTrendsOrMembers"
-            },
-            {
-              "kind": "test",
-              "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
-            },
-            {
-              "kind": "test",
-              "id": "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 ratio rendering uses exact member numerators and half-up percentages"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1835,19 +1639,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "EmptyTenantNeverInventsPercentagesTrendsOrMembers"
-            },
-            {
-              "kind": "test",
-              "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
-            },
-            {
-              "kind": "test",
-              "id": "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "id": "UnknownEvaluationDoesNotBecomeZeroRisk"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1863,16 +1655,9 @@
               "id": "EmptyTenantNeverInventsPercentagesTrendsOrMembers"
             },
             {
-              "kind": "test",
-              "id": "DraftOnlyTenantHasNoFalseCompletedArrivalDenominator"
-            },
-            {
-              "kind": "test",
-              "id": "TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
-            },
-            {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 empty report shows insufficient denominators without false risk trends"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1890,15 +1675,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
+              "id": "Migrations_AreDiscoveredInOrder"
             },
             {
               "kind": "test",
               "id": "ModelSnapshot_MatchesCurrentEntityModel"
-            },
-            {
-              "kind": "test",
-              "id": "Migrations_AreDiscoveredInOrder"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1912,14 +1693,6 @@
             {
               "kind": "test",
               "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
-            },
-            {
-              "kind": "test",
-              "id": "Migrations_AreDiscoveredInOrder"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1933,14 +1706,6 @@
             {
               "kind": "test",
               "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
-            },
-            {
-              "kind": "test",
-              "id": "Migrations_AreDiscoveredInOrder"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1953,15 +1718,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
+              "id": "Migrations_AreDiscoveredInOrder"
             },
             {
               "kind": "test",
               "id": "ModelSnapshot_MatchesCurrentEntityModel"
-            },
-            {
-              "kind": "test",
-              "id": "Migrations_AreDiscoveredInOrder"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1974,15 +1735,16 @@
           "evidence": [
             {
               "kind": "test",
+              "id": "DowngradeOfAMigrationHoldingDeliveryEvidenceFailsClosedAndLeavesEveryRow"
+            },
+            {
+              "kind": "test",
               "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
             },
             {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
-            },
-            {
-              "kind": "test",
-              "id": "Migrations_AreDiscoveredInOrder"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "m15-downgrade-guard-turned-into-a-notice"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2011,8 +1773,9 @@
               "id": "G13BeforeReportCommit"
             },
             {
-              "kind": "crash",
-              "id": "G13AfterReportCommit"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "tenant-quota-rejection-rollback-bypassed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2028,16 +1791,9 @@
               "id": "BlockedMemberMaterializationRollsBackAndRecovers"
             },
             {
-              "kind": "test",
-              "id": "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant"
-            },
-            {
-              "kind": "crash",
-              "id": "G13BeforeReportCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G13AfterReportCommit"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "member-materialization-timeout-reverted-to-15s"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2048,14 +1804,6 @@
           "requirement": "Recover correctly from process kill before and after commit",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "test",
-              "id": "BlockedMemberMaterializationRollsBackAndRecovers"
-            },
-            {
-              "kind": "test",
-              "id": "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant"
-            },
             {
               "kind": "crash",
               "id": "G13BeforeReportCommit"
@@ -2075,19 +1823,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "BlockedMemberMaterializationRollsBackAndRecovers"
-            },
-            {
-              "kind": "test",
               "id": "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant"
             },
             {
-              "kind": "crash",
-              "id": "G13BeforeReportCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G13AfterReportCommit"
+              "kind": "test",
+              "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2104,15 +1844,11 @@
             },
             {
               "kind": "test",
-              "id": "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant"
+              "id": "ClientCancellationRollsBackReleasesTheSlotAndLeavesNoSnapshot"
             },
             {
-              "kind": "crash",
-              "id": "G13BeforeReportCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G13AfterReportCommit"
+              "kind": "test",
+              "id": "SixDistinctUsersGetExactlyFourReportsAndTwoCapacityRefusals"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2125,19 +1861,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "BlockedMemberMaterializationRollsBackAndRecovers"
-            },
-            {
-              "kind": "test",
               "id": "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant"
             },
             {
-              "kind": "crash",
-              "id": "G13BeforeReportCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G13AfterReportCommit"
+              "kind": "test",
+              "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2153,8 +1881,14 @@
               "id": "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"
             },
             {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "tenant-quota-active-report-cap-bypassed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "tenant-quota-session-scope-bypassed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2181,6 +1915,11 @@
             {
               "kind": "test",
               "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "idle-cleanup-limit-guard-widened"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2194,6 +1933,16 @@
             {
               "kind": "test",
               "id": "BlockedMemberMaterializationRollsBackAndRecovers"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "member-materialization-timeout-reverted-to-15s"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "member-materialization-planner-guard-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2206,6 +1955,10 @@
           "evidence": [
             {
               "kind": "test",
+              "id": "PlannerAndTimeoutSettingsNeverOutliveABuildOnAConnectionThatIsNotReset"
+            },
+            {
+              "kind": "test",
               "id": "BlockedMemberMaterializationRollsBackAndRecovers"
             },
             {
@@ -2213,12 +1966,9 @@
               "id": "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"
             },
             {
-              "kind": "test",
-              "id": "OneUserIsLimitedToTwoActiveReportsAcrossSessionsInsideTheTenantLimit"
-            },
-            {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "planner-setting-made-session-wide"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2234,8 +1984,9 @@
               "id": "OneUserIsLimitedToTwoActiveReportsAcrossSessionsInsideTheTenantLimit"
             },
             {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "user-report-cap-bypassed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2256,15 +2007,67 @@
             },
             {
               "kind": "test",
-              "id": "M15DeliveryAndM13IdleCleanupRequireExplicitOptIn"
+              "id": "DefaultHostRegistersNeitherBackgroundServiceAndExplicitSettingsRegisterEach"
             },
             {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "idle-cleanup-registered-by-default"
             }
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G13-S19-A14",
+          "requirement": "Admit at most the tenant's remaining capacity as concurrent report builds and refuse every other builder promptly with the explicit 429 before the heavy member statement runs",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "BuildSlotsRefuseExcessBuildersPromptlyAndLiveReportsShrinkTheFreeSlots"
+            },
+            {
+              "kind": "test",
+              "id": "SixDistinctUsersGetExactlyFourReportsAndTwoCapacityRefusals"
+            },
+            {
+              "kind": "test",
+              "id": "RealisticSkewedEightyFiveThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "build-slot-admission-removed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "build-slot-capacity-ignores-live-reports"
+            }
+          ],
+          "assessment": "FULLY_TESTED"
+        },
+        {
+          "id": "G13-S19-A15",
+          "requirement": "Serialize the tenant quota decision and commit per tenant, commit nothing while waiting, and release the admission slot and roll back when the client gives up",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "QuotaDecisionWaitsForTheTenantLockAndCommitsNothingWhileWaiting"
+            },
+            {
+              "kind": "test",
+              "id": "ClientCancellationRollsBackReleasesTheSlotAndLeavesNoSnapshot"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "tenant-quota-advisory-lock-removed"
+            }
+          ],
+          "assessment": "FULLY_TESTED"
         }
       ]
     },
@@ -2279,10 +2082,6 @@
             {
               "kind": "test",
               "id": "Mixed170kShipmentsProduceExactBoundedReport"
-            },
-            {
-              "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
             },
             {
               "kind": "budget",
@@ -2302,10 +2101,6 @@
               "id": "Mixed170kShipmentsProduceExactBoundedReport"
             },
             {
-              "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
-            },
-            {
               "kind": "budget",
               "id": "G13"
             }
@@ -2323,10 +2118,6 @@
               "id": "Mixed170kShipmentsProduceExactBoundedReport"
             },
             {
-              "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
-            },
-            {
               "kind": "budget",
               "id": "G13"
             }
@@ -2342,10 +2133,6 @@
             {
               "kind": "test",
               "id": "Mixed170kShipmentsProduceExactBoundedReport"
-            },
-            {
-              "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
             },
             {
               "kind": "budget",
@@ -2366,11 +2153,12 @@
             },
             {
               "kind": "test",
-              "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
+              "id": "BlockedMemberMaterializationRollsBackAndRecovers"
             },
             {
-              "kind": "budget",
-              "id": "G13"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "report-cap-wrong-comparison"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2383,15 +2171,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
-            },
-            {
-              "kind": "test",
               "id": "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"
             },
             {
-              "kind": "budget",
-              "id": "G13"
+              "kind": "test",
+              "id": "RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2451,6 +2235,18 @@
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G13-S20-A11",
+          "requirement": "With eight distinct builders of a realistic 85,000 shipment tenant, exactly four complete and the other four are refused with 429 in under ten seconds",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "RealisticSkewedEightyFiveThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly"
+            }
+          ],
+          "assessment": "FULLY_TESTED"
         }
       ]
     },
@@ -2465,10 +2261,6 @@
             {
               "kind": "browser",
               "id": "operational-kpis"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2480,12 +2272,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 Manager sees scoped operational reporting and safe drill"
             },
             {
-              "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 ratio rendering uses exact member numerators and half-up percentages"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2497,12 +2291,19 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 Manager sees scoped operational reporting and safe drill"
             },
             {
-              "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 ungranted Auditor never sees report values or exported data"
+            },
+            {
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 Administrator has grant management but not KPI viewing"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2514,12 +2315,19 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "browser",
-              "id": "operational-kpis"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 empty report shows insufficient denominators without false risk trends"
             },
             {
-              "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 failed report clears old values and a retry builds a fresh snapshot"
+            },
+            {
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 expired report drill shows no stale member data and refresh resets the drill"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2531,12 +2339,9 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "browser",
-              "id": "operational-kpis"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRoleReportReconcilesRecordedArrivalAndMemberSnapshots"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 switching organization discards the previous organization's report"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2553,16 +2358,12 @@
           "kind": "automated",
           "evidence": [
             {
+              "kind": "job",
+              "id": "combined_regressions"
+            },
+            {
               "kind": "test",
               "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
-            },
-            {
-              "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2575,15 +2376,15 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
-            },
-            {
-              "kind": "test",
               "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
             },
             {
               "kind": "test",
-              "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
+              "id": "StolenDatabaseSessionIdsCannotForgeAnM10Correction"
+            },
+            {
+              "kind": "job",
+              "id": "combined_regressions"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2596,15 +2397,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
-            },
-            {
-              "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
-            },
-            {
-              "kind": "test",
               "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
+            },
+            {
+              "kind": "job",
+              "id": "combined_regressions"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2616,16 +2413,12 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
+              "kind": "job",
+              "id": "combined_regressions"
             },
             {
-              "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
+              "kind": "job",
+              "id": "database"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2642,11 +2435,11 @@
             },
             {
               "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
+              "id": "KpiAggregationNeverReadsOrWritesNotificationTables"
             },
             {
-              "kind": "test",
-              "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
+              "kind": "job",
+              "id": "database"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2668,15 +2461,17 @@
             },
             {
               "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
-            },
-            {
-              "kind": "test",
               "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
             },
             {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
+              "kind": "mutant",
+              "artifact": "g13-security-mutations",
+              "id": "report-select-unrestricted"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-security-mutations",
+              "id": "member-select-unrestricted"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2689,19 +2484,21 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
-            },
-            {
-              "kind": "test",
               "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
             },
             {
               "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
+              "id": "DirectPrivilegedReaderCallsReturnOnlyTheSelectedTenantsRows"
             },
             {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
+              "kind": "mutant",
+              "artifact": "g13-security-mutations",
+              "id": "administrator-sql-grant-bypass"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-security-mutations",
+              "id": "auditor-sql-grant-bypass"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2714,19 +2511,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
+              "id": "AuthenticatedKpiResponsesAreNoStoreAndStateChangesNeedCsrfAndSameOrigin"
             },
             {
               "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
+              "id": "AllAnalyticsReadsRequireAuthenticatedSession"
             },
             {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
-            },
-            {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
+              "kind": "browser_case",
+              "suite": "operational-kpis",
+              "id": "M13 Manager sees scoped operational reporting and safe drill"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2739,19 +2533,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
-            },
-            {
-              "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
-            },
-            {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
+              "id": "KpiRequestsNeverPutTokensOrMemberIdentifiersInLogs"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2764,19 +2546,15 @@
           "evidence": [
             {
               "kind": "test",
+              "id": "ReportingBuildLimiterRejectsSeventhRequestWithoutChangingTheCommittedSnapshot"
+            },
+            {
+              "kind": "test",
+              "id": "FrozenKpiMembersPageExactlyOnceAcrossOneHundredRows"
+            },
+            {
+              "kind": "test",
               "id": "ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports"
-            },
-            {
-              "kind": "test",
-              "id": "SignedAdminAndUngrantedAuditorScopesCannotReadKpiData"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
-            },
-            {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2811,6 +2589,28 @@
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G13-S23-A08",
+          "requirement": "Return only the selected tenant's rows from the privileged evaluation and exception readers that bypass row security",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "DirectPrivilegedReaderCallsReturnOnlyTheSelectedTenantsRows"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "scoped-evaluations-organization-filter-removed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "scoped-exceptions-organization-filter-removed"
+            }
+          ],
+          "assessment": "FULLY_TESTED"
         }
       ]
     },
@@ -2823,16 +2623,29 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "member-sql-shipment-tenant-predicate-removed"
             },
             {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "scoped-evaluations-organization-filter-removed"
             },
             {
-              "kind": "scan",
-              "id": "dependencies"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "scoped-exceptions-organization-filter-removed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "auditor-grant-version-revocation-bypassed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-security-mutations",
+              "id": "auditor-sql-grant-bypass"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2844,16 +2657,19 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "unknown-evaluation-suppressed"
             },
             {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k06-exact-sixty-minute-boundary"
             },
             {
-              "kind": "scan",
-              "id": "dependencies"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k06-remove-tolerance"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2865,12 +2681,24 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k03-first-event-deduplication-removed"
             },
             {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k05-reads-last-arrival-instead-of-first"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "k03-counts-arrival-events-as-completions"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "correction-generation-stale-accepted"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2882,12 +2710,19 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "origin-member-filter-ignored"
             },
             {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "voyage-assignment-end-ignored"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "tenant-quota-rejection-rollback-bypassed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2899,12 +2734,29 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "auditor-grant-version-revocation-bypassed"
             },
             {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "malformed-kpi-member-cursor-admitted"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "scoped-evaluations-authority-removed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "scoped-exceptions-authority-removed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-security-mutations",
+              "id": "administrator-sql-grant-bypass"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2915,14 +2767,6 @@
           "requirement": "Scan dependencies, images and secrets without unresolved severe findings",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "mutation",
-              "id": "g13-mutations"
-            },
-            {
-              "kind": "mutation",
-              "id": "g13-security-mutations"
-            },
             {
               "kind": "scan",
               "id": "dependencies"
@@ -3025,19 +2869,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "OnlyApprovedM11ActionsCreateDistinctCatalogedOutboxIntents"
-            },
-            {
-              "kind": "test",
-              "id": "FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction"
-            },
-            {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
-            },
-            {
-              "kind": "test",
               "id": "M15DeliveryAndM13IdleCleanupRequireExplicitOptIn"
+            },
+            {
+              "kind": "test",
+              "id": "DefaultHostRegistersNeitherBackgroundServiceAndExplicitSettingsRegisterEach"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "delivery-service-registered-by-default"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3054,16 +2895,9 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "job",
-              "id": "source"
-            },
-            {
-              "kind": "test",
-              "id": "UnknownCodesHaveNeutralText"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "build"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3075,16 +2909,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "job",
-              "id": "source"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "unit"
             },
             {
-              "kind": "test",
-              "id": "UnknownCodesHaveNeutralText"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "contract"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3096,16 +2928,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "job",
-              "id": "source"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "web-build"
             },
             {
-              "kind": "test",
-              "id": "UnknownCodesHaveNeutralText"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "web-test"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3117,16 +2947,9 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "job",
-              "id": "source"
-            },
-            {
-              "kind": "test",
-              "id": "UnknownCodesHaveNeutralText"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
+              "kind": "step",
+              "artifact": "combined-source",
+              "id": "sha"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3151,12 +2974,9 @@
               "id": "OnlyImmutableM11OpeningAndClosureActionsGenerateOutboxRows"
             },
             {
-              "kind": "test",
-              "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
-            },
-            {
-              "kind": "test",
-              "id": "EventLabelsDescribeHistoryRatherThanMovement"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "history-action-filter-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3169,19 +2989,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "OnlyApprovedM11ActionsCreateDistinctCatalogedOutboxIntents"
-            },
-            {
-              "kind": "test",
               "id": "OnlyImmutableM11OpeningAndClosureActionsGenerateOutboxRows"
             },
             {
               "kind": "test",
-              "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
+              "id": "OnlyApprovedM11ActionsCreateDistinctCatalogedOutboxIntents"
             },
             {
-              "kind": "test",
-              "id": "EventLabelsDescribeHistoryRatherThanMovement"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "history-action-filter-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3194,19 +3011,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "OnlyApprovedM11ActionsCreateDistinctCatalogedOutboxIntents"
-            },
-            {
-              "kind": "test",
-              "id": "OnlyImmutableM11OpeningAndClosureActionsGenerateOutboxRows"
-            },
-            {
-              "kind": "test",
               "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
             },
             {
               "kind": "test",
-              "id": "EventLabelsDescribeHistoryRatherThanMovement"
+              "id": "UnknownCodesHaveNeutralText"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3223,15 +3032,11 @@
             },
             {
               "kind": "test",
-              "id": "OnlyImmutableM11OpeningAndClosureActionsGenerateOutboxRows"
-            },
-            {
-              "kind": "test",
-              "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
-            },
-            {
-              "kind": "test",
               "id": "EventLabelsDescribeHistoryRatherThanMovement"
+            },
+            {
+              "kind": "test",
+              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3253,11 +3058,7 @@
             },
             {
               "kind": "test",
-              "id": "VerifiedClearancePersistsAcrossUnknownBeforeRecurrence"
-            },
-            {
-              "kind": "test",
-              "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
+              "id": "AutoResolvedOldOccurrenceAndNewOpeningKeepDistinctHistoryAndIntents"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3268,18 +3069,6 @@
           "requirement": "Distinguish prior AutoResolved and newly Opened occurrences",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "test",
-              "id": "RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence"
-            },
-            {
-              "kind": "test",
-              "id": "VerifiedClearancePersistsAcrossUnknownBeforeRecurrence"
-            },
-            {
-              "kind": "test",
-              "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
-            },
             {
               "kind": "test",
               "id": "AutoResolvedOldOccurrenceAndNewOpeningKeepDistinctHistoryAndIntents"
@@ -3295,14 +3084,6 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence"
-            },
-            {
-              "kind": "test",
-              "id": "VerifiedClearancePersistsAcrossUnknownBeforeRecurrence"
-            },
-            {
-              "kind": "test",
               "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
             }
           ],
@@ -3316,19 +3097,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence"
+              "id": "AutoResolvedOldOccurrenceAndNewOpeningKeepDistinctHistoryAndIntents"
             },
             {
               "kind": "test",
               "id": "VerifiedClearancePersistsAcrossUnknownBeforeRecurrence"
-            },
-            {
-              "kind": "test",
-              "id": "UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory"
-            },
-            {
-              "kind": "test",
-              "id": "AutoResolvedOldOccurrenceAndNewOpeningKeepDistinctHistoryAndIntents"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3347,14 +3120,6 @@
             {
               "kind": "test",
               "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
-            },
-            {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
-            },
-            {
-              "kind": "test",
-              "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3371,11 +3136,12 @@
             },
             {
               "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
             },
             {
-              "kind": "test",
-              "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "membership-version-revocation-ignored"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3388,7 +3154,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
+              "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
             },
             {
               "kind": "test",
@@ -3396,7 +3162,7 @@
             },
             {
               "kind": "test",
-              "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
+              "id": "PersonalNotificationDetailHidesAnotherRecipientLikeAnUnknownId"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3407,18 +3173,6 @@
           "requirement": "Do not inherit mutation or export privileges from alert visibility",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "test",
-              "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
-            },
-            {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
-            },
-            {
-              "kind": "test",
-              "id": "RuleTemplatesPreserveAcceptedM11EvidenceBoundary"
-            },
             {
               "kind": "test",
               "id": "AcknowledgingAnAlertNeverChangesM11StateAndAlertVisibilityGrantsNoMutationOrExport"
@@ -3440,10 +3194,6 @@
             {
               "kind": "test",
               "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3456,11 +3206,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
+              "id": "UnrecognizedRolesAndInactiveUsersNeverReceiveAFanout"
             },
             {
               "kind": "test",
@@ -3481,7 +3227,7 @@
             },
             {
               "kind": "test",
-              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
+              "id": "UnrecognizedRolesAndInactiveUsersNeverReceiveAFanout"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3495,6 +3241,10 @@
             {
               "kind": "test",
               "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
+            },
+            {
+              "kind": "test",
+              "id": "AcknowledgingAnAlertNeverChangesM11StateAndAlertVisibilityGrantsNoMutationOrExport"
             },
             {
               "kind": "test",
@@ -3520,11 +3270,11 @@
             },
             {
               "kind": "test",
-              "id": "SignedRecipientContextCannotReadAnotherUserNotifications"
+              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
             },
             {
               "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
+              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3537,15 +3287,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PersonalNotificationDetailHidesAnotherRecipientLikeAnUnknownId"
+              "id": "CancelledAndArchivedTargetsKeepThePersonalEventAndGrantNothingNew"
             },
             {
               "kind": "test",
-              "id": "SignedRecipientContextCannotReadAnotherUserNotifications"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
+              "id": "ArchivedShipmentKeepsHistoricalPersonalEventWithoutNewBusinessAuthority"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3559,14 +3305,6 @@
             {
               "kind": "test",
               "id": "PersonalNotificationDetailHidesAnotherRecipientLikeAnUnknownId"
-            },
-            {
-              "kind": "test",
-              "id": "SignedRecipientContextCannotReadAnotherUserNotifications"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3579,15 +3317,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PersonalNotificationDetailHidesAnotherRecipientLikeAnUnknownId"
-            },
-            {
-              "kind": "test",
               "id": "SignedRecipientContextCannotReadAnotherUserNotifications"
             },
             {
               "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
+              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "signed-recipient-scope-unbound"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3610,10 +3349,6 @@
             {
               "kind": "test",
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
-            },
-            {
-              "kind": "test",
-              "id": "ExistingReceiptsDoNotReappearAfterMembershipRemovalAndRejoin"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3626,15 +3361,12 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
-            },
-            {
-              "kind": "test",
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
             },
             {
-              "kind": "test",
-              "id": "ExistingReceiptsDoNotReappearAfterMembershipRemovalAndRejoin"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "membership-version-revocation-ignored"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3645,10 +3377,6 @@
           "requirement": "Deny removed/suspended members immediately",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "test",
-              "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
-            },
             {
               "kind": "test",
               "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
@@ -3668,14 +3396,6 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
-            },
-            {
-              "kind": "test",
               "id": "ExistingReceiptsDoNotReappearAfterMembershipRemovalAndRejoin"
             }
           ],
@@ -3690,14 +3410,6 @@
             {
               "kind": "test",
               "id": "FiveRolesFanOutOnlyEligibleRecipientsAndLateJoinersGetNoBackfill"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
-            },
-            {
-              "kind": "test",
-              "id": "ExistingReceiptsDoNotReappearAfterMembershipRemovalAndRejoin"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3716,14 +3428,6 @@
             {
               "kind": "test",
               "id": "RevokedNotificationScopeCannotReadCountDetailOrAcknowledge"
-            },
-            {
-              "kind": "test",
-              "id": "QueuedNotificationAcknowledgmentCannotCommitAfterRevocation"
-            },
-            {
-              "kind": "test",
-              "id": "IdentitySchemaProvisionLoginRevocationAndDisablement"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3737,14 +3441,6 @@
             {
               "kind": "test",
               "id": "RevokedNotificationScopeCannotReadCountDetailOrAcknowledge"
-            },
-            {
-              "kind": "test",
-              "id": "QueuedNotificationAcknowledgmentCannotCommitAfterRevocation"
-            },
-            {
-              "kind": "test",
-              "id": "IdentitySchemaProvisionLoginRevocationAndDisablement"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3758,14 +3454,6 @@
             {
               "kind": "test",
               "id": "RevokedNotificationScopeCannotReadCountDetailOrAcknowledge"
-            },
-            {
-              "kind": "test",
-              "id": "QueuedNotificationAcknowledgmentCannotCommitAfterRevocation"
-            },
-            {
-              "kind": "test",
-              "id": "IdentitySchemaProvisionLoginRevocationAndDisablement"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3778,15 +3466,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RevokedNotificationScopeCannotReadCountDetailOrAcknowledge"
-            },
-            {
-              "kind": "test",
               "id": "QueuedNotificationAcknowledgmentCannotCommitAfterRevocation"
             },
             {
               "kind": "test",
-              "id": "IdentitySchemaProvisionLoginRevocationAndDisablement"
+              "id": "RevokedNotificationScopeCannotReadCountDetailOrAcknowledge"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3800,14 +3484,6 @@
             {
               "kind": "test",
               "id": "RevokedNotificationScopeCannotReadCountDetailOrAcknowledge"
-            },
-            {
-              "kind": "test",
-              "id": "QueuedNotificationAcknowledgmentCannotCommitAfterRevocation"
-            },
-            {
-              "kind": "test",
-              "id": "IdentitySchemaProvisionLoginRevocationAndDisablement"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3825,15 +3501,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
-            },
-            {
-              "kind": "test",
-              "id": "PersonalNotificationDetailHidesAnotherRecipientLikeAnUnknownId"
-            },
-            {
-              "kind": "browser",
-              "id": "notifications"
+              "id": "ArchivedShipmentKeepsHistoricalPersonalEventWithoutNewBusinessAuthority"
             },
             {
               "kind": "test",
@@ -3850,11 +3518,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ArchivedShipmentKeepsHistoricalPersonalEventWithoutNewBusinessAuthority"
+              "id": "CancelledAndArchivedTargetsKeepThePersonalEventAndGrantNothingNew"
             },
             {
               "kind": "test",
-              "id": "CancelledAndArchivedTargetsKeepThePersonalEventAndGrantNothingNew"
+              "id": "ArchivedShipmentKeepsHistoricalPersonalEventWithoutNewBusinessAuthority"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3867,19 +3535,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
+              "id": "CancelledAndArchivedTargetsKeepThePersonalEventAndGrantNothingNew"
             },
             {
               "kind": "test",
               "id": "PersonalNotificationDetailHidesAnotherRecipientLikeAnUnknownId"
             },
             {
-              "kind": "browser",
-              "id": "notifications"
-            },
-            {
-              "kind": "test",
-              "id": "CancelledAndArchivedTargetsKeepThePersonalEventAndGrantNothingNew"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 unavailable shipment navigation fails closed without exposing the target"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3892,15 +3557,12 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "ArchivedAcknowledgedRiskIsAutomaticallyClosed"
-            },
-            {
-              "kind": "test",
               "id": "PersonalNotificationDetailHidesAnotherRecipientLikeAnUnknownId"
             },
             {
-              "kind": "browser",
-              "id": "notifications"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 unavailable shipment navigation fails closed without exposing the target"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3921,12 +3583,9 @@
               "id": "OnlyApprovedM11ActionsCreateDistinctCatalogedOutboxIntents"
             },
             {
-              "kind": "test",
-              "id": "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay"
-            },
-            {
-              "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "source-history-outbox-uniqueness-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3939,15 +3598,12 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "OnlyApprovedM11ActionsCreateDistinctCatalogedOutboxIntents"
-            },
-            {
-              "kind": "test",
               "id": "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay"
             },
             {
-              "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-recipient-uniqueness-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3960,15 +3616,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "OnlyApprovedM11ActionsCreateDistinctCatalogedOutboxIntents"
-            },
-            {
-              "kind": "test",
-              "id": "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay"
-            },
-            {
-              "kind": "test",
               "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
+            },
+            {
+              "kind": "test",
+              "id": "CompetingDispatchersDeliverSeveralIntentsExactlyOnceWhileReadersRun"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3981,15 +3633,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "OnlyApprovedM11ActionsCreateDistinctCatalogedOutboxIntents"
+              "id": "UnreadCountIsExactUpToTheCapAndFlagsOnlyBeyondIt"
             },
             {
               "kind": "test",
-              "id": "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay"
-            },
-            {
-              "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
+              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4011,11 +3659,7 @@
             },
             {
               "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
+              "id": "CompetingDispatchersDeliverSeveralIntentsExactlyOnceWhileReadersRun"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4036,7 +3680,7 @@
             },
             {
               "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
+              "id": "InFlightCancellationRollsBackBlockedFanout"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4049,19 +3693,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "TwoDispatchersFanOutToTwoHundredFiftyAdditionalMembersAndServeOneHundredReaders"
-            },
-            {
-              "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
+              "id": "SecondDispatcherSkipsALockedIntentAndDeliversOthersWhileTheFirstIsBusy"
             },
             {
               "kind": "test",
               "id": "CompetingDispatchersDeliverSeveralIntentsExactlyOnceWhileReadersRun"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "outbox-claim-skip-locked-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4074,19 +3715,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "TwoDispatchersFanOutToTwoHundredFiftyAdditionalMembersAndServeOneHundredReaders"
-            },
-            {
-              "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
-            },
-            {
-              "kind": "test",
               "id": "CompetingDispatchersDeliverSeveralIntentsExactlyOnceWhileReadersRun"
+            },
+            {
+              "kind": "test",
+              "id": "TwoDispatchersFanOutToTwoHundredFiftyAdditionalMembersAndServeOneHundredReaders"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4099,19 +3732,15 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "TwoDispatchersFanOutToTwoHundredFiftyAdditionalMembersAndServeOneHundredReaders"
-            },
-            {
-              "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "ConcurrentDispatchAndMembershipVersionChangesNeverExposeStaleReceipts"
-            },
-            {
-              "kind": "test",
               "id": "RecipientCapOfOneThousandQuarantinesWithoutPartialReceiptsAndDeliversAtExactlyTheCap"
+            },
+            {
+              "kind": "test",
+              "id": "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents"
+            },
+            {
+              "kind": "test",
+              "id": "TwoDispatchersFanOutToTwoHundredFiftyAdditionalMembersAndServeOneHundredReaders"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4133,6 +3762,23 @@
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G15-S12-A07",
+          "requirement": "A dispatcher that finds an intent locked by another dispatcher skips it and delivers the others at once",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "SecondDispatcherSkipsALockedIntentAndDeliversOthersWhileTheFirstIsBusy"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "outbox-claim-skip-locked-removed"
+            }
+          ],
+          "assessment": "FULLY_TESTED"
         }
       ]
     },
@@ -4145,32 +3791,16 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
-            },
-            {
               "kind": "crash",
               "id": "G15BeforeHistoryCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15BeforeClaimCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15BeforeFanoutCommit"
             },
             {
               "kind": "crash",
               "id": "G15AfterFanoutCommit"
             },
             {
-              "kind": "crash",
-              "id": "G15AfterReceiptCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15AfterResponseDiscarded"
+              "kind": "test",
+              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4182,14 +3812,6 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
-            },
-            {
-              "kind": "crash",
-              "id": "G15BeforeHistoryCommit"
-            },
-            {
               "kind": "crash",
               "id": "G15BeforeClaimCommit"
             },
@@ -4200,14 +3822,6 @@
             {
               "kind": "crash",
               "id": "G15AfterFanoutCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15AfterReceiptCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15AfterResponseDiscarded"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4219,32 +3833,16 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
-            },
-            {
-              "kind": "crash",
-              "id": "G15BeforeHistoryCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15BeforeClaimCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15BeforeFanoutCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15AfterFanoutCommit"
-            },
-            {
               "kind": "crash",
               "id": "G15AfterReceiptCommit"
             },
             {
               "kind": "crash",
               "id": "G15AfterResponseDiscarded"
+            },
+            {
+              "kind": "test",
+              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4255,10 +3853,6 @@
           "requirement": "Restart cleanly, recover committed work and discard rolled-back work",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "test",
-              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
-            },
             {
               "kind": "crash",
               "id": "G15BeforeHistoryCommit"
@@ -4293,22 +3887,6 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
-            },
-            {
-              "kind": "crash",
-              "id": "G15BeforeHistoryCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15BeforeClaimCommit"
-            },
-            {
-              "kind": "crash",
-              "id": "G15BeforeFanoutCommit"
-            },
-            {
               "kind": "crash",
               "id": "G15AfterFanoutCommit"
             },
@@ -4319,6 +3897,10 @@
             {
               "kind": "crash",
               "id": "G15AfterResponseDiscarded"
+            },
+            {
+              "kind": "test",
+              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4340,7 +3922,12 @@
             },
             {
               "kind": "test",
-              "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
+              "id": "FailedOutboxIntentDuringARealM11EvaluationRollsBackTheWholeActionAndRetrySucceeds"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "source-intent-failure-swallowed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4353,15 +3940,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction"
-            },
-            {
-              "kind": "test",
               "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
-            },
-            {
-              "kind": "test",
-              "id": "FailedOutboxIntentDuringARealM11EvaluationRollsBackTheWholeActionAndRetrySucceeds"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4374,15 +3953,15 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction"
-            },
-            {
-              "kind": "test",
-              "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
-            },
-            {
-              "kind": "test",
               "id": "FailedOutboxIntentDuringARealM11EvaluationRollsBackTheWholeActionAndRetrySucceeds"
+            },
+            {
+              "kind": "test",
+              "id": "ConcurrentDispositionsAndShipmentChangesNeverCommitPartialState"
+            },
+            {
+              "kind": "job",
+              "id": "combined_regressions"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4408,10 +3987,6 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
-            },
-            {
-              "kind": "test",
               "id": "Migrations_AreDiscoveredInOrder"
             },
             {
@@ -4430,14 +4005,6 @@
             {
               "kind": "test",
               "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
-            },
-            {
-              "kind": "test",
-              "id": "Migrations_AreDiscoveredInOrder"
-            },
-            {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4475,11 +4042,12 @@
             },
             {
               "kind": "test",
-              "id": "Migrations_AreDiscoveredInOrder"
+              "id": "DowngradeOfAMigrationHoldingDeliveryEvidenceFailsClosedAndLeavesEveryRow"
             },
             {
-              "kind": "test",
-              "id": "ModelSnapshot_MatchesCurrentEntityModel"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "m15-downgrade-guard-turned-into-a-notice"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4502,14 +4070,6 @@
             {
               "kind": "test",
               "id": "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"
-            },
-            {
-              "kind": "test",
-              "id": "SignedRecipientContextCannotReadAnotherUserNotifications"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4522,19 +4082,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
-            },
-            {
-              "kind": "test",
               "id": "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"
             },
             {
               "kind": "test",
-              "id": "SignedRecipientContextCannotReadAnotherUserNotifications"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
+              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4547,19 +4099,21 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
-            },
-            {
-              "kind": "test",
-              "id": "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"
-            },
-            {
-              "kind": "test",
               "id": "SignedRecipientContextCannotReadAnotherUserNotifications"
             },
             {
               "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
+              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "dispatch-scope-proof-bypassed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "signed-recipient-scope-unbound"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4572,19 +4126,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
-            },
-            {
-              "kind": "test",
-              "id": "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"
-            },
-            {
-              "kind": "test",
               "id": "SignedRecipientContextCannotReadAnotherUserNotifications"
             },
             {
               "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
+              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "personal-read-policy-bypassed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4597,19 +4148,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RestrictedSqlLoginCannotEnumerateOutboxOrWriteAnotherRecipient"
-            },
-            {
-              "kind": "test",
               "id": "ApiAndWorkerCannotEnumeratePersonalReplayAndDispatchInternals"
-            },
-            {
-              "kind": "test",
-              "id": "SignedRecipientContextCannotReadAnotherUserNotifications"
-            },
-            {
-              "kind": "test",
-              "id": "RestrictedRolesCannotModifyMaterializedReportingMembership"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4627,27 +4166,12 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "MoreThanOneHundredPersonalRowsPageOnceThroughLiveReceiptChange"
-            },
-            {
-              "kind": "test",
-              "id": "ShortLivedProtectedCursorExpiresAndNewEventsDoNotLeakIntoOldCutoff"
-            },
-            {
-              "kind": "test",
-              "id": "OneMillionRowsPreserveBoundedScopedKeysetPagination"
-            },
-            {
-              "kind": "test",
-              "id": "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"
-            },
-            {
-              "kind": "test",
               "id": "DefaultPageSizeIsTwentyFiveAndCursorsExpireAfterTwentyMinutes"
             },
             {
-              "kind": "mutation",
-              "id": "g15-mutations"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "page-limit-upper-bound-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4664,15 +4188,7 @@
             },
             {
               "kind": "test",
-              "id": "ShortLivedProtectedCursorExpiresAndNewEventsDoNotLeakIntoOldCutoff"
-            },
-            {
-              "kind": "test",
               "id": "OneMillionRowsPreserveBoundedScopedKeysetPagination"
-            },
-            {
-              "kind": "test",
-              "id": "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4685,27 +4201,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "MoreThanOneHundredPersonalRowsPageOnceThroughLiveReceiptChange"
-            },
-            {
-              "kind": "test",
               "id": "ShortLivedProtectedCursorExpiresAndNewEventsDoNotLeakIntoOldCutoff"
-            },
-            {
-              "kind": "test",
-              "id": "OneMillionRowsPreserveBoundedScopedKeysetPagination"
-            },
-            {
-              "kind": "test",
-              "id": "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"
             },
             {
               "kind": "test",
               "id": "DefaultPageSizeIsTwentyFiveAndCursorsExpireAfterTwentyMinutes"
             },
             {
-              "kind": "mutation",
-              "id": "g15-mutations"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "cursor-lifetime-extended"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4718,19 +4223,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "MoreThanOneHundredPersonalRowsPageOnceThroughLiveReceiptChange"
-            },
-            {
-              "kind": "test",
-              "id": "ShortLivedProtectedCursorExpiresAndNewEventsDoNotLeakIntoOldCutoff"
-            },
-            {
-              "kind": "test",
-              "id": "OneMillionRowsPreserveBoundedScopedKeysetPagination"
+              "id": "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning"
             },
             {
               "kind": "test",
               "id": "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "cursor-session-binding-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4743,19 +4245,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "MoreThanOneHundredPersonalRowsPageOnceThroughLiveReceiptChange"
-            },
-            {
-              "kind": "test",
               "id": "ShortLivedProtectedCursorExpiresAndNewEventsDoNotLeakIntoOldCutoff"
-            },
-            {
-              "kind": "test",
-              "id": "OneMillionRowsPreserveBoundedScopedKeysetPagination"
-            },
-            {
-              "kind": "test",
-              "id": "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4769,18 +4259,6 @@
             {
               "kind": "test",
               "id": "MoreThanOneHundredPersonalRowsPageOnceThroughLiveReceiptChange"
-            },
-            {
-              "kind": "test",
-              "id": "ShortLivedProtectedCursorExpiresAndNewEventsDoNotLeakIntoOldCutoff"
-            },
-            {
-              "kind": "test",
-              "id": "OneMillionRowsPreserveBoundedScopedKeysetPagination"
-            },
-            {
-              "kind": "test",
-              "id": "InvalidNotificationQueriesAndMutationsNeverChangeReceipt"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4793,7 +4271,31 @@
           "evidence": [
             {
               "kind": "test",
+              "id": "UnreadCountIsExactUpToTheCapAndFlagsOnlyBeyondIt"
+            },
+            {
+              "kind": "test",
               "id": "OneMillionRowsPreserveBoundedScopedKeysetPagination"
+            },
+            {
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 capped unread count shows 1000+ and an exact count never shows a plus"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "unread-capped-flag-never-set"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "unread-cap-probe-row-removed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "unread-cap-raised-to-one-hundred-thousand"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4816,10 +4318,6 @@
             {
               "kind": "test",
               "id": "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning"
-            },
-            {
-              "kind": "test",
-              "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4832,15 +4330,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
-            },
-            {
-              "kind": "test",
               "id": "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning"
-            },
-            {
-              "kind": "test",
-              "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4853,19 +4343,16 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
-            },
-            {
-              "kind": "test",
-              "id": "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning"
-            },
-            {
-              "kind": "test",
-              "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
-            },
-            {
-              "kind": "test",
               "id": "MalformedOrVersionlessActionBodiesNeverChangeAReceipt"
+            },
+            {
+              "kind": "test",
+              "id": "StaleExpectedVersionOnAValidTransitionIsRejectedAsAConflict"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-cas-bypassed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4878,7 +4365,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "id": "StaleExpectedVersionOnAValidTransitionIsRejectedAsAConflict"
             },
             {
               "kind": "test",
@@ -4897,18 +4384,6 @@
           "requirement": "Never mutate M11 exception state through a personal action",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
-            },
-            {
-              "kind": "test",
-              "id": "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning"
-            },
-            {
-              "kind": "test",
-              "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
-            },
             {
               "kind": "test",
               "id": "AcknowledgingAnAlertNeverChangesM11StateAndAlertVisibilityGrantsNoMutationOrExport"
@@ -4934,6 +4409,11 @@
             {
               "kind": "test",
               "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-replay-session-unbound"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4947,10 +4427,6 @@
             {
               "kind": "test",
               "id": "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning"
-            },
-            {
-              "kind": "test",
-              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4966,8 +4442,9 @@
               "id": "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning"
             },
             {
-              "kind": "test",
-              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-replay-session-unbound"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4980,11 +4457,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning"
+              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
             },
             {
               "kind": "test",
-              "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
+              "id": "CursorCannotCrossSessionsAndReplayCannotChangeItsOriginalMeaning"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5006,7 +4483,7 @@
             },
             {
               "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "id": "MarkReadIsLowNoiseWhileAcknowledgmentAuditIsAtomicAndReplayStable"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5022,8 +4499,9 @@
               "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
             },
             {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-audit-failure-swallowed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5036,11 +4514,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
-            },
-            {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "id": "MarkReadIsLowNoiseWhileAcknowledgmentAuditIsAtomicAndReplayStable"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5053,11 +4527,12 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
+              "id": "MarkReadIsLowNoiseWhileAcknowledgmentAuditIsAtomicAndReplayStable"
             },
             {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-audit-skipped"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5088,10 +4563,6 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
               "id": "InFlightCancellationRollsBackBlockedFanout"
             },
             {
@@ -5110,10 +4581,6 @@
             {
               "kind": "test",
               "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "InFlightCancellationRollsBackBlockedFanout"
             },
             {
               "kind": "test",
@@ -5137,8 +4604,14 @@
               "id": "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents"
             },
             {
-              "kind": "mutation",
-              "id": "g15-mutations"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "dispatcher-timeout-not-trapped"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "dispatcher-event-time-limit-not-applied"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5159,7 +4632,7 @@
             },
             {
               "kind": "test",
-              "id": "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce"
+              "id": "ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5170,14 +4643,6 @@
           "requirement": "Keep HTTP responses scoped and bounded after dependency outages",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "test",
-              "id": "InFlightCancellationRollsBackBlockedFanout"
-            },
-            {
-              "kind": "test",
-              "id": "CancelledDeliveryPreservesIntentAndSubsequentRetryDeliversExactlyOnce"
-            },
             {
               "kind": "test",
               "id": "RealNotificationDatabaseLockReturnsBoundedScopedHttpFailureAndRecovers"
@@ -5196,12 +4661,44 @@
               "id": "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents"
             },
             {
-              "kind": "mutation",
-              "id": "g15-mutations"
+              "kind": "test",
+              "id": "ClientCancellationRollsBackReleasesTheSlotAndLeavesNoSnapshot"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "dispatcher-event-time-limit-not-applied"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "dispatcher-poll-stops-at-first-failed-intent"
             }
           ],
           "assessment": "FULLY_TESTED",
           "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+        },
+        {
+          "id": "G15-S21-A07",
+          "requirement": "Bound each intent by its own dispatcher time limit in the shipped configuration, without any database role setting, and continue past a timed out intent in the same poll",
+          "kind": "automated",
+          "evidence": [
+            {
+              "kind": "test",
+              "id": "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "dispatcher-event-time-limit-not-applied"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "dispatcher-poll-stops-at-first-failed-intent"
+            }
+          ],
+          "assessment": "FULLY_TESTED"
         }
       ]
     },
@@ -5216,10 +4713,6 @@
             {
               "kind": "browser",
               "id": "notifications"
-            },
-            {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5231,12 +4724,19 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "browser",
-              "id": "notifications"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 scoped notification center displays neutral event and personal state"
             },
             {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 personal receipt controls preserve a separate unread counter"
+            },
+            {
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 capped unread count shows 1000+ and an exact count never shows a plus"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5248,12 +4748,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "browser",
-              "id": "notifications"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 transient notification error is visible and retry clears it"
             },
             {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 rejected notification refresh drops protected data and organization selection"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5265,12 +4767,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "browser",
-              "id": "notifications"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 live M11 event is delivered and navigable from the real notification API"
             },
             {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 unavailable shipment navigation fails closed without exposing the target"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5282,12 +4786,19 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "browser",
-              "id": "notifications"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 late response from old organization never appears after switching"
             },
             {
-              "kind": "test",
-              "id": "M11HistoryProducesScopedDeduplicatedPersonalReceipts"
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 logout clears protected feed data before another authentication"
+            },
+            {
+              "kind": "browser_case",
+              "suite": "notifications",
+              "id": "G15 a cancelled pagination result cannot leave Load more disabled"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5304,16 +4815,12 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
+              "kind": "job",
+              "id": "combined_regressions"
             },
             {
               "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
+              "id": "RejectedAuditWriteRollsBackDispositionCompletelyAndKeyRemainsReusable"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5325,16 +4832,12 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
+              "kind": "job",
+              "id": "combined_regressions"
             },
             {
-              "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
+              "kind": "job",
+              "id": "database"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5347,15 +4850,11 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
+              "id": "ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress"
             },
             {
               "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
+              "id": "NullSchedulesAreUnknownNotInventedDelays"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5368,15 +4867,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
-            },
-            {
-              "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
+              "id": "M10ProjectorAndM11EvaluatorRequireExplicitOptIn"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5389,15 +4880,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
-            },
-            {
-              "kind": "test",
-              "id": "FailedFanoutIsRetriedWithoutPartialOrDuplicateRecipients"
-            },
-            {
-              "kind": "test",
-              "id": "M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards"
+              "id": "KpiAggregationNeverReadsOrWritesNotificationTables"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5414,16 +4897,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "mutation",
-              "id": "g15-mutations"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "personal-read-policy-bypassed"
             },
             {
-              "kind": "test",
-              "id": "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay"
-            },
-            {
-              "kind": "scan",
-              "id": "dependencies"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "signed-recipient-scope-unbound"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5435,16 +4916,24 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "mutation",
-              "id": "g15-mutations"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "membership-version-revocation-ignored"
             },
             {
-              "kind": "test",
-              "id": "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-replay-session-unbound"
             },
             {
-              "kind": "scan",
-              "id": "dependencies"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "dispatch-scope-proof-bypassed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "cursor-session-binding-removed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5456,20 +4945,19 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "mutation",
-              "id": "g15-mutations"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "source-history-outbox-uniqueness-removed"
             },
             {
-              "kind": "test",
-              "id": "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-recipient-uniqueness-removed"
             },
             {
-              "kind": "scan",
-              "id": "dependencies"
-            },
-            {
-              "kind": "test",
-              "id": "StaleExpectedVersionOnAValidTransitionIsRejectedAsAConflict"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-cas-bypassed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5481,20 +4969,19 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "mutation",
-              "id": "g15-mutations"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-audit-failure-swallowed"
             },
             {
-              "kind": "test",
-              "id": "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "receipt-audit-skipped"
             },
             {
-              "kind": "scan",
-              "id": "dependencies"
-            },
-            {
-              "kind": "test",
-              "id": "RequiredAuditFailureRollsBackReceiptAndReplay"
+              "kind": "mutant",
+              "artifact": "g15-mutations",
+              "id": "source-intent-failure-swallowed"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -5505,14 +4992,6 @@
           "requirement": "Scan dependencies and source without unresolved severe or secret findings",
           "kind": "automated",
           "evidence": [
-            {
-              "kind": "mutation",
-              "id": "g15-mutations"
-            },
-            {
-              "kind": "test",
-              "id": "DuplicatePersonalReceiptDatabaseConstraintRejectsReplay"
-            },
             {
               "kind": "scan",
               "id": "dependencies"

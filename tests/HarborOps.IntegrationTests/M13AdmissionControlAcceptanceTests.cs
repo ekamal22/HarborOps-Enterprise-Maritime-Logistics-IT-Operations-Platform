@@ -170,6 +170,13 @@ public sealed class M13AdmissionControlAcceptanceTests
                 .Select(x => x.Root.GetProperty("reportId").GetGuid()).Distinct().Count());
             await PlannerGuard.AssertDefaultAsync(api.Services);
             await Task.Delay(TimeSpan.FromSeconds(2));
+            // No report build holds a SQL transaction open once its response was sent, so
+            // drill pages never run inside a report transaction.
+            await using (var open = new NpgsqlCommand("""
+                SELECT count(*) FROM pg_stat_activity
+                WHERE usename='harborops_api' AND state LIKE 'idle in transaction%'
+                """, admin))
+                Assert.Equal(0L, Convert.ToInt64(await open.ExecuteScalarAsync()));
             await using var locks = new NpgsqlCommand(
                 "SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND granted", admin);
             Assert.Equal(0L, Convert.ToInt64(await locks.ExecuteScalarAsync()));

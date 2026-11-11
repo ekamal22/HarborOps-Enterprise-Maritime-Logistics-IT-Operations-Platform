@@ -54,8 +54,8 @@ def validate_inventory() -> tuple[list[dict], list[str]]:
                 errors.append("Nonautomated assertion improperly marked tested: " + str(marker))
             if item.get("kind") == "automated" and item.get("assessment") == "MANUAL_REVIEW":
                 errors.append("Automated assertion improperly marked manual: " + str(marker))
-    if len(seen) != 257:
-        errors.append("Expected 257 separately enumerated requirements, got " + str(len(seen)))
+    if len(seen) != 263:
+        errors.append("Expected 263 separately enumerated requirements, got " + str(len(seen)))
     return rows, errors
 
 def test_match(name: str, tests: dict[str, str]) -> bool:
@@ -65,6 +65,59 @@ def test_match(name: str, tests: dict[str, str]) -> bool:
          "." + name + "(" in key)
         and outcome == "Passed"
         for key, outcome in tests.items())
+
+def _artifact(prefix: str) -> Path | None:
+    folders = [p for p in gate.INPUT.iterdir()
+               if p.is_dir() and p.name.startswith(prefix + "-")] if gate.INPUT.is_dir() else []
+    return folders[0] if len(folders) == 1 else None
+
+def step_passed(prefix: str, step: str) -> bool:
+    """A named command of a job artifact (commands.tsv) exited 0."""
+    folder = _artifact(prefix)
+    table = folder / "commands.tsv" if folder else None
+    if not table or not table.is_file():
+        return False
+    for line in table.read_text(encoding="utf-8").splitlines():
+        cells = line.split("\t")
+        if len(cells) >= 6 and cells[0] == step:
+            return cells[3] == "0"
+    return False
+
+def mutant_killed(prefix: str, name: str) -> bool:
+    """One named mutant of a mutation campaign is recorded as KILLED."""
+    folder = _artifact(prefix)
+    manifest = folder / "manifest.json" if folder else None
+    if not manifest or not manifest.is_file():
+        return False
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    for record in data.get("records", data.get("results", [])):
+        label = record.get("name") or record.get("mutation")
+        if label == name:
+            return (record.get("outcome") or record.get("verdict")) == "KILLED"
+    return False
+
+def browser_case_passed(suite: str, title: str) -> bool:
+    """One named Playwright case passed on Chromium, Firefox and WebKit."""
+    folder = _artifact("m15-browser")
+    if not folder:
+        return False
+    for engine in ("chromium", "firefox", "webkit"):
+        report = folder / f"{engine}-{suite}.json"
+        if not report.is_file():
+            return False
+        found = False
+        stack = list(json.loads(report.read_text(encoding="utf-8")).get("suites", []))
+        while stack:
+            node = stack.pop()
+            stack.extend(node.get("suites", []))
+            for spec in node.get("specs", []):
+                if spec.get("title") == title:
+                    if not spec.get("ok"):
+                        return False
+                    found = True
+        if not found:
+            return False
+    return True
 
 def gather() -> tuple[dict, bool]:
     rows, issues = validate_inventory()
@@ -130,6 +183,13 @@ def gather() -> tuple[dict, bool]:
                         successful.append(witness)
                     elif category == "mutation" and (
                             data["mutations"].get(name) is True):
+                        successful.append(witness)
+                    elif category == "step" and step_passed(witness.get("artifact", ""), name):
+                        successful.append(witness)
+                    elif category == "mutant" and mutant_killed(witness.get("artifact", ""), name):
+                        successful.append(witness)
+                    elif category == "browser_case" and browser_case_passed(
+                            witness.get("suite", ""), name):
                         successful.append(witness)
                     else:
                         absent.append(witness)

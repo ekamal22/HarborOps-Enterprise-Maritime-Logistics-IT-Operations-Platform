@@ -597,7 +597,8 @@ public sealed class M13TenantCapacityAcceptanceTests
             "SELECT count(*) FROM m13_scoped_evaluations(@org)",
             "SELECT count(*) FROM m13_scoped_exceptions(@org)",
             "SELECT m13_user_quota(@org)",
-            "SELECT m13_tenant_quota(@org)"
+            "SELECT m13_tenant_quota(@org)",
+            "SELECT m13_tenant_live_reports(@org,'00000000-0000-0000-0000-000000000000'::uuid)"
         };
         async Task<string?> Run(string sql, Guid org, string? authority)
         {
@@ -634,4 +635,97 @@ public sealed class M13TenantCapacityAcceptanceTests
                 SignedAuthority(fixture.A, analyst.User, analyst.Session)));
         }
     }
+    // The privileged live-count reader is bound to the signed tenant and
+    // excludes expired snapshots and the report currently being assembled.
+    [ExclusiveM13PostgresFact]
+    public async Task TenantLiveReportCountRequiresAuthorityAndExcludesOtherTenantsAndExpiredRows()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var f = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var administrator = f.Admin;
+        using var originalManager = f.Manager;
+        using var originalAnalyst = f.Analyst;
+        await AssignmentHttpTests.Seed(f);
+        await using var admin = new NpgsqlConnection(roles.Admin);
+        await admin.OpenAsync();
+        Guid actor, session;
+        await using (var principal = new NpgsqlCommand("""
+            SELECT a.user_id,a.id FROM auth_sessions a
+            JOIN users u ON u.id=a.user_id
+            WHERE a.selected_organization_id=@org AND
+                lower(u.normalized_email)=lower(@email) AND
+                a.revoked_at_utc IS NULL
+            ORDER BY a.issued_at_utc DESC LIMIT 1
+            """, admin))
+        {
+            principal.Parameters.AddWithValue("org", f.A);
+            principal.Parameters.AddWithValue("email", f.AnalystEmail);
+            await using var row = await principal.ExecuteReaderAsync();
+            Assert.True(await row.ReadAsync());
+            actor = row.GetGuid(0);
+            session = row.GetGuid(1);
+        }
+
+        var liveId = Guid.NewGuid();
+        async Task Add(Guid id, Guid org, bool expired)
+        {
+            await using var insert = new NpgsqlCommand("""
+                INSERT INTO operational_kpi_reports
+                    (id,organization_id,actor_user_id,actor_session_id,
+                     policy_version,filters_sha256,from_utc,before_utc,
+                     evaluated_at_utc,created_at_utc,expires_at_utc)
+                VALUES (@id,@org,@actor,@session,'m13-kpi-v1',repeat('0',64),
+                    clock_timestamp()-interval '9 days',
+                    clock_timestamp()-interval '2 days',
+                    clock_timestamp(),
+                    CASE WHEN @expired THEN clock_timestamp()-interval '20 minutes'
+                        ELSE clock_timestamp() END,
+                    CASE WHEN @expired THEN clock_timestamp()-interval '10 minutes'
+                        ELSE clock_timestamp()+interval '5 minutes' END)
+                """, admin);
+            insert.Parameters.AddWithValue("id", id);
+            insert.Parameters.AddWithValue("org", org);
+            insert.Parameters.AddWithValue("actor", actor);
+            insert.Parameters.AddWithValue("session", session);
+            insert.Parameters.AddWithValue("expired", expired);
+            Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+        }
+        await Add(liveId, f.A, false);
+        await Add(Guid.NewGuid(), f.A, true);
+        await Add(Guid.NewGuid(), f.B, false);
+
+        async Task<int> Count(Guid org, Guid exclude, string? authority)
+        {
+            await using var api = new NpgsqlConnection(roles.Api);
+            await api.OpenAsync();
+            await using var tx = await api.BeginTransactionAsync();
+            if (authority is not null)
+            {
+                await using var set = new NpgsqlCommand(
+                    "SELECT set_config('harborops.m11_read_scope',@proof,true)", api, tx);
+                set.Parameters.AddWithValue("proof", authority);
+                await set.ExecuteScalarAsync();
+            }
+            try
+            {
+                await using var command = new NpgsqlCommand(
+                    "SELECT m13_tenant_live_reports(@org,@exclude)", api, tx);
+                command.Parameters.AddWithValue("org", org);
+                command.Parameters.AddWithValue("exclude", exclude);
+                return Convert.ToInt32(await command.ExecuteScalarAsync());
+            }
+            finally { await tx.RollbackAsync(); }
+        }
+        var proof = SignedAuthority(f.A, actor, session);
+        Assert.Equal(1, await Count(f.A, Guid.Empty, proof));
+        Assert.Equal(0, await Count(f.A, liveId, proof));
+        var unsigned = await Assert.ThrowsAsync<PostgresException>(
+            () => Count(f.A, Guid.Empty, null));
+        Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, unsigned.SqlState);
+        var foreign = await Assert.ThrowsAsync<PostgresException>(
+            () => Count(f.B, Guid.Empty, proof));
+        Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, foreign.SqlState);
+    }
+
 }

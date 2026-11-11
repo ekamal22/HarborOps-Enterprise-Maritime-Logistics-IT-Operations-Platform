@@ -32,6 +32,14 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   });
   await page.addInitScript(() => {
     window.__cspEvents = [];
+    window.__styleWrites = [];
+    new MutationObserver(records => {
+      for (const record of records) {
+        const el = record.target;
+        window.__styleWrites.push((el.tagName ?? "") + "." + String(el.getAttribute?.("class") ?? "").slice(0, 60) +
+          " style=" + String(el.getAttribute?.("style") ?? "").slice(0, 60));
+      }
+    }).observe(document, { attributes: true, attributeFilter: ["style"], subtree: true });
     document.addEventListener("securitypolicyviolation", event => {
       window.__cspEvents.push([event.violatedDirective, event.blockedURI, event.sourceFile,
         event.lineNumber, String(event.sample ?? "").slice(0, 80)].join("|"));
@@ -89,7 +97,9 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   await expect(d.getByText(/Period:/)).toContainText("01 Nov 2026", { timeout: 30000 });
   await d.getByRole("button", { name: "Reset" }).click();
   await expect(d.getByLabel("From (UTC, inclusive)")).toHaveValue("");
-  const reported = await page.evaluate(() => window.__cspEvents ?? []);
+  const styleWrites = await page.evaluate(() => window.__styleWrites ?? []);
+  const reported = (await page.evaluate(() => window.__cspEvents ?? []))
+    .map(x => x + " writes=" + JSON.stringify([...new Set(styleWrites)]).slice(0, 400));
   expect(reported, "Content security policy violation events on the KPI dashboard").toEqual([]);
   expect(violations, "Content security policy violations on the KPI dashboard").toEqual([]);
 });

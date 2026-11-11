@@ -354,10 +354,14 @@ test("DIAG engine control probe", async ({ page }) => {
     plain: "<p>plain</p>"
   };
   const out = [];
+  await page.addInitScript(() => {
+    window.__n = 0;
+    document.addEventListener("securitypolicyviolation", () => window.__n++);
+  });
   for (const [name, html] of Object.entries(probes)) {
     await page.route("**/diag-" + name, route => route.fulfill({
       status: 200, contentType: "text/html", headers: { "content-security-policy": policy },
-      body: "<!doctype html><script>window.__n=0;document.addEventListener('securitypolicyviolation',()=>window.__n++)</script>" + html
+      body: "<!doctype html>" + html
     }));
     await page.goto("/diag-" + name);
     await page.waitForTimeout(300);

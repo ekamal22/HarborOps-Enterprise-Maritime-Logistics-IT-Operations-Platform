@@ -1,6 +1,14 @@
-# G13-S20 Scope Decision, Prepared for Owner Approval, 2026-11-11
+# G13-S20 Scope Decision, 2026-11-11
 
-**Status:** Awaiting the owner's decision. Nothing here is approved. The original G13-S20 requirement, a realistic skewed tenant of **170,000 shipments** served under the approved latency budgets, is **not satisfied** by the current source and this record does not claim it is. The 500,000-member report ceiling is unchanged.
+**Effective decision, 2026-11-11: APPROVED.** Option A is adopted with a stricter **250,000-member ceiling per report**. The existing four-live-reports-per-tenant and two-live-reports-per-user limits are unchanged. Aggregate live-member capacity is therefore 1,000,000 per tenant. A report exceeding 250,000 members must fail closed with HTTP 413 without publishing partial results. Larger tenants may generate multiple independently filtered reports, subject to the normal report quotas and 10-minute expiry. No automatic report stitching or combined-report accuracy guarantee is implied.
+
+A realistic shipment mix previously produced about 5.5 KPI members per shipment. That suggests around 45,000 realistic shipments per report, but this is an estimate, not a fixed shipment quota. The replacement source targets a 40,000-shipment realistic success fixture and an 85,000-shipment simple reference fixture. Neither has completed a new source-locked campaign yet. The original 170,000 realistic-shipment single-report requirement is explicitly superseded, not claimed as fulfilled.
+
+**Release status:** Scope policy approved; implementation and fresh technical verification pending; G13 acceptance and merging remain pending. The campaign c3 results below document historical source `4e7b9e2` under the former 500,000-member ceiling, not the revised implementation.
+
+## Historical c3 proposal and measured evidence
+
+**Historical status at the c3 proposal:** Approval had not yet been recorded. The original G13-S20 requirement, a realistic skewed tenant of **170,000 shipments** served under the approved latency budgets, is **not satisfied** by the current source and this record does not claim it is. The 500,000-member report ceiling is unchanged.
 
 Measured at source `4e7b9e22aacef25f7f60e2295938ec6cf79bdadd`, campaign c3 ([results](G13_G15_LOCAL_CLOSURE_RESULTS_C3_20261111.md)), restricted API role, disposable PostgreSQL 16.15, approved budgets p50 15 s and p95 20 s.
 

@@ -199,10 +199,14 @@ export default function OperationalDashboard({ organizationId, onAccessInvalidat
               return <button key={status} onClick={() => select("K02", "Workflow: " + status, status)}
                 className="rounded border border-slate-700 bg-slate-950 p-3 text-left text-sm hover:border-cyan-500">
                 <span>{status}</span><span className="float-right font-semibold">{n}</span>
-                <span className="mt-2 block h-1.5 rounded bg-slate-800">
-                  <span className="block h-full rounded bg-cyan-400"
-                    style={{ width: (denominator("D01") ? n / denominator("D01") * 100 : 0) + "%" }} />
-                </span>
+                {/* An SVG bar: its width is an attribute, so the page's style-src 'self'
+                    policy (no inline styles) never blocks it in any engine. */}
+                <svg className="mt-2 block h-1.5 w-full rounded" viewBox="0 0 100 1"
+                  preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                  <rect width="100" height="1" className="fill-slate-800" />
+                  <rect width={denominator("D01") ? Math.min(100, Math.max(0, n / denominator("D01") * 100)).toFixed(2) : "0"}
+                    height="1" className="fill-cyan-400" />
+                </svg>
               </button>;
             })}
           </div>

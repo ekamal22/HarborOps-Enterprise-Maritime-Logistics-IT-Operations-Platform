@@ -1,6 +1,6 @@
 # G13 and G15 Formal Gate Decisions
 
-> **Update (2026-11-10, later source):** The conditions and open items recorded here describe source `15cabd8c542159753c927c2bd65b4346223e84f6`. Tenant quota and bounded idle cleanup, the specific mutation witnesses and the real HTTP outage test were subsequently implemented and verified locally at `5bcb7e5b2ec5e590bd26e64ffd659c17aaee1f92`; see the [local closure results](G13_G15_LOCAL_CLOSURE_RESULTS_20261110.md). This record's dispositions remain in force until new positive decisions are recorded after independent review. Acceptance pending.
+> **Update (2026-11-10, later source):** The conditions and open items recorded here describe source `15cabd8c542159753c927c2bd65b4346223e84f6`. Tenant quota and bounded idle cleanup, the specific mutation witnesses and the real HTTP outage test were subsequently implemented and verified locally at `5bcb7e5b2ec5e590bd26e64ffd659c17aaee1f92`; see the [local closure results](G13_G15_LOCAL_CLOSURE_RESULTS_20261110.md), and for the later remediated source `3e63bd0e71bdf4a80cd8ea1d27e7cceca3c37524` the [round 2 results](G13_G15_LOCAL_CLOSURE_RESULTS_C2_20261111.md). This record's dispositions remain in force until new positive decisions are recorded after independent review. Acceptance pending.
 
 **Decision date:** 2026-11-10  
 **Evidence source SHA:** `15cabd8c542159753c927c2bd65b4346223e84f6`  

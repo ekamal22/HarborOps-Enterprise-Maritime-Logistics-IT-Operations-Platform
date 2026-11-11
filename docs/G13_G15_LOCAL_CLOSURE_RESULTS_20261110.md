@@ -1,5 +1,7 @@
 # G13 and G15 Local Closure Verification Results, 2026-11-10
 
+**Superseded for the current source:** the findings below were remediated and a fresh campaign was run at `3e63bd0e71bdf4a80cd8ea1d27e7cceca3c37524`; see the [round 2 results](G13_G15_LOCAL_CLOSURE_RESULTS_C2_20261111.md). This record remains the history for `5bcb7e5`.
+
 **Status:** Technical verification PASSED locally on the frozen source below. Round 1 of the independent S25 reviews returned **NOT PASS** for both gates (see "Independent review round 1" below). G13 and G15 acceptance decisions: **acceptance pending**. This record is not a gate decision, not a merge authorization and not a GitHub Actions result. No merge, deployment, migration, dispatcher, projector, evaluator or retention deletion is authorized.
 
 **Frozen tested source:** `5bcb7e5b2ec5e590bd26e64ffd659c17aaee1f92` on `feature/g13-g15-acceptance-closure-20261110` and `verify/g13-g15-evidence-closure-20261109` (both fast-forwarded from `1b878736e69be5431687868693a8df8bc65f5564`; protected `main` unchanged at `eb529368a2447061fc1838cd3967b0ffedae669d`). Commits after this SHA must change documentation only; every later commit is checked with `git diff --name-only 5bcb7e5 HEAD` and must list only files under `docs/` and `README.md`.

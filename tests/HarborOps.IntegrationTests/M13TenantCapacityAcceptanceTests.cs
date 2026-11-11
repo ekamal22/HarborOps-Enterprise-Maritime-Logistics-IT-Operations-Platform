@@ -74,6 +74,12 @@ public sealed class M13TenantCapacityAcceptanceTests
                     SELECT (SELECT count(*) FROM shipments WHERE organization_id=@org)
                          + (SELECT count(*) FROM shipment_status_changes WHERE organization_id=@org)
                          + (SELECT count(*) FROM shipment_voyage_assignments WHERE organization_id=@org)
+                         + (SELECT count(*) FROM shipment_tracking_projections WHERE organization_id=@org)
+                         + (SELECT count(*) FROM shipment_tracking_corrections WHERE organization_id=@org)
+                         + (SELECT count(*) FROM shipment_exception_evaluations WHERE organization_id=@org)
+                         + (SELECT count(*) FROM shipment_exceptions WHERE organization_id=@org)
+                         + (SELECT count(*) FROM shipment_exception_history WHERE organization_id=@org)
+                         + (SELECT count(*) FROM audit_entries WHERE organization_id=@org)
                     """, administratorDb);
                 query.Parameters.AddWithValue("org", fixture.A);
                 return Convert.ToInt64(await query.ExecuteScalarAsync());
@@ -277,6 +283,12 @@ public sealed class M13TenantCapacityAcceptanceTests
                 SELECT (SELECT count(*) FROM shipments)
                      + (SELECT count(*) FROM shipment_status_changes)
                      + (SELECT count(*) FROM shipment_voyage_assignments)
+                     + (SELECT count(*) FROM shipment_tracking_projections)
+                     + (SELECT count(*) FROM shipment_tracking_corrections)
+                     + (SELECT count(*) FROM shipment_exception_evaluations)
+                     + (SELECT count(*) FROM shipment_exceptions)
+                     + (SELECT count(*) FROM shipment_exception_history)
+                     + (SELECT count(*) FROM audit_entries)
                 """, administratorDb);
             return Convert.ToInt64(await query.ExecuteScalarAsync());
         }

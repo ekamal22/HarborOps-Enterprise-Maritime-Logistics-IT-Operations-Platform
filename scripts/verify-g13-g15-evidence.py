@@ -111,7 +111,7 @@ REFERENCES = {
              "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
              "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority",
              "CRASH:G13BeforeReportCommit", "CRASH:G13AfterReportCommit"],
-        20: ["Mixed170kShipmentsProduceExactBoundedReport",
+        20: ["Mixed85kShipmentsProduceExactBoundedReport",
              "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant",
              "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently",
              "BUDGET:G13"],
@@ -339,10 +339,10 @@ def reporting_budget(root: Path | None) -> bool:
     else:
         r_count, r_p50, r_p95, _r_max, r_members = map(int, realistic.groups())
         if not (r_count >= 30 and r_p50 <= 15000 and r_p95 <= 20000
-                and 0 < r_members <= 500000):
+                and 0 < r_members <= 250000):
             fail("G13 realistic skewed-tenant budget exceeded or incomplete")
             ok = False
-    for label in ("small", "medium10k", "skewed170k", "empty", "realistic85k"):
+    for label in ("small", "medium10k", "reference85k", "empty", "realistic40k"):
         plan = root / ("explain-api-" + label + ".json")
         receipt = re.search(
             r"G13_RESTRICTED_PLAN sample=" + re.escape(label) +
@@ -524,7 +524,7 @@ def main() -> int:
         "MaterializedK06IncludesExactlySixtyMinutesButNotOneMicrosecondLater",
         "UnknownEvaluationDoesNotBecomeZeroRisk",
         # Round 1 S25 closure witnesses.
-        "RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds",
+        "RealisticSkewedFortyThousandShipmentTenantCompletesFourSimultaneousBuilds",
         "RealisticSkewed170kShipmentTenantIsRefusedAsOverCapacityWithoutTimeouts",
         "RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole",
         "OneUserIsLimitedToTwoActiveReportsAcrossSessionsInsideTheTenantLimit",

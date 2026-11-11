@@ -1381,6 +1381,89 @@ public sealed class M13OperationalKpiRuntimeTests
         Assert.DoesNotContain(id,await G13StoredIds(db,fixture.A,outside,"K06"));
     }
 
+    // A status can be recorded more than once on a historical row set (replayed
+    // or corrected imports). The metrics are defined on the FIRST recorded Arrived
+    // and Completed events, and a shipment is one member per metric.
+    [ExclusiveM13PostgresFact]
+    public async Task FirstRecordedEventWinsWhenArrivedAndCompletedAreRecordedAgainLater()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var admin = fixture.Admin; using var seedManager = fixture.Manager;
+        using var seedAnalyst = fixture.Analyst;
+        var seed = await AssignmentHttpTests.Seed(fixture);
+        using var source = await seedManager.GetAsync(seed.Root + "/" + seed.Shipment);
+        var shipment = await source.Content.ReadFromJsonAsync<JsonElement>();
+        var origin = shipment.GetProperty("originPortId").GetGuid();
+        var destination = shipment.GetProperty("destinationPortId").GetGuid();
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        await using var owner = new NpgsqlCommand(
+            "SELECT changed_by_user_id FROM shipments WHERE id=@shipment", db);
+        owner.Parameters.AddWithValue("shipment", seed.Shipment);
+        var actor = Assert.IsType<Guid>(await owner.ExecuteScalarAsync());
+        // Planned two hours ahead: the first recorded arrival (now) is on time.
+        var id = await G13Insert(db, fixture.A, origin, destination, actor,
+            DateTimeOffset.UtcNow.AddHours(2), "G13-FIRST-");
+        await G13Complete(db, id, actor);
+
+        await using (var disable = new NpgsqlCommand(
+            "ALTER TABLE shipment_status_changes DISABLE TRIGGER USER", db))
+            await disable.ExecuteNonQueryAsync();
+        try
+        {
+            // A second Arrived and a second Completed five hours later, after the
+            // 60 minute tolerance. Reading the last event instead of the first
+            // would turn the on-time arrival into a late one.
+            await using var again = new NpgsqlCommand("""
+                INSERT INTO shipment_status_changes
+                    (id,organization_id,shipment_id,from_status,to_status,version,
+                     changed_at_utc,changed_by_user_id)
+                SELECT gen_random_uuid(),c.organization_id,c.shipment_id,c.from_status,
+                    c.to_status,
+                    (SELECT max(version) FROM shipment_status_changes WHERE shipment_id=@id)
+                        + row_number() OVER (ORDER BY c.to_status),
+                    c.changed_at_utc + interval '5 hours',c.changed_by_user_id
+                FROM shipment_status_changes c
+                WHERE c.shipment_id=@id AND c.to_status IN ('Arrived','Completed')
+                """, db);
+            again.Parameters.AddWithValue("id", id);
+            Assert.Equal(2, await again.ExecuteNonQueryAsync());
+        }
+        finally
+        {
+            await using var enable = new NpgsqlCommand(
+                "ALTER TABLE shipment_status_changes ENABLE TRIGGER USER", db);
+            await enable.ExecuteNonQueryAsync();
+        }
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var analyst = runtime.CreateClient(new WebApplicationFactoryClientOptions
+            { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(analyst, fixture.AnalystEmail);
+        await ReferenceDataHttpTests.Select(analyst, fixture.A);
+        var report = await Json(await analyst.GetAsync(Root(fixture.A) +
+            "/overview" + Window(DateTimeOffset.UtcNow)));
+        var reportId = report.GetProperty("reportId").GetGuid();
+        async Task<long> Rows(string metric)
+        {
+            await using var count = new NpgsqlCommand("""
+                SELECT count(*) FROM operational_kpi_members
+                WHERE organization_id=@org AND report_id=@report
+                    AND metric_code=@metric AND member_key=@id
+                """, db);
+            count.Parameters.AddWithValue("org", fixture.A);
+            count.Parameters.AddWithValue("report", reportId);
+            count.Parameters.AddWithValue("metric", metric);
+            count.Parameters.AddWithValue("id", id);
+            return Convert.ToInt64(await count.ExecuteScalarAsync());
+        }
+        Assert.Equal(1L, await Rows("K03")); // one completion, not two
+        Assert.Equal(1L, await Rows("K05")); // the first arrival was strictly on time
+        Assert.Equal(1L, await Rows("K06"));
+    }
+
     [ExclusiveM13PostgresFact]
     public async Task PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact()
     {

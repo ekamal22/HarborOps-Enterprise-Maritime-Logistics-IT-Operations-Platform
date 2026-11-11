@@ -146,6 +146,7 @@ public static class AuditRoleProvisioner
                             m13_prune_expired(uuid,integer),
                             m13_prune_expired_idle(integer),
                             m13_tenant_quota(uuid),m13_user_quota(uuid),
+                            m13_tenant_live_reports(uuid,uuid),
                             m13_scoped_evaluations(uuid),m13_scoped_exceptions(uuid),
                             m13_lock_auditor_grant(uuid,uuid,uuid),
                             m13_lock_report(uuid,uuid,uuid,uuid,varchar)

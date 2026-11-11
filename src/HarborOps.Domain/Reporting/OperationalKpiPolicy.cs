@@ -17,6 +17,10 @@ public static partial class OperationalKpiPolicy
     public const int MaximumDays = 366;
     public const int MaximumMemberPage = 100;
     public const int MaximumReportMembers = 500_000; // provisional fail-closed capacity ceiling
+    // Live snapshots per tenant and per user. The SQL functions m13_tenant_quota and
+    // m13_user_quota enforce the same numbers; the concurrency tests assert they agree.
+    public const int MaximumLiveReportsPerTenant = 4;
+    public const int MaximumLiveReportsPerUser = 2;
     public static readonly TimeSpan ProvisionalReportLifetime = TimeSpan.FromMinutes(10);
     // Approved scoped limit for the one member materialization statement only. Every
     // other reporting statement keeps the 15 second limit. Four simultaneous builders of

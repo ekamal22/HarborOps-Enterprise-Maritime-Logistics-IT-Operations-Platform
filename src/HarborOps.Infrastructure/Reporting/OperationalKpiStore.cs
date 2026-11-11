@@ -275,6 +275,27 @@ public sealed class OperationalKpiStore(
             """, U("org", org), U("report", report)))
             await claim.ExecuteNonQueryAsync(ct);
 
+        // Early admission, before the heavy member statement. A tenant may hold four
+        // live snapshots and a user two. Counting committed snapshots alone would let
+        // any number of builders start the 9 to 19 second statement at once and then
+        // fail the late quota check, so at most the remaining tenant capacity may
+        // build concurrently: each builder must take one of that many build slots
+        // (session advisory locks on this builder's own connection, released with it).
+        // Refusal is immediate, explicit and a 429, never a 25 second 503.
+        await using (var early = Command(Connection, sqlTx,
+            "SELECT m13_user_quota(@org)", U("org", org)))
+            if (await early.ExecuteScalarAsync(ct) is not true)
+                return new(null, OrganizationAccessError.Conflict,
+                    "report_user_capacity_exceeded");
+        int others;
+        await using (var live = Command(Connection, sqlTx,
+            "SELECT m13_tenant_live_reports(@org,@report)", U("org", org), U("report", report)))
+            others = Convert.ToInt32(await live.ExecuteScalarAsync(ct));
+        if (!await TryTakeBuildSlotAsync(admission, org,
+            OperationalKpiPolicy.MaximumLiveReportsPerTenant - others, ct))
+            return new(null, OrganizationAccessError.Conflict,
+                "report_tenant_capacity_exceeded");
+
         // The materialized intermediate results (heads, evaluated, events) have no
         // statistics, so the planner estimates them at one or a few hundred rows
         // and chooses nested loops over what are 100,000 row sets on a realistic
@@ -338,6 +359,21 @@ public sealed class OperationalKpiStore(
         await tx.CommitAsync(ct);
         return new(new KpiReport(report, org, sha, f.FromUtc, f.BeforeUtc,
             now, expires, count, counts), OrganizationAccessError.None);
+    }
+
+    private static async Task<bool> TryTakeBuildSlotAsync(NpgsqlConnection admission,
+        Guid org, int freeSlots, CancellationToken ct)
+    {
+        for (var slot = 0; slot < freeSlots; slot++)
+        {
+            await using var take = new NpgsqlCommand(
+                "SELECT pg_try_advisory_lock(hashtextextended(@scope,0))", admission)
+                { CommandTimeout = 5 };
+            take.Parameters.AddWithValue("scope",
+                "m13-build-slot:" + org.ToString("N") + ":" + slot);
+            if (await take.ExecuteScalarAsync(ct) is true) return true;
+        }
+        return false;
     }
 
     private static readonly string MemberSql = """

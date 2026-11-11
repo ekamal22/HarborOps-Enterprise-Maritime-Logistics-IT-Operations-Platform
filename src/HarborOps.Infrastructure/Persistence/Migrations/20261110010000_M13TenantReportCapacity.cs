@@ -63,6 +63,25 @@ public sealed class M13TenantReportCapacity : Migration
                     WHERE e.organization_id=p_org;
             END $exc$;
 
+            -- Early admission: the number of live snapshots of the selected tenant
+            -- other than the one being built. The builder uses it to decide, before
+            -- the heavy member statement, how many concurrent builds the tenant can
+            -- still admit. Count only; no row of another session is exposed.
+            CREATE FUNCTION m13_tenant_live_reports(p_org uuid, p_exclude uuid)
+            RETURNS integer LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog,public AS $live$
+            DECLARE live_reports integer;
+            BEGIN
+                IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN
+                    RAISE EXCEPTION 'Reporting quota authority denied'
+                        USING ERRCODE='42501';
+                END IF;
+                SELECT count(*) INTO live_reports FROM operational_kpi_reports r
+                WHERE r.organization_id=p_org AND r.id<>p_exclude
+                  AND r.expires_at_utc>clock_timestamp();
+                RETURN live_reports;
+            END $live$;
+
             -- Fairness: one user may hold at most two live snapshots across all of
             -- that user's sessions, inside the four-per-tenant limit. The caller
             -- is the signed actor and cannot name another user.
@@ -109,6 +128,7 @@ public sealed class M13TenantReportCapacity : Migration
             END $idle$;
 
             REVOKE ALL ON FUNCTION m13_tenant_quota(uuid),m13_user_quota(uuid),
+                m13_tenant_live_reports(uuid,uuid),
                 m13_scoped_evaluations(uuid),m13_scoped_exceptions(uuid),
                 m13_prune_expired_idle(integer) FROM PUBLIC;
 
@@ -123,6 +143,8 @@ public sealed class M13TenantReportCapacity : Migration
                     SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m13_user_quota(uuid)
                     SET search_path TO pg_catalog,%1$I,public',s);
+                EXECUTE format('ALTER FUNCTION %1$I.m13_tenant_live_reports(uuid,uuid)
+                    SET search_path TO pg_catalog,%1$I,public',s);
                 EXECUTE format('ALTER FUNCTION %1$I.m13_prune_expired_idle(integer)
                     SET search_path TO pg_catalog,%1$I,public',s);
             END $schema$;
@@ -136,6 +158,7 @@ public sealed class M13TenantReportCapacity : Migration
             DROP FUNCTION m13_scoped_exceptions(uuid);
             DROP FUNCTION m13_scoped_evaluations(uuid);
             DROP FUNCTION m13_user_quota(uuid);
+            DROP FUNCTION m13_tenant_live_reports(uuid,uuid);
             DROP FUNCTION m13_tenant_quota(uuid);
             """);
     }

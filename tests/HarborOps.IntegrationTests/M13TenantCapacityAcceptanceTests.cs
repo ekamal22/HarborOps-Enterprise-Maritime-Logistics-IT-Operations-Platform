@@ -68,16 +68,34 @@ public sealed class M13TenantCapacityAcceptanceTests
             }
 
             Assert.Equal(4, await ReportCount());
+            async Task<long> BusinessRows()
+            {
+                await using var query = new NpgsqlCommand("""
+                    SELECT (SELECT count(*) FROM shipments WHERE organization_id=@org)
+                         + (SELECT count(*) FROM shipment_status_changes WHERE organization_id=@org)
+                         + (SELECT count(*) FROM shipment_voyage_assignments WHERE organization_id=@org)
+                    """, administratorDb);
+                query.Parameters.AddWithValue("org", fixture.A);
+                return Convert.ToInt64(await query.ExecuteScalarAsync());
+            }
+            var businessBefore = await BusinessRows();
+            Assert.True(businessBefore > 0);
             using (var denied = await clients[4].GetAsync(url))
             {
                 Assert.Equal(HttpStatusCode.TooManyRequests, denied.StatusCode);
                 var error = await denied.Content.ReadFromJsonAsync<JsonElement>();
                 Assert.Equal("report_tenant_capacity_exceeded",
                     error.GetProperty("code").GetString());
-                Assert.False(error.TryGetProperty("counts", out _));
+                // Exact error body: a code, a fixed message and a correlation id.
+                // Nothing else, so no count, member, report or tenant detail leaks.
+                Assert.Equal(new[] { "code", "correlationId", "message" },
+                    error.EnumerateObject().Select(x => x.Name).OrderBy(x => x, StringComparer.Ordinal));
+                Assert.Equal("The organization's reporting capacity is currently in use",
+                    error.GetProperty("message").GetString());
             }
             await PlannerGuard.AssertDefaultAsync(runtime.Services);
             Assert.Equal(4, await ReportCount());
+            Assert.Equal(businessBefore, await BusinessRows());
 
             // No unsigned SQL connection can enumerate another user's quota.
             await using (var unauthorized = new NpgsqlCommand(
@@ -167,11 +185,9 @@ public sealed class M13TenantCapacityAcceptanceTests
             await PlannerGuard.AssertDefaultAsync(runtime.Services);
             Assert.Equal(4, await ReportCount());
 
-            await using var noBusinessDeletion = new NpgsqlCommand("""
-                SELECT count(*) FROM shipments WHERE organization_id=@org
-                """, administratorDb);
-            noBusinessDeletion.Parameters.AddWithValue("org", fixture.A);
-            Assert.True(Convert.ToInt64(await noBusinessDeletion.ExecuteScalarAsync()) > 0);
+            // Neither the refusal, the bounded pruning nor the readmission removed or
+            // changed a single business record of the tenant.
+            Assert.Equal(businessBefore, await BusinessRows());
         }
         finally
         {
@@ -255,6 +271,17 @@ public sealed class M13TenantCapacityAcceptanceTests
             return Convert.ToInt32(await command.ExecuteScalarAsync());
         }
 
+        async Task<long> Business()
+        {
+            await using var query = new NpgsqlCommand("""
+                SELECT (SELECT count(*) FROM shipments)
+                     + (SELECT count(*) FROM shipment_status_changes)
+                     + (SELECT count(*) FROM shipment_voyage_assignments)
+                """, administratorDb);
+            return Convert.ToInt64(await query.ExecuteScalarAsync());
+        }
+        var businessBefore = await Business();
+        Assert.True(businessBefore > 0);
         Assert.Equal(40L, await Synthetic());
         // The two oldest-first batches are exactly full while 40 candidates remain.
         Assert.Equal(16, await Prune(16));
@@ -287,14 +314,12 @@ public sealed class M13TenantCapacityAcceptanceTests
             Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, failure.SqlState);
         }
 
-        // Cleanup is limited to reporting snapshots: business records remain.
-        await using var business = new NpgsqlCommand(
-            "SELECT count(*) FROM shipments WHERE organization_id=@org", administratorDb);
-        business.Parameters.AddWithValue("org", fixture.A);
-        Assert.True(Convert.ToInt64(await business.ExecuteScalarAsync()) > 0);
+        // Cleanup is limited to reporting snapshots: not one business row anywhere
+        // was removed or added by the four calls above.
+        Assert.Equal(businessBefore, await Business());
     }
 
-    private static async Task<string> ProvisionAnalystAsync(
+    internal static async Task<string> ProvisionAnalystAsync(
         ReferenceDataHttpTests.ApiFactory factory, string adminEmail, Guid org)
     {
         const string password = "Synthetic-reference-integration-passphrase-123";
@@ -525,7 +550,7 @@ public sealed class M13TenantCapacityAcceptanceTests
         }
     }
 
-    private static string SignedAuthority(Guid org, Guid actor, Guid session)
+    internal static string SignedAuthority(Guid org, Guid actor, Guid session)
     {
         var expires = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 30;
         var data = System.Text.Encoding.UTF8.GetBytes(

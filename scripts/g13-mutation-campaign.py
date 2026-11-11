@@ -140,6 +140,51 @@ MUTANTS = [
      "MemberMaterializationTimeout = TimeSpan.FromSeconds(15);",
      "BlockedMemberMaterializationRollsBackAndRecovers",
      "policy"),
+    ("scoped-evaluations-organization-filter-removed",
+     "RETURN QUERY SELECT e.* FROM shipment_exception_evaluations e
+                    WHERE e.organization_id=p_org;",
+     "RETURN QUERY SELECT e.* FROM shipment_exception_evaluations e
+                    WHERE e.organization_id IS NOT NULL;",
+     "DirectPrivilegedReaderCallsReturnOnlyTheSelectedTenantsRows",
+     "retention_migration"),
+    ("scoped-exceptions-organization-filter-removed",
+     "RETURN QUERY SELECT e.* FROM shipment_exceptions e
+                    WHERE e.organization_id=p_org;",
+     "RETURN QUERY SELECT e.* FROM shipment_exceptions e
+                    WHERE e.organization_id IS NOT NULL;",
+     "DirectPrivilegedReaderCallsReturnOnlyTheSelectedTenantsRows",
+     "retention_migration"),
+    ("member-sql-shipment-tenant-predicate-removed",
+     "FROM shipments s
+            WHERE s.organization_id=@org
+                AND (@origin::uuid IS NULL",
+     "FROM shipments s
+            WHERE s.organization_id IS NOT NULL
+                AND (@origin::uuid IS NULL"),
+    ("k05-reads-last-arrival-instead-of-first",
+     "ORDER BY h.shipment_id,h.to_status,h.changed_at_utc,h.id",
+     "ORDER BY h.shipment_id,h.to_status,h.changed_at_utc DESC,h.id",
+     "FirstRecordedEventWinsWhenArrivedAndCompletedAreRecordedAgainLater"),
+    ("k03-first-event-deduplication-removed",
+     "SELECT DISTINCT ON (h.shipment_id,h.to_status)
+                h.shipment_id",
+     "SELECT DISTINCT ON (h.shipment_id,h.to_status,h.changed_at_utc)
+                h.shipment_id",
+     "FirstRecordedEventWinsWhenArrivedAndCompletedAreRecordedAgainLater"),
+    ("build-slot-admission-removed",
+     "OperationalKpiPolicy.MaximumLiveReportsPerTenant - others, ct))",
+     "OperationalKpiPolicy.MaximumLiveReportsPerTenant - others, ct) && others < 0)",
+     "BuildSlotsRefuseExcessBuildersPromptlyAndLiveReportsShrinkTheFreeSlots"),
+    ("build-slot-capacity-ignores-live-reports",
+     "OperationalKpiPolicy.MaximumLiveReportsPerTenant - others, ct))",
+     "OperationalKpiPolicy.MaximumLiveReportsPerTenant, ct))",
+     "BuildSlotsRefuseExcessBuildersPromptlyAndLiveReportsShrinkTheFreeSlots"),
+    ("tenant-quota-advisory-lock-removed",
+     "\"SELECT pg_advisory_lock(hashtextextended(@scope,0))\",
+            admission) { CommandTimeout = lockSeconds })",
+     "\"SELECT hashtextextended(@scope,0)\",
+            admission) { CommandTimeout = lockSeconds })",
+     "QuotaDecisionWaitsForTheTenantLockAndCommitsNothingWhileWaiting"),
     ("malformed-kpi-member-cursor-admitted",
      "if (!Id(last, out var parsed))",
      "if (!Id(last, out var parsed) && false)",

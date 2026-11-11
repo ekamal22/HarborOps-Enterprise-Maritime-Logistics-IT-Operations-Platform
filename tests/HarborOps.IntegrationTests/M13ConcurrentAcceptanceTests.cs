@@ -132,13 +132,21 @@ public sealed class M13ConcurrentAcceptanceTests
     // identically with the documented 413, never with a timeout.
     [ExclusiveM13PostgresFact]
     public Task RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds() =>
-        RunRealisticTenantAsync(85_000, expectReports: true);
+        RunRealisticTenantAsync(85_000, builders: 4, expectReports: true);
+
+    // Eight distinct users of one tenant start at the same moment. The tenant limit
+    // is four live snapshots, so exactly four builders may run the heavy member
+    // statement; the other four must be refused at once with the explicit 429, not
+    // after a full 25 second materialization and not with a 503.
+    [ExclusiveM13PostgresFact]
+    public Task RealisticSkewedEightyFiveThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly() =>
+        RunRealisticTenantAsync(85_000, builders: 8, expectReports: true);
 
     [ExclusiveM13PostgresFact]
     public Task RealisticSkewed170kShipmentTenantIsRefusedAsOverCapacityWithoutTimeouts() =>
-        RunRealisticTenantAsync(170_000, expectReports: false);
+        RunRealisticTenantAsync(170_000, builders: 4, expectReports: false);
 
-    private static async Task RunRealisticTenantAsync(int shipments, bool expectReports)
+    private static async Task RunRealisticTenantAsync(int shipments, int builders, bool expectReports)
     {
         const string password = "Synthetic-reference-integration-passphrase-123";
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();
@@ -198,7 +206,7 @@ public sealed class M13ConcurrentAcceptanceTests
             var selected = await orgs.SelectAsync(adminSession!.UserId,
                 adminSession.SessionId, f.A, CancellationToken.None);
             Assert.NotNull(selected.Value);
-            for (var i = 0; i < 2; i++)
+            for (var i = 0; i < builders - 2; i++)
             {
                 var email = "g13-realistic-" + Guid.NewGuid().ToString("N") + "@example.test";
                 await identity.ProvisionAsync(email, "Realistic Report Reader",
@@ -284,7 +292,17 @@ public sealed class M13ConcurrentAcceptanceTests
             {
                 // Inside capacity there is no acceptable refusal: all four complete.
                 Assert.Equal(4, reports.Count);
-                Assert.All(outcomes, o => Assert.Equal(HttpStatusCode.OK, o.Status));
+                Assert.Equal(4, outcomes.Count(o => o.Status == HttpStatusCode.OK));
+                var refused = outcomes.Where(o => o.Status != HttpStatusCode.OK).ToList();
+                Assert.Equal(builders - 4, refused.Count);
+                // Extra builders are refused at admission: the explicit 429, quickly,
+                // and never after consuming a full materialization.
+                Assert.All(refused, o =>
+                {
+                    Assert.Equal(HttpStatusCode.TooManyRequests, o.Status);
+                    Assert.Equal("report_tenant_capacity_exceeded", o.Root.GetProperty("code").GetString());
+                    Assert.True(o.Ms < 10_000, $"Capacity refusal took {o.Ms:F0} ms");
+                });
             }
             else
             {

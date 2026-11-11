@@ -315,11 +315,13 @@ def crash_evidence(root: Path | None) -> dict[str, bool]:
 def reporting_budget(root: Path | None) -> bool:
     if root is None:
         return False
-    path = root / "scale.log"
-    if not path.is_file():
+    # The reference and realistic budgets may be produced by separate test runs on
+    # separate fresh databases, so every scale*.log of the artifact is read.
+    logs = sorted(root.glob("scale*.log"))
+    if not logs:
         fail("G13 thirty-sample benchmark log missing")
         return False
-    raw = path.read_text(encoding="utf-8")
+    raw = chr(10).join(log.read_text(encoding="utf-8") for log in logs)
     match = re.search(r"G13_BUDGET count=(\d+) p50_ms=(\d+)"
                       r" p95_ms=(\d+) initial_report_bytes=(\d+)"
                       r" final_report_bytes=(\d+)", raw)

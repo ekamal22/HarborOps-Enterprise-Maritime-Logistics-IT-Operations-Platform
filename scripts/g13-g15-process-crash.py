@@ -19,6 +19,7 @@ PROJECT = "tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj"
 TYPE = "HarborOps.IntegrationTests.G13G15CrashRecoveryTests"
 PHASES = (
     ("G13BeforeReportCommit", None),
+    ("G13DuringLiveApiBuild", "G13LiveBuildRecoveredInNewApiProcess"),
     ("G15BeforeHistoryCommit", None),
     ("G15BeforeClaimCommit", "G15FanoutRecoveredInNewApiProcess"),
     ("G15BeforeFanoutCommit", "G15FanoutRecoveredInNewApiProcess"),
@@ -76,6 +77,15 @@ def verify_phase(container: str, phase: str, marker: dict) -> None:
             f"WHERE report_id='{target}'::uuid AND organization_id='{org}'::uuid")
         if count != 0 or members != 0:
             raise AssertionError("Killed pre-commit report left materialized state")
+    elif phase == "G13DuringLiveApiBuild":
+        reports = sql_count(container,
+            f"SELECT count(*) FROM operational_kpi_reports "
+            f"WHERE organization_id='{org}'::uuid")
+        members = sql_count(container,
+            f"SELECT count(*) FROM operational_kpi_members "
+            f"WHERE organization_id='{org}'::uuid")
+        if reports != 0 or members != 0:
+            raise AssertionError("Killed live API report left partial committed state")
     elif phase == "G15BeforeHistoryCommit":
         facts = sql_count(container,
             f"SELECT count(*) FROM shipment_exception_history WHERE id='{target}'::uuid")

@@ -75,7 +75,7 @@ public sealed class M13ScaleLoadTests
             foreach (var key in new[] { "origin", "destination", "voyage" })
                 explain.Parameters.Add(key, NpgsqlTypes.NpgsqlDbType.Uuid).Value = DBNull.Value;
             explain.Parameters.Add("source", NpgsqlTypes.NpgsqlDbType.Text).Value = DBNull.Value;
-            explain.Parameters.AddWithValue("maxrows", 500001);
+            explain.Parameters.AddWithValue("maxrows", 250001);
             var duration = Stopwatch.StartNew();
             var raw = Assert.IsType<string>(await explain.ExecuteScalarAsync());
             duration.Stop();

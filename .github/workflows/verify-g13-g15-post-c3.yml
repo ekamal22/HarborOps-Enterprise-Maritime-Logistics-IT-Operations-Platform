@@ -42,6 +42,29 @@ jobs:
           node scripts/check-m13-csp.mjs 2>&1 | tee .verification/m13-csp.log
           grep -q 'libgssapi-krb5-2' src/HarborOps.Api/Dockerfile
           python3 -m py_compile scripts/verify-g13-g15-evidence.py scripts/check-g13-g15-scenarios.py scripts/audit-g13-g15-assertions.py scripts/check-g13-g15-sensitive-evidence.py scripts/g13-g15-process-crash.py scripts/g13-mutation-campaign.py scripts/g15-mutation-campaign.py
+          python3 - <<'PY'
+          import ast
+          import json
+          from pathlib import Path
+          inventory = json.loads(Path("docs/G13_G15_ASSERTION_INVENTORY_20261109.json").read_text())
+          assertions = [a for group in inventory["scenarios"] for a in group["assertions"]]
+          assert len(assertions) == 263, "Expected all 263 separate assertions"
+          ids = [a["id"] for a in assertions]
+          assert len(set(ids)) == len(ids), "Duplicate assertion ID"
+          assert all(a["assessment"] == "FULLY_TESTED"
+                     for a in assertions if a["kind"] == "automated"), (
+              "Candidate evidence inventory still has an incomplete automated mapping")
+          source = ast.parse(Path("scripts/g13-mutation-campaign.py").read_text())
+          mutation_defs = [node.value for node in source.body
+                           if isinstance(node, ast.Assign)
+                           and any(isinstance(target, ast.Name) and target.id == "MUTANTS"
+                                   for target in node.targets)]
+          assert len(mutation_defs) == 1, "Mutation definition missing"
+          mutations = ast.literal_eval(mutation_defs[0])
+          assert len(mutations) == 45, "Expected 45 G13 source mutants"
+          assert "member-sql-tenant-filter-silently-excludes-draft" in (
+              item[0] for item in mutations), "Silent member-filter loss control missing"
+          PY
           node scripts/render-execution-graph.mjs --check 2>&1 | tee .verification/graph.log
           find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
       - name: Reconcile historical documentation consistency

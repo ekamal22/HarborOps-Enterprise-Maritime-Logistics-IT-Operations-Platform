@@ -1025,16 +1025,30 @@ public sealed class G15RemediationAcceptanceTests
             return (body.GetProperty("unreadCount").GetInt64(),
                 body.GetProperty("unreadCountCapped").GetBoolean());
         }
-        var small = await Unread();
-        Assert.True(small >= 1 && small < 999);
-        Assert.Equal((small, false), await Http());
-        await AddReceipts(999);
-        Assert.Equal((999L, false), await Http());
-        await AddReceipts(1000);
-        Assert.Equal((1000L, false), await Http());
-        await AddReceipts(1001);
-        Assert.Equal((1000L, true), await Http());
-        await AddReceipts(1200);
-        Assert.Equal((1000L, true), await Http());
+        try
+        {
+            var small = await Unread();
+            Assert.True(small >= 1 && small < 999);
+            Assert.Equal((small, false), await Http());
+            await AddReceipts(999);
+            Assert.Equal((999L, false), await Http());
+            await AddReceipts(1000);
+            Assert.Equal((1000L, false), await Http());
+            await AddReceipts(1001);
+            Assert.Equal((1000L, true), await Http());
+            await AddReceipts(1200);
+            Assert.Equal((1000L, true), await Http());
+        }
+        finally
+        {
+            // The synthetic intents are already fanned out. Leave none pending so
+            // later tests on the same disposable server do not drain a backlog.
+            await using var complete = new NpgsqlCommand("""
+                UPDATE m15_notification_outbox SET completed_at_utc=clock_timestamp()
+                WHERE organization_id=@org AND completed_at_utc IS NULL
+                """, db);
+            complete.Parameters.AddWithValue("org", s.Fixture.A);
+            await complete.ExecuteNonQueryAsync();
+        }
     }
 }

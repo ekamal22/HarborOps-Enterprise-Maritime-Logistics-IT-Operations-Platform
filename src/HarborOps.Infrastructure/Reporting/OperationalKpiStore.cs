@@ -275,24 +275,43 @@ public sealed class OperationalKpiStore(
             """, U("org", org), U("report", report)))
             await claim.ExecuteNonQueryAsync(ct);
 
-        // Early admission, before the heavy member statement. A tenant may hold four
-        // live snapshots and a user two. Counting committed snapshots alone would let
-        // any number of builders start the 9 to 19 second statement at once and then
-        // fail the late quota check, so at most the remaining tenant capacity may
-        // build concurrently: each builder must take one of that many build slots
-        // (session advisory locks on this builder's own connection, released with it).
-        // Refusal is immediate, explicit and a 429, never a 25 second 503.
+        // Serialize admission against report commits. A live snapshot and a
+        // still-running build both consume one tenant capacity slot. Checking
+        // committed reports separately from held build slots would permit a
+        // wasted expensive build when other builders commit in the meantime.
         await using (var early = Command(Connection, sqlTx,
             "SELECT m13_user_quota(@org)", U("org", org)))
             if (await early.ExecuteScalarAsync(ct) is not true)
                 return new(null, OrganizationAccessError.Conflict,
                     "report_user_capacity_exceeded");
-        int others;
-        await using (var live = Command(Connection, sqlTx,
-            "SELECT m13_tenant_live_reports(@org,@report)", U("org", org), U("report", report)))
-            others = Convert.ToInt32(await live.ExecuteScalarAsync(ct));
-        if (!await TryTakeBuildSlotAsync(admission, org,
-            OperationalKpiPolicy.MaximumLiveReportsPerTenant - others, ct))
+        int? reservedSlot;
+        await using (var gate = new NpgsqlCommand(
+            "SELECT pg_advisory_lock(hashtextextended(@scope,0))",
+            admission) { CommandTimeout = 15 })
+        {
+            gate.Parameters.AddWithValue("scope",
+                "m13-report-quota:" + org.ToString("N"));
+            await gate.ExecuteScalarAsync(ct);
+        }
+        try
+        {
+            int liveReports;
+            await using (var live = Command(Connection, sqlTx,
+                "SELECT m13_tenant_live_reports(@org,@report)",
+                U("org", org), U("report", report)))
+                liveReports = Convert.ToInt32(await live.ExecuteScalarAsync(ct));
+            reservedSlot = await TryTakeBuildSlotAsync(admission, org, liveReports, ct);
+        }
+        finally
+        {
+            await using var release = new NpgsqlCommand(
+                "SELECT pg_advisory_unlock(hashtextextended(@scope,0))",
+                admission) { CommandTimeout = 5 };
+            release.Parameters.AddWithValue("scope",
+                "m13-report-quota:" + org.ToString("N"));
+            await release.ExecuteScalarAsync(CancellationToken.None);
+        }
+        if (reservedSlot is null)
             return new(null, OrganizationAccessError.Conflict,
                 "report_tenant_capacity_exceeded");
 
@@ -357,23 +376,50 @@ public sealed class OperationalKpiStore(
         }
         var counts = await ReadCountsAsync(sqlTx, org, report, ct);
         await tx.CommitAsync(ct);
+        // The tenant quota lock is still held. Releasing the build slot now
+        // prevents a completed snapshot from being counted twice on admission.
+        await UnlockBuildSlotAsync(admission, org, reservedSlot.Value,
+            CancellationToken.None);
         return new(new KpiReport(report, org, sha, f.FromUtc, f.BeforeUtc,
             now, expires, count, counts), OrganizationAccessError.None);
     }
 
-    private static async Task<bool> TryTakeBuildSlotAsync(NpgsqlConnection admission,
-        Guid org, int freeSlots, CancellationToken ct)
+    private static async Task<int?> TryTakeBuildSlotAsync(NpgsqlConnection admission,
+        Guid org, int liveReports, CancellationToken ct)
     {
-        for (var slot = 0; slot < freeSlots; slot++)
+        var remaining = OperationalKpiPolicy.MaximumLiveReportsPerTenant - liveReports;
+        if (remaining <= 0) return null;
+        var busySlots = 0;
+        int? reserved = null;
+        for (var slot = 0; slot < OperationalKpiPolicy.MaximumLiveReportsPerTenant; slot++)
         {
             await using var take = new NpgsqlCommand(
-                "SELECT pg_try_advisory_lock(hashtextextended(@scope,0))", admission)
-                { CommandTimeout = 5 };
+                "SELECT pg_try_advisory_lock(hashtextextended(@scope,0))",
+                admission) { CommandTimeout = 5 };
             take.Parameters.AddWithValue("scope",
                 "m13-build-slot:" + org.ToString("N") + ":" + slot);
-            if (await take.ExecuteScalarAsync(ct) is true) return true;
+            if (await take.ExecuteScalarAsync(ct) is true)
+            {
+                if (reserved is null) reserved = slot;
+                else await UnlockBuildSlotAsync(admission, org, slot, ct);
+            }
+            else busySlots++;
         }
-        return false;
+        if (busySlots < remaining) return reserved;
+        if (reserved is not null)
+            await UnlockBuildSlotAsync(admission, org, reserved.Value, ct);
+        return null;
+    }
+
+    private static async Task UnlockBuildSlotAsync(NpgsqlConnection admission,
+        Guid org, int slot, CancellationToken ct)
+    {
+        await using var release = new NpgsqlCommand(
+            "SELECT pg_advisory_unlock(hashtextextended(@scope,0))",
+            admission) { CommandTimeout = 5 };
+        release.Parameters.AddWithValue("scope",
+            "m13-build-slot:" + org.ToString("N") + ":" + slot);
+        await release.ExecuteScalarAsync(ct);
     }
 
     private static readonly string MemberSql = """

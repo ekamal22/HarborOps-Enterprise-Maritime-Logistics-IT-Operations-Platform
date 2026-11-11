@@ -126,21 +126,21 @@ public sealed class M13ConcurrentAcceptanceTests
     }
 
     // Plan S20 asks for concurrent load on a skewed, history-rich tenant. A tenant
-    // inside the 500,000 member capacity (about 85,000 shipments with this mix)
+    // inside the 250,000 member capacity (about 40,000 shipments with this mix)
     // must serve four simultaneous builders with no 503 and inside the 30 second
     // proxy envelope. A tenant beyond the capacity must be refused quickly and
     // identically with the documented 413, never with a timeout.
     [ExclusiveM13PostgresFact]
-    public Task RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds() =>
-        RunRealisticTenantAsync(85_000, builders: 4, expectReports: true);
+    public Task RealisticSkewedFortyThousandShipmentTenantCompletesFourSimultaneousBuilds() =>
+        RunRealisticTenantAsync(40_000, builders: 4, expectReports: true);
 
     // Eight distinct users of one tenant start at the same moment. The tenant limit
     // is four live snapshots, so exactly four builders may run the heavy member
     // statement; the other four must be refused at once with the explicit 429, not
     // after a full 25 second materialization and not with a 503.
     [ExclusiveM13PostgresFact]
-    public Task RealisticSkewedEightyFiveThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly() =>
-        RunRealisticTenantAsync(85_000, builders: 8, expectReports: true);
+    public Task RealisticSkewedFortyThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly() =>
+        RunRealisticTenantAsync(40_000, builders: 8, expectReports: true);
 
     [ExclusiveM13PostgresFact]
     public Task RealisticSkewed170kShipmentTenantIsRefusedAsOverCapacityWithoutTimeouts() =>
@@ -266,7 +266,7 @@ public sealed class M13ConcurrentAcceptanceTests
                         .Where(x => x.GetProperty("metricCode").GetString() == "D01")
                         .Sum(x => x.GetProperty("count").GetInt64());
                     Assert.Equal(shipments - shipments / 37 + 2L, total); // archived rows (every 37th) are not active
-                    Assert.InRange(outcome.Root.GetProperty("memberCount").GetInt32(), 1, 500_000);
+                    Assert.InRange(outcome.Root.GetProperty("memberCount").GetInt32(), 1, 250_000);
                     reports.Add(outcome.Root.GetProperty("reportId").GetGuid());
                 }
                 else

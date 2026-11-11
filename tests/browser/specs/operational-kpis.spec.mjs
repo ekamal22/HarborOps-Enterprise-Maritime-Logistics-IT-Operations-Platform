@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const enabled = process.env.HARBOROPS_M13_FIXTURES === "1" &&
   Boolean(process.env.HARBOROPS_TEST_USER_PASSWORD);
@@ -15,6 +17,31 @@ async function login(page, email) {
 function dashboard(page) {
   return page.getByRole("region", { name: "Operational KPI dashboard" });
 }
+
+// Browser-level control for the actual hosted nginx CSP template. This does
+// not claim that TLS hosting was deployed or that the entire hosted stack ran.
+test("M13 hosted CSP profile blocks inline execution in all browser engines", async ({ page }) => {
+  const config = readFileSync(resolve(process.cwd(), "web/nginx.hosted.conf.template"), "utf8");
+  const policies = [...config.matchAll(/add_header\\s+Content-Security-Policy\\s+"([^"]+)"\\s+always;/g)];
+  expect(policies).toHaveLength(1);
+  const policy = policies[0][1];
+  expect(policy).toContain("upgrade-insecure-requests");
+  expect(policy).toContain("script-src 'self'");
+  expect(policy).toContain("style-src 'self'");
+  await page.route("**/g13-hosted-csp-control", route => route.fulfill({
+    status: 200,
+    contentType: "text/html",
+    headers: { "content-security-policy": policy },
+    body: "<!doctype html><html><head><title>CSP control</title></head><body>" +
+      "<script>window.__hostedCspUnsafeExecuted = true</script>" +
+      "<div id='check' style='color:red'>Control</div></body></html>"
+  }));
+  await page.goto("/g13-hosted-csp-control");
+  await expect(page.locator("#check")).toHaveText("Control");
+  expect(await page.evaluate(() => window.__hostedCspUnsafeExecuted ?? false)).toBe(false);
+  const color = await page.locator("#check").evaluate(el => getComputedStyle(el).color);
+  expect(color).not.toBe("rgb(255, 0, 0)");
+});
 
 test("M13 Manager sees scoped operational reporting and safe drill", async ({ page }) => {
   test.skip(!enabled, "Disposable M13 browser fixture required");

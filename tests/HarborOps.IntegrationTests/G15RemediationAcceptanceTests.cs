@@ -999,7 +999,16 @@ public sealed class G15RemediationAcceptanceTests
             await using (var slow = new NpgsqlCommand($$"""
                 CREATE FUNCTION m15_test_slow_first() RETURNS trigger LANGUAGE plpgsql AS $f$
                 BEGIN
-                    IF NEW.source_history_id='{{first}}'::uuid THEN PERFORM pg_sleep(5); END IF;
+                    -- The first intent may fan out to several recipients. Delay
+                    -- only once in its claim transaction so the negative mutant
+                    -- demonstrates blocked progress rather than an unbounded
+                    -- series of per-recipient sleeps during fixture cleanup.
+                    IF NEW.source_history_id='{{first}}'::uuid
+                       AND current_setting('harborops.m15_test_slow_first_done',true)
+                           IS DISTINCT FROM '1' THEN
+                        PERFORM set_config('harborops.m15_test_slow_first_done','1',true);
+                        PERFORM pg_sleep(5);
+                    END IF;
                     RETURN NEW;
                 END $f$;
                 CREATE TRIGGER m15_test_slow_first BEFORE INSERT ON m15_user_notifications

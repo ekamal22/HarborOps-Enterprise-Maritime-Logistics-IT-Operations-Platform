@@ -41,6 +41,7 @@ jobs:
           node scripts/check-m15-contract.mjs 2>&1 | tee .verification/m15-contract.log
           node scripts/check-m13-csp.mjs 2>&1 | tee .verification/m13-csp.log
           grep -q 'libgssapi-krb5-2' src/HarborOps.Api/Dockerfile
+          grep -Fq 'harborops.m15_test_slow_first_done' tests/HarborOps.IntegrationTests/G15RemediationAcceptanceTests.cs
           python3 -m py_compile scripts/verify-g13-g15-evidence.py scripts/check-g13-g15-scenarios.py scripts/audit-g13-g15-assertions.py scripts/check-g13-g15-sensitive-evidence.py scripts/g13-g15-process-crash.py scripts/g13-mutation-campaign.py scripts/g15-mutation-campaign.py
           python3 - <<'PY'
           import ast

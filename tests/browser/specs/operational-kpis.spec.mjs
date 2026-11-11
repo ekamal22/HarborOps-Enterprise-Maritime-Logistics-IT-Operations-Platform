@@ -342,3 +342,26 @@ test("M13 switching organization discards the previous organization's report", a
   await expect(d.getByRole("button",{name:/Active shipments/})
     .getByText("17",{exact:true})).toHaveCount(0);
 });
+
+test("DIAG engine control probe", async ({ page }) => {
+  test.skip(!enabled, "Disposable M13 browser fixture required");
+  const shell = await page.request.get("/");
+  const policy = shell.headers()["content-security-policy"];
+  const probes = {
+    date: "<input type='date'>", dates: "<input type='date'><input type='date'>",
+    select: "<select><option>a</option><option>b</option></select>",
+    text: "<input type='text' placeholder='x'>", svg: "<svg viewBox='0 0 100 1'><rect width='50' height='1'/></svg>",
+    plain: "<p>plain</p>"
+  };
+  const out = [];
+  for (const [name, html] of Object.entries(probes)) {
+    await page.route("**/diag-" + name, route => route.fulfill({
+      status: 200, contentType: "text/html", headers: { "content-security-policy": policy },
+      body: "<!doctype html><script>window.__n=0;document.addEventListener('securitypolicyviolation',()=>window.__n++)</script>" + html
+    }));
+    await page.goto("/diag-" + name);
+    await page.waitForTimeout(300);
+    out.push(name + "=" + await page.evaluate(() => window.__n));
+  }
+  console.log("PROBES " + out.join(" "));
+});

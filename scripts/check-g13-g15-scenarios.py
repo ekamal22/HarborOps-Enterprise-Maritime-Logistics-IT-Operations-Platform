@@ -77,6 +77,9 @@ EXTRA = {
 }
 MUTANTS = {
     "g13-mutations": {"scoped-evaluations-authority-removed",
+                      "live-report-count-authority-removed",
+                      "live-report-count-tenant-filter-removed",
+                      "live-report-count-expiry-filter-removed",
                       "user-report-cap-bypassed", "idle-cleanup-limit-guard-widened",
                       "scoped-exceptions-authority-removed",
                       "member-materialization-planner-guard-removed",
@@ -249,7 +252,7 @@ def verify(case: unittest.TestCase, scenario: str) -> None:
     if scenario in ("G15-S12", "G15-S21"):
         case.assertTrue(passed("ExhaustedFanoutRetriesQuarantineWithoutPartialReceipts"))
     if scenario in ("G13-S19", "G15-S13"):
-        phases = ("G13BeforeReportCommit", "G13AfterReportCommit") if gate == "G13" else (
+        phases = ("G13BeforeReportCommit", "G13DuringLiveApiBuild", "G13AfterReportCommit") if gate == "G13" else (
             "G15BeforeHistoryCommit", "G15BeforeClaimCommit",
             "G15BeforeFanoutCommit", "G15AfterFanoutCommit",
             "G15AfterReceiptCommit", "G15AfterResponseDiscarded")

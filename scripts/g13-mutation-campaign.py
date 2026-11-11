@@ -15,6 +15,7 @@ SOURCE = ROOT / "src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs"
 ENDPOINT = ROOT / "src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs"
 RETENTION_MIGRATION = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261110010000_M13TenantReportCapacity.cs"
 POLICY = ROOT / "src/HarborOps.Domain/Reporting/OperationalKpiPolicy.cs"
+PROGRAM = ROOT / "src/HarborOps.Api/Program.cs"
 BASE_MIGRATION = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261109020000_M13OperationalKpis.cs"
 EVIDENCE = ROOT / ".verification/g13-mutations"
 FILTER = "FullyQualifiedName~M13OperationalKpiRuntimeTests.TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
@@ -141,35 +142,25 @@ MUTANTS = [
      "BlockedMemberMaterializationRollsBackAndRecovers",
      "policy"),
     ("scoped-evaluations-organization-filter-removed",
-     "RETURN QUERY SELECT e.* FROM shipment_exception_evaluations e
-                    WHERE e.organization_id=p_org;",
-     "RETURN QUERY SELECT e.* FROM shipment_exception_evaluations e
-                    WHERE e.organization_id IS NOT NULL;",
+     "RETURN QUERY SELECT e.* FROM shipment_exception_evaluations e\n                    WHERE e.organization_id=p_org;",
+     "RETURN QUERY SELECT e.* FROM shipment_exception_evaluations e\n                    WHERE e.organization_id IS NOT NULL;",
      "DirectPrivilegedReaderCallsReturnOnlyTheSelectedTenantsRows",
      "retention_migration"),
     ("scoped-exceptions-organization-filter-removed",
-     "RETURN QUERY SELECT e.* FROM shipment_exceptions e
-                    WHERE e.organization_id=p_org;",
-     "RETURN QUERY SELECT e.* FROM shipment_exceptions e
-                    WHERE e.organization_id IS NOT NULL;",
+     "RETURN QUERY SELECT e.* FROM shipment_exceptions e\n                    WHERE e.organization_id=p_org;",
+     "RETURN QUERY SELECT e.* FROM shipment_exceptions e\n                    WHERE e.organization_id IS NOT NULL;",
      "DirectPrivilegedReaderCallsReturnOnlyTheSelectedTenantsRows",
      "retention_migration"),
     ("member-sql-shipment-tenant-predicate-removed",
-     "FROM shipments s
-            WHERE s.organization_id=@org
-                AND (@origin::uuid IS NULL",
-     "FROM shipments s
-            WHERE s.organization_id IS NOT NULL
-                AND (@origin::uuid IS NULL"),
+     "FROM shipments s\n            WHERE s.organization_id=@org\n                AND (@origin::uuid IS NULL",
+     "FROM shipments s\n            WHERE s.organization_id IS NOT NULL\n                AND (@origin::uuid IS NULL"),
     ("k05-reads-last-arrival-instead-of-first",
      "ORDER BY h.shipment_id,h.to_status,h.changed_at_utc,h.id",
      "ORDER BY h.shipment_id,h.to_status,h.changed_at_utc DESC,h.id",
      "FirstRecordedEventWinsWhenArrivedAndCompletedAreRecordedAgainLater"),
     ("k03-first-event-deduplication-removed",
-     "SELECT DISTINCT ON (h.shipment_id,h.to_status)
-                h.shipment_id",
-     "SELECT DISTINCT ON (h.shipment_id,h.to_status,h.changed_at_utc)
-                h.shipment_id",
+     "SELECT DISTINCT ON (h.shipment_id,h.to_status)\n                h.shipment_id",
+     "SELECT DISTINCT ON (h.shipment_id,h.to_status,h.changed_at_utc)\n                h.shipment_id",
      "FirstRecordedEventWinsWhenArrivedAndCompletedAreRecordedAgainLater"),
     ("build-slot-admission-removed",
      "OperationalKpiPolicy.MaximumLiveReportsPerTenant - others, ct))",
@@ -180,11 +171,14 @@ MUTANTS = [
      "OperationalKpiPolicy.MaximumLiveReportsPerTenant, ct))",
      "BuildSlotsRefuseExcessBuildersPromptlyAndLiveReportsShrinkTheFreeSlots"),
     ("tenant-quota-advisory-lock-removed",
-     "\"SELECT pg_advisory_lock(hashtextextended(@scope,0))\",
-            admission) { CommandTimeout = lockSeconds })",
-     "\"SELECT hashtextextended(@scope,0)\",
-            admission) { CommandTimeout = lockSeconds })",
+     "\"SELECT pg_advisory_lock(hashtextextended(@scope,0))\",\n            admission) { CommandTimeout = lockSeconds })",
+     "\"SELECT hashtextextended(@scope,0)\",\n            admission) { CommandTimeout = lockSeconds })",
      "QuotaDecisionWaitsForTheTenantLockAndCommitsNothingWhileWaiting"),
+    ("idle-cleanup-registered-by-default",
+     "if (builder.Configuration.GetValue<bool>(\"M13:EnableIdleCleanup\") &&",
+     "if (true &&",
+     "DefaultHostRegistersNeitherBackgroundServiceAndExplicitSettingsRegisterEach",
+     "program"),
     ("malformed-kpi-member-cursor-admitted",
      "if (!Id(last, out var parsed))",
      "if (!Id(last, out var parsed) && false)",
@@ -271,6 +265,7 @@ def main() -> int:
     originals = {SOURCE: SOURCE.read_bytes(), ENDPOINT: ENDPOINT.read_bytes(),
                  RETENTION_MIGRATION: RETENTION_MIGRATION.read_bytes(),
                  POLICY: POLICY.read_bytes(),
+                 PROGRAM: PROGRAM.read_bytes(),
                  BASE_MIGRATION: BASE_MIGRATION.read_bytes()}
     original = originals[SOURCE]
     source_sha = digest(original)
@@ -318,6 +313,7 @@ def main() -> int:
                 if len(target_case) > 1 and target_case[1] == "retention_migration"
                 else BASE_MIGRATION if len(target_case) > 1
                     and target_case[1] == "base_migration"
+                else PROGRAM if len(target_case) > 1 and target_case[1] == "program"
                 else POLICY if len(target_case) > 1 and target_case[1] == "policy"
                 else ENDPOINT if len(target_case) > 1 and target_case[1] == "endpoints"
                 else SOURCE)

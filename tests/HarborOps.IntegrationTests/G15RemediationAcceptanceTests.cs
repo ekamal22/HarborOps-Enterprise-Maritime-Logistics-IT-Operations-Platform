@@ -534,6 +534,15 @@ public sealed class G15RemediationAcceptanceTests
             Assert.Equal("Archived", (await archived.Content.ReadFromJsonAsync<JsonElement>())
                 .GetProperty("recordStatus").GetString());
         }
+        // The negative branch: without M11 shipment permission the archived target
+        // and the receipt remain unreadable, and nothing identifying leaks.
+        foreach (var denied in new[] { detailPath, root + "/" + id })
+        {
+            using var blocked = await administrator.GetAsync(denied);
+            Assert.Contains((int)blocked.StatusCode, new[] { 403, 404 });
+            Assert.DoesNotContain(shipment.ToString(),
+                await blocked.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+        }
         // No new authority: the archived shipment cannot be edited through it.
         using (var edit = await ReferenceDataHttpTests.Send(manager, HttpMethod.Patch, detailPath,
             new { expectedVersion = 99L, displayName = "Changed" }))

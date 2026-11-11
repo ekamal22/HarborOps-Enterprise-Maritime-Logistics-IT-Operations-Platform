@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261109010000_M15ScopedNotifications.cs"
 STORE_API = ROOT / "src/HarborOps.Api/Notifications/NotificationEndpoints.cs"
 STORE_CS = ROOT / "src/HarborOps.Infrastructure/Notifications/NotificationStore.cs"
+PROGRAM_CS = ROOT / "src/HarborOps.Api/Program.cs"
 OUT = ROOT / ".verification/g15-mutations"
 # A mutant may name the file it changes: "sql" (default), "api" or "store".
 MUTANTS = [
@@ -162,6 +163,13 @@ MUTANTS = [
         "store",
     ),
     (
+        "delivery-service-registered-by-default",
+        "if (builder.Configuration.GetValue<bool>(\"M15:EnableDelivery\"))",
+        "if (true)",
+        "DefaultHostRegistersNeitherBackgroundServiceAndExplicitSettingsRegisterEach",
+        "program",
+    ),
+    (
         "dispatcher-poll-stops-at-first-failed-intent",
         "if (claimed == 0) break;",
         "if (one == 0) break;",
@@ -213,6 +221,8 @@ def main() -> int:
     api_clean = api_original.decode("utf-8")
     store_original = STORE_CS.read_bytes()
     store_clean = store_original.decode("utf-8")
+    program_original = PROGRAM_CS.read_bytes()
+    program_clean = program_original.decode("utf-8")
     OUT.mkdir(parents=True, exist_ok=True)
     records: list[dict] = []
     ordered = [("clean-control", None, None, None)] + MUTANTS
@@ -220,7 +230,9 @@ def main() -> int:
         for name, before, after, target, *where in ordered:
             in_api = bool(where) and where[0] == "api"
             in_store = bool(where) and where[0] == "store"
-            base = api_clean if in_api else store_clean if in_store else clean
+            in_program = bool(where) and where[0] == "program"
+            base = (api_clean if in_api else store_clean if in_store
+                    else program_clean if in_program else clean)
             if before is not None and base.count(before) != 1:
                 raise RuntimeError(name + ": unique mutation anchor not found")
             mutated = base.replace(before, after) if before is not None else base
@@ -240,10 +252,13 @@ def main() -> int:
             SOURCE.write_bytes(original)
             STORE_API.write_bytes(api_original)
             STORE_CS.write_bytes(store_original)
+            PROGRAM_CS.write_bytes(program_original)
             if in_api:
                 STORE_API.write_text(mutated, encoding="utf-8")
             elif in_store:
                 STORE_CS.write_text(mutated, encoding="utf-8")
+            elif in_program:
+                PROGRAM_CS.write_text(mutated, encoding="utf-8")
             else:
                 SOURCE.write_text(mutated, encoding="utf-8")
             reset = call([
@@ -307,15 +322,18 @@ def main() -> int:
             SOURCE.write_bytes(original)
             STORE_API.write_bytes(api_original)
             STORE_CS.write_bytes(store_original)
+            PROGRAM_CS.write_bytes(program_original)
             if name == "clean-control" and verdict != "PASS":
                 break
     finally:
         SOURCE.write_bytes(original)
         STORE_API.write_bytes(api_original)
         STORE_CS.write_bytes(store_original)
+        PROGRAM_CS.write_bytes(program_original)
         if (sha(SOURCE.read_bytes()) != sha(original)
                 or sha(STORE_API.read_bytes()) != sha(api_original)
-                or sha(STORE_CS.read_bytes()) != sha(store_original)):
+                or sha(STORE_CS.read_bytes()) != sha(store_original)
+                or sha(PROGRAM_CS.read_bytes()) != sha(program_original)):
             raise RuntimeError("Mutation source restoration failed")
         (OUT / "manifest.json").write_text(json.dumps({
             "source_commit": _source_identity(),

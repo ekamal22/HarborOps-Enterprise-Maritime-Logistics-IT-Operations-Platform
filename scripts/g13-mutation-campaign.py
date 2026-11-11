@@ -135,7 +135,7 @@ MUTANTS = [
     ("member-materialization-planner-guard-removed",
      "SET LOCAL enable_nestloop = off; SET LOCAL statement_timeout =",
      "SET LOCAL enable_nestloop = on; SET LOCAL statement_timeout =",
-     "RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds"),
+     "RealisticSkewedFortyThousandShipmentTenantCompletesFourSimultaneousBuilds"),
     ("member-materialization-timeout-reverted-to-15s",
      "MemberMaterializationTimeout = TimeSpan.FromSeconds(25);",
      "MemberMaterializationTimeout = TimeSpan.FromSeconds(15);",

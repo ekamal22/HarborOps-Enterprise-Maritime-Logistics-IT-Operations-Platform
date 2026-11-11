@@ -144,13 +144,43 @@ public static class AuditRoleProvisioner
                             m13_can_manage(uuid),m13_member_access(uuid,uuid),
                             m13_set_auditor_grant(uuid,uuid,uuid,uuid,boolean),
                             m13_prune_expired(uuid,integer),
-                            m13_prune_expired_idle(integer),
-                            m13_tenant_quota(uuid),m13_user_quota(uuid),
-                            m13_tenant_live_reports(uuid,uuid),
-                            m13_scoped_evaluations(uuid),m13_scoped_exceptions(uuid),
                             m13_lock_auditor_grant(uuid,uuid,uuid),
                             m13_lock_report(uuid,uuid,uuid,uuid,varchar)
                             TO harborops_api;
+                        -- A database stopped between the base M13 migration and
+                        -- the later capacity migration must provision the base
+                        -- functions without attempting grants on absent functions.
+                        -- Capacity functions are granted only when each exists.
+                        IF to_regprocedure('public.m13_prune_expired_idle(integer)')
+                            IS NOT NULL THEN
+                            GRANT EXECUTE ON FUNCTION m13_prune_expired_idle(integer)
+                                TO harborops_api;
+                        END IF;
+                        IF to_regprocedure('public.m13_tenant_quota(uuid)')
+                            IS NOT NULL THEN
+                            GRANT EXECUTE ON FUNCTION m13_tenant_quota(uuid)
+                                TO harborops_api;
+                        END IF;
+                        IF to_regprocedure('public.m13_user_quota(uuid)')
+                            IS NOT NULL THEN
+                            GRANT EXECUTE ON FUNCTION m13_user_quota(uuid)
+                                TO harborops_api;
+                        END IF;
+                        IF to_regprocedure('public.m13_tenant_live_reports(uuid,uuid)')
+                            IS NOT NULL THEN
+                            GRANT EXECUTE ON FUNCTION m13_tenant_live_reports(uuid,uuid)
+                                TO harborops_api;
+                        END IF;
+                        IF to_regprocedure('public.m13_scoped_evaluations(uuid)')
+                            IS NOT NULL THEN
+                            GRANT EXECUTE ON FUNCTION m13_scoped_evaluations(uuid)
+                                TO harborops_api;
+                        END IF;
+                        IF to_regprocedure('public.m13_scoped_exceptions(uuid)')
+                            IS NOT NULL THEN
+                            GRANT EXECUTE ON FUNCTION m13_scoped_exceptions(uuid)
+                                TO harborops_api;
+                        END IF;
                     END IF;
                 END $m13_roles$;
 

@@ -166,8 +166,12 @@ public sealed class M15ScaleLoadTests
             }
             return value(await response.Content.ReadFromJsonAsync<JsonElement>());
         }
-        var unread = await Probe("unread_count", "/unread-count",
-            j => j.GetProperty("unreadCount").GetInt64());
+        JsonElement unreadBody = default;
+        var unread = await Probe("unread_count", "/unread-count", j =>
+        {
+            unreadBody = j.Clone();
+            return j.GetProperty("unreadCount").GetInt64();
+        });
         var unreadPage = await Probe("state_unread", "?limit=50&state=Unread",
             j => j.GetProperty("items").GetArrayLength());
         var readPage = await Probe("state_read", "?limit=50&state=Read",
@@ -176,8 +180,11 @@ public sealed class M15ScaleLoadTests
             j => j.GetProperty("items").GetArrayLength());
         Console.WriteLine("G15_STATE_PROBES " + string.Join(" ", stateTimes));
         Assert.True(probeFailures.Count == 0, "Unbounded probes: " + string.Join("; ", probeFailures));
-        // The count is exact up to the cap and never above it.
-        Assert.InRange(unread, 1L, 1000L);
+        // One million unread receipts: the count is exactly the cap, flagged as capped,
+        // and carries the snapshot time. Anything else (1, 999, 1001, no flag) fails.
+        Assert.Equal(1000L, unread);
+        Assert.True(unreadBody.GetProperty("unreadCountCapped").GetBoolean());
+        Assert.Equal(JsonValueKind.String, unreadBody.GetProperty("asOfUtc").ValueKind);
         Assert.Equal(50, unreadPage);
         Assert.Equal(0, readPage);
         Assert.Equal(0, ackPage);

@@ -253,28 +253,67 @@ public sealed class NotificationStore(
         finally { await Connection.CloseAsync(); }
     }
 
+    // Each intent is delivered by its own database statement with its own time
+    // limit. A PostgreSQL statement timeout is one shot for the whole statement, so
+    // handing a batch to one call would bound only the first slow intent and leave
+    // the rest to the client deadline. The limit is applied in application code, not
+    // by a database role setting, so it holds in every deployment.
+    public const int DeliveryBatchSize = 10;
+
+    private int EventTimeoutSeconds => Math.Clamp(
+        configuration.GetValue<int?>("M15:DeliveryEventTimeoutSeconds") ?? 15, 1, 60);
+
     public async Task<int> DeliverPendingAsync(CancellationToken ct)
+    {
+        // The poll continues past an intent that failed or timed out (it was claimed
+        // and scheduled for a retry) and ends when a call finds nothing to claim.
+        var delivered = 0;
+        for (var i = 0; i < DeliveryBatchSize; i++)
+        {
+            var (one, claimed) = await DeliverOneAsync(ct);
+            delivered += one;
+            if (claimed == 0) break;
+        }
+        return delivered;
+    }
+
+    private async Task<(int Delivered, int Claimed)> DeliverOneAsync(CancellationToken ct)
     {
         await Connection.OpenAsync(ct);
         try
         {
             // A repeatable-read snapshot keeps audience size and the committed
-            // eligible recipient set consistent for the entire fanout batch.
+            // eligible recipient set consistent for the whole fanout of the intent.
             await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
                 IsolationLevel.RepeatableRead,ct);
             await SetDispatchScopeAsync(tx,ct);
-            int count;
+            await using (var limit = Command(Connection,tx,
+                $"SET LOCAL statement_timeout = '{EventTimeoutSeconds}s'"))
+                await limit.ExecuteNonQueryAsync(ct);
+            int count, claimed;
             await using (var cmd = Command(Connection,tx,
-                "SELECT m15_deliver_pending(@take::integer)",("take",10)))
+                "SELECT m15_deliver_pending(@take::integer)",("take",1)))
+            {
+                cmd.CommandTimeout = EventTimeoutSeconds + 10;
                 count = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct));
+            }
+            await using (var found = Command(Connection,tx,
+                "SELECT COALESCE(NULLIF(current_setting('harborops.m15_claimed',true),'')::integer,0)"))
+                claimed = Convert.ToInt32(await found.ExecuteScalarAsync(ct));
             await tx.CommitAsync(ct);
-            return count;
+            return (count, claimed);
         }
         catch (PostgresException error) when (error.SqlState is "40001" or "40P01")
         {
             // Concurrent SKIP LOCKED claims can lose a repeatable-read
             // serialization race. A future poll safely retries the intent.
-            return 0;
+            return (0, 0);
+        }
+        catch (PostgresException error) when (error.SqlState == "57014" && !ct.IsCancellationRequested)
+        {
+            // The time limit fired outside an intent's own retry handling. Nothing
+            // was committed; the next poll claims the intent again.
+            return (0, 0);
         }
         finally { await Connection.CloseAsync(); }
     }

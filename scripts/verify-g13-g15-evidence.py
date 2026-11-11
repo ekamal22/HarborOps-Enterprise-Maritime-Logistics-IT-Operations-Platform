@@ -251,7 +251,7 @@ def browser_result(root: Path | None) -> dict[str, bool]:
     if root is None:
         return result
     for engine in ("chromium", "firefox", "webkit"):
-        for suite, expected in (("notifications", 10), ("operational-kpis", 8)):
+        for suite, expected in (("notifications", 11), ("operational-kpis", 8)):
             path = root / (engine + "-" + suite + ".json")
             key = engine + ":" + suite
             if not path.is_file():
@@ -500,7 +500,7 @@ def main() -> int:
         "g13-security-mutations": mutation_result(
             artifacts["g13-security-mutations"], "g13-security-mutations", 4),
         "g15-mutations": mutation_result(
-            artifacts["g15-mutations"], "g15-mutations", 17),
+            artifacts["g15-mutations"], "g15-mutations", 23),
     }
     if counters["Failed"] or counters["Skipped"] or counters["Other"]:
         fail("TRX contains failing, skipped or unexpected test outcomes")

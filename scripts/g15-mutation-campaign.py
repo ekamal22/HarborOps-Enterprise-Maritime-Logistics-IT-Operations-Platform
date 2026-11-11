@@ -14,8 +14,9 @@ import time
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261109010000_M15ScopedNotifications.cs"
 STORE_API = ROOT / "src/HarborOps.Api/Notifications/NotificationEndpoints.cs"
+STORE_CS = ROOT / "src/HarborOps.Infrastructure/Notifications/NotificationStore.cs"
 OUT = ROOT / ".verification/g15-mutations"
-# A mutant may name the file it changes: "sql" (default) or "api".
+# A mutant may name the file it changes: "sql" (default), "api" or "store".
 MUTANTS = [
     (
         "history-action-filter-removed",
@@ -126,6 +127,47 @@ MUTANTS = [
         "IF false THEN\n                        SELECT m.role",
         "RequiredAuditFailureRollsBackReceiptAndReplay",
     ),
+    (
+        "outbox-claim-skip-locked-removed",
+        "FOR UPDATE SKIP LOCKED LIMIT p_limit",
+        "FOR UPDATE LIMIT p_limit",
+        "SecondDispatcherSkipsALockedIntentAndDeliversOthersWhileTheFirstIsBusy",
+    ),
+    (
+        "unread-capped-flag-never-set",
+        "return (Math.Min(count, UnreadCountCap), count > UnreadCountCap, now);",
+        "return (Math.Min(count, UnreadCountCap), false, now);",
+        "UnreadCountIsExactUpToTheCapAndFlagsOnlyBeyondIt",
+        "store",
+    ),
+    (
+        "unread-cap-probe-row-removed",
+        '("cap",UnreadCountCap + 1)',
+        '("cap",UnreadCountCap)',
+        "UnreadCountIsExactUpToTheCapAndFlagsOnlyBeyondIt",
+        "store",
+    ),
+    (
+        "unread-cap-raised-to-one-hundred-thousand",
+        "public const int UnreadCountCap = 1000;",
+        "public const int UnreadCountCap = 100000;",
+        "UnreadCountIsExactUpToTheCapAndFlagsOnlyBeyondIt",
+        "store",
+    ),
+    (
+        "dispatcher-event-time-limit-not-applied",
+        "$\"SET LOCAL statement_timeout = '{EventTimeoutSeconds}s'\"",
+        "$\"SET LOCAL statement_timeout = '0'\"",
+        "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents",
+        "store",
+    ),
+    (
+        "dispatcher-poll-stops-at-first-failed-intent",
+        "if (claimed == 0) break;",
+        "if (one == 0) break;",
+        "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents",
+        "store",
+    ),
 ]
 
 def sha(data: bytes) -> str:
@@ -169,13 +211,16 @@ def main() -> int:
     clean = original.decode("utf-8")
     api_original = STORE_API.read_bytes()
     api_clean = api_original.decode("utf-8")
+    store_original = STORE_CS.read_bytes()
+    store_clean = store_original.decode("utf-8")
     OUT.mkdir(parents=True, exist_ok=True)
     records: list[dict] = []
     ordered = [("clean-control", None, None, None)] + MUTANTS
     try:
         for name, before, after, target, *where in ordered:
             in_api = bool(where) and where[0] == "api"
-            base = api_clean if in_api else clean
+            in_store = bool(where) and where[0] == "store"
+            base = api_clean if in_api else store_clean if in_store else clean
             if before is not None and base.count(before) != 1:
                 raise RuntimeError(name + ": unique mutation anchor not found")
             mutated = base.replace(before, after) if before is not None else base
@@ -192,12 +237,15 @@ def main() -> int:
                     if mutated.count(original_anchor) != 1:
                         raise RuntimeError(name + ": dependent anchor mismatch")
                     mutated = mutated.replace(original_anchor, changed_anchor)
+            SOURCE.write_bytes(original)
+            STORE_API.write_bytes(api_original)
+            STORE_CS.write_bytes(store_original)
             if in_api:
                 STORE_API.write_text(mutated, encoding="utf-8")
-                SOURCE.write_bytes(original)
+            elif in_store:
+                STORE_CS.write_text(mutated, encoding="utf-8")
             else:
                 SOURCE.write_text(mutated, encoding="utf-8")
-                STORE_API.write_bytes(api_original)
             reset = call([
                 "docker", "exec", container, "psql", "-v", "ON_ERROR_STOP=1",
                 "-U", "harborops", "-d", match.group(1), "-c",
@@ -258,13 +306,16 @@ def main() -> int:
             print("G15_MUTANT " + name + " " + verdict, flush=True)
             SOURCE.write_bytes(original)
             STORE_API.write_bytes(api_original)
+            STORE_CS.write_bytes(store_original)
             if name == "clean-control" and verdict != "PASS":
                 break
     finally:
         SOURCE.write_bytes(original)
         STORE_API.write_bytes(api_original)
+        STORE_CS.write_bytes(store_original)
         if (sha(SOURCE.read_bytes()) != sha(original)
-                or sha(STORE_API.read_bytes()) != sha(api_original)):
+                or sha(STORE_API.read_bytes()) != sha(api_original)
+                or sha(STORE_CS.read_bytes()) != sha(store_original)):
             raise RuntimeError("Mutation source restoration failed")
         (OUT / "manifest.json").write_text(json.dumps({
             "source_commit": _source_identity(),

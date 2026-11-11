@@ -143,6 +143,7 @@ public sealed class M15ScopedNotifications : Migration
             DECLARE
                 evt record;
                 delivered integer := 0;
+                claimed integer := 0;
                 recipient_count integer;
                 next_count integer;
                 error_code varchar(32);
@@ -159,6 +160,7 @@ public sealed class M15ScopedNotifications : Migration
                     ORDER BY next_attempt_at_utc,created_at_utc,source_history_id
                     FOR UPDATE SKIP LOCKED LIMIT p_limit
                 LOOP
+                    claimed := claimed+1;
                     BEGIN
                         -- Bound recipient fanout on the same repeatable-read snapshot
                         -- that is used by the following INSERT. No partial audience
@@ -219,6 +221,9 @@ public sealed class M15ScopedNotifications : Migration
                         WHERE source_history_id=evt.source_history_id;
                     END;
                 END LOOP;
+                -- Intents claimed in this call, whether delivered or scheduled for a
+                -- retry. The dispatcher reads it to know whether work was found.
+                PERFORM set_config('harborops.m15_claimed',claimed::text,true);
                 RETURN delivered;
             END $m15$;
 

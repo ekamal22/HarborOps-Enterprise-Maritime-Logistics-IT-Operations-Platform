@@ -154,6 +154,45 @@ test("G15 scoped notification center displays neutral event and personal state",
     .toHaveCount(0);
 });
 
+test("G15 capped unread count shows 1000+ and an exact count never shows a plus", async ({ page }) => {
+  test.skip(!enabled, "Disposable organization fixtures required");
+  const notice = {
+    id:"cddddd11-1111-4111-8111-111111111112",
+    shipmentId:"cddddd22-2222-4222-8222-222222222223",
+    exceptionId:"cddddd33-3333-4333-8333-333333333334",
+    eventType:"ExceptionOpened",ruleCode:"ArrivalScheduleOverdue",
+    title:"Planned arrival overdue; physical arrival unconfirmed",
+    eventLabel:"Opened",createdAtUtc:"2026-11-08T17:00:00Z",
+    readAtUtc:null,acknowledgedAtUtc:null,version:1
+  };
+  await signIn(page);
+  const option = label => page.locator("#current-organization option")
+    .filter({hasText:label}).getAttribute("value");
+  const north = await option("M3 North Terminal (Manager)");
+  const east = await option("M3 East Terminal (Manager)");
+  expect(north).toBeTruthy();
+  expect(east).toBeTruthy();
+  const feed = JSON.stringify({items:[notice],nextCursor:null,
+    snapshotAtUtc:"2026-11-08T17:01:00Z"});
+  for (const [org, count] of [[north, {unreadCount:1000,unreadCountCapped:true}],
+                              [east, {unreadCount:25,unreadCountCapped:false}]]) {
+    await page.route("**/organizations/" + org + "/notifications?*", route =>
+      route.fulfill({status:200,contentType:"application/json",body:feed}));
+    await page.route("**/organizations/" + org + "/notifications/unread-count", route =>
+      route.fulfill({status:200,contentType:"application/json",
+        body:JSON.stringify({...count,asOfUtc:"2026-11-08T17:01:00Z"})}));
+  }
+  const center = page.getByRole("region",{name:"In-app shipment notifications"});
+  await page.locator("#current-organization")
+    .selectOption({label:"M3 North Terminal (Manager)"});
+  await expect(center.getByText("(1000+ unread)",{exact:false})).toBeVisible();
+  await page.locator("#current-organization")
+    .selectOption({label:"M3 East Terminal (Manager)"});
+  await expect(center.getByText("(25 unread)",{exact:false})).toBeVisible();
+  await expect(center.getByText("25+",{exact:false})).toHaveCount(0);
+  await expect(center.getByText("1000+",{exact:false})).toHaveCount(0);
+});
+
 test("G15 notification center never grants administrator shipment visibility", async ({page}) => {
   test.skip(!enabled,"Disposable organization fixtures required");
   await signIn(page,"Administrator");

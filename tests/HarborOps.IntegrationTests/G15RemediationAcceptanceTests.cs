@@ -185,13 +185,18 @@ public sealed class G15RemediationAcceptanceTests
             """, ("org", s.Fixture.A), ("shipment", shipment)));
     }
 
-    // G15-S21-A03: a statement timeout inside one event is a counted retry; it
-    // never aborts the batch or blocks later events behind it.
+    // G15-S21-A03: every intent has its own time limit, applied by the dispatcher
+    // itself (no database role setting is involved). Two slow intents are both cut
+    // off individually, each is a counted retry, neither leaves a partial receipt,
+    // and the healthy intent behind them is still delivered in the same poll.
     [ExclusiveM13PostgresFact]
     public async Task DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents()
     {
         var (s, shipment, exceptionId) = await OpenException();
-        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var factory = s.Factory;
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(s.Roles.Api, null, null,
+            new Dictionary<string, string> { ["M15:DeliveryEventTimeoutSeconds"] = "2" });
+        using var ownedRuntime = s.Runtime;
         using var manager = s.Manager; using var analyst = s.Analyst;
         using var administrator = s.Administrator;
         using var seedAdmin = s.Fixture.Admin; using var seedManager = s.Fixture.Manager;
@@ -209,37 +214,54 @@ public sealed class G15RemediationAcceptanceTests
             first.Parameters.AddWithValue("shipment", shipment);
             poison = Assert.IsType<Guid>(await first.ExecuteScalarAsync());
         }
-        await using (var second = new NpgsqlCommand("""
-            INSERT INTO shipment_exception_history (organization_id,exception_id,action,
-                old_state,new_state,actor_kind,source_fingerprint)
-            SELECT organization_id,id,'Opened',NULL,'Open','System',source_fingerprint
-            FROM shipment_exceptions WHERE id=@exception
-            """, db))
+        // A second slow intent and then a healthy one, in creation order.
+        for (var extra = 0; extra < 2; extra++)
         {
+            await using var second = new NpgsqlCommand("""
+                INSERT INTO shipment_exception_history (organization_id,exception_id,action,
+                    old_state,new_state,actor_kind,source_fingerprint)
+                SELECT organization_id,id,'Opened',NULL,'Open','System',source_fingerprint
+                FROM shipment_exceptions WHERE id=@exception
+                """, db);
             second.Parameters.AddWithValue("exception", exceptionId);
             Assert.Equal(1, await second.ExecuteNonQueryAsync());
+        }
+        Guid poisonTwo;
+        await using (var middle = new NpgsqlCommand("""
+            SELECT source_history_id FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@shipment
+              AND source_history_id<>@poison
+            ORDER BY created_at_utc LIMIT 1
+            """, db))
+        {
+            middle.Parameters.AddWithValue("org", s.Fixture.A);
+            middle.Parameters.AddWithValue("shipment", shipment);
+            middle.Parameters.AddWithValue("poison", poison);
+            poisonTwo = Assert.IsType<Guid>(await middle.ExecuteScalarAsync());
         }
         Guid healthy;
         await using (var later = new NpgsqlCommand("""
             SELECT source_history_id FROM m15_notification_outbox
             WHERE organization_id=@org AND shipment_id=@shipment
-              AND source_history_id<>@poison
+              AND source_history_id NOT IN (@poison,@poisonTwo)
             ORDER BY created_at_utc DESC LIMIT 1
             """, db))
         {
             later.Parameters.AddWithValue("org", s.Fixture.A);
             later.Parameters.AddWithValue("shipment", shipment);
             later.Parameters.AddWithValue("poison", poison);
+            later.Parameters.AddWithValue("poisonTwo", poisonTwo);
             healthy = Assert.IsType<Guid>(await later.ExecuteScalarAsync());
         }
         // Defer every unrelated pending intent so the batch contains only ours.
         await using (var defer = new NpgsqlCommand("""
             UPDATE m15_notification_outbox SET next_attempt_at_utc=clock_timestamp()+interval '1 hour'
             WHERE completed_at_utc IS NULL AND quarantined_at_utc IS NULL
-              AND source_history_id NOT IN (@poison,@healthy)
+              AND source_history_id NOT IN (@poison,@poisonTwo,@healthy)
             """, db))
         {
             defer.Parameters.AddWithValue("poison", poison);
+            defer.Parameters.AddWithValue("poisonTwo", poisonTwo);
             defer.Parameters.AddWithValue("healthy", healthy);
             await defer.ExecuteNonQueryAsync();
         }
@@ -248,14 +270,18 @@ public sealed class G15RemediationAcceptanceTests
             await using (var slow = new NpgsqlCommand($$"""
                 CREATE FUNCTION m15_test_slow_receipt() RETURNS trigger LANGUAGE plpgsql AS $f$
                 BEGIN
-                    IF NEW.source_history_id='{{poison}}'::uuid THEN PERFORM pg_sleep(8); END IF;
+                    IF NEW.source_history_id IN ('{{poison}}'::uuid,'{{poisonTwo}}'::uuid)
+                    THEN PERFORM pg_sleep(8); END IF;
                     RETURN NEW;
                 END $f$;
                 CREATE TRIGGER m15_test_slow_receipt BEFORE INSERT ON m15_user_notifications
                     FOR EACH ROW EXECUTE FUNCTION m15_test_slow_receipt();
-                ALTER ROLE harborops_api SET statement_timeout='2s';
                 """, db))
                 await slow.ExecuteNonQueryAsync();
+            // No role setting: the limit must come from the dispatcher itself.
+            await using (var role = new NpgsqlCommand(
+                "SELECT count(*) FROM pg_db_role_setting WHERE setconfig::text ILIKE '%statement_timeout%'", db))
+                Assert.Equal(0L, Convert.ToInt64(await role.ExecuteScalarAsync()));
             NpgsqlConnection.ClearAllPools();
 
             await using var scope = runtime.Services.CreateAsyncScope();
@@ -263,15 +289,17 @@ public sealed class G15RemediationAcceptanceTests
             var clock = System.Diagnostics.Stopwatch.StartNew();
             var delivered = await delivery.DeliverPendingAsync(CancellationToken.None);
             clock.Stop();
-            Assert.True(clock.Elapsed < TimeSpan.FromSeconds(20), $"Batch not bounded: {clock.Elapsed}");
+            // Two 2 second limits, not two 8 second sleeps (one-shot database timeout).
+            Assert.True(clock.Elapsed < TimeSpan.FromSeconds(10), $"Batch not bounded: {clock.Elapsed}");
             Assert.Equal(1, delivered);
 
             await using var state = new NpgsqlCommand("""
                 SELECT source_history_id,attempt_count,last_error_code,
                        completed_at_utc IS NOT NULL,quarantined_at_utc IS NOT NULL
-                FROM m15_notification_outbox WHERE source_history_id IN (@poison,@healthy)
+                FROM m15_notification_outbox WHERE source_history_id IN (@poison,@poisonTwo,@healthy)
                 """, db);
             state.Parameters.AddWithValue("poison", poison);
+            state.Parameters.AddWithValue("poisonTwo", poisonTwo);
             state.Parameters.AddWithValue("healthy", healthy);
             await using var reader = await state.ExecuteReaderAsync();
             var seen = new Dictionary<Guid, (int Attempts, string? Error, bool Done, bool Quarantined)>();
@@ -280,13 +308,13 @@ public sealed class G15RemediationAcceptanceTests
                     reader.IsDBNull(2) ? null : reader.GetString(2),
                     reader.GetBoolean(3), reader.GetBoolean(4));
             Assert.Equal((1, "delivery_timeout", false, false), seen[poison]);
+            Assert.Equal((1, "delivery_timeout", false, false), seen[poisonTwo]);
             Assert.True(seen[healthy].Done);
             Assert.Equal(0, seen[healthy].Attempts);
         }
         finally
         {
             await using var cleanup = new NpgsqlCommand("""
-                ALTER ROLE harborops_api RESET statement_timeout;
                 DROP TRIGGER IF EXISTS m15_test_slow_receipt ON m15_user_notifications;
                 DROP FUNCTION IF EXISTS m15_test_slow_receipt();
                 """, db);
@@ -295,8 +323,8 @@ public sealed class G15RemediationAcceptanceTests
         }
         // The poisoned event never produced a partial receipt.
         Assert.Equal(0L, await Count(db,
-            "SELECT COUNT(*) FROM m15_user_notifications WHERE source_history_id=@id",
-            ("id", poison)));
+            "SELECT COUNT(*) FROM m15_user_notifications WHERE source_history_id IN (@id,@two)",
+            ("id", poison), ("two", poisonTwo)));
         Assert.True(await Count(db,
             "SELECT COUNT(*) FROM m15_user_notifications WHERE source_history_id=@id",
             ("id", healthy)) > 0);
@@ -625,7 +653,7 @@ public sealed class G15RemediationAcceptanceTests
         using var seedAnalyst = s.Fixture.Analyst;
         await using var db = new NpgsqlConnection(s.Roles.Admin);
         await db.OpenAsync();
-        const int extraIntents = 11;
+        const int extraIntents = 39;
         await using (var more = new NpgsqlCommand("""
             INSERT INTO shipment_exception_history (organization_id,exception_id,action,
                 old_state,new_state,actor_kind,source_fingerprint)
@@ -668,7 +696,36 @@ public sealed class G15RemediationAcceptanceTests
             Assert.True(await r.ReadAsync());
             actor = r.GetGuid(0); session = r.GetGuid(1);
         }
+        Guid analystUser;
+        await using (var who = new NpgsqlCommand(
+            "SELECT id FROM users WHERE lower(normalized_email)=lower(@email)", db))
+        {
+            who.Parameters.AddWithValue("email", s.Fixture.AnalystEmail);
+            analystUser = Assert.IsType<Guid>(await who.ExecuteScalarAsync());
+        }
         var done = false;
+        var analystSeen = new HashSet<Guid>();
+        var administratorStatuses = new List<int>();
+        var httpReaders = Task.Run(async () =>
+        {
+            // Different users read over HTTP while two dispatchers fan out.
+            while (!Volatile.Read(ref done))
+            {
+                using var mine = await s.Analyst.GetAsync(
+                    $"/api/v1/organizations/{s.Fixture.A}/notifications?limit=50&state=All");
+                Assert.Equal(HttpStatusCode.OK, mine.StatusCode);
+                var body = await mine.Content.ReadFromJsonAsync<JsonElement>();
+                lock (analystSeen)
+                    foreach (var item in body.GetProperty("items").EnumerateArray())
+                        analystSeen.Add(item.GetProperty("id").GetGuid());
+                using var denied = await s.Administrator.GetAsync(
+                    $"/api/v1/organizations/{s.Fixture.A}/notifications?limit=50&state=All");
+                lock (administratorStatuses) administratorStatuses.Add((int)denied.StatusCode);
+                Assert.False((await denied.Content.ReadAsStringAsync()).Contains("\"items\":[{"),
+                    "An Administrator read receipts during fanout");
+                await Task.Delay(25);
+            }
+        });
         var observed = new List<int>();
         var readerTask = Task.Run(async () =>
         {
@@ -685,6 +742,8 @@ public sealed class G15RemediationAcceptanceTests
             }
         });
         var delivered = 0;
+        var byOne = 0;
+        var byTwo = 0;
         await using (var oneScope = runtime.Services.CreateAsyncScope())
         await using (var twoScope = runtime.Services.CreateAsyncScope())
         {
@@ -698,12 +757,41 @@ public sealed class G15RemediationAcceptanceTests
             {
                 var results = await Task.WhenAll(one.DeliverPendingAsync(CancellationToken.None),
                     two.DeliverPendingAsync(CancellationToken.None));
+                byOne += results[0]; byTwo += results[1];
                 delivered += results.Sum();
             }
         }
         Volatile.Write(ref done, true);
         await readerTask;
+        await httpReaders;
         Assert.Equal(intents, delivered);
+        // Both dispatchers really claimed work: this is a race, not one dispatcher
+        // doing everything while the other idles or loses every serialization race.
+        Assert.True(byOne > 0 && byTwo > 0, $"Dispatcher shares one={byOne} two={byTwo}");
+        // The Administrator is denied on every read during the fanout.
+        Assert.NotEmpty(administratorStatuses);
+        Assert.All(administratorStatuses, x => Assert.Contains(x, new[] { 403, 404 }));
+        // The Analyst only ever saw its own receipts: a subset of its database rows
+        // and none of the Manager's.
+        var analystRows = new HashSet<Guid>();
+        var otherRows = new HashSet<Guid>();
+        await using (var rows = new NpgsqlCommand("""
+            SELECT id,recipient_user_id FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@shipment
+            """, db))
+        {
+            rows.Parameters.AddWithValue("org", s.Fixture.A);
+            rows.Parameters.AddWithValue("shipment", shipment);
+            await using var r = await rows.ExecuteReaderAsync();
+            while (await r.ReadAsync())
+                (r.GetGuid(1) == analystUser ? analystRows : otherRows).Add(r.GetGuid(0));
+        }
+        Assert.Equal(intents, analystRows.Count);
+        lock (analystSeen)
+        {
+            Assert.True(analystSeen.IsSubsetOf(analystRows));
+            Assert.Empty(analystSeen.Intersect(otherRows));
+        }
         Assert.Equal((long)intents, await Count(db, """
             SELECT COUNT(*) FROM m15_notification_outbox
             WHERE organization_id=@org AND shipment_id=@shipment
@@ -761,5 +849,192 @@ public sealed class G15RemediationAcceptanceTests
         using (var current = await M11ExceptionRuntimeTests.SendAction(manager, root + "/" + id,
             new { action = "Acknowledge", expectedVersion = 2L }, Guid.NewGuid()))
             Assert.Equal(HttpStatusCode.OK, current.StatusCode);
+    }
+
+    // G15-S12-A03: a dispatcher that finds an intent locked by another dispatcher
+    // skips it and delivers the others at once. Without SKIP LOCKED the second
+    // dispatcher would wait for the first to finish.
+    [ExclusiveM13PostgresFact]
+    public async Task SecondDispatcherSkipsALockedIntentAndDeliversOthersWhileTheFirstIsBusy()
+    {
+        var (s, shipment, exceptionId) = await OpenException();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var seedAdmin = s.Fixture.Admin; using var seedManager = s.Fixture.Manager;
+        using var seedAnalyst = s.Fixture.Analyst;
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        await using (var more = new NpgsqlCommand("""
+            INSERT INTO shipment_exception_history (organization_id,exception_id,action,
+                old_state,new_state,actor_kind,source_fingerprint)
+            SELECT e.organization_id,e.id,'Opened',NULL,'Open','System',e.source_fingerprint
+            FROM shipment_exceptions e CROSS JOIN generate_series(1,3) AS g WHERE e.id=@id
+            """, db))
+        {
+            more.Parameters.AddWithValue("id", exceptionId);
+            Assert.Equal(3, await more.ExecuteNonQueryAsync());
+        }
+        await using (var defer = new NpgsqlCommand("""
+            UPDATE m15_notification_outbox SET next_attempt_at_utc=clock_timestamp()+interval '1 hour'
+            WHERE completed_at_utc IS NULL AND quarantined_at_utc IS NULL
+              AND NOT (organization_id=@org AND shipment_id=@shipment)
+            """, db))
+        {
+            defer.Parameters.AddWithValue("org", s.Fixture.A);
+            defer.Parameters.AddWithValue("shipment", shipment);
+            await defer.ExecuteNonQueryAsync();
+        }
+        Guid first;
+        await using (var oldest = new NpgsqlCommand("""
+            SELECT source_history_id FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@shipment
+            ORDER BY next_attempt_at_utc,created_at_utc,source_history_id LIMIT 1
+            """, db))
+        {
+            oldest.Parameters.AddWithValue("org", s.Fixture.A);
+            oldest.Parameters.AddWithValue("shipment", shipment);
+            first = Assert.IsType<Guid>(await oldest.ExecuteScalarAsync());
+        }
+        try
+        {
+            await using (var slow = new NpgsqlCommand($$"""
+                CREATE FUNCTION m15_test_slow_first() RETURNS trigger LANGUAGE plpgsql AS $f$
+                BEGIN
+                    IF NEW.source_history_id='{{first}}'::uuid THEN PERFORM pg_sleep(5); END IF;
+                    RETURN NEW;
+                END $f$;
+                CREATE TRIGGER m15_test_slow_first BEFORE INSERT ON m15_user_notifications
+                    FOR EACH ROW EXECUTE FUNCTION m15_test_slow_first();
+                """, db))
+                await slow.ExecuteNonQueryAsync();
+            NpgsqlConnection.ClearAllPools();
+
+            await using var oneScope = runtime.Services.CreateAsyncScope();
+            await using var twoScope = runtime.Services.CreateAsyncScope();
+            var one = oneScope.ServiceProvider.GetRequiredService<NotificationStore>();
+            var two = twoScope.ServiceProvider.GetRequiredService<NotificationStore>();
+            var busy = Task.Run(() => one.DeliverPendingAsync(CancellationToken.None));
+            await Task.Delay(1000);
+            Assert.False(busy.IsCompleted, "The first dispatcher must still be inside the slow intent");
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var second = await two.DeliverPendingAsync(CancellationToken.None);
+            clock.Stop();
+            Assert.False(busy.IsCompleted, "The second dispatcher waited for the first");
+            Assert.True(second >= 1, "The second dispatcher delivered nothing");
+            Assert.True(clock.Elapsed < TimeSpan.FromSeconds(3),
+                $"The second dispatcher was blocked behind the locked intent: {clock.Elapsed}");
+            var firstResult = await busy;
+            Assert.True(firstResult >= 1);
+            Assert.Equal(4, firstResult + second);
+        }
+        finally
+        {
+            await using var cleanup = new NpgsqlCommand("""
+                DROP TRIGGER IF EXISTS m15_test_slow_first ON m15_user_notifications;
+                DROP FUNCTION IF EXISTS m15_test_slow_first();
+                """, db);
+            await cleanup.ExecuteNonQueryAsync();
+            NpgsqlConnection.ClearAllPools();
+        }
+        // Every intent exactly once.
+        Assert.Equal(4L, await Count(db, """
+            SELECT COUNT(*) FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@shipment
+              AND completed_at_utc IS NOT NULL AND quarantined_at_utc IS NULL
+            """, ("org", s.Fixture.A), ("shipment", shipment)));
+        Assert.Equal(0L, await Count(db, """
+            SELECT COUNT(*) FROM (SELECT 1 FROM m15_user_notifications
+                WHERE organization_id=@org AND shipment_id=@shipment
+                GROUP BY source_history_id,recipient_user_id HAVING COUNT(*)>1) d
+            """, ("org", s.Fixture.A), ("shipment", shipment)));
+    }
+
+    // G15-S17-A07: the unread count is exact up to 1000 and flags only beyond it.
+    [ExclusiveM13PostgresFact]
+    public async Task UnreadCountIsExactUpToTheCapAndFlagsOnlyBeyondIt()
+    {
+        var (s, shipment, exceptionId) = await OpenException();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var seedAdmin = s.Fixture.Admin; using var seedManager = s.Fixture.Manager;
+        using var seedAnalyst = s.Fixture.Analyst;
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        await using (var scope = runtime.Services.CreateAsyncScope())
+            await scope.ServiceProvider.GetRequiredService<NotificationStore>()
+                .DeliverPendingAsync(CancellationToken.None);
+        Guid recipient, membership;
+        long version;
+        await using (var audience = new NpgsqlCommand("""
+            SELECT user_id,id,version FROM organization_memberships
+            WHERE organization_id=@org AND role='Manager' AND status='Active'
+            ORDER BY id LIMIT 1
+            """, db))
+        {
+            audience.Parameters.AddWithValue("org", s.Fixture.A);
+            await using var reader = await audience.ExecuteReaderAsync();
+            Assert.True(await reader.ReadAsync());
+            recipient = reader.GetGuid(0); membership = reader.GetGuid(1); version = reader.GetInt64(2);
+        }
+        async Task<long> Unread() => await Count(db, """
+            SELECT COUNT(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND recipient_user_id=@user AND read_at_utc IS NULL
+            """, ("org", s.Fixture.A), ("user", recipient));
+        async Task AddReceipts(int target)
+        {
+            var need = target - (int)await Unread();
+            Assert.True(need > 0);
+            await using var history = new NpgsqlCommand("""
+                INSERT INTO shipment_exception_history (organization_id,exception_id,action,
+                    old_state,new_state,actor_kind,source_fingerprint)
+                SELECT e.organization_id,e.id,'Opened',NULL,'Open','System',e.source_fingerprint
+                FROM shipment_exceptions e CROSS JOIN generate_series(1,@n) AS g WHERE e.id=@id
+                """, db);
+            history.Parameters.AddWithValue("n", need);
+            history.Parameters.AddWithValue("id", exceptionId);
+            Assert.Equal(need, await history.ExecuteNonQueryAsync());
+            await using var fanout = new NpgsqlCommand("""
+                INSERT INTO m15_user_notifications (
+                    source_history_id,organization_id,recipient_user_id,
+                    membership_id,membership_version,shipment_id,exception_id,
+                    event_type,rule_code,created_at_utc)
+                SELECT o.source_history_id,o.organization_id,@recipient,
+                    @membership,@version,o.shipment_id,o.exception_id,
+                    o.event_type,o.rule_code,o.created_at_utc
+                FROM m15_notification_outbox o
+                WHERE o.organization_id=@org AND o.shipment_id=@shipment
+                ON CONFLICT (source_history_id,recipient_user_id) DO NOTHING
+                """, db);
+            fanout.Parameters.AddWithValue("org", s.Fixture.A);
+            fanout.Parameters.AddWithValue("shipment", shipment);
+            fanout.Parameters.AddWithValue("recipient", recipient);
+            fanout.Parameters.AddWithValue("membership", membership);
+            fanout.Parameters.AddWithValue("version", version);
+            await fanout.ExecuteNonQueryAsync();
+            Assert.Equal(target, (int)await Unread());
+        }
+        async Task<(long Count, bool Capped)> Http()
+        {
+            using var response = await s.Manager.GetAsync(
+                $"/api/v1/organizations/{s.Fixture.A}/notifications/unread-count");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(JsonValueKind.String, body.GetProperty("asOfUtc").ValueKind);
+            return (body.GetProperty("unreadCount").GetInt64(),
+                body.GetProperty("unreadCountCapped").GetBoolean());
+        }
+        var small = await Unread();
+        Assert.True(small >= 1 && small < 999);
+        Assert.Equal((small, false), await Http());
+        await AddReceipts(999);
+        Assert.Equal((999L, false), await Http());
+        await AddReceipts(1000);
+        Assert.Equal((1000L, false), await Http());
+        await AddReceipts(1001);
+        Assert.Equal((1000L, true), await Http());
+        await AddReceipts(1200);
+        Assert.Equal((1000L, true), await Http());
     }
 }

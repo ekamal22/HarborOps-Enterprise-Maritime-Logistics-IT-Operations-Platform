@@ -370,8 +370,26 @@ def main() -> int:
                 outcome = "KILLED"
             else:
                 outcome = "INVALID"
+            # Two source mutations are intentionally stopped by database
+            # constraints and return HTTP 503. They establish fail-closed
+            # behavior, not semantic assertion coverage of the SQL predicate.
+            expected_constraints = {
+                "member-sql-shipment-tenant-predicate-removed":
+                    ("23503", "fk_m13_member_shipment"),
+                "k03-first-event-deduplication-removed":
+                    ("23505", "operational_kpi_members_pkey"),
+            }
+            basis = "named_behavior_assertion" if outcome == "KILLED" else "none"
+            if name in expected_constraints and outcome == "KILLED":
+                state, constraint = expected_constraints[name]
+                if state not in output or constraint not in output:
+                    outcome = "INVALID"
+                    basis = "constraint_witness_not_observed"
+                else:
+                    basis = "database_constraint_fail_closed"
             records.append({"name":name,"source_sha256":digest(changed.encode()),
-                            "exit_code":code,"elapsed_seconds":elapsed,"outcome":outcome})
+                            "exit_code":code,"elapsed_seconds":elapsed,
+                            "outcome":outcome,"kill_basis":basis})
             print(f"G13_MUTANT {name}: {outcome} ({elapsed}s)", flush=True)
             selected.write_bytes(originals[selected])
     finally:

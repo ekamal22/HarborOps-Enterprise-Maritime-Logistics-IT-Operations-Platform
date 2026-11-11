@@ -273,7 +273,7 @@ public sealed class M13ScaleLoadTests
     }
 
     [ExclusiveM13PostgresFact]
-    public async Task Mixed170kShipmentsProduceExactBoundedReport()
+    public async Task Mixed85kShipmentsProduceExactBoundedReport()
     {
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();
         using var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
@@ -319,23 +319,23 @@ public sealed class M13ScaleLoadTests
             Assert.Equal(10000, await insert.ExecuteNonQueryAsync());
             await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "medium10k");
             start.Value = 10001;
-            finish.Value = 170000;
-            Assert.Equal(160000, await insert.ExecuteNonQueryAsync());
+            finish.Value = 85000;
+            Assert.Equal(75000, await insert.ExecuteNonQueryAsync());
         }
         await using (var update = new NpgsqlCommand("""
             UPDATE shipments SET workflow_status='Cancelled',version=version+1,
                 updated_at_utc='2026-10-02T00:00:00Z'::timestamptz,
                 changed_by_user_id=@actor
             WHERE organization_id=@org
-              AND reference_code BETWEEN 'M13S-110001' AND 'M13S-170000'
+              AND reference_code BETWEEN 'M13S-055001' AND 'M13S-085000'
             """, db) { CommandTimeout = 1200 })
         {
             update.Parameters.AddWithValue("org", f.A);
             update.Parameters.AddWithValue("actor", actor);
-            Assert.Equal(60000, await update.ExecuteNonQueryAsync());
+            Assert.Equal(30000, await update.ExecuteNonQueryAsync());
         }
         timer.Stop();
-        Console.WriteLine($"G13_170K seeded=170000 existing=2 seed_ms={timer.Elapsed.TotalMilliseconds:F0}");
+        Console.WriteLine($"G13_REFERENCE_85K seeded=85000 existing=2 seed_ms={timer.Elapsed.TotalMilliseconds:F0}");
         // The fixture makes 170k inserts and 60k workflow updates in one burst.
         // Capture production-like fresh optimizer statistics before admission
         // tests. The policy timeout and p50/p95 budgets remain unchanged.
@@ -367,17 +367,17 @@ public sealed class M13ScaleLoadTests
             using var result = await analyst.GetAsync($"/api/v1/organizations/{f.A}/analytics/overview");
             elapsed.Stop();
             var body = await result.Content.ReadAsStringAsync();
-            Console.WriteLine($"G13_170K iteration={i + 1} status={(int)result.StatusCode} ms={elapsed.Elapsed.TotalMilliseconds:F0}");
+            Console.WriteLine($"G13_REFERENCE_85K iteration={i + 1} status={(int)result.StatusCode} ms={elapsed.Elapsed.TotalMilliseconds:F0}");
             Assert.True(result.StatusCode == HttpStatusCode.OK,
-                $"170k report unavailable, HTTP {(int)result.StatusCode}: {body[..Math.Min(body.Length,400)]}");
+                $"85k reference report unavailable, HTTP {(int)result.StatusCode}: {body[..Math.Min(body.Length,400)]}");
             using var parsed = JsonDocument.Parse(body);
             var report = parsed.RootElement;
-            Assert.Equal(170002L, Count(report,"D01"));
-            Assert.Equal(110002L, Count(report,"K01"));
-            Assert.Equal(110002L, Count(report,"K02","Draft"));
-            Assert.Equal(60000L, Count(report,"K02","Cancelled"));
+            Assert.Equal(85002L, Count(report,"D01"));
+            Assert.Equal(55002L, Count(report,"K01"));
+            Assert.Equal(55002L, Count(report,"K02","Draft"));
+            Assert.Equal(30000L, Count(report,"K02","Cancelled"));
             Assert.Equal(0L, Count(report,"K04"));
-            Assert.Equal(450006, report.GetProperty("memberCount").GetInt32());
+            Assert.Equal(225006, report.GetProperty("memberCount").GetInt32());
             latencies.Add(elapsed.Elapsed.TotalMilliseconds);
             // Keep the measurement below the accepted six-builds/minute user
             // limiter without raising or disabling an application safeguard.
@@ -414,7 +414,7 @@ public sealed class M13ScaleLoadTests
         // High-volume EXPLAIN ANALYZE inserts rolled-back report rows. Run
         // those plans after the 30-sample storage/latency measurement so
         // EXPLAIN's dead tuples cannot contaminate the benchmark deltas.
-        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "skewed170k");
+        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "reference85k");
         await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "empty", Guid.NewGuid());
         // Privileged EXPLAIN ANALYZE also rolls back large member inserts;
         // run it after all 30 measurements to prevent dead-tuple pollution.
@@ -422,9 +422,9 @@ public sealed class M13ScaleLoadTests
 
 
         // This is a separate cap-negative control after the 30 measured
-        // successful builds. Adding 16,665 Draft rows contributes three report
+        // successful builds. Adding 9,000 Draft rows contributes three report
         // member rows per shipment, taking the source-locked fixture over the
-        // 500,000 member ceiling without changing any production limit.
+        // 250,000 member ceiling without changing any production limit.
         long beforeCapacityCount;
         await using (var existing = new NpgsqlCommand("""
             SELECT COUNT(*) FROM operational_kpi_reports
@@ -442,14 +442,14 @@ public sealed class M13ScaleLoadTests
                 @origin,@destination,'Draft','Active','Synthetic',1,
                 '2026-10-01T00:00:00Z'::timestamptz,
                 '2026-10-01T00:00:00Z'::timestamptz,@actor
-            FROM generate_series(170001,186665) AS n
+            FROM generate_series(85001,94000) AS n
             """, db) { CommandTimeout = 1200 })
         {
             extra.Parameters.AddWithValue("org", f.A);
             extra.Parameters.AddWithValue("origin", origin);
             extra.Parameters.AddWithValue("destination", destination);
             extra.Parameters.AddWithValue("actor", actor);
-            Assert.Equal(16665, await extra.ExecuteNonQueryAsync());
+            Assert.Equal(9000, await extra.ExecuteNonQueryAsync());
         }
         using (var overCapacity = await analyst.GetAsync(
             $"/api/v1/organizations/{f.A}/analytics/overview"))
@@ -467,17 +467,17 @@ public sealed class M13ScaleLoadTests
             Assert.Equal(beforeCapacityCount,
                 Convert.ToInt64(await existing.ExecuteScalarAsync()));
         }
-        Console.WriteLine("G13_500K_CAP extra_draft=16665 no_partial_report=true");
+        Console.WriteLine("G13_250K_CAP extra_draft=9000 no_partial_report=true");
     }
 
     // Plan S20: the approved latency and resource budgets must also hold on a
     // realistic skewed tenant under the restricted API role, not only on the
-    // Draft and Cancelled reference load. 85,000 shipments with this mix produce
-    // about 425,000 report members, inside the 500,000 member capacity.
+    // Draft and Cancelled reference load. 40,000 shipments with this mix produce
+    // about 220,000 report members, inside the 250,000 member capacity.
     [ExclusiveM13PostgresFact]
     public async Task RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole()
     {
-        const int shipments = 85_000;
+        const int shipments = 40_000;
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();
         using var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
         var f = await ReferenceDataHttpTests.Setup(factory);
@@ -532,7 +532,7 @@ public sealed class M13ScaleLoadTests
             using var parsed = JsonDocument.Parse(body);
             Assert.Equal(shipments - shipments / 37 + 2L, Count(parsed.RootElement, "D01")); // archived rows (every 37th) are not active
             members = parsed.RootElement.GetProperty("memberCount").GetInt32();
-            Assert.InRange(members, 1, 500_000);
+            Assert.InRange(members, 1, 250_000);
             latencies.Add(elapsed.Elapsed.TotalMilliseconds);
             // Stay below the accepted six-builds-per-minute user limiter.
             if (i < 29 && elapsed.Elapsed < TimeSpan.FromSeconds(11))

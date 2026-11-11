@@ -110,6 +110,90 @@ public sealed class G13G15CrashRecoveryTests
             fixture.ManagerEmail);
     }
 
+    // Unlike the legacy synthetic pre-commit phase, this starts a real
+    // authenticated API report build. A disposable administrator holds the
+    // member table, and the marker is emitted only after the API login has
+    // entered a PostgreSQL lock wait. Killing the testhost then terminates
+    // the HTTP request and its in-flight database transaction.
+    [G13G15CrashFact]
+    public async Task G13DuringLiveApiBuild()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var factory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(factory);
+        using var administrator = fixture.Admin;
+        using var initialManager = fixture.Manager;
+        using var initialAnalyst = fixture.Analyst;
+        await AssignmentHttpTests.Seed(fixture);
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var manager = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        manager.Timeout = TimeSpan.FromSeconds(90);
+        await ReferenceDataHttpTests.Login(manager, fixture.ManagerEmail);
+        await ReferenceDataHttpTests.Select(manager, fixture.A);
+
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        await using var hold = await db.BeginTransactionAsync();
+        await using (var lockTable = new NpgsqlCommand(
+            "LOCK TABLE operational_kpi_members IN ACCESS EXCLUSIVE MODE", db, hold))
+            await lockTable.ExecuteNonQueryAsync();
+
+        // Do not await the request: it must be in progress when SIGKILL lands.
+        var request = manager.GetAsync(
+            $"/api/v1/organizations/{fixture.A}/analytics/overview");
+        var waiting = false;
+        for (var i = 0; i < 90 && !waiting; i++)
+        {
+            Assert.False(request.IsCompleted,
+                "Report completed before the mid-build lock wait");
+            await using var check = new NpgsqlCommand("""
+                SELECT EXISTS(
+                    SELECT 1 FROM pg_locks l
+                    JOIN pg_stat_activity a ON a.pid=l.pid
+                    WHERE l.relation='operational_kpi_members'::regclass
+                      AND l.granted=false AND a.usename='harborops_api'
+                )
+                """, db, hold);
+            waiting = await check.ExecuteScalarAsync() is true;
+            if (!waiting) await Task.Delay(200);
+        }
+        Assert.True(waiting, "Actual API report never entered the member-table lock wait");
+        await MarkAndHold("G13DuringLiveApiBuild", fixture.A, Guid.Empty,
+            fixture.ManagerEmail);
+    }
+
+    [G13G15CrashFact]
+    public async Task G13LiveBuildRecoveredInNewApiProcess()
+    {
+        var marker = await ReadMarker();
+        Assert.Equal("G13DuringLiveApiBuild", marker.Phase);
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        await using (var db = new NpgsqlConnection(roles.Admin))
+        {
+            await db.OpenAsync();
+            await using var reports = new NpgsqlCommand("""
+                SELECT count(*) FROM operational_kpi_reports
+                WHERE organization_id=@org
+                """, db);
+            reports.Parameters.AddWithValue("org", marker.Organization);
+            Assert.Equal(0L, Convert.ToInt64(await reports.ExecuteScalarAsync()));
+        }
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var manager = runtime.CreateClient(
+            new WebApplicationFactoryClientOptions { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(manager, marker.Email);
+        await ReferenceDataHttpTests.Select(manager, marker.Organization);
+        using var restored = await manager.GetAsync(
+            $"/api/v1/organizations/{marker.Organization}/analytics/overview");
+        Assert.Equal(HttpStatusCode.OK, restored.StatusCode);
+        var report = await restored.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(report.GetProperty("memberCount").GetInt32() > 0);
+        Console.WriteLine("G13_CRASH real_api_build_rolled_back=true restarted_build=true");
+    }
+
     [G13G15CrashFact]
     public async Task G13AfterReportCommit()
     {

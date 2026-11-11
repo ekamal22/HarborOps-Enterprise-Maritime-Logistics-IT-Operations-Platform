@@ -411,12 +411,37 @@ public sealed class M13AdmissionControlAcceptanceTests
         }
         Assert.Equal(3L, await Reports(admin, f.A));
 
-        // The fourth builder passes the early check (three live, one free), builds, and
-        // waits at the tenant quota lock that this test holds.
-        await Lock(admin, QuotaScope(f.A));
+        // Pause an actual API materialization after early admission. This is a
+        // disposable database trigger, not an application shortcut: the fourth
+        // builder must be inside its real SQL INSERT before capacity is taken.
+        await using (var pause = new NpgsqlCommand("""
+            CREATE FUNCTION g13_verification_pause_member_insert() RETURNS trigger
+            LANGUAGE plpgsql AS $pause$
+            BEGIN
+                PERFORM pg_sleep(8);
+                RETURN NULL;
+            END $pause$;
+            CREATE TRIGGER tr_g13_verification_pause_member_insert
+            BEFORE INSERT ON operational_kpi_members FOR EACH STATEMENT
+            EXECUTE FUNCTION g13_verification_pause_member_insert();
+            """, admin))
+            await pause.ExecuteNonQueryAsync();
+        try
+        {
         var pending = fourth.GetAsync(OverviewUrl(f.A));
-        await Task.Delay(TimeSpan.FromSeconds(4));
-        Assert.False(pending.IsCompleted, "The builder must be waiting at the quota lock");
+        var inMaterialization = false;
+        for (var attempt = 0; attempt < 60 && !inMaterialization; attempt++)
+        {
+            Assert.False(pending.IsCompleted, "Builder ended before the materialization probe");
+            await using var probe = new NpgsqlCommand("""
+                SELECT EXISTS(SELECT 1 FROM pg_stat_activity
+                    WHERE usename='harborops_api'
+                      AND wait_event_type='Timeout' AND wait_event='PgSleep')
+                """, admin);
+            inMaterialization = await probe.ExecuteScalarAsync() is true;
+            if (!inMaterialization) await Task.Delay(100);
+        }
+        Assert.True(inMaterialization, "The API build was not paused after admission");
 
         // Meanwhile somebody else commits the last free snapshot.
         Guid actor, session;
@@ -450,7 +475,6 @@ public sealed class M13AdmissionControlAcceptanceTests
             Assert.Equal(1, await insert.ExecuteNonQueryAsync());
         }
         Assert.Equal(4L, await Reports(admin, f.A));
-        await Unlock(admin);
 
         using var response = await pending;
         Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
@@ -467,6 +491,15 @@ public sealed class M13AdmissionControlAcceptanceTests
         mine.Parameters.AddWithValue("org", f.A);
         mine.Parameters.AddWithValue("email", builder);
         Assert.Equal(0L, Convert.ToInt64(await mine.ExecuteScalarAsync()));
+        }
+        finally
+        {
+            await using var restore = new NpgsqlCommand("""
+                DROP TRIGGER tr_g13_verification_pause_member_insert ON operational_kpi_members;
+                DROP FUNCTION g13_verification_pause_member_insert();
+                """, admin);
+            await restore.ExecuteNonQueryAsync();
+        }
         await PlannerGuard.AssertDefaultAsync(api.Services);
     }
 

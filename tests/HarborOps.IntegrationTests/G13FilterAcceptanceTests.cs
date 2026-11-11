@@ -113,30 +113,19 @@ public sealed class G13FilterAcceptanceTests
         await using (var closedDb = new NpgsqlConnection(roles.Admin))
         {
             await closedDb.OpenAsync();
+            // Created already ended: a past window that does not overlap the future one.
             await using var closed = new NpgsqlCommand("""
-                WITH created AS (
-                    INSERT INTO shipment_voyage_assignments
-                        (id,organization_id,shipment_id,voyage_id,starts_at_utc,ends_at_utc,version,
-                         created_at_utc,updated_at_utc,created_by_user_id,closed_by_user_id)
-                    SELECT gen_random_uuid(),s.organization_id,s.id,@voyage,
-                        clock_timestamp()-interval '5 hours',NULL,1,
-                        clock_timestamp(),clock_timestamp(),s.changed_by_user_id,NULL
-                    FROM shipments s WHERE s.id=@shipment
-                    RETURNING id,created_by_user_id
-                )
-                SELECT id FROM created
+                INSERT INTO shipment_voyage_assignments
+                    (id,organization_id,shipment_id,voyage_id,starts_at_utc,ends_at_utc,version,
+                     created_at_utc,updated_at_utc,created_by_user_id,closed_by_user_id)
+                SELECT gen_random_uuid(),s.organization_id,s.id,@voyage,
+                    clock_timestamp()-interval '5 hours',clock_timestamp()-interval '4 hours',1,
+                    clock_timestamp(),clock_timestamp(),s.changed_by_user_id,NULL
+                FROM shipments s WHERE s.id=@shipment
                 """, closedDb);
             closed.Parameters.AddWithValue("voyage", seed.Voyage);
-            closed.Parameters.AddWithValue("shipment", alternate);
-            var assignment = Assert.IsType<Guid>(await closed.ExecuteScalarAsync());
-            await using var close = new NpgsqlCommand("""
-                UPDATE shipment_voyage_assignments
-                SET ends_at_utc=clock_timestamp()-interval '4 hours',version=2,
-                    closed_by_user_id=created_by_user_id,updated_at_utc=clock_timestamp()
-                WHERE id=@id
-                """, closedDb);
-            close.Parameters.AddWithValue("id", assignment);
-            Assert.Equal(1, await close.ExecuteNonQueryAsync());
+            closed.Parameters.AddWithValue("shipment", seed.OtherShipment);
+            Assert.Equal(1, await closed.ExecuteNonQueryAsync());
         }
 
         var checkIndex = 0;

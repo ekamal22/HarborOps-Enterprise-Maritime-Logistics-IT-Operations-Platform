@@ -11,13 +11,13 @@ namespace HarborOps.IntegrationTests;
 // settings after a success, a refusal, a timeout, a cancellation and a rollback.
 internal static class PlannerGuard
 {
-    internal static async Task AssertDefaultAsync(IServiceProvider services)
+    internal static async Task AssertDefaultAsync(IServiceProvider services, int connectionsToProbe = 8)
     {
         var scopes = new List<AsyncServiceScope>();
         try
         {
             var connections = new List<NpgsqlConnection>();
-            for (var i = 0; i < 8; i++)
+            for (var i = 0; i < connectionsToProbe; i++)
             {
                 var scope = services.CreateAsyncScope();
                 scopes.Add(scope);

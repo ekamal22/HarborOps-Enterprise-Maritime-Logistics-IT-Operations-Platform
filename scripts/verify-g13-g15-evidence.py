@@ -496,11 +496,11 @@ def main() -> int:
     scan = scan_evidence(artifacts["dependency-security"])
     browsers = browser_result(artifacts["m15-browser"])
     mutations = {
-        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 38),
+        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 41),
         "g13-security-mutations": mutation_result(
             artifacts["g13-security-mutations"], "g13-security-mutations", 4),
         "g15-mutations": mutation_result(
-            artifacts["g15-mutations"], "g15-mutations", 24),
+            artifacts["g15-mutations"], "g15-mutations", 25),
     }
     if counters["Failed"] or counters["Skipped"] or counters["Other"]:
         fail("TRX contains failing, skipped or unexpected test outcomes")

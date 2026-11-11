@@ -21,6 +21,24 @@ public sealed class G13G15FeatureDefaultAcceptanceTests
         Assert.Contains("builder.Configuration.GetValue<bool>(\"M11:EnableEvaluator\")", program);
     }
 
+    // G15-S23-A05: the KPI aggregation reads only reporting and source tables. It
+    // never reads or writes a notification receipt, outbox or replay table, so a
+    // receipt can neither add to nor remove from a KPI.
+    [Fact]
+    public void KpiAggregationNeverReadsOrWritesNotificationTables()
+    {
+        var store = File.ReadAllText(M10RuntimeIdentityTests.RepositoryFile(
+            "src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs"));
+        Assert.DoesNotContain("m15_", store, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("NotificationStore", store);
+        var migration = File.ReadAllText(M10RuntimeIdentityTests.RepositoryFile(
+            "src/HarborOps.Infrastructure/Persistence/Migrations/20261109020000_M13OperationalKpis.cs"));
+        Assert.DoesNotContain("m15_", migration, StringComparison.OrdinalIgnoreCase);
+        var notifications = File.ReadAllText(M10RuntimeIdentityTests.RepositoryFile(
+            "src/HarborOps.Infrastructure/Notifications/NotificationStore.cs"));
+        Assert.DoesNotContain("operational_kpi_", notifications, StringComparison.OrdinalIgnoreCase);
+    }
+
     // G15-S01-A05 and the G13 cleanup decision: both background services are
     // off unless explicitly enabled, in the packaged settings, the code and the
     // default Compose file.

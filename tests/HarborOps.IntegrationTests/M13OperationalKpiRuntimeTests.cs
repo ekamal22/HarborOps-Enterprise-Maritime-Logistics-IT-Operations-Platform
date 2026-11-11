@@ -1464,6 +1464,57 @@ public sealed class M13OperationalKpiRuntimeTests
         Assert.Equal(1L, await Rows("K06"));
     }
 
+    // A completed shipment without a demonstrably applicable plan is still a
+    // completion (K03) but never enters the on-time denominator or either on-time
+    // measure; inventing a plan for it would invent a delay or an on-time arrival.
+    [ExclusiveM13PostgresFact]
+    public async Task CompletedShipmentWithoutAProvenPlanIsCompletedButNeverInTheArrivalDenominator()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var fixture = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var admin = fixture.Admin; using var seedManager = fixture.Manager;
+        using var seedAnalyst = fixture.Analyst;
+        var seed = await AssignmentHttpTests.Seed(fixture);
+        using var source = await seedManager.GetAsync(seed.Root + "/" + seed.Shipment);
+        var shipment = await source.Content.ReadFromJsonAsync<JsonElement>();
+        var origin = shipment.GetProperty("originPortId").GetGuid();
+        var destination = shipment.GetProperty("destinationPortId").GetGuid();
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        await using var owner = new NpgsqlCommand(
+            "SELECT changed_by_user_id FROM shipments WHERE id=@shipment", db);
+        owner.Parameters.AddWithValue("shipment", seed.Shipment);
+        var actor = Assert.IsType<Guid>(await owner.ExecuteScalarAsync());
+        var planned = await G13Insert(db, fixture.A, origin, destination, actor,
+            DateTimeOffset.UtcNow.AddHours(2), "G13-PLAN-");
+        var unplanned = await G13Insert(db, fixture.A, origin, destination, actor,
+            DateTimeOffset.UtcNow.AddHours(2), "G13-NOPLAN-");
+        await using (var clear = new NpgsqlCommand(
+            "UPDATE shipments SET planned_arrival_at_utc=NULL,planned_departure_at_utc=NULL WHERE id=@id", db))
+        {
+            clear.Parameters.AddWithValue("id", unplanned);
+            Assert.Equal(1, await clear.ExecuteNonQueryAsync());
+        }
+        await G13Complete(db, planned, actor);
+        await G13Complete(db, unplanned, actor);
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var analyst = runtime.CreateClient(new WebApplicationFactoryClientOptions
+            { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(analyst, fixture.AnalystEmail);
+        await ReferenceDataHttpTests.Select(analyst, fixture.A);
+        var report = await Json(await analyst.GetAsync(Root(fixture.A) +
+            "/overview" + Window(DateTimeOffset.UtcNow)));
+        Assert.Contains(planned, await G13StoredIds(db, fixture.A, report, "K03"));
+        Assert.Contains(unplanned, await G13StoredIds(db, fixture.A, report, "K03"));
+        var denominator = await G13StoredIds(db, fixture.A, report, "D05");
+        Assert.Contains(planned, denominator);
+        Assert.DoesNotContain(unplanned, denominator);
+        Assert.DoesNotContain(unplanned, await G13StoredIds(db, fixture.A, report, "K05"));
+        Assert.DoesNotContain(unplanned, await G13StoredIds(db, fixture.A, report, "K06"));
+    }
+
     [ExclusiveM13PostgresFact]
     public async Task PostgreSqlMicrosecondGraceAndUtcWeekBoundariesAreExact()
     {
@@ -1494,6 +1545,34 @@ public sealed class M13OperationalKpiRuntimeTests
             var result = Assert.IsType<DateTime>(await bucket.ExecuteScalarAsync());
             Assert.Equal(new DateTime(2024, 2, 26), result.Date);
         }
+        // The report buckets with date_trunc over the UTC wall clock. It must give the
+        // same answer whatever the session time zone is, at the last microsecond of a
+        // UTC day, at the first instant of the next day, and across the Sunday to Monday
+        // week change.
+        foreach (var zone in new[] { "UTC", "Asia/Kolkata", "Pacific/Kiritimati", "America/Los_Angeles" })
+        {
+            await using (var setZone = new NpgsqlCommand("SET TIME ZONE '" + zone + "'", db))
+                await setZone.ExecuteNonQueryAsync();
+            foreach (var (instant, unit, expected) in new[]
+            {
+                ("2024-02-29T23:59:59.999999Z", "day", "2024-02-29T00:00:00Z"),
+                ("2024-03-01T00:00:00Z", "day", "2024-03-01T00:00:00Z"),
+                ("2024-03-03T23:59:59.999999Z", "week", "2024-02-26T00:00:00Z"),
+                ("2024-03-04T00:00:00Z", "week", "2024-03-04T00:00:00Z"),
+            })
+            {
+                await using var truncate = new NpgsqlCommand($"""
+                    SELECT date_trunc('{unit}', @instant::timestamptz AT TIME ZONE 'UTC')
+                        AT TIME ZONE 'UTC' = @expected::timestamptz
+                    """, db);
+                truncate.Parameters.AddWithValue("instant", instant);
+                truncate.Parameters.AddWithValue("expected", expected);
+                Assert.True(Assert.IsType<bool>(await truncate.ExecuteScalarAsync()),
+                    $"{unit} bucket of {instant} under {zone}");
+            }
+        }
+        await using (var resetZone = new NpgsqlCommand("RESET TIME ZONE", db))
+            await resetZone.ExecuteNonQueryAsync();
         await using (var historic = new NpgsqlCommand("""
             SELECT '1969-12-31T23:59:59.999999Z'::timestamptz <
                    '1970-01-01T00:00:00Z'::timestamptz

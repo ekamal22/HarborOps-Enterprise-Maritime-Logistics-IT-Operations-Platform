@@ -108,6 +108,25 @@ public sealed class G13FilterAcceptanceTests
         Assert.True((await Members(scoped, fixture.A, all))
             .SetEquals(new[] { seed.Shipment, seed.OtherShipment, alternate }));
 
+        // A closed assignment (ended in the past) must never put its shipment into a
+        // voyage filtered report, even though the voyage matches.
+        await using (var closedDb = new NpgsqlConnection(roles.Admin))
+        {
+            await closedDb.OpenAsync();
+            await using var closed = new NpgsqlCommand("""
+                INSERT INTO shipment_voyage_assignments
+                    (id,organization_id,shipment_id,voyage_id,starts_at_utc,ends_at_utc,version,
+                     created_at_utc,updated_at_utc,created_by_user_id,closed_by_user_id)
+                SELECT gen_random_uuid(),s.organization_id,s.id,@voyage,
+                    clock_timestamp()-interval '5 hours',clock_timestamp()-interval '4 hours',1,
+                    clock_timestamp(),clock_timestamp(),s.changed_by_user_id,s.changed_by_user_id
+                FROM shipments s WHERE s.id=@shipment
+                """, closedDb);
+            closed.Parameters.AddWithValue("voyage", seed.Voyage);
+            closed.Parameters.AddWithValue("shipment", alternate);
+            Assert.Equal(1, await closed.ExecuteNonQueryAsync());
+        }
+
         var checkIndex = 0;
         async Task Check(string filter, params Guid[] expected)
         {
@@ -116,6 +135,8 @@ public sealed class G13FilterAcceptanceTests
             var reader = (++checkIndex % 2 == 1) ? scopedManager : scoped;
             var report = await Build(reader, fixture.A, filter);
             Assert.Equal((long)expected.Length, Count(report, "K01"));
+            // The denominator, the total and the member pages all describe one set.
+            Assert.Equal((long)expected.Length, Count(report, "D01"));
             Assert.True((await Members(reader, fixture.A, report)).SetEquals(expected),
                 "Filtered member set differs from the exact expected shipment IDs");
         }

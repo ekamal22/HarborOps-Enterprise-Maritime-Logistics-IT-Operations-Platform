@@ -170,6 +170,12 @@ MUTANTS = [
         "program",
     ),
     (
+        "m15-downgrade-guard-turned-into-a-notice",
+        "RAISE EXCEPTION 'M15 downgrade would destroy delivery evidence';",
+        "RAISE NOTICE 'M15 downgrade would destroy delivery evidence';",
+        "DowngradeOfAMigrationHoldingDeliveryEvidenceFailsClosedAndLeavesEveryRow",
+    ),
+    (
         "dispatcher-poll-stops-at-first-failed-intent",
         "if (claimed == 0) break;",
         "if (one == 0) break;",

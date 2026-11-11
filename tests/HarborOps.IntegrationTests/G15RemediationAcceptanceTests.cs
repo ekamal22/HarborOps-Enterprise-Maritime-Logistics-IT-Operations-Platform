@@ -860,6 +860,95 @@ public sealed class G15RemediationAcceptanceTests
             Assert.Equal(HttpStatusCode.OK, current.StatusCode);
     }
 
+    // G15-S06-A02: a role outside Analyst, Manager and Auditor, and a user who is
+    // not Active, never receive a fanout row; the dispatcher never invents recipients.
+    [ExclusiveM13PostgresFact]
+    public async Task UnrecognizedRolesAndInactiveUsersNeverReceiveAFanout()
+    {
+        var (s, shipment, exceptionId) = await OpenException();
+        using var factory = s.Factory; using var runtime = s.Runtime;
+        using var manager = s.Manager; using var analyst = s.Analyst;
+        using var administrator = s.Administrator;
+        using var seedAdmin = s.Fixture.Admin; using var seedManager = s.Fixture.Manager;
+        using var seedAnalyst = s.Fixture.Analyst;
+        await using var db = new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        // An Analyst membership of a user whose account is disabled, and a membership
+        // whose role is not one of the recognized organization roles.
+        var password = "Synthetic-reference-integration-passphrase-123";
+        var emails = new List<(string Email, string Role, bool Disable)>
+        {
+            ("g15-disabled-" + Guid.NewGuid().ToString("N") + "@example.test", "Analyst", true),
+            ("g15-suspended-" + Guid.NewGuid().ToString("N") + "@example.test", "Analyst", false)
+        };
+        var users = new List<Guid>();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var identity = scope.ServiceProvider.GetRequiredService<HarborOps.Infrastructure.Identity.IdentityStore>();
+            foreach (var (email, _, _) in emails)
+            {
+                await identity.ProvisionAsync(email, "Fanout Probe", password, CancellationToken.None);
+                var login = await identity.LoginAsync(email, password, "g15-probe", CancellationToken.None);
+                Assert.NotNull(login);
+                users.Add(login!.UserId);
+            }
+        }
+        // The membership role set is closed by the database itself.
+        var constraint = await Assert.ThrowsAsync<PostgresException>(async () =>
+        {
+            await using var member = new NpgsqlCommand("""
+                INSERT INTO organization_memberships
+                    (id,organization_id,user_id,role,status,version,created_at_utc,updated_at_utc)
+                VALUES (gen_random_uuid(),@org,@user,'Contractor','Active',1,clock_timestamp(),clock_timestamp())
+                """, db);
+            member.Parameters.AddWithValue("org", s.Fixture.A);
+            member.Parameters.AddWithValue("user", users[1]);
+            await member.ExecuteNonQueryAsync();
+        });
+        Assert.Equal(PostgresErrorCodes.CheckViolation, constraint.SqlState);
+        Assert.Equal("CK_membership_role", constraint.ConstraintName);
+        // An Analyst membership of a disabled account, and a Suspended Analyst membership.
+        await using (var member = new NpgsqlCommand("""
+            INSERT INTO organization_memberships
+                (id,organization_id,user_id,role,status,version,created_at_utc,updated_at_utc)
+            VALUES (gen_random_uuid(),@org,@user,'Analyst','Active',1,clock_timestamp(),clock_timestamp()),
+                   (gen_random_uuid(),@org,@other,'Analyst','Suspended',1,clock_timestamp(),clock_timestamp())
+            """, db))
+        {
+            member.Parameters.AddWithValue("org", s.Fixture.A);
+            member.Parameters.AddWithValue("user", users[0]);
+            member.Parameters.AddWithValue("other", users[1]);
+            Assert.Equal(2, await member.ExecuteNonQueryAsync());
+        }
+        await using (var disable = new NpgsqlCommand(
+            "UPDATE users SET status='Disabled' WHERE id=@user", db))
+        {
+            disable.Parameters.AddWithValue("user", users[0]);
+            await disable.ExecuteNonQueryAsync();
+        }
+        await using (var more = new NpgsqlCommand("""
+            INSERT INTO shipment_exception_history (organization_id,exception_id,action,
+                old_state,new_state,actor_kind,source_fingerprint)
+            SELECT organization_id,id,'Opened',NULL,'Open','System',source_fingerprint
+            FROM shipment_exceptions WHERE id=@id
+            """, db))
+        {
+            more.Parameters.AddWithValue("id", exceptionId);
+            Assert.Equal(1, await more.ExecuteNonQueryAsync());
+        }
+        await M15NotificationRuntimeTests.EnsureShipmentDelivered(s, shipment);
+        await using var scope2 = runtime.Services.CreateAsyncScope();
+        var store = scope2.ServiceProvider.GetRequiredService<NotificationStore>();
+        for (var i = 0; i < 5; i++) await store.DeliverPendingAsync(CancellationToken.None);
+        foreach (var user in users)
+            Assert.Equal(0L, await Count(db,
+                "SELECT COUNT(*) FROM m15_user_notifications WHERE recipient_user_id=@user",
+                ("user", user)));
+        Assert.True(await Count(db,
+            "SELECT COUNT(*) FROM m15_user_notifications WHERE organization_id=@org AND shipment_id=@shipment",
+            ("org", s.Fixture.A), ("shipment", shipment)) > 0);
+    }
+
     // G15-S12-A03: a dispatcher that finds an intent locked by another dispatcher
     // skips it and delivers the others at once. Without SKIP LOCKED the second
     // dispatcher would wait for the first to finish.

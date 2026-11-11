@@ -232,6 +232,76 @@ public sealed class M13AdmissionControlAcceptanceTests
         }
     }
 
+    // A real PostgreSQL 40001 must abort the first request transaction and
+    // retry once against the same source. This disposable-only fault replaces
+    // and restores the migration-owned function without changing a migration.
+    [ExclusiveM13PostgresFact]
+    public async Task SerializationFailureAtAdmissionRetriesAndPublishesOnlyOneSnapshot()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var f = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var administrator = f.Admin;
+        using var initialManager = f.Manager;
+        using var initialAnalyst = f.Analyst;
+        await AssignmentHttpTests.Seed(f);
+        await using var admin = new NpgsqlConnection(roles.Admin);
+        await admin.OpenAsync();
+        string original;
+        await using (var definition = new NpgsqlCommand("""
+            SELECT pg_get_functiondef('m13_tenant_live_reports(uuid,uuid)'::regprocedure)
+            """, admin))
+            original = Assert.IsType<string>(await definition.ExecuteScalarAsync());
+
+        await using (var sequence = new NpgsqlCommand(
+            "CREATE SEQUENCE g13_verification_retry_sequence START WITH 1", admin))
+            await sequence.ExecuteNonQueryAsync();
+        try
+        {
+            await using (var inject = new NpgsqlCommand("""
+                CREATE OR REPLACE FUNCTION m13_tenant_live_reports(p_org uuid,p_exclude uuid)
+                RETURNS integer LANGUAGE plpgsql SECURITY DEFINER
+                SET search_path=pg_catalog,public AS $retry$
+                DECLARE active integer;
+                BEGIN
+                    IF session_user<>'harborops_api' OR NOT m13_can_view(p_org) THEN
+                        RAISE EXCEPTION 'Reporting quota authority denied'
+                            USING ERRCODE='42501';
+                    END IF;
+                    IF nextval('g13_verification_retry_sequence')=1 THEN
+                        RAISE EXCEPTION 'Injected retryable serialization conflict'
+                            USING ERRCODE='40001';
+                    END IF;
+                    SELECT count(*) INTO active FROM operational_kpi_reports r
+                    WHERE r.organization_id=p_org AND r.id<>p_exclude
+                      AND r.expires_at_utc>clock_timestamp();
+                    RETURN active;
+                END $retry$;
+                """, admin))
+                await inject.ExecuteNonQueryAsync();
+
+            using var api = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+            using var manager = await ClientFor(api, f.ManagerEmail, f.A);
+            using var response = await manager.GetAsync(OverviewUrl(f.A));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.True(body.GetProperty("memberCount").GetInt32() > 0);
+            await using var observed = new NpgsqlCommand(
+                "SELECT last_value FROM g13_verification_retry_sequence", admin);
+            Assert.Equal(2L, Convert.ToInt64(await observed.ExecuteScalarAsync()));
+            Assert.Equal(1L, await Reports(admin, f.A));
+            await PlannerGuard.AssertDefaultAsync(api.Services);
+        }
+        finally
+        {
+            await using (var restore = new NpgsqlCommand(original, admin))
+                await restore.ExecuteNonQueryAsync();
+            await using var remove = new NpgsqlCommand(
+                "DROP SEQUENCE g13_verification_retry_sequence", admin);
+            await remove.ExecuteNonQueryAsync();
+        }
+    }
+
     // The tenant quota decision and the commit stay serialized: a builder that
     // finished the member statement waits for the tenant quota lock, commits nothing
     // while it waits, and commits exactly one snapshot once the lock is free.

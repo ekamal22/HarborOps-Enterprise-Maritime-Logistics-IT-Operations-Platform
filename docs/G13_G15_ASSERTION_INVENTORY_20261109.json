@@ -1798,10 +1798,14 @@
               "kind": "mutant",
               "artifact": "g13-mutations",
               "id": "member-materialization-timeout-reverted-to-15s"
+            },
+            {
+              "kind": "test",
+              "id": "SerializationFailureAtAdmissionRetriesAndPublishesOnlyOneSnapshot"
             }
           ],
           "assessment": "PARTIALLY_TESTED",
-          "audit_note": "READ COMMITTED does not establish the claimed serialization-conflict retry behavior; a direct conflict witness remains outstanding"
+          "audit_note": "An injected genuine PostgreSQL 40001 from the migration-owned function will exercise the live API retry once a disposable source-locked run executes it."
         },
         {
           "id": "G13-S19-A03",
@@ -1815,10 +1819,14 @@
             {
               "kind": "crash",
               "id": "G13AfterReportCommit"
+            },
+            {
+              "kind": "crash",
+              "id": "G13DuringLiveApiBuild"
             }
           ],
           "assessment": "PARTIALLY_TESTED",
-          "audit_note": "The recorded before-commit crash uses a surrogate transaction, not an API process killed mid-build"
+          "audit_note": "A new test kills the testhost during a live authenticated HTTP report build; source-locked execution is pending and historical hand-built crash remains identified as a surrogate."
         },
         {
           "id": "G13-S19-A04",
@@ -1832,10 +1840,14 @@
             {
               "kind": "test",
               "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
+            },
+            {
+              "kind": "test",
+              "id": "InterruptedIdleCleanupRollsBackWithoutRemovingReportsOrBusinessEvidence"
             }
           ],
           "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Pruning and idle cleanup are verified in normal operation, not interrupted during execution"
+          "audit_note": "A new cancellation test pauses an actual idle-cleanup DELETE inside a PostgreSQL trigger and checks transaction rollback; not yet executed."
         },
         {
           "id": "G13-S19-A05",
@@ -2077,9 +2089,14 @@
             {
               "kind": "test",
               "id": "TwoStoredReportsAndTwoNonPositionalBuildSlotsRefuseAnotherBuildEarly"
+            },
+            {
+              "kind": "test",
+              "id": "LateQuotaDecisionRefusesAndRollsBackWhenCapacityWasTakenAfterTheEarlyCheck"
             }
           ],
-          "assessment": "FULLY_TESTED"
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "Early admissions and late commit serialization now have distinct actual-SQL interleaving tests, pending execution."
         }
       ]
     },
@@ -2149,10 +2166,14 @@
             {
               "kind": "budget",
               "id": "G13"
+            },
+            {
+              "kind": "test",
+              "id": "RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole"
             }
           ],
           "assessment": "PARTIALLY_TESTED",
-          "audit_note": "The test records application-process CPU and memory but not PostgreSQL server resources, WAL or write amplification"
+          "audit_note": "PostgreSQL-side WAL, temp bytes and temp file counters plus a container CPU/memory sampler are now authored, but no new campaign has measured them. App-process metrics cannot substitute for PostgreSQL metrics."
         },
         {
           "id": "G13-S20-A05",
@@ -2372,10 +2393,18 @@
             {
               "kind": "test",
               "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
+            },
+            {
+              "kind": "test",
+              "id": "FullFiveRoleShipmentMatrix"
+            },
+            {
+              "kind": "test",
+              "id": "FailedTransitionLeavesNoPartialHistory"
             }
           ],
           "assessment": "PARTIALLY_TESTED",
-          "audit_note": "An aggregate job pass is not a clause-exact M5/M6 witness"
+          "audit_note": "Now cites explicit shipment lifecycle and upgrade witnesses, pending new source-locked execution."
         },
         {
           "id": "G13-S22-A02",
@@ -2427,10 +2456,26 @@
             {
               "kind": "job",
               "id": "database"
+            },
+            {
+              "kind": "test",
+              "id": "CsvPreservesUnicodeUsesCrlfDefangsFormulasAndMatchesSearchResults"
+            },
+            {
+              "kind": "test",
+              "id": "ExportAuthorityHandlesExpiryRotationOutageAuditRejectionAndRefusesDowngrade"
+            },
+            {
+              "kind": "test",
+              "id": "BusinessChangesGenerateMinimalAppendOnlyEvidence"
+            },
+            {
+              "kind": "test",
+              "id": "ProvisionedRuntimeRolesCannotModifyAuditEvidenceOrRunDdl"
             }
           ],
           "assessment": "PARTIALLY_TESTED",
-          "audit_note": "Aggregate jobs do not isolate the M12 search/export and M16 audit preservation clauses"
+          "audit_note": "Now cites explicit M12 export and M16 audit tests, pending new source-locked execution."
         },
         {
           "id": "G13-S22-A05",
@@ -2529,10 +2574,14 @@
               "kind": "browser_case",
               "suite": "operational-kpis",
               "id": "M13 Manager sees scoped operational reporting and safe drill"
+            },
+            {
+              "kind": "browser_case",
+              "id": "M13 hosted CSP profile blocks inline execution in all browser engines"
             }
           ],
           "assessment": "PARTIALLY_TESTED",
-          "audit_note": "The hosted CSP template was not exercised in the browser evidence"
+          "audit_note": "The hosted nginx CSP is now exercised by a synthetic browser header control and a static policy-equivalence check. Real hosted TLS deployment remains outside this gate."
         },
         {
           "id": "G13-S23-A04",
@@ -5065,5 +5114,5 @@
   ],
   "reconciled_at": "2026-11-11",
   "milestone_acceptance": "PENDING",
-  "campaign": "c3 evidence at 4e7b9e2; revised 250k-source campaign pending"
+  "campaign": "post-c3 source candidate at feature/g13-post-c3-remediation-20261111; fresh source-locked campaign required"
 }

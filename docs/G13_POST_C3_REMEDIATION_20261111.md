@@ -1,5 +1,8 @@
 # G13 post-c3 remediation status, 2026-11-11
 
+**Disposable browser verification:** The source-locked post-c3 GitHub Actions campaign may enable M15 delivery only inside its isolated temporary browser fixture. The workflow's unique Compose project, teardown trap, generated test credentials and preflight dependency are enforced by the M15 contract check. Application and production defaults remain off. This is not production activation or permission to delete notification data.
+
+
 **Verification authorization, 2026-11-11:** A single source-locked GitHub Actions preflight and conditional combined G13/G15 test packet on the post-c3 remediation branch are authorized. The combined technical jobs may run only if the preflight succeeds. This does not authorize acceptance, merging, production deployment, background feature activation, unrelated Actions workflows or retention deletion. This new authorization supersedes only the earlier general Actions prohibition for this narrowly scoped campaign.
 
 

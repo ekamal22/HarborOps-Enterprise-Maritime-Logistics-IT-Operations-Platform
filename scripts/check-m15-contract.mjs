@@ -100,8 +100,39 @@ assert.ok(
   "real browser verification must run before mocked scenarios"
 );
 
-// No workflow may switch the notification dispatcher on. Disposable verification
-// enables it only inside the local verification harness, never in committed CI.
-for (const name of readdirSync(resolve(root,".github/workflows")))
-  assert.doesNotMatch(read(".github/workflows/"+name),/HARBOROPS_M15_ENABLE_DELIVERY=true/,
-    name+" must not enable M15 delivery");
+// Delivery remains off in application defaults and ordinary CI workflows.
+// The dedicated, source-locked verification workflow may enable it only in
+// its disposable browser fixture, which owns and destroys its own stack.
+const disposableBrowserWorkflow = "verify-g13-g15-post-c3.yml";
+for (const name of readdirSync(resolve(root,".github/workflows"))) {
+  const workflow = read(".github/workflows/" + name);
+  if (name !== disposableBrowserWorkflow) {
+    assert.doesNotMatch(workflow, /HARBOROPS_M15_ENABLE_DELIVERY=true/,
+      name + " must not enable notification delivery");
+    continue;
+  }
+  const start = workflow.indexOf("\n  m15-browser:\n");
+  const end = workflow.indexOf("\n  scale:\n", start);
+  assert.ok(start !== -1 && end > start,
+    "Disposable browser job must have an isolated source-locked definition");
+  const browser = workflow.slice(start, end);
+  const otherJobs = workflow.slice(0, start) + workflow.slice(end);
+  assert.match(browser, /HARBOROPS_M15_ENABLE_DELIVERY=true/);
+  assert.doesNotMatch(otherJobs, /HARBOROPS_M15_ENABLE_DELIVERY=true/,
+    "Only the disposable browser job may enable notification delivery");
+  for (const required of [
+    "HARBOROPS_M15_LIVE_FIXTURE=1",
+    'project="ho-verify-m15-${GITHUB_RUN_ID}"',
+    'bash scripts/smoke-compose.sh --project "$project" --confirm-disposable',
+    'docker compose -p "$project" down --volumes --remove-orphans',
+    "trap cleanup EXIT",
+    "persist-credentials: false",
+  ]) {
+    assert.ok(browser.includes(required),
+      "Disposable browser job lacks isolation guard: " + required);
+  }
+  assert.match(workflow, /on:\n  push:\n    branches:\n      - feature\/g13-post-c3-remediation-20261111/);
+  assert.match(workflow, /permissions:\n  contents: read/);
+  assert.match(browser, /needs: source/,
+    "Live browser verification must depend on the successful preflight");
+}

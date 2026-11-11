@@ -1,3 +1,5 @@
+# The live notification fixture is confined to the disposable browser job.
+# All other jobs and production defaults leave delivery disabled.
 name: Verify G13 G15 post-c3
 run-name: G13 G15 preflight then combined test packet
 on:

@@ -647,6 +647,140 @@ public sealed class M13TenantCapacityAcceptanceTests
                 SignedAuthority(fixture.A, analyst.User, analyst.Session)));
         }
     }
+    // Cancellation while the cleanup DELETE is actually executing must roll
+    // back the snapshot deletion. The trigger is created only in a disposable
+    // exclusive verification database, and is always removed afterwards.
+    [ExclusiveM13PostgresFact]
+    public async Task InterruptedIdleCleanupRollsBackWithoutRemovingReportsOrBusinessEvidence()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var f = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var administrator = f.Admin;
+        using var seedManager = f.Manager;
+        using var seedAnalyst = f.Analyst;
+        await AssignmentHttpTests.Seed(f);
+
+        using var runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var manager = runtime.CreateClient(new WebApplicationFactoryClientOptions
+            { HandleCookies = true });
+        await ReferenceDataHttpTests.Login(manager, f.ManagerEmail);
+        await ReferenceDataHttpTests.Select(manager, f.A);
+        Guid report;
+        using (var built = await manager.GetAsync(
+            $"/api/v1/organizations/{f.A}/analytics/overview"))
+        {
+            Assert.Equal(HttpStatusCode.OK, built.StatusCode);
+            var body = await built.Content.ReadFromJsonAsync<JsonElement>();
+            report = body.GetProperty("reportId").GetGuid();
+        }
+
+        await using var db = new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        await using (var expire = new NpgsqlCommand("""
+            UPDATE operational_kpi_reports SET
+                created_at_utc=clock_timestamp()-interval '15 minutes',
+                expires_at_utc=clock_timestamp()-interval '5 minutes'
+            WHERE id=@id AND organization_id=@org
+            """, db))
+        {
+            expire.Parameters.AddWithValue("id", report);
+            expire.Parameters.AddWithValue("org", f.A);
+            Assert.Equal(1, await expire.ExecuteNonQueryAsync());
+        }
+        async Task<long> SourceCount()
+        {
+            await using var query = new NpgsqlCommand("""
+                SELECT (SELECT count(*) FROM shipments)
+                     + (SELECT count(*) FROM shipment_status_changes)
+                     + (SELECT count(*) FROM shipment_voyage_assignments)
+                     + (SELECT count(*) FROM shipment_tracking_projections)
+                     + (SELECT count(*) FROM shipment_tracking_corrections)
+                     + (SELECT count(*) FROM shipment_exception_evaluations)
+                     + (SELECT count(*) FROM shipment_exceptions)
+                     + (SELECT count(*) FROM shipment_exception_history)
+                     + (SELECT count(*) FROM audit_entries)
+                """, db);
+            return Convert.ToInt64(await query.ExecuteScalarAsync());
+        }
+        var before = await SourceCount();
+        var triggerCreated = false;
+        try
+        {
+            await using (var setup = new NpgsqlCommand("""
+                CREATE FUNCTION g13_verification_delay_cleanup() RETURNS trigger
+                LANGUAGE plpgsql AS $delay$
+                BEGIN
+                    PERFORM pg_sleep(20);
+                    RETURN OLD;
+                END $delay$;
+                CREATE TRIGGER tr_g13_verification_delay_cleanup
+                BEFORE DELETE ON operational_kpi_reports FOR EACH ROW
+                EXECUTE FUNCTION g13_verification_delay_cleanup();
+                """, db))
+                await setup.ExecuteNonQueryAsync();
+            triggerCreated = true;
+
+            await using var api = new NpgsqlConnection(roles.Api);
+            await api.OpenAsync();
+            using var cancellation = new CancellationTokenSource();
+            await using var cleanup = new NpgsqlCommand(
+                "SELECT m13_prune_expired_idle(1)", api);
+            var pending = cleanup.ExecuteScalarAsync(cancellation.Token);
+            var insideTrigger = false;
+            for (var attempt = 0; attempt < 50 && !insideTrigger; attempt++)
+            {
+                await using var monitor = new NpgsqlCommand("""
+                    SELECT EXISTS(
+                        SELECT 1 FROM pg_stat_activity
+                        WHERE usename='harborops_api'
+                          AND wait_event_type='Timeout'
+                          AND wait_event='PgSleep'
+                          AND query LIKE '%m13_prune_expired_idle%'
+                    )
+                    """, db);
+                insideTrigger = await monitor.ExecuteScalarAsync() is true;
+                if (!insideTrigger) await Task.Delay(100);
+            }
+            Assert.True(insideTrigger, "Cleanup did not reach its DELETE trigger");
+            cancellation.Cancel();
+            var error = await Record.ExceptionAsync(async () => await pending);
+            Assert.NotNull(error);
+            Assert.True(error is OperationCanceledException or PostgresException,
+                "Unexpected cleanup cancellation exception: " + error.GetType().Name);
+            if (error is PostgresException pg)
+                Assert.Equal(PostgresErrorCodes.QueryCanceled, pg.SqlState);
+        }
+        finally
+        {
+            if (triggerCreated)
+            {
+                await using var remove = new NpgsqlCommand("""
+                    DROP TRIGGER tr_g13_verification_delay_cleanup ON operational_kpi_reports;
+                    DROP FUNCTION g13_verification_delay_cleanup();
+                    """, db);
+                await remove.ExecuteNonQueryAsync();
+            }
+        }
+        await using (var stillThere = new NpgsqlCommand("""
+            SELECT count(*) FROM operational_kpi_reports
+            WHERE id=@id AND organization_id=@org
+            """, db))
+        {
+            stillThere.Parameters.AddWithValue("id", report);
+            stillThere.Parameters.AddWithValue("org", f.A);
+            Assert.Equal(1L, Convert.ToInt64(await stillThere.ExecuteScalarAsync()));
+        }
+        Assert.Equal(before, await SourceCount());
+
+        await using var retryApi = new NpgsqlConnection(roles.Api);
+        await retryApi.OpenAsync();
+        await using var retry = new NpgsqlCommand(
+            "SELECT m13_prune_expired_idle(1)", retryApi);
+        Assert.Equal(1, Convert.ToInt32(await retry.ExecuteScalarAsync()));
+        Assert.Equal(before, await SourceCount());
+    }
+
     // The privileged live-count reader is bound to the signed tenant and
     // excludes expired snapshots and the report currently being assembled.
     [ExclusiveM13PostgresFact]

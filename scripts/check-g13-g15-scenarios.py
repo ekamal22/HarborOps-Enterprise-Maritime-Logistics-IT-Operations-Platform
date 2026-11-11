@@ -50,7 +50,7 @@ EXTRA = {
     "G13-S17": ("WindowsAreStrictHalfOpenAndBounded",),
     "G13-S19": ("BlockedMemberMaterializationRollsBackAndRecovers",
                 "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant"),
-    "G13-S20": ("Mixed170kShipmentsProduceExactBoundedReport",
+    "G13-S20": ("Mixed85kShipmentsProduceExactBoundedReport",
                 "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently"),
     "G13-S23": ("ForgedTokensUnsafeQueriesAndDirectSqlCannotDiscloseReports",),
     "G15-S01": ("FailedOutboxInsertRollsBackNewImmutableHistoryInSameTransaction",),

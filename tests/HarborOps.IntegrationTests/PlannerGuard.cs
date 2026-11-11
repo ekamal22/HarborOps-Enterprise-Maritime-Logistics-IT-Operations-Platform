@@ -9,6 +9,12 @@ namespace HarborOps.IntegrationTests;
 // The report build disables nested loops for one statement with SET LOCAL. Every
 // pooled connection of the API must come back with default planner and timeout
 // settings after a success, a refusal, a timeout, a cancellation and a rollback.
+//
+// Note: the shared restricted test logins disable connection pooling, so on those hosts
+// each probe below is a fresh session and can only confirm the server defaults. The
+// discriminating witness for a leaked setting is the pooled, no-reset host in
+// M13AdmissionControlAcceptanceTests.PlannerAndTimeoutSettingsNeverOutliveABuild...,
+// and its mutant planner-setting-made-session-wide.
 internal static class PlannerGuard
 {
     internal static async Task AssertDefaultAsync(IServiceProvider services, int connectionsToProbe = 8)

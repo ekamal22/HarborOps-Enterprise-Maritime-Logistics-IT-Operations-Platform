@@ -30,6 +30,13 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   page.on("pageerror", error => {
     if (/Content Security Policy/i.test(error.message)) violations.push(error.message);
   });
+  await page.addInitScript(() => {
+    window.__cspEvents = [];
+    document.addEventListener("securitypolicyviolation", event => {
+      window.__cspEvents.push([event.violatedDirective, event.blockedURI, event.sourceFile,
+        event.lineNumber, String(event.sample ?? "").slice(0, 80)].join("|"));
+    });
+  });
   await login(page, "m3-manager@example.test");
   const shell = await page.request.get("/");
   const policy = shell.headers()["content-security-policy"] ?? "";
@@ -82,6 +89,8 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   await expect(d.getByText(/Period:/)).toContainText("01 Nov 2026", { timeout: 30000 });
   await d.getByRole("button", { name: "Reset" }).click();
   await expect(d.getByLabel("From (UTC, inclusive)")).toHaveValue("");
+  const reported = await page.evaluate(() => window.__cspEvents ?? []);
+  expect(reported, "Content security policy violation events on the KPI dashboard").toEqual([]);
   expect(violations, "Content security policy violations on the KPI dashboard").toEqual([]);
 });
 

@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs"
 ENDPOINT = ROOT / "src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs"
 RETENTION_MIGRATION = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261110010000_M13TenantReportCapacity.cs"
+POLICY = ROOT / "src/HarborOps.Domain/Reporting/OperationalKpiPolicy.cs"
 BASE_MIGRATION = ROOT / "src/HarborOps.Infrastructure/Persistence/Migrations/20261109020000_M13OperationalKpis.cs"
 EVIDENCE = ROOT / ".verification/g13-mutations"
 FILTER = "FullyQualifiedName~M13OperationalKpiRuntimeTests.TwelveShipmentsAndTwoForeignDecoysReconcileExactMembers"
@@ -75,13 +76,11 @@ MUTANTS = [
      "WHERE e.organization_id=@org AND e.first_detected_at_utc>=@from",
      "WHERE e.organization_id=@org AND e.first_detected_at_utc>=@before",
      "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
-    ("k03-window-upper-bound-inclusive",
+    ("k03-counts-arrival-events-as-completions",
      "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\n"
-     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\n"
-     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<@before",
+     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'",
      "SELECT 'K03','',s.id,s.id,NULL,NULL FROM scoped s\n"
-     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Completed'\n"
-     "                WHERE e.changed_at_utc>=@from AND e.changed_at_utc<=@before",
+     "                JOIN events e ON e.shipment_id=s.id AND e.to_status='Arrived'",
      "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys"),
     ("correction-generation-stale-accepted",
      "AND e.correction_generation=h.generation",
@@ -133,9 +132,14 @@ MUTANTS = [
      "ScopedReadersAndQuotaFunctionsRequireSignedReportingAuthority",
      "retention_migration"),
     ("member-materialization-planner-guard-removed",
-     "\"SET LOCAL enable_nestloop = off\"",
-     "\"SET LOCAL enable_nestloop = on\"",
+     "SET LOCAL enable_nestloop = off; SET LOCAL statement_timeout =",
+     "SET LOCAL enable_nestloop = on; SET LOCAL statement_timeout =",
      "RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds"),
+    ("member-materialization-timeout-reverted-to-15s",
+     "MemberMaterializationTimeout = TimeSpan.FromSeconds(25);",
+     "MemberMaterializationTimeout = TimeSpan.FromSeconds(15);",
+     "BlockedMemberMaterializationRollsBackAndRecovers",
+     "policy"),
     ("malformed-kpi-member-cursor-admitted",
      "if (!Id(last, out var parsed))",
      "if (!Id(last, out var parsed) && false)",
@@ -221,6 +225,7 @@ def main() -> int:
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     originals = {SOURCE: SOURCE.read_bytes(), ENDPOINT: ENDPOINT.read_bytes(),
                  RETENTION_MIGRATION: RETENTION_MIGRATION.read_bytes(),
+                 POLICY: POLICY.read_bytes(),
                  BASE_MIGRATION: BASE_MIGRATION.read_bytes()}
     original = originals[SOURCE]
     source_sha = digest(original)
@@ -268,6 +273,7 @@ def main() -> int:
                 if len(target_case) > 1 and target_case[1] == "retention_migration"
                 else BASE_MIGRATION if len(target_case) > 1
                     and target_case[1] == "base_migration"
+                else POLICY if len(target_case) > 1 and target_case[1] == "policy"
                 else ENDPOINT if len(target_case) > 1 and target_case[1] == "endpoints"
                 else SOURCE)
             # EF migrations already applied in a previous test process are

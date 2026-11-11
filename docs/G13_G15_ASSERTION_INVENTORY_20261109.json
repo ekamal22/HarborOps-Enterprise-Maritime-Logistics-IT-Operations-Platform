@@ -1776,6 +1776,10 @@
               "kind": "mutant",
               "artifact": "g13-mutations",
               "id": "tenant-quota-rejection-rollback-bypassed"
+            },
+            {
+              "kind": "test",
+              "id": "LateQuotaDecisionRefusesAndRollsBackWhenCapacityWasTakenAfterTheEarlyCheck"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1889,6 +1893,10 @@
               "kind": "mutant",
               "artifact": "g13-mutations",
               "id": "tenant-quota-session-scope-bypassed"
+            },
+            {
+              "kind": "test",
+              "id": "LateQuotaDecisionRefusesAndRollsBackWhenCapacityWasTakenAfterTheEarlyCheck"
             }
           ],
           "assessment": "FULLY_TESTED",

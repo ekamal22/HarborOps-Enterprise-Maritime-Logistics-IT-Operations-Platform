@@ -267,6 +267,94 @@ public sealed class M13AdmissionControlAcceptanceTests
         await PlannerGuard.AssertDefaultAsync(api.Services);
     }
 
+    // Defense in depth: the early check can be stale, because other snapshots may be
+    // committed while a builder runs its heavy statement. The authoritative decision
+    // under the tenant lock must still refuse and must roll the new snapshot back.
+    [ExclusiveM13PostgresFact]
+    public async Task LateQuotaDecisionRefusesAndRollsBackWhenCapacityWasTakenAfterTheEarlyCheck()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var f = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var administrator = f.Admin;
+        using var originalManager = f.Manager;
+        using var originalAnalyst = f.Analyst;
+        await AssignmentHttpTests.Seed(f);
+        var third = await M13TenantCapacityAcceptanceTests.ProvisionAnalystAsync(seedFactory, f.AdminEmail, f.A);
+        var builder = await M13TenantCapacityAcceptanceTests.ProvisionAnalystAsync(seedFactory, f.AdminEmail, f.A);
+        await using var admin = new NpgsqlConnection(roles.Admin);
+        await admin.OpenAsync();
+        using var api = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var manager = await ClientFor(api, f.ManagerEmail, f.A);
+        using var analyst = await ClientFor(api, f.AnalystEmail, f.A);
+        using var thirdClient = await ClientFor(api, third, f.A);
+        using var fourth = await ClientFor(api, builder, f.A);
+        foreach (var client in new[] { manager, analyst, thirdClient })
+        {
+            using var built = await client.GetAsync(OverviewUrl(f.A));
+            Assert.Equal(HttpStatusCode.OK, built.StatusCode);
+        }
+        Assert.Equal(3L, await Reports(admin, f.A));
+
+        // The fourth builder passes the early check (three live, one free), builds, and
+        // waits at the tenant quota lock that this test holds.
+        await Lock(admin, QuotaScope(f.A));
+        var pending = fourth.GetAsync(OverviewUrl(f.A));
+        await Task.Delay(TimeSpan.FromSeconds(4));
+        Assert.False(pending.IsCompleted, "The builder must be waiting at the quota lock");
+
+        // Meanwhile somebody else commits the last free snapshot.
+        Guid actor, session;
+        await using (var lookup = new NpgsqlCommand("""
+            SELECT a.user_id,a.id FROM auth_sessions a
+            JOIN organization_memberships m ON m.user_id=a.user_id
+                AND m.organization_id=a.selected_organization_id
+            WHERE a.selected_organization_id=@org AND m.role='Manager'
+                AND m.status='Active' AND a.revoked_at_utc IS NULL
+            ORDER BY a.issued_at_utc DESC LIMIT 1
+            """, admin))
+        {
+            lookup.Parameters.AddWithValue("org", f.A);
+            await using var row = await lookup.ExecuteReaderAsync();
+            Assert.True(await row.ReadAsync());
+            actor = row.GetGuid(0);
+            session = row.GetGuid(1);
+        }
+        await using (var insert = new NpgsqlCommand("""
+            INSERT INTO operational_kpi_reports
+                (id,organization_id,actor_user_id,actor_session_id,policy_version,filters_sha256,
+                 from_utc,before_utc,evaluated_at_utc,created_at_utc,expires_at_utc)
+            VALUES (gen_random_uuid(),@org,@actor,@session,'m13-kpi-v1',repeat('0',64),
+                clock_timestamp()-interval '9 days',clock_timestamp()-interval '2 days',
+                clock_timestamp(),clock_timestamp(),clock_timestamp()+interval '5 minutes')
+            """, admin))
+        {
+            insert.Parameters.AddWithValue("org", f.A);
+            insert.Parameters.AddWithValue("actor", actor);
+            insert.Parameters.AddWithValue("session", session);
+            Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+        }
+        Assert.Equal(4L, await Reports(admin, f.A));
+        await Unlock(admin);
+
+        using var response = await pending;
+        Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("report_tenant_capacity_exceeded", body.GetProperty("code").GetString());
+        // Refused and rolled back: exactly the four live snapshots remain and none is the
+        // refused builder's.
+        Assert.Equal(4L, await Reports(admin, f.A));
+        await using var mine = new NpgsqlCommand("""
+            SELECT count(*) FROM operational_kpi_reports r
+            JOIN users u ON u.id=r.actor_user_id
+            WHERE r.organization_id=@org AND lower(u.normalized_email)=lower(@email)
+            """, admin);
+        mine.Parameters.AddWithValue("org", f.A);
+        mine.Parameters.AddWithValue("email", builder);
+        Assert.Equal(0L, Convert.ToInt64(await mine.ExecuteScalarAsync()));
+        await PlannerGuard.AssertDefaultAsync(api.Services);
+    }
+
     // The planner and time limit changes must be transaction-local. Npgsql normally
     // resets a connection when it returns to the pool, which would hide a session
     // level SET, and the shared test logins do not pool at all. This host pools its

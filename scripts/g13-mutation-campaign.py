@@ -101,7 +101,7 @@ MUTANTS = [
                 return new(null, OrganizationAccessError.Conflict,
                     "report_tenant_capacity_exceeded");
             }""",
-     "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity"),
+     "LateQuotaDecisionRefusesAndRollsBackWhenCapacityWasTakenAfterTheEarlyCheck"),
     ("auditor-grant-version-revocation-bypassed",
      "AND m.version=g.membership_version",
      "AND true",
@@ -115,7 +115,7 @@ MUTANTS = [
     ("tenant-quota-active-report-cap-bypassed",
      "IF live_reports>4 THEN RETURN false; END IF;",
      "IF live_reports>400 THEN RETURN false; END IF;",
-     "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
+     "LateQuotaDecisionRefusesAndRollsBackWhenCapacityWasTakenAfterTheEarlyCheck",
      "retention_migration"),
     ("user-report-cap-bypassed",
      "RETURN live_user<=2;",

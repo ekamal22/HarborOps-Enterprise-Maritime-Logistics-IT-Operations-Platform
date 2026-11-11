@@ -86,11 +86,11 @@ public sealed class M13ScaleLoadTests
                 ".verification", "g13-scale");
             Directory.CreateDirectory(evidence);
             await File.WriteAllTextAsync(
-                Path.Combine(evidence,"explain-admin-170k.json"), raw);
+                Path.Combine(evidence,"explain-admin-reference85k.json"), raw);
             using (var parsed = JsonDocument.Parse(raw))
             {
                 var plan = parsed.RootElement[0].GetProperty("Plan");
-                Console.WriteLine($"G13_170K top_node={plan.GetProperty("Node Type").GetString()} total_ms={plan.GetProperty("Actual Total Time").GetDouble():F0}");
+                Console.WriteLine($"G13_REFERENCE_85K top_node={plan.GetProperty("Node Type").GetString()} total_ms={plan.GetProperty("Actual Total Time").GetDouble():F0}");
                 var slow = new List<(string Node, double Ms, long Rows)>();
                 static void Walk(JsonElement element, List<(string Node,double Ms,long Rows)> slow)
                 {
@@ -108,7 +108,7 @@ public sealed class M13ScaleLoadTests
                 foreach (var item in slow.OrderByDescending(x=>x.Ms).Take(12))
                     Console.WriteLine($"G13_PLAN node={item.Node} ms={item.Ms:F0} rows={item.Rows}");
             }
-            Console.WriteLine($"G13_170K privileged_explain_analyze_ms={duration.Elapsed.TotalMilliseconds:F0} plan_chars={raw.Length}");
+            Console.WriteLine($"G13_REFERENCE_85K privileged_explain_analyze_ms={duration.Elapsed.TotalMilliseconds:F0} plan_chars={raw.Length}");
         }
         catch (Exception e)
         {
@@ -120,7 +120,7 @@ public sealed class M13ScaleLoadTests
             Directory.CreateDirectory(evidence);
             await File.WriteAllTextAsync(Path.Combine(evidence,"explain-error.txt"),
                 e.GetType().Name + ": " + e.Message);
-            Console.WriteLine($"G13_170K privileged_explain_error={e.GetType().Name}: {e.Message}");
+            Console.WriteLine($"G13_REFERENCE_85K privileged_explain_error={e.GetType().Name}: {e.Message}");
         }
         finally
         {
@@ -336,7 +336,7 @@ public sealed class M13ScaleLoadTests
         }
         timer.Stop();
         Console.WriteLine($"G13_REFERENCE_85K seeded=85000 existing=2 seed_ms={timer.Elapsed.TotalMilliseconds:F0}");
-        // The fixture makes 170k inserts and 60k workflow updates in one burst.
+        // The fixture makes 85k inserts and 30k workflow updates in one burst.
         // Capture production-like fresh optimizer statistics before admission
         // tests. The policy timeout and p50/p95 budgets remain unchanged.
         await using (var statistics = new NpgsqlCommand("""
@@ -554,7 +554,7 @@ public sealed class M13ScaleLoadTests
         Assert.InRange(process.PeakWorkingSet64, 0L, 1L * 1024 * 1024 * 1024);
         await PlannerGuard.AssertDefaultAsync(runtime.Services);
         // The same statement as the application runs it (nested loops off, 15 s limit).
-        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "realistic85k",
+        await CaptureRestrictedPlan(roles.Api, roles.Admin, f.A, actor, "realistic40k",
             null, 25, true);
     }
 }

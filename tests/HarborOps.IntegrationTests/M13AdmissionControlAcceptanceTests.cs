@@ -391,32 +391,65 @@ public sealed class M13AdmissionControlAcceptanceTests
         using var api = new ReferenceDataHttpTests.ApiFactory(roles.Api);
         using var client = await ClientFor(api, f.AnalystEmail, f.A);
 
-        await Lock(admin, QuotaScope(f.A));
-        using var cancel = new CancellationTokenSource();
-        var build = client.GetAsync(OverviewUrl(f.A), cancel.Token);
-        await Task.Delay(TimeSpan.FromSeconds(3));
-        Assert.False(build.IsCompleted);
-        cancel.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => build);
-
-        // The abandoned builder gives up its slot and rolls back within seconds.
-        var deadline = DateTime.UtcNow.AddSeconds(30);
-        long held;
-        do
+        await using (var setup = new NpgsqlCommand("""
+            CREATE FUNCTION g13_verification_hold_cancelled_build() RETURNS trigger
+            LANGUAGE plpgsql AS $hold$
+            BEGIN PERFORM pg_sleep(15); RETURN NULL; END $hold$;
+            CREATE TRIGGER tr_g13_verification_hold_cancelled_build
+            BEFORE INSERT ON operational_kpi_members FOR EACH STATEMENT
+            EXECUTE FUNCTION g13_verification_hold_cancelled_build();
+            """, admin))
+            await setup.ExecuteNonQueryAsync();
+        try
         {
-            await using var slots = new NpgsqlCommand("""
-                SELECT count(*) FROM pg_locks l
-                WHERE l.locktype='advisory' AND l.granted AND l.pid<>pg_backend_pid()
-                    AND l.pid IN (SELECT pid FROM pg_stat_activity
-                                  WHERE usename='harborops_api')
+            using var cancel = new CancellationTokenSource();
+            var build = client.GetAsync(OverviewUrl(f.A), cancel.Token);
+            var insideBuild = false;
+            for (var attempt = 0; attempt < 60 && !insideBuild; attempt++)
+            {
+                Assert.False(build.IsCompleted,
+                    "Report ended without reaching its materialization statement");
+                await using var probe = new NpgsqlCommand("""
+                    SELECT EXISTS(SELECT 1 FROM pg_stat_activity
+                        WHERE usename='harborops_api'
+                          AND wait_event_type='Timeout' AND wait_event='PgSleep')
+                    """, admin);
+                insideBuild = await probe.ExecuteScalarAsync() is true;
+                if (!insideBuild) await Task.Delay(100);
+            }
+            Assert.True(insideBuild, "Actual API report was never materializing");
+            cancel.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => build);
+
+            // The abandoned builder releases its slot and rolls back. A
+            // cancelled HTTP response alone would not prove the database work.
+            var deadline = DateTime.UtcNow.AddSeconds(30);
+            long held;
+            do
+            {
+                await using var slots = new NpgsqlCommand("""
+                    SELECT count(*) FROM pg_locks l
+                    WHERE l.locktype='advisory' AND l.granted
+                      AND l.pid<>pg_backend_pid()
+                      AND l.pid IN (SELECT pid FROM pg_stat_activity
+                                    WHERE usename='harborops_api')
+                    """, admin);
+                held = Convert.ToInt64(await slots.ExecuteScalarAsync());
+                if (held == 0) break;
+                await Task.Delay(500);
+            } while (DateTime.UtcNow < deadline);
+            Assert.Equal(0L, held);
+            Assert.Equal(0L, await Reports(admin, f.A));
+        }
+        finally
+        {
+            await using var cleanup = new NpgsqlCommand("""
+                DROP TRIGGER tr_g13_verification_hold_cancelled_build
+                    ON operational_kpi_members;
+                DROP FUNCTION g13_verification_hold_cancelled_build();
                 """, admin);
-            held = Convert.ToInt64(await slots.ExecuteScalarAsync());
-            if (held == 0) break;
-            await Task.Delay(500);
-        } while (DateTime.UtcNow < deadline);
-        Assert.Equal(0L, held);
-        Assert.Equal(0L, await Reports(admin, f.A));
-        await Unlock(admin);
+            await cleanup.ExecuteNonQueryAsync();
+        }
         using var again = await client.GetAsync(OverviewUrl(f.A));
         Assert.Equal(HttpStatusCode.OK, again.StatusCode);
         Assert.Equal(1L, await Reports(admin, f.A));

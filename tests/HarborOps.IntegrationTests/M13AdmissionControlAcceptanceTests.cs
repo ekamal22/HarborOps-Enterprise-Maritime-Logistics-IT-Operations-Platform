@@ -126,6 +126,51 @@ public sealed class M13AdmissionControlAcceptanceTests
         await PlannerGuard.AssertDefaultAsync(api.Services);
     }
 
+    // The live-report count and all four occupied build slots must be checked
+    // together. Slot numbers 2 and 3 are deliberately occupied: the old
+    // positional scan of only slots 0 and 1 would admit work that cannot fit.
+    [ExclusiveM13PostgresFact]
+    public async Task TwoStoredReportsAndTwoNonPositionalBuildSlotsRefuseAnotherBuildEarly()
+    {
+        var roles = await M10RuntimeIdentityTests.ProvisionAsync();
+        using var seedFactory = new ReferenceDataHttpTests.ApiFactory(roles.Admin);
+        var f = await ReferenceDataHttpTests.Setup(seedFactory);
+        using var administrator = f.Admin;
+        using var originalManager = f.Manager;
+        using var originalAnalyst = f.Analyst;
+        await AssignmentHttpTests.Seed(f);
+        var additional = await M13TenantCapacityAcceptanceTests.ProvisionAnalystAsync(
+            seedFactory, f.AdminEmail, f.A);
+        await using var admin = new NpgsqlConnection(roles.Admin);
+        await admin.OpenAsync();
+        using var api = new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var manager = await ClientFor(api, f.ManagerEmail, f.A);
+        using var analyst = await ClientFor(api, f.AnalystEmail, f.A);
+        using var candidate = await ClientFor(api, additional, f.A);
+        foreach (var client in new[] { manager, analyst })
+        {
+            using var response = await client.GetAsync(OverviewUrl(f.A));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+        Assert.Equal(2L, await Reports(admin, f.A));
+
+        await Lock(admin, SlotScope(f.A, 2));
+        await Lock(admin, SlotScope(f.A, 3));
+        try
+        {
+            await AssertRefusedAsync(candidate, f.A,
+                "report_tenant_capacity_exceeded", 3000);
+            Assert.Equal(2L, await Reports(admin, f.A));
+        }
+        finally
+        {
+            await Unlock(admin);
+        }
+        using var admitted = await candidate.GetAsync(OverviewUrl(f.A));
+        Assert.Equal(HttpStatusCode.OK, admitted.StatusCode);
+        Assert.Equal(3L, await Reports(admin, f.A));
+    }
+
     // Six distinct users start together on one tenant. Exactly four snapshots
     // exist afterwards and the other two requests got the explicit 429.
     [ExclusiveM13PostgresFact]

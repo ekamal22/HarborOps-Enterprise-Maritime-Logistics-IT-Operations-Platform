@@ -688,22 +688,44 @@ public sealed class M13TenantCapacityAcceptanceTests
             expire.Parameters.AddWithValue("org", f.A);
             Assert.Equal(1, await expire.ExecuteNonQueryAsync());
         }
-        async Task<long> SourceCount()
+        // Hash the content of each accepted source table separately. A global
+        // count can hide replacement or movement of immutable history rows.
+        string[] preservedTables =
         {
-            await using var query = new NpgsqlCommand("""
-                SELECT (SELECT count(*) FROM shipments)
-                     + (SELECT count(*) FROM shipment_status_changes)
-                     + (SELECT count(*) FROM shipment_voyage_assignments)
-                     + (SELECT count(*) FROM shipment_tracking_projections)
-                     + (SELECT count(*) FROM shipment_tracking_corrections)
-                     + (SELECT count(*) FROM shipment_exception_evaluations)
-                     + (SELECT count(*) FROM shipment_exceptions)
-                     + (SELECT count(*) FROM shipment_exception_history)
-                     + (SELECT count(*) FROM audit_entries)
-                """, db);
-            return Convert.ToInt64(await query.ExecuteScalarAsync());
+            "shipments",
+            "shipment_status_changes",
+            "shipment_voyage_assignments",
+            "shipment_tracking_projections",
+            "shipment_tracking_corrections",
+            "shipment_exception_evaluations",
+            "shipment_exceptions",
+            "shipment_exception_history",
+            "audit_entries"
+        };
+        async Task<Dictionary<string, (long Count, string Digest)>> SourceSnapshot()
+        {
+            var result = new Dictionary<string, (long, string)>();
+            foreach (var table in preservedTables)
+            {
+                // Table identifiers come only from the fixed list above.
+                await using var query = new NpgsqlCommand(
+                    "SELECT count(*)::bigint, " +
+                    "md5(coalesce(string_agg(md5(to_jsonb(t)::text), '' " +
+                    "ORDER BY md5(to_jsonb(t)::text)),'')) " +
+                    "FROM " + table + " t", db);
+                await using var reader = await query.ExecuteReaderAsync();
+                Assert.True(await reader.ReadAsync());
+                result[table] = (reader.GetInt64(0), reader.GetString(1));
+            }
+            return result;
         }
-        var before = await SourceCount();
+        var before = await SourceSnapshot();
+        async Task AssertSourcePreserved()
+        {
+            var after = await SourceSnapshot();
+            foreach (var table in preservedTables)
+                Assert.Equal(before[table], after[table]);
+        }
         var triggerCreated = false;
         try
         {
@@ -771,14 +793,14 @@ public sealed class M13TenantCapacityAcceptanceTests
             stillThere.Parameters.AddWithValue("org", f.A);
             Assert.Equal(1L, Convert.ToInt64(await stillThere.ExecuteScalarAsync()));
         }
-        Assert.Equal(before, await SourceCount());
+        await AssertSourcePreserved();
 
         await using var retryApi = new NpgsqlConnection(roles.Api);
         await retryApi.OpenAsync();
         await using var retry = new NpgsqlCommand(
             "SELECT m13_prune_expired_idle(1)", retryApi);
         Assert.Equal(1, Convert.ToInt32(await retry.ExecuteScalarAsync()));
-        Assert.Equal(before, await SourceCount());
+        await AssertSourcePreserved();
     }
 
     // The privileged live-count reader is bound to the signed tenant and

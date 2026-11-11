@@ -320,15 +320,56 @@ public sealed class M13AdmissionControlAcceptanceTests
         using var api = new ReferenceDataHttpTests.ApiFactory(roles.Api);
         using var client = await ClientFor(api, f.AnalystEmail, f.A);
 
-        await Lock(admin, QuotaScope(f.A));
-        var build = client.GetAsync(OverviewUrl(f.A));
-        await Task.Delay(TimeSpan.FromSeconds(4));
-        Assert.False(build.IsCompleted, "The build committed without the tenant quota lock");
-        Assert.Equal(0L, await Reports(admin, f.A));
-        await Unlock(admin);
-        using var response = await build;
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(1L, await Reports(admin, f.A));
+        // First permit early admission, then pause the actual member INSERT.
+        // Holding the quota lock only after this marker tests the late commit
+        // lock rather than accidentally testing the initial admission gate.
+        await using (var setup = new NpgsqlCommand("""
+            CREATE FUNCTION g13_verification_hold_commit() RETURNS trigger
+            LANGUAGE plpgsql AS $hold$
+            BEGIN PERFORM pg_sleep(7); RETURN NULL; END $hold$;
+            CREATE TRIGGER tr_g13_verification_hold_commit
+            BEFORE INSERT ON operational_kpi_members FOR EACH STATEMENT
+            EXECUTE FUNCTION g13_verification_hold_commit();
+            """, admin))
+            await setup.ExecuteNonQueryAsync();
+        try
+        {
+            var build = client.GetAsync(OverviewUrl(f.A));
+            var inMaterialization = false;
+            for (var attempt = 0; attempt < 60 && !inMaterialization; attempt++)
+            {
+                Assert.False(build.IsCompleted, "The report ended before the SQL pause");
+                await using var probe = new NpgsqlCommand("""
+                    SELECT EXISTS(SELECT 1 FROM pg_stat_activity
+                        WHERE usename='harborops_api'
+                          AND wait_event_type='Timeout' AND wait_event='PgSleep')
+                    """, admin);
+                inMaterialization = await probe.ExecuteScalarAsync() is true;
+                if (!inMaterialization) await Task.Delay(100);
+            }
+            Assert.True(inMaterialization, "The build did not pass early admission");
+            await Lock(admin, QuotaScope(f.A));
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(8));
+                Assert.False(build.IsCompleted,
+                    "The build committed while its tenant quota gate was locked");
+                Assert.Equal(0L, await Reports(admin, f.A));
+            }
+            finally { await Unlock(admin); }
+
+            using var response = await build;
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(1L, await Reports(admin, f.A));
+        }
+        finally
+        {
+            await using var cleanup = new NpgsqlCommand("""
+                DROP TRIGGER tr_g13_verification_hold_commit ON operational_kpi_members;
+                DROP FUNCTION g13_verification_hold_commit();
+                """, admin);
+            await cleanup.ExecuteNonQueryAsync();
+        }
         await PlannerGuard.AssertDefaultAsync(api.Services);
     }
 

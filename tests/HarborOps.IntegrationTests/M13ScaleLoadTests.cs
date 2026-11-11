@@ -11,6 +11,26 @@ namespace HarborOps.IntegrationTests;
 [Collection("M13ExclusiveServer")]
 public sealed class M13ScaleLoadTests
 {
+    private sealed record DatabaseResources(long TempFiles, long TempBytes, long WalBytes);
+
+    // PostgreSQL-side temporary-file and write-amplification measurements.
+    // These are the database's own cumulative counters, not the testhost's
+    // process memory or CPU measurements.
+    private static async Task<DatabaseResources> ReadDatabaseResources(NpgsqlConnection db)
+    {
+        await using (var clear = new NpgsqlCommand("SELECT pg_stat_clear_snapshot()", db))
+            await clear.ExecuteNonQueryAsync();
+        await using var sample = new NpgsqlCommand("""
+            SELECT d.temp_files,d.temp_bytes,w.wal_bytes::bigint
+            FROM pg_stat_database d CROSS JOIN pg_stat_wal w
+            WHERE d.datname=current_database()
+            """, db);
+        await using var reader = await sample.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        return new DatabaseResources(reader.GetInt64(0), reader.GetInt64(1),
+            reader.GetInt64(2));
+    }
+
     private static long Count(JsonElement j, string code, string dimension = "") =>
         j.GetProperty("counts").EnumerateArray()
           .Where(x => x.GetProperty("metricCode").GetString() == code &&
@@ -64,7 +84,7 @@ public sealed class M13ScaleLoadTests
                 Assert.Equal(1, await create.ExecuteNonQueryAsync());
             }
             await using var explain = new NpgsqlCommand(
-                "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + query,
+                "EXPLAIN (ANALYZE, BUFFERS, WAL, FORMAT JSON) " + query,
                 db, tx) { CommandTimeout = 300 };
             explain.Parameters.AddWithValue("org", org);
             explain.Parameters.AddWithValue("report", report);
@@ -221,7 +241,7 @@ public sealed class M13ScaleLoadTests
                 Assert.Equal(1, await create.ExecuteNonQueryAsync());
             }
             await using var command = new NpgsqlCommand(
-                "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + query, db, tx)
+                "EXPLAIN (ANALYZE, BUFFERS, WAL, FORMAT JSON) " + query, db, tx)
                 { CommandTimeout = timeoutSeconds + 20 };
             command.Parameters.AddWithValue("org", org);
             command.Parameters.AddWithValue("report", report);
@@ -361,6 +381,7 @@ public sealed class M13ScaleLoadTests
                    pg_total_relation_size('operational_kpi_members')
             """, db))
             initialStorage = Convert.ToInt64(await storage.ExecuteScalarAsync());
+        var dbResourcesBefore = await ReadDatabaseResources(db);
         for (var i = 0; i < 30; i++)
         {
             var elapsed = Stopwatch.StartNew();
@@ -393,6 +414,17 @@ public sealed class M13ScaleLoadTests
                    pg_total_relation_size('operational_kpi_members')
             """, db))
             finalStorage = Convert.ToInt64(await storage.ExecuteScalarAsync());
+        // Allow the PostgreSQL statistics collector to flush counters after
+        // the API backends return to idle.
+        await Task.Delay(TimeSpan.FromSeconds(2));
+        var dbResourcesAfter = await ReadDatabaseResources(db);
+        Assert.True(dbResourcesAfter.WalBytes >= dbResourcesBefore.WalBytes);
+        Assert.True(dbResourcesAfter.TempBytes >= dbResourcesBefore.TempBytes);
+        Assert.True(dbResourcesAfter.TempFiles >= dbResourcesBefore.TempFiles);
+        Console.WriteLine($"G13_DB_RESOURCES workload=reference85k " +
+            $"wal_bytes={dbResourcesAfter.WalBytes-dbResourcesBefore.WalBytes} " +
+            $"temp_bytes={dbResourcesAfter.TempBytes-dbResourcesBefore.TempBytes} " +
+            $"temp_files={dbResourcesAfter.TempFiles-dbResourcesBefore.TempFiles}");
         var process = Process.GetCurrentProcess();
         Console.WriteLine($"G13_BUDGET count={latencies.Count} p50_ms={median:F0} " +
             $"p95_ms={p95:F0} initial_report_bytes={initialStorage} " +
@@ -517,6 +549,7 @@ public sealed class M13ScaleLoadTests
             return Convert.ToInt64(read.ExecuteScalar());
         }
         var initialStorage = Storage();
+        var dbResourcesBeforeRealistic = await ReadDatabaseResources(db);
         var cpuStart = Process.GetCurrentProcess().TotalProcessorTime;
         var latencies = new List<double>();
         var members = 0;
@@ -542,6 +575,15 @@ public sealed class M13ScaleLoadTests
         var median = latencies[(int)Math.Ceiling(latencies.Count * 0.50) - 1];
         var p95 = latencies[(int)Math.Ceiling(latencies.Count * 0.95) - 1];
         var finalStorage = Storage();
+        await Task.Delay(TimeSpan.FromSeconds(2));
+        var dbResourcesAfterRealistic = await ReadDatabaseResources(db);
+        Assert.True(dbResourcesAfterRealistic.WalBytes >= dbResourcesBeforeRealistic.WalBytes);
+        Assert.True(dbResourcesAfterRealistic.TempBytes >= dbResourcesBeforeRealistic.TempBytes);
+        Assert.True(dbResourcesAfterRealistic.TempFiles >= dbResourcesBeforeRealistic.TempFiles);
+        Console.WriteLine($"G13_DB_RESOURCES workload=realistic40k " +
+            $"wal_bytes={dbResourcesAfterRealistic.WalBytes-dbResourcesBeforeRealistic.WalBytes} " +
+            $"temp_bytes={dbResourcesAfterRealistic.TempBytes-dbResourcesBeforeRealistic.TempBytes} " +
+            $"temp_files={dbResourcesAfterRealistic.TempFiles-dbResourcesBeforeRealistic.TempFiles}");
         var process = Process.GetCurrentProcess();
         Console.WriteLine($"G13_REALISTIC_BUDGET count={latencies.Count} p50_ms={median:F0} " +
             $"p95_ms={p95:F0} max_ms={latencies[^1]:F0} members={members} " +

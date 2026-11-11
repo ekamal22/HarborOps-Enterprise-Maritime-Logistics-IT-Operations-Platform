@@ -1,6 +1,6 @@
 # G13 and G15 Round 2 Remediation and Campaign c3, Interim Record, 2026-11-11
 
-**Status:** Interim. Campaign c3 is not complete: one job failed and has not been rerun. Independent S25 round 3 has not been performed. G13 and G15 acceptance decisions: **acceptance pending**. This record is not a gate decision, not a merge authorization and not a GitHub Actions result.
+**Superseded by the [c3 results](G13_G15_LOCAL_CLOSURE_RESULTS_C3_20261111.md), where the failed job was rerun and campaign c3 completed.** **Status:** Interim. Campaign c3 is not complete: one job failed and has not been rerun. Independent S25 round 3 has not been performed. G13 and G15 acceptance decisions: **acceptance pending**. This record is not a gate decision, not a merge authorization and not a GitHub Actions result.
 
 **Frozen source:** `4e7b9e22aacef25f7f60e2295938ec6cf79bdadd` on `feature/g13-g15-acceptance-closure-20261110` and `verify/g13-g15-evidence-closure-20261109`. It supersedes `3e63bd0` (campaign c2, [results](G13_G15_LOCAL_CLOSURE_RESULTS_C2_20261111.md)), which round 2 reviewed with NOT PASS for both gates ([G13](G13_S25_INDEPENDENT_REVIEW_ROUND2_20261111.md), [G15](G15_S25_INDEPENDENT_REVIEW_ROUND2_20261111.md)). Commits after `4e7b9e2` must change documentation only.
 

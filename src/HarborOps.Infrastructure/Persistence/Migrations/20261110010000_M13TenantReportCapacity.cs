@@ -32,7 +32,7 @@ public sealed class M13TenantReportCapacity : Migration
                   ON r.id=m.report_id AND r.organization_id=m.organization_id
                 WHERE r.organization_id=p_org
                   AND r.expires_at_utc>clock_timestamp();
-                RETURN live_members<=2000000;
+                RETURN live_members<=1000000;
             END $quota$;
 
             -- Performance: the M11 row policies call m11_read_allowed once per row

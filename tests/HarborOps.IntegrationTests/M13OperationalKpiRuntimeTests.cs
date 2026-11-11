@@ -1491,7 +1491,7 @@ public sealed class M13OperationalKpiRuntimeTests
         var unplanned = await G13Insert(db, fixture.A, origin, destination, actor,
             DateTimeOffset.UtcNow.AddHours(2), "G13-NOPLAN-");
         await using (var clear = new NpgsqlCommand(
-            "UPDATE shipments SET planned_arrival_at_utc=NULL,planned_departure_at_utc=NULL WHERE id=@id", db))
+            "UPDATE shipments SET planned_arrival_at_utc=NULL,planned_departure_at_utc=NULL,version=version+1,updated_at_utc=clock_timestamp() WHERE id=@id", db))
         {
             clear.Parameters.AddWithValue("id", unplanned);
             Assert.Equal(1, await clear.ExecuteNonQueryAsync());

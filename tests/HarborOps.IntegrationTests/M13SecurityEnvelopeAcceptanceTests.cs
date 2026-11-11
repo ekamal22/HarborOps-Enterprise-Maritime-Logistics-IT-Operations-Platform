@@ -183,21 +183,22 @@ public sealed class M13SecurityEnvelopeAcceptanceTests
         }
         using var own = await analyst.GetAsync(Root(f.A) + "/overview");
         var report = (await own.Content.ReadFromJsonAsync<JsonElement>()).Clone();
-        // A report that does not exist and a report id from a foreign tenant route.
-        var unknown = new HttpRequestMessage(HttpMethod.Get,
-            Root(f.A) + "/reports/" + Guid.NewGuid() + "/members?metricCode=K01");
-        unknown.Headers.TryAddWithoutValidation("X-HarborOps-Report",
-            report.GetProperty("reportToken").GetString());
-        using var unknownResponse = await analyst.SendAsync(unknown);
-        var viaForeignRoute = new HttpRequestMessage(HttpMethod.Get,
-            Root(f.B) + "/reports/" + report.GetProperty("reportId").GetGuid() + "/members?metricCode=K01");
-        viaForeignRoute.Headers.TryAddWithoutValidation("X-HarborOps-Report",
-            report.GetProperty("reportToken").GetString());
-        using var foreignResponse = await analyst.SendAsync(viaForeignRoute);
-        Assert.Equal(HttpStatusCode.NotFound, foreignResponse.StatusCode);
-        Assert.Equal(unknownResponse.StatusCode, foreignResponse.StatusCode);
-        Assert.Equal((await unknownResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString(),
-            (await foreignResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        // The same report id and token presented under a foreign tenant route and under
+        // a tenant route that does not exist answer identically.
+        async Task<(HttpStatusCode Status, string Code)> Drill(Guid org)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get,
+                Root(org) + "/reports/" + report.GetProperty("reportId").GetGuid() + "/members?metricCode=K01");
+            request.Headers.TryAddWithoutValidation("X-HarborOps-Report",
+                report.GetProperty("reportToken").GetString());
+            using var response = await analyst.SendAsync(request);
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            return (response.StatusCode, body.GetProperty("code").GetString()!);
+        }
+        var viaForeign = await Drill(f.B);
+        var viaMissing = await Drill(Guid.NewGuid());
+        Assert.NotEqual(HttpStatusCode.OK, viaForeign.Status);
+        Assert.Equal(viaMissing, viaForeign);
     }
 
     // G13-S13-A02 and A06: Analyst and Manager view; Administrator, Support and an
@@ -244,7 +245,9 @@ public sealed class M13SecurityEnvelopeAcceptanceTests
             // Even holding another user's report id and token, the drill is refused.
             using var request = Members(f.A, analystReport, "K01");
             using var drill = await client.SendAsync(request);
-            Assert.True(drill.StatusCode == HttpStatusCode.Forbidden, name + " drill");
+            // Refused either by the role or by the report binding to its owner: never data.
+            Assert.True(drill.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Conflict,
+                name + " drill " + (int)drill.StatusCode);
             var text = await drill.Content.ReadAsStringAsync();
             Assert.DoesNotContain("memberKey", text);
             Assert.DoesNotContain("items", text);

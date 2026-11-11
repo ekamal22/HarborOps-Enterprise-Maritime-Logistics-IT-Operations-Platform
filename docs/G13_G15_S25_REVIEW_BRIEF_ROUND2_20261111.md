@@ -1,6 +1,6 @@
 # G13 and G15 S25 Independent Review Brief, Round 2, 2026-11-11
 
-**Status:** Prepared for round 2 after remediation. No round 2 review has been performed. Acceptance pending. Round 1 (`5bcb7e5`) returned NOT PASS for both gates: [G13](G13_S25_INDEPENDENT_REVIEW_ROUND1_20261110.md), [G15](G15_S25_INDEPENDENT_REVIEW_ROUND1_20261110.md). Independence is established by the reviewer's context and identity, not by this document; a review run by the session that produced the evidence does not count.
+**Status:** Round 2 was performed on 2026-11-11 by two separate read-only sessions and returned **NOT PASS** for both gates: [G13](G13_S25_INDEPENDENT_REVIEW_ROUND2_20261111.md), [G15](G15_S25_INDEPENDENT_REVIEW_ROUND2_20261111.md). Acceptance pending. Round 1 (`5bcb7e5`) returned NOT PASS for both gates: [G13](G13_S25_INDEPENDENT_REVIEW_ROUND1_20261110.md), [G15](G15_S25_INDEPENDENT_REVIEW_ROUND1_20261110.md). Independence is established by the reviewer's context and identity, not by this document; a review run by the session that produced the evidence does not count.
 
 This brief is for reviewers who did not implement or verify this change set. Work from source and raw evidence, not from the conclusions of the [round 2 results](G13_G15_LOCAL_CLOSURE_RESULTS_C2_20261111.md). Read-only: do not edit the repository, run migrations against any shared database, or use GitHub Actions.
 

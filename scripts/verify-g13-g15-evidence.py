@@ -110,7 +110,7 @@ REFERENCES = {
              "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant",
              "FourLiveSnapshotsAreAdmittedFifthDeniedAndExpiredPruningRestoresCapacity",
              "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority",
-             "CRASH:G13BeforeReportCommit", "CRASH:G13AfterReportCommit"],
+             "CRASH:G13BeforeReportCommit", "CRASH:G13DuringLiveApiBuild", "CRASH:G13AfterReportCommit"],
         20: ["Mixed85kShipmentsProduceExactBoundedReport",
              "ExpiredReportPruningIsBoundedAndCannotDeleteForeignTenant",
              "FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently",
@@ -251,7 +251,7 @@ def browser_result(root: Path | None) -> dict[str, bool]:
     if root is None:
         return result
     for engine in ("chromium", "firefox", "webkit"):
-        for suite, expected in (("notifications", 11), ("operational-kpis", 8)):
+        for suite, expected in (("notifications", 11), ("operational-kpis", 9)):
             path = root / (engine + "-" + suite + ".json")
             key = engine + ":" + suite
             if not path.is_file():
@@ -271,11 +271,11 @@ def browser_result(root: Path | None) -> dict[str, bool]:
     return result
 
 def crash_evidence(root: Path | None) -> dict[str, bool]:
-    phases = ("G13BeforeReportCommit", "G15BeforeHistoryCommit",
+    phases = ("G13BeforeReportCommit", "G13DuringLiveApiBuild", "G15BeforeHistoryCommit",
               "G15BeforeClaimCommit", "G15BeforeFanoutCommit",
               "G15AfterFanoutCommit", "G13AfterReportCommit",
               "G15AfterReceiptCommit", "G15AfterResponseDiscarded")
-    recovered = {"G15BeforeClaimCommit", "G15BeforeFanoutCommit",
+    recovered = {"G13DuringLiveApiBuild", "G15BeforeClaimCommit", "G15BeforeFanoutCommit",
                  "G15AfterFanoutCommit", "G13AfterReportCommit",
                  "G15AfterReceiptCommit", "G15AfterResponseDiscarded"}
     results = {phase: False for phase in phases}
@@ -496,7 +496,7 @@ def main() -> int:
     scan = scan_evidence(artifacts["dependency-security"])
     browsers = browser_result(artifacts["m15-browser"])
     mutations = {
-        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 41),
+        "g13-mutations": mutation_result(artifacts["g13-mutations"], "g13-mutations", 44),
         "g13-security-mutations": mutation_result(
             artifacts["g13-security-mutations"], "g13-security-mutations", 4),
         "g15-mutations": mutation_result(
@@ -527,6 +527,13 @@ def main() -> int:
         "RealisticSkewedFortyThousandShipmentTenantCompletesFourSimultaneousBuilds",
         "RealisticSkewed170kShipmentTenantIsRefusedAsOverCapacityWithoutTimeouts",
         "RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole",
+        "TwoStoredReportsAndTwoNonPositionalBuildSlotsRefuseAnotherBuildEarly",
+        "LateQuotaDecisionRefusesAndRollsBackWhenCapacityWasTakenAfterTheEarlyCheck",
+        "QuotaDecisionWaitsForTheTenantLockAndCommitsNothingWhileWaiting",
+        "ClientCancellationRollsBackReleasesTheSlotAndLeavesNoSnapshot",
+        "SerializationFailureAtAdmissionRetriesAndPublishesOnlyOneSnapshot",
+        "TenantLiveReportCountRequiresAuthorityAndExcludesOtherTenantsAndExpiredRows",
+        "InterruptedIdleCleanupRollsBackWithoutRemovingReportsOrBusinessEvidence",
         "OneUserIsLimitedToTwoActiveReportsAcrossSessionsInsideTheTenantLimit",
         "IdleCleanupIsOffByDefaultAndRunsOnlyWhenExplicitlyEnabled",
         "ScopedReadersAndQuotaFunctionsRequireSignedReportingAuthority",

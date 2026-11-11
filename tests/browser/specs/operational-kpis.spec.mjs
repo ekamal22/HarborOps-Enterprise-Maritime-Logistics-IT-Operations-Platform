@@ -22,8 +22,10 @@ test("M13 Manager sees scoped operational reporting and safe drill", async ({ pa
   // blocked inline script, style or connection would surface as a violation here.
   const violations = [];
   page.on("console", message => {
-    if (/Content Security Policy|violates the following/i.test(message.text()))
-      violations.push(message.text());
+    if (/Content Security Policy|violates the following/i.test(message.text())) {
+      const where = message.location();
+      violations.push(message.text() + " @ " + where.url + ":" + where.lineNumber);
+    }
   });
   page.on("pageerror", error => {
     if (/Content Security Policy/i.test(error.message)) violations.push(error.message);

@@ -261,7 +261,8 @@ public sealed class NotificationStore(
     public const int DeliveryBatchSize = 10;
 
     private int EventTimeoutSeconds => Math.Clamp(
-        configuration.GetValue<int?>("M15:DeliveryEventTimeoutSeconds") ?? 15, 1, 60);
+        int.TryParse(configuration["M15:DeliveryEventTimeoutSeconds"], out var configured)
+            ? configured : 15, 1, 60);
 
     public async Task<int> DeliverPendingAsync(CancellationToken ct)
     {

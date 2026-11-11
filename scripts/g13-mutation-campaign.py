@@ -248,6 +248,10 @@ def main() -> int:
                 "ApprovedTwelvePlusTwoReferenceMetricsReconcileAllMemberKeys")
         ))
         for target in extra_targets:
+            # Realistic tenants leave gigabytes of reports and history behind. Every
+            # such target runs against a freshly created schema.
+            if "Realistic" in target:
+                reset_disposable_migration_schema()
             target_code, _, _ = execute("control-" + target,
                 "FullyQualifiedName~" + target)
             if target_code:
@@ -272,6 +276,9 @@ def main() -> int:
             if selected in (RETENTION_MIGRATION,BASE_MIGRATION) or migration_changed:
                 reset_disposable_migration_schema()
                 migration_changed = selected in (RETENTION_MIGRATION,BASE_MIGRATION)
+            if "Realistic" in test_name:
+                reset_disposable_migration_schema()
+                migration_changed = False
             text = originals[selected].decode("utf-8")
             expected_replacements = (2
                 if name == "auditor-grant-version-revocation-bypassed" else 1)

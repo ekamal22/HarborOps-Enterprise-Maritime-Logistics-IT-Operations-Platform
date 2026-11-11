@@ -286,10 +286,21 @@ public sealed class M13SecurityEnvelopeAcceptanceTests
         using var api = new ReferenceDataHttpTests.ApiFactory(roles.Api, null,
             services => services.AddLogging(b => b.AddProvider(capture)));
         using var analyst = api.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
-        await ReferenceDataHttpTests.Login(analyst, f.AnalystEmail);
+        using var login = await ReferenceDataHttpTests.Send(analyst,
+            HttpMethod.Post, "/api/v1/auth/login",
+            new { email = f.AnalystEmail, password = Password });
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        Assert.True(login.Headers.TryGetValues("Set-Cookie", out var setCookies));
+        var sessionSecrets = setCookies!
+            .Select(value => value.Split(';', 2)[0])
+            .Where(value => value.Contains('='))
+            .Select(value => value[(value.IndexOf('=') + 1)..])
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .ToArray();
+        Assert.NotEmpty(sessionSecrets);
         await ReferenceDataHttpTests.Select(analyst, f.A);
 
-        var secrets = new List<string>();
+        var secrets = new List<string>(sessionSecrets);
         using (var token = await analyst.GetAsync("/api/v1/auth/csrf"))
             secrets.Add((await token.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString()!);
         using (var response = await analyst.GetAsync(Root(f.A) + "/overview"))
@@ -313,9 +324,6 @@ public sealed class M13SecurityEnvelopeAcceptanceTests
         using var anonymous = api.CreateClient();
         using (await anonymous.GetAsync(Root(f.A) + "/overview")) { }
 
-        var cookies = analyst.DefaultRequestHeaders.TryGetValues("Cookie", out var values)
-            ? values.ToArray() : Array.Empty<string>();
-        secrets.AddRange(cookies);
         secrets.Add(Password);
         secrets.Add(f.AnalystEmail);
         Assert.NotEmpty(capture.Entries);

@@ -16,7 +16,7 @@ public static partial class OperationalKpiPolicy
     public const string Version = "m13-kpi-v1";
     public const int MaximumDays = 366;
     public const int MaximumMemberPage = 100;
-    public const int MaximumReportMembers = 500_000; // provisional fail-closed capacity ceiling
+    public const int MaximumReportMembers = 250_000; // approved per-report member ceiling
     // Live snapshots per tenant and per user. The SQL functions m13_tenant_quota and
     // m13_user_quota enforce the same numbers; the concurrency tests assert they agree.
     public const int MaximumLiveReportsPerTenant = 4;

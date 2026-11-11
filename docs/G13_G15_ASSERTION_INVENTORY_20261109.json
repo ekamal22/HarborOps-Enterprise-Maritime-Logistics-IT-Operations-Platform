@@ -84,7 +84,7 @@
             },
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
+              "id": "Mixed85kShipmentsProduceExactBoundedReport"
             },
             {
               "kind": "budget",
@@ -1612,7 +1612,7 @@
             },
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
+              "id": "Mixed85kShipmentsProduceExactBoundedReport"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -1800,8 +1800,8 @@
               "id": "member-materialization-timeout-reverted-to-15s"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "READ COMMITTED does not establish the claimed serialization-conflict retry behavior; a direct conflict witness remains outstanding"
         },
         {
           "id": "G13-S19-A03",
@@ -1817,8 +1817,8 @@
               "id": "G13AfterReportCommit"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "The recorded before-commit crash uses a surrogate transaction, not an API process killed mid-build"
         },
         {
           "id": "G13-S19-A04",
@@ -1834,8 +1834,8 @@
               "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "Pruning and idle cleanup are verified in normal operation, not interrupted during execution"
         },
         {
           "id": "G13-S19-A05",
@@ -1872,8 +1872,8 @@
               "id": "IdleCleanupRemovesAtMostSixteenExpiredSnapshotsPerCallAndRejectsInvalidAuthority"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Source-inspected candidate test(s) exercise the scenario boundary; proof is contingent on this SHA's actual passing TRX and artifact checks"
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "M10 through M12 row-preservation checks were added after c3 and require a new source-locked execution"
         },
         {
           "id": "G13-S19-A07",
@@ -2041,7 +2041,7 @@
             },
             {
               "kind": "test",
-              "id": "RealisticSkewedEightyFiveThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly"
+              "id": "RealisticSkewedFortyThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly"
             },
             {
               "kind": "mutant",
@@ -2073,6 +2073,10 @@
               "kind": "mutant",
               "artifact": "g13-mutations",
               "id": "tenant-quota-advisory-lock-removed"
+            },
+            {
+              "kind": "test",
+              "id": "TwoStoredReportsAndTwoNonPositionalBuildSlotsRefuseAnotherBuildEarly"
             }
           ],
           "assessment": "FULLY_TESTED"
@@ -2089,7 +2093,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
+              "id": "Mixed85kShipmentsProduceExactBoundedReport"
             },
             {
               "kind": "budget",
@@ -2101,12 +2105,12 @@
         },
         {
           "id": "G13-S20-A02",
-          "requirement": "Capture medium and skewed 170k-shipment query plans",
+          "requirement": "Capture medium and supported 85k-shipment reference query plans",
           "kind": "automated",
           "evidence": [
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
+              "id": "Mixed85kShipmentsProduceExactBoundedReport"
             },
             {
               "kind": "budget",
@@ -2123,7 +2127,7 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
+              "id": "Mixed85kShipmentsProduceExactBoundedReport"
             },
             {
               "kind": "budget",
@@ -2140,24 +2144,24 @@
           "evidence": [
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
+              "id": "Mixed85kShipmentsProduceExactBoundedReport"
             },
             {
               "kind": "budget",
               "id": "G13"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "The test records application-process CPU and memory but not PostgreSQL server resources, WAL or write amplification"
         },
         {
           "id": "G13-S20-A05",
-          "requirement": "Enforce request/statement timeout and 500k-member ceiling",
+          "requirement": "Enforce request/statement timeout and 250k-member ceiling",
           "kind": "automated",
           "evidence": [
             {
               "kind": "test",
-              "id": "Mixed170kShipmentsProduceExactBoundedReport"
+              "id": "Mixed85kShipmentsProduceExactBoundedReport"
             },
             {
               "kind": "test",
@@ -2183,7 +2187,7 @@
             },
             {
               "kind": "test",
-              "id": "RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds"
+              "id": "RealisticSkewedFortyThousandShipmentTenantCompletesFourSimultaneousBuilds"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2195,11 +2199,11 @@
           "kind": "policy",
           "evidence": [],
           "assessment": "MANUAL_REVIEW",
-          "audit_note": "Policy approval or numerical decision required"
+          "audit_note": "Option A and a stricter 250,000-member per-report ceiling explicitly approved on 2026-11-11; execution and independent acceptance remain pending"
         },
         {
           "id": "G13-S20-A08",
-          "requirement": "Meet the approved p50 15 s and p95 20 s budgets and resource envelope on a realistic skewed 85,000 shipment tenant under the restricted API role",
+          "requirement": "Meet the approved p50 15 s and p95 20 s budgets and resource envelope on a realistic skewed 40,000 shipment tenant under the restricted API role",
           "kind": "automated",
           "evidence": [
             {
@@ -2216,16 +2220,12 @@
         },
         {
           "id": "G13-S20-A09",
-          "requirement": "Complete four simultaneous builders of a realistic 85,000 shipment tenant with no 503 inside the 30 second proxy envelope",
+          "requirement": "Complete four simultaneous builders of a realistic 40,000 shipment tenant with no 503 inside the 30 second proxy envelope",
           "kind": "automated",
           "evidence": [
             {
               "kind": "test",
-              "id": "RealisticSkewedEightyFiveThousandShipmentTenantCompletesFourSimultaneousBuilds"
-            },
-            {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "id": "RealisticSkewedFortyThousandShipmentTenantCompletesFourSimultaneousBuilds"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -2233,7 +2233,7 @@
         },
         {
           "id": "G13-S20-A10",
-          "requirement": "Refuse an over-capacity realistic 170,000 shipment tenant with 413 report_capacity_exceeded for every builder and no timeout",
+          "requirement": "Refuse an over-capacity realistic 170,000 shipment tenant with 413 report_capacity_exceeded for every builder and no timeout in the measured campaign",
           "kind": "automated",
           "evidence": [
             {
@@ -2246,12 +2246,12 @@
         },
         {
           "id": "G13-S20-A11",
-          "requirement": "With eight distinct builders of a realistic 85,000 shipment tenant, exactly four complete and the other four are refused with 429 in under ten seconds",
+          "requirement": "With eight distinct builders of a realistic 40,000 shipment tenant, exactly four complete and the other four are refused with 429 in under ten seconds",
           "kind": "automated",
           "evidence": [
             {
               "kind": "test",
-              "id": "RealisticSkewedEightyFiveThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly"
+              "id": "RealisticSkewedFortyThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly"
             }
           ],
           "assessment": "FULLY_TESTED"
@@ -2374,8 +2374,8 @@
               "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "An aggregate job pass is not a clause-exact M5/M6 witness"
         },
         {
           "id": "G13-S22-A02",
@@ -2429,8 +2429,8 @@
               "id": "database"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "Aggregate jobs do not isolate the M12 search/export and M16 audit preservation clauses"
         },
         {
           "id": "G13-S22-A05",
@@ -2531,8 +2531,8 @@
               "id": "M13 Manager sees scoped operational reporting and safe drill"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "The hosted CSP template was not exercised in the browser evidence"
         },
         {
           "id": "G13-S23-A04",
@@ -2544,8 +2544,8 @@
               "id": "KpiRequestsNeverPutTokensOrMemberIdentifiersInLogs"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Added a behavior-specific browser, scoped evidence-log scanner or real rate-limiting test. This is candidate coverage until source-locked execution passes."
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "The real Set-Cookie value was not examined by c3; a corrected test is now unverified"
         },
         {
           "id": "G13-S23-A05",
@@ -2591,12 +2591,27 @@
               "id": "ScopedReadersAndQuotaFunctionsRequireSignedReportingAuthority"
             },
             {
-              "kind": "mutation",
-              "id": "g13-mutations"
+              "kind": "test",
+              "id": "TenantLiveReportCountRequiresAuthorityAndExcludesOtherTenantsAndExpiredRows"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "live-report-count-authority-removed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "live-report-count-tenant-filter-removed"
+            },
+            {
+              "kind": "mutant",
+              "artifact": "g13-mutations",
+              "id": "live-report-count-expiry-filter-removed"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "The live-count reader authority, tenant and expiry witnesses were added after c3 and are awaiting execution"
         },
         {
           "id": "G13-S23-A08",
@@ -2656,8 +2671,8 @@
               "id": "auditor-sql-grant-bypass"
             }
           ],
-          "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "assessment": "PARTIALLY_TESTED",
+          "audit_note": "The member tenant-predicate mutant was killed by a database FK failure; silent filter loss remains untested"
         },
         {
           "id": "G13-S24-A02",
@@ -5050,5 +5065,5 @@
   ],
   "reconciled_at": "2026-11-11",
   "milestone_acceptance": "PENDING",
-  "campaign": "G13-G15 source-locked assertion-level behavioral coverage audit"
+  "campaign": "c3 evidence at 4e7b9e2; revised 250k-source campaign pending"
 }

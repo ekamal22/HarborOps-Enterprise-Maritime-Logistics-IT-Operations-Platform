@@ -769,9 +769,16 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           mkdir -p .verification/g13-g15-crashes
           dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g13-g15-crashes/build.log
+          set +e
           python3 scripts/g13-g15-process-crash.py 2>&1 | tee .verification/g13-g15-crashes/process-crash.log
-          cp -r .verification/g13-g15-crash/. .verification/g13-g15-crashes/
+          probe_code=${PIPESTATUS[0]}
+          set -e
+          # Keep phase logs even if a probe fails before emitting its marker.
+          if [ -d .verification/g13-g15-crash ]; then
+            cp -r .verification/g13-g15-crash/. .verification/g13-g15-crashes/
+          fi
           test -s .verification/g13-g15-crashes/manifest.json
+          exit "$probe_code"
       - name: Preserve g13-g15-crashes evidence
         if: always()
         run: |

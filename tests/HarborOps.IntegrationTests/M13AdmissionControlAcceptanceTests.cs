@@ -669,7 +669,9 @@ public sealed class M13AdmissionControlAcceptanceTests
 
         async Task<(long Total, long Own)> Read(string function, Guid org, string authority)
         {
-            await using var api = new NpgsqlConnection(first.Roles.Api);
+            // Both fixtures provision the same PostgreSQL role. The second provision
+            // rotates its password, so the connection must use the latest one.
+            await using var api = new NpgsqlConnection(second.Roles.Api);
             await api.OpenAsync();
             await using var tx = await api.BeginTransactionAsync();
             await using (var scope = new NpgsqlCommand(

@@ -140,6 +140,11 @@ public sealed class G13G15CrashRecoveryTests
             "LOCK TABLE operational_kpi_members IN ACCESS EXCLUSIVE MODE", db, hold))
             await lockTable.ExecuteNonQueryAsync();
 
+        // Monitor from a separate autocommit connection. Reading pg_stat_activity
+        // repeatedly inside the long-lived lock transaction can reuse a
+        // statistics snapshot and miss the actual waiting API session.
+        await using var monitor = new NpgsqlConnection(roles.Admin);
+        await monitor.OpenAsync();
         // Do not await the request: it must be in progress when SIGKILL lands.
         var request = manager.GetAsync(
             $"/api/v1/organizations/{fixture.A}/analytics/overview");
@@ -155,7 +160,7 @@ public sealed class G13G15CrashRecoveryTests
                     WHERE l.relation='operational_kpi_members'::regclass
                       AND l.granted=false AND a.usename='harborops_api'
                 )
-                """, db, hold);
+                """, monitor);
             waiting = await check.ExecuteScalarAsync() is true;
             if (!waiting) await Task.Delay(200);
         }

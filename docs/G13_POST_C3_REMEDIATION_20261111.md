@@ -1,5 +1,8 @@
 # G13 post-c3 remediation status, 2026-11-11
 
+**Verification authorization, 2026-11-11:** A single source-locked GitHub Actions preflight and conditional combined G13/G15 test packet on the post-c3 remediation branch are authorized. The combined technical jobs may run only if the preflight succeeds. This does not authorize acceptance, merging, production deployment, background feature activation, unrelated Actions workflows or retention deletion. This new authorization supersedes only the earlier general Actions prohibition for this narrowly scoped campaign.
+
+
 **Status:** Implementation and regression coverage in progress. No new source-locked technical campaign has executed. G13 NOT ACCEPTED; G15 NOT ACCEPTED; no merge or deployment authority.
 
 **Baseline:** c3 tested source `4e7b9e22aacef25f7f60e2295938ec6cf79bdadd`. Round 3 G13 S25 returned NOT PASS. The original evidence and failed attempts remain preserved. This change set is isolated on `feature/g13-post-c3-remediation-20261111` and must not be treated as c3-tested source.

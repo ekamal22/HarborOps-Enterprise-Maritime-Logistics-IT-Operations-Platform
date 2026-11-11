@@ -1,0 +1,906 @@
+name: Verify G13 G15 post-c3
+run-name: G13 G15 preflight then combined test packet
+on:
+  push:
+    branches:
+      - feature/g13-post-c3-remediation-20261111
+    paths:
+      - .github/workflows/verify-g13-g15-post-c3.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    name: Preflight source build contracts unit web
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify source SHA
+        run: |
+          mkdir -p .verification
+          git rev-parse HEAD | tee .verification/source-sha.txt
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+      - name: Source and planning contracts
+        run: |
+          set -euo pipefail
+          node scripts/check-m11-contract.mjs 2>&1 | tee .verification/m11-contract.log
+          node scripts/check-m15-contract.mjs 2>&1 | tee .verification/m15-contract.log
+          node scripts/check-m13-csp.mjs 2>&1 | tee .verification/m13-csp.log
+          python3 -m py_compile scripts/verify-g13-g15-evidence.py scripts/check-g13-g15-scenarios.py scripts/audit-g13-g15-assertions.py scripts/check-g13-g15-sensitive-evidence.py scripts/g13-g15-process-crash.py scripts/g13-mutation-campaign.py scripts/g15-mutation-campaign.py
+          node scripts/render-execution-graph.mjs --check 2>&1 | tee .verification/graph.log
+          find tests/browser/specs -name '*.mjs' -print0 | xargs -0 -n1 node --check
+      - name: Reconcile historical documentation consistency
+        run: |
+          set -euo pipefail
+          node scripts/check-planning-docs.mjs 2>&1 | tee .verification/planning.log
+      - name: Build solution and execute unit contracts
+        run: |
+          set -euo pipefail
+          dotnet restore HarborOps.sln 2>&1 | tee .verification/restore.log
+          dotnet build HarborOps.sln --configuration Release --no-restore -warnaserror 2>&1 | tee .verification/build.log
+          dotnet test tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj --configuration Release --no-build --logger 'trx;LogFileName=unit.trx' --results-directory .verification 2>&1 | tee .verification/unit.log
+          dotnet test tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj --configuration Release --no-build --logger 'trx;LogFileName=contract.trx' --results-directory .verification 2>&1 | tee .verification/contract.log
+      - name: Verify web build
+        run: |
+          set -euo pipefail
+          npm --prefix web ci --no-audit --no-fund 2>&1 | tee .verification/npm.log
+          npm --prefix web test 2>&1 | tee .verification/web-test.log
+          npm --prefix web run build 2>&1 | tee .verification/web-build.log
+      - name: Seal source evidence
+        if: always()
+        run: |
+          git rev-parse HEAD > .verification/final-sha.txt
+          (cd .verification && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-source-${{ github.run_id }}
+          path: .verification/
+          retention-days: 30
+          include-hidden-files: true
+
+  m15-database:
+    name: Combined M13 M15 scoped PostgreSQL regressions
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    needs: source
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-m15-postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-m15-postgres;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: "1"
+      HARBOROPS_G12_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify source SHA
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Build and execute fourteen ordered database filters
+        run: |
+          set -euo pipefail
+          mkdir -p .verification/m15
+          dotnet restore HarborOps.sln 2>&1 | tee .verification/m15/restore.log
+          dotnet build HarborOps.sln -c Release --no-restore -warnaserror 2>&1 | tee .verification/m15/build.log
+          while IFS=$'\t' read -r label filter; do
+            test -n "$label" || continue
+            dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter "$filter" --logger 'console;verbosity=normal' --logger "trx;LogFileName=$label.trx" --results-directory .verification/m15 2>&1 | tee ".verification/m15/$label.log"
+            test -s ".verification/m15/$label.trx"
+          done <<'FILTERS'
+          m15-integration	FullyQualifiedName~G13G15FeatureDefaultAcceptanceTests|FullyQualifiedName~M15NotificationRuntimeTests|FullyQualifiedName~M15FinalAuthorizationTests|FullyQualifiedName~M13OperationalKpiRuntimeTests|FullyQualifiedName~M13FaultRecoveryTests|FullyQualifiedName~M11ExceptionRuntimeTests|FullyQualifiedName~M11M12UpgradeTests|FullyQualifiedName~MigrationSnapshotTests|FullyQualifiedName~M10UpgradeTests
+          g13-g15-revocation	FullyQualifiedName~G13G15RevocationAcceptanceTests
+          g13-filter-acceptance	FullyQualifiedName~G13FilterAcceptanceTests
+          g13-g15-truth-table	FullyQualifiedName~G15EventCatalogAcceptanceTests|FullyQualifiedName~G13EmptyDataAcceptanceTests
+          g13-g15-restricted-sql	FullyQualifiedName~G13G15RestrictedSqlAcceptanceTests
+          g15-final-behavior	FullyQualifiedName~G15AuditAcceptanceTests|FullyQualifiedName~G15HistoricalTargetAcceptanceTests
+          g15-http-dependency-outage	FullyQualifiedName~G15HttpOutageAcceptanceTests
+          g15-remediation	FullyQualifiedName~G15RemediationAcceptanceTests
+          g13-tenant-capacity	FullyQualifiedName~M13TenantCapacityAcceptanceTests|FullyQualifiedName~M13AdmissionControlAcceptanceTests|FullyQualifiedName~M13SecurityEnvelopeAcceptanceTests|FullyQualifiedName~M15DowngradeGuardAcceptanceTests|FullyQualifiedName~G13G15RuntimeOptInAcceptanceTests
+          g13-rate-limit	FullyQualifiedName~G13RateLimitAcceptanceTests
+          g15-recurrence	FullyQualifiedName~G15RecurrenceAcceptanceTests
+          g13-tracking-source	FullyQualifiedName~G13TrackingSourceAcceptanceTests
+          g13-m11-source	FullyQualifiedName~G13M11SourceAcceptanceTests
+          m15-boundaries	FullyQualifiedName~M15NotificationBoundaryTests
+          FILTERS
+      - name: Hash evidence and mark source
+        if: always()
+        run: |
+          mkdir -p .verification/m15
+          printf '%s\n' "$GITHUB_SHA" > .verification/m15/source-sha.txt
+          (cd .verification/m15 && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+          echo "M15 PostgreSQL source: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload M15 database evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m15-database-${{ github.run_id }}
+          path: .verification/m15/
+          retention-days: 7
+          include-hidden-files: true
+
+  m15-browser:
+    name: Combined three-engine KPI and notification UI
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    needs: source
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Disposable M15 browser fixtures and Chromium Firefox WebKit
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export HARBOROPS_SOURCE_SHA="$GITHUB_SHA"
+          export HARBOROPS_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_API_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_WORKER_DB_PASSWORD="$(openssl rand -hex 24)"
+          export HARBOROPS_M10_CORRECTION_PROOF_KEY="$(openssl rand -base64 32)"
+          export HARBOROPS_M12_EXPORT_PROOF_KEY="$(openssl rand -base64 32)"
+          export HARBOROPS_TEST_USER_PASSWORD="$(openssl rand -hex 22)"
+          for key in HARBOROPS_DB_PASSWORD HARBOROPS_API_DB_PASSWORD HARBOROPS_WORKER_DB_PASSWORD HARBOROPS_M10_CORRECTION_PROOF_KEY HARBOROPS_M12_EXPORT_PROOF_KEY HARBOROPS_TEST_USER_PASSWORD; do
+            echo "::add-mask::${!key}"
+          done
+          export HARBOROPS_BROWSER_BASE_URL="http://localhost:5173"
+          export HARBOROPS_M5_FIXTURES=1
+          export HARBOROPS_M12_FIXTURES=1
+          export HARBOROPS_M13_FIXTURES=1
+          # Enable only for this isolated, disposable browser integration stack.
+          export HARBOROPS_M15_ENABLE_DELIVERY=true
+          export HARBOROPS_M15_LIVE_FIXTURE=1
+          export HARBOROPS_VERIFICATION_ROOT="$PWD/.verification"
+          mkdir -p .verification/evidence .verification/m15-browser
+          printf '%s\n' "$GITHUB_SHA" > .verification/m15-browser/source-sha.txt
+          project="ho-verify-m15-${GITHUB_RUN_ID}"
+          cleanup() {
+            code=$?
+            # Remove transient authentication state before any evidence upload.
+            rm -f -- "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json" \
+              "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
+            rmdir -- "$HARBOROPS_VERIFICATION_ROOT/.private" 2>/dev/null || true
+            docker compose -p "$project" ps || true
+            docker compose -p "$project" down --volumes --remove-orphans || true
+            exit "$code"
+          }
+          trap cleanup EXIT
+          bash scripts/smoke-compose.sh --project "$project" --confirm-disposable
+          for entry in \
+            "m3-admin-a@example.test|M3 North Administrator" \
+            "m3-admin-b@example.test|M3 East Administrator" \
+            "m3-manager@example.test|M3 Manager" \
+            "m3-analyst@example.test|M3 Analyst" \
+            "m4-analyst-east@example.test|M4 East Analyst" \
+            "m4-support@example.test|M4 Support" \
+            "m4-auditor@example.test|M4 Auditor"; do
+            email="${entry%%|*}"
+            title="${entry#*|}"
+            printf '%s\n' "$HARBOROPS_TEST_USER_PASSWORD" |
+              docker compose -p "$project" run --rm -T -e HARBOROPS_ALLOW_ACCOUNT_CLI=true api \
+              --account-cli provision "$email" "$title"
+          done
+          for item in \
+            "m3-north|M3 North Terminal|m3-admin-a@example.test" \
+            "m3-east|M3 East Terminal|m3-admin-b@example.test" \
+            "m3-pagination|M3 Pagination Fixtures|m3-admin-a@example.test" \
+            "m3-revocation-chromium|M3 Revocation chromium|m3-admin-a@example.test" \
+            "m3-revocation-firefox|M3 Revocation firefox|m3-admin-a@example.test" \
+            "m3-revocation-webkit|M3 Revocation webkit|m3-admin-a@example.test"; do
+            slug="${item%%|*}"
+            rest="${item#*|}"
+            title="${rest%%|*}"
+            email="${rest#*|}"
+            docker compose -p "$project" run --rm -T -e HARBOROPS_ALLOW_ORGANIZATION_CLI=true api \
+              --organization-cli bootstrap "$slug" "$title" "$email"
+          done
+          node scripts/prepare-m3-browser-fixtures.mjs
+          node scripts/prepare-m4-browser-fixtures.mjs
+          node scripts/prepare-m5-browser-fixtures.mjs
+          node scripts/prepare-m15-browser-fixtures.mjs
+          test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-manager.json"
+          test -s "$HARBOROPS_VERIFICATION_ROOT/.private/m15-administrator.json"
+          npm --prefix tests/browser ci --no-audit --no-fund
+          (cd tests/browser && npx playwright install --with-deps chromium firefox webkit)
+          for engine in chromium firefox webkit; do
+            for suite in notifications operational-kpis; do
+              # M15 and M13 use the same authenticated manager. Running both
+              # suites inside a single limiter window exhausts the documented
+              # six-report-per-minute policy. Reset only the disposable API
+              # process between suites; retain all DB fixtures and policy.
+              docker compose -p "$project" restart api
+              if [ "$suite" = notifications ]; then node scripts/prepare-m15-browser-fixtures.mjs --refresh-sessions-only; fi
+              if [ "$suite" = operational-kpis ]; then docker compose -p "$project" exec -T postgres psql -U harborops -d harborops -tA -c "WITH d AS (DELETE FROM operational_kpi_reports RETURNING 1) SELECT count(*) FROM d" > ".verification/m15-browser/${engine}-report-reset.txt"; fi
+              ready=0
+              for attempt in $(seq 1 45); do
+                if curl --silent --fail --max-time 3 http://127.0.0.1:8080/health/ready >/dev/null; then
+                  ready=1; break
+                fi
+                sleep 2
+              done
+              test "$ready" = "1"
+              export HARBOROPS_G3_JSON_REPORT="$HARBOROPS_VERIFICATION_ROOT/m15-browser/${engine}-${suite}.json"
+              (cd tests/browser && npx playwright test "specs/${suite}.spec.mjs" --project="$engine" --workers=1)
+              HARBOROPS_EXPECTED_CASES="$([ "$suite" = notifications ] && echo 11 || echo 9)" \
+                node -e 'const s=require(process.env.HARBOROPS_G3_JSON_REPORT).stats;const n=Number(process.env.HARBOROPS_EXPECTED_CASES);if(!s||s.expected!==n||s.skipped!==0||s.unexpected!==0)process.exit(2);console.log("Combined browser suite passed:",s.expected,"failed:",s.unexpected)'
+            done
+          done
+      - name: Capture browser evidence hashes
+        if: always()
+        run: |
+          mkdir -p .verification/m15-browser
+          printf '%s\n' "$GITHUB_SHA" > .verification/m15-browser/source-sha.txt
+          (cd .verification/m15-browser && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+          echo "M15 browser source: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload M15 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m15-browser-${{ github.run_id }}
+          path: .verification/m15-browser/
+          retention-days: 7
+          include-hidden-files: true
+
+
+  scale:
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-scale
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-scale;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Measure reference and realistic 250k-bound workloads
+        env:
+          HARBOROPS_EVIDENCE_WORKSPACE: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g13-scale
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g13-scale/build.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M13ScaleLoadTests.Mixed85kShipmentsProduceExactBoundedReport' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=scale-reference.trx' --results-directory .verification/g13-scale 2>&1 | tee .verification/g13-scale/scale-reference.log
+          test -s .verification/g13-scale/scale-reference.trx
+          pg="$(docker ps -q --filter ancestor=postgres:16.15)"
+          test "$(printf '%s\n' "$pg" | grep -c .)" -eq 1
+          docker exec "$pg" psql -v ON_ERROR_STOP=1 -U harborops -d postgres -c 'DROP DATABASE IF EXISTS harborops_integration WITH (FORCE)' -c 'CREATE DATABASE harborops_integration'
+          python3 scripts/sample-g13-database-container.py --container "$pg" --output .verification/g13-scale/pg-resources -- dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M13ScaleLoadTests.RealisticSkewedTenantMeetsApprovedLatencyAndResourceBudgetsUnderTheRestrictedRole' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=scale-realistic.trx' --results-directory .verification/g13-scale
+          cp .verification/g13-scale/pg-resources/command.log .verification/g13-scale/scale-realistic.log
+          test -s .verification/g13-scale/scale-realistic.trx
+          test -s .verification/g13-scale/pg-resources/resource-summary.json
+      - name: Save evidence checksums
+        if: always()
+        run: |
+          mkdir -p .verification/g13-scale
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-scale/source-sha.txt
+          sha256sum tests/HarborOps.IntegrationTests/M13ScaleLoadTests.cs > .verification/g13-scale/test-sha256.txt
+          (cd .verification/g13-scale && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+          find .verification/g13-scale -type f -print0 | sort -z | xargs -0 -r sha256sum >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-scale-${{ github.sha }}
+          path: .verification/g13-scale
+          if-no-files-found: warn
+          retention-days: 30
+
+
+  security-mutations:
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-security
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: 'Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-security;Pooling=false'
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run clean SQL control and effective policy attacks
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 scripts/g13-security-mutation-campaign.py
+      - name: Verify source restoration and evidence hashes
+        if: always()
+        run: |
+          mkdir -p .verification/g13-security-mutations
+          test -z "$(git status --porcelain --untracked-files=no)"
+          sha256sum scripts/g13-security-mutation-campaign.py > .verification/g13-security-mutations/runner-sha256.txt
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-security-mutations/source-sha.txt
+          (cd .verification/g13-security-mutations && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+          find .verification/g13-security-mutations -type f -print0 | sort -z | xargs -0 -r sha256sum >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-security-mutations-${{ github.sha }}
+          path: .verification/g13-security-mutations
+          retention-days: 14
+
+
+  g13-faults:
+    name: G13 transaction rollback and recovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-fault
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-fault;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Execute real PostgreSQL report fault recovery
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g13-faults
+          dotnet build HarborOps.sln -c Release -warnaserror
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj \
+            -c Release --no-build --filter 'FullyQualifiedName~M13FaultRecoveryTests' \
+            --logger 'trx;LogFileName=g13-faults.trx' \
+            --results-directory .verification/g13-faults
+      - name: Seal fault evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g13-faults
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-faults/source-sha.txt
+          (cd .verification/g13-faults && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-faults-${{ github.run_id }}
+          path: .verification/g13-faults/
+          retention-days: 30
+
+  g13-mutations:
+    name: G13 source mutation sensitivity
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-mutation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-mutation;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify clean controls and all G13 source mutants
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 scripts/g13-mutation-campaign.py
+      - name: Seal mutation evidence and restore source
+        if: always()
+        run: |
+          mkdir -p .verification/g13-mutations
+          test -z "$(git status --porcelain --untracked-files=no)"
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-mutations/source-sha.txt
+          (cd .verification/g13-mutations && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g13-mutations-${{ github.run_id }}
+          path: .verification/g13-mutations/
+          retention-days: 30
+
+  g15-mutations:
+    name: G15 notification scope and delivery mutation sensitivity
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    needs: source
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g15-mutation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U harborops -d harborops_integration"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g15-mutation;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify clean controls and all M15 mutants
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 scripts/g15-mutation-campaign.py
+      - name: Seal original-source evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g15-mutations
+          test -z "$(git status --porcelain --untracked-files=no)"
+          printf '%s\n' "$GITHUB_SHA" > .verification/g15-mutations/source-sha.txt
+          (cd .verification/g15-mutations && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g15-mutations-${{ github.run_id }}
+          path: .verification/g15-mutations/
+          retention-days: 30
+
+
+  g13-concurrency:
+    name: G13 realistic multi-builder and refusal envelopes
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-concurrency
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-concurrency;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify frozen source and execute G13 realistic multi-builder and refusal envelopes
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g13-concurrency
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g13-concurrency/build.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M13ConcurrentAcceptanceTests.FourAuthorizedPrincipalsBuildIndependentTenantScopedReportsConcurrently' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=small.trx' --results-directory .verification/g13-concurrency 2>&1 | tee .verification/g13-concurrency/small.log
+          test -s .verification/g13-concurrency/small.trx
+          pg="$(docker ps -q --filter ancestor=postgres:16.15)"
+          test "$(printf '%s\\n' "$pg" | grep -c .)" -eq 1
+          docker exec "$pg" psql -v ON_ERROR_STOP=1 -U harborops -d postgres -c 'DROP DATABASE IF EXISTS harborops_integration WITH (FORCE)' -c 'CREATE DATABASE harborops_integration'
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M13ConcurrentAcceptanceTests.RealisticSkewedFortyThousandShipmentTenantCompletesFourSimultaneousBuilds' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=realistic40k.trx' --results-directory .verification/g13-concurrency 2>&1 | tee .verification/g13-concurrency/realistic40k.log
+          test -s .verification/g13-concurrency/realistic40k.trx
+          pg="$(docker ps -q --filter ancestor=postgres:16.15)"
+          test "$(printf '%s\\n' "$pg" | grep -c .)" -eq 1
+          docker exec "$pg" psql -v ON_ERROR_STOP=1 -U harborops -d postgres -c 'DROP DATABASE IF EXISTS harborops_integration WITH (FORCE)' -c 'CREATE DATABASE harborops_integration'
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M13ConcurrentAcceptanceTests.RealisticSkewedFortyThousandShipmentTenantAdmitsFourOfEightBuildersAndRefusesTheRestPromptly' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=eight-builders.trx' --results-directory .verification/g13-concurrency 2>&1 | tee .verification/g13-concurrency/eight-builders.log
+          test -s .verification/g13-concurrency/eight-builders.trx
+          pg="$(docker ps -q --filter ancestor=postgres:16.15)"
+          test "$(printf '%s\\n' "$pg" | grep -c .)" -eq 1
+          docker exec "$pg" psql -v ON_ERROR_STOP=1 -U harborops -d postgres -c 'DROP DATABASE IF EXISTS harborops_integration WITH (FORCE)' -c 'CREATE DATABASE harborops_integration'
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M13ConcurrentAcceptanceTests.RealisticSkewed170kShipmentTenantIsRefusedAsOverCapacityWithoutTimeouts' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=oversized170k.trx' --results-directory .verification/g13-concurrency 2>&1 | tee .verification/g13-concurrency/oversized170k.log
+          test -s .verification/g13-concurrency/oversized170k.trx
+      - name: Preserve g13-concurrency evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g13-concurrency
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-concurrency/source-sha.txt
+          test -z "$(git status --porcelain --untracked-files=no)"
+          (cd .verification/g13-concurrency && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload g13-concurrency results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g13-concurrency-${{ github.run_id }}
+          path: .verification/g13-concurrency/
+          retention-days: 30
+          include-hidden-files: true
+
+  g15-scale:
+    name: G15 million-receipt unread and scoped feed
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g15-scale
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g15-scale;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+      HARBOROPS_G15_EXCLUSIVE_SCALE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify frozen source and execute G15 million-receipt unread and scoped feed
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g15-scale
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g15-scale/build.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M15ScaleLoadTests' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=million-receipts.trx' --results-directory .verification/g15-scale 2>&1 | tee .verification/g15-scale/million-receipts.log
+          test -s .verification/g15-scale/million-receipts.trx
+      - name: Preserve g15-scale evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g15-scale
+          printf '%s\n' "$GITHUB_SHA" > .verification/g15-scale/source-sha.txt
+          test -z "$(git status --porcelain --untracked-files=no)"
+          (cd .verification/g15-scale && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload g15-scale results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g15-scale-${{ github.run_id }}
+          path: .verification/g15-scale/
+          retention-days: 30
+          include-hidden-files: true
+
+  g15-fanout:
+    name: G15 dispatcher fanout and concurrent readers
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g15-fanout
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g15-fanout;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+      HARBOROPS_G15_EXCLUSIVE_FANOUT: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify frozen source and execute G15 dispatcher fanout and concurrent readers
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g15-fanout
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g15-fanout/build.log
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M15FanoutLoadTests' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=fanout.trx' --results-directory .verification/g15-fanout 2>&1 | tee .verification/g15-fanout/fanout.log
+          test -s .verification/g15-fanout/fanout.trx
+      - name: Preserve g15-fanout evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g15-fanout
+          printf '%s\n' "$GITHUB_SHA" > .verification/g15-fanout/source-sha.txt
+          test -z "$(git status --porcelain --untracked-files=no)"
+          (cd .verification/g15-fanout && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload g15-fanout results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g15-fanout-${{ github.run_id }}
+          path: .verification/g15-fanout/
+          retention-days: 30
+          include-hidden-files: true
+
+  combined-regressions:
+    name: Combined M10 M11 M12 and audit regressions
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-combined-regressions
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-combined-regressions;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+      HARBOROPS_G12_EXCLUSIVE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify frozen source and execute Combined M10 M11 M12 and audit regressions
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/combined-regressions
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/combined-regressions/build.log
+          mkdir -p .verification/combined-regressions/g11 .verification/combined-regressions/g12
+          export HARBOROPS_G11_EVIDENCE_DIR="$PWD/.verification/combined-regressions/g11"
+          export HARBOROPS_G12_EVIDENCE_DIR="$PWD/.verification/combined-regressions/g12"
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M10RuntimeIdentityTests.StolenDatabaseSessionIdsCannotForgeAnM10Correction|FullyQualifiedName~M10RuntimeIdentityTests.M10HttpRoutesRunUnderTheRestrictedApiRoleWithManagerAndTenantGuards|FullyQualifiedName~M10RuntimeIdentityTests.LateWorkerEffectDuringRebuildIsNeverLostAndMarksTheProjectionStale' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=m10-correction-regressions.trx' --results-directory .verification/combined-regressions 2>&1 | tee .verification/combined-regressions/m10-correction-regressions.log
+          test -s .verification/combined-regressions/m10-correction-regressions.trx
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~IdentityLifecycleTests|FullyQualifiedName~ShipmentBoundaryTests|FullyQualifiedName~M11ResidualRuntimeTests|FullyQualifiedName~M12ResidualBoundaryTests|FullyQualifiedName~AuditIntegrityTests|FullyQualifiedName~AuditHardeningTests' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=combined-regressions.trx' --results-directory .verification/combined-regressions 2>&1 | tee .verification/combined-regressions/combined-regressions.log
+          test -s .verification/combined-regressions/combined-regressions.trx
+      - name: Preserve combined-regressions evidence
+        if: always()
+        run: |
+          mkdir -p .verification/combined-regressions
+          printf '%s\n' "$GITHUB_SHA" > .verification/combined-regressions/source-sha.txt
+          test -z "$(git status --porcelain --untracked-files=no)"
+          (cd .verification/combined-regressions && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload combined-regressions results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-regressions-${{ github.run_id }}
+          path: .verification/combined-regressions/
+          retention-days: 30
+          include-hidden-files: true
+
+  g13-g15-crashes:
+    name: G13 G15 process kill and recovery phases
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_DB: harborops_integration
+          POSTGRES_USER: harborops
+          POSTGRES_PASSWORD: disposable-g13-g15-crashes
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U harborops -d harborops_integration" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HARBOROPS_TEST_DB: "Host=127.0.0.1;Port=5432;Database=harborops_integration;Username=harborops;Password=disposable-g13-g15-crashes;Pooling=false"
+      HARBOROPS_G13_EXCLUSIVE_POSTGRES: '1'
+      HARBOROPS_G13_G15_CRASH_PROBE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify frozen source and execute G13 G15 process kill and recovery phases
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/g13-g15-crashes
+          dotnet build HarborOps.sln -c Release -warnaserror 2>&1 | tee .verification/g13-g15-crashes/build.log
+          python3 scripts/g13-g15-process-crash.py 2>&1 | tee .verification/g13-g15-crashes/process-crash.log
+          cp -r .verification/g13-g15-crash/. .verification/g13-g15-crashes/
+          test -s .verification/g13-g15-crashes/manifest.json
+      - name: Preserve g13-g15-crashes evidence
+        if: always()
+        run: |
+          mkdir -p .verification/g13-g15-crashes
+          printf '%s\n' "$GITHUB_SHA" > .verification/g13-g15-crashes/source-sha.txt
+          test -z "$(git status --porcelain --untracked-files=no)"
+          (cd .verification/g13-g15-crashes && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - name: Upload g13-g15-crashes results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g13-g15-crashes-${{ github.run_id }}
+          path: .verification/g13-g15-crashes/
+          retention-days: 30
+          include-hidden-files: true
+
+  dependency-security:
+    name: Dependency advisories and committed secret scan
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check the exact source and dependency audit
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p .verification/dependency-security
+          dotnet restore HarborOps.sln 2>&1 | tee .verification/dependency-security/restore.log
+          dotnet list HarborOps.sln package --vulnerable --include-transitive 2>&1 | tee .verification/dependency-security/dotnet-advisories.txt
+          npm --prefix web ci --ignore-scripts --no-audit --no-fund 2>&1 | tee .verification/dependency-security/npm-ci.log
+          npm --prefix web audit --audit-level=high --json > .verification/dependency-security/npm-audit.json || true
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          root=Path('.verification/dependency-security')
+          data=json.loads((root/'npm-audit.json').read_text())
+          counts=data.get('metadata',{}).get('vulnerabilities',{})
+          high=int(counts.get('high',0)); critical=int(counts.get('critical',0))
+          dn=(root/'dotnet-advisories.txt').read_text()
+          bad_dotnet=bool(re.search(r'NU190[34]|\b(?:High|Critical)\b',dn,re.I))
+          result={'npm_high':high,'npm_critical':critical,'dotnet_high_advisories':int(bad_dotnet),'scan_completed':not data.get('error') and not(high or critical or bad_dotnet)}
+          (root/'summary.json').write_text(json.dumps(result,indent=2)+'\n')
+          if not result['scan_completed']: raise SystemExit('Unresolved high-severity dependency evidence')
+          PY
+          if git grep -IlE 'AKIA[0-9A-Z]{16}|-----BEGIN (RSA|OPENSSH|EC) PRIVATE KEY-----' -- ':!*.lock' > .verification/dependency-security/possible-secret-paths.txt; then echo "Potential committed credentials"; exit 1; fi
+      - name: Seal dependency evidence
+        if: always()
+        run: |
+          mkdir -p .verification/dependency-security
+          printf '%s\n' "$GITHUB_SHA" > .verification/dependency-security/source-sha.txt
+          (cd .verification/dependency-security && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-security-${{ github.run_id }}
+          path: .verification/dependency-security/
+          retention-days: 30
+          include-hidden-files: true
+
+  gate-ledger:
+    name: Reconcile all fourteen technical artifacts and preserve packet
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [source, m15-database, m15-browser, scale, security-mutations, g13-faults, g13-mutations, g15-mutations, g15-scale, g15-fanout, g13-concurrency, g13-g15-crashes, dependency-security, combined-regressions]
+    if: always() && needs.source.result == 'success'
+    env:
+      GATE_JOB_SOURCE: ${{ needs.source.result }}
+      GATE_JOB_DATABASE: ${{ needs.m15-database.result }}
+      GATE_JOB_BROWSER: ${{ needs.m15-browser.result }}
+      GATE_JOB_SCALE: ${{ needs.scale.result }}
+      GATE_JOB_SECURITY: ${{ needs.security-mutations.result }}
+      GATE_JOB_FAULTS: ${{ needs.g13-faults.result }}
+      GATE_JOB_MUTATIONS: ${{ needs.g13-mutations.result }}
+      GATE_JOB_G15_MUTATIONS: ${{ needs.g15-mutations.result }}
+      GATE_JOB_G15_SCALE: ${{ needs.g15-scale.result }}
+      GATE_JOB_G15_FANOUT: ${{ needs.g15-fanout.result }}
+      GATE_JOB_G13_CONCURRENCY: ${{ needs.g13-concurrency.result }}
+      GATE_JOB_G13_G15_CRASHES: ${{ needs.g13-g15-crashes.result }}
+      GATE_JOB_DEPENDENCY_SECURITY: ${{ needs.dependency-security.result }}
+      GATE_JOB_COMBINED_REGRESSIONS: ${{ needs.combined-regressions.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          path: .verification/gate-input
+          pattern: '*'
+          merge-multiple: false
+      - name: Source-locked technical evidence reconciliation
+        run: |
+          set -uo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA" || exit 3
+          mkdir -p .verification/gate-ledger
+          set +e
+          python3 scripts/verify-g13-g15-evidence.py > .verification/gate-ledger/verify.log 2>&1; verify=$?
+          python3 scripts/check-g13-g15-scenarios.py > .verification/gate-ledger/scenarios.log 2>&1; scenarios=$?
+          python3 scripts/audit-g13-g15-assertions.py --enforce-complete > .verification/gate-ledger/assertions.log 2>&1; assertions=$?
+          python3 scripts/check-g13-g15-sensitive-evidence.py > .verification/gate-ledger/sensitive.log 2>&1; sensitive=$?
+          printf 'verify=%s\nscenarios=%s\nassertions=%s\nsensitive=%s\n' "$verify" "$scenarios" "$assertions" "$sensitive" > .verification/gate-ledger/exit-codes.txt
+          printf '%s\n' "$GITHUB_SHA" > .verification/gate-ledger/source-sha.txt
+          (cd .verification/gate-ledger && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 -r sha256sum > sha256.txt)
+          if [ "$sensitive" -eq 0 ]; then
+            tar -czf .verification/g13-g15-evidence-packet.tgz -C .verification gate-input gate-ledger
+          else
+            echo "Sensitive evidence scan failed; no combined archive is published"
+          fi
+          cat .verification/gate-ledger/exit-codes.txt
+          [ "$verify" -eq 0 ] && [ "$scenarios" -eq 0 ] && [ "$assertions" -eq 0 ] && [ "$sensitive" -eq 0 ]
+      - name: Upload technical ledger
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g13-g15-evidence-${{ github.run_id }}
+          path: .verification/gate-ledger/
+          retention-days: 30
+          include-hidden-files: true
+      - name: Upload combined packet when safe
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g13-g15-packet-${{ github.run_id }}
+          path: .verification/g13-g15-evidence-packet.tgz
+          if-no-files-found: ignore
+          retention-days: 30

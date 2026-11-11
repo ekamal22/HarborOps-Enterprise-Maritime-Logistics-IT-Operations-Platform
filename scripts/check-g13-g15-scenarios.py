@@ -90,6 +90,7 @@ MUTANTS = {
                       "scoped-evaluations-organization-filter-removed",
                       "scoped-exceptions-organization-filter-removed",
                       "member-sql-shipment-tenant-predicate-removed",
+                      "member-sql-tenant-filter-silently-excludes-draft",
                       "k05-reads-last-arrival-instead-of-first",
                       "k03-first-event-deduplication-removed",
                       "build-slot-admission-removed",

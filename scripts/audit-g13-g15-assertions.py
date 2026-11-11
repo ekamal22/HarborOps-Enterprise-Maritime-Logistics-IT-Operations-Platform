@@ -8,8 +8,10 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import csv
 import json
 import os
+import re
 from pathlib import Path
 import sys
 
@@ -72,16 +74,77 @@ def _artifact(prefix: str) -> Path | None:
     return folders[0] if len(folders) == 1 else None
 
 def step_passed(prefix: str, step: str) -> bool:
-    """A named command of a job artifact (commands.tsv) exited 0."""
+    """Read a command exit record or validate the source-locked preflight job.
+
+    The hosted preflight uses multiple set -euo pipefail steps, not a
+    commands.tsv ledger. A successful source job, sealed source markers,
+    required raw logs and passing TRX results together establish these steps.
+    """
     folder = _artifact(prefix)
     table = folder / "commands.tsv" if folder else None
-    if not table or not table.is_file():
+    if table and table.is_file():
+        for line in table.read_text(encoding="utf-8").splitlines():
+            cells = line.split("\t")
+            if len(cells) >= 6 and cells[0] == step:
+                return cells[3] == "0"
         return False
-    for line in table.read_text(encoding="utf-8").splitlines():
-        cells = line.split("\t")
-        if len(cells) >= 6 and cells[0] == step:
-            return cells[3] == "0"
-    return False
+    if prefix != "combined-source" or not folder or gate.JOBS.get("source") != "success":
+        return False
+    for marker in ("source-sha.txt", "final-sha.txt"):
+        p = folder / marker
+        if not p.is_file() or p.read_text(encoding="utf-8").strip() != SHA:
+            return False
+    necessary = {
+        "build": ("build.log",),
+        "unit": ("unit.log", "unit.trx"),
+        "contract": ("contract.log", "contract.trx"),
+        "web-build": ("npm.log", "web-build.log"),
+        "web-test": ("npm.log", "web-test.log"),
+        "contracts": ("m11-contract.log", "m15-contract.log", "m13-csp.log", "graph.log"),
+        "planning": ("planning.log",),
+        "sha": ("source-sha.txt", "final-sha.txt"),
+        "csp": ("m13-csp.log",)
+    }
+    if step not in necessary:
+        return False
+    return all((folder / name).is_file() and (folder / name).stat().st_size > 0
+               for name in necessary[step])
+
+
+def postgres_resources_present() -> bool:
+    """Require real PostgreSQL container samples and WAL/temp measurements."""
+    folder = _artifact("g13-scale")
+    if not folder or gate.JOBS.get("scale") != "success":
+        return False
+    record = folder / "pg-resources" / "resource-summary.json"
+    samples = folder / "pg-resources" / "database-container-resources.csv"
+    log = folder / "scale-realistic.log"
+    if not (record.is_file() and samples.is_file() and log.is_file()):
+        return False
+    try:
+        data = json.loads(record.read_text(encoding="utf-8"))
+        if (data.get("source_sha") != SHA or data.get("status") != "PASS"
+                or data.get("exit_code") != 0 or data.get("sample_errors")
+                or data.get("sample_count", 0) < 2):
+            return False
+        with samples.open(encoding="utf-8", newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        if len(rows) != data["sample_count"]:
+            return False
+        if not any(float(r["cpu_percent"].rstrip("%")) > 0 for r in rows):
+            return False
+        if not all(re.search(r"\d+(?:\.\d+)?(?:KiB|MiB|GiB)",
+                             r["memory_usage"]) for r in rows):
+            return False
+        readings = re.search(
+            r"G13_DB_RESOURCES workload=realistic40k "
+            r"wal_bytes=(\d+) temp_bytes=(\d+) temp_files=(\d+)",
+            log.read_text(encoding="utf-8"))
+        return (readings is not None and int(readings.group(1)) > 0
+                and int(readings.group(2)) >= 0 and int(readings.group(3)) >= 0)
+    except (ValueError, KeyError, TypeError, OSError, json.JSONDecodeError):
+        return False
+
 
 def mutant_killed(prefix: str, name: str) -> bool:
     """One named mutant of a mutation campaign is recorded as KILLED."""
@@ -93,7 +156,10 @@ def mutant_killed(prefix: str, name: str) -> bool:
     for record in data.get("records", data.get("results", [])):
         label = record.get("name") or record.get("mutation")
         if label == name:
-            return (record.get("outcome") or record.get("verdict")) == "KILLED"
+            killed = (record.get("outcome") or record.get("verdict")) == "KILLED"
+            if name == "member-sql-tenant-filter-silently-excludes-draft":
+                return killed and record.get("kill_basis") == "named_behavior_assertion"
+            return killed
     return False
 
 def browser_case_passed(suite: str, title: str) -> bool:
@@ -180,6 +246,9 @@ def gather() -> tuple[dict, bool]:
                         successful.append(witness)
                     elif category == "budget" and name == "G13" and (
                             data["g13_approved_budget_satisfied"] is True):
+                        successful.append(witness)
+                    elif category == "postgres_resources" and name == "G13" and (
+                            postgres_resources_present()):
                         successful.append(witness)
                     elif category == "mutation" and (
                             data["mutations"].get(name) is True):

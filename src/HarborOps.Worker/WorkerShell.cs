@@ -53,6 +53,7 @@ public sealed class WorkerShell(
     private async Task SampleBacklogAsync(CancellationToken cancellationToken)
     {
         lastBacklogSample = Stopwatch.GetTimestamp();
+        M17WorkerTelemetry.Heartbeat();
         try
         {
             await using var scope = scopes.CreateAsyncScope();

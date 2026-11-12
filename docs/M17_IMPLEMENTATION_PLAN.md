@@ -1,7 +1,9 @@
 # M17 End-to-End Implementation Plan
 
+**Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
+
 **Prepared:** 2026-11-12. **Baseline:** protected main `056b3a77f6520ac7555890f4666b368ccd351d79`.
-**Status:** Planning complete at initial scope; **P01-P09 approved as the design baseline 2026-11-12**, with provisional P02/P04/P09 numeric limits and P05 local alert calibration pending measurement. Implementation not started, G17 not verified and acceptance pending.
+**Status:** Planning complete at initial scope; **P01-P09 approved as the design baseline 2026-11-12**, with provisional P02/P04/P09 numeric limits and P05 local alert calibration pending measurement. An implementation source candidate is present on a separate feature branch. No compiled/runtime G17 evidence exists and acceptance is pending.
 **Gate:** G17. **Prerequisite:** G3 accepted. **Next downstream gate:** M18 requires G17 and G16.
 **References:** [Architecture](M17_ARCHITECTURE_DESIGN.md), [policy choices](M17_POLICY_PROPOSAL_20261112.md), [G17 scenarios](M17_VERIFICATION_PLAN.md), [operator runbook](M17_OPERATIONS_RUNBOOK.md), [planning register](M17_PLANNING_STATUS.md).
 

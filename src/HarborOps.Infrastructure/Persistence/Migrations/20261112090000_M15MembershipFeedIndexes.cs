@@ -25,6 +25,13 @@ public sealed class M15MembershipFeedIndexes : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""
+            DO $m15_guard$ BEGIN
+                IF EXISTS (SELECT 1 FROM m15_notification_outbox)
+                    OR EXISTS (SELECT 1 FROM m15_user_notifications)
+                    OR EXISTS (SELECT 1 FROM m15_notification_replays) THEN
+                    RAISE EXCEPTION 'M15 index downgrade would strand delivery evidence';
+                END IF;
+            END $m15_guard$;
             DROP INDEX ix_m15_membership_unread_feed;
             DROP INDEX ix_m15_membership_feed;
             """);

@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./m17",
+  testMatch: "dashboard.spec.mjs",
   timeout: 45_000,
   expect: { timeout: 15_000 },
   forbidOnly: true,

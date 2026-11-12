@@ -67,6 +67,27 @@ def sql_count(container: str, query: str) -> int:
     ], text=True, capture_output=True, timeout=30, check=True)
     return int(result.stdout.strip())
 
+def wait_for_terminated_api_transactions(container: str, phase: str) -> None:
+    """Wait until PostgreSQL releases locks from the killed API process.
+
+    The backend may still be inside a trigger when the client is killed.
+    Never count the recovery as verified while its source transaction survives.
+    """
+    start = time.monotonic()
+    while time.monotonic() - start < 70:
+        active = sql_count(container, """
+            SELECT COUNT(*) FROM pg_stat_activity
+            WHERE usename='harborops_api'
+              AND (state <> 'idle' OR xact_start IS NOT NULL)
+            """)
+        if active == 0:
+            print("G15_CRASH_RELEASE " + phase +
+                  " seconds=" + str(round(time.monotonic() - start, 2)), flush=True)
+            return
+        time.sleep(0.5)
+    raise TimeoutError(phase + ": killed API connection retained a transaction")
+
+
 def verify_phase(container: str, phase: str, marker: dict) -> None:
     org = str(UUID(marker["Organization"]))
     target = str(UUID(marker["Target"]))
@@ -195,6 +216,9 @@ def run() -> int:
                     process.wait(timeout=15)
             if process.returncode >= 0:
                 raise RuntimeError(phase + ": process did not terminate by signal")
+            if phase in ("G15DuringRealM11HistoryWrite",
+                         "G15DuringRealDispatcherFanout"):
+                wait_for_terminated_api_transactions(container, phase)
             verify_phase(container, phase, payload)
             if recovery is not None:
                 result = subprocess.run([

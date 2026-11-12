@@ -139,6 +139,12 @@ public sealed class NotificationStore(
                 "Acknowledged" => "AND acknowledged_at_utc IS NOT NULL",
                 _ => "AND FALSE"
             };
+            // The feed has a scoped composite B-tree and a scoped unread index.
+            // This transaction-local planner constraint prevents a stale-statistics
+            // sequential scan across unrelated recipients during burst ingest.
+            // RLS and the signed read scope are still evaluated for every row.
+            await using (var plan = Command(Connection, tx, "SET LOCAL enable_seqscan=off"))
+                await plan.ExecuteNonQueryAsync(ct);
             await using (var cmd = Command(Connection, tx, $"""
                 SELECT {Columns} FROM m15_user_notifications
                 WHERE organization_id=@org AND recipient_user_id=@user

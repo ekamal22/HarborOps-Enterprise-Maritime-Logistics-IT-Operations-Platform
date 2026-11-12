@@ -29,6 +29,11 @@ public static class M17WorkerTelemetry
         linkKey is { } key ? M17CorrelationDigest.FromServerCorrelation(correlation, key) : null;
     private static readonly Counter<long> SamplingDrops =
         Meter.CreateCounter<long>("harborops.telemetry.dropped");
+    private static readonly Counter<long> Heartbeats =
+        Meter.CreateCounter<long>("harborops.worker.heartbeat");
+    public static void Heartbeat() => Heartbeats.Add(1,
+        new KeyValuePair<string, object?>("worker", "tracking"));
+
     private static readonly Counter<long> Attempts =
         Meter.CreateCounter<long>("harborops.worker.attempts");
     private static readonly Histogram<double> Duration =

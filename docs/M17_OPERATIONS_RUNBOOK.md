@@ -1,6 +1,8 @@
 # M17 Local Observability Operations and Fault-Diagnostic Runbook
 
-**State:** Planning-only procedure, 2026-11-12. The M17 collector, dashboards, instrument catalogue, alert evaluator and optional Compose override are not yet implemented. Do not run commands against a retained environment based on this plan.
+**Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
+
+**State:** Unverified implementation candidate procedure, 2026-11-12. The M17 collector configuration, instrument catalogue, initial alert rules, dashboard files, optional Compose override and local runner exist on a separate feature branch. They have not been started or validated. Do not run them against retained resources.
 **See:** [Architecture](M17_ARCHITECTURE_DESIGN.md), [implementation plan](M17_IMPLEMENTATION_PLAN.md), [policy proposals](M17_POLICY_PROPOSAL_20261112.md), [G17 verification](M17_VERIFICATION_PLAN.md).
 
 ## 1. Operator intent and constraints
@@ -20,7 +22,7 @@ Never use the only retained project PostgreSQL database, existing Docker volumes
 7. Keep dashboard and any read interface bound to 127.0.0.1. Verify the collector only accepts internal-network OTLP; no internet-facing receiver or cloud exporter.
 8. Record the intended fault, risk, abort conditions, project ownership labels and evidence file list before any fault injection.
 
-The implementation must provide a tested command wrapper for approved startup, readiness wait, evidence capture and stop. No executable wrapper exists in this planning phase. Avoid inventing one in an operator procedure.
+The implementation must provide a tested command wrapper for approved startup, readiness wait, evidence capture and stop. A local verification wrapper is authored as `scripts/run-g17-local.ps1`, but it has not been executed or accepted for use against retained resources. Avoid inventing one in an operator procedure.
 
 ## 3. Basic health reading
 

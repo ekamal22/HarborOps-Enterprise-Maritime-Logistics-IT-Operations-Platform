@@ -28,6 +28,17 @@ public static class M17TelemetryRegistration
                 // method/Host/path values from multiplying native time-series.
                 .AddMeter(M17Telemetry.MeterName)
                 .AddMeter("otel.sdk.experimental")
+                .AddView("harborops.request.duration",
+                    new ExplicitBucketHistogramConfiguration
+                    {
+                        Boundaries = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25,
+                            0.5, 0.8, 1.0, 2.0, 5.0, 10.0]
+                    })
+                .AddView("harborops.db.operation.duration",
+                    new ExplicitBucketHistogramConfiguration
+                    {
+                        Boundaries = [0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5]
+                    })
                 .AddOtlpExporter(exporter =>
                 {
                     exporter.Endpoint = options.Endpoint;

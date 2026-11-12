@@ -333,7 +333,7 @@ def check() -> dict:
     complete = reconcile_atomic_inventory(located, browser_cases, mutations, crash)
     return {
         **complete,
-        "source_sha": SHA, "run_id": RUN, "status": "TECHNICAL_WITNESSES_PASS",
+        "source_sha": SHA, "run_id": RUN, "status": "TECHNICAL_PACKET_COMPLETE_REVIEW_PENDING",
         "s25_independent_attestation": "PENDING",
         "g13_historical_equivalence_approval": "PENDING",
         "unconditional_g15_acceptance": False,

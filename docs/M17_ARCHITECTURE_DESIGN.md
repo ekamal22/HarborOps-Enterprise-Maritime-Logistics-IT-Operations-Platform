@@ -1,7 +1,9 @@
 # M17 Observability and Service Health Architecture
 
+**Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
+
 **Planning baseline:** 2026-11-12, protected main `056b3a77f6520ac7555890f4666b368ccd351d79`.
-**State:** Proposed implementation architecture aligned with the **P01-P09 approved design baseline (2026-11-12)**. Numerical P02/P04/P09 limits remain provisional until verified; initial P05 local alert thresholds require evidence-based calibration. No M17 executable implementation, G17 review, acceptance, service activation or production deployment is authorized by this plan.
+**State:** Proposed implementation architecture aligned with the **P01-P09 approved design baseline (2026-11-12)**. Numerical P02/P04/P09 limits remain provisional until verified; initial P05 local alert thresholds require evidence-based calibration. An unverified M17 implementation source candidate exists on a separate branch. No G17 review, acceptance, service activation on protected main or production deployment is authorized by this plan.
 **Entry:** G3 accepted. **Exit:** G17 explicitly accepted after independent source-locked evidence review.
 **Authority:** [Roadmap](ROADMAP.md), [execution graph](EXECUTION_GRAPH.md), [requirements](REQUIREMENTS.md), [M17 implementation plan](M17_IMPLEMENTATION_PLAN.md), [verification matrix](M17_VERIFICATION_PLAN.md), [local policy register](M17_POLICY_PROPOSAL_20261112.md), [operations runbook](M17_OPERATIONS_RUNBOOK.md).
 

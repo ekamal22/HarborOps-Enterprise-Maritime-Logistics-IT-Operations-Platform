@@ -44,20 +44,17 @@ public static class M17TelemetryRegistration
                         !context.Request.Path.StartsWithSegments("/health");
                 })
                 .AddProcessor(new M17TraceSanitizer())
-                .AddOtlpExporter(exporter =>
-                {
-                    exporter.Endpoint = options.Endpoint;
-                    exporter.Protocol = OtlpExportProtocol.Grpc;
-                    exporter.TimeoutMilliseconds = 1000;
-                    exporter.ExportProcessorType = ExportProcessorType.Batch;
-                    exporter.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity>
+                .AddProcessor(new BatchActivityExportProcessor(
+                    new M17CountingTraceExporter(new OtlpExporterOptions
                     {
-                        MaxQueueSize = 2048,
-                        MaxExportBatchSize = 256,
-                        ExporterTimeoutMilliseconds = 1000,
-                        ScheduledDelayMilliseconds = 1000
-                    };
-                }));
+                        Endpoint = options.Endpoint,
+                        Protocol = OtlpExportProtocol.Grpc,
+                        TimeoutMilliseconds = 1000
+                    }),
+                    maxQueueSize: 2048,
+                    scheduledDelayMilliseconds: 1000,
+                    exporterTimeoutMilliseconds: 1000,
+                    maxExportBatchSize: 256)));
         return true;
     }
 }

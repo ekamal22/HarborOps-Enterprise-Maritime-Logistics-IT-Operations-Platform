@@ -171,7 +171,7 @@ public sealed class M17TelemetryContractTests
         listener.SetMeasurementEventCallback<int>((instrument, value, tags, _) =>
         {
             if (instrument.Name == "harborops.service.running" &&
-                tags.Any(tag => tag.Key == "service" &&
+                tags.ToArray().Any(tag => tag.Key == "service" &&
                     Equals(tag.Value, "notifications")))
                 notificationStates.Add(value);
         });

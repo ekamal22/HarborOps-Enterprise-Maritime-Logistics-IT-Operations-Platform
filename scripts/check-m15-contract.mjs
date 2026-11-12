@@ -103,10 +103,16 @@ assert.ok(
 // Delivery remains off in application defaults and ordinary CI workflows.
 // The dedicated, source-locked verification workflow may enable it only in
 // its disposable browser fixture, which owns and destroys its own stack.
-const disposableBrowserWorkflow = "verify-g13-g15-post-c3.yml";
+// Only these exact source-locked workflows may enable delivery, and only in
+// a disposable browser job with automatic teardown.
+const disposableBrowserBranches = new Map([
+  ["verify-g13-g15-post-c3.yml", "feature/g13-post-c3-remediation-20261111"],
+  ["verify-g15-post-g13.yml", "integration/g15-post-g13-remediation-20261112"],
+]);
 for (const name of readdirSync(resolve(root,".github/workflows"))) {
   const workflow = read(".github/workflows/" + name);
-  if (name !== disposableBrowserWorkflow) {
+  const expectedBranch = disposableBrowserBranches.get(name);
+  if (expectedBranch === undefined) {
     assert.doesNotMatch(workflow, /HARBOROPS_M15_ENABLE_DELIVERY=true/,
       name + " must not enable notification delivery");
     continue;
@@ -131,7 +137,10 @@ for (const name of readdirSync(resolve(root,".github/workflows"))) {
     assert.ok(browser.includes(required),
       "Disposable browser job lacks isolation guard: " + required);
   }
-  assert.match(workflow, /on:\n  push:\n    branches:\n      - feature\/g13-post-c3-remediation-20261111/);
+  assert.ok(
+    workflow.includes("on:\n  push:\n    branches:\n      - " + expectedBranch + "\n"),
+    "Disposable browser workflow must run only on its approved source branch"
+  );
   assert.match(workflow, /permissions:\n  contents: read/);
   assert.match(browser, /needs: source/,
     "Live browser verification must depend on the successful preflight");

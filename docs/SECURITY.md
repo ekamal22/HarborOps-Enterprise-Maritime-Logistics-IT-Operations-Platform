@@ -1,6 +1,6 @@
 # Security Model
 
-**Current position (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 is conditionally accepted and merged through PR #38. G15 is conditionally accepted for isolated integration on the technical evidence of run 43139153300 at `479616a5b7f17c494d897834a66d10b6276bb517`. Formal reviewer independence was not attested, so unconditional G15-S25 acceptance is not claimed. No deployment or retention deletion is authorized. See [G15 conditional decision](G15_CONDITIONAL_ACCEPTANCE_DECISION_20261112.md).
+**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 was conditionally accepted and merged via PR #38. G15 is conditionally accepted and merged via PR #41 at `47af1994b9958188666e5dde0aa6b5a536d7c55c`. Formal independent G15-S25 reviewer attestation was not established, and the procedural exception remains explicit. Dispatch defaults off, retention deletion and deployment are not authorized. See [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
 
 ## Accepted M12 scoped search and export security
 

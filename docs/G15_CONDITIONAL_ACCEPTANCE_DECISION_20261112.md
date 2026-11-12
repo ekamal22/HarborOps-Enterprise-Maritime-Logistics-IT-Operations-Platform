@@ -19,3 +19,7 @@ The M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, null ETA, M10 proj
 Conditional integration may contain only G15 notification implementation, its migration, browser and database tests, direct support tooling and this decision, based on the accepted G13 `main`. The runtime source, test and configuration blobs must match the passing `479616a5b7f17c494d897834a66d10b6276bb517` campaign. Any final documentation-only edits or removal of its temporary source-verification workflow do not constitute a new executable campaign and must be disclosed as such. No additional feature area is included.
 
 **Remaining procedural exception:** independent G15-S25 reviewer identity/independence is not attested; do not claim unconditional acceptance. No production migration, deployment, retention cleanup or automatic background delivery activation is approved.
+
+## Integration completed
+
+[PR #41](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/41) merged on 2026-11-12 at `47af1994b9958188666e5dde0aa6b5a536d7c55c`. The accepted source and test blobs are identical to the application inputs of run 43139153300. The final branch consisted of the same implementation, a narrower historical documentation set, a decision record and no temporary test workflow. This is not a new executable verification at the merge SHA. Formal reviewer independence remains not attested, and no deployment or retention deletion is authorized.

@@ -26,7 +26,11 @@ if (Test-Path -LiteralPath $EvidencePath) {
     throw 'The evidence directory already exists. Never overwrite historical evidence'
 }
 New-Item -ItemType Directory -Path $EvidencePath -Force | Out-Null
-$StorageRoot = Join-Path $EvidencePath 'disposable-stack'
+$StorageRoot = Join-Path (Split-Path -Parent $EvidencePath) (
+    (Split-Path -Leaf $EvidencePath) + '-disposable-stack')
+if (Test-Path -LiteralPath $StorageRoot) {
+    throw 'The disposable stack path already exists; choose a new evidence identifier'
+}
 $env:HARBOROPS_G17_STORAGE_ROOT = $StorageRoot
 $env:HARBOROPS_G17_EVIDENCE_DIR = $EvidencePath
 $env:HARBOROPS_G17_DISPOSABLE_STACK_STARTED = "false"
@@ -102,8 +106,9 @@ try {
                 throw "The disposable project name is not unused ($kind); refusing to touch it"
             }
         }
-        New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres') -Force | Out-Null
-        New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'keyring') -Force | Out-Null
+        New-Item -ItemType Directory -Path $StorageRoot | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres') | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'keyring') | Out-Null
         Invoke-Required 'docker' (@('compose') + $composeArgs + @('config', '--quiet'))
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('run', '--rm', '--no-deps', '--entrypoint', '/bin/promtool',

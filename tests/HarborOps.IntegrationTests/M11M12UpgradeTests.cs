@@ -130,7 +130,7 @@ public sealed class M11M12UpgradeTests
     }
 
     [Fact]
-    public async Task PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade()
+    public async Task PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedNineteenMigrationUpgrade()
     {
         var schema = "m1112_upgrade_" + Guid.NewGuid().ToString("N");
         var scoped = M10UpgradeTests.Scoped(schema);
@@ -145,7 +145,7 @@ public sealed class M11M12UpgradeTests
             {
                 await before.Database.MigrateAsync(AcceptedMainHead);
                 Assert.Equal(13, (await before.Database.GetAppliedMigrationsAsync()).Count());
-                Assert.Equal(5, (await before.Database.GetPendingMigrationsAsync()).Count());
+                Assert.Equal(6, (await before.Database.GetPendingMigrationsAsync()).Count());
             }
 
             using (var factory = new ReferenceDataHttpTests.ApiFactory(scoped))
@@ -183,7 +183,7 @@ public sealed class M11M12UpgradeTests
             Assert.Equal(true, await Scalar(scoped, $"SELECT to_regclass('\"{schema}\".operational_kpi_reports') IS NOT NULL"));
             Assert.Equal(0L, await Scalar(scoped, "SELECT count(*) FROM shipment_exceptions"));
 
-            // All five additive migrations have empty new business history, so rollback
+            // All six additive migrations have empty new business history, so rollback
             // and subsequent reapplication must leave accepted rows unchanged.
             await using (var rollback = new HarborOpsDbContext(
                 new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(scoped).Options))

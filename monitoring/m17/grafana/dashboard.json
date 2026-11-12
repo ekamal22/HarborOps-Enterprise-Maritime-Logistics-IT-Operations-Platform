@@ -189,7 +189,7 @@
     },
     {
       "id": 6,
-      "title": "Telemetry heartbeat sample age",
+      "title": "Application heartbeats per 100 seconds",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -203,15 +203,15 @@
       },
       "targets": [
         {
-          "expr": "time() - timestamp(harborops_telemetry_heartbeat_total)",
+          "expr": "increase(harborops_telemetry_heartbeat_total[100s])",
           "refId": "A",
-          "legendFormat": "Telemetry heartbeat sample age",
+          "legendFormat": "heartbeats/100s",
           "instant": false
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
+          "unit": "short",
           "noValue": "Unknown"
         },
         "overrides": []
@@ -220,7 +220,7 @@
     },
     {
       "id": 7,
-      "title": "Bounded sampling drops",
+      "title": "Sampling rate-limit drops (5m)",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -234,7 +234,7 @@
       },
       "targets": [
         {
-          "expr": "sum(increase(harborops_telemetry_dropped_total[5m]))",
+          "expr": "sum(increase(harborops_telemetry_dropped_total{signal=\"trace\",reason=\"rate_limit\"}[5m]))",
           "refId": "A",
           "legendFormat": "Bounded sampling drops",
           "instant": false
@@ -269,6 +269,200 @@
           "refId": "A",
           "legendFormat": "Active local alerts",
           "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 9,
+      "title": "Tracking eligible backlog age, active worker only",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "harborops_worker_backlog_age_seconds{worker=\"tracking\"} and on() (harborops_service_running{service=\"tracking\"} == 1)",
+          "refId": "A",
+          "legendFormat": "Tracking eligible backlog age, active worker only",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 10,
+      "title": "Collector transport probe (0 unreachable, 1 reachable)",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "harborops_telemetry_collector_reachable",
+          "refId": "A",
+          "legendFormat": "Collector transport probe (0 unreachable, 1 reachable)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "SDK trace export queue-full losses (5m)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(otel_sdk_processor_span_processed_total{error_type=\"queue_full\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "SDK trace export queue-full losses (5m)",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 12,
+      "title": "Worker outcomes (observed work only)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by (worker,outcome) (rate(harborops_worker_attempts_total[5m]))",
+          "refId": "A",
+          "legendFormat": "Worker outcomes (observed work only)",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 13,
+      "title": "Readiness sample age seconds",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "time() - harborops_db_readiness_sample_unix_seconds",
+          "refId": "A",
+          "legendFormat": "Readiness sample age seconds",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 14,
+      "title": "Local alert state",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "ALERTS{alertstate=\"firing\"}",
+          "refId": "A",
+          "legendFormat": "Local alert state",
+          "instant": false
         }
       ],
       "fieldConfig": {

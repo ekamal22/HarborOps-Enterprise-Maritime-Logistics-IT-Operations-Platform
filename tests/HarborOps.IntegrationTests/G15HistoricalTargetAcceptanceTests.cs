@@ -56,14 +56,10 @@ public sealed class G15HistoricalTargetAcceptanceTests
         var targetPath =
             $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}";
         using var detail = await manager.GetAsync(targetPath);
-        Assert.Contains(detail.StatusCode,
-            new[] { HttpStatusCode.OK, HttpStatusCode.NotFound });
-        if (detail.StatusCode == HttpStatusCode.OK)
-        {
-            var body = await detail.Content.ReadFromJsonAsync<JsonElement>();
-            Assert.Equal(shipment, body.GetProperty("id").GetGuid());
-            Assert.Equal("Archived", body.GetProperty("recordStatus").GetString());
-        }
+        Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+        var body = await detail.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(shipment, body.GetProperty("id").GetGuid());
+        Assert.Equal("Archived", body.GetProperty("recordStatus").GetString());
 
         using var denied = await manager.GetAsync(
             $"/api/v1/organizations/{s.Fixture.B}/shipments/{shipment}");

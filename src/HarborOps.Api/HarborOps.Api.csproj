@@ -2,5 +2,8 @@
   <ItemGroup>
     <ProjectReference Include="../HarborOps.Application/HarborOps.Application.csproj" />
     <ProjectReference Include="../HarborOps.Infrastructure/HarborOps.Infrastructure.csproj" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.20.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.20.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.20.2" />
   </ItemGroup>
 </Project>

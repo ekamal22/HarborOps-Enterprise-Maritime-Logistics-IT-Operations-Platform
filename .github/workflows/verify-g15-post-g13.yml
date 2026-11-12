@@ -36,6 +36,7 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/check-m11-contract.mjs 2>&1 | tee .verification/m11-contract.log
+          grep -Fq 'verify-g15-post-g13.yml' scripts/check-m15-contract.mjs
           node scripts/check-m15-contract.mjs 2>&1 | tee .verification/m15-contract.log
           node scripts/check-m13-csp.mjs 2>&1 | tee .verification/m13-csp.log
           grep -q 'libgssapi-krb5-2' src/HarborOps.Api/Dockerfile

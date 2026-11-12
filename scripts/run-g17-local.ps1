@@ -31,6 +31,8 @@ $env:HARBOROPS_G17_STORAGE_ROOT = $StorageRoot
 $env:HARBOROPS_G17_EVIDENCE_DIR = $EvidencePath
 $env:HARBOROPS_G17_DISPOSABLE_STACK_STARTED = "false"
 $env:HARBOROPS_G17_BROWSER_JSON = Join-Path $EvidencePath 'm17-browser-results.json'
+$env:HARBOROPS_G17_CARDINALITY_JSON = Join-Path $EvidencePath 'm17-cardinality-results.json'
+$env:HARBOROPS_G17_API_URL = 'http://127.0.0.1:18080'
 $Cache = Join-Path (Split-Path -Parent $Repo) 'harborops-m0-cache'
 $env:DOTNET_CLI_HOME = Join-Path $Cache 'dotnet-home'
 $env:NUGET_PACKAGES = Join-Path $Cache 'nuget\packages'
@@ -149,6 +151,8 @@ try {
             Invoke-Required 'npm' @('ci', '--no-audit', '--no-fund')
             Invoke-Required 'npx' @('--no-install', 'playwright', 'test',
                 '--config', 'playwright.m17.config.mjs')
+            Invoke-Required 'npx' @('--no-install', 'playwright', 'test',
+                '--config', 'playwright.m17.cardinality.config.mjs')
             $artifacts = Join-Path (Get-Location).Path 'test-results\m17-artifacts'
             if (Test-Path -LiteralPath $artifacts) {
                 Copy-Item -LiteralPath $artifacts -Destination (Join-Path $EvidencePath 'browser-artifacts') -Recurse

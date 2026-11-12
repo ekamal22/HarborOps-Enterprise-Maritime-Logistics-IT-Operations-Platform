@@ -97,8 +97,10 @@ def playwright_titles(data: dict) -> set[str]:
             for spec in suite.get("specs", []):
                 for case in spec.get("tests", []):
                     outcomes = [r.get("status") for r in case.get("results", [])]
-                    require(case.get("status") == "expected" and outcomes == ["passed"],
-                            f"Browser case failed or retried: {spec.get('title')}: {outcomes}")
+                    require(case.get("expectedStatus") == "passed" and
+                            case.get("status") == "expected" and outcomes == ["passed"] and
+                            case["results"][0].get("retry", 0) == 0,
+                            f"Browser case failed, retried or expected failure: {spec.get('title')}: {outcomes}")
                     titles.append(spec.get("title"))
             inspect(suite)
     inspect(data)
@@ -308,7 +310,8 @@ def check() -> dict:
         data = json.loads(report.read_text())
         stats = data["stats"]
         require(stats["expected"] == 14 and stats["skipped"] == 0
-                and stats["unexpected"] == 0,
+                and stats["unexpected"] == 0 and stats.get("flaky", 0) == 0
+                and not data.get("errors"),
                 f"{engine} did not execute all 14 notification browser cases: {stats}")
         browser_cases[engine] = playwright_titles(data)
         for title in BROWSER_CASES:

@@ -3893,6 +3893,10 @@
             {
               "kind": "test",
               "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
+            },
+            {
+              "kind": "crash",
+              "id": "G15DuringRealM11HistoryWrite"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3914,6 +3918,10 @@
             {
               "kind": "crash",
               "id": "G15AfterFanoutCommit"
+            },
+            {
+              "kind": "crash",
+              "id": "G15DuringRealDispatcherFanout"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3968,6 +3976,14 @@
             {
               "kind": "crash",
               "id": "G15AfterResponseDiscarded"
+            },
+            {
+              "kind": "crash",
+              "id": "G15DuringRealM11HistoryWrite"
+            },
+            {
+              "kind": "crash",
+              "id": "G15DuringRealDispatcherFanout"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -3993,6 +4009,10 @@
             {
               "kind": "test",
               "id": "CommittedPersonalActionCanBeRecoveredAfterResponseIsDiscarded"
+            },
+            {
+              "kind": "crash",
+              "id": "G15DuringRealDispatcherFanout"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4097,6 +4117,42 @@
             {
               "kind": "test",
               "id": "PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade"
+            },
+            {
+              "kind": "test",
+              "id": "ExistingM7SourceAndCredentialSurviveM8UpgradeAndEmptyRollback"
+            },
+            {
+              "kind": "test",
+              "id": "AcceptedM8UpgradeAddsImmutableAuditWithoutChangingPriorRecords"
+            },
+            {
+              "kind": "test",
+              "id": "M2SeedAndAuthenticatedSessionSurviveM3UpgradeAndRepeat"
+            },
+            {
+              "kind": "test",
+              "id": "RetainedAttemptHistoryOnRedrivenPendingWorkBlocksTheM9Downgrade"
+            },
+            {
+              "kind": "test",
+              "id": "PopulatedM8ReceiptSurvivesM9UpgradeAndClaimedWorkPreventsDowngrade"
+            },
+            {
+              "kind": "test",
+              "id": "FreshInstallAppliesThirteenMigrationsWithTheNullSafeProjectorScopeFunction"
+            },
+            {
+              "kind": "test",
+              "id": "GenuineTwelveMigrationDatabaseKeepsTheOriginalFunctionUntilMigrationThirteenThenIsNullSafeAndIdempotent"
+            },
+            {
+              "kind": "test",
+              "id": "PopulatedM8DowngradeIsRejectedAndPreservesImmutableHistory"
+            },
+            {
+              "kind": "test",
+              "id": "PopulatedG13SeventeenMigrationDatabaseAcceptsG15WithoutChangingAcceptedRows"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4118,6 +4174,38 @@
             {
               "kind": "test",
               "id": "ModelSnapshot_MatchesCurrentEntityModel"
+            },
+            {
+              "kind": "test",
+              "id": "ExistingM7SourceAndCredentialSurviveM8UpgradeAndEmptyRollback"
+            },
+            {
+              "kind": "test",
+              "id": "AcceptedM8UpgradeAddsImmutableAuditWithoutChangingPriorRecords"
+            },
+            {
+              "kind": "test",
+              "id": "M2SeedAndAuthenticatedSessionSurviveM3UpgradeAndRepeat"
+            },
+            {
+              "kind": "test",
+              "id": "RetainedAttemptHistoryOnRedrivenPendingWorkBlocksTheM9Downgrade"
+            },
+            {
+              "kind": "test",
+              "id": "PopulatedM8ReceiptSurvivesM9UpgradeAndClaimedWorkPreventsDowngrade"
+            },
+            {
+              "kind": "test",
+              "id": "FreshInstallAppliesThirteenMigrationsWithTheNullSafeProjectorScopeFunction"
+            },
+            {
+              "kind": "test",
+              "id": "GenuineTwelveMigrationDatabaseKeepsTheOriginalFunctionUntilMigrationThirteenThenIsNullSafeAndIdempotent"
+            },
+            {
+              "kind": "test",
+              "id": "PopulatedM8DowngradeIsRejectedAndPreservesImmutableHistory"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4829,6 +4917,10 @@
               "kind": "browser_case",
               "suite": "notifications",
               "id": "G15 capped unread count shows 1000+ and an exact count never shows a plus"
+            },
+            {
+              "kind": "browser_case",
+              "id": "G15 successful browser pagination appends distinct second-page receipts in order"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4848,6 +4940,10 @@
               "kind": "browser_case",
               "suite": "notifications",
               "id": "G15 rejected notification refresh drops protected data and organization selection"
+            },
+            {
+              "kind": "browser_case",
+              "id": "G15 pending notification request displays and clears the loading state"
             }
           ],
           "assessment": "FULLY_TESTED",
@@ -4867,6 +4963,10 @@
               "kind": "browser_case",
               "suite": "notifications",
               "id": "G15 unavailable shipment navigation fails closed without exposing the target"
+            },
+            {
+              "kind": "browser_case",
+              "id": "G15 archived historical alert navigates to an authorized real archived shipment as read only"
             }
           ],
           "assessment": "FULLY_TESTED",

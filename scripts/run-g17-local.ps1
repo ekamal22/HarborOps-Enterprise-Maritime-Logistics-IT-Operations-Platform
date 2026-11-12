@@ -105,6 +105,12 @@ try {
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres') -Force | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'keyring') -Force | Out-Null
         Invoke-Required 'docker' (@('compose') + $composeArgs + @('config', '--quiet'))
+        Invoke-Required 'docker' (@('compose') + $composeArgs +
+            @('run', '--rm', '--no-deps', '--entrypoint', '/bin/promtool',
+              'prometheus', 'check', 'rules', '/etc/prometheus/alerts.yml'))
+        Invoke-Required 'docker' (@('compose') + $composeArgs +
+            @('run', '--rm', '--no-deps', '--entrypoint', '/bin/promtool',
+              'prometheus', 'test', 'rules', '/etc/prometheus/m17-test.yaml'))
         $ownedStackStarted = $true
         $env:HARBOROPS_G17_DISPOSABLE_STACK_STARTED = 'true'
         Invoke-Required 'docker' (@('compose') + $composeArgs +

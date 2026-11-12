@@ -23,6 +23,14 @@ public static class M17WorkerTelemetry
     private static readonly Histogram<double> Duration =
         Meter.CreateHistogram<double>("harborops.worker.operation.duration", "s");
 
+    static M17WorkerTelemetry()
+    {
+        // The tracking process itself exists only under the explicit worker profile.
+        _ = Meter.CreateObservableGauge<int>("harborops.service.running",
+            () => new Measurement<int>(1,
+                new KeyValuePair<string, object?>("service", "tracking")), "1");
+    }
+
     public static void ObserveAttempt(string outcome, TimeSpan elapsed)
     {
         // Outcome set is fixed, and no organization or shipment identifier is emitted.

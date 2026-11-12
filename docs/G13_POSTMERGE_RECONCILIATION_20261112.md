@@ -1,5 +1,7 @@
 # G13 conditional post-merge reconciliation, 2026-11-12
 
+**Later G15 status, 2026-11-12:** This is a historical G13-specific decision/reconciliation record; it remains valid for G13's conditional acceptance. G15 was subsequently accepted and merged through PR #44 at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. [Final G15-S25 acceptance](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
+
 ## Integration decision
 G13 is conditionally accepted and merged into protected `main` through [PR #38](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/38), merge commit `b2856449c8d1ab629c8b5419a5af0ebddafbb47d`. The [G13 decision](G13_S25_CONDITIONAL_ACCEPTANCE_DECISION_20261112.md) explicitly records that formal reviewer independence was not attested. This exception remains in force.
 

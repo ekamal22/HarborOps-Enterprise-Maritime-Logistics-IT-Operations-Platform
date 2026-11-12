@@ -1,5 +1,7 @@
 # G15 conditional post-merge reconciliation, 2026-11-12
 
+**Historical checkpoint:** This file preserves the earlier conditional or NOT PASS determination at its original source and date. It was superseded by the explicit G15-S25 acceptance and PR #44 merge on 2026-11-12. The original findings and failed evidence remain unchanged. [Acceptance decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge record](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
+
 ## Status and exact merge
 G15 scoped notifications is **conditionally accepted and integrated into protected `main`** through [PR #41](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/41), merge commit `47af1994b9958188666e5dde0aa6b5a536d7c55c`. G13 remains conditionally accepted and integrated through PR #38. The [G15 acceptance decision](G15_CONDITIONAL_ACCEPTANCE_DECISION_20261112.md) discloses that formal independent reviewer attestation was not established. Neither conditional decision is unconditional S25 approval.
 

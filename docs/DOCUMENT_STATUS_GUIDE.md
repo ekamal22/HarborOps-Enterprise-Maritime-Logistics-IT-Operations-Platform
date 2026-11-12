@@ -1,6 +1,7 @@
 # Documentation Status Guide
 
-**Current integration state (2026-11-12):** G0-G12 and G16 accepted and merged. G13 and G15 are conditionally accepted and integrated through PR #38 and PR #41. G15 merge commit `47af1994b9958188666e5dde0aa6b5a536d7c55c`, verified implementation source `479616a5b7f17c494d897834a66d10b6276bb517`. Formal independent review attestation was not established for G15; unconditional S25 approval is not claimed. Notification delivery remains default-off and retention deletion and deployment remain unauthorized. [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
+**G15 current disposition (2026-11-12):** G15/S25 **ACCEPTED** and merged into `main` via PR #44 (`49934d793542ef43cfe587c54b16cfd5cce8e2f4`). Tested source `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed run 43178122017; reviewer-independence attestation remains a disclosed procedural exception. G13 is still conditionally integrated. P10 fail-closed capture, P12 no deletion and default-off delivery remain mandatory; production rollout and G24 release are not approved. [Final decision](G15_S25_FINAL_ACCEPTANCE_20261112.md), [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
+
 
 The current G13/G15 decisions are recorded in [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md) and [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md). Earlier dated gates and runs remain historical source-bound records.
 

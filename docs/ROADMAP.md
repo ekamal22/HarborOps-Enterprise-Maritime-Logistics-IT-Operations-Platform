@@ -1,15 +1,12 @@
 # HarborOps Delivery Roadmap
 
-**G15 S25 update, 2026-11-12:** [Independent raw evidence disposition](G15_S25_INDEPENDENT_EVIDENCE_REVIEW_20261112.md) confirms technical PASS at `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` (run 43178122017). Formal S25 unconditional acceptance remains pending reviewer-independence attestation. G15 conditional integration, P10/P12 restrictions, default-off delivery, and no deployment or deletion authorization remain unchanged. Earlier findings and failed runs are retained as historical evidence.
+**Current G15 state (2026-11-12):** G15 and G15-S25 are **ACCEPTED** and merged into `main` through [PR #44](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/44) at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Tested executable SHA `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed [run #43178122017](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43178122017). Reviewer independence is an expressly disclosed acceptance exception, not an attested credential. G13 stays conditionally integrated; M15-P10 fail-closed and P12 no-deletion policies remain, delivery is default-off, and no deployment or final release is authorized. See [final decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
-**G15 S25 evidence reaudit (2026-11-12):** [Current evidence disposition](G15_S25_EVIDENCE_REAUDIT_20261112.md) remains **NOT PASS** for unconditional closure. Four source-locked M11 witnesses have been added to the targeted test plan, the historical G13 witness has an explicit pending equivalence review, and the stronger complete-inventory checker has not yet been executed at a new source SHA. Existing conditional merges, operational restrictions and prior failed evidence are unchanged.
-
-**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 was conditionally accepted and merged via PR #38. G15 is conditionally accepted and merged via PR #41 at `47af1994b9958188666e5dde0aa6b5a536d7c55c`. Formal independent G15-S25 reviewer attestation was not established, and the procedural exception remains explicit. Dispatch defaults off, retention deletion and deployment are not authorized. See [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
 **Updated status:** 2026-11-12
-**State:** G0-G12 and G16 accepted and merged, G13 and G15 conditionally accepted and merged. Independent reviewer attestation not established for either conditional exception. Other gates remain open and no deployment is authorized.
+**State:** G0-G12, G15 and G16 accepted and merged. G13 remains conditionally accepted and merged. The G15 reviewer-separation exception remains disclosed, other gates stay subject to their prerequisites, and no deployment is authorized.
 
 ## Authority and rationale
 
@@ -244,7 +241,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Authorized event and incident exception messaging.
 **Entry:** G11 accepted before respective dependent work packages.
 **Required work packages:** M15-01 Define recipient and deduplication rules; M15-02 Implement notification persistence; M15-03 Implement notification interface; M15-04 Verify recipient isolation.
-**Exit G15:** All applicable tasks, negative tests, runtime evidence and documentation for M15 recorded; acceptance pending until explicitly confirmed.
+**Exit G15:** Accepted 2026-11-12 after source-locked S25 evidence and explicit approval, merged through PR #44. P10/P12 restrictions remain.
 **Not covered by this milestone:** Infrastructure alerts and incident creation.
 
 ### P3: Security and technical operations
@@ -365,7 +362,7 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M12/G0-G12 and M16/G16 are accepted and integrated into protected `main` as of 2026-11-08. G13-G15 and G17-G24 remain open under their explicit prerequisites. M13 and M15 may proceed where their dependencies and decisions are satisfied. The M9 sustained transport-event processing hold remains binding pending separately approved, verified cap-safe backlog handling. Public hosting, production deployment and G24 release acceptance remain pending.
+M0-M12/G0-G12, M15/G15 and M16/G16 are accepted and integrated into protected `main` as of 2026-11-12. G13 remains conditionally accepted, G15 is accepted and merged, and the other unaccepted gates retain their explicit prerequisites. M13 and M15 may proceed where their dependencies and decisions are satisfied. The M9 sustained transport-event processing hold remains binding pending separately approved, verified cap-safe backlog handling. Public hosting, production deployment and G24 release acceptance remain pending.
 
 ## M24-03 pre-release reconciliation reminder
 

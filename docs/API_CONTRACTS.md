@@ -1,10 +1,11 @@
 # API Contracts
 
-**Current integration state (2026-11-12):** G0-G12 and G16 accepted and merged. G13 and G15 are conditionally accepted and integrated through PR #38 and PR #41. G15 merge commit `47af1994b9958188666e5dde0aa6b5a536d7c55c`, verified implementation source `479616a5b7f17c494d897834a66d10b6276bb517`. Formal independent review attestation was not established for G15; unconditional S25 approval is not claimed. Notification delivery remains default-off and retention deletion and deployment remain unauthorized. [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
+**Current G15 acceptance, 2026-11-12:** G15 and G15-S25 are **ACCEPTED** following source-locked run 43178122017 at `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35`; PR #44 merged the accepted remediation to `main` at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Reviewer-separation attestation is an explicitly disclosed procedural exception. P10 fail-closed, P12 deletion disabled, delivery default-off, and no production deployment remain in force. [Acceptance decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge record](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
+
 
 ## Contract status
 
-M0-M10 APIs, including the M10 timeline, projection and signed Manager correction routes, are accepted and integrated into `main`. M16 Auditor-only tenant-scoped audit APIs are also accepted. Original M10 PR #23 and remediation [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) establish the current contract. The M9 parked-transport hold and the projector default-off setting remain mandatory. See [G10 closure](M10_G10_GATE_CLOSURE_20261107.md).
+M0-M12, M15 and M16 scoped API surfaces are accepted and integrated into `main` under their recorded gate decisions. M10 includes the timeline, projection and signed Manager correction routes; M15 includes recipient-scoped notification feed, count, detail and personal action routes. M16 retains Auditor-only tenant-scoped audit APIs. Original M10 PR #23 and remediation [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) establish the current contract. The M9 parked-transport hold and the projector default-off setting remain mandatory. See [G10 closure](M10_G10_GATE_CLOSURE_20261107.md).
 
 ## Observed M0 contract verification
 

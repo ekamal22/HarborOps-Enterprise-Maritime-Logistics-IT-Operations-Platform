@@ -1,6 +1,6 @@
 # HarborOps Delivery Roadmap
 
-**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and integrated into protected `main`. G13 is conditionally accepted and merged through PR #38 at `b2856449c8d1ab629c8b5419a5af0ebddafbb47d`, with formal reviewer independence not attested. G15 is not accepted or merged. M9 transport controls, default-off services, no retention deletion and no deployment remain in force. See [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md).
+**Current position (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 is conditionally accepted and merged through PR #38. G15 is conditionally accepted for isolated integration on the technical evidence of run 43139153300 at `479616a5b7f17c494d897834a66d10b6276bb517`. Formal reviewer independence was not attested, so unconditional G15-S25 acceptance is not claimed. No deployment or retention deletion is authorized. See [G15 conditional decision](G15_CONDITIONAL_ACCEPTANCE_DECISION_20261112.md).
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  

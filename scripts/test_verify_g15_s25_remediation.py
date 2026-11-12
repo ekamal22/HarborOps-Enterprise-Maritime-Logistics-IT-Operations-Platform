@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -14,6 +15,9 @@ VERIFIER_FILE = Path(__file__).with_name("verify-g15-s25-remediation.py")
 spec = importlib.util.spec_from_file_location("g15_verifier", VERIFIER_FILE)
 assert spec is not None and spec.loader is not None
 verifier = importlib.util.module_from_spec(spec)
+# Standalone local tests must not depend on the GitHub Actions environment.
+os.environ.setdefault("GITHUB_SHA", "a" * 40)
+os.environ.setdefault("GITHUB_RUN_ID", "777")
 spec.loader.exec_module(verifier)
 
 
@@ -63,6 +67,14 @@ class G15EvidenceGuardTests(unittest.TestCase):
         omitted["suites"][0]["specs"].pop()
         with self.assertRaises(AssertionError):
             verifier.playwright_titles(omitted)
+        retry_only = sample()
+        retry_only["suites"][0]["specs"][3]["tests"][0]["results"][0]["retry"] = 1
+        with self.assertRaises(AssertionError):
+            verifier.playwright_titles(retry_only)
+        expected_failure = sample()
+        expected_failure["suites"][0]["specs"][3]["tests"][0]["expectedStatus"] = "failed"
+        with self.assertRaises(AssertionError):
+            verifier.playwright_titles(expected_failure)
 
     def test_failed_or_skipped_trx_cannot_be_counted_as_evidence(self):
         with tempfile.TemporaryDirectory() as directory:

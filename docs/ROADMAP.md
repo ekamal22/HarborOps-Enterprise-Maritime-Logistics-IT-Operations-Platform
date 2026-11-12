@@ -1,5 +1,7 @@
 # HarborOps Delivery Roadmap
 
+**G15 S25 evidence reaudit (2026-11-12):** [Current evidence disposition](G15_S25_EVIDENCE_REAUDIT_20261112.md) remains **NOT PASS** for unconditional closure. Four source-locked M11 witnesses have been added to the targeted test plan, the historical G13 witness has an explicit pending equivalence review, and the stronger complete-inventory checker has not yet been executed at a new source SHA. Existing conditional merges, operational restrictions and prior failed evidence are unchanged.
+
 **Current integration state (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 was conditionally accepted and merged via PR #38. G15 is conditionally accepted and merged via PR #41 at `47af1994b9958188666e5dde0aa6b5a536d7c55c`. Formal independent G15-S25 reviewer attestation was not established, and the procedural exception remains explicit. Dispatch defaults off, retention deletion and deployment are not authorized. See [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  

@@ -12,7 +12,8 @@ var hostArgs = readiness ? args.Where(arg => arg != "--readiness").ToArray() : a
 var builder = Host.CreateApplicationBuilder(hostArgs);
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(options => options.IncludeScopes = true);
-M17WorkerTelemetry.AddToHost(builder);
+if (!readiness)
+    M17WorkerTelemetry.AddToHost(builder);
 
 var connectionString = builder.Configuration.GetConnectionString("HarborOps");
 if (string.IsNullOrWhiteSpace(connectionString))

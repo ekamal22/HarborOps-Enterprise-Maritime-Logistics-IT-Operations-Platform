@@ -16,7 +16,7 @@ The review independently read all ten retained archives from run 43159414168 and
 | --- | --- |
 | Workflow and exact source | 10 successful jobs, implementation SHA `00f0ecee208de60f29d0cb8bf44c001325e0ef4f` |
 | Evidence files | All 122 SHA-256 manifest entries across the ten archives matched their archived bytes; no unlisted input is accepted by the revised checker |
-| NUnit and xUnit TRX | 530 passing results, including 319 unit, 52 contract and 159 PostgreSQL, crash recovery and scale results |
+| .NET TRX | 530 passing results, including 319 unit, 52 contract and 159 PostgreSQL, crash recovery and scale results |
 | Playwright | 14 distinct notifications cases passed in Chromium, Firefox and WebKit, 42 passing outcomes |
 | Total completed tests | 572 passed, no skipped or failed test outcomes in the final packet |
 | G15 mutation campaign | 25 targeted negative variants produced their named test failures, with a passing original-source control |

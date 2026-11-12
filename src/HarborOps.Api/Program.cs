@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Diagnostics;
 using HarborOps.Api.Authentication;
 using HarborOps.Api.Organizations;
 using HarborOps.Api.References;
@@ -145,11 +146,11 @@ app.Use(async (context, next) =>
                 context.Response.Headers.CacheControl = "no-store";
             return Task.CompletedTask;
         });
+    var diagnosticScope = new Dictionary<string, object> { ["CorrelationId"] = correlationId };
+    if (m17Enabled && Activity.Current is { } span)
+        diagnosticScope["TraceId"] = span.TraceId.ToString();
     using var scope = context.RequestServices.GetRequiredService<ILoggerFactory>()
-        .CreateLogger("HarborOps.Request").BeginScope(new Dictionary<string, object>
-        {
-            ["CorrelationId"] = correlationId
-        });
+        .CreateLogger("HarborOps.Request").BeginScope(diagnosticScope);
     await next();
 });
 

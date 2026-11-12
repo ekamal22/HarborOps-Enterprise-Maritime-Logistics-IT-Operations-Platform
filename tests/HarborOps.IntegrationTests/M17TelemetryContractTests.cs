@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using HarborOps.Api.Observability;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -72,6 +73,39 @@ public sealed class M17TelemetryContractTests
         Assert.Null(activity.GetTagItem("user.id"));
         Assert.Equal("POST", activity.GetTagItem("http.request.method"));
         Assert.Equal("internal.operation", activity.DisplayName);
+    }
+
+    [Fact]
+    public void TenThousandAttackerChosenPathsUseOneBoundedOperationSeries()
+    {
+        var series = new HashSet<string>(StringComparer.Ordinal);
+        using var listener = new MeterListener();
+        listener.InstrumentPublished = (instrument, observer) =>
+        {
+            if (instrument.Meter.Name == M17Telemetry.MeterName)
+                observer.EnableMeasurementEvents(instrument);
+        };
+        listener.SetMeasurementEventCallback<double>((instrument, value, tags, _) =>
+        {
+            if (instrument.Name != "harborops.request.duration") return;
+            var dimensions = string.Join("|", tags.ToArray()
+                .Select(tag => tag.Key + "=" + tag.Value));
+            lock (series) series.Add(dimensions);
+        });
+        listener.Start();
+
+        for (var i = 0; i < 10_000; i++)
+        {
+            var context = new DefaultHttpContext();
+            context.Request.Path = "/untrusted/" + i + "/shipments";
+            context.Request.Host = new HostString("host" + i + ".example.test");
+            context.Response.StatusCode = 200;
+            M17Telemetry.ObserveRequest(context, TimeSpan.FromMilliseconds(5));
+        }
+
+        Assert.Single(series);
+        Assert.Contains("operation=other", Assert.Single(series));
+        Assert.Contains("status_class=2xx", Assert.Single(series));
     }
 
     [Fact]

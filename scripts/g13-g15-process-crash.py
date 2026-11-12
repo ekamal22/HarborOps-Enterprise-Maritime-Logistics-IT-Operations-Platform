@@ -144,8 +144,15 @@ def run() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     container = docker_server()
     records = []
+    scope = os.environ.get("HARBOROPS_CRASH_SCOPE", "combined")
+    if scope not in ("combined", "G15"):
+        raise RuntimeError("Unsupported crash verification scope")
+    selected = tuple((phase, recovery) for phase, recovery in PHASES
+                     if scope == "combined" or phase.startswith("G15"))
+    if not selected:
+        raise RuntimeError("No crash phases selected")
     try:
-        for phase, recovery in PHASES:
+        for phase, recovery in selected:
             marker = OUT / (phase + ".json")
             marker.unlink(missing_ok=True)
             logpath = OUT / (phase + ".log")

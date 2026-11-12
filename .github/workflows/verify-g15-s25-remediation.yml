@@ -542,6 +542,10 @@ jobs:
           test -s .verification/combined-regressions/combined-regressions.trx
           dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~TrackingInboxMigrationTests|FullyQualifiedName~AuditMigrationTests|FullyQualifiedName~ReferenceHistoricalUpgradeTests|FullyQualifiedName~CombinedRetentionTests|FullyQualifiedName~TrackingWorkerMigrationTests|FullyQualifiedName~M10ProjectorScopeUpgradeTests|FullyQualifiedName~TrackingInboxAuditSqlTests' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=migrations.trx' --results-directory .verification/combined-regressions 2>&1 | tee .verification/combined-regressions/migrations.log
           test -s .verification/combined-regressions/migrations.trx
+          # Run only the four M11 methods required by the G15 assertion inventory.
+          # Their previous successes came from a different source revision.
+          dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build --filter 'FullyQualifiedName~M11ExceptionRuntimeTests.RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence|FullyQualifiedName~M11ExceptionRuntimeTests.UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory|FullyQualifiedName~M11ExceptionRuntimeTests.VerifiedClearancePersistsAcrossUnknownBeforeRecurrence|FullyQualifiedName~M11ExceptionRuntimeTests.NullSchedulesAreUnknownNotInventedDelays' --logger 'console;verbosity=normal' --logger 'trx;LogFileName=g15-m11-atomic-witnesses.trx' --results-directory .verification/combined-regressions 2>&1 | tee .verification/combined-regressions/g15-m11-atomic-witnesses.log
+          test -s .verification/combined-regressions/g15-m11-atomic-witnesses.trx
       - name: Preserve combined-regressions evidence
         if: always()
         run: |

@@ -9,13 +9,14 @@ public sealed class M17TelemetryMiddleware(RequestDelegate next)
 {
     public async Task InvokeAsync(HttpContext context)
     {
+        var started = Stopwatch.GetTimestamp();
         try
         {
             await next(context);
         }
         finally
         {
-            M17Telemetry.ObserveRequest(context);
+            M17Telemetry.ObserveRequest(context, Stopwatch.GetElapsedTime(started));
             // Never copy caller headers, business record IDs or raw request paths into spans.
             if (Activity.Current is { } activity)
                 activity.SetTag("harborops.operation", "http");

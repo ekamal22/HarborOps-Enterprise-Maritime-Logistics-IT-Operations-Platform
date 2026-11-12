@@ -75,7 +75,7 @@ services:
     volumes:
       - ./monitoring/m17/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/m17.yaml:ro
       - ./monitoring/m17/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/m17.yaml:ro
-      - ./monitoring/m17/grafana/dashboard.json:/etc/grafana/provisioning/dashboards/m17-dashboard.json:ro
+      - ./monitoring/m17/grafana/dashboard.json:/etc/grafana/dashboards/m17-dashboard.json:ro
     tmpfs:
       - /var/lib/grafana:size=10485760,uid=472,gid=0
     security_opt: ["no-new-privileges:true"]

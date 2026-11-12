@@ -57,6 +57,7 @@ services:
     volumes:
       - ./monitoring/m17/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/m17/alerts.yaml:/etc/prometheus/alerts.yml:ro
+      - ./monitoring/m17/alert-test.yaml:/etc/prometheus/m17-test.yaml:ro
     tmpfs:
       - /prometheus:size=134217728,uid=65534,gid=65534
     security_opt: ["no-new-privileges:true"]

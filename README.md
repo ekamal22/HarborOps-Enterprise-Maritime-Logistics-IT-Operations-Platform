@@ -1,5 +1,7 @@
 # HarborOps
 
+**M17 planning checkpoint (2026-11-12):** M17 observability has an end-to-end proposed implementation and G17 verification package, including 25 unexecuted scenarios and 75 unexecuted atomic assertions. P01-P09 telemetry policies require explicit decisions. **G17 remains not accepted and no M17 runtime feature is installed or activated by this documentation.** [Planning status](docs/M17_PLANNING_STATUS.md) | [Architecture](docs/M17_ARCHITECTURE_DESIGN.md) | [Implementation](docs/M17_IMPLEMENTATION_PLAN.md) | [G17 matrix](docs/M17_VERIFICATION_PLAN.md).
+
 **Turkish interface integration (2026-11-12):** Accepted and merged via [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) at `c81e54bfef25a0ff957f27b488ab7bd420551244`. Source-locked [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246) passed 41/41 frontend and 99/99 three-browser checks. G13 conditional and G15 accepted gate dispositions remain unchanged; no G24 release or production rollout is authorized. [Integration acceptance](docs/TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
 
 **Current G15 state (2026-11-12):** G15 and G15-S25 are **ACCEPTED** and merged into `main` through [PR #44](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/44) at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Tested executable SHA `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed [run #43178122017](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43178122017). Reviewer independence is an expressly disclosed acceptance exception, not an attested credential. G13 stays conditionally integrated; M15-P10 fail-closed and P12 no-deletion policies remain, delivery is default-off, and no deployment or final release is authorized. See [final decision](docs/G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge reconciliation](docs/G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
@@ -82,7 +84,7 @@ M4-M10 and M16 are accepted and integrated into `main`. The [G10 closure](docs/M
 - Data: PostgreSQL, Entity Framework Core
 - Processing: .NET background worker with durable processing state
 - Local runtime: Docker Compose; same-origin Nginx/Vite API proxy implemented in `main`
-- Observability: OpenTelemetry, Prometheus, Grafana, structured logs
+- Observability: structured JSON logs and current health endpoints exist; OpenTelemetry, Prometheus and Grafana are proposed for M17 and are not yet integrated
 - Validation: xUnit, integration tests, Playwright, k6, OWASP ZAP
 - Hosting: local-first; optional student-credit cloud environment and static demonstration
 

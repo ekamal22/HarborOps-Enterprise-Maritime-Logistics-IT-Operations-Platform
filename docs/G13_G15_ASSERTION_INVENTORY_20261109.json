@@ -4841,10 +4841,6 @@
               "id": "DispatcherStatementTimeoutIsACountedRetryAndNeverBlocksLaterEvents"
             },
             {
-              "kind": "test",
-              "id": "ClientCancellationRollsBackReleasesTheSlotAndLeavesNoSnapshot"
-            },
-            {
               "kind": "mutant",
               "artifact": "g15-mutations",
               "id": "dispatcher-event-time-limit-not-applied"
@@ -4856,7 +4852,7 @@
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Added or extended 2026-11-11 after S25 round 1. Proof is contingent on this SHA's actual passing TRX, mutation and artifact checks"
+          "audit_note": "G15 dispatcher timeout behavior is evidenced by the direct G15 targeted test and two targeted mutants. The unrelated G13 report-cancellation method is not a G15 dispatcher witness."
         },
         {
           "id": "G15-S21-A07",
@@ -5041,8 +5037,14 @@
           "kind": "automated",
           "evidence": [
             {
-              "kind": "test",
-              "id": "ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress"
+              "kind": "historical_test",
+              "id": "ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress",
+              "source_sha": "479616a5b7f17c494d897834a66d10b6276bb517",
+              "run_id": 43139153300,
+              "artifact_id": 13909188656,
+              "artifact_path": "g13-tracking-source.trx",
+              "trx_sha256": "4ce60864523884bbeeaba58defdd566d430289dc5ed590a92f6323def65ad421",
+              "disposition": "INDEPENDENT_EQUIVALENCE_REVIEW_PENDING"
             },
             {
               "kind": "test",
@@ -5050,7 +5052,7 @@
             }
           ],
           "assessment": "FULLY_TESTED",
-          "audit_note": "Candidate directly evidenced by named behavioral or source-locked technical tests. This classification is conditional on all witnesses passing at the same verification SHA, and remains subject to independent source-level review."
+          "audit_note": "The unchanged G13 tracking/KPI behavior has passing historical source-locked evidence, not a current-SHA execution. Exact relevant source paths and the archived TRX must be independently reconciled. The M11 null-schedule witness must execute at the current SHA."
         },
         {
           "id": "G15-S23-A04",

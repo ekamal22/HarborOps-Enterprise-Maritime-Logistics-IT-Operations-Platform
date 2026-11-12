@@ -25,6 +25,7 @@ public static class M17TelemetryRegistration
                 // Custom bounded operation/status categories prevent hostile HTTP
                 // method/Host/path values from multiplying native time-series.
                 .AddMeter(M17Telemetry.MeterName)
+                .AddMeter("otel.sdk.experimental")
                 .AddOtlpExporter(exporter =>
                 {
                     exporter.Endpoint = options.Endpoint;

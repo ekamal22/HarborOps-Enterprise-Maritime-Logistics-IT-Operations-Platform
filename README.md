@@ -1,12 +1,12 @@
 # HarborOps
 
-**Current position (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 is conditionally accepted and merged through PR #38. G15 is conditionally accepted for isolated integration on the technical evidence of run 43139153300 at `479616a5b7f17c494d897834a66d10b6276bb517`. Formal reviewer independence was not attested, so unconditional G15-S25 acceptance is not claimed. No deployment or retention deletion is authorized. See [G15 conditional decision](docs/G15_CONDITIONAL_ACCEPTANCE_DECISION_20261112.md).
+**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 was conditionally accepted and merged via PR #38. G15 is conditionally accepted and merged via PR #41 at `47af1994b9958188666e5dde0aa6b5a536d7c55c`. Formal independent G15-S25 reviewer attestation was not established, and the procedural exception remains explicit. Dispatch defaults off, retention deletion and deployment are not authorized. See [G15 post-merge reconciliation](docs/G15_POSTMERGE_RECONCILIATION_20261112.md).
 
 ## Enterprise Maritime Logistics & IT Operations Platform
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status (2026-11-12):** G13 merged conditionally. G15 conditionally accepted for isolated integration at tested source `479616a5`, with independent reviewer attestation outstanding. Protected main has not yet received G15.
+**Status (2026-11-12):** G13 and G15 both conditionally accepted and merged through PR #38 and PR #41. G15 independent reviewer attestation remains not established. No production deployment or retention deletion is authorized.
 
 **Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](docs/M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. At this intermediate source-review checkpoint, G10-S25 and S01 were not yet executed. Both were subsequently reconciled and G10 accepted on 2026-11-07; the G10 gate closure is authoritative.
 

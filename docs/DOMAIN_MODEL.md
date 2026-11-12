@@ -1,6 +1,6 @@
 # Domain Model and Invariants
 
-**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and integrated into `main`. G13 is conditionally accepted and merged via PR #38 at `b2856449c8d1ab629c8b5419a5af0ebddafbb47d`, with reviewer independence not attested. G15 remains not accepted or merged. Other pending gates remain unchanged. The M9 transport hold, default-off services, no notification retention deletion and no deployment authorization remain binding. See [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md).
+**Current integration state (2026-11-12):** G0-G12 and G16 accepted and merged. G13 and G15 conditionally accepted and merged through PR #38 and PR #41. Formal independent G15-S25 reviewer attestation remains unestablished. The accepted G15 implementation passed source-locked run 43139153300 and was integrated at `47af1994b9958188666e5dde0aa6b5a536d7c55c`. Default-off services, M9 transport hold, notification retention-deletion prohibition and deployment restrictions remain. See [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
 
 ## Accepted M12 search and export model
 

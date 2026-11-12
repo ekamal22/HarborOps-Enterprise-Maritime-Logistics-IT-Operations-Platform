@@ -1,11 +1,11 @@
 # HarborOps Delivery Roadmap
 
-**Current position (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 is conditionally accepted and merged through PR #38. G15 is conditionally accepted for isolated integration on the technical evidence of run 43139153300 at `479616a5b7f17c494d897834a66d10b6276bb517`. Formal reviewer independence was not attested, so unconditional G15-S25 acceptance is not claimed. No deployment or retention deletion is authorized. See [G15 conditional decision](G15_CONDITIONAL_ACCEPTANCE_DECISION_20261112.md).
+**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 was conditionally accepted and merged via PR #38. G15 is conditionally accepted and merged via PR #41 at `47af1994b9958188666e5dde0aa6b5a536d7c55c`. Formal independent G15-S25 reviewer attestation was not established, and the procedural exception remains explicit. Dispatch defaults off, retention deletion and deployment are not authorized. See [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
 **Updated status:** 2026-11-12
-**State:** G0-G12 and G16 accepted and merged. G13 conditionally accepted and merged through PR #38, with reviewer independence not attested. G15 and other unaccepted gates remain open. No deployment.
+**State:** G0-G12 and G16 accepted and merged, G13 and G15 conditionally accepted and merged. Independent reviewer attestation not established for either conditional exception. Other gates remain open and no deployment is authorized.
 
 ## Authority and rationale
 

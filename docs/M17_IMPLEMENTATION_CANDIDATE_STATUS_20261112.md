@@ -1,5 +1,7 @@
 # M17 Implementation Candidate Status
 
+**M17 correctness remediation (2026-11-13):** Candidate fixes for findings F17-001 through F17-014 are committed on the isolated feature branch, but .NET compilation, local Compose startup, collector/alert behavior, three-browser results, performance and G17-S25 have not been executed or accepted. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Remediation register](M17_CORRECTNESS_REMEDIATION_20261113.md).
+
 **Date:** 2026-11-12
 **Base:** protected `main` at `b490fb8cfc879cdf05cb1f7484b99f6a9b264ed3`
 **Source branch:** `feature/m17-observability-20261112`

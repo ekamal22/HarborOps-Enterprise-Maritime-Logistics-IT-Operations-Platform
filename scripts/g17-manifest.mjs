@@ -30,10 +30,10 @@ function visit(current, prefix = "") {
       if (canary && body.includes(canary))
         throw Error("Private test canary found in evidence file: " + relative);
       const unsafe = [
-        /\\bBearer\\s+[A-Za-z0-9._~+/=-]{16,}/i,
-        /\\b(?:HARBOROPS_DB_PASSWORD|HARBOROPS_API_DB_PASSWORD|HARBOROPS_WORKER_DB_PASSWORD)\\s*[:=]\\s*[^\\s,;]{6,}/i,
-        /\\bCookie:\\s*[^\\r\\n]{16,}/i,
-        /\\bPassword\\s*=\\s*[^\\s;]{8,}/i
+        /\bBearer\s+[A-Za-z0-9._~+\/=-]{16,}/i,
+        /\b(?:HARBOROPS_DB_PASSWORD|HARBOROPS_API_DB_PASSWORD|HARBOROPS_WORKER_DB_PASSWORD)\s*[:=]\s*[^\s,;]{6,}/i,
+        /\bCookie:\s*[^\r\n]{16,}/i,
+        /\bPassword\s*=\s*[^\s;]{8,}/i
       ];
       if (unsafe.some(pattern => pattern.test(body)))
         throw Error("Potential credential material in evidence file: " + relative);

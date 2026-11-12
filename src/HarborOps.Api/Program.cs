@@ -219,6 +219,8 @@ app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
     var readSucceeded = false;
     using var trace = m17Enabled
         ? M17Telemetry.Traces.StartActivity("baseline.read", ActivityKind.Client) : null;
+    trace?.SetTag("db.system.name", "postgresql");
+    trace?.SetTag("harborops.operation", "baseline_read");
     try
     {
         var result = await service.ReadAsync(cancellationToken);
@@ -244,6 +246,7 @@ app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
     }
     finally
     {
+        trace?.SetTag("harborops.outcome", readSucceeded ? "success" : "unavailable");
         if (m17Enabled)
             M17Telemetry.ObserveBaselineRead(readSucceeded, Stopwatch.GetElapsedTime(started));
     }

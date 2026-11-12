@@ -61,7 +61,8 @@ class G15EvidenceGuardTests(unittest.TestCase):
         def sample():
             return {"suites": [{"specs": [
                 {"title": f"Case {number}",
-                 "tests": [{"status": "expected", "results": [{"status": "passed"}]}]}
+                 "tests": [{"expectedStatus": "passed", "status": "expected",
+                            "results": [{"status": "passed", "retry": 0}]}]}
                 for number in range(14)]}]}
         clean = sample()
         self.assertEqual(len(verifier.playwright_titles(clean)), 14)

@@ -1,0 +1,108 @@
+rule_files:
+  - /etc/prometheus/alerts.yml
+evaluation_interval: 15s
+tests:
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="business",status_class="5xx"}'
+        values: '0+1x80'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="1",operation="business",status_class="2xx"}'
+        values: '0+0x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="2",operation="business",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="+Inf",operation="business",status_class="2xx"}'
+        values: '0+20x80'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsHighApiP95
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API p95 latency above one second"
+              remedy: "Below 0.8 seconds for 10 minutes"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_db_readiness'
+        values: '0x80'
+      - series: 'harborops_db_readiness_sample_unix_seconds'
+        values: '0+15x80'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HarborOpsDatabaseUnavailable
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: "Two consecutive recent PostgreSQL readiness samples failed"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_worker_backlog_age_seconds{worker="tracking"}'
+        values: '150x80'
+      - series: 'harborops_service_running{service="tracking"}'
+        values: '1x80'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HarborOpsTrackingBacklogStale
+        exp_alerts:
+          - exp_labels: {worker: tracking, severity: degraded}
+            exp_annotations:
+              summary: "Eligible tracking work is stale in the explicitly enabled worker"
+              remedy: "Below 60 seconds twice; held or disabled workers do not trigger"
+
+  - interval: 15s
+    input_series:
+      - series: 'up{job="m17_collector"}'
+        values: '0x80'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HarborOpsMonitoringMissing
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Missing fresh application telemetry or collector scrape; business health is separate"
+
+  - interval: 15s
+    input_series:
+      - series: 'otel_sdk_processor_span_processed_total{error_type="queue_full"}'
+        values: '0+1x80'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HarborOpsExporterDrops
+        exp_alerts:
+          - exp_labels: {severity: informational}
+            exp_annotations:
+              summary: "OpenTelemetry SDK batch queue dropped spans due to capacity"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="other",status_class="4xx"}'
+        values: '0+1x80'
+      - series: 'harborops_request_failures_total{operation="other",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_service_running{service="tracking"}'
+        values: '0x80'
+      - series: 'harborops_worker_backlog_age_seconds{worker="tracking"}'
+        values: '180x80'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+      - eval_time: 2m
+        alertname: HarborOpsTrackingBacklogStale
+        exp_alerts: []

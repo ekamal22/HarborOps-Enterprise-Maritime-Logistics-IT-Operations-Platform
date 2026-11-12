@@ -128,23 +128,30 @@ public sealed class NotificationStore(
             }
 
             var rows = new List<NotificationRecord>(limit + 1);
+            // Use a fixed filter chosen from the recognized state values.
+            // A parameterized OR across every state suppresses the partial
+            // unread index during stale-statistics and bulk-load windows.
+            var statePredicate = state switch
+            {
+                "All" => "",
+                "Unread" => "AND read_at_utc IS NULL",
+                "Read" => "AND read_at_utc IS NOT NULL AND acknowledged_at_utc IS NULL",
+                "Acknowledged" => "AND acknowledged_at_utc IS NOT NULL",
+                _ => "AND FALSE"
+            };
             await using (var cmd = Command(Connection, tx, $"""
                 SELECT {Columns} FROM m15_user_notifications
                 WHERE organization_id=@org AND recipient_user_id=@user
                   AND created_at_utc <= @cutoff
                   AND (@afterUtc::timestamptz IS NULL OR
                        (created_at_utc,id)<(@afterUtc::timestamptz,@afterId::uuid))
-                  AND (@state='All'
-                       OR (@state='Unread' AND read_at_utc IS NULL)
-                       OR (@state='Read' AND read_at_utc IS NOT NULL
-                           AND acknowledged_at_utc IS NULL)
-                       OR (@state='Acknowledged' AND acknowledged_at_utc IS NOT NULL))
+                  {statePredicate}
                 ORDER BY created_at_utc DESC,id DESC LIMIT @take
                 """,
                 ("org",org),("user",user),("cutoff",snapshot),
                 ("afterUtc",(object?)afterUtc ?? DBNull.Value),
                 ("afterId",(object?)afterId ?? DBNull.Value),
-                ("state",state),("take",limit+1)))
+                ("take",limit+1)))
             await using (var reader = await cmd.ExecuteReaderAsync(ct))
                 while (await reader.ReadAsync(ct)) rows.Add(Read(reader));
             await tx.CommitAsync(ct);

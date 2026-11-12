@@ -105,9 +105,9 @@ public sealed class M11M12UpgradeTests
             }
             Assert.Equal(before, await AcceptedFingerprint(scoped));
             Assert.Equal(true, await Scalar(scoped,
-                "SELECT to_regclass('operational_kpi_reports') IS NOT NULL"));
+                $"SELECT to_regclass('\"{schema}\".operational_kpi_reports') IS NOT NULL"));
             Assert.Equal(false, await Scalar(scoped,
-                "SELECT to_regclass('m15_notification_outbox') IS NOT NULL"));
+                $"SELECT to_regclass('\"{schema}\".m15_notification_outbox') IS NOT NULL"));
             await using (var upgrade = new HarborOpsDbContext(
                 new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(scoped).Options))
             {
@@ -118,9 +118,9 @@ public sealed class M11M12UpgradeTests
             }
             Assert.Equal(before, await AcceptedFingerprint(scoped));
             Assert.Equal(true, await Scalar(scoped,
-                "SELECT to_regclass('m15_notification_outbox') IS NOT NULL"));
+                $"SELECT to_regclass('\"{schema}\".m15_notification_outbox') IS NOT NULL"));
             Assert.Equal(true, await Scalar(scoped,
-                "SELECT to_regclass('operational_kpi_reports') IS NOT NULL"));
+                $"SELECT to_regclass('\"{schema}\".operational_kpi_reports') IS NOT NULL"));
         }
         finally
         {
@@ -179,8 +179,8 @@ public sealed class M11M12UpgradeTests
             Assert.Equal(acceptedBefore, await AcceptedFingerprint(scoped));
             Assert.Equal(true, await Scalar(scoped, "SELECT to_regclass('shipment_exceptions') IS NOT NULL"));
             Assert.Equal(true, await Scalar(scoped, "SELECT to_regclass('m12_export_proof_keys') IS NOT NULL"));
-            Assert.Equal(true, await Scalar(scoped, "SELECT to_regclass('m15_notification_outbox') IS NOT NULL"));
-            Assert.Equal(true, await Scalar(scoped, "SELECT to_regclass('operational_kpi_reports') IS NOT NULL"));
+            Assert.Equal(true, await Scalar(scoped, $"SELECT to_regclass('\"{schema}\".m15_notification_outbox') IS NOT NULL"));
+            Assert.Equal(true, await Scalar(scoped, $"SELECT to_regclass('\"{schema}\".operational_kpi_reports') IS NOT NULL"));
             Assert.Equal(0L, await Scalar(scoped, "SELECT count(*) FROM shipment_exceptions"));
 
             // All five additive migrations have empty new business history, so rollback

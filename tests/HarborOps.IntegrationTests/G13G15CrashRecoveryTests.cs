@@ -621,7 +621,7 @@ public sealed class G13G15CrashRecoveryTests
         {
             await using var probe=new NpgsqlCommand("""
                 SELECT COUNT(*) FROM pg_stat_activity WHERE usename='harborops_api'
-                    AND wait_event='PgSleep' AND query ILIKE '%shipment_exception_history%'
+                    AND wait_event='PgSleep' AND query ILIKE '%m11_apply_signed_evaluation%'
                 """,db);
             if(Convert.ToInt64(await probe.ExecuteScalarAsync())>0) {entered=true;break;}
             await Task.Delay(100);

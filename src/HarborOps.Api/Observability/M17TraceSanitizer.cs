@@ -10,7 +10,7 @@ public sealed class M17TraceSanitizer : BaseProcessor<Activity>
     private static readonly HashSet<string> Allowed = new(StringComparer.Ordinal)
     {
         "http.request.method", "http.response.status_code", "http.route",
-        "url.scheme", "network.protocol.version", "error.type",
+        "url.scheme", "network.protocol.version",
         "db.system.name", "harborops.operation",
         "harborops.outcome", "harborops.link_digest"
     };

@@ -16,6 +16,8 @@ public static class M17Telemetry
 
     private static readonly Counter<long> FailedRequests =
         Meter.CreateCounter<long>("harborops.request.failures", "{requests}");
+    private static readonly Histogram<double> RequestDuration =
+        Meter.CreateHistogram<double>("harborops.request.duration", "s");
     private static readonly Histogram<double> DatabaseDuration =
         Meter.CreateHistogram<double>("harborops.db.operation.duration", "s");
     private static readonly Counter<long> WorkerAttempts =
@@ -55,14 +57,30 @@ public static class M17Telemetry
         return route;
     }
 
-    public static void ObserveRequest(HttpContext context)
+    private static string Operation(HttpContext context)
+    {
+        var route = SafeRoute(context);
+        if (route.StartsWith("/api/v1/auth", StringComparison.Ordinal)) return "auth";
+        if (route.StartsWith("/api/v1/organizations", StringComparison.Ordinal)) return "organization";
+        if (route.StartsWith("/integrations/", StringComparison.Ordinal)) return "tracking";
+        if (route.StartsWith("/health/", StringComparison.Ordinal)) return "health";
+        if (route.StartsWith("/api/v1/", StringComparison.Ordinal)) return "business";
+        return "other";
+    }
+
+    public static void ObserveRequest(HttpContext context, TimeSpan elapsed)
     {
         var code = context.Response.StatusCode;
-        if (code < 500) return;
-        var family = code >= 600 ? "other" : "5xx";
-        FailedRequests.Add(1,
-            new KeyValuePair<string, object?>("route", SafeRoute(context)),
-            new KeyValuePair<string, object?>("status_class", family));
+        var statusClass = code is >= 100 and < 600
+            ? $"{code / 100}xx" : "other";
+        var operation = Operation(context);
+        RequestDuration.Record(Math.Max(0, elapsed.TotalSeconds),
+            new KeyValuePair<string, object?>("operation", operation),
+            new KeyValuePair<string, object?>("status_class", statusClass));
+        if (code is >= 500 and < 600)
+            FailedRequests.Add(1,
+                new KeyValuePair<string, object?>("operation", operation),
+                new KeyValuePair<string, object?>("status_class", "5xx"));
     }
 
     public static void ObserveDatabaseReadiness(bool healthy, TimeSpan elapsed)

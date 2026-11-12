@@ -215,9 +215,14 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
     HttpContext context, ILogger<Program> logger, CancellationToken cancellationToken) =>
 {
+    var started = Stopwatch.GetTimestamp();
+    var readSucceeded = false;
+    using var trace = m17Enabled
+        ? M17Telemetry.Traces.StartActivity("baseline.read", ActivityKind.Client) : null;
     try
     {
         var result = await service.ReadAsync(cancellationToken);
+        readSucceeded = result is not null;
         return result is null
             ? Results.Json(new { code = "baseline_unavailable",
                 message = "Baseline data is unavailable", correlationId = context.Items["CorrelationId"] },
@@ -236,6 +241,11 @@ app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
         return Results.Json(new { code = "dependency_unavailable",
             message = "Database temporarily unavailable", correlationId = context.Items["CorrelationId"] },
             statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    finally
+    {
+        if (m17Enabled)
+            M17Telemetry.ObserveBaselineRead(readSucceeded, Stopwatch.GetElapsedTime(started));
     }
 });
 

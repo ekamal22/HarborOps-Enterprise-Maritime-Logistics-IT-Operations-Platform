@@ -4,7 +4,7 @@
 
 **G15 S25 unconditional acceptance: NOT PASS at this checkpoint.**
 
-The completed [technical run 43159414168](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43159414168) is a genuine success at source \`00f0ecee208de60f29d0cb8bf44c001325e0ef4f\`. It does not certify that every G15 assertion inventory reference was observed in that source-locked packet. The follow-up checker and the additional targeted M11 test commands are prepared on \`review/g15-s25-complete-evidence-20261112\`, but they have not run on a new immutable source SHA. No unconditional acceptance or merge is inferred.
+The completed [technical run 43159414168](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43159414168) is a genuine success at source `00f0ecee208de60f29d0cb8bf44c001325e0ef4f`. It does not certify that every G15 assertion inventory reference was observed in that source-locked packet. The follow-up checker and the additional targeted M11 test commands are prepared on `review/g15-s25-complete-evidence-20261112`, but they have not run on a new immutable source SHA. No unconditional acceptance or merge is inferred.
 
 G13 and G15 remain conditionally integrated under their existing recorded decisions. Protected main, Turkish localization, deployment, notification dispatcher activation and all retention deletion remain out of scope.
 
@@ -14,7 +14,7 @@ The review independently read all ten retained archives from run 43159414168 and
 
 | Technical record | Verified fact |
 | --- | --- |
-| Workflow and exact source | 10 successful jobs, implementation SHA \`00f0ecee208de60f29d0cb8bf44c001325e0ef4f\` |
+| Workflow and exact source | 10 successful jobs, implementation SHA `00f0ecee208de60f29d0cb8bf44c001325e0ef4f` |
 | Evidence files | All 122 SHA-256 manifest entries across the ten archives matched their archived bytes; no unlisted input is accepted by the revised checker |
 | NUnit and xUnit TRX | 530 passing results, including 319 unit, 52 contract and 159 PostgreSQL, crash recovery and scale results |
 | Playwright | 14 distinct notifications cases passed in Chromium, Firefox and WebKit, 42 passing outcomes |
@@ -36,20 +36,20 @@ The previous omission is addressed as follows:
 
 | Requirement | Reconciliation action | State |
 | --- | --- | --- |
-| G15-S04-A01 | Add \`RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence\` to targeted M11 TRX | Prepared, execution pending |
-| G15-S04-A03 | Add \`UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory\` | Prepared, execution pending |
-| G15-S04-A04 | Add \`VerifiedClearancePersistsAcrossUnknownBeforeRecurrence\` | Prepared, execution pending |
+| G15-S04-A01 | Add `RecurrenceAfterAcknowledgedClearanceCreatesNewOccurrence` to targeted M11 TRX | Prepared, execution pending |
+| G15-S04-A03 | Add `UnchangedReevaluationAdvancesCheckpointWithoutDuplicateHistory` | Prepared, execution pending |
+| G15-S04-A04 | Add `VerifiedClearancePersistsAcrossUnknownBeforeRecurrence` | Prepared, execution pending |
 | G15-S21-A06 | Keep the direct G15 dispatcher timeout test and two targeted mutants; remove an unrelated G13 report cancellation test reference | Mapping corrected |
-| G15-S23-A03 | Add \`NullSchedulesAreUnknownNotInventedDelays\` to targeted M11 TRX | Prepared, execution pending |
+| G15-S23-A03 | Add `NullSchedulesAreUnknownNotInventedDelays` to targeted M11 TRX | Prepared, execution pending |
 | G15-S23-A03 | Record the historical G13 transport/KPI witness with its original source SHA, run, archive ID and TRX hash; verify unchanged source paths | Independent equivalence approval pending |
 
-The historical test \`ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress\` passed in \`g13-tracking-source.trx\` of artifact 13909188656, run 43139153300, at \`479616a5b7f17c494d897834a66d10b6276bb517\`. Its archived TRX SHA-256 is \`4ce60864523884bbeeaba58defdd566d430289dc5ed590a92f6323def65ad421\`. This historical result is not represented as a fresh test execution.
+The historical test `ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress` passed in `g13-tracking-source.trx` of artifact 13909188656, run 43139153300, at `479616a5b7f17c494d897834a66d10b6276bb517`. Its archived TRX SHA-256 is `4ce60864523884bbeeaba58defdd566d430289dc5ed590a92f6323def65ad421`. This historical result is not represented as a fresh test execution.
 
 The revision preserves the 25 G15 scenario definitions, explicitly distinguishes historical evidence from current TRX, and rejects any automatic elevation of manual S25 policy/reviewer assertions.
 
 ## Previously identified browser issues
 
-The three issues from the earlier post-merge S25 review are closed at \`00f0ecee208de60f29d0cb8bf44c001325e0ef4f\`:
+The three issues from the earlier post-merge S25 review are closed at `00f0ecee208de60f29d0cb8bf44c001325e0ef4f`:
 
 - G15-S22-A02: positive second-page append once, ordered without duplicates.
 - G15-S22-A03: pending request loading indicator displayed and cleared.
@@ -59,7 +59,7 @@ All three passed in all three browsers. The archived-target API remains real; on
 
 ## Checker controls newly prepared
 
-The updated \`scripts/verify-g15-s25-remediation.py\` now requires:
+The updated `scripts/verify-g15-s25-remediation.py` now requires:
 
 1. A complete signed-off candidate inventory of all 119 assertions and each of its 68 current-source test method IDs.
 2. Exact passing TRX names and outcomes for every current-source method, with historical evidence kept separately and source-equivalence approval pending.

@@ -1025,15 +1025,21 @@ public sealed class G15RemediationAcceptanceTests
             await Task.Delay(1000);
             Assert.False(busy.IsCompleted, "The first dispatcher must still be inside the slow intent");
             var clock = System.Diagnostics.Stopwatch.StartNew();
-            var second = await two.DeliverPendingAsync(CancellationToken.None);
+            var secondTask = Task.Run(() => two.DeliverPendingAsync(CancellationToken.None));
+            var completed = await Task.WhenAny(secondTask, Task.Delay(TimeSpan.FromSeconds(3)));
             clock.Stop();
-            Assert.False(busy.IsCompleted, "The second dispatcher waited for the first");
-            Assert.True(second >= 1, "The second dispatcher delivered nothing");
-            Assert.True(clock.Elapsed < TimeSpan.FromSeconds(3),
-                $"The second dispatcher was blocked behind the locked intent: {clock.Elapsed}");
-            var firstResult = await busy;
-            Assert.True(firstResult >= 1);
-            Assert.Equal(4, firstResult + second);
+            var secondWasPrompt = ReferenceEquals(completed, secondTask);
+            var firstWasStillBusy = !busy.IsCompleted;
+            // Drain both operations before disposing database-backed scopes or
+            // dropping the trigger. Otherwise a disposal cancellation can mask
+            // the intended bounded forward-progress assertion.
+            var results = await Task.WhenAll(busy, secondTask);
+            Assert.True(secondWasPrompt && firstWasStillBusy,
+                $"G15_SKIP_LOCKED_PROGRESS_FAILURE: second dispatcher did not finish " +
+                $"while the first held the claim lock; elapsed={clock.Elapsed}");
+            Assert.True(results[1] >= 1, "The second dispatcher delivered nothing");
+            Assert.True(results[0] >= 1, "The first dispatcher delivered nothing");
+            Assert.Equal(4, results[0] + results[1]);
         }
         finally
         {

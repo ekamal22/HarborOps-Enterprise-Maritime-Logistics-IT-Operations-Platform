@@ -12,6 +12,10 @@ public sealed class M15MembershipFeedIndexes : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""
+            -- The earlier unread index cannot satisfy ordered keyset reads.
+            -- With stale statistics it can scan and sort every unread receipt.
+            -- Replace it without changing or deleting any receipt records.
+            DROP INDEX ix_m15_recipient_unread;
             CREATE INDEX ix_m15_membership_feed ON m15_user_notifications
                 (organization_id,recipient_user_id,membership_id,membership_version,
                  created_at_utc DESC,id DESC);
@@ -34,6 +38,8 @@ public sealed class M15MembershipFeedIndexes : Migration
             END $m15_guard$;
             DROP INDEX ix_m15_membership_unread_feed;
             DROP INDEX ix_m15_membership_feed;
+            CREATE INDEX ix_m15_recipient_unread ON m15_user_notifications
+                (organization_id,recipient_user_id) WHERE read_at_utc IS NULL;
             """);
     }
 }

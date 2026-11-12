@@ -33,7 +33,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(options => options.IncludeScopes = true);
-var m17Enabled = builder.AddM17Telemetry();
+var isMaintenanceCommand = args.Any(arg => arg is
+    "--migrate" or "--account-cli" or "--organization-cli" or "--source-cli");
+var m17Enabled = !isMaintenanceCommand && builder.AddM17Telemetry();
 M17Telemetry.SetNotificationWorkerEnabled(builder.Configuration.GetValue<bool>("M15:EnableDelivery"));
 
 var connectionString = builder.Configuration.GetConnectionString("HarborOps");

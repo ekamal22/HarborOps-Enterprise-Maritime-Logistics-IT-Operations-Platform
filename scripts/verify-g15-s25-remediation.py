@@ -293,7 +293,8 @@ def check() -> dict:
 
     historical = trx_results(located["combined-regressions"])
     missing = [name for name in MIGRATION_METHODS
-               if not any(name in recorded for recorded in historical)]
+               if not any(recorded.endswith("." + name) or recorded == name
+                          for recorded in historical)]
     require(not missing, f"Historical migration tests absent from TRX: {missing}")
     database = trx_results(located["m15-database"])
     require(any("PopulatedG13SeventeenMigrationDatabaseAcceptsG15WithoutChangingAcceptedRows"

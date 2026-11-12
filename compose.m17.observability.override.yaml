@@ -1,0 +1,84 @@
+# Optional local telemetry profile. Use only with an owned disposable project.
+# Default compose.yaml remains unchanged.
+services:
+  api:
+    environment:
+      M17__Enabled: "true"
+      M17__OtlpEndpoint: "http://otelcol:4317"
+      OTEL_BSP_MAX_QUEUE_SIZE: "2048"
+      OTEL_BSP_MAX_EXPORT_BATCH_SIZE: "256"
+      OTEL_BSP_EXPORT_TIMEOUT: "1000"
+      OTEL_BSP_SCHEDULE_DELAY: "1000"
+      OTEL_ATTRIBUTE_COUNT_LIMIT: "16"
+      OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT: "120"
+
+  otelcol:
+    image: otel/opentelemetry-collector-contrib:0.165.0
+    profiles: [observability]
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./monitoring/m17/collector.yaml:/etc/otelcol/config.yaml:ro
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    networks: [internal]
+
+  tempo:
+    image: grafana/tempo:2.10.8
+    profiles: [observability]
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./monitoring/m17/tempo.yaml:/etc/tempo.yaml:ro
+    tmpfs:
+      - /var/tempo:size=83886080,uid=10001,gid=10001
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    networks: [internal]
+
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    profiles: [observability]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=24h
+      - --storage.tsdb.retention.size=150MB
+      - --web.enable-admin-api=false
+      - --web.enable-lifecycle=false
+    volumes:
+      - ./monitoring/m17/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/m17/alerts.yaml:/etc/prometheus/alerts.yml:ro
+    tmpfs:
+      - /prometheus:size=167772160,uid=65534,gid=65534
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    networks: [internal]
+
+  grafana:
+    image: grafana/grafana-oss:13.3.1
+    profiles: [observability]
+    environment:
+      GF_SECURITY_ADMIN_USER: "local_operator"
+      GF_SECURITY_ADMIN_PASSWORD: "${HARBOROPS_M17_GRAFANA_PASSWORD:?Set a disposable local Grafana password}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_ROOT_URL: "http://127.0.0.1:3301/"
+      GF_SECURITY_ALLOW_EMBEDDING: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_PLUGINS_PLUGIN_ADMIN_ENABLED: "false"
+    ports: ["127.0.0.1:3301:3000"]
+    volumes:
+      - ./monitoring/m17/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/m17.yaml:ro
+      - ./monitoring/m17/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/m17.yaml:ro
+      - ./monitoring/m17/grafana/dashboard.json:/etc/grafana/provisioning/dashboards/m17-dashboard.json:ro
+    tmpfs:
+      - /var/lib/grafana:size=10485760,uid=472,gid=0
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    networks: [internal]

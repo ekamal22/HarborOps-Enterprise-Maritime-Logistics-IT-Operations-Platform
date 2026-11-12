@@ -82,7 +82,13 @@ public sealed class WorkerShell(
             await using var scope = scopes.CreateAsyncScope();
             var store = scope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
             var result = await store.FinalizeAsync(claim, ct);
-            disposition = "processed";
+            disposition = result switch
+            {
+                TrackingWorkDisposition.Processed => "processed",
+                TrackingWorkDisposition.NeedsReconciliation => "needs_reconciliation",
+                TrackingWorkDisposition.Stale => "stale",
+                _ => "other"
+            };
             logger.LogInformation("Tracking worker disposition {Disposition}", result);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { disposition = "cancelled"; }

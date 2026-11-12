@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Net;
 using Microsoft.Extensions.Configuration;
+using HarborOps.Infrastructure.Observability;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
@@ -19,9 +20,13 @@ public static class M17WorkerTelemetry
     public static readonly ActivitySource Traces = new(SourceName, "1.0.0");
     private static readonly Meter Meter = new(MeterName, "1.0.0");
     private static int enabled;
+    private static byte[]? linkKey;
     private static int running;
     private static double backlogAgeSeconds = -1;
     public static bool Enabled => Volatile.Read(ref enabled) == 1;
+
+    public static string? LinkDigest(string? correlation) =>
+        linkKey is { } key ? M17CorrelationDigest.FromServerCorrelation(correlation, key) : null;
     private static readonly Counter<long> SamplingDrops =
         Meter.CreateCounter<long>("harborops.telemetry.dropped", "{records}");
     private static readonly Counter<long> Attempts =
@@ -80,6 +85,7 @@ public static class M17WorkerTelemetry
             throw new InvalidOperationException(
                 "M17 worker export requires the internal otelcol:4317 endpoint or loopback:4317");
 
+        linkKey = M17CorrelationDigest.RequireKey(builder.Configuration["M17:LinkKey"]);
         Volatile.Write(ref enabled, 1);
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(r => r.AddService("harborops-tracking-worker"))

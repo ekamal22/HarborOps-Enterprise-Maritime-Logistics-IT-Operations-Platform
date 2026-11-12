@@ -1,6 +1,6 @@
 # Reproducible Demonstration Scenarios
 
-**Current verified baseline (2026-11-08):** G0-G12 and G16 accepted and merged. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records the 388/388 integration, 48/48 browser, 17/17 effective mutant and N01 10/10 evidence. Earlier source-only and pending verification banners are historical, not current. Preserve the M9 ARRI/DEPA hold, 10,000 unresolved-item cap, default-off M10 projector, null ETA and opt-in M11 evaluator; no deployment.
+**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and integrated into `main`. G13 is conditionally accepted and merged via PR #38 at `b2856449c8d1ab629c8b5419a5af0ebddafbb47d`, with reviewer independence not attested. G15 remains not accepted or merged. Other pending gates remain unchanged. The M9 transport hold, default-off services, no notification retention deletion and no deployment authorization remain binding. See [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md).
 
 ## Demo dataset contract
 

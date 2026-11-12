@@ -1,6 +1,6 @@
 # Parallel Delivery and Integration Policy
 
-**Current project state (2026-11-08):** G0-G12 and G16 are accepted and integrated on `main` following [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and PR #33. Earlier source-only and gate-pending notes are superseded; retained dated evidence still describes its original run. M9's ARRI/DEPA hold and 10,000-item cap remain mandatory, M10 projector defaults off, ETA null, M11 evaluator opt-in. There is no authorization for deployment or additional GitHub Actions runs.
+**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and integrated into `main`. G13 is conditionally accepted and merged via PR #38 at `b2856449c8d1ab629c8b5419a5af0ebddafbb47d`, with reviewer independence not attested. G15 remains not accepted or merged. Other pending gates remain unchanged. The M9 transport hold, default-off services, no notification retention deletion and no deployment authorization remain binding. See [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md).
 
 **Version:** 1.1  
 **Updated:** 2026-11-04  

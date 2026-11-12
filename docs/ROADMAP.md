@@ -1,11 +1,11 @@
 # HarborOps Delivery Roadmap
 
-**Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
+**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and integrated into protected `main`. G13 is conditionally accepted and merged through PR #38 at `b2856449c8d1ab629c8b5419a5af0ebddafbb47d`, with formal reviewer independence not attested. G15 is not accepted or merged. M9 transport controls, default-off services, no retention deletion and no deployment remain in force. See [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md).
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-08  
-**State:** G0-G12 and G16 accepted and integrated into `main` through PR #33 and PR #34. G13-G15 and G17-G24 remain open. The M9 transport-processing hold and all deployment restrictions remain mandatory.
+**Updated status:** 2026-11-12
+**State:** G0-G12 and G16 accepted and merged. G13 conditionally accepted and merged through PR #38, with reviewer independence not attested. G15 and other unaccepted gates remain open. No deployment.
 
 ## Authority and rationale
 

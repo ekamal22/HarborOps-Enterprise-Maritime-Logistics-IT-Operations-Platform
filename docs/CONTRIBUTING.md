@@ -42,6 +42,10 @@ M10-L01 through M10-L14 were approved on 2026-11-07 with revised L07/L14 and con
 - Avoid claims of external affiliation, certification, deployment, or compliance that cannot be supported.
 - Do not include private customer information or identifying details in issue examples, screenshots, or fixtures.
 
+## M17 implementation and evidence discipline
+
+For observability changes follow [M17 implementation](M17_IMPLEMENTATION_PLAN.md), [M17 policy proposals](M17_POLICY_PROPOSAL_20261112.md), [G17 verification](M17_VERIFICATION_PLAN.md) and [the 75-assertion inventory](M17_G17_ASSERTION_INVENTORY_20261112.json). Keep new exporter and dashboard disabled by default and internal-only; instrumentation must not modify accepted API/SQL/session/audit behavior. Never add high-cardinality tenant/user identifiers or private payloads to metric labels, trace spans, screenshots or logs. Use a source-locked disposable E:-backed campaign, preserve failed evidence, review negative privacy/outage tests and obtain independent G17-S25 assessment before requesting acceptance. Docs-only M17 planning does not authorize Actions dispatch or implementation.
+
 ## Definition of done
 
 A change is done only when:

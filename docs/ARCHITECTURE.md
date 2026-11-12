@@ -1,5 +1,7 @@
 # Architecture
 
+**M17 design status (2026-11-12):** [M17 architecture](M17_ARCHITECTURE_DESIGN.md) and [M17 implementation](M17_IMPLEMENTATION_PLAN.md) define a proposed opt-in telemetry stack. The diagram below shows intended future observability, not deployed or accepted runtime capability. Existing API structured logs, server-generated correlation and health endpoints remain the only established baseline. G17 implementation and acceptance pending.
+
 **Current G15 acceptance, 2026-11-12:** G15 and G15-S25 are **ACCEPTED** following source-locked run 43178122017 at `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35`; PR #44 merged the accepted remediation to `main` at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Reviewer-separation attestation is an explicitly disclosed procedural exception. P10 fail-closed, P12 deletion disabled, delivery default-off, and no production deployment remain in force. [Acceptance decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge record](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
 

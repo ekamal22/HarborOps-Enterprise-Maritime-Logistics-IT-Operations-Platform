@@ -1,0 +1,769 @@
+{
+  "schema_version": 1,
+  "gate": "G17",
+  "milestone": "M17",
+  "source_baseline": "056b3a77f6520ac7555890f4666b368ccd351d79",
+  "prepared_on": "2026-11-12",
+  "state": "PLANNED_NOT_EXECUTED",
+  "policies": "PENDING_P01_P09",
+  "technical_review": "NOT_EXECUTED",
+  "gate_acceptance": "NOT_ACCEPTED",
+  "scope": {
+    "scenarios": 25,
+    "atomic_assertions": 75,
+    "implemented": 0,
+    "executed": 0
+  },
+  "scenarios": [
+    {
+      "id": "G17-S01",
+      "name": "Source/contract conformity",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Source tree inventory, contract checker, diff against accepted main and signed policy register",
+      "layer": "Source / review",
+      "assertions": [
+        {
+          "id": "G17-S01-A01",
+          "expected": "all four work packages implemented",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S01-A02",
+          "expected": "approved P01-P09 and exact instrument mapping match source",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S01-A03",
+          "expected": "no unapproved default service, API or migration changes",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S02",
+      "name": "Metric schema and type",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Meter listener unit tests, raw collector samples, metric dictionary comparison",
+      "layer": "Unit / metrics",
+      "assertions": [
+        {
+          "id": "G17-S02-A01",
+          "expected": "each metric has exact name/type/unit",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S02-A02",
+          "expected": "no duplicate request counters",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S02-A03",
+          "expected": "histogram produces nonzero latency samples",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S03",
+      "name": "Existing health preservation",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Real HTTP plus disposable DB stop/restart and health-contract regressions",
+      "layer": "Integration / health",
+      "assertions": [
+        {
+          "id": "G17-S03-A01",
+          "expected": "live stays responsive with DB down",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S03-A02",
+          "expected": "ready goes unavailable on DB stop or absent seed within budget",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S03-A03",
+          "expected": "existing JSON/status paths unchanged",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S04",
+      "name": "Server-controlled correlation",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Header injection, JSON/log match and audit regression",
+      "layer": "Contract / tracing",
+      "assertions": [
+        {
+          "id": "G17-S04-A01",
+          "expected": "response correlation generated on server",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S04-A02",
+          "expected": "error and structured log scope use same value",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S04-A03",
+          "expected": "client-supplied correlation cannot spoof it",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S05",
+      "name": "Label allowlist",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Raw OTLP scrape and canary scanner",
+      "layer": "Security / metrics",
+      "assertions": [
+        {
+          "id": "G17-S05-A01",
+          "expected": "metric attributes contain only approved keys",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S05-A02",
+          "expected": "no user/tenant/request/SQL fields",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S05-A03",
+          "expected": "unknown route has stable fallback",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S06",
+      "name": "Cardinality and memory bound",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "High-cardinality generator, listener census and memory samples",
+      "layer": "Load / security",
+      "assertions": [
+        {
+          "id": "G17-S06-A01",
+          "expected": "10,000 distinct routes/identifiers stay within approved active series cap",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S06-A02",
+          "expected": "overflow coalesces",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S06-A03",
+          "expected": "memory does not grow without bound",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S07",
+      "name": "Valid context propagation",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Real HTTP plus spans/logs and authorized DB read",
+      "layer": "Integration / tracing",
+      "assertions": [
+        {
+          "id": "G17-S07-A01",
+          "expected": "W3C valid trace context accepted without altering auth",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S07-A02",
+          "expected": "API -> safe DB work connected by trace",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S07-A03",
+          "expected": "original audit correlation preserved",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S08",
+      "name": "Invalid context rejection",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Parser fuzz/canary tests and trace inspection",
+      "layer": "Security / tracing",
+      "assertions": [
+        {
+          "id": "G17-S08-A01",
+          "expected": "malformed traceparent/tracestate handled safely",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S08-A02",
+          "expected": "oversized baggage ignored",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S08-A03",
+          "expected": "no raw header is exported, no 500",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S09",
+      "name": "DB timing and outages",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Disposable PG interruption, sanitized spans/JSON, HTTP response",
+      "layer": "Integration / DB",
+      "assertions": [
+        {
+          "id": "G17-S09-A01",
+          "expected": "successful bounded DB operation emits duration/outcome",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S09-A02",
+          "expected": "outage emits classified failure without secret SQL",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S09-A03",
+          "expected": "business error contract remains unchanged",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S10",
+      "name": "Worker status and hold",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Default Compose check and explicit opt-in fixture",
+      "layer": "Integration / worker",
+      "assertions": [
+        {
+          "id": "G17-S10-A01",
+          "expected": "worker that is intentionally disabled/held remains labelled disabled/held",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S10-A02",
+          "expected": "enabled disposable worker emits correct attempts/outcomes",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S10-A03",
+          "expected": "no worker auto-start",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S11",
+      "name": "Asynchronous causal linking",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Inbox/work/retry test with raw trace and existing source IDs checked privately",
+      "layer": "Integration / worker",
+      "assertions": [
+        {
+          "id": "G17-S11-A01",
+          "expected": "authorized worker work links safely to source or documented correlation",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S11-A02",
+          "expected": "fabricated parent/tenant trace context rejected",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S11-A03",
+          "expected": "replay/retry has unique bounded spans",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S12",
+      "name": "Bounded exporter failures",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Kill collector, burst injection, memory/drops and application comparison",
+      "layer": "Fault / export",
+      "assertions": [
+        {
+          "id": "G17-S12-A01",
+          "expected": "collector down does not change API response, transaction or readiness",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S12-A02",
+          "expected": "export queue bounded/drops counted",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S12-A03",
+          "expected": "exporter recoverable without manual data repair",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S13",
+      "name": "Security redaction",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Seeded canary scanner across raw artifacts and role isolation checks",
+      "layer": "Security / privacy",
+      "assertions": [
+        {
+          "id": "G17-S13-A01",
+          "expected": "secrets, cookies, personal canaries and SQL values absent from logs, spans and metric labels",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S13-A02",
+          "expected": "sanitized errors still diagnose component and type",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S13-A03",
+          "expected": "retained M16 audit is not exposed",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S14",
+      "name": "Tenant and authorization isolation",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Two-tenant role/session matrix and sanitized evidence",
+      "layer": "Security / API",
+      "assertions": [
+        {
+          "id": "G17-S14-A01",
+          "expected": "cross-organization request produces same denial as baseline",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S14-A02",
+          "expected": "telemetry does not disclose tenant detail",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S14-A03",
+          "expected": "instrumentation cannot elevate a role",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S15",
+      "name": "Restart and cancellation",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Process/cancellation/recovery probes with original state invariants",
+      "layer": "Fault / lifecycle",
+      "assertions": [
+        {
+          "id": "G17-S15-A01",
+          "expected": "process restart and canceled request do not leak stale spans or requests",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S15-A02",
+          "expected": "shutdown drain is bounded",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S15-A03",
+          "expected": "no duplicated business effect or worker lease change",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S16",
+      "name": "Private stack exposure",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Compose config, listener/network probe from separate namespace, local permissions",
+      "layer": "Security / ops",
+      "assertions": [
+        {
+          "id": "G17-S16-A01",
+          "expected": "default Compose contains no collector/dashboard",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S16-A02",
+          "expected": "optional dashboard bound loopback",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S16-A03",
+          "expected": "collector not exposed externally, untrusted reads denied",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S17",
+      "name": "Alert triggers and clears",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Deterministic signal replay, live controlled fault and alert state transition ledger",
+      "layer": "Alerts / ops",
+      "assertions": [
+        {
+          "id": "G17-S17-A01",
+          "expected": "controlled 5xx/latency/readiness faults trigger configured alerts",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S17-A02",
+          "expected": "threshold/window evidence exact",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S17-A03",
+          "expected": "clear/hysteresis works after recovery",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S18",
+      "name": "Low-traffic and disabled suppression",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Startup/quiet profile test and worker flag matrix",
+      "layer": "Alerts / ops",
+      "assertions": [
+        {
+          "id": "G17-S18-A01",
+          "expected": "zero/low traffic is unknown/insufficient, not healthy",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S18-A02",
+          "expected": "held workers cause no false failure alert",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S18-A03",
+          "expected": "cool-down deduplicates repeat alerts",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S19",
+      "name": "Local dashboard rendering",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Chromium, Firefox, WebKit browser suites and raw collector crosscheck",
+      "layer": "Browser / UI",
+      "assertions": [
+        {
+          "id": "G17-S19-A01",
+          "expected": "critical panels show actual live measurement",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S19-A02",
+          "expected": "unknown/unavailable have explicit distinct states",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S19-A03",
+          "expected": "alert links only sanitized diagnostic evidence",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S20",
+      "name": "End-to-end fault journey",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Full diagnostic session with screenshots, spans, logs, SQL/alert witness",
+      "layer": "End-to-end",
+      "assertions": [
+        {
+          "id": "G17-S20-A01",
+          "expected": "browser/API fault yields server correlation",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S20-A02",
+          "expected": "trace to DB/worker or documented async bridge resolves",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S20-A03",
+          "expected": "dashboard alert names correct component without private payload",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S21",
+      "name": "Performance overhead",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Three paired normal/burst benchmark runs with per-sample raw output",
+      "layer": "Load / resource",
+      "assertions": [
+        {
+          "id": "G17-S21-A01",
+          "expected": "paired workload measurement meets approved p95 and memory budgets",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S21-A02",
+          "expected": "exact environment/variance reported",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S21-A03",
+          "expected": "pressure does not block business",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S22",
+      "name": "Storage and retention isolation",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Storage-full fixture, read-only baseline checks, verified volume ownership",
+      "layer": "Fault / retention",
+      "assertions": [
+        {
+          "id": "G17-S22-A01",
+          "expected": "local telemetry capped and expires only its own disposable data",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S22-A02",
+          "expected": "full store degrades observation safely",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S22-A03",
+          "expected": "M8/M11/M15/M16 retained data unchanged",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S23",
+      "name": "Defaults and regression",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Default Compose and test matrix with before/after source inventory",
+      "layer": "Regression",
+      "assertions": [
+        {
+          "id": "G17-S23-A01",
+          "expected": "M9/M10/M11/M13/M15 opt-in/hold semantics unchanged",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S23-A02",
+          "expected": "accepted authorization/health/audit APIs preserved",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S23-A03",
+          "expected": "changed source build, .NET regression and targeted browser suites pass",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S24",
+      "name": "Evidence integrity",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Evidence verifier tests, manifest digest and JSON/TRX reconciliation",
+      "layer": "Evidence / reviewer",
+      "assertions": [
+        {
+          "id": "G17-S24-A01",
+          "expected": "every claimed assertion maps to real source-locked result",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S24-A02",
+          "expected": "source hashes and manifests complete/no unlisted files",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S24-A03",
+          "expected": "negative control rejects tampering, skip and wrong SHA",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    },
+    {
+      "id": "G17-S25",
+      "name": "Independent review and gate recommendation",
+      "status": "NOT_EXECUTED",
+      "planned_witness": "Independent review file and formal G17 decision record",
+      "layer": "Manual / approval",
+      "assertions": [
+        {
+          "id": "G17-S25-A01",
+          "expected": "separate reviewer checks raw source, privacy, metrics and full cases",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S25-A02",
+          "expected": "policy and procedural exceptions disclosed",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        },
+        {
+          "id": "G17-S25-A03",
+          "expected": "reviewer issues explicit signed PASS/NOT PASS before G17 acceptance",
+          "status": "NOT_EXECUTED",
+          "witness": null,
+          "reviewer_disposition": null
+        }
+      ]
+    }
+  ]
+}

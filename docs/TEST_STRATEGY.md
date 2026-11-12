@@ -1,11 +1,17 @@
 # Test and Verification Strategy
 
+**M17 planning checkpoint (2026-11-12):** M17 observability has an end-to-end proposed implementation and G17 verification package, including 25 unexecuted scenarios and 75 unexecuted atomic assertions. P01-P09 telemetry policies require explicit decisions. **G17 remains not accepted and no M17 runtime feature is installed or activated by this documentation.** [Planning status](M17_PLANNING_STATUS.md) | [Architecture](M17_ARCHITECTURE_DESIGN.md) | [Implementation](M17_IMPLEMENTATION_PLAN.md) | [G17 matrix](M17_VERIFICATION_PLAN.md).
+
 **Turkish interface integration (2026-11-12):** Accepted and merged via [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) at `c81e54bfef25a0ff957f27b488ab7bd420551244`. Source-locked [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246) passed 41/41 frontend and 99/99 three-browser checks. G13 conditional and G15 accepted gate dispositions remain unchanged; no G24 release or production rollout is authorized. [Integration acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
 
 **Current G15 acceptance, 2026-11-12:** G15 and G15-S25 are **ACCEPTED** following source-locked run 43178122017 at `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35`; PR #44 merged the accepted remediation to `main` at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Reviewer-separation attestation is an explicitly disclosed procedural exception. P10 fail-closed, P12 deletion disabled, delivery default-off, and no production deployment remain in force. [Acceptance decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge record](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
 
 
+
+## M17 source-locked assurance plan, 2026-11-12
+
+M17 is planning-only, and its G17 scenarios are unexecuted. The [G17 verification plan](M17_VERIFICATION_PLAN.md) and [machine-readable 75-assertion inventory](M17_G17_ASSERTION_INVENTORY_20261112.json) specify raw unit, contract, PostgreSQL, worker, Chromium/Firefox/WebKit, privacy, outage, cardinality, alert and resource-budget evidence. Require exact source SHAs, verified file manifests, no skipped/retried required cases, independent review and separate gate acceptance. Do not dispatch a new hosted campaign by editing docs alone.
 
 ## Current G10 source verification boundary
 

@@ -1,4 +1,6 @@
 using HarborOps.Domain.Tracking;
+using HarborOps.Worker.Observability;
+using System.Diagnostics;
 using HarborOps.Infrastructure.Integrations;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -70,6 +72,9 @@ public sealed class WorkerShell(
         }
         if (claim is null) return;
 
+        using var span = M17WorkerTelemetry.Traces.StartActivity("tracking.process");
+        var startTimestamp = Stopwatch.GetTimestamp();
+        var disposition = "other";
         using var renewalCancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
         var heartbeat = MaintainLeaseAsync(claim, renewalCancellation.Token);
         try
@@ -77,12 +82,14 @@ public sealed class WorkerShell(
             await using var scope = scopes.CreateAsyncScope();
             var store = scope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
             var result = await store.FinalizeAsync(claim, ct);
+            disposition = "processed";
             logger.LogInformation("Tracking worker disposition {Disposition}", result);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { disposition = "cancelled"; }
         catch (PostgresException conflict) when (conflict.SqlState == PostgresErrorCodes.CheckViolation &&
             conflict.ConstraintName == "CK_m9_effect_reference")
         {
+            disposition = "reference_conflict";
             try
             {
                 await using var scope = scopes.CreateAsyncScope();
@@ -105,6 +112,7 @@ public sealed class WorkerShell(
                 _ => false
             };
             var code = retryable ? "transient_dependency" : "processor_error";
+            disposition = retryable ? "retry" : "failure";
             logger.LogWarning("Tracking worker failure ({Type}, {Code})",
                 error.GetType().Name, code);
             try
@@ -123,6 +131,7 @@ public sealed class WorkerShell(
         }
         finally
         {
+            M17WorkerTelemetry.ObserveAttempt(disposition, Stopwatch.GetElapsedTime(startTimestamp));
             renewalCancellation.Cancel();
             try { await heartbeat; }
             catch (OperationCanceledException) when (renewalCancellation.IsCancellationRequested) { }

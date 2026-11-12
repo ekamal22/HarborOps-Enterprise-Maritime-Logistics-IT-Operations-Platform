@@ -82,7 +82,7 @@ try {
     if ($StartDisposableStack) {
         foreach ($variable in @('HARBOROPS_DB_PASSWORD', 'HARBOROPS_API_DB_PASSWORD',
             'HARBOROPS_WORKER_DB_PASSWORD', 'HARBOROPS_M10_CORRECTION_PROOF_KEY',
-            'HARBOROPS_M17_GRAFANA_PASSWORD')) {
+            'HARBOROPS_M17_GRAFANA_PASSWORD', 'HARBOROPS_M17_LINK_KEY')) {
             if (![Environment]::GetEnvironmentVariable($variable)) {
                 throw "An ephemeral disposable secret is required: $variable"
             }

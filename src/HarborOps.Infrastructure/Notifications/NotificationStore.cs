@@ -108,6 +108,20 @@ public sealed class NotificationStore(
         read_at_utc,acknowledged_at_utc,version
         """;
 
+    // The selected session is separately authorized by the signed RLS policy.
+    // This lookup supplies index keys, never replaces the SQL read authority.
+    private async Task<(Guid Id, long Version)> CurrentMembershipAsync(
+        NpgsqlTransaction tx, Guid org, Guid user, CancellationToken ct)
+    {
+        await using var cmd = Command(Connection, tx, """
+            SELECT id,version FROM organization_memberships
+            WHERE organization_id=@org AND user_id=@user AND status='Active'
+            """,("org",org),("user",user));
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return (Guid.Empty, 0);
+        return (reader.GetGuid(0),reader.GetInt64(1));
+    }
+
     public async Task<NotificationPage> ListAsync(Guid org, Guid user, Guid session,
         string state, DateTimeOffset? afterUtc, Guid? afterId, DateTimeOffset? cutoff,
         int limit, CancellationToken ct)
@@ -118,6 +132,7 @@ public sealed class NotificationStore(
             await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
                 IsolationLevel.ReadCommitted, ct);
             await SetReadScopeAsync(tx, org, user, session, ct);
+            var (membershipId,membershipVersion) = await CurrentMembershipAsync(tx,org,user,ct);
             DateTimeOffset snapshot;
             await using (var clock = Command(Connection, tx, "SELECT clock_timestamp()"))
             await using (var clockReader = await clock.ExecuteReaderAsync(ct))
@@ -148,13 +163,16 @@ public sealed class NotificationStore(
             await using (var cmd = Command(Connection, tx, $"""
                 SELECT {Columns} FROM m15_user_notifications
                 WHERE organization_id=@org AND recipient_user_id=@user
+                  AND membership_id=@membership AND membership_version=@membershipVersion
                   AND created_at_utc <= @cutoff
                   AND (@afterUtc::timestamptz IS NULL OR
                        (created_at_utc,id)<(@afterUtc::timestamptz,@afterId::uuid))
                   {statePredicate}
                 ORDER BY created_at_utc DESC,id DESC LIMIT @take
                 """,
-                ("org",org),("user",user),("cutoff",snapshot),
+                ("org",org),("user",user),
+                ("membership",membershipId),("membershipVersion",membershipVersion),
+                ("cutoff",snapshot),
                 ("afterUtc",(object?)afterUtc ?? DBNull.Value),
                 ("afterId",(object?)afterId ?? DBNull.Value),
                 ("take",limit+1)))
@@ -205,15 +223,19 @@ public sealed class NotificationStore(
         {
             await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(ct);
             await SetReadScopeAsync(tx, org, user, session, ct);
+            var (membershipId,membershipVersion) = await CurrentMembershipAsync(tx,org,user,ct);
             long count;
             DateTimeOffset now;
             await using (var cmd = Command(Connection, tx, """
                 SELECT COUNT(*),clock_timestamp() FROM (
                     SELECT 1 FROM m15_user_notifications
                     WHERE organization_id=@org AND recipient_user_id=@user
+                        AND membership_id=@membership AND membership_version=@membershipVersion
                         AND read_at_utc IS NULL
                     LIMIT @cap) bounded
-                """, ("org",org),("user",user),("cap",UnreadCountCap + 1)))
+                """, ("org",org),("user",user),
+                ("membership",membershipId),("membershipVersion",membershipVersion),
+                ("cap",UnreadCountCap + 1)))
             await using (var reader = await cmd.ExecuteReaderAsync(ct))
             {
                 if (!await reader.ReadAsync(ct))

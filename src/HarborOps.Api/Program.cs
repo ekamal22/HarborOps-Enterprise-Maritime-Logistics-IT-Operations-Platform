@@ -9,6 +9,7 @@ using HarborOps.Api.Assignments;
 using HarborOps.Api.Integrations;
 using HarborOps.Api.Audit;
 using HarborOps.Api.Exceptions;
+using HarborOps.Api.Reporting;
 using HarborOps.Infrastructure.Audit;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
@@ -36,6 +37,14 @@ if (string.IsNullOrWhiteSpace(connectionString))
 // Reject invalid intake quotas before the API can accept any request.
 _ = TrackingInboxStore.ReadPendingLimit(builder.Configuration);
 builder.Services.AddHarborOpsPersistence(connectionString);
+// The narrow idle sweeper is opt-in (default off) and, when enabled, runs only
+// under the dedicated restricted API login. It removes expired reporting
+// snapshots, never notification or M11 history. Request-scoped bounded expiry
+// handling during report builds stays active regardless of this switch.
+if (builder.Configuration.GetValue<bool>("M13:EnableIdleCleanup") &&
+    string.Equals(new Npgsql.NpgsqlConnectionStringBuilder(connectionString).Username,
+    "harborops_api", StringComparison.Ordinal))
+    builder.Services.AddHostedService<OperationalKpiCleanupService>();
 builder.Services.AddHarborOpsAuthentication(builder.Configuration);
 builder.Services.AddSingleton<IntegrationRequestLimiter>();
 builder.Services.AddScoped<TrackingWorkAdminStore>();
@@ -171,6 +180,7 @@ app.MapTrackingEndpoints();
 app.MapTrackingWorkEndpoints();
 app.MapShipmentTimelineEndpoints();
 app.MapShipmentExceptionEndpoints();
+app.MapOperationalKpiEndpoints();
 app.MapAuditEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions

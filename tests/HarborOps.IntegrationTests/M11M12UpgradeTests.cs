@@ -29,7 +29,7 @@ public sealed class M11M12UpgradeTests
     }
 
     [Fact]
-    public async Task PopulatedAcceptedThirteenMigrationDatabaseSurvivesFifteenMigrationUpgrade()
+    public async Task PopulatedAcceptedThirteenMigrationDatabaseSurvivesSeventeenMigrationUpgrade()
     {
         var schema = "m1112_upgrade_" + Guid.NewGuid().ToString("N");
         var scoped = M10UpgradeTests.Scoped(schema);
@@ -44,7 +44,7 @@ public sealed class M11M12UpgradeTests
             {
                 await before.Database.MigrateAsync(AcceptedMainHead);
                 Assert.Equal(13, (await before.Database.GetAppliedMigrationsAsync()).Count());
-                Assert.Equal(2, (await before.Database.GetPendingMigrationsAsync()).Count());
+                Assert.Equal(4, (await before.Database.GetPendingMigrationsAsync()).Count());
             }
 
             using (var factory = new ReferenceDataHttpTests.ApiFactory(scoped))
@@ -68,7 +68,7 @@ public sealed class M11M12UpgradeTests
                 new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(scoped).Options))
             {
                 await upgraded.Database.MigrateAsync();
-                Assert.Equal(15, (await upgraded.Database.GetAppliedMigrationsAsync()).Count());
+                Assert.Equal(17, (await upgraded.Database.GetAppliedMigrationsAsync()).Count());
                 Assert.Empty(await upgraded.Database.GetPendingMigrationsAsync());
                 Assert.False(upgraded.Database.HasPendingModelChanges());
             }
@@ -87,7 +87,7 @@ public sealed class M11M12UpgradeTests
                 Assert.Equal(13, (await rollback.Database.GetAppliedMigrationsAsync()).Count());
                 Assert.Equal(acceptedBefore, await AcceptedFingerprint(scoped));
                 await rollback.Database.MigrateAsync();
-                Assert.Equal(15, (await rollback.Database.GetAppliedMigrationsAsync()).Count());
+                Assert.Equal(17, (await rollback.Database.GetAppliedMigrationsAsync()).Count());
                 Assert.False(rollback.Database.HasPendingModelChanges());
             }
             Assert.Equal(acceptedBefore, await AcceptedFingerprint(scoped));

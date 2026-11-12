@@ -130,7 +130,7 @@ public sealed class M10UpgradeTests
             Assert.Equal(11, (await db2.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Contains(M10, await db2.Database.GetPendingMigrationsAsync());
             await db2.Database.MigrateAsync();
-            Assert.Equal(15, (await db2.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(17, (await db2.Database.GetAppliedMigrationsAsync()).Count());
             Assert.False(db2.Database.HasPendingModelChanges());
 
             // Backfill: one immutable entry per historical effect, matching the M8 event exactly.
@@ -186,13 +186,13 @@ public sealed class M10UpgradeTests
             await using var db3 = new HarborOpsDbContext(
                 new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(emptyScoped).Options);
             await db3.Database.MigrateAsync();
-            Assert.Equal(15, (await db3.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(17, (await db3.Database.GetAppliedMigrationsAsync()).Count());
             await db3.Database.MigrateAsync(M9);
             Assert.Equal(11, (await db3.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(false, await Scalar(emptyScoped,
                 $"SELECT to_regclass('\"{empty}\".shipment_tracking_timeline_entries') IS NOT NULL"));
             await db3.Database.MigrateAsync();
-            Assert.Equal(15, (await db3.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(17, (await db3.Database.GetAppliedMigrationsAsync()).Count());
             Assert.False(db3.Database.HasPendingModelChanges());
 
             // Retained correction-authority evidence blocks the downgrade of the thirteenth migration.
@@ -309,7 +309,7 @@ public sealed class M10UpgradeTests
 
             // Upgrade the populated twelve-migration database.
             await db12.Database.MigrateAsync();
-            Assert.Equal(15, (await db12.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(17, (await db12.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Empty(await db12.Database.GetPendingMigrationsAsync());
             Assert.False(db12.Database.HasPendingModelChanges());
             Assert.Equal(m10Before, await M10Fingerprint(scoped));
@@ -331,7 +331,7 @@ public sealed class M10UpgradeTests
             Assert.Equal(12, (await db12.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(m10Before, await M10Fingerprint(scoped));
             await db12.Database.MigrateAsync();
-            Assert.Equal(15, (await db12.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(17, (await db12.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(m10Before, await M10Fingerprint(scoped));
             Assert.Equal(evidenceBefore, await Fingerprint(scoped));
         }

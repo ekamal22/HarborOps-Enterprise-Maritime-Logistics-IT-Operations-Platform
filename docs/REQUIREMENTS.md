@@ -99,6 +99,9 @@ M9-01 to M9-04 implement the worker-claim, bounded retry/dead-letter and receipt
 | NFR-003 | Confidentiality | No credentials, tokens, sensitive payloads, or private customer data in logs |
 | NFR-004 | Reliability | Event replay is safe after process restart and repeated delivery |
 | NFR-005 | Observability | User-facing failures can be correlated with structured logs, metrics, and traces |
+
+**NFR-005 implementation planning note (2026-11-12):** This unchanged requirement is assigned to [M17 architecture](M17_ARCHITECTURE_DESIGN.md) and [G17 verification](M17_VERIFICATION_PLAN.md). The plan defines 25 scenarios and 75 distinct atomic assertions, with no executed G17 evidence yet. M17 metrics/traces must exclude private session, tenant and shipment identifiers, and must not replace M16 audit or alter authorization. G17 is not accepted.
+
 | NFR-006 | API stability | Public endpoints versioned; errors use a consistent structured envelope |
 | NFR-007 | Time handling | UTC at rest; no ambiguous local timestamp comparisons |
 | NFR-008 | Quality | Required test suites pass from a clean database and reproducible local setup |

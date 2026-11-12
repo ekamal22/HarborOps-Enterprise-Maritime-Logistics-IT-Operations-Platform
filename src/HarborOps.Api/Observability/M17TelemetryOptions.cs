@@ -22,7 +22,7 @@ public sealed record M17TelemetryOptions(bool Enabled, Uri Endpoint)
             endpoint.Query.Length != 0 ||
             endpoint.Fragment.Length != 0 ||
             !(string.Equals(endpoint.Host, "otelcol", StringComparison.OrdinalIgnoreCase) ||
-              (IPAddress.TryParse(endpoint.Host, out var address) && IPAddress.IsLoopback(address))))
+              (IPAddress.TryParse(endpoint.Host.Trim('[', ']'), out var address) && IPAddress.IsLoopback(address))))
             throw new InvalidOperationException(
                 "M17 export requires the internal otelcol:4317 endpoint or loopback:4317");
 

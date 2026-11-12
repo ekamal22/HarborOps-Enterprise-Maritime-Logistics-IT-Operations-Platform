@@ -47,6 +47,36 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
         return await cmd.ExecuteScalarAsync(ct) is bool active && active;
     }
 
+    // Read-only, restricted-role diagnostic used only when the M17 worker profile
+    // is explicitly enabled. No worker lease or business state is modified.
+    public async Task<double?> OldestEligibleBacklogAgeSecondsAsync(CancellationToken ct)
+    {
+        var connection = db.Database.GetDbConnection();
+        await db.Database.OpenConnectionAsync(ct);
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandTimeout = 5;
+            cmd.CommandText = """
+                SELECT EXTRACT(EPOCH FROM (clock_timestamp() - MIN(w.created_at_utc)))
+                FROM tracking_inbox_work_items w
+                JOIN organizations o ON o.id = w.organization_id
+                WHERE o.status = 'Active'
+                  AND ((w.state IN ('Pending','RetryWaiting')
+                        AND w.available_at_utc <= clock_timestamp())
+                    OR (w.state = 'Leased'
+                        AND w.lease_expires_at_utc <= clock_timestamp()))
+                """;
+            var scalar = await cmd.ExecuteScalarAsync(ct);
+            return scalar is null or DBNull ? null :
+                Math.Max(0, Convert.ToDouble(scalar, System.Globalization.CultureInfo.InvariantCulture));
+        }
+        finally
+        {
+            await db.Database.CloseConnectionAsync();
+        }
+    }
+
     public async Task<List<Guid>> CandidateOrganizationsAsync(Guid? after, CancellationToken ct)
     {
         var connection = db.Database.GetDbConnection();

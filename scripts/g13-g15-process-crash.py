@@ -21,7 +21,9 @@ PHASES = (
     ("G13BeforeReportCommit", None),
     ("G13DuringLiveApiBuild", "G13LiveBuildRecoveredInNewApiProcess"),
     ("G15BeforeHistoryCommit", None),
+    ("G15DuringRealM11HistoryWrite", "G15RealM11WriteRecoveredInNewApiProcess"),
     ("G15BeforeClaimCommit", "G15FanoutRecoveredInNewApiProcess"),
+    ("G15DuringRealDispatcherFanout", "G15FanoutRecoveredInNewApiProcess"),
     ("G15BeforeFanoutCommit", "G15FanoutRecoveredInNewApiProcess"),
     ("G15AfterFanoutCommit", "G15FanoutRecoveredInNewApiProcess"),
     ("G13AfterReportCommit", "G13AfterReportCommitRecoveredInNewApiProcess"),
@@ -86,6 +88,15 @@ def verify_phase(container: str, phase: str, marker: dict) -> None:
             f"WHERE organization_id='{org}'::uuid")
         if reports != 0 or members != 0:
             raise AssertionError("Killed live API report left partial committed state")
+    elif phase == "G15DuringRealM11HistoryWrite":
+        exceptions = sql_count(container,
+            f"SELECT count(*) FROM shipment_exceptions "
+            f"WHERE organization_id='{org}'::uuid AND shipment_id='{target}'::uuid")
+        outbox = sql_count(container,
+            f"SELECT count(*) FROM m15_notification_outbox "
+            f"WHERE organization_id='{org}'::uuid AND shipment_id='{target}'::uuid")
+        if exceptions or outbox:
+            raise AssertionError("Killed real M11 request left committed source or intent")
     elif phase == "G15BeforeHistoryCommit":
         facts = sql_count(container,
             f"SELECT count(*) FROM shipment_exception_history WHERE id='{target}'::uuid")
@@ -104,7 +115,7 @@ def verify_phase(container: str, phase: str, marker: dict) -> None:
         if count != 1 or members < 1:
             raise AssertionError("Committed report disappeared after process termination")
     elif phase in ("G15BeforeClaimCommit", "G15BeforeFanoutCommit",
-                   "G15AfterFanoutCommit"):
+                   "G15AfterFanoutCommit", "G15DuringRealDispatcherFanout"):
         outbox = sql_count(container,
             f"SELECT count(*) FROM m15_notification_outbox "
             f"WHERE source_history_id='{target}'::uuid "

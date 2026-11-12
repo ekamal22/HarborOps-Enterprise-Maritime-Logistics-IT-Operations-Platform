@@ -430,11 +430,19 @@ public sealed class G13G15CrashRecoveryTests
         var marker = await ReadMarker();
         Assert.Contains(marker.Phase, new[]
         {
-            "G15BeforeClaimCommit", "G15BeforeFanoutCommit", "G15AfterFanoutCommit"
+            "G15BeforeClaimCommit", "G15BeforeFanoutCommit", "G15AfterFanoutCommit", "G15DuringRealDispatcherFanout"
         });
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();
         await using var db = new NpgsqlConnection(roles.Admin);
         await db.OpenAsync();
+        if(marker.Phase=="G15DuringRealDispatcherFanout")
+        {
+            await using var unblock=new NpgsqlCommand("""
+                DROP TRIGGER IF EXISTS m15_s25_hold_dispatch ON m15_user_notifications;
+                DROP FUNCTION IF EXISTS m15_s25_hold_dispatch();
+                """,db);
+            await unblock.ExecuteNonQueryAsync();
+        }
         async Task<long> Count(string table)
         {
             await using var sql = new NpgsqlCommand(
@@ -582,4 +590,145 @@ public sealed class G13G15CrashRecoveryTests
         Assert.Equal(1L, Convert.ToInt64(await audit.ExecuteScalarAsync()));
         Console.WriteLine("G15_CRASH receipt_committed=true audit_once=true restored_reader=true");
     }
+
+    // Kill the actual API while an M11 HTTP evaluation is writing history.
+    [G13G15CrashFact]
+    public async Task G15DuringRealM11HistoryWrite()
+    {
+        var s=await M11ExceptionRuntimeTests.Prepare();
+        using var factory=s.Factory; using var runtime=s.Runtime;
+        using var manager=s.Manager; using var analyst=s.Analyst;
+        using var admin=s.Administrator;
+        using var sa=s.Fixture.Admin; using var sm=s.Fixture.Manager;
+        using var sl=s.Fixture.Analyst;
+        var shipment=await M11ExceptionRuntimeTests.ScheduledShipment(s);
+        await using var db=new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        await using (var trigger=new NpgsqlCommand("""
+            CREATE FUNCTION m15_s25_hold_history() RETURNS trigger
+            LANGUAGE plpgsql AS $f$ BEGIN
+                PERFORM pg_sleep(40);
+                RETURN NEW;
+            END $f$;
+            CREATE TRIGGER m15_s25_hold_history BEFORE INSERT ON shipment_exception_history
+            FOR EACH ROW EXECUTE FUNCTION m15_s25_hold_history();
+            """,db))
+            await trigger.ExecuteNonQueryAsync();
+        var inflight=ReferenceDataHttpTests.Send(manager,HttpMethod.Post,
+            $"/api/v1/organizations/{s.Fixture.A}/shipments/{shipment}/exceptions/evaluate");
+        var entered=false;
+        for(var i=0;i<120 && !inflight.IsCompleted;i++)
+        {
+            await using var probe=new NpgsqlCommand("""
+                SELECT COUNT(*) FROM pg_stat_activity WHERE usename='harborops_api'
+                    AND wait_event='PgSleep' AND query ILIKE '%shipment_exception_history%'
+                """,db);
+            if(Convert.ToInt64(await probe.ExecuteScalarAsync())>0) {entered=true;break;}
+            await Task.Delay(100);
+        }
+        Assert.True(entered && !inflight.IsCompleted,
+            "Real API M11 history write was not blocked at the crash boundary");
+        await MarkAndHold("G15DuringRealM11HistoryWrite",s.Fixture.A,
+            shipment,s.Fixture.ManagerEmail);
+    }
+
+    [G13G15CrashFact]
+    public async Task G15RealM11WriteRecoveredInNewApiProcess()
+    {
+        var marker=await ReadMarker();
+        Assert.Equal("G15DuringRealM11HistoryWrite",marker.Phase);
+        var roles=await M10RuntimeIdentityTests.ProvisionAsync();
+        await using var db=new NpgsqlConnection(roles.Admin);
+        await db.OpenAsync();
+        await using(var unblock=new NpgsqlCommand("""
+            DROP TRIGGER IF EXISTS m15_s25_hold_history ON shipment_exception_history;
+            DROP FUNCTION IF EXISTS m15_s25_hold_history();
+            """,db)) await unblock.ExecuteNonQueryAsync();
+        async Task<long> Count(string table)
+        {
+            await using var cmd=new NpgsqlCommand(
+                "SELECT COUNT(*) FROM "+table+" WHERE organization_id=@org AND shipment_id=@ship",db);
+            cmd.Parameters.AddWithValue("org",marker.Organization);
+            cmd.Parameters.AddWithValue("ship",marker.Target);
+            return Convert.ToInt64(await cmd.ExecuteScalarAsync());
+        }
+        Assert.Equal(0L,await Count("shipment_exceptions"));
+        Assert.Equal(0L,await Count("m15_notification_outbox"));
+        using var runtime=new ReferenceDataHttpTests.ApiFactory(roles.Api);
+        using var manager=runtime.CreateClient(new WebApplicationFactoryClientOptions
+            {HandleCookies=true});
+        await ReferenceDataHttpTests.Login(manager,marker.Email);
+        await ReferenceDataHttpTests.Select(manager,marker.Organization);
+        using(var response=await ReferenceDataHttpTests.Send(manager,HttpMethod.Post,
+            $"/api/v1/organizations/{marker.Organization}/shipments/{marker.Target}/exceptions/evaluate"))
+            Assert.Equal(HttpStatusCode.OK,response.StatusCode);
+        Assert.Equal(1L,await Count("shipment_exceptions"));
+        Assert.Equal(1L,await Count("m15_notification_outbox"));
+        await using(var scope=runtime.Services.CreateAsyncScope())
+            Assert.True(await scope.ServiceProvider.GetRequiredService<NotificationStore>()
+                .DeliverPendingAsync(CancellationToken.None)>0);
+        await using var receipts=new NpgsqlCommand("""
+            SELECT COUNT(*) FROM m15_user_notifications
+            WHERE organization_id=@org AND shipment_id=@ship
+            """,db);
+        receipts.Parameters.AddWithValue("org",marker.Organization);
+        receipts.Parameters.AddWithValue("ship",marker.Target);
+        Assert.True(Convert.ToInt64(await receipts.ExecuteScalarAsync())>0);
+    }
+
+    // The in-flight operation is the restricted dispatcher's real fanout.
+    [G13G15CrashFact]
+    public async Task G15DuringRealDispatcherFanout()
+    {
+        var s=await M11ExceptionRuntimeTests.Prepare();
+        using var factory=s.Factory; using var runtime=s.Runtime;
+        using var manager=s.Manager; using var analyst=s.Analyst;
+        using var admin=s.Administrator;
+        using var sa=s.Fixture.Admin; using var sm=s.Fixture.Manager;
+        using var sl=s.Fixture.Analyst;
+        var shipment=await M11ExceptionRuntimeTests.ScheduledShipment(s);
+        await M11ExceptionRuntimeTests.EvaluateAndFind(s,shipment);
+        await using var db=new NpgsqlConnection(s.Roles.Admin);
+        await db.OpenAsync();
+        Guid source;
+        await using(var cmd=new NpgsqlCommand("""
+            SELECT source_history_id FROM m15_notification_outbox
+            WHERE organization_id=@org AND shipment_id=@ship AND completed_at_utc IS NULL
+            ORDER BY created_at_utc LIMIT 1
+            """,db))
+        {
+            cmd.Parameters.AddWithValue("org",s.Fixture.A);
+            cmd.Parameters.AddWithValue("ship",shipment);
+            source=Assert.IsType<Guid>(await cmd.ExecuteScalarAsync());
+        }
+        await using(var trigger=new NpgsqlCommand($$"""
+            CREATE FUNCTION m15_s25_hold_dispatch() RETURNS trigger
+            LANGUAGE plpgsql AS $f$ BEGIN
+                IF NEW.source_history_id='{{source}}'::uuid THEN PERFORM pg_sleep(40); END IF;
+                RETURN NEW;
+            END $f$;
+            CREATE TRIGGER m15_s25_hold_dispatch BEFORE INSERT ON m15_user_notifications
+            FOR EACH ROW EXECUTE FUNCTION m15_s25_hold_dispatch();
+            """,db))
+            await trigger.ExecuteNonQueryAsync();
+        await using var scope=runtime.Services.CreateAsyncScope();
+        var inflight=scope.ServiceProvider.GetRequiredService<NotificationStore>()
+            .DeliverPendingAsync(CancellationToken.None);
+        var entered=false;
+        for(var i=0;i<120 && !inflight.IsCompleted;i++)
+        {
+            await using var probe=new NpgsqlCommand("""
+                SELECT COUNT(*) FROM pg_stat_activity WHERE usename='harborops_api'
+                    AND wait_event='PgSleep' AND query ILIKE '%m15_deliver_pending%'
+                """,db);
+            if(Convert.ToInt64(await probe.ExecuteScalarAsync())>0) {entered=true;break;}
+            await Task.Delay(100);
+        }
+        Assert.True(entered && !inflight.IsCompleted,
+            "Real API dispatcher was not blocked inside fanout at crash boundary");
+        await MarkAndHold("G15DuringRealDispatcherFanout",s.Fixture.A,
+            source,s.Fixture.ManagerEmail);
+    }
+
+
 }

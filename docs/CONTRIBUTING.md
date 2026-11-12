@@ -1,9 +1,15 @@
 # Engineering and Documentation Conventions
 
+**Turkish localization source integrated, 2026-11-12:** [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) merged at `c81e54bfef25a0ff957f27b488ab7bd420551244` following 41 passing frontend and 99 passing browser executions in [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246). All server-facing rules and default-off operational controls remain unchanged. [Verification and acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
+
 **G15 current disposition (2026-11-12):** G15/S25 **ACCEPTED** and merged into `main` via PR #44 (`49934d793542ef43cfe587c54b16cfd5cce8e2f4`). Tested source `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed run 43178122017; reviewer-independence attestation remains a disclosed procedural exception. G13 is still conditionally integrated. P10 fail-closed capture, P12 no deletion and default-off delivery remain mandatory; production rollout and G24 release are not approved. [Final decision](G15_S25_FINAL_ACCEPTANCE_20261112.md), [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
-G0-G12 and G16 are accepted. G13 and G15 remain conditionally accepted following their isolated integrations; G15 S25 independent acceptance remains pending.
+G0-G12, G15 and G16 are accepted and integrated. G13 remains conditionally accepted. G15 S25 was explicitly accepted with a disclosed reviewer-independence procedural exception; production deployment remains unauthorized.
 
+
+## Localization implementation conventions
+
+User-facing English labels used by the covered application workspaces should be included in `web/src/i18n/messages.mjs` for Turkish presentation through `useI18n`. Locale identifiers are `en` and `tr-TR`; language preference is stored in `harborops.language` and synchronized across tabs. Preserve every server-facing enum, state, key and permission; translate visible text only. Verify with `npm --prefix web test`, `npm --prefix web run build` and authenticated browser tests before integration. The accepted combined source-locked reference is [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246).
 
 ## Current G10 contribution boundary
 

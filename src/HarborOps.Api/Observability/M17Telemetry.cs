@@ -91,6 +91,13 @@ public static class M17Telemetry
             new KeyValuePair<string, object?>("outcome", healthy ? "healthy" : "unavailable"));
     }
 
+    public static void ObserveBaselineRead(bool successful, TimeSpan elapsed)
+    {
+        DatabaseDuration.Record(Math.Max(0, elapsed.TotalSeconds),
+            new KeyValuePair<string, object?>("operation", "baseline_read"),
+            new KeyValuePair<string, object?>("outcome", successful ? "success" : "unavailable"));
+    }
+
     public static void ObserveNotificationDelivery(bool successful)
     {
         WorkerAttempts.Add(1,

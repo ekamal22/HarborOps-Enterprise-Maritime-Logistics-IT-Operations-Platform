@@ -15,19 +15,19 @@ public static class M17Telemetry
     public static readonly ActivitySource Traces = new(TraceSourceName, "1.0.0");
 
     private static readonly Counter<long> FailedRequests =
-        Meter.CreateCounter<long>("harborops.request.failures", "{requests}");
+        Meter.CreateCounter<long>("harborops.request.failures");
     private static readonly Histogram<double> RequestDuration =
         Meter.CreateHistogram<double>("harborops.request.duration", "s");
     private static readonly Histogram<double> DatabaseDuration =
         Meter.CreateHistogram<double>("harborops.db.operation.duration", "s");
     private static readonly Counter<long> DeliveryAttempts =
-        Meter.CreateCounter<long>("harborops.worker.attempts", "{attempts}");
+        Meter.CreateCounter<long>("harborops.worker.attempts");
     private static readonly Counter<long> SamplingDrops =
-        Meter.CreateCounter<long>("harborops.telemetry.dropped", "{records}");
+        Meter.CreateCounter<long>("harborops.telemetry.dropped");
     private static readonly Counter<long> Heartbeats =
-        Meter.CreateCounter<long>("harborops.telemetry.heartbeat", "{heartbeats}");
+        Meter.CreateCounter<long>("harborops.telemetry.heartbeat");
     private static readonly Counter<long> TransportFailures =
-        Meter.CreateCounter<long>("harborops.telemetry.transport.failures", "{attempts}");
+        Meter.CreateCounter<long>("harborops.telemetry.transport.failures");
 
     private static int databaseReadiness = -1;
     private static long databaseSampleUnixSeconds;
@@ -40,7 +40,7 @@ public static class M17Telemetry
         _ = Meter.CreateObservableGauge<int>("harborops.db.readiness",
             () => Volatile.Read(ref databaseReadiness), "1");
         _ = Meter.CreateObservableGauge<long>("harborops.db.readiness_sample_unix_seconds",
-            () => Interlocked.Read(ref databaseSampleUnixSeconds), "s");
+            () => Interlocked.Read(ref databaseSampleUnixSeconds));
         _ = Meter.CreateObservableGauge<int>("harborops.telemetry.collector_reachable",
             () => Volatile.Read(ref collectorReachable), "1");
         _ = Meter.CreateObservableGauge<int>("harborops.service.running",

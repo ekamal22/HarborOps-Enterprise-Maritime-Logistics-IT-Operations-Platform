@@ -108,6 +108,26 @@ public sealed class M15ScaleLoadTests
         // partial-index-plus-sort plan that applies the per-row policy to every
         // row. Refresh statistics the way the G13 scale fixture does before the
         // measured reads. Policy, timeouts and budgets are unchanged.
+        // Probe the same restricted HTTP paths before refreshing planner statistics.
+        // A source-locked 1M-row success after ANALYZE alone cannot establish
+        // the stale-statistics operating envelope.
+        var rootBeforeAnalyze = $"/api/v1/organizations/{s.Fixture.A}/notifications";
+        async Task<long> CheckProbe(string label,string path,Func<JsonElement,long> evaluate)
+        {
+            var timer = Stopwatch.StartNew();
+            using var response = await manager.GetAsync(rootBeforeAnalyze + path);
+            timer.Stop();
+            Console.WriteLine($"G15_STALE_STATISTICS {label}={(int)response.StatusCode}/{timer.ElapsedMilliseconds}ms");
+            Assert.Equal(HttpStatusCode.OK,response.StatusCode);
+            Assert.True(timer.Elapsed < TimeSpan.FromSeconds(20),
+                $"Unanalyzed million-receipt {label} exceeded 20 seconds");
+            return evaluate(await response.Content.ReadFromJsonAsync<JsonElement>());
+        }
+        Assert.Equal(1000L,await CheckProbe("unread_count","/unread-count",
+            json=>json.GetProperty("unreadCount").GetInt64()));
+        Assert.Equal(50L,await CheckProbe("state_unread","?limit=50&state=Unread",
+            json=>json.GetProperty("items").GetArrayLength()));
+
         await using (var statistics = new NpgsqlCommand(
             "ANALYZE m15_user_notifications; ANALYZE m15_notification_outbox;", sql)
             { CommandTimeout = 300 })
@@ -198,5 +218,41 @@ public sealed class M15ScaleLoadTests
         Console.WriteLine(
             $"G15_SCALE receipts>={rows} seed_ms={seededMs} ready_ms={readyMs} " +
             $"pages=10 members=500 p50_ms={p50} p95_ms={p95}");
+
+        // Old receipts must become unreadable immediately when their membership
+        // version is superseded, even with a retained million-row backlog.
+        await using (var supersede = new NpgsqlCommand("""
+            UPDATE organization_memberships
+               SET version=version+1,updated_at_utc=clock_timestamp()
+            WHERE id=@membership AND organization_id=@org
+            """, sql))
+        {
+            supersede.Parameters.AddWithValue("membership",membership);
+            supersede.Parameters.AddWithValue("org",s.Fixture.A);
+            Assert.Equal(1,await supersede.ExecuteNonQueryAsync());
+        }
+        var restrictedClock=Stopwatch.StartNew();
+        using (var revokedCount=await manager.GetAsync(root+"/unread-count"))
+        {
+            restrictedClock.Stop();
+            Console.WriteLine($"G15_REVOKED_BACKLOG count_status={(int)revokedCount.StatusCode} ms={restrictedClock.ElapsedMilliseconds}");
+            Assert.Equal(HttpStatusCode.OK,revokedCount.StatusCode);
+            Assert.True(restrictedClock.Elapsed < TimeSpan.FromSeconds(20),
+                "Superseded million-row membership count exceeded 20 seconds");
+            var body=await revokedCount.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(0L,body.GetProperty("unreadCount").GetInt64());
+            Assert.False(body.GetProperty("unreadCountCapped").GetBoolean());
+        }
+        restrictedClock.Restart();
+        using (var revokedList=await manager.GetAsync(root+"?limit=50&state=Unread"))
+        {
+            restrictedClock.Stop();
+            Console.WriteLine($"G15_REVOKED_BACKLOG list_status={(int)revokedList.StatusCode} ms={restrictedClock.ElapsedMilliseconds}");
+            Assert.Equal(HttpStatusCode.OK,revokedList.StatusCode);
+            Assert.True(restrictedClock.Elapsed < TimeSpan.FromSeconds(20),
+                "Superseded million-row membership list exceeded 20 seconds");
+            var body=await revokedList.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Empty(body.GetProperty("items").EnumerateArray());
+        }
     }
 }

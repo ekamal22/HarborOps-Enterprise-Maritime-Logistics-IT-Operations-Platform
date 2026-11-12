@@ -1,0 +1,10 @@
+# Only apply after compose.m9.worker.yaml in a disposable verified M9 fixture.
+# Never enable the held transport worker solely to populate dashboards.
+services:
+  worker:
+    environment:
+      M17__Enabled: "true"
+      M17__OtlpEndpoint: "http://otelcol:4317"
+      OTEL_BSP_MAX_QUEUE_SIZE: "2048"
+      OTEL_BSP_MAX_EXPORT_BATCH_SIZE: "256"
+      OTEL_BSP_EXPORT_TIMEOUT: "1000"

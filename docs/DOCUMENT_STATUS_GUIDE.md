@@ -2,7 +2,7 @@
 
 **Current integration state (2026-11-12):** G0-G12 and G16 are accepted and integrated into protected `main`. G13 is conditionally accepted and merged through PR #38 at `b2856449c8d1ab629c8b5419a5af0ebddafbb47d`, with formal reviewer independence not attested. G15 is not accepted or merged. M9 transport controls, default-off services, no retention deletion and no deployment remain in force. See [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md).
 
-The current G13 disposition is recorded in [the post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md). Earlier dated review findings and run checkpoints remain source-specific historical records.
+The current G13 disposition is recorded in [the post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md). G15's separate implementation and review boundary is recorded in [Status](STATUS.md) and [PR #40](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/40). Turkish localization is deferred until after G15 is accepted and integrated, then requires new source-specific verification and a separate decision. Earlier dated review findings and run checkpoints remain source-specific historical records.
 
 ## Sources of truth
 
@@ -11,7 +11,7 @@ The current G13 disposition is recorded in [the post-merge reconciliation](G13_P
 - [Roadmap](ROADMAP.md) defines work packages. [Execution graph JSON](execution-graph.json) is authoritative for dependency edges; the rendered [Execution Graph](EXECUTION_GRAPH.md) is a planning view rather than an acceptance ledger.
 - [Decisions](DECISIONS.md), [API Contracts](API_CONTRACTS.md), [Security](SECURITY.md), [Operations](OPERATIONS.md) and [Domain Model](DOMAIN_MODEL.md) distinguish accepted behavior from proposed work.
 
-- [Repository-wide reconciliation](REPOWIDE_DOCUMENTATION_RECONCILIATION_20261108.md) indexes the 2026-11-08 review of current-state documentation, generated graph consistency and relative file links.
+- [Current documentation reconciliation](REPOWIDE_CURRENT_STATE_RECONCILIATION_20261112.md) records the 2026-11-12 post-G13 live-state review. The [2026-11-08 reconciliation](REPOWIDE_DOCUMENTATION_RECONCILIATION_20261108.md) remains a dated historical baseline, not today's gate ledger.
 - M11 and M12 are accepted on `main` following [formal G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). Their original draft PRs #31 and #32 are historical source branches, not unverified current implementation.
 
 ## Historical records
@@ -20,7 +20,7 @@ Source-locked plans, proposal files, audit reports and executed-verification reg
 
 ## Current unaccepted milestones and restrictions
 
-G13-G15 and G17-G24 remain unaccepted. Their work is subject to the existing execution graph, policy approvals and gate evidence.
+G13 is conditionally accepted and already integrated through PR #38. G14-G15 and G17-G24 remain unaccepted. G15 has an implementation candidate on PR #40 but no accepted gate or merge. Gate plans in the roadmap and the generated graph describe required exit procedures, not current acceptance decisions. The graph's dated 2026-11-08 clarification is a historical checkpoint, superseded for current status by this guide and [Status](STATUS.md).
 
 - M10 planning [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) and original source [PR #23](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/23) preceded G10 acceptance. The original frozen 23 PASS / S01 BLOCKED / S25 NOT EXECUTED evidence remains historical. On 2026-11-07 S01/S25 were closed through separately verified remediation and review, and [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) integrated the accepted source. See [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md).
 - Older open documentation [PR #21](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/21) and G16 supplement [PR #24](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/24) may contain superseded current-state wording. Their historical content must be reconciled before any merge and is not a replacement for current `main`.

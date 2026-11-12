@@ -6,6 +6,8 @@
 **Target:** M24-03 source/evidence reconciliation before M24-04 accessibility and G24 release acceptance.  
 **Status:** OPEN. No final release verification or deployment authorization.
 
+**Integration boundary (2026-11-12):** G13 is conditionally accepted and merged via PR #38 with reviewer independence not attested. G15 implementation is staged on separate PR #40 but is not accepted or merged. Turkish localization remains deferred until G15 has been accepted and integrated and then requires its own complete verification and separate decision. This sequencing does not modify the M0-M24 graph or grant release acceptance.
+
 ## Mandatory tasks before release
 
 - [ ] Reconcile open [PR #21](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/21) stale-state cleanup, [PR #22](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/22) M10 planning, [PR #24](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/24) historical G16 supplement, and any later document branches against accepted `main`. Mark superseded work explicitly rather than silently merging stale content.

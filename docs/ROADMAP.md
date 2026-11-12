@@ -224,7 +224,8 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Reconciled, drillable throughput and delay metrics.
 **Entry:** G11 accepted, G12 accepted before respective dependent work packages. Resolve D-005 before applicable feature implementation. KPI definitions may begin after G11, but aggregate-query integration waits for G12.
 **Required work packages:** M13-01 Finalize KPI catalog and cutoffs; M13-02 Implement aggregate query services; M13-03 Build dashboard visualizations; M13-04 Verify dashboard correctness.
-**Exit G13:** All applicable tasks, negative tests, runtime evidence and documentation for M13 recorded; acceptance pending until explicitly confirmed.
+**Exit G13 (planned contract):** All applicable tasks, negative tests, runtime evidence and documentation for M13 recorded; the gate requires an explicit decision.
+**Observed disposition (2026-11-12):** G13 conditionally accepted and integrated through PR #38. Formal reviewer independence was not attested. The bounded report contract and default-off cleanup in [the G13 decision](G13_S25_CONDITIONAL_ACCEPTANCE_DECISION_20261112.md) remain binding.
 **Not covered by this milestone:** Maps and notification delivery.
 
 #### M14: Route mapping and geographic context
@@ -240,7 +241,8 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Authorized event and incident exception messaging.
 **Entry:** G11 accepted before respective dependent work packages.
 **Required work packages:** M15-01 Define recipient and deduplication rules; M15-02 Implement notification persistence; M15-03 Implement notification interface; M15-04 Verify recipient isolation.
-**Exit G15:** All applicable tasks, negative tests, runtime evidence and documentation for M15 recorded; acceptance pending until explicitly confirmed.
+**Exit G15 (planned contract):** All applicable tasks, negative tests, runtime evidence and documentation for M15 recorded; acceptance pending until explicitly confirmed.
+**Observed disposition (2026-11-12):** G15 implementation is staged in [PR #40](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/40), not accepted or merged. The bounded SKIP LOCKED witness, separate source-locked verification and independent G15 review must precede any acceptance decision.
 **Not covered by this milestone:** Infrastructure alerts and incident creation.
 
 ### P3: Security and technical operations
@@ -361,7 +363,7 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M12/G0-G12 and M16/G16 are accepted and integrated into protected `main` as of 2026-11-08. G13-G15 and G17-G24 remain open under their explicit prerequisites. M13 and M15 may proceed where their dependencies and decisions are satisfied. The M9 sustained transport-event processing hold remains binding pending separately approved, verified cap-safe backlog handling. Public hosting, production deployment and G24 release acceptance remain pending.
+As of 2026-11-12, G0-G12 and G16 are accepted and integrated, and G13 is conditionally accepted and integrated via PR #38. G14-G15 and G17-G24 remain unaccepted. G15 is implemented on an isolated, unmerged PR #40 candidate whose exact-source evidence and independent review remain pending. Turkish localization follows G15 integration as a separate stream, outside the current milestone graph; no graph topology change or new gate is approved. The M9 transport hold, default-off operating limits and prohibition on notification retention deletion remain binding. Public hosting, production deployment and G24 release acceptance remain pending.
 
 ## M24-03 pre-release reconciliation reminder
 

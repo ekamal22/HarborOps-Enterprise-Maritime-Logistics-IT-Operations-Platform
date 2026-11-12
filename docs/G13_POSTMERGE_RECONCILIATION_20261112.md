@@ -11,9 +11,9 @@ G13-only source `f4881284a859ad20325dfafd3d15b715143e76b1` passed [run 431338966
 Commit `6479e803c41cf52a37d02e0ed849a134334292b3` removed only the temporary G13 verification workflow after those runs. The final merge tree contains G13 and excludes all M15 notification implementation. Historical failed runs and their identities are preserved.
 
 ## Limits and follow-up
-Approved G13 limits: 250,000 member rows per report, four live reports per tenant, two per user, and 1,000,000 live member rows per tenant. Default-off report cleanup remains disabled. Performance measurements are not a production SLA.
+Approved G13 limits: 250,000 member rows per report, four live reports per tenant, two per user, and 1,000,000 live member rows per tenant. Exceeding report capacity fails closed; snapshots expire after ten minutes. Automatic idle report cleanup remains disabled by default. Performance measurements are not a production SLA.
 
-G15 remains NOT ACCEPTED. It requires a dedicated source branch reconciled with the merged G13 baseline, precise `SKIP LOCKED` behavioral mutation proof, remaining performance-risk review, its own source-locked campaign, and separate S25 disposition before merge. Notification retention deletion and deployment remain prohibited.
+G15 remains NOT ACCEPTED. A dedicated [PR #40 integration candidate](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/40) now exists against the merged G13 baseline, but it is not accepted or merge ready. Its `SKIP LOCKED` prompt-progress mutation proof, populated migration, source-locked runtime and performance evidence, independent S25 review and explicit decision remain necessary before any separate merge. After G15 integration, Turkish localization must be reconciled, verified and accepted separately. Notification retention deletion and deployment remain prohibited.
 
 ## Documentation and graph
 Living status/navigation documents have been reconciled. The generated execution graph remains a prerequisite plan and does not convey acceptance by node presence. No dependency topology or historical evidence is rewritten.

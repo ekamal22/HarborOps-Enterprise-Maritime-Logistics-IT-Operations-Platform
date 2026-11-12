@@ -10,7 +10,7 @@
 
 HarborOps milestones M0-M24 retain 101 work packages and 25 separately verified, explicitly accepted gates. Milestone numbering and P0-P5 topic groupings do not impose sequential implementation. `execution-graph.json` version 3.0 is the sole dependency-edge authority. The generated Markdown graph must be regenerated after changing dependencies; never hand-edit it.
 
-The accepted baseline is G0-G12 plus G16 on `main` as of 2026-11-08. M10's original PR #23 and remediation [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) are merged after S01/S25 verification. Work packages may proceed only when their named technical prerequisites are accepted. Downstream gates, production release and the M9 transport hold remain separately governed.
+As of 2026-11-12, G0-G12 and G16 are accepted and integrated, and G13 is conditionally accepted and integrated through PR #38 with formal reviewer independence not attested. M10's original PR #23 and remediation [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) are merged. Work packages follow their named technical prerequisites. Conditional G13 integration does not certify G15 or authorize deployment, and downstream release obligations remain separate.
 
 ## Dependency contracts
 
@@ -74,7 +74,7 @@ Completed convergence: M9 `TrackingWorkRead` and `TrackingWorkRedrive` coexist w
 - When parallel branches converge, run their combined tests on the merged candidate, including auth/tenant boundary races and migration rehearsals. Earlier per-branch PASS results alone do not establish integration correctness.
 - G19 recovery can be implemented early, but any later migration requires appropriate upgrade/recovery testing. G20 assurance similarly does not waive security checks on later modules.
 - G24 requires all G0-G23 gates explicitly accepted and a fresh complete-system verification on the final code and images. M24-04 remains the **only formal dedicated accessibility audit**; M6, M12, M18, and M24-03 retain historical-volume compatibility checkpoints. These milestone-bound checks remain required even if streams finish out of numeric order.
-- No release or production deployment follows from G10 acceptance. G0-G12 and G16 are merged, while G13-G15 and G17-G24 remain open. The M9 unresolved-work cap and parked transport restrictions remain mandatory. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md).
+- No release or production deployment follows from earlier gate acceptance. G0-G12 and G16 are accepted and integrated; G13 is conditionally accepted and integrated. G14-G15 and G17-G24 remain unaccepted. G15 needs its own acceptance and integration against G13 before Turkish localization may be reconciled, verified and integrated separately. The M9 unresolved-work cap and parked transport restrictions remain mandatory. [G13 decision](G13_S25_CONDITIONAL_ACCEPTANCE_DECISION_20261112.md).
 
 ## Graph maintenance
 

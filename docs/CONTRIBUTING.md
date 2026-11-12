@@ -95,7 +95,7 @@ The M3 [architecture](M3_ARCHITECTURE_DESIGN.md), [implementation plan](M3_IMPLE
 
 The accepted [D-001 decision](ADR_D001_BROWSER_SESSIONS.md) and [M1 design](M1_AUTHENTICATION_DESIGN.md) control authentication implementation. The completed M1 pull request included schema/migration safety, server-session authority, cookie/CSRF/limit configuration, restricted local provisioning, secure key persistence, API contract tests, functional browser coverage and the historical GitHub Actions evidence in [G1 Verification](M1_VERIFICATION_PLAN.md). This does not authorize any additional workflow runs. No public account seeds, secret examples or actual key material may enter version control. Retained local Docker volumes are not routine test targets.
 
-Do not conflate architecture approval with milestone acceptance. **G0-G12 and G16 are explicitly accepted and integrated into protected `main` by 2026-11-08.** Remaining gates require their own separate reviews. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). No deployment is implied.
+Do not conflate architecture approval with milestone acceptance. **G0-G12 and G16 were accepted and integrated into protected `main` by 2026-11-08. G13 was then conditionally accepted and integrated through PR #38 on 2026-11-12, with the independence exception recorded in the G13 decision.** Remaining gates require their own separate reviews. [G11/G12 closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). No deployment is implied.
 
 ## Documentation hygiene
 
@@ -116,6 +116,6 @@ Preferred structure: scope, changed paths, behavior, tests actually executed, re
 
 ## Current accepted M9/M16 integration (2026-11-06)
 
-Accepted `main` includes M0-M12/G0-G12 and M16/G16. [G9 closure](M9_G9_GATE_CLOSURE.md) preserves 809/809 .NET tests, 14/14 mutation families and 174/174 browser executions. M16's accepted [combined gate](M16_G16_GATE_CLOSURE.md) records later independently reviewed security, migration, browser and F001 extension evidence. The mandatory G9 sustained transport-processing hold remains, and no production deployment is authorized.
+Accepted `main` includes M0-M12/G0-G12, M16/G16 and conditionally accepted G13/M13 through PR #38. G15 and Turkish localization remain unmerged and separately gated. [G9 closure](M9_G9_GATE_CLOSURE.md) preserves 809/809 .NET tests, 14/14 mutation families and 174/174 browser executions. M16's accepted [combined gate](M16_G16_GATE_CLOSURE.md) records later independently reviewed security, migration, browser and F001 extension evidence. The mandatory G9 sustained transport-processing hold remains, and no production deployment is authorized.
 
 M16's standalone `e571157`, combined `79318c6` and post-acceptance F001 `8ba7727` records retain their separate source-locked evidence. The original S07/S08/S28 supplement was later reviewed, with its provenance limitation disclosed. G16 was accepted and [PR #25](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/25) merged on 2026-11-06. Keep persisted resources on E:, preserve historical evidence, do not run GitHub Actions, and include `[skip ci]` in commits. [Documentation guide](DOCUMENT_STATUS_GUIDE.md) distinguishes living versus historical documents.

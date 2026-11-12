@@ -30,7 +30,8 @@ public sealed class MigrationSnapshotTests
     {
         using var db = SnapshotOnlyContext();
         Assert.Equal(
-            new[] { "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions", "20261031020000_OrganizationMemberships", "20261031110000_PortVesselReferences", "20261101010000_VoyageContainerReferences", "20261101180000_ShipmentLifecycle", "20261102080000_ShipmentAssignments", "20261103090000_IntegrationSources", "20261103190000_TrackingInboxAndHistory", "20261104180000_AuditEntries", "20261104190000_TrackingWorker", "20261105180000_ShipmentTrackingProjections", "20261107120000_M10CorrectionAuthority", "20261107180000_ShipmentExceptions", "20261107230000_M12ShipmentExportAudit", "20261109020000_M13OperationalKpis", "20261110010000_M13TenantReportCapacity" },
+            new[] { "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions", "20261031020000_OrganizationMemberships", "20261031110000_PortVesselReferences", "20261101010000_VoyageContainerReferences", "20261101180000_ShipmentLifecycle", "20261102080000_ShipmentAssignments", "20261103090000_IntegrationSources", "20261103190000_TrackingInboxAndHistory", "20261104180000_AuditEntries", "20261104190000_TrackingWorker", "20261105180000_ShipmentTrackingProjections", "20261107120000_M10CorrectionAuthority", "20261107180000_ShipmentExceptions", "20261107230000_M12ShipmentExportAudit", "20261109010000_M15ScopedNotifications", "20261109020000_M13OperationalKpis",
+                "20261110010000_M13TenantReportCapacity" },
             db.Database.GetMigrations().ToArray());
     }
 

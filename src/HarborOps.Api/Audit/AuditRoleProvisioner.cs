@@ -184,6 +184,25 @@ public static class AuditRoleProvisioner
                     END IF;
                 END $m13_roles$;
 
+                -- M15 is SQL-only and independently ordered from M13.
+                -- The broad runtime SELECT grant above must not expose the
+                -- recipient table or the unscoped outbox/replay tables.
+                DO $m15_roles$
+                BEGIN
+                    IF to_regclass('public.m15_notification_outbox') IS NOT NULL THEN
+                        REVOKE ALL ON m15_notification_outbox,
+                            m15_user_notifications,m15_notification_replays
+                            FROM harborops_api,harborops_worker;
+                        GRANT SELECT ON m15_user_notifications TO harborops_api;
+                        GRANT EXECUTE ON FUNCTION m15_can_read(
+                            uuid,uuid,uuid,bigint,uuid) TO harborops_api;
+                        GRANT EXECUTE ON FUNCTION m15_deliver_pending(integer),
+                            m15_delivery_status() TO harborops_api;
+                        GRANT EXECUTE ON FUNCTION m15_apply_personal_action(
+                            uuid,uuid,uuid,uuid,varchar,bigint,uuid,varchar)
+                            TO harborops_api;
+                    END IF;
+                END $m15_roles$;
 
                 -- Worker starts read-only against the accepted M8 schema.
                 -- M9-specific column grants are activated only if M9 is present.

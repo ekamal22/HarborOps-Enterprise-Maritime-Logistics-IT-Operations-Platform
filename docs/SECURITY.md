@@ -1,7 +1,13 @@
 # Security Model
 
+**Turkish localization source integrated, 2026-11-12:** [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) merged at `c81e54bfef25a0ff957f27b488ab7bd420551244` following 41 passing frontend and 99 passing browser executions in [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246). All server-facing rules and default-off operational controls remain unchanged. [Verification and acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
+
 **Current G15 acceptance, 2026-11-12:** G15 and G15-S25 are **ACCEPTED** following source-locked run 43178122017 at `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35`; PR #44 merged the accepted remediation to `main` at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Reviewer-separation attestation is an explicitly disclosed procedural exception. P10 fail-closed, P12 deletion disabled, delivery default-off, and no production deployment remain in force. [Acceptance decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge record](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
+
+## Localization authorization invariant, 2026-11-12
+
+The language selector writes only the non-sensitive preference `en` or `tr-TR` to browser local storage. It does not grant authorization, change selected organization, store session credentials, alter SQL scope or loosen the accepted CSP. Authenticated browser scenarios exercised language switching without modifying the live session or resource permissions. The security and retention policies of G13 and G15 remain unchanged.
 
 ## Accepted M12 scoped search and export security
 

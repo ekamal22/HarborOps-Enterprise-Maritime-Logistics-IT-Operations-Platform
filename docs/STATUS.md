@@ -2,6 +2,8 @@
 
 **Current integration state (2026-11-12):** G0-G12 and G16 are accepted and merged. G13 was conditionally accepted and merged via PR #38. G15 is conditionally accepted and merged via PR #41 at `47af1994b9958188666e5dde0aa6b5a536d7c55c`. Formal independent G15-S25 reviewer attestation was not established, and the procedural exception remains explicit. Dispatch defaults off, retention deletion and deployment are not authorized. See [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
 
+**G15-S25 follow-up (2026-11-12):** [Post-merge S25 evidence review](G15_S25_POSTMERGE_REVIEW_20261112.md) recommends **NOT PASS** for full S25 closure. The verified technical run remains PASS, and G15 stays conditionally merged. Three G15-S22 browser assertion witnesses are incomplete; formal independent reviewer attestation is not established. No deployment or retention deletion is authorized.
+
 ## G13 conditional integration, 2026-11-12
 
 G13 reporting was merged to protected `main` in [PR #38](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/38). Isolated source `f4881284a859ad20325dfafd3d15b715143e76b1` passed source, web, migration and restricted PostgreSQL checks in run 43133896612. Only its temporary workflow was removed before merge. Merge `b2856449c8d1ab629c8b5419a5af0ebddafbb47d` excludes G15 implementation. Formal reviewer independence was not attested. G15 remains not accepted; no deployment or retention deletion is authorized.

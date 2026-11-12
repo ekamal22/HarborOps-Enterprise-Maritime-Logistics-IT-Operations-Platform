@@ -319,6 +319,14 @@ def main() -> int:
                 verdict = "KILLED"
             else:
                 verdict = "INVALID"
+            # This mutant is valid only when the explicit prompt-progress
+            # assertion fails. A cancellation during task or scope disposal
+            # is not evidence that SKIP LOCKED is necessary for forward progress.
+            if name == "outbox-claim-skip-locked-removed" and verdict == "KILLED":
+                if ("G15_SKIP_LOCKED_PROGRESS_FAILURE:" not in output
+                        or "Operation canceled" in output
+                        or "Exception while reading from stream" in output):
+                    verdict = "INVALID"
             records.append({
                 "name": name, "outcome": verdict, "source_sha256": sha(mutated.encode()),
                 "exit_code": code, "seconds": round(time.monotonic() - start, 2),

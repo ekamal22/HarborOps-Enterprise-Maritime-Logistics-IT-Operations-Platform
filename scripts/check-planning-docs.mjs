@@ -54,9 +54,10 @@ assert(m11SecondAudit.includes("G11 acceptance pending") &&
   m11SixthAudit.includes("G11 acceptance pending") &&
   m11SixthAudit.includes("F11-039") &&
   m11SixthAudit.includes("NOT EXECUTED") &&
-  m11Implementation.includes("G11 are NOT VERIFIED") &&
-  m11Implementation.includes("G11-S01 is **BLOCKED**"),
-  "M11 must retain the complete unverified, acceptance-pending disposition");
+  m11Implementation.includes("M11_M12_G11_G12_GATE_CLOSURE_20261108.md") &&
+  get("docs/M11_M12_G11_G12_GATE_CLOSURE_20261108.md").includes("G11") &&
+  status.includes("G0-G12 and G16 are accepted"),
+  "M11 historical audits must be preserved but the current gate must show accepted G11");
 for (const [name, path] of [
   ["README", "README.md"],
   ["Status", "docs/STATUS.md"],
@@ -67,8 +68,8 @@ for (const [name, path] of [
   ["Test strategy", "docs/TEST_STRATEGY.md"],
   ["Operations", "docs/OPERATIONS.md"]
 ]) {
-  assert(get(path).includes("M11_SIXTH_CORRECTNESS_AUDIT_20261108.md"),
-    name + " omits the current M11 source audit");
+  assert(get(path).includes("M11_M12_G11_G12_GATE_CLOSURE_20261108.md"),
+    name + " omits the formal M11 and M12 gate closure");
 }
 assert(storagePolicy.includes("Persistent project-specific writes to C: are prohibited"), "E-drive storage policy missing its persistent-storage prohibition");
 // The policy names the E: requirement generically; a workstation-specific folder name is
@@ -87,9 +88,9 @@ for (const [name, content] of [
 assert(status.includes("G0 verified") && status.includes("accepted"), "Status ledger must reflect accepted G0");
 for (const [name,body,needle] of [
   ["README",readme,"M8 implementation passed source-locked technical verification"],
-  ["Status",status,"M8/G8 accepted 2026-11-04"],
-  ["Roadmap",roadmap,"G11-G15 and G17-G24 remain open"],
-  ["Contributors",contributors,"G0-G10 and G16 are explicitly accepted and integrated"],
+  ["Status",status,"G8 accepted 2026-11-04"],
+  ["Roadmap",roadmap,"G13-G15 and G17-G24 remain open"],
+  ["Contributors",contributors,"G0-G12 and G16 are accepted"],
   ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],
   ["Implementation plan",implementationPlan,"M8 accepted after independent G8 review"],
   ["G8 plan",m8Plan,"11 committed, source-isolated security mutation variants"],
@@ -142,7 +143,7 @@ assert(m9Decision.includes("2026-11-05") &&
   m9Implementation.includes("Final G9 status (2026-11-05)") &&
   readme.includes("G9_GATE_CLOSURE.md") &&
   status.includes("G9 accepted 2026-11-05") &&
-  roadmap.includes("G11-G15 and G17-G24 remain open"),
+  roadmap.includes("G13-G15 and G17-G24 remain open"),
   "M9 acceptance, evidence review, merge or backlog condition is missing");
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");

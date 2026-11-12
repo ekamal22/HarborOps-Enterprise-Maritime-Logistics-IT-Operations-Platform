@@ -9,7 +9,9 @@ using HarborOps.Api.Assignments;
 using HarborOps.Api.Integrations;
 using HarborOps.Api.Audit;
 using HarborOps.Api.Exceptions;
+using HarborOps.Api.Notifications;
 using HarborOps.Api.Reporting;
+using HarborOps.Infrastructure.Notifications;
 using HarborOps.Infrastructure.Audit;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
@@ -50,6 +52,9 @@ builder.Services.AddSingleton<IntegrationRequestLimiter>();
 builder.Services.AddScoped<TrackingWorkAdminStore>();
 builder.Services.AddScoped<ShipmentTimelineStore>();
 builder.Services.AddScoped<ShipmentExceptionStore>();
+builder.Services.AddScoped<NotificationStore>();
+if (builder.Configuration.GetValue<bool>("M15:EnableDelivery"))
+    builder.Services.AddHostedService<NotificationDeliveryService>();
 if (builder.Configuration.GetValue<bool>("M11:EnableEvaluator"))
     builder.Services.AddHostedService<ShipmentExceptionEvaluationService>();
 builder.Services.AddSingleton<ShipmentCursorCodec>();
@@ -180,6 +185,7 @@ app.MapTrackingEndpoints();
 app.MapTrackingWorkEndpoints();
 app.MapShipmentTimelineEndpoints();
 app.MapShipmentExceptionEndpoints();
+app.MapNotificationEndpoints();
 app.MapOperationalKpiEndpoints();
 app.MapAuditEndpoints();
 

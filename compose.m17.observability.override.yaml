@@ -1,6 +1,9 @@
 # Optional local telemetry profile. Use only with an owned disposable project.
 # Default compose.yaml remains unchanged.
 services:
+  postgres:
+    image: ho-verify-m17-postgres:16.15-rootless
+
   api:
     environment:
       M17__Enabled: "true"

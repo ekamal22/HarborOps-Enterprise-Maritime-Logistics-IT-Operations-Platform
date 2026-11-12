@@ -1,6 +1,7 @@
 # G15 S25 Evidence Reaudit, 2026-11-12
 
-**G15 S25 update, 2026-11-12:** [Independent raw evidence disposition](G15_S25_INDEPENDENT_EVIDENCE_REVIEW_20261112.md) confirms technical PASS at `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` (run 43178122017). Formal S25 unconditional acceptance remains pending reviewer-independence attestation. G15 conditional integration, P10/P12 restrictions, default-off delivery, and no deployment or deletion authorization remain unchanged. Earlier findings and failed runs are retained as historical evidence.
+**Historical checkpoint:** This file preserves the earlier conditional or NOT PASS determination at its original source and date. It was superseded by the explicit G15-S25 acceptance and PR #44 merge on 2026-11-12. The original findings and failed evidence remain unchanged. [Acceptance decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge record](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
+
 
 ## Decision
 

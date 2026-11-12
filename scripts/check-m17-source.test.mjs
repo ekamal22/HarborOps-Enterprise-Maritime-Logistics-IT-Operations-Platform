@@ -20,8 +20,12 @@ test("exporter and trace controls remain bounded and private", () => {
   const registration = read("src/HarborOps.Api/Observability/M17TelemetryRegistration.cs");
   const options = read("src/HarborOps.Api/Observability/M17TelemetryOptions.cs");
   const sampler = read("src/HarborOps.Api/Observability/M17BoundedSampler.cs");
-  assert.match(registration, /MaxQueueSize\s*=\s*2048/);
-  assert.match(registration, /ExporterTimeoutMilliseconds\s*=\s*1000/);
+  assert.match(registration, /maxQueueSize:\s*2048/);
+  assert.match(registration, /M17CountingTraceExporter/);
+  assert.match(read("src/HarborOps.Worker/Observability/M17WorkerTelemetry.cs"), /M17WorkerCountingTraceExporter/);
+  assert.match(registration, /exporterTimeoutMilliseconds:\s*1000/);
+  assert.match(read("monitoring/m17/alerts.yaml"), /reason="exporter_failure"/);
+  assert.match(read("monitoring/m17/alerts.yaml"), /error_type="queue_full"/);
   assert.match(sampler, /admitted\s*>=\s*200/);
   assert.match(sampler, /TraceIdRatioBasedSampler\(0\.10\)/);
   assert.match(options, /string\.Equals\(endpoint\.Host, "otelcol"/);

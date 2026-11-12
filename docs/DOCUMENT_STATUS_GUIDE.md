@@ -1,5 +1,7 @@
 # Documentation Status Guide
 
+**Turkish localization integration (2026-11-12):** A post-G15 Turkish-only candidate is prepared on `work/turkish-post-g15-integration-20261112` from merged `main` `0af0a6212e74b9206902024d5d9a9a222df2a9ab`. Source-level preflight passed; full native frontend and three-browser verification is pending, and merge acceptance has not been given. See [Turkish source audit and verification plan](TURKISH_POST_G15_SOURCE_AUDIT_20261112.md).
+
 **Current integration state (2026-11-12):** G0-G12 and G16 accepted and merged. G13 and G15 are conditionally accepted and integrated through PR #38 and PR #41. G15 merge commit `47af1994b9958188666e5dde0aa6b5a536d7c55c`, verified implementation source `479616a5b7f17c494d897834a66d10b6276bb517`. Formal independent review attestation was not established for G15; unconditional S25 approval is not claimed. Notification delivery remains default-off and retention deletion and deployment remain unauthorized. [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
 
 The current G13/G15 decisions are recorded in [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md) and [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md). Earlier dated gates and runs remain historical source-bound records.

@@ -17,7 +17,9 @@ public static class M17TelemetryRegistration
 
         // Parse W3C trace context only; never propagate arbitrary caller baggage.
         Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+        builder.Services.AddSingleton(options);
         builder.Services.AddHostedService<M17HeartbeatService>();
+        builder.Services.AddHostedService<M17ReadinessProbeService>();
 
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(resource => resource.AddService("harborops-api"))

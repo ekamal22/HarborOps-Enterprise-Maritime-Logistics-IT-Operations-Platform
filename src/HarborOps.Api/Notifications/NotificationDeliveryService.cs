@@ -1,4 +1,5 @@
 using HarborOps.Infrastructure.Notifications;
+using HarborOps.Api.Observability;
 
 namespace HarborOps.Api.Notifications;
 
@@ -19,6 +20,7 @@ public sealed class NotificationDeliveryService(
                 using var scope = scopes.CreateScope();
                 var store = scope.ServiceProvider.GetRequiredService<NotificationStore>();
                 var count = await store.DeliverPendingAsync(stoppingToken);
+                M17Telemetry.ObserveNotificationDelivery(true);
                 if (count == 0)
                 {
                     var status = await store.DeliveryStatusAsync(stoppingToken);
@@ -37,6 +39,7 @@ public sealed class NotificationDeliveryService(
             }
             catch (Exception error)
             {
+                M17Telemetry.ObserveNotificationDelivery(false);
                 logger.LogWarning("Notification delivery unavailable ({ErrorType})",
                     error.GetType().Name);
                 try { await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken); }

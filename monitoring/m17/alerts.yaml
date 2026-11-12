@@ -55,11 +55,13 @@ groups:
       - alert: HarborOpsTrackingBacklogStale
         expr: |
           ((harborops_worker_backlog_age_seconds{worker="tracking"} > 120
-             and on() (harborops_service_running{service="tracking"} == 1))
+             and on() (harborops_service_running{service="tracking"} == 1)
+             and on() (increase(harborops_worker_heartbeat_total{worker="tracking"}[1m]) > 0))
            or
            (harborops_worker_backlog_age_seconds{worker="tracking"} >= 60
              and on() (ALERTS{alertname="HarborOpsTrackingBacklogStale",alertstate="firing"} == 1)
-             and on() (harborops_service_running{service="tracking"} == 1)))
+             and on() (harborops_service_running{service="tracking"} == 1)
+             and on() (increase(harborops_worker_heartbeat_total{worker="tracking"}[1m]) > 0)))
         for: 30s
         labels: {severity: degraded}
         annotations:

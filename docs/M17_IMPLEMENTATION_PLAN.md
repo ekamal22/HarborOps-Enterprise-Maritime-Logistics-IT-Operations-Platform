@@ -50,7 +50,7 @@ Work:
 Implementation sequence:
 1. Add a narrow telemetry registration extension under `src/HarborOps.Api/Observability/` (suggested `ObservabilitySetup.cs`, `TelemetryNames.cs`, `TelemetryOptions.cs`), called from `Program.cs`. Use `IOptions` validation, with secure default-off exporters and no side effects in CLI migration/account commands.
 2. Reuse existing scoped correlation ID. Integrate Activity and trace identifiers into structured logs without overwriting the accepted header or audit correlation. Treat inbound trace context as untrusted. Define validation for traceparent/tracestate/baggage.
-3. Instrument selected route *templates* and bounded operation families, not arbitrary identifiers or raw paths. Use .NET native request instrumentation without duplicate counters.
+3. Instrument selected bounded operation families, not arbitrary identifiers or raw paths. The feature branch currently uses custom HTTP duration and 5xx instruments with finite operation/status classes, and the native ASP.NET Core metrics meter is not subscribed, avoiding duplicate request aggregates. Real collector series census remains required.
 4. Add safe DB latency/outcome observation around necessary operations, not raw SQL or per-tenant meters. Preserve connection pooling and transaction boundaries.
 5. Add branch-guarded opt-in worker instruments. Do not instantiate or start M9 transport, M10 projector, M11 evaluator or M15 dispatcher just to sample them. Treat intentionally held/disabled as state rather than failure.
 6. Configure bounded OTLP export through internal, optional collector profile. Exporter failures increment bounded drop/degradation signals and never affect business outcomes. Apply explicit shutdown budgets.

@@ -296,7 +296,7 @@
       },
       "targets": [
         {
-          "expr": "harborops_worker_backlog_age_seconds{worker=\"tracking\"} and on() (harborops_service_running{service=\"tracking\"} == 1)",
+          "expr": "harborops_worker_backlog_age_seconds{worker=\"tracking\"} and on() (harborops_service_running{service=\"tracking\"} == 1) and on() (increase(harborops_worker_heartbeat_total{worker=\"tracking\"}[1m]) > 0)",
           "refId": "A",
           "legendFormat": "Tracking eligible backlog age, active worker only",
           "instant": false
@@ -462,6 +462,37 @@
           "expr": "ALERTS{alertstate=\"firing\"}",
           "refId": "A",
           "legendFormat": "Local alert state",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 15,
+      "title": "Active tracking-worker heartbeat progress",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 56,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "increase(harborops_worker_heartbeat_total{worker=\"tracking\"}[1m])",
+          "refId": "A",
+          "legendFormat": "worker heartbeat increments",
           "instant": false
         }
       ],

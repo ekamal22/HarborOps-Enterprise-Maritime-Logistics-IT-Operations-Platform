@@ -1,5 +1,7 @@
 # G13 Gate Decision, 2026-11-12
 
+**Later G15 status, 2026-11-12:** This is a historical G13-specific decision/reconciliation record; it remains valid for G13's conditional acceptance. G15 was subsequently accepted and merged through PR #44 at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. [Final G15-S25 acceptance](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
+
 **Disposition: G13 CONDITIONALLY ACCEPTED FOR G13-ONLY INTEGRATION.** This supersedes the historical 2026-11-10 G13 NOT ACCEPTED decision for the tested G13 source only. It does not accept G15, authorize notification delivery, or approve deployment. The conditional gate decision was explicitly authorized on 2026-11-12. Formal reviewer independence remains **not attested**: the technical S25 assessment was performed in a session that also participated in previous remediation. The conditional decision acknowledges this procedural exception rather than recording a nonexistent independent sign-off.
 
 ## Exact source and evidence

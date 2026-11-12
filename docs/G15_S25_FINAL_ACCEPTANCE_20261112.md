@@ -36,3 +36,8 @@ This decision authorizes integration of the tested G15 remediation into protecte
 The verified SHA remains the source of executable test results. Later documentation-only acceptance or merge commits are not falsely identified as newly executed source-locked technical campaigns. A post-merge reconciliation must record the actual merge SHA and changed-source equivalence without substituting it for a new test run.
 
 **Status:** Accepted for the scoped G15 gate, with the reviewer-independence procedural exception expressly disclosed. No production release authority.
+
+
+## Completed main integration, 2026-11-12
+
+The approved [PR #44](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/44) merged to protected `main` at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. The source equivalence check found that files differing from the successful executable SHA `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` are documentation only. See the [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md). No new executable run is attributed to the merge commit.

@@ -1,5 +1,7 @@
 # G15 conditional acceptance decision, 2026-11-12
 
+**Later G15 disposition, 2026-11-12:** This source-bound review/decision remains unchanged as a historical checkpoint. G15 and S25 were subsequently explicitly accepted with the reviewer-separation exception disclosed, and PR #44 merged at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. The earlier NOT PASS or conditional finding is not retroactively recast as a PASS. [Final G15-S25 acceptance](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
+
 ## Decision
 **CONDITIONALLY ACCEPTED for G15-only source integration.** This is not unconditional G15-S25 acceptance. Formal independent reviewer attestation was not established, and that procedural qualification is recorded explicitly. The direct conditional acceptance and integration authorization was given following review of the completed technical campaign. Previous NOT PASS reviews remain historical source-bound findings and are not rewritten.
 

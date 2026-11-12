@@ -254,8 +254,20 @@ def reconcile_atomic_inventory(located: dict[str, Path], browsers: dict[str, set
                 f"Crash phase raw marker/log digest invalid: {phase['phase']}")
         if phase["recovery"] == "PASS":
             recovery = located["g15-crashes"] / (phase["phase"] + "-recovery.trx")
-            require(recovery.is_file() and bool(trx_results(recovery.parent)),
-                    f"Recovery TRX absent: {phase['phase']}")
+            expected_recovery = (
+                "G15RealM11WriteRecoveredInNewApiProcess"
+                if phase["phase"] == "G15DuringRealM11HistoryWrite"
+                else "G15AfterReceiptCommitRecoveredInNewApiProcess"
+                if phase["phase"] in ("G15AfterReceiptCommit", "G15AfterResponseDiscarded")
+                else "G15FanoutRecoveredInNewApiProcess"
+            )
+            require(recovery.is_file(), f"Recovery TRX absent: {phase['phase']}")
+            results = [item.attrib for item in ET.parse(recovery).getroot().iter()
+                       if item.tag.endswith("UnitTestResult")]
+            require(len(results) == 1 and
+                    results[0].get("testName", "").endswith("." + expected_recovery) and
+                    results[0].get("outcome") == "Passed",
+                    f"Wrong or failed recovery test for {phase['phase']}: {results}")
     summary=json.loads((located["dependency-security"]/"summary.json").read_text())
     require(summary == {"npm_high":0,"npm_critical":0,
                         "dotnet_high_advisories":0,"scan_completed":True},

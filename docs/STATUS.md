@@ -3,9 +3,6 @@
 **Current G15 state (2026-11-12):** G15 and G15-S25 are **ACCEPTED** and merged into `main` through [PR #44](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/44) at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Tested executable SHA `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed [run #43178122017](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43178122017). Reviewer independence is an expressly disclosed acceptance exception, not an attested credential. G13 stays conditionally integrated; M15-P10 fail-closed and P12 no-deletion policies remain, delivery is default-off, and no deployment or final release is authorized. See [final decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
 
-
-
-
 ## G13 conditional integration, 2026-11-12
 
 G13 reporting was merged to protected `main` in [PR #38](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/38). Isolated source `f4881284a859ad20325dfafd3d15b715143e76b1` passed source, web, migration and restricted PostgreSQL checks in run 43133896612. Only its temporary workflow was removed before merge. Merge `b2856449c8d1ab629c8b5419a5af0ebddafbb47d` excludes G15 implementation. Formal reviewer independence was not attested. At this historical G13-only merge checkpoint, G15 had not yet been accepted; no deployment or retention deletion is authorized.
@@ -13,7 +10,6 @@ G13 reporting was merged to protected `main` in [PR #38](https://github.com/ekam
 ## G10 accepted and integrated, 2026-11-07
 
 The [repository-wide M10 documentation reconciliation](M10_G10_DOCUMENTATION_RECONCILIATION_20261107.md) records which current-state pages were updated and preserves the historical G10 evidence boundary.
-
 
 
 **Current M10/G10 checkpoint (2026-11-07):** S01 implementation conformance and S25 independent evidence review passed; G10 accepted. The final source-locked remediation `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` is included in `main` through PR #28 (merge `9b6c801fde4004a4c0021ec7a6296efe28cf1544`). See [closure](M10_G10_GATE_CLOSURE_20261107.md), [final targeted evidence](M10_G10_FINAL_MERGE_READINESS_20261107.md) and [prior authority evidence](M10_G10_REMEDIATION_VERIFICATION_20261107.md). The conditional L06 requirement is satisfied by the verified L14 boundary. The M9 transport hold remains.

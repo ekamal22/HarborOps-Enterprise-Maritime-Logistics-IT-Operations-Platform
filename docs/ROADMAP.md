@@ -3,8 +3,6 @@
 **Current G15 state (2026-11-12):** G15 and G15-S25 are **ACCEPTED** and merged into `main` through [PR #44](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/44) at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Tested executable SHA `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed [run #43178122017](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43178122017). Reviewer independence is an expressly disclosed acceptance exception, not an attested credential. G13 stays conditionally integrated; M15-P10 fail-closed and P12 no-deletion policies remain, delivery is default-off, and no deployment or final release is authorized. See [final decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
 
-
-
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
 **Updated status:** 2026-11-12
@@ -364,7 +362,7 @@ After any milestone or requirement edit, regenerate the graph with `node scripts
 
 ## Immediate execution
 
-M0-M12/G0-G12 and M16/G16 are accepted and integrated into protected `main` as of 2026-11-08. G13 remains conditionally accepted, G15 is accepted and merged, and the other unaccepted gates retain their explicit prerequisites. M13 and M15 may proceed where their dependencies and decisions are satisfied. The M9 sustained transport-event processing hold remains binding pending separately approved, verified cap-safe backlog handling. Public hosting, production deployment and G24 release acceptance remain pending.
+M0-M12/G0-G12, M15/G15 and M16/G16 are accepted and integrated into protected `main` as of 2026-11-12. G13 remains conditionally accepted, G15 is accepted and merged, and the other unaccepted gates retain their explicit prerequisites. M13 and M15 may proceed where their dependencies and decisions are satisfied. The M9 sustained transport-event processing hold remains binding pending separately approved, verified cap-safe backlog handling. Public hosting, production deployment and G24 release acceptance remain pending.
 
 ## M24-03 pre-release reconciliation reminder
 

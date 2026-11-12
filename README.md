@@ -3,13 +3,11 @@
 **Current G15 state (2026-11-12):** G15 and G15-S25 are **ACCEPTED** and merged into `main` through [PR #44](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/44) at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Tested executable SHA `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed [run #43178122017](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43178122017). Reviewer independence is an expressly disclosed acceptance exception, not an attested credential. G13 stays conditionally integrated; M15-P10 fail-closed and P12 no-deletion policies remain, delivery is default-off, and no deployment or final release is authorized. See [final decision](docs/G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge reconciliation](docs/G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
 
-
-
 ## Enterprise Maritime Logistics & IT Operations Platform
 
 HarborOps is a modular enterprise platform for shipment and container management, maritime tracking events, operational analytics, infrastructure observability, security controls, and IT incident handling.
 
-**Status (2026-11-12):** G13 and G15 both conditionally accepted and merged through PR #38 and PR #41. G15 independent reviewer attestation remains not established. No production deployment or retention deletion is authorized.
+**Status (2026-11-12):** G13 remains conditionally accepted and merged via PR #38; G15 is explicitly accepted and merged via PR #44. The reviewer-separation procedural exception remains disclosed. Production deployment and retention deletion are not authorized.
 
 **Final merge-readiness update (2026-11-07):** Two review findings are closed in source and verified on `e3002bd9ea38a20bd4c6b12027c6ecdcdf5fb343` ([record](docs/M10_G10_FINAL_MERGE_READINESS_20261107.md)): the accepted twelfth migration is restored unchanged and the NULL-safe projector scope function now arrives through the thirteenth migration, and the default `compose.yaml` requires `HARBOROPS_M10_CORRECTION_PROOF_KEY` for the migrator and API only. Targeted results: unit 239/239, contract 39/39, projector scope tests 3/3, change-impact integration set 126/126, default-stack correction flow 11/11, six projector mutants killed. The full integration suite, real-stack check and browser run were not repeated on this source. At this intermediate source-review checkpoint, G10-S25 and S01 were not yet executed. Both were subsequently reconciled and G10 accepted on 2026-11-07; the G10 gate closure is authoritative.
 

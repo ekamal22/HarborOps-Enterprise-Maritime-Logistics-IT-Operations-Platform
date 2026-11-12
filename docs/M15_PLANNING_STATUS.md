@@ -7,7 +7,7 @@
 **Source-locked successor checkpoint, 2026-11-10:** [G13/G15 workflow 42727554951](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/42727554951) passed 15/15 jobs on `d6ef8dd7eedc1ec1ca480fc17bee500c8b288d75` (541 tests passed, 0 failed/skipped). The separate atomic audit found 224 technical witnesses, 3 missing, 7 policy-review and 8 independent-review assertions; G13 and G15 acceptance remain pending. [Current detailed status](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feature/g13-post-c3-remediation-20261111/docs/G13_G15_VERIFIED_EVIDENCE_20261110.md). Earlier source-specific reports below remain historical.
 
 **Date:** 2026-11-08  
-**Planning-state snapshot (2026-11-08):** Planning had no runtime implementation or G15 verification. Subsequent source implementation and technical checks are recorded in the current checkpoint above; G15 acceptance remains pending.  
+**Planning-state snapshot (2026-11-08):** Planning had no runtime implementation or G15 verification. The later accepted implementation and final G15-S25 verification are recorded in the current acceptance and post-merge documents linked above; at this original planning checkpoint acceptance had been pending.  
 **Reviewed main:** eb529368a2447061fc1838cd3967b0ffedae669d  
 **Planning branch:** plan/m15-scoped-notifications-20261108  
 **Required entry:** G11 accepted. **Canonical dependencies:** M15-01 -> M15-02/M15-03 -> M15-04 -> G15.
@@ -54,14 +54,14 @@ The entries below are **recommended defaults only**. Neither creating these docu
 | M15-P13 | Namespaced notification API and isolated React component; shared shell, permission enum additions, DI, migrations and EF snapshot require prior M13 reconciliation. No M13 KPI derivation from notices. | Parallel workstream ownership |
 | M15-P14 | Treat archived/cancelled targets as historical only and authorize current deep link independently; removed or inaccessible targets are hidden without existence disclosure. | Resource lifecycle and broken-link safety |
 
-**Approval ledger (updated 2026-11-10):** M15 P01-P09, P11, P13 and P14 approved, P10 approved conditionally on source-locked recovery conformance, and P12 provisional retention periods approved without cleanup authority. G15 full scenario acceptance remains pending. See [policy decision](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feature/g13-post-c3-remediation-20261111/docs/G13_G15_POLICY_APPROVAL_20261109.md). Changes to recommendations should amend the local decision record before starting implementation.
+**Approval ledger (updated 2026-11-10):** M15 P01-P09, P11, P13 and P14 approved, P10 approved conditionally on source-locked recovery conformance, and P12 provisional retention periods approved without cleanup authority. G15 full scenario acceptance was pending at this 2026-11-10 policy checkpoint. See [policy decision](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/blob/feature/g13-post-c3-remediation-20261111/docs/G13_G15_POLICY_APPROVAL_20261109.md). Changes to recommendations should amend the local decision record before starting implementation.
 
 ## 4. M15 work package readiness
 
 | Package | Current source state | Gate state |
 | --- | --- | --- |
 | M15-01 | Event catalog, entitlement and dedup rules implemented as candidate defaults; P01-P14 not approved | Policy acceptance pending |
-| M15-02 | SQL-only outbox/receipt migration, restricted SQL store, opt-in dispatcher and grants committed. Earlier source passed targeted PostgreSQL tests; replay revision not yet executed. | Latest source and full G15 pending |
+| M15-02 | Historical 2026-11-08 planning checkpoint: SQL-only outbox/receipt migration, scoped SQL store, opt-in dispatcher and grants had been committed; the successor replay revision had not yet run | **Historical checkpoint, superseded by accepted G15 evidence** |
 | M15-03 | HTTP routes and React center committed. Earlier source compiled and web build passed; browser fixtures failed before Playwright. | Three-engine browser execution pending |
 | M15-04 | Unit, contract, PostgreSQL and source checks executed on frozen earlier SHA; browser tests authored but not executed. | G15-S01..S25 not fully verified |
 | G15 | Final source-locked S25 technical evidence PASS at `ebb28d23`, explicit acceptance and PR #44 merge at `49934d79` | **ACCEPTED 2026-11-12; procedural reviewer-separation exception disclosed** |

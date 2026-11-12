@@ -22,8 +22,9 @@ public static class M17TelemetryRegistration
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(resource => resource.AddService("harborops-api"))
             .WithMetrics(metrics => metrics
+                // Custom bounded operation/status categories prevent hostile HTTP
+                // method/Host/path values from multiplying native time-series.
                 .AddMeter(M17Telemetry.MeterName)
-                .AddAspNetCoreInstrumentation()
                 .AddOtlpExporter(exporter =>
                 {
                     exporter.Endpoint = options.Endpoint;

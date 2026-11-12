@@ -18,6 +18,7 @@ using System.Net;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.HttpOverrides;
 using HarborOps.Api.Health;
+using HarborOps.Api.Observability;
 using HarborOps.Application.Baseline;
 using HarborOps.Infrastructure;
 using HarborOps.Infrastructure.Integrations;
@@ -31,6 +32,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(options => options.IncludeScopes = true);
+var m17Enabled = builder.AddM17Telemetry();
+M17Telemetry.SetNotificationWorkerEnabled(builder.Configuration.GetValue<bool>("M15:EnableDelivery"));
 
 var connectionString = builder.Configuration.GetConnectionString("HarborOps");
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -149,6 +152,9 @@ app.Use(async (context, next) =>
         });
     await next();
 });
+
+if (m17Enabled)
+    app.UseMiddleware<M17TelemetryMiddleware>();
 
 app.UseExceptionHandler(handler => handler.Run(async context =>
 {

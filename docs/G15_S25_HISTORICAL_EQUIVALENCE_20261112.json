@@ -20,7 +20,6 @@
     "src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs",
     "tests/HarborOps.IntegrationTests/G13TrackingSourceAcceptanceTests.cs"
   ],
-  "qualification": "Source equality of these paths and an earlier passing test do not prove a full same-SHA G13 rerun. The current candidate includes a later G15 index migration. Current targeted integration and migration evidence and independent source review are required before accepting a no-retest exception.",
-  "reviewer_disposition": "PENDING",
-  "no_new_g13_campaign": true
+  "qualification": "The archived source-locked test passed at the historical SHA. The listed source files are required to remain byte-identical at the candidate SHA. This record does not replace a current-candidate execution or independent acceptance review; the later G15 index migration is covered by separate targeted migration and integration evidence.",
+  "reviewer_disposition": "PENDING"
 }

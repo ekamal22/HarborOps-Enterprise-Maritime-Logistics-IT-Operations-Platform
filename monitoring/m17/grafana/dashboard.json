@@ -111,7 +111,7 @@
     },
     {
       "id": 4,
-      "title": "PostgreSQL readiness (-1 unknown, 0 down, 1 up)",
+      "title": "PostgreSQL readiness (-1 unknown, 0 down, 1 ready; stale is Unknown)",
       "type": "stat",
       "datasource": {
         "type": "prometheus",
@@ -125,7 +125,7 @@
       },
       "targets": [
         {
-          "expr": "harborops_db_readiness",
+          "expr": "harborops_db_readiness and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)",
           "refId": "A",
           "legendFormat": "PostgreSQL readiness (-1 unknown, 0 down, 1 up)",
           "instant": true
@@ -150,7 +150,7 @@
     },
     {
       "id": 5,
-      "title": "Notification worker (0 disabled, 1 active)",
+      "title": "Notification worker (-1 stopped unexpectedly, 0 disabled, 1 active)",
       "type": "stat",
       "datasource": {
         "type": "prometheus",

@@ -43,6 +43,8 @@ jobs:
           grep -Fq 'PopulatedG13SeventeenMigrationDatabaseAcceptsG15WithoutChangingAcceptedRows' tests/HarborOps.IntegrationTests/M11M12UpgradeTests.cs
           test -f docs/G13_POSTMERGE_RECONCILIATION_20261112.md
           python3 -m py_compile scripts/verify-g13-g15-evidence.py scripts/check-g13-g15-scenarios.py scripts/audit-g13-g15-assertions.py scripts/check-g13-g15-sensitive-evidence.py scripts/g13-g15-process-crash.py scripts/g13-mutation-campaign.py scripts/g15-mutation-campaign.py
+          python3 -m py_compile scripts/verify-g15-s25-remediation.py scripts/test_verify_g15_s25_remediation.py
+          python3 -m unittest discover -s scripts -p 'test_verify_g15_s25_remediation.py' -v 2>&1 | tee .verification/g15-s25-verifier-tests.log
           python3 - <<'PY'
           import ast
           import json

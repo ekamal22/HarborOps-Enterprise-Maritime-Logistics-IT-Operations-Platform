@@ -52,6 +52,14 @@ public static class M17WorkerTelemetry
     public static void SetBacklogAge(double? seconds) =>
         Volatile.Write(ref backlogAgeSeconds, seconds.HasValue ? Math.Max(0, seconds.Value) : -1);
 
+    public static void RecordExporterFailure(int spanCount)
+    {
+        if (spanCount > 0)
+            SamplingDrops.Add(spanCount,
+                new KeyValuePair<string, object?>("signal", "trace"),
+                new KeyValuePair<string, object?>("reason", "exporter_failure"));
+    }
+
     public static void RecordSamplingDrop() => SamplingDrops.Add(1,
         new KeyValuePair<string, object?>("signal", "trace"),
         new KeyValuePair<string, object?>("reason", "rate_limit"));

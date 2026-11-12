@@ -146,6 +146,19 @@ public static class AuthenticationSetup
                         QueueLimit = 0, AutoReplenishment = true
                     }));
         });
+        // Reporting builds are more expensive than read-only pagination.
+        foreach (var (name, limit) in new[] {
+            ("m13-report", 6), ("m13-read", 60), ("m13-grants", 10) })
+        {
+            services.AddRateLimiter(options =>
+                options.AddPolicy(name, context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                            ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                        _ => new FixedWindowRateLimiterOptions {
+                            Window = TimeSpan.FromMinutes(1), PermitLimit = limit,
+                            QueueLimit = 0, AutoReplenishment = true })));
+        }
         services.AddSingleton<IdentityAttemptLimiter>();
         return services;
     }

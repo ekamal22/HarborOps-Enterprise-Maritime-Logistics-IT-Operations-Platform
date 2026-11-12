@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import ReferenceDataWorkspace from "../references/ReferenceDataWorkspace";
 import MaritimeWorkspace from "../maritime/MaritimeWorkspace";
 import ShipmentWorkspace from "../shipments/ShipmentWorkspace";
+import OperationalDashboard from "../analytics/OperationalDashboard";
+import KpiGrantPanel from "../analytics/KpiGrantPanel";
 import {
   getJson, mutate, organizationError, OrganizationRequestError,
   type Membership, type OrganizationItem, type OrganizationProfile
@@ -268,6 +270,15 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
               organizationId={selection.id} canManage={selection.role !== "Auditor"}
                canManageExceptions={selection.role === "Manager"}
               onAccessInvalidated={onReferenceAccessInvalidated} />}
+          {(selection.role === "Analyst" || selection.role === "Manager" || selection.role === "Auditor") &&
+            <OperationalDashboard key={"analytics:" + selection.id + ":" + selection.role}
+              organizationId={selection.id} isAuditor={selection.role === "Auditor"}
+              onAccessInvalidated={onReferenceAccessInvalidated} />}
+          {selection.role === "Administrator" && (
+            <KpiGrantPanel key={"kpi-grants:" + selection.id}
+              organizationId={selection.id} members={members}
+              onAccessInvalidated={onReferenceAccessInvalidated} />
+          )}
           {selection.role === "Administrator" && (
             <div className="mt-5 border-t border-slate-700 pt-5">
               <form onSubmit={e => void updateProfile(e)} className="flex flex-wrap items-end gap-2">

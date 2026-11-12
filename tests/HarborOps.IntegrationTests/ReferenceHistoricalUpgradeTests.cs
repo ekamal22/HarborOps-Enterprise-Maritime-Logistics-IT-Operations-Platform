@@ -50,7 +50,7 @@ public sealed class ReferenceHistoricalUpgradeTests
             var memberships = await db.OrganizationMemberships.CountAsync();
 
             await db.Database.MigrateAsync();
-            Assert.Equal(18, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(19, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(seeded.DatasetVersion,
                 (await db.BootstrapRecords.AsNoTracking().SingleAsync()).DatasetVersion);
             Assert.Equal(users, await db.AuthUsers.CountAsync());
@@ -64,7 +64,7 @@ public sealed class ReferenceHistoricalUpgradeTests
             Assert.Equal(0, await db.Vessels.CountAsync());
 
             await db.Database.MigrateAsync();
-            Assert.Equal(18, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(19, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(users, await db.AuthUsers.CountAsync());
             Assert.Equal(memberships, await db.OrganizationMemberships.CountAsync());
 
@@ -78,7 +78,7 @@ public sealed class ReferenceHistoricalUpgradeTests
                 (await db.AuthSessions.AsNoTracking().SingleAsync(s => s.Id == session.SessionId))
                     .SelectedOrganizationId);
             await db.Database.MigrateAsync();
-            Assert.Equal(18, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(19, (await db.Database.GetAppliedMigrationsAsync()).Count());
             Assert.Equal(0, await db.Ports.CountAsync());
             Assert.Equal(0, await db.Vessels.CountAsync());
         }

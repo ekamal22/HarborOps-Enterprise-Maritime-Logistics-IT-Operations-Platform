@@ -33,7 +33,7 @@ public sealed class CombinedRetentionTests
             await using var db = new HarborOpsDbContext(new DbContextOptionsBuilder<HarborOpsDbContext>()
                 .UseNpgsql(scoped.ConnectionString).Options);
             await db.Database.MigrateAsync();
-            Assert.Equal(18, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(19, (await db.Database.GetAppliedMigrationsAsync()).Count());
 
             var nonce = Guid.NewGuid().ToString("N");
             var email = "cg16-retention-" + nonce + "@example.test";

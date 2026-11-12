@@ -7,7 +7,7 @@ public sealed class M17WorkerTraceSanitizer : BaseProcessor<Activity>
 {
     private static readonly HashSet<string> Allowed = new(StringComparer.Ordinal)
     {
-        "harborops.operation", "harborops.outcome"
+        "harborops.operation", "harborops.outcome", "harborops.link_digest"
     };
     public override void OnEnd(Activity activity)
     {

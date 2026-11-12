@@ -53,10 +53,50 @@ test("private local dashboard has real datasource mappings and no default green 
   assert.ok(dashboard.panels.some(p => /readiness/i.test(p.title)));
 });
 
-test("G17 remains explicitly unexecuted until source-locked raw evidence exists", () => {
+test("G17 acceptance is never inferred from source file presence", () => {
   const j = JSON.parse(read("docs/M17_G17_ASSERTION_INVENTORY_20261112.json"));
   assert.equal(j.scenarios.length, 25);
-  assert.equal(j.scenarios.reduce((total, s) => total + s.assertions.length, 0), 75);
-  assert.equal(j.gate_acceptance, "NOT_ACCEPTED");
-  assert.ok(j.scenarios.every(s => s.status === "NOT_EXECUTED"));
+  assert.equal(j.scenarios.reduce((total, scenario) => total + scenario.assertions.length, 0), 75);
+  if (j.gate_acceptance === "ACCEPTED") {
+    assert.ok(j.scenarios.every(scenario => scenario.assertions.every(a =>
+      a.status === "PASS" && typeof a.witness === "string" && a.witness.length > 0)));
+    assert.equal(j.technical_review, "PASS");
+  } else {
+    assert.equal(j.gate_acceptance, "NOT_ACCEPTED");
+  }
+});
+
+test("the runnable monitoring stack uses isolated E-backed storage and a supported image", () => {
+  const base = read("compose.m17.verify.yaml");
+  const overlay = read("compose.m17.observability.override.yaml");
+  assert.match(base, /HARBOROPS_G17_STORAGE_ROOT/);
+  assert.match(base, /127\.0\.0\.1:155432:5432/);
+  assert.match(base, /127\.0\.0\.1:18080:8080/);
+  assert.match(base, /127\.0\.0\.1:15173:80/);
+  assert.match(overlay, /grafana\/grafana:13\.3\.1/);
+  assert.doesNotMatch(overlay, /grafana\/grafana-oss:/);
+  assert.match(overlay, /OTEL_METRIC_EXPORT_INTERVAL:\s*"15000"/);
+});
+
+test("all six approved local alert categories are represented without external routing", () => {
+  const text = read("monitoring/m17/alerts.yaml");
+  for (const name of [
+    "HarborOpsElevatedApiFailureRate", "HarborOpsHighApiP95",
+    "HarborOpsDatabaseUnavailable", "HarborOpsTrackingBacklogStale",
+    "HarborOpsMonitoringMissing", "HarborOpsExporterDrops"
+  ]) assert.ok(text.includes("alert: " + name), name);
+  assert.match(text, /keep_firing_for:\s*5m/);
+  assert.match(text, /keep_firing_for:\s*10m/);
+  assert.match(text, /queue_full/);
+  assert.doesNotMatch(text, /https?:\/\//);
+});
+
+test("worker disposition is reflected rather than counting parked work as processed", () => {
+  const source = read("src/HarborOps.Worker/WorkerShell.cs");
+  assert.match(source, /TrackingWorkDisposition\.NeedsReconciliation => "needs_reconciliation"/);
+  assert.match(source, /TrackingWorkDisposition\.Stale => "stale"/);
+  assert.match(source, /OldestEligibleBacklogAgeSecondsAsync/);
+  const api = read("src/HarborOps.Api/Observability/M17TelemetryRegistration.cs");
+  assert.match(api, /AddHostedService<M17ReadinessProbeService>/);
+  assert.match(api, /otel\.sdk\.experimental/);
 });

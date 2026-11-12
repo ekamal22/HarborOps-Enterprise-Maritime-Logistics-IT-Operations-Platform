@@ -32,7 +32,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(http_server_request_duration_seconds_count[5m]))",
+          "expr": "sum(rate(harborops_request_duration_seconds_count[5m]))",
           "refId": "A",
           "legendFormat": "API request rate",
           "instant": false
@@ -94,7 +94,7 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(harborops_request_duration_seconds_bucket[5m])))",
           "refId": "A",
           "legendFormat": "API p95 latency",
           "instant": false

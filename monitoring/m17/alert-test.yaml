@@ -56,6 +56,8 @@ tests:
         values: '150x80'
       - series: 'harborops_service_running{service="tracking"}'
         values: '1x80'
+      - series: 'harborops_worker_heartbeat_total{worker="tracking"}'
+        values: '0+1x80'
     alert_rule_test:
       - eval_time: 2m
         alertname: HarborOpsTrackingBacklogStale
@@ -97,6 +99,8 @@ tests:
         values: '0x80'
       - series: 'harborops_service_running{service="tracking"}'
         values: '0x80'
+      - series: 'harborops_worker_heartbeat_total{worker="tracking"}'
+        values: '0+1x80'
       - series: 'harborops_worker_backlog_age_seconds{worker="tracking"}'
         values: '180x80'
     alert_rule_test:

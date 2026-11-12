@@ -29,6 +29,7 @@ New-Item -ItemType Directory -Path $EvidencePath -Force | Out-Null
 $StorageRoot = Join-Path $EvidencePath 'disposable-stack'
 $env:HARBOROPS_G17_STORAGE_ROOT = $StorageRoot
 $env:HARBOROPS_G17_EVIDENCE_DIR = $EvidencePath
+$env:HARBOROPS_G17_DISPOSABLE_STACK_STARTED = "false"
 $env:HARBOROPS_G17_BROWSER_JSON = Join-Path $EvidencePath 'm17-browser-results.json'
 $Cache = Join-Path (Split-Path -Parent $Repo) 'harborops-m0-cache'
 $env:DOTNET_CLI_HOME = Join-Path $Cache 'dotnet-home'
@@ -65,7 +66,7 @@ try {
     $env:HARBOROPS_SOURCE_SHA = $Sha
     Set-Content -LiteralPath (Join-Path $EvidencePath 'source-sha.txt') -Value $Sha -NoNewline
 
-    Invoke-Required 'node' @('--test', 'scripts/check-m17-source.test.mjs')
+    Invoke-Required 'node' @('--test', 'scripts/check-m17-source.test.mjs', 'scripts/check-g17-manifest.test.mjs')
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
     Invoke-Required 'dotnet' @('build', 'HarborOps.sln', '-c', 'Release', '--no-restore', '-warnaserror')
     Invoke-Required 'dotnet' @('test', 'tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj',
@@ -103,6 +104,7 @@ try {
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'keyring') -Force | Out-Null
         Invoke-Required 'docker' (@('compose') + $composeArgs + @('config', '--quiet'))
         $ownedStackStarted = $true
+        $env:HARBOROPS_G17_DISPOSABLE_STACK_STARTED = 'true'
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('up', '-d', '--build', 'postgres', 'migrator'))
         $dbPort = (& docker compose @composeArgs port postgres 5432).Trim()
@@ -154,6 +156,8 @@ try {
         } finally { Pop-Location }
     }
     Invoke-Required 'node' @('scripts/g17-manifest.mjs')
+    Invoke-Required 'node' @('scripts/verify-g17-manifest.mjs',
+        (Join-Path $EvidencePath 'manifest.json'), $Sha)
     Write-Host "Candidate checks collected for $Sha. G17 review and acceptance remain separate."
 } finally {
     if ($StopOwnedContainers -and $ownedStackStarted) {

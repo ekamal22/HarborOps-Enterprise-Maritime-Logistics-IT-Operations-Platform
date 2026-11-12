@@ -45,7 +45,7 @@ groups:
         expr: |
           (harborops_db_readiness == 0)
           and (time() - harborops_db_readiness_sample_unix_seconds < 35)
-          and (count_over_time((harborops_db_readiness == 0)[45s:15s]) >= 2)
+          and on() (harborops_db_readiness offset 15s == 0)
         for: 15s
         keep_firing_for: 30s
         labels: {severity: critical}
@@ -61,7 +61,6 @@ groups:
              and on() (ALERTS{alertname="HarborOpsTrackingBacklogStale",alertstate="firing"} == 1)
              and on() (harborops_service_running{service="tracking"} == 1)))
         for: 30s
-        keep_firing_for: 30s
         labels: {severity: degraded}
         annotations:
           summary: "Eligible tracking work is stale in the explicitly enabled worker"
@@ -88,7 +87,7 @@ groups:
         keep_firing_for: 30s
         labels: {severity: informational}
         annotations:
-          summary: "OpenTelemetry SDK batch queue dropped spans due to capacity"
+          summary: "OpenTelemetry batch queue full or OTLP exporter failed"
 
       - alert: HarborOpsTraceRateDrops
         expr: increase(harborops_telemetry_dropped_total{signal="trace",reason="rate_limit"}[1m]) > 0

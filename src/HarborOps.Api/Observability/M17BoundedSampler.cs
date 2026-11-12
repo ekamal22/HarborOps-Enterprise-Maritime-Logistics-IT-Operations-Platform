@@ -11,6 +11,8 @@ public sealed class M17BoundedSampler : Sampler
     private long second = -1;
     private int admitted;
 
+    public M17BoundedSampler() => Description = "M17 10-percent parent-based rate-bound sampler";
+
     public override SamplingResult ShouldSample(in SamplingParameters parameters)
     {
         var choice = inner.ShouldSample(in parameters);
@@ -35,5 +37,4 @@ public sealed class M17BoundedSampler : Sampler
         }
     }
 
-    public override string Description => "M17 10-percent parent-based rate-bound sampler";
 }

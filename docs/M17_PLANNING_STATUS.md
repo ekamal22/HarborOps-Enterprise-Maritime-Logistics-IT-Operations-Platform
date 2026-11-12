@@ -1,9 +1,11 @@
 # M17 Observability Planning Register
 
+**Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
+
 **Snapshot:** 2026-11-12.
 **Plan baseline:** `056b3a77f6520ac7555890f4666b368ccd351d79` on protected main.
 **Milestone:** M17 observability and service health, gate G17.
-**Status:** End-to-end plan source-baselined and **M17-P01 through M17-P09 approved as the design baseline on 2026-11-12**. P02/P04/P09 numeric limits remain provisional pending measurements; P05 alert thresholds are initial local rules requiring calibration. **Implementation not started; tests not run for G17; 0/25 G17 scenarios executed; acceptance pending.**
+**Status:** End-to-end plan source-baselined and **M17-P01 through M17-P09 approved as the design baseline on 2026-11-12**. P02/P04/P09 numeric limits remain provisional pending measurements; P05 alert thresholds are initial local rules requiring calibration. **An isolated source candidate now exists; G17 executable tests have not run, 0/25 scenarios and 0/75 assertions have source-locked evidence, acceptance pending.**
 **Prerequisite:** G3 accepted and merged. **Downstream:** M18 incident workflows require accepted G17 and G16.
 
 ## Planned source deliverables
@@ -14,7 +16,7 @@
 | [M17 policy register](M17_POLICY_PROPOSAL_20261112.md) | P01-P09 approved design baseline for export, cardinality, tracing, thresholds, storage, exposure and performance | **9 approved; P02/P04/P09 numerical targets provisional and P05 rules to calibrate** |
 | [M17 implementation plan](M17_IMPLEMENTATION_PLAN.md) | Ordered work packages, source map, dependencies, checkpoints, handoff and merge discipline | Proposed |
 | [G17 verification plan](M17_VERIFICATION_PLAN.md) | 25 scenarios, 75 atomic assertions, evidence contract and independent S25 decision | **0 executed** |
-| [M17 operations runbook](M17_OPERATIONS_RUNBOOK.md) | Disposable local startup/fault/recovery/evidence procedures | Planned, no executable wrapper |
+| [M17 operations runbook](M17_OPERATIONS_RUNBOOK.md) | Disposable local startup/fault/recovery/evidence procedures | Source-locked wrapper drafted, not run |
 | [Execution graph](EXECUTION_GRAPH.md) | Canonical M17-01 through M17-04 -> G17 dependency wiring, already present | Unchanged planning DAG |
 
 ## Observed baseline, not new capability
@@ -31,10 +33,10 @@
 | --- | --- | --- |
 | Baseline review | Actual source, health and worker flags checked against protected main | Completed for planning snapshot |
 | P01-P09 policy decisions | Design baseline explicitly approved 2026-11-12; measured numerical calibration remains under M17-01 and G17 | **APPROVED for design; measurements pending** |
-| M17-01 | Names, units, confidentiality, thresholds and finite cardinality frozen | Not started |
-| M17-02 | Traces, structured logs, health continuity and bounded export implemented and tested | Not started |
-| M17-03 | Opt-in private local dashboard, alert rules, safe fault runbook implemented and tested | Not started |
-| M17-04 | Integrated fault journey, affected regressions, privacy/load and source-locked evidence | Not started |
+| M17-01 | Names, units, confidentiality, thresholds and finite cardinality frozen | Initial contract in candidate; calibration pending |
+| M17-02 | Traces, structured logs, health continuity and bounded export implemented and tested | Source candidate committed; no runtime tests |
+| M17-03 | Opt-in private local dashboard, alert rules, safe fault runbook implemented and tested | Local profile and rules authored; no runtime tests |
+| M17-04 | Integrated fault journey, affected regressions, privacy/load and source-locked evidence | Verification harness authored; campaign not executed |
 | G17-S25 | Independent raw-evidence review with technical PASS/NOT PASS | Not started |
 | Gate acceptance | Explicit G17 decision after all mandatory evidence | Pending |
 | Feature merge and M18 handoff | Reviewed implementation PR and post-merge reconciliation | Not authorized by planning |

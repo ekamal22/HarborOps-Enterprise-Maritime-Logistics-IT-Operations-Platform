@@ -19,7 +19,7 @@ groups:
            and harborops:m17:eligible_requests:5m >= 100)
           or
           (harborops:m17:api_5xx_fraction:5m >= 0.005
-           and on() ALERTS{alertname="HarborOpsElevatedApiFailureRate",alertstate="firing"} == 1)
+           and on() (ALERTS{alertname="HarborOpsElevatedApiFailureRate",alertstate="firing"} == 1))
         for: 30s
         keep_firing_for: 5m
         labels: {severity: degraded}
@@ -33,7 +33,7 @@ groups:
            and harborops:m17:eligible_requests:10m >= 100)
           or
           (harborops:m17:api_p95_seconds:10m >= 0.8
-           and on() ALERTS{alertname="HarborOpsHighApiP95",alertstate="firing"} == 1)
+           and on() (ALERTS{alertname="HarborOpsHighApiP95",alertstate="firing"} == 1))
         for: 30s
         keep_firing_for: 10m
         labels: {severity: degraded}
@@ -58,7 +58,7 @@ groups:
              and on() (harborops_service_running{service="tracking"} == 1))
            or
            (harborops_worker_backlog_age_seconds{worker="tracking"} >= 60
-             and on() ALERTS{alertname="HarborOpsTrackingBacklogStale",alertstate="firing"} == 1
+             and on() (ALERTS{alertname="HarborOpsTrackingBacklogStale",alertstate="firing"} == 1)
              and on() (harborops_service_running{service="tracking"} == 1)))
         for: 30s
         keep_firing_for: 30s
@@ -69,7 +69,7 @@ groups:
 
       - alert: HarborOpsMonitoringMissing
         expr: |
-          (up{job="m17_collector"} == 0)
+          (sum(up{job="m17_collector"}) == 0)
           or
           absent_over_time(harborops_telemetry_heartbeat_total[100s])
           or

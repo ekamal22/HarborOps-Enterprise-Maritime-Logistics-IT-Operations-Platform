@@ -11,7 +11,8 @@ public sealed class M17TraceSanitizer : BaseProcessor<Activity>
     {
         "http.request.method", "http.response.status_code", "http.route",
         "url.scheme", "network.protocol.version", "server.port",
-        "error.type", "db.system.name", "harborops.operation"
+        "error.type", "db.system.name", "harborops.operation",
+        "harborops.outcome", "harborops.link_digest"
     };
 
     public override void OnEnd(Activity activity)

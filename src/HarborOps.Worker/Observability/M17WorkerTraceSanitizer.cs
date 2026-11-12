@@ -5,16 +5,26 @@ namespace HarborOps.Worker.Observability;
 
 public sealed class M17WorkerTraceSanitizer : BaseProcessor<Activity>
 {
-    private static readonly HashSet<string> Allowed = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> Outcomes = new(StringComparer.Ordinal)
     {
-        "harborops.operation", "harborops.outcome", "harborops.link_digest"
+        "processed", "needs_reconciliation", "stale", "retry",
+        "failure", "reference_conflict", "cancelled", "other"
     };
     public override void OnEnd(Activity activity)
     {
         foreach (var tag in activity.TagObjects.ToArray())
-            if (!Allowed.Contains(tag.Key) ||
-                tag.Value is string text && text.Length > 80)
-                activity.SetTag(tag.Key, (object?)null);
+        {
+            var value = tag.Value?.ToString();
+            var valid = tag.Key switch
+            {
+                "harborops.operation" => value == "tracking.process",
+                "harborops.outcome" => value is not null && Outcomes.Contains(value),
+                "harborops.link_digest" => value is { Length: 64 } &&
+                    value.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f'),
+                _ => false
+            };
+            if (!valid) activity.SetTag(tag.Key, (object?)null);
+        }
         activity.DisplayName = "tracking.process";
     }
 }

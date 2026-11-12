@@ -21,7 +21,9 @@ PHASES = (
     ("G13BeforeReportCommit", None),
     ("G13DuringLiveApiBuild", "G13LiveBuildRecoveredInNewApiProcess"),
     ("G15BeforeHistoryCommit", None),
+    ("G15DuringRealM11HistoryWrite", "G15RealM11WriteRecoveredInNewApiProcess"),
     ("G15BeforeClaimCommit", "G15FanoutRecoveredInNewApiProcess"),
+    ("G15DuringRealDispatcherFanout", "G15FanoutRecoveredInNewApiProcess"),
     ("G15BeforeFanoutCommit", "G15FanoutRecoveredInNewApiProcess"),
     ("G15AfterFanoutCommit", "G15FanoutRecoveredInNewApiProcess"),
     ("G13AfterReportCommit", "G13AfterReportCommitRecoveredInNewApiProcess"),
@@ -65,6 +67,27 @@ def sql_count(container: str, query: str) -> int:
     ], text=True, capture_output=True, timeout=30, check=True)
     return int(result.stdout.strip())
 
+def wait_for_terminated_api_transactions(container: str, phase: str) -> None:
+    """Wait until PostgreSQL releases locks from the killed API process.
+
+    The backend may still be inside a trigger when the client is killed.
+    Never count the recovery as verified while its source transaction survives.
+    """
+    start = time.monotonic()
+    while time.monotonic() - start < 70:
+        active = sql_count(container, """
+            SELECT COUNT(*) FROM pg_stat_activity
+            WHERE usename='harborops_api'
+              AND (state <> 'idle' OR xact_start IS NOT NULL)
+            """)
+        if active == 0:
+            print("G15_CRASH_RELEASE " + phase +
+                  " seconds=" + str(round(time.monotonic() - start, 2)), flush=True)
+            return
+        time.sleep(0.5)
+    raise TimeoutError(phase + ": killed API connection retained a transaction")
+
+
 def verify_phase(container: str, phase: str, marker: dict) -> None:
     org = str(UUID(marker["Organization"]))
     target = str(UUID(marker["Target"]))
@@ -86,6 +109,15 @@ def verify_phase(container: str, phase: str, marker: dict) -> None:
             f"WHERE organization_id='{org}'::uuid")
         if reports != 0 or members != 0:
             raise AssertionError("Killed live API report left partial committed state")
+    elif phase == "G15DuringRealM11HistoryWrite":
+        exceptions = sql_count(container,
+            f"SELECT count(*) FROM shipment_exceptions "
+            f"WHERE organization_id='{org}'::uuid AND shipment_id='{target}'::uuid")
+        outbox = sql_count(container,
+            f"SELECT count(*) FROM m15_notification_outbox "
+            f"WHERE organization_id='{org}'::uuid AND shipment_id='{target}'::uuid")
+        if exceptions or outbox:
+            raise AssertionError("Killed real M11 request left committed source or intent")
     elif phase == "G15BeforeHistoryCommit":
         facts = sql_count(container,
             f"SELECT count(*) FROM shipment_exception_history WHERE id='{target}'::uuid")
@@ -104,7 +136,7 @@ def verify_phase(container: str, phase: str, marker: dict) -> None:
         if count != 1 or members < 1:
             raise AssertionError("Committed report disappeared after process termination")
     elif phase in ("G15BeforeClaimCommit", "G15BeforeFanoutCommit",
-                   "G15AfterFanoutCommit"):
+                   "G15AfterFanoutCommit", "G15DuringRealDispatcherFanout"):
         outbox = sql_count(container,
             f"SELECT count(*) FROM m15_notification_outbox "
             f"WHERE source_history_id='{target}'::uuid "
@@ -143,9 +175,16 @@ def run() -> int:
         raise RuntimeError("Refusing an unrecognized database")
     OUT.mkdir(parents=True, exist_ok=True)
     container = docker_server()
+    scope = os.environ.get("HARBOROPS_CRASH_SCOPE", "combined")
+    if scope not in ("combined", "G15"):
+        raise RuntimeError("Unsupported crash verification scope")
+    selected = [(phase, recovery) for phase, recovery in PHASES
+                if scope == "combined" or phase.startswith("G15")]
+    if not selected:
+        raise RuntimeError("No crash phases selected")
     records = []
     try:
-        for phase, recovery in PHASES:
+        for phase, recovery in selected:
             marker = OUT / (phase + ".json")
             marker.unlink(missing_ok=True)
             logpath = OUT / (phase + ".log")
@@ -177,6 +216,9 @@ def run() -> int:
                     process.wait(timeout=15)
             if process.returncode >= 0:
                 raise RuntimeError(phase + ": process did not terminate by signal")
+            if phase in ("G15DuringRealM11HistoryWrite",
+                         "G15DuringRealDispatcherFanout"):
+                wait_for_terminated_api_transactions(container, phase)
             verify_phase(container, phase, payload)
             if recovery is not None:
                 result = subprocess.run([

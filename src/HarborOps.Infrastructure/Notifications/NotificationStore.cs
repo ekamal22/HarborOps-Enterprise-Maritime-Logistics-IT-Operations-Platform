@@ -108,6 +108,20 @@ public sealed class NotificationStore(
         read_at_utc,acknowledged_at_utc,version
         """;
 
+    // The selected session is separately authorized by the signed RLS policy.
+    // This lookup supplies index keys, never replaces the SQL read authority.
+    private async Task<(Guid Id, long Version)> CurrentMembershipAsync(
+        NpgsqlTransaction tx, Guid org, Guid user, CancellationToken ct)
+    {
+        await using var cmd = Command(Connection, tx, """
+            SELECT id,version FROM organization_memberships
+            WHERE organization_id=@org AND user_id=@user AND status='Active'
+            """,("org",org),("user",user));
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return (Guid.Empty, 0);
+        return (reader.GetGuid(0),reader.GetInt64(1));
+    }
+
     public async Task<NotificationPage> ListAsync(Guid org, Guid user, Guid session,
         string state, DateTimeOffset? afterUtc, Guid? afterId, DateTimeOffset? cutoff,
         int limit, CancellationToken ct)
@@ -118,6 +132,7 @@ public sealed class NotificationStore(
             await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(
                 IsolationLevel.ReadCommitted, ct);
             await SetReadScopeAsync(tx, org, user, session, ct);
+            var (membershipId,membershipVersion) = await CurrentMembershipAsync(tx,org,user,ct);
             DateTimeOffset snapshot;
             await using (var clock = Command(Connection, tx, "SELECT clock_timestamp()"))
             await using (var clockReader = await clock.ExecuteReaderAsync(ct))
@@ -128,23 +143,49 @@ public sealed class NotificationStore(
             }
 
             var rows = new List<NotificationRecord>(limit + 1);
+            // Use a fixed filter chosen from the recognized state values.
+            // A parameterized OR across every state suppresses the partial
+            // unread index during stale-statistics and bulk-load windows.
+            var statePredicate = state switch
+            {
+                "All" => "",
+                "Unread" => "AND read_at_utc IS NULL",
+                "Read" => "AND read_at_utc IS NOT NULL AND acknowledged_at_utc IS NULL",
+                "Acknowledged" => "AND acknowledged_at_utc IS NOT NULL",
+                _ => "AND FALSE"
+            };
+            // The feed has a scoped composite B-tree and a scoped unread index.
+            // This transaction-local planner constraint prevents a stale-statistics
+            // sequential scan across unrelated recipients during burst ingest.
+            // RLS and the signed read scope are still evaluated for every row.
+            await using (var plan = Command(Connection, tx, "SET LOCAL enable_seqscan=off"))
+                await plan.ExecuteNonQueryAsync(ct);
+            if (afterUtc.HasValue != afterId.HasValue)
+                throw new InvalidOperationException("Notification cursor bounds are inconsistent");
+            var cursorPredicate = afterUtc.HasValue
+                ? "AND (created_at_utc,id)<(@afterUtc::timestamptz,@afterId::uuid)"
+                : "";
+            var parameters = new List<(string Name, object? Value)>
+            {
+                ("org",org),("user",user),("membership",membershipId),
+                ("membershipVersion",membershipVersion),("cutoff",snapshot),
+                ("take",limit+1)
+            };
+            if (afterUtc.HasValue)
+            {
+                parameters.Add(("afterUtc",afterUtc.Value));
+                parameters.Add(("afterId",afterId!.Value));
+            }
             await using (var cmd = Command(Connection, tx, $"""
                 SELECT {Columns} FROM m15_user_notifications
                 WHERE organization_id=@org AND recipient_user_id=@user
+                  AND membership_id=@membership AND membership_version=@membershipVersion
                   AND created_at_utc <= @cutoff
-                  AND (@afterUtc::timestamptz IS NULL OR
-                       (created_at_utc,id)<(@afterUtc::timestamptz,@afterId::uuid))
-                  AND (@state='All'
-                       OR (@state='Unread' AND read_at_utc IS NULL)
-                       OR (@state='Read' AND read_at_utc IS NOT NULL
-                           AND acknowledged_at_utc IS NULL)
-                       OR (@state='Acknowledged' AND acknowledged_at_utc IS NOT NULL))
+                  {cursorPredicate}
+                  {statePredicate}
                 ORDER BY created_at_utc DESC,id DESC LIMIT @take
                 """,
-                ("org",org),("user",user),("cutoff",snapshot),
-                ("afterUtc",(object?)afterUtc ?? DBNull.Value),
-                ("afterId",(object?)afterId ?? DBNull.Value),
-                ("state",state),("take",limit+1)))
+                parameters.ToArray()))
             await using (var reader = await cmd.ExecuteReaderAsync(ct))
                 while (await reader.ReadAsync(ct)) rows.Add(Read(reader));
             await tx.CommitAsync(ct);
@@ -192,15 +233,19 @@ public sealed class NotificationStore(
         {
             await using var tx = (NpgsqlTransaction)await Connection.BeginTransactionAsync(ct);
             await SetReadScopeAsync(tx, org, user, session, ct);
+            var (membershipId,membershipVersion) = await CurrentMembershipAsync(tx,org,user,ct);
             long count;
             DateTimeOffset now;
             await using (var cmd = Command(Connection, tx, """
                 SELECT COUNT(*),clock_timestamp() FROM (
                     SELECT 1 FROM m15_user_notifications
                     WHERE organization_id=@org AND recipient_user_id=@user
+                        AND membership_id=@membership AND membership_version=@membershipVersion
                         AND read_at_utc IS NULL
                     LIMIT @cap) bounded
-                """, ("org",org),("user",user),("cap",UnreadCountCap + 1)))
+                """, ("org",org),("user",user),
+                ("membership",membershipId),("membershipVersion",membershipVersion),
+                ("cap",UnreadCountCap + 1)))
             await using (var reader = await cmd.ExecuteReaderAsync(ct))
             {
                 if (!await reader.ReadAsync(ct))

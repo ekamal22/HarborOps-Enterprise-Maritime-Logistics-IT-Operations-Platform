@@ -71,7 +71,7 @@ public sealed class TrackingInboxAuditSqlTests
             Assert.Equal(PostgresErrorCodes.CheckViolation, rejected.SqlState);
             Assert.Equal(9, (await db.Database.GetAppliedMigrationsAsync()).Count());
             await db.Database.MigrateAsync();
-            Assert.Equal(16, (await db.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(19, (await db.Database.GetAppliedMigrationsAsync()).Count());
             var persisted = await db.TrackingInboxReceipts.AsNoTracking()
                 .SingleAsync(x => x.Id == received.ReceiptId);
             var accepted = await db.TrackingAcceptedEvents.AsNoTracking()

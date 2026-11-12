@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "scope": "G15-S23-A03 historical G13 source-bound compatibility witness",
+  "current_status": "INDEPENDENT_EQUIVALENCE_REVIEW_PENDING",
+  "does_not_substitute_for_new_execution": true,
+  "test_id": "ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress",
+  "historical": {
+    "run_id": 43139153300,
+    "source_sha": "479616a5b7f17c494d897834a66d10b6276bb517",
+    "artifact_id": 13909188656,
+    "artifact_name": "m15-database-43139153300",
+    "trx_path": "g13-tracking-source.trx",
+    "trx_sha256": "4ce60864523884bbeeaba58defdd566d430289dc5ed590a92f6323def65ad421",
+    "test_outcome": "Passed"
+  },
+  "unchanged_source_paths": [
+    "src/HarborOps.Api/Integrations/TrackingEndpoints.cs",
+    "src/HarborOps.Api/Reporting/OperationalKpiEndpoints.cs",
+    "src/HarborOps.Domain/Reporting/OperationalKpiPolicy.cs",
+    "src/HarborOps.Infrastructure/Reporting/OperationalKpiStore.cs",
+    "tests/HarborOps.IntegrationTests/G13TrackingSourceAcceptanceTests.cs"
+  ],
+  "qualification": "The archived source-locked test passed at the historical SHA. The listed source files are required to remain byte-identical at the candidate SHA. This record does not replace a current-candidate execution or independent acceptance review; the later G15 index migration is covered by separate targeted migration and integration evidence.",
+  "reviewer_disposition": "PENDING"
+}

@@ -1,6 +1,8 @@
 # Engineering and Documentation Conventions
 
 **Current integration state (2026-11-12):** G0-G12 and G16 accepted and merged. G13 and G15 conditionally accepted and merged through PR #38 and PR #41. Formal independent G15-S25 reviewer attestation remains unestablished. The accepted G15 implementation passed source-locked run 43139153300 and was integrated at `47af1994b9958188666e5dde0aa6b5a536d7c55c`. Default-off services, M9 transport hold, notification retention-deletion prohibition and deployment restrictions remain. See [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md).
+G0-G12 and G16 are accepted. G13 and G15 remain conditionally accepted following their isolated integrations; G15 S25 independent acceptance remains pending.
+
 
 ## Current G10 contribution boundary
 

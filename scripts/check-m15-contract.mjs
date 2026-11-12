@@ -108,6 +108,7 @@ assert.ok(
 const disposableBrowserBranches = new Map([
   ["verify-g13-g15-post-c3.yml", "feature/g13-post-c3-remediation-20261111"],
   ["verify-g15-post-g13.yml", "integration/g15-post-g13-remediation-20261112"],
+  ["verify-g15-s25-remediation.yml", "feature/g15-s25-complete-remediation-20261112"],
 ]);
 for (const name of readdirSync(resolve(root,".github/workflows"))) {
   const workflow = read(".github/workflows/" + name);

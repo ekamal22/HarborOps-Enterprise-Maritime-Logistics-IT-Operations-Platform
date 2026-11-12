@@ -448,6 +448,129 @@ test("G15 late response from old organization never appears after switching", as
 });
 
 
+
+test("G15 successful browser pagination appends distinct second-page receipts in order", async ({page}) => {
+  test.skip(!enabled, "Disposable organization fixtures required");
+  await signIn(page);
+  const north = await page.locator("#current-organization option")
+    .filter({hasText:"M3 North Terminal (Manager)"}).getAttribute("value");
+  expect(north).toBeTruthy();
+  const receipt = index => ({
+    id:"a1000000-0000-4000-8000-"+String(index).padStart(12,"0"),
+    shipmentId:"a2000000-0000-4000-8000-000000000001",
+    exceptionId:"a3000000-0000-4000-8000-000000000001",
+    eventType:"ExceptionOpened",ruleCode:"ArrivalScheduleOverdue",
+    title:"Scoped pagination receipt "+String(index).padStart(2,"0"),
+    eventLabel:"Opened",createdAtUtc:"2026-11-08T18:00:00Z",
+    readAtUtc:null,acknowledgedAtUtc:null,state:"Unread",version:1
+  });
+  let seenSecondPage = 0;
+  await page.route("**/organizations/"+north+"/notifications?*",route=>{
+    const cursor=new URL(route.request().url()).searchParams.get("cursor");
+    if(cursor) {
+      expect(cursor).toBe("source-bound-next-page");
+      seenSecondPage++;
+    }
+    const items=cursor ? [receipt(25),receipt(26),receipt(27)] :
+      Array.from({length:25},(_,i)=>receipt(i+1));
+    return route.fulfill({status:200,contentType:"application/json",
+      body:JSON.stringify({items,nextCursor:cursor?null:"source-bound-next-page",
+        snapshotAtUtc:"2026-11-08T18:01:00Z"})});
+  });
+  await page.route("**/organizations/"+north+"/notifications/unread-count",route=>
+    route.fulfill({status:200,contentType:"application/json",
+      body:JSON.stringify({unreadCount:27,unreadCountCapped:false,
+        asOfUtc:"2026-11-08T18:01:00Z"})}));
+  await page.locator("#current-organization")
+    .selectOption({label:"M3 North Terminal (Manager)"});
+  const center=page.getByRole("region",{name:"In-app shipment notifications"});
+  await expect(center.locator("li")).toHaveCount(25);
+  await center.getByRole("button",{name:"Load more notifications"}).click();
+  await expect(center.locator("li")).toHaveCount(27);
+  const titles=await center.locator("li p.font-medium").allTextContents();
+  expect(titles).toEqual(Array.from({length:27},(_,i)=>
+    "Scoped pagination receipt "+String(i+1).padStart(2,"0")));
+  expect(seenSecondPage).toBe(1);
+  await expect(center.getByRole("button",{name:"Load more notifications"})).toHaveCount(0);
+});
+
+test("G15 pending notification request displays and clears the loading state", async ({page}) => {
+  test.skip(!enabled,"Disposable organization fixtures required");
+  await signIn(page);
+  const north=await page.locator("#current-organization option")
+    .filter({hasText:"M3 North Terminal (Manager)"}).getAttribute("value");
+  expect(north).toBeTruthy();
+  await page.locator("#current-organization")
+    .selectOption({label:"M3 North Terminal (Manager)"});
+  const center=page.getByRole("region",{name:"In-app shipment notifications"});
+  await expect(center.getByRole("button",{name:"Refresh notifications"})).toBeEnabled();
+  let release;
+  let started;
+  const requestStarted=new Promise(resolve=>{started=resolve;});
+  await page.route("**/organizations/"+north+"/notifications?*",async route=>{
+    started();
+    await new Promise(resolve=>{release=resolve;});
+    await route.fulfill({status:200,contentType:"application/json",
+      body:JSON.stringify({items:[],nextCursor:null,
+        snapshotAtUtc:"2026-11-08T18:01:00Z"})}).catch(()=>{});
+  });
+  await center.getByRole("button",{name:"Refresh notifications"}).click();
+  await requestStarted;
+  await expect(center.getByRole("status")).toHaveText("Loading notifications...");
+  release();
+  await expect(center.getByRole("status")).toHaveCount(0);
+  await expect(center.getByText("No notifications are available for this filter.",
+    {exact:false})).toBeVisible();
+});
+
+test("G15 archived historical alert navigates to an authorized real archived shipment as read only", async ({page}) => {
+  test.skip(!enabled,"Disposable organization fixtures required");
+  await signIn(page);
+  const north=await page.locator("#current-organization option")
+    .filter({hasText:"M3 North Terminal (Manager)"}).getAttribute("value");
+  expect(north).toBeTruthy();
+  await page.locator("#current-organization")
+    .selectOption({label:"M3 North Terminal (Manager)"});
+  const archivedResponse=await page.request.get(
+    "/api/v1/organizations/"+north+"/shipments?recordStatus=All&q=M5-ARCHIVE-N&limit=100");
+  expect(archivedResponse.ok()).toBeTruthy();
+  const archived=(await archivedResponse.json()).shipments.find(
+    item=>item.referenceCode==="M5-ARCHIVE-N");
+  expect(archived?.recordStatus).toBe("Archived");
+  const notice={
+    id:"a4000000-0000-4000-8000-000000000001",
+    shipmentId:archived.id,
+    exceptionId:"a5000000-0000-4000-8000-000000000001",
+    eventType:"ExceptionAutoResolved",ruleCode:"ArrivalScheduleOverdue",
+    title:"Historical archived shipment alert",eventLabel:"Closed by evaluation",
+    createdAtUtc:"2026-11-08T18:00:00Z",readAtUtc:null,
+    acknowledgedAtUtc:null,state:"Unread",version:1
+  };
+  await page.route("**/organizations/"+north+"/notifications?*",route=>
+    route.fulfill({status:200,contentType:"application/json",
+      body:JSON.stringify({items:[notice],nextCursor:null,
+        snapshotAtUtc:"2026-11-08T18:01:00Z"})}));
+  await page.route("**/organizations/"+north+"/notifications/unread-count",route=>
+    route.fulfill({status:200,contentType:"application/json",
+      body:JSON.stringify({unreadCount:1,unreadCountCapped:false,
+        asOfUtc:"2026-11-08T18:01:00Z"})}));
+  const center=page.getByRole("region",{name:"In-app shipment notifications"});
+  await center.getByRole("button",{name:"Refresh notifications"}).click();
+  await expect(center.getByText("Historical archived shipment alert")).toBeVisible();
+  await center.getByRole("button",{name:"Open shipment exception"}).click();
+  const panel=page.getByRole("heading",{name:"Shipments",exact:true})
+    .locator("xpath=ancestor::section[1]");
+  await expect(panel.getByRole("heading",{name:"M5-ARCHIVE-N"})).toBeVisible();
+  await expect(panel.getByLabel("Shipment workflow")).toBeDisabled();
+  await expect(panel.getByRole("button",{name:"Save shipment changes"})).toHaveCount(0);
+  // Current API still governs the archived target. The mock covers only the
+  // historical personal alert; it cannot supply or grant shipment authority.
+  const detail=await page.request.get(
+    "/api/v1/organizations/"+north+"/shipments/"+archived.id);
+  expect(detail.ok()).toBeTruthy();
+  expect((await detail.json()).recordStatus).toBe("Archived");
+});
+
 test("G15 logout clears protected feed data before another authentication", async ({page}) => {
   test.skip(!enabled, "Disposable organization fixtures required");
   await signIn(page);

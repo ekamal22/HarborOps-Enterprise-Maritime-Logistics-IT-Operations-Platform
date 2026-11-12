@@ -105,22 +105,22 @@ public sealed class M11M12UpgradeTests
             }
             Assert.Equal(before, await AcceptedFingerprint(scoped));
             Assert.Equal(true, await Scalar(scoped,
-                "SELECT to_regclass('operational_kpi_reports') IS NOT NULL"));
+                $"SELECT to_regclass('\"{schema}\".operational_kpi_reports') IS NOT NULL"));
             Assert.Equal(false, await Scalar(scoped,
-                "SELECT to_regclass('m15_notification_outbox') IS NOT NULL"));
+                $"SELECT to_regclass('\"{schema}\".m15_notification_outbox') IS NOT NULL"));
             await using (var upgrade = new HarborOpsDbContext(
                 new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(scoped).Options))
             {
                 await upgrade.Database.MigrateAsync();
-                Assert.Equal(18, (await upgrade.Database.GetAppliedMigrationsAsync()).Count());
+                Assert.Equal(19, (await upgrade.Database.GetAppliedMigrationsAsync()).Count());
                 Assert.Empty(await upgrade.Database.GetPendingMigrationsAsync());
                 Assert.False(upgrade.Database.HasPendingModelChanges());
             }
             Assert.Equal(before, await AcceptedFingerprint(scoped));
             Assert.Equal(true, await Scalar(scoped,
-                "SELECT to_regclass('m15_notification_outbox') IS NOT NULL"));
+                $"SELECT to_regclass('\"{schema}\".m15_notification_outbox') IS NOT NULL"));
             Assert.Equal(true, await Scalar(scoped,
-                "SELECT to_regclass('operational_kpi_reports') IS NOT NULL"));
+                $"SELECT to_regclass('\"{schema}\".operational_kpi_reports') IS NOT NULL"));
         }
         finally
         {
@@ -130,7 +130,7 @@ public sealed class M11M12UpgradeTests
     }
 
     [Fact]
-    public async Task PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedEighteenMigrationUpgrade()
+    public async Task PopulatedAcceptedThirteenMigrationDatabaseSurvivesCombinedNineteenMigrationUpgrade()
     {
         var schema = "m1112_upgrade_" + Guid.NewGuid().ToString("N");
         var scoped = M10UpgradeTests.Scoped(schema);
@@ -145,7 +145,7 @@ public sealed class M11M12UpgradeTests
             {
                 await before.Database.MigrateAsync(AcceptedMainHead);
                 Assert.Equal(13, (await before.Database.GetAppliedMigrationsAsync()).Count());
-                Assert.Equal(5, (await before.Database.GetPendingMigrationsAsync()).Count());
+                Assert.Equal(6, (await before.Database.GetPendingMigrationsAsync()).Count());
             }
 
             using (var factory = new ReferenceDataHttpTests.ApiFactory(scoped))
@@ -169,7 +169,7 @@ public sealed class M11M12UpgradeTests
                 new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(scoped).Options))
             {
                 await upgraded.Database.MigrateAsync();
-                Assert.Equal(18, (await upgraded.Database.GetAppliedMigrationsAsync()).Count());
+                Assert.Equal(19, (await upgraded.Database.GetAppliedMigrationsAsync()).Count());
                 Assert.Empty(await upgraded.Database.GetPendingMigrationsAsync());
                 Assert.Contains("20261110010000_M13TenantReportCapacity",
                     await upgraded.Database.GetAppliedMigrationsAsync());
@@ -179,11 +179,11 @@ public sealed class M11M12UpgradeTests
             Assert.Equal(acceptedBefore, await AcceptedFingerprint(scoped));
             Assert.Equal(true, await Scalar(scoped, "SELECT to_regclass('shipment_exceptions') IS NOT NULL"));
             Assert.Equal(true, await Scalar(scoped, "SELECT to_regclass('m12_export_proof_keys') IS NOT NULL"));
-            Assert.Equal(true, await Scalar(scoped, "SELECT to_regclass('m15_notification_outbox') IS NOT NULL"));
-            Assert.Equal(true, await Scalar(scoped, "SELECT to_regclass('operational_kpi_reports') IS NOT NULL"));
+            Assert.Equal(true, await Scalar(scoped, $"SELECT to_regclass('\"{schema}\".m15_notification_outbox') IS NOT NULL"));
+            Assert.Equal(true, await Scalar(scoped, $"SELECT to_regclass('\"{schema}\".operational_kpi_reports') IS NOT NULL"));
             Assert.Equal(0L, await Scalar(scoped, "SELECT count(*) FROM shipment_exceptions"));
 
-            // All five additive migrations have empty new business history, so rollback
+            // All six additive migrations have empty new business history, so rollback
             // and subsequent reapplication must leave accepted rows unchanged.
             await using (var rollback = new HarborOpsDbContext(
                 new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(scoped).Options))
@@ -192,7 +192,7 @@ public sealed class M11M12UpgradeTests
                 Assert.Equal(13, (await rollback.Database.GetAppliedMigrationsAsync()).Count());
                 Assert.Equal(acceptedBefore, await AcceptedFingerprint(scoped));
                 await rollback.Database.MigrateAsync();
-                Assert.Equal(18, (await rollback.Database.GetAppliedMigrationsAsync()).Count());
+                Assert.Equal(19, (await rollback.Database.GetAppliedMigrationsAsync()).Count());
                 Assert.False(rollback.Database.HasPendingModelChanges());
             }
             Assert.Equal(acceptedBefore, await AcceptedFingerprint(scoped));

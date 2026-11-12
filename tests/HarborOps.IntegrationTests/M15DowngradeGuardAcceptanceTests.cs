@@ -55,6 +55,26 @@ public sealed class M15DowngradeGuardAcceptanceTests
             await tx.RollbackAsync();
         }
         Assert.Equal(before, await Evidence());
+        // The follow-up G15 index migration must also reject a downgrade
+        // without dropping the indexes that keep retained receipts readable.
+        var indexDown = new M15MembershipFeedIndexes().DownOperations
+            .OfType<SqlOperation>().Select(x => x.Sql).ToList();
+        Assert.NotEmpty(indexDown);
+        foreach (var sql in indexDown)
+        {
+            await using var tx = await db.BeginTransactionAsync();
+            await using var script = new NpgsqlCommand(sql, db, tx);
+            var error = await Assert.ThrowsAsync<PostgresException>(() => script.ExecuteNonQueryAsync());
+            Assert.Contains("M15 index downgrade would strand delivery evidence", error.MessageText);
+            await tx.RollbackAsync();
+        }
+        Assert.Equal(before, await Evidence());
+        foreach (var name in new[] { "ix_m15_membership_feed", "ix_m15_membership_unread_feed" })
+        {
+            await using var exists = new NpgsqlCommand("SELECT to_regclass(@name) IS NOT NULL", db);
+            exists.Parameters.AddWithValue("name", name);
+            Assert.True(Assert.IsType<bool>(await exists.ExecuteScalarAsync()), name + " must remain");
+        }
         foreach (var table in new[] { "m15_notification_outbox", "m15_user_notifications", "m15_notification_replays" })
         {
             await using var exists = new NpgsqlCommand("SELECT to_regclass(@name) IS NOT NULL", db);

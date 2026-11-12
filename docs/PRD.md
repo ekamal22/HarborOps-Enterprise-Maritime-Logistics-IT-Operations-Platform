@@ -1,6 +1,6 @@
 # HarborOps Product Requirements Document
 
-**M17 observability planning scope (2026-11-12):** [M17 implementation](M17_IMPLEMENTATION_PLAN.md) covers an opt-in private local monitoring capability, structured metrics/traces, alerting and a verified diagnostic journey. [G17 verification](M17_VERIFICATION_PLAN.md) keeps G17 pending with 0 of 25 scenarios executed. M18 incident ticketing and production deployment are separate milestones.
+**M17 observability planning scope (2026-11-12):** [M17 implementation](M17_IMPLEMENTATION_PLAN.md) covers an opt-in private local monitoring capability, structured metrics/traces, alerting and a planned verified diagnostic journey. Its [P01-P09 policy design baseline](M17_POLICY_PROPOSAL_20261112.md) was approved on 2026-11-12, with numeric validation pending. [G17 verification](M17_VERIFICATION_PLAN.md) keeps G17 pending with 0 of 25 scenarios executed. M18 incident ticketing and production deployment are separate milestones.
 
 **Turkish localization source integrated, 2026-11-12:** [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) merged at `c81e54bfef25a0ff957f27b488ab7bd420551244` following 41 passing frontend and 99 passing browser executions in [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246). All server-facing rules and default-off operational controls remain unchanged. [Verification and acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
 

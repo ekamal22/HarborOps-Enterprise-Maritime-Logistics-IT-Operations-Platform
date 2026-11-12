@@ -55,7 +55,7 @@ M0 local Compose infrastructure was started on a clean volume and verified on Wi
 
 ## M17 operations planning, 2026-11-12
 
-[M17 status](M17_PLANNING_STATUS.md), [M17 architecture](M17_ARCHITECTURE_DESIGN.md), [M17 policy proposals](M17_POLICY_PROPOSAL_20261112.md) and [the disposable diagnostic runbook](M17_OPERATIONS_RUNBOOK.md) define the local-first telemetry rollout boundary. OpenTelemetry export, collector, dashboards and alert engine are not implemented or enabled in the current runtime. No public exporter or collector is approved. Existing JSON logs and health probes remain active; dashboard fault tests, exporter-down behavior, bounded retention, safe cleanup and a 25-scenario G17 gate remain future work. The M9 transport hold, M10/M11/M13/M15 opt-in flags and M15 no-deletion policy remain unchanged.
+[M17 status](M17_PLANNING_STATUS.md), [M17 architecture](M17_ARCHITECTURE_DESIGN.md), [M17 approved design policies](M17_POLICY_PROPOSAL_20261112.md) and [the disposable diagnostic runbook](M17_OPERATIONS_RUNBOOK.md) define the approved local-first telemetry design boundary. P02/P04/P09 numeric limits remain provisional and P05 alert calibration needs measured verification. OpenTelemetry export, collector, dashboards and alert engine are not implemented or enabled in the current runtime. No public exporter or collector is approved. Existing JSON logs and health probes remain active; dashboard fault tests, exporter-down behavior, bounded retention, safe cleanup and a 25-scenario G17 gate remain future work. The M9 transport hold, M10/M11/M13/M15 opt-in flags and M15 no-deletion policy remain unchanged.
 
 ## Observability requirements
 

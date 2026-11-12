@@ -1,7 +1,7 @@
 # Turkish localization verification after G13 and G15 integration
 
 **Snapshot:** 2026-11-12.
-**Base protected main:** `0af0a6212e74b9206902024d5d9a9a222df2a9ab`.
+**Base protected main:** `58426c15522ed797623e13738e836aa1d6735aed`.
 **Integration branch:** `work/turkish-post-g15-integration-20261112`.
 **Localization implementation commit:** `7268507e7495c2148a2673fd548c7a343795f7f4`.
 **Verification branch:** `verify/turkish-post-g15-source-20261112`, created only after source-level audit.
@@ -35,6 +35,10 @@ The dedicated Turkish workflow triggers **only** on the explicitly named `verify
 5. Per-engine synthetic session renewal, process limiter reset, disposal of isolated test volumes and credentials, plus source-locked sanitized evidence artifacts.
 
 The M15 dispatcher is enabled only inside the disposable verification fixture. Runtime defaults, production authorization, retention deletion and release boundaries are unchanged.
+
+## Independent G15 post-merge review boundary
+
+The later [G15 post-merge review](G15_S25_POSTMERGE_REVIEW_20261112.md) recorded **NOT PASS** for three browser-specific acceptance witnesses: positive paginated continuation, authorized archived-target navigation, and an explicitly held loading state. Independent G15-S25 reviewer attestation also remains unresolved. G15 stays conditionally integrated and these findings are not resolved by the Turkish compatibility exercise. This workflow tests current notification behavior, but passing it does not automatically close these G15 assertion gaps or provide independent approval.
 
 ## Remaining acceptance conditions
 

@@ -1,7 +1,9 @@
 # G17 Source-Locked Verification and Acceptance Plan
 
+**Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
+
 **Prepared:** 2026-11-12. **Gate:** G17 for M17 observability and service health.
-**State:** Planned scenarios; **0/25 executed for G17**. No G17 acceptance evidence is claimed.
+**State:** Implementation candidate committed on an isolated feature branch, but verification scenarios remain planned; **0/25 scenarios and 0/75 assertions executed for G17**. No G17 acceptance evidence is claimed.
 **Entry:** G3 accepted, **M17-P01 through P09 approved as the design baseline on 2026-11-12**, and M17-01 through M17-04 implemented in a source-locked candidate. P02/P04/P09 provisional numerical limits and P05 local alert thresholds must be measured and their final reference values recorded before a G17 recommendation.
 **References:** [architecture](M17_ARCHITECTURE_DESIGN.md), [implementation](M17_IMPLEMENTATION_PLAN.md), [policy proposals](M17_POLICY_PROPOSAL_20261112.md), [runbook](M17_OPERATIONS_RUNBOOK.md).
 

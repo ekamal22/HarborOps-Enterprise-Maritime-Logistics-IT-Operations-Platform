@@ -45,6 +45,7 @@ jobs:
           grep -Fq 'G15_SKIP_LOCKED_PROGRESS_FAILURE:' scripts/g15-mutation-campaign.py
           grep -Fq 'PopulatedG13SeventeenMigrationDatabaseAcceptsG15WithoutChangingAcceptedRows' tests/HarborOps.IntegrationTests/M11M12UpgradeTests.cs
           test -f docs/G13_POSTMERGE_RECONCILIATION_20261112.md
+          test -f docs/REPOWIDE_DOCUMENTATION_RECONCILIATION_20261112.md
           python3 -m py_compile scripts/verify-g13-g15-evidence.py scripts/check-g13-g15-scenarios.py scripts/audit-g13-g15-assertions.py scripts/check-g13-g15-sensitive-evidence.py scripts/g13-g15-process-crash.py scripts/g13-mutation-campaign.py scripts/g15-mutation-campaign.py
           python3 - <<'PY'
           import ast

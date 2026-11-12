@@ -14,9 +14,10 @@ if (!$Repo.StartsWith('E:\', [System.StringComparison]::OrdinalIgnoreCase)) {
 if ($EvidenceDirectory -notmatch '^[Ee]:\\' -or $ProjectName -notmatch '^ho-verify-m17-[a-z0-9-]+$') {
     throw 'Select an E: evidence directory and a unique ho-verify-m17-* project name'
 }
-if (!(Test-Path -LiteralPath $EvidenceDirectory)) {
-    New-Item -ItemType Directory -Path $EvidenceDirectory -Force | Out-Null
+if (Test-Path -LiteralPath $EvidenceDirectory) {
+    throw 'Use a new evidence directory. Existing source-locked evidence must remain unchanged'
 }
+New-Item -ItemType Directory -Path $EvidenceDirectory -Force | Out-Null
 $Cache = Join-Path (Split-Path -Parent $Repo) 'harborops-m0-cache'
 $env:DOTNET_CLI_HOME = Join-Path $Cache 'dotnet-home'
 $env:NUGET_PACKAGES = Join-Path $Cache 'nuget\packages'
@@ -25,6 +26,7 @@ $env:npm_config_cache = Join-Path $Cache 'npm'
 $env:TEMP = Join-Path $Cache 'temp'
 $env:TMP = $env:TEMP
 $env:HARBOROPS_G17_EVIDENCE_DIR = $EvidenceDirectory
+$env:HARBOROPS_G17_BROWSER_JSON = Join-Path $EvidenceDirectory 'm17-browser-results.json'
 foreach ($directory in @($env:DOTNET_CLI_HOME, $env:NUGET_PACKAGES, $env:NUGET_HTTP_CACHE_PATH, $env:npm_config_cache, $env:TEMP)) {
     New-Item -ItemType Directory -Path $directory -Force | Out-Null
 }
@@ -44,12 +46,12 @@ try {
     Invoke-Required 'node' @('--test', 'scripts/check-m17-source.test.mjs')
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
     Invoke-Required 'dotnet' @('build', 'HarborOps.sln', '-c', 'Release', '--no-restore')
-    Invoke-Required 'dotnet' @('test', 'tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj', '-c', 'Release', '--no-build')
-    Invoke-Required 'dotnet' @('test', 'tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj', '-c', 'Release', '--no-build')
+    Invoke-Required 'dotnet' @('test', 'tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj', '-c', 'Release', '--no-build', '--logger', 'trx;LogFileName=g17-unit.trx', '--results-directory', $EvidenceDirectory)
+    Invoke-Required 'dotnet' @('test', 'tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj', '-c', 'Release', '--no-build', '--logger', 'trx;LogFileName=g17-contract.trx', '--results-directory', $EvidenceDirectory)
     if (!$env:HARBOROPS_TEST_DB) {
         throw 'A verified disposable HARBOROPS_TEST_DB is required for integration tests'
     }
-    Invoke-Required 'dotnet' @('test', 'tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj', '-c', 'Release', '--no-build')
+    Invoke-Required 'dotnet' @('test', 'tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj', '-c', 'Release', '--no-build', '--logger', 'trx;LogFileName=g17-integration.trx', '--results-directory', $EvidenceDirectory)
     Invoke-Required 'npm' @('--prefix', 'web', 'ci', '--no-audit', '--no-fund')
     Invoke-Required 'npm' @('--prefix', 'web', 'test')
     Invoke-Required 'npm' @('--prefix', 'web', 'run', 'build')
@@ -85,8 +87,13 @@ try {
             if ($readyAfter.StatusCode -ne 200) { throw 'Collector outage affected business readiness' }
             Invoke-Required 'docker' (@('compose') + $composeArgs + @('start', 'otelcol'))
         }
-        Invoke-Required 'npm' @('--prefix', 'tests/browser', 'ci', '--no-audit', '--no-fund')
-        Invoke-Required 'npm' @('--prefix', 'tests/browser', 'exec', '--', 'playwright', 'test', '--config', 'playwright.m17.config.mjs')
+        Push-Location -LiteralPath (Join-Path $Repo 'tests/browser')
+        try {
+            Invoke-Required 'npm' @('ci', '--no-audit', '--no-fund')
+            Invoke-Required 'npx' @('--no-install', 'playwright', 'test', '--config', 'playwright.m17.config.mjs')
+        } finally {
+            Pop-Location
+        }
         if ($StopOwnedContainers) {
             Invoke-Required 'docker' (@('compose') + $composeArgs + @('stop', 'grafana', 'prometheus', 'tempo', 'otelcol', 'web', 'api', 'postgres'))
         }

@@ -826,16 +826,18 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
             await Exec(c.Admin, "DROP FUNCTION IF EXISTS public.m12_test_reject_audit()");
         }
 
-        // Downgrading across M15 and M12 must stop at the first retained-evidence
-        // guard. M15 protects notifications before the older M12 audit guard runs.
-        // Both guards must preserve the export authorization and committed evidence.
+        // Downgrading across the follow-up M15 index migration, original M15,
+        // and M12 must stop at the first retained-evidence guard. The index
+        // guard runs first on a populated notification database. The older M15
+        // and M12 guards remain effective when their migrations are targeted.
+        // Downgrade refusal must preserve authority and committed evidence.
         async Task<(long Outbox, long Receipts, long Replays)> M15Rows() =>
             (await Scalar<long>(c.Admin, "SELECT count(*) FROM m15_notification_outbox"),
              await Scalar<long>(c.Admin, "SELECT count(*) FROM m15_user_notifications"),
              await Scalar<long>(c.Admin, "SELECT count(*) FROM m15_notification_replays"));
         var retainedM15 = await M15Rows();
         var expectedGuard = retainedM15.Outbox + retainedM15.Receipts + retainedM15.Replays > 0
-            ? "M15 downgrade would destroy delivery evidence"
+            ? "M15 index downgrade would strand delivery evidence"
             : "M12 audit history exists";
         await using (var scope = seed.Services.CreateAsyncScope())
         {
@@ -846,6 +848,10 @@ public sealed class M12ResidualBoundaryTests(ITestOutputHelper output)
             Assert.Contains(expectedGuard, failure.ToString(), StringComparison.Ordinal);
         }
         Assert.Equal(retainedM15, await M15Rows());
+        Assert.True(await Scalar<bool>(c.Admin,
+            "SELECT to_regclass('public.ix_m15_membership_feed') IS NOT NULL"));
+        Assert.True(await Scalar<bool>(c.Admin,
+            "SELECT to_regclass('public.ix_m15_membership_unread_feed') IS NOT NULL"));
         Assert.True(await Scalar<bool>(c.Admin,
             "SELECT to_regprocedure('public.m12_record_shipment_export(uuid,uuid,uuid,integer,bigint,character varying,character varying,bigint,character varying)') IS NOT NULL"));
         Assert.True(await Scalar<bool>(c.Admin,

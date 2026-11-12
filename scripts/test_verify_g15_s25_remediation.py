@@ -46,6 +46,16 @@ class G15EvidenceGuardTests(unittest.TestCase):
                 (folder / "unsealed.log").write_text("not listed\n")
                 with self.assertRaises(AssertionError):
                     verifier.artifact("g15-test")
+                (folder / "unsealed.log").unlink()
+                seal()
+                with patch.object(verifier, "SHA", "b" * 40):
+                    with self.assertRaises(AssertionError):
+                        verifier.artifact("g15-test")
+                digest_entry = (folder / "sha256.txt").read_text().splitlines()[0]
+                with (folder / "sha256.txt").open("a") as manifest:
+                    manifest.write(digest_entry + "\n")
+                with self.assertRaises(AssertionError):
+                    verifier.artifact("g15-test")
 
     def test_browser_case_failure_retry_and_omission_are_rejected(self):
         def sample():

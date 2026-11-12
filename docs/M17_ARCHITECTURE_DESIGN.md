@@ -1,7 +1,7 @@
 # M17 Observability and Service Health Architecture
 
 **Planning baseline:** 2026-11-12, protected main `056b3a77f6520ac7555890f4666b368ccd351d79`.
-**State:** Proposed implementation contract. No M17 executable implementation, G17 review, acceptance, service activation or production deployment is authorized by this plan.
+**State:** Proposed implementation architecture aligned with the **P01-P09 approved design baseline (2026-11-12)**. Numerical P02/P04/P09 limits remain provisional until verified; initial P05 local alert thresholds require evidence-based calibration. No M17 executable implementation, G17 review, acceptance, service activation or production deployment is authorized by this plan.
 **Entry:** G3 accepted. **Exit:** G17 explicitly accepted after independent source-locked evidence review.
 **Authority:** [Roadmap](ROADMAP.md), [execution graph](EXECUTION_GRAPH.md), [requirements](REQUIREMENTS.md), [M17 implementation plan](M17_IMPLEMENTATION_PLAN.md), [verification matrix](M17_VERIFICATION_PLAN.md), [local policy register](M17_POLICY_PROPOSAL_20261112.md), [operations runbook](M17_OPERATIONS_RUNBOOK.md).
 
@@ -82,14 +82,14 @@ The M17 dashboard is local-only, opt-in and visually distinct from M13 operation
 
 Minimum panels: API requests/sec, HTTP 5xx fraction and p50/p95 latency; PostgreSQL readiness/operation latency; active worker status, backlog age and retry/dead-letter counts where actually enabled; telemetry ingestion freshness and dropped signals; alerts by severity with evidence link to a sanitized correlation ID. Mark an absent signal as `unknown`, not healthy. Include an alert-test harness with predictable triggering and clearing.
 
-Initial example threshold candidates and their unresolved approval are in [M17 policy proposal](M17_POLICY_PROPOSAL_20261112.md). Production SLO claims, on-call routing, third-party paging, email or Slack integration and hosted dashboards are out of scope without a separate decision. Alert notifications are distinct from M15 user notifications.
+Initial alert thresholds are approved as **local reference rules** in [M17 policy decision register](M17_POLICY_PROPOSAL_20261112.md) and require measured calibration before G17. The P02/P04/P09 numerical limits are provisional until measured. Production SLO claims, on-call routing, third-party paging, email or Slack integration and hosted dashboards are out of scope without a separate decision. Alert notifications are distinct from M15 user notifications.
 
 ## 6. Isolation, retention and performance
 
 - Telemetry stores and collectors hold no business credentials or user sessions. Internal-only receiver and reader access. Web browser access is loopback-only in the local profile; untrusted browser origins cannot query metrics.
 - Trace samples use a bounded probability, deterministic head-sampling behavior and an explicit per-service rate cap for pressure control. Failure/error spans may be prioritized only if confidentiality is preserved; verify that sampling cannot manufacture full-fidelity promises.
 - No trace carries raw SQL statement, credential, personal data, query string, source event payload or arbitrary exception stack by default. A pre-export sanitizer and negative canary tests are mandatory.
-- Proposed local retention is short and size-capped, subject to policy approval. Never apply telemetry retention to M8 immutable histories, M16 audit, M11 exception history or M15 receipts. Do not provision deletion, purge or pruning of any existing data.
+- Approved **isolated local telemetry-only** retention is 24 hours or 250 MiB per standalone verification profile, whichever is reached first; scope and implementation must be validated before activation. Never apply telemetry retention to M8 immutable histories, M16 audit, M11 exception history or M15 receipts. Do not provision deletion, purge or pruning of any existing data.
 - Bound telemetry overhead and queues under healthy, exporter-down, high-request-rate and large-backlog conditions; benchmark the overhead against matched baseline runs before accepting G17.
 - OpenTelemetry dependency versions, transitive vulnerabilities, container privileges, local storage paths and SBOM must be checked against the implementation commit. Keep all persistent local caches, traces, browser evidence and disposable volumes E:-backed according to [storage policy](LOCAL_STORAGE_POLICY.md).
 

@@ -16,7 +16,7 @@ Never use the only retained project PostgreSQL database, existing Docker volumes
 3. Check no conflicting Compose project already exists. The disposable profile must use the existing verified `ho-verify-*` naming guard with explicit confirmation and a unique project ID.
 4. Provision only dummy accounts, dummy shipments and a freshly seeded test database. Do not copy or attach retained production/legacy volumes.
 5. Verify the optional M17 override is enabled explicitly. Confirm the default Compose profile has no collector, dashboard, new background worker, exposed OTLP port or modified M9/M10/M11/M13/M15 feature flags.
-6. Confirm approved P01-P09 policy values and exact, pinned container image/package versions. A policy still marked proposed blocks acceptance assertions that depend on it.
+6. Confirm the **approved P01-P09 design baseline** and exact, pinned container image/package versions. P02/P04/P09 numerical targets remain provisional until measured and recorded; P05 local alert thresholds require calibration before G17. Any changed limit must have a documented reviewed rationale. Design approval does not authorize profile startup or make G17 assertions pass.
 7. Keep dashboard and any read interface bound to 127.0.0.1. Verify the collector only accepts internal-network OTLP; no internet-facing receiver or cloud exporter.
 8. Record the intended fault, risk, abort conditions, project ownership labels and evidence file list before any fault injection.
 

@@ -5,7 +5,7 @@
   "source_baseline": "056b3a77f6520ac7555890f4666b368ccd351d79",
   "prepared_on": "2026-11-12",
   "state": "PLANNED_NOT_EXECUTED",
-  "policies": "PENDING_P01_P09",
+  "policies": "APPROVED_DESIGN_BASELINE_P01_P09",
   "technical_review": "NOT_EXECUTED",
   "gate_acceptance": "NOT_ACCEPTED",
   "scope": {
@@ -765,5 +765,13 @@
         }
       ]
     }
-  ]
+  ],
+  "policy_approval_date": "2026-11-12",
+  "provisional_measurement_targets": [
+    "P02: custom metric active-series ceiling 500 per service",
+    "P04: 10% ordinary-trace sampling, 200 spans/second, 2048 export-queue records",
+    "P09: <=10% p95 latency and <=15% peak process memory overhead"
+  ],
+  "alert_thresholds": "P05 initial local verification rules approved; evidence-based calibration required",
+  "policy_approval_does_not_imply_gate_acceptance": true
 }

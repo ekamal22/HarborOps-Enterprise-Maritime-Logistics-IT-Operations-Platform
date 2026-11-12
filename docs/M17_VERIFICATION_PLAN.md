@@ -2,7 +2,7 @@
 
 **Prepared:** 2026-11-12. **Gate:** G17 for M17 observability and service health.
 **State:** Planned scenarios; **0/25 executed for G17**. No G17 acceptance evidence is claimed.
-**Entry:** G3 accepted, M17-P01 through P09 reviewed and applicable decisions recorded, M17-01 through M17-04 implemented in a source-locked candidate.
+**Entry:** G3 accepted, **M17-P01 through P09 approved as the design baseline on 2026-11-12**, and M17-01 through M17-04 implemented in a source-locked candidate. P02/P04/P09 provisional numerical limits and P05 local alert thresholds must be measured and their final reference values recorded before a G17 recommendation.
 **References:** [architecture](M17_ARCHITECTURE_DESIGN.md), [implementation](M17_IMPLEMENTATION_PLAN.md), [policy proposals](M17_POLICY_PROPOSAL_20261112.md), [runbook](M17_OPERATIONS_RUNBOOK.md).
 
 ## 1. Evidence rules
@@ -12,6 +12,8 @@ All executable scenarios require actual behavioral observations, not the existen
 Use a restricted, owned, disposable PostgreSQL/Compose environment. Preserve accepted health, tenant/session and M9/M10/M11/M15/M16 invariants. Do not start held transport, notification delivery, projector or rule evaluator except where a specific approved disposable test opts in. Three-browser runs must be fresh, authenticated where needed, with exact case totals and no flakes/retries/skips for required tests.
 
 The source-locked result is complete only when raw source SHA, sanitizer report, TRX/Playwright results, trace and metric sample snapshots, alert transitions, resource bounds, local network exposure checks and evidence hash manifest agree. A reviewer must inspect underlying evidence independently of the implementation author's summary. G17-S25 remains a separate manual decision.
+
+**Approved-policy conformance check:** G17-S01-A02 must verify implementation against all nine approved design decisions, with exact measurement evidence for the initial P02 500-series, P04 10%/200 spans/sec/2,048-record and P09 10% p95/15% peak-memory values, or a documented reviewed adjustment before G17. For P05 use the approved initial local alert rules and record trigger/clear calibration. An approved design decision is not a PASS result for any G17-S01 through S25 assertion.
 
 ## 2. Scenario and witness matrix
 
@@ -74,7 +76,7 @@ Suggested disposable evidence layout, final paths confirmed during implementatio
 
 No raw database dump, session cookie, key, token, arbitrary URL, real email, personal data, proprietary shipment content, unredacted exception or credential is permitted in evidence. Evidence lives only in the approved E:-backed location or specifically approved retained CI artifacts with bounded retention. A reviewer independently calculates file hashes, parses every test result including method and parameterized case counts, inspects captured signals, reviews missing/partial scenarios and verifies test source equivalence to the candidate.
 
-**Acceptance verdict rules:** G17 cannot be recommended on metrics dashboards alone, one passing workflow, unfinished negative scenarios, pending policy decisions, unverifiable source artifacts, stale tests or unreviewed evidence. Technical PASS requires all required applicable executable assertions plus correct controlled fault behavior. Formal G17 requires independent review and explicit acceptance decision. Any procedural exception must be specifically disclosed and approved; it is never silently treated as independent attestation.
+**Acceptance verdict rules:** G17 cannot be recommended on metrics dashboards alone, one passing workflow, unfinished negative scenarios, unvalidated provisional numeric limits or undocumented changes to approved policies, unverifiable source artifacts, stale tests or unreviewed evidence. Technical PASS requires all required applicable executable assertions plus correct controlled fault behavior. Formal G17 requires independent review and explicit acceptance decision. Any procedural exception must be specifically disclosed and approved; it is never silently treated as independent attestation.
 
 ## 5. Revision and closure
 

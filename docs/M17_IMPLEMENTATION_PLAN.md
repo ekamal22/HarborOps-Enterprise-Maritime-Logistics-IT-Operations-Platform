@@ -1,7 +1,7 @@
 # M17 End-to-End Implementation Plan
 
 **Prepared:** 2026-11-12. **Baseline:** protected main `056b3a77f6520ac7555890f4666b368ccd351d79`.
-**Status:** Planning complete at initial scope; implementation not started, G17 not verified and acceptance pending.
+**Status:** Planning complete at initial scope; **P01-P09 approved as the design baseline 2026-11-12**, with provisional P02/P04/P09 numeric limits and P05 local alert calibration pending measurement. Implementation not started, G17 not verified and acceptance pending.
 **Gate:** G17. **Prerequisite:** G3 accepted. **Next downstream gate:** M18 requires G17 and G16.
 **References:** [Architecture](M17_ARCHITECTURE_DESIGN.md), [policy choices](M17_POLICY_PROPOSAL_20261112.md), [G17 scenarios](M17_VERIFICATION_PLAN.md), [operator runbook](M17_OPERATIONS_RUNBOOK.md), [planning register](M17_PLANNING_STATUS.md).
 
@@ -22,7 +22,7 @@ Before implementation, freeze a new feature branch from the then-current `main`,
 - `compose.yaml`, `scripts/smoke-compose.sh`, `docs/LOCAL_STORAGE_POLICY.md`: loopback binding, immutable source labels, restricted users, disposable Compose project discipline.
 - `tests/HarborOps.UnitTests`, `tests/HarborOps.ContractTests`, `tests/HarborOps.IntegrationTests`, `tests/browser/specs`: accepted test harnesses and authorization security fixtures.
 
-Compile a file/API ownership inventory and verify no conflicts with any concurrent feature branch. Resolve M17-P01 through P09, including numeric policy thresholds, before coding their affected component. Pin package versions after NuGet dependency and license review; no floating dependencies or silent exporter sidecars.
+Compile a file/API ownership inventory and verify no conflicts with any concurrent feature branch. Apply the approved M17-P01 through P09 design baseline. During M17-01, check feasibility of the provisional P02/P04/P09 numerical budgets against the selected instrumentation and define an evidence-based P05 alert calibration procedure. Any substantive revision must be reviewed and recorded before G17; design approval does not establish measured performance. Pin package versions after NuGet dependency and license review; no floating dependencies or silent exporter sidecars.
 
 ## 3. M17 work package plan
 
@@ -34,10 +34,10 @@ Work:
 1. Catalogue existing request, database, worker, readiness and business-audit signals. Clearly distinguish metrics/logs/traces from persisted source-of-truth.
 2. Freeze each instrument name, type, unit, safe dimensions, observation owner, collection period, default behavior and missing-signal semantics. Record native .NET metric names versus exported collector names.
 3. Approve finite label values and exact series cap. Specify trace format and safe correlation context.
-4. Decide P01-P09, including reference workload, buffering, sampling, local retention, alert thresholds, hysteresis, suppression and response ownership.
+4. Translate the approved P01-P09 design rules into measurable contracts. Establish the reference workload, sampling and buffering implementation, local retention, alert hysteresis/suppression and response ownership. Record measured calibration for P02/P04/P09 and P05 before claiming G17 conformance.
 5. Publish fault-to-signal mapping for API 5xx, DB down, worker crash/stale backlog, authentication denial, exporter down and optional feature disabled.
 
-**Deliverables:** Signed-off local policies, stable [instrument catalog](M17_ARCHITECTURE_DESIGN.md) updated with exact versions, threshold fixtures, cross-system data-flow sketch and approved threat model. No changes to accepted data migrations.
+**Deliverables:** [Approved P01-P09 baseline](M17_POLICY_PROPOSAL_20261112.md), instrument/limit measurement and revision log, stable [instrument catalog](M17_ARCHITECTURE_DESIGN.md) updated with exact versions, alert threshold fixtures, cross-system data-flow sketch and reviewed threat model. No changes to accepted data migrations.
 
 **Verification before M17-02/M17-03:** Static contract checker verifies every instrument has source, unit, label allowlist, cap and explicit disabled/unknown state. Security review approves redaction and trace trust handling. Gate scenarios G17-S01, S02, S05, S06, S17, S24 and policy parts of S25.
 
@@ -122,7 +122,7 @@ M17-02 and M17-03 can be parallel after M17-01. The monitoring UI must not claim
 
 ## 6. Formal entry, exit and handoff
 
-**M17 implementation entry checklist:** current main verified; G3 accepted; P01-P09 disposition recorded; signals and data-flow contracts reviewed; dependency licenses/security checked; local E:-backed environment validated; independent test reviewer appointed or procedural exception explicitly disclosed.
+**M17 implementation entry checklist:** current main verified; G3 accepted; P01-P09 approved design incorporated; provisional numerical limits explicitly identified for implementation measurement; signals and data-flow contracts reviewed; dependency licenses/security checked; local E:-backed environment validated; independent test reviewer appointed or procedural exception explicitly disclosed.
 
 **G17 candidate exit checklist:** four work packages complete; default-off and privacy contracts verified; 25/25 scenario dispositions supported by exact per-assertion evidence; full impacted regression matrix passed; browser runs cover Chromium/Firefox/WebKit; failure-path diagnostic continuity demonstrable; alert trigger/clear; exporter downtime business-safe; bounded cardinality and telemetry resource budget; complete sanitized artifacts and hashes; independent S25 review; signed local policy record; explicit acceptance.
 

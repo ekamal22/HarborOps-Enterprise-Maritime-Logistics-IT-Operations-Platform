@@ -18,6 +18,12 @@ public static class M17WorkerTelemetry
     public const string SourceName = "HarborOps.Worker.Observability";
     public static readonly ActivitySource Traces = new(SourceName, "1.0.0");
     private static readonly Meter Meter = new(MeterName, "1.0.0");
+    private static int enabled;
+    private static int running;
+    private static double backlogAgeSeconds = -1;
+    public static bool Enabled => Volatile.Read(ref enabled) == 1;
+    private static readonly Counter<long> SamplingDrops =
+        Meter.CreateCounter<long>("harborops.telemetry.dropped", "{records}");
     private static readonly Counter<long> Attempts =
         Meter.CreateCounter<long>("harborops.worker.attempts", "{attempts}");
     private static readonly Histogram<double> Duration =
@@ -27,9 +33,23 @@ public static class M17WorkerTelemetry
     {
         // The tracking process itself exists only under the explicit worker profile.
         _ = Meter.CreateObservableGauge<int>("harborops.service.running",
-            () => new Measurement<int>(1,
+            () => new Measurement<int>(Volatile.Read(ref running),
                 new KeyValuePair<string, object?>("service", "tracking")), "1");
+        _ = Meter.CreateObservableGauge<double>("harborops.worker.backlog.age",
+            () => new Measurement<double>(Volatile.Read(ref backlogAgeSeconds),
+                new KeyValuePair<string, object?>("worker", "tracking")), "s");
     }
+
+    public static void SetWorkerRunning(bool active) =>
+        Volatile.Write(ref running, active ? 1 : 0);
+
+    // Negative means sample unavailable. Zero means no eligible work.
+    public static void SetBacklogAge(double? seconds) =>
+        Volatile.Write(ref backlogAgeSeconds, seconds.HasValue ? Math.Max(0, seconds.Value) : -1);
+
+    public static void RecordSamplingDrop() => SamplingDrops.Add(1,
+        new KeyValuePair<string, object?>("signal", "trace"),
+        new KeyValuePair<string, object?>("reason", "rate_limit"));
 
     public static void ObserveAttempt(string outcome, TimeSpan elapsed)
     {
@@ -60,6 +80,7 @@ public static class M17WorkerTelemetry
             throw new InvalidOperationException(
                 "M17 worker export requires the internal otelcol:4317 endpoint or loopback:4317");
 
+        Volatile.Write(ref enabled, 1);
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(r => r.AddService("harborops-tracking-worker"))
             .WithMetrics(m => m.AddMeter(MeterName).AddMeter("otel.sdk.experimental")
@@ -70,8 +91,9 @@ public static class M17WorkerTelemetry
                     o.TimeoutMilliseconds = 1000;
                 }))
             .WithTracing(t => t
-                .SetSampler(new TraceIdRatioBasedSampler(0.10))
+                .SetSampler(new M17WorkerBoundedSampler())
                 .AddSource(SourceName)
+                .AddProcessor(new M17WorkerTraceSanitizer())
                 .AddOtlpExporter(o =>
                 {
                     o.Endpoint = endpoint;

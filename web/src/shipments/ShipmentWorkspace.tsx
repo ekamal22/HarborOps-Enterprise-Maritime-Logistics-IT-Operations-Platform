@@ -7,6 +7,7 @@ import { isDirty, mergeLatest, scheduleEditable, serverChanged, workflowOptions 
 import ShipmentAssignmentsPanel from "../assignments/ShipmentAssignmentsPanel";
 import ShipmentTrackingTimeline from "./ShipmentTrackingTimeline";
 import ShipmentExceptionPanel from "./ShipmentExceptionPanel";
+import type { NotificationTarget } from "../notifications/NotificationCenter";
 import { searchShipments, exportShipmentsCsv, emptyAdvancedFilters,
   type ShipmentAdvancedFilters, type ShipmentSearchFilters } from "./shipmentSearchClient";
 
@@ -57,8 +58,10 @@ async function loadPorts(org: string): Promise<ReferenceRow[]> {
   } while (cursor);
   return all;
 }
-export default function ShipmentWorkspace({ organizationId, canManage, canManageExceptions, onAccessInvalidated }: {
+export default function ShipmentWorkspace({ organizationId, canManage, canManageExceptions,
+  notificationTarget, onAccessInvalidated }: {
   organizationId: string; canManage: boolean; canManageExceptions: boolean;
+  notificationTarget?: NotificationTarget | null;
   onAccessInvalidated: (message: string) => void;
 }) {
   const [q, setQ] = useState("");
@@ -74,6 +77,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
   const [cursor, setCursor] = useState<string | null>(null);
   // `selected` is the server snapshot the open form started from; `form` is the user's draft.
   const [selected, setSelected] = useState<ShipmentRow | null>(null);
+  const [focusedTarget, setFocusedTarget] = useState<NotificationTarget | null>(null);
   const [remote, setRemote] = useState<ShipmentRow | null>(null);
   const [history, setHistory] = useState<ShipmentChange[]>([]);
   const [creating, setCreating] = useState(false);
@@ -123,7 +127,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
 
   const closePanel = useCallback(() => {
     selectionSerial.current++;
-    setSelected(null); setRemote(null); setHistory([]); setCreating(false);
+    setSelected(null); setFocusedTarget(null); setRemote(null); setHistory([]); setCreating(false);
     setConflict(""); setReviewable(false); setForm(blank);
   }, [setForm]);
 
@@ -229,7 +233,7 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
     if (!creating && selected?.id === row.id) return;
     if (!confirmDiscard()) return;
     const generation = ++selectionSerial.current;
-    setSelected(row); setForm(fromRow(row)); setCreating(false); setHistory([]);
+    setSelected(row); setFocusedTarget(null); setForm(fromRow(row)); setCreating(false); setHistory([]);
     setConflict(""); setReviewable(false); setRemote(null);
     try {
       const [detail, response] = await Promise.all([
@@ -248,6 +252,30 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
       setError(organizationError(cause)); invalidate(cause);
     }
   }
+
+
+  useEffect(() => {
+    if (!notificationTarget) return;
+    if (!confirmDiscard()) return;
+    let current = true;
+    const run = ++selectionSerial.current;
+    setFocusedTarget(null);
+    setConflict(""); setReviewable(false); setRemote(null); setError("");
+    void Promise.all([
+      shipmentDetail(organizationId, notificationTarget.shipmentId),
+      shipmentHistory(organizationId, notificationTarget.shipmentId)
+    ]).then(([detail, response]) => {
+      if (!current || run !== selectionSerial.current) return;
+      setSelected(detail); setForm(fromRow(detail)); setHistory(response.changes);
+      setCreating(false); setFocusedTarget(notificationTarget);
+    }).catch(cause => {
+      if (!current || run !== selectionSerial.current) return;
+      setFocusedTarget(null);
+      setError("The requested shipment or exception is no longer available.");
+      invalidate(cause);
+    });
+    return () => { current = false; };
+  }, [notificationTarget, organizationId]);
 
   async function more() {
     if (!cursor || paging || loading || busy) return;
@@ -562,7 +590,9 @@ export default function ShipmentWorkspace({ organizationId, canManage, canManage
       {!creating && selected && <ShipmentExceptionPanel
         key={`exceptions:${organizationId}:${selected.id}`}
         organizationId={organizationId} shipmentId={selected.id}
-        isManager={canManageExceptions} onAccessInvalidated={onAccessInvalidated} />}
+        isManager={canManageExceptions} onAccessInvalidated={onAccessInvalidated}
+         focusExceptionId={focusedTarget?.exceptionId}
+         focusRequest={focusedTarget?.request} />}
       {!creating && selected && <div className="mt-4">
         <h6 className="font-medium">Manual status history</h6>
         {history.length === 0 ? <p className="text-xs text-slate-400">No status changes loaded.</p> :

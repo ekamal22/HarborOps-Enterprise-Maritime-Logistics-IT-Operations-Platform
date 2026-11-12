@@ -18,6 +18,8 @@ Future changes require focused, source-locked verification of affected contracts
 
 The accepted M7 implementation contains an E:-backed technical runner (`scripts/verify-m7-local.sh`) and source, HTTP, database and browser regression tests. The runner uses a disposable SDK/database pair and independently configured G7 Compose project, plus controlled source outage, five disposable security mutations and image scans. The optional protected operator CLI lifecycle must run without redirected output. D-002 was accepted on 2026-11-03; the pinned reference snapshots are checked by `scripts/verify-dcsa-reference.mjs` and the M7 contract tests; a runner file is not passing evidence. See [M7 remediation](M7_CORRECTNESS_REMEDIATION.md) and [G7 plan](M7_VERIFICATION_PLAN.md).
 
+The accepted G11 and G12 decisions, dated evidence and permitted residuals are recorded in [M11/M12 G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Earlier source-level checkpoints remain historical and do not reopen those accepted decisions.
+
 ## Sixth-pass M11 rule-calibration checks, unexecuted
 
 Add source-locked checks for recorded arrival within grace (Inactive, Info), not-yet-overdue arrival schedule (Inactive, Info), inactive departure-slippage risk (Info) and active late/overdue warnings. A clean disposable database fixture must corrupt a synthetic severity under migration-role access, then confirm the signed evaluator repairs it by appending exactly one Reevaluated event despite unchanged fingerprint, followed by a true no-op. Verify null and populated UUID keyset bounds for the due scanner. Static assertions are not runtime evidence.

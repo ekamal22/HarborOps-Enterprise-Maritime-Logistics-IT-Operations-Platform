@@ -10,6 +10,8 @@
 
 The accepted correction-security layer adds an SQL-only thirteenth migration after the immutable original twelve, including the NULL-safe projector-scope function replacement. HTTP proof signing is separated from the restricted PostgreSQL verifier; the correction and M16 audit event commit atomically. The optional projector remains off by default and restricted. See [gate closure](M10_G10_GATE_CLOSURE_20261107.md).
 
+The accepted G11 and G12 decisions, dated evidence and permitted residuals are recorded in [M11/M12 G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md). Earlier source-level checkpoints remain historical and do not reopen those accepted decisions.
+
 ## Accepted M11 delay and exception architecture
 
 The accepted M11 implementation extends M5 UTC schedules and M10 equipment projections with a versioned rule engine, additive exception tables, signed SQL authority, scoped API and UI, M16 atomic audit and an opt-in bounded reevaluator. The [M11 architecture](M11_ARCHITECTURE_DESIGN.md), [work packages](M11_IMPLEMENTATION_PLAN.md) and [G11 evidence matrix](M11_G11_EVIDENCE_MATRIX_20261108.md) record its accepted scope and verification. The M9 transport hold and null ETA remain.

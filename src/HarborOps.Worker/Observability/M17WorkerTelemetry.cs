@@ -35,7 +35,8 @@ public static class M17WorkerTelemetry
     {
         // Outcome set is fixed, and no organization or shipment identifier is emitted.
         var safe = outcome is "processed" or "cancelled" or "reference_conflict"
-            or "retry" or "failure" ? outcome : "other";
+            or "retry" or "failure" or "needs_reconciliation" or "stale"
+            ? outcome : "other";
         Attempts.Add(1,
             new KeyValuePair<string, object?>("worker", "tracking"),
             new KeyValuePair<string, object?>("outcome", safe));
@@ -61,7 +62,7 @@ public static class M17WorkerTelemetry
 
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(r => r.AddService("harborops-tracking-worker"))
-            .WithMetrics(m => m.AddMeter(MeterName)
+            .WithMetrics(m => m.AddMeter(MeterName).AddMeter("otel.sdk.experimental")
                 .AddOtlpExporter(o =>
                 {
                     o.Endpoint = endpoint;

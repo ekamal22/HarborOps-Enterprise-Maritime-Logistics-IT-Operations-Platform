@@ -1,6 +1,8 @@
 # Documentation Status Guide
 
-**Current source of truth (2026-11-08):** G0-G12 and G16 are accepted and integrated into protected `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records formal approval and [project status](STATUS.md) tracks the integrated baseline. M13-M15 and M17-M24 remain open. The mandatory M9 ARRI/DEPA processing hold, 10,000 unresolved-work cap, default-off M10 projector, null ETA and opt-in M11 evaluator remain unchanged. No deployment or production migration is authorized.
+**Current integration state (2026-11-12):** G0-G12 and G16 are accepted and integrated into protected `main`. G13 is conditionally accepted and merged through PR #38 at `b2856449c8d1ab629c8b5419a5af0ebddafbb47d`, with formal reviewer independence not attested. G15 is not accepted or merged. M9 transport controls, default-off services, no retention deletion and no deployment remain in force. See [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md).
+
+The current G13 disposition is recorded in [the post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md). Earlier dated review findings and run checkpoints remain source-specific historical records.
 
 ## Sources of truth
 

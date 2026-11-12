@@ -87,6 +87,37 @@ class G15EvidenceGuardTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             verifier.playwright_titles(expected_failure)
 
+    def test_parameterized_method_names_are_matched_without_prefix_collisions(self):
+        method = "RevokedNotificationScopeCannotReadCountDetailOrAcknowledge"
+        self.assertTrue(verifier.trx_method_matches(
+            "HarborOps.IntegrationTests.G13G15RevocationAcceptanceTests."
+            + method + '(revocation: "logout")', method))
+        self.assertTrue(verifier.trx_method_matches(
+            "HarborOps.UnitTests.NotificationTextTests.ExactMethod", "ExactMethod"))
+        self.assertFalse(verifier.trx_method_matches(
+            "HarborOps.UnitTests.NotificationTextTests.ExactMethodExtra(value: 1)",
+            "ExactMethod"))
+        self.assertFalse(verifier.trx_method_matches(
+            "HarborOps.UnitTests.NotificationTextTests.AnotherMethod"
+            '(expected: "ExactMethod")', "ExactMethod"))
+
+    def test_every_parameterized_variant_is_required(self):
+        recorded = {}
+        for method, expected in verifier.THEORY_CASES.items():
+            for case in expected:
+                name = f"HarborOps.Tests.Example.{method}({case})"
+                recorded[name] = "Passed"
+        verifier.verify_parameterized_witnesses(recorded)
+        for method, expected in verifier.THEORY_CASES.items():
+            missing = dict(recorded)
+            missing.pop(f"HarborOps.Tests.Example.{method}({expected[0]})")
+            with self.assertRaises(AssertionError):
+                verifier.verify_parameterized_witnesses(missing)
+            duplicated = dict(recorded)
+            duplicated[f"HarborOps.Tests.Example.{method}(duplicate: true)"] = "Passed"
+            with self.assertRaises(AssertionError):
+                verifier.verify_parameterized_witnesses(duplicated)
+
     def test_failed_or_skipped_trx_cannot_be_counted_as_evidence(self):
         with tempfile.TemporaryDirectory() as directory:
             p = Path(directory) / "selected.trx"

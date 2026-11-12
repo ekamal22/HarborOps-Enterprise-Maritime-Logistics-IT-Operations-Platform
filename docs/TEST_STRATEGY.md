@@ -2,6 +2,8 @@
 
 **Current integration state (2026-11-12):** G0-G12 and G16 are accepted and integrated into `main`. G13 is conditionally accepted and merged via PR #38 at `b2856449c8d1ab629c8b5419a5af0ebddafbb47d`, with reviewer independence not attested. G15 remains not accepted or merged. Other pending gates remain unchanged. The M9 transport hold, default-off services, no notification retention deletion and no deployment authorization remain binding. See [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md).
 
+**Accepted M11/M12 boundary:** The [formal G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) remains authoritative for the previously accepted delay-exception and shipment-search contracts. G13 conditional integration and G15 verification do not revise those gate decisions.
+
 ## Current G10 source verification boundary
 
 **Current M10/G10 verification checkpoint (2026-11-07):** G10 S01/S25 reviewed and accepted; [PR #28](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/28) integrated the remediation. The correction-authority campaign is source-locked to `a26d19a`, while final upgrade, configuration and targeted tests are source-locked to `e3002bd`. Preserve original A1-A7 evidence separately. [G10 gate closure](M10_G10_GATE_CLOSURE_20261107.md).

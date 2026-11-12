@@ -29,3 +29,17 @@ Earlier Turkish grouped run [42852119407](https://github.com/ekamal22/HarborOps-
 - Perform independent Turkish acceptance review before requesting a separate merge.
 
 **Status:** Pre-merge compatibility candidate. Acceptance pending. No merge, deployment, or Actions dispatch.
+
+## Source-level correctness audit, 2026-11-12
+
+**Audited implementation:** `47138f7ba5b2cfac44da72ed779644f87cc51356`, derived from G13/G15 `ffde1fabb3f184ce3c7bf3a378abd979ffee3791`.
+
+- The repository comparison confirms this Turkish branch is one commit ahead of the pinned G13/G15 baseline with no backend, migration, database, Compose, security, or workflow modifications. The new G13/G15 `web/tests/no-inline-style.test.mjs` and notification-count browser tests remain intact.
+- The Turkish catalog contains 620 messages. Fifteen frontend TSX files contain 284 static translation references and 28 translated options with stable wire values. There are no missing static translation keys, placeholder mismatches, raw English accessibility attributes, or inline-style creation patterns in those files.
+- Twenty-one existing and new localization test bodies passed in a source-backed evaluation of the current i18n implementation. The repository-wide static translation-reference test was checked separately. This source-backed assessment is not a substitute for native `npm test`.
+- All 27 current fixed G13 reporting endpoint error messages have Turkish presentation; the new per-user capacity response is localized without changing its status or code.
+- The unmodified latest G13/G15 browser specifications retain strict CSP checks and the capped-count test. Together with the augmented Turkish localization specification, there are 10 localization, 8 operational KPI and 11 notification scenarios per browser. All three specifications passed syntax checks, giving 87 expected browser executions across Chromium, Firefox and WebKit.
+- The English capped count remains `1000+ unread`; Turkish displays `1.000+ okunmamış`, and a non-capped 25 retains no plus sign. This was checked at the translation and component source-contract level, not yet through a live browser.
+- The previously passing 2026-11-10 Turkish campaign is historical evidence for an older source only. This branch has not run the full frontend build, disposable-stack integration campaign, responsive checks, or assistive-technology verification.
+
+**Pre-merge technical state:** Code compatibility reconciled and source audit passed; full source-locked runtime verification remains pending. Latest recorded G13/G15 acceptance is still pending, and no Turkish merge is authorized.

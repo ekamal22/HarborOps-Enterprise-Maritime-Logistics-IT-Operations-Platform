@@ -17,7 +17,7 @@ Current source does not establish an accepted OpenTelemetry pipeline, collector,
 
 ## 2. Architecture decision and boundaries
 
-Adopt explicit in-process .NET instrumentation through System.Diagnostics.Metrics `Meter`, System.Diagnostics `ActivitySource`, and the OpenTelemetry .NET hosting/instrumentation/exporter packages after pinning and reviewing the compatible resolved dependency versions. Use native ASP.NET Core HTTP metrics and traces where available; do not double-count them with a second HTTP interceptor. Use OpenTelemetry semantic names for built-in metrics and a stable `harborops.` namespace for custom instruments. The optional local collector receives OTLP over an internal Compose network. A separate optional dashboard/alert profile reads locally retained aggregate telemetry. There must be no default public metrics or tracing endpoint and no public receiver.
+Adopt explicit in-process .NET instrumentation through System.Diagnostics.Metrics `Meter`, System.Diagnostics `ActivitySource`, and the OpenTelemetry .NET hosting/instrumentation/exporter packages after pinning and reviewing the compatible resolved dependency versions. The current candidate uses ASP.NET Core HTTP traces and a single custom HTTP duration histogram with fixed operation/status-class tags. This avoids collecting built-in .NET 10 metrics with request-controlled dimensions. No duplicate HTTP duration instrument is enabled. Use OpenTelemetry semantic names for built-in metrics and a stable `harborops.` namespace for custom instruments. The optional local collector receives OTLP over an internal Compose network. A separate optional dashboard/alert profile reads locally retained aggregate telemetry. There must be no default public metrics or tracing endpoint and no public receiver.
 
 Deliver three signal classes: (a) structured JSON security-sanitized events, (b) quantitative low-cardinality metrics, and (c) bounded distributed traces. Correlation links are explicitly established at API entry and propagated through approved processing contexts without trusting a client-supplied identity. Request context is a trace parent, not authorization.
 
@@ -46,11 +46,11 @@ The diagram conveys target architecture only. Service names, dependency configur
 
 ### Request and dependency instruments
 
-Prefer native `http.server.request.duration` and companion ASP.NET Core instruments with the bounded route-template attribute and duration seconds. Count requests and status classes from the native source or a single custom counter, never both for the same aggregate. Explicit instrument candidates to be frozen in M17-01:
+The candidate uses a fixed-dimension `harborops.request.duration` histogram and a separate `harborops.request.failures` counter for 5xx errors. The built-in ASP.NET Core metrics collection is intentionally disabled to avoid unbounded HTTP attribute cardinality. The following table is the approved-target instrument catalogue, with candidate deviations and unimplemented instruments identified through the candidate status record:
 
 | Instrument | Kind / unit | Safe allowed dimensions | Origin |
 | --- | --- | --- | --- |
-| `http.server.request.duration` | histogram / seconds | route template, method, response status class | ASP.NET Core |
+| `harborops.request.duration` | histogram / seconds | fixed operation family and status class | M17 HTTP middleware, candidate source |
 | `harborops.request.failures` | counter / requests | operation family, failure class | Sanitized HTTP result classification |
 | `harborops.db.operation.duration` | histogram / seconds | operation family, outcome | Restricted app DB operations, no raw SQL |
 | `harborops.db.readiness` | observable gauge / 0 or 1 | dependency = postgres | Existing readiness check |
@@ -60,7 +60,7 @@ Prefer native `http.server.request.duration` and companion ASP.NET Core instrume
 | `harborops.telemetry.dropped` | counter / records | signal kind, bounded reason | Collector/exporter queue instrumentation |
 | `harborops.service.running` | gauge / 0 or 1 | service kind | Last sampled state, not a synthetic uptime assertion |
 
-Metric names are proposed .NET meter names and require exact collector-export mapping and version pinning. Do not assume that native meters use the same exported Prometheus family spelling. M17-01 produces an exact source-to-dashboard mapping with approved units and versions before coding.
+Metric names are proposed .NET meter names and require exact collector-export mapping and version pinning. Do not assume that OTLP metric names use the same exported Prometheus family spelling. The candidate dashboard uses `harborops_request_duration_seconds_count` and `_bucket`, subject to a required real collector mapping check. M17-01 produces an exact source-to-dashboard mapping with approved units and versions before coding.
 
 No raw path, query string, shipment reference, port text, user identifier, email, organization ID, tenant slug, session ID, raw correlation ID, UUID, exception message, SQL query, SQL parameter, connection string, integration token or arbitrary error text is allowed in metric labels. No per-user or per-tenant series. Allowed bounded dimensions require allowlist tests and a recorded maximum series bound with an overflow/unknown bucket. Unknown route keys collapse to a fixed `unmatched` operation family.
 

@@ -1,5 +1,7 @@
 # M17 Local Policy and Design Decision Register
 
+**Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
+
 **Prepared and approved:** 2026-11-12. **Status:** **M17-P01 through M17-P09 approved as the implementation design baseline.** Numeric limits identified below remain provisional engineering targets until implementation measurements confirm or formally revise them. This document retains its original filename for stable links; earlier proposal text is preserved in Git history.
 **Entry:** G3 accepted. **Design:** [M17 architecture](M17_ARCHITECTURE_DESIGN.md). **Verification:** [G17 matrix](M17_VERIFICATION_PLAN.md).
 
@@ -76,14 +78,14 @@ These are M17-local decisions, not replacements for project-wide D-001 through D
 
 | ID | Status on 2026-11-12 | Needed before |
 | --- | --- | --- |
-| P01 | Proposed, not approved | First exporter/config implementation |
-| P02 | Proposed, not approved | Custom metric instruments |
-| P03 | Proposed, not approved | Span enrichment or propagation |
-| P04 | Proposed, not approved | Sampling/export pipeline |
-| P05 | Proposed, not approved | Monitoring dashboard and alert rules |
-| P06 | Proposed, not approved | Telemetry volume lifecycle and disposal |
-| P07 | Proposed, not approved | Optional dashboard listener |
-| P08 | Proposed, not approved | Any change near current health paths |
-| P09 | Proposed, not approved | Performance evidence and G17 judgment |
+| P01 | Approved design; implementation evidence pending | First exporter/config implementation |
+| P02 | Approved design; numeric cap calibration pending | Custom metric instruments |
+| P03 | Approved design; implementation evidence pending | Span enrichment or propagation |
+| P04 | Approved design; numeric limits calibration pending | Sampling/export pipeline |
+| P05 | Approved initial local rules; trigger/clear calibration pending | Monitoring dashboard and alert rules |
+| P06 | Approved design; storage evidence pending | Telemetry volume lifecycle and disposal |
+| P07 | Approved design; listener and auth evidence pending | Optional dashboard listener |
+| P08 | Approved design; regression evidence pending | Any change near current health paths |
+| P09 | Approved design; latency and memory measurement pending | Performance evidence and G17 judgment |
 
 Record approvals, corrections and dates here or in a separate accepted decision file before changing their status. The presence of numeric candidates is not consent to activate, deploy, retain, delete, page or alter production data. M17 technical implementation and G17 acceptance are separate later gates.

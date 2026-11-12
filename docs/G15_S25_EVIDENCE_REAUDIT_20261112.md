@@ -85,6 +85,20 @@ Negative-control unit tests for the verifier are included in the preflight plan.
 | G15-S24 | Original-source and mutant evidence passed; revised individual-log validation not yet executed on the new source |
 | G15-S25 | NOT PASS until complete new-source evidence, independent reviewer attestation and explicit final disposition |
 
+## Correctness audit follow-up
+
+The source and test audit checked the G15 notification store, endpoint authorization and response contracts, default-off dispatcher, retained-receipt index migration, M11 test-method identities, the archived-target integration test and browser scenarios. The baseline technical runtime evidence remains intact.
+
+Three test-or-verification weaknesses were corrected before the next run:
+
+- The authorized archived-shipment detail integration test now requires HTTP 200 and checks the archived identity and status, instead of treating HTTP 404 as a permitted success.
+- The browser evidence checker now rejects unexpected suite-level errors, expected-failure cases and reports whose only passed attempt is a retry. Dedicated negative tests cover these branches, and the tests are runnable outside the hosted environment.
+- The historical migration witness list now requires an exact TRX test-method match, rather than a substring match.
+
+The five tracked G13 compatibility source paths were compared with the historical passing SHA using their repository blob identities. All five are byte-identical. This is a technical source-equivalence finding only; the S25 independent acceptance decision remains pending.
+
+No G15 runtime files changed during the follow-up correctness audit. This document records prepared code and planned checks, not proof that the revised code has executed.
+
 ## Conditions for final closure
 
 - Execute the revised, focused verification packet at one frozen new source SHA, with complete raw artifacts. This requires separate authorization for GitHub Actions.

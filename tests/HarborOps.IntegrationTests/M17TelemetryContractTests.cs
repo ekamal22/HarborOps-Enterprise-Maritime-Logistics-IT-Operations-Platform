@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using HarborOps.Api.Observability;
+using HarborOps.Infrastructure.Observability;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Xunit;
@@ -9,11 +10,15 @@ namespace HarborOps.IntegrationTests;
 
 public sealed class M17TelemetryContractTests
 {
-    private static IConfiguration Configuration(bool enabled, string? endpoint = null) =>
+    private static IConfiguration Configuration(bool enabled, string? endpoint = null,
+        bool includeLinkKey = true) =>
         new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["M17:Enabled"] = enabled ? "true" : "false",
-            ["M17:OtlpEndpoint"] = endpoint
+            ["M17:OtlpEndpoint"] = endpoint,
+            ["M17:LinkKey"] = includeLinkKey
+                ? Convert.ToBase64String(Enumerable.Range(1, 32).Select(n => (byte)n).ToArray())
+                : null
         }).Build();
 
     [Fact]
@@ -106,6 +111,91 @@ public sealed class M17TelemetryContractTests
         Assert.Single(series);
         Assert.Contains("operation=other", Assert.Single(series));
         Assert.Contains("status_class=2xx", Assert.Single(series));
+    }
+
+    [Fact]
+    public void MissingLocalLinkKeyFailsClosedOnlyWhenTelemetryIsEnabled()
+    {
+        Assert.Throws<InvalidOperationException>(() => M17TelemetryOptions.FromConfiguration(
+            Configuration(true, "http://otelcol:4317", includeLinkKey: false)));
+        Assert.False(M17TelemetryOptions.FromConfiguration(
+            Configuration(false, includeLinkKey: false)).Enabled);
+    }
+
+    [Fact]
+    public void ServerCorrelationDigestIsKeyedAndNeverExportsRawIdentifier()
+    {
+        var key = M17CorrelationDigest.RequireKey(Convert.ToBase64String(
+            Enumerable.Range(1, 32).Select(n => (byte)n).ToArray()));
+        const string correlation = "00112233445566778899aabbccddeeff";
+        var digest = M17CorrelationDigest.FromServerCorrelation(correlation, key);
+        Assert.NotNull(digest);
+        Assert.Equal(64, digest.Length);
+        Assert.NotEqual(correlation, digest);
+        Assert.Equal(digest, M17CorrelationDigest.FromServerCorrelation(correlation, key));
+        Assert.Null(M17CorrelationDigest.FromServerCorrelation("client-forged", key));
+
+        using var activity = new Activity("POST /private");
+        activity.SetTag("harborops.link_digest", digest);
+        activity.SetTag("CorrelationId", correlation);
+        activity.SetTag("user.id", "private-user");
+        activity.Start();
+        new M17TraceSanitizer().OnEnd(activity);
+        Assert.Equal(digest, activity.GetTagItem("harborops.link_digest"));
+        Assert.Null(activity.GetTagItem("CorrelationId"));
+        Assert.Null(activity.GetTagItem("user.id"));
+    }
+
+    [Fact]
+    public void ForgedDiagnosticDigestIsRemovedAtExportBoundary()
+    {
+        using var activity = new Activity("unknown");
+        activity.SetTag("harborops.link_digest", "client-payload");
+        activity.SetTag("harborops.outcome", "my-secret-value");
+        activity.Start();
+        new M17TraceSanitizer().OnEnd(activity);
+        Assert.Null(activity.GetTagItem("harborops.link_digest"));
+        Assert.Null(activity.GetTagItem("harborops.outcome"));
+    }
+
+    [Fact]
+    public void NotificationGaugeDifferentiatesDisabledActiveAndExpectedButStopped()
+    {
+        var notificationStates = new List<int>();
+        using var listener = new MeterListener();
+        listener.InstrumentPublished = (instrument, observer) =>
+        {
+            if (instrument.Meter.Name == M17Telemetry.MeterName)
+                observer.EnableMeasurementEvents(instrument);
+        };
+        listener.SetMeasurementEventCallback<int>((instrument, value, tags, _) =>
+        {
+            if (instrument.Name == "harborops.service.running" &&
+                tags.Any(tag => tag.Key == "service" &&
+                    Equals(tag.Value, "notifications")))
+                notificationStates.Add(value);
+        });
+        listener.Start();
+        try
+        {
+            M17Telemetry.SetNotificationWorkerEnabled(false);
+            M17Telemetry.SetNotificationWorkerRunning(false);
+            listener.RecordObservableInstruments();
+            Assert.Equal(0, notificationStates.Last());
+
+            M17Telemetry.SetNotificationWorkerEnabled(true);
+            listener.RecordObservableInstruments();
+            Assert.Equal(-1, notificationStates.Last());
+
+            M17Telemetry.SetNotificationWorkerRunning(true);
+            listener.RecordObservableInstruments();
+            Assert.Equal(1, notificationStates.Last());
+        }
+        finally
+        {
+            M17Telemetry.SetNotificationWorkerRunning(false);
+            M17Telemetry.SetNotificationWorkerEnabled(false);
+        }
     }
 
     [Fact]

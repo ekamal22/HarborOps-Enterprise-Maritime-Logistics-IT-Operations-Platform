@@ -107,6 +107,25 @@ public sealed class WorkerShell(
 
         using var span = M17WorkerTelemetry.Traces.StartActivity("tracking.process");
         span?.SetTag("harborops.operation", "tracking.process");
+        if (span is not null && M17WorkerTelemetry.Enabled)
+        {
+            // A bounded read of the existing receipt correlation is diagnostic
+            // only. Failure or timeout never delays the business disposition.
+            try
+            {
+                using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                limit.CancelAfter(TimeSpan.FromMilliseconds(750));
+                await using var linkScope = scopes.CreateAsyncScope();
+                var linkStore = linkScope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
+                var correlation = await linkStore.ReadReceiptCorrelationAsync(claim, limit.Token);
+                var digest = M17WorkerTelemetry.LinkDigest(correlation);
+                if (digest is not null) span.SetTag("harborops.link_digest", digest);
+            }
+            catch (Exception)
+            {
+                // The business worker continues even if diagnostics cannot read.
+            }
+        }
         var startTimestamp = Stopwatch.GetTimestamp();
         var disposition = "other";
         using var renewalCancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);

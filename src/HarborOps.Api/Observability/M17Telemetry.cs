@@ -28,17 +28,18 @@ public static class M17Telemetry
     // -1 means unknown or intentionally held, 0 unhealthy/disabled, 1 healthy/active.
     private static int databaseReadiness = -1;
     private static int notificationWorkerActive;
-    private static readonly ObservableGauge<int> Readiness =
-        Meter.CreateObservableGauge<int>("harborops.db.readiness",
+    static M17Telemetry()
+    {
+        _ = Meter.CreateObservableGauge<int>("harborops.db.readiness",
             () => Volatile.Read(ref databaseReadiness), "1");
-    private static readonly ObservableGauge<int> Services =
-        Meter.CreateObservableGauge<int>("harborops.service.running",
+        _ = Meter.CreateObservableGauge<int>("harborops.service.running",
             () => new Measurement<int>[]
             {
                 new(Volatile.Read(ref notificationWorkerActive),
                     new KeyValuePair<string, object?>("service", "notifications")),
                 new(-1, new KeyValuePair<string, object?>("service", "tracking_held"))
             }, "1");
+    }
 
     public static void SetNotificationWorkerEnabled(bool enabled) =>
         Volatile.Write(ref notificationWorkerActive, enabled ? 1 : 0);

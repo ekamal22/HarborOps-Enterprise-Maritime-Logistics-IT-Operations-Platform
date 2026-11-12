@@ -90,6 +90,51 @@ def trx_results(folder: Path) -> dict[str, str]:
     return outcomes
 
 
+
+def trx_method_matches(test_name: str, method_name: str) -> bool:
+    # xUnit renders individual Theory cases with arguments after the method.
+    # Compare the method identity, not substring occurrences in its parameters.
+    stem = test_name.partition("(")[0]
+    return stem == method_name or stem.endswith("." + method_name)
+
+
+THEORY_CASES = {
+    "RuleTemplatesPreserveAcceptedM11EvidenceBoundary": (
+        'rule: "EquipmentConflict"',
+        'rule: "ArrivalScheduleOverdue"',
+        'rule: "RecordedArrivalLate"',
+        'rule: "DepartureSlippageRisk"',
+    ),
+    "EventLabelsDescribeHistoryRatherThanMovement": (
+        'type: "ExceptionOpened"',
+        'type: "ExceptionResolved"',
+        'type: "ExceptionAutoResolved"',
+    ),
+    "RevokedNotificationScopeCannotReadCountDetailOrAcknowledge": (
+        'revocation: "session_revoked"',
+        'revocation: "idle_expired"',
+        'revocation: "absolute_expired"',
+        'revocation: "security_version"',
+        'revocation: "account_disabled"',
+        'revocation: "organization_suspended"',
+        'revocation: "membership_removed"',
+        'revocation: "role_support"',
+        'revocation: "organization_changed"',
+        'revocation: "logout"',
+        'revocation: "logout_all"',
+    ),
+}
+
+def verify_parameterized_witnesses(recorded: dict[str, str]) -> None:
+    for method, expected_cases in THEORY_CASES.items():
+        cases = [name for name in recorded if trx_method_matches(name, method)]
+        require(len(cases) == len(expected_cases),
+                f"{method}: expected {len(expected_cases)} separate passing Theory cases, got {len(cases)}")
+        for expected in expected_cases:
+            require(sum(expected in name for name in cases) == 1,
+                    f"{method}: missing or repeated parameterized witness {expected}")
+
+
 def playwright_titles(data: dict) -> set[str]:
     titles = []
     def inspect(node: dict) -> None:
@@ -206,8 +251,7 @@ def reconcile_atomic_inventory(located: dict[str, Path], browsers: dict[str, set
             kind, ident = e["kind"], e.get("id", "")
             if kind == "test":
                 test_ids.add(ident)
-                require(any(name == ident or name.endswith("." + ident)
-                            for name in recorded),
+                require(any(trx_method_matches(name, ident) for name in recorded),
                         f"Missing same-SHA raw TRX witness {a['id']}: {ident}")
             elif kind == "historical_test":
                 historical_ids.add(ident)
@@ -243,6 +287,7 @@ def reconcile_atomic_inventory(located: dict[str, Path], browsers: dict[str, set
                         f"Unknown source step {ident}")
             else:
                 raise AssertionError(f"Unsupported evidence kind {kind} at {a['id']}")
+    verify_parameterized_witnesses(recorded)
     require(len(test_ids) == 68 and historical_ids == {
         "ReplayedEquipmentReceiptsAndParkedTransportNeverInventKpiProgress"},
         "Unexpected missing or historical G15 test witness")

@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getJson, organizationError, OrganizationRequestError } from "../auth/organizationClient";
 
@@ -16,6 +17,7 @@ type Projection = { observedTrackingState: string; lastOccurredAtUtc: string | n
 export default function ShipmentTrackingTimeline({ organizationId, shipmentId, onAccessInvalidated }: {
   organizationId: string; shipmentId: string; onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const path = "/api/v1/organizations/" + encodeURIComponent(organizationId) +
     "/shipments/" + encodeURIComponent(shipmentId);
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -73,49 +75,43 @@ export default function ShipmentTrackingTimeline({ organizationId, shipmentId, o
   };
   return <section className="mt-4 rounded border border-slate-700 p-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h6 className="font-medium">Tracking observations</h6>
+      <h6 className="font-medium">{t("Tracking observations")}</h6>
       <button type="button" disabled={loading || paging} onClick={() => void refresh()}
         className="rounded border border-slate-500 px-2 py-1 text-xs">
-        {loading ? "Loading..." : "Refresh tracking"}
+        {t(loading ? "Loading..." : "Refresh tracking")}
       </button>
     </div>
-    <p className="mt-1 text-xs text-slate-400">
-      Derived equipment observations are separate from the manual shipment workflow.
-      No ETA can be inferred from this source profile.
-    </p>
-    {error && <p role="alert" className="mt-2 text-xs text-amber-300">{error}</p>}
+    <p className="mt-1 text-xs text-slate-400">{t("Derived equipment observations are separate from the manual shipment workflow. No ETA can be inferred from this source profile.")}</p>
+    {error && <p role="alert" className="mt-2 text-xs text-amber-300">{t(error)}</p>}
     {projection && <>
-      <p className="mt-2 text-sm">Observed: <strong>{projection.observedTrackingState}</strong>
+      <p className="mt-2 text-sm">{t("Observed:")} <strong>{t(projection.observedTrackingState)}</strong>
         <span className="ml-2 text-xs text-slate-400">
-          {projection.lastOccurredAtUtc || "No resolved event"}
+          {projection.lastOccurredAtUtc ? date(projection.lastOccurredAtUtc) + " UTC" : t("No resolved event")}
         </span></p>
-      <p className="text-xs text-slate-400">
-        Materialization: {projection.materializationRevision || "not yet materialized"}
-        {projection.materializationStale ? " (rebuild pending)" : ""}
+      <p className="text-xs text-slate-400">{t("Materialization:")} {projection.materializationRevision ? String(projection.materializationRevision) : t("not yet materialized")}
+        {projection.materializationStale ? t(" (rebuild pending)") : ""}
       </p>
       {projection.containerObservations.length > 0 && <div className="mt-2 text-xs">
-        <strong>Container observations ({projection.containerCount})</strong>
+        <strong>{t("Container observations (")}{number(projection.containerCount)})</strong>
         <ul className="mt-1 space-y-1">{projection.containerObservations.map(item =>
-          <li key={item.containerId}>{item.containerId}: {item.observedState}</li>)}</ul>
+          <li key={item.containerId}>{item.containerId}: {t(item.observedState)}</li>)}</ul>
         {projection.containerObservationsTruncated &&
-          <span>Additional container observations not shown.</span>}
+          <span>{t("Additional container observations not shown.")}</span>}
       </div>}
-      <h6 className="mt-3 font-medium text-sm">Resolved event timeline</h6>
-      {events.length === 0 ? <p className="mt-1 text-xs text-slate-400">
-        No resolved tracking events. Reconciliation may still be pending.
-      </p> : <ol className="mt-2 space-y-2 text-xs">{events.map(x =>
+      <h6 className="mt-3 font-medium text-sm">{t("Resolved event timeline")}</h6>
+      {events.length === 0 ? <p className="mt-1 text-xs text-slate-400">{t("No resolved tracking events. Reconciliation may still be pending.")}</p> : <ol className="mt-2 space-y-2 text-xs">{events.map(x =>
         <li key={x.eventId} className="rounded border border-slate-700 p-2">
-          <strong>{x.eventCode}</strong>
-          {x.superseded && <span className="ml-2 text-amber-300">Corrected</span>}
-          <div>Container: {x.containerId}</div>
-          <div>Occurred: {x.occurredAtUtc}</div>
-          <div className="text-slate-400">Received: {x.receivedAtUtc}</div>
-          <div className="text-slate-400">Source event: {x.sourceEventId}</div>
+          <strong>{t(x.eventCode)}</strong>
+          {x.superseded && <span className="ml-2 text-amber-300">{t("Corrected")}</span>}
+          <div>{t("Container:")} {x.containerId}</div>
+          <div>{t("Occurred:")} {date(x.occurredAtUtc)} UTC</div>
+          <div className="text-slate-400">{t("Received:")} {date(x.receivedAtUtc)} UTC</div>
+          <div className="text-slate-400">{t("Source event:")} {x.sourceEventId}</div>
         </li>)}</ol>}
       {cursor && <button type="button" disabled={paging || loading}
         onClick={() => void loadMore()}
         className="mt-3 rounded border border-slate-600 px-3 py-2 text-xs">
-        {paging ? "Loading..." : "Load more events"}
+        {t(paging ? "Loading..." : "Load more events")}
       </button>}
     </>}
   </section>;

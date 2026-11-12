@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { getJson, organizationError, OrganizationRequestError } from "../auth/organizationClient";
 import { archiveMaritime, createMaritime, listMaritime, updateMaritime,
@@ -83,6 +84,7 @@ function classify(error: unknown): boolean {
 export default function MaritimeWorkspace({ organizationId, canManage, onAccessInvalidated }: {
   organizationId: string; canManage: boolean; onAccessInvalidated: (message: string) => void;
 }) {
+  const { t, date, number } = useI18n();
   const [kind, setKind] = useState<MaritimeKind>("voyages");
   const [status, setStatus] = useState<"Active" | "Archived" | "All">("Active");
   const [q, setQ] = useState("");
@@ -196,7 +198,7 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
   }
   async function changeStatus(row: MaritimeRow) {
     if (!canManage || busy) return;
-    if (row.recordStatus === "Active" && !window.confirm("Archive this record?")) return;
+    if (row.recordStatus === "Active" && !window.confirm(t("Archive this record?"))) return;
     const serial = generation.current, token = mutationToken.current;
     setBusy(true); setError("");
     try {
@@ -210,19 +212,19 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
     } finally { if (token === mutationToken.current) setBusy(false); }
   }
   const input = (name: keyof Form, label: string, disabled = false) => (
-    <label className="text-sm" key={name}>{label}
-      <input aria-label={label} value={form[name]} disabled={disabled || !canManage}
+    <label className="text-sm" key={name}>{t(label)}
+      <input aria-label={t(label)} value={form[name]} disabled={disabled || !canManage}
         onChange={e => setForm(old => ({ ...old, [name]: e.target.value }))}
         className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60" />
     </label>
   );
   return <section className="mt-6 border-t border-slate-700 pt-5">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <h4 className="font-semibold">Voyages and containers</h4>
+      <h4 className="font-semibold">{t("Voyages and containers")}</h4>
       <button type="button" disabled={busy || loading || paging} onClick={() => {
         setReferenceRefresh(value => value + 1); void reload();
       }}
-        className="rounded border border-slate-600 px-3 py-2 text-sm">Refresh maritime records</button>
+        className="rounded border border-slate-600 px-3 py-2 text-sm">{t("Refresh maritime records")}</button>
     </div>
     <div className="mt-3 flex flex-wrap gap-2">
       {(["voyages", "containers"] as const).map(value =>
@@ -234,76 +236,72 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
           setQ(""); setStatus("Active"); setItems([]); setSelected(null); setCreating(false);
         }} className={"rounded px-3 py-2 text-sm " +
           (kind === value ? "bg-cyan-300 text-slate-950" : "border border-slate-600")}>
-          {value === "voyages" ? "Voyages" : "Containers"}
+          {t(value === "voyages" ? "Voyages" : "Containers")}
         </button>)}
     </div>
     <div className="mt-4 flex flex-wrap items-end gap-3">
-      <label className="text-sm">Search {kind}
+      <label className="text-sm">{t(kind === "voyages" ? "Search voyages" : "Search containers")}
         <input value={q} maxLength={80} disabled={busy || paging}
           onChange={e => setQ(e.target.value)} className="mt-1 block rounded bg-slate-950 px-3 py-2" />
       </label>
-      <label className="text-sm">Record status
-        <select value={status} disabled={busy || paging} onChange={e => setStatus(e.target.value as typeof status)}
+      <label className="text-sm">{t("Record status")}<select value={status} disabled={busy || paging} onChange={e => setStatus(e.target.value as typeof status)}
           className="mt-1 block rounded bg-slate-950 px-3 py-2">
-          {["Active", "Archived", "All"].map(v => <option key={v}>{v}</option>)}
+          {["Active", "Archived", "All"].map(v => <option key={v} value={v}>{t(v)}</option>)}
         </select>
       </label>
       {canManage && <button type="button" disabled={busy || paging || loading ||
         (kind === "voyages" && (parentLoading || Boolean(parentError)))}
         onClick={() => { setCreating(true); setSelected(null); setForm(empty); setError(""); }}
-        className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">
-        Add {kind === "voyages" ? "voyage" : "container"}
+        className="rounded bg-cyan-300 px-3 py-2 text-sm font-semibold text-slate-950">{t(kind === "voyages" ? "Add voyage" : "Add container")}
       </button>}
     </div>
-    {loading && <p className="mt-3 text-sm text-slate-400">Loading {kind}...</p>}
+    {loading && <p className="mt-3 text-sm text-slate-400">{t(kind === "voyages" ? "Loading voyages..." : "Loading containers...")}</p>}
     {kind === "voyages" && canManage && parentLoading &&
-      <p className="mt-3 text-sm text-slate-400">Loading voyage references...</p>}
+      <p className="mt-3 text-sm text-slate-400">{t("Loading voyage references...")}</p>}
     {kind === "voyages" && canManage && parentError &&
-      <p role="alert" className="mt-3 text-sm text-rose-300">
-        Voyage reference selection is unavailable: {parentError}
+      <p role="alert" className="mt-3 text-sm text-rose-300">{t("Voyage reference selection is unavailable:")} {t(parentError)}
       </p>}
-    {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
-    {!loading && !error && !items.length && <p className="mt-3 text-sm text-slate-400">No matching {kind}.</p>}
+    {error && <p role="alert" className="mt-3 text-sm text-rose-300">{t(error)}</p>}
+    {!loading && !error && !items.length && <p className="mt-3 text-sm text-slate-400">{t(kind === "voyages" ? "No matching voyages." : "No matching containers.")}</p>}
     <ul className="mt-4 space-y-2">
       {items.map(row => <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 rounded border border-slate-700 p-3">
         <div>
           <div className="font-medium">{row.referenceCode}</div>
           <div className="text-xs text-slate-400">
             {kind === "voyages"
-              ? (row.voyageStatus ?? "Unknown") + " · " + (row.plannedDepartureAtUtc ?? "Unknown departure") +
-                " / " + (row.plannedArrivalAtUtc ?? "Unknown arrival")
+              ? t(row.voyageStatus ?? "Unknown") + " · " + (row.plannedDepartureAtUtc ? date(row.plannedDepartureAtUtc) + " UTC" : t("Unknown departure")) +
+                " / " + (row.plannedArrivalAtUtc ? date(row.plannedArrivalAtUtc) + " UTC" : t("Unknown arrival"))
               : (row.containerIdentifier ?? "") + " · " + (row.equipmentType ?? "") +
-                (row.identifierKind === "Synthetic" ? " · Synthetic" : " · Format validated")}
-            {" · " + row.recordStatus}
+                (row.identifierKind === "Synthetic" ? " · " + t("Synthetic") : " · " + t("Format validated"))}
+            {" · " + t(row.recordStatus)}
           </div>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={() => { setSelected(row); setCreating(false); setForm(valueOf(row)); }}
             className="rounded border border-slate-600 px-3 py-1 text-sm">
-            {canManage ? "View or edit" : "Details"}
+            {t(canManage ? "View or edit" : "Details")}
           </button>
           {canManage && <button type="button" disabled={busy || paging}
             onClick={() => void changeStatus(row)}
             className="rounded border border-slate-600 px-3 py-1 text-sm">
-            {row.recordStatus === "Active" ? "Archive" : "Restore"}
+            {t(row.recordStatus === "Active" ? "Archive" : "Restore")}
           </button>}
         </div>
       </li>)}
     </ul>
     {nextAfter && <button type="button" disabled={busy || paging || loading}
-      onClick={() => void more()} className="mt-3 rounded border border-slate-600 px-3 py-2 text-sm">
-      Load more maritime records</button>}
+      onClick={() => void more()} className="mt-3 rounded border border-slate-600 px-3 py-2 text-sm">{t("Load more maritime records")}</button>}
     {(selected || creating) && <form onSubmit={e => void save(e)} className="mt-5 grid gap-3 rounded border border-slate-600 p-4 sm:grid-cols-2">
-      <h5 className="col-span-full font-semibold">{creating ? "Add record" : "Record details"}</h5>
+      <h5 className="col-span-full font-semibold">{t(creating ? "Add record" : "Record details")}</h5>
       {input("referenceCode", "Reference code", !creating)}
       {kind === "voyages" ? <>
         {(["vesselId", "originPortId", "destinationPortId"] as const).map((field) => {
           const source = field === "vesselId" ? vessels : ports;
-          return <label key={field} className="text-sm">{field}
-            <select aria-label={field} value={form[field]} disabled={!canManage || !creating}
+          return <label key={field} className="text-sm">{t(field === "vesselId" ? "Vessel" : field === "originPortId" ? "Origin port" : "Destination port")}
+            <select aria-label={t(field === "vesselId" ? "Vessel" : field === "originPortId" ? "Origin port" : "Destination port")} value={form[field]} disabled={!canManage || !creating}
               onChange={e => setForm(old => ({ ...old, [field]: e.target.value }))}
               className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60">
-              <option value="">Select reference</option>
+              <option value="">{t("Select reference")}</option>
               {source.map(ref => <option key={ref.id} value={ref.id}>{ref.referenceCode}: {ref.name}</option>)}
             </select>
           </label>;
@@ -311,42 +309,39 @@ export default function MaritimeWorkspace({ organizationId, canManage, onAccessI
         {input("plannedDepartureAtUtc", "Planned departure UTC (ISO 8601)", !creating && form.voyageStatus !== "Planned")}
         {input("plannedArrivalAtUtc", "Planned arrival UTC (ISO 8601)", !creating && form.voyageStatus !== "Planned")}
         {!creating && <>
-          <label className="text-sm">Voyage progress
-            <select aria-label="Voyage progress" value={form.voyageStatus} disabled={!canManage}
+          <label className="text-sm">{t("Voyage progress")}<select aria-label={t("Voyage progress")} value={form.voyageStatus} disabled={!canManage}
               onChange={e => setForm(old => ({ ...old, voyageStatus: e.target.value }))}
               className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60">
-              {progress.map(v => <option key={v}>{v}</option>)}
+              {progress.map(v => <option key={v} value={v}>{t(v)}</option>)}
             </select>
           </label>
           {input("actualDepartureAtUtc", "Actual departure UTC (ISO 8601)", Boolean(selected?.actualDepartureAtUtc))}
           {input("actualArrivalAtUtc", "Actual arrival UTC (ISO 8601)", Boolean(selected?.actualArrivalAtUtc))}
         </>}
       </> : <>
-        <label className="text-sm">Identifier kind
-          <select aria-label="Identifier kind" value={form.identifierKind} disabled={!creating || !canManage}
+        <label className="text-sm">{t("Identifier kind")}<select aria-label={t("Identifier kind")} value={form.identifierKind} disabled={!creating || !canManage}
             onChange={e => setForm(old => ({ ...old, identifierKind: e.target.value as Form["identifierKind"] }))}
             className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60">
-            <option value="ISO6346">ISO 6346 format</option><option value="Synthetic">Synthetic</option>
+            <option value="ISO6346">{t("ISO 6346 format")}</option><option value="Synthetic">{t("Synthetic")}</option>
           </select>
         </label>
         {input("containerIdentifier", "Container identifier", !creating)}
-        <label className="text-sm">Equipment type
-          <select value={form.equipmentType} aria-label="Equipment type" disabled={!creating || !canManage}
+        <label className="text-sm">{t("Equipment type")}<select value={form.equipmentType} aria-label={t("Equipment type")} disabled={!creating || !canManage}
             onChange={e => setForm(old => ({ ...old, equipmentType: e.target.value }))}
             className="mt-1 block w-full rounded bg-slate-950 p-2 disabled:opacity-60">
-            {formats.map(v => <option key={v}>{v}</option>)}
+            {formats.map(v => <option key={v} value={v}>{t(v)}</option>)}
           </select>
         </label>
         {input("displayName", "Display name")}
-        {form.identifierKind === "Synthetic" && <p className="text-xs text-amber-200">Synthetic container reference. No registration is implied.</p>}
+        {form.identifierKind === "Synthetic" && <p className="text-xs text-amber-200">{t("Synthetic container reference. No registration is implied.")}</p>}
       </>}
       <div className="col-span-full flex gap-2">
         {canManage && (creating || selected?.recordStatus === "Active") &&
           <button type="submit" disabled={busy || loading} className="rounded bg-cyan-300 px-4 py-2 text-sm text-slate-950">
-            {creating ? "Create record" : "Save changes"}
+            {t(creating ? "Create record" : "Save changes")}
           </button>}
         <button type="button" onClick={() => { setSelected(null); setCreating(false); }}
-          className="rounded border border-slate-600 px-4 py-2 text-sm">Close</button>
+          className="rounded border border-slate-600 px-4 py-2 text-sm">{t("Close")}</button>
       </div>
     </form>}
   </section>;

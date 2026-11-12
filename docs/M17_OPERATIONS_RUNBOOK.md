@@ -13,6 +13,27 @@ M17 distinguishes **service liveness** from **dependency readiness**, **applicat
 
 Never use the only retained project PostgreSQL database, existing Docker volumes, production secrets, historical source history or personally identifying shipment data to prove a telemetry failure. Never run broad Docker prune or delete unverified volumes. Use only a named disposable local project with confirmed ownership.
 
+## Current isolated verification command
+
+This procedure is restricted to the dedicated M17 candidate branch and an explicitly new E:-backed directory. Do not use it against retained PostgreSQL or existing Compose projects. Execute only in a clean Windows E: worktree after ensuring no unrelated service occupies the isolated ports.
+
+Prerequisites: .NET 10 SDK, Node 22 or later, npm, Docker Engine with Compose, the exact source SHA, and a unique `ho-verify-m17-*` project name. Store five separate disposable secrets in the local process environment, not tracked files: `HARBOROPS_DB_PASSWORD`, `HARBOROPS_API_DB_PASSWORD`, `HARBOROPS_WORKER_DB_PASSWORD`, `HARBOROPS_M10_CORRECTION_PROOF_KEY`, and `HARBOROPS_M17_GRAFANA_PASSWORD`. Set `HARBOROPS_M17_LINK_KEY` to a separately generated base64 encoding of exactly 32 random bytes. The runner validates presence, and the application validates the link key's format and length.
+
+After providing these disposable values, run from the isolated worktree:
+
+```powershell
+$sha = (git rev-parse HEAD).Trim()
+.\scripts\run-g17-local.ps1 `
+    -ExpectedSha $sha `
+    -EvidenceDirectory 'E:\harborops-g17-evidence\candidate-unique-run' `
+    -ProjectName 'ho-verify-m17-unique-run' `
+    -StartDisposableStack -FaultProbe -StopOwnedContainers
+```
+
+The evidence directory must not exist beforehand. Its sibling `candidate-unique-run-disposable-stack` must also not exist. The runtime profile uses loopback PostgreSQL port 155432, API 18080, web 15173 and Grafana 3301; first confirm they are free. The runner creates the database only in its separate E:-backed folder, checks project ownership labels, runs .NET and frontend checks, validates Prometheus rules, exercises the isolated browser suites and stores an unreviewed evidence manifest. It never issues `docker compose down -v`, prunes a volume, changes protected main or declares gate acceptance.
+
+After a failure, preserve the evidence directory, the separate owned database directory and the source SHA for investigation. The `-StopOwnedContainers` option requests a stop of only its uniquely named services, not deletion. A failed build, browser case, rule test or source check is a failed campaign and must not be converted into a G17 pass. The `G17-S25` review occurs separately after raw evidence completeness is established.
+
 ## 2. Before optional-profile startup
 
 1. Verify `git rev-parse HEAD` against the implementation candidate and record the exact SHA and dirty-worktree status. Protected main and accepted evidence branches remain untouched.

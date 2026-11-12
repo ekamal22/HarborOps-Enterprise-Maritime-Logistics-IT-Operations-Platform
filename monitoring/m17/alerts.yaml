@@ -1,0 +1,39 @@
+groups:
+  - name: harborops-local-reference
+    interval: 15s
+    rules:
+      - alert: HarborOpsElevatedApiFailureRate
+        expr: |
+          (sum(rate(harborops_request_failures_total[5m]))
+           / clamp_min(sum(rate(http_server_request_duration_seconds_count[5m])), 0.000001)) > 0.01
+          and sum(increase(http_server_request_duration_seconds_count[5m])) >= 100
+        for: 1m
+        labels: {severity: degraded}
+        annotations:
+          summary: "Local API 5xx rate above reference threshold"
+      - alert: HarborOpsHighApiP95
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket[10m]))) > 1
+          and sum(increase(http_server_request_duration_seconds_count[10m])) >= 100
+        for: 1m
+        labels: {severity: degraded}
+        annotations:
+          summary: "Local API p95 above one second"
+      - alert: HarborOpsDatabaseUnavailable
+        expr: harborops_db_readiness == 0
+        for: 30s
+        labels: {severity: critical}
+        annotations:
+          summary: "Local PostgreSQL readiness is failing"
+      - alert: HarborOpsMonitoringMissing
+        expr: up{job="m17_collector"} == 0
+        for: 90s
+        labels: {severity: degraded}
+        annotations:
+          summary: "Local telemetry collection is unavailable, not necessarily the application"
+      - alert: HarborOpsTraceRateDrops
+        expr: increase(harborops_telemetry_dropped_total{signal="trace"}[1m]) > 0
+        for: 30s
+        labels: {severity: informational}
+        annotations:
+          summary: "Rate-limited trace records in the local profile"

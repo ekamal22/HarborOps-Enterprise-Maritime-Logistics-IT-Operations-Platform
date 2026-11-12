@@ -49,6 +49,40 @@ public sealed class TrackingWorkStore(HarborOpsDbContext db, TrackingWorkerSetti
 
     // Read-only, restricted-role diagnostic used only when the M17 worker profile
     // is explicitly enabled. No worker lease or business state is modified.
+    // Uses the already authorized M9 receipt read set. Never persists or
+    // exports the server-generated raw correlation identifier.
+    public async Task<string?> ReadReceiptCorrelationAsync(
+        TrackingWorkClaim claim, CancellationToken ct)
+    {
+        var connection = db.Database.GetDbConnection();
+        await db.Database.OpenConnectionAsync(ct);
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandTimeout = 2;
+            cmd.CommandText = """
+                SELECT correlation_id FROM tracking_inbox_receipts
+                WHERE id = @receipt AND organization_id = @organization
+                  AND source_id = @source
+                LIMIT 1
+                """;
+            foreach (var (name, value) in new[]
+            {
+                ("receipt", claim.ReceiptId),
+                ("organization", claim.OrganizationId),
+                ("source", claim.SourceId)
+            })
+            {
+                var parameter = cmd.CreateParameter();
+                parameter.ParameterName = name;
+                parameter.Value = value;
+                cmd.Parameters.Add(parameter);
+            }
+            return await cmd.ExecuteScalarAsync(ct) as string;
+        }
+        finally { await db.Database.CloseConnectionAsync(); }
+    }
+
     public async Task<double?> OldestEligibleBacklogAgeSecondsAsync(CancellationToken ct)
     {
         var connection = db.Database.GetDbConnection();

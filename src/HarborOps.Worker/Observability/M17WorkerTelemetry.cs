@@ -108,20 +108,17 @@ public static class M17WorkerTelemetry
                 .SetSampler(new M17WorkerBoundedSampler())
                 .AddSource(SourceName)
                 .AddProcessor(new M17WorkerTraceSanitizer())
-                .AddOtlpExporter(o =>
-                {
-                    o.Endpoint = endpoint;
-                    o.Protocol = OtlpExportProtocol.Grpc;
-                    o.TimeoutMilliseconds = 1000;
-                    o.ExportProcessorType = ExportProcessorType.Batch;
-                    o.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity>
+                .AddProcessor(new BatchActivityExportProcessor(
+                    new M17WorkerCountingTraceExporter(new OtlpExporterOptions
                     {
-                        MaxQueueSize = 2048,
-                        MaxExportBatchSize = 256,
-                        ExporterTimeoutMilliseconds = 1000,
-                        ScheduledDelayMilliseconds = 1000
-                    };
-                }));
+                        Endpoint = endpoint,
+                        Protocol = OtlpExportProtocol.Grpc,
+                        TimeoutMilliseconds = 1000
+                    }),
+                    maxQueueSize: 2048,
+                    scheduledDelayMilliseconds: 1000,
+                    exporterTimeoutMilliseconds: 1000,
+                    maxExportBatchSize: 256)));
         return true;
     }
 }

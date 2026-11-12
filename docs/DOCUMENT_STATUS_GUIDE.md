@@ -1,9 +1,11 @@
 # Documentation Status Guide
 
+**Turkish interface integration (2026-11-12):** Accepted and merged via [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) at `c81e54bfef25a0ff957f27b488ab7bd420551244`. Source-locked [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246) passed 41/41 frontend and 99/99 three-browser checks. G13 conditional and G15 accepted gate dispositions remain unchanged; no G24 release or production rollout is authorized. [Integration acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
+
 **G15 current disposition (2026-11-12):** G15/S25 **ACCEPTED** and merged into `main` via PR #44 (`49934d793542ef43cfe587c54b16cfd5cce8e2f4`). Tested source `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed run 43178122017; reviewer-independence attestation remains a disclosed procedural exception. G13 is still conditionally integrated. P10 fail-closed capture, P12 no deletion and default-off delivery remain mandatory; production rollout and G24 release are not approved. [Final decision](G15_S25_FINAL_ACCEPTANCE_20261112.md), [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
 
-The current G13/G15 decisions are recorded in [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md) and [G15 post-merge reconciliation](G15_POSTMERGE_RECONCILIATION_20261112.md). Earlier dated gates and runs remain historical source-bound records.
+The current G13 conditional decision remains in [G13 post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md). The accepted G15 source and final decision are recorded in [G15 final acceptance](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [G15 final reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md). Turkish interface acceptance is recorded in [the localization post-merge register](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md). Earlier dated gates and runs remain historical source-bound records.
 
 The current G13 disposition is recorded in [the post-merge reconciliation](G13_POSTMERGE_RECONCILIATION_20261112.md). Earlier dated review findings and run checkpoints remain source-specific historical records.
 

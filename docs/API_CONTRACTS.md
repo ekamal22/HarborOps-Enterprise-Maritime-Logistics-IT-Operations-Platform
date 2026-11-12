@@ -1,7 +1,13 @@
 # API Contracts
 
+**Turkish interface integration (2026-11-12):** Accepted and merged via [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) at `c81e54bfef25a0ff957f27b488ab7bd420551244`. Source-locked [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246) passed 41/41 frontend and 99/99 three-browser checks. G13 conditional and G15 accepted gate dispositions remain unchanged; no G24 release or production rollout is authorized. [Integration acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
+
 **Current G15 acceptance, 2026-11-12:** G15 and G15-S25 are **ACCEPTED** following source-locked run 43178122017 at `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35`; PR #44 merged the accepted remediation to `main` at `49934d793542ef43cfe587c54b16cfd5cce8e2f4`. Reviewer-separation attestation is an explicitly disclosed procedural exception. P10 fail-closed, P12 deletion disabled, delivery default-off, and no production deployment remain in force. [Acceptance decision](G15_S25_FINAL_ACCEPTANCE_20261112.md) and [post-merge record](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
+
+## Turkish interface integration and wire invariants, 2026-11-12
+
+The localized English/Turkish interface is merged without changing API endpoints, HTTP status codes, organization authorization, notification states, shipment workflow values, KPI numeric calculations or report/exception contracts. Translations and regional formatting are client presentation only. The 99-case browser campaign includes authenticated G13 and G15 coverage. See [integration acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
 
 ## Contract status
 

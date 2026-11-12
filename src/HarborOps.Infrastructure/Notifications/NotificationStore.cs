@@ -160,22 +160,32 @@ public sealed class NotificationStore(
             // RLS and the signed read scope are still evaluated for every row.
             await using (var plan = Command(Connection, tx, "SET LOCAL enable_seqscan=off"))
                 await plan.ExecuteNonQueryAsync(ct);
+            if (afterUtc.HasValue != afterId.HasValue)
+                throw new InvalidOperationException("Notification cursor bounds are inconsistent");
+            var cursorPredicate = afterUtc.HasValue
+                ? "AND (created_at_utc,id)<(@afterUtc::timestamptz,@afterId::uuid)"
+                : "";
+            var parameters = new List<(string Name, object? Value)>
+            {
+                ("org",org),("user",user),("membership",membershipId),
+                ("membershipVersion",membershipVersion),("cutoff",snapshot),
+                ("take",limit+1)
+            };
+            if (afterUtc.HasValue)
+            {
+                parameters.Add(("afterUtc",afterUtc.Value));
+                parameters.Add(("afterId",afterId!.Value));
+            }
             await using (var cmd = Command(Connection, tx, $"""
                 SELECT {Columns} FROM m15_user_notifications
                 WHERE organization_id=@org AND recipient_user_id=@user
                   AND membership_id=@membership AND membership_version=@membershipVersion
                   AND created_at_utc <= @cutoff
-                  AND (@afterUtc::timestamptz IS NULL OR
-                       (created_at_utc,id)<(@afterUtc::timestamptz,@afterId::uuid))
+                  {cursorPredicate}
                   {statePredicate}
                 ORDER BY created_at_utc DESC,id DESC LIMIT @take
                 """,
-                ("org",org),("user",user),
-                ("membership",membershipId),("membershipVersion",membershipVersion),
-                ("cutoff",snapshot),
-                ("afterUtc",(object?)afterUtc ?? DBNull.Value),
-                ("afterId",(object?)afterId ?? DBNull.Value),
-                ("take",limit+1)))
+                parameters.ToArray()))
             await using (var reader = await cmd.ExecuteReaderAsync(ct))
                 while (await reader.ReadAsync(ct)) rows.Add(Read(reader));
             await tx.CommitAsync(ct);

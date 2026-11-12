@@ -1,5 +1,7 @@
 # HarborOps Product Requirements Document
 
+**M17 correctness remediation (2026-11-13):** Candidate fixes for findings F17-001 through F17-014 are committed on the isolated feature branch, but .NET compilation, local Compose startup, collector/alert behavior, three-browser results, performance and G17-S25 have not been executed or accepted. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Remediation register](M17_CORRECTNESS_REMEDIATION_20261113.md).
+
 **M17 source candidate (2026-11-12):** The isolated `feature/m17-observability-20261112` branch now contains opt-in telemetry, private local monitoring configuration, scoped worker instrumentation, and verification scaffolding. The code has not been compiled or exercised in a source-locked G17 campaign. **G17 remains NOT ACCEPTED, 0/25 scenarios and 0/75 assertions executed, and protected `main` is unchanged.** [Candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md).
 
 **M17 observability planning scope (2026-11-12):** [M17 implementation](M17_IMPLEMENTATION_PLAN.md) covers an opt-in private local monitoring capability, structured metrics/traces, alerting and a planned verified diagnostic journey. Its [P01-P09 policy design baseline](M17_POLICY_PROPOSAL_20261112.md) was approved on 2026-11-12, with numeric validation pending. [G17 verification](M17_VERIFICATION_PLAN.md) keeps G17 pending with 0 of 25 scenarios executed. M18 incident ticketing and production deployment are separate milestones.

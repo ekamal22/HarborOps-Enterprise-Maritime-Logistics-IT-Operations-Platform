@@ -101,10 +101,11 @@ try {
     return "collector down and local alert firing";
   });
   await step("collector-fault-business-isolation",async()=>{
-    const n=await burst(3500,32);
+    const n=await burst(4000,80);
     await readyState();
-    measurements.push({at:new Date().toISOString(),requests_completed:n});
-    return "completed "+n+" real database reads while exporter unreachable";
+    measurements.push({at:new Date().toISOString(),requests_completed:n,
+      concurrency:80,baseline_concurrency:8,concurrency_multiplier:10});
+    return "completed "+n+" real database reads during tenfold parallel load while exporter unreachable";
   });
 } catch(e) {
   failed=true;

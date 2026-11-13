@@ -100,7 +100,12 @@ test("the runnable monitoring stack uses isolated E-backed storage and a support
   assert.match(base, /127\.0\.0\.1:15543:5432/);
   const dbPort = Number(base.match(/127\.0\.0\.1:(\d+):5432/)?.[1]);
   assert.ok(Number.isInteger(dbPort) && dbPort >= 1024 && dbPort <= 65535);
-  assert.match(read("scripts/run-g17-local.ps1"), new RegExp("Port=" + dbPort + ";Database=harborops_integration"));
+  // The test suites run against their own cluster so the stack's runtime roles survive.
+  assert.match(base, /127\.0\.0\.1:15544:5432/);
+  assert.notEqual(dbPort, 15544);
+  assert.match(base, /postgres_tests:[\s\S]*?profiles:\s*\[integration-tests\]/);
+  assert.match(read("scripts/run-g17-local.ps1"), /Port=15544;Database=harborops_integration/);
+  assert.doesNotMatch(read("scripts/run-g17-local.ps1"), /Port=15543;Database=harborops_integration/);
   assert.match(base, /127\.0\.0\.1:18080:8080/);
   assert.match(base, /127\.0\.0\.1:15173:80/);
   assert.match(overlay, /grafana\/grafana:13\.3\.1/);

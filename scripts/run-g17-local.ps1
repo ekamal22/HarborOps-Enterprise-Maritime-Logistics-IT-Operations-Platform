@@ -119,7 +119,7 @@ if ($VerifyDisposableWorker) { $composeArgs += @('-f','compose.m17.worker.overri
 # keyring state inside the Docker engine VM (its disk image lives on E:).
 $LocalVolumes = (-not $Hosted) -and ($env:OS -eq 'Windows_NT')
 if ($LocalVolumes) { $env:HARBOROPS_G17_STATE_ROOT = "/var/lib/ho-verify/$ProjectName" }
-$composeArgs += @('--profile','observability')
+$composeArgs += @('--profile','observability','--profile','integration-tests')
 if ($VerifyDisposableWorker) { $composeArgs += @('--profile','worker') }
 $ownedStackStarted = $false
 $sourceVerified = $false
@@ -215,9 +215,10 @@ try {
         }
         New-Item -ItemType Directory -Path $StorageRoot | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres') | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres_tests') | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'keyring') | Out-Null
         if ($LocalVolumes) {
-            foreach ($pair in @(@('postgres','70:70'), @('keyring','1654:1654'))) {
+            foreach ($pair in @(@('postgres','70:70'), @('postgres_tests','70:70'), @('keyring','1654:1654'))) {
                 & docker run --rm --user 0:0 --entrypoint /bin/sh `
                     -v "$($env:HARBOROPS_G17_STATE_ROOT)/$($pair[0]):/prepared" postgres:16.15-alpine3.24 `
                     -c "chown $($pair[1]) /prepared && chmod 700 /prepared"
@@ -238,19 +239,21 @@ try {
             @('run', '--rm', '--no-deps', '--entrypoint', '/bin/promtool',
               'prometheus', 'test', 'rules', '/etc/prometheus/m17-test.yaml')) -Stage 'promtool-test' -CaptureFile 'm17-promtool-test.txt'
         Invoke-Required 'docker' (@('compose') + $composeArgs +
-            @('up', '-d', '--build', 'postgres', 'migrator'))
+            @('up', '-d', '--build', 'postgres', 'postgres_tests', 'migrator'))
+        Invoke-Required 'docker' (@('compose') + $composeArgs +
+            @('up', '-d', '--wait', 'postgres', 'postgres_tests')) -Stage 'owned-databases-healthy'
         $dbPort = (& docker compose @composeArgs port postgres 5432).Trim()
         if ($LASTEXITCODE -ne 0 -or $dbPort -ne '127.0.0.1:15543') {
             throw 'Owned database did not bind the isolated 15543 loopback port'
         }
-        # The integration suite rejects the application database name. Create
-        # a second EMPTY database inside the newly owned PostgreSQL container.
-        # Never run integration migrations against the application database.
-        Invoke-Required 'docker' (@('compose') + $composeArgs + @(
-            'exec','-T','postgres','psql','-U','harborops','-d','postgres',
-            '-v','ON_ERROR_STOP=1','-c','CREATE DATABASE harborops_integration'
-        )) -Stage 'owned-integration-database-create'
-        $env:HARBOROPS_TEST_DB = "Host=127.0.0.1;Port=15543;Database=harborops_integration;" +
+        $testDbPort = (& docker compose @composeArgs port postgres_tests 5432).Trim()
+        if ($LASTEXITCODE -ne 0 -or $testDbPort -ne '127.0.0.1:15544') {
+            throw 'Owned test database did not bind the isolated 15544 loopback port'
+        }
+        # The integration and regression suites re-provision cluster-wide runtime roles
+        # with their own passwords and refuse the application database name. They use
+        # a separate EMPTY owned cluster so the stack under test keeps its own roles.
+        $env:HARBOROPS_TEST_DB = "Host=127.0.0.1;Port=15544;Database=harborops_integration;" +
             "Username=harborops;Password=$env:HARBOROPS_DB_PASSWORD"
         # The G17 ledger inventories M17 test witnesses. Run those classes
         # and selected cross-version checks without accidentally scheduling the
@@ -349,7 +352,7 @@ catch {
 finally {
     if ($StopOwnedContainers -and $ownedStackStarted) {
         try {
-            $services = @('dashboard_gateway','grafana','prometheus','tempo','otelcol','web','api','postgres')
+            $services = @('dashboard_gateway','grafana','prometheus','tempo','otelcol','web','api','postgres','postgres_tests')
             if ($VerifyDisposableWorker) { $services += 'worker' }
             & docker compose @composeArgs stop @services
             if ($LASTEXITCODE -ne 0) { throw 'Owned service stop failed' }
@@ -371,7 +374,7 @@ finally {
             $diagnostics = Join-Path $EvidencePath 'm17-failure-diagnostics'
             New-Item -ItemType Directory -Force -Path $diagnostics | Out-Null
             foreach ($service in @('postgres','migrator','api','web','otelcol','tempo',
-                    'prometheus','grafana','dashboard_gateway','worker')) {
+                    'prometheus','grafana','dashboard_gateway','postgres_tests','worker')) {
                 $id = (& docker compose @composeArgs ps -a -q $service 2>$null)
                 if (-not $id) { continue }
                 & docker compose @composeArgs logs --no-color --tail 300 $service 2>&1 |

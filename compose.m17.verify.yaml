@@ -33,6 +33,32 @@ services:
       retries: 15
     networks: [internal]
 
+  # Integration and regression suites re-provision the cluster-wide harborops_api and
+  # harborops_worker roles with their own passwords. They therefore run against this
+  # separate disposable cluster, never against the PostgreSQL the stack under test uses.
+  postgres_tests:
+    image: ho-verify-m17-postgres:16.15-rootless
+    profiles: [integration-tests]
+    user: "70:70"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    environment:
+      POSTGRES_DB: harborops_integration
+      POSTGRES_USER: harborops
+      POSTGRES_PASSWORD: ${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:15544:5432"
+    volumes:
+      - ${HARBOROPS_G17_STATE_ROOT:-${HARBOROPS_G17_STORAGE_ROOT:?Provide a new owned E-backed storage root}}/postgres_tests:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harborops -d harborops_integration"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks: [internal]
+
   migrator:
     build:
       context: .

@@ -189,5 +189,23 @@ public sealed class M17HttpContractTests : IDisposable
             Equals(span.GetTagItem("harborops.operation"),"baseline_read"));
         Assert.DoesNotContain(completed,span =>
             span.TagObjects.Any(tag=>tag.Key=="db.statement" || tag.Key=="db.query.text"));
+
+        // Accepting W3C context must not change an authentication or authorization decision:
+        // an anonymous caller stays refused with or without propagated context, baggage that
+        // claims a role, or a forged correlation value.
+        const string protectedPath = "/api/v1/organizations/11111111-1111-1111-1111-111111111111/ports";
+        using var plain = await client.GetAsync(protectedPath);
+        using var contextual = new HttpRequestMessage(HttpMethod.Get,protectedPath);
+        contextual.Headers.TryAddWithoutValidation("traceparent","00-"+traceId+"-"+parentSpan+"-01");
+        contextual.Headers.TryAddWithoutValidation("tracestate","vendor=value");
+        contextual.Headers.TryAddWithoutValidation("baggage","role=Admin,user=administrator");
+        contextual.Headers.TryAddWithoutValidation("X-Correlation-ID","administrator");
+        using var withContext = await client.SendAsync(contextual);
+        Assert.Equal(plain.StatusCode,withContext.StatusCode);
+        Assert.True((int)withContext.StatusCode is >= 300 and < 500,
+            "Anonymous access to a protected route must stay refused");
+        Assert.NotEqual(HttpStatusCode.OK,withContext.StatusCode);
+        Assert.DoesNotContain("administrator",await withContext.Content.ReadAsStringAsync(),
+            StringComparison.OrdinalIgnoreCase);
     }
 }

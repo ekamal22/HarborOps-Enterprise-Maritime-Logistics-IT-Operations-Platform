@@ -106,7 +106,8 @@ $runState = 'FAILED'
 $runFailureType = $null
 $sha = $null
 $required = @('source-sha.txt','run-status.json','expected-artifacts.json',
-    'g17-unit.trx','g17-contract.trx','g17-coverage-preflight.json')
+    'g17-unit.trx','g17-contract.trx','g17-coverage-preflight.json',
+    'g17-node-tests.xml')
 if ($StartDisposableStack) {
     $required += @('m17-promtool-check.txt','m17-promtool-test.txt',
         'm17-network-results.json','g17-integration.trx','m17-browser-results.json',
@@ -141,11 +142,11 @@ try {
     $env:HARBOROPS_SOURCE_SHA = $Sha
     Set-Content -LiteralPath (Join-Path $EvidencePath 'source-sha.txt') -Value $Sha -NoNewline
 
-    Invoke-Required 'node' @('--test', 'scripts/check-m17-source.test.mjs',
+    Invoke-Required 'node' @('--test','--test-reporter=junit', 'scripts/check-m17-source.test.mjs',
         'scripts/check-g17-manifest.test.mjs',
         'scripts/audit-g17-test-coverage.test.mjs',
         'scripts/g17-results-contract.test.mjs',
-        'scripts/g17-source-boundary.test.mjs') -Stage 'source-and-negative-controls'
+        'scripts/g17-source-boundary.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')

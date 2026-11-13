@@ -12,7 +12,13 @@ public sealed class M17BoundedSampler : Sampler
     private long second = -1;
     private int admitted;
 
-    public M17BoundedSampler() => Description = "M17 10-percent trace-ID rate-bound sampler";
+    private readonly Func<long> unixSeconds;
+
+    public M17BoundedSampler(Func<long>? clock = null)
+    {
+        unixSeconds = clock ?? (() => DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        Description = "M17 10-percent trace-ID rate-bound sampler";
+    }
 
     public override SamplingResult ShouldSample(in SamplingParameters parameters)
     {
@@ -28,7 +34,7 @@ public sealed class M17BoundedSampler : Sampler
 
         lock (gate)
         {
-            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var now = unixSeconds();
             if (now != second)
             {
                 second = now;

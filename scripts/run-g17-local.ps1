@@ -136,7 +136,12 @@ try {
     $env:HARBOROPS_SOURCE_SHA = $Sha
     Set-Content -LiteralPath (Join-Path $EvidencePath 'source-sha.txt') -Value $Sha -NoNewline
 
-    Invoke-Required 'node' @('--test', 'scripts/check-m17-source.test.mjs', 'scripts/check-g17-manifest.test.mjs')
+    Invoke-Required 'node' @('--test', 'scripts/check-m17-source.test.mjs',
+        'scripts/check-g17-manifest.test.mjs',
+        'scripts/audit-g17-test-coverage.test.mjs',
+        'scripts/g17-results-contract.test.mjs') -Stage 'source-and-negative-controls'
+    Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
+        ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
     Invoke-Required 'dotnet' @('build', 'HarborOps.sln', '-c', 'Release', '--no-restore', '-warnaserror')
     Invoke-Required 'dotnet' @('test', 'tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj',

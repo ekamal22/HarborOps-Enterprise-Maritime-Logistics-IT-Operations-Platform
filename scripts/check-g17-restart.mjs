@@ -136,7 +136,7 @@ try {
         {headers,signal:AbortSignal.timeout(12000)});
       assert.equal(detail.status,200);
       const raw=await detail.json();
-      for(const resource of raw.resourceSpans||raw.batches||[]) {
+      for(const resource of raw.trace?.resourceSpans||raw.resourceSpans||raw.batches||[]) {
         for(const scope of resource.scopeSpans||resource.instrumentationLibrarySpans||[]) {
           for(const span of scope.spans||[]) {
             const startTime=span.startTimeUnixNano||span.start_time_unix_nano;

@@ -35,7 +35,8 @@ async function grafanaQuery(page, endpoint, params) {
   expect(response.status()).toBe(200);
   const body = await response.json();
   expect(body.status).toBe("success");
-  return body.data.result;
+  // /query returns {result:[...]}; /series returns the label-set array itself.
+  return Array.isArray(body.data) ? body.data : body.data.result;
 }
 
 test("ten thousand hostile HTTP requests remain within complete exported-series budget", async ({ page }) => {

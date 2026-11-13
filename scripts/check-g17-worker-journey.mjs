@@ -59,7 +59,7 @@ async function digests(service) {
    for(const secret of protectedValues)
      assert.ok(!raw.includes(secret.toLowerCase()),
        "Tempo exported private tenant/source/account detail");
-   for(const resource of doc.resourceSpans||doc.batches||[]) {
+   for(const resource of doc.trace?.resourceSpans||doc.resourceSpans||doc.batches||[]) {
      for(const scope of resource.scopeSpans||resource.instrumentationLibrarySpans||[]) {
        for(const span of scope.spans||[]) {
          for(const a of span.attributes||[]) {
@@ -109,7 +109,7 @@ try {
      },body:JSON.stringify({
        sourceEventId:"g17-worker-"+nonce+"-"+i,eventFamily:"Equipment",
        eventCode:"GTIN",classifier:"ACT",occurredAtUtc:"2026-11-03T10:00:00Z",
-       equipmentReference:"SYN-BOX-NOT-FOUND",externalSchemaVersion:"2.2.0"
+       equipmentReference:"SYN-BOX-UNKNOWN",externalSchemaVersion:"2.2.0"
      }),signal:AbortSignal.timeout(20000)});
    assert.equal(res.status,202,"Synthetic source must receive durable receipt");
    const body=await res.json(),correlation=res.headers.get("x-correlation-id");
@@ -170,6 +170,7 @@ fs.writeFileSync(output,JSON.stringify({
  receipts_accepted:accepted,reconciled,duplicate_replay:replay,
  matched_safe_trace_pairs:pairCount,
  exported_metric_series_checked_for_tenant_privacy:privateLabelsChecked,
- failure_type:failure?.name??null,accepted_assertions:0
+ failure_type:failure?.name??null,
+ failure_message:failure?String(failure.message).slice(0,240):null,accepted_assertions:0
 },null,2)+"\n",{flag:"wx"});
 if(status!=="PASS")throw Error("G17 real worker causal-link campaign failed");

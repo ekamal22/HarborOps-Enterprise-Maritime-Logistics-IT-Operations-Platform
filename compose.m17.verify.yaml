@@ -1,5 +1,8 @@
 # Standalone, disposable M17 verification base. Never target a retained project.
 # The runner supplies a fresh project name and an E-backed empty storage root.
+# HARBOROPS_G17_STATE_ROOT optionally relocates only the PostgreSQL data and keyring
+# directories (Windows hosts cannot chown a host bind mount, so the local runner points
+# it at a path inside the Docker engine VM, whose disk image is itself on E:).
 name: ho-verify-m17
 
 services:
@@ -22,7 +25,7 @@ services:
     ports:
       - "127.0.0.1:15543:5432"
     volumes:
-      - ${HARBOROPS_G17_STORAGE_ROOT:?Provide a new owned E-backed storage root}/postgres:/var/lib/postgresql/data
+      - ${HARBOROPS_G17_STATE_ROOT:-${HARBOROPS_G17_STORAGE_ROOT:?Provide a new owned E-backed storage root}}/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U harborops -d harborops"]
       interval: 5s
@@ -68,7 +71,7 @@ services:
     tmpfs:
       - /tmp
     volumes:
-      - ${HARBOROPS_G17_STORAGE_ROOT:?Provide a new owned E-backed storage root}/keyring:/keys
+      - ${HARBOROPS_G17_STATE_ROOT:-${HARBOROPS_G17_STORAGE_ROOT:?Provide a new owned E-backed storage root}}/keyring:/keys
     cap_drop: [ALL]
     security_opt:
       - no-new-privileges:true

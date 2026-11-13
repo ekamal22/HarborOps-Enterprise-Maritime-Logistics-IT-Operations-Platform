@@ -81,3 +81,16 @@ test("a unit-suffixed gauge queried without its suffix is rejected", () => {
   assert.equal(names.has("harborops_service_running"), false);
   assert.equal(names.has("harborops_telemetry_collector_reachable"), false);
 });
+
+test("every verifier that reads a Tempo v2 trace unwraps the trace envelope", () => {
+  // Tempo 2.x answers /api/v2/traces/<id> as {trace:{resourceSpans:[...]}}. A reader
+  // of the bare resourceSpans path inspects zero spans and either fails or, worse,
+  // passes a privacy scan over nothing.
+  const readers = fs.readdirSync(path.join(repo, "scripts"))
+    .filter(name => /^check-g17-.*\.mjs$/.test(name))
+    .filter(name => read("scripts/" + name).includes("/api/v2/traces/"));
+  assert.ok(readers.length >= 3, "Expected the privacy, restart, journey and retention readers");
+  for (const name of readers)
+    assert.match(read("scripts/" + name), /trace\?\.resourceSpans/,
+      name + " does not unwrap the Tempo v2 trace envelope");
+});

@@ -565,10 +565,10 @@
           "expected": "optional dashboard bound loopback",
           "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/run-g17-local.ps1",
-            "case": "$uiPort -ne '127.0.0.1:3301'"
+            "path": "scripts/check-g17-network.mjs",
+            "case": "dashboard_listener"
           },
-          "coverage_gap": "Owned loopback port checked at runtime"
+          "coverage_gap": "Docker-published loopback listener recorded in the raw network report with a live HTTP 200 and refused non-loopback probes"
         },
         {
           "id": "G17-S16-A03",

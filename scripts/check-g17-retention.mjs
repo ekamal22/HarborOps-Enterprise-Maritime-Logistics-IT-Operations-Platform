@@ -27,12 +27,14 @@ const out=path.join(evidence,"m17-retention-age-results.json");
 const now=Date.now();
 const expired=now-27*60*60*1000;
 const current=now-2*60*60*1000;
+// OpenMetrics sample timestamps are seconds, not the milliseconds of Date.now().
+const seconds=ms=>(ms/1000).toFixed(3);
 const text=[
   "# TYPE g17_retention_age_probe gauge",
   ...[0,15000,30000,45000].map(offset=>
-    'g17_retention_age_probe{band="expired"} 1 '+(expired+offset)),
+    'g17_retention_age_probe{band="expired"} 1 '+seconds(expired+offset)),
   ...[0,15000,30000,45000].map(offset=>
-    'g17_retention_age_probe{band="recent"} 1 '+(current+offset)),
+    'g17_retention_age_probe{band="recent"} 1 '+seconds(current+offset)),
   "# EOF"
 ].join("\n")+"\n";
 fs.writeFileSync(path.join(scratch,"samples.openmetrics"),text,{flag:"wx"});

@@ -37,8 +37,10 @@ class Session {
   cookie() {return [...this.jar].map(([key,value])=>key+"="+value).join("; ");}
   async send(method,route,body,csrf=true) {
     const headers={Origin:api};
-    if(this.jar.size)headers.Cookie=this.cookie();
+    // The antiforgery token call sets a cookie that the mutating request must carry,
+    // so fetch the token before assembling the Cookie header.
     if(csrf&&method!=="GET")headers["X-HarborOps-CSRF"]=await this.token();
+    if(this.jar.size)headers.Cookie=this.cookie();
     if(body!==undefined)headers["Content-Type"]="application/json";
     const res=await fetch(api+route,{method,headers,
       body:body===undefined?undefined:JSON.stringify(body),
@@ -170,17 +172,17 @@ async function mode(enabled,round) {
   await batch(80,8,"authorized");
   const rss=[memory()];
   const runs={baseline:[],authorized:[]};
-  for(let k=0;k<5;k++) {
+  for(let k=0;k<15;k++) {
     for(const kind of ["baseline","authorized"])
       runs[kind].push(...await batch(80,8,kind));
     rss.push(memory());
   }
-  for(const kind of ["baseline","authorized"])assert.equal(runs[kind].length,400);
+  for(const kind of ["baseline","authorized"])assert.equal(runs[kind].length,1200);
   const per_route=Object.fromEntries(Object.entries(runs).map(([kind,values])=>[
     kind,{requests:values.length,p95_ms:p95(values),
       mean_ms:values.reduce((a,b)=>a+b,0)/values.length}
   ]));
-  return {round,telemetry_enabled:enabled,requests:800,per_route,
+  return {round,telemetry_enabled:enabled,requests:2400,per_route,
     p95_ms:Math.max(...Object.values(per_route).map(x=>x.p95_ms)),
     rss_peak_mib:Math.max(...rss),rss_samples_mib:rss};
 }
@@ -222,7 +224,7 @@ try {
     source_sha:source,project,run_kind:"THREE_MATCHED_PAIRS",
     benchmark_path:"GET /api/v1/system/baseline + authenticated GET /api/v1/organizations/{synthetic}/ports",
     measured_routes:["baseline","authorized"],
-    sample_size_per_mode_per_round:800,warmup_per_mode_per_round:160,
+    sample_size_per_mode_per_round:2400,warmup_per_mode_per_round:160,
     concurrency:8,system:{platform:process.platform,arch:process.arch,
       cpus:os.cpus().length,memory_bytes:os.totalmem(),release:os.release(),
       node:process.version},rows,pairs,

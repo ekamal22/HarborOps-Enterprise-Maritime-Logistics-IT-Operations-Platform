@@ -38,7 +38,10 @@ function snapshotDatabase() {
       timeout:90000,maxBuffer:64*1024*1024
     });
   const stable=result.toString("utf8").split(/\r?\n/)
-    .filter(line=>!/^(-- (Dumped|Completed|Started) on )/.test(line))
+    // PostgreSQL 16.15 pg_dump writes a random \restrict/\unrestrict token pair
+    // into every dump. It is not data and would make any two hashes differ.
+    .filter(line=>!/^(-- (Dumped|Completed|Started) on )/.test(line) &&
+      !/^\\(?:un)?restrict\s/.test(line))
     .join("\n");
   return crypto.createHash("sha256").update(stable).digest("hex");
 }
@@ -104,6 +107,7 @@ try {
 }catch(e){
   failure=e;
   evidenceData.failure_type=e?.name??"Error";
+  evidenceData.failure_message=String(e?.message??"").slice(0,240);
 }finally{
   if(fullStoreCreated) {
     try {

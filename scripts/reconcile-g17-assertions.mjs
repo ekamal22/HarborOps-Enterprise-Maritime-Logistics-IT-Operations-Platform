@@ -2,28 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
 import {verifyPlaywrightCases,verifyTrxCases} from "./g17-results-contract.mjs";
+import {RAW_REPORT_FILES,RAW_WITNESS_SCRIPTS,rawWitnessPasses} from "./g17-raw-witness.mjs";
 
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const identity=id=>/^G17-S(?:0[1-9]|1[0-9]|2[0-5])-A0[1-3]$/.test(id);
 function requireTruth(ok,message) {if(!ok)throw Error(message);}
 const source=relative=>fs.readFileSync(path.join(repo,relative),"utf8");
 const load=(root,file)=>JSON.parse(fs.readFileSync(path.join(root,file),"utf8"));
-const REQUIRED_SCRIPT_REPORTS=new Map([
-  ["scripts/check-g17-network.mjs","m17-network-results.json"],
-  ["scripts/check-g17-worker.mjs","m17-worker-results.json"],
-  ["scripts/check-g17-collector-fault.mjs","m17-collector-fault-results.json"],
-  ["scripts/check-g17-database-fault.mjs","m17-database-fault-results.json"],
-  ["scripts/check-g17-restart.mjs","m17-restart-results.json"],
-  ["scripts/check-g17-export-privacy.mjs","m17-export-privacy-results.json"],
-  ["scripts/check-g17-performance.mjs","m17-performance-raw.json"],
-  ["scripts/check-g17-storage.mjs","m17-storage-results.json"],
-  ["scripts/check-g17-retention.mjs","m17-retention-age-results.json"],
-  ["scripts/check-g17-tempo-retention.mjs","m17-tempo-retention-results.json"],
-  ["scripts/check-g17-retention-matrix.mjs","m17-retention-matrix-results.json"],
-  ["scripts/check-g17-alert-matrix.mjs","m17-alert-matrix-results.json"],
-  ["scripts/check-g17-pressure-matrix.mjs","m17-pressure-matrix-results.json"],
-  ["scripts/check-g17-regression-matrix.mjs","g17-regression-matrix-results.json"]
-]);
+const REQUIRED_SCRIPT_REPORTS=RAW_REPORT_FILES;
 
 export function checkPerAssertion(coverage,hasWitness) {
   const errors=[],records=[],seen=new Set();
@@ -113,12 +99,13 @@ export function deriveWitnessChecks(evidenceRoot,runStatus,sha) {
     for(const entry of tested.case_ids)
       results.set(name+"\u0000"+entry,{passed:true,artifact:file});
   }
+  const reports=new Map();
   for(const [script,file] of REQUIRED_SCRIPT_REPORTS) {
     const result=load(evidenceRoot,file);
     requireTruth(result.source_sha===sha &&
       result.project===runStatus.project && result.result==="PASS",
       script+": failed or foreign execution report");
-    results.set(script+"\u0000*",{passed:true,artifact:file});
+    reports.set(script,{file,result});
   }
   requireTruth(runStatus.stage_results.some(x=>
     x.stage==="promtool-test" && x.status==="PASS"),
@@ -132,6 +119,14 @@ export function deriveWitnessChecks(evidenceRoot,runStatus,sha) {
     runStatus.stage_results.every(x=>x.status==="PASS" && x.exit_code===0),
     "One or more source-locked verification stages did not succeed");
   results.set("scripts/run-g17-local.ps1\u0000*",
+    {passed:true,artifact:"run-status.json"});
+  const needed=["dotnet-build","unit-tests","contract-tests","integration-m17-tests",
+    "accepted-milestone-regressions-opted-in","playwright-dashboard-three-engines",
+    "playwright-cardinality"];
+  requireTruth(needed.every(name=>runStatus.stage_results.some(x=>
+    x.stage===name&&x.status==="PASS"&&x.exit_code===0)),
+    "Build, .NET regression or targeted browser stage missing from the run ledger");
+  results.set("scripts/verify-g17-manifest.mjs\u0000*",
     {passed:true,artifact:"run-status.json"});
   return function resolve(w,key) {
     const supported=w.path.startsWith("tests/")||
@@ -163,7 +158,12 @@ export function deriveWitnessChecks(evidenceRoot,runStatus,sha) {
       return results.get(w.path+"\u0000*")??null;
     if(w.path==="scripts/run-g17-local.ps1")
       return results.get(w.path+"\u0000*")??null;
-    if(REQUIRED_SCRIPT_REPORTS.has(w.path))
+    if(RAW_WITNESS_SCRIPTS.has(w.path)) {
+      const raw=reports.get(w.path);
+      return raw&&rawWitnessPasses(w.path,w.case,raw.result)
+        ?{passed:true,artifact:raw.file}:null;
+    }
+    if(w.path==="scripts/verify-g17-manifest.mjs")
       return results.get(w.path+"\u0000*")??null;
     return null;
   };

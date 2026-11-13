@@ -36,6 +36,8 @@ const config=[
   "ingester:",
   "  trace_idle_period: 2s",
   "  max_block_duration: 10s",
+  "  complete_block_timeout: 10s",
+  "  flush_check_period: 2s",
   "compactor:",
   "  compaction:",
   "    block_retention: 45s",
@@ -46,6 +48,7 @@ const config=[
   "    backend: local",
   "    wal:",
   "      path: /var/tempo/wal",
+  "    blocklist_poll: 5s",
   "    local:",
   "      path: /var/tempo/blocks",
   ""
@@ -77,7 +80,13 @@ async function traceVisible(id){
   if(response.status===404)return false;
   assert.equal(response.status,200);
   const body=await response.json();
-  return JSON.stringify(body).toLowerCase().includes(id.slice(0,16));
+  // Tempo returns identifiers as base64 inside {trace:{resourceSpans:[...]}}.
+  const spans=(body.trace?.resourceSpans??body.resourceSpans??[]).flatMap(r=>
+    (r.scopeSpans??[]).flatMap(x=>x.spans??[]));
+  return spans.some(span=>{
+    const hex=Buffer.from(span.traceId||"","base64").toString("hex");
+    return hex.replace(/^0+/,"")===id.replace(/^0+/,"");
+  });
 }
 async function ingest() {
   const id=crypto.randomBytes(16).toString("hex");

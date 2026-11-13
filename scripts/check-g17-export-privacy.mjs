@@ -48,6 +48,7 @@ async function generateRealRequests(count) {
         req.searchParams.set("auditTag",auditCanary);
         req.searchParams.set("untrusted",query);
         const validTrace=(offset+j)%2!==0;
+        if(!validTrace)injectedControls.malformed_traceparent_requests++;
         const injectedTraceId=validTrace?crypto.randomBytes(16).toString("hex"):null;
         if(injectedTraceId)generatedTraceIds.add(injectedTraceId);
         const response=await fetch(req,{
@@ -61,6 +62,7 @@ async function generateRealRequests(count) {
             "tracestate":"privatevendor="+tag
           },signal:AbortSignal.timeout(12000)});
         assert.equal(response.status,200,"Synthetic baseline read must succeed");
+        injectedControls.requests++;
         const json=await response.json();
         assert.equal(json.service,"HarborOps");
         assert.ok(!JSON.stringify(json).includes(tag),
@@ -70,8 +72,12 @@ async function generateRealRequests(count) {
     successful+=rsp.length;
   }
   assert.equal(successful,count);
+  injectedControls.oversized_baggage=true;
+  injectedControls.all_business_responses_200=true;
 }
 let failure=null,observedTraces=0,exportedSpans=0,seriesCount=0;
+const injectedControls={oversized_baggage:false,requests:0,
+  malformed_traceparent_requests:0,all_business_responses_200:false};
 try {
   await generateRealRequests(320);
   let traces=[];
@@ -83,8 +89,10 @@ try {
       search.searchParams.set("limit","100");
       const response=await fetchJson(search);
       if(Array.isArray(response.traces)&&response.traces.length>0) {
+        // Tempo trims leading zeros from the identifiers it returns.
+        const trimmed=new Set([...generatedTraceIds].map(id=>id.replace(/^0+/,"")));
         const linked=response.traces.filter(t=>
-          generatedTraceIds.has((t.traceID||"").toLowerCase()));
+          trimmed.has((t.traceID||"").toLowerCase().replace(/^0+/,"")));
         if(linked.length>=2){traces=linked;break;}
       }
     } catch(e) {
@@ -102,9 +110,11 @@ try {
     assert.ok(raw.includes("harborops-api")||raw.includes("harborops.operation")||
       raw.includes("http.request"),
       "Trace contained no permitted diagnostic component");
-    const spans=doc.batches?.flatMap(b=>b.instrumentationLibrarySpans?.flatMap(
-      x=>x.spans||[])||[])||
-      doc.resourceSpans?.flatMap(r=>r.scopeSpans?.flatMap(x=>x.spans||[])||[])||[];
+    // Tempo 2.x wraps the OTLP document as {trace:{resourceSpans:[...]}}.
+    const resourceSpans=doc.trace?.resourceSpans??doc.resourceSpans;
+    const spans=resourceSpans?.flatMap(r=>r.scopeSpans?.flatMap(x=>x.spans||[])||[])||
+      doc.batches?.flatMap(b=>b.instrumentationLibrarySpans?.flatMap(
+        x=>x.spans||[])||[])||[];
     assert.ok(spans.length>0,"A search result contained no serialized spans");
     for(const span of spans) {
       const attributes=span.attributes||[];
@@ -158,8 +168,9 @@ try {
     traces_inspected:observedTraces,spans_inspected:exportedSpans,
     exported_metric_series_inspected:seriesCount,
     canary_sha256:crypto.createHash("sha256").update(tag).digest("hex"),
-    snapshots:results,assertion_review:"PENDING",
-    failure_type:failure?.name??null};
+    snapshots:results,injected_controls:injectedControls,assertion_review:"PENDING",
+    failure_type:failure?.name??null,
+    failure_message:failure?String(failure.message).slice(0,240):null};
   fs.writeFileSync(path.join(root,"m17-export-privacy-results.json"),
     JSON.stringify(record,null,2)+"\n",{flag:"wx"});
 }

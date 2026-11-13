@@ -40,6 +40,9 @@ let failedService = null;
 let failureType = null;
 const resultPath = path.join(evidence,"m17-network-results.json");
 let outcome = "FAIL";
+let dashboardListener = null;
+const protectedPortsRefused = [];
+let nonLoopbackRefused = 0;
 try {
   for (const [service, want] of Object.entries(expected)) {
     // The migrator is a completed one-shot container, so ps -a is required.
@@ -123,6 +126,9 @@ try {
   const health=await fetch("http://127.0.0.1:3301/api/health",{
     signal:AbortSignal.timeout(8000)});
   assert.equal(health.status,200,"Loopback dashboard listener is not serving Grafana");
+  dashboardListener = {host_ip:"127.0.0.1",host_port:"3301",
+    loopback_http_status:health.status,published_by:"dashboard_gateway",
+    grafana_publishes_nothing:true,non_loopback_addresses_refused:0};
   // Negative control: the same port is not reachable via a non-loopback host address.
   for(const nic of Object.values(os.networkInterfaces()).flat()) {
     if(!nic||nic.internal||nic.family!=="IPv4"||nic.address.startsWith("169.254."))continue;
@@ -134,6 +140,8 @@ try {
     } catch(error) {
       if(!(isRefusedConnection(error)||error?.name==="TimeoutError"||
         error?.cause?.code==="ETIMEDOUT"))throw error;
+      nonLoopbackRefused++;
+      dashboardListener.non_loopback_addresses_refused = nonLoopbackRefused;
     }
   }
   // Verify a network-untrusted HTTP client cannot reach the monitoring
@@ -146,6 +154,7 @@ try {
         " with status "+response.status);
     } catch(error) {
       if(!isRefusedConnection(error)) throw error;
+      protectedPortsRefused.push(port);
     }
   }
   for(const service of Object.keys(expected)) {
@@ -165,6 +174,7 @@ try {
   fs.writeFileSync(resultPath,JSON.stringify({
     project,source_sha:process.env.HARBOROPS_SOURCE_SHA,
     result:outcome,expected,observed,process_states:processStates,
+    protected_ports_refused:protectedPortsRefused,dashboard_listener:dashboardListener,
     failed_service:failedService,failure_type:failureType
   },null,2) + "\n",{flag:"wx"});
 }

@@ -35,9 +35,10 @@ try{
   assert.deepEqual(performance.measured_routes,["baseline","authorized"]);
   assert.equal(performance.rows.length,6);
   for(const row of performance.rows){
-    assert.equal(row.requests,800);
+    assert.equal(row.requests,performance.sample_size_per_mode_per_round);
     for(const type of ["baseline","authorized"])
-      assert.equal(row.per_route?.[type]?.requests,400);
+      assert.equal(row.per_route?.[type]?.requests,
+        performance.sample_size_per_mode_per_round/2);
   }
   for(const pair of performance.pairs){
     assert.equal(pair.pass,true);

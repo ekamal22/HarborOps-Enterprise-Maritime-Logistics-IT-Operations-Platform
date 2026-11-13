@@ -65,11 +65,11 @@ $env:HARBOROPS_G17_PROJECT = $ProjectName
 $env:HARBOROPS_G17_VERIFY_WORKER = if ($VerifyDisposableWorker) { 'true' } else { 'false' }
 $env:HARBOROPS_G17_API_URL = 'http://127.0.0.1:18080'
 $Cache = Join-Path (Split-Path -Parent $Repo) 'harborops-m0-cache'
-$env:DOTNET_CLI_HOME = Join-Path $Cache 'dotnet-home'
-$env:NUGET_PACKAGES = Join-Path $Cache 'nuget\packages'
-$env:NUGET_HTTP_CACHE_PATH = Join-Path $Cache 'nuget\http'
-$env:npm_config_cache = Join-Path $Cache 'npm'
-$env:PLAYWRIGHT_BROWSERS_PATH = Join-Path $Cache 'playwright-browsers'
+if (-not $env:DOTNET_CLI_HOME) { $env:DOTNET_CLI_HOME = Join-Path $Cache 'dotnet-home' }
+if (-not $env:NUGET_PACKAGES) { $env:NUGET_PACKAGES = Join-Path $Cache 'nuget\packages' }
+if (-not $env:NUGET_HTTP_CACHE_PATH) { $env:NUGET_HTTP_CACHE_PATH = Join-Path $Cache 'nuget\http' }
+if (-not $env:npm_config_cache) { $env:npm_config_cache = Join-Path $Cache 'npm' }
+if (-not $env:PLAYWRIGHT_BROWSERS_PATH) { $env:PLAYWRIGHT_BROWSERS_PATH = Join-Path $Cache 'playwright-browsers' }
 $env:TEMP = Join-Path $Cache 'temp'
 $env:TMP = $env:TEMP
 foreach ($directory in @(
@@ -115,8 +115,10 @@ $composeArgs = @('-p', $ProjectName, '-f', 'compose.m17.verify.yaml')
 if ($VerifyDisposableWorker) { $composeArgs += @('-f','compose.m9.worker.yaml') }
 $composeArgs += @('-f','compose.m17.observability.override.yaml')
 if ($VerifyDisposableWorker) { $composeArgs += @('-f','compose.m17.worker.override.yaml') }
+# Windows bind mounts reject chown to the rootless UIDs. Keep only the PostgreSQL and
+# keyring state inside the Docker engine VM (its disk image lives on E:).
 $LocalVolumes = (-not $Hosted) -and ($env:OS -eq 'Windows_NT')
-if ($LocalVolumes) { $composeArgs += @('-f','compose.m17.local-volumes.override.yaml') }
+if ($LocalVolumes) { $env:HARBOROPS_G17_STATE_ROOT = "/var/lib/ho-verify/$ProjectName" }
 $composeArgs += @('--profile','observability')
 if ($VerifyDisposableWorker) { $composeArgs += @('--profile','worker') }
 $ownedStackStarted = $false
@@ -168,7 +170,7 @@ try {
     $env:HARBOROPS_SOURCE_SHA = $Sha
     Set-Content -LiteralPath (Join-Path $EvidencePath 'source-sha.txt') -Value $Sha -NoNewline
 
-    Invoke-Required 'node' @('--test','--test-reporter=junit', 'scripts/check-m17-source.test.mjs', 'scripts/check-m17-metric-names.test.mjs',
+    Invoke-Required 'node' @('--test','--test-reporter=junit', 'scripts/check-m17-source.test.mjs', 'scripts/check-m17-metric-names.test.mjs', 'scripts/g17-raw-witness.test.mjs',
         'scripts/check-g17-manifest.test.mjs',
         'scripts/g17-network-guards.test.mjs',
         'scripts/audit-g17-test-coverage.test.mjs',
@@ -179,13 +181,13 @@ try {
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
-    Invoke-Required 'dotnet' @('build', 'HarborOps.sln', '-c', 'Release', '--no-restore', '-warnaserror')
+    Invoke-Required 'dotnet' @('build', 'HarborOps.sln', '-c', 'Release', '--no-restore', '-warnaserror') -Stage 'dotnet-build'
     Invoke-Required 'dotnet' @('test', 'tests/HarborOps.UnitTests/HarborOps.UnitTests.csproj',
         '-c', 'Release', '--no-build', '--logger', 'trx;LogFileName=g17-unit.trx',
-        '--results-directory', $EvidencePath)
+        '--results-directory', $EvidencePath) -Stage 'unit-tests'
     Invoke-Required 'dotnet' @('test', 'tests/HarborOps.ContractTests/HarborOps.ContractTests.csproj',
         '-c', 'Release', '--no-build', '--logger', 'trx;LogFileName=g17-contract.trx',
-        '--results-directory', $EvidencePath)
+        '--results-directory', $EvidencePath) -Stage 'contract-tests'
     Invoke-Required 'npm' @('--prefix', 'web', 'ci', '--no-audit', '--no-fund')
     Invoke-Required 'npm' @('--prefix', 'web', 'test')
     Invoke-Required 'npm' @('--prefix', 'web', 'run', 'build')
@@ -215,24 +217,12 @@ try {
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres') | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'keyring') | Out-Null
         if ($LocalVolumes) {
-            # Windows bind mounts reject chown. Prepare owned, project-labelled volumes.
-            foreach ($pair in @(@('pgdata','70:70'), @('keyring','1654:1654'))) {
-                $volume = "${ProjectName}_$($pair[0])"
-                & docker volume create --label "com.docker.compose.project=$ProjectName" `
-                    --label "com.docker.compose.volume=$($pair[0])" $volume | Out-Null
-                if ($LASTEXITCODE -ne 0) { throw "Cannot create owned volume $volume" }
+            foreach ($pair in @(@('postgres','70:70'), @('keyring','1654:1654'))) {
                 & docker run --rm --user 0:0 --entrypoint /bin/sh `
-                    -v "${volume}:/prepared" postgres:16.15-alpine3.24 `
+                    -v "$($env:HARBOROPS_G17_STATE_ROOT)/$($pair[0]):/prepared" postgres:16.15-alpine3.24 `
                     -c "chown $($pair[1]) /prepared && chmod 700 /prepared"
-                if ($LASTEXITCODE -ne 0) { throw "Cannot prepare owned volume $volume" }
+                if ($LASTEXITCODE -ne 0) { throw "Cannot prepare owned state directory $($pair[0])" }
             }
-        }
-        if ($Hosted) {
-            # Only newly created runner-temp directories receive process UIDs.
-            & sudo chown '70:70' (Join-Path $StorageRoot 'postgres')
-            if ($LASTEXITCODE -ne 0) { throw 'Cannot prepare owned PostgreSQL scratch UID' }
-            & sudo chown '1654:1654' (Join-Path $StorageRoot 'keyring')
-            if ($LASTEXITCODE -ne 0) { throw 'Cannot prepare owned application keyring UID' }
         }
         Invoke-Required 'docker' (@('compose') + $composeArgs + @('config', '--quiet'))
         # Any following compose run may create owned networks, including on failure.
@@ -271,7 +261,7 @@ try {
         Invoke-Required 'dotnet' @('test', 'tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj',
             '-c', 'Release', '--no-build', '--filter', $g17IntegrationFilter,
             '--logger', 'trx;LogFileName=g17-integration.trx',
-            '--results-directory', $EvidencePath)
+            '--results-directory', $EvidencePath) -Stage 'integration-m17-tests'
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('up', '-d', '--build', 'api', 'web', 'otelcol', 'tempo', 'prometheus', 'grafana', 'dashboard_gateway'))
         Invoke-Required 'node' @('scripts/check-g17-network.mjs') -Stage 'telemetry-network-isolation'
@@ -327,9 +317,9 @@ try {
         try {
             Invoke-Required 'npm' @('ci', '--no-audit', '--no-fund')
             Invoke-Required 'npx' @('--no-install', 'playwright', 'test',
-                '--config', 'playwright.m17.config.mjs')
+                '--config', 'playwright.m17.config.mjs') -Stage 'playwright-dashboard-three-engines'
             Invoke-Required 'npx' @('--no-install', 'playwright', 'test',
-                '--config', 'playwright.m17.cardinality.config.mjs')
+                '--config', 'playwright.m17.cardinality.config.mjs') -Stage 'playwright-cardinality'
             # Both result directories are written directly to the E: evidence root.
         } finally { Pop-Location }
         Invoke-Required 'node' @('scripts/check-g17-export-privacy.mjs') -Stage 'tempo-and-prometheus-negative-privacy-canaries'

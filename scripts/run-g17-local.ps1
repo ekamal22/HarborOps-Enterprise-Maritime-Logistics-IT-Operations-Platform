@@ -103,7 +103,7 @@ $required = @('source-sha.txt','run-status.json','expected-artifacts.json',
     'g17-unit.trx','g17-contract.trx')
 if ($StartDisposableStack) {
     $required += @('m17-promtool-check.txt','m17-promtool-test.txt',
-        'g17-integration.trx','m17-browser-results.json',
+        'm17-network-results.json','g17-integration.trx','m17-browser-results.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json')
     if ($VerifyDisposableWorker) { $required += 'm17-worker-results.json' }
 }
@@ -191,6 +191,7 @@ try {
             '--results-directory', $EvidencePath)
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('up', '-d', '--build', 'api', 'web', 'otelcol', 'tempo', 'prometheus', 'grafana'))
+        Invoke-Required 'node' @('scripts/check-g17-network.mjs') -Stage 'telemetry-network-isolation'
         $uiPort = (& docker compose @composeArgs port grafana 3000).Trim()
         if ($LASTEXITCODE -ne 0 -or $uiPort -ne '127.0.0.1:3301') {
             throw 'The diagnostics dashboard is not isolated to loopback port 3301'

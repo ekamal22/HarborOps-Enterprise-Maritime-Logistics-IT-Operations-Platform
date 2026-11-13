@@ -117,6 +117,19 @@ export function verifyManifest(manifestPath, expectedSha) {
       }
     }
   }
+  const inventoryBytes = fs.readFileSync(path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../docs/M17_G17_ASSERTION_INVENTORY_20261112.json"));
+  const inventory = JSON.parse(inventoryBytes.toString("utf8"));
+  const assertions = inventory.scenarios?.flatMap(s => s.assertions) ?? [];
+  if (manifest.assertion_inventory_sha256 !== crypto.createHash("sha256")
+      .update(inventoryBytes).digest("hex") ||
+      inventory.scenarios?.length !== 25 || assertions.length !== 75 ||
+      manifest.scenario_count !== 25 || manifest.assertion_count !== 75 ||
+      manifest.reviewed_assertion_count !== 0 ||
+      inventory.gate_acceptance !== "NOT_ACCEPTED" ||
+      assertions.some(a => a.status !== "NOT_EXECUTED" || a.witness !== null))
+    throw Error("Unreconciled or falsely reviewed G17 atomic assertion inventory");
   if (manifest.assertion_disposition !== "NOT_REVIEWED")
     throw Error("Unverified evidence may not claim reviewed assertions");
   return {source_sha: manifest.source_sha,files:actual.length,

@@ -23,15 +23,19 @@ function syntheticComplete() {
   }
   return map;
 }
-test("the actual G17 technical suite cannot silently pass incomplete coverage", () => {
+test("preflight refuses every remaining incomplete technical assertion", () => {
   const result=auditG17Coverage(baseline,mapped,read,{strict:true});
+  const incomplete=mapped.scenarios.slice(0,24).flatMap(s=>s.assertions)
+    .filter(a=>a.assessment!=="TEST_AUTHORED");
   assert.equal(result.scenarios,25);
   assert.equal(result.assertions,75);
   assert.equal(result.technical_required,72);
   assert.equal(result.independent_review_required,3);
-  assert.equal(result.passed,false);
-  assert.ok(result.errors.some(x=>x.includes("G17-S21")));
-  assert.ok(result.errors.some(x=>x.includes("G17-S22")));
+  if (incomplete.length) {
+    assert.equal(result.passed,false);
+    for (const clause of incomplete)
+      assert.ok(result.errors.some(x=>x.includes(clause.id)),clause.id);
+  } else assert.equal(result.passed,true,result.errors.join("\n"));
 });
 test("non-strict inventory audit maps exactly 75 clauses without corrupt identities", () => {
   const result=auditG17Coverage(baseline,mapped,read,{strict:false});

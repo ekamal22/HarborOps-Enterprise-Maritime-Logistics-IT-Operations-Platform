@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Net;
 using System.Text.Json;
@@ -48,7 +49,10 @@ public sealed class M17HttpContractTests : IDisposable
         using var factory = Enabled();
         using var client = factory.CreateClient();
         using var live = await client.GetAsync("/health/live");
+        var readinessTimer = Stopwatch.StartNew();
         using var ready = await client.GetAsync("/health/ready");
+        readinessTimer.Stop();
+        Assert.InRange(readinessTimer.Elapsed.TotalSeconds,0,8);
         using var failed = await client.GetAsync("/api/v1/system/baseline");
         Assert.Equal(HttpStatusCode.OK,live.StatusCode);
         Assert.Equal(HttpStatusCode.ServiceUnavailable,ready.StatusCode);

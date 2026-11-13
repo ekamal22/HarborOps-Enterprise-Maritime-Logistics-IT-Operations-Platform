@@ -30,6 +30,7 @@ const fetchJson=async url=>{
 };
 const promiseWait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const results=[];
+const generatedTraceIds=new Set();
 function scan(raw,kind) {
   const value=typeof raw==="string"?raw:JSON.stringify(raw);
   for(const secret of rejects)
@@ -46,13 +47,17 @@ async function generateRealRequests(count) {
         const req=new URL("http://127.0.0.1:18080/api/v1/system/baseline");
         req.searchParams.set("auditTag",auditCanary);
         req.searchParams.set("untrusted",query);
+        const validTrace=(offset+j)%2!==0;
+        const injectedTraceId=validTrace?crypto.randomBytes(16).toString("hex"):null;
+        if(injectedTraceId)generatedTraceIds.add(injectedTraceId);
         const response=await fetch(req,{
           headers:{
             cookie:"g17="+cookies,
             baggage:"secret="+baggage+";"+("x".repeat(4000)),
             "x-g17-secret":tag,
-            "traceparent":(offset+j)%2===0 ? "invalid-"+tag :
-              "00-"+crypto.randomBytes(16).toString("hex")+"-"+crypto.randomBytes(8).toString("hex")+"-01",
+            "traceparent":validTrace ?
+              "00-"+injectedTraceId+"-"+crypto.randomBytes(8).toString("hex")+"-01" :
+              "invalid-"+tag,
             "tracestate":"privatevendor="+tag
           },signal:AbortSignal.timeout(12000)});
         assert.equal(response.status,200,"Synthetic baseline read must succeed");
@@ -78,14 +83,17 @@ try {
       search.searchParams.set("limit","100");
       const response=await fetchJson(search);
       if(Array.isArray(response.traces)&&response.traces.length>0) {
-        traces=response.traces;break;
+        const linked=response.traces.filter(t=>
+          generatedTraceIds.has((t.traceID||"").toLowerCase()));
+        if(linked.length>=2){traces=linked;break;}
       }
     } catch(e) {
       // Startup gaps are bounded by the deadline; no pass if traces never appear.
     }
     await promiseWait(4000);
   }
-  assert.ok(traces.length>=1,"No real exported trace exists for privacy inspection");
+  assert.ok(traces.length>=2,
+    "At least two real submitted canary trace IDs must be retrieved from Tempo");
   for(const trace of traces.slice(0,40)) {
     assert.match(trace.traceID||"",/^[0-9a-f]{16,32}$/i);
     const doc=await fetchJson(base+"harborops-local-traces/api/v2/traces/"+trace.traceID);

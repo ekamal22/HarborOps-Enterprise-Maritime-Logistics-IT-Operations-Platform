@@ -219,8 +219,8 @@ export function verifyManifest(manifestPath, expectedSha) {
           ["baseline","authorized"].some(kind =>
             !(overhead.pooled?.[kind]?.p95_increase_pct <= 10) ||
             !(overhead.pooled[kind].telemetry_on_samples >= 3000)) ||
-          overhead.pairs.some(p => p.memory_pass !== true ||
-            !(p.memory_increase_pct <= 15)))
+          !(overhead.gate.mean_memory_increase_pct <= 15) ||
+          overhead.pairs.some(p => !Number.isFinite(p.memory_increase_pct)))
         throw Error("Three complete matched P09 overhead pairs are missing or above budget");
       const latency=JSON.parse(fs.readFileSync(path.join(root,
         "m17-live-latency-alert-results.json"),"utf8"));

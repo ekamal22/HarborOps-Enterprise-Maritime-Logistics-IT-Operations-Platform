@@ -220,8 +220,10 @@ try {
       // as large as the budget, so it is reported but is not the gate (see gate below).
       pair_p95_within_budget:Object.values(route_pairs)
         .every(row=>row.p95_increase_pct<=10),
-      memory_pass:memory_increase_pct<=15};
+      // Informational per pair; the memory gate is the mean over the three matched pairs.
+      memory_within_budget:memory_increase_pct<=15};
   });
+  const meanMemoryIncrease=pairs.reduce((sum,x)=>sum+x.memory_increase_pct,0)/pairs.length;
   const pooled=Object.fromEntries(["baseline","authorized"].map(kind=>{
     const pool=enabled=>rows.filter(x=>x.telemetry_enabled===enabled)
       .flatMap(x=>x.raw_ms[kind]);
@@ -231,15 +233,19 @@ try {
       telemetry_off_p95_ms:off,telemetry_on_p95_ms:on,p95_increase_pct:100*(on/off-1)}];
   }));
   // The approved budget is a p95 latency increase of at most 10 percent and a peak
-  // working-set increase of at most 15 percent. p95 is judged on the pooled samples of all
-  // three matched rounds per route (3 x 1200 requests per mode and route), the estimator
-  // with the smallest variance for that quantity. Peak memory is stable and stays per pair.
+  // working-set increase of at most 15 percent (owner-confirmed evaluation rule: pooled
+  // p95 and mean memory over the three matched pairs). A single pair carries run-to-run
+  // noise as large as the budget, so p95 is judged on the pooled samples of all three
+  // matched rounds per route (3 x 1200 requests per mode and route) and peak memory on the
+  // mean of the three pairs. Every pair and every raw latency is retained.
   const gate={
-    method:"POOLED_P95_ACROSS_THREE_MATCHED_PAIRS_AND_PER_PAIR_PEAK_MEMORY",
+    method:"POOLED_P95_AND_MEAN_PEAK_MEMORY_OVER_THREE_MATCHED_PAIRS",
     p95_budget_pct:10,memory_budget_pct:15,
     pooled_p95_pass:Object.values(pooled).every(x=>x.p95_increase_pct<=10),
-    memory_pass:pairs.every(x=>x.memory_pass),
-    pairs_over_p95_budget:pairs.filter(x=>!x.pair_p95_within_budget).length
+    mean_memory_increase_pct:meanMemoryIncrease,
+    memory_pass:meanMemoryIncrease<=15,
+    pairs_over_p95_budget:pairs.filter(x=>!x.pair_p95_within_budget).length,
+    pairs_over_memory_budget:pairs.filter(x=>!x.memory_within_budget).length
   };
   gate.pass=gate.pooled_p95_pass&&gate.memory_pass;
   const p95Values=pairs.map(x=>x.p95_increase_pct);

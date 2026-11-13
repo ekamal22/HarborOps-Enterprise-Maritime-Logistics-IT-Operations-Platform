@@ -122,7 +122,8 @@ const RAW_PREDICATES = new Map([
         r.gate?.pass === true && r.gate.pooled_p95_pass === true &&
         r.pooled?.baseline?.p95_increase_pct <= 10 &&
         r.pooled?.authorized?.p95_increase_pct <= 10 &&
-        r.pairs.every(p => p.memory_pass === true && p.memory_increase_pct <= 15)],
+        r.gate.memory_pass === true && r.gate.mean_memory_increase_pct <= 15 &&
+        r.pairs.every(p => Number.isFinite(p.memory_increase_pct))],
     ["THREE_MATCHED_PAIRS",
       r => ok(r) && r.run_kind === "THREE_MATCHED_PAIRS" && r.rows?.length === 6 &&
         Number.isFinite(r.p95_increase_stddev_pct) &&

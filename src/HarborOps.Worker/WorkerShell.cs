@@ -106,12 +106,11 @@ public sealed class WorkerShell(
         }
         if (claim is null) return;
 
-        using var span = M17WorkerTelemetry.Traces.StartActivity("tracking.process");
-        span?.SetTag("harborops.operation", "tracking.process");
-        if (span is not null && M17WorkerTelemetry.Enabled)
+        string? linkedDigest = null;
+        if (M17WorkerTelemetry.Enabled)
         {
-            // A bounded read of the existing receipt correlation is diagnostic
-            // only. Failure or timeout never delays the business disposition.
+            // Diagnostic linking is optional, bounded and read-only. Its failure
+            // never changes the durable business disposition.
             try
             {
                 using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -119,14 +118,18 @@ public sealed class WorkerShell(
                 await using var linkScope = scopes.CreateAsyncScope();
                 var linkStore = linkScope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
                 var correlation = await linkStore.ReadReceiptCorrelationAsync(claim, limit.Token);
-                var digest = M17WorkerTelemetry.LinkDigest(correlation);
-                if (digest is not null) span.SetTag("harborops.link_digest", digest);
+                linkedDigest = M17WorkerTelemetry.LinkDigest(correlation);
             }
             catch (Exception)
             {
-                // The business worker continues even if diagnostics cannot read.
+                // Do not log correlation values or provider details.
             }
         }
+        IEnumerable<KeyValuePair<string, object?>>? spanTags = linkedDigest is null
+            ? null : [new("harborops.link_digest", linkedDigest)];
+        using var span = M17WorkerTelemetry.Traces.StartActivity(
+            "tracking.process", ActivityKind.Internal, tags: spanTags);
+        span?.SetTag("harborops.operation", "tracking.process");
         var startTimestamp = Stopwatch.GetTimestamp();
         var disposition = "other";
         using var renewalCancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);

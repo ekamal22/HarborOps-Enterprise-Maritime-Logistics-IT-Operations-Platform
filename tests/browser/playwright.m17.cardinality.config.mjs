@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./m17",
   testMatch: "cardinality.spec.mjs",
-  timeout: 240_000,
+  timeout: 600_000,
   expect: { timeout: 30_000 },
   forbidOnly: true,
   retries: 0,

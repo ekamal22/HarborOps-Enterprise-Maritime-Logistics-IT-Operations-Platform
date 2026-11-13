@@ -16,6 +16,19 @@ test("G17 runner restricts exact-witness integration checks and keeps other gate
   assert.match(runner, /check-g17-regression-matrix\.mjs/);
 });
 
+test("the G17 stack validates collector config and refuses dead diagnostic services", () => {
+  const runner=read("scripts/run-g17-local.ps1");
+  const network=read("scripts/check-g17-network.mjs");
+  const collector=read("monitoring/m17/collector.yaml");
+  assert.match(runner,/collector-config-validation/);
+  assert.match(runner,/m17-collector-config-validation\.txt/);
+  assert.match(network,/verifyServiceState\(service,state\)/);
+  assert.match(network,/process_states:processStates/);
+  assert.match(network,/isRefusedConnection\(error\)/);
+  assert.match(collector,/otlp_grpc\/tempo/);
+  assert.doesNotMatch(collector,/^  otlp\/tempo:/m);
+});
+
 test("the default stack does not start or expose M17 components", () => {
   const base = read("compose.yaml");
   assert.doesNotMatch(base, /M17__Enabled|otelcol:|3301:3000/);

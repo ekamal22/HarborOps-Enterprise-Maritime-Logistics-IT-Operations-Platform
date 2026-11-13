@@ -127,6 +127,7 @@ $required = @('source-sha.txt','run-status.json','expected-artifacts.json',
     'g17-node-tests.xml')
 if ($StartDisposableStack) {
     $required += @('m17-promtool-check.txt','m17-promtool-test.txt',
+        'm17-collector-config-validation.txt',
         'm17-network-results.json','g17-integration.trx','g17-regressions.trx','g17-regression-matrix-results.json',
         'm17-browser-results.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
@@ -167,6 +168,7 @@ try {
 
     Invoke-Required 'node' @('--test','--test-reporter=junit', 'scripts/check-m17-source.test.mjs',
         'scripts/check-g17-manifest.test.mjs',
+        'scripts/g17-network-guards.test.mjs',
         'scripts/audit-g17-test-coverage.test.mjs',
         'scripts/g17-results-contract.test.mjs',
         'scripts/g17-source-boundary.test.mjs',
@@ -218,14 +220,18 @@ try {
             if ($LASTEXITCODE -ne 0) { throw 'Cannot prepare owned application keyring UID' }
         }
         Invoke-Required 'docker' (@('compose') + $composeArgs + @('config', '--quiet'))
+        # Any following compose run may create owned networks, including on failure.
+        $ownedStackStarted = $true
+        $env:HARBOROPS_G17_DISPOSABLE_STACK_STARTED = 'true'
+        Invoke-Required 'docker' (@('compose') + $composeArgs +
+            @('run','--rm','--no-deps','otelcol','validate',
+              '--config=/etc/otelcol/config.yaml')) -Stage 'collector-config-validation' -CaptureFile 'm17-collector-config-validation.txt'
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('run', '--rm', '--no-deps', '--entrypoint', '/bin/promtool',
               'prometheus', 'check', 'rules', '/etc/prometheus/alerts.yml')) -Stage 'promtool-check' -CaptureFile 'm17-promtool-check.txt'
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('run', '--rm', '--no-deps', '--entrypoint', '/bin/promtool',
               'prometheus', 'test', 'rules', '/etc/prometheus/m17-test.yaml')) -Stage 'promtool-test' -CaptureFile 'm17-promtool-test.txt'
-        $ownedStackStarted = $true
-        $env:HARBOROPS_G17_DISPOSABLE_STACK_STARTED = 'true'
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('up', '-d', '--build', 'postgres', 'migrator'))
         $dbPort = (& docker compose @composeArgs port postgres 5432).Trim()

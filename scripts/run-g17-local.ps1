@@ -170,7 +170,7 @@ try {
     $env:HARBOROPS_SOURCE_SHA = $Sha
     Set-Content -LiteralPath (Join-Path $EvidencePath 'source-sha.txt') -Value $Sha -NoNewline
 
-    Invoke-Required 'node' @('--test','--test-reporter=junit', 'scripts/check-m17-source.test.mjs', 'scripts/check-m17-metric-names.test.mjs', 'scripts/g17-raw-witness.test.mjs',
+    Invoke-Required 'node' @('--test','--test-reporter=junit', 'scripts/check-m17-source.test.mjs', 'scripts/check-m17-metric-names.test.mjs', 'scripts/g17-raw-witness.test.mjs', 'scripts/check-m17-freshness.test.mjs',
         'scripts/check-g17-manifest.test.mjs',
         'scripts/g17-network-guards.test.mjs',
         'scripts/audit-g17-test-coverage.test.mjs',

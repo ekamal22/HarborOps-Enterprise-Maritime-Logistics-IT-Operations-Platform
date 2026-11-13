@@ -119,7 +119,7 @@ try {
       return data.length===1&&Number(data[0].value[1])===0;
     });
     const current=await prom(
-      "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)");
+      "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 60)");
     assert.equal(current.length,1);
     assert.equal(Number(current[0].value[1]),0);
     await poll("database alert firing",async()=>{

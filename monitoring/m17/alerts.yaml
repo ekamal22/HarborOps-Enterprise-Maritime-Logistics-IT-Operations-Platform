@@ -44,7 +44,10 @@ groups:
       - alert: HarborOpsDatabaseUnavailable
         expr: |
           (harborops_db_readiness_ratio == 0)
-          and (time() - harborops_db_readiness_sample_unix_seconds < 35)
+          # Freshness bound = readiness probe period 15s + metric export interval 15s
+          # + Prometheus scrape interval 15s + 15s margin. A shorter bound is below the
+          # pipeline's own worst case and makes a live outage read as unknown.
+          and (time() - harborops_db_readiness_sample_unix_seconds < 60)
           and on() (harborops_db_readiness_ratio offset 15s == 0)
         for: 15s
         keep_firing_for: 30s

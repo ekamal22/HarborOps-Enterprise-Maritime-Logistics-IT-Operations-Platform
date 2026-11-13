@@ -125,7 +125,7 @@
       },
       "targets": [
         {
-          "expr": "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)",
+          "expr": "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 60)",
           "refId": "A",
           "legendFormat": "PostgreSQL readiness (-1 unknown, 0 down, 1 up)",
           "instant": true

@@ -111,12 +111,14 @@ try {
     return {shutdown_seconds:elapsed,exit_code:Number(exit)};
   });
   await check("stale-readiness-is-unknown-not-healthy",async()=>{
-    await wait(40000);
+    // The newest readiness sample can already be up to 15 seconds old when the API stops,
+    // and it stops counting as current only once it is older than 60 seconds.
+    await wait(80000);
     const collector=await prom('up{job="m17_collector"}');
     assert.equal(collector.length,1,"The monitoring backend itself must be observable");
     assert.equal(Number(collector[0].value[1]),1);
     const current=await prom(
-      "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)");
+      "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 60)");
     assert.equal(current.length,0,
       "Readiness data from a stopped API was incorrectly displayed as current");
     const base="http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-traces";

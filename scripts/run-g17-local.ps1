@@ -119,7 +119,8 @@ if ($StartDisposableStack) {
         'm17-database-fault-results.json','m17-cardinality-memory-results.json',
         'm17-live-latency-alert-results.json')
     if ($VerifyDisposableWorker) { $required += @('m17-worker-results.json','m17-worker-journey-results.json') }
-    if ($FaultProbe) { $required += 'm17-collector-fault-results.json' }
+    if ($FaultProbe) { $required += @('m17-collector-fault-results.json',
+        'm17-alert-matrix-results.json','m17-pressure-matrix-results.json') }
     if ($RequireFullG17) { $required += 'g17-technical-assertion-ledger.json' }
 }
 $expected = @{
@@ -261,6 +262,9 @@ try {
             Invoke-Required 'node' @('scripts/check-g17-collector-fault.mjs') -Stage 'collector-business-fault-and-recovery'
         }
         Invoke-Required 'node' @('scripts/check-g17-live-latency.mjs') -Stage 'live-read-latency-histogram-and-p95-alert'
+        if ($FaultProbe) {
+            Invoke-Required 'node' @('scripts/check-g17-alert-matrix.mjs') -Stage 'live-alerts-and-hysteresis-reconciliation'
+        }
         Push-Location -LiteralPath (Join-Path $Repo 'tests/browser')
         try {
             Invoke-Required 'npm' @('ci', '--no-audit', '--no-fund')
@@ -276,6 +280,9 @@ try {
         Invoke-Required 'node' @('scripts/check-g17-restart.mjs') -Stage 'api-cancellation-restart-and-durable-invariants'
         Invoke-Required 'node' @('scripts/check-g17-cardinality-memory.mjs') -Stage 'forty-thousand-hostile-paths-memory-stability'
         Invoke-Required 'node' @('scripts/check-g17-performance.mjs') -Stage 'three-paired-overhead-measurements'
+        if ($FaultProbe) {
+            Invoke-Required 'node' @('scripts/check-g17-pressure-matrix.mjs') -Stage 'tenfold-business-pressure-and-exporter-isolation'
+        }
         if ($VerifyDisposableWorker) {
             Invoke-Required 'docker' (@('compose') + $composeArgs +
                 @('up','-d','--build','worker'))

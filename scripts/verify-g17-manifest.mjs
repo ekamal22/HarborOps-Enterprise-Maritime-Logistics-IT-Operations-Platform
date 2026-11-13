@@ -147,6 +147,19 @@ export function verifyManifest(manifestPath, expectedSha) {
             p.p95_increase_pct > 10 || p.memory_increase_pct > 15))
         throw Error("Three complete matched P09 overhead pairs are missing or above budget");
       if (expected.fault_probe) {
+        const database = JSON.parse(fs.readFileSync(path.join(root,
+          "m17-database-fault-results.json"),"utf8"));
+        const steps = ["healthy-database-control",
+          "real-db-outage-keeps-live-and-errors-classified",
+          "database-alert-identifies-only-safe-component",
+          "recovery-clears-alert-and-preserves-history"];
+        if (database.source_sha !== manifest.source_sha ||
+            database.project !== expected.project ||
+            database.result !== "PASS" || database.database_restored !== true ||
+            database.checks?.length !== 4 ||
+            database.checks.some((check,index)=>check.name !== steps[index] ||
+              check.status !== "PASS") || database.alerts?.length !== 1)
+          throw Error("Missing positive PostgreSQL outage, alert or durable-recovery witnesses");
         const fault = JSON.parse(fs.readFileSync(path.join(root,
           "m17-collector-fault-results.json"),"utf8"));
         const requiredSteps = ["baseline-good","collector-scrape-reports-outage",

@@ -110,7 +110,8 @@ $required = @('source-sha.txt','run-status.json','expected-artifacts.json',
     'g17-node-tests.xml')
 if ($StartDisposableStack) {
     $required += @('m17-promtool-check.txt','m17-promtool-test.txt',
-        'm17-network-results.json','g17-integration.trx','m17-browser-results.json',
+        'm17-network-results.json','g17-integration.trx','g17-regressions.trx','g17-regression-matrix-results.json',
+        'm17-browser-results.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-restart-results.json',
         'm17-export-privacy-results.json','m17-storage-results.json',
@@ -232,6 +233,29 @@ try {
             } catch { Start-Sleep -Seconds 2 }
         }
         if (!$ready) { throw 'The isolated API never became ready' }
+        # Run representative accepted milestone suites with M17 explicitly opted
+        # in and a deliberately inaccessible host-side OTLP endpoint. This proves
+        # the feature does not block accepted business and hold boundaries.
+        $regressionFilter = 'FullyQualifiedName~TrackingWorkerG9ProcessTests|FullyQualifiedName~TrackingProjectionG10Tests|FullyQualifiedName~M11ClosureRuntimeTests|FullyQualifiedName~M13AdmissionControlAcceptanceTests|FullyQualifiedName~M15NotificationRuntimeTests|FullyQualifiedName~G15AuditAcceptanceTests|FullyQualifiedName~ReferenceDataHttpTests|FullyQualifiedName~G13G15FeatureDefaultAcceptanceTests'
+        $env:M17__Enabled = 'true'
+        $env:M17__OtlpEndpoint = 'http://127.0.0.1:4317'
+        $env:M17__LinkKey = $env:HARBOROPS_M17_LINK_KEY
+        $env:OTEL_SPAN_EVENT_COUNT_LIMIT = '0'
+        $env:OTEL_SPAN_LINK_COUNT_LIMIT = '0'
+        try {
+            Invoke-Required 'dotnet' @('test',
+                'tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj',
+                '-c','Release','--no-build','--filter',$regressionFilter,
+                '--logger','trx;LogFileName=g17-regressions.trx',
+                '--results-directory',$EvidencePath) -Stage 'accepted-milestone-regressions-opted-in'
+        }
+        finally {
+            foreach ($var in @('M17__Enabled','M17__OtlpEndpoint','M17__LinkKey',
+                'OTEL_SPAN_EVENT_COUNT_LIMIT','OTEL_SPAN_LINK_COUNT_LIMIT')) {
+                Remove-Item "Env:$var" -ErrorAction SilentlyContinue
+            }
+        }
+        Invoke-Required 'node' @('scripts/check-g17-regression-matrix.mjs') -Stage 'accepted-regression-case-identity'
         if ($FaultProbe) {
             Invoke-Required 'node' @('scripts/check-g17-database-fault.mjs') -Stage 'postgres-readiness-alert-and-durable-recovery'
             Invoke-Required 'node' @('scripts/check-g17-collector-fault.mjs') -Stage 'collector-business-fault-and-recovery'

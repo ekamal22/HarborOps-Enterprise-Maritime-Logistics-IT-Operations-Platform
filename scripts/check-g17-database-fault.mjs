@@ -1,0 +1,162 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import {execFileSync} from "node:child_process";
+
+const project=process.env.HARBOROPS_G17_PROJECT;
+const source=process.env.HARBOROPS_SOURCE_SHA;
+const evidence=process.env.HARBOROPS_G17_EVIDENCE_DIR;
+const password=process.env.HARBOROPS_M17_GRAFANA_PASSWORD;
+assert.match(project||"",/^ho-verify-m17-[a-z0-9-]+$/);
+assert.match(source||"",/^[a-f0-9]{40}$/);
+assert.ok(evidence&&fs.existsSync(evidence)&&password);
+const compose=["compose","-p",project,"-f","compose.m17.verify.yaml",
+  ...(process.env.HARBOROPS_G17_VERIFY_WORKER==="true"?["-f","compose.m9.worker.yaml"]:[]),
+  "-f","compose.m17.observability.override.yaml",
+  ...(process.env.HARBOROPS_G17_VERIFY_WORKER==="true"?["-f","compose.m17.worker.override.yaml"]:[]),
+  "--profile","observability"];
+const cmd=parts=>execFileSync("docker",[...compose,...parts],{
+  encoding:"utf8",timeout:60000,maxBuffer:2*1024*1024}).trim();
+const base="http://127.0.0.1:18080";
+const proxy="http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-metrics/api/v1/";
+const auth="Basic "+Buffer.from("local_operator:"+password).toString("base64");
+const reportFile=path.join(evidence,"m17-database-fault-results.json");
+const checks=[];
+let stopped=false,error=null,dbBefore=null,dbAfter=null,alerts=[];
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function stage(name,fn) {
+  try {
+    const data=await fn();
+    checks.push({name,status:"PASS",data});
+  }catch(e) {
+    checks.push({name,status:"FAIL",error_type:e?.name||"Error"});
+    throw e;
+  }
+}
+async function http(endpoint,code) {
+  const response=await fetch(base+endpoint,{signal:AbortSignal.timeout(10000)});
+  assert.equal(response.status,code,endpoint+" returned unexpected status");
+  return {body:await response.json(),headers:response.headers};
+}
+async function prom(expr) {
+  const url=new URL(proxy+"query");
+  url.searchParams.set("query",expr);
+  const response=await fetch(url,{headers:{authorization:auth},
+    signal:AbortSignal.timeout(13000)});
+  assert.equal(response.status,200);
+  const body=await response.json();
+  assert.equal(body.status,"success");
+  return body.data.result;
+}
+async function poll(label,predicate,ms=140000) {
+  const end=Date.now()+ms;
+  while(Date.now()<end) {
+    try {const result=await predicate();if(result)return result;}
+    catch { /* transient startup and scrape delay must not pass silently */ }
+    await wait(3500);
+  }
+  throw Error("Timed out before "+label+" was observed");
+}
+function counts() {
+  const sql="SELECT (SELECT count(*) FROM tracking_inbox_receipts)::text || ',' || "+
+    "(SELECT count(*) FROM tracking_accepted_events)::text || ',' || "+
+    "(SELECT count(*) FROM tracking_processing_effects)::text || ',' || "+
+    "(SELECT count(*) FROM audit_entries)::text";
+  return cmd(["exec","-T","postgres","psql","-U","harborops","-d","harborops",
+    "-v","ON_ERROR_STOP=1","-At","-c",sql]);
+}
+try {
+  await stage("healthy-database-control",async()=>{
+    dbBefore=counts();
+    assert.equal((await http("/health/live",200)).body.status,"healthy");
+    assert.equal((await http("/health/ready",200)).body.status,"healthy");
+    await poll("healthy exported readiness",async()=>{
+      const values=await prom("harborops_db_readiness");
+      return values.length===1&&Number(values[0].value[1])===1;
+    });
+    return {durable_row_counts:dbBefore};
+  });
+  cmd(["stop","postgres"]);
+  stopped=true;
+  await stage("real-db-outage-keeps-live-and-errors-classified",async()=>{
+    await poll("unhealthy ready, live unchanged",async()=>{
+      try {
+        return (await http("/health/live",200)).body.status==="healthy" &&
+          (await http("/health/ready",503)).body.status==="unhealthy";
+      }catch{return false;}
+    },95000);
+    const {body,headers}=await http("/api/v1/system/baseline",503);
+    assert.equal(body.code,"dependency_unavailable");
+    const correlation=headers.get("x-correlation-id");
+    assert.match(correlation||"",/^[0-9a-f]{32}$/);
+    assert.equal(body.correlationId,correlation);
+    assert.ok(!JSON.stringify(body).includes("postgres"));
+    return {http_status:503,code:body.code,correlation_format:"server-issued-hex32"};
+  });
+  await stage("database-alert-identifies-only-safe-component",async()=>{
+    await poll("fresh database unavailable sample",async()=>{
+      const data=await prom("harborops_db_readiness");
+      return data.length===1&&Number(data[0].value[1])===0;
+    });
+    const current=await prom(
+      "harborops_db_readiness and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)");
+    assert.equal(current.length,1);
+    assert.equal(Number(current[0].value[1]),0);
+    await poll("database alert firing",async()=>{
+      const data=await prom('ALERTS{alertname="HarborOpsDatabaseUnavailable",alertstate="firing"}');
+      return data.length===1;
+    });
+    const url=new URL(proxy+"alerts");
+    const response=await fetch(url,{headers:{authorization:auth},
+      signal:AbortSignal.timeout(14000)});
+    assert.equal(response.status,200);
+    const json=await response.json();
+    assert.equal(json.status,"success");
+    const selected=json.data.alerts.filter(a=>a.labels?.alertname==="HarborOpsDatabaseUnavailable");
+    assert.equal(selected.length,1);
+    const rule=selected[0];
+    assert.equal(rule.annotations.summary,
+      "Two consecutive recent PostgreSQL readiness samples failed");
+    const raw=JSON.stringify(rule);
+    assert.ok(!/password|token|credential|shipment|audit_entries|sql statement/i.test(raw),
+      "Database diagnostic leaked a protected business or credential field");
+    alerts.push({name:rule.labels.alertname,severity:rule.labels.severity,
+      summary:rule.annotations.summary});
+    return {freshness:"current",alert:alerts[0]};
+  });
+} catch(e) {error=e;}
+finally {
+  if(stopped) {
+    try {cmd(["start","postgres"]);stopped=false;}
+    catch(err){error=error||err;checks.push({name:"database-owned-restore",status:"FAIL"});}
+  }
+}
+if(!stopped) {
+  try {
+    await stage("recovery-clears-alert-and-preserves-history",async()=>{
+      await poll("API ready after PostgreSQL restart",async()=>{
+        try{return (await http("/health/ready",200)).body.status==="healthy";}
+        catch{return false;}
+      });
+      await poll("exported database ready",async()=>{
+        const values=await prom("harborops_db_readiness");
+        return values.length===1&&Number(values[0].value[1])===1;
+      });
+      await poll("database alert cleared",async()=>{
+        const values=await prom('ALERTS{alertname="HarborOpsDatabaseUnavailable",alertstate="firing"}');
+        return values.length===0;
+      },95000);
+      assert.equal((await http("/api/v1/system/baseline",200)).body.service,"HarborOps");
+      dbAfter=counts();
+      assert.equal(dbAfter,dbBefore,"PostgreSQL outage changed retained business or audit state");
+      return {before:dbBefore,after:dbAfter,alert_state:"cleared"};
+    });
+  }catch(err){error=error||err;}
+}
+const success=!error&&!stopped&&checks.length===4&&checks.every(x=>x.status==="PASS");
+fs.writeFileSync(reportFile,JSON.stringify({source_sha:source,project,
+  result:success?"PASS":"FAIL",checks,alerts,database_restored:!stopped,
+  source_environment:"OWNED_DISPOSABLE_POSTGRES_ONLY",accepted_assertions:0,
+  failure_type:error?.name??null
+},null,2)+"\n",{flag:"wx"});
+if(!success)throw Error("G17 database outage/recovery and diagnostic alert campaign failed");

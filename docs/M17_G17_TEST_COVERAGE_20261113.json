@@ -1,0 +1,766 @@
+{
+  "schema_version": 1,
+  "gate": "G17",
+  "source_baseline": "47a596fcc583a99a68bef39a40d30ce49d2e8050",
+  "purpose": "Pre-execution S25-grade assertion-to-test mapping, not test results",
+  "scenario_count": 25,
+  "assertion_count": 75,
+  "scenarios": [
+    {
+      "id": "G17-S01",
+      "name": "Source/contract conformity",
+      "assertions": [
+        {
+          "id": "G17-S01-A01",
+          "expected": "all four work packages implemented",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S01-A02",
+          "expected": "approved P01-P09 and exact instrument mapping match source",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S01-A03",
+          "expected": "no unapproved default service, API or migration changes",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-m17-source.test.mjs",
+            "case": "the default stack does not start or expose M17 components"
+          },
+          "coverage_gap": "Default-only inspection, no full source diff"
+        }
+      ]
+    },
+    {
+      "id": "G17-S02",
+      "name": "Metric schema and type",
+      "assertions": [
+        {
+          "id": "G17-S02-A01",
+          "expected": "each metric has exact name/type/unit",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S02-A02",
+          "expected": "no duplicate request counters",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S02-A03",
+          "expected": "histogram produces nonzero latency samples",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S03",
+      "name": "Existing health preservation",
+      "assertions": [
+        {
+          "id": "G17-S03-A01",
+          "expected": "live stays responsive with DB down",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S03-A02",
+          "expected": "ready goes unavailable on DB stop or absent seed within budget",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S03-A03",
+          "expected": "existing JSON/status paths unchanged",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S04",
+      "name": "Server-controlled correlation",
+      "assertions": [
+        {
+          "id": "G17-S04-A01",
+          "expected": "response correlation generated on server",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S04-A02",
+          "expected": "error and structured log scope use same value",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S04-A03",
+          "expected": "client-supplied correlation cannot spoof it",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S05",
+      "name": "Label allowlist",
+      "assertions": [
+        {
+          "id": "G17-S05-A01",
+          "expected": "metric attributes contain only approved keys",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S05-A02",
+          "expected": "no user/tenant/request/SQL fields",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/browser/m17/cardinality.spec.mjs",
+            "case": "ten thousand hostile HTTP requests remain within complete exported-series budget"
+          },
+          "coverage_gap": "Metric labels only, excludes logs/spans"
+        },
+        {
+          "id": "G17-S05-A03",
+          "expected": "unknown route has stable fallback",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TelemetryContractTests.cs",
+            "case": "TenThousandAttackerChosenPathsUseOneBoundedOperationSeries"
+          },
+          "coverage_gap": "Per-path operation family coalescence verified through MeterListener"
+        }
+      ]
+    },
+    {
+      "id": "G17-S06",
+      "name": "Cardinality and memory bound",
+      "assertions": [
+        {
+          "id": "G17-S06-A01",
+          "expected": "10,000 distinct routes/identifiers stay within approved active series cap",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/browser/m17/cardinality.spec.mjs",
+            "case": "ten thousand hostile HTTP requests remain within complete exported-series budget"
+          },
+          "coverage_gap": "Real HTTP 10,000 requests and historical-series count"
+        },
+        {
+          "id": "G17-S06-A02",
+          "expected": "overflow coalesces",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TelemetryContractTests.cs",
+            "case": "TenThousandAttackerChosenPathsUseOneBoundedOperationSeries"
+          },
+          "coverage_gap": "One allowlisted fallback series"
+        },
+        {
+          "id": "G17-S06-A03",
+          "expected": "memory does not grow without bound",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/browser/m17/cardinality.spec.mjs",
+            "case": "memory_api_peak_mib"
+          },
+          "coverage_gap": "No sustained-pressure or bounded-growth proof"
+        }
+      ]
+    },
+    {
+      "id": "G17-S07",
+      "name": "Valid context propagation",
+      "assertions": [
+        {
+          "id": "G17-S07-A01",
+          "expected": "W3C valid trace context accepted without altering auth",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S07-A02",
+          "expected": "API -> safe DB work connected by trace",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S07-A03",
+          "expected": "original audit correlation preserved",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S08",
+      "name": "Invalid context rejection",
+      "assertions": [
+        {
+          "id": "G17-S08-A01",
+          "expected": "malformed traceparent/tracestate handled safely",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S08-A02",
+          "expected": "oversized baggage ignored",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S08-A03",
+          "expected": "no raw header is exported, no 500",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S09",
+      "name": "DB timing and outages",
+      "assertions": [
+        {
+          "id": "G17-S09-A01",
+          "expected": "successful bounded DB operation emits duration/outcome",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S09-A02",
+          "expected": "outage emits classified failure without secret SQL",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S09-A03",
+          "expected": "business error contract remains unchanged",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S10",
+      "name": "Worker status and hold",
+      "assertions": [
+        {
+          "id": "G17-S10-A01",
+          "expected": "worker that is intentionally disabled/held remains labelled disabled/held",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "authenticated samples match the disposable ready API and suppress held workers"
+          },
+          "coverage_gap": "Held tracking worker gauge checked"
+        },
+        {
+          "id": "G17-S10-A02",
+          "expected": "enabled disposable worker emits correct attempts/outcomes",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17WorkerTelemetryTests.cs",
+            "case": "WorkerDispositionsAreMeasuredWithExactFiniteOutcomes"
+          },
+          "coverage_gap": "Synthetic counters, no real disposition lifecycle"
+        },
+        {
+          "id": "G17-S10-A03",
+          "expected": "no worker auto-start",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TelemetryContractTests.cs",
+            "case": "DefaultComposeDoesNotStartACollectorOrExposeLocalDiagnostics"
+          },
+          "coverage_gap": "Default worker profile not directly executed"
+        }
+      ]
+    },
+    {
+      "id": "G17-S11",
+      "name": "Asynchronous causal linking",
+      "assertions": [
+        {
+          "id": "G17-S11-A01",
+          "expected": "authorized worker work links safely to source or documented correlation",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S11-A02",
+          "expected": "fabricated parent/tenant trace context rejected",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17WorkerTelemetryTests.cs",
+            "case": "KeyedReceiptAndWorkerSamplersAgreeWithoutASharedTraceParent"
+          },
+          "coverage_gap": "No actual tenant-spoofed end-to-end context request"
+        },
+        {
+          "id": "G17-S11-A03",
+          "expected": "replay/retry has unique bounded spans",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S12",
+      "name": "Bounded exporter failures",
+      "assertions": [
+        {
+          "id": "G17-S12-A01",
+          "expected": "collector down does not change API response, transaction or readiness",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/run-g17-local.ps1",
+            "case": "$FaultProbe"
+          },
+          "coverage_gap": "Collector outage checks only HTTP health, not mutation invariants"
+        },
+        {
+          "id": "G17-S12-A02",
+          "expected": "export queue bounded/drops counted",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "src/HarborOps.Api/Observability/M17TelemetryRegistration.cs",
+            "case": "maxQueueSize: 2048"
+          },
+          "coverage_gap": "Static bound, no forced queue overflow"
+        },
+        {
+          "id": "G17-S12-A03",
+          "expected": "exporter recoverable without manual data repair",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S13",
+      "name": "Security redaction",
+      "assertions": [
+        {
+          "id": "G17-S13-A01",
+          "expected": "secrets, cookies, personal canaries and SQL values absent from logs, spans and metric labels",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TelemetryContractTests.cs",
+            "case": "PreExportTraceProcessorStripsSensitiveTagsAndSpanName"
+          },
+          "coverage_gap": "No raw end-to-end OTLP or log inspection"
+        },
+        {
+          "id": "G17-S13-A02",
+          "expected": "sanitized errors still diagnose component and type",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S13-A03",
+          "expected": "retained M16 audit is not exposed",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S14",
+      "name": "Tenant and authorization isolation",
+      "assertions": [
+        {
+          "id": "G17-S14-A01",
+          "expected": "cross-organization request produces same denial as baseline",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S14-A02",
+          "expected": "telemetry does not disclose tenant detail",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S14-A03",
+          "expected": "instrumentation cannot elevate a role",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S15",
+      "name": "Restart and cancellation",
+      "assertions": [
+        {
+          "id": "G17-S15-A01",
+          "expected": "process restart and canceled request do not leak stale spans or requests",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S15-A02",
+          "expected": "shutdown drain is bounded",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S15-A03",
+          "expected": "no duplicated business effect or worker lease change",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S16",
+      "name": "Private stack exposure",
+      "assertions": [
+        {
+          "id": "G17-S16-A01",
+          "expected": "default Compose contains no collector/dashboard",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-m17-source.test.mjs",
+            "case": "the default stack does not start or expose M17 components"
+          },
+          "coverage_gap": "Default compose source compared to optional feature declarations"
+        },
+        {
+          "id": "G17-S16-A02",
+          "expected": "optional dashboard bound loopback",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/run-g17-local.ps1",
+            "case": "$uiPort -ne '127.0.0.1:3301'"
+          },
+          "coverage_gap": "Owned loopback port checked at runtime"
+        },
+        {
+          "id": "G17-S16-A03",
+          "expected": "collector not exposed externally, untrusted reads denied",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-g17-network.mjs",
+            "case": "telemetry_monitor"
+          },
+          "coverage_gap": "Network labels tested, no untrusted endpoint HTTP probe"
+        }
+      ]
+    },
+    {
+      "id": "G17-S17",
+      "name": "Alert triggers and clears",
+      "assertions": [
+        {
+          "id": "G17-S17-A01",
+          "expected": "controlled 5xx/latency/readiness faults trigger configured alerts",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "monitoring/m17/alert-test.yaml",
+            "case": "HarborOpsHighApiP95"
+          },
+          "coverage_gap": "Promtool assertions for trigger; no live API fault"
+        },
+        {
+          "id": "G17-S17-A02",
+          "expected": "threshold/window evidence exact",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "monitoring/m17/alert-test.yaml",
+            "case": "HarborOpsDatabaseUnavailable"
+          },
+          "coverage_gap": "Threshold samples not complete transition matrix"
+        },
+        {
+          "id": "G17-S17-A03",
+          "expected": "clear/hysteresis works after recovery",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "monitoring/m17/alert-test.yaml",
+            "case": "eval_time: 5m"
+          },
+          "coverage_gap": "Backlog only, not 5xx and p95 recovery"
+        }
+      ]
+    },
+    {
+      "id": "G17-S18",
+      "name": "Low-traffic and disabled suppression",
+      "assertions": [
+        {
+          "id": "G17-S18-A01",
+          "expected": "zero/low traffic is unknown/insufficient, not healthy",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-m17-source.test.mjs",
+            "case": "no default green placeholder"
+          },
+          "coverage_gap": "Unknown states exist but low-traffic behavior not measured"
+        },
+        {
+          "id": "G17-S18-A02",
+          "expected": "held workers cause no false failure alert",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-worker.mjs",
+            "case": "fault-worker-stop-suppresses-stale-backlog"
+          },
+          "coverage_gap": "Gated stale alert checked while worker explicitly stopped"
+        },
+        {
+          "id": "G17-S18-A03",
+          "expected": "cool-down deduplicates repeat alerts",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "monitoring/m17/alerts.yaml",
+            "case": "keep_firing_for: 5m"
+          },
+          "coverage_gap": "Expression syntax not enough for dedup proof"
+        }
+      ]
+    },
+    {
+      "id": "G17-S19",
+      "name": "Local dashboard rendering",
+      "assertions": [
+        {
+          "id": "G17-S19-A01",
+          "expected": "critical panels show actual live measurement",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "dashboard requires authentication and shows actual monitoring panels"
+          },
+          "coverage_gap": "Checks title existence and one live readiness sample; not every critical panel"
+        },
+        {
+          "id": "G17-S19-A02",
+          "expected": "unknown/unavailable have explicit distinct states",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S19-A03",
+          "expected": "alert links only sanitized diagnostic evidence",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S20",
+      "name": "End-to-end fault journey",
+      "assertions": [
+        {
+          "id": "G17-S20-A01",
+          "expected": "browser/API fault yields server correlation",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S20-A02",
+          "expected": "trace to DB/worker or documented async bridge resolves",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S20-A03",
+          "expected": "dashboard alert names correct component without private payload",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S21",
+      "name": "Performance overhead",
+      "assertions": [
+        {
+          "id": "G17-S21-A01",
+          "expected": "paired workload measurement meets approved p95 and memory budgets",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S21-A02",
+          "expected": "exact environment/variance reported",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S21-A03",
+          "expected": "pressure does not block business",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S22",
+      "name": "Storage and retention isolation",
+      "assertions": [
+        {
+          "id": "G17-S22-A01",
+          "expected": "local telemetry capped and expires only its own disposable data",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S22-A02",
+          "expected": "full store degrades observation safely",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S22-A03",
+          "expected": "M8/M11/M15/M16 retained data unchanged",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        }
+      ]
+    },
+    {
+      "id": "G17-S23",
+      "name": "Defaults and regression",
+      "assertions": [
+        {
+          "id": "G17-S23-A01",
+          "expected": "M9/M10/M11/M13/M15 opt-in/hold semantics unchanged",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-m17-source.test.mjs",
+            "case": "service entrypoints and accepted default-off behaviors are unchanged"
+          },
+          "coverage_gap": "Static flags only, not all opt-in runtime behaviors"
+        },
+        {
+          "id": "G17-S23-A02",
+          "expected": "accepted authorization/health/audit APIs preserved",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S23-A03",
+          "expected": "changed source build, .NET regression and targeted browser suites pass",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/run-g17-local.ps1",
+            "case": "dotnet' @('build'"
+          },
+          "coverage_gap": "Defines execution but does not establish exact required method/case coverage"
+        }
+      ]
+    },
+    {
+      "id": "G17-S24",
+      "name": "Evidence integrity",
+      "assertions": [
+        {
+          "id": "G17-S24-A01",
+          "expected": "every claimed assertion maps to real source-locked result",
+          "assessment": "MISSING_TEST",
+          "witness": null,
+          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+        },
+        {
+          "id": "G17-S24-A02",
+          "expected": "source hashes and manifests complete/no unlisted files",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/verify-g17-manifest.mjs",
+            "case": "Evidence tampered or unlisted"
+          },
+          "coverage_gap": "SHA and file-set integrity verified with negative controls"
+        },
+        {
+          "id": "G17-S24-A03",
+          "expected": "negative control rejects tampering, skip and wrong SHA",
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-g17-manifest.test.mjs",
+            "case": "wrong source is rejected"
+          },
+          "coverage_gap": "Tamper and wrong SHA, but no explicit skip/duplicate case mutation"
+        }
+      ]
+    },
+    {
+      "id": "G17-S25",
+      "name": "Independent review and gate recommendation",
+      "assertions": [
+        {
+          "id": "G17-S25-A01",
+          "expected": "separate reviewer checks raw source, privacy, metrics and full cases",
+          "assessment": "INDEPENDENT_REVIEW",
+          "witness": null,
+          "coverage_gap": "Separate independent S25 evidence and signed decision required"
+        },
+        {
+          "id": "G17-S25-A02",
+          "expected": "policy and procedural exceptions disclosed",
+          "assessment": "INDEPENDENT_REVIEW",
+          "witness": null,
+          "coverage_gap": "Separate independent S25 evidence and signed decision required"
+        },
+        {
+          "id": "G17-S25-A03",
+          "expected": "reviewer issues explicit signed PASS/NOT PASS before G17 acceptance",
+          "assessment": "INDEPENDENT_REVIEW",
+          "witness": null,
+          "coverage_gap": "Separate independent S25 evidence and signed decision required"
+        }
+      ]
+    }
+  ]
+}

@@ -4,7 +4,12 @@ import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 
 const directory = process.env.HARBOROPS_G17_EVIDENCE_DIR;
-if (!directory || !/^E:[\\/]/i.test(directory))
+const hostedEvidence = process.env.GITHUB_ACTIONS === "true" &&
+  process.env.HARBOROPS_G17_HOSTED === "true" &&
+  process.env.RUNNER_TEMP &&
+  path.resolve(process.env.HARBOROPS_G17_EVIDENCE_DIR || "").startsWith(
+    path.resolve(process.env.RUNNER_TEMP) + path.sep);
+if (!directory || (!/^E:[\\/]/i.test(directory) && !hostedEvidence))
   throw Error("Use a new, positively owned E: evidence directory");
 if (!fs.existsSync(directory) || !fs.statSync(directory).isDirectory())
   throw Error("The evidence directory must already exist");

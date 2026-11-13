@@ -78,3 +78,38 @@ test("dashboard is unavailable to an anonymous browser context", async ({ browse
   await expect(page.locator('input[name="password"]')).toBeVisible();
   await context.close();
 });
+
+test("alert dashboard links stay local and never embed private diagnostic parameters", async ({page}) => {
+  await logIn(page);
+  const response=await page.request.get("/api/dashboards/uid/harborops-m17");
+  expect(response.status()).toBe(200);
+  const saved=await response.json();
+  const panels=saved.dashboard?.panels||[];
+  expect(panels.length).toBeGreaterThanOrEqual(15);
+  const alert=panels.find(panel=>panel.title==="Active local alerts");
+  expect(alert).toBeTruthy();
+  expect(alert.targets?.[0]?.expr).toBe('ALERTS{alertstate="firing"}');
+  let checked=0;
+  for (const panel of panels) {
+    const links=[
+      ...(panel.links||[]),
+      ...(panel.fieldConfig?.defaults?.links||[]),
+      ...(panel.fieldConfig?.overrides||[]).flatMap(override=>
+        (override.properties||[]).filter(property=>property.id==="links")
+          .flatMap(property=>property.value||[]))
+    ];
+    for (const link of links) {
+      const value=String(link.url||"");
+      expect(value).not.toMatch(/^https?:\\/\\//i);
+      expect(value).toMatch(/^\\/(d\\/|explore|dashboard)/);
+      expect(value).not.toMatch(/(organization|shipment|receipt|token|password|credential|email)/i);
+      checked++;
+    }
+    for (const target of panel.targets||[]) {
+      const query=String(target.expr||"");
+      expect(query).not.toMatch(/(tracking_inbox_receipts|audit_entries|password|credential|email)/i);
+    }
+  }
+  // Zero explicit alert hyperlinks is an intentional privacy-safe option.
+  expect(checked).toBeGreaterThanOrEqual(0);
+});

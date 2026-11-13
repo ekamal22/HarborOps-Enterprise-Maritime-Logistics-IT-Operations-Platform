@@ -1,6 +1,6 @@
 # Implementation Notes
 
-**M17 planning checkpoint (2026-11-12):** M17 observability has an end-to-end proposed implementation and G17 verification package, including 25 unexecuted scenarios and 75 unexecuted atomic assertions. P01-P09 design policies were approved on 2026-11-12. P02/P04/P09 numerical limits remain provisional pending measurement, and P05 initial local alert rules require calibration. **G17 remains not accepted and no M17 runtime feature is installed or activated by this documentation.** [Planning status](M17_PLANNING_STATUS.md) | [Architecture](M17_ARCHITECTURE_DESIGN.md) | [Implementation](M17_IMPLEMENTATION_PLAN.md) | [G17 matrix](M17_VERIFICATION_PLAN.md).
+**Current M17/G17 status (2026-11-13):** The 75-assertion coverage register now maps all 72 technical assertions to authored source tests; three independent G17-S25 reviewer assertions are outstanding. Source-locked verification is underway after successful strict no-skip preflight, but earlier failing runs and partial passing suites do not establish G17 completion. **G17 NOT ACCEPTED; acceptance pending.** [Readiness](M17_G17_S25_TEST_READINESS_20261113.md) | [Exact-run recovery record](M17_G17_VERIFICATION_RECOVERY_20261113.md).
 
 **Turkish localization source integrated, 2026-11-12:** [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) merged at `c81e54bfef25a0ff957f27b488ab7bd420551244` following 41 passing frontend and 99 passing browser executions in [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246). All server-facing rules and default-off operational controls remain unchanged. [Verification and acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
 
@@ -9,7 +9,7 @@
 
 **Turkish interface implementation:** Source accepted and merged after verification at `d9c8635e35aa66bdf11f47da0b17501d0d0765e9`, preserving all backend and migration blobs from the accepted G15 baseline. The temporary Actions workflow stays on the verification branch, not `main`. See [source and evidence reconciliation](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
 
-**M17 delivery discipline:** Implement M17-01 contracts and policy decisions before parallel M17-02 instrumentation and M17-03 private monitoring UI; then integrate M17-04 diagnostics, negative tests and independent G17-S25 review. No live collector, external export or feature activation follows from the plan. See [the source-level plan](M17_IMPLEMENTATION_PLAN.md).
+**M17 delivery discipline:** M17-01 policy baseline, M17-02 instrumentation, M17-03 private monitoring UI and M17-04 diagnostic test sources have been authored on the isolated feature branch. Complete the source-locked disposable campaign, individual technical assertion reconciliation and independent G17-S25 review before considering acceptance. No live collector, external export or feature activation follows from the plan. See [the source-level plan](M17_IMPLEMENTATION_PLAN.md).
 
 **Status:** Supporting engineering guidance. This file is not an independent roadmap or authoritative dependency ledger.
 

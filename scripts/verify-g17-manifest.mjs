@@ -130,6 +130,18 @@ export function verifyManifest(manifestPath, expectedSha) {
           overhead.pairs.some(p => p.pass !== true ||
             p.p95_increase_pct > 10 || p.memory_increase_pct > 15))
         throw Error("Three complete matched P09 overhead pairs are missing or above budget");
+      if (expected.fault_probe) {
+        const fault = JSON.parse(fs.readFileSync(path.join(root,
+          "m17-collector-fault-results.json"),"utf8"));
+        const requiredSteps = ["baseline-good","collector-scrape-reports-outage",
+          "collector-fault-business-isolation","collector-recovery-automatic"];
+        if (fault.source_sha !== manifest.source_sha ||
+            fault.project !== expected.project || fault.result !== "PASS" ||
+            fault.collector_restored !== true || fault.checks?.length !== 4 ||
+            fault.checks.some((step,i) => step.name !== requiredSteps[i] ||
+              step.result !== "PASS"))
+          throw Error("Collector fault/recovery campaign has missing or invalid witnesses");
+      }
       if (expected.worker_fixture) {
         const worker = JSON.parse(fs.readFileSync(
           path.join(root,"m17-worker-results.json"),"utf8"));

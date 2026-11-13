@@ -87,7 +87,8 @@ try {
  const secret=crypto.randomBytes(32);
  const digest=crypto.createHash("sha256").update(secret).digest("hex");
  const bearer="hop_v1_"+credentialId.replaceAll("-","")+"_"+secret.toString("base64url");
- protectedValues.push(sourceId,sourceId.replaceAll("-",""),credentialId,bearer);
+ protectedValues.push(sourceId,sourceId.replaceAll("-",""),credentialId,bearer,
+   "g17-worker-"+nonce+"-");
  const insert="BEGIN; INSERT INTO integration_sources "+
    "(id,organization_id,source_code,display_name,status,capability,version,created_at_utc,updated_at_utc) "+
    "VALUES ('"+sourceId+"','"+org+"','g17_source','G17 Test Source','Active','tracking_event_validate',1,now(),now()); "+
@@ -162,7 +163,8 @@ try {
  assert.equal(Number(sql("SELECT count(*) FROM tracking_inbox_receipts "+
    "WHERE source_id='"+sourceId+"'")),accepted,"Replay created a duplicate receipt");
 }catch(error){failure=error;}
-const status=!failure&&replay&&accepted===50&&reconciled===50&&pairCount>=2?"PASS":"FAIL";
+const status=!failure&&replay&&accepted===50&&reconciled===50&&
+ pairCount>=2&&privateLabelsChecked>0?"PASS":"FAIL";
 fs.writeFileSync(output,JSON.stringify({
  source_sha:sha,project,result:status,worker_role:"restricted",
  receipts_accepted:accepted,reconciled,duplicate_replay:replay,

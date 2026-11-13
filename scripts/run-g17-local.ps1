@@ -230,21 +230,51 @@ try {
             Invoke-Required 'node' @('scripts/check-g17-worker.mjs')
         }
     }
-    Invoke-Required 'node' @('scripts/g17-manifest.mjs')
-    Invoke-Required 'node' @('scripts/verify-g17-manifest.mjs',
-        (Join-Path $EvidencePath 'manifest.json'), $Sha)
-    Write-Host "Candidate checks collected for $Sha. G17 review and acceptance remain separate."
-} finally {
-    if ($StopOwnedContainers -and $ownedStackStarted) {
-        # Stop only the uniquely identified verification project. Never down -v
-        # or remove named volumes, retained data, or historical evidence.
+    $runState = 'COMPLETE'
+}
+catch {
+    $runFailureType = $_.Exception.GetType().Name
+    Write-Warning 'The verification campaign failed. Retaining its source-locked failure evidence.'
+}
+finally {
+    $runInfo = @{
+        schema_version = 2; gate = 'G17'; source_sha = $sha
+        requested_source_sha = $ExpectedSha; source_verified = $sourceVerified
+        project = $ProjectName; run_state = $runState
+        fault_probe_requested = [bool]$FaultProbe
+        worker_fixture_requested = [bool]$VerifyDisposableWorker
+        failure_type = $runFailureType; stage_results = $script:stageLog.ToArray()
+        required_artifacts = $required; g17_assertion_review = 'NOT_REVIEWED'
+        gate_acceptance = 'NOT_ACCEPTED'
+        finished_at_utc = [DateTimeOffset]::UtcNow.ToString('O')
+    }
+    $runInfo | ConvertTo-Json -Depth 9 | Set-Content -LiteralPath (
+        Join-Path $EvidencePath 'run-status.json') -Encoding utf8
+    if ($sourceVerified) {
         try {
-            Invoke-Required 'docker' (@('compose') + $composeArgs + @(
-                'stop', 'grafana', 'prometheus', 'tempo', 'otelcol', 'web', 'api', 'postgres',
-                $(if ($VerifyDisposableWorker) { 'worker' } else { 'postgres' })))
+            & node scripts/g17-manifest.mjs
+            if ($LASTEXITCODE -ne 0) { throw 'Evidence manifest creation failed' }
+            & node scripts/verify-g17-manifest.mjs (
+                Join-Path $EvidencePath 'manifest.json') $sha
+            if ($LASTEXITCODE -ne 0) { throw 'Evidence manifest verification failed' }
         } catch {
-            Write-Warning 'Owned verification containers could not all be stopped'
+            $runState = 'FAILED'
+            Write-Warning 'Evidence indexing failed. Preserve raw files for investigation.'
+        }
+    }
+    if ($StopOwnedContainers -and $ownedStackStarted) {
+        try {
+            $services = @('grafana','prometheus','tempo','otelcol','web','api','postgres')
+            if ($VerifyDisposableWorker) { $services += 'worker' }
+            & docker compose @composeArgs stop @services
+            if ($LASTEXITCODE -ne 0) { throw 'Owned service stop failed' }
+        } catch {
+            Write-Warning 'Some disposable services could not be stopped'
         }
     }
     Pop-Location
 }
+if ($runState -ne 'COMPLETE') {
+    throw 'G17 verification failed; preserve the FAILED evidence and inspect stage results'
+}
+Write-Host "G17 candidate checks complete for $sha; independent acceptance pending."

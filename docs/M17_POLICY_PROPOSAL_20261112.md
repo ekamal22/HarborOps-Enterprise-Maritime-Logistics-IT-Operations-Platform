@@ -1,5 +1,7 @@
 # M17 Local Policy and Design Decision Register
 
+**Current gate context:** P01-P09 remain approved for design, not independently verified G17 outcomes. Technical test authoring is complete for 72 assertions, but source-locked runtime verification and S25 independence remain outstanding. [Current G17 recovery](M17_G17_VERIFICATION_RECOVERY_20261113.md).
+
 **Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
 
 **Prepared and approved:** 2026-11-12. **Status:** **M17-P01 through M17-P09 approved as the implementation design baseline.** Numeric limits identified below remain provisional engineering targets until implementation measurements confirm or formally revise them. This document retains its original filename for stable links; earlier proposal text is preserved in Git history.

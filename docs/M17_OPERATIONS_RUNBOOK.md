@@ -4,7 +4,7 @@
 
 **Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
 
-**State:** Unverified implementation candidate procedure, 2026-11-12. The M17 collector configuration, instrument catalogue, initial alert rules, dashboard files, optional Compose override and local runner exist on a separate feature branch. They have not been started or validated. Do not run them against retained resources.
+**State:** Historical 2026-11-12 procedure updated after disposable source-locked verification attempts. The M17 collector configuration, instrument catalogue, initial alert rules, dashboard files, optional Compose override and local runner exist on a separate feature branch. They have been started or validated. Do not run them against retained resources.
 **See:** [Architecture](M17_ARCHITECTURE_DESIGN.md), [implementation plan](M17_IMPLEMENTATION_PLAN.md), [policy proposals](M17_POLICY_PROPOSAL_20261112.md), [G17 verification](M17_VERIFICATION_PLAN.md).
 
 ## 1. Operator intent and constraints
@@ -47,7 +47,7 @@ After a failure, preserve the evidence directory, the separate owned database di
 7. Keep dashboard and any read interface bound to 127.0.0.1. Verify the collector only accepts internal-network OTLP; no internet-facing receiver or cloud exporter.
 8. Record the intended fault, risk, abort conditions, project ownership labels and evidence file list before any fault injection.
 
-The implementation must provide a tested command wrapper for approved startup, readiness wait, evidence capture and stop. A local verification wrapper is authored as `scripts/run-g17-local.ps1`, but it has not been executed or accepted for use against retained resources. Avoid inventing one in an operator procedure.
+The implementation must provide a tested command wrapper for approved startup, readiness wait, evidence capture and stop. The source-locked local verification wrapper `scripts/run-g17-local.ps1` has been executed on disposable hosted runners, but the full campaign is not accepted; never apply it to retained resources. Avoid inventing one in an operator procedure.
 
 ## 3. Basic health reading
 

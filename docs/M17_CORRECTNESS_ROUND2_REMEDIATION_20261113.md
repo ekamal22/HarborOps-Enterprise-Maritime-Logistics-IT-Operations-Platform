@@ -1,6 +1,6 @@
 # M17 Correctness Audit Round 2 Remediation
 
-**G17 technical test readiness (2026-11-13):** The latest [75-assertion coverage register](M17_G17_S25_TEST_READINESS_20261113.md) records **26 technical tests authored, 32 partial assertions, 14 missing tests, and 3 independent S25 reviewer assertions**. All 25 scenarios remain unexecuted for G17 acceptance (0/75 assertions accepted). The strict technical authoring gate is **NOT READY** and no G17 GitHub Actions verification was dispatched. Source-level fixes and authored test methods do not constitute runtime passes. **G17 NOT ACCEPTED; acceptance pending.**
+**Historical correctness checkpoint:** This register preserves the recorded findings and candidate remediations from its original review. Later work authored all 72 technical assertion witnesses, attempted source-locked G17 runs and recorded new failures and fixes. Do not interpret this historical review as the latest test status. **G17 NOT ACCEPTED; acceptance pending.** [Current readiness](M17_G17_S25_TEST_READINESS_20261113.md) | [Run and failure record](M17_G17_VERIFICATION_RECOVERY_20261113.md).
 
 **Recorded:** 2026-11-13
 **Branch:** `feature/m17-observability-20261112`

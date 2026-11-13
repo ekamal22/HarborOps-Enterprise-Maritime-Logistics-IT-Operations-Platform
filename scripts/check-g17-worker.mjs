@@ -69,7 +69,14 @@ async function check(name, callback) {
 
 try {
   await check("owned-worker-ready", async () => {
-    const instance = docker(["ps", "worker", "--format", "{{.State}} {{.Health}}"]);
+    // The container healthcheck first runs one interval after start, so a worker that was
+    // started moments ago reports "running starting". Wait within a bound; a worker that
+    // never becomes healthy still fails here.
+    let instance = "";
+    await poll("worker container healthy", async () => {
+      instance = docker(["ps", "worker", "--format", "{{.State}} {{.Health}}"]);
+      return instance === "running healthy";
+    }, 150000);
     assert.equal(instance, "running healthy");
     docker(["exec", "-T", "worker", "dotnet", "HarborOps.Worker.dll", "--readiness"]);
     return "running healthy under restricted worker identity";

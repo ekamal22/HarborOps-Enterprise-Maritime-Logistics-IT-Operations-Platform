@@ -54,14 +54,18 @@ export function verifyTrxCases(xml,requiredMethods=[]) {
   const failed=attr(counters,"failed"),notExecuted=attr(counters,"notExecuted");
   ensure(total>0 && passed===total && failed===0 && notExecuted===0,
     "Incomplete, skipped or failing TRX counters");
+  const identities=[];
   const results=[...xml.matchAll(/<UnitTestResult\b[^>]*>/g)].map(x=>{
     const tag=x[0],name=tag.match(/\btestName="([^"]+)"/)?.[1];
     const outcome=tag.match(/\boutcome="([^"]+)"/)?.[1];
     ensure(Boolean(name) && outcome==="Passed","Nonpassing or unnamed raw TRX case");
+    // xUnit truncates long theory-row display names, so distinct rows can share a name.
+    // Each executed row has its own testId; double reporting repeats the same testId.
+    identities.push(tag.match(/\btestId="([^"]+)"/)?.[1] ?? name);
     return name;
   });
   ensure(results.length===total,"TRX totals differ from actual UnitTestResult cases");
-  ensure(new Set(results).size===results.length,
+  ensure(new Set(identities).size===identities.length,
     "Duplicated exact TRX test results");
   for (const method of requiredMethods) {
     const matching=results.filter(name=>name===method || name.endsWith("."+method) ||

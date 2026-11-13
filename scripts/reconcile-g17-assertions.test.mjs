@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import {fileURLToPath} from "node:url";
-import {checkPerAssertion} from "./reconcile-g17-assertions.mjs";
+import {checkPerAssertion,nodeTestNames} from "./reconcile-g17-assertions.mjs";
 
 const template=JSON.parse(fs.readFileSync(new URL(
   "../docs/M17_G17_TEST_COVERAGE_20261113.json",import.meta.url),"utf8"));
@@ -63,4 +63,16 @@ test("cannot automatically claim an independent S25 decision",()=>{
   const result=checkPerAssertion(data,()=>({passed:true,artifact:"raw.trx"}));
   assert.equal(result.pass,false);
   assert.equal(result.independent_pending,2);
+});
+
+test("JUnit case names come from the name attribute, not from classname",()=>{
+  // node:test writes classname="test" on every case. A greedy match on name=" would read the
+  // tail of classname and collapse every witness into the single name "test".
+  const xml='<testsuites>'+
+    '<testcase name="first witness" time="0.1" classname="test" file="a.test.mjs"/>'+
+    '<testcase name="second witness" time="0.2" classname="test" file="b.test.mjs"/></testsuites>';
+  const names=nodeTestNames(xml);
+  assert.deepEqual([...names].sort(),["first witness","second witness"]);
+  assert.throws(()=>nodeTestNames('<testsuites><testcase name="x" classname="test"/>'+
+    '<testcase name="x" classname="test"/></testsuites>'),/unique/);
 });

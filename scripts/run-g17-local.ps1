@@ -339,7 +339,7 @@ try {
         if ($VerifyDisposableWorker) {
             Invoke-Required 'docker' (@('compose') + $composeArgs +
                 @('up','-d','--build','worker'))
-            Invoke-Required 'node' @('scripts/check-g17-worker.mjs')
+            Invoke-Required 'node' @('scripts/check-g17-worker.mjs') -Stage 'owned-worker-runtime-and-fault-recovery'
             Invoke-Required 'node' @('scripts/check-g17-worker-journey.mjs') -Stage 'real-restricted-worker-and-causal-tempo-bridge'
         }
     }

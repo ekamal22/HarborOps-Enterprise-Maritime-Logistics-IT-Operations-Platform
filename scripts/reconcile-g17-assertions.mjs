@@ -60,10 +60,10 @@ export function checkPerAssertion(coverage,hasWitness) {
     errors,records,acceptance:"PENDING"};
 }
 
-function nodeTestNames(xml) {
+export function nodeTestNames(xml) {
   if(/<(?:failure|error|skipped)\b/i.test(xml))
     throw Error("Source Node JUnit contains a failed or skipped test");
-  const all=[...xml.matchAll(/<testcase\b[^>]*name="([^"]+)"[^>]*>/g)].map(x=>
+  const all=[...xml.matchAll(/<testcase\b[^>]*?\sname="([^"]+)"[^>]*>/g)].map(x=>
     x[1].replaceAll("&quot;",'"').replaceAll("&amp;","&")
       .replaceAll("&lt;","<").replaceAll("&gt;",">"));
   requireTruth(all.length>0 && new Set(all).size===all.length,

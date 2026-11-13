@@ -64,3 +64,10 @@ test("TRX rejects skips, duplicate cases, inaccurate counters or fake wrapper pa
     '<TestRun><Counters total="1" passed="1" failed="0" notExecuted="0" /></TestRun>'
   ]) assert.throws(()=>verifyTrxCases(raw));
 });
+
+test("truncated theory row names are distinct executions, repeated test ids are duplicates",()=>{
+  const row=id=>'<UnitTestResult testId="'+id+'" testName="Suite.Theory(path: &quot;/x&quot;···)" outcome="Passed" />';
+  const wrap=rows=>'<TestRun><Counters total="2" passed="2" failed="0" notExecuted="0" />'+rows.join("")+'</TestRun>';
+  assert.equal(verifyTrxCases(wrap([row("id-1"),row("id-2")])).passed,2);
+  assert.throws(()=>verifyTrxCases(wrap([row("id-1"),row("id-1")])),/Duplicated/);
+});

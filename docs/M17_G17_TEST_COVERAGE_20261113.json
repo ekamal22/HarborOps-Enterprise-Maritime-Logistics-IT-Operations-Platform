@@ -703,23 +703,32 @@
         {
           "id": "G17-S21-A01",
           "expected": "paired workload measurement meets approved p95 and memory budgets",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-g17-performance.mjs",
+            "case": "THREE_MATCHED_PAIRS"
+          },
+          "coverage_gap": "Paired baseline-read workload only; representative authenticated/business routes still untested"
         },
         {
           "id": "G17-S21-A02",
           "expected": "exact environment/variance reported",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-performance.mjs",
+            "case": "THREE_MATCHED_PAIRS"
+          },
+          "coverage_gap": "Exact hardware, sample sizes, order, baseline rows, standard deviations and SHA recorded"
         },
         {
           "id": "G17-S21-A03",
           "expected": "pressure does not block business",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-g17-performance.mjs",
+            "case": "THREE_MATCHED_PAIRS"
+          },
+          "coverage_gap": "Baseline-read business progress under profiling; 10x burst and exporter outage still untested"
         }
       ]
     },

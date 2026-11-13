@@ -11,6 +11,7 @@ const digest = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 function fixture({complete = false, missing = false} = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-manifest-"));
   const required = ["source-sha.txt","expected-artifacts.json","run-status.json","results.txt"];
+  if (complete) required.push("g17-unit.trx","g17-contract.trx");
   fs.writeFileSync(path.join(dir,"source-sha.txt"),sha);
   fs.writeFileSync(path.join(dir,"expected-artifacts.json"),JSON.stringify({
     schema_version:1,gate:"G17",source_sha:sha,project:"ho-verify-m17-test",
@@ -26,6 +27,10 @@ function fixture({complete = false, missing = false} = {}) {
       : [{stage:"synthetic",status:"FAIL",exit_code:1}]
   }));
   if (!missing) fs.writeFileSync(path.join(dir,"results.txt"),"clean synthetic result\n");
+  if (complete) {
+    for (const file of ["g17-unit.trx","g17-contract.trx"])
+      fs.writeFileSync(path.join(dir,file),"<TestRun></TestRun>");
+  }
   const names = fs.readdirSync(dir).sort();
   const files = names.map(name => {
     const bytes=fs.readFileSync(path.join(dir,name));

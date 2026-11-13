@@ -229,8 +229,8 @@ try {
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('up', '-d', '--build', 'postgres', 'migrator'))
         $dbPort = (& docker compose @composeArgs port postgres 5432).Trim()
-        if ($LASTEXITCODE -ne 0 -or $dbPort -ne '127.0.0.1:155432') {
-            throw 'Owned database did not bind the isolated 155432 loopback port'
+        if ($LASTEXITCODE -ne 0 -or $dbPort -ne '127.0.0.1:15543') {
+            throw 'Owned database did not bind the isolated 15543 loopback port'
         }
         # The integration suite rejects the application database name. Create
         # a second EMPTY database inside the newly owned PostgreSQL container.
@@ -239,7 +239,7 @@ try {
             'exec','-T','postgres','psql','-U','harborops','-d','postgres',
             '-v','ON_ERROR_STOP=1','-c','CREATE DATABASE harborops_integration'
         )) -Stage 'owned-integration-database-create'
-        $env:HARBOROPS_TEST_DB = "Host=127.0.0.1;Port=155432;Database=harborops_integration;" +
+        $env:HARBOROPS_TEST_DB = "Host=127.0.0.1;Port=15543;Database=harborops_integration;" +
             "Username=harborops;Password=$env:HARBOROPS_DB_PASSWORD"
         Invoke-Required 'dotnet' @('test', 'tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj',
             '-c', 'Release', '--no-build', '--logger', 'trx;LogFileName=g17-integration.trx',

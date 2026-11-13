@@ -74,7 +74,10 @@ test("the runnable monitoring stack uses isolated E-backed storage and a support
   const base = read("compose.m17.verify.yaml");
   const overlay = read("compose.m17.observability.override.yaml");
   assert.match(base, /HARBOROPS_G17_STORAGE_ROOT/);
-  assert.match(base, /127\.0\.0\.1:155432:5432/);
+  assert.match(base, /127\.0\.0\.1:15543:5432/);
+  const dbPort = Number(base.match(/127\.0\.0\.1:(\d+):5432/)?.[1]);
+  assert.ok(Number.isInteger(dbPort) && dbPort >= 1024 && dbPort <= 65535);
+  assert.match(read("scripts/run-g17-local.ps1"), new RegExp("Port=" + dbPort + ";Database=harborops_integration"));
   assert.match(base, /127\.0\.0\.1:18080:8080/);
   assert.match(base, /127\.0\.0\.1:15173:80/);
   assert.match(overlay, /grafana\/grafana:13\.3\.1/);

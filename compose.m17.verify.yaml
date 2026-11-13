@@ -20,7 +20,7 @@ services:
       POSTGRES_USER: harborops
       POSTGRES_PASSWORD: ${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}
     ports:
-      - "127.0.0.1:155432:5432"
+      - "127.0.0.1:15543:5432"
     volumes:
       - ${HARBOROPS_G17_STORAGE_ROOT:?Provide a new owned E-backed storage root}/postgres:/var/lib/postgresql/data
     healthcheck:

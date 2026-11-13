@@ -1,5 +1,7 @@
 # G17 Source-Locked Verification and Acceptance Plan
 
+**M17 Round 2 correctness remediation (2026-11-13):** Candidate source fixes for all ten Round 2 findings are on the M17 feature branch, including fail-closed trace privacy, separated monitoring networks, paired diagnostic sampling, worker telemetry tests, alert recovery fixtures, and failure-safe source-locked evidence. No .NET, Docker, Prometheus, browser, performance or G17-S25 campaign has been executed or accepted for the repaired head. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Round 2 remediation register](M17_CORRECTNESS_ROUND2_REMEDIATION_20261113.md).
+
 **M17 correctness remediation (2026-11-13):** Candidate fixes for findings F17-001 through F17-014 are committed on the isolated feature branch, but .NET compilation, local Compose startup, collector/alert behavior, three-browser results, performance and G17-S25 have not been executed or accepted. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Remediation register](M17_CORRECTNESS_REMEDIATION_20261113.md).
 
 **Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.

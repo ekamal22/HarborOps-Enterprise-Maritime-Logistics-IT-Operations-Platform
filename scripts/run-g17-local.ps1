@@ -10,7 +10,16 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $Repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-if (!$Repo.StartsWith('E:\', [System.StringComparison]::OrdinalIgnoreCase)) {
+$Hosted = $env:GITHUB_ACTIONS -eq 'true' -and
+    $env:HARBOROPS_G17_HOSTED -eq 'true' -and
+    -not [string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)
+if ($Hosted) {
+    $workspace = [System.IO.Path]::GetFullPath($env:GITHUB_WORKSPACE)
+    if ($Repo -cne $workspace) {
+        throw 'Hosted verification must use the exact Actions checkout worktree'
+    }
+}
+elseif (!$Repo.StartsWith('E:\', [System.StringComparison]::OrdinalIgnoreCase)) {
     throw 'Run from an E: worktree. C: is not a retained HarborOps workspace'
 }
 if ($ExpectedSha -notmatch '^[0-9a-fA-F]{40}$' -or
@@ -25,7 +34,15 @@ if ($RequireFullG17 -and (!$StartDisposableStack -or !$FaultProbe -or
     throw 'Full G17 requires disposable stack, collector fault, worker fixture and owned cleanup'
 }
 $EvidencePath = [System.IO.Path]::GetFullPath($EvidenceDirectory)
-if (!$EvidencePath.StartsWith('E:\', [System.StringComparison]::OrdinalIgnoreCase)) {
+if ($Hosted) {
+    $tempRoot = [System.IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd(
+        [System.IO.Path]::DirectorySeparatorChar) +
+        [System.IO.Path]::DirectorySeparatorChar
+    if (!$EvidencePath.StartsWith($tempRoot, [System.StringComparison]::Ordinal)) {
+        throw 'Hosted evidence must be under the ephemeral runner temp root'
+    }
+}
+elseif (!$EvidencePath.StartsWith('E:\', [System.StringComparison]::OrdinalIgnoreCase)) {
     throw 'The evidence path must be a new directory on E:'
 }
 if (Test-Path -LiteralPath $EvidencePath) {

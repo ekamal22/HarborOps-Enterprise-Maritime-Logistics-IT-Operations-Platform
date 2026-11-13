@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import {execFileSync} from "node:child_process";
 
 const project=process.env.HARBOROPS_G17_PROJECT;
 const source=process.env.HARBOROPS_SOURCE_SHA;
@@ -48,13 +49,17 @@ async function generateRealRequests(count) {
         const response=await fetch(req,{
           headers:{
             cookie:"g17="+cookies,
-            baggage:"secret="+baggage,
+            baggage:"secret="+baggage+";"+("x".repeat(4000)),
             "x-g17-secret":tag,
+            "traceparent":(offset+j)%2===0 ? "invalid-"+tag :
+              "00-"+crypto.randomBytes(16).toString("hex")+"-"+crypto.randomBytes(8).toString("hex")+"-01",
             "tracestate":"privatevendor="+tag
           },signal:AbortSignal.timeout(12000)});
         assert.equal(response.status,200,"Synthetic baseline read must succeed");
         const json=await response.json();
         assert.equal(json.service,"HarborOps");
+        assert.ok(!JSON.stringify(json).includes(tag),
+          "Untrusted header or query appeared in the business response");
         return true;
       }));
     successful+=rsp.length;
@@ -108,6 +113,19 @@ try {
     observedTraces++;
     exportedSpans+=spans.length;
   }
+  // Read actual owned service log output. Negative privacy controls are not
+  // satisfied by checking trace tags alone.
+  const compose=["compose","-p",project,"-f","compose.m17.verify.yaml",
+    ...(process.env.HARBOROPS_G17_VERIFY_WORKER==="true"
+      ? ["-f","compose.m9.worker.yaml"]:[]),
+    "-f","compose.m17.observability.override.yaml",
+    ...(process.env.HARBOROPS_G17_VERIFY_WORKER==="true"
+      ? ["-f","compose.m17.worker.override.yaml"]:[]),
+    "--profile","observability"];
+  const logs=execFileSync("docker",[...compose,"logs","--no-color",
+    "--tail","15000","api","otelcol","tempo"],{
+    encoding:"utf8",timeout:30000,maxBuffer:8*1024*1024});
+  scan(logs,"owned-sanitized-service-logs");
   const q=new URL(base+"harborops-local-metrics/api/v1/series");
   q.searchParams.set("match[]",'{__name__=~"harborops_.*"}');
   q.searchParams.set("start",String(Math.floor(Date.now()/1000)-600));

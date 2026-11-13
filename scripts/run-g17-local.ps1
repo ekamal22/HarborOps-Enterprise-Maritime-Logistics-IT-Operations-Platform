@@ -5,6 +5,7 @@ param(
     [switch]$StartDisposableStack,
     [switch]$FaultProbe,
     [switch]$VerifyDisposableWorker,
+    [switch]$RequireFullG17,
     [switch]$StopOwnedContainers
 )
 $ErrorActionPreference = 'Stop'
@@ -17,7 +18,11 @@ if ($ExpectedSha -notmatch '^[0-9a-fA-F]{40}$' -or
     throw 'Require an exact 40-character SHA and a dedicated ho-verify-m17-* project'
 }
 if (($FaultProbe -or $VerifyDisposableWorker) -and !$StartDisposableStack) {
-    throw 'FaultProbe requires an explicitly started disposable stack'
+    throw 'Fault or worker verification requires a fresh disposable stack'
+}
+if ($RequireFullG17 -and (!$StartDisposableStack -or !$FaultProbe -or
+        !$VerifyDisposableWorker -or !$StopOwnedContainers)) {
+    throw 'Full G17 requires disposable stack, collector fault, worker fixture and owned cleanup'
 }
 $EvidencePath = [System.IO.Path]::GetFullPath($EvidenceDirectory)
 if (!$EvidencePath.StartsWith('E:\', [System.StringComparison]::OrdinalIgnoreCase)) {

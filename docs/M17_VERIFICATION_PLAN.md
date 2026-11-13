@@ -1,15 +1,11 @@
 # G17 Source-Locked Verification and Acceptance Plan
 
-**G17 technical test readiness (2026-11-13):** The latest [75-assertion coverage register](M17_G17_S25_TEST_READINESS_20261113.md) records **26 technical tests authored, 32 partial assertions, 14 missing tests, and 3 independent S25 reviewer assertions**. All 25 scenarios remain unexecuted for G17 acceptance (0/75 assertions accepted). The strict technical authoring gate is **NOT READY** and no G17 GitHub Actions verification was dispatched. Source-level fixes and authored test methods do not constitute runtime passes. **G17 NOT ACCEPTED; acceptance pending.**
-
-**M17 Round 2 correctness remediation (2026-11-13):** Candidate source fixes for all ten Round 2 findings are on the M17 feature branch, including fail-closed trace privacy, separated monitoring networks, paired diagnostic sampling, worker telemetry tests, alert recovery fixtures, and failure-safe source-locked evidence. No .NET, Docker, Prometheus, browser, performance or G17-S25 campaign has been executed or accepted for the repaired head. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Round 2 remediation register](M17_CORRECTNESS_ROUND2_REMEDIATION_20261113.md).
-
-**M17 correctness remediation (2026-11-13):** Candidate fixes for findings F17-001 through F17-014 are committed on the isolated feature branch, but .NET compilation, local Compose startup, collector/alert behavior, three-browser results, performance and G17-S25 have not been executed or accepted. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Remediation register](M17_CORRECTNESS_REMEDIATION_20261113.md).
+**Current M17/G17 status (2026-11-13):** All 72 technical G17 assertions have authored source witnesses in the 75-assertion coverage register; the three G17-S25 independent reviewer assertions remain pending. Strict no-skip source preflight passed, and source-locked disposable verification is underway after retained failed runs and corrections. Partial unit, contract and frontend passes do not constitute complete G17 evidence. No G17 technical or independent acceptance decision has been issued. **G17 NOT ACCEPTED; acceptance pending.** [Readiness](M17_G17_S25_TEST_READINESS_20261113.md) | [Verification recovery and exact runs](M17_G17_VERIFICATION_RECOVERY_20261113.md).
 
 **Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
 
 **Prepared:** 2026-11-12. **Gate:** G17 for M17 observability and service health.
-**State:** Implementation candidate committed on an isolated feature branch, but verification scenarios remain planned; **0/25 scenarios and 0/75 assertions executed for G17**. No G17 acceptance evidence is claimed.
+**State:** Implementation candidate under source-locked, disposable verification; authored technical coverage 72/72 with 3 independent reviewer assertions outstanding. **0/25 scenarios and 0/75 assertions accepted for G17.** Partial test passes and failed campaigns are retained, not counted as acceptance.
 **Entry:** G3 accepted, **M17-P01 through P09 approved as the design baseline on 2026-11-12**, and M17-01 through M17-04 implemented in a source-locked candidate. P02/P04/P09 provisional numerical limits and P05 local alert thresholds must be measured and their final reference values recorded before a G17 recommendation.
 **References:** [architecture](M17_ARCHITECTURE_DESIGN.md), [implementation](M17_IMPLEMENTATION_PLAN.md), [policy proposals](M17_POLICY_PROPOSAL_20261112.md), [runbook](M17_OPERATIONS_RUNBOOK.md).
 
@@ -53,7 +49,7 @@ The source-locked result is complete only when raw source SHA, sanitizer report,
 | **G17-S24 Evidence integrity** | S24-A01 every claimed assertion maps to real source-locked result; S24-A02 source hashes and manifests complete/no unlisted files; S24-A03 negative control rejects tampering, skip and wrong SHA | Evidence verifier tests, manifest digest and JSON/TRX reconciliation | Evidence / reviewer |
 | **G17-S25 Independent review and gate recommendation** | S25-A01 separate reviewer checks raw source, privacy, metrics and full cases; S25-A02 policy and procedural exceptions disclosed; S25-A03 reviewer issues explicit signed PASS/NOT PASS before G17 acceptance | Independent review file and formal G17 decision record | Manual / approval |
 
-**Atomic scope:** 25 scenarios, 75 distinct A01-A03 assertions. Current progress: 0/75 executed for M17. If a source implementation changes scope, update this inventory before testing; do not infer missing assertions from a passing scenario title.
+**Atomic scope:** 25 scenarios, 75 distinct A01-A03 assertions. Current gate progress: 0/75 accepted for M17; source-locked verification is in progress. If a source implementation changes scope, update this inventory before testing; do not infer missing assertions from a passing scenario title.
 
 ## 3. Test source and minimum campaign
 

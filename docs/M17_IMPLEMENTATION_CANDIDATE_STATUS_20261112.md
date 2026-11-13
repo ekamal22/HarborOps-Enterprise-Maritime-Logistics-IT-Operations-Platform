@@ -1,10 +1,6 @@
 # M17 Implementation Candidate Status
 
-**G17 technical test readiness (2026-11-13):** The latest [75-assertion coverage register](M17_G17_S25_TEST_READINESS_20261113.md) records **26 technical tests authored, 32 partial assertions, 14 missing tests, and 3 independent S25 reviewer assertions**. All 25 scenarios remain unexecuted for G17 acceptance (0/75 assertions accepted). The strict technical authoring gate is **NOT READY** and no G17 GitHub Actions verification was dispatched. Source-level fixes and authored test methods do not constitute runtime passes. **G17 NOT ACCEPTED; acceptance pending.**
-
-**M17 Round 2 correctness remediation (2026-11-13):** Candidate source fixes for all ten Round 2 findings are on the M17 feature branch, including fail-closed trace privacy, separated monitoring networks, paired diagnostic sampling, worker telemetry tests, alert recovery fixtures, and failure-safe source-locked evidence. No .NET, Docker, Prometheus, browser, performance or G17-S25 campaign has been executed or accepted for the repaired head. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Round 2 remediation register](M17_CORRECTNESS_ROUND2_REMEDIATION_20261113.md).
-
-**M17 correctness remediation (2026-11-13):** Candidate fixes for findings F17-001 through F17-014 are committed on the isolated feature branch, but .NET compilation, local Compose startup, collector/alert behavior, three-browser results, performance and G17-S25 have not been executed or accepted. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Remediation register](M17_CORRECTNESS_REMEDIATION_20261113.md).
+**Current M17/G17 status (2026-11-13):** All 72 technical G17 assertions have authored source witnesses in the 75-assertion coverage register; the three G17-S25 independent reviewer assertions remain pending. Strict no-skip source preflight passed, and source-locked disposable verification is underway after retained failed runs and corrections. Partial unit, contract and frontend passes do not constitute complete G17 evidence. No G17 technical or independent acceptance decision has been issued. **G17 NOT ACCEPTED; acceptance pending.** [Readiness](M17_G17_S25_TEST_READINESS_20261113.md) | [Verification recovery and exact runs](M17_G17_VERIFICATION_RECOVERY_20261113.md).
 
 **Date:** 2026-11-12
 **Base:** protected `main` at `b490fb8cfc879cdf05cb1f7484b99f6a9b264ed3`
@@ -29,11 +25,11 @@
 - The Grafana interface is local-only, password protected and not exposed through the shipment UI.
 - The worker continues to require its separate existing opt-in Compose file. M9's transport-backlog hold is not lifted.
 - M10 projector, M11 evaluator, M13 cleanup and M15 dispatcher retain their existing default-off policies.
-- No retained record deletion, public export, hosted monitoring, production deployment or GitHub Actions run is authorized.
+- No retained record deletion, public export, hosted monitoring or production deployment is authorized. The isolated G17 disposable verification runs are permitted; their outcomes must not be treated as acceptance.
 
 ## Verification honesty and blocking gaps
 
-The current execution environment has no .NET SDK or Docker engine and cannot run the actual API, PostgreSQL or three-browser stack. Source inspection confirmed that the expected new files, flags, guards and dashboard definitions exist, but it is not a replacement for compilation, integration execution, collector startup or raw artifacts. No passing G17 executable results are claimed.
+At the 2026-11-12 source-candidate checkpoint, the local implementation sandbox lacked .NET and Docker. Subsequent hosted G17 attempts compiled the candidate and passed scoped suites but failed later verification stages. Those partial results are recorded in the verification recovery register and are not complete G17 acceptance evidence.
 
 There are material evidence gaps even after the 2026-11-13 source remediation. Candidate source now contains a bounded baseline database span, a keyed diagnostic link through the existing durable receipt correlation, SDK queue-loss instrumentation, failed OTLP batch submission accounting, a read-only eligible worker backlog gauge, six local alert families, and real-export/browser test fixtures. None of those claims has been verified by executing the current SHA. The request-to-database and asynchronous-worker paths must be inspected under real sampling, and exact Prometheus family names, 500-series bounds, alert hysteresis, 24-hour/250-MiB telemetry storage limits, provisional latency and memory budgets, three-browser rendering, and fault recovery remain unverified. A source implementation does not replace the required G17 witnesses.
 

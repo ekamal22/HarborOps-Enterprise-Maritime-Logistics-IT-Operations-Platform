@@ -1,12 +1,6 @@
 # HarborOps Delivery Roadmap
 
-**G17 technical test readiness (2026-11-13):** The latest [75-assertion coverage register](M17_G17_S25_TEST_READINESS_20261113.md) records **26 technical tests authored, 32 partial assertions, 14 missing tests, and 3 independent S25 reviewer assertions**. All 25 scenarios remain unexecuted for G17 acceptance (0/75 assertions accepted). The strict technical authoring gate is **NOT READY** and no G17 GitHub Actions verification was dispatched. Source-level fixes and authored test methods do not constitute runtime passes. **G17 NOT ACCEPTED; acceptance pending.**
-
-**M17 Round 2 correctness remediation (2026-11-13):** Candidate source fixes for all ten Round 2 findings are on the M17 feature branch, including fail-closed trace privacy, separated monitoring networks, paired diagnostic sampling, worker telemetry tests, alert recovery fixtures, and failure-safe source-locked evidence. No .NET, Docker, Prometheus, browser, performance or G17-S25 campaign has been executed or accepted for the repaired head. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Round 2 remediation register](M17_CORRECTNESS_ROUND2_REMEDIATION_20261113.md).
-
-**M17 correctness remediation (2026-11-13):** Candidate fixes for findings F17-001 through F17-014 are committed on the isolated feature branch, but .NET compilation, local Compose startup, collector/alert behavior, three-browser results, performance and G17-S25 have not been executed or accepted. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Remediation register](M17_CORRECTNESS_REMEDIATION_20261113.md).
-
-**M17 source candidate (2026-11-12):** The isolated `feature/m17-observability-20261112` branch now contains opt-in telemetry, private local monitoring configuration, scoped worker instrumentation, and verification scaffolding. The code has not been compiled or exercised in a source-locked G17 campaign. **G17 remains NOT ACCEPTED, 0/25 scenarios and 0/75 assertions executed, and protected `main` is unchanged.** [Candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md).
+**Current M17/G17 status (2026-11-13):** All 72 technical G17 assertions have authored source witnesses in the 75-assertion coverage register; the three G17-S25 independent reviewer assertions remain pending. Strict no-skip source preflight passed, and source-locked disposable verification is underway after retained failed runs and corrections. Partial unit, contract and frontend passes do not constitute complete G17 evidence. No G17 technical or independent acceptance decision has been issued. **G17 NOT ACCEPTED; acceptance pending.** [Readiness](M17_G17_S25_TEST_READINESS_20261113.md) | [Verification recovery and exact runs](M17_G17_VERIFICATION_RECOVERY_20261113.md).
 
 **Turkish interface integration (2026-11-12):** Accepted and merged via [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) at `c81e54bfef25a0ff957f27b488ab7bd420551244`. Source-locked [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246) passed 41/41 frontend and 99/99 three-browser checks. G13 conditional and G15 accepted gate dispositions remain unchanged; no G24 release or production rollout is authorized. [Integration acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).
 
@@ -15,7 +9,7 @@
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-12
+**Updated status:** 2026-11-13
 **State:** G0-G12, G15 and G16 accepted and merged. G13 remains conditionally accepted and merged. The G15 reviewer-separation exception remains disclosed, other gates stay subject to their prerequisites, and no deployment is authorized.
 
 ## Authority and rationale

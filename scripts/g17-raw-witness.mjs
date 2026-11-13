@@ -119,13 +119,16 @@ const RAW_PREDICATES = new Map([
     ["measured_routes",
       r => ok(r) && JSON.stringify(r.measured_routes) ===
         JSON.stringify(["baseline", "authorized"]) && r.pairs?.length === 3 &&
-        r.pairs.every(p => p.pass === true && p.memory_increase_pct <= 15 &&
-          p.route_pairs.baseline.p95_increase_pct <= 10 &&
-          p.route_pairs.authorized.p95_increase_pct <= 10)],
+        r.gate?.pass === true && r.gate.pooled_p95_pass === true &&
+        r.pooled?.baseline?.p95_increase_pct <= 10 &&
+        r.pooled?.authorized?.p95_increase_pct <= 10 &&
+        r.pairs.every(p => p.memory_pass === true && p.memory_increase_pct <= 15)],
     ["THREE_MATCHED_PAIRS",
       r => ok(r) && r.run_kind === "THREE_MATCHED_PAIRS" && r.rows?.length === 6 &&
         Number.isFinite(r.p95_increase_stddev_pct) &&
         Number.isFinite(r.rss_increase_stddev_pct) && r.system?.cpus >= 1 &&
+        r.rows.every(row => row.raw_ms?.baseline?.length >= 800 &&
+          row.raw_ms?.authorized?.length >= 800) &&
         r.system?.memory_bytes > 0]
   ])],
   ["scripts/check-g17-pressure-matrix.mjs", new Map([

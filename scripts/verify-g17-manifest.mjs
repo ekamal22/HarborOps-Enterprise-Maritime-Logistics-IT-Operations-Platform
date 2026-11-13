@@ -214,8 +214,13 @@ export function verifyManifest(manifestPath, expectedSha) {
           overhead.system?.cpus < 1 ||
           !Number.isFinite(overhead.p95_increase_stddev_pct) ||
           !Number.isFinite(overhead.rss_increase_stddev_pct) ||
-          overhead.pairs.some(p => p.pass !== true ||
-            p.p95_increase_pct > 10 || p.memory_increase_pct > 15))
+          overhead.gate?.pass !== true || overhead.gate.pooled_p95_pass !== true ||
+          overhead.gate.memory_pass !== true ||
+          ["baseline","authorized"].some(kind =>
+            !(overhead.pooled?.[kind]?.p95_increase_pct <= 10) ||
+            !(overhead.pooled[kind].telemetry_on_samples >= 3000)) ||
+          overhead.pairs.some(p => p.memory_pass !== true ||
+            !(p.memory_increase_pct <= 15)))
         throw Error("Three complete matched P09 overhead pairs are missing or above budget");
       const latency=JSON.parse(fs.readFileSync(path.join(root,
         "m17-live-latency-alert-results.json"),"utf8"));

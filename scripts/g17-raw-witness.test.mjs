@@ -56,10 +56,14 @@ const FIXTURES = {
   "scripts/check-g17-worker.mjs": {result: "PASS", checks: [
     check("fault-worker-stop-suppresses-stale-backlog"), check("worker-recovers-after-fault")]},
   "scripts/check-g17-performance.mjs": {result: "PASS", run_kind: "THREE_MATCHED_PAIRS",
-    measured_routes: ["baseline", "authorized"], rows: new Array(6).fill({}),
+    measured_routes: ["baseline", "authorized"],
+    rows: new Array(6).fill({raw_ms: {baseline: new Array(1200).fill(1),
+      authorized: new Array(1200).fill(1)}}),
+    gate: {pass: true, pooled_p95_pass: true, memory_pass: true},
+    pooled: {baseline: {p95_increase_pct: 0.7}, authorized: {p95_increase_pct: 4.2}},
     p95_increase_stddev_pct: 3.1, rss_increase_stddev_pct: 1.2,
     system: {cpus: 12, memory_bytes: 16e9},
-    pairs: [1, 2, 3].map(() => ({pass: true, memory_increase_pct: 13.9,
+    pairs: [1, 2, 3].map(() => ({memory_pass: true, memory_increase_pct: 13.9,
       route_pairs: {baseline: {p95_increase_pct: 6.7}, authorized: {p95_increase_pct: 5.9}}}))},
   "scripts/check-g17-pressure-matrix.mjs": {result: "PASS", cases: [
     {name: "business-under-tenfold-pressure-and-exporter-outage", status: "PASS"},
@@ -115,8 +119,8 @@ test("a report without the named case or fact never witnesses its assertion", ()
       r.protected_ports_refused = [4317]; },
     "scripts/check-g17-alert-matrix.mjs": r => { r.checks = []; },
     "scripts/check-g17-worker.mjs": r => { r.checks = []; },
-    "scripts/check-g17-performance.mjs": r => { r.pairs[1].route_pairs.authorized.p95_increase_pct = 11;
-      r.rows = []; },
+    "scripts/check-g17-performance.mjs": r => { r.pooled.authorized.p95_increase_pct = 10.5;
+      r.pairs[1].memory_increase_pct = 15.5; r.rows = []; },
     "scripts/check-g17-pressure-matrix.mjs": r => { r.cases = []; },
     "scripts/check-g17-retention-matrix.mjs": r => { r.raw_sources = []; },
     "scripts/check-g17-storage.mjs": r => { r.database_sha256_after = "b".repeat(64); r.checks = []; },

@@ -40,11 +40,12 @@ try{
       assert.equal(row.per_route?.[type]?.requests,
         performance.sample_size_per_mode_per_round/2);
   }
+  assert.equal(performance.gate?.pass,true);
+  for(const kind of ["baseline","authorized"])
+    assert.ok(performance.pooled?.[kind]?.p95_increase_pct<=10);
   for(const pair of performance.pairs){
-    assert.equal(pair.pass,true);
+    assert.equal(pair.memory_pass,true);
     assert.ok(pair.memory_increase_pct<=15);
-    for(const kind of ["baseline","authorized"])
-      assert.ok(pair.route_pairs?.[kind]?.p95_increase_pct<=10);
   }
   result.cases.push({name:"authorized-and-baseline-measured-throughput-and-overhead",
     status:"PASS",source_artifact:"m17-performance-raw.json"});

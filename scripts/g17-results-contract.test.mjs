@@ -33,7 +33,7 @@ const trx=names=>{
     results+'</TestRun>';
 };
 test("all eighteen required browser and one cardinality case pass exact identity checks",()=>{
-  assert.equal(verifyPlaywrightCases(browser("dashboard"),"dashboard").passed,15);
+  assert.equal(verifyPlaywrightCases(browser("dashboard"),"dashboard").passed,18);
   assert.equal(verifyPlaywrightCases(browser("cardinality"),"cardinality").passed,1);
 });
 test("browser skip, retry, expected failure, extra case or missing engine fails",()=>{

@@ -15,7 +15,8 @@ const hostedEvidence = process.env.GITHUB_ACTIONS === "true" &&
   process.env.RUNNER_TEMP &&
   path.resolve(process.env.HARBOROPS_G17_EVIDENCE_DIR || "").startsWith(
     path.resolve(process.env.RUNNER_TEMP) + path.sep);
-assert.ok(/^[Ee]:[\\/]/.test(storage || "") || hostedEvidence,
+assert.ok(/^[Ee]:[\\/]/.test(storage || "") || (hostedEvidence &&
+  path.resolve(storage||"").startsWith(path.resolve(process.env.RUNNER_TEMP)+path.sep)),
   "Disposable telemetry storage must be isolated on E: or hosted runner temp");
 assert.ok(evidence&&fs.existsSync(evidence),"A uniquely owned evidence directory is required");
 

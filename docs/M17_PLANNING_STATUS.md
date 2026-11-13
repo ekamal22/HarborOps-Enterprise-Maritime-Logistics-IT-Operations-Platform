@@ -1,5 +1,7 @@
 # M17 Observability Planning Register
 
+**G17 S25 test-authoring checkpoint (2026-11-13):** [The current G17 test readiness register](M17_G17_S25_TEST_READINESS_20261113.md) classifies all 75 clauses: 26 technical witnesses authored but not executed, 32 partial, 14 missing, and 3 reserved for separate independent review. The strict no-skip preflight is blocked until all 72 technical clauses have complete witnesses. G17 technical verification and independent S25 have not passed; no G17 Actions verification was dispatched. **G17 NOT ACCEPTED.**
+
 **M17 correctness remediation (2026-11-13):** Candidate fixes for findings F17-001 through F17-014 are committed on the isolated feature branch, but .NET compilation, local Compose startup, collector/alert behavior, three-browser results, performance and G17-S25 have not been executed or accepted. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Remediation register](M17_CORRECTNESS_REMEDIATION_20261113.md).
 
 **Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.

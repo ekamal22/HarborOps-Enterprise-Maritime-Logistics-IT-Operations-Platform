@@ -7,6 +7,8 @@ import crypto from "node:crypto";
 import { verifyManifest } from "./verify-g17-manifest.mjs";
 
 const sha = "a".repeat(40);
+const inventoryBytes = fs.readFileSync(new URL("../docs/M17_G17_ASSERTION_INVENTORY_20261112.json", import.meta.url));
+const inventoryHash = crypto.createHash("sha256").update(inventoryBytes).digest("hex");
 const digest = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 function fixture({complete = false, missing = false} = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-manifest-"));
@@ -40,6 +42,8 @@ function fixture({complete = false, missing = false} = {}) {
     schema_version:2,gate:"G17",source_sha:sha,
     gate_acceptance:"NOT_ACCEPTED",assertion_disposition:"NOT_REVIEWED",
     run_state:complete?"COMPLETE":"FAILED",files,
+    assertion_inventory_sha256:inventoryHash,
+    scenario_count:25,assertion_count:75,reviewed_assertion_count:0,
     missing_expected_artifacts:missing?["results.txt"]:[]
   }));
   return dir;

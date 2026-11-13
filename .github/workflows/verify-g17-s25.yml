@@ -86,6 +86,7 @@ jobs:
           python3 - <<'PY' >> "$GITHUB_ENV"
           import base64
           import secrets
+          import sys
           for key in (
               "HARBOROPS_DB_PASSWORD",
               "HARBOROPS_API_DB_PASSWORD",
@@ -93,7 +94,7 @@ jobs:
               "HARBOROPS_M17_GRAFANA_PASSWORD",
           ):
               value = secrets.token_urlsafe(36)
-              print("::add-mask::" + value)
+              print("::add-mask::" + value, file=sys.stderr)
               print(key + "=" + value)
           for key in (
               "HARBOROPS_M17_LINK_KEY",
@@ -101,7 +102,7 @@ jobs:
               "HARBOROPS_M12_EXPORT_PROOF_KEY",
           ):
               value = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
-              print("::add-mask::" + value)
+              print("::add-mask::" + value, file=sys.stderr)
               print(key + "=" + value)
           PY
       - name: Prepare source-pinned browser dependencies

@@ -13,7 +13,7 @@ const digest = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 function fixture({complete = false, missing = false} = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-manifest-"));
   const required = ["source-sha.txt","expected-artifacts.json","run-status.json","results.txt"];
-  if (complete) required.push("g17-unit.trx","g17-contract.trx");
+  if (complete) required.push("g17-unit.trx","g17-contract.trx","g17-coverage-preflight.json");
   fs.writeFileSync(path.join(dir,"source-sha.txt"),sha);
   fs.writeFileSync(path.join(dir,"expected-artifacts.json"),JSON.stringify({
     schema_version:1,gate:"G17",source_sha:sha,project:"ho-verify-m17-test",
@@ -30,6 +30,9 @@ function fixture({complete = false, missing = false} = {}) {
   }));
   if (!missing) fs.writeFileSync(path.join(dir,"results.txt"),"clean synthetic result\n");
   if (complete) {
+    fs.writeFileSync(path.join(dir,"g17-coverage-preflight.json"),JSON.stringify({
+      passed:true,strict:true,technically_authored:72,assertions:75,scenarios:25,errors:[]
+    }));
     for (const file of ["g17-unit.trx","g17-contract.trx"])
       fs.writeFileSync(path.join(dir,file),"<TestRun></TestRun>");
   }
@@ -83,5 +86,5 @@ test("fake complete claim without required raw result is rejected",t=>{
 test("fake complete claim with incomplete stage evidence is rejected",t=>{
   const dir=fixture({complete:true});cleanup(t,dir);
   // No required TRX case output, even though the wrapper stage is marked green.
-  assert.throws(()=>verifyManifest(path.join(dir,"manifest.json"),sha),/missing test counters/i);
+  assert.throws(()=>verifyManifest(path.join(dir,"manifest.json"),sha),/missing (?:TRX|test) counters/i);
 });

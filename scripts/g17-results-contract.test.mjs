@@ -5,7 +5,8 @@ import {verifyPlaywrightCases,verifyTrxCases} from "./g17-results-contract.mjs";
 const titles=[
   "dashboard requires authentication and shows actual monitoring panels",
   "authenticated samples match the disposable ready API and suppress held workers",
-  "dashboard is unavailable to an anonymous browser context"
+  "dashboard is unavailable to an anonymous browser context",
+  "alert dashboard links stay local and never embed private diagnostic parameters"
 ];
 const engines=["chromium","firefox","webkit"];
 function browser(mode) {

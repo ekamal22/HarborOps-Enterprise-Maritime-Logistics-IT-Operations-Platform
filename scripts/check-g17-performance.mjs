@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import {performance} from "node:perf_hooks";
-import {execFileSync} from "node:child_process";
+import {execFileSync,spawnSync} from "node:child_process";
+import crypto from "node:crypto";
 
 const project=process.env.HARBOROPS_G17_PROJECT;
 const evidence=process.env.HARBOROPS_G17_EVIDENCE_DIR;
@@ -18,6 +19,90 @@ const off=[...on,"-f","compose.m17.telemetry-off.override.yaml"];
 const recordPath=path.join(evidence,"m17-performance-raw.json");
 const rows=[];
 let fail=null;
+const nonce=crypto.randomBytes(5).toString("hex");
+let managerCookie="",authorizedPath="";
+function disposableCli(args,input) {
+  const res=spawnSync("docker",["compose","-p",project,...on,
+    "--profile","observability",...args],{
+    input,encoding:"utf8",timeout:120000,maxBuffer:1024*1024});
+  assert.equal(res.status,0,"Synthetic account/organization provisioning failed");
+  return res.stdout.trim();
+}
+function sql(query) {
+  return disposableCli(["exec","-T","postgres","psql","-U","harborops",
+    "-d","harborops","-At","-v","ON_ERROR_STOP=1","-c",query]);
+}
+class Session {
+  jar=new Map();
+  cookie() {return [...this.jar].map(([key,value])=>key+"="+value).join("; ");}
+  async send(method,route,body,csrf=true) {
+    const headers={Origin:api};
+    if(this.jar.size)headers.Cookie=this.cookie();
+    if(csrf&&method!=="GET")headers["X-HarborOps-CSRF"]=await this.token();
+    if(body!==undefined)headers["Content-Type"]="application/json";
+    const res=await fetch(api+route,{method,headers,
+      body:body===undefined?undefined:JSON.stringify(body),
+      signal:AbortSignal.timeout(14000)});
+    for(const cookie of res.headers.getSetCookie?.()||[]) {
+      const pair=cookie.split(";")[0], index=pair.indexOf("=");
+      if(index>0)this.jar.set(pair.slice(0,index),pair.slice(index+1));
+    }
+    const text=await res.text();let json=null;
+    try{json=JSON.parse(text);}catch{}
+    return {status:res.status,json,text};
+  }
+  async token() {
+    const headers={Origin:api};
+    if(this.jar.size)headers.Cookie=this.cookie();
+    const res=await fetch(api+"/api/v1/auth/csrf",
+      {headers,signal:AbortSignal.timeout(14000)});
+    assert.equal(res.status,200);
+    for(const cookie of res.headers.getSetCookie?.()||[]) {
+      const pair=cookie.split(";")[0],index=pair.indexOf("=");
+      if(index>0)this.jar.set(pair.slice(0,index),pair.slice(index+1));
+    }
+    return (await res.json()).token;
+  }
+}
+async function seedAuthorizedRead() {
+  const adminEmail="g17-bench-admin-"+nonce+"@example.test";
+  const managerEmail="g17-bench-manager-"+nonce+"@example.test";
+  const pw=crypto.randomBytes(24).toString("base64url");
+  for(const email of [adminEmail,managerEmail])
+    disposableCli(["run","--rm","-T","-e",
+      "HARBOROPS_ALLOW_ACCOUNT_CLI=true","api",
+      "--account-cli","provision",email,"G17 Bench User"],pw+"\n");
+  const slug="g17-bench-"+nonce;
+  disposableCli(["run","--rm","-T","-e",
+    "HARBOROPS_ALLOW_ORGANIZATION_CLI=true","api",
+    "--organization-cli","bootstrap",slug,"G17 Benchmark Organization",adminEmail]);
+  const org=sql("SELECT id FROM organizations WHERE slug='"+slug+"'");
+  const managerId=sql("SELECT id FROM users WHERE email='"+managerEmail+"'");
+  assert.match(org,/^[0-9a-f-]{36}$/);
+  assert.match(managerId,/^[0-9a-f-]{36}$/);
+  const admin=new Session();
+  const login=await admin.send("POST","/api/v1/auth/login",
+    {email:adminEmail,password:pw});
+  assert.equal(login.status,200,"Synthetic administrator must log in");
+  const selected=await admin.send("PUT","/api/v1/auth/session/organization",
+    {organizationId:org});
+  assert.ok([200,409].includes(selected.status));
+  const membership=await admin.send("PUT",
+    "/api/v1/organizations/"+org+"/memberships/"+managerId,
+    {role:"Manager",status:"Active"});
+  assert.equal(membership.status,200,"Authorized synthetic membership required");
+  const manager=new Session();
+  assert.equal((await manager.send("POST","/api/v1/auth/login",
+    {email:managerEmail,password:pw})).status,200);
+  assert.ok([200,409].includes((await manager.send("PUT",
+    "/api/v1/auth/session/organization",{organizationId:org})).status));
+  managerCookie=manager.cookie();
+  authorizedPath="/api/v1/organizations/"+org+"/ports";
+  const check=await fetch(api+authorizedPath,{headers:{Cookie:managerCookie},
+    signal:AbortSignal.timeout(12000)});
+  assert.equal(check.status,200,"Benchmark Manager cannot read scoped reference data");
+}
+
 function compose(overlay,cmd,timeout=120000) {
   return execFileSync("docker",["compose","-p",project,...overlay,
     "--profile","observability",...cmd],{

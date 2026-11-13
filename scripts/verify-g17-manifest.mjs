@@ -182,6 +182,15 @@ export function verifyManifest(manifestPath, expectedSha) {
           tempoTtl.reference_policy_hours !== 24 ||
           tempoTtl.checks?.filter(x=>x.status==="PASS").length < 4)
         throw Error("Missing real selective trace expiry and retention-isolation witness");
+      const retentionMatrix=JSON.parse(fs.readFileSync(path.join(root,
+        "m17-retention-matrix-results.json"),"utf8"));
+      if (retentionMatrix.source_sha !== manifest.source_sha ||
+          retentionMatrix.project !== expected.project ||
+          retentionMatrix.result !== "PASS" ||
+          retentionMatrix.metrics_retention_hours !== 24 ||
+          retentionMatrix.traces_retention_hours !== 24 ||
+          retentionMatrix.raw_sources?.length !== 3)
+        throw Error("Combined real trace and metric retention evidence is incomplete");
       const regress=JSON.parse(fs.readFileSync(path.join(root,
         "g17-regression-matrix-results.json"),"utf8"));
       const groups=["M9","M10","M11","M13","M15","audit","authorization",

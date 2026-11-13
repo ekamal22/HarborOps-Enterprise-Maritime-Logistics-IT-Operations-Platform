@@ -54,9 +54,9 @@ const report={source_sha:source,project,policy_hours:24,
 const name=project+"-retention";
 let launched=false,failed=null;
 try{
-  const ps=JSON.parse(docker(["ps","-a","--filter","name=^/"+name+"$",
-    "--format","{{json .}}"]));
-  if(ps.length)throw Error("Retention process name already belongs to a container");
+  const existing=docker(["ps","-a","--filter","name=^/"+name+"$",
+    "--format","{{.ID}}"]);
+  if(existing)throw Error("Retention process name already belongs to a container");
   docker(["run","--rm","--user","0:0","--network","none",
     "-v",mount,"--entrypoint","/bin/promtool",image,
     "tsdb","create-blocks-from","openmetrics",

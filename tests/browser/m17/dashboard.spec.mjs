@@ -100,8 +100,9 @@ test("alert dashboard links stay local and never embed private diagnostic parame
     ];
     for (const link of links) {
       const value=String(link.url||"");
-      expect(value).not.toMatch(/^https?:\\/\\//i);
-      expect(value).toMatch(/^\\/(d\\/|explore|dashboard)/);
+      expect(value.startsWith("/")).toBe(true);
+      expect(["/d/","/explore","/dashboard"].some(prefix=>
+        value.startsWith(prefix))).toBe(true);
       expect(value).not.toMatch(/(organization|shipment|receipt|token|password|credential|email)/i);
       checked++;
     }

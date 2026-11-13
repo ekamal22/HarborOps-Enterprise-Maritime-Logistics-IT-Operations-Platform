@@ -149,4 +149,45 @@ public sealed class M17HttpContractTests : IDisposable
         Assert.Single(failures);
         Assert.Equal(1,failures[0]);
     }
+
+    [Fact]
+    public async Task ValidW3CTraceparentConnectsApiRequestAndBoundedDatabaseSpan()
+    {
+        const string traceId="00112233445566778899aabbccddeeff";
+        const string parentSpan="0123456789abcdef";
+        var completed = new System.Collections.Concurrent.ConcurrentQueue<Activity>();
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == "HarborOps.Observability" ||
+                source.Name.StartsWith("Microsoft.AspNetCore",StringComparison.Ordinal),
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) =>
+                ActivitySamplingResult.AllDataAndRecorded,
+            SampleUsingParentId = (ref ActivityCreationOptions<string> _) =>
+                ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activity => completed.Enqueue(activity)
+        };
+        ActivitySource.AddActivityListener(listener);
+        using var factory = Enabled();
+        using var client = factory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Get,"/api/v1/system/baseline");
+        request.Headers.TryAddWithoutValidation("traceparent",
+            "00-"+traceId+"-"+parentSpan+"-01");
+        request.Headers.TryAddWithoutValidation("tracestate","vendor=value");
+        using var response = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable,response.StatusCode);
+        var serverCorrelation = Assert.Single(response.Headers.GetValues("X-Correlation-ID"));
+        Assert.Matches("^[0-9a-f]{32}$",serverCorrelation);
+        Assert.NotEqual(traceId,serverCorrelation);
+        Assert.Contains(completed,span =>
+            span.Kind == ActivityKind.Server &&
+            span.TraceId.ToHexString() == traceId &&
+            span.ParentSpanId.ToHexString() == parentSpan);
+        Assert.Contains(completed,span =>
+            span.Kind == ActivityKind.Client &&
+            span.Source.Name == "HarborOps.Observability" &&
+            span.TraceId.ToHexString() == traceId &&
+            Equals(span.GetTagItem("harborops.operation"),"baseline_read"));
+        Assert.DoesNotContain(completed,span =>
+            span.TagObjects.Any(tag=>tag.Key=="db.statement" || tag.Key=="db.query.text"));
+    }
 }

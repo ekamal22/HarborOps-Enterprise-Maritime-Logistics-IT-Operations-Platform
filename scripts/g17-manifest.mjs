@@ -55,6 +55,24 @@ function visit(current, prefix = "") {
 }
 visit(directory);
 entries.sort((a, b) => a.path.localeCompare(b.path));
+const indexed = new Set(entries.map(e => e.path));
+for (const required of ["source-sha.txt","expected-artifacts.json","run-status.json"]) {
+  if (!indexed.has(required)) throw Error("Missing required run ledger: " + required);
+}
+const status = JSON.parse(fs.readFileSync(path.join(directory,"run-status.json"),"utf8"));
+const expected = JSON.parse(fs.readFileSync(path.join(directory,"expected-artifacts.json"),"utf8"));
+if (status.gate !== "G17" || expected.gate !== "G17" ||
+    status.source_verified !== true ||
+    status.source_sha !== expected.source_sha ||
+    !["COMPLETE","FAILED"].includes(status.run_state) ||
+    status.gate_acceptance !== "NOT_ACCEPTED" ||
+    !Array.isArray(expected.required_artifacts)) {
+  throw Error("Invalid or unsafe G17 campaign ledger");
+}
+const missing = expected.required_artifacts.filter(name => !indexed.has(name));
+if (status.run_state === "COMPLETE" && missing.length)
+  throw Error("A completed campaign has missing raw evidence: " + missing.join(", "));
+
 const sha = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 if (!/^[a-f0-9]{40}$/.test(sha))
   throw Error("The source SHA is not an exact commit identifier");
@@ -65,6 +83,8 @@ const result = {
   candidate_execution: process.env.HARBOROPS_G17_DISPOSABLE_STACK_STARTED === "true"
     ? "RUNTIME_CANDIDATE_NOT_REVIEWED" : "SOURCE_ONLY_NOT_REVIEWED",
   files: entries, binary_files_requiring_manual_review: binaryCount,
+  run_state: status.run_state, expected_artifact_count: expected.required_artifacts.length,
+  missing_expected_artifacts: missing,
   assertion_disposition: "NOT_REVIEWED",
   gate_acceptance: "NOT_ACCEPTED"
 };

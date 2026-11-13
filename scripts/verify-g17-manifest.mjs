@@ -162,6 +162,28 @@ export function verifyManifest(manifestPath, expectedSha) {
           restart.api_restored !== true || restart.checks?.length !== 5 ||
           restart.checks.some(step => step.status !== "PASS"))
         throw Error("API cancellation, shutdown, restart or durable invariant evidence is absent");
+      const retention=JSON.parse(fs.readFileSync(path.join(root,
+        "m17-retention-age-results.json"),"utf8"));
+      if (retention.source_sha !== manifest.source_sha ||
+          retention.project !== expected.project ||
+          retention.result !== "PASS" || retention.policy_hours !== 24 ||
+          retention.checks?.filter(c=>c.status==="PASS").length < 3 ||
+          !retention.checks.some(c=>c.name==="expired-metric-blocks-only-removed"&&
+            c.old_removed>=1&&c.new_preserved>=1))
+        throw Error("Missing positive isolated 24h block-expiry and retention-policy test");
+      const regress=JSON.parse(fs.readFileSync(path.join(root,
+        "g17-regression-matrix-results.json"),"utf8"));
+      const groups=["M9","M10","M11","M13","M15","audit","authorization",
+        "held_feature_defaults"];
+      if (regress.source_sha !== manifest.source_sha ||
+          regress.project !== expected.project || regress.result !== "PASS" ||
+          regress.required_groups !== 8 ||
+          groups.some(group=>!regress.cases?.[group] ||
+            regress.cases[group].passed<1))
+        throw Error("One or more M9/M10/M11/M13/M15 or accepted security regression groups omitted");
+      const regressionTrx=fs.readFileSync(path.join(root,
+        "g17-regressions.trx"),"utf8");
+      verifyTrxCases(regressionTrx);
       const overhead = JSON.parse(fs.readFileSync(path.join(root,
         "m17-performance-raw.json"),"utf8"));
       if (overhead.source_sha !== manifest.source_sha ||
@@ -184,6 +206,19 @@ export function verifyManifest(manifestPath, expectedSha) {
           latency.checks.some(x=>x.status !== "PASS"))
         throw Error("Live API p95 alert did not have sufficient actual latency witnesses");
       if (expected.fault_probe) {
+        const alertMatrix=JSON.parse(fs.readFileSync(path.join(root,
+          "m17-alert-matrix-results.json"),"utf8"));
+        const pressure=JSON.parse(fs.readFileSync(path.join(root,
+          "m17-pressure-matrix-results.json"),"utf8"));
+        if (alertMatrix.source_sha !== manifest.source_sha ||
+            alertMatrix.project !== expected.project ||
+            alertMatrix.result !== "PASS" || alertMatrix.checks?.length !== 6 ||
+            alertMatrix.checks.some(c=>c.status!=="PASS") ||
+            pressure.source_sha !== manifest.source_sha ||
+            pressure.project !== expected.project ||
+            pressure.result !== "PASS" || pressure.cases?.length !== 4 ||
+            pressure.cases.some(c=>c.status!=="PASS"))
+          throw Error("Required 5xx/p95/readiness alert or tenfold pressure campaign is incomplete");
         const database = JSON.parse(fs.readFileSync(path.join(root,
           "m17-database-fault-results.json"),"utf8"));
         const steps = ["healthy-database-control",
@@ -218,7 +253,8 @@ export function verifyManifest(manifestPath, expectedSha) {
             journey.worker_role !== "restricted" ||
             journey.receipts_accepted !== 50 || journey.reconciled !== 50 ||
             journey.duplicate_replay !== true ||
-            journey.matched_safe_trace_pairs < 2)
+            journey.matched_safe_trace_pairs < 2 ||
+            journey.exported_metric_series_checked_for_tenant_privacy < 1)
           throw Error("Worker receipt/replay and actual paired Tempo trace witnesses are missing");
         const worker = JSON.parse(fs.readFileSync(
           path.join(root,"m17-worker-results.json"),"utf8"));

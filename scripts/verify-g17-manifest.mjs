@@ -130,7 +130,7 @@ export function verifyManifest(manifestPath, expectedSha) {
         "m17-restart-results.json"),"utf8"));
       if (restart.source_sha !== manifest.source_sha ||
           restart.project !== expected.project || restart.result !== "PASS" ||
-          restart.api_restored !== true || restart.checks?.length !== 4 ||
+          restart.api_restored !== true || restart.checks?.length !== 5 ||
           restart.checks.some(step => step.status !== "PASS"))
         throw Error("API cancellation, shutdown, restart or durable invariant evidence is absent");
       const overhead = JSON.parse(fs.readFileSync(path.join(root,

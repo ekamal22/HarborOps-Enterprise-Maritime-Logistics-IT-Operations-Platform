@@ -104,3 +104,50 @@ test("worker disposition is reflected rather than counting parked work as proces
   assert.match(api, /AddHostedService<M17ReadinessProbeService>/);
   assert.match(api, /otel\.sdk\.experimental/);
 });
+
+test("trace export rejects raw events, links, trace state and status descriptions", () => {
+  const overlay = read("compose.m17.observability.override.yaml");
+  const worker = read("compose.m17.worker.override.yaml");
+  for (const compose of [overlay, worker]) {
+    assert.match(compose, /OTEL_SPAN_EVENT_COUNT_LIMIT:\s*"0"/);
+    assert.match(compose, /OTEL_SPAN_LINK_COUNT_LIMIT:\s*"0"/);
+  }
+  for (const path of [
+    "src/HarborOps.Api/Observability/M17CountingTraceExporter.cs",
+    "src/HarborOps.Worker/Observability/M17WorkerCountingTraceExporter.cs"
+  ]) assert.match(read(path), /RequireSafeExporterLimits\(\)/);
+  for (const path of [
+    "src/HarborOps.Api/Observability/M17TraceSanitizer.cs",
+    "src/HarborOps.Worker/Observability/M17WorkerTraceSanitizer.cs"
+  ]) assert.match(read(path), /SanitizeNonTagFields\(activity\)/);
+  const guard = read("src/HarborOps.Infrastructure/Observability/M17TracePrivacyGuard.cs");
+  assert.match(guard, /activity.TraceStateString = null/);
+  assert.match(guard, /activity.SetStatus\(activity.Status\)/);
+});
+
+test("detached worker journey uses keyed shared sampling without a false parent span", () => {
+  const endpoint = read("src/HarborOps.Api/Integrations/TrackingEndpoints.cs");
+  const worker = read("src/HarborOps.Worker/WorkerShell.cs");
+  const apiSampler = read("src/HarborOps.Api/Observability/M17BoundedSampler.cs");
+  const workerSampler = read("src/HarborOps.Worker/Observability/M17WorkerBoundedSampler.cs");
+  assert.match(endpoint, /StartActivity\(\s*"tracking.receipt"/);
+  assert.match(worker, /StartActivity\(\s*"tracking.process"/);
+  assert.match(apiSampler, /SampleLinkedJourney\(link\)/);
+  assert.match(workerSampler, /SampleLinkedJourney\(link\)/);
+  assert.doesNotMatch(worker, /SetParentId|ActivityContext.CreateFromString/);
+});
+
+test("the disposable campaign isolates telemetry networks and retains failures", () => {
+  const overlay = read("compose.m17.observability.override.yaml");
+  const runner = read("scripts/run-g17-local.ps1");
+  const manifest = read("scripts/verify-g17-manifest.mjs");
+  assert.match(overlay, /telemetry_monitor:\s*\n\s*internal:\s*true/);
+  assert.match(overlay, /telemetry_ingest:\s*\n\s*internal:\s*true/);
+  assert.match(overlay, /api:[\s\S]*?networks:\s*\[internal, telemetry_ingest\]/);
+  assert.match(overlay, /grafana:[\s\S]*?networks:\s*\[telemetry_monitor\]/);
+  assert.match(runner, /VerifyDisposableWorker/);
+  assert.match(runner, /run-status.json/);
+  assert.match(runner, /g17-manifest.mjs/);
+  assert.match(manifest, /missing_expected_artifacts/);
+  assert.match(read("scripts/check-g17-network.mjs"), /source_sha/);
+});

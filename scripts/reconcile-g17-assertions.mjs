@@ -88,11 +88,8 @@ export function deriveWitnessChecks(evidenceRoot,runStatus,sha) {
   for(const [prefix,file] of trx) {
     const raw=fs.readFileSync(path.join(evidenceRoot,file),"utf8");
     const parsed=verifyTrxCases(raw);
-    for(const method of parsed.methods) {
-      const name=method.partition?method.partition("(")[0]:method.split("(")[0];
-      const last=name.split(".").at(-1);
-      results.set(prefix+"\u0000"+last,{passed:true,artifact:file});
-    }
+    for(const method of parsed.methods)
+      results.set(prefix+"\u0000"+method,{passed:true,artifact:file});
   }
   const node=nodeTestNames(fs.readFileSync(path.join(evidenceRoot,
     "g17-node-tests.xml"),"utf8"));
@@ -136,8 +133,14 @@ export function deriveWitnessChecks(evidenceRoot,runStatus,sha) {
     if(!original.includes(w.case))return null;
     if(w.path.startsWith("tests/HarborOps.")) {
       const group=trx.find(([prefix])=>w.path.startsWith(prefix));
-      const name=w.case.split("(")[0];
-      return group?results.get(group[0]+"\u0000"+name):null;
+      if(!group)return null;
+      const className=path.posix.basename(w.path,".cs");
+      const methodName=w.case.split("(")[0];
+      const hits=[...results.entries()].filter(([key])=>
+        key.startsWith(group[0]+"\u0000") &&
+        (key.includes("."+className+"."+methodName+"(") ||
+          key.endsWith("."+className+"."+methodName)));
+      return hits.length>=1 ? hits[0][1] : null;
     }
     if(w.path.startsWith("tests/browser/")) {
       const required=w.path.includes("dashboard.spec.mjs")

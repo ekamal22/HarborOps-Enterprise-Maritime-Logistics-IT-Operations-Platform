@@ -32,6 +32,8 @@ $sha = (git rev-parse HEAD).Trim()
     -StartDisposableStack -FaultProbe -StopOwnedContainers
 ```
 
+To include the separately held tracking worker only inside the fresh disposable verification project, explicitly add `-VerifyDisposableWorker` alongside `-StartDisposableStack`. This is not a default action and does not authorize M9 activation in any retained environment. The worker probe preserves its own raw results and restores the owned worker after the fault check.
+
 The evidence directory must not exist beforehand. Its sibling `candidate-unique-run-disposable-stack` must also not exist. The runtime profile uses loopback PostgreSQL port 155432, API 18080, web 15173 and Grafana 3301; first confirm they are free. The runner creates the database only in its separate E:-backed folder, checks project ownership labels, runs .NET and frontend checks, validates Prometheus rules, exercises the isolated browser suites and stores an unreviewed evidence manifest. It never issues `docker compose down -v`, prunes a volume, changes protected main or declares gate acceptance.
 
 After a failure, preserve the evidence directory, the separate owned database directory and the source SHA for investigation. The `-StopOwnedContainers` option requests a stop of only its uniquely named services, not deletion. A failed build, browser case, rule test or source check is a failed campaign and must not be converted into a G17 pass. The `G17-S25` review occurs separately after raw evidence completeness is established.

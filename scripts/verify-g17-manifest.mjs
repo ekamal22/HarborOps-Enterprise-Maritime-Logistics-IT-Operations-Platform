@@ -117,6 +117,15 @@ export function verifyManifest(manifestPath, expectedSha) {
           !Array.isArray(cardinality.memory_samples) ||
           cardinality.memory_samples.length < 2)
         throw Error("Cardinality or memory observations incomplete");
+      const exported = JSON.parse(fs.readFileSync(path.join(root,
+        "m17-export-privacy-results.json"),"utf8"));
+      if (exported.source_sha !== manifest.source_sha ||
+          exported.project !== expected.project ||
+          exported.result !== "PASS" ||
+          exported.traces_inspected < 1 || exported.spans_inspected < 1 ||
+          exported.exported_metric_series_inspected < 1 ||
+          exported.snapshots?.length < 2)
+        throw Error("G17 cannot claim privacy without positive raw exported trace and metric witnesses");
       const restart = JSON.parse(fs.readFileSync(path.join(root,
         "m17-restart-results.json"),"utf8"));
       if (restart.source_sha !== manifest.source_sha ||

@@ -77,8 +77,16 @@ const sha = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).tri
 if (!/^[a-f0-9]{40}$/.test(sha))
   throw Error("The source SHA is not an exact commit identifier");
 
+const inventoryBytes = fs.readFileSync("docs/M17_G17_ASSERTION_INVENTORY_20261112.json");
+const inventory = JSON.parse(inventoryBytes.toString("utf8"));
+const assertionCount = inventory.scenarios?.reduce((sum, item) => sum + item.assertions.length, 0);
+if (inventory.scenarios?.length !== 25 || assertionCount !== 75 ||
+    inventory.gate_acceptance !== "NOT_ACCEPTED")
+  throw Error("The G17 assertion inventory no longer matches its source-locked contract");
 const result = {
   schema_version: 2, gate: "G17", source_sha: sha,
+  assertion_inventory_sha256: crypto.createHash("sha256").update(inventoryBytes).digest("hex"),
+  scenario_count: 25, assertion_count: 75, reviewed_assertion_count: 0,
   captured_at_utc: new Date().toISOString(),
   candidate_execution: process.env.HARBOROPS_G17_DISPOSABLE_STACK_STARTED === "true"
     ? "RUNTIME_CANDIDATE_NOT_REVIEWED" : "SOURCE_ONLY_NOT_REVIEWED",

@@ -238,6 +238,24 @@ catch {
     Write-Warning 'The verification campaign failed. Retaining its source-locked failure evidence.'
 }
 finally {
+    if ($StopOwnedContainers -and $ownedStackStarted) {
+        try {
+            $services = @('grafana','prometheus','tempo','otelcol','web','api','postgres')
+            if ($VerifyDisposableWorker) { $services += 'worker' }
+            & docker compose @composeArgs stop @services
+            if ($LASTEXITCODE -ne 0) { throw 'Owned service stop failed' }
+            $script:stageLog.Add([pscustomobject]@{
+                stage = 'disposable-cleanup'; status = 'PASS'; exit_code = 0
+            })
+        } catch {
+            $runState = 'FAILED'
+            $runFailureType = 'DisposableCleanupFailure'
+            $script:stageLog.Add([pscustomobject]@{
+                stage = 'disposable-cleanup'; status = 'FAIL'; exit_code = $LASTEXITCODE
+            })
+            Write-Warning 'Some disposable services could not be stopped'
+        }
+    }
     $runInfo = @{
         schema_version = 2; gate = 'G17'; source_sha = $sha
         requested_source_sha = $ExpectedSha; source_verified = $sourceVerified
@@ -261,16 +279,6 @@ finally {
         } catch {
             $runState = 'FAILED'
             Write-Warning 'Evidence indexing failed. Preserve raw files for investigation.'
-        }
-    }
-    if ($StopOwnedContainers -and $ownedStackStarted) {
-        try {
-            $services = @('grafana','prometheus','tempo','otelcol','web','api','postgres')
-            if ($VerifyDisposableWorker) { $services += 'worker' }
-            & docker compose @composeArgs stop @services
-            if ($LASTEXITCODE -ne 0) { throw 'Owned service stop failed' }
-        } catch {
-            Write-Warning 'Some disposable services could not be stopped'
         }
     }
     Pop-Location

@@ -109,7 +109,8 @@ $required = @('source-sha.txt','run-status.json','expected-artifacts.json',
 if ($StartDisposableStack) {
     $required += @('m17-promtool-check.txt','m17-promtool-test.txt',
         'm17-network-results.json','g17-integration.trx','m17-browser-results.json',
-        'm17-cardinality-results.json','m17-cardinality-raw.json')
+        'm17-cardinality-results.json','m17-cardinality-raw.json',
+        'm17-performance-raw.json')
     if ($VerifyDisposableWorker) { $required += 'm17-worker-results.json' }
 }
 $expected = @{
@@ -242,6 +243,7 @@ try {
                 '--config', 'playwright.m17.cardinality.config.mjs')
             # Both result directories are written directly to the E: evidence root.
         } finally { Pop-Location }
+        Invoke-Required 'node' @('scripts/check-g17-performance.mjs') -Stage 'three-paired-overhead-measurements'
         if ($VerifyDisposableWorker) {
             Invoke-Required 'docker' (@('compose') + $composeArgs +
                 @('up','-d','--build','worker'))

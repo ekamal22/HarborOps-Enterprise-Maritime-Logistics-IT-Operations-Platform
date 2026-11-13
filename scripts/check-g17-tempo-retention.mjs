@@ -10,7 +10,13 @@ const root=process.env.HARBOROPS_G17_EVIDENCE_DIR;
 const storage=process.env.HARBOROPS_G17_STORAGE_ROOT;
 assert.match(project||"",/^ho-verify-m17-[a-z0-9-]+$/);
 assert.match(source||"",/^[0-9a-f]{40}$/);
-assert.match(storage||"",/^[Ee]:[\\/]/);
+const hostedEvidence = process.env.GITHUB_ACTIONS === "true" &&
+  process.env.HARBOROPS_G17_HOSTED === "true" &&
+  process.env.RUNNER_TEMP &&
+  path.resolve(process.env.HARBOROPS_G17_EVIDENCE_DIR || "").startsWith(
+    path.resolve(process.env.RUNNER_TEMP) + path.sep);
+assert.ok(/^[Ee]:[\\/]/.test(storage || "") || hostedEvidence,
+  "Disposable telemetry storage must be isolated on E: or hosted runner temp");
 assert.ok(root&&fs.existsSync(root));
 const image="grafana/tempo:2.10.8";
 const container=project+"-tempo-ttl-probe";

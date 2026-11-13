@@ -7,10 +7,16 @@ namespace HarborOps.Infrastructure.Observability;
 // suppress those untrusted collections. A code-only tag scrub is insufficient.
 public static class M17TracePrivacyGuard
 {
-    public static void RequireSafeExporterLimits()
+    public static void RequireSafeExporterLimits() =>
+        RequireSafeExporterLimits(
+            Environment.GetEnvironmentVariable("OTEL_SPAN_EVENT_COUNT_LIMIT"),
+            Environment.GetEnvironmentVariable("OTEL_SPAN_LINK_COUNT_LIMIT"));
+
+    // Pure overload for negative controls. The exporter uses the environment
+    // overload, which must agree with the pinned OTLP SDK serialization limits.
+    public static void RequireSafeExporterLimits(string? eventLimit, string? linkLimit)
     {
-        if (Environment.GetEnvironmentVariable("OTEL_SPAN_EVENT_COUNT_LIMIT") != "0" ||
-            Environment.GetEnvironmentVariable("OTEL_SPAN_LINK_COUNT_LIMIT") != "0")
+        if (eventLimit != "0" || linkLimit != "0")
             throw new InvalidOperationException(
                 "M17 requires zero exported span events and links");
     }

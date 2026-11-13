@@ -15,8 +15,11 @@ services:
       OTEL_BSP_SCHEDULE_DELAY: "1000"
       OTEL_ATTRIBUTE_COUNT_LIMIT: "16"
       OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT: "120"
+      OTEL_SPAN_EVENT_COUNT_LIMIT: "0"
+      OTEL_SPAN_LINK_COUNT_LIMIT: "0"
       OTEL_METRIC_EXPORT_INTERVAL: "15000"
       OTEL_METRIC_EXPORT_TIMEOUT: "2500"
+    networks: [internal, telemetry_ingest]
 
   otelcol:
     image: otel/opentelemetry-collector-contrib:0.165.0
@@ -29,7 +32,7 @@ services:
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
     restart: "no"
-    networks: [internal]
+    networks: [telemetry_ingest, telemetry_monitor]
 
   tempo:
     image: grafana/tempo:2.10.8
@@ -42,7 +45,7 @@ services:
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
     restart: "no"
-    networks: [internal]
+    networks: [telemetry_monitor]
 
   prometheus:
     image: prom/prometheus:v3.16.0
@@ -63,7 +66,7 @@ services:
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
     restart: "no"
-    networks: [internal]
+    networks: [telemetry_monitor]
 
   grafana:
     image: grafana/grafana:13.3.1
@@ -90,4 +93,12 @@ services:
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
     restart: "no"
-    networks: [internal]
+    networks: [telemetry_monitor]
+
+# No untrusted web or other application container may access the unauthenticated
+# Prometheus, Tempo or collector diagnostic endpoints directly.
+networks:
+  telemetry_ingest:
+    internal: true
+  telemetry_monitor:
+    internal: true

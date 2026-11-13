@@ -13,26 +13,32 @@
         {
           "id": "G17-S01-A01",
           "expected": "all four work packages implemented",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/g17-source-boundary.test.mjs",
+            "case": "M17 four work packages exist with actual referenced production and verification boundaries"
+          },
+          "coverage_gap": "Source packages present; end-to-end behavior and independent implementation review pending"
         },
         {
           "id": "G17-S01-A02",
           "expected": "approved P01-P09 and exact instrument mapping match source",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/g17-source-boundary.test.mjs",
+            "case": "every approved M17 policy has a concrete source-side verification control"
+          },
+          "coverage_gap": "Policy values and control code checked; P02/P04/P05/P09 require measured evidence"
         },
         {
           "id": "G17-S01-A03",
           "expected": "no unapproved default service, API or migration changes",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-m17-source.test.mjs",
-            "case": "the default stack does not start or expose M17 components"
+            "path": "scripts/g17-source-boundary.test.mjs",
+            "case": "source diff does not change the accepted default Compose or database migrations"
           },
-          "coverage_gap": "Default-only inspection, no full source diff"
+          "coverage_gap": "Actual source diff rejects changes to default Compose and database migrations"
         }
       ]
     },

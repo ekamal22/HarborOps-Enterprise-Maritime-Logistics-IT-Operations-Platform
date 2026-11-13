@@ -1,5 +1,7 @@
 # HarborOps
 
+**M17 Round 2 correctness remediation (2026-11-13):** Candidate source fixes for all ten Round 2 findings are on the M17 feature branch, including fail-closed trace privacy, separated monitoring networks, paired diagnostic sampling, worker telemetry tests, alert recovery fixtures, and failure-safe source-locked evidence. No .NET, Docker, Prometheus, browser, performance or G17-S25 campaign has been executed or accepted for the repaired head. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Round 2 remediation register](docs/M17_CORRECTNESS_ROUND2_REMEDIATION_20261113.md).
+
 **M17 correctness remediation (2026-11-13):** Candidate fixes for findings F17-001 through F17-014 are committed on the isolated feature branch, but .NET compilation, local Compose startup, collector/alert behavior, three-browser results, performance and G17-S25 have not been executed or accepted. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Remediation register](docs/M17_CORRECTNESS_REMEDIATION_20261113.md).
 
 **M17 source candidate (2026-11-12):** The isolated `feature/m17-observability-20261112` branch now contains opt-in telemetry, private local monitoring configuration, scoped worker instrumentation, and verification scaffolding. The code has not been compiled or exercised in a source-locked G17 campaign. **G17 remains NOT ACCEPTED, 0/25 scenarios and 0/75 assertions executed, and protected `main` is unchanged.** [Candidate status](docs/M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md).

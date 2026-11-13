@@ -171,6 +171,17 @@ export function verifyManifest(manifestPath, expectedSha) {
           !retention.checks.some(c=>c.name==="expired-metric-blocks-only-removed"&&
             c.old_removed>=1&&c.new_preserved>=1))
         throw Error("Missing positive isolated 24h block-expiry and retention-policy test");
+      const tempoTtl=JSON.parse(fs.readFileSync(path.join(root,
+        "m17-tempo-retention-results.json"),"utf8"));
+      if (tempoTtl.source_sha !== manifest.source_sha ||
+          tempoTtl.project !== expected.project ||
+          tempoTtl.result !== "PASS" ||
+          tempoTtl.runtime_trace_ingested !== true ||
+          tempoTtl.expired_trace_removed !== true ||
+          tempoTtl.recent_trace_preserved !== true ||
+          tempoTtl.reference_policy_hours !== 24 ||
+          tempoTtl.checks?.filter(x=>x.status==="PASS").length < 4)
+        throw Error("Missing real selective trace expiry and retention-isolation witness");
       const regress=JSON.parse(fs.readFileSync(path.join(root,
         "g17-regression-matrix-results.json"),"utf8"));
       const groups=["M9","M10","M11","M13","M15","audit","authorization",

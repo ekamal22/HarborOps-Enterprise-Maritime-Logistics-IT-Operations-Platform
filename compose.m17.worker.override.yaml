@@ -6,8 +6,11 @@ services:
       M17__Enabled: "true"
       M17__OtlpEndpoint: "http://otelcol:4317"
       M17__LinkKey: "${HARBOROPS_M17_LINK_KEY:?Set a private disposable 256-bit link key}"
+      OTEL_SPAN_EVENT_COUNT_LIMIT: "0"
+      OTEL_SPAN_LINK_COUNT_LIMIT: "0"
       OTEL_BSP_MAX_QUEUE_SIZE: "2048"
       OTEL_BSP_MAX_EXPORT_BATCH_SIZE: "256"
       OTEL_BSP_EXPORT_TIMEOUT: "1000"
       OTEL_METRIC_EXPORT_INTERVAL: "15000"
       OTEL_METRIC_EXPORT_TIMEOUT: "2500"
+    networks: [internal, telemetry_ingest]

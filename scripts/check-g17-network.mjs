@@ -51,6 +51,36 @@ try {
   }
   assert.ok(!observed.web.includes("telemetry_ingest"));
   assert.ok(!observed.web.includes("telemetry_monitor"));
+  // Assert actual Docker host port bindings, not just declared YAML ports.
+  for(const service of ["otelcol","tempo","prometheus"]) {
+    const id=docker([...compose,"ps","-q",service]).trim();
+    assert.match(id,/^[a-f0-9]+$/);
+    const exposed=JSON.parse(docker(["inspect","--format",
+      "{{json .HostConfig.PortBindings}}",id]));
+    assert.equal(Object.keys(exposed||{}).filter(key=>
+      (exposed[key]||[]).some(binding=>binding?.HostPort)).length,0,
+      service+" exported an unauthenticated diagnostic host listener");
+  }
+  const grafanaId=docker([...compose,"ps","-q","grafana"]);
+  const bound=JSON.parse(docker(["inspect","--format",
+    "{{json .HostConfig.PortBindings}}",grafanaId]));
+  const grafanaPorts=Object.values(bound||{}).flat().filter(Boolean);
+  assert.equal(grafanaPorts.length,1);
+  assert.equal(grafanaPorts[0].HostIp,"127.0.0.1");
+  assert.equal(grafanaPorts[0].HostPort,"3301");
+  // Verify a network-untrusted HTTP client cannot reach the monitoring
+  // endpoints via any published port. A reachable listener is a failure.
+  for(const port of [4317,9464,9090,3200]) {
+    try {
+      const response=await fetch("http://127.0.0.1:"+port+"/",{
+        signal:AbortSignal.timeout(1300)});
+      throw Error("Untrusted host client reached protected monitoring port "+port+
+        " with status "+response.status);
+    } catch(error) {
+      if(!["TypeError","TimeoutError","AbortError"].includes(error?.name))
+        throw error;
+    }
+  }
   outcome = "PASS";
 } finally {
   fs.writeFileSync(resultPath,JSON.stringify({

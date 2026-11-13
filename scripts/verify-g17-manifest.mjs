@@ -143,6 +143,18 @@ export function verifyManifest(manifestPath, expectedSha) {
           exported.exported_metric_series_inspected < 1 ||
           exported.snapshots?.length < 2)
         throw Error("G17 cannot claim privacy without positive raw exported trace and metric witnesses");
+      const memory = JSON.parse(fs.readFileSync(path.join(root,
+        "m17-cardinality-memory-results.json"),"utf8"));
+      if (memory.source_sha !== manifest.source_sha ||
+          memory.project !== expected.project ||
+          memory.result !== "PASS" ||
+          memory.run_kind !== "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES" ||
+          memory.total_paths !== 40000 || memory.rows?.length !== 4 ||
+          memory.pairs?.length !== 2 || memory.pairs.some(p=>p.pass !== true ||
+            p.relative_memory_peak_increase_pct > 15) ||
+          !Number.isFinite(memory.post_stress_memory_growth_pct) ||
+          memory.post_stress_memory_growth_pct > 15)
+        throw Error("Sustained hostile-path cardinality memory witnesses incomplete");
       const restart = JSON.parse(fs.readFileSync(path.join(root,
         "m17-restart-results.json"),"utf8"));
       if (restart.source_sha !== manifest.source_sha ||

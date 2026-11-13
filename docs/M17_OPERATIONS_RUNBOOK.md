@@ -4,7 +4,7 @@
 
 **Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
 
-**State:** Historical 2026-11-12 procedure updated after disposable source-locked verification attempts. The M17 collector configuration, instrument catalogue, initial alert rules, dashboard files, optional Compose override and local runner exist on a separate feature branch. They have been started or validated. Do not run them against retained resources.
+**State:** Historical 2026-11-12 procedure updated after disposable source-locked verification attempts. The M17 collector configuration, instrument catalogue, initial alert rules, dashboard files, optional Compose override and local runner exist on a separate feature branch. They have been exercised only in disposable hosted verification attempts. The full source-locked campaign remains unverified, and retained resources must not be used.
 **See:** [Architecture](M17_ARCHITECTURE_DESIGN.md), [implementation plan](M17_IMPLEMENTATION_PLAN.md), [policy proposals](M17_POLICY_PROPOSAL_20261112.md), [G17 verification](M17_VERIFICATION_PLAN.md).
 
 ## 1. Operator intent and constraints

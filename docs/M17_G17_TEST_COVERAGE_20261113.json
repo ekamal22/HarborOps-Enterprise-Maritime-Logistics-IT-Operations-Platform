@@ -13,22 +13,22 @@
         {
           "id": "G17-S01-A01",
           "expected": "all four work packages implemented",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
             "path": "scripts/g17-source-boundary.test.mjs",
             "case": "M17 four work packages exist with actual referenced production and verification boundaries"
           },
-          "coverage_gap": "Source packages present; end-to-end behavior and independent implementation review pending"
+          "coverage_gap": "Packages tied to their integration, browser, fault, security and evidence scripts; execution still pending"
         },
         {
           "id": "G17-S01-A02",
           "expected": "approved P01-P09 and exact instrument mapping match source",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
             "path": "scripts/g17-source-boundary.test.mjs",
             "case": "every approved M17 policy has a concrete source-side verification control"
           },
-          "coverage_gap": "Policy values and control code checked; P02/P04/P05/P09 require measured evidence"
+          "coverage_gap": "P01-P09 source contracts and separately required runtime measurements; execution still pending"
         },
         {
           "id": "G17-S01-A03",
@@ -213,12 +213,12 @@
         {
           "id": "G17-S06-A03",
           "expected": "memory does not grow without bound",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/browser/m17/cardinality.spec.mjs",
-            "case": "memory_api_peak_mib"
+            "path": "scripts/check-g17-cardinality-memory.mjs",
+            "case": "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES"
           },
-          "coverage_gap": "No sustained-pressure or bounded-growth proof"
+          "coverage_gap": "Actual Docker RSS memory across two telemetry-on/off waves and 40k hostile paths; execution still pending"
         }
       ]
     },
@@ -347,22 +347,22 @@
         {
           "id": "G17-S10-A02",
           "expected": "enabled disposable worker emits correct attempts/outcomes",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.IntegrationTests/M17WorkerTelemetryTests.cs",
-            "case": "WorkerDispositionsAreMeasuredWithExactFiniteOutcomes"
+            "path": "tests/HarborOps.IntegrationTests/M17WorkerShellFunctionalTests.cs",
+            "case": "ActualWorkerShellEmitsProcessedAndReconciliationDispositionsWithoutDuplicateEffects"
           },
-          "coverage_gap": "Synthetic counters, no real disposition lifecycle"
+          "coverage_gap": "Actual worker shell, durable processed and reconciliation dispositions, one-effect invariant; execution still pending"
         },
         {
           "id": "G17-S10-A03",
           "expected": "no worker auto-start",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.IntegrationTests/M17TelemetryContractTests.cs",
-            "case": "DefaultComposeDoesNotStartACollectorOrExposeLocalDiagnostics"
+            "path": "tests/HarborOps.IntegrationTests/M17WorkerShellFunctionalTests.cs",
+            "case": "DefaultApiHostDoesNotRegisterTheHeldTrackingWorker"
           },
-          "coverage_gap": "Default worker profile not directly executed"
+          "coverage_gap": "Actual default API host DI contains no tracking worker or work store; execution still pending"
         }
       ]
     },
@@ -373,12 +373,12 @@
         {
           "id": "G17-S11-A01",
           "expected": "authorized worker work links safely to source or documented correlation",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
-            "case": "DurableReceiptLinksToReadOnlyWorkerCorrelationWithoutForgedParentOrReplayMarker"
+            "path": "tests/HarborOps.IntegrationTests/M17RestrictedWorkerReaderTests.cs",
+            "case": "RestrictedWorkerCanLinkOnlyOwnedReceiptAndCannotReadM16AuditOrModifyHistory"
           },
-          "coverage_gap": "Durable read-only link verified with admin fixture; worker restricted role and exported traces pending"
+          "coverage_gap": "Actual restricted database worker role reads only own receipt and generates safe HMAC digest; execution still pending"
         },
         {
           "id": "G17-S11-A02",
@@ -409,12 +409,12 @@
         {
           "id": "G17-S12-A01",
           "expected": "collector down does not change API response, transaction or readiness",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-g17-collector-fault.mjs",
-            "case": "collector-fault-business-isolation"
+            "path": "tests/HarborOps.IntegrationTests/M17ExporterOutageMutationTests.cs",
+            "case": "UnreachableCollectorCannotChangeAuthorizedMutationOrConflictInvariants"
           },
-          "coverage_gap": "Real reads and health preserved; mutation transaction invariant still needs positive witness; execution pending"
+          "coverage_gap": "Real authorized PostgreSQL mutation and conflict/tenant denials succeed without collector; execution still pending"
         },
         {
           "id": "G17-S12-A02",
@@ -465,12 +465,12 @@
         {
           "id": "G17-S13-A03",
           "expected": "retained M16 audit is not exposed",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-g17-export-privacy.mjs",
-            "case": "audit_entries"
+            "path": "tests/HarborOps.IntegrationTests/M17RestrictedWorkerReaderTests.cs",
+            "case": "RestrictedWorkerCanLinkOnlyOwnedReceiptAndCannotReadM16AuditOrModifyHistory"
           },
-          "coverage_gap": "Exported traces and logs reject audit table details, but explicit populated M16 audit disclosure mutant is still needed; execution pending"
+          "coverage_gap": "Populated audit records protected against restricted worker role read; execution still pending"
         }
       ]
     },
@@ -825,12 +825,12 @@
         {
           "id": "G17-S23-A03",
           "expected": "changed source build, .NET regression and targeted browser suites pass",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/run-g17-local.ps1",
-            "case": "dotnet' @('build'"
+            "path": "scripts/verify-g17-manifest.mjs",
+            "case": "Completed run has missing evidence or a failed stage"
           },
-          "coverage_gap": "Defines execution but does not establish exact required method/case coverage"
+          "coverage_gap": "Full source-locked .NET build, unit/contract/integration TRX, web and browser cases mandatory; execution still pending"
         }
       ]
     },

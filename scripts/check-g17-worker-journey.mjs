@@ -33,6 +33,8 @@ const output=path.join(evidence,"m17-worker-journey-results.json");
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const auth="Basic "+Buffer.from("local_operator:"+grafana).toString("base64");
 let failure=null,pairCount=0,accepted=0,replay=false,reconciled=0;
+const protectedValues=[];
+let privateLabelsChecked=0;
 async function tempo(endpoint,params={}) {
  const u=new URL("http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-traces"+endpoint);
  for(const [key,val] of Object.entries(params))u.searchParams.set(key,String(val));
@@ -53,6 +55,10 @@ async function digests(service) {
  const found=new Set();
  for(const id of (listed.traces||[]).slice(0,100).map(t=>t.traceID)) {
    const doc=await tempo("/api/v2/traces/"+id);
+   const raw=JSON.stringify(doc).toLowerCase();
+   for(const secret of protectedValues)
+     assert.ok(!raw.includes(secret.toLowerCase()),
+       "Tempo exported private tenant/source/account detail");
    for(const resource of doc.resourceSpans||doc.batches||[]) {
      for(const scope of resource.scopeSpans||resource.instrumentationLibrarySpans||[]) {
        for(const span of scope.spans||[]) {
@@ -77,9 +83,11 @@ try {
  const org=sql("SELECT id FROM organizations WHERE slug='"+slug+"'");
  assert.match(org,/^[0-9a-f-]{36}$/);
  const sourceId=crypto.randomUUID(),credentialId=crypto.randomUUID();
+ protectedValues.push(org,org.replaceAll("-",""),slug,account);
  const secret=crypto.randomBytes(32);
  const digest=crypto.createHash("sha256").update(secret).digest("hex");
  const bearer="hop_v1_"+credentialId.replaceAll("-","")+"_"+secret.toString("base64url");
+ protectedValues.push(sourceId,sourceId.replaceAll("-",""),credentialId,bearer);
  const insert="BEGIN; INSERT INTO integration_sources "+
    "(id,organization_id,source_code,display_name,status,capability,version,created_at_utc,updated_at_utc) "+
    "VALUES ('"+sourceId+"','"+org+"','g17_source','G17 Test Source','Active','tracking_event_validate',1,now(),now()); "+
@@ -135,6 +143,22 @@ try {
    return intersection.length>=2?intersection:null;
  },180000);
  pairCount=pairs.length;
+ const metricUrl=new URL("http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-metrics/api/v1/series");
+ metricUrl.searchParams.set("match[]",'{__name__=~"harborops_.*"}');
+ const exported=await fetch(metricUrl,{headers:{authorization:auth},
+   signal:AbortSignal.timeout(13000)});
+ assert.equal(exported.status,200);
+ const metricBody=await exported.json();
+ assert.equal(metricBody.status,"success");
+ assert.ok(metricBody.data?.length>0,"No exported custom metric series");
+ for(const row of metricBody.data) {
+   const raw=JSON.stringify(row).toLowerCase();
+   for(const secret of protectedValues)
+     assert.ok(!raw.includes(secret.toLowerCase()),
+       "Prometheus exported private tenant/source/account identifiers");
+   privateLabelsChecked++;
+ }
+
  assert.equal(Number(sql("SELECT count(*) FROM tracking_inbox_receipts "+
    "WHERE source_id='"+sourceId+"'")),accepted,"Replay created a duplicate receipt");
 }catch(error){failure=error;}
@@ -143,6 +167,7 @@ fs.writeFileSync(output,JSON.stringify({
  source_sha:sha,project,result:status,worker_role:"restricted",
  receipts_accepted:accepted,reconciled,duplicate_replay:replay,
  matched_safe_trace_pairs:pairCount,
+ exported_metric_series_checked_for_tenant_privacy:privateLabelsChecked,
  failure_type:failure?.name??null,accepted_assertions:0
 },null,2)+"\n",{flag:"wx"});
 if(status!=="PASS")throw Error("G17 real worker causal-link campaign failed");

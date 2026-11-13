@@ -167,12 +167,12 @@
         {
           "id": "G17-S05-A02",
           "expected": "no user/tenant/request/SQL fields",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/browser/m17/cardinality.spec.mjs",
-            "case": "ten thousand hostile HTTP requests remain within complete exported-series budget"
+            "path": "scripts/check-g17-export-privacy.mjs",
+            "case": "owned-sanitized-service-logs"
           },
-          "coverage_gap": "Metric labels only, excludes logs/spans"
+          "coverage_gap": "Raw Tempo, Prometheus series and owned logs reject hostile data; execution pending"
         },
         {
           "id": "G17-S05-A03",
@@ -275,22 +275,22 @@
         {
           "id": "G17-S08-A02",
           "expected": "oversized baggage ignored",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
-            "case": "MalformedTraceContextDoesNotTurnDependencyFailureIntoUnhandled500"
+            "path": "scripts/check-g17-export-privacy.mjs",
+            "case": "baggage:\"secret=\""
           },
-          "coverage_gap": "HTTP error contract covered; raw collector/trace privacy witness still missing"
+          "coverage_gap": "Oversized baggage is injected and checked against raw Tempo output; execution pending"
         },
         {
           "id": "G17-S08-A03",
           "expected": "no raw header is exported, no 500",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
-            "case": "MalformedTraceContextDoesNotTurnDependencyFailureIntoUnhandled500"
+            "path": "scripts/check-g17-export-privacy.mjs",
+            "case": "invalid-"
           },
-          "coverage_gap": "HTTP error contract covered; raw collector/trace privacy witness still missing"
+          "coverage_gap": "Malformed trace context and raw canary rejection verified in API, Tempo and metrics; execution pending"
         }
       ]
     },
@@ -411,27 +411,30 @@
           "expected": "collector down does not change API response, transaction or readiness",
           "assessment": "PARTIAL",
           "witness": {
-            "path": "scripts/run-g17-local.ps1",
-            "case": "$FaultProbe"
+            "path": "scripts/check-g17-collector-fault.mjs",
+            "case": "collector-fault-business-isolation"
           },
-          "coverage_gap": "Collector outage checks only HTTP health, not mutation invariants"
+          "coverage_gap": "Real reads and health preserved; mutation transaction invariant still needs positive witness; execution pending"
         },
         {
           "id": "G17-S12-A02",
           "expected": "export queue bounded/drops counted",
           "assessment": "PARTIAL",
           "witness": {
-            "path": "src/HarborOps.Api/Observability/M17TelemetryRegistration.cs",
-            "case": "maxQueueSize: 2048"
+            "path": "scripts/check-g17-collector-fault.mjs",
+            "case": "exporter losses observed after recovery"
           },
-          "coverage_gap": "Static bound, no forced queue overflow"
+          "coverage_gap": "Real export failure observed; exact forced queue overflow still missing; execution pending"
         },
         {
           "id": "G17-S12-A03",
           "expected": "exporter recoverable without manual data repair",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-collector-fault.mjs",
+            "case": "collector-recovery-automatic"
+          },
+          "coverage_gap": "Owned collector restart, exporter transport recovery and business HTTP continuity; execution pending"
         }
       ]
     },
@@ -442,12 +445,12 @@
         {
           "id": "G17-S13-A01",
           "expected": "secrets, cookies, personal canaries and SQL values absent from logs, spans and metric labels",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.IntegrationTests/M17TelemetryContractTests.cs",
-            "case": "PreExportTraceProcessorStripsSensitiveTagsAndSpanName"
+            "path": "scripts/check-g17-export-privacy.mjs",
+            "case": "owned-sanitized-service-logs"
           },
-          "coverage_gap": "No raw end-to-end OTLP or log inspection"
+          "coverage_gap": "Canary-injected API requests with positive exported trace and metric existence; execution pending"
         },
         {
           "id": "G17-S13-A02",
@@ -508,23 +511,32 @@
         {
           "id": "G17-S15-A01",
           "expected": "process restart and canceled request do not leak stale spans or requests",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-g17-restart.mjs",
+            "case": "real-client-abort-does-not-commit-business"
+          },
+          "coverage_gap": "Request cancellation and restart verified; leaked stale span check pending; execution pending"
         },
         {
           "id": "G17-S15-A02",
           "expected": "shutdown drain is bounded",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-restart.mjs",
+            "case": "owned-api-shutdown-bounded"
+          },
+          "coverage_gap": "Owned process bounded shutdown and no SIGKILL required; execution pending"
         },
         {
           "id": "G17-S15-A03",
           "expected": "no duplicated business effect or worker lease change",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-restart.mjs",
+            "case": "restart-recovers-health-without-business-duplication"
+          },
+          "coverage_gap": "Durable receipt, lease and effect counts unchanged across fault; execution pending"
         }
       ]
     },
@@ -581,22 +593,22 @@
         {
           "id": "G17-S17-A02",
           "expected": "threshold/window evidence exact",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
             "path": "monitoring/m17/alert-test.yaml",
-            "case": "HarborOpsDatabaseUnavailable"
+            "case": "Readiness must not remain critical"
           },
-          "coverage_gap": "Threshold samples not complete transition matrix"
+          "coverage_gap": "Promtool checks exact two-sample readiness and recovery windows; execution pending"
         },
         {
           "id": "G17-S17-A03",
           "expected": "clear/hysteresis works after recovery",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
             "path": "monitoring/m17/alert-test.yaml",
-            "case": "eval_time: 5m"
+            "case": "Latency recovers below"
           },
-          "coverage_gap": "Backlog only, not 5xx and p95 recovery"
+          "coverage_gap": "Promtool checks 5xx, p95, DB and backlog clear transitions; execution pending"
         }
       ]
     },
@@ -627,12 +639,12 @@
         {
           "id": "G17-S18-A03",
           "expected": "cool-down deduplicates repeat alerts",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "monitoring/m17/alerts.yaml",
-            "case": "keep_firing_for: 5m"
+            "path": "monitoring/m17/alert-test.yaml",
+            "case": "High failure rate falls to zero"
           },
-          "coverage_gap": "Expression syntax not enough for dedup proof"
+          "coverage_gap": "Promtool checks single alert after repeated evaluations and eventual clearing; execution pending"
         }
       ]
     },
@@ -742,23 +754,32 @@
         {
           "id": "G17-S22-A01",
           "expected": "local telemetry capped and expires only its own disposable data",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-g17-storage.mjs",
+            "case": "owned-retention-config"
+          },
+          "coverage_gap": "Actual 24-hour age expiration is not simulated, but exact cap is checked; execution pending"
         },
         {
           "id": "G17-S22-A02",
           "expected": "full store degrades observation safely",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-storage.mjs",
+            "case": "full-telemetry-store"
+          },
+          "coverage_gap": "Actual tmpfs saturation with ENOSPC, safe API and local restoration; execution pending"
         },
         {
           "id": "G17-S22-A03",
           "expected": "M8/M11/M15/M16 retained data unchanged",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-storage.mjs",
+            "case": "all-application-history-byte-identical"
+          },
+          "coverage_gap": "Full public-schema pg_dump normalized content hash before/after storage pressure; execution pending"
         }
       ]
     },

@@ -79,23 +79,32 @@
         {
           "id": "G17-S03-A01",
           "expected": "live stays responsive with DB down",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
         },
         {
           "id": "G17-S03-A02",
           "expected": "ready goes unavailable on DB stop or absent seed within budget",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
         },
         {
           "id": "G17-S03-A03",
           "expected": "existing JSON/status paths unchanged",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
         }
       ]
     },
@@ -106,23 +115,32 @@
         {
           "id": "G17-S04-A01",
           "expected": "response correlation generated on server",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "SpoofedCorrelationIsReplacedAndWarningKeepsServerGeneratedScope"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
         },
         {
           "id": "G17-S04-A02",
           "expected": "error and structured log scope use same value",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "SpoofedCorrelationIsReplacedAndWarningKeepsServerGeneratedScope"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
         },
         {
           "id": "G17-S04-A03",
           "expected": "client-supplied correlation cannot spoof it",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "SpoofedCorrelationIsReplacedAndWarningKeepsServerGeneratedScope"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
         }
       ]
     },
@@ -229,23 +247,32 @@
         {
           "id": "G17-S08-A01",
           "expected": "malformed traceparent/tracestate handled safely",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "MalformedTraceContextDoesNotTurnDependencyFailureIntoUnhandled500"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
         },
         {
           "id": "G17-S08-A02",
           "expected": "oversized baggage ignored",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "MalformedTraceContextDoesNotTurnDependencyFailureIntoUnhandled500"
+          },
+          "coverage_gap": "HTTP error contract covered; raw collector/trace privacy witness still missing"
         },
         {
           "id": "G17-S08-A03",
           "expected": "no raw header is exported, no 500",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "MalformedTraceContextDoesNotTurnDependencyFailureIntoUnhandled500"
+          },
+          "coverage_gap": "HTTP error contract covered; raw collector/trace privacy witness still missing"
         }
       ]
     },
@@ -270,9 +297,12 @@
         {
           "id": "G17-S09-A03",
           "expected": "business error contract remains unchanged",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
         }
       ]
     },

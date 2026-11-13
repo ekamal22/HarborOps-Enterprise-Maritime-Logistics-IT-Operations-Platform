@@ -19,7 +19,7 @@ const args=["compose","-p",project,"-f","compose.m17.verify.yaml",
   ...(process.env.HARBOROPS_G17_VERIFY_WORKER==="true"?["--profile","worker"]:[])];
 const docker=cmd=>execFileSync("docker",[...args,...cmd],{
   encoding:"utf8",timeout:45000,maxBuffer:1024*1024}).trim();
-const checks=[];let stopped=false;let failure=false;
+const checks=[];let stopped=false;let failure=false;let shutdownEpochMs=0;
 const password=process.env.HARBOROPS_M17_GRAFANA_PASSWORD;
 assert.ok(password,"Disposable Grafana credentials must exist");
 async function prom(expression) {
@@ -99,6 +99,7 @@ try {
     docker(["stop","-t","10","api"]);
     stopped=true;
     const elapsed=(performance.now()-started)/1000;
+    shutdownEpochMs=Date.now();
     assert.ok(elapsed<=20,"Telemetry shutdown exceeded the bounded stop interval");
     const states=docker(["ps","-a","api","--format","{{.State}}"]);
     assert.ok(states==="exited","API was not cleanly stopped");
@@ -118,7 +119,38 @@ try {
       "harborops_db_readiness and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)");
     assert.equal(current.length,0,
       "Readiness data from a stopped API was incorrectly displayed as current");
-    return "Stale sample suppressed while collector remains healthy";
+    const base="http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-traces";
+    const headers={authorization:"Basic "+
+      Buffer.from("local_operator:"+password).toString("base64")};
+    const search=new URL(base+"/api/search");
+    search.searchParams.set("tags","service.name=harborops-api");
+    search.searchParams.set("limit","100");
+    const response=await fetch(search,{headers,signal:AbortSignal.timeout(12000)});
+    assert.equal(response.status,200,"Tempo must remain observable after API shutdown");
+    const listing=await response.json();
+    assert.ok((listing.traces||[]).length>0,
+      "A positive API trace witness is required before stale-span review");
+    let inspected=0;
+    for(const item of (listing.traces||[]).slice(0,50)) {
+      const detail=await fetch(base+"/api/v2/traces/"+item.traceID,
+        {headers,signal:AbortSignal.timeout(12000)});
+      assert.equal(detail.status,200);
+      const raw=await detail.json();
+      for(const resource of raw.resourceSpans||raw.batches||[]) {
+        for(const scope of resource.scopeSpans||resource.instrumentationLibrarySpans||[]) {
+          for(const span of scope.spans||[]) {
+            const startTime=span.startTimeUnixNano||span.start_time_unix_nano;
+            assert.ok(startTime,"Exported span lacks its source timestamp");
+            assert.ok(BigInt(startTime)<BigInt(shutdownEpochMs+1000)*1000000n,
+              "A new API span was exported with a start time after the API stopped");
+            inspected++;
+          }
+        }
+      }
+    }
+    assert.ok(inspected>0,"No real serialized API spans inspected for stale-data leakage");
+    return {stale_readiness:"unknown",post_shutdown_spans:0,
+      actual_spans_inspected:inspected};
   });
 
 } catch {failure=true;}

@@ -139,7 +139,8 @@ try {
     Invoke-Required 'node' @('--test', 'scripts/check-m17-source.test.mjs',
         'scripts/check-g17-manifest.test.mjs',
         'scripts/audit-g17-test-coverage.test.mjs',
-        'scripts/g17-results-contract.test.mjs') -Stage 'source-and-negative-controls'
+        'scripts/g17-results-contract.test.mjs',
+        'scripts/g17-source-boundary.test.mjs') -Stage 'source-and-negative-controls'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')

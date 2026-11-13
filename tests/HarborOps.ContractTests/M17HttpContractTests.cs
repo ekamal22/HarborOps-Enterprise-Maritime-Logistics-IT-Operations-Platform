@@ -10,8 +10,25 @@ using Xunit;
 namespace HarborOps.ContractTests;
 
 // Real API pipeline with M17 opted in. No live collector or database is needed.
-public sealed class M17HttpContractTests
+public sealed class M17HttpContractTests : IDisposable
 {
+    private readonly string? oldEventLimit;
+    private readonly string? oldLinkLimit;
+
+    public M17HttpContractTests()
+    {
+        oldEventLimit = Environment.GetEnvironmentVariable("OTEL_SPAN_EVENT_COUNT_LIMIT");
+        oldLinkLimit = Environment.GetEnvironmentVariable("OTEL_SPAN_LINK_COUNT_LIMIT");
+        Environment.SetEnvironmentVariable("OTEL_SPAN_EVENT_COUNT_LIMIT","0");
+        Environment.SetEnvironmentVariable("OTEL_SPAN_LINK_COUNT_LIMIT","0");
+    }
+
+    public void Dispose()
+    {
+        Environment.SetEnvironmentVariable("OTEL_SPAN_EVENT_COUNT_LIMIT",oldEventLimit);
+        Environment.SetEnvironmentVariable("OTEL_SPAN_LINK_COUNT_LIMIT",oldLinkLimit);
+    }
+
     private static readonly string LinkKey = Convert.ToBase64String(
         Enumerable.Range(1,32).Select(i => (byte)i).ToArray());
 

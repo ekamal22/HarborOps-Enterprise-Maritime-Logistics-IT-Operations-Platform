@@ -117,6 +117,19 @@ export function verifyManifest(manifestPath, expectedSha) {
           !Array.isArray(cardinality.memory_samples) ||
           cardinality.memory_samples.length < 2)
         throw Error("Cardinality or memory observations incomplete");
+      const overhead = JSON.parse(fs.readFileSync(path.join(root,
+        "m17-performance-raw.json"),"utf8"));
+      if (overhead.source_sha !== manifest.source_sha ||
+          overhead.project !== expected.project ||
+          overhead.run_kind !== "THREE_MATCHED_PAIRS" ||
+          overhead.result !== "PASS" ||
+          overhead.rows?.length !== 6 || overhead.pairs?.length !== 3 ||
+          overhead.system?.cpus < 1 ||
+          !Number.isFinite(overhead.p95_increase_stddev_pct) ||
+          !Number.isFinite(overhead.rss_increase_stddev_pct) ||
+          overhead.pairs.some(p => p.pass !== true ||
+            p.p95_increase_pct > 10 || p.memory_increase_pct > 15))
+        throw Error("Three complete matched P09 overhead pairs are missing or above budget");
       if (expected.worker_fixture) {
         const worker = JSON.parse(fs.readFileSync(
           path.join(root,"m17-worker-results.json"),"utf8"));

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using OpenTelemetry;
+using HarborOps.Infrastructure.Observability;
 
 namespace HarborOps.Api.Observability;
 
@@ -26,6 +27,7 @@ public sealed class M17TraceSanitizer : BaseProcessor<Activity>
 
     public override void OnEnd(Activity activity)
     {
+        M17TracePrivacyGuard.SanitizeNonTagFields(activity);
         foreach (var tag in activity.TagObjects.ToArray())
         {
             var raw = tag.Value?.ToString();

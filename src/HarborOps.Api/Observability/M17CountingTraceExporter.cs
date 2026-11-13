@@ -19,7 +19,7 @@ public sealed class M17CountingTraceExporter : OtlpTraceExporter
     {
         var result = base.Export(in batch);
         if (result != ExportResult.Success)
-            M17Telemetry.RecordExporterFailure(batch.Count);
+            M17Telemetry.RecordExporterFailure(checked((int)batch.Count));
         return result;
     }
 }

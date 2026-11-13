@@ -128,7 +128,7 @@ public sealed class WorkerShell(
         IEnumerable<KeyValuePair<string, object?>>? spanTags = linkedDigest is null
             ? null : [new("harborops.link_digest", linkedDigest)];
         using var span = M17WorkerTelemetry.Traces.StartActivity(
-            "tracking.process", ActivityKind.Internal, tags: spanTags);
+            "tracking.process", ActivityKind.Internal, parentContext: default, tags: spanTags);
         span?.SetTag("harborops.operation", "tracking.process");
         var startTimestamp = Stopwatch.GetTimestamp();
         var disposition = "other";

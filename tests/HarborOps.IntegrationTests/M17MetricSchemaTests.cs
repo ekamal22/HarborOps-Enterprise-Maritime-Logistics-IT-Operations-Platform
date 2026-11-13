@@ -104,4 +104,52 @@ public sealed class M17MetricSchemaTests
         Assert.Contains(requests,value => value > 0.04 && value < 0.05);
         Assert.Contains(database,value => value > 0.02 && value < 0.03);
     }
+
+    [Fact]
+    public void CustomMetricLabelsRejectUntrustedHostsPathsAndBusinessIdentifiers()
+    {
+        var observed = new List<KeyValuePair<string,object?>>();
+        using var listener = new MeterListener();
+        listener.InstrumentPublished = (instrument,observer) =>
+        {
+            if (instrument.Meter.Name is M17Telemetry.MeterName or M17WorkerTelemetry.MeterName)
+                observer.EnableMeasurementEvents(instrument);
+        };
+        void Capture(ReadOnlySpan<KeyValuePair<string,object?>> tags)
+        {
+            observed.AddRange(tags.ToArray());
+        }
+        listener.SetMeasurementEventCallback<long>((_,_,tags,_)=>Capture(tags));
+        listener.SetMeasurementEventCallback<int>((_,_,tags,_)=>Capture(tags));
+        listener.SetMeasurementEventCallback<double>((_,_,tags,_)=>Capture(tags));
+        listener.Start();
+
+        var request = new DefaultHttpContext();
+        request.Request.Path = "/tenant-secret-identifier/private-shipment-123";
+        request.Request.Host = new HostString("tenant-secret.example.test");
+        request.Response.StatusCode = 503;
+        M17Telemetry.ObserveRequest(request,TimeSpan.FromMilliseconds(5));
+        M17Telemetry.ObserveBaselineRead(false,TimeSpan.FromMilliseconds(2));
+        M17Telemetry.RecordExporterFailure(2);
+        M17WorkerTelemetry.ObserveAttempt("tenant-secret-result",TimeSpan.FromMilliseconds(3));
+        listener.RecordObservableInstruments();
+        Assert.NotEmpty(observed);
+        var keyAllowlist = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "operation","outcome","status_class","worker","service","signal","reason"
+        };
+        foreach (var label in observed)
+        {
+            Assert.Contains(label.Key,keyAllowlist);
+            var value = label.Value?.ToString() ?? "";
+            Assert.DoesNotContain("tenant-secret",value,StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("private-shipment",value,StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("example.test",value,StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("identifier",value,StringComparison.OrdinalIgnoreCase);
+            Assert.InRange(value.Length,0,40);
+        }
+        Assert.Contains(observed,tag=>tag.Key=="operation" && Equals(tag.Value,"other"));
+        Assert.Contains(observed,tag=>tag.Key=="outcome" && Equals(tag.Value,"other"));
+        Assert.Contains(observed,tag=>tag.Key=="status_class" && Equals(tag.Value,"5xx"));
+    }
 }

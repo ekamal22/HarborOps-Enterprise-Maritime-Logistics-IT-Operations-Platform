@@ -45,6 +45,7 @@ $env:HARBOROPS_G17_CARDINALITY_JSON = Join-Path $EvidencePath 'm17-cardinality-r
 $env:HARBOROPS_G17_BROWSER_ARTIFACT_DIR = Join-Path $EvidencePath 'browser-artifacts'
 $env:HARBOROPS_G17_CARDINALITY_ARTIFACT_DIR = Join-Path $EvidencePath 'cardinality-artifacts'
 $env:HARBOROPS_G17_PROJECT = $ProjectName
+$env:HARBOROPS_G17_VERIFY_WORKER = if ($VerifyDisposableWorker) { 'true' } else { 'false' }
 $env:HARBOROPS_G17_API_URL = 'http://127.0.0.1:18080'
 $Cache = Join-Path (Split-Path -Parent $Repo) 'harborops-m0-cache'
 $env:DOTNET_CLI_HOME = Join-Path $Cache 'dotnet-home'
@@ -112,6 +113,7 @@ if ($StartDisposableStack) {
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json')
     if ($VerifyDisposableWorker) { $required += 'm17-worker-results.json' }
+    if ($FaultProbe) { $required += 'm17-collector-fault-results.json' }
 }
 $expected = @{
     schema_version = 1; gate = 'G17'; source_sha = $ExpectedSha
@@ -223,16 +225,7 @@ try {
         }
         if (!$ready) { throw 'The isolated API never became ready' }
         if ($FaultProbe) {
-            try {
-                Invoke-Required 'docker' (@('compose') + $composeArgs + @('stop', 'otelcol'))
-                $liveness = Invoke-WebRequest -Uri 'http://127.0.0.1:18080/health/live' -TimeoutSec 5
-                if ($liveness.StatusCode -ne 200) { throw 'Collector outage affected liveness' }
-                $readiness = Invoke-WebRequest -Uri 'http://127.0.0.1:18080/health/ready' -TimeoutSec 5
-                if ($readiness.StatusCode -ne 200) { throw 'Collector outage affected readiness' }
-            } finally {
-                # Restore the collector even if an assertion throws.
-                Invoke-Required 'docker' (@('compose') + $composeArgs + @('start', 'otelcol'))
-            }
+            Invoke-Required 'node' @('scripts/check-g17-collector-fault.mjs') -Stage 'collector-business-fault-and-recovery'
         }
         Push-Location -LiteralPath (Join-Path $Repo 'tests/browser')
         try {

@@ -79,4 +79,27 @@ public sealed class M17WorkerTelemetryTests
         Assert.Null(activity.GetTagItem("harborops.link_digest"));
         Assert.Equal("tracking.process", activity.GetTagItem("harborops.operation"));
     }
+
+    [Fact]
+    public void ApiAndWorkerRateCapsAdmitExactlyTwoHundredAndResetPerSecond()
+    {
+        long second = 500;
+        var api = new M17BoundedSampler(() => second);
+        var worker = new M17WorkerBoundedSampler(() => second);
+        var trace = ActivityTraceId.CreateFromString(
+            "00000000000000000000000000000001".AsSpan());
+        var parameters = new SamplingParameters(default,trace,"baseline.read",ActivityKind.Internal);
+        for (var i = 0; i < 200; i++)
+        {
+            Assert.Equal(SamplingDecision.RecordAndSample,
+                api.ShouldSample(in parameters).Decision);
+            Assert.Equal(SamplingDecision.RecordAndSample,
+                worker.ShouldSample(in parameters).Decision);
+        }
+        Assert.Equal(SamplingDecision.Drop,api.ShouldSample(in parameters).Decision);
+        Assert.Equal(SamplingDecision.Drop,worker.ShouldSample(in parameters).Decision);
+        second++;
+        Assert.Equal(SamplingDecision.RecordAndSample,api.ShouldSample(in parameters).Decision);
+        Assert.Equal(SamplingDecision.RecordAndSample,worker.ShouldSample(in parameters).Decision);
+    }
 }

@@ -1,3 +1,4 @@
+using HarborOps.Infrastructure.Observability;
 using OpenTelemetry.Trace;
 
 namespace HarborOps.Api.Observability;
@@ -15,7 +16,13 @@ public sealed class M17BoundedSampler : Sampler
 
     public override SamplingResult ShouldSample(in SamplingParameters parameters)
     {
-        var choice = inner.ShouldSample(in parameters);
+        var link = parameters.Name == "tracking.receipt"
+            ? parameters.Tags?.FirstOrDefault(tag => tag.Key == "harborops.link_digest").Value as string
+            : null;
+        var choice = link is not null && M17CorrelationDigest.IsValidDigest(link)
+            ? new SamplingResult(M17CorrelationDigest.SampleLinkedJourney(link)
+                ? SamplingDecision.RecordAndSample : SamplingDecision.Drop)
+            : inner.ShouldSample(in parameters);
         if (choice.Decision != SamplingDecision.RecordAndSample)
             return choice;
 

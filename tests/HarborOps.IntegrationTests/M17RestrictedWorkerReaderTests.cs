@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using HarborOps.Api.Audit;
+using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Observability;
 using HarborOps.Infrastructure.Persistence;

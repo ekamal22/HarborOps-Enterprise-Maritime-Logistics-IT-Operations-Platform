@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Net.Http.Headers;
 using System.Text;
+using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
 using HarborOps.Infrastructure.Observability;
 using HarborOps.Infrastructure.Persistence;
@@ -66,8 +67,7 @@ public sealed class M17CorrelationJourneyTests
             var digest=M17CorrelationDigest.FromServerCorrelation(persisted.CorrelationId,key);
             Assert.NotNull(digest);
             Assert.Equal(64,digest.Length);
-            var markers=completed.Where(a=>a.OperationName=="tracking.receipt").ToList();
-            var marker = Assert.Single(markers);
+            var marker = Assert.Single(completed,a=>a.OperationName=="tracking.receipt");
             Assert.Equal(digest,marker.GetTagItem("harborops.link_digest"));
             Assert.NotEqual(firstCorrelation,marker.GetTagItem("harborops.link_digest"));
             Assert.Null(marker.GetTagItem("organization_id"));
@@ -87,7 +87,7 @@ public sealed class M17CorrelationJourneyTests
             Assert.True(replayBody.GetProperty("duplicate").GetBoolean());
             Assert.Equal(receiptId,replayBody.GetProperty("receiptId").GetGuid());
             Assert.NotEqual(firstCorrelation,Assert.Single(replay.Headers.GetValues("X-Correlation-ID")));
-            Assert.Single(completed.Where(a=>a.OperationName=="tracking.receipt"));
+            Assert.Single(completed,a=>a.OperationName=="tracking.receipt");
             Assert.Equal(1,await db.TrackingInboxReceipts.CountAsync(r=>r.Id==receiptId));
         }
         finally
@@ -158,7 +158,7 @@ public sealed class M17CorrelationJourneyTests
             Assert.Equal(tenant.A,receipt.OrganizationId);
             Assert.Equal(issued,receipt.CorrelationId);
             var digest=M17CorrelationDigest.FromServerCorrelation(issued,key);
-            var marker=Assert.Single(spans.Where(x=>x.OperationName=="tracking.receipt"));
+            var marker=Assert.Single(spans,x=>x.OperationName=="tracking.receipt");
             Assert.Equal(digest,marker.GetTagItem("harborops.link_digest"));
             Assert.Null(marker.GetTagItem("organization_id"));
             Assert.Null(marker.GetTagItem("tenant"));

@@ -80,6 +80,23 @@ export function verifyManifest(manifestPath, expectedSha) {
         preflight.technically_authored !== 72 || preflight.assertions !== 75 ||
         preflight.scenarios !== 25 || preflight.errors?.length !== 0)
       throw Error("Incomplete or incorrectly reported 75-assertion S25 technical preflight");
+    if (expected.require_full_g17) {
+      const ledger=JSON.parse(fs.readFileSync(path.join(root,
+        "g17-technical-assertion-ledger.json"),"utf8"));
+      const technical=ledger.records?.filter(x=>x.status==="TECHNICAL_PASS") ?? [];
+      const review=ledger.records?.filter(x=>x.status==="PENDING_INDEPENDENT_REVIEW") ?? [];
+      const ids=ledger.records?.map(x=>x.id) ?? [];
+      if (ledger.source_sha !== manifest.source_sha ||
+          ledger.project !== expected.project || ledger.pass !== true ||
+          ledger.acceptance !== "PENDING" ||
+          ledger.technical_passes !== 72 || ledger.independent_pending !== 3 ||
+          ledger.total_assertions !== 75 || technical.length !== 72 ||
+          review.length !== 3 || new Set(ids).size !== 75 ||
+          ledger.errors?.length !== 0 ||
+          technical.some(x=>!x.source_artifact ||
+            !fileNames.has(x.source_artifact)))
+        throw Error("A full G17 result is missing one or more raw atomic technical witnesses");
+    }
     if (expected.require_full_g17 &&
         (expected.disposable_stack !== true || expected.worker_fixture !== true ||
          expected.fault_probe !== true || status.full_campaign_requested !== true))

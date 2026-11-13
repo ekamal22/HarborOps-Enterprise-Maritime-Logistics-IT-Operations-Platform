@@ -1,5 +1,7 @@
 # M17 Correctness Remediation Register
 
+**M17 Round 2 correctness remediation (2026-11-13):** Candidate source fixes for all ten Round 2 findings are on the M17 feature branch, including fail-closed trace privacy, separated monitoring networks, paired diagnostic sampling, worker telemetry tests, alert recovery fixtures, and failure-safe source-locked evidence. No .NET, Docker, Prometheus, browser, performance or G17-S25 campaign has been executed or accepted for the repaired head. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Round 2 remediation register](M17_CORRECTNESS_ROUND2_REMEDIATION_20261113.md).
+
 **Recorded:** 2026-11-13
 **Feature branch:** `feature/m17-observability-20261112`
 **Base main:** `b490fb8cfc879cdf05cb1f7484b99f6a9b264ed3`

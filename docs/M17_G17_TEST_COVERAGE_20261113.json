@@ -383,22 +383,22 @@
         {
           "id": "G17-S11-A02",
           "expected": "fabricated parent/tenant trace context rejected",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.IntegrationTests/M17WorkerTelemetryTests.cs",
-            "case": "KeyedReceiptAndWorkerSamplersAgreeWithoutASharedTraceParent"
+            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
+            "case": "ForgedTenantAndW3CParentHeadersCannotControlDurableReceiptLink"
           },
-          "coverage_gap": "No actual tenant-spoofed end-to-end context request"
+          "coverage_gap": "Actual forged tenant and W3C headers cannot influence accepted receipt organization or keyed digest; execution pending"
         },
         {
           "id": "G17-S11-A03",
           "expected": "replay/retry has unique bounded spans",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
-            "case": "DurableReceiptLinksToReadOnlyWorkerCorrelationWithoutForgedParentOrReplayMarker"
+            "path": "tests/HarborOps.IntegrationTests/M17ReplayRedriveSpanTests.cs",
+            "case": "RealReplayAndAuthorizedRedriveEmitOneSpanPerWorkerAttemptNotPerHttpReplay"
           },
-          "coverage_gap": "Replay creates no duplicate receipt marker, but retry and lease-race spans not exercised"
+          "coverage_gap": "Real replay/redrive produces exactly two bounded worker spans and no duplicate receipt/effect; execution pending"
         }
       ]
     },
@@ -419,12 +419,12 @@
         {
           "id": "G17-S12-A02",
           "expected": "export queue bounded/drops counted",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-g17-collector-fault.mjs",
-            "case": "exporter losses observed after recovery"
+            "path": "tests/HarborOps.IntegrationTests/M17ExporterQueuePressureTests.cs",
+            "case": "QueueFullDropsAreCountedWithoutBlockingSpanProducers"
           },
-          "coverage_gap": "Real export failure observed; exact forced queue overflow still missing; execution pending"
+          "coverage_gap": "Actual pinned SDK 2048-record queue overflow and SDK queue_full counter under a held exporter; execution pending"
         },
         {
           "id": "G17-S12-A03",
@@ -517,12 +517,12 @@
         {
           "id": "G17-S15-A01",
           "expected": "process restart and canceled request do not leak stale spans or requests",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
             "path": "scripts/check-g17-restart.mjs",
-            "case": "real-client-abort-does-not-commit-business"
+            "case": "actual_spans_inspected"
           },
-          "coverage_gap": "Request cancellation and restart verified; leaked stale span check pending; execution pending"
+          "coverage_gap": "Real canceled requests, API stop/restart, and positive Tempo span timestamps excluding post-stop spans; execution pending"
         },
         {
           "id": "G17-S15-A02",
@@ -573,12 +573,12 @@
         {
           "id": "G17-S16-A03",
           "expected": "collector not exposed externally, untrusted reads denied",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
             "path": "scripts/check-g17-network.mjs",
-            "case": "telemetry_monitor"
+            "case": "Untrusted host client reached protected monitoring port"
           },
-          "coverage_gap": "Network labels tested, no untrusted endpoint HTTP probe"
+          "coverage_gap": "Docker runtime networks, bind checks and negative host HTTP probes; execution pending"
         }
       ]
     },
@@ -707,12 +707,12 @@
         {
           "id": "G17-S20-A02",
           "expected": "trace to DB/worker or documented async bridge resolves",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-g17-export-privacy.mjs",
-            "case": "tempo-trace"
+            "path": "scripts/check-g17-worker-journey.mjs",
+            "case": "matched_safe_trace_pairs"
           },
-          "coverage_gap": "Real Tempo resolution and safe spans tested; asynchronous worker bridge not proven end-to-end; execution pending"
+          "coverage_gap": "50 real receipts and at least two API/worker Tempo trace pairs with identical HMAC link digests; execution pending"
         },
         {
           "id": "G17-S20-A03",

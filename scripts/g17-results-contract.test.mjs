@@ -7,7 +7,8 @@ const titles=[
   "authenticated samples match the disposable ready API and suppress held workers",
   "dashboard is unavailable to an anonymous browser context",
   "alert dashboard links stay local and never embed private diagnostic parameters",
-  "critical monitoring panels use live series and no-data views are explicitly unknown"
+  "critical monitoring panels use live series and no-data views are explicitly unknown",
+  "zero and insufficient traffic render unknown rather than a healthy zero"
 ];
 const engines=["chromium","firefox","webkit"];
 function browser(mode) {

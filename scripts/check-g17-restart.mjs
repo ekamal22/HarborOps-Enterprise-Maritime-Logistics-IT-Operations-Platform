@@ -20,6 +20,19 @@ const args=["compose","-p",project,"-f","compose.m17.verify.yaml",
 const docker=cmd=>execFileSync("docker",[...args,...cmd],{
   encoding:"utf8",timeout:45000,maxBuffer:1024*1024}).trim();
 const checks=[];let stopped=false;let failure=false;
+const password=process.env.HARBOROPS_M17_GRAFANA_PASSWORD;
+assert.ok(password,"Disposable Grafana credentials must exist");
+async function prom(expression) {
+  const target=new URL("http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-metrics/api/v1/query");
+  target.searchParams.set("query",expression);
+  const response=await fetch(target,{headers:{authorization:"Basic "+
+    Buffer.from("local_operator:"+password).toString("base64")},
+    signal:AbortSignal.timeout(11000)});
+  assert.equal(response.status,200);
+  const result=await response.json();
+  assert.equal(result.status,"success");
+  return result.data.result;
+}
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function check(name,fn) {
   try {
@@ -96,6 +109,18 @@ try {
     assert.notEqual(exit,"137","API required SIGKILL rather than bounded graceful shutdown");
     return {shutdown_seconds:elapsed,exit_code:Number(exit)};
   });
+  await check("stale-readiness-is-unknown-not-healthy",async()=>{
+    await wait(40000);
+    const collector=await prom('up{job="m17_collector"}');
+    assert.equal(collector.length,1,"The monitoring backend itself must be observable");
+    assert.equal(Number(collector[0].value[1]),1);
+    const current=await prom(
+      "harborops_db_readiness and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)");
+    assert.equal(current.length,0,
+      "Readiness data from a stopped API was incorrectly displayed as current");
+    return "Stale sample suppressed while collector remains healthy";
+  });
+
 } catch {failure=true;}
 finally {
   if(stopped) {
@@ -115,7 +140,7 @@ if(!stopped) {
     });
   }catch {failure=true;}
 }
-const report={source_sha:sha,project,result:!failure&&!stopped&&checks.length===4&&
+const report={source_sha:sha,project,result:!failure&&!stopped&&checks.length===5&&
   checks.every(x=>x.status==="PASS")?"PASS":"FAIL",
   checks,api_restored:!stopped,assertion_acceptance:"PENDING"};
 fs.writeFileSync(path.join(evidence,"m17-restart-results.json"),

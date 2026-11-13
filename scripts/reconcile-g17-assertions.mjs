@@ -41,9 +41,12 @@ export function checkPerAssertion(coverage,hasWitness) {
         errors.push("Missing or duplicate assertion "+key);
       seen.add(key);
       if(i===25) {
-        if(clause.assessment!=="INDEPENDENT_REVIEW"||clause.witness!==null)
+        const pending=clause.assessment==="INDEPENDENT_REVIEW"&&
+          clause.witness===null;
+        if(!pending)
           errors.push(key+": independent reviewer must remain unassigned");
-        records.push({id:key,status:"PENDING_INDEPENDENT_REVIEW",
+        records.push({id:key,status:pending
+          ?"PENDING_INDEPENDENT_REVIEW":"INVALID_INDEPENDENT_REVIEW_CLAIM",
           expected:clause.expected,source_artifact:null});
         continue;
       }

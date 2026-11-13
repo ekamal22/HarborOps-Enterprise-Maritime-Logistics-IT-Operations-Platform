@@ -3,6 +3,7 @@ using System.Diagnostics.Metrics;
 using HarborOps.Api.Observability;
 using HarborOps.Infrastructure.Observability;
 using Microsoft.AspNetCore.Http;
+using OpenTelemetry.Trace;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
@@ -156,6 +157,51 @@ public sealed class M17TelemetryContractTests
         new M17TraceSanitizer().OnEnd(activity);
         Assert.Null(activity.GetTagItem("harborops.link_digest"));
         Assert.Null(activity.GetTagItem("harborops.outcome"));
+    }
+
+    [Fact]
+    public void NonTagStatusDescriptionsAndRemoteTraceStateAreCleared()
+    {
+        using var activity = new Activity("tracking-secret");
+        activity.Start();
+        activity.TraceStateString = "privatevendor=customer-secret";
+        activity.SetStatus(ActivityStatusCode.Error, "SQL credentials and private host");
+        new M17TraceSanitizer().OnEnd(activity);
+        Assert.Null(activity.TraceStateString);
+        Assert.Null(activity.StatusDescription);
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+    }
+
+    [Fact]
+    public void KeyedIntakeSamplingIsStableAcrossUnrelatedTraceIds()
+    {
+        var key = M17CorrelationDigest.RequireKey(Convert.ToBase64String(
+            Enumerable.Range(1, 32).Select(n => (byte)n).ToArray()));
+        var count = 0;
+        for (var i = 0; i < 1000; i++)
+        {
+            var correlation = i.ToString("x32");
+            var digest = M17CorrelationDigest.FromServerCorrelation(correlation, key)!;
+            var tags = new KeyValuePair<string, object?>[] {
+                new("harborops.link_digest", digest)
+            };
+            var first = new SamplingParameters(default,
+                ActivityTraceId.CreateFromString("00112233445566778899aabbccddeeff".AsSpan()),
+                "tracking.receipt", ActivityKind.Internal, tags);
+            var second = new SamplingParameters(default,
+                ActivityTraceId.CreateFromString("ffeeddccbbaa99887766554433221100".AsSpan()),
+                "tracking.receipt", ActivityKind.Internal, tags);
+            var a = new M17BoundedSampler().ShouldSample(in first).Decision;
+            var b = new M17BoundedSampler().ShouldSample(in second).Decision;
+            Assert.Equal(a, b);
+            Assert.Equal(
+                M17CorrelationDigest.SampleLinkedJourney(digest)
+                    ? SamplingDecision.RecordAndSample : SamplingDecision.Drop, a);
+            if (a == SamplingDecision.RecordAndSample) count++;
+        }
+        // Deterministic synthetic canaries, not a stochastic tolerance test.
+        Assert.InRange(count, 50, 150);
+        Assert.False(M17CorrelationDigest.IsValidDigest("forged-from-client"));
     }
 
     [Fact]

@@ -163,6 +163,11 @@ test("critical monitoring panels use live series and no-data views are explicitl
     return rows.length?Number(rows[0].value[1]):0;
   },{timeout:95000,intervals:[5000]}).toBeGreaterThan(0);
 
+  await expect.poll(async()=>{
+    const rows=await queryPrometheus(page,
+      "histogram_quantile(0.95, sum by (le) (rate(harborops_request_duration_seconds_bucket[5m])))");
+    return rows.length?Number(rows[0].value[1]):0;
+  },{timeout:95000,intervals:[5000]}).toBeGreaterThan(0);
   const insufficient=await queryPrometheus(page,
     'harborops_request_duration_seconds_count{operation="never-issued-g17"}');
   expect(insufficient).toHaveLength(0);
@@ -174,4 +179,42 @@ test("critical monitoring panels use live series and no-data views are explicitl
   for(const title of ["PostgreSQL readiness","Application heartbeats per 100 seconds",
     "Collector transport probe","Notification worker"])
     await expect(page.getByText(title,{exact:false}).first()).toBeVisible();
+});
+
+test("zero and insufficient traffic render unknown rather than a healthy zero", async ({page}) => {
+  await logIn(page);
+  const response=await page.request.get("/api/dashboards/uid/harborops-m17");
+  expect(response.status()).toBe(200);
+  const source=(await response.json()).dashboard;
+  const critical=["API request rate","API 5xx rate","API p95 latency",
+    "PostgreSQL readiness"];
+  for(const title of critical) {
+    const panel=source.panels.find(item=>item.title.startsWith(title));
+    expect(panel,title).toBeTruthy();
+    expect(panel.fieldConfig?.defaults?.noValue,title).toBe("Unknown");
+    expect(panel.targets?.length,title).toBeGreaterThan(0);
+  }
+  const past=Math.floor(Date.now()/1000)-48*3600;
+  const noRequests=await page.request.get(prometheusProxy,{
+    params:{query:"harborops:m17:eligible_requests:5m",time:String(past)}
+  });
+  expect(noRequests.status()).toBe(200);
+  const body=await noRequests.json();
+  expect(body.status).toBe("success");
+  expect(body.data.result).toHaveLength(0);
+  // For the same timestamp, a missing failure series may not be treated as
+  // the positive statement "zero failures with sufficient request volume".
+  const noFailures=await page.request.get(prometheusProxy,{
+    params:{query:"harborops:m17:api_5xx_fraction:5m",time:String(past)}
+  });
+  expect(noFailures.status()).toBe(200);
+  const fraction=await noFailures.json();
+  expect(fraction.status).toBe("success");
+  expect(fraction.data.result).toHaveLength(0);
+  const start=String((past-300)*1000);
+  const finish=String(past*1000);
+  await page.goto(dashboard+"?from="+start+"&to="+finish);
+  await expect(page.getByText("API request rate",{exact:false}).first()).toBeVisible();
+  await expect(page.getByText("PostgreSQL readiness",{exact:false}).first()).toBeVisible();
+  await expect(page.getByText("API p95 latency",{exact:false}).first()).toBeVisible();
 });

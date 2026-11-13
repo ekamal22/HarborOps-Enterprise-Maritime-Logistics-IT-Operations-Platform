@@ -49,16 +49,16 @@ public sealed class M17ReplayRedriveSpanTests
         try
         {
             await worker.StartAsync(CancellationToken.None);
-            async Task<bool> IsAttempt(int n)
+            async Task<bool> IsAttempt(int generation,int attempt)
             {
                 await using var scope=factory.Services.CreateAsyncScope();
                 var db=scope.ServiceProvider.GetRequiredService<HarborOpsDbContext>();
                 return await db.TrackingInboxWorkItems.AsNoTracking().AnyAsync(x=>
-                    x.ReceiptId==receipt&&x.AttemptCount==n&&
-                    x.State=="NeedsReconciliation");
+                    x.ReceiptId==receipt&&x.RedriveGeneration==generation&&
+                    x.AttemptCount==attempt&&x.State=="NeedsReconciliation");
             }
             Assert.True(await TrackingWorkerG9ProcessTests.WaitFor(
-                ()=>IsAttempt(1),TimeSpan.FromSeconds(50)));
+                ()=>IsAttempt(0,1),TimeSpan.FromSeconds(50)));
             using (var replay=await G9Support.Post(factory,source,body))
             {
                 Assert.Equal(HttpStatusCode.Accepted,replay.StatusCode);
@@ -72,7 +72,7 @@ public sealed class M17ReplayRedriveSpanTests
                 redrivePath,new{reason="Synthetic G17 retry witness"}))
                 Assert.Equal(HttpStatusCode.OK,redrive.StatusCode);
             Assert.True(await TrackingWorkerG9ProcessTests.WaitFor(
-                ()=>IsAttempt(2),TimeSpan.FromSeconds(50)));
+                ()=>IsAttempt(1,1),TimeSpan.FromSeconds(50)));
         }
         finally {await worker.StopAsync(CancellationToken.None);worker.Dispose();}
         var attempts=spans.Where(x=>x.OperationName=="tracking.process").ToArray();
@@ -88,6 +88,12 @@ public sealed class M17ReplayRedriveSpanTests
         Assert.Equal(0,await verify.TrackingProcessingEffects.CountAsync(x=>x.ReceiptId==receipt));
         Assert.Equal(2,await verify.TrackingWorkAttemptEvents.CountAsync(x=>
             x.ReceiptId==receipt&&x.EventKind=="ReconciliationRequired"));
+        Assert.Equal(1,await verify.TrackingWorkAttemptEvents.CountAsync(x=>
+            x.ReceiptId==receipt&&x.EventKind=="ReconciliationRequired"&&
+            x.Generation==0&&x.AttemptCount==1));
+        Assert.Equal(1,await verify.TrackingWorkAttemptEvents.CountAsync(x=>
+            x.ReceiptId==receipt&&x.EventKind=="ReconciliationRequired"&&
+            x.Generation==1&&x.AttemptCount==1));
         Assert.Equal(1,await verify.TrackingWorkAttemptEvents.CountAsync(x=>
             x.ReceiptId==receipt&&x.EventKind=="Redriven"));
     }

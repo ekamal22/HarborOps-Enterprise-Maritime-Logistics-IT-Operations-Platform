@@ -27,6 +27,11 @@ public sealed class M17ExporterOutageMutationTests
             using var factory=new ReferenceDataHttpTests.ApiFactory(
                 TestDatabase.ConnectionString(),settings:options);
             var tenant=await ReferenceDataHttpTests.Setup(factory);
+            // The real readiness check requires a persisted bootstrap record.
+            await using (var seedScope=factory.Services.CreateAsyncScope())
+                await HarborOps.Infrastructure.Persistence.BootstrapSeeder.SeedAsync(
+                    seedScope.ServiceProvider.GetRequiredService<HarborOps.Infrastructure.Persistence.HarborOpsDbContext>(),
+                    CancellationToken.None);
             using var admin=tenant.Admin;
             using var manager=tenant.Manager;
             using var analyst=tenant.Analyst;

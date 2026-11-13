@@ -59,6 +59,11 @@ public sealed class M17SuccessfulDatabaseAndAuditTests
             using var factory=new ReferenceDataHttpTests.ApiFactory(
                 TestDatabase.ConnectionString(),settings:Settings());
             var tenant=await ReferenceDataHttpTests.Setup(factory);
+            // Seed the real database baseline required by this successful-read witness.
+            await using (var seedScope=factory.Services.CreateAsyncScope())
+                await BootstrapSeeder.SeedAsync(
+                    seedScope.ServiceProvider.GetRequiredService<HarborOpsDbContext>(),
+                    CancellationToken.None);
             using var admin=tenant.Admin;
             using var manager=tenant.Manager;
             using var analyst=tenant.Analyst;
@@ -100,6 +105,11 @@ public sealed class M17SuccessfulDatabaseAndAuditTests
             using var factory=new ReferenceDataHttpTests.ApiFactory(
                 TestDatabase.ConnectionString(),settings:Settings());
             var tenant=await ReferenceDataHttpTests.Setup(factory);
+            // Seed the real database baseline required by this successful-read witness.
+            await using (var seedScope=factory.Services.CreateAsyncScope())
+                await BootstrapSeeder.SeedAsync(
+                    seedScope.ServiceProvider.GetRequiredService<HarborOpsDbContext>(),
+                    CancellationToken.None);
             using var admin=tenant.Admin;
             using var manager=tenant.Manager;
             using var analyst=tenant.Analyst;

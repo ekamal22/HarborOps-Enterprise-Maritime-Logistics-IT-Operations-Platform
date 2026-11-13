@@ -6,7 +6,13 @@ import { execFileSync } from "node:child_process";
 const project = process.env.HARBOROPS_G17_PROJECT;
 const evidence = process.env.HARBOROPS_G17_EVIDENCE_DIR;
 assert.match(project || "", /^ho-verify-m17-[a-z0-9-]+$/);
-assert.match(evidence || "", /^[Ee]:[\\/]/);
+const hostedEvidence = process.env.GITHUB_ACTIONS === "true" &&
+  process.env.HARBOROPS_G17_HOSTED === "true" &&
+  process.env.RUNNER_TEMP &&
+  path.resolve(process.env.HARBOROPS_G17_EVIDENCE_DIR || "").startsWith(
+    path.resolve(process.env.RUNNER_TEMP) + path.sep);
+assert.ok(/^[Ee]:[\\/]/.test(evidence || "") || hostedEvidence,
+  "Evidence directory must be on E: or a uniquely owned hosted temp root");
 const compose = ["compose", "-p", project,
   "-f", "compose.m17.verify.yaml",
   "-f", "compose.m17.observability.override.yaml",

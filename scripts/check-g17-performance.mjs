@@ -238,7 +238,7 @@ try {
   if(!fs.existsSync(recordPath))
     fs.writeFileSync(recordPath,JSON.stringify({source_sha:source,project,
       result:"FAILED_OR_INCOMPLETE",completed_modes:rows.length,
-      rows,error_type:e?.name||"Error"},null,2)+"\n",{flag:"wx"});
+      rows,error_type:e?.name||"Error",error_message:String(e?.message||"").slice(0,240)},null,2)+"\n",{flag:"wx"});
 }finally{
   try {compose(on,["up","-d","--no-deps","--force-recreate","api"]);await ready();}
   catch(e){fail=fail||e;}

@@ -63,7 +63,7 @@ async function check(name, callback) {
     const value = await callback();
     checks.push({name, status:"PASS", detail:value ?? null});
   } catch (error) {
-    checks.push({name, status:"FAIL", error_type:error?.name || "Error"});
+    checks.push({name, status:"FAIL", error_type:error?.name || "Error",error_message:String(error?.message||"").slice(0,240)});
   }
 }
 
@@ -76,7 +76,7 @@ try {
   });
   await check("real-worker-running-and-heartbeat", async () => {
     await poll("worker running", async () => {
-      const result = await metric('harborops_service_running{service="tracking"}');
+      const result = await metric('harborops_service_running_ratio{service="tracking"}');
       return result.length === 1 && Number(result[0].value[1]) === 1;
     });
     await poll("worker advancing heartbeat", async () => {

@@ -38,7 +38,7 @@ tests:
 
   - interval: 15s
     input_series:
-      - series: 'harborops_db_readiness'
+      - series: 'harborops_db_readiness_ratio'
         values: '0x80'
       - series: 'harborops_db_readiness_sample_unix_seconds'
         values: '0+15x80'
@@ -54,7 +54,7 @@ tests:
     input_series:
       - series: 'harborops_worker_backlog_age_seconds{worker="tracking"}'
         values: '150x16 40x64'
-      - series: 'harborops_service_running{service="tracking"}'
+      - series: 'harborops_service_running_ratio{service="tracking"}'
         values: '1x80'
       - series: 'harborops_worker_heartbeat_total{worker="tracking"}'
         values: '0+1x80'
@@ -110,7 +110,7 @@ tests:
         values: '0+1x80'
       - series: 'harborops_request_failures_total{operation="other",status_class="5xx"}'
         values: '0x80'
-      - series: 'harborops_service_running{service="tracking"}'
+      - series: 'harborops_service_running_ratio{service="tracking"}'
         values: '0x80'
       - series: 'harborops_worker_heartbeat_total{worker="tracking"}'
         values: '0+1x80'
@@ -171,7 +171,7 @@ tests:
   # Readiness must not remain critical after the health probe recovers.
   - interval: 15s
     input_series:
-      - series: 'harborops_db_readiness'
+      - series: 'harborops_db_readiness_ratio'
         values: '0x20 1x40'
       - series: 'harborops_db_readiness_sample_unix_seconds'
         values: '0+15x60'
@@ -194,7 +194,7 @@ tests:
         values: '0x90'
       - series: 'harborops_request_failures_total{operation="other",status_class="5xx"}'
         values: '0x90'
-      - series: 'harborops_service_running{service="tracking"}'
+      - series: 'harborops_service_running_ratio{service="tracking"}'
         values: '0x90'
       - series: 'harborops_worker_backlog_age_seconds{worker="tracking"}'
         values: '250x90'

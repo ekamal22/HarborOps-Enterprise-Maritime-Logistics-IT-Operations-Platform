@@ -171,6 +171,12 @@ test("the disposable campaign isolates telemetry networks and retains failures",
   assert.match(overlay, /telemetry_ingest:\s*\n\s*internal:\s*true/);
   assert.match(overlay, /api:[\s\S]*?networks:\s*\[internal, telemetry_ingest\]/);
   assert.match(overlay, /grafana:[\s\S]*?networks:\s*\[telemetry_monitor\]/);
+  const grafanaBlock = overlay.slice(overlay.indexOf("  grafana:"), overlay.indexOf("  dashboard_gateway:"));
+  assert.doesNotMatch(grafanaBlock, /\n    ports:/);
+  assert.match(overlay, /dashboard_gateway:[\s\S]*?ports:\s*\["127\.0\.0\.1:3301:3000"\]/);
+  assert.match(overlay, /dashboard_gateway:[\s\S]*?networks:\s*\[dashboard_access, telemetry_monitor\]/);
+  assert.match(overlay, /dashboard_access:\n\s*driver:\s*bridge/);
+  assert.doesNotMatch(overlay, /dashboard_access:\n\s*driver:\s*bridge\n\s*internal:/);
   assert.match(runner, /VerifyDisposableWorker/);
   assert.match(runner, /run-status.json/);
   assert.match(runner, /g17-manifest.mjs/);

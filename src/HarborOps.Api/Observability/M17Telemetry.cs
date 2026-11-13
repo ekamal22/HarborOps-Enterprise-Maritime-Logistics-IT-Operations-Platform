@@ -141,5 +141,24 @@ public static class M17Telemetry
             new KeyValuePair<string, object?>("signal", "trace"),
             new KeyValuePair<string, object?>("reason", "rate_limit"));
 
-    public static void Heartbeat() => Heartbeats.Add(1);
+    public static void Heartbeat()
+    {
+        SeedDropSeries();
+        Heartbeats.Add(1);
+    }
+
+    // Prometheus increase() needs a baseline sample. A counter that first appears
+    // already holding its loss count would never raise the drop alert. Recording a
+    // zero on every heartbeat creates the series after the exporter is subscribed
+    // (a zero added during static initialization is lost before the listener exists).
+    private static void SeedDropSeries()
+    {
+        SamplingDrops.Add(0,
+            new KeyValuePair<string, object?>("signal", "trace"),
+            new KeyValuePair<string, object?>("reason", "exporter_failure"));
+        SamplingDrops.Add(0,
+            new KeyValuePair<string, object?>("signal", "trace"),
+            new KeyValuePair<string, object?>("reason", "rate_limit"));
+    }
+
 }

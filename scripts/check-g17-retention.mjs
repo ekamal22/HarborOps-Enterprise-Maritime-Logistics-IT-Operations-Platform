@@ -110,7 +110,7 @@ try{
     status:"PASS",tempo_trace_compaction:"24h",
     metrics_actual_age_expiry:"24h"});
   report.result="PASS";
-}catch(e){failed=e;report.error_type=e?.name||"Error";}
+}catch(e){failed=e;report.error_type=e?.name||"Error";report.error_message=String(e?.message||"").slice(0,240);}
 finally{
   if(launched){
     try{

@@ -60,7 +60,7 @@ try{
     status:"PASS",source_artifact:"m17-promtool-test.txt"});
   assert.equal(result.checks.length,6);
   result.result="PASS";
-}catch(e){error=e;result.error_type=e?.name||"Error";}
+}catch(e){error=e;result.error_type=e?.name||"Error";result.error_message=String(e?.message||"").slice(0,240);}
 fs.writeFileSync(path.join(evidence,"m17-alert-matrix-results.json"),
   JSON.stringify(result,null,2)+"\n",{flag:"wx"});
 if(error||result.result!=="PASS")

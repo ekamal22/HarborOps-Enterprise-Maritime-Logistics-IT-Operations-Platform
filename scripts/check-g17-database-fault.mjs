@@ -29,7 +29,7 @@ async function stage(name,fn) {
     const data=await fn();
     checks.push({name,status:"PASS",data});
   }catch(e) {
-    checks.push({name,status:"FAIL",error_type:e?.name||"Error"});
+    checks.push({name,status:"FAIL",error_type:e?.name||"Error",error_message:String(e?.message||"").slice(0,240)});
     throw e;
   }
 }
@@ -71,7 +71,7 @@ try {
     assert.equal((await http("/health/live",200)).body.status,"healthy");
     assert.equal((await http("/health/ready",200)).body.status,"healthy");
     await poll("healthy exported readiness",async()=>{
-      const values=await prom("harborops_db_readiness");
+      const values=await prom("harborops_db_readiness_ratio");
       return values.length===1&&Number(values[0].value[1])===1;
     });
     return {durable_row_counts:dbBefore};
@@ -115,11 +115,11 @@ try {
   });
   await stage("database-alert-identifies-only-safe-component",async()=>{
     await poll("fresh database unavailable sample",async()=>{
-      const data=await prom("harborops_db_readiness");
+      const data=await prom("harborops_db_readiness_ratio");
       return data.length===1&&Number(data[0].value[1])===0;
     });
     const current=await prom(
-      "harborops_db_readiness and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)");
+      "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)");
     assert.equal(current.length,1);
     assert.equal(Number(current[0].value[1]),0);
     await poll("database alert firing",async()=>{
@@ -159,7 +159,7 @@ if(!stopped) {
         catch{return false;}
       });
       await poll("exported database ready",async()=>{
-        const values=await prom("harborops_db_readiness");
+        const values=await prom("harborops_db_readiness_ratio");
         return values.length===1&&Number(values[0].value[1])===1;
       });
       await poll("database alert cleared",async()=>{

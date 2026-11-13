@@ -43,9 +43,9 @@ groups:
 
       - alert: HarborOpsDatabaseUnavailable
         expr: |
-          (harborops_db_readiness == 0)
+          (harborops_db_readiness_ratio == 0)
           and (time() - harborops_db_readiness_sample_unix_seconds < 35)
-          and on() (harborops_db_readiness offset 15s == 0)
+          and on() (harborops_db_readiness_ratio offset 15s == 0)
         for: 15s
         keep_firing_for: 30s
         labels: {severity: critical}
@@ -66,7 +66,7 @@ groups:
               )
             )
           )
-          and on() (harborops_service_running{service="tracking"} == 1)
+          and on() (harborops_service_running_ratio{service="tracking"} == 1)
           and on() (increase(harborops_worker_heartbeat_total{worker="tracking"}[1m]) > 0)
         for: 30s
         labels: {severity: degraded}

@@ -146,7 +146,7 @@ try{
   assert.ok(counts.length>0,"No owned trace backend storage was created");
   report.checks.push({name:"only-owned-disposable-storage-used",status:"PASS"});
   report.result="PASS";
-}catch(e){failed=e;report.error_type=e?.name||"Error";}
+}catch(e){failed=e;report.error_type=e?.name||"Error";report.error_message=String(e?.message||"").slice(0,240);}
 finally{
   if(started){
     try{

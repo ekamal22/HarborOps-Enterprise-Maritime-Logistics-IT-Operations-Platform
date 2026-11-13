@@ -62,7 +62,7 @@ try{
     status:"PASS",source_artifact:"m17-storage-results.json"});
   assert.equal(result.cases.length,4);
   result.result="PASS";
-}catch(e){error=e;result.error_type=e?.name||"Error";}
+}catch(e){error=e;result.error_type=e?.name||"Error";result.error_message=String(e?.message||"").slice(0,240);}
 fs.writeFileSync(path.join(evidence,"m17-pressure-matrix-results.json"),
   JSON.stringify(result,null,2)+"\n",{flag:"wx"});
 if(error||result.result!=="PASS")

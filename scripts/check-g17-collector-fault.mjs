@@ -54,7 +54,7 @@ async function step(name,action) {
     const result=await action();
     checks.push({name,result:"PASS",started,result_summary:result??null});
   }catch(e) {
-    checks.push({name,result:"FAIL",started,error_type:e?.name||"Error"});
+    checks.push({name,result:"FAIL",started,error_type:e?.name||"Error",error_message:String(e?.message||"").slice(0,240)});
     throw e;
   }
 }

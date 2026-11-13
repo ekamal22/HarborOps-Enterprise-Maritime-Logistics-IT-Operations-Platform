@@ -48,11 +48,11 @@ test("authenticated samples match the disposable ready API and suppress held wor
 
   // Allow two 15-second OTLP export/scrape intervals, with startup margin.
   await expect.poll(async () => {
-    const results = await queryPrometheus(page, "harborops_db_readiness");
+    const results = await queryPrometheus(page, "harborops_db_readiness_ratio");
     return results.length ? Number(results[0].value[1]) : -1;
   }, {timeout: 95_000, intervals: [5_000]}).toBe(1);
 
-  const metrics = await queryPrometheus(page, "harborops_db_readiness");
+  const metrics = await queryPrometheus(page, "harborops_db_readiness_ratio");
   expect(metrics).toHaveLength(1);
   const serialized = JSON.stringify(metrics);
   for (const forbidden of [
@@ -61,12 +61,12 @@ test("authenticated samples match the disposable ready API and suppress held wor
   ]) expect(serialized).not.toContain(forbidden);
 
   const notification = await queryPrometheus(page,
-    'harborops_service_running{service="notifications"}');
+    'harborops_service_running_ratio{service="notifications"}');
   expect(notification).toHaveLength(1);
   expect(Number(notification[0].value[1])).toBe(0);
 
   const held = await queryPrometheus(page,
-    'harborops_service_running{service="tracking_held"}');
+    'harborops_service_running_ratio{service="tracking_held"}');
   expect(held).toHaveLength(1);
   expect(Number(held[0].value[1])).toBe(-1);
 });
@@ -146,10 +146,10 @@ test("critical monitoring panels use live series and no-data views are explicitl
     return values.length?Number(values[0].value[1]):0;
   },{timeout:95000,intervals:[5000]}).toBeGreaterThan(0);
   for(const [query,value] of [
-    ["harborops_db_readiness",1],
-    ['harborops_service_running{service="notifications"}',0],
-    ['harborops_service_running{service="tracking_held"}',-1],
-    ["harborops_telemetry_collector_reachable",1]
+    ["harborops_db_readiness_ratio",1],
+    ['harborops_service_running_ratio{service="notifications"}',0],
+    ['harborops_service_running_ratio{service="tracking_held"}',-1],
+    ["harborops_telemetry_collector_reachable_ratio",1]
   ]) {
     const rows=await queryPrometheus(page,query);
     expect(rows,query).toHaveLength(1);

@@ -39,7 +39,7 @@ async function check(name,fn) {
     const detail=await fn();
     checks.push({name,status:"PASS",detail});
   } catch(err) {
-    checks.push({name,status:"FAIL",error_type:err?.name||"Error"});
+    checks.push({name,status:"FAIL",error_type:err?.name||"Error",error_message:String(err?.message||"").slice(0,240)});
     failure=true;throw err;
   }
 }
@@ -116,7 +116,7 @@ try {
     assert.equal(collector.length,1,"The monitoring backend itself must be observable");
     assert.equal(Number(collector[0].value[1]),1);
     const current=await prom(
-      "harborops_db_readiness and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)");
+      "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 35)");
     assert.equal(current.length,0,
       "Readiness data from a stopped API was incorrectly displayed as current");
     const base="http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-traces";

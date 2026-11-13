@@ -59,7 +59,7 @@ test("every approved M17 policy has a concrete source-side verification control"
   assert.match(compose,/127\.0\.0\.1:3301:3000/);
   assert.match(compose,/retention\.time=24h/);
   assert.match(compose,/retention\.size=120MB/);
-  assert.ok(dashboards.panels.some(p=>p.targets.some(t=>t.expr.includes("harborops_db_readiness"))));
+  assert.ok(dashboards.panels.some(p=>p.targets.some(t=>t.expr.includes("harborops_db_readiness_ratio"))));
   assert.equal(dashboards.panels.length,15);
   const defaultStack=read("compose.yaml");
   assert.doesNotMatch(defaultStack,/otelcol:|M17__Enabled:|grafana:/);

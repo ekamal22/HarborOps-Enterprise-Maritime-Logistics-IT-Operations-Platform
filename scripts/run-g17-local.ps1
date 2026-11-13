@@ -115,6 +115,8 @@ $composeArgs = @('-p', $ProjectName, '-f', 'compose.m17.verify.yaml')
 if ($VerifyDisposableWorker) { $composeArgs += @('-f','compose.m9.worker.yaml') }
 $composeArgs += @('-f','compose.m17.observability.override.yaml')
 if ($VerifyDisposableWorker) { $composeArgs += @('-f','compose.m17.worker.override.yaml') }
+$LocalVolumes = (-not $Hosted) -and ($env:OS -eq 'Windows_NT')
+if ($LocalVolumes) { $composeArgs += @('-f','compose.m17.local-volumes.override.yaml') }
 $composeArgs += @('--profile','observability')
 if ($VerifyDisposableWorker) { $composeArgs += @('--profile','worker') }
 $ownedStackStarted = $false
@@ -166,7 +168,7 @@ try {
     $env:HARBOROPS_SOURCE_SHA = $Sha
     Set-Content -LiteralPath (Join-Path $EvidencePath 'source-sha.txt') -Value $Sha -NoNewline
 
-    Invoke-Required 'node' @('--test','--test-reporter=junit', 'scripts/check-m17-source.test.mjs',
+    Invoke-Required 'node' @('--test','--test-reporter=junit', 'scripts/check-m17-source.test.mjs', 'scripts/check-m17-metric-names.test.mjs',
         'scripts/check-g17-manifest.test.mjs',
         'scripts/g17-network-guards.test.mjs',
         'scripts/audit-g17-test-coverage.test.mjs',
@@ -212,6 +214,19 @@ try {
         New-Item -ItemType Directory -Path $StorageRoot | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres') | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'keyring') | Out-Null
+        if ($LocalVolumes) {
+            # Windows bind mounts reject chown. Prepare owned, project-labelled volumes.
+            foreach ($pair in @(@('pgdata','70:70'), @('keyring','1654:1654'))) {
+                $volume = "${ProjectName}_$($pair[0])"
+                & docker volume create --label "com.docker.compose.project=$ProjectName" `
+                    --label "com.docker.compose.volume=$($pair[0])" $volume | Out-Null
+                if ($LASTEXITCODE -ne 0) { throw "Cannot create owned volume $volume" }
+                & docker run --rm --user 0:0 --entrypoint /bin/sh `
+                    -v "${volume}:/prepared" postgres:16.15-alpine3.24 `
+                    -c "chown $($pair[1]) /prepared && chmod 700 /prepared"
+                if ($LASTEXITCODE -ne 0) { throw "Cannot prepare owned volume $volume" }
+            }
+        }
         if ($Hosted) {
             # Only newly created runner-temp directories receive process UIDs.
             & sudo chown '70:70' (Join-Path $StorageRoot 'postgres')
@@ -258,9 +273,9 @@ try {
             '--logger', 'trx;LogFileName=g17-integration.trx',
             '--results-directory', $EvidencePath)
         Invoke-Required 'docker' (@('compose') + $composeArgs +
-            @('up', '-d', '--build', 'api', 'web', 'otelcol', 'tempo', 'prometheus', 'grafana'))
+            @('up', '-d', '--build', 'api', 'web', 'otelcol', 'tempo', 'prometheus', 'grafana', 'dashboard_gateway'))
         Invoke-Required 'node' @('scripts/check-g17-network.mjs') -Stage 'telemetry-network-isolation'
-        $uiPort = (& docker compose @composeArgs port grafana 3000).Trim()
+        $uiPort = (& docker compose @composeArgs port dashboard_gateway 3000).Trim()
         if ($LASTEXITCODE -ne 0 -or $uiPort -ne '127.0.0.1:3301') {
             throw 'The diagnostics dashboard is not isolated to loopback port 3301'
         }
@@ -344,7 +359,7 @@ catch {
 finally {
     if ($StopOwnedContainers -and $ownedStackStarted) {
         try {
-            $services = @('grafana','prometheus','tempo','otelcol','web','api','postgres')
+            $services = @('dashboard_gateway','grafana','prometheus','tempo','otelcol','web','api','postgres')
             if ($VerifyDisposableWorker) { $services += 'worker' }
             & docker compose @composeArgs stop @services
             if ($LASTEXITCODE -ne 0) { throw 'Owned service stop failed' }
@@ -359,6 +374,22 @@ finally {
             })
             Write-Warning 'Some disposable services could not be stopped'
         }
+    }
+    if ($ownedStackStarted -and $runState -ne 'COMPLETE') {
+        # Failure forensics: bounded service logs and exit states of owned containers only.
+        try {
+            $diagnostics = Join-Path $EvidencePath 'm17-failure-diagnostics'
+            New-Item -ItemType Directory -Force -Path $diagnostics | Out-Null
+            foreach ($service in @('postgres','migrator','api','web','otelcol','tempo',
+                    'prometheus','grafana','dashboard_gateway','worker')) {
+                $id = (& docker compose @composeArgs ps -a -q $service 2>$null)
+                if (-not $id) { continue }
+                & docker compose @composeArgs logs --no-color --tail 300 $service 2>&1 |
+                    Out-File -LiteralPath (Join-Path $diagnostics "$service.log") -Encoding utf8
+                & docker inspect --format '{{json .State}}' $id 2>&1 |
+                    Out-File -LiteralPath (Join-Path $diagnostics "$service.state.json") -Encoding utf8
+            }
+        } catch { Write-Warning 'Failure diagnostics could not be fully captured' }
     }
     $runInfo = @{
         schema_version = 2; gate = 'G17'; source_sha = $sha

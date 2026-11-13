@@ -55,8 +55,6 @@ services:
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=24h
       - --storage.tsdb.retention.size=120MB
-      - --web.enable-admin-api=false
-      - --web.enable-lifecycle=false
     volumes:
       - ./monitoring/m17/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/m17/alerts.yaml:/etc/prometheus/alerts.yml:ro
@@ -83,7 +81,6 @@ services:
       GF_PLUGINS_PLUGIN_ADMIN_ENABLED: "false"
       GF_ALERTING_ENABLED: "false"
       GF_UNIFIED_ALERTING_ENABLED: "false"
-    ports: ["127.0.0.1:3301:3000"]
     volumes:
       - ./monitoring/m17/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/m17.yaml:ro
       - ./monitoring/m17/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/m17.yaml:ro
@@ -95,6 +92,22 @@ services:
     restart: "no"
     networks: [telemetry_monitor]
 
+  # Docker publishes no host port for a container that is attached only to
+  # internal networks. This single-purpose TCP forwarder is the only routable
+  # member and exposes the isolated dashboard on 127.0.0.1 only.
+  dashboard_gateway:
+    image: alpine/socat:1.8.0.3
+    profiles: [observability]
+    command: ["-d", "TCP-LISTEN:3000,fork,reuseaddr", "TCP:grafana:3000"]
+    user: "65534:65534"
+    read_only: true
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    ports: ["127.0.0.1:3301:3000"]
+    networks: [dashboard_access, telemetry_monitor]
+    depends_on: [grafana]
+
 # No untrusted web or other application container may access the unauthenticated
 # Prometheus, Tempo or collector diagnostic endpoints directly.
 networks:
@@ -102,3 +115,5 @@ networks:
     internal: true
   telemetry_monitor:
     internal: true
+  dashboard_access:
+    driver: bridge

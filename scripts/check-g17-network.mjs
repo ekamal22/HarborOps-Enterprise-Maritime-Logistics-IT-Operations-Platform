@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import {verifyServiceState, isRefusedConnection} from "./g17-network-guards.mjs";
@@ -29,7 +30,8 @@ const expected = {
   api: ["internal", "telemetry_ingest"], web: ["internal"],
   otelcol: ["telemetry_ingest", "telemetry_monitor"],
   tempo: ["telemetry_monitor"], prometheus: ["telemetry_monitor"],
-  grafana: ["telemetry_monitor"]
+  grafana: ["telemetry_monitor"],
+  dashboard_gateway: ["dashboard_access","telemetry_monitor"]
 };
 const observed = {};
 const serviceIds = {};
@@ -88,15 +90,52 @@ try {
       (exposed[key]||[]).some(binding=>binding?.HostPort)).length,0,
       service+" exported an unauthenticated diagnostic host listener");
   }
+  // Grafana itself is attached only to the internal monitoring network and must
+  // publish nothing. The single forwarder owns the one loopback listener.
   const grafanaId=serviceIds.grafana;
+  failedService="grafana";
   verifyServiceState("grafana",JSON.parse(docker(["inspect","--format",
     "{{json .State}}",grafanaId])));
-  const bound=JSON.parse(docker(["inspect","--format",
+  failedService=null;
+  const grafanaBound=JSON.parse(docker(["inspect","--format",
     "{{json .HostConfig.PortBindings}}",grafanaId]));
+  assert.equal(Object.values(grafanaBound||{}).flat().filter(Boolean).length,0,
+    "Grafana must not publish a host port itself");
+  const gatewayId=serviceIds.dashboard_gateway;
+  const bound=JSON.parse(docker(["inspect","--format",
+    "{{json .HostConfig.PortBindings}}",gatewayId]));
   const grafanaPorts=Object.values(bound||{}).flat().filter(Boolean);
   assert.equal(grafanaPorts.length,1);
   assert.equal(grafanaPorts[0].HostIp,"127.0.0.1");
   assert.equal(grafanaPorts[0].HostPort,"3301");
+  const published=JSON.parse(docker(["inspect","--format",
+    "{{json .NetworkSettings.Ports}}",gatewayId]));
+  const live=(published["3000/tcp"]||[]).filter(Boolean);
+  assert.equal(live.length,1,"Docker did not actually publish the loopback listener");
+  assert.equal(live[0].HostIp,"127.0.0.1");
+  assert.equal(docker(["network","inspect",project+"_dashboard_access","--format",
+    "{{.Internal}}"]),"false","The forwarder network must be the only routable one");
+  const members=docker(["network","inspect",project+"_dashboard_access","--format",
+    "{{range $id,$c := .Containers}}{{$c.Name}} {{end}}"]).split(/\s+/).filter(Boolean);
+  assert.deepEqual(members,[project+"-dashboard_gateway-1"],
+    "Only the loopback forwarder may join the routable dashboard network");
+  // Positive control: the dashboard is reachable on loopback (Grafana health).
+  const health=await fetch("http://127.0.0.1:3301/api/health",{
+    signal:AbortSignal.timeout(8000)});
+  assert.equal(health.status,200,"Loopback dashboard listener is not serving Grafana");
+  // Negative control: the same port is not reachable via a non-loopback host address.
+  for(const nic of Object.values(os.networkInterfaces()).flat()) {
+    if(!nic||nic.internal||nic.family!=="IPv4"||nic.address.startsWith("169.254."))continue;
+    try {
+      const wire=await fetch("http://"+nic.address+":3301/api/health",{
+        signal:AbortSignal.timeout(2500)});
+      throw Error("Dashboard reachable on non-loopback address "+nic.address+
+        " with status "+wire.status);
+    } catch(error) {
+      if(!(isRefusedConnection(error)||error?.name==="TimeoutError"||
+        error?.cause?.code==="ETIMEDOUT"))throw error;
+    }
+  }
   // Verify a network-untrusted HTTP client cannot reach the monitoring
   // endpoints via any published port. A reachable listener is a failure.
   for(const port of [4317,9464,9090,3200]) {

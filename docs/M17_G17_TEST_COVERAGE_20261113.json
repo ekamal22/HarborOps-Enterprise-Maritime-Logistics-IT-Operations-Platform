@@ -223,16 +223,22 @@
         {
           "id": "G17-S07-A01",
           "expected": "W3C valid trace context accepted without altering auth",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "ValidW3CTraceparentConnectsApiRequestAndBoundedDatabaseSpan"
+          },
+          "coverage_gap": "Captured TestServer parent trace with permitted input"
         },
         {
           "id": "G17-S07-A02",
           "expected": "API -> safe DB work connected by trace",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "ValidW3CTraceparentConnectsApiRequestAndBoundedDatabaseSpan"
+          },
+          "coverage_gap": "Proves failed baseline DB boundary, not a successful database read or raw exported trace"
         },
         {
           "id": "G17-S07-A03",
@@ -293,9 +299,12 @@
         {
           "id": "G17-S09-A02",
           "expected": "outage emits classified failure without secret SQL",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+          },
+          "coverage_gap": "Classified 503 and bounded readiness; no raw OTLP query redaction"
         },
         {
           "id": "G17-S09-A03",
@@ -637,9 +646,12 @@
         {
           "id": "G17-S20-A01",
           "expected": "browser/API fault yields server correlation",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "ValidW3CTraceparentConnectsApiRequestAndBoundedDatabaseSpan"
+          },
+          "coverage_gap": "API fault has server correlation and traced context"
         },
         {
           "id": "G17-S20-A02",

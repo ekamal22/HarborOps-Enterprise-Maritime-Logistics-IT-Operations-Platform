@@ -92,13 +92,17 @@ jobs:
               "HARBOROPS_WORKER_DB_PASSWORD",
               "HARBOROPS_M17_GRAFANA_PASSWORD",
           ):
-              print(key + "=" + secrets.token_urlsafe(36))
+              value = secrets.token_urlsafe(36)
+              print("::add-mask::" + value)
+              print(key + "=" + value)
           for key in (
               "HARBOROPS_M17_LINK_KEY",
               "HARBOROPS_M10_CORRECTION_PROOF_KEY",
               "HARBOROPS_M12_EXPORT_PROOF_KEY",
           ):
-              print(key + "=" + base64.b64encode(secrets.token_bytes(32)).decode("ascii"))
+              value = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
+              print("::add-mask::" + value)
+              print(key + "=" + value)
           PY
       - name: Prepare source-pinned browser dependencies
         shell: bash

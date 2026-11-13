@@ -114,7 +114,7 @@ if ($StartDisposableStack) {
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-restart-results.json',
         'm17-export-privacy-results.json','m17-storage-results.json',
-        'm17-database-fault-results.json')
+        'm17-database-fault-results.json','m17-cardinality-memory-results.json')
     if ($VerifyDisposableWorker) { $required += 'm17-worker-results.json' }
     if ($FaultProbe) { $required += 'm17-collector-fault-results.json' }
     if ($RequireFullG17) { $required += 'g17-technical-assertion-ledger.json' }
@@ -246,6 +246,7 @@ try {
         Invoke-Required 'node' @('scripts/check-g17-export-privacy.mjs') -Stage 'tempo-and-prometheus-negative-privacy-canaries'
         Invoke-Required 'node' @('scripts/check-g17-storage.mjs') -Stage 'owned-telemetry-storage-isolation-and-pressure'
         Invoke-Required 'node' @('scripts/check-g17-restart.mjs') -Stage 'api-cancellation-restart-and-durable-invariants'
+        Invoke-Required 'node' @('scripts/check-g17-cardinality-memory.mjs') -Stage 'forty-thousand-hostile-paths-memory-stability'
         Invoke-Required 'node' @('scripts/check-g17-performance.mjs') -Stage 'three-paired-overhead-measurements'
         if ($VerifyDisposableWorker) {
             Invoke-Required 'docker' (@('compose') + $composeArgs +

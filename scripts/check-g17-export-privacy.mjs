@@ -1,0 +1,140 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+
+const project=process.env.HARBOROPS_G17_PROJECT;
+const source=process.env.HARBOROPS_SOURCE_SHA;
+const root=process.env.HARBOROPS_G17_EVIDENCE_DIR;
+const password=process.env.HARBOROPS_M17_GRAFANA_PASSWORD;
+assert.match(project||"",/^ho-verify-m17-[a-z0-9-]+$/);
+assert.match(source||"",/^[a-f0-9]{40}$/);
+assert.ok(root&&fs.existsSync(root)&&password);
+const tag="g17-private-canary-"+crypto.randomBytes(12).toString("hex");
+const auditCanary=tag+"-audit";
+const cookies=tag+"-cookie";
+const baggage=tag+"-baggage";
+const query=tag+"-query";
+const rejects=[tag,auditCanary,cookies,baggage,query,
+  "http.request.header.cookie","http.request.header.authorization",
+  "db.statement","db.query.text","exception.stacktrace","exception.message",
+  "tracking_inbox_receipts","audit_entries","user.email","session.cookie"];
+const base="http://127.0.0.1:3301/api/datasources/proxy/uid/";
+const auth="Basic "+Buffer.from("local_operator:"+password).toString("base64");
+const fetchJson=async url=>{
+  const r=await fetch(url,{headers:{authorization:auth,accept:"application/json"},
+    signal:AbortSignal.timeout(13000)});
+  assert.equal(r.status,200,"Private Tempo/Prometheus proxy returned "+r.status);
+  return await r.json();
+};
+const promiseWait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const results=[];
+function scan(raw,kind) {
+  const value=typeof raw==="string"?raw:JSON.stringify(raw);
+  for(const secret of rejects)
+    assert.ok(!value.toLowerCase().includes(secret.toLowerCase()),
+      kind+" exported forbidden canary or sensitive attribute "+secret.split("-")[0]);
+  results.push({kind,bytes:value.length,sha256:crypto.createHash("sha256")
+    .update(value).digest("hex")});
+}
+async function generateRealRequests(count) {
+  let successful=0;
+  for(let offset=0;offset<count;offset+=24) {
+    const rsp=await Promise.all(
+      Array.from({length:Math.min(24,count-offset)},async(_,j)=>{
+        const req=new URL("http://127.0.0.1:18080/api/v1/system/baseline");
+        req.searchParams.set("auditTag",auditCanary);
+        req.searchParams.set("untrusted",query);
+        const response=await fetch(req,{
+          headers:{
+            cookie:"g17="+cookies,
+            baggage:"secret="+baggage,
+            "x-g17-secret":tag,
+            "tracestate":"privatevendor="+tag
+          },signal:AbortSignal.timeout(12000)});
+        assert.equal(response.status,200,"Synthetic baseline read must succeed");
+        const json=await response.json();
+        assert.equal(json.service,"HarborOps");
+        return true;
+      }));
+    successful+=rsp.length;
+  }
+  assert.equal(successful,count);
+}
+let failure=null,observedTraces=0,exportedSpans=0,seriesCount=0;
+try {
+  await generateRealRequests(320);
+  let traces=[];
+  const deadline=Date.now()+125000;
+  while(Date.now()<deadline) {
+    try {
+      const search=new URL(base+"harborops-local-traces/api/search");
+      search.searchParams.set("tags","service.name=harborops-api");
+      search.searchParams.set("limit","100");
+      const response=await fetchJson(search);
+      if(Array.isArray(response.traces)&&response.traces.length>0) {
+        traces=response.traces;break;
+      }
+    } catch(e) {
+      // Startup gaps are bounded by the deadline; no pass if traces never appear.
+    }
+    await promiseWait(4000);
+  }
+  assert.ok(traces.length>=1,"No real exported trace exists for privacy inspection");
+  for(const trace of traces.slice(0,40)) {
+    assert.match(trace.traceID||"",/^[0-9a-f]{16,32}$/i);
+    const doc=await fetchJson(base+"harborops-local-traces/api/v2/traces/"+trace.traceID);
+    const raw=JSON.stringify(doc);
+    scan(raw,"tempo-trace");
+    assert.ok(raw.includes("harborops-api")||raw.includes("harborops.operation")||
+      raw.includes("http.request"),
+      "Trace contained no permitted diagnostic component");
+    const spans=doc.batches?.flatMap(b=>b.instrumentationLibrarySpans?.flatMap(
+      x=>x.spans||[])||[])||
+      doc.resourceSpans?.flatMap(r=>r.scopeSpans?.flatMap(x=>x.spans||[])||[])||[];
+    assert.ok(spans.length>0,"A search result contained no serialized spans");
+    for(const span of spans) {
+      const attributes=span.attributes||[];
+      for(const attr of attributes) {
+        const key=attr.key||"";
+        assert.ok(!/cookie|authorization|password|sql|query|payload|user.id|tenant|organization_id|session|email/i.test(key),
+          "Trace contains a forbidden span attribute key");
+      }
+      assert.ok(!span.traceState,"Trace state must be erased before export");
+      assert.ok(!span.events?.length,"Raw span events must not reach OTLP");
+      assert.ok(!span.links?.length,"Raw span links must not reach OTLP");
+      assert.ok(!span.status?.message,"Error status descriptions must not leak");
+    }
+    observedTraces++;
+    exportedSpans+=spans.length;
+  }
+  const q=new URL(base+"harborops-local-metrics/api/v1/series");
+  q.searchParams.set("match[]",'{__name__=~"harborops_.*"}');
+  q.searchParams.set("start",String(Math.floor(Date.now()/1000)-600));
+  q.searchParams.set("end",String(Math.floor(Date.now()/1000)+60));
+  const series=await fetchJson(q);
+  assert.equal(series.status,"success");
+  assert.ok(Array.isArray(series.data)&&series.data.length>0,
+    "No exported custom metric series available for privacy validation");
+  seriesCount=series.data.length;
+  for(const labelset of series.data) {
+    scan(labelset,"prometheus-series");
+    for(const [key,value] of Object.entries(labelset)) {
+      assert.ok(!/cookie|authorization|sql|query|tenant|organization_id|user.id|email|path|shipment/i.test(key),
+        "Untrusted metric label key left the process");
+      assert.ok(String(value).length<=120,"Unexpected unbounded metric label value");
+    }
+  }
+} catch(e) {
+  failure=e;
+} finally {
+  const record={source_sha:source,project,result:failure?"FAIL":"PASS",
+    traces_inspected:observedTraces,spans_inspected:exportedSpans,
+    exported_metric_series_inspected:seriesCount,
+    canary_sha256:crypto.createHash("sha256").update(tag).digest("hex"),
+    snapshots:results,assertion_review:"PENDING",
+    failure_type:failure?.name??null};
+  fs.writeFileSync(path.join(root,"m17-export-privacy-results.json"),
+    JSON.stringify(record,null,2)+"\n",{flag:"wx"});
+}
+if(failure)throw Error("G17 raw exported telemetry privacy test failed: "+failure.name);

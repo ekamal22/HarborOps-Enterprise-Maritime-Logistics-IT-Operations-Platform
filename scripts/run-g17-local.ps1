@@ -117,6 +117,7 @@ if ($StartDisposableStack) {
         'm17-database-fault-results.json')
     if ($VerifyDisposableWorker) { $required += 'm17-worker-results.json' }
     if ($FaultProbe) { $required += 'm17-collector-fault-results.json' }
+    if ($RequireFullG17) { $required += 'g17-technical-assertion-ledger.json' }
 }
 $expected = @{
     schema_version = 1; gate = 'G17'; source_sha = $ExpectedSha
@@ -146,7 +147,8 @@ try {
         'scripts/check-g17-manifest.test.mjs',
         'scripts/audit-g17-test-coverage.test.mjs',
         'scripts/g17-results-contract.test.mjs',
-        'scripts/g17-source-boundary.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
+        'scripts/g17-source-boundary.test.mjs',
+        'scripts/reconcile-g17-assertions.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
@@ -289,6 +291,18 @@ finally {
     }
     $runInfo | ConvertTo-Json -Depth 9 | Set-Content -LiteralPath (
         Join-Path $EvidencePath 'run-status.json') -Encoding utf8
+    if ($sourceVerified -and $RequireFullG17 -and $runState -eq 'COMPLETE') {
+        & node scripts/reconcile-g17-assertions.mjs $EvidencePath $sha
+        if ($LASTEXITCODE -ne 0) {
+            $runState = 'FAILED'
+            $runFailureType = 'AtomicAssertionReconciliationFailure'
+            $runInfo.run_state = 'FAILED'
+            $runInfo.failure_type = $runFailureType
+            $runInfo | ConvertTo-Json -Depth 9 | Set-Content -LiteralPath (
+                Join-Path $EvidencePath 'run-status.json') -Encoding utf8
+            Write-Warning 'One or more G17 technical assertions lacked passing raw witnesses'
+        }
+    }
     if ($sourceVerified) {
         try {
             & node scripts/g17-manifest.mjs

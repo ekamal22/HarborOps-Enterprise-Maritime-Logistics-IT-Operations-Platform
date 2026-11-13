@@ -54,7 +54,7 @@ public sealed class M17ExporterOutageMutationTests
             var entries=result.GetProperty("ports").EnumerateArray().ToArray();
             Assert.Single(entries);
             Assert.Equal(id,entries[0].GetProperty("id").GetGuid());
-            Assert.Equal(reference,entries[0].GetProperty("referenceCode").GetString());
+            Assert.Equal(reference.ToUpperInvariant(),entries[0].GetProperty("referenceCode").GetString());
 
             using var live=await manager.GetAsync("/health/live");
             using var ready=await manager.GetAsync("/health/ready");

@@ -42,6 +42,7 @@ public sealed class M17ReplayRedriveSpanTests
             PollMilliseconds:100,BatchSize:8,Concurrency:1);
         using var services=new ServiceCollection()
             .AddDbContext<HarborOpsDbContext>(o=>o.UseNpgsql(connection))
+            .AddSingleton(settings)
             .AddScoped<TrackingWorkStore>().BuildServiceProvider();
         var worker=new WorkerShell(services.GetRequiredService<IServiceScopeFactory>(),
             settings,NullLogger<WorkerShell>.Instance);

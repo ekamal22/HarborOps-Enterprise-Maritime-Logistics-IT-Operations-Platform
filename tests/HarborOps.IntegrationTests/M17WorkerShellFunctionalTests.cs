@@ -29,7 +29,7 @@ public sealed class M17WorkerShellFunctionalTests
         var received=await G9Support.Accept(factory,source,G9Support.EquipmentPayload(
             "g17-success-"+Guid.NewGuid().ToString("N")[..10],target.Reference));
         var parked=await G9Support.Accept(factory,source,G9Support.EquipmentPayload(
-            "g17-reconcile-"+Guid.NewGuid().ToString("N")[..10],"SYN-NO-REFERENCE"));
+            "g17-reconcile-"+Guid.NewGuid().ToString("N")[..10],"SYN-BOX-UNKNOWN"));
 
         var observed=new ConcurrentQueue<string>();
         using var meter=new MeterListener();

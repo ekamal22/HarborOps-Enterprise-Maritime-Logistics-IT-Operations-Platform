@@ -4,6 +4,7 @@ param(
     [string]$ProjectName = 'ho-verify-m17-local',
     [switch]$StartDisposableStack,
     [switch]$FaultProbe,
+    [switch]$VerifyDisposableWorker,
     [switch]$StopOwnedContainers
 )
 $ErrorActionPreference = 'Stop'
@@ -15,7 +16,7 @@ if ($ExpectedSha -notmatch '^[0-9a-fA-F]{40}$' -or
     $ProjectName -notmatch '^ho-verify-m17-[a-z0-9-]+$') {
     throw 'Require an exact 40-character SHA and a dedicated ho-verify-m17-* project'
 }
-if ($FaultProbe -and !$StartDisposableStack) {
+if (($FaultProbe -or $VerifyDisposableWorker) -and !$StartDisposableStack) {
     throw 'FaultProbe requires an explicitly started disposable stack'
 }
 $EvidencePath = [System.IO.Path]::GetFullPath($EvidenceDirectory)
@@ -36,6 +37,9 @@ $env:HARBOROPS_G17_EVIDENCE_DIR = $EvidencePath
 $env:HARBOROPS_G17_DISPOSABLE_STACK_STARTED = "false"
 $env:HARBOROPS_G17_BROWSER_JSON = Join-Path $EvidencePath 'm17-browser-results.json'
 $env:HARBOROPS_G17_CARDINALITY_JSON = Join-Path $EvidencePath 'm17-cardinality-results.json'
+$env:HARBOROPS_G17_BROWSER_ARTIFACT_DIR = Join-Path $EvidencePath 'browser-artifacts'
+$env:HARBOROPS_G17_CARDINALITY_ARTIFACT_DIR = Join-Path $EvidencePath 'cardinality-artifacts'
+$env:HARBOROPS_G17_PROJECT = $ProjectName
 $env:HARBOROPS_G17_API_URL = 'http://127.0.0.1:18080'
 $Cache = Join-Path (Split-Path -Parent $Repo) 'harborops-m0-cache'
 $env:DOTNET_CLI_HOME = Join-Path $Cache 'dotnet-home'
@@ -56,8 +60,12 @@ function Invoke-Required([string]$Executable, [string[]]$Arguments) {
         throw "$Executable exited with code $LASTEXITCODE"
     }
 }
-$composeArgs = @('-p', $ProjectName, '-f', 'compose.m17.verify.yaml',
-    '-f', 'compose.m17.observability.override.yaml', '--profile', 'observability')
+$composeArgs = @('-p', $ProjectName, '-f', 'compose.m17.verify.yaml')
+if ($VerifyDisposableWorker) { $composeArgs += @('-f','compose.m9.worker.yaml') }
+$composeArgs += @('-f','compose.m17.observability.override.yaml')
+if ($VerifyDisposableWorker) { $composeArgs += @('-f','compose.m17.worker.override.yaml') }
+$composeArgs += @('--profile','observability')
+if ($VerifyDisposableWorker) { $composeArgs += @('--profile','worker') }
 $ownedStackStarted = $false
 
 Push-Location -LiteralPath $Repo
@@ -164,11 +172,13 @@ try {
                 '--config', 'playwright.m17.config.mjs')
             Invoke-Required 'npx' @('--no-install', 'playwright', 'test',
                 '--config', 'playwright.m17.cardinality.config.mjs')
-            $artifacts = Join-Path (Get-Location).Path 'test-results\m17-artifacts'
-            if (Test-Path -LiteralPath $artifacts) {
-                Copy-Item -LiteralPath $artifacts -Destination (Join-Path $EvidencePath 'browser-artifacts') -Recurse
-            }
+            # Both result directories are written directly to the E: evidence root.
         } finally { Pop-Location }
+        if ($VerifyDisposableWorker) {
+            Invoke-Required 'docker' (@('compose') + $composeArgs +
+                @('up','-d','--build','worker'))
+            Invoke-Required 'node' @('scripts/check-g17-worker.mjs')
+        }
     }
     Invoke-Required 'node' @('scripts/g17-manifest.mjs')
     Invoke-Required 'node' @('scripts/verify-g17-manifest.mjs',
@@ -180,7 +190,8 @@ try {
         # or remove named volumes, retained data, or historical evidence.
         try {
             Invoke-Required 'docker' (@('compose') + $composeArgs + @(
-                'stop', 'grafana', 'prometheus', 'tempo', 'otelcol', 'web', 'api', 'postgres'))
+                'stop', 'grafana', 'prometheus', 'tempo', 'otelcol', 'web', 'api', 'postgres',
+                $(if ($VerifyDisposableWorker) { 'worker' } else { 'postgres' })))
         } catch {
             Write-Warning 'Owned verification containers could not all be stopped'
         }

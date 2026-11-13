@@ -210,6 +210,13 @@ try {
         New-Item -ItemType Directory -Path $StorageRoot | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres') | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'keyring') | Out-Null
+        if ($Hosted) {
+            # Only newly created runner-temp directories receive process UIDs.
+            & sudo chown '70:70' (Join-Path $StorageRoot 'postgres')
+            if ($LASTEXITCODE -ne 0) { throw 'Cannot prepare owned PostgreSQL scratch UID' }
+            & sudo chown '1654:1654' (Join-Path $StorageRoot 'keyring')
+            if ($LASTEXITCODE -ne 0) { throw 'Cannot prepare owned application keyring UID' }
+        }
         Invoke-Required 'docker' (@('compose') + $composeArgs + @('config', '--quiet'))
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('run', '--rm', '--no-deps', '--entrypoint', '/bin/promtool',

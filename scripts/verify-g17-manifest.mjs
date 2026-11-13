@@ -175,17 +175,26 @@ export function verifyManifest(manifestPath, expectedSha) {
           overhead.pairs.some(p => p.pass !== true ||
             p.p95_increase_pct > 10 || p.memory_increase_pct > 15))
         throw Error("Three complete matched P09 overhead pairs are missing or above budget");
+      const latency=JSON.parse(fs.readFileSync(path.join(root,
+        "m17-live-latency-alert-results.json"),"utf8"));
+      if (latency.source_sha !== manifest.source_sha ||
+          latency.project !== expected.project ||
+          latency.result !== "PASS" || latency.checks?.length !== 3 ||
+          latency.request_count < 100 || latency.slow_requests < 15 ||
+          latency.checks.some(x=>x.status !== "PASS"))
+        throw Error("Live API p95 alert did not have sufficient actual latency witnesses");
       if (expected.fault_probe) {
         const database = JSON.parse(fs.readFileSync(path.join(root,
           "m17-database-fault-results.json"),"utf8"));
         const steps = ["healthy-database-control",
           "real-db-outage-keeps-live-and-errors-classified",
+          "real-http-5xx-rate-fires-reference-alert",
           "database-alert-identifies-only-safe-component",
           "recovery-clears-alert-and-preserves-history"];
         if (database.source_sha !== manifest.source_sha ||
             database.project !== expected.project ||
             database.result !== "PASS" || database.database_restored !== true ||
-            database.checks?.length !== 4 ||
+            database.checks?.length !== 5 ||
             database.checks.some((check,index)=>check.name !== steps[index] ||
               check.status !== "PASS") || database.alerts?.length !== 1)
           throw Error("Missing positive PostgreSQL outage, alert or durable-recovery witnesses");

@@ -159,6 +159,24 @@ public sealed class M17TelemetryContractTests
         Assert.Null(activity.GetTagItem("harborops.outcome"));
     }
 
+    [Theory]
+    [InlineData(null, "0")]
+    [InlineData("0", null)]
+    [InlineData("128", "0")]
+    [InlineData("0", "128")]
+    [InlineData("1", "1")]
+    public void UnsafeOtlpEventOrLinkLimitsFailClosed(string? events, string? links)
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            M17TracePrivacyGuard.RequireSafeExporterLimits(events, links));
+    }
+
+    [Fact]
+    public void ZeroOtlpEventAndLinkLimitsAreAllowed()
+    {
+        M17TracePrivacyGuard.RequireSafeExporterLimits("0", "0");
+    }
+
     [Fact]
     public void NonTagStatusDescriptionsAndRemoteTraceStateAreCleared()
     {

@@ -16,7 +16,13 @@ const REQUIRED_SCRIPT_REPORTS=new Map([
   ["scripts/check-g17-restart.mjs","m17-restart-results.json"],
   ["scripts/check-g17-export-privacy.mjs","m17-export-privacy-results.json"],
   ["scripts/check-g17-performance.mjs","m17-performance-raw.json"],
-  ["scripts/check-g17-storage.mjs","m17-storage-results.json"]
+  ["scripts/check-g17-storage.mjs","m17-storage-results.json"],
+  ["scripts/check-g17-retention.mjs","m17-retention-age-results.json"],
+  ["scripts/check-g17-tempo-retention.mjs","m17-tempo-retention-results.json"],
+  ["scripts/check-g17-retention-matrix.mjs","m17-retention-matrix-results.json"],
+  ["scripts/check-g17-alert-matrix.mjs","m17-alert-matrix-results.json"],
+  ["scripts/check-g17-pressure-matrix.mjs","m17-pressure-matrix-results.json"],
+  ["scripts/check-g17-regression-matrix.mjs","g17-regression-matrix-results.json"]
 ]);
 
 export function checkPerAssertion(coverage,hasWitness) {

@@ -17,7 +17,7 @@ function fixture({complete = false, missing = false} = {}) {
   fs.writeFileSync(path.join(dir,"source-sha.txt"),sha);
   fs.writeFileSync(path.join(dir,"expected-artifacts.json"),JSON.stringify({
     schema_version:1,gate:"G17",source_sha:sha,project:"ho-verify-m17-test",
-    disposable_stack:false,required_artifacts:required
+    disposable_stack:false,require_full_g17:false,required_artifacts:required
   }));
   fs.writeFileSync(path.join(dir,"run-status.json"),JSON.stringify({
     schema_version:2,gate:"G17",source_sha:sha,requested_source_sha:sha,

@@ -20,7 +20,8 @@ const compose=["compose","-p",project,"-f","compose.m17.verify.yaml",
 function run(args,input) {
  const r=spawnSync("docker",[...compose,...args],
    {input,encoding:"utf8",timeout:120000,maxBuffer:4*1024*1024});
- assert.equal(r.status,0,"Disposable worker fixture command failed");
+ assert.equal(r.status,0,"Disposable worker fixture command failed: "+
+   String(r.stderr||"").replace(/\s+/g," ").slice(-160));
  return r.stdout.trim();
 }
 const sql=q=>run(["exec","-T","postgres","psql","-U","harborops","-d","harborops",
@@ -50,11 +51,20 @@ async function poll(name,fn,ms=150000) {
  }
  throw Error("No positive live worker witness: "+name);
 }
+const submittedTraceIds=[];
 async function digests(service) {
- const listed=await tempo("/api/search",{"tags":"service.name="+service,limit:200});
+ // The API backend also holds thousands of unrelated hostile-path traces from earlier
+ // stages, so a bounded search cannot be relied on to return this journey. API traces
+ // are therefore fetched by the identifiers this script submitted. Worker traces carry
+ // their own identifiers and are listed by the worker service name.
+ const ids=service==="harborops-api"
+   ? submittedTraceIds
+   : ((await tempo("/api/search",{"tags":"service.name="+service,limit:200})).traces||[])
+       .slice(0,100).map(t=>t.traceID);
  const found=new Set();
- for(const id of (listed.traces||[]).slice(0,100).map(t=>t.traceID)) {
+ for(const id of ids) {
    const doc=await tempo("/api/v2/traces/"+id);
+   if(!(doc.trace?.resourceSpans||doc.resourceSpans||doc.batches||[]).length)continue;
    const raw=JSON.stringify(doc).toLowerCase();
    for(const secret of protectedValues)
      assert.ok(!raw.includes(secret.toLowerCase()),
@@ -99,12 +109,14 @@ try {
  assert.match(sql(insert),/COMMIT/);
  const correlations=[];
  async function ingest(i,repeated=false) {
+   const submittedTrace=crypto.randomBytes(16).toString("hex");
+   submittedTraceIds.push(submittedTrace);
    const res=await fetch("http://127.0.0.1:18080/integrations/v1/tracking-events",{
      method:"POST",headers:{
        "Content-Type":"application/json; charset=utf-8",
        Authorization:"Bearer "+bearer,
        "X-HarborOps-Tracking-Profile":"tnt-2.2-harborops-v1",
-       traceparent:"00-"+crypto.randomBytes(16).toString("hex")+
+       traceparent:"00-"+submittedTrace+
          "-"+crypto.randomBytes(8).toString("hex")+"-01"
      },body:JSON.stringify({
        sourceEventId:"g17-worker-"+nonce+"-"+i,eventFamily:"Equipment",

@@ -82,19 +82,29 @@ try {
   await generateRealRequests(320);
   let traces=[];
   const deadline=Date.now()+125000;
+  // A bounded search over a backend that already holds thousands of traces returns an
+  // arbitrary subset, so the submitted canary traces are retrieved by their own IDs.
+  const lookupHeaders={authorization:auth,accept:"application/json"};
+  async function retrieveSubmitted() {
+    const found=[];
+    for(const id of generatedTraceIds) {
+      const response=await fetch(base+"harborops-local-traces/api/v2/traces/"+id,
+        {headers:lookupHeaders,signal:AbortSignal.timeout(13000)});
+      if(response.status===404)continue;
+      assert.equal(response.status,200,"Private Tempo proxy returned "+response.status);
+      // Tempo answers 200 with an empty {trace:{}} for a trace it has not stored,
+      // either because it was not sampled or because it is still in flight.
+      const stored=(await response.json()).trace?.resourceSpans;
+      if(!Array.isArray(stored)||stored.length===0)continue;
+      found.push({traceID:id});
+      if(found.length>=40)break;
+    }
+    return found;
+  }
   while(Date.now()<deadline) {
     try {
-      const search=new URL(base+"harborops-local-traces/api/search");
-      search.searchParams.set("tags","service.name=harborops-api");
-      search.searchParams.set("limit","100");
-      const response=await fetchJson(search);
-      if(Array.isArray(response.traces)&&response.traces.length>0) {
-        // Tempo trims leading zeros from the identifiers it returns.
-        const trimmed=new Set([...generatedTraceIds].map(id=>id.replace(/^0+/,"")));
-        const linked=response.traces.filter(t=>
-          trimmed.has((t.traceID||"").toLowerCase().replace(/^0+/,"")));
-        if(linked.length>=2){traces=linked;break;}
-      }
+      const found=await retrieveSubmitted();
+      if(found.length>=2){traces=found;break;}
     } catch(e) {
       // Startup gaps are bounded by the deadline; no pass if traces never appear.
     }

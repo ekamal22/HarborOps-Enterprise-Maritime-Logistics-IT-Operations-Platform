@@ -841,29 +841,32 @@
         {
           "id": "G17-S24-A01",
           "expected": "every claimed assertion maps to real source-locked result",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/reconcile-g17-assertions.test.mjs",
+            "case": "rejects a missing assertion evidence row even when other suites pass"
+          },
+          "coverage_gap": "72 distinct raw atomic technical results must be positive and source-locked; run pending"
         },
         {
           "id": "G17-S24-A02",
           "expected": "source hashes and manifests complete/no unlisted files",
           "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/verify-g17-manifest.mjs",
-            "case": "Evidence tampered or unlisted"
+            "path": "scripts/check-g17-manifest.test.mjs",
+            "case": "altered evidence cannot pass hash verification"
           },
-          "coverage_gap": "SHA and file-set integrity verified with negative controls"
+          "coverage_gap": "All files are SHA-256 indexed and changed bytes rejected; run pending"
         },
         {
           "id": "G17-S24-A03",
           "expected": "negative control rejects tampering, skip and wrong SHA",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-g17-manifest.test.mjs",
-            "case": "wrong source is rejected"
+            "path": "scripts/g17-adversarial-evidence.test.mjs",
+            "case": "G17 verifier rejects tampering, skipped cases, duplicate results and wrong source SHA"
           },
-          "coverage_gap": "Tamper and wrong SHA, but no explicit skip/duplicate case mutation"
+          "coverage_gap": "Negative controls exercise source, file hash, skipped, duplicate and missing case failures; run pending"
         }
       ]
     },

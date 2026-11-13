@@ -115,7 +115,7 @@ if ($StartDisposableStack) {
         'm17-performance-raw.json','m17-restart-results.json',
         'm17-export-privacy-results.json','m17-storage-results.json',
         'm17-database-fault-results.json','m17-cardinality-memory-results.json')
-    if ($VerifyDisposableWorker) { $required += 'm17-worker-results.json' }
+    if ($VerifyDisposableWorker) { $required += @('m17-worker-results.json','m17-worker-journey-results.json') }
     if ($FaultProbe) { $required += 'm17-collector-fault-results.json' }
     if ($RequireFullG17) { $required += 'g17-technical-assertion-ledger.json' }
 }
@@ -252,6 +252,7 @@ try {
             Invoke-Required 'docker' (@('compose') + $composeArgs +
                 @('up','-d','--build','worker'))
             Invoke-Required 'node' @('scripts/check-g17-worker.mjs')
+            Invoke-Required 'node' @('scripts/check-g17-worker-journey.mjs') -Stage 'real-restricted-worker-and-causal-tempo-bridge'
         }
     }
     $runState = 'COMPLETE'

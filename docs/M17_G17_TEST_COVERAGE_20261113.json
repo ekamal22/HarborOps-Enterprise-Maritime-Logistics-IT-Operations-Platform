@@ -239,22 +239,22 @@
         {
           "id": "G17-S07-A02",
           "expected": "API -> safe DB work connected by trace",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
-            "case": "ValidW3CTraceparentConnectsApiRequestAndBoundedDatabaseSpan"
+            "path": "tests/HarborOps.IntegrationTests/M17SuccessfulDatabaseAndAuditTests.cs",
+            "case": "HealthyDatabaseReadRecordsSuccessDurationAndLinkedSafeSpan"
           },
-          "coverage_gap": "Proves failed baseline DB boundary, not a successful database read or raw exported trace"
+          "coverage_gap": "A real successful DB read is associated with the W3C client trace and a bounded duration; runtime execution pending"
         },
         {
           "id": "G17-S07-A03",
           "expected": "original audit correlation preserved",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
-            "case": "DurableReceiptLinksToReadOnlyWorkerCorrelationWithoutForgedParentOrReplayMarker"
+            "path": "tests/HarborOps.IntegrationTests/M17SuccessfulDatabaseAndAuditTests.cs",
+            "case": "OptedInTrackingAcceptancePreservesImmutableAuditCorrelation"
           },
-          "coverage_gap": "Server correlation and durable receipt verified, but retained audit row not independently matched"
+          "coverage_gap": "Source-locked DB audit record retains the server-issued correlation under M17; runtime execution pending"
         }
       ]
     },
@@ -301,9 +301,12 @@
         {
           "id": "G17-S09-A01",
           "expected": "successful bounded DB operation emits duration/outcome",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17SuccessfulDatabaseAndAuditTests.cs",
+            "case": "HealthyDatabaseReadRecordsSuccessDurationAndLinkedSafeSpan"
+          },
+          "coverage_gap": "Actual successful PostgreSQL read emitted bounded histogram outcome; runtime execution pending"
         },
         {
           "id": "G17-S09-A02",

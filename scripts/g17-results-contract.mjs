@@ -1,7 +1,8 @@
 const DASHBOARD_TITLES = [
   "dashboard requires authentication and shows actual monitoring panels",
   "authenticated samples match the disposable ready API and suppress held workers",
-  "dashboard is unavailable to an anonymous browser context"
+  "dashboard is unavailable to an anonymous browser context",
+  "alert dashboard links stay local and never embed private diagnostic parameters"
 ];
 const CARDINALITY_TITLES = [
   "ten thousand hostile HTTP requests remain within complete exported-series budget"

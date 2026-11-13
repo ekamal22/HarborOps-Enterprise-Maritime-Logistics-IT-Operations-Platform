@@ -112,7 +112,8 @@ if ($StartDisposableStack) {
         'm17-network-results.json','g17-integration.trx','m17-browser-results.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-restart-results.json',
-        'm17-export-privacy-results.json','m17-storage-results.json')
+        'm17-export-privacy-results.json','m17-storage-results.json',
+        'm17-database-fault-results.json')
     if ($VerifyDisposableWorker) { $required += 'm17-worker-results.json' }
     if ($FaultProbe) { $required += 'm17-collector-fault-results.json' }
 }
@@ -226,6 +227,7 @@ try {
         }
         if (!$ready) { throw 'The isolated API never became ready' }
         if ($FaultProbe) {
+            Invoke-Required 'node' @('scripts/check-g17-database-fault.mjs') -Stage 'postgres-readiness-alert-and-durable-recovery'
             Invoke-Required 'node' @('scripts/check-g17-collector-fault.mjs') -Stage 'collector-business-fault-and-recovery'
         }
         Push-Location -LiteralPath (Join-Path $Repo 'tests/browser')

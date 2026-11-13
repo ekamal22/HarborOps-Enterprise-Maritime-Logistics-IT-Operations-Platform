@@ -63,6 +63,7 @@ try {
   await check("real-client-abort-does-not-commit-business",async()=>{
     const operations=Array.from({length:80},async(_,i)=>{
       const controller=new AbortController();
+      if(i===0)controller.abort();
       const timer=setTimeout(()=>controller.abort(),i%2?2:6);
       try {
         const res=await fetch(root+"/api/v1/system/baseline",
@@ -88,7 +89,12 @@ try {
     assert.ok(elapsed<=20,"Telemetry shutdown exceeded the bounded stop interval");
     const states=docker(["ps","-a","api","--format","{{.State}}"]);
     assert.ok(states==="exited","API was not cleanly stopped");
-    return {shutdown_seconds:elapsed};
+    const id=docker(["ps","-a","-q","api"]);
+    assert.match(id,/^[a-f0-9]+$/);
+    const exit=execFileSync("docker",["inspect","--format","{{.State.ExitCode}}",id],{
+      encoding:"utf8",timeout:10000}).trim();
+    assert.notEqual(exit,"137","API required SIGKILL rather than bounded graceful shutdown");
+    return {shutdown_seconds:elapsed,exit_code:Number(exit)};
   });
 } catch {failure=true;}
 finally {

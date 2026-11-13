@@ -134,16 +134,20 @@ async function ready() {
   }
   throw Error("API did not become ready after controlled profile switch");
 }
-async function batch(total, concurrency) {
+async function batch(total, concurrency, kind) {
   const samples=[];let completed=0;
+  const route=kind==="authorized" ? authorizedPath : "/api/v1/system/baseline";
+  const headers=kind==="authorized" ? {Cookie:managerCookie} : {};
+  assert.ok(route&&["authorized","baseline"].includes(kind));
   for(let offset=0;offset<total;offset+=concurrency) {
     const jobs=Array.from({length:Math.min(concurrency,total-offset)},async()=>{
       const started=performance.now();
-      const response=await fetch(api+"/api/v1/system/baseline",
-        {signal:AbortSignal.timeout(15000)});
+      const response=await fetch(api+route,{
+        headers,signal:AbortSignal.timeout(15000)});
       const json=await response.json();
-      assert.equal(response.status,200,"A bounded baseline read did not succeed");
-      assert.equal(json.service,"HarborOps");
+      assert.equal(response.status,200,"A bounded "+kind+" read did not succeed");
+      if(kind==="baseline")assert.equal(json.service,"HarborOps");
+      else assert.ok(Array.isArray(json.ports),"Authenticated scoped port response was not returned");
       completed++;
       return performance.now()-started;
     });
@@ -160,24 +164,34 @@ async function mode(enabled,round) {
   const overlay=enabled?on:off;
   compose(overlay,["up","-d","--no-deps","--force-recreate","api"]);
   await ready();
-  // Warmup excluded. No traffic mutations or tenant data changes.
-  await batch(80,8);
+  // Both a public database read and a real authenticated organization
+  // read are measured on the same API image, tenant and disposable database.
+  await batch(80,8,"baseline");
+  await batch(80,8,"authorized");
   const rss=[memory()];
-  const latencies=[];
+  const runs={baseline:[],authorized:[]};
   for(let k=0;k<5;k++) {
-    latencies.push(...await batch(80,8));
+    for(const kind of ["baseline","authorized"])
+      runs[kind].push(...await batch(80,8,kind));
     rss.push(memory());
   }
-  assert.equal(latencies.length,400);
-  return {round,telemetry_enabled:enabled,requests:400,
-    p95_ms:p95(latencies),rss_peak_mib:Math.max(...rss),
-    rss_samples_mib:rss,mean_ms:latencies.reduce((a,b)=>a+b,0)/latencies.length};
+  for(const kind of ["baseline","authorized"])assert.equal(runs[kind].length,400);
+  const per_route=Object.fromEntries(Object.entries(runs).map(([kind,values])=>[
+    kind,{requests:values.length,p95_ms:p95(values),
+      mean_ms:values.reduce((a,b)=>a+b,0)/values.length}
+  ]));
+  return {round,telemetry_enabled:enabled,requests:800,per_route,
+    p95_ms:Math.max(...Object.values(per_route).map(x=>x.p95_ms)),
+    rss_peak_mib:Math.max(...rss),rss_samples_mib:rss};
 }
 function sd(values) {
   const mean=values.reduce((a,b)=>a+b,0)/values.length;
   return Math.sqrt(values.reduce((sum,x)=>sum+(x-mean)**2,0)/values.length);
 }
 try {
+  await seedAuthorizedRead();
+  assert.ok(managerCookie.length>0 && authorizedPath.startsWith("/api/v1/organizations/"),
+    "Both synthetic authenticated credentials and route are required");
   for(let round=1;round<=3;round++) {
     const order=round===2?[true,false]:[false,true];
     for(const enabled of order)rows.push(await mode(enabled,round));
@@ -185,21 +199,30 @@ try {
   const pairs=[1,2,3].map(round=>{
     const offRow=rows.find(x=>x.round===round&&!x.telemetry_enabled);
     const onRow=rows.find(x=>x.round===round&&x.telemetry_enabled);
-    const p95_increase_pct=100*(onRow.p95_ms/offRow.p95_ms-1);
+    const route_pairs=Object.fromEntries(["baseline","authorized"].map(kind=>{
+      const offP95=offRow.per_route[kind].p95_ms;
+      const onP95=onRow.per_route[kind].p95_ms;
+      return [kind,{telemetry_off_p95_ms:offP95,
+        telemetry_on_p95_ms:onP95,p95_increase_pct:100*(onP95/offP95-1)}];
+    }));
+    const p95_increase_pct=Math.max(...Object.values(route_pairs)
+      .map(row=>row.p95_increase_pct));
     const memory_increase_pct=100*(onRow.rss_peak_mib/offRow.rss_peak_mib-1);
-    return {round,telemetry_off_p95_ms:offRow.p95_ms,
+    return {round,route_pairs,telemetry_off_p95_ms:offRow.p95_ms,
       telemetry_on_p95_ms:onRow.p95_ms,p95_increase_pct,
       telemetry_off_rss_mib:offRow.rss_peak_mib,
       telemetry_on_rss_mib:onRow.rss_peak_mib,memory_increase_pct,
-      pass:p95_increase_pct<=10&&memory_increase_pct<=15};
+      pass:Object.values(route_pairs).every(row=>row.p95_increase_pct<=10)
+        &&memory_increase_pct<=15};
   });
   const p95Values=pairs.map(x=>x.p95_increase_pct);
   const rssValues=pairs.map(x=>x.memory_increase_pct);
   const pass=pairs.every(x=>x.pass);
   fs.writeFileSync(recordPath,JSON.stringify({
     source_sha:source,project,run_kind:"THREE_MATCHED_PAIRS",
-    benchmark_path:"GET /api/v1/system/baseline",
-    sample_size_per_mode_per_round:400,warmup_per_mode_per_round:80,
+    benchmark_path:"GET /api/v1/system/baseline + authenticated GET /api/v1/organizations/{synthetic}/ports",
+    measured_routes:["baseline","authorized"],
+    sample_size_per_mode_per_round:800,warmup_per_mode_per_round:160,
     concurrency:8,system:{platform:process.platform,arch:process.arch,
       cpus:os.cpus().length,memory_bytes:os.totalmem(),release:os.release(),
       node:process.version},rows,pairs,
@@ -207,7 +230,7 @@ try {
     rss_increase_stddev_pct:sd(rssValues),
     thresholds:{p95_increase_pct:10,memory_increase_pct:15},
     result:pass?"PASS":"FAIL",
-    assessment_boundary:"Single baseline-read workload; other workload families still require separate evidence"
+    assessment_boundary:"Baseline plus authenticated scoped read. Fault and 10x burst witnesses are separate."
   },null,2)+"\n",{flag:"wx"});
   if(!pass)throw Error("Approved P09 baseline-read overhead thresholds were exceeded");
 }catch(e){

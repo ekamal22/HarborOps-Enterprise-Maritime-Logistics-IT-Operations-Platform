@@ -114,3 +114,64 @@ test("alert dashboard links stay local and never embed private diagnostic parame
   // Zero explicit alert hyperlinks is an intentional privacy-safe option.
   expect(checked).toBeGreaterThanOrEqual(0);
 });
+
+test("critical monitoring panels use live series and no-data views are explicitly unknown", async ({page}) => {
+  await logIn(page);
+  const dataResponse=await page.request.get("/api/dashboards/uid/harborops-m17");
+  expect(dataResponse.status()).toBe(200);
+  const saved=await dataResponse.json();
+  const panels=saved.dashboard?.panels||[];
+  const critical=[
+    "API request rate","API p95 latency","PostgreSQL readiness",
+    "Application heartbeats per 100 seconds",
+    "Collector transport probe","Notification worker",
+    "Active local alerts","Tracking eligible backlog age"
+  ];
+  for(const title of critical) {
+    const panel=panels.find(p=>p.title.startsWith(title));
+    expect(panel,title).toBeTruthy();
+    expect(panel.targets?.length,title).toBeGreaterThan(0);
+    expect(panel.fieldConfig?.defaults?.noValue,title).toBe("Unknown");
+    for(const target of panel.targets)
+      expect(target.expr?.length,title).toBeGreaterThan(3);
+  }
+  // Ensure a real business read occurs during this browser session.
+  for(let i=0;i<24;i++) {
+    const response=await page.request.get(apiBase+"/api/v1/system/baseline");
+    expect(response.status()).toBe(200);
+  }
+  await expect.poll(async()=>{
+    const values=await queryPrometheus(page,
+      "sum(increase(harborops_request_duration_seconds_count[5m]))");
+    return values.length?Number(values[0].value[1]):0;
+  },{timeout:95000,intervals:[5000]}).toBeGreaterThan(0);
+  for(const [query,value] of [
+    ["harborops_db_readiness",1],
+    ['harborops_service_running{service="notifications"}',0],
+    ['harborops_service_running{service="tracking_held"}',-1],
+    ["harborops_telemetry_collector_reachable",1]
+  ]) {
+    const rows=await queryPrometheus(page,query);
+    expect(rows,query).toHaveLength(1);
+    expect(Number(rows[0].value[1]),query).toBe(value);
+    expect(Number(rows[0].value[0]),query).toBeGreaterThan(
+      Math.floor(Date.now()/1000)-70);
+  }
+  await expect.poll(async()=>{
+    const rows=await queryPrometheus(page,
+      "increase(harborops_telemetry_heartbeat_total[100s])");
+    return rows.length?Number(rows[0].value[1]):0;
+  },{timeout:95000,intervals:[5000]}).toBeGreaterThan(0);
+
+  const insufficient=await queryPrometheus(page,
+    'harborops_request_duration_seconds_count{operation="never-issued-g17"}');
+  expect(insufficient).toHaveLength(0);
+  const alertPanel=panels.find(p=>p.title==="Active local alerts");
+  expect(alertPanel.fieldConfig?.defaults?.noValue).toBe("Unknown");
+  const active=await queryPrometheus(page,'ALERTS{alertstate="firing"}');
+  expect(Array.isArray(active)).toBe(true);
+  await page.goto(dashboard);
+  for(const title of ["PostgreSQL readiness","Application heartbeats per 100 seconds",
+    "Collector transport probe","Notification worker"])
+    await expect(page.getByText(title,{exact:false}).first()).toBeVisible();
+});

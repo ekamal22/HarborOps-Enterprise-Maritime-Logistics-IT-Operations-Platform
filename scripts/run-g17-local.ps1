@@ -114,7 +114,8 @@ if ($StartDisposableStack) {
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-restart-results.json',
         'm17-export-privacy-results.json','m17-storage-results.json',
-        'm17-database-fault-results.json','m17-cardinality-memory-results.json')
+        'm17-database-fault-results.json','m17-cardinality-memory-results.json',
+        'm17-live-latency-alert-results.json')
     if ($VerifyDisposableWorker) { $required += @('m17-worker-results.json','m17-worker-journey-results.json') }
     if ($FaultProbe) { $required += 'm17-collector-fault-results.json' }
     if ($RequireFullG17) { $required += 'g17-technical-assertion-ledger.json' }
@@ -234,6 +235,7 @@ try {
             Invoke-Required 'node' @('scripts/check-g17-database-fault.mjs') -Stage 'postgres-readiness-alert-and-durable-recovery'
             Invoke-Required 'node' @('scripts/check-g17-collector-fault.mjs') -Stage 'collector-business-fault-and-recovery'
         }
+        Invoke-Required 'node' @('scripts/check-g17-live-latency.mjs') -Stage 'live-read-latency-histogram-and-p95-alert'
         Push-Location -LiteralPath (Join-Path $Repo 'tests/browser')
         try {
             Invoke-Required 'npm' @('ci', '--no-audit', '--no-fund')

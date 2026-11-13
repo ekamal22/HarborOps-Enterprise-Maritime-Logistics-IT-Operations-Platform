@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { verifyPlaywrightCases, verifyTrxCases, G17_REQUIRED_METHODS } from "./g17-results-contract.mjs";
 
 function crawl(root, prefix = "") {
   const files = [];
@@ -77,12 +78,9 @@ export function verifyManifest(manifestPath, expectedSha) {
       ...(expected.disposable_stack ? ["g17-integration.trx"] : [])];
     for (const file of trxFiles) {
       const xml = fs.readFileSync(path.join(root,file),"utf8");
-      const counters = xml.match(/<Counters\b[^>]*\btotal="(\d+)"[^>]*>/i)?.[0];
-      if (!counters) throw Error("Missing test counters: " + file);
-      const attr = key => Number(counters.match(new RegExp('\\b' + key + '="(\\d+)"'))?.[1] ?? -1);
-      if (!(attr("total") > 0) || attr("failed") !== 0 ||
-          attr("notExecuted") !== 0 || attr("passed") <= 0)
-        throw Error("Incomplete or failed TRX cases: " + file);
+      const methods = file === "g17-contract.trx" ? G17_REQUIRED_METHODS.contract :
+        file === "g17-integration.trx" ? G17_REQUIRED_METHODS.integration : [];
+      verifyTrxCases(xml,methods);
     }
     if (expected.disposable_stack) {
       const network = JSON.parse(fs.readFileSync(
@@ -92,11 +90,12 @@ export function verifyManifest(manifestPath, expectedSha) {
           network.observed?.web?.length !== 1 ||
           network.observed.web[0] !== "internal")
         throw Error("Missing positive Docker network-isolation evidence");
-      for (const file of ["m17-browser-results.json","m17-cardinality-results.json"]) {
+      for (const [file,mode] of [
+        ["m17-browser-results.json","dashboard"],
+        ["m17-cardinality-results.json","cardinality"]
+      ]) {
         const report = JSON.parse(fs.readFileSync(path.join(root,file),"utf8"));
-        if (report.stats?.unexpected !== 0 || report.stats?.expected < 1 ||
-            report.stats?.skipped !== 0)
-          throw Error("Browser report contains missing or failing test cases: " + file);
+        verifyPlaywrightCases(report,mode);
       }
       const cardinality = JSON.parse(fs.readFileSync(
         path.join(root,"m17-cardinality-raw.json"),"utf8"));

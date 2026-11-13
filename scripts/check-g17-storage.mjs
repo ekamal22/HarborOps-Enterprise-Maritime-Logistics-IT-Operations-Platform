@@ -37,7 +37,10 @@ function snapshotDatabase() {
     "--data-only","--schema=public","--no-owner","--no-privileges"],{
       timeout:90000,maxBuffer:64*1024*1024
     });
-  return crypto.createHash("sha256").update(result).digest("hex");
+  const stable=result.toString("utf8").split(/\r?\n/)
+    .filter(line=>!/^(-- (Dumped|Completed|Started) on )/.test(line))
+    .join("\n");
+  return crypto.createHash("sha256").update(stable).digest("hex");
 }
 function check(name,fn) {
   const value=fn();evidenceData.checks.push({name,status:"PASS",value});return value;
@@ -80,12 +83,14 @@ try {
   evidenceData.database_sha256_before=before;
   await checkApi();
   const prometheus=container("prometheus");
-  const script="dd if=/dev/zero of=/prometheus/g17-owned-fill.tmp bs=1048576 count=256 2>/dev/null";
+  const script="dd if=/dev/zero of=/prometheus/g17-owned-fill.tmp bs=1048576 count=256";
   const fill=spawnSync("docker",["exec",prometheus.Id,"/bin/sh","-c",script],{
     encoding:"utf8",timeout:60000,maxBuffer:512*1024
   });
   // Filling a bounded tmpfs must terminate with ENOSPC, not silently succeed.
   assert.notEqual(fill.status,0,"Store unexpectedly accepted more than its tmpfs cap");
+  assert.match(fill.stderr||"",/No space left on device|ENOSPC/i,
+    "Pressure command did not prove a full tmpfs: "+String(fill.stderr).slice(0,100));
   fullStoreCreated=true;
   await checkApi();
   evidenceData.checks.push({name:"business-remains-responsive-during-full-telemetry-store",

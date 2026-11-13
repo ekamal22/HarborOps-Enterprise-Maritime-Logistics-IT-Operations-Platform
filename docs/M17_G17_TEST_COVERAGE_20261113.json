@@ -43,23 +43,32 @@
         {
           "id": "G17-S02-A01",
           "expected": "each metric has exact name/type/unit",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17MetricSchemaTests.cs",
+            "case": "EveryLocalInstrumentHasTheApprovedNameTypeAndUnit"
+          },
+          "coverage_gap": "Exact MeterListener assertions authored; raw runtime execution still pending"
         },
         {
           "id": "G17-S02-A02",
           "expected": "no duplicate request counters",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17MetricSchemaTests.cs",
+            "case": "RequestCountIsDerivedOnlyFromDurationHistogramAndNotDuplicated"
+          },
+          "coverage_gap": "Exact MeterListener assertions authored; raw runtime execution still pending"
         },
         {
           "id": "G17-S02-A03",
           "expected": "histogram produces nonzero latency samples",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17MetricSchemaTests.cs",
+            "case": "RealNonzeroRequestAndDatabaseDurationsReachMeterListeners"
+          },
+          "coverage_gap": "Exact MeterListener assertions authored; raw runtime execution still pending"
         }
       ]
     },

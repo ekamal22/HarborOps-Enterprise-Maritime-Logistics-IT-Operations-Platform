@@ -201,6 +201,16 @@ export function verifyManifest(manifestPath, expectedSha) {
           throw Error("Collector fault/recovery campaign has missing or invalid witnesses");
       }
       if (expected.worker_fixture) {
+        const journey=JSON.parse(fs.readFileSync(path.join(root,
+          "m17-worker-journey-results.json"),"utf8"));
+        if (journey.source_sha !== manifest.source_sha ||
+            journey.project !== expected.project ||
+            journey.result !== "PASS" ||
+            journey.worker_role !== "restricted" ||
+            journey.receipts_accepted !== 50 || journey.reconciled !== 50 ||
+            journey.duplicate_replay !== true ||
+            journey.matched_safe_trace_pairs < 2)
+          throw Error("Worker receipt/replay and actual paired Tempo trace witnesses are missing");
         const worker = JSON.parse(fs.readFileSync(
           path.join(root,"m17-worker-results.json"),"utf8"));
         if (worker.result !== "PASS" || worker.source_sha !== manifest.source_sha ||

@@ -93,6 +93,26 @@ try {
     assert.ok(!JSON.stringify(body).includes("postgres"));
     return {http_status:503,code:body.code,correlation_format:"server-issued-hex32"};
   });
+  await stage("real-http-5xx-rate-fires-reference-alert",async()=>{
+    let failures=0;
+    for(let offset=0;offset<120;offset+=15) {
+      const responses=await Promise.all(Array.from({length:15},async()=>{
+        const r=await fetch(base+"/api/v1/system/baseline",
+          {signal:AbortSignal.timeout(19000)});
+        assert.equal(r.status,503,"Expected real unavailable database response");
+        const json=await r.json();
+        assert.equal(json.code,"dependency_unavailable");
+        return true;
+      }));
+      failures+=responses.length;
+    }
+    assert.equal(failures,120);
+    await poll("actual API 5xx fraction alert",async()=>{
+      const signal=await prom('ALERTS{alertname="HarborOpsElevatedApiFailureRate",alertstate="firing"}');
+      return signal.length===1;
+    },110000);
+    return {real_503_responses:failures,alert:"HarborOpsElevatedApiFailureRate"};
+  });
   await stage("database-alert-identifies-only-safe-component",async()=>{
     await poll("fresh database unavailable sample",async()=>{
       const data=await prom("harborops_db_readiness");
@@ -153,7 +173,7 @@ if(!stopped) {
     });
   }catch(err){error=error||err;}
 }
-const success=!error&&!stopped&&checks.length===4&&checks.every(x=>x.status==="PASS");
+const success=!error&&!stopped&&checks.length===5&&checks.every(x=>x.status==="PASS");
 fs.writeFileSync(reportFile,JSON.stringify({source_sha:source,project,
   result:success?"PASS":"FAIL",checks,alerts,database_restored:!stopped,
   source_environment:"OWNED_DISPOSABLE_POSTGRES_ONLY",accepted_assertions:0,

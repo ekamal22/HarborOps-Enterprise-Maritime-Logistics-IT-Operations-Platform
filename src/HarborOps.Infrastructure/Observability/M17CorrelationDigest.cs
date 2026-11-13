@@ -20,6 +20,21 @@ public static class M17CorrelationDigest
         return key;
     }
 
+    // API receipt and detached worker use the same keyed decision. Their
+    // trace IDs remain independent; only a sanitized digest associates them.
+    public static bool IsValidDigest(string? digest) =>
+        digest is { Length: 64 } &&
+        digest.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
+
+    public static bool SampleLinkedJourney(string? digest)
+    {
+        if (!IsValidDigest(digest)) return false;
+        var leading = ulong.Parse(digest!.AsSpan(0, 16),
+            System.Globalization.NumberStyles.HexNumber,
+            System.Globalization.CultureInfo.InvariantCulture);
+        return (leading & long.MaxValue) < ((ulong)long.MaxValue / 10);
+    }
+
     public static string? FromServerCorrelation(string? correlation, byte[] key)
     {
         if (correlation is null || correlation.Length != 32 ||

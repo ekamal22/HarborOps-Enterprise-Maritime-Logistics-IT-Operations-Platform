@@ -112,7 +112,7 @@ if ($StartDisposableStack) {
         'm17-network-results.json','g17-integration.trx','m17-browser-results.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-restart-results.json',
-        'm17-export-privacy-results.json')
+        'm17-export-privacy-results.json','m17-storage-results.json')
     if ($VerifyDisposableWorker) { $required += 'm17-worker-results.json' }
     if ($FaultProbe) { $required += 'm17-collector-fault-results.json' }
 }
@@ -238,6 +238,7 @@ try {
             # Both result directories are written directly to the E: evidence root.
         } finally { Pop-Location }
         Invoke-Required 'node' @('scripts/check-g17-export-privacy.mjs') -Stage 'tempo-and-prometheus-negative-privacy-canaries'
+        Invoke-Required 'node' @('scripts/check-g17-storage.mjs') -Stage 'owned-telemetry-storage-isolation-and-pressure'
         Invoke-Required 'node' @('scripts/check-g17-restart.mjs') -Stage 'api-cancellation-restart-and-durable-invariants'
         Invoke-Required 'node' @('scripts/check-g17-performance.mjs') -Stage 'three-paired-overhead-measurements'
         if ($VerifyDisposableWorker) {

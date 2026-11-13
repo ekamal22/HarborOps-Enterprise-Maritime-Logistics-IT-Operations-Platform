@@ -112,7 +112,7 @@ public static class TrackingEndpoints
                             new("harborops.operation", "tracking.receipt")
                         };
                         using var receiptSpan = M17Telemetry.Traces.StartActivity(
-                            "tracking.receipt", ActivityKind.Internal, tags: tags);
+                            "tracking.receipt", ActivityKind.Internal, parentContext: default, tags: tags);
                     }
                 }
                 switch (result.Outcome)

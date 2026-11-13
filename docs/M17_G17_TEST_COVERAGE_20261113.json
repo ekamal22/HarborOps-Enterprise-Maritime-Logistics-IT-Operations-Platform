@@ -151,9 +151,12 @@
         {
           "id": "G17-S05-A01",
           "expected": "metric attributes contain only approved keys",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17MetricSchemaTests.cs",
+            "case": "CustomMetricLabelsRejectUntrustedHostsPathsAndBusinessIdentifiers"
+          },
+          "coverage_gap": "Finite key/value instrument callback assertions authored; raw telemetry export review still separate"
         },
         {
           "id": "G17-S05-A02",

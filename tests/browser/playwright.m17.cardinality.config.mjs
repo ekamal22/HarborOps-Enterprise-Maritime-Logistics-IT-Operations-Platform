@@ -11,7 +11,7 @@ export default defineConfig({
     outputFile: process.env.HARBOROPS_G17_CARDINALITY_JSON ||
       "test-results/m17-cardinality-results.json"
   }]],
-  outputDir: "test-results/m17-cardinality-artifacts",
+  outputDir: process.env.HARBOROPS_G17_CARDINALITY_ARTIFACT_DIR || "test-results/m17-cardinality-artifacts",
   use: {
     baseURL: process.env.HARBOROPS_M17_DASHBOARD_BASE_URL || "http://127.0.0.1:3301",
     trace: "retain-on-failure",

@@ -11,10 +11,12 @@ using HarborOps.Worker.Observability;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Npgsql;
 using Xunit;
 
 namespace HarborOps.IntegrationTests;
 
+[Collection("M17WorkerShellIsolation")]
 public sealed class M17ReplayRedriveSpanTests
 {
     [Fact]
@@ -28,7 +30,22 @@ public sealed class M17ReplayRedriveSpanTests
             ActivityStopped=activity=>spans.Enqueue(activity)
         };
         ActivitySource.AddActivityListener(listener);
-        var connection=TestDatabase.ConnectionString();
+        // The worker scans every eligible organization. Prove the exact
+        // per-receipt span count against a new database containing only this
+        // test's durable work. The server is already checked by TestDatabase.
+        var database=new NpgsqlConnectionStringBuilder(TestDatabase.ConnectionString());
+        var isolatedName="harborops_g17_span_"+Guid.NewGuid().ToString("N")[..16];
+        database.Database="postgres";
+        database.Pooling=false;
+        await using var administrator=new NpgsqlConnection(database.ConnectionString);
+        await administrator.OpenAsync();
+        await using(var create=new NpgsqlCommand(
+            $"CREATE DATABASE \"{isolatedName}\"",administrator))
+            await create.ExecuteNonQueryAsync();
+        try
+        {
+        database.Database=isolatedName;
+        var connection=database.ConnectionString;
         using var factory=new ReferenceDataHttpTests.ApiFactory(connection);
         var fixture=await ReferenceDataHttpTests.Setup(factory);
         using var admin=fixture.Admin;
@@ -96,5 +113,13 @@ public sealed class M17ReplayRedriveSpanTests
             x.Generation==1&&x.AttemptCount==1));
         Assert.Equal(1,await verify.TrackingWorkAttemptEvents.CountAsync(x=>
             x.ReceiptId==receipt&&x.EventKind=="Redriven"));
+        }
+        finally
+        {
+            // Drop only the uniquely named database created by this test.
+            await using var drop=new NpgsqlCommand(
+                $"DROP DATABASE IF EXISTS \"{isolatedName}\" WITH (FORCE)",administrator);
+            await drop.ExecuteNonQueryAsync();
+        }
     }
 }

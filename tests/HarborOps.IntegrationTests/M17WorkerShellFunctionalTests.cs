@@ -13,6 +13,7 @@ using Xunit;
 
 namespace HarborOps.IntegrationTests;
 
+[Collection("M17WorkerShellIsolation")]
 public sealed class M17WorkerShellFunctionalTests
 {
     [Fact]

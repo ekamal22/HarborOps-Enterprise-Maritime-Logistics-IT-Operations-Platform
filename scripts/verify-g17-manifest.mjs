@@ -77,7 +77,7 @@ export function verifyManifest(manifestPath, expectedSha) {
       ...(expected.disposable_stack ? ["g17-integration.trx"] : [])];
     for (const file of trxFiles) {
       const xml = fs.readFileSync(path.join(root,file),"utf8");
-      const counters = xml.match(/<Counters\\b[^>]*\\btotal="(\\d+)"[^>]*>/i)?.[0];
+      const counters = xml.match(/<Counters\b[^>]*\btotal="(\d+)"[^>]*>/i)?.[0];
       if (!counters) throw Error("Missing test counters: " + file);
       const attr = key => Number(counters.match(new RegExp('\\b' + key + '="(\\d+)"'))?.[1] ?? -1);
       if (!(attr("total") > 0) || attr("failed") !== 0 ||

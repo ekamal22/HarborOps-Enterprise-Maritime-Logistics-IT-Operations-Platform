@@ -54,10 +54,38 @@ foreach ($directory in @(
     $env:npm_config_cache, $env:PLAYWRIGHT_BROWSERS_PATH, $env:TEMP
 )) { New-Item -ItemType Directory -Force -Path $directory | Out-Null }
 
-function Invoke-Required([string]$Executable, [string[]]$Arguments) {
-    & $Executable @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "$Executable exited with code $LASTEXITCODE"
+$script:stageLog = [System.Collections.Generic.List[object]]::new()
+$script:stageNumber = 0
+function Invoke-Required(
+    [string]$Executable, [string[]]$Arguments,
+    [string]$Stage = '', [string]$CaptureFile = ''
+) {
+    $script:stageNumber++
+    $name = if ($Stage) { $Stage } else { "$Executable-$script:stageNumber" }
+    $started = [DateTimeOffset]::UtcNow.ToString('O')
+    $exit = -1
+    try {
+        if ($CaptureFile) {
+            $output = & $Executable @Arguments 2>&1
+            $exit = $LASTEXITCODE
+            $output | Out-File -LiteralPath (Join-Path $EvidencePath $CaptureFile) -Encoding utf8
+        }
+        else {
+            & $Executable @Arguments
+            $exit = $LASTEXITCODE
+        }
+        if ($exit -ne 0) { throw "Stage $name failed with exit code $exit" }
+        $script:stageLog.Add([pscustomobject]@{
+            stage = $name; status = 'PASS'; exit_code = 0; started_at_utc = $started
+            ended_at_utc = [DateTimeOffset]::UtcNow.ToString('O')
+        })
+    }
+    catch {
+        $script:stageLog.Add([pscustomobject]@{
+            stage = $name; status = 'FAIL'; exit_code = $exit; started_at_utc = $started
+            ended_at_utc = [DateTimeOffset]::UtcNow.ToString('O')
+        })
+        throw "Stage failed: $name (exit $exit)"
     }
 }
 $composeArgs = @('-p', $ProjectName, '-f', 'compose.m17.verify.yaml')
@@ -67,6 +95,27 @@ if ($VerifyDisposableWorker) { $composeArgs += @('-f','compose.m17.worker.overri
 $composeArgs += @('--profile','observability')
 if ($VerifyDisposableWorker) { $composeArgs += @('--profile','worker') }
 $ownedStackStarted = $false
+$sourceVerified = $false
+$runState = 'FAILED'
+$runFailureType = $null
+$sha = $null
+$required = @('source-sha.txt','run-status.json','expected-artifacts.json',
+    'g17-unit.trx','g17-contract.trx')
+if ($StartDisposableStack) {
+    $required += @('m17-promtool-check.txt','m17-promtool-test.txt',
+        'g17-integration.trx','m17-browser-results.json',
+        'm17-cardinality-results.json','m17-cardinality-raw.json')
+    if ($VerifyDisposableWorker) { $required += 'm17-worker-results.json' }
+}
+$expected = @{
+    schema_version = 1; gate = 'G17'; source_sha = $ExpectedSha
+    project = $ProjectName; required_artifacts = $required
+    disposable_stack = [bool]$StartDisposableStack
+    fault_probe = [bool]$FaultProbe
+    worker_fixture = [bool]$VerifyDisposableWorker
+}
+$expected | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (
+    Join-Path $EvidencePath 'expected-artifacts.json') -Encoding utf8
 
 Push-Location -LiteralPath $Repo
 try {
@@ -77,6 +126,7 @@ try {
     if ((& git status --porcelain).Length -gt 0) {
         throw 'Worktree has uncommitted changes; freeze a clean source first'
     }
+    $sourceVerified = $true
     $env:HARBOROPS_SOURCE_SHA = $Sha
     Set-Content -LiteralPath (Join-Path $EvidencePath 'source-sha.txt') -Value $Sha -NoNewline
 
@@ -120,10 +170,10 @@ try {
         Invoke-Required 'docker' (@('compose') + $composeArgs + @('config', '--quiet'))
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('run', '--rm', '--no-deps', '--entrypoint', '/bin/promtool',
-              'prometheus', 'check', 'rules', '/etc/prometheus/alerts.yml'))
+              'prometheus', 'check', 'rules', '/etc/prometheus/alerts.yml')) -Stage 'promtool-check' -CaptureFile 'm17-promtool-check.txt'
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('run', '--rm', '--no-deps', '--entrypoint', '/bin/promtool',
-              'prometheus', 'test', 'rules', '/etc/prometheus/m17-test.yaml'))
+              'prometheus', 'test', 'rules', '/etc/prometheus/m17-test.yaml')) -Stage 'promtool-test' -CaptureFile 'm17-promtool-test.txt'
         $ownedStackStarted = $true
         $env:HARBOROPS_G17_DISPOSABLE_STACK_STARTED = 'true'
         Invoke-Required 'docker' (@('compose') + $composeArgs +

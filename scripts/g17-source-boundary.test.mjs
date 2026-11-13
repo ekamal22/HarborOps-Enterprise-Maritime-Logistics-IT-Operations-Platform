@@ -94,7 +94,8 @@ test("source diff does not change the accepted default Compose or database migra
     cwd:root,encoding:"utf8"
   }).trim().split(/\r?\n/).filter(Boolean);
   assert.ok(changed.length>0);
-  assert.doesNotContain(changed,"compose.yaml");
+  assert.equal(changed.includes("compose.yaml"),false,
+    "The accepted default Compose configuration was unexpectedly modified");
   assert.ok(!changed.some(name=>/Migrations\//i.test(name)),
     "The M17 candidate changed an accepted database migration");
   assert.ok(!changed.some(name=>name.startsWith("docker/postgres/")),

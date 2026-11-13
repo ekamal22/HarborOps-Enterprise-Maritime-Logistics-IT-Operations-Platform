@@ -32,7 +32,7 @@ public static class M17CorrelationDigest
         var leading = ulong.Parse(digest!.AsSpan(0, 16),
             System.Globalization.NumberStyles.HexNumber,
             System.Globalization.CultureInfo.InvariantCulture);
-        return (leading & long.MaxValue) < ((ulong)long.MaxValue / 10);
+        return (leading & (ulong)long.MaxValue) < ((ulong)long.MaxValue / 10);
     }
 
     public static string? FromServerCorrelation(string? correlation, byte[] key)

@@ -105,7 +105,7 @@ $runState = 'FAILED'
 $runFailureType = $null
 $sha = $null
 $required = @('source-sha.txt','run-status.json','expected-artifacts.json',
-    'g17-unit.trx','g17-contract.trx')
+    'g17-unit.trx','g17-contract.trx','g17-coverage-preflight.json')
 if ($StartDisposableStack) {
     $required += @('m17-promtool-check.txt','m17-promtool-test.txt',
         'm17-network-results.json','g17-integration.trx','m17-browser-results.json',
@@ -118,6 +118,7 @@ $expected = @{
     disposable_stack = [bool]$StartDisposableStack
     fault_probe = [bool]$FaultProbe
     worker_fixture = [bool]$VerifyDisposableWorker
+    require_full_g17 = [bool]$RequireFullG17
 }
 $expected | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (
     Join-Path $EvidencePath 'expected-artifacts.json') -Encoding utf8
@@ -272,6 +273,7 @@ finally {
         project = $ProjectName; run_state = $runState
         fault_probe_requested = [bool]$FaultProbe
         worker_fixture_requested = [bool]$VerifyDisposableWorker
+        full_campaign_requested = [bool]$RequireFullG17
         failure_type = $runFailureType; stage_results = $script:stageLog.ToArray()
         required_artifacts = $required; g17_assertion_review = 'NOT_REVIEWED'
         gate_acceptance = 'NOT_ACCEPTED'

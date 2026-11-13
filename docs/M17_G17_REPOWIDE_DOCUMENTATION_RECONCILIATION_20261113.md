@@ -25,7 +25,7 @@ The repeated obsolete 26-authored, 32-partial and 14-missing summaries and claim
 - `docs/execution-graph.json` is the canonical dependency graph, and `docs/EXECUTION_GRAPH.md` is generated from it. Neither was manually rewritten because the dependency edges and its G17 not-accepted gate distinction have not changed.
 - The original 25-scenario/75-assertion inventory remains the requirement baseline. The current coverage JSON remains the source of technical witness identities.
 - Dated reports for previously accepted milestones, historical failed G17 runs, protected `main`, optional/default-off policies, the M9 transport hold and the no-deletion boundary remain intact.
-- Documentation-only commits after source SHA `3500bc33997b0ad4fa803e5983c5444d7d1d598a` do not constitute a new tested application source. [Run #43445954783](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43445954783) is pinned to that executable candidate and was still in progress when this reconciliation was recorded.
+- The 2026-11-13 G17 evidence run on source `3500bc33997b0ad4fa803e5983c5444d7d1d598a` has now completed as FAILED, with 54 failed and 83 skipped integration cases. The later corrected source candidate is `1c61b655e21602a403871bd733e9b5ce04a52398`; [run #43452683183](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43452683183) was queued at reconciliation. Its evidence must be reviewed separately.
 
 ## Acceptance follow-through
 

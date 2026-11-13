@@ -311,12 +311,12 @@
         {
           "id": "G17-S09-A02",
           "expected": "outage emits classified failure without secret SQL",
-          "assessment": "PARTIAL",
+          "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
-            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+            "path": "scripts/check-g17-database-fault.mjs",
+            "case": "real-db-outage-keeps-live-and-errors-classified"
           },
-          "coverage_gap": "Classified 503 and bounded readiness; no raw OTLP query redaction"
+          "coverage_gap": "Real PostgreSQL outage yields safe classified 503 and fresh failure metrics; execution pending"
         },
         {
           "id": "G17-S09-A03",
@@ -455,16 +455,22 @@
         {
           "id": "G17-S13-A02",
           "expected": "sanitized errors still diagnose component and type",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-database-fault.mjs",
+            "case": "database-alert-identifies-only-safe-component"
+          },
+          "coverage_gap": "Alert identifies PostgreSQL readiness with static sanitized text and no protected details; execution pending"
         },
         {
           "id": "G17-S13-A03",
           "expected": "retained M16 audit is not exposed",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "scripts/check-g17-export-privacy.mjs",
+            "case": "audit_entries"
+          },
+          "coverage_gap": "Exported traces and logs reject audit table details, but explicit populated M16 audit disclosure mutant is still needed; execution pending"
         }
       ]
     },
@@ -585,10 +591,10 @@
           "expected": "controlled 5xx/latency/readiness faults trigger configured alerts",
           "assessment": "PARTIAL",
           "witness": {
-            "path": "monitoring/m17/alert-test.yaml",
-            "case": "HarborOpsHighApiP95"
+            "path": "scripts/check-g17-database-fault.mjs",
+            "case": "database-alert-identifies-only-safe-component"
           },
-          "coverage_gap": "Promtool assertions for trigger; no live API fault"
+          "coverage_gap": "Real database outage triggers alert, synthetic PromQL covers 5xx and p95; live 5xx/p95 injections remain; execution pending"
         },
         {
           "id": "G17-S17-A02",
@@ -621,10 +627,10 @@
           "expected": "zero/low traffic is unknown/insufficient, not healthy",
           "assessment": "PARTIAL",
           "witness": {
-            "path": "scripts/check-m17-source.test.mjs",
-            "case": "no default green placeholder"
+            "path": "scripts/check-g17-restart.mjs",
+            "case": "stale-readiness-is-unknown-not-healthy"
           },
-          "coverage_gap": "Unknown states exist but low-traffic behavior not measured"
+          "coverage_gap": "Stale unknown verified; explicit sustained low-traffic dashboard visual still missing; execution pending"
         },
         {
           "id": "G17-S18-A02",
@@ -665,16 +671,22 @@
         {
           "id": "G17-S19-A02",
           "expected": "unknown/unavailable have explicit distinct states",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-restart.mjs",
+            "case": "stale-readiness-is-unknown-not-healthy"
+          },
+          "coverage_gap": "Stopped API stale data is unknown with collector healthy; DB outage separately establishes unavailable 0; execution pending"
         },
         {
           "id": "G17-S19-A03",
           "expected": "alert links only sanitized diagnostic evidence",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "alert dashboard links stay local and never embed private diagnostic parameters"
+          },
+          "coverage_gap": "Authenticated Grafana model rejects external links and sensitive query arguments; execution pending"
         }
       ]
     },
@@ -697,17 +709,20 @@
           "expected": "trace to DB/worker or documented async bridge resolves",
           "assessment": "PARTIAL",
           "witness": {
-            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
-            "case": "DurableReceiptLinksToReadOnlyWorkerCorrelationWithoutForgedParentOrReplayMarker"
+            "path": "scripts/check-g17-export-privacy.mjs",
+            "case": "tempo-trace"
           },
-          "coverage_gap": "Durable diagnostic bridge exists; exported browser/API/worker trace resolution still missing"
+          "coverage_gap": "Real Tempo resolution and safe spans tested; asynchronous worker bridge not proven end-to-end; execution pending"
         },
         {
           "id": "G17-S20-A03",
           "expected": "dashboard alert names correct component without private payload",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-database-fault.mjs",
+            "case": "database-alert-identifies-only-safe-component"
+          },
+          "coverage_gap": "Real database alert names exact component and sanitizes diagnostic summary; execution pending"
         }
       ]
     },

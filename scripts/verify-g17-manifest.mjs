@@ -59,6 +59,7 @@ export function verifyManifest(manifestPath, expectedSha) {
       !["COMPLETE","FAILED"].includes(status.run_state) ||
       status.run_state !== manifest.run_state ||
       !Array.isArray(expected.required_artifacts) ||
+      typeof expected.require_full_g17 !== "boolean" ||
       !Array.isArray(status.stage_results))
     throw Error("Invalid or contradictory G17 stage ledger");
   if (JSON.stringify(expected.required_artifacts.slice().sort()) !==
@@ -73,6 +74,16 @@ export function verifyManifest(manifestPath, expectedSha) {
       status.stage_results.some(row => row.status !== "PASS" || row.exit_code !== 0)))
     throw Error("Completed run has missing evidence or a failed stage");
   if (complete) {
+    const preflight = JSON.parse(fs.readFileSync(path.join(root,
+      "g17-coverage-preflight.json"),"utf8"));
+    if (preflight.passed !== true || preflight.strict !== true ||
+        preflight.technically_authored !== 72 || preflight.assertions !== 75 ||
+        preflight.scenarios !== 25 || preflight.errors?.length !== 0)
+      throw Error("Incomplete or incorrectly reported 75-assertion S25 technical preflight");
+    if (expected.require_full_g17 &&
+        (expected.disposable_stack !== true || expected.worker_fixture !== true ||
+         expected.fault_probe !== true || status.full_campaign_requested !== true))
+      throw Error("Mandatory full G17 fault and worker scenarios were omitted");
     // Presence and a green wrapper exit are not enough: inspect raw test outcomes.
     const trxFiles = ["g17-unit.trx","g17-contract.trx",
       ...(expected.disposable_stack ? ["g17-integration.trx"] : [])];

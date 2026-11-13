@@ -249,9 +249,12 @@
         {
           "id": "G17-S07-A03",
           "expected": "original audit correlation preserved",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
+            "case": "DurableReceiptLinksToReadOnlyWorkerCorrelationWithoutForgedParentOrReplayMarker"
+          },
+          "coverage_gap": "Server correlation and durable receipt verified, but retained audit row not independently matched"
         }
       ]
     },
@@ -367,9 +370,12 @@
         {
           "id": "G17-S11-A01",
           "expected": "authorized worker work links safely to source or documented correlation",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
+            "case": "DurableReceiptLinksToReadOnlyWorkerCorrelationWithoutForgedParentOrReplayMarker"
+          },
+          "coverage_gap": "Durable read-only link verified with admin fixture; worker restricted role and exported traces pending"
         },
         {
           "id": "G17-S11-A02",
@@ -384,9 +390,12 @@
         {
           "id": "G17-S11-A03",
           "expected": "replay/retry has unique bounded spans",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
+            "case": "DurableReceiptLinksToReadOnlyWorkerCorrelationWithoutForgedParentOrReplayMarker"
+          },
+          "coverage_gap": "Replay creates no duplicate receipt marker, but retry and lease-race spans not exercised"
         }
       ]
     },
@@ -671,9 +680,12 @@
         {
           "id": "G17-S20-A02",
           "expected": "trace to DB/worker or documented async bridge resolves",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
+            "case": "DurableReceiptLinksToReadOnlyWorkerCorrelationWithoutForgedParentOrReplayMarker"
+          },
+          "coverage_gap": "Durable diagnostic bridge exists; exported browser/API/worker trace resolution still missing"
         },
         {
           "id": "G17-S20-A03",

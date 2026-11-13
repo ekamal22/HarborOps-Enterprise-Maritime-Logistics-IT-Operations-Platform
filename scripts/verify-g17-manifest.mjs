@@ -117,6 +117,13 @@ export function verifyManifest(manifestPath, expectedSha) {
           !Array.isArray(cardinality.memory_samples) ||
           cardinality.memory_samples.length < 2)
         throw Error("Cardinality or memory observations incomplete");
+      const restart = JSON.parse(fs.readFileSync(path.join(root,
+        "m17-restart-results.json"),"utf8"));
+      if (restart.source_sha !== manifest.source_sha ||
+          restart.project !== expected.project || restart.result !== "PASS" ||
+          restart.api_restored !== true || restart.checks?.length !== 4 ||
+          restart.checks.some(step => step.status !== "PASS"))
+        throw Error("API cancellation, shutdown, restart or durable invariant evidence is absent");
       const overhead = JSON.parse(fs.readFileSync(path.join(root,
         "m17-performance-raw.json"),"utf8"));
       if (overhead.source_sha !== manifest.source_sha ||

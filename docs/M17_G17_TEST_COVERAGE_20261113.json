@@ -460,23 +460,32 @@
         {
           "id": "G17-S14-A01",
           "expected": "cross-organization request produces same denial as baseline",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TenantIsolationTests.cs",
+            "case": "OptedInTelemetryPreservesTenantDenialsAndAnalystWriteRevocation"
+          },
+          "coverage_gap": "Real M17-enabled tenant and role restrictions asserted against disposable PostgreSQL"
         },
         {
           "id": "G17-S14-A02",
           "expected": "telemetry does not disclose tenant detail",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TenantIsolationTests.cs",
+            "case": "OptedInTelemetryPreservesTenantDenialsAndAnalystWriteRevocation"
+          },
+          "coverage_gap": "Real role/tenant and in-process metric isolation; raw exported traces and other accepted APIs still need end-to-end witnesses"
         },
         {
           "id": "G17-S14-A03",
           "expected": "instrumentation cannot elevate a role",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TenantIsolationTests.cs",
+            "case": "OptedInTelemetryPreservesTenantDenialsAndAnalystWriteRevocation"
+          },
+          "coverage_gap": "Real M17-enabled tenant and role restrictions asserted against disposable PostgreSQL"
         }
       ]
     },
@@ -746,9 +755,12 @@
         {
           "id": "G17-S23-A02",
           "expected": "accepted authorization/health/audit APIs preserved",
-          "assessment": "MISSING_TEST",
-          "witness": null,
-          "coverage_gap": "No exact behavioral witness that proves this atomic assertion"
+          "assessment": "PARTIAL",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TenantIsolationTests.cs",
+            "case": "OptedInTelemetryPreservesTenantDenialsAndAnalystWriteRevocation"
+          },
+          "coverage_gap": "Real role/tenant and in-process metric isolation; raw exported traces and other accepted APIs still need end-to-end witnesses"
         },
         {
           "id": "G17-S23-A03",

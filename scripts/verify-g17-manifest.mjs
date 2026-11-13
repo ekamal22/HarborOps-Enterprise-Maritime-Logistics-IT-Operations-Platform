@@ -85,6 +85,13 @@ export function verifyManifest(manifestPath, expectedSha) {
         throw Error("Incomplete or failed TRX cases: " + file);
     }
     if (expected.disposable_stack) {
+      const network = JSON.parse(fs.readFileSync(
+        path.join(root,"m17-network-results.json"),"utf8"));
+      if (network.result !== "PASS" || network.source_sha !== manifest.source_sha ||
+          network.project !== expected.project ||
+          network.observed?.web?.length !== 1 ||
+          network.observed.web[0] !== "internal")
+        throw Error("Missing positive Docker network-isolation evidence");
       for (const file of ["m17-browser-results.json","m17-cardinality-results.json"]) {
         const report = JSON.parse(fs.readFileSync(path.join(root,file),"utf8"));
         if (report.stats?.unexpected !== 0 || report.stats?.expected < 1 ||

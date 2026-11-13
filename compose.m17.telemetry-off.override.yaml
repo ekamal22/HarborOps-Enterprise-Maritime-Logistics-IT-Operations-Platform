@@ -1,0 +1,8 @@
+# Verification-only overlay. Apply after the M17 opt-in overrides and
+# only to the same uniquely named disposable G17 project.
+# Paired P09 baseline uses the identical API image and owned database,
+# changing only the observability enablement flag.
+services:
+  api:
+    environment:
+      M17__Enabled: "false"

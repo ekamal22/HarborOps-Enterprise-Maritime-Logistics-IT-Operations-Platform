@@ -6,6 +6,16 @@ import path from "node:path";
 const root = path.resolve(import.meta.dirname, "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 
+test("G17 runner restricts exact-witness integration checks and keeps other gates explicit", () => {
+  const runner=read("scripts/run-g17-local.ps1");
+  assert.match(runner, /FullyQualifiedName~HarborOps\.IntegrationTests\.M17/);
+  assert.match(runner, /HARBOROPS_G12_EXCLUSIVE_POSTGRES = '1'/);
+  assert.match(runner, /HARBOROPS_G13_EXCLUSIVE_POSTGRES = '1'/);
+  assert.match(runner, /g17-integration\.trx/);
+  assert.match(runner, /g17-regressions\.trx/);
+  assert.match(runner, /check-g17-regression-matrix\.mjs/);
+});
+
 test("the default stack does not start or expose M17 components", () => {
   const base = read("compose.yaml");
   assert.doesNotMatch(base, /M17__Enabled|otelcol:|3301:3000/);

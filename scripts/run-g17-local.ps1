@@ -241,8 +241,15 @@ try {
         )) -Stage 'owned-integration-database-create'
         $env:HARBOROPS_TEST_DB = "Host=127.0.0.1;Port=15543;Database=harborops_integration;" +
             "Username=harborops;Password=$env:HARBOROPS_DB_PASSWORD"
+        # The G17 ledger inventories M17 test witnesses. Run those classes
+        # and selected cross-version checks without accidentally scheduling the
+        # separately gated G13/G15 crash and capacity campaigns.
+        $g17IntegrationFilter = 'FullyQualifiedName~HarborOps.IntegrationTests.M17|' +
+            'FullyQualifiedName~HarborOps.IntegrationTests.AuditHardeningTests|' +
+            'FullyQualifiedName~HarborOps.IntegrationTests.OrganizationUpgradeAndConstraintTests'
         Invoke-Required 'dotnet' @('test', 'tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj',
-            '-c', 'Release', '--no-build', '--logger', 'trx;LogFileName=g17-integration.trx',
+            '-c', 'Release', '--no-build', '--filter', $g17IntegrationFilter,
+            '--logger', 'trx;LogFileName=g17-integration.trx',
             '--results-directory', $EvidencePath)
         Invoke-Required 'docker' (@('compose') + $composeArgs +
             @('up', '-d', '--build', 'api', 'web', 'otelcol', 'tempo', 'prometheus', 'grafana'))
@@ -268,6 +275,10 @@ try {
         $env:M17__LinkKey = $env:HARBOROPS_M17_LINK_KEY
         $env:OTEL_SPAN_EVENT_COUNT_LIMIT = '0'
         $env:OTEL_SPAN_LINK_COUNT_LIMIT = '0'
+        # This PostgreSQL instance is created exclusively inside the owned
+        # disposable G17 project. These guards apply to regression tests only.
+        $env:HARBOROPS_G12_EXCLUSIVE_POSTGRES = '1'
+        $env:HARBOROPS_G13_EXCLUSIVE_POSTGRES = '1'
         try {
             Invoke-Required 'dotnet' @('test',
                 'tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj',
@@ -277,7 +288,8 @@ try {
         }
         finally {
             foreach ($var in @('M17__Enabled','M17__OtlpEndpoint','M17__LinkKey',
-                'OTEL_SPAN_EVENT_COUNT_LIMIT','OTEL_SPAN_LINK_COUNT_LIMIT')) {
+                'OTEL_SPAN_EVENT_COUNT_LIMIT','OTEL_SPAN_LINK_COUNT_LIMIT',
+                'HARBOROPS_G12_EXCLUSIVE_POSTGRES','HARBOROPS_G13_EXCLUSIVE_POSTGRES')) {
                 Remove-Item "Env:$var" -ErrorAction SilentlyContinue
             }
         }

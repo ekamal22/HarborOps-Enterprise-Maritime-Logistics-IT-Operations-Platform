@@ -62,7 +62,11 @@ public sealed class M17SuccessfulDatabaseAndAuditTests
             using var admin=tenant.Admin;
             using var manager=tenant.Manager;
             using var analyst=tenant.Analyst;
-            using var response=await manager.GetAsync("/api/v1/system/baseline");
+            const string traceId="00112233445566778899aabbccddeeff";
+            using var request=new HttpRequestMessage(HttpMethod.Get,"/api/v1/system/baseline");
+            request.Headers.TryAddWithoutValidation("traceparent",
+                "00-"+traceId+"-0123456789abcdef-01");
+            using var response=await manager.SendAsync(request);
             Assert.Equal(HttpStatusCode.OK,response.StatusCode);
             using var doc=JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             Assert.Equal("HarborOps",doc.RootElement.GetProperty("service").GetString());
@@ -70,6 +74,7 @@ public sealed class M17SuccessfulDatabaseAndAuditTests
                 s.Outcome=="success"&&s.Duration>0&&s.Duration<15);
             Assert.Contains(spans,s=>s.OperationName=="baseline.read"&&
                 s.Kind==ActivityKind.Client&&
+                s.TraceId.ToHexString()==traceId&&
                 Equals(s.GetTagItem("harborops.operation"),"baseline_read"));
             Assert.DoesNotContain(spans,s=>s.TagObjects.Any(tag=>
                 tag.Key.Contains("sql",StringComparison.OrdinalIgnoreCase)||

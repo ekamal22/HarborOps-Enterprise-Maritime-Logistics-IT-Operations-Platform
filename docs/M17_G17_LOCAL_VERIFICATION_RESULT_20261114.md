@@ -87,6 +87,7 @@ Defects found and corrected in the implementation and configuration:
 2. **Privacy trace sample is small.** Head sampling keeps about 10 percent of traces, so 320 submitted requests yielded 2 retrievable canary traces (4 spans) in c7; the gate requires at least 2. Metric series (134) and service logs were also scanned. A reviewer may reasonably ask for a larger sample.
 3. **Environment.** Host SDK 10.0.404; local NuGet caches missing placeholder files produced a spurious "package does not support net10.0" warning, so `SuppressTfmSupportBuildWarnings=true` was set as an environment variable (no source or output change). PostgreSQL data and keyring for the disposable stack live in the Docker engine VM because Windows bind mounts cannot be chowned to the rootless UIDs; the VM disk image itself is on E:.
 4. **No production claims.** All evidence comes from a disposable local stack with synthetic data.
+5. **The scanned telemetry records were not retained.** `m17-export-privacy-results.json` keeps, for each scanned item, only its kind, byte size and sha256 (2 Tempo traces, 1 service-log blob, 134 metric series). The exported trace JSON, the log text and the privacy-scan series label sets are not in the archive, and the stack storage was in memory and is gone. `m17-worker-journey-results.json` likewise keeps counts only. Retained in full: the 134 label sets of the cardinality test, all raw latency samples, and all TRX, JUnit and Playwright reports. An independent reviewer therefore cannot re-run the canary search over the original exported records from this archive.
 
 ## Security and boundary confirmation (tested, with the limits above)
 
@@ -191,12 +192,13 @@ The reviewer must be separate from the implementation and verification work. Thi
   3. For each row of the ledger above open the named raw artifact and confirm the named fact (the predicates are in `scripts/g17-raw-witness.mjs`).
   4. Read the test bodies of the multi-assertion witnesses (`M17HttpContractTests`, `M17MetricSchemaTests`, `M17TelemetryContractTests`, `M17CorrelationJourneyTests`, `M17ReplayRedriveSpanTests`, `M17ExporterQueuePressureTests`, both browser specs) and judge whether each independent sub-condition is asserted.
   5. Run a mutation check of choice (for example restore the 35 s freshness bound or remove a label from the allowlist) and confirm the verifier fails.
-  6. Search the exported privacy snapshots and service logs in the evidence for any value not on the allowlist.
+  6. The privacy scan's underlying records are not in the archive (see qualification 5). The reviewer can re-scan the 134 retained metric label sets in `m17-cardinality-raw.json` and the 14,400 retained latency samples, but must either accept the recorded scan result for the two traces and the service logs or request a rerun that retains them.
 - **G17-S25-A02** (policy and procedural exceptions disclosed): confirm the disclosures in "Decisions and qualifications" are complete and accurate, including the owner-confirmed P09 rule, the failed campaigns, the environment workarounds and the small privacy trace sample.
 - **G17-S25-A03** (explicit signed PASS or NOT PASS before G17 acceptance): the reviewer records a signed decision. Nothing in this repository records it.
 
 ## Outstanding work
 
+- Retain the scanned exported records (trace documents, series label sets, sanitized log text) in the evidence of the next campaign, so the privacy scan can be independently repeated. This needs a new source-locked campaign; none has been run for it.
 - The independent G17-S25 review and its signed decision.
 - A decision on whether to publish the local commits. Pushing to `feature/m17-observability-20261112` would start the repository's G17 workflow on that branch, which the instruction for this assignment forbids, so no push was made.
 - Disposable state folders inside the Docker VM for campaigns c1 to c7 (`/var/lib/ho-verify/ho-verify-m17-local-c1` to `-c7`) and the stopped campaign containers were left in place; removal of the folders was blocked by a safety check and is left to the owner.

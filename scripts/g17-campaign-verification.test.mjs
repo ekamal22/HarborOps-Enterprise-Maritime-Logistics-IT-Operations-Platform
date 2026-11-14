@@ -144,3 +144,51 @@ test("a falsely reviewed inventory, count or disposition is rejected", t => {
     assert.throws(() => verifyManifest(manifest, source), pattern);
   }
 });
+
+// Header and ledger guards: every field is broken alone, so none can hide behind another.
+const OTHER = "b".repeat(40);
+const HEADER = [
+  ["run-status schema version", json("run-status.json", v => {v.schema_version = 3;}), /stage ledger/],
+  ["expected-artifacts schema version", json("expected-artifacts.json", v => {v.schema_version = 2;}), /stage ledger/],
+  ["run-status gate", json("run-status.json", v => {v.gate = "G16";}), /stage ledger/],
+  ["expected-artifacts gate", json("expected-artifacts.json", v => {v.gate = "G16";}), /stage ledger/],
+  ["run-status source sha", json("run-status.json", v => {v.source_sha = OTHER;}), /stage ledger/],
+  ["expected-artifacts source sha", json("expected-artifacts.json", v => {v.source_sha = OTHER;}), /stage ledger/],
+  ["requested source sha", json("run-status.json", v => {v.requested_source_sha = OTHER;}), /stage ledger/],
+  ["source not verified", json("run-status.json", v => {v.source_verified = false;}), /stage ledger/],
+  ["gate accepted in the run status", json("run-status.json", v => {v.gate_acceptance = "ACCEPTED";}), /stage ledger/],
+  ["assertions already reviewed in the run status", json("run-status.json", v => {v.g17_assertion_review = "REVIEWED";}), /stage ledger/],
+  ["run state unknown", json("run-status.json", v => {v.run_state = "DONE";}), /stage ledger/],
+  ["run state differs from the manifest", json("run-status.json", v => {v.run_state = "FAILED";}), /stage ledger/],
+  ["required artifacts not an array", json("expected-artifacts.json", v => {v.required_artifacts = "x";}), /stage ledger/],
+  ["full campaign flag not boolean", json("expected-artifacts.json", v => {v.require_full_g17 = "yes";}), /stage ledger/],
+  ["stage with exit code 1 but PASS", json("run-status.json", v => {v.stage_results[0].exit_code = 1;}), /failed stage/],
+  ["stage FAIL with exit code 0", json("run-status.json", v => {v.stage_results[0].status = "FAIL";}), /failed stage/],
+  ["no stages at all", json("run-status.json", v => {v.stage_results = [];}), /stage ledger|failed stage/],
+  ["preflight 25 scenarios claimed as 24", json("g17-coverage-preflight.json", v => {v.scenarios = 24;}), /preflight/],
+  ["preflight with an error", json("g17-coverage-preflight.json", v => {v.errors = ["x"];}), /preflight/],
+  ["preflight 74 assertions", json("g17-coverage-preflight.json", v => {v.assertions = 74;}), /preflight/],
+  ["preflight not passed", json("g17-coverage-preflight.json", v => {v.passed = false;}), /preflight/],
+  ["ledger source sha", json("g17-technical-assertion-ledger.json", v => {v.source_sha = OTHER;}), /raw atomic technical witnesses/],
+  ["ledger project", json("g17-technical-assertion-ledger.json", v => {v.project = "ho-verify-m17-other";}), /raw atomic technical witnesses/],
+  ["ledger not passed", json("g17-technical-assertion-ledger.json", v => {v.pass = false;}), /raw atomic technical witnesses/],
+  ["ledger 74 records", json("g17-technical-assertion-ledger.json", v => {v.records.pop();}), /raw atomic technical witnesses/],
+  ["ledger duplicate id", json("g17-technical-assertion-ledger.json", v => {v.records[1].id = v.records[0].id;}), /raw atomic technical witnesses/],
+  ["ledger independent count", json("g17-technical-assertion-ledger.json", v => {v.independent_pending = 2;}), /raw atomic technical witnesses/]
+];
+for (const [label, mutate, pattern] of HEADER) {
+  test("complete campaign header guard: " + label, t => {
+    const {manifest} = withCampaign(t, mutate);
+    assert.throws(() => verifyManifest(manifest, source), pattern);
+  });
+}
+test("a manifest header with a wrong schema version, gate or source is rejected one field at a time", t => {
+  for (const adjust of [v => ({...v, schema_version: 3}), v => ({...v, gate: "G16"}),
+      v => ({...v, source_sha: "xyz"})]) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-campaign-header-"));
+    t.after(() => fs.rmSync(dir, {recursive: true, force: true}));
+    writeCampaignFiles(dir);
+    assert.throws(() => verifyManifest(writeManifest(dir, adjust), source),
+      /Invalid source-locked G17 candidate manifest header/);
+  }
+});

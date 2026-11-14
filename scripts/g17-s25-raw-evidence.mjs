@@ -98,6 +98,17 @@ export function verifyS25RawSnapshots(root,source,project) {
     assert.match(state.verified_statuses?.missing??"",/\b(?:Unknown|No data)\b/i);
     assert.match(state.verified_statuses?.down??"",/\bUnavailable\b/i);
     assert.match(state.verified_statuses?.ready??"",/\bReady\b/i);
+    const traffic=load(root,"m17-ui-no-traffic-"+engine+".json");
+    assert.equal(traffic.source_sha,source);
+    assert.equal(traffic.engine,engine);
+    assert.equal(traffic.source_result_counts.eligible_requests,0);
+    assert.equal(traffic.source_result_counts.failure_fraction,0);
+    assert.ok(traffic.window_end<Math.floor(Date.now()/1000));
+    for(const title of ["API request rate","API 5xx rate","API p95 latency"]) {
+      assert.match(traffic.panels?.[title]??"",/\b(?:No data|Unknown)\b/i,
+        "No independent rendered no-traffic API panel: "+engine+"/"+title);
+      assert.doesNotMatch(traffic.panels[title],/\b(?:Healthy|Sufficient)\b/i);
+    }
   }
   return {status:"PASS",raw_trace_records:trace.records.length,
     raw_worker_traces:wt.traces.length,raw_metric_series:metric.series.length,

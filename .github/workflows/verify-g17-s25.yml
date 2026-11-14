@@ -128,3 +128,7 @@ jobs:
           path: ${{ runner.temp }}/g17-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 14
           if-no-files-found: warn
+          # The source-locked manifest explicitly scans every evidence file.
+          # Include the original hidden Playwright success records, not merely
+          # their hashes, so the downloaded artifact equals the manifest.
+          include-hidden-files: true

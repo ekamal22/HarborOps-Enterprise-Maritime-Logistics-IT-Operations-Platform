@@ -35,10 +35,16 @@ function fixture(dir) {
   validated_exported_traces:4,trace_records_retained:4,negative_canary_absent:true}));
  put(dir,"m17-malformed-export-traces.json",wrap({window_start:1700000000,
   window_end:1700000001,records:Array.from({length:4},()=>({document:doc}))}));
- for(const engine of ["chromium","firefox","webkit"])
+ for(const engine of ["chromium","firefox","webkit"]) {
   put(dir,"m17-ui-state-"+engine+".json",{source_sha:source,engine,
    verified_statuses:{missing:"PostgreSQL readiness Unknown",
     down:"PostgreSQL readiness Unavailable",ready:"PostgreSQL readiness Ready"}});
+  put(dir,"m17-ui-no-traffic-"+engine+".json",{source_sha:source,engine,
+   window_start:1700000000,window_end:1700000300,
+   source_result_counts:{eligible_requests:0,failure_fraction:0},
+   panels:{"API request rate":"No data","API 5xx rate":"No data",
+    "API p95 latency":"No data"}});
+ }
 }
 test("retained real-shaped raw evidence is independently rechecked",()=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),"g17-raw-test-"));
@@ -62,6 +68,12 @@ test("changed trace, missing series and false browser state are rejected",()=>{
   const ui=JSON.parse(fs.readFileSync(path.join(dir,f)));
   ui.verified_statuses.down="PostgreSQL readiness Ready";
   put(dir,f,ui);
+  assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
+  fixture(dir);
+  const bad="m17-ui-no-traffic-chromium.json";
+  const traffic=JSON.parse(fs.readFileSync(path.join(dir,bad)));
+  traffic.panels["API 5xx rate"]="0 healthy";
+  put(dir,bad,traffic);
   assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
  } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });

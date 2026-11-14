@@ -136,6 +136,8 @@ if ($StartDisposableStack) {
         'm17-browser-results.json',
         'm17-ui-state-chromium.json','m17-ui-state-firefox.json',
         'm17-ui-state-webkit.json',
+        'm17-ui-no-traffic-chromium.json','m17-ui-no-traffic-firefox.json',
+        'm17-ui-no-traffic-webkit.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-restart-results.json',
         'm17-export-privacy-results.json','m17-malformed-export-results.json',

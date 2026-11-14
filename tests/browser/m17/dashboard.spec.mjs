@@ -183,7 +183,28 @@ test("critical monitoring panels use live series and no-data views are explicitl
     await expect(page.getByText(title,{exact:false}).first()).toBeVisible();
 });
 
-test("zero and insufficient traffic render unknown rather than a healthy zero", async ({page}) => {
+
+// Restrict the observation to one actual Grafana panel. A title, a saved
+// noValue setting or "No data" printed by another panel is not evidence.
+async function renderedApiNoData(page,title) {
+  const label=page.getByText(title,{exact:true}).first();
+  await expect(label).toBeVisible();
+  return label.evaluate(element=>{
+    let current=element;
+    for(let depth=0;current&&depth<14;depth++,current=current.parentElement) {
+      const text=String(current.innerText||current.textContent||"");
+      if(!text.includes(element.textContent||""))continue;
+      const headings=["API request rate","API 5xx rate","API p95 latency",
+        "PostgreSQL readiness","Application heartbeats"];
+      if(headings.filter(name=>text.includes(name)).length!==1)continue;
+      if(text.length>1600)continue;
+      if(/\b(?:No data|Unknown)\b/i.test(text))return text;
+    }
+    return "";
+  });
+}
+
+test("zero and insufficient traffic render unknown rather than a healthy zero", async ({page},testInfo) => {
   await logIn(page);
   const response=await page.request.get("/api/dashboards/uid/harborops-m17");
   expect(response.status()).toBe(200);
@@ -219,6 +240,22 @@ test("zero and insufficient traffic render unknown rather than a healthy zero", 
   await expect(page.getByText("API request rate",{exact:false}).first()).toBeVisible();
   await expect(page.getByText("PostgreSQL readiness",{exact:false}).first()).toBeVisible();
   await expect(page.getByText("API p95 latency",{exact:false}).first()).toBeVisible();
+  const rendered={source_sha:process.env.HARBOROPS_SOURCE_SHA,
+    engine:testInfo.project.name,window_start:past-300,
+    window_end:past,source_result_counts:{
+      eligible_requests:body.data.result.length,
+      failure_fraction:fraction.data.result.length},panels:{}};
+  for(const title of ["API request rate","API 5xx rate","API p95 latency"]) {
+    await expect.poll(()=>renderedApiNoData(page,title),
+      {timeout:90000,intervals:[3000]}).toMatch(/\b(?:No data|Unknown)\b/i);
+    const state=await renderedApiNoData(page,title);
+    expect(state).not.toMatch(/\b(?:Healthy|Sufficient)\b/i);
+    rendered.panels[title]=state;
+  }
+  const root=process.env.HARBOROPS_G17_EVIDENCE_DIR;
+  if(!root)throw Error("Source-locked evidence root required");
+  fs.writeFileSync(path.join(root,"m17-ui-no-traffic-"+testInfo.project.name+".json"),
+    JSON.stringify(rendered,null,2)+"\n",{flag:"wx"});
 });
 
 // Inspect a single rendered Grafana panel, not just its datasource query or

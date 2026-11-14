@@ -292,3 +292,14 @@ test("all S25 remediation controls are required before a green evidence manifest
   const independent=coverage.scenarios[24].assertions;
   assert.ok(independent.every(a=>a.assessment==="INDEPENDENT_REVIEW"&&a.witness===null));
 });
+
+test("owned synthetic storage fixture obeys immutable shipment code constraints",()=>{
+  const storage=read("scripts/check-g17-storage.mjs");
+  assert.ok(storage.includes('nonce.toUpperCase()'));
+  assert.ok(storage.includes('const shipmentRef="G17-STORAGE-"'));
+  assert.ok(storage.includes('assert.match(shipmentRef,'));
+  assert.ok(storage.includes('m15_notification_outbox'));
+  assert.ok(storage.includes('shipment_exception_history'));
+  assert.ok(storage.includes('database_sha256_before'));
+  assert.ok(storage.includes('database_sha256_after'));
+});

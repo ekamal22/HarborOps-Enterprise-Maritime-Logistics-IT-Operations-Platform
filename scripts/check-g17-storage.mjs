@@ -34,6 +34,10 @@ function sql(query) {
 }
 function seedProtectedHistory() {
  const nonce=crypto.randomBytes(7).toString("hex");
+ // The durable shipment reference has an uppercase-only database constraint.
+ // Tenant slugs and synthetic emails retain lowercase identifiers.
+ const shipmentRef="G17-STORAGE-"+nonce.toUpperCase();
+ assert.match(shipmentRef,/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/);
  sql(`DO $g17$
 DECLARE u uuid:=gen_random_uuid(); o uuid:=gen_random_uuid();
  p1 uuid:=gen_random_uuid();p2 uuid:=gen_random_uuid();
@@ -55,7 +59,7 @@ BEGIN
  INSERT INTO shipments(id,organization_id,reference_code,origin_port_id,
   destination_port_id,workflow_status,record_status,source_kind,version,
   created_at_utc,updated_at_utc,changed_by_user_id)
- VALUES(sh,o,'G17-STORAGE-${nonce}',p1,p2,'Draft','Active','Synthetic',1,
+ VALUES(sh,o,'${shipmentRef}',p1,p2,'Draft','Active','Synthetic',1,
   clock_timestamp(),clock_timestamp(),u);
  INSERT INTO shipment_exceptions(id,organization_id,shipment_id,rule_code,
   occurrence,condition_state,lifecycle_state,severity,confidence,reason_code,
@@ -70,10 +74,10 @@ END $g17$;`);
   'users',(SELECT count(*) FROM users WHERE email='g17-storage-${nonce}@example.test'),
   'organizations',(SELECT count(*) FROM organizations WHERE slug='g17-storage-${nonce}'),
   'ports',(SELECT count(*) FROM ports WHERE organization_id=(SELECT id FROM organizations WHERE slug='g17-storage-${nonce}')),
-  'shipments',(SELECT count(*) FROM shipments WHERE reference_code='G17-STORAGE-${nonce}'),
-  'm11_exceptions',(SELECT count(*) FROM shipment_exceptions e JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='G17-STORAGE-${nonce}'),
-  'm11_history',(SELECT count(*) FROM shipment_exception_history h JOIN shipment_exceptions e ON h.exception_id=e.id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='G17-STORAGE-${nonce}'),
-  'm15_outbox',(SELECT count(*) FROM m15_notification_outbox x JOIN shipment_exception_history h ON h.id=x.source_history_id JOIN shipment_exceptions e ON e.id=h.exception_id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='G17-STORAGE-${nonce}'),
+  'shipments',(SELECT count(*) FROM shipments WHERE reference_code='${shipmentRef}'),
+  'm11_exceptions',(SELECT count(*) FROM shipment_exceptions e JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='${shipmentRef}'),
+  'm11_history',(SELECT count(*) FROM shipment_exception_history h JOIN shipment_exceptions e ON h.exception_id=e.id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='${shipmentRef}'),
+  'm15_outbox',(SELECT count(*) FROM m15_notification_outbox x JOIN shipment_exception_history h ON h.id=x.source_history_id JOIN shipment_exceptions e ON e.id=h.exception_id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='${shipmentRef}'),
   'm16_audit',(SELECT count(*) FROM audit_entries)
  )::text`));
  for(const [name,count] of Object.entries(counts))

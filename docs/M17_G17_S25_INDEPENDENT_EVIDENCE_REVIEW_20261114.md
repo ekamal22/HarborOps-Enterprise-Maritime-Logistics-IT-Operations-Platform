@@ -1,5 +1,7 @@
 # G17-S25 Evidence Review and Acceptance Recommendation
 
+**G17-S25 findings tracking (2026-11-14):** All six open technical, evidence, performance and procedural items from the independent review are recorded in the [S25 open-findings register](M17_G17_S25_OPEN_FINDINGS_REGISTER_20261114.md). This is an issue log, not a correction or verified rerun. The G17 technical campaign is green, but **G17 NOT ACCEPTED**; review and acceptance pending.
+
 **Recorded:** November 14, 2026
 **Source:** `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`
 **GitHub Actions:** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851)

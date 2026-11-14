@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { seedStaleEligibleWork, oldestEligibleBacklogSeconds } from "./g17-lease-fixture.mjs";
 
 const project = process.env.HARBOROPS_G17_PROJECT;
 const evidence = process.env.HARBOROPS_G17_EVIDENCE_DIR;
@@ -33,6 +34,9 @@ function docker(extra) {
     throw Error("Disposable worker command failed with exit " + res.status);
   return res.stdout.trim();
 }
+const sql = query => docker(["exec", "-T", "postgres", "psql", "-U", "harborops",
+  "-d", "harborops", "-At", "-v", "ON_ERROR_STOP=1", "-c", query]);
+let staleFixture = null;
 async function metric(expression) {
   const url = "http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-metrics/api/v1/query";
   const request = new URL(url);
@@ -105,9 +109,26 @@ try {
         const r = await metric('increase(harborops_worker_heartbeat_total{worker="tracking"}[1m])');
         return r.length === 0 || Number(r[0].value[1]) === 0;
       }, 150000);
+      // Positive precondition: genuinely stale eligible work exists in the owned
+      // database while the worker is stopped. Without it, "no alert" cannot fail.
+      staleFixture = seedStaleEligibleWork(sql, 600);
+      const staleSeconds = oldestEligibleBacklogSeconds(sql);
+      assert.ok(staleSeconds >= 300,
+        "A genuinely stale eligible backlog must exist while the worker is stopped");
+      // Two full alert evaluation and for-windows pass with that backlog present.
+      await new Promise(resolve => setTimeout(resolve, 60000));
       const r = await metric('ALERTS{alertname="HarborOpsTrackingBacklogStale",alertstate="firing"}');
       assert.equal(r.length, 0);
-      return "held worker did not raise active-backlog alert";
+      const stillStale = oldestEligibleBacklogSeconds(sql);
+      assert.ok(stillStale >= staleSeconds, "The stale backlog must remain during the observation");
+      const heartbeat = await metric('increase(harborops_worker_heartbeat_total{worker="tracking"}[1m])');
+      assert.ok(heartbeat.length === 0 || Number(heartbeat[0].value[1]) === 0,
+        "The worker heartbeat must still be absent while the alert is judged");
+      return {message: "held worker did not raise active-backlog alert",
+        stale_backlog_seconds_at_start: staleSeconds,
+        stale_backlog_seconds_at_end: stillStale,
+        stale_receipt: staleFixture.receipt, heartbeat_absent: true,
+        alert_firing_count: r.length};
     } finally {
       // Restore even on failed assertions; only the owned worker is touched.
       docker(["start", "worker"]);
@@ -120,7 +141,14 @@ try {
       const r = await metric('increase(harborops_worker_heartbeat_total{worker="tracking"}[2m])');
       return r.length === 1 && Number(r[0].value[1]) > 0;
     });
-    return "restricted worker healthy after restart";
+    // The restarted worker drains the stale backlog it was suppressed for.
+    assert.ok(staleFixture, "The stale backlog fixture must exist before recovery");
+    const drainedState = await poll("restarted worker drains the stale backlog", async () => {
+      const state = sql(`SELECT state FROM tracking_inbox_work_items WHERE receipt_id='${staleFixture.receipt}'`);
+      return state === "NeedsReconciliation" ? state : null;
+    }, 150000);
+    return {message: "restricted worker healthy after restart",
+      stale_work_state_after_recovery: drainedState};
   });
 } finally {
   fs.writeFileSync(reportPath, JSON.stringify({

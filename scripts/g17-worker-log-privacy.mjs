@@ -15,5 +15,7 @@ export function verifyOwnedWorkerLog(raw,privateValues) {
   }
   assert.ok(!/\bBearer\s+[A-Za-z0-9._~-]{16,}|\bPassword\s*[:=]\s*\S{8,}/i.test(raw),
     "Owned worker logs contain a credential-shaped value");
+  assert.ok(!/hop_v1_[0-9a-f]{32}_|@example\.test|g17-worker-[0-9a-f]{6,}/i.test(raw),
+    "Owned worker logs contain a synthetic credential, account or tenant shaped value");
   return {checked_values:privateValues.length,bytes:Buffer.byteLength(raw)};
 }

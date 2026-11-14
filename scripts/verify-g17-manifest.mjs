@@ -2,7 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { verifyPlaywrightCases, verifyTrxCases, G17_REQUIRED_METHODS } from "./g17-results-contract.mjs";
+import { verifyPlaywrightCases, verifyTrxCases, G17_REQUIRED_METHODS,
+  verifyPlaywrightLastRun, PLAYWRIGHT_LAST_RUN_FILES } from "./g17-results-contract.mjs";
 import {verifyS25RawSnapshots} from "./g17-s25-raw-evidence.mjs";
 
 function crawl(root, prefix = "") {
@@ -125,6 +126,12 @@ export function verifyManifest(manifestPath, expectedSha) {
       ]) {
         const report = JSON.parse(fs.readFileSync(path.join(root,file),"utf8"));
         verifyPlaywrightCases(report,mode);
+      }
+      // Hidden Playwright run records are manifest-indexed raw evidence (S25-F04).
+      for (const hidden of PLAYWRIGHT_LAST_RUN_FILES) {
+        if (!fileNames.has(hidden))
+          throw Error("Missing hidden Playwright run record: " + hidden);
+        verifyPlaywrightLastRun(fs.readFileSync(path.join(root,hidden),"utf8"));
       }
       const cardinality = JSON.parse(fs.readFileSync(
         path.join(root,"m17-cardinality-raw.json"),"utf8"));

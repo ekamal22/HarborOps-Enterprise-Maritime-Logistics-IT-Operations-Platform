@@ -93,3 +93,19 @@ export const G17_REQUIRED_METHODS = {
     "ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects"
   ]
 };
+
+// S25-F04. Playwright writes <outputDir>/.last-run.json, a hidden file that an artifact
+// uploader skips by default. It is a required, hash-indexed run record: a passing run
+// states status "passed" with no failed test identifiers.
+export function verifyPlaywrightLastRun(raw) {
+  let record;
+  try { record = JSON.parse(raw); } catch { throw Error("Playwright last-run record is not JSON"); }
+  ensure(record && typeof record === "object" && record.status === "passed" &&
+    Array.isArray(record.failedTests) && record.failedTests.length === 0,
+    "Playwright last-run record does not show a fully passing run");
+  return true;
+}
+export const PLAYWRIGHT_LAST_RUN_FILES = [
+  "browser-artifacts/.last-run.json",
+  "cardinality-artifacts/.last-run.json"
+];

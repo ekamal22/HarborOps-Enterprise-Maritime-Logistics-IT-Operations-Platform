@@ -47,8 +47,16 @@ const FIXTURES = {
   "scripts/check-g17-restart.mjs": {result: "PASS", api_restored: true,
     positive_worker_lease_witness:true,
     source_locked_lease_method:"ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects",
-    checks: [check("real-client-abort-does-not-commit-business"),
-      check("owned-api-shutdown-bounded"),
+    lease:{receipt:"11111111-1111-4111-8111-111111111111",
+      token:"22222222-2222-4222-8222-222222222222",epoch:1,attempts:1,
+      identity_equal_before_stop_during_stop_after_restart:true,
+      forged_token_rejected:true,forged_epoch_rejected:true,
+      original_holder_finished_once:true,duplicate_finish_rejected:true,effects_after:0},
+    canceled_trace_correlation:{canceled_requests:40,found_in_tempo:12,absent_in_tempo:28,
+      spans_inspected:12,all_started_before_shutdown:true,none_exported_as_server_error:true},
+    checks: [check("real-client-abort-does-not-commit-business",
+        {detail:{canceled:40,lease_unchanged_by_cancellation:true}}),
+      check("owned-api-shutdown-bounded",{detail:{lease_unchanged_during_stop:true}}),
       check("stale-readiness-is-unknown-not-healthy",
         {detail: {actual_spans_inspected: 12}}),
       check("restart-recovers-health-without-business-duplication")]},
@@ -73,7 +81,9 @@ const FIXTURES = {
     {fault: "real-http-5xx-rate-fires-reference-alert", status: "PASS",
       source_artifact: "m17-database-fault-results.json"}]},
   "scripts/check-g17-worker.mjs": {result: "PASS", checks: [
-    check("fault-worker-stop-suppresses-stale-backlog"), check("worker-recovers-after-fault")]},
+    check("fault-worker-stop-suppresses-stale-backlog",{detail:{stale_backlog_seconds_at_start:640,
+      stale_backlog_seconds_at_end:702,heartbeat_absent:true,alert_firing_count:0}}),
+    check("worker-recovers-after-fault",{detail:{stale_work_state_after_recovery:"NeedsReconciliation"}})]},
   "scripts/check-g17-performance.mjs": {result: "PASS", run_kind: "THREE_MATCHED_PAIRS",
     measured_routes: ["baseline", "authorized"],
     rows: new Array(6).fill({raw_ms: {baseline: new Array(1200).fill(1),
@@ -91,15 +101,29 @@ const FIXTURES = {
     traces_retention_hours: 24, raw_sources: ["m17-retention-age-results.json",
       "m17-tempo-retention-results.json", "m17-storage-results.json"]},
   "scripts/check-g17-storage.mjs": {result: "PASS",
-    telemetry_degradation:{signal:"OWNED_PROMETHEUS_STORAGE_ENOSPC",error_observed:true},
+    telemetry_degradation:{signal:"OWNED_PROMETHEUS_STORAGE_ENOSPC",error_observed:true,
+      storage_error_logged:true,readiness_panel_expression_unknown:true,
+      stale_age_seconds:72,prometheus_unreachable:false,fresh_before_seconds:9,
+      observed_after_seconds:80},
+    telemetry_recovery:{recovered:true,how:"released-space"},
+    fixture_rows_before:Object.fromEntries(["m8_receipts","m8_events","m8_work_items",
+      "m11_exceptions","m11_history","m15_outbox","m16_audit"].map(n=>
+      [n,{rows:1,sha256:"c".repeat(64),keys:["k"]}])),
+    fixture_rows_after:Object.fromEntries(["m8_receipts","m8_events","m8_work_items",
+      "m11_exceptions","m11_history","m15_outbox","m16_audit"].map(n=>
+      [n,{rows:1,sha256:"c".repeat(64),keys:["k"]}])),
     positive_history:{tables:{users:1,organizations:1,ports:2,shipments:1,
+      m8_receipts:1,m8_events:1,m8_work_items:1,
       m11_exceptions:1,m11_history:1,m15_outbox:1,m16_audit:5}},
     database_sha256_before: "a".repeat(64), database_sha256_after: "a".repeat(64),
     checks: [check("business-remains-responsive-during-full-telemetry-store"),
-      check("all-application-history-byte-identical")]},
+      check("all-application-history-byte-identical"),
+      check("telemetry-observation-recovers-after-fault")]},
   "scripts/check-g17-regression-matrix.mjs": {result: "PASS", cases: {
-    M13: {class: "M13AdmissionControlAcceptanceTests", passed: 3},
-    audit: {class: "G15AuditAcceptanceTests", passed: 2}}}
+    M13: {class: "M13AdmissionControlAcceptanceTests", passed: 3,
+      declared_methods: 3, executed_distinct_methods: 3},
+    audit: {class: "G15AuditAcceptanceTests", passed: 2,
+      declared_methods: 2, executed_distinct_methods: 2}}}
 };
 
 const scriptWitnesses = [];
@@ -155,6 +179,100 @@ test("a report without the named case or fact never witnesses its assertion", ()
     const broken = clone(FIXTURES[w.path]);
     breakers[w.path](broken);
     assert.equal(rawWitnessPasses(w.path, w.case, broken), false, w.id + " accepted a broken report");
+  }
+});
+
+test("the held-worker alert suppression witness cannot pass vacuously", () => {
+  const path = "scripts/check-g17-worker.mjs";
+  const witnessed = scriptWitnesses.filter(w => w.path === path);
+  assert.ok(witnessed.length >= 1);
+  const single = {
+    "no stale backlog existed": r => { r.checks[0].detail.stale_backlog_seconds_at_start = 12; },
+    "backlog vanished during the observation": r => { r.checks[0].detail.stale_backlog_seconds_at_end = 100; },
+    "heartbeat was still present": r => { r.checks[0].detail.heartbeat_absent = false; },
+    "an alert fired": r => { r.checks[0].detail.alert_firing_count = 1; },
+    "backlog never drained": r => { r.checks[1].detail.stale_work_state_after_recovery = "Pending"; },
+    "no detail at all": r => { delete r.checks[0].detail; }
+  };
+  for (const [name, mutate] of Object.entries(single)) {
+    const broken = clone(FIXTURES[path]);
+    mutate(broken);
+    const outcomes = witnessed.map(w => rawWitnessPasses(path, w.case, broken));
+    assert.ok(outcomes.includes(false), "Mutation not detected by the worker witness: " + name);
+  }
+});
+
+test("every individual F08 degradation, recovery and row-identity fact is load-bearing", () => {
+  const path = "scripts/check-g17-storage.mjs";
+  const witnessed = scriptWitnesses.filter(w => w.path === path);
+  assert.ok(witnessed.length >= 2);
+  const single = {
+    "no storage error logged": r => { r.telemetry_degradation.storage_error_logged = false; },
+    "readiness expression still current": r => { r.telemetry_degradation.readiness_panel_expression_unknown = false; },
+    "samples not stale and prometheus reachable": r => { r.telemetry_degradation.stale_age_seconds = 10; },
+    "no healthy control before the fault": r => { r.telemetry_degradation.fresh_before_seconds = 70; },
+    "dd write error only": r => { r.telemetry_degradation.error_observed = false; },
+    "no recovery recorded": r => { r.telemetry_recovery.recovered = false; },
+    "recovery check absent": r => { r.checks = r.checks.filter(c => c.name !== "telemetry-observation-recovers-after-fault"); },
+    "no M8 receipt history": r => { r.positive_history.tables.m8_receipts = 0; },
+    "fixture row hash changed": r => { r.fixture_rows_after.m15_outbox.sha256 = "d".repeat(64); },
+    "fixture row removed": r => { r.fixture_rows_after.m16_audit.rows = 0; },
+    "fixture row hash missing": r => { delete r.fixture_rows_before.m8_work_items; delete r.fixture_rows_after.m8_work_items; },
+    "whole database hash changed": r => { r.database_sha256_after = "b".repeat(64); }
+  };
+  for (const [name, mutate] of Object.entries(single)) {
+    const broken = clone(FIXTURES[path]);
+    mutate(broken);
+    const outcomes = witnessed.map(w => rawWitnessPasses(path, w.case, broken));
+    assert.ok(outcomes.includes(false), "Mutation not detected by any storage witness: " + name);
+  }
+});
+
+// Each fact is removed alone: a clause that no mutation can flip is an inert assertion.
+test("every individual restart lease and cancellation fact is load-bearing", () => {
+  const path = "scripts/check-g17-restart.mjs";
+  const witnessed = scriptWitnesses.filter(w => w.path === path);
+  assert.ok(witnessed.length >= 3);
+  const single = {
+    "lease identity not equal across restart": r => { r.lease.identity_equal_before_stop_during_stop_after_restart = false; },
+    "lease epoch changed": r => { r.lease.epoch = 2; },
+    "lease attempts changed": r => { r.lease.attempts = 2; },
+    "forged token not rejected": r => { r.lease.forged_token_rejected = false; },
+    "forged epoch not rejected": r => { r.lease.forged_epoch_rejected = false; },
+    "original holder did not finish": r => { r.lease.original_holder_finished_once = false; },
+    "duplicate finish accepted": r => { r.lease.duplicate_finish_rejected = false; },
+    "duplicate effect exists": r => { r.lease.effects_after = 1; },
+    "lease token not a uuid": r => { r.lease.token = "not-a-token"; },
+    "no lease block at all": r => { delete r.lease; },
+    "lease changed during API stop": r => { r.checks[1].detail.lease_unchanged_during_stop = false; },
+    "cancellation changed lease": r => { r.checks[0].detail.lease_unchanged_by_cancellation = false; },
+    "no request canceled": r => { r.checks[0].detail.canceled = 0; },
+    "late canceled span": r => { r.canceled_trace_correlation.all_started_before_shutdown = false; },
+    "canceled request exported as error": r => { r.canceled_trace_correlation.none_exported_as_server_error = false; },
+    "canceled traces unaccounted": r => { r.canceled_trace_correlation.absent_in_tempo = 1; },
+    "no canceled trace correlation": r => { delete r.canceled_trace_correlation; }
+  };
+  const flagged = new Set();
+  for (const [name, mutate] of Object.entries(single)) {
+    const broken = clone(FIXTURES[path]);
+    mutate(broken);
+    const outcomes = witnessed.map(w => rawWitnessPasses(path, w.case, broken));
+    assert.ok(outcomes.includes(false), "Mutation not detected by any restart witness: " + name);
+    flagged.add(name);
+  }
+  assert.equal(flagged.size, Object.keys(single).length);
+});
+
+test("a regression suite with fewer executed than declared tests is never a witness", () => {
+  const path = "scripts/check-g17-regression-matrix.mjs";
+  for (const [key, name] of [["M13", "M13AdmissionControlAcceptanceTests"],
+      ["audit", "G15AuditAcceptanceTests"]]) {
+    const trimmed = clone(FIXTURES[path]);
+    trimmed.cases[key].executed_distinct_methods = trimmed.cases[key].declared_methods - 1;
+    assert.equal(rawWitnessPasses(path, name, trimmed), false, key);
+    const unaccounted = clone(FIXTURES[path]);
+    delete unaccounted.cases[key].declared_methods;
+    assert.equal(rawWitnessPasses(path, name, unaccounted), false, key);
   }
 });
 

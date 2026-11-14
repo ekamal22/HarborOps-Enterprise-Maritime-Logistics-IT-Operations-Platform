@@ -174,7 +174,10 @@ public sealed class M17TelemetryContractTests
     [Fact]
     public void ZeroOtlpEventAndLinkLimitsAreAllowed()
     {
-        M17TracePrivacyGuard.RequireSafeExporterLimits("0", "0");
+        // The explicit zero limits are the only accepted combination: no exception, and
+        // every neighbouring unsafe combination is rejected (see the theory above).
+        Assert.Null(Record.Exception(() =>
+            M17TracePrivacyGuard.RequireSafeExporterLimits("0", "0")));
     }
 
     [Fact]

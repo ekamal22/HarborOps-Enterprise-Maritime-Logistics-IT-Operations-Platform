@@ -137,7 +137,8 @@ if ($StartDisposableStack) {
         'm17-ui-state-chromium.json','m17-ui-state-firefox.json',
         'm17-ui-state-webkit.json',
         'm17-ui-no-traffic-chromium.json','m17-ui-no-traffic-firefox.json',
-        'm17-ui-no-traffic-webkit.json',
+        'm17-ui-no-traffic-webkit.json','m17-low-traffic-window.json',
+        'browser-artifacts/.last-run.json','cardinality-artifacts/.last-run.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-p09-independent-recalculation.json',
          'm17-restart-results.json',
@@ -196,7 +197,8 @@ try {
         'scripts/g17-live-5xx-evidence.test.mjs',
         'scripts/g17-worker-log-privacy.test.mjs',
         'scripts/g17-p09-review.test.mjs',
-        'scripts/g17-diagnostic-evidence.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
+        'scripts/g17-diagnostic-evidence.test.mjs',
+        'scripts/g17-regression-accounting.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
@@ -310,6 +312,9 @@ try {
             } catch { Start-Sleep -Seconds 2 }
         }
         if (!$ready) { throw 'The isolated API never became ready' }
+        # The below-threshold traffic window must be built on the idle stack, before any
+        # other API traffic, so it is the first stage to send business requests.
+        Invoke-Required 'node' @('scripts/check-g17-low-traffic.mjs') -Stage 'real-below-threshold-traffic-window'
         # Run representative accepted milestone suites with M17 explicitly opted
         # in and a deliberately inaccessible host-side OTLP endpoint. This proves
         # the feature does not block accepted business and hold boundaries.

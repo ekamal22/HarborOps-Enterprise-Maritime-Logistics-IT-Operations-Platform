@@ -34,9 +34,15 @@ const generatedTraceIds=new Set();
 const retainedTraces=[];
 let retainedLogs="";
 let retainedSeries=[];
-function scan(raw,kind) {
+// Third-party service logs (Grafana, Prometheus, nginx, socat, PostgreSQL) legitimately
+// contain schema and migration names such as "add unique index user.email". They are
+// still scanned for every per-run private canary and for credential-shaped values; the
+// attribute-name tokens apply to HarborOps-authored logs and exported telemetry.
+const runCanaries=[tag,auditCanary,cookies,baggage,query];
+const credentialShapes=/\bBearer\s+[A-Za-z0-9._~-]{16,}|\bPassword\s*[:=]\s*\S{8,}|hop_v1_[0-9a-f]{32}_/i;
+function scan(raw,kind,names=rejects) {
   const value=typeof raw==="string"?raw:JSON.stringify(raw);
-  for(const secret of rejects)
+  for(const secret of names)
     assert.ok(!value.toLowerCase().includes(secret.toLowerCase()),
       kind+" exported forbidden canary or sensitive attribute "+secret.split("-")[0]);
   results.push({kind,bytes:value.length,sha256:crypto.createHash("sha256")
@@ -154,10 +160,23 @@ try {
     ...(process.env.HARBOROPS_G17_VERIFY_WORKER==="true"
       ? ["-f","compose.m17.worker.override.yaml"]:[]),
     "--profile","observability"];
-  const logs=execFileSync("docker",[...compose,"logs","--no-color",
-    "--tail","15000","api","otelcol","tempo"],{
-    encoding:"utf8",timeout:30000,maxBuffer:8*1024*1024});
-  scan(logs,"owned-sanitized-service-logs");
+  const fetchLogs=services=>execFileSync("docker",[...compose,"logs","--no-color",
+    "--tail","15000",...services],{
+    encoding:"utf8",timeout:60000,maxBuffer:48*1024*1024});
+  const strictLogs=fetchLogs(["api","otelcol","tempo"]);
+  const infrastructureLogs=fetchLogs(["prometheus","grafana","dashboard_gateway","web","postgres"]);
+  const logs=strictLogs+infrastructureLogs;
+  // Every owned observed service must contribute positive log lines, so a missing
+  // service cannot silently narrow the scanned surface (S25-F03).
+  for(const service of ["api","otelcol","tempo","prometheus","grafana",
+    "dashboard_gateway","web","postgres"])
+    assert.match(logs,new RegExp("^"+service+"-1\\s+\\|","m"),
+      "No positive retained log lines from owned service "+service);
+  scan(strictLogs,"harborops-and-exporter-service-logs");
+  assert.ok(!credentialShapes.test(infrastructureLogs),
+    "Infrastructure service logs contain a credential-shaped value");
+  // The retained bytes cover every owned service; the per-run canaries must be absent everywhere.
+  scan(logs,"owned-sanitized-service-logs",runCanaries);
   retainedLogs=logs;
   const q=new URL(base+"harborops-local-metrics/api/v1/series");
   q.searchParams.set("match[]",'{__name__=~"harborops_.*"}');

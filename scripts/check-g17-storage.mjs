@@ -98,6 +98,12 @@ BEGIN
  INSERT INTO shipment_exception_history(id,organization_id,exception_id,
   action,old_state,new_state,actor_kind,source_fingerprint)
  VALUES(gen_random_uuid(),o,e,'Opened',NULL,'Open','System',repeat('a',64));
+ -- A fixture-owned M16 audit record, so the retained-history witness never
+ -- depends on whether an earlier stage happened to write an audit row.
+ INSERT INTO audit_entries(id,organization_id,event_type,outcome,actor_kind,
+  resource_type,resource_id,correlation_id,metadata)
+ VALUES(gen_random_uuid(),o,'g17.synthetic_storage_history','Succeeded','System',
+  'g17_storage_fixture',sh,'g17-storage-${nonce}','{"fixture":"g17-storage"}'::jsonb);
 END $g17$;`);
  const counts=JSON.parse(sql(`SELECT json_build_object(
   'users',(SELECT count(*) FROM users WHERE email='g17-storage-${nonce}@example.test'),
@@ -113,7 +119,8 @@ END $g17$;`);
   'm11_exceptions',(SELECT count(*) FROM shipment_exceptions e JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='${shipmentRef}'),
   'm11_history',(SELECT count(*) FROM shipment_exception_history h JOIN shipment_exceptions e ON h.exception_id=e.id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='${shipmentRef}'),
   'm15_outbox',(SELECT count(*) FROM m15_notification_outbox x JOIN shipment_exception_history h ON h.id=x.source_history_id JOIN shipment_exceptions e ON e.id=h.exception_id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='${shipmentRef}'),
-  'm16_audit',(SELECT count(*) FROM audit_entries)
+  'm16_audit',(SELECT count(*) FROM audit_entries WHERE correlation_id='g17-storage-${nonce}'
+    AND organization_id=(SELECT id FROM organizations WHERE slug='g17-storage-${nonce}'))
  )::text`));
  for(const [name,count] of Object.entries(counts))
   assert.ok(count>0,"Missing positive protected synthetic history: "+name);
@@ -121,10 +128,35 @@ END $g17$;`);
  assert.equal(counts.organizations,1);
  assert.equal(counts.ports,2);
  assert.equal(counts.shipments,1);
- for(const table of ["m8_receipts","m8_events","m8_work_items"])
-  assert.equal(counts[table],1,"Missing complete immutable M8 fixture: "+table);
- return {kind:"synthetic-nonempty-protected-history",tables:counts,
+ for(const table of ["m8_receipts","m8_events","m8_work_items","m16_audit"])
+  assert.equal(counts[table],1,"Missing complete immutable fixture: "+table);
+ return {kind:"synthetic-nonempty-protected-history",tables:counts,nonce,
   fixture_sha256:crypto.createHash("sha256").update(nonce).digest("hex")};
+}
+
+// Row-level identity of exactly the fixture rows, per protected table: one SHA-256
+// over every complete serialized row, in a stable order. A count cannot show that a
+// retained record is byte-for-byte unchanged; this does.
+function fixtureRowHashes(nonce) {
+ const org="(SELECT id FROM organizations WHERE slug='g17-storage-"+nonce+"')";
+ const tables={
+  m8_receipts:"SELECT row_to_json(t)::text AS r,t.id::text AS k FROM tracking_inbox_receipts t WHERE t.organization_id="+org,
+  m8_events:"SELECT row_to_json(t)::text AS r,t.id::text AS k FROM tracking_accepted_events t WHERE t.organization_id="+org,
+  m8_work_items:"SELECT row_to_json(t)::text AS r,t.receipt_id::text AS k FROM tracking_inbox_work_items t WHERE t.organization_id="+org,
+  m11_exceptions:"SELECT row_to_json(t)::text AS r,t.id::text AS k FROM shipment_exceptions t WHERE t.organization_id="+org,
+  m11_history:"SELECT row_to_json(t)::text AS r,t.id::text AS k FROM shipment_exception_history t WHERE t.organization_id="+org,
+  m15_outbox:"SELECT row_to_json(t)::text AS r,t.source_history_id::text AS k FROM m15_notification_outbox t WHERE t.organization_id="+org,
+  m16_audit:"SELECT row_to_json(t)::text AS r,t.id::text AS k FROM audit_entries t WHERE t.organization_id="+org
+ };
+ const result={};
+ for(const [name,select] of Object.entries(tables)) {
+  const row=JSON.parse(sql("SELECT json_build_object('rows',count(*),'sha256',"+
+   "encode(digest(coalesce(string_agg(q.r,'|' ORDER BY q.k),''),'sha256'),'hex'),"+
+   "'keys',coalesce(json_agg(q.k ORDER BY q.k),'[]'::json))::text FROM ("+select+") q"));
+  assert.ok(row.rows>0,"Fixture rows missing from "+name);
+  result[name]=row;
+ }
+ return result;
 }
 
 function snapshotDatabase() {
@@ -154,6 +186,55 @@ async function checkApi() {
       {signal:AbortSignal.timeout(10000)});
     assert.equal(response.status,status,"Business endpoint changed during local telemetry storage fault");
   }
+}
+// S25-F08. A full telemetry store must be a measured, observable degradation of the
+// observation path, not just a failed write by this script. The newest application
+// sample goes stale, the dashboard-facing readiness expression turns Unknown (never
+// Ready), and the owned Prometheus logs its own storage error, while business stays up.
+const grafanaPassword=process.env.HARBOROPS_M17_GRAFANA_PASSWORD;
+assert.ok(grafanaPassword,"Disposable dashboard credentials required");
+const queryUrl="http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-metrics/api/v1/query";
+const authHeader="Basic "+Buffer.from("local_operator:"+grafanaPassword).toString("base64");
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function promQuery(expression) {
+  try {
+    const url=new URL(queryUrl);
+    url.searchParams.set("query",expression);
+    const response=await fetch(url,{headers:{authorization:authHeader},signal:AbortSignal.timeout(12000)});
+    if(response.status!==200)return {unreachable:true};
+    const body=await response.json();
+    return body.status==="success"?{result:body.data.result}:{unreachable:true};
+  }catch{return {unreachable:true};}
+}
+async function newestSampleAgeSeconds() {
+  const answer=await promQuery("time() - max(timestamp(harborops_telemetry_heartbeat_total))");
+  if(answer.unreachable||!answer.result.length)return null;
+  return Number(answer.result[0].value[1]);
+}
+async function observeTelemetryDegradation(prometheusId,since) {
+  const deadline=Date.now()+180000;
+  const seen={storage_error_logged:false,stale_age_seconds:null,prometheus_unreachable:false,
+    readiness_panel_expression_unknown:false,observed_after_seconds:null};
+  const started=Date.now();
+  while(Date.now()<deadline) {
+    const logs=spawnSync("docker",["logs","--since",since,prometheusId],
+      {encoding:"utf8",timeout:30000,maxBuffer:16*1024*1024});
+    seen.storage_error_logged=/no space left on device|ENOSPC/i.test(
+      String(logs.stdout||"")+String(logs.stderr||""));
+    const age=await newestSampleAgeSeconds();
+    seen.prometheus_unreachable=age===null;
+    seen.stale_age_seconds=age;
+    const ready=await promQuery(
+      "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 60)");
+    seen.readiness_panel_expression_unknown=ready.unreachable||ready.result.length===0;
+    const stale=seen.prometheus_unreachable||(age!==null&&age>=45);
+    if(seen.storage_error_logged&&stale&&seen.readiness_panel_expression_unknown) {
+      seen.observed_after_seconds=Math.round((Date.now()-started)/1000);
+      return seen;
+    }
+    await sleep(5000);
+  }
+  throw Error("No measured telemetry degradation after the storage fault: "+JSON.stringify(seen));
 }
 let failure=null;
 try {
@@ -186,8 +267,16 @@ try {
   evidenceData.positive_history=positive;
   const before=snapshotDatabase();
   evidenceData.database_sha256_before=before;
+  const rowsBefore=fixtureRowHashes(positive.nonce);
+  evidenceData.fixture_rows_before=rowsBefore;
   await checkApi();
+  // Healthy-observation control: before the fault the newest application sample is fresh,
+  // so a later stale reading is a measured change and not a standing condition.
+  const freshBefore=await newestSampleAgeSeconds();
+  assert.ok(freshBefore!==null&&freshBefore<45,
+    "Telemetry must be fresh before the storage fault ("+freshBefore+")");
   const prometheus=container("prometheus");
+  const faultStartedAt=new Date().toISOString();
   const script="dd if=/dev/zero of=/prometheus/g17-owned-fill.tmp bs=1048576 count=256";
   const fill=spawnSync("docker",["exec",prometheus.Id,"/bin/sh","-c",script],{
     encoding:"utf8",timeout:60000,maxBuffer:512*1024
@@ -197,19 +286,27 @@ try {
   assert.match(fill.stderr||"",/No space left on device|ENOSPC/i,
     "Pressure command did not prove a full tmpfs: "+String(fill.stderr).slice(0,100));
   fullStoreCreated=true;
+  const observed=await observeTelemetryDegradation(prometheus.Id,faultStartedAt);
   evidenceData.telemetry_degradation={
     signal:"OWNED_PROMETHEUS_STORAGE_ENOSPC",
-    write_exit_code:fill.status,error_observed:/No space left on device|ENOSPC/i.test(fill.stderr??"")
+    write_exit_code:fill.status,error_observed:/No space left on device|ENOSPC/i.test(fill.stderr??"")&&
+      observed.storage_error_logged,
+    fresh_before_seconds:freshBefore,...observed
   };
   assert.ok(evidenceData.telemetry_degradation.error_observed);
+  // Business endpoints are measured while the observation path is demonstrably degraded.
   await checkApi();
   evidenceData.checks.push({name:"business-remains-responsive-during-full-telemetry-store",
     status:"PASS"});
   const after=snapshotDatabase();
   evidenceData.database_sha256_after=after;
   assert.equal(after,before,"Telemetry storage saturation modified application history");
+  const rowsAfter=fixtureRowHashes(positive.nonce);
+  evidenceData.fixture_rows_after=rowsAfter;
+  assert.deepEqual(rowsAfter,rowsBefore,"A retained M8/M11/M15/M16 fixture row changed");
   evidenceData.checks.push({name:"all-application-history-byte-identical",
     status:"PASS",nonempty_protected_tables:positive.tables,
+    row_level_hashes_equal:true,
     storage_degradation:evidenceData.telemetry_degradation.signal});
   evidenceData.result="PASS";
 }catch(e){
@@ -223,6 +320,27 @@ try {
       command("docker",["exec",pg.Id,"/bin/sh","-c",
         "rm -f /prometheus/g17-owned-fill.tmp"],20000);
       evidenceData.checks.push({name:"test-owned-fill-file-cleanup",status:"PASS"});
+      // Recovery is measured too: fresh application samples must resume, or the owned
+      // Prometheus is recreated (its tmpfs history is disposable) and must then recover.
+      let recovered=false,how="released-space";
+      for(let i=0;i<24&&!recovered;i++) {
+        const age=await newestSampleAgeSeconds();
+        recovered=age!==null&&age<45;
+        if(!recovered)await sleep(5000);
+      }
+      if(!recovered) {
+        compose(["up","-d","--no-deps","--force-recreate","prometheus"]);
+        how="owned-prometheus-recreated";
+        for(let i=0;i<36&&!recovered;i++) {
+          const age=await newestSampleAgeSeconds();
+          recovered=age!==null&&age<45;
+          if(!recovered)await sleep(5000);
+        }
+      }
+      evidenceData.telemetry_recovery={recovered,how};
+      evidenceData.checks.push({name:"telemetry-observation-recovers-after-fault",
+        status:recovered?"PASS":"FAIL",how});
+      if(!recovered)evidenceData.result="FAIL";
     } catch(e) {
       // Recreate only the project-owned disposable Prometheus tmpfs container.
       try {

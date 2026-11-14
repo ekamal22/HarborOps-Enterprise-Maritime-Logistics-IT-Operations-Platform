@@ -88,3 +88,47 @@ test("fake complete claim with incomplete stage evidence is rejected",t=>{
   // No required TRX case output, even though the wrapper stage is marked green.
   assert.throws(()=>verifyManifest(path.join(dir,"manifest.json"),sha),/missing (?:TRX|test) counters/i);
 });
+
+// S25-F04. Playwright's .last-run.json is a hidden file inside a nested directory. It is
+// indexed and hash-verified like any other evidence, so removing, altering or adding a
+// hidden record is detected rather than skipped by a default hidden-file filter.
+function withHidden(t) {
+  const dir=fixture();cleanup(t,dir);
+  for(const nested of ["browser-artifacts","cardinality-artifacts"]) {
+    fs.mkdirSync(path.join(dir,nested));
+    fs.writeFileSync(path.join(dir,nested,".last-run.json"),
+      JSON.stringify({status:"passed",failedTests:[]}));
+  }
+  const crawl=(root,prefix="")=>fs.readdirSync(root,{withFileTypes:true}).flatMap(entry=>{
+    const rel=prefix?prefix+"/"+entry.name:entry.name;
+    if(rel==="manifest.json")return [];
+    if(entry.isDirectory())return crawl(path.join(root,entry.name),rel);
+    const bytes=fs.readFileSync(path.join(root,entry.name));
+    return [{path:rel,bytes:bytes.length,sha256:digest(bytes)}];
+  }).sort((a,b)=>a.path.localeCompare(b.path));
+  const p=path.join(dir,"manifest.json"),m=JSON.parse(fs.readFileSync(p,"utf8"));
+  m.files=crawl(dir);fs.writeFileSync(p,JSON.stringify(m));
+  return {dir,manifest:p};
+}
+test("hidden Playwright last-run records are manifest-indexed",t=>{
+  const {manifest}=withHidden(t);
+  const index=JSON.parse(fs.readFileSync(manifest,"utf8")).files.map(x=>x.path);
+  assert.ok(index.includes("browser-artifacts/.last-run.json"));
+  assert.ok(index.includes("cardinality-artifacts/.last-run.json"));
+  assert.equal(verifyManifest(manifest,sha).gate_acceptance,"NOT_ACCEPTED");
+});
+test("an altered, removed or extra hidden record is detected",t=>{
+  const {dir,manifest}=withHidden(t);
+  const hidden=path.join(dir,"browser-artifacts",".last-run.json");
+  const original=fs.readFileSync(hidden);
+  fs.writeFileSync(hidden,JSON.stringify({status:"passed",failedTests:["x"]}));
+  assert.throws(()=>verifyManifest(manifest,sha),/Evidence tampered or unlisted: browser-artifacts\/\.last-run\.json/);
+  fs.writeFileSync(hidden,original);
+  assert.equal(typeof verifyManifest(manifest,sha),"object");
+  fs.unlinkSync(path.join(dir,"cardinality-artifacts",".last-run.json"));
+  assert.throws(()=>verifyManifest(manifest,sha),/coverage mismatch/);
+  fs.writeFileSync(path.join(dir,"cardinality-artifacts",".last-run.json"),
+    JSON.stringify({status:"passed",failedTests:[]}));
+  fs.writeFileSync(path.join(dir,"cardinality-artifacts",".extra-hidden.json"),"{}");
+  assert.throws(()=>verifyManifest(manifest,sha),/coverage mismatch/);
+});

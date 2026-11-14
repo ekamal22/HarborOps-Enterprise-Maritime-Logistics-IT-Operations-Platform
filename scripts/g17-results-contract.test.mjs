@@ -73,3 +73,13 @@ test("truncated theory row names are distinct executions, repeated test ids are 
   assert.equal(verifyTrxCases(wrap([row("id-1"),row("id-2")])).passed,2);
   assert.throws(()=>verifyTrxCases(wrap([row("id-1"),row("id-1")])),/Duplicated/);
 });
+
+import {verifyPlaywrightLastRun,PLAYWRIGHT_LAST_RUN_FILES} from "./g17-results-contract.mjs";
+test("hidden Playwright last-run records are required and must show a clean pass",()=>{
+  assert.deepEqual(PLAYWRIGHT_LAST_RUN_FILES,
+    ["browser-artifacts/.last-run.json","cardinality-artifacts/.last-run.json"]);
+  assert.equal(verifyPlaywrightLastRun('{"status":"passed","failedTests":[]}'),true);
+  for(const bad of ["","not json",'{"status":"failed","failedTests":["abc"]}',
+    '{"status":"passed","failedTests":["abc"]}','{"status":"passed"}','null','[]'])
+    assert.throws(()=>verifyPlaywrightLastRun(bad),/last-run record/,bad);
+});

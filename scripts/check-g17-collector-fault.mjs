@@ -77,6 +77,9 @@ async function readyState() {
   assert.equal((await health("/health/ready",200)).status,"healthy");
   return "business liveness/readiness preserved";
 }
+// The tenfold claim is measured, not asserted: the healthy baseline burst and the
+// outage burst are driven at these exact concurrencies and the ratio is computed.
+const BASELINE_CONCURRENCY=8,PRESSURE_CONCURRENCY=80;
 let collectorStopped=false,failed=false;
 try {
   await step("baseline-good",async()=>{
@@ -85,7 +88,7 @@ try {
       const xs=await prometheus('up{job="m17_collector"}');
       return xs.length===1 && Number(xs[0].value[1])===1;
     });
-    return await burst(12,4);
+    return await burst(16,BASELINE_CONCURRENCY);
   });
   command(["stop","otelcol"]);
   collectorStopped=true;
@@ -101,10 +104,11 @@ try {
     return "collector down and local alert firing";
   });
   await step("collector-fault-business-isolation",async()=>{
-    const n=await burst(4000,80);
+    const n=await burst(4000,PRESSURE_CONCURRENCY);
     await readyState();
     measurements.push({at:new Date().toISOString(),requests_completed:n,
-      concurrency:80,baseline_concurrency:8,concurrency_multiplier:10});
+      concurrency:PRESSURE_CONCURRENCY,baseline_concurrency:BASELINE_CONCURRENCY,
+      concurrency_multiplier:PRESSURE_CONCURRENCY/BASELINE_CONCURRENCY});
     return "completed "+n+" real database reads during tenfold parallel load while exporter unreachable";
   });
 } catch(e) {

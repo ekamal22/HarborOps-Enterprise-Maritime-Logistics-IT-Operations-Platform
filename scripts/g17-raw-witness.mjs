@@ -91,12 +91,26 @@ const RAW_PREDICATES = new Map([
   ["scripts/check-g17-restart.mjs", new Map([
     ["actual_spans_inspected",
       r => ok(r) && passed(r, "real-client-abort-does-not-commit-business") &&
-        detail(r, "stale-readiness-is-unknown-not-healthy")?.actual_spans_inspected > 0],
+        detail(r, "stale-readiness-is-unknown-not-healthy")?.actual_spans_inspected > 0 &&
+        detail(r, "real-client-abort-does-not-commit-business")?.lease_unchanged_by_cancellation === true &&
+        detail(r, "real-client-abort-does-not-commit-business")?.canceled > 0 &&
+        r.canceled_trace_correlation?.canceled_requests > 0 &&
+        r.canceled_trace_correlation.found_in_tempo + r.canceled_trace_correlation.absent_in_tempo ===
+          r.canceled_trace_correlation.canceled_requests &&
+        r.canceled_trace_correlation.all_started_before_shutdown === true &&
+        r.canceled_trace_correlation.none_exported_as_server_error === true],
     ["owned-api-shutdown-bounded", r => ok(r) && passed(r, "owned-api-shutdown-bounded")],
     ["restart-recovers-health-without-business-duplication",
       r => ok(r) && passed(r, "restart-recovers-health-without-business-duplication") &&
         r.api_restored === true && r.positive_worker_lease_witness===true &&
-      r.source_locked_lease_method==="ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects"],
+      r.source_locked_lease_method==="ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects" &&
+      r.lease?.identity_equal_before_stop_during_stop_after_restart === true &&
+      r.lease.epoch === 1 && r.lease.attempts === 1 &&
+      /^[0-9a-f-]{36}$/.test(r.lease.token ?? "") && /^[0-9a-f-]{36}$/.test(r.lease.receipt ?? "") &&
+      r.lease.forged_token_rejected === true && r.lease.forged_epoch_rejected === true &&
+      r.lease.original_holder_finished_once === true &&
+      r.lease.duplicate_finish_rejected === true && r.lease.effects_after === 0 &&
+      detail(r, "owned-api-shutdown-bounded")?.lease_unchanged_during_stop === true],
     ["stale-readiness-is-unknown-not-healthy",
       r => ok(r) && passed(r, "stale-readiness-is-unknown-not-healthy")]
   ])],
@@ -142,7 +156,15 @@ const RAW_PREDICATES = new Map([
   ["scripts/check-g17-worker.mjs", new Map([
     ["fault-worker-stop-suppresses-stale-backlog",
       r => ok(r) && passed(r, "fault-worker-stop-suppresses-stale-backlog") &&
-        passed(r, "worker-recovers-after-fault")]
+        passed(r, "worker-recovers-after-fault") &&
+        // Not vacuous: stale eligible work existed (and stayed) while the worker was
+        // stopped and its heartbeat absent, yet no alert fired; recovery drained it.
+        detail(r, "fault-worker-stop-suppresses-stale-backlog")?.stale_backlog_seconds_at_start >= 300 &&
+        detail(r, "fault-worker-stop-suppresses-stale-backlog")?.stale_backlog_seconds_at_end >=
+          detail(r, "fault-worker-stop-suppresses-stale-backlog")?.stale_backlog_seconds_at_start &&
+        detail(r, "fault-worker-stop-suppresses-stale-backlog")?.heartbeat_absent === true &&
+        detail(r, "fault-worker-stop-suppresses-stale-backlog")?.alert_firing_count === 0 &&
+        detail(r, "worker-recovers-after-fault")?.stale_work_state_after_recovery === "NeedsReconciliation"]
   ])],
   ["scripts/check-g17-performance.mjs", new Map([
     ["measured_routes",
@@ -178,6 +200,13 @@ const RAW_PREDICATES = new Map([
       r => ok(r) && passed(r, "business-remains-responsive-during-full-telemetry-store") &&
         r.telemetry_degradation?.signal==="OWNED_PROMETHEUS_STORAGE_ENOSPC" &&
         r.telemetry_degradation?.error_observed===true &&
+        r.telemetry_degradation.storage_error_logged===true &&
+        r.telemetry_degradation.readiness_panel_expression_unknown===true &&
+        (r.telemetry_degradation.prometheus_unreachable===true ||
+          r.telemetry_degradation.stale_age_seconds>=45) &&
+        r.telemetry_degradation.fresh_before_seconds<45 &&
+        passed(r, "telemetry-observation-recovers-after-fault") &&
+        r.telemetry_recovery?.recovered===true &&
         Object.values(r.positive_history?.tables??{}).every(v=>v>0) &&
         Object.keys(r.positive_history?.tables??{}).length>=8],
     ["all-application-history-byte-identical",
@@ -186,15 +215,22 @@ const RAW_PREDICATES = new Map([
         r.database_sha256_before === r.database_sha256_after &&
         r.positive_history?.tables?.m11_history>0 &&
         r.positive_history?.tables?.m15_outbox>0 &&
-        r.positive_history?.tables?.m16_audit>0]
+        r.positive_history?.tables?.m16_audit>0 &&
+        r.positive_history?.tables?.m8_receipts>0 &&
+        JSON.stringify(r.fixture_rows_before)===JSON.stringify(r.fixture_rows_after) &&
+        ["m8_receipts","m8_events","m8_work_items","m11_exceptions","m11_history",
+          "m15_outbox","m16_audit"].every(name=>r.fixture_rows_before?.[name]?.rows>0 &&
+          /^[0-9a-f]{64}$/.test(r.fixture_rows_before[name].sha256 ?? ""))]
   ])],
   ["scripts/check-g17-regression-matrix.mjs", new Map([
     ["M13AdmissionControlAcceptanceTests",
       r => ok(r) && r.cases?.M13?.class === "M13AdmissionControlAcceptanceTests" &&
-        r.cases.M13.passed >= 1],
+        r.cases.M13.passed >= 1 && r.cases.M13.declared_methods >= 1 &&
+        r.cases.M13.executed_distinct_methods >= r.cases.M13.declared_methods],
     ["G15AuditAcceptanceTests",
       r => ok(r) && r.cases?.audit?.class === "G15AuditAcceptanceTests" &&
-        r.cases.audit.passed >= 1]
+        r.cases.audit.passed >= 1 && r.cases.audit.declared_methods >= 1 &&
+        r.cases.audit.executed_distinct_methods >= r.cases.audit.declared_methods]
   ])]
 ]);
 

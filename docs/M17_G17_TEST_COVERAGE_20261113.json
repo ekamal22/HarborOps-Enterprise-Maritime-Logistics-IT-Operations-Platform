@@ -172,7 +172,7 @@
             "path": "scripts/check-g17-export-privacy.mjs",
             "case": "owned-sanitized-service-logs"
           },
-          "coverage_gap": "Raw Tempo, Prometheus series and owned logs reject hostile data; execution pending"
+          "coverage_gap": "Raw Tempo, Prometheus series and every owned service log (api, otelcol, tempo, prometheus, grafana, dashboard gateway, web, postgres) reject hostile data; execution pending"
         },
         {
           "id": "G17-S05-A03",
@@ -450,7 +450,7 @@
             "path": "scripts/check-g17-export-privacy.mjs",
             "case": "owned-sanitized-service-logs"
           },
-          "coverage_gap": "Canary-injected API requests with positive exported trace and metric existence; execution pending"
+          "coverage_gap": "Canary-injected API requests; positive exported trace and metric existence; every owned service log scanned; independent canary-prefix scan of retained bytes; execution pending"
         },
         {
           "id": "G17-S13-A02",
@@ -522,7 +522,7 @@
             "path": "scripts/check-g17-restart.mjs",
             "case": "actual_spans_inspected"
           },
-          "coverage_gap": "Real canceled requests, API stop/restart, and positive Tempo span timestamps excluding post-stop spans; execution pending"
+          "coverage_gap": "Real canceled requests carrying their own trace ids, API stop/restart, lease unchanged by cancellation, canceled traces found or absent in Tempo with no post-stop span and no server-error status; execution pending"
         },
         {
           "id": "G17-S15-A02",
@@ -542,7 +542,7 @@
             "path": "scripts/check-g17-restart.mjs",
             "case": "restart-recovers-health-without-business-duplication"
           },
-          "coverage_gap": "Durable receipt, lease and effect counts unchanged across fault; execution pending"
+          "coverage_gap": "Owned positive worker lease on the live stack identical before stop, during stop and after restart (token, epoch, attempts, expiry); forged token and epoch rejected; original holder finishes once, duplicate finish rejected, no duplicate effect; plus the in-process lease integration witness; execution pending"
         }
       ]
     },
@@ -630,7 +630,7 @@
             "path": "tests/browser/m17/dashboard.spec.mjs",
             "case": "zero and insufficient traffic render unknown rather than a healthy zero"
           },
-          "coverage_gap": "Three-engine real rendered API rate, 5xx and p95 no-sample state with source Prometheus controls and artifact"
+          "coverage_gap": "Three-engine real rendered API rate, 5xx and p95 states: no-sample (48h-old window) and a recorded real below-threshold traffic window (fewer than the approved 100 eligible requests) where the raw 5xx rate is a measured healthy-looking zero but the guarded 5xx and p95 panels render Unknown; per-engine raw artifacts; execution pending"
         },
         {
           "id": "G17-S18-A02",
@@ -640,7 +640,7 @@
             "path": "scripts/check-g17-worker.mjs",
             "case": "fault-worker-stop-suppresses-stale-backlog"
           },
-          "coverage_gap": "Gated stale alert checked while worker explicitly stopped"
+          "coverage_gap": "Eligible stale backlog (at least 300 s old) is created in the owned database while the worker is stopped and its heartbeat absent; no alert fires over two evaluation windows; the restarted worker drains it; execution pending"
         },
         {
           "id": "G17-S18-A03",
@@ -648,9 +648,9 @@
           "assessment": "TEST_AUTHORED",
           "witness": {
             "path": "monitoring/m17/alert-test.yaml",
-            "case": "High failure rate falls to zero"
+            "case": "S18-A03 repeat suppression"
           },
-          "coverage_gap": "Promtool checks single alert after repeated evaluations and eventual clearing; execution pending"
+          "coverage_gap": "Promtool: failure fraction leaves the trigger for several minutes and returns; keep_firing_for keeps one continuous alert instance (never more than one) and the alert clears only after sustained recovery; mutation without keep_firing_for fails; execution pending"
         }
       ]
     },
@@ -666,7 +666,7 @@
             "path": "tests/browser/m17/dashboard.spec.mjs",
             "case": "critical monitoring panels use live series and no-data views are explicitly unknown"
           },
-          "coverage_gap": "Actual authenticated critical panel model plus fresh request rate, histogram p95, DB, heartbeat, worker and collector series in all three engines; source authored, runtime verification NOT_EXECUTED"
+          "coverage_gap": "Authenticated critical panel model, fresh request rate, histogram p95, DB, heartbeat, worker and collector series, plus rendered live values in three engines: Ready readiness stat and a measured request-rate number from the exact saved panel containers; execution pending"
         },
         {
           "id": "G17-S19-A02",
@@ -722,7 +722,7 @@
             "path": "scripts/check-g17-diagnostic-journey.mjs",
             "case": "same-fault-rendered-alert"
           },
-          "coverage_gap": "One exact page-originated 503, server correlation, same W3C trace, sanitized log and rendered fault alert"
+          "coverage_gap": "One exact page-originated 503, server correlation, same W3C trace, sanitized log, and the firing alert name as a rendered firing cell in the exact saved alert panel after scrolling it into the viewport"
         }
       ]
     },
@@ -758,7 +758,7 @@
             "path": "scripts/check-g17-pressure-matrix.mjs",
             "case": "business-under-tenfold-pressure-and-exporter-outage"
           },
-          "coverage_gap": "Positive 4000 successful real business reads at tenfold baseline concurrency with collector stopped; paired route, memory and storage cases all required; source authored, runtime verification NOT_EXECUTED"
+          "coverage_gap": "Positive 4000 successful real business reads at a measured tenfold concurrency (80 against an 8-way healthy burst) with collector stopped; paired round evidence; execution pending"
         }
       ]
     },
@@ -784,7 +784,7 @@
             "path": "scripts/check-g17-storage.mjs",
             "case": "full-telemetry-store"
           },
-          "coverage_gap": "Positive M8 M11 M15 M16 rows plus owned ENOSPC and full-data before-after hash"
+          "coverage_gap": "Owned ENOSPC on the telemetry store with measured degradation (store log, stale newest sample after a fresh control, Unknown readiness expression), business endpoints healthy during it, and measured recovery; execution pending"
         },
         {
           "id": "G17-S22-A03",
@@ -794,7 +794,7 @@
             "path": "scripts/check-g17-storage.mjs",
             "case": "all-application-history-byte-identical"
           },
-          "coverage_gap": "Positive M8 M11 M15 M16 rows plus owned ENOSPC and full-data before-after hash"
+          "coverage_gap": "Positive fixture-owned M8, M11, M15 and M16 rows with row-level SHA-256 identity before and after, and equal whole-public-schema data hashes; execution pending"
         }
       ]
     },
@@ -810,7 +810,7 @@
             "path": "scripts/check-g17-regression-matrix.mjs",
             "case": "M13AdmissionControlAcceptanceTests"
           },
-          "coverage_gap": "Real M17-opted-in TRX passes required across accepted M9/M10/M11/M13/M15 and held feature-default classes; source authored, runtime verification NOT_EXECUTED"
+          "coverage_gap": "Real M17-opted-in TRX passes required across accepted M9/M10/M11/M13/M15 and held feature-default classes; every test declared by each named class must have executed (declared versus executed accounting) and source skips are refused; execution pending"
         },
         {
           "id": "G17-S23-A02",

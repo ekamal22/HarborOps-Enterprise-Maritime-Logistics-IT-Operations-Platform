@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import {execFileSync} from "node:child_process";
 import {performance} from "node:perf_hooks";
 import {verifyTrxCases} from "./g17-results-contract.mjs";
+import {seedLeasedSyntheticWork,leaseSnapshot,leaseIdentity} from "./g17-lease-fixture.mjs";
 
 const project=process.env.HARBOROPS_G17_PROJECT;
 const sha=process.env.HARBOROPS_SOURCE_SHA;
@@ -59,45 +61,82 @@ async function ready() {
   }
   throw Error("Restarted API was not ready within bounded recovery time");
 }
+const sql=query=>docker(["exec","-T","postgres","psql","-U","harborops",
+  "-d","harborops","-At","-v","ON_ERROR_STOP=1","-c",query]).trim();
 function databaseFootprint() {
-  const sql="SELECT (SELECT count(*) FROM tracking_inbox_work_items)::text || ',' || "+
+  return sql("SELECT (SELECT count(*) FROM tracking_inbox_work_items)::text || ',' || "+
     "(SELECT count(*) FROM tracking_processing_effects)::text || ',' || "+
-    "(SELECT count(*) FROM tracking_inbox_receipts)::text";
-  return docker(["exec","-T","postgres","psql","-U","harborops",
-    "-d","harborops","-At","-v","ON_ERROR_STOP=1","-c",sql]).trim();
+    "(SELECT count(*) FROM tracking_inbox_receipts)::text");
+}
+async function tempoTrace(id) {
+  const base="http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-traces";
+  const response=await fetch(base+"/api/v2/traces/"+id,{headers:{authorization:"Basic "+
+    Buffer.from("local_operator:"+password).toString("base64")},
+    signal:AbortSignal.timeout(12000)});
+  assert.equal(response.status,200,"Tempo must remain observable after API shutdown");
+  const raw=await response.json();
+  return (raw.trace?.resourceSpans||raw.resourceSpans||raw.batches||[]).flatMap(resource=>
+    (resource.scopeSpans||resource.instrumentationLibrarySpans||[]).flatMap(scope=>scope.spans||[]));
 }
 const leaseProof=verifyTrxCases(
   fs.readFileSync(path.join(evidence,"g17-integration.trx"),"utf8"),
   ["ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects"]);
 assert.ok(leaseProof.passed>0,"A source-locked positive worker lease fixture is required");
-let before;
+let before,lease,leaseBefore,leaseDuringStop,leaseAfter;
+const canceledTraces=[];
+const lifecycle={};
 try {
   await check("pre-restart-synthetic-baseline",async()=>{
     await ready();
+    // An owned, positive, unexpired worker lease on the live stack. No worker runs
+    // in this stage, so nothing but the API lifecycle and this script can touch it.
+    lease=seedLeasedSyntheticWork(sql,9);
+    leaseBefore=leaseSnapshot(sql,lease.receipt);
+    const identity=leaseIdentity(leaseBefore);
+    assert.equal(identity.state,"Leased");
+    assert.equal(identity.lease_token,lease.token);
+    assert.equal(identity.lease_epoch,1);
+    assert.equal(identity.attempt_count,1);
+    assert.equal(leaseBefore.receipts,1);
+    assert.equal(leaseBefore.events,1);
+    assert.equal(leaseBefore.effects,0);
+    assert.ok(new Date(identity.lease_expires_at_utc).getTime()>Date.now()+5*60*1000,
+      "The seeded lease must outlive the restart observation");
     before=databaseFootprint();
+    assert.ok(Number(before.split(",")[0])>=1,"Footprint must contain the positive leased work item");
     assert.equal((await status("/api/v1/system/baseline")).service,"HarborOps");
-    return {durable_counts:before};
+    return {durable_counts:before,lease_receipt:lease.receipt,lease_epoch:identity.lease_epoch,
+      lease_attempts:identity.attempt_count,lease_expires_at_utc:identity.lease_expires_at_utc};
   });
   await check("real-client-abort-does-not-commit-business",async()=>{
+    // Each canceled request carries its own W3C trace identifier, so its exported
+    // telemetry (if any) can be found and judged after the restart.
     const operations=Array.from({length:80},async(_,i)=>{
       const controller=new AbortController();
       if(i===0)controller.abort();
+      const traceId=crypto.randomBytes(16).toString("hex");
       const timer=setTimeout(()=>controller.abort(),i%2?2:6);
       try {
         const res=await fetch(root+"/api/v1/system/baseline",
-          {signal:controller.signal});
+          {signal:controller.signal,headers:{
+            traceparent:"00-"+traceId+"-0123456789abcdef-01"}});
         assert.equal(res.status,200);
         return "completed";
       }catch(err) {
         assert.ok(err.name==="AbortError"||err.name==="TimeoutError",
           "Unexpected network exception during deliberate cancellation");
+        canceledTraces.push({trace_id:traceId,canceled_at_ms:Date.now()});
         return "canceled";
       }finally{clearTimeout(timer);}
     });
     const cases=await Promise.all(operations);
     assert.ok(cases.includes("canceled"),"Cancellation injector did not cancel a request");
     assert.equal(databaseFootprint(),before,"Cancellation changed durable business state");
-    return {total:cases.length,canceled:cases.filter(x=>x==="canceled").length};
+    // The active lease is byte-identical after the canceled in-flight requests.
+    assert.deepEqual(leaseSnapshot(sql,lease.receipt),leaseBefore,
+      "Request cancellation changed the active worker lease");
+    return {total:cases.length,canceled:cases.filter(x=>x==="canceled").length,
+      canceled_trace_ids:canceledTraces.length,lease_unchanged_by_cancellation:true};
   });
   await check("owned-api-shutdown-bounded",async()=>{
     const started=performance.now();
@@ -113,7 +152,10 @@ try {
     const exit=execFileSync("docker",["inspect","--format","{{.State.ExitCode}}",id],{
       encoding:"utf8",timeout:10000}).trim();
     assert.notEqual(exit,"137","API required SIGKILL rather than bounded graceful shutdown");
-    return {shutdown_seconds:elapsed,exit_code:Number(exit)};
+    // While the API is down the lease is still the very same lease.
+    leaseDuringStop=leaseSnapshot(sql,lease.receipt);
+    assert.deepEqual(leaseDuringStop,leaseBefore,"API shutdown changed the active worker lease");
+    return {shutdown_seconds:elapsed,exit_code:Number(exit),lease_unchanged_during_stop:true};
   });
   await check("stale-readiness-is-unknown-not-healthy",async()=>{
     // The newest readiness sample can already be up to 15 seconds old when the API stops,
@@ -156,8 +198,29 @@ try {
       }
     }
     assert.ok(inspected>0,"No real serialized API spans inspected for stale-data leakage");
+    // Correlate cancellation to telemetry: look up each canceled request by the
+    // trace identifier it carried. Whatever the API exported for it must have
+    // started before the shutdown, and a trace may not claim a server error.
+    let found=0,absent=0,canceledSpans=0;
+    for(const item of canceledTraces) {
+      const spans=await tempoTrace(item.trace_id);
+      if(spans.length===0) {absent++;continue;}
+      found++;
+      for(const span of spans) {
+        const startTime=span.startTimeUnixNano||span.start_time_unix_nano;
+        assert.ok(startTime&&BigInt(startTime)<BigInt(shutdownEpochMs+1000)*1000000n,
+          "A canceled request produced a span that started after the API stopped");
+        assert.notEqual(span.status?.code,"STATUS_CODE_ERROR",
+          "A client-canceled request was exported as a server error");
+        canceledSpans++;
+      }
+    }
+    assert.equal(found+absent,canceledTraces.length);
+    lifecycle.canceled_trace_correlation={canceled_requests:canceledTraces.length,
+      found_in_tempo:found,absent_in_tempo:absent,spans_inspected:canceledSpans,
+      all_started_before_shutdown:true,none_exported_as_server_error:true};
     return {stale_readiness:"unknown",post_shutdown_spans:0,
-      actual_spans_inspected:inspected};
+      actual_spans_inspected:inspected,...lifecycle.canceled_trace_correlation};
   });
 
 } catch {failure=true;}
@@ -175,13 +238,52 @@ if(!stopped) {
       assert.equal((await status("/api/v1/system/baseline")).service,"HarborOps");
       assert.equal(databaseFootprint(),before,
         "Restart created a duplicate receipt, lease or business effect");
-      return {durable_counts_after:databaseFootprint()};
+      leaseAfter=leaseSnapshot(sql,lease.receipt);
+      assert.deepEqual(leaseAfter,leaseBefore,
+        "The active worker lease differs after the API restart");
+      const identity=leaseIdentity(leaseAfter);
+      assert.equal(identity.lease_token,lease.token);
+      assert.equal(identity.lease_epoch,1);
+      assert.equal(identity.attempt_count,1);
+      // Fencing across the restart. A forged token or epoch cannot finish the work.
+      const finish=(token,epoch)=>Number(sql(`WITH moved AS (UPDATE tracking_inbox_work_items
+        SET state='NeedsReconciliation',lease_token=NULL,lease_expires_at_utc=NULL,
+            last_error_code='unresolved_reference',updated_at_utc=clock_timestamp()
+        WHERE receipt_id='${lease.receipt}' AND state='Leased'
+          AND lease_token='${token}' AND lease_epoch=${epoch}
+          AND lease_expires_at_utc>clock_timestamp() RETURNING 1)
+        SELECT count(*) FROM moved`).split("\n").pop());
+      assert.equal(finish(crypto.randomUUID(),1),0,"A forged lease token finished the work");
+      assert.equal(finish(lease.token,2),0,"A forged lease epoch finished the work");
+      assert.deepEqual(leaseSnapshot(sql,lease.receipt),leaseBefore);
+      // The original holder still owns the lease after the restart and finishes it
+      // exactly once. The duplicate completion changes nothing and creates no effect.
+      assert.equal(finish(lease.token,1),1,"The original lease holder could not finish the work");
+      assert.equal(finish(lease.token,1),0,"A duplicate completion changed the work");
+      const done=leaseSnapshot(sql,lease.receipt);
+      assert.equal(done.work.state,"NeedsReconciliation");
+      assert.equal(done.work.lease_token,null);
+      assert.equal(done.work.lease_epoch,1);
+      assert.equal(done.work.attempt_count,1);
+      assert.equal(done.effects,0,"A duplicate processing effect exists");
+      assert.equal(done.receipts,1);
+      assert.equal(done.events,1);
+      lifecycle.lease={receipt:lease.receipt,token:lease.token,epoch:1,attempts:1,
+        expires_before:leaseIdentity(leaseBefore).lease_expires_at_utc,
+        identity_equal_before_stop_during_stop_after_restart:true,
+        forged_token_rejected:true,forged_epoch_rejected:true,
+        original_holder_finished_once:true,duplicate_finish_rejected:true,
+        effects_after:done.effects};
+      return {durable_counts_after:before,...lifecycle.lease};
     });
   }catch {failure=true;}
 }
 const report={source_sha:sha,project,result:!failure&&!stopped&&checks.length===5&&
   checks.every(x=>x.status==="PASS")?"PASS":"FAIL",
-  checks,api_restored:!stopped,positive_worker_lease_witness:true,
+  checks,api_restored:!stopped,
+  positive_worker_lease_witness:Boolean(lifecycle.lease?.identity_equal_before_stop_during_stop_after_restart),
+  lease:lifecycle.lease??null,
+  canceled_trace_correlation:lifecycle.canceled_trace_correlation??null,
   source_locked_lease_method:"ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects",
   assertion_acceptance:"PENDING"};
 fs.writeFileSync(path.join(evidence,"m17-restart-results.json"),

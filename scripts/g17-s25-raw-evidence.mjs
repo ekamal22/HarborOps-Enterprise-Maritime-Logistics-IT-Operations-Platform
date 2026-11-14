@@ -56,6 +56,18 @@ export function verifyS25RawSnapshots(root,source,project) {
   assert.equal(display.dashboard_query,'ALERTS{alertstate="firing"}');
   assert.equal(display.alert_panel_text_scoped,true,
     "Actual browser text must come from the active-alert panel");
+  // The label must be a rendered cell of the alert table, in the alertname column
+  // with state firing, after the panel was scrolled into the viewport.
+  assert.equal(display.scrolled_into_view,true);
+  assert.ok(display.viewport?.width>0&&display.viewport?.height>0);
+  const nameColumn=Array.isArray(display.table_headers)
+    ?display.table_headers.indexOf("alertname"):-1;
+  const stateColumn=Array.isArray(display.table_headers)
+    ?display.table_headers.indexOf("alertstate"):-1;
+  assert.ok(nameColumn>=0&&stateColumn>=0&&Array.isArray(display.table_rows)&&
+    display.table_rows.some(cells=>cells[nameColumn]==="HarborOpsDatabaseUnavailable"&&
+      cells[stateColumn]==="firing"),
+    "Alert name must be a rendered firing table cell in the alert panel");
   assert.equal(display.visible_dom_text,diagnostic.dashboard_dom_text);
   assert.equal(verifyBoundedDiagnosticJourney(diagnostic),true);
   const privacy=load(root,"m17-export-privacy-results.json");
@@ -79,6 +91,12 @@ export function verifyS25RawSnapshots(root,source,project) {
   const logDigest=(privacy.snapshots??[])
     .find(x=>x.kind==="owned-sanitized-service-logs");
   assert.ok(logDigest);
+  // Independent of the script's per-run random canary: its fixed prefix may appear
+  // in no retained trace, series or service log byte.
+  for(const [kind,body] of [["logs",logs],["traces",JSON.stringify(trace)],
+      ["series",JSON.stringify(metric)]])
+    assert.doesNotMatch(body,/g17-private-canary-/i,
+      "Privacy canary prefix found in retained "+kind);
   assert.equal(sha(logs),logDigest.sha256,
     "Retained service logs differ from originally scanned bytes");
   const metricDigests=(privacy.snapshots??[]).filter(x=>x.kind==="prometheus-series");
@@ -99,6 +117,13 @@ export function verifyS25RawSnapshots(root,source,project) {
   safeSeries(ws.series);
   assert.ok(wt.traces.length>0);
   wt.traces.forEach(item=>safeTrace(item.document));
+  // Positive participation: retained traces must come from the worker service, and
+  // the retained worker metric series must carry the tracking worker identity.
+  assert.ok(wt.traces.filter(x=>x.service==="harborops-tracking-worker").length>=2,
+    "Fewer than two retained traces exported by the participating worker service");
+  assert.ok(ws.series.some(row=>/^harborops_worker_/.test(row.__name__??"")&&
+    row.worker==="tracking"),
+    "No retained worker metric series for the participating tracking worker");
   const workerLogs=fs.readFileSync(path.join(root,"m17-worker-journey-logs.txt"),"utf8");
   assert.ok(workerLogs.length>0);
   assert.match(workerLogs,/Tracking work polling started|Tracking worker disposition/);
@@ -107,6 +132,10 @@ export function verifyS25RawSnapshots(root,source,project) {
   assert.ok(worker.worker_log_checked_values>=4);
   assert.equal(worker.worker_log_positive_signal,true);
   assert.doesNotMatch(workerLogs,/\bBearer\s+[A-Za-z0-9._~-]{16,}|\bPassword\s*[:=]\s*\S{8,}/i);
+  // Shapes of the synthetic private material the script injects, checked without
+  // trusting the script's own canary list: source credential, account and tenant slugs.
+  assert.doesNotMatch(workerLogs,/hop_v1_[0-9a-f]{32}_|@example\.test|g17-worker-[0-9a-f]{6,}/i,
+    "Worker log contains synthetic credential, account or tenant shaped material");
 
   const malformed=load(root,"m17-malformed-export-results.json");
   const mt=load(root,"m17-malformed-export-traces.json");
@@ -136,6 +165,26 @@ export function verifyS25RawSnapshots(root,source,project) {
   assert.equal(storage.telemetry_degradation?.signal,
     "OWNED_PROMETHEUS_STORAGE_ENOSPC");
   assert.equal(storage.telemetry_degradation?.error_observed,true);
+  // The degradation is a measured change of the observation path, not only a failed
+  // write by the test: logged by the store, stale samples, an Unknown readiness expression.
+  const degradation=storage.telemetry_degradation;
+  assert.equal(degradation.storage_error_logged,true,"Owned store logged no storage error");
+  assert.equal(degradation.readiness_panel_expression_unknown,true,
+    "Readiness stayed current during the full telemetry store");
+  assert.ok(degradation.prometheus_unreachable===true||degradation.stale_age_seconds>=45,
+    "No stale-sample measurement during the full telemetry store");
+  assert.ok(degradation.fresh_before_seconds<45,"No healthy-observation control before the fault");
+  assert.equal(storage.telemetry_recovery?.recovered,true,"Observation did not recover");
+  assert.ok((storage.checks??[]).some(c=>c.name==="telemetry-observation-recovers-after-fault"&&
+    c.status==="PASS"));
+  // Row-level identity of every protected fixture record, before and after.
+  assert.deepEqual(storage.fixture_rows_after,storage.fixture_rows_before,
+    "A retained M8/M11/M15/M16 fixture row changed under telemetry-storage pressure");
+  for(const name of ["m8_receipts","m8_events","m8_work_items","m11_exceptions",
+      "m11_history","m15_outbox","m16_audit"])
+    assert.ok(storage.fixture_rows_before?.[name]?.rows>0&&
+      /^[0-9a-f]{64}$/.test(storage.fixture_rows_before[name].sha256??""),
+      "No row-level hash for protected history: "+name);
 
   const performance=load(root,"m17-performance-raw.json");
   const independently=load(root,"m17-p09-independent-recalculation.json");
@@ -149,6 +198,20 @@ export function verifyS25RawSnapshots(root,source,project) {
   assert.equal(independently.pairs.length,3);
   assert.equal(independently.individual_p95_outliers.length,
     performance.gate.pairs_over_p95_budget);
+  const lowWindow=load(root,"m17-low-traffic-window.json");
+  matchesSource(lowWindow,source,project);
+  assert.equal(lowWindow.result,"PASS");
+  assert.ok(lowWindow.requests_sent>0&&lowWindow.requests_sent<lowWindow.sufficiency_floor,
+    "Below-threshold control must send fewer than the approved eligible-request floor");
+  assert.equal(lowWindow.sufficiency_floor,100);
+  assert.ok(lowWindow.eligible_min>=1&&lowWindow.eligible_max<100,
+    "Window is not real below-threshold traffic");
+  assert.ok(lowWindow.eligible_points>=4);
+  assert.equal(lowWindow.guarded_5xx_points,0);
+  assert.equal(lowWindow.guarded_p95_points,0);
+  assert.ok(lowWindow.raw_5xx_zero_points>=1,
+    "The raw healthy-looking zero hazard was not demonstrated");
+  assert.ok(lowWindow.request_rate_max>0);
   for(const engine of ["chromium","firefox","webkit"]) {
     const state=load(root,"m17-ui-state-"+engine+".json");
     assert.equal(state.source_sha,source);
@@ -166,6 +229,24 @@ export function verifyS25RawSnapshots(root,source,project) {
       assert.match(traffic.panels?.[title]??"",/\b(?:No data|Unknown)\b/i,
         "No independent rendered no-traffic API panel: "+engine+"/"+title);
       assert.doesNotMatch(traffic.panels[title],/\b(?:Healthy|Sufficient)\b/i);
+    }
+    const low=traffic.low_traffic;
+    assert.ok(low,"No rendered below-threshold traffic evidence: "+engine);
+    assert.equal(low.window_start,lowWindow.window_start);
+    assert.equal(low.window_end,lowWindow.window_end);
+    assert.equal(low.requests_sent,lowWindow.requests_sent);
+    assert.equal(low.raw_5xx_value_at_midpoint,0,
+      "The independent raw 5xx re-query must be the healthy-looking zero");
+    assert.equal(low.guarded_series_at_midpoint,0);
+    assert.match(low.panels?.["API request rate"]??"",/\d(?:\.\d+)?\s*req\/s/,
+      "Measured low request rate was not rendered: "+engine);
+    assert.doesNotMatch(low.panels["API request rate"],/\b(?:No data|Unknown)\b/i);
+    for(const title of ["API 5xx rate","API p95 latency"]) {
+      assert.match(low.panels?.[title]??"",/\bUnknown\b/i,
+        "Below-threshold traffic was not rendered Unknown: "+engine+"/"+title);
+      assert.doesNotMatch(low.panels[title],
+        /\b(?:Healthy|Sufficient)\b|\b0(?:\.0+)?\s*(?:req\/s|ms|s)\b/i,
+        "False healthy value rendered under insufficient traffic: "+engine+"/"+title);
     }
   }
   return {status:"PASS",raw_trace_records:trace.records.length,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import {verifyTrxCases} from "./g17-results-contract.mjs";
+import {accountSuite} from "./g17-regression-accounting.mjs";
 
 const root=process.env.HARBOROPS_G17_EVIDENCE_DIR;
 const sha=process.env.HARBOROPS_SOURCE_SHA;
@@ -27,7 +28,12 @@ try{
     const names=trx.methods.filter(testCase=>testCase.includes("."+type+"."));
     assert.ok(names.length>=1,
       "Milestone "+name+" has no executed passing source-locked regression tests");
+    // Every test the class declares must have executed: one surviving test may not
+    // stand in for a trimmed or silently skipped accepted-milestone suite.
+    const accounting=accountSuite(type,fs.readFileSync(path.join(
+      process.cwd(),"tests","HarborOps.IntegrationTests",type+".cs"),"utf8"),trx.methods);
     cases[name]={class:type,passed: names.length,
+      declared_methods:accounting.declared,executed_distinct_methods:accounting.executed_distinct,
       test_names:names};
   }
   assert.ok(trx.passed>=Object.keys(suites).length);

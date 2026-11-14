@@ -1,9 +1,11 @@
 # G17 Local Source-Locked Verification Result
 
+**Current 2026-11-14 G17 checkpoint:** Hosted [#43538965276](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43538965276) FAILED its first-incident 5xx alert witness after all early unit, contract, scoped integration and regression tests passed. Fixed executable source `a236ab64574cfec8b0dcbde232a5d22ef086783b` seeds the bounded failure counter before the incident and checks 120 real 503 responses over multiple scrape intervals, with genuine failure-rate and traffic-volume evidence. [Rerun #43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) passed preflight; full campaign pending at this documentation checkpoint. **G17 NOT ACCEPTED; acceptance pending.** The earlier independent S25 review returned NOT PASS and all historical records remain intact. [Latest reconciliation](M17_G17_REPOWIDE_DOCUMENTATION_RECONCILIATION_20261114.md).
+
 **Historical c7 result:** c7 remains complete at source `085fc666`. Subsequent independent S25 assessment returned NOT PASS, requiring expanded behavioral evidence. The result below is not evidence for those later corrections. The report was published on `verify/g17-local-evidence-20261114` and protected main remains unchanged. [Remediation register](M17_G17_S25_REMEDIATION_20261114.md).
 
 **Recorded:** 2026-11-14. **Gate:** G17 NOT ACCEPTED; independent G17-S25 review pending.
-**Verified source:** `085fc666448962ec4d133bd01bf3992f7d360191` on local branch `feat/m17-g17-verification-s25-b4c2e4`, eight local commits above the handoff head `6a21718a3f222628aeada95a4b33a2337293b366` of `feature/m17-observability-20261112`. Nothing was pushed. Protected `main` is untouched.
+**Verified source:** `085fc666448962ec4d133bd01bf3992f7d360191` on local branch `feat/m17-g17-verification-s25-b4c2e4`, eight local commits above the handoff head `6a21718a3f222628aeada95a4b33a2337293b366` of `feature/m17-observability-20261112`. At the time of c7, nothing had been pushed. Its source was later published on the verification branch; protected `main` remained untouched.
 **Method:** the complete campaign ran locally through `scripts/run-g17-local.ps1` (PowerShell 7) against a disposable Docker project. GitHub Actions was not used for any part of this verification; the earlier hosted run was only read as historical evidence.
 
 ## Result in one paragraph

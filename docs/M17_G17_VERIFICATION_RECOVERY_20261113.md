@@ -1,5 +1,7 @@
 # G17 Source-Locked Verification Recovery
 
+**Current 2026-11-14 G17 checkpoint:** Hosted [#43538965276](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43538965276) FAILED its first-incident 5xx alert witness after all early unit, contract, scoped integration and regression tests passed. Fixed executable source `a236ab64574cfec8b0dcbde232a5d22ef086783b` seeds the bounded failure counter before the incident and checks 120 real 503 responses over multiple scrape intervals, with genuine failure-rate and traffic-volume evidence. [Rerun #43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) passed preflight; full campaign pending at this documentation checkpoint. **G17 NOT ACCEPTED; acceptance pending.** The earlier independent S25 review returned NOT PASS and all historical records remain intact. [Latest reconciliation](M17_G17_REPOWIDE_DOCUMENTATION_RECONCILIATION_20261114.md).
+
 **Recorded:** 2026-11-13, during the source-locked campaign for `feature/m17-observability-20261112`.
 **Protected main:** `b490fb8cfc879cdf05cb1f7484b99f6a9b264ed3`, unchanged by this recovery.
 **Gate:** G17 NOT ACCEPTED; acceptance pending.
@@ -80,3 +82,15 @@ GitHub Actions was not used again. The complete campaign was run locally through
 | c7 | `085fc666` | COMPLETE, 72 of 72 technical, manifest verified | none |
 
 The hosted run 43477790029 itself failed because Prometheus rejected `--web.enable-admin-api=false`. See the [local verification result](M17_G17_LOCAL_VERIFICATION_RESULT_20261114.md) for every correction, the per-assertion ledger and the reviewer procedure. G17 remains NOT ACCEPTED.
+
+
+## Hosted post-S25 failures and source-locked recovery (2026-11-14)
+
+| Run | Executable source | Outcome |
+| --- | --- | --- |
+| [#43537932173](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43537932173) | `afee969cc432eafdbcb12bc0d4bedf4f497b3924` | FAILED during a source-test assumption about inline Tempo decoding; corrected delegated-parser test and preflight |
+| [#43538289383](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43538289383) | `1f2afc9352eb95b72c64d783ec5bab81c02f1026` | FAILED during rootless PostgreSQL mount initialization; corrected owned bind mount preparation and log indexing |
+| [#43538965276](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43538965276) | `d8412e71d6adf0aedaa0683af9f0c14fc650e079` | FAILED real 5xx alert. 319/319 unit, 60/60 contract, 53/53 M17 integration and 34/34 accepted regression tests passed; 120 503s were too concentrated to give a Prometheus-visible first counter increase. The 35-file source-locked failure manifest is preserved |
+| [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) | `a236ab64574cfec8b0dcbde232a5d22ef086783b` | Source preflight PASS; full disposable campaign pending at this checkpoint |
+
+The correction seeds `business/5xx` as a zero-valued bounded counter on each heartbeat and requires a real exported baseline, positive 5-minute increase, at least 100 eligible requests, a fraction above 1 percent, 120 genuine 503s over multiple scrapes and a firing alert. Existing alert thresholds are unchanged; the full G17 gate and renewed independent S25 still require complete evidence.

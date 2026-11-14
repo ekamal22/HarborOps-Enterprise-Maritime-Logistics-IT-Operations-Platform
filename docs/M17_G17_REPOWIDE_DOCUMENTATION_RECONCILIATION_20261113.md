@@ -1,5 +1,7 @@
 # G17 Repository Documentation Reconciliation
 
+**Current 2026-11-14 G17 checkpoint:** Hosted [#43538965276](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43538965276) FAILED its first-incident 5xx alert witness after all early unit, contract, scoped integration and regression tests passed. Fixed executable source `a236ab64574cfec8b0dcbde232a5d22ef086783b` seeds the bounded failure counter before the incident and checks 120 real 503 responses over multiple scrape intervals, with genuine failure-rate and traffic-volume evidence. [Rerun #43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) passed preflight; full campaign pending at this documentation checkpoint. **G17 NOT ACCEPTED; acceptance pending.** The earlier independent S25 review returned NOT PASS and all historical records remain intact. [Latest reconciliation](M17_G17_REPOWIDE_DOCUMENTATION_RECONCILIATION_20261114.md).
+
 **Date:** 2026-11-13
 **Branch:** `feature/m17-observability-20261112`
 **Disposition:** Documentation aligned with source-locked G17 recovery. **G17 NOT ACCEPTED; acceptance pending.**
@@ -36,3 +38,8 @@ The verification recovery register tracks the failed runs, exact corrective comm
 ## Update 2026-11-14
 
 Current M17 status wording across `STATUS.md`, `ROADMAP.md`, the recovery register and the S25 readiness document now distinguishes: implemented and tested (yes), technically verified for 72 of 72 technical assertions at `085fc666` (yes, locally, run c7), independently reviewed (no), accepted (no), integrated (no). The execution graph structure is unchanged because no milestone dependency changed. Historical hosted failure records were kept as written.
+
+
+## Superseded source checkpoint
+
+This is a historical 2026-11-13 reconciliation. [The latest G17 reconciliation](M17_G17_REPOWIDE_DOCUMENTATION_RECONCILIATION_20261114.md) records the S25-remediated source, the first-incident 5xx finding and the hosted rerun. Original failed evidence remains unchanged.

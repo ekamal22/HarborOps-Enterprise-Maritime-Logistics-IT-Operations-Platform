@@ -256,3 +256,39 @@ test("hosted bind mounts are owned and writable before starting rootless Postgre
   assert.match(manifest,/allowedEvidencePath\(relative\)/);
   assert.match(manifest,/textEvidencePath\(relative\)/);
 });
+
+test("all S25 remediation controls are required before a green evidence manifest",()=>{
+  const runner=read("scripts/run-g17-local.ps1");
+  const raw=read("scripts/g17-s25-raw-evidence.mjs");
+  const workflow=read(".github/workflows/verify-g17-s25.yml");
+  const coverage=JSON.parse(read("docs/M17_G17_TEST_COVERAGE_20261113.json"));
+  assert.equal(coverage.scenarios.length,25);
+  assert.equal(coverage.scenarios.flatMap(s=>s.assertions).length,75);
+  for(const artifact of [
+    "m17-ui-no-traffic-chromium.json",
+    "m17-ui-no-traffic-firefox.json",
+    "m17-ui-no-traffic-webkit.json",
+    "m17-worker-journey-logs.txt",
+    "m17-page-fault-injection.json",
+    "m17-page-fault-dashboard.json",
+    "m17-diagnostic-journey-results.json",
+    "m17-p09-independent-recalculation.json"
+  ]) {
+    assert.ok(runner.includes(artifact),"Required new evidence missing from runner: "+artifact);
+  }
+  for(const source of [
+    "g17-diagnostic-evidence.test.mjs",
+    "g17-worker-log-privacy.test.mjs",
+    "g17-p09-review.test.mjs"
+  ]) {
+    assert.ok(workflow.includes(source),"Required negative control absent from preflight: "+source);
+  }
+  assert.ok(workflow.includes("include-hidden-files: true"));
+  assert.ok(raw.includes("verifyBoundedDiagnosticJourney(diagnostic)"));
+  assert.ok(raw.includes("worker.worker_log_sha256"));
+  assert.ok(raw.includes("independently.individual_p95_outliers"));
+  const journey=coverage.scenarios[19].assertions;
+  assert.ok(journey.every(a=>a.witness?.path==="scripts/check-g17-diagnostic-journey.mjs"));
+  const independent=coverage.scenarios[24].assertions;
+  assert.ok(independent.every(a=>a.assessment==="INDEPENDENT_REVIEW"&&a.witness===null));
+});

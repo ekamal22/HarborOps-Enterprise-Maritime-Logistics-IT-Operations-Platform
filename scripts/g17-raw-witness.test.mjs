@@ -286,3 +286,41 @@ test("every minimum is inclusive: the exact approved edge passes", () => {
     assert.equal(rawWitnessPasses(path, caseName, report), true, path + " / " + caseName + " rejected its exact edge");
   }
 });
+
+// Second-pass material survivors (S25-M series).
+test("a predicate that throws on a malformed report fails closed, and unknown cases have no predicate", () => {
+  for (const w of scriptWitnesses) {
+    for (const hostile of [{result: "PASS"}, {result: "PASS", checks: [null], cases: null, injected_controls: null,
+        positive_history: null, telemetry_degradation: null, pairs: null, rows: null, lease: null}]) {
+      assert.equal(rawWitnessPasses(w.path, w.case, hostile), false, w.id + " accepted a malformed report");
+    }
+  }
+  assert.equal(hasRawPredicate("scripts/not-registered.mjs", "x"), false);
+  assert.equal(hasRawPredicate("scripts/check-g17-network.mjs", "a case with no predicate"), false);
+  assert.equal(hasRawPredicate("scripts/check-g17-network.mjs", "dashboard_listener"), true);
+});
+test("storage and regression predicates are exact at their edges and need each fact in every row", () => {
+  const path = "scripts/check-g17-storage.mjs";
+  const eight = clone(FIXTURES[path]);
+  eight.positive_history.tables = {a: 1, b: 1, c: 1, d: 1, e: 1, f: 1, g: 1, h: 1};
+  assert.equal(rawWitnessPasses(path, "full-telemetry-store", eight), true);
+  const rowFacts = {
+    "rows without a hash": r => { r.fixture_rows_before.m11_history.sha256 = ""; r.fixture_rows_after.m11_history.sha256 = ""; },
+    "a hash without rows": r => { r.fixture_rows_before.m15_outbox.rows = 0; r.fixture_rows_after.m15_outbox.rows = 0; }
+  };
+  for (const [label, mutate] of Object.entries(rowFacts)) {
+    const broken = clone(FIXTURES[path]);
+    mutate(broken);
+    assert.equal(rawWitnessPasses(path, "all-application-history-byte-identical", broken), false, label);
+  }
+  const reg = "scripts/check-g17-regression-matrix.mjs";
+  const one = clone(FIXTURES[reg]);
+  one.cases.M13 = {class: "M13AdmissionControlAcceptanceTests", passed: 1, declared_methods: 1, executed_distinct_methods: 1};
+  one.cases.audit = {class: "G15AuditAcceptanceTests", passed: 1, declared_methods: 1, executed_distinct_methods: 1};
+  assert.equal(rawWitnessPasses(reg, "M13AdmissionControlAcceptanceTests", one), true);
+  assert.equal(rawWitnessPasses(reg, "G15AuditAcceptanceTests", one), true);
+  const perf = "scripts/check-g17-performance.mjs";
+  const single = clone(FIXTURES[perf]);
+  single.system.cpus = 1;
+  assert.equal(rawWitnessPasses(perf, "THREE_MATCHED_PAIRS", single), true);
+});

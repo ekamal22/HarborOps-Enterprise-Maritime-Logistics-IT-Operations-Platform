@@ -145,3 +145,26 @@ test("strict mode and total counts reject partial coverage", () => {
   assert.ok(independent.errors.some(error => /Exactly three S25 reviewer assertions/.test(error)));
   assert.equal(real(() => {}, read, {strict: true}).passed, true);
 });
+
+test("the command runs its audit, writes its report and never overwrites it, while an import runs nothing", async () => {
+  const {spawnSync} = await import("node:child_process");
+  const os = await import("node:os");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-audit-cli-"));
+  const output = path.join(dir, "preflight.json");
+  try {
+    const run = spawnSync(process.execPath, [path.join(root, "scripts/audit-g17-test-coverage.mjs"), "--strict", "--output=" + output],
+      {cwd: root, encoding: "utf8"});
+    assert.equal(run.status, 0, run.stderr);
+    const report = JSON.parse(fs.readFileSync(output, "utf8"));
+    assert.equal(report.passed, true);
+    assert.equal(report.technically_authored, 72);
+    assert.equal(report.assertions, 75);
+    assert.notEqual(spawnSync(process.execPath, [path.join(root, "scripts/audit-g17-test-coverage.mjs"), "--strict", "--output=" + output],
+      {cwd: root, encoding: "utf8"}).status, 0);
+    const imported = spawnSync(process.execPath, ["--input-type=module", "-e",
+      "import(" + JSON.stringify(path.join(root, "scripts/audit-g17-test-coverage.mjs").replaceAll("\\", "/").replace(/^/, "file:///")) + ").then(()=>console.log('IMPORTED'))"],
+      {cwd: root, encoding: "utf8"});
+    assert.match(imported.stdout, /IMPORTED/);
+    assert.doesNotMatch(imported.stdout, /technically_authored|"gate"/);
+  } finally {fs.rmSync(dir, {recursive: true, force: true});}
+});

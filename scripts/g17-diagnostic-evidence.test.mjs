@@ -55,3 +55,9 @@ test("every field of the page-to-alert journey is individually load-bearing",()=
   assert.throws(()=>verifyBoundedDiagnosticJourney(x),/./,label);
  }
 });
+
+test("a trace with two spans but no http.request server span is rejected", () => {
+ const x = structuredClone(record);
+ x.trace_document.trace.resourceSpans[0].scopeSpans[0].spans[0].name = "internal.work";
+ assert.throws(() => verifyBoundedDiagnosticJourney(x), /No real HTTP server span/);
+});

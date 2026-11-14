@@ -76,3 +76,26 @@ test("JUnit case names come from the name attribute, not from classname",()=>{
   assert.throws(()=>nodeTestNames('<testsuites><testcase name="x" classname="test"/>'+
     '<testcase name="x" classname="test"/></testsuites>'),/unique/);
 });
+
+// Second-pass material survivors (S25-M series): each fault is isolated, so no other guard reports it.
+test("a mislabeled scenario or an extra fourth clause is reported on its own", () => {
+  const pass = () => ({passed: true, artifact: "raw.trx"});
+  const relabeled = complete();
+  relabeled.scenarios[3].id = "G17-S99";
+  assert.ok(checkPerAssertion(relabeled, pass).errors.some(x => /Missing or reordered scenario: G17-S04/.test(x)));
+  const extra = complete();
+  extra.scenarios[3].assertions.push({id: "G17-S04-A04", assessment: "TEST_AUTHORED",
+    witness: {path: "tests/mock-technical.test.mjs", case: "G17-S04-A04"}});
+  assert.ok(checkPerAssertion(extra, pass).errors.some(x => /Missing or reordered scenario: G17-S04/.test(x)));
+});
+test("an S25 clause must be both independent review and unwitnessed", () => {
+  const pass = () => ({passed: true, artifact: "raw.trx"});
+  const authored = complete();
+  authored.scenarios[24].assertions[1].assessment = "TEST_AUTHORED";
+  authored.scenarios[24].assertions[1].witness = null;
+  assert.ok(checkPerAssertion(authored, pass).errors.some(x => x.startsWith("G17-S25-A02: independent reviewer must remain unassigned")));
+  const witnessed = complete();
+  witnessed.scenarios[24].assertions[2].witness = {path: "tests/x.test.mjs", case: "x"};
+  assert.ok(checkPerAssertion(witnessed, pass).errors.some(x => x.startsWith("G17-S25-A03: independent reviewer must remain unassigned")));
+  assert.equal(checkPerAssertion(witnessed, pass).records[74].status, "INVALID_INDEPENDENT_REVIEW_CLAIM");
+});

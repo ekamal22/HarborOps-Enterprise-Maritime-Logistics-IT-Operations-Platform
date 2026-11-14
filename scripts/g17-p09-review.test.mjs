@@ -141,3 +141,19 @@ test("pooled p95 and memory budgets are inclusive at their approved values",()=>
  assert.equal(recalculateP09(build({rssOn:114.9}),40).result,"PASS");
  assert.equal(recalculateP09(build({rssOn:115.1}),40).result,"FAIL");
 });
+
+test("a negative peak memory reading is rejected even when every derived number is consistent with it", () => {
+ const report = build({rssOff: -100, rssOn: -110});
+ assert.throws(() => recalculateP09(report, 40));
+ const zero = build({rssOff: 0.0001, rssOn: 0});
+ assert.throws(() => recalculateP09(zero, 40));
+});
+test("a mathematically exact ten percent increase is reported as exceeding because of floating point arithmetic", () => {
+ // Documented observation (S25-M05), not a policy change: 100 * (11 / 10 - 1) evaluates to
+ // 10.000000000000009, so an increase of exactly ten percent is judged to exceed the budget. The
+ // recalculation fails closed at that single edge; real measurements never land on it.
+ const reviewed = recalculateP09(build({on: 11}), 40);
+ assert.equal(reviewed.result, "FAIL");
+ assert.ok(reviewed.pooled.baseline.increase_pct > 10 && reviewed.pooled.baseline.increase_pct < 10.0000001);
+ assert.equal(recalculateP09(build({on: 10.99999}), 40).result, "PASS");
+});

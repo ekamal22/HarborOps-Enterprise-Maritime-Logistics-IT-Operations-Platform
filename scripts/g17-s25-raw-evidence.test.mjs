@@ -170,3 +170,85 @@ test("F08 storage evidence requires measured degradation, recovery and row-level
   }
  } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+// Second-pass material survivors (S25-M series): each fact below was found by operator mutation to be
+// unprotected. Every case breaks or sits exactly on one fact of an otherwise valid evidence set.
+const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
+function withFixture(label, body) {
+ test(label, () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-raw-m-"));
+  const edit = (name, fn) => {const p = path.join(dir, name); const v = JSON.parse(fs.readFileSync(p, "utf8")); fn(v); put(dir, name, v);};
+  try {fixture(dir); body(dir, edit);} finally {fs.rmSync(dir, {recursive: true, force: true});}
+ });
+}
+withFixture("a retained trace with only one of events, links, state or status text is rejected", (dir, edit) => {
+ for (const [field, value] of [["events", [{name: "x"}]], ["links", [{traceId: "x"}]],
+   ["traceState", "vendor=private"], ["status", {message: "SQL credentials"}]]) {
+  fixture(dir);
+  edit("m17-export-privacy-traces.json", v => {v.records[0].document.trace.resourceSpans[0].scopeSpans[0].spans[0][field] = value;});
+  assert.throws(() => verifyS25RawSnapshots(dir, source, project), /raw events, links, state or status message/, field);
+ }
+});
+withFixture("an empty, non-object or over-long exported series row is rejected and the 120 character edge passes", (dir, edit) => {
+ const rewrite = series => {
+  const digestOf = row => sha256(JSON.stringify(row));
+  edit("m17-export-privacy-series.json", v => {v.series = series;});
+  edit("m17-export-privacy-results.json", v => {
+   v.exported_metric_series_inspected = series.length; v.retained_metric_series = series.length;
+   const kept = v.snapshots.filter(s => s.kind !== "prometheus-series");
+   v.snapshots = [...kept, ...series.map(row => ({kind: "prometheus-series", sha256: digestOf(row)}))];
+  });
+ };
+ rewrite([{__name__: "harborops_db_readiness_ratio", service: "x".repeat(120)}]);
+ assert.equal(verifyS25RawSnapshots(dir, source, project).status, "PASS");
+ fixture(dir); rewrite([{__name__: "harborops_db_readiness_ratio", service: "x".repeat(121)}]);
+ assert.throws(() => verifyS25RawSnapshots(dir, source, project), /Unbounded metric value/);
+ fixture(dir); rewrite([]);
+ assert.throws(() => verifyS25RawSnapshots(dir, source, project));
+ fixture(dir); rewrite(["not-an-object"]);
+ assert.throws(() => verifyS25RawSnapshots(dir, source, project));
+});
+withFixture("the page-originated observation must match the journey on every one of four facts", (dir, edit) => {
+ for (const [label, change] of [
+   ["trace id", o => {o.trace_id = "e".repeat(32);}],
+   ["server correlation", o => {o.correlation_id = "e".repeat(32); o.body_correlation = "e".repeat(32);}],
+   ["status", o => {o.status = 500;}],
+   ["body correlation", o => {o.body_correlation = "e".repeat(32);}]]) {
+  fixture(dir);
+  edit("m17-page-fault-injection.json", v => {change(v.observations[0]);});
+  assert.throws(() => verifyS25RawSnapshots(dir, source, project), /./, label);
+ }
+});
+withFixture("each viewport dimension and a first-column alert name are validated", (dir, edit) => {
+ for (const viewport of [{width: 0, height: 720}, {width: 1280, height: 0}, {width: 1280}, undefined]) {
+  fixture(dir);
+  edit("m17-page-fault-dashboard.json", v => {v.viewport = viewport;});
+  assert.throws(() => verifyS25RawSnapshots(dir, source, project), /./, JSON.stringify(viewport));
+ }
+ fixture(dir);
+ edit("m17-page-fault-dashboard.json", v => {
+  v.table_headers = ["alertname", "alertstate"];
+  v.table_rows = [["HarborOpsDatabaseUnavailable", "firing"]];
+ });
+ assert.equal(verifyS25RawSnapshots(dir, source, project).status, "PASS");
+});
+withFixture("worker metric series need the worker metric name and the tracking worker label together", (dir, edit) => {
+ for (const series of [
+   [{__name__: "harborops_worker_attempts_total", worker: "other"}],
+   [{__name__: "harborops_db_readiness_ratio", worker: "tracking"}]]) {
+  fixture(dir);
+  edit("m17-worker-journey-series.json", v => {v.series = series;});
+  assert.throws(() => verifyS25RawSnapshots(dir, source, project), /tracking worker/);
+ }
+});
+withFixture("storage degradation and recovery edges are inclusive and a failed recovery step is rejected", (dir, edit) => {
+ edit("m17-storage-results.json", v => {v.telemetry_degradation.stale_age_seconds = 45;});
+ assert.equal(verifyS25RawSnapshots(dir, source, project).status, "PASS");
+ fixture(dir);
+ edit("m17-storage-results.json", v => {v.checks = [{name: "telemetry-observation-recovers-after-fault", status: "FAIL"}];});
+ assert.throws(() => verifyS25RawSnapshots(dir, source, project), /./);
+});
+withFixture("the below-threshold window accepts exactly its approved minimums", (dir, edit) => {
+ edit("m17-low-traffic-window.json", v => {v.eligible_min = 1; v.eligible_points = 4; v.raw_5xx_zero_points = 1;});
+ assert.equal(verifyS25RawSnapshots(dir, source, project).status, "PASS");
+});

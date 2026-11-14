@@ -90,3 +90,14 @@ test("an extra browser case that sorts last is not accepted as the required set"
     projectName,expectedStatus:"passed",status:"expected",results:[{status:"passed",retry:0}]}))});
   assert.throws(()=>verifyPlaywrightCases(raw,"dashboard"),/Missing, unexpected or duplicated browser cases/);
 });
+
+test("a browser case renamed to another title with the same total count is rejected", () => {
+  for (const mode of ["dashboard", "cardinality"]) {
+    const raw = browser(mode);
+    raw.suites[0].specs[0].title = "an unexpected case title";
+    assert.throws(() => verifyPlaywrightCases(raw, mode), /Missing, unexpected or duplicated browser cases/, mode);
+  }
+  const duplicated = browser("dashboard");
+  duplicated.suites[0].specs[1].title = duplicated.suites[0].specs[0].title;
+  assert.throws(() => verifyPlaywrightCases(duplicated, "dashboard"), /Missing, unexpected or duplicated browser cases/);
+});

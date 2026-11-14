@@ -63,22 +63,53 @@ try {
   await page.locator('button[type="submit"]').click();
   await page.waitForURL(url=>!url.pathname.startsWith("/login"),{timeout:25000});
   await page.goto("http://127.0.0.1:3301/d/harborops-m17/local-service-diagnostics");
+  // Require the live Prometheus alert label to appear inside the owned
+  // Grafana table, not somewhere else in the dashboard or saved JSON.
+  const response=await page.request.get(
+    "http://127.0.0.1:3301/api/dashboards/uid/harborops-m17");
+  assert.equal(response.status(),200);
+  const stored=await response.json();
+  const panel=stored.dashboard?.panels?.find(x=>x.title==="Active local alerts");
+  assert.ok(panel,"Missing local alert table");
+  assert.equal(panel.id,8);
+  assert.equal(panel.type,"table");
+  assert.equal(panel.targets?.[0]?.expr,'ALERTS{alertstate="firing"}');
+  assert.equal(panel.targets?.[0]?.format,"table",
+    "Alert label fields must be rendered as table columns");
+  assert.equal(panel.targets?.[0]?.instant,true);
+  const header=page.getByText("Active local alerts",{exact:true}).first();
+  await header.waitFor({state:"visible",timeout:25000});
   const deadline=Date.now()+90000;
   let text="";
   while(Date.now()<deadline) {
-   const body=await page.locator("body").innerText();
-   if(body.includes("Active local alerts")&&
-      body.includes("HarborOpsDatabaseUnavailable")) {
-      text=body.slice(0,7000);break;
+   const observed=await header.evaluate(element=>{
+    const otherPanels=["API request rate","API 5xx rate","API p95 latency",
+      "PostgreSQL readiness","Notification worker",
+      "Application heartbeats per 100 seconds","Collector transport probe",
+      "Tracking eligible backlog age","Local alert state"];
+    for(let node=element,depth=0;node&&depth<25;
+        node=node.parentElement,depth++) {
+     const value=String(node.innerText||"");
+     if(value.length>8000||!value.includes("Active local alerts"))continue;
+     if(otherPanels.some(name=>value.includes(name)))continue;
+     if(value.includes("HarborOpsDatabaseUnavailable"))return value.slice(0,7000);
+    }
+    return "";
+   });
+   if(observed.includes("HarborOpsDatabaseUnavailable")){
+    text=observed;break;
    }
    await page.waitForTimeout(3000);
   }
   assert.ok(text.includes("HarborOpsDatabaseUnavailable"),
-    "Live local alert name must be rendered in the real browser dashboard");
+    "Live database alert label was not rendered inside the active-alert table");
   assert.ok(!/Bearer\s+\S+|@example\.test|password\s*[:=]/i.test(text),
     "Untrusted private material reached browser diagnostic display");
   result={source_sha:source,project,browser_engine:"chromium",
     dashboard_alert:"HarborOpsDatabaseUnavailable",
+    dashboard_panel_id:panel.id,dashboard_panel_type:panel.type,
+    dashboard_target_format:panel.targets[0].format,
+    dashboard_query:panel.targets[0].expr,alert_panel_text_scoped:true,
     visible_dom_text:text,rendered:true};
   fs.writeFileSync(path.join(root,"m17-page-fault-dashboard.json"),
     JSON.stringify(result,null,2)+"\n",{flag:"wx"});

@@ -61,6 +61,12 @@ test("every approved M17 policy has a concrete source-side verification control"
   assert.match(compose,/retention\.size=120MB/);
   assert.ok(dashboards.panels.some(p=>p.targets.some(t=>t.expr.includes("harborops_db_readiness_ratio"))));
   assert.equal(dashboards.panels.length,15);
+  const activeAlerts=dashboards.panels.find(p=>p.title==="Active local alerts");
+  assert.equal(activeAlerts?.type,"table");
+  assert.equal(activeAlerts?.targets?.[0]?.format,"table");
+  assert.equal(activeAlerts?.targets?.[0]?.instant,true);
+  assert.equal(activeAlerts?.targets?.[0]?.expr,
+    'ALERTS{alertstate="firing"}');
   const defaultStack=read("compose.yaml");
   assert.doesNotMatch(defaultStack,/otelcol:|M17__Enabled:|grafana:/);
   assert.doesNotMatch(compose,/0\.0\.0\.0:3301|0\.0\.0\.0:4317/);

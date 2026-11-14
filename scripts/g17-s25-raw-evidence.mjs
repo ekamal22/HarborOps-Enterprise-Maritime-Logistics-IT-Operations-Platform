@@ -50,6 +50,12 @@ export function verifyS25RawSnapshots(root,source,project) {
     x.status===503 && x.body_correlation===x.correlation_id));
   assert.equal(display.rendered,true);
   assert.equal(display.dashboard_alert,"HarborOpsDatabaseUnavailable");
+  assert.equal(display.dashboard_panel_id,8);
+  assert.equal(display.dashboard_panel_type,"table");
+  assert.equal(display.dashboard_target_format,"table");
+  assert.equal(display.dashboard_query,'ALERTS{alertstate="firing"}');
+  assert.equal(display.alert_panel_text_scoped,true,
+    "Actual browser text must come from the active-alert panel");
   assert.equal(display.visible_dom_text,diagnostic.dashboard_dom_text);
   assert.equal(verifyBoundedDiagnosticJourney(diagnostic),true);
   const privacy=load(root,"m17-export-privacy-results.json");

@@ -28,7 +28,9 @@ function fixture(dir) {
       correlation_id:"d".repeat(32),body_correlation:"d".repeat(32),status:503}))]});
  put(dir,"m17-page-fault-injection.json",pageFault);
  put(dir,"m17-page-fault-dashboard.json",wrap({rendered:true,
-  dashboard_alert:"HarborOpsDatabaseUnavailable",
+  dashboard_alert:"HarborOpsDatabaseUnavailable",dashboard_panel_id:8,
+  dashboard_panel_type:"table",dashboard_target_format:"table",
+  dashboard_query:'ALERTS{alertstate="firing"}',alert_panel_text_scoped:true,
   visible_dom_text:"Active local alerts HarborOpsDatabaseUnavailable"}));
  put(dir,"m17-diagnostic-journey-results.json",wrap({result:"PASS",
   page_originated:true,browser_engine:"chromium",response_status:503,
@@ -110,6 +112,12 @@ test("changed trace, missing series and false browser state are rejected",()=>{
   const diagnostic=JSON.parse(fs.readFileSync(path.join(dir,diagnosticPath)));
   diagnostic.server_correlation="f".repeat(32);
   put(dir,diagnosticPath,diagnostic);
+  assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
+  fixture(dir);
+  const displayPath="m17-page-fault-dashboard.json";
+  const display=JSON.parse(fs.readFileSync(path.join(dir,displayPath)));
+  display.dashboard_target_format="time_series";
+  put(dir,displayPath,display);
   assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
   fixture(dir);
   const bad="m17-ui-no-traffic-chromium.json";

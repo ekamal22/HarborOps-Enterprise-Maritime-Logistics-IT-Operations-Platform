@@ -91,6 +91,9 @@ test("alert dashboard links stay local and never embed private diagnostic parame
   const alert=panels.find(panel=>panel.title==="Active local alerts");
   expect(alert).toBeTruthy();
   expect(alert.targets?.[0]?.expr).toBe('ALERTS{alertstate="firing"}');
+  expect(alert.type).toBe("table");
+  expect(alert.targets?.[0]?.format).toBe("table");
+  expect(alert.targets?.[0]?.instant).toBe(true);
   let checked=0;
   for (const panel of panels) {
     const links=[

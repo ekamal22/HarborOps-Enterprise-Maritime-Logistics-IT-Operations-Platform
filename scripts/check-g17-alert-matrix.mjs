@@ -38,6 +38,13 @@ try{
   const fifth=dbNames.get("real-http-5xx-rate-fires-reference-alert");
   assert.equal(fifth.data?.real_503_responses,120);
   assert.equal(fifth.data?.alert,"HarborOpsElevatedApiFailureRate");
+  const sampled=fifth.data?.sampled_failure_evidence;
+  assert.ok(sampled&&sampled.requested_503_responses===120 &&
+    sampled.observed_counter>sampled.baseline_counter &&
+    sampled.failed_increase_5m>0 &&
+    sampled.eligible_requests_5m>=100 &&
+    sampled.failure_fraction_5m>0.01,
+    "The live 5xx alert has no positive Prometheus increase, traffic and fraction evidence");
   const critical=dbNames.get("database-alert-identifies-only-safe-component");
   assert.equal(critical.data?.alert?.name,"HarborOpsDatabaseUnavailable");
   assert.equal(latencyNames.get("real-histogram-triggers-p95-alert")?.status,"PASS");

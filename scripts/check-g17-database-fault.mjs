@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import {execFileSync} from "node:child_process";
+import {validateLive5xxEvidence} from "./g17-live-5xx-evidence.mjs";
 
 const project=process.env.HARBOROPS_G17_PROJECT;
 const source=process.env.HARBOROPS_SOURCE_SHA;
@@ -94,9 +95,20 @@ try {
     return {http_status:503,code:body.code,correlation_format:"server-issued-hex32"};
   });
   await stage("real-http-5xx-rate-fires-reference-alert",async()=>{
+    // The first ever 5xx counter sample must not arrive only after an
+    // entire burst. Prometheus rate() requires at least two observations
+    // with an actual increase between them. Establish the real exported
+    // baseline before producing the sustained controlled fault.
+    const metric='harborops_request_failures_total{operation="business",status_class="5xx"}';
+    const baseline=await poll("exported API failure-counter baseline",async()=>{
+      const samples=await prom(metric);
+      if(samples.length!==1)return null;
+      const value=Number(samples[0].value[1]);
+      return Number.isFinite(value)&&value>=0?value:null;
+    },90000);
     let failures=0;
-    for(let offset=0;offset<120;offset+=15) {
-      const responses=await Promise.all(Array.from({length:15},async()=>{
+    for(let offset=0;offset<120;offset+=10) {
+      const responses=await Promise.all(Array.from({length:10},async()=>{
         const r=await fetch(base+"/api/v1/system/baseline",
           {signal:AbortSignal.timeout(19000)});
         assert.equal(r.status,503,"Expected real unavailable database response");
@@ -105,13 +117,36 @@ try {
         return true;
       }));
       failures+=responses.length;
+      // Twelve separate batches span multiple 15-second OTLP exports,
+      // Prometheus scrapes and rule evaluations, unlike one fast burst.
+      if(offset+10<120)await wait(5000);
     }
     assert.equal(failures,120);
+    const measured=await poll("actual sampled 5xx increase and alert threshold",
+      async()=>{
+        const [counter,rate,eligible,fraction]=await Promise.all([
+          prom(metric),
+          prom('sum(increase(harborops_request_failures_total{operation="business",status_class="5xx"}[5m]))'),
+          prom('harborops:m17:eligible_requests:5m'),
+          prom('harborops:m17:api_5xx_fraction:5m')
+        ]);
+        if([counter,rate,eligible,fraction].some(values=>values.length!==1))return null;
+        const observed={
+          baseline_counter:baseline,observed_counter:Number(counter[0].value[1]),
+          failed_increase_5m:Number(rate[0].value[1]),
+          eligible_requests_5m:Number(eligible[0].value[1]),
+          failure_fraction_5m:Number(fraction[0].value[1]),
+          requested_503_responses:failures
+        };
+        try{return validateLive5xxEvidence(observed)?observed:null;}
+        catch{return null;}
+      },110000);
     await poll("actual API 5xx fraction alert",async()=>{
       const signal=await prom('ALERTS{alertname="HarborOpsElevatedApiFailureRate",alertstate="firing"}');
       return signal.length===1;
     },110000);
-    return {real_503_responses:failures,alert:"HarborOpsElevatedApiFailureRate"};
+    return {real_503_responses:failures,
+      alert:"HarborOpsElevatedApiFailureRate",sampled_failure_evidence:measured};
   });
   await stage("database-alert-identifies-only-safe-component",async()=>{
     await poll("fresh database unavailable sample",async()=>{

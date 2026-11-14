@@ -143,7 +143,7 @@ public static class M17Telemetry
 
     public static void Heartbeat()
     {
-        SeedDropSeries();
+        SeedCounterSeries();
         Heartbeats.Add(1);
     }
 
@@ -151,8 +151,14 @@ public static class M17Telemetry
     // already holding its loss count would never raise the drop alert. Recording a
     // zero on every heartbeat creates the series after the exporter is subscribed
     // (a zero added during static initialization is lost before the listener exists).
-    private static void SeedDropSeries()
+    private static void SeedCounterSeries()
     {
+        // A first burst of 5xx responses may complete between export scrapes.
+        // Seed the bounded business/5xx series while the application is healthy
+        // so the first incident has a zero baseline for Prometheus rate().
+        FailedRequests.Add(0,
+            new KeyValuePair<string, object?>("operation", "business"),
+            new KeyValuePair<string, object?>("status_class", "5xx"));
         SamplingDrops.Add(0,
             new KeyValuePair<string, object?>("signal", "trace"),
             new KeyValuePair<string, object?>("reason", "exporter_failure"));

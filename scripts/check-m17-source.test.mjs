@@ -63,6 +63,18 @@ test("G17 independent-review remediation is enforced by source and the evidence 
   assert.match(browser,/browser API denial retains server-issued correlation/);
 });
 
+test("first-incident 5xx counter and sampled failure alert are explicitly witnessed",()=>{
+  const source=read("src/HarborOps.Api/Observability/M17Telemetry.cs");
+  const fault=read("scripts/check-g17-database-fault.mjs");
+  const matrix=read("scripts/check-g17-alert-matrix.mjs");
+  assert.match(source,/FailedRequests\\.Add\\(0,/);
+  assert.match(fault,/validateLive5xxEvidence\\(observed\\)/);
+  assert.match(fault,/await wait\\(5000\\)/);
+  assert.match(matrix,/sampled\\.failed_increase_5m>0/);
+  assert.match(read("monitoring/m17/alerts.yaml"),/harborops:m17:eligible_requests:5m >= 100/);
+  assert.match(read("monitoring/m17/alerts.yaml"),/api_5xx_fraction:5m > 0\\.01/);
+});
+
 test("the default stack does not start or expose M17 components", () => {
   const base = read("compose.yaml");
   assert.doesNotMatch(base, /M17__Enabled|otelcol:|3301:3000/);

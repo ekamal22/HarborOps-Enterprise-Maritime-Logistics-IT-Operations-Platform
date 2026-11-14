@@ -263,6 +263,34 @@ public sealed class M17TelemetryContractTests
     }
 
     [Fact]
+    public void HeartbeatSeedsZeroBusinessFailureSeriesBeforeFirstReal5xx()
+    {
+        var points = new List<long>();
+        using var listener = new MeterListener();
+        listener.InstrumentPublished = (instrument, observer) =>
+        {
+            if (instrument.Meter.Name == M17Telemetry.MeterName)
+                observer.EnableMeasurementEvents(instrument);
+        };
+        listener.SetMeasurementEventCallback<long>((instrument, value, tags, _) =>
+        {
+            if (instrument.Name != "harborops.request.failures") return;
+            var labels = tags.ToArray();
+            if (labels.Any(tag => tag.Key == "operation" &&
+                Equals(tag.Value, "business")) &&
+                labels.Any(tag => tag.Key == "status_class" &&
+                Equals(tag.Value, "5xx")))
+                points.Add(value);
+            Assert.DoesNotContain(labels, tag =>
+                tag.Key.Contains("tenant", StringComparison.OrdinalIgnoreCase) ||
+                tag.Key.Contains("session", StringComparison.OrdinalIgnoreCase));
+        });
+        listener.Start();
+        M17Telemetry.Heartbeat();
+        Assert.Contains(0L, points);
+    }
+
+    [Fact]
     public void DefaultComposeDoesNotStartACollectorOrExposeLocalDiagnostics()
     {
         var compose = File.ReadAllText(M10RuntimeIdentityTests.RepositoryFile("compose.yaml"));

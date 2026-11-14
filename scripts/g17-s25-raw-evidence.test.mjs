@@ -65,6 +65,15 @@ function fixture(dir) {
   validated_exported_traces:4,trace_records_retained:4,negative_canary_absent:true}));
  put(dir,"m17-malformed-export-traces.json",wrap({window_start:1700000000,
   window_end:1700000001,records:Array.from({length:4},()=>({document:doc}))}));
+ const history={
+  m8_receipts:1,m8_events:1,m8_work_items:1,m11_exceptions:1,
+  m11_history:1,m15_outbox:1,m16_audit:1
+ };
+ put(dir,"m17-storage-results.json",wrap({result:"PASS",
+  positive_history:{tables:history},database_sha256_before:"a".repeat(64),
+  database_sha256_after:"a".repeat(64),
+  telemetry_degradation:{signal:"OWNED_PROMETHEUS_STORAGE_ENOSPC",
+    error_observed:true}}));
  put(dir,"m17-performance-raw.json",wrap({gate:{pairs_over_p95_budget:0}}));
  put(dir,"m17-p09-independent-recalculation.json",wrap({result:"PASS",
   method:"POOLED_P95_AND_MEAN_PEAK_MEMORY_OVER_THREE_MATCHED_PAIRS",
@@ -133,6 +142,13 @@ test("changed trace, missing series and false browser state are rejected",()=>{
   display.dashboard_target_format="time_series";
   put(dir,displayPath,display);
   assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
+  fixture(dir);
+  const storagePath="m17-storage-results.json";
+  const storage=JSON.parse(fs.readFileSync(path.join(dir,storagePath),"utf8"));
+  storage.positive_history.tables.m8_receipts=0;
+  put(dir,storagePath,storage);
+  assert.throws(()=>verifyS25RawSnapshots(dir,source,project),
+    /positive retained business witness/);
   fixture(dir);
   const bad="m17-ui-no-traffic-chromium.json";
   const traffic=JSON.parse(fs.readFileSync(path.join(dir,bad)));

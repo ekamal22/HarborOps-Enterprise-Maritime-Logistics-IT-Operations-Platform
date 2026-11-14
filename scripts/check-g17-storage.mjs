@@ -42,6 +42,10 @@ function seedProtectedHistory() {
 DECLARE u uuid:=gen_random_uuid(); o uuid:=gen_random_uuid();
  p1 uuid:=gen_random_uuid();p2 uuid:=gen_random_uuid();
  sh uuid:=gen_random_uuid();e uuid:=gen_random_uuid();
+ src uuid:=gen_random_uuid();cred uuid:=gen_random_uuid();
+ rc uuid:=gen_random_uuid();ev uuid:=gen_random_uuid();
+ at_utc timestamptz:=clock_timestamp();
+ payload text:='{"eventType":"TRANSPORT","eventCode":"ARRI","reference":"G17-STORAGE"}';
 BEGIN
  INSERT INTO users(id,email,normalized_email,display_name,
   status,security_version,created_at_utc)
@@ -61,6 +65,31 @@ BEGIN
   created_at_utc,updated_at_utc,changed_by_user_id)
  VALUES(sh,o,'${shipmentRef}',p1,p2,'Draft','Active','Synthetic',1,
   clock_timestamp(),clock_timestamp(),u);
+ -- Positive M8 history is a complete source-scoped receipt/event/work unit.
+ -- Its availability is in the future so the opt-in worker cannot mutate it
+ -- during the byte-for-byte storage-preservation window.
+ INSERT INTO integration_sources(id,organization_id,source_code,display_name,
+  status,capability,version,created_at_utc,updated_at_utc)
+ VALUES(src,o,'g17-storage-${nonce}','G17 Synthetic Tracking Source',
+  'Active','tracking_event_validate',1,at_utc,at_utc);
+ INSERT INTO integration_credentials(id,organization_id,source_id,secret_digest,
+  key_version,not_before_utc,expires_at_utc,created_at_utc)
+ VALUES(cred,o,src,decode(repeat('a',64),'hex'),'v1',at_utc,
+  at_utc+interval '1 day',at_utc);
+ INSERT INTO tracking_inbox_receipts(id,organization_id,source_id,credential_id,
+  profile,source_event_id,canonical_digest,canonical_payload_utf8,
+  received_at_utc,correlation_id)
+ VALUES(rc,o,src,cred,'tnt-2.2-harborops-v1','g17-storage-${nonce}',
+  digest(convert_to(payload,'UTF8'),'sha256'),convert_to(payload,'UTF8'),
+  at_utc,md5(payload));
+ INSERT INTO tracking_accepted_events(id,receipt_id,organization_id,source_id,
+  event_family,event_code,classifier,external_schema_version,occurred_at_utc,
+  transport_reference,raw_payload_utf8,canonical_payload)
+ VALUES(ev,rc,o,src,'Transport','ARRI','ACT','2.2.0',at_utc,
+  'G17-STORAGE',convert_to(payload,'UTF8'),payload::jsonb);
+ INSERT INTO tracking_inbox_work_items(receipt_id,organization_id,source_id,
+  state,attempt_count,created_at_utc,updated_at_utc,available_at_utc)
+ VALUES(rc,o,src,'Pending',0,at_utc,at_utc,at_utc+interval '1 day');
  INSERT INTO shipment_exceptions(id,organization_id,shipment_id,rule_code,
   occurrence,condition_state,lifecycle_state,severity,confidence,reason_code,
   source_fingerprint,shipment_version,tracking_input_revision,correction_generation,evidence)
@@ -75,6 +104,12 @@ END $g17$;`);
   'organizations',(SELECT count(*) FROM organizations WHERE slug='g17-storage-${nonce}'),
   'ports',(SELECT count(*) FROM ports WHERE organization_id=(SELECT id FROM organizations WHERE slug='g17-storage-${nonce}')),
   'shipments',(SELECT count(*) FROM shipments WHERE reference_code='${shipmentRef}'),
+  'm8_receipts',(SELECT count(*) FROM tracking_inbox_receipts r
+    JOIN integration_sources s ON s.id=r.source_id WHERE s.source_code='g17-storage-${nonce}'),
+  'm8_events',(SELECT count(*) FROM tracking_accepted_events e
+    JOIN integration_sources s ON s.id=e.source_id WHERE s.source_code='g17-storage-${nonce}'),
+  'm8_work_items',(SELECT count(*) FROM tracking_inbox_work_items w
+    JOIN integration_sources s ON s.id=w.source_id WHERE s.source_code='g17-storage-${nonce}'),
   'm11_exceptions',(SELECT count(*) FROM shipment_exceptions e JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='${shipmentRef}'),
   'm11_history',(SELECT count(*) FROM shipment_exception_history h JOIN shipment_exceptions e ON h.exception_id=e.id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='${shipmentRef}'),
   'm15_outbox',(SELECT count(*) FROM m15_notification_outbox x JOIN shipment_exception_history h ON h.id=x.source_history_id JOIN shipment_exceptions e ON e.id=h.exception_id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='${shipmentRef}'),
@@ -86,6 +121,8 @@ END $g17$;`);
  assert.equal(counts.organizations,1);
  assert.equal(counts.ports,2);
  assert.equal(counts.shipments,1);
+ for(const table of ["m8_receipts","m8_events","m8_work_items"])
+  assert.equal(counts[table],1,"Missing complete immutable M8 fixture: "+table);
  return {kind:"synthetic-nonempty-protected-history",tables:counts,
   fixture_sha256:crypto.createHash("sha256").update(nonce).digest("hex")};
 }

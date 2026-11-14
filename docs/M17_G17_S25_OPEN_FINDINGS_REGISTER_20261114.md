@@ -61,3 +61,7 @@ The browser-rendered alert deficiency is confirmed by the failure artifact from 
 ## F03 raw-verifier follow-up
 
 A static audit found double-escaped Bearer/Password match operators in `scripts/g17-s25-raw-evidence.mjs`. The original negative test modified worker-log bytes without updating its digest, so a PASS in the negative-control suite did not establish that the privacy matcher itself rejected a credential. The source correction repairs the matcher and adds hash-consistent injected credential cases. The finding is covered by existing S25-F03 and must be re-executed, not closed solely from source inspection.
+
+## F08 positive M8 source fixture correction
+
+The storage-pressure fixture's asserted nonempty history set omitted M8 event intake. A valid synthetic source and credential now create an atomic M8 receipt, accepted transport event and pending work item. The work item is deliberately unavailable until after the disposable test window to prevent worker interference with immutable-history snapshots. Positive M8, M11, M15 and M16 record counts and complete public-schema before/after hashes are required. The independent raw verifier rejects a zero M8 count. F08 remains pending exact-SHA runtime and separate evidence review.

@@ -121,6 +121,22 @@ export function verifyS25RawSnapshots(root,source,project) {
     assert.equal(verifyMalformedBaselineTrace(item.document,mt.window_start,
       mt.window_end,"unrelated-negative-control"),true);
 
+  const storage=load(root,"m17-storage-results.json");
+  matchesSource(storage,source,project);
+  assert.equal(storage.result,"PASS");
+  assert.match(storage.database_sha256_before??"",/^[0-9a-f]{64}$/);
+  assert.equal(storage.database_sha256_after,storage.database_sha256_before,
+    "Full owned business history changed under telemetry-storage pressure");
+  for(const name of ["m8_receipts","m8_events","m8_work_items",
+    "m11_exceptions","m11_history","m15_outbox","m16_audit"]) {
+    assert.ok(Number.isInteger(storage.positive_history?.tables?.[name]) &&
+      storage.positive_history.tables[name]>0,
+      "No positive retained business witness: "+name);
+  }
+  assert.equal(storage.telemetry_degradation?.signal,
+    "OWNED_PROMETHEUS_STORAGE_ENOSPC");
+  assert.equal(storage.telemetry_degradation?.error_observed,true);
+
   const performance=load(root,"m17-performance-raw.json");
   const independently=load(root,"m17-p09-independent-recalculation.json");
   matchesSource(performance,source,project);

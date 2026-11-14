@@ -63,3 +63,7 @@ A complete post-correction disposable run and independent inspection must determ
 ## Worker-log negative control audit
 
 The S25 raw-evidence verifier contained a double-escaped regular expression for long Bearer and Password values. The old negative control altered raw worker-log bytes without adjusting the declared digest, so an integrity error could mask a broken privacy matcher. The correction uses actual word-boundary and whitespace regex operators and a controlled negative case that updates the hash and byte count to match the injected secret. Acceptance requires the raw verifier to reject the leak itself, even when the manifest and report hashes match. This is source implemented, not yet an executed hosted result. F03 remains open until the new campaign and separate review.
+
+## F08 data-history audit correction
+
+The disposable pressure fixture now seeds one valid source-scoped M8 receipt, accepted event and future-available work item, in addition to M11 exception history, M15 outbox and M16 audit records. This removes the gap where an empty M8 data set could be reported as protected. The raw-evidence verifier requires all seven protected table counts to be positive, rejects empty M8 controls, and compares the complete PostgreSQL public-schema hash across the storage fault. The new proof remains unverified until the complete campaign runs.

@@ -35,6 +35,8 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const auth="Basic "+Buffer.from("local_operator:"+grafana).toString("base64");
 let failure=null,pairCount=0,accepted=0,replay=false,reconciled=0;
 const protectedValues=[];
+const retainedTraceDocuments=[];
+let retainedMetricSeries=[];
 let privateLabelsChecked=0;
 async function tempo(endpoint,params={}) {
  const u=new URL("http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-traces"+endpoint);
@@ -69,6 +71,7 @@ async function digests(service) {
    for(const secret of protectedValues)
      assert.ok(!raw.includes(secret.toLowerCase()),
        "Tempo exported private tenant/source/account detail");
+   retainedTraceDocuments.push({service,trace_id:id,document:doc});
    for(const resource of doc.trace?.resourceSpans||doc.resourceSpans||doc.batches||[]) {
      for(const scope of resource.scopeSpans||resource.instrumentationLibrarySpans||[]) {
        for(const span of scope.spans||[]) {
@@ -164,6 +167,7 @@ try {
  const metricBody=await exported.json();
  assert.equal(metricBody.status,"success");
  assert.ok(metricBody.data?.length>0,"No exported custom metric series");
+ retainedMetricSeries=metricBody.data;
  for(const row of metricBody.data) {
    const raw=JSON.stringify(row).toLowerCase();
    for(const secret of protectedValues)
@@ -174,6 +178,10 @@ try {
 
  assert.equal(Number(sql("SELECT count(*) FROM tracking_inbox_receipts "+
    "WHERE source_id='"+sourceId+"'")),accepted,"Replay created a duplicate receipt");
+ fs.writeFileSync(path.join(evidence,"m17-worker-journey-traces.json"),
+   JSON.stringify({source_sha:sha,project,traces:retainedTraceDocuments},null,2)+"\n",{flag:"wx"});
+ fs.writeFileSync(path.join(evidence,"m17-worker-journey-series.json"),
+   JSON.stringify({source_sha:sha,project,series:retainedMetricSeries},null,2)+"\n",{flag:"wx"});
 }catch(error){failure=error;}
 const status=!failure&&replay&&accepted===50&&reconciled===50&&
  pairCount>=2&&privateLabelsChecked>0?"PASS":"FAIL";
@@ -182,6 +190,8 @@ fs.writeFileSync(output,JSON.stringify({
  receipts_accepted:accepted,reconciled,duplicate_replay:replay,
  matched_safe_trace_pairs:pairCount,
  exported_metric_series_checked_for_tenant_privacy:privateLabelsChecked,
+ retained_metric_series:retainedMetricSeries.length,
+ retained_trace_documents:retainedTraceDocuments.length,
  failure_type:failure?.name??null,
  failure_message:failure?String(failure.message).slice(0,240):null,accepted_assertions:0
 },null,2)+"\n",{flag:"wx"});

@@ -35,7 +35,10 @@ export const RAW_REPORT_FILES = new Map([
 ]);
 
 const privacy = (report) => ok(report) && report.traces_inspected >= 2 &&
-  report.spans_inspected >= 2 && report.exported_metric_series_inspected > 0 &&
+  report.spans_inspected >= 2 &&
+  report.retained_trace_documents === report.traces_inspected &&
+  report.retained_metric_series === report.exported_metric_series_inspected &&
+  report.retained_log_bytes > 0 && report.exported_metric_series_inspected > 0 &&
   kinds(report).has("tempo-trace") && kinds(report).has("prometheus-series") &&
   kinds(report).has("owned-sanitized-service-logs");
 
@@ -86,6 +89,8 @@ const RAW_PREDICATES = new Map([
     ["Prometheus exported private tenant/source/account",
       r => ok(r) && r.worker_role === "restricted" &&
         r.exported_metric_series_checked_for_tenant_privacy > 0 &&
+        r.retained_metric_series === r.exported_metric_series_checked_for_tenant_privacy &&
+        r.retained_trace_documents > 0 &&
         r.receipts_accepted === 50 && r.reconciled === 50],
     ["matched_safe_trace_pairs",
       r => ok(r) && r.matched_safe_trace_pairs >= 2 && r.duplicate_replay === true &&
@@ -103,7 +108,7 @@ const RAW_PREDICATES = new Map([
         r.dashboard_listener.loopback_http_status === 200 &&
         r.dashboard_listener.published_by === "dashboard_gateway" &&
         r.dashboard_listener.grafana_publishes_nothing === true &&
-        r.dashboard_listener.non_loopback_addresses_refused >= 0]
+        r.dashboard_listener.non_loopback_addresses_refused >= 1]
   ])],
   ["scripts/check-g17-alert-matrix.mjs", new Map([
     ["real-http-5xx-rate-fires-reference-alert",

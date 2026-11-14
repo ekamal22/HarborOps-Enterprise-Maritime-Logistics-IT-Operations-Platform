@@ -136,12 +136,15 @@ if ($StartDisposableStack) {
         'm17-browser-results.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-restart-results.json',
-        'm17-export-privacy-results.json','m17-storage-results.json',
+        'm17-export-privacy-results.json','m17-export-privacy-traces.json',
+        'm17-export-privacy-logs.txt','m17-export-privacy-series.json',
+        'm17-storage-results.json',
         'm17-retention-age-results.json','m17-tempo-retention-results.json',
         'm17-retention-matrix-results.json',
         'm17-database-fault-results.json','m17-cardinality-memory-results.json',
         'm17-live-latency-alert-results.json')
-    if ($VerifyDisposableWorker) { $required += @('m17-worker-results.json','m17-worker-journey-results.json') }
+    if ($VerifyDisposableWorker) { $required += @('m17-worker-results.json','m17-worker-journey-results.json',
+            'm17-worker-journey-traces.json','m17-worker-journey-series.json') }
     if ($FaultProbe) { $required += @('m17-collector-fault-results.json',
         'm17-alert-matrix-results.json','m17-pressure-matrix-results.json') }
     if ($RequireFullG17) { $required += 'g17-technical-assertion-ledger.json' }

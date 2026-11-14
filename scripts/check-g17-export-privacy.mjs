@@ -31,6 +31,9 @@ const fetchJson=async url=>{
 const promiseWait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const results=[];
 const generatedTraceIds=new Set();
+const retainedTraces=[];
+let retainedLogs="";
+let retainedSeries=[];
 function scan(raw,kind) {
   const value=typeof raw==="string"?raw:JSON.stringify(raw);
   for(const secret of rejects)
@@ -140,6 +143,7 @@ try {
     }
     observedTraces++;
     exportedSpans+=spans.length;
+    retainedTraces.push({trace_id:trace.traceID,document:doc});
   }
   // Read actual owned service log output. Negative privacy controls are not
   // satisfied by checking trace tags alone.
@@ -154,6 +158,7 @@ try {
     "--tail","15000","api","otelcol","tempo"],{
     encoding:"utf8",timeout:30000,maxBuffer:8*1024*1024});
   scan(logs,"owned-sanitized-service-logs");
+  retainedLogs=logs;
   const q=new URL(base+"harborops-local-metrics/api/v1/series");
   q.searchParams.set("match[]",'{__name__=~"harborops_.*"}');
   q.searchParams.set("start",String(Math.floor(Date.now()/1000)-600));
@@ -163,6 +168,7 @@ try {
   assert.ok(Array.isArray(series.data)&&series.data.length>0,
     "No exported custom metric series available for privacy validation");
   seriesCount=series.data.length;
+  retainedSeries=series.data;
   for(const labelset of series.data) {
     scan(labelset,"prometheus-series");
     for(const [key,value] of Object.entries(labelset)) {
@@ -171,11 +177,24 @@ try {
       assert.ok(String(value).length<=120,"Unexpected unbounded metric label value");
     }
   }
+  assert.equal(retainedTraces.length,observedTraces);
+  assert.equal(retainedSeries.length,seriesCount);
+  // Only inspected synthetic, canary-clean records are retained. No post-scan
+  // redaction is allowed because it would hide evidence of an export leak.
+  fs.writeFileSync(path.join(root,"m17-export-privacy-traces.json"),
+    JSON.stringify({source_sha:source,project,records:retainedTraces},null,2)+"\n",{flag:"wx"});
+  fs.writeFileSync(path.join(root,"m17-export-privacy-logs.txt"),
+    retainedLogs,{flag:"wx"});
+  fs.writeFileSync(path.join(root,"m17-export-privacy-series.json"),
+    JSON.stringify({source_sha:source,project,series:retainedSeries},null,2)+"\n",{flag:"wx"});
 } catch(e) {
   failure=e;
 } finally {
   const record={source_sha:source,project,result:failure?"FAIL":"PASS",
     traces_inspected:observedTraces,spans_inspected:exportedSpans,
+    retained_trace_documents:retainedTraces.length,
+    retained_metric_series:retainedSeries.length,
+    retained_log_bytes:Buffer.byteLength(retainedLogs),
     exported_metric_series_inspected:seriesCount,
     canary_sha256:crypto.createHash("sha256").update(tag).digest("hex"),
     snapshots:results,injected_controls:injectedControls,assertion_review:"PENDING",

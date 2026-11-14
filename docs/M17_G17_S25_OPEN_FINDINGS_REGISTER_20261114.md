@@ -57,3 +57,7 @@ F01-F05 and F07-F08 have changed source or supplemental verification as mapped i
 ## Post-run-26 checkpoint, November 14, 2026
 
 The browser-rendered alert deficiency is confirmed by the failure artifact from run #43589790235. Four database-fault subtasks passed: healthy baseline, real 503 error classification, sustained live 5xx reference alert, and actual firing database alert; the page-originated browser-to-telemetry journey failed at panel rendering. Recovery and alert clearance still passed. F02 remains IMPLEMENTED_UNVERIFIED after the scoped panel-query correction and stronger negative controls. No other S25 item is claimed closed by the passing early test suites, and the three independent G17-S25 assertions remain pending.
+
+## F03 raw-verifier follow-up
+
+A static audit found double-escaped Bearer/Password match operators in `scripts/g17-s25-raw-evidence.mjs`. The original negative test modified worker-log bytes without updating its digest, so a PASS in the negative-control suite did not establish that the privacy matcher itself rejected a credential. The source correction repairs the matcher and adds hash-consistent injected credential cases. The finding is covered by existing S25-F03 and must be re-executed, not closed solely from source inspection.

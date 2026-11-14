@@ -104,9 +104,23 @@ test("changed trace, missing series and false browser state are rejected",()=>{
   ui.verified_statuses.down="PostgreSQL readiness Ready";
   put(dir,f,ui);
   assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
-  fixture(dir);
-  put(dir,"m17-worker-journey-logs.txt","worker-1 | Tracking work polling started\nBearer sensitive-worker-private-value");
-  assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
+  // A matching log digest must not excuse a credential in retained raw bytes.
+  // This isolates the privacy detector from the independent hash-integrity gate.
+  for(const injected of [
+    "Bearer abcdefghijklmnopqrstuvwxyz0123456789",
+    "Password: syntheticLongCredentialValue123456"
+  ]) {
+    fixture(dir);
+    const raw="worker-1 | Tracking work polling started\n"+injected;
+    const witness=JSON.parse(fs.readFileSync(
+      path.join(dir,"m17-worker-journey-results.json"),"utf8"));
+    witness.worker_log_bytes=Buffer.byteLength(raw);
+    witness.worker_log_sha256=digest(raw);
+    put(dir,"m17-worker-journey-results.json",witness);
+    put(dir,"m17-worker-journey-logs.txt",raw);
+    assert.throws(()=>verifyS25RawSnapshots(dir,source,project),
+      /regular expression|expected.*not.*match/i);
+  }
   fixture(dir);
   const diagnosticPath="m17-diagnostic-journey-results.json";
   const diagnostic=JSON.parse(fs.readFileSync(path.join(dir,diagnosticPath)));

@@ -106,7 +106,7 @@ export function verifyS25RawSnapshots(root,source,project) {
   assert.equal(sha(workerLogs),worker.worker_log_sha256);
   assert.ok(worker.worker_log_checked_values>=4);
   assert.equal(worker.worker_log_positive_signal,true);
-  assert.doesNotMatch(workerLogs,/\\bBearer\\s+[A-Za-z0-9._~-]{16,}|\\bPassword\\s*[:=]\\s*\\S{8,}/i);
+  assert.doesNotMatch(workerLogs,/\bBearer\s+[A-Za-z0-9._~-]{16,}|\bPassword\s*[:=]\s*\S{8,}/i);
 
   const malformed=load(root,"m17-malformed-export-results.json");
   const mt=load(root,"m17-malformed-export-traces.json");

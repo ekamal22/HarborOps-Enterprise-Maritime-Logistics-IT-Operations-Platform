@@ -25,7 +25,7 @@ The former assertion in `DOCUMENT_STATUS_GUIDE.md` that M17 runtime implementati
 
 The authoritative execution graph lives in `docs/execution-graph.json` with `docs/EXECUTION_GRAPH.md` generated from it. No dependency or gate acceptance changed, so the graph was intentionally not rewritten. This prevents divergence between source and generated graph. Protected `main`, accepted G13/G15/G16 and Turkish outcomes, the M9 hold, M15 data policies and earlier G17 failure evidence remain unchanged.
 
-This reconciliation is a documentation-only descendant of the executable SHA used in [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907). A later runtime result requires a new dated documentation checkpoint and cannot retroactively make a failed run pass.
+This reconciliation is a documentation-only descendant of executable SHA `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`, tested by [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851). The earlier [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) is a separate failed source and must never be called green. A later runtime result requires a new dated documentation checkpoint and cannot retroactively make a failed run pass.
 
 
 ## Contract regression follow-up and new source lock, 2026-11-14

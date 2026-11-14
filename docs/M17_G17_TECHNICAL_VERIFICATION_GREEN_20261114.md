@@ -1,5 +1,7 @@
 # G17 Source-Locked Technical Verification Green, November 14, 2026
 
+**Latest G17-S25 evidence review (2026-11-14):** The source-locked GitHub Actions technical campaign #43541279851 remains GREEN at `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`. The subsequent S25 evidence review recommends **NOT PASS**: low-sample API panels lack rendered three-engine assertions (S18), the complete browser-to-telemetry fault is not tied to one page-originated correlation (S20), and participating worker log privacy has no retained log witness (S05/S13). Two optional Playwright metadata entries were not uploaded, though their 45-byte success-record hashes are reproducible; one +22.69% individual p95 pair is disclosed under the approved pooled rule. Distinct reviewer sign-off remains outstanding. **G17 NOT ACCEPTED; acceptance pending.** [S25 review record](M17_G17_S25_INDEPENDENT_EVIDENCE_REVIEW_20261114.md).
+
 **Executable source:** `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`  
 **Actions run:** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851)  
 **Raw artifact:** `g17-raw-evidence-43541279851-1` (GitHub artifact ID `14093266896`)  

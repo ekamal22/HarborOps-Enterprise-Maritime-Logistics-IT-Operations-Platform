@@ -191,3 +191,32 @@ for (const [label, args, change, pattern] of [
     assert.match(run.stderr, pattern);
   });
 }
+
+// Second-pass material survivors (S25-M series).
+const COUNT_ERROR = "Full campaign requires 72 technical witnesses and 3 independent clauses";
+test("a witness path outside the supported roots is refused even when its file contains the case", t => {
+  // docs/ is not a supported witness root; the named case does occur in that file, so only the root check can refuse it.
+  const outcome = attempt(t, undefined, c => {
+    const w = c.scenarios[0].assertions[0].witness;
+    w.path = "docs/M17_G17_TEST_COVERAGE_20261113.json"; w.case = "G17-S01-A01";
+  });
+  assert.equal(outcome.threw, undefined, outcome.threw);
+  assert.equal(outcome.ledger.pass, false);
+  assert.equal(forId(outcome.ledger, "G17-S01-A01").status, "NOT_EXECUTED");
+  assert.equal(outcome.ledger.technical_passes, 71);
+});
+test("the ledger states its own count error when only the technical count is wrong", t => {
+  const outcome = attempt(t, undefined, c => {c.scenarios[0].assertions[0].witness.case = "a case that exists nowhere";});
+  assert.equal(outcome.ledger.technical_passes, 71);
+  assert.equal(outcome.ledger.independent_pending, 3);
+  assert.ok(outcome.ledger.errors.includes(COUNT_ERROR), outcome.ledger.errors.join("; "));
+});
+test("the ledger states its own count error when only the independent count is wrong", t => {
+  const outcome = attempt(t, undefined, c => {
+    c.scenarios[24].assertions[0].witness = {path: "scripts/g17-source-boundary.test.mjs", case: "x"};
+  });
+  assert.equal(outcome.ledger.technical_passes, 72);
+  assert.equal(outcome.ledger.independent_pending, 2);
+  assert.ok(outcome.ledger.errors.includes(COUNT_ERROR), outcome.ledger.errors.join("; "));
+  assert.equal(forId(outcome.ledger, "G17-S25-A01").status, "INVALID_INDEPENDENT_REVIEW_CLAIM");
+});

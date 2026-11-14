@@ -324,3 +324,9 @@ test("storage and regression predicates are exact at their edges and need each f
   single.system.cpus = 1;
   assert.equal(rawWitnessPasses(perf, "THREE_MATCHED_PAIRS", single), true);
 });
+test("the host memory size is only required to be a positive number", () => {
+  const perf = "scripts/check-g17-performance.mjs";
+  const tiny = clone(FIXTURES[perf]);
+  tiny.system.memory_bytes = 1;
+  assert.equal(rawWitnessPasses(perf, "THREE_MATCHED_PAIRS", tiny), true);
+});

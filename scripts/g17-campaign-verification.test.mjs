@@ -192,3 +192,33 @@ test("a manifest header with a wrong schema version, gate or source is rejected 
       /Invalid source-locked G17 candidate manifest header/);
   }
 });
+
+// Second-pass material survivors (S25-M series). The guards below are written as one condition per
+// report, so a weakened operator would let a report that is wrong in exactly one field through.
+// Every case here changes exactly one field of an otherwise valid complete campaign.
+const REPORT_FILES = ["m17-cardinality-memory-results.json", "m17-restart-results.json", "m17-retention-age-results.json",
+  "m17-retention-matrix-results.json", "m17-performance-raw.json", "m17-live-latency-alert-results.json",
+  "m17-database-fault-results.json", "m17-export-privacy-results.json"];
+for (const file of REPORT_FILES) {
+  for (const [field, wrong] of [["source_sha", "b".repeat(40)], ["project", "ho-verify-m17-other"], ["result", "FAIL"]]) {
+    test("complete campaign rejects " + file + " with only " + field + " wrong", t => {
+      const {manifest} = withCampaign(t, json(file, v => {v[field] = wrong;}));
+      assert.throws(() => verifyManifest(manifest, source), /./);
+    });
+  }
+}
+const SINGLE_FACT = [
+  ["performance run kind", json("m17-performance-raw.json", v => {v.run_kind = "SINGLE_PAIR";}), /matched P09 overhead pairs/],
+  ["privacy report with no exported metric series", json("m17-export-privacy-results.json", v => {v.exported_metric_series_inspected = 0;}), /./],
+  ["privacy report with a single snapshot", json("m17-export-privacy-results.json", v => {v.snapshots = v.snapshots.slice(0, 1);}), /./],
+  ["ledger claims 74 total assertions", json("g17-technical-assertion-ledger.json", v => {v.total_assertions = 74;}), /raw atomic technical witnesses/],
+  ["ledger lists 71 technical records while claiming 72", json("g17-technical-assertion-ledger.json", v => {v.records[0].status = "PENDING_INDEPENDENT_REVIEW";}), /raw atomic technical witnesses/],
+  ["ledger source differs", json("g17-technical-assertion-ledger.json", v => {v.source_sha = "b".repeat(40);}), /raw atomic technical witnesses/],
+  ["ledger pass flag false", json("g17-technical-assertion-ledger.json", v => {v.pass = false;}), /raw atomic technical witnesses/]
+];
+for (const [label, mutate, pattern] of SINGLE_FACT) {
+  test("complete campaign rejects: " + label, t => {
+    const {manifest} = withCampaign(t, mutate);
+    assert.throws(() => verifyManifest(manifest, source), pattern);
+  });
+}

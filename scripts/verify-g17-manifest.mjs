@@ -1,0 +1,321 @@
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
+import { verifyPlaywrightCases, verifyTrxCases, G17_REQUIRED_METHODS } from "./g17-results-contract.mjs";
+import {verifyS25RawSnapshots} from "./g17-s25-raw-evidence.mjs";
+
+function crawl(root, prefix = "") {
+  const files = [];
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    const name = path.posix.join(prefix, entry.name);
+    if (name === "manifest.json") continue;
+    if (entry.isSymbolicLink()) throw Error("Unexpected symlink " + name);
+    if (entry.isDirectory()) {
+      files.push(...crawl(path.join(root, entry.name), name));
+    } else if (entry.isFile()) {
+      const bytes = fs.readFileSync(path.join(root, entry.name));
+      files.push({
+        path: name, bytes: bytes.length,
+        sha256: crypto.createHash("sha256").update(bytes).digest("hex")
+      });
+    } else throw Error("Unsupported evidence object " + name);
+  }
+  return files.sort((a,b) => a.path.localeCompare(b.path));
+}
+
+export function verifyManifest(manifestPath, expectedSha) {
+  const root = path.dirname(manifestPath);
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  if (manifest.schema_version !== 2 || manifest.gate !== "G17" ||
+      manifest.gate_acceptance !== "NOT_ACCEPTED" ||
+      !/^[a-f0-9]{40}$/.test(manifest.source_sha)) {
+    throw Error("Invalid source-locked G17 candidate manifest header");
+  }
+  if (expectedSha && manifest.source_sha !== expectedSha)
+    throw Error("Wrong source SHA in G17 manifest");
+  if (!Array.isArray(manifest.files)) throw Error("Missing file index");
+  const actual = crawl(root);
+  if (manifest.files.length !== actual.length)
+    throw Error("Manifest coverage mismatch, extra or missing files");
+  for (let i = 0; i < actual.length; i++) {
+    const claimed = manifest.files[i], observed = actual[i];
+    if (claimed.path !== observed.path || claimed.sha256 !== observed.sha256 ||
+        claimed.bytes !== observed.bytes) throw Error("Evidence tampered or unlisted: " + observed.path);
+  }
+  const requiredLedger = ["source-sha.txt","expected-artifacts.json","run-status.json"];
+  for (const name of requiredLedger)
+    if (!actual.some(e => e.path === name))
+      throw Error("Missing required G17 run ledger: " + name);
+  const status = JSON.parse(fs.readFileSync(path.join(root,"run-status.json"),"utf8"));
+  const expected = JSON.parse(fs.readFileSync(path.join(root,"expected-artifacts.json"),"utf8"));
+  if (status.schema_version !== 2 || expected.schema_version !== 1 ||
+      status.gate !== "G17" || expected.gate !== "G17" ||
+      status.source_sha !== manifest.source_sha ||
+      expected.source_sha !== manifest.source_sha ||
+      status.source_verified !== true ||
+      status.requested_source_sha !== manifest.source_sha ||
+      status.gate_acceptance !== "NOT_ACCEPTED" ||
+      status.g17_assertion_review !== "NOT_REVIEWED" ||
+      !["COMPLETE","FAILED"].includes(status.run_state) ||
+      status.run_state !== manifest.run_state ||
+      !Array.isArray(expected.required_artifacts) ||
+      typeof expected.require_full_g17 !== "boolean" ||
+      !Array.isArray(status.stage_results))
+    throw Error("Invalid or contradictory G17 stage ledger");
+  if (JSON.stringify(expected.required_artifacts.slice().sort()) !==
+      JSON.stringify(status.required_artifacts.slice().sort()))
+    throw Error("Expected artifact contracts differ");
+  const fileNames = new Set(actual.map(e => e.path));
+  const missing = expected.required_artifacts.filter(p => !fileNames.has(p));
+  if (JSON.stringify(missing) !== JSON.stringify(manifest.missing_expected_artifacts))
+    throw Error("Manifest expected-artifact discrepancy");
+  const complete = status.run_state === "COMPLETE";
+  if (complete && (missing.length || status.stage_results.length === 0 ||
+      status.stage_results.some(row => row.status !== "PASS" || row.exit_code !== 0)))
+    throw Error("Completed run has missing evidence or a failed stage");
+  if (complete) {
+    const preflight = JSON.parse(fs.readFileSync(path.join(root,
+      "g17-coverage-preflight.json"),"utf8"));
+    if (preflight.passed !== true || preflight.strict !== true ||
+        preflight.technically_authored !== 72 || preflight.assertions !== 75 ||
+        preflight.scenarios !== 25 || preflight.errors?.length !== 0)
+      throw Error("Incomplete or incorrectly reported 75-assertion S25 technical preflight");
+    if (expected.require_full_g17) {
+      const ledger=JSON.parse(fs.readFileSync(path.join(root,
+        "g17-technical-assertion-ledger.json"),"utf8"));
+      const technical=ledger.records?.filter(x=>x.status==="TECHNICAL_PASS") ?? [];
+      const review=ledger.records?.filter(x=>x.status==="PENDING_INDEPENDENT_REVIEW") ?? [];
+      const ids=ledger.records?.map(x=>x.id) ?? [];
+      if (ledger.source_sha !== manifest.source_sha ||
+          ledger.project !== expected.project || ledger.pass !== true ||
+          ledger.acceptance !== "PENDING" ||
+          ledger.technical_passes !== 72 || ledger.independent_pending !== 3 ||
+          ledger.total_assertions !== 75 || technical.length !== 72 ||
+          review.length !== 3 || new Set(ids).size !== 75 ||
+          ledger.errors?.length !== 0 ||
+          technical.some(x=>!x.source_artifact ||
+            !fileNames.has(x.source_artifact)))
+        throw Error("A full G17 result is missing one or more raw atomic technical witnesses");
+    }
+    if (expected.require_full_g17 &&
+        (expected.disposable_stack !== true || expected.worker_fixture !== true ||
+         expected.fault_probe !== true || status.full_campaign_requested !== true))
+      throw Error("Mandatory full G17 fault and worker scenarios were omitted");
+    // Presence and a green wrapper exit are not enough: inspect raw test outcomes.
+    const trxFiles = ["g17-unit.trx","g17-contract.trx",
+      ...(expected.disposable_stack ? ["g17-integration.trx"] : [])];
+    for (const file of trxFiles) {
+      const xml = fs.readFileSync(path.join(root,file),"utf8");
+      const methods = file === "g17-contract.trx" ? G17_REQUIRED_METHODS.contract :
+        file === "g17-integration.trx" ? G17_REQUIRED_METHODS.integration : [];
+      verifyTrxCases(xml,methods);
+    }
+    if (expected.disposable_stack) {
+      const network = JSON.parse(fs.readFileSync(
+        path.join(root,"m17-network-results.json"),"utf8"));
+      if (network.result !== "PASS" || network.source_sha !== manifest.source_sha ||
+          network.project !== expected.project ||
+          network.observed?.web?.length !== 1 ||
+          network.observed.web[0] !== "internal")
+        throw Error("Missing positive Docker network-isolation evidence");
+      for (const [file,mode] of [
+        ["m17-browser-results.json","dashboard"],
+        ["m17-cardinality-results.json","cardinality"]
+      ]) {
+        const report = JSON.parse(fs.readFileSync(path.join(root,file),"utf8"));
+        verifyPlaywrightCases(report,mode);
+      }
+      const cardinality = JSON.parse(fs.readFileSync(
+        path.join(root,"m17-cardinality-raw.json"),"utf8"));
+      if (cardinality.requested_paths !== 10000 ||
+          cardinality.all_requests_returned_404 !== true ||
+          cardinality.exported_series_across_window < 1 ||
+          cardinality.exported_series_across_window > 500 ||
+          !Array.isArray(cardinality.memory_samples) ||
+          cardinality.memory_samples.length < 2)
+        throw Error("Cardinality or memory observations incomplete");
+      const exported = JSON.parse(fs.readFileSync(path.join(root,
+        "m17-export-privacy-results.json"),"utf8"));
+      if (exported.source_sha !== manifest.source_sha ||
+          exported.project !== expected.project ||
+          exported.result !== "PASS" ||
+          exported.traces_inspected < 1 || exported.spans_inspected < 1 ||
+          exported.exported_metric_series_inspected < 1 ||
+          exported.snapshots?.length < 2)
+        throw Error("G17 cannot claim privacy without positive raw exported trace and metric witnesses");
+      verifyS25RawSnapshots(root,manifest.source_sha,expected.project);
+      const memory = JSON.parse(fs.readFileSync(path.join(root,
+        "m17-cardinality-memory-results.json"),"utf8"));
+      if (memory.source_sha !== manifest.source_sha ||
+          memory.project !== expected.project ||
+          memory.result !== "PASS" ||
+          memory.run_kind !== "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES" ||
+          memory.total_paths !== 40000 || memory.rows?.length !== 4 ||
+          memory.pairs?.length !== 2 || memory.pairs.some(p=>p.pass !== true ||
+            p.relative_memory_peak_increase_pct > 15) ||
+          !Number.isFinite(memory.post_stress_memory_growth_pct) ||
+          memory.post_stress_memory_growth_pct > 15)
+        throw Error("Sustained hostile-path cardinality memory witnesses incomplete");
+      const restart = JSON.parse(fs.readFileSync(path.join(root,
+        "m17-restart-results.json"),"utf8"));
+      if (restart.source_sha !== manifest.source_sha ||
+          restart.project !== expected.project || restart.result !== "PASS" ||
+          restart.api_restored !== true || restart.checks?.length !== 5 ||
+          restart.checks.some(step => step.status !== "PASS"))
+        throw Error("API cancellation, shutdown, restart or durable invariant evidence is absent");
+      const retention=JSON.parse(fs.readFileSync(path.join(root,
+        "m17-retention-age-results.json"),"utf8"));
+      if (retention.source_sha !== manifest.source_sha ||
+          retention.project !== expected.project ||
+          retention.result !== "PASS" || retention.policy_hours !== 24 ||
+          retention.checks?.filter(c=>c.status==="PASS").length < 3 ||
+          !retention.checks.some(c=>c.name==="expired-metric-blocks-only-removed"&&
+            c.old_removed>=1&&c.new_preserved>=1))
+        throw Error("Missing positive isolated 24h block-expiry and retention-policy test");
+      const tempoTtl=JSON.parse(fs.readFileSync(path.join(root,
+        "m17-tempo-retention-results.json"),"utf8"));
+      if (tempoTtl.source_sha !== manifest.source_sha ||
+          tempoTtl.project !== expected.project ||
+          tempoTtl.result !== "PASS" ||
+          tempoTtl.runtime_trace_ingested !== true ||
+          tempoTtl.expired_trace_removed !== true ||
+          tempoTtl.recent_trace_preserved !== true ||
+          tempoTtl.reference_policy_hours !== 24 ||
+          tempoTtl.checks?.filter(x=>x.status==="PASS").length < 4)
+        throw Error("Missing real selective trace expiry and retention-isolation witness");
+      const retentionMatrix=JSON.parse(fs.readFileSync(path.join(root,
+        "m17-retention-matrix-results.json"),"utf8"));
+      if (retentionMatrix.source_sha !== manifest.source_sha ||
+          retentionMatrix.project !== expected.project ||
+          retentionMatrix.result !== "PASS" ||
+          retentionMatrix.metrics_retention_hours !== 24 ||
+          retentionMatrix.traces_retention_hours !== 24 ||
+          retentionMatrix.raw_sources?.length !== 3)
+        throw Error("Combined real trace and metric retention evidence is incomplete");
+      const regress=JSON.parse(fs.readFileSync(path.join(root,
+        "g17-regression-matrix-results.json"),"utf8"));
+      const groups=["M9","M10","M11","M13","M15","audit","authorization",
+        "held_feature_defaults"];
+      if (regress.source_sha !== manifest.source_sha ||
+          regress.project !== expected.project || regress.result !== "PASS" ||
+          regress.required_groups !== 8 ||
+          groups.some(group=>!regress.cases?.[group] ||
+            regress.cases[group].passed<1))
+        throw Error("One or more M9/M10/M11/M13/M15 or accepted security regression groups omitted");
+      const regressionTrx=fs.readFileSync(path.join(root,
+        "g17-regressions.trx"),"utf8");
+      verifyTrxCases(regressionTrx);
+      const overhead = JSON.parse(fs.readFileSync(path.join(root,
+        "m17-performance-raw.json"),"utf8"));
+      if (overhead.source_sha !== manifest.source_sha ||
+          overhead.project !== expected.project ||
+          overhead.run_kind !== "THREE_MATCHED_PAIRS" ||
+          overhead.result !== "PASS" ||
+          overhead.rows?.length !== 6 || overhead.pairs?.length !== 3 ||
+          overhead.system?.cpus < 1 ||
+          !Number.isFinite(overhead.p95_increase_stddev_pct) ||
+          !Number.isFinite(overhead.rss_increase_stddev_pct) ||
+          overhead.gate?.pass !== true || overhead.gate.pooled_p95_pass !== true ||
+          overhead.gate.memory_pass !== true ||
+          ["baseline","authorized"].some(kind =>
+            !(overhead.pooled?.[kind]?.p95_increase_pct <= 10) ||
+            !(overhead.pooled[kind].telemetry_on_samples >= 3000)) ||
+          !(overhead.gate.mean_memory_increase_pct <= 15) ||
+          overhead.pairs.some(p => !Number.isFinite(p.memory_increase_pct)))
+        throw Error("Three complete matched P09 overhead pairs are missing or above budget");
+      const latency=JSON.parse(fs.readFileSync(path.join(root,
+        "m17-live-latency-alert-results.json"),"utf8"));
+      if (latency.source_sha !== manifest.source_sha ||
+          latency.project !== expected.project ||
+          latency.result !== "PASS" || latency.checks?.length !== 3 ||
+          latency.request_count < 100 || latency.slow_requests < 15 ||
+          latency.checks.some(x=>x.status !== "PASS"))
+        throw Error("Live API p95 alert did not have sufficient actual latency witnesses");
+      if (expected.fault_probe) {
+        const alertMatrix=JSON.parse(fs.readFileSync(path.join(root,
+          "m17-alert-matrix-results.json"),"utf8"));
+        const pressure=JSON.parse(fs.readFileSync(path.join(root,
+          "m17-pressure-matrix-results.json"),"utf8"));
+        if (alertMatrix.source_sha !== manifest.source_sha ||
+            alertMatrix.project !== expected.project ||
+            alertMatrix.result !== "PASS" || alertMatrix.checks?.length !== 6 ||
+            alertMatrix.checks.some(c=>c.status!=="PASS") ||
+            pressure.source_sha !== manifest.source_sha ||
+            pressure.project !== expected.project ||
+            pressure.result !== "PASS" || pressure.cases?.length !== 4 ||
+            pressure.cases.some(c=>c.status!=="PASS"))
+          throw Error("Required 5xx/p95/readiness alert or tenfold pressure campaign is incomplete");
+        const database = JSON.parse(fs.readFileSync(path.join(root,
+          "m17-database-fault-results.json"),"utf8"));
+        const steps = ["healthy-database-control",
+          "real-db-outage-keeps-live-and-errors-classified",
+          "real-http-5xx-rate-fires-reference-alert",
+          "database-alert-identifies-only-safe-component",
+          "page-originated-correlated-diagnostic-journey",
+          "recovery-clears-alert-and-preserves-history"];
+        if (database.source_sha !== manifest.source_sha ||
+            database.project !== expected.project ||
+            database.result !== "PASS" || database.database_restored !== true ||
+            database.checks?.length !== 6 ||
+            database.checks.some((check,index)=>check.name !== steps[index] ||
+              check.status !== "PASS") || database.alerts?.length !== 1)
+          throw Error("Missing positive PostgreSQL outage, alert or durable-recovery witnesses");
+        const fault = JSON.parse(fs.readFileSync(path.join(root,
+          "m17-collector-fault-results.json"),"utf8"));
+        const requiredSteps = ["baseline-good","collector-scrape-reports-outage",
+          "collector-fault-business-isolation","collector-recovery-automatic"];
+        if (fault.source_sha !== manifest.source_sha ||
+            fault.project !== expected.project || fault.result !== "PASS" ||
+            fault.collector_restored !== true || fault.checks?.length !== 4 ||
+            fault.checks.some((step,i) => step.name !== requiredSteps[i] ||
+              step.result !== "PASS"))
+          throw Error("Collector fault/recovery campaign has missing or invalid witnesses");
+      }
+      if (expected.worker_fixture) {
+        const journey=JSON.parse(fs.readFileSync(path.join(root,
+          "m17-worker-journey-results.json"),"utf8"));
+        if (journey.source_sha !== manifest.source_sha ||
+            journey.project !== expected.project ||
+            journey.result !== "PASS" ||
+            journey.worker_role !== "restricted" ||
+            journey.receipts_accepted !== 50 || journey.reconciled !== 50 ||
+            journey.duplicate_replay !== true ||
+            journey.matched_safe_trace_pairs < 2 ||
+            journey.exported_metric_series_checked_for_tenant_privacy < 1)
+          throw Error("Worker receipt/replay and actual paired Tempo trace witnesses are missing");
+        const worker = JSON.parse(fs.readFileSync(
+          path.join(root,"m17-worker-results.json"),"utf8"));
+        if (worker.result !== "PASS" || worker.source_sha !== manifest.source_sha ||
+            !Array.isArray(worker.checks) || worker.checks.length < 4 ||
+            worker.checks.some(check => check.status !== "PASS"))
+          throw Error("Worker diagnostic fault campaign incomplete");
+      }
+    }
+  }
+  const inventoryBytes = fs.readFileSync(path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../docs/M17_G17_ASSERTION_INVENTORY_20261112.json"));
+  const inventory = JSON.parse(inventoryBytes.toString("utf8"));
+  const assertions = inventory.scenarios?.flatMap(s => s.assertions) ?? [];
+  if (manifest.assertion_inventory_sha256 !== crypto.createHash("sha256")
+      .update(inventoryBytes).digest("hex") ||
+      inventory.scenarios?.length !== 25 || assertions.length !== 75 ||
+      manifest.scenario_count !== 25 || manifest.assertion_count !== 75 ||
+      manifest.reviewed_assertion_count !== 0 ||
+      inventory.gate_acceptance !== "NOT_ACCEPTED" ||
+      assertions.some(a => a.status !== "NOT_EXECUTED" || a.witness !== null))
+    throw Error("Unreconciled or falsely reviewed G17 atomic assertion inventory");
+  if (manifest.assertion_disposition !== "NOT_REVIEWED")
+    throw Error("Unverified evidence may not claim reviewed assertions");
+  return {source_sha: manifest.source_sha,files:actual.length,
+    complete, missing_expected_artifacts: missing,
+    gate_acceptance: "NOT_ACCEPTED", assertions_reviewed: 0};
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const manifest = process.argv[2], sha = process.argv[3];
+  if (!manifest || !sha || !/^[a-f0-9]{40}$/.test(sha))
+    throw Error("Usage: node scripts/verify-g17-manifest.mjs <path> <40-character SHA>");
+  console.log("Verified G17 evidence index:", verifyManifest(manifest, sha));
+}

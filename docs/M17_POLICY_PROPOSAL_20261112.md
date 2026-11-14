@@ -1,5 +1,13 @@
 # M17 Local Policy and Design Decision Register
 
+**Current G17 technical verification (2026-11-14):** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) completed SUCCESS on source `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`. All 47 campaign stages passed and the source-locked ledger reports 72 of 72 technical assertions passing; the three independent S25 assertions are pending. No required tests were skipped. The 45-entry evidence manifest has no missing expected artifacts, although two hidden Playwright last-run metadata files are absent from the downloaded archive. **Technical G17 campaign GREEN; G17 NOT ACCEPTED; independent S25 review pending.** [Current verified technical result](M17_G17_TECHNICAL_VERIFICATION_GREEN_20261114.md).
+
+**Historical G17-S25 checkpoint (2026-11-14, prior to hosted remediation):** Local campaign c7 at `085fc666` completed 72 technical witnesses, but independent S25 returned NOT PASS because several passing tests did not fully demonstrate their required behaviors. The source candidate now contains additional retained telemetry witnesses, a dedicated malformed-context export probe, rendered-state browser tests, browser correlation verification, and a stricter non-loopback negative control. **These corrections are not yet source-locked runtime verified. G17 NOT ACCEPTED; acceptance pending.** [Remediation register](M17_G17_S25_REMEDIATION_20261114.md).
+
+**Current gate context:** P01-P09 remain approved for design, not independently verified G17 outcomes. Technical test authoring is complete for 72 assertions, but source-locked runtime verification and S25 independence remain outstanding. [Current G17 recovery](M17_G17_VERIFICATION_RECOVERY_20261113.md).
+
+**Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
+
 **Prepared and approved:** 2026-11-12. **Status:** **M17-P01 through M17-P09 approved as the implementation design baseline.** Numeric limits identified below remain provisional engineering targets until implementation measurements confirm or formally revise them. This document retains its original filename for stable links; earlier proposal text is preserved in Git history.
 **Entry:** G3 accepted. **Design:** [M17 architecture](M17_ARCHITECTURE_DESIGN.md). **Verification:** [G17 matrix](M17_VERIFICATION_PLAN.md).
 
@@ -66,6 +74,8 @@ These are M17-local decisions, not replacements for project-wide D-001 through D
 
 **Acceptance evidence:** Existing health contract and liveness/readiness integration regressions plus bounded timeout and fault tests.
 
+**P09 measurement rule confirmed 2026-11-14:** The 10 percent p95 and 15 percent memory budgets were not changed. The evidence gate evaluates p95 on pooled observations across three matched rounds per route and memory on the mean of three paired percentage increases. Every per-pair figure and raw sample must be retained; noise or repeated runs do not silently excuse an out-of-budget result. This change and its historical failures are subject to independent S25 scrutiny. See [decision record](DECISIONS.md) and [local c7 measurements](M17_G17_LOCAL_VERIFICATION_RESULT_20261114.md).
+
 ## M17-P09: Measured overhead and rollout boundary
 
 **Approved design:** Default-off source must not add a measurable dependency on collector availability. For a matched local reference workload under normal load, set a provisional budget of **p95 request-latency increase <= 10%** and **peak process working-set increase <= 15%** relative to telemetry-disabled baseline. Also report absolute values, confidence/variance, environment, sampling rate and source SHA; a small baseline or noisy runner must not be used to manufacture a pass. These remain **provisional engineering acceptance targets**, not established measurements; evaluate the feasibility and statistical validity of these figures against the matched reference workload before G17 and document any adjustment.
@@ -76,14 +86,14 @@ These are M17-local decisions, not replacements for project-wide D-001 through D
 
 | ID | Status on 2026-11-12 | Needed before |
 | --- | --- | --- |
-| P01 | Proposed, not approved | First exporter/config implementation |
-| P02 | Proposed, not approved | Custom metric instruments |
-| P03 | Proposed, not approved | Span enrichment or propagation |
-| P04 | Proposed, not approved | Sampling/export pipeline |
-| P05 | Proposed, not approved | Monitoring dashboard and alert rules |
-| P06 | Proposed, not approved | Telemetry volume lifecycle and disposal |
-| P07 | Proposed, not approved | Optional dashboard listener |
-| P08 | Proposed, not approved | Any change near current health paths |
-| P09 | Proposed, not approved | Performance evidence and G17 judgment |
+| P01 | Approved design; implementation evidence pending | First exporter/config implementation |
+| P02 | Approved design; numeric cap calibration pending | Custom metric instruments |
+| P03 | Approved design; implementation evidence pending | Span enrichment or propagation |
+| P04 | Approved design; numeric limits calibration pending | Sampling/export pipeline |
+| P05 | Approved initial local rules; trigger/clear calibration pending | Monitoring dashboard and alert rules |
+| P06 | Approved design; storage evidence pending | Telemetry volume lifecycle and disposal |
+| P07 | Approved design; listener and auth evidence pending | Optional dashboard listener |
+| P08 | Approved design; regression evidence pending | Any change near current health paths |
+| P09 | Approved design; latency and memory measurement pending | Performance evidence and G17 judgment |
 
 Record approvals, corrections and dates here or in a separate accepted decision file before changing their status. The presence of numeric candidates is not consent to activate, deploy, retain, delete, page or alter production data. M17 technical implementation and G17 acceptance are separate later gates.

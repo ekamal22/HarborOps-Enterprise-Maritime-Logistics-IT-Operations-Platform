@@ -128,6 +128,11 @@ public sealed class TrackingInboxStore(HarborOpsDbContext db, TimeProvider clock
 
         await ExecuteAsync(connection, current,
             "SET LOCAL lock_timeout = '15s'; SET LOCAL statement_timeout = '30s'", ct);
+        // Keep the immutable M16 audit attribution aligned to the same
+        // server-issued correlation as the durable accepted receipt.
+        await ExecuteAsync(connection, current,
+            "SELECT set_config('harborops.audit_correlation_id', @correlation, true)",
+            ct, ("correlation", correlationId));
 
         // Lock the organization first. This serializes capacity checks across
         // sources and prevents suspension from committing mid-receipt.

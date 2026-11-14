@@ -1,4 +1,6 @@
 using HarborOps.Domain;
+using HarborOps.Api.Observability;
+using System.Diagnostics;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -15,6 +17,8 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(CheckTimeout);
 
+        var stopwatch = Stopwatch.StartNew();
+        var healthy = false;
         try
         {
             if (!await database.Database.CanConnectAsync(timeout.Token))
@@ -22,6 +26,7 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
 
             var seeded = await database.BootstrapRecords.AsNoTracking()
                 .AnyAsync(record => record.Key == BaselineMetadata.RecordKey, timeout.Token);
+            healthy = seeded;
             return seeded ? HealthCheckResult.Healthy() : HealthCheckResult.Unhealthy("Baseline not seeded");
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -31,6 +36,10 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
         catch (Exception)
         {
             return HealthCheckResult.Unhealthy("Dependency unavailable");
+        }
+        finally
+        {
+            M17Telemetry.ObserveDatabaseReadiness(healthy, stopwatch.Elapsed);
         }
     }
 }

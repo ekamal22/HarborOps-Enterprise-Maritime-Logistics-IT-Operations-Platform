@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: HarborOps local diagnostics
+    orgId: 1
+    folder: HarborOps
+    folderUid: harborops-local
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /etc/grafana/dashboards

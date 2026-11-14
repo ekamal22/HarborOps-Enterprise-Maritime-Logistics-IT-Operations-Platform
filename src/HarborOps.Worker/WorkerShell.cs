@@ -1,4 +1,6 @@
 using HarborOps.Domain.Tracking;
+using HarborOps.Worker.Observability;
+using System.Diagnostics;
 using HarborOps.Infrastructure.Integrations;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -10,12 +12,20 @@ public sealed class WorkerShell(
     : BackgroundService
 {
     private Guid? cursor;
+    private long lastBacklogSample;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (M17WorkerTelemetry.Enabled) M17WorkerTelemetry.SetWorkerRunning(true);
         logger.LogInformation("Tracking work polling started");
+        try
+        {
         while (!stoppingToken.IsCancellationRequested)
         {
+            if (M17WorkerTelemetry.Enabled &&
+                (lastBacklogSample == 0 ||
+                 Stopwatch.GetElapsedTime(lastBacklogSample) >= TimeSpan.FromSeconds(15)))
+                await SampleBacklogAsync(stoppingToken);
             try
             {
                 await SweepAsync(stoppingToken);
@@ -32,7 +42,33 @@ public sealed class WorkerShell(
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
         }
+        }
+        finally
+        {
+            if (M17WorkerTelemetry.Enabled) M17WorkerTelemetry.SetWorkerRunning(false);
+        }
         logger.LogInformation("Tracking work polling stopped");
+    }
+
+    private async Task SampleBacklogAsync(CancellationToken cancellationToken)
+    {
+        lastBacklogSample = Stopwatch.GetTimestamp();
+        M17WorkerTelemetry.Heartbeat();
+        try
+        {
+            await using var scope = scopes.CreateAsyncScope();
+            var store = scope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
+            var age = await store.OldestEligibleBacklogAgeSecondsAsync(cancellationToken);
+            M17WorkerTelemetry.SetBacklogAge(age ?? 0);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The worker is stopping, not a durable backlog failure.
+        }
+        catch (Exception)
+        {
+            M17WorkerTelemetry.SetBacklogAge(null);
+        }
     }
 
     private async Task SweepAsync(CancellationToken ct)
@@ -70,6 +106,32 @@ public sealed class WorkerShell(
         }
         if (claim is null) return;
 
+        string? linkedDigest = null;
+        if (M17WorkerTelemetry.Enabled)
+        {
+            // Diagnostic linking is optional, bounded and read-only. Its failure
+            // never changes the durable business disposition.
+            try
+            {
+                using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                limit.CancelAfter(TimeSpan.FromMilliseconds(750));
+                await using var linkScope = scopes.CreateAsyncScope();
+                var linkStore = linkScope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
+                var correlation = await linkStore.ReadReceiptCorrelationAsync(claim, limit.Token);
+                linkedDigest = M17WorkerTelemetry.LinkDigest(correlation);
+            }
+            catch (Exception)
+            {
+                // Do not log correlation values or provider details.
+            }
+        }
+        IEnumerable<KeyValuePair<string, object?>>? spanTags = linkedDigest is null
+            ? null : [new("harborops.link_digest", linkedDigest)];
+        using var span = M17WorkerTelemetry.Traces.StartActivity(
+            "tracking.process", ActivityKind.Internal, parentContext: default, tags: spanTags);
+        span?.SetTag("harborops.operation", "tracking.process");
+        var startTimestamp = Stopwatch.GetTimestamp();
+        var disposition = "other";
         using var renewalCancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
         var heartbeat = MaintainLeaseAsync(claim, renewalCancellation.Token);
         try
@@ -77,12 +139,20 @@ public sealed class WorkerShell(
             await using var scope = scopes.CreateAsyncScope();
             var store = scope.ServiceProvider.GetRequiredService<TrackingWorkStore>();
             var result = await store.FinalizeAsync(claim, ct);
+            disposition = result switch
+            {
+                TrackingWorkDisposition.Processed => "processed",
+                TrackingWorkDisposition.NeedsReconciliation => "needs_reconciliation",
+                TrackingWorkDisposition.Stale => "stale",
+                _ => "other"
+            };
             logger.LogInformation("Tracking worker disposition {Disposition}", result);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { disposition = "cancelled"; }
         catch (PostgresException conflict) when (conflict.SqlState == PostgresErrorCodes.CheckViolation &&
             conflict.ConstraintName == "CK_m9_effect_reference")
         {
+            disposition = "reference_conflict";
             try
             {
                 await using var scope = scopes.CreateAsyncScope();
@@ -105,6 +175,7 @@ public sealed class WorkerShell(
                 _ => false
             };
             var code = retryable ? "transient_dependency" : "processor_error";
+            disposition = retryable ? "retry" : "failure";
             logger.LogWarning("Tracking worker failure ({Type}, {Code})",
                 error.GetType().Name, code);
             try
@@ -123,6 +194,8 @@ public sealed class WorkerShell(
         }
         finally
         {
+            span?.SetTag("harborops.outcome", disposition);
+            M17WorkerTelemetry.ObserveAttempt(disposition, Stopwatch.GetElapsedTime(startTimestamp));
             renewalCancellation.Cancel();
             try { await heartbeat; }
             catch (OperationCanceledException) when (renewalCancellation.IsCancellationRequested) { }

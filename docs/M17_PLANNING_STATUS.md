@@ -1,9 +1,15 @@
 # M17 Observability Planning Register
 
+**Current G17 technical verification (2026-11-14):** [GitHub Actions #43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) completed **SUCCESS** on executable source `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`. The downloaded evidence reports 47/47 campaign stages passed, 25 scenario IDs, 72/72 source-bound technical assertions passed, and three independent S25 review assertions still pending. No required test was skipped. The raw suite files show 319 unit, 60 contract, 54 M17 integration and 34 regression passes. The 45-entry manifest has no missing expected artifacts, although the GitHub download omits two hidden Playwright `.last-run.json` metadata files listed in that manifest. All earlier failures and the separate c7 archive remain historical. **Technical verification GREEN; G17 NOT ACCEPTED; independent S25 acceptance pending.** [Technical evidence checkpoint](M17_G17_TECHNICAL_VERIFICATION_GREEN_20261114.md).
+
+**Historical G17 checkpoint (2026-11-13, superseded):** The G17 coverage register has 72 authored technical assertions and three pending independent S25 clauses. [Run #43462771279](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43462771279) failed scoped integration with 52 passed, one failed and zero skipped: its process-wide worker span listener and shared database could include unrelated queued work. The strict two-span, single receipt and durable generation assertions remain in the corrected test. [Run #43470770246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43470770246) was launched on source `a5c3af3829517ec10aed19861dc49ba936b63f97`; its final status is pending at this documentation checkpoint. All historical failed evidence is preserved. **G17 NOT ACCEPTED; acceptance pending.** [S25 readiness](M17_G17_S25_TEST_READINESS_20261113.md) | [Source-locked verification recovery](M17_G17_VERIFICATION_RECOVERY_20261113.md).
+
+**Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
+
 **Snapshot:** 2026-11-12.
 **Plan baseline:** `056b3a77f6520ac7555890f4666b368ccd351d79` on protected main.
 **Milestone:** M17 observability and service health, gate G17.
-**Status:** End-to-end plan source-baselined and **M17-P01 through M17-P09 approved as the design baseline on 2026-11-12**. P02/P04/P09 numeric limits remain provisional pending measurements; P05 alert thresholds are initial local rules requiring calibration. **Implementation not started; tests not run for G17; 0/25 G17 scenarios executed; acceptance pending.**
+**Status:** End-to-end plan source-baselined and **M17-P01 through M17-P09 approved as the design baseline on 2026-11-12**. P02/P04/P09 numeric limits remain provisional pending measurements; P05 alert thresholds are initial local rules requiring calibration. **An isolated source candidate now exists; G17 executable tests have not run, 0/25 scenarios and 0/75 assertions have source-locked evidence, acceptance pending.**
 **Prerequisite:** G3 accepted and merged. **Downstream:** M18 incident workflows require accepted G17 and G16.
 
 ## Planned source deliverables
@@ -13,8 +19,8 @@
 | [M17 architecture](M17_ARCHITECTURE_DESIGN.md) | Accepted-source analysis, signal/trace/dashboard architecture, privacy and integration boundaries | Proposed |
 | [M17 policy register](M17_POLICY_PROPOSAL_20261112.md) | P01-P09 approved design baseline for export, cardinality, tracing, thresholds, storage, exposure and performance | **9 approved; P02/P04/P09 numerical targets provisional and P05 rules to calibrate** |
 | [M17 implementation plan](M17_IMPLEMENTATION_PLAN.md) | Ordered work packages, source map, dependencies, checkpoints, handoff and merge discipline | Proposed |
-| [G17 verification plan](M17_VERIFICATION_PLAN.md) | 25 scenarios, 75 atomic assertions, evidence contract and independent S25 decision | **0 executed** |
-| [M17 operations runbook](M17_OPERATIONS_RUNBOOK.md) | Disposable local startup/fault/recovery/evidence procedures | Planned, no executable wrapper |
+| [G17 verification plan](M17_VERIFICATION_PLAN.md) | 25 scenarios, 75 atomic assertions, evidence contract and independent S25 decision | Source-locked runs attempted; 0 accepted |
+| [M17 operations runbook](M17_OPERATIONS_RUNBOOK.md) | Disposable local startup/fault/recovery/evidence procedures | Source-locked wrapper executed on disposable hosted runners; full campaign incomplete |
 | [Execution graph](EXECUTION_GRAPH.md) | Canonical M17-01 through M17-04 -> G17 dependency wiring, already present | Unchanged planning DAG |
 
 ## Observed baseline, not new capability
@@ -31,10 +37,10 @@
 | --- | --- | --- |
 | Baseline review | Actual source, health and worker flags checked against protected main | Completed for planning snapshot |
 | P01-P09 policy decisions | Design baseline explicitly approved 2026-11-12; measured numerical calibration remains under M17-01 and G17 | **APPROVED for design; measurements pending** |
-| M17-01 | Names, units, confidentiality, thresholds and finite cardinality frozen | Not started |
-| M17-02 | Traces, structured logs, health continuity and bounded export implemented and tested | Not started |
-| M17-03 | Opt-in private local dashboard, alert rules, safe fault runbook implemented and tested | Not started |
-| M17-04 | Integrated fault journey, affected regressions, privacy/load and source-locked evidence | Not started |
+| M17-01 | Names, units, confidentiality, thresholds and finite cardinality frozen | Initial contract in candidate; calibration pending |
+| M17-02 | Traces, structured logs, health continuity and bounded export implemented and tested | Source candidate committed; partial runtime suites passed, full G17 verification pending |
+| M17-03 | Opt-in private local dashboard, alert rules, safe fault runbook implemented and tested | Rules tested in disposable Prometheus; full runtime and alert evidence pending |
+| M17-04 | Integrated fault journey, affected regressions, privacy/load and source-locked evidence | Verification harness and 72 technical mappings authored; attempts failed at later stages |
 | G17-S25 | Independent raw-evidence review with technical PASS/NOT PASS | Not started |
 | Gate acceptance | Explicit G17 decision after all mandatory evidence | Pending |
 | Feature merge and M18 handoff | Reviewed implementation PR and post-merge reconciliation | Not authorized by planning |

@@ -1,0 +1,529 @@
+{
+  "uid": "harborops-m17",
+  "title": "HarborOps | Local Service Diagnostics",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "utc",
+  "editable": false,
+  "refresh": "15s",
+  "tags": [
+    "harborops",
+    "local",
+    "m17"
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "API request rate",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(harborops_request_duration_seconds_count[5m]))",
+          "refId": "A",
+          "legendFormat": "API request rate",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 2,
+      "title": "API 5xx rate",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(harborops_request_failures_total[5m]))",
+          "refId": "A",
+          "legendFormat": "API 5xx rate",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 3,
+      "title": "API p95 latency",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(harborops_request_duration_seconds_bucket[5m])))",
+          "refId": "A",
+          "legendFormat": "API p95 latency",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 4,
+      "title": "PostgreSQL readiness",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "harborops_db_readiness_ratio and on() (time() - harborops_db_readiness_sample_unix_seconds < 60)",
+          "refId": "A",
+          "legendFormat": "PostgreSQL readiness (-1 unknown, 0 down, 1 up)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Unavailable",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "Ready",
+                  "color": "green"
+                },
+                "-1": {
+                  "text": "Unknown",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Notification worker (-1 stopped unexpectedly, 0 disabled, 1 active)",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 8,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "harborops_service_running_ratio{service=\"notifications\"}",
+          "refId": "A",
+          "legendFormat": "Notification worker (0 disabled, 1 active)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Application heartbeats per 100 seconds",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "increase(harborops_telemetry_heartbeat_total[100s])",
+          "refId": "A",
+          "legendFormat": "heartbeats/100s",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 7,
+      "title": "Sampling rate-limit drops (5m)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(harborops_telemetry_dropped_total{signal=\"trace\",reason=\"rate_limit\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "Bounded sampling drops",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 8,
+      "title": "Active local alerts",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "ALERTS{alertstate=\"firing\"}",
+          "refId": "A",
+          "legendFormat": "Active local alerts",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 9,
+      "title": "Tracking eligible backlog age, active worker only",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "harborops_worker_backlog_age_seconds{worker=\"tracking\"} and on() (harborops_service_running_ratio{service=\"tracking\"} == 1) and on() (increase(harborops_worker_heartbeat_total{worker=\"tracking\"}[1m]) > 0)",
+          "refId": "A",
+          "legendFormat": "Tracking eligible backlog age, active worker only",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 10,
+      "title": "Collector transport probe (0 unreachable, 1 reachable)",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "harborops_telemetry_collector_reachable_ratio",
+          "refId": "A",
+          "legendFormat": "Collector transport probe (0 unreachable, 1 reachable)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "SDK trace export queue-full losses (5m)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(otel_sdk_processor_span_processed_total{error_type=\"queue_full\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "SDK trace export queue-full losses (5m)",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 12,
+      "title": "Worker outcomes (observed work only)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by (worker,outcome) (rate(harborops_worker_attempts_total[5m]))",
+          "refId": "A",
+          "legendFormat": "Worker outcomes (observed work only)",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 13,
+      "title": "Readiness sample age seconds",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "time() - harborops_db_readiness_sample_unix_seconds",
+          "refId": "A",
+          "legendFormat": "Readiness sample age seconds",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 14,
+      "title": "Local alert state",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "ALERTS{alertstate=\"firing\"}",
+          "refId": "A",
+          "legendFormat": "Local alert state",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 15,
+      "title": "Active tracking-worker heartbeat progress",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "harborops-local-metrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 56,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "increase(harborops_worker_heartbeat_total{worker=\"tracking\"}[1m])",
+          "refId": "A",
+          "legendFormat": "worker heartbeat increments",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {}
+    }
+  ]
+}

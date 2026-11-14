@@ -1,0 +1,901 @@
+{
+  "schema_version": 1,
+  "gate": "G17",
+  "source_baseline": "47a596fcc583a99a68bef39a40d30ce49d2e8050",
+  "purpose": "Pre-execution S25-grade assertion-to-test mapping, not test results",
+  "scenario_count": 25,
+  "assertion_count": 75,
+  "scenarios": [
+    {
+      "id": "G17-S01",
+      "name": "Source/contract conformity",
+      "assertions": [
+        {
+          "id": "G17-S01-A01",
+          "expected": "all four work packages implemented",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/g17-source-boundary.test.mjs",
+            "case": "M17 four work packages exist with actual referenced production and verification boundaries"
+          },
+          "coverage_gap": "Packages tied to their integration, browser, fault, security and evidence scripts; execution still pending"
+        },
+        {
+          "id": "G17-S01-A02",
+          "expected": "approved P01-P09 and exact instrument mapping match source",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/g17-source-boundary.test.mjs",
+            "case": "every approved M17 policy has a concrete source-side verification control"
+          },
+          "coverage_gap": "P01-P09 source contracts and separately required runtime measurements; execution still pending"
+        },
+        {
+          "id": "G17-S01-A03",
+          "expected": "no unapproved default service, API or migration changes",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/g17-source-boundary.test.mjs",
+            "case": "source diff does not change the accepted default Compose or database migrations"
+          },
+          "coverage_gap": "Actual source diff rejects changes to default Compose and database migrations"
+        }
+      ]
+    },
+    {
+      "id": "G17-S02",
+      "name": "Metric schema and type",
+      "assertions": [
+        {
+          "id": "G17-S02-A01",
+          "expected": "each metric has exact name/type/unit",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17MetricSchemaTests.cs",
+            "case": "EveryLocalInstrumentHasTheApprovedNameTypeAndUnit"
+          },
+          "coverage_gap": "Exact MeterListener assertions authored; raw runtime execution still pending"
+        },
+        {
+          "id": "G17-S02-A02",
+          "expected": "no duplicate request counters",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17MetricSchemaTests.cs",
+            "case": "RequestCountIsDerivedOnlyFromDurationHistogramAndNotDuplicated"
+          },
+          "coverage_gap": "Exact MeterListener assertions authored; raw runtime execution still pending"
+        },
+        {
+          "id": "G17-S02-A03",
+          "expected": "histogram produces nonzero latency samples",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17MetricSchemaTests.cs",
+            "case": "RealNonzeroRequestAndDatabaseDurationsReachMeterListeners"
+          },
+          "coverage_gap": "Exact MeterListener assertions authored; raw runtime execution still pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S03",
+      "name": "Existing health preservation",
+      "assertions": [
+        {
+          "id": "G17-S03-A01",
+          "expected": "live stays responsive with DB down",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
+        },
+        {
+          "id": "G17-S03-A02",
+          "expected": "ready goes unavailable on DB stop or absent seed within budget",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
+        },
+        {
+          "id": "G17-S03-A03",
+          "expected": "existing JSON/status paths unchanged",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S04",
+      "name": "Server-controlled correlation",
+      "assertions": [
+        {
+          "id": "G17-S04-A01",
+          "expected": "response correlation generated on server",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "SpoofedCorrelationIsReplacedAndWarningKeepsServerGeneratedScope"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
+        },
+        {
+          "id": "G17-S04-A02",
+          "expected": "error and structured log scope use same value",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "SpoofedCorrelationIsReplacedAndWarningKeepsServerGeneratedScope"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
+        },
+        {
+          "id": "G17-S04-A03",
+          "expected": "client-supplied correlation cannot spoof it",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "SpoofedCorrelationIsReplacedAndWarningKeepsServerGeneratedScope"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S05",
+      "name": "Label allowlist",
+      "assertions": [
+        {
+          "id": "G17-S05-A01",
+          "expected": "metric attributes contain only approved keys",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17MetricSchemaTests.cs",
+            "case": "CustomMetricLabelsRejectUntrustedHostsPathsAndBusinessIdentifiers"
+          },
+          "coverage_gap": "Finite key/value instrument callback assertions authored; raw telemetry export review still separate"
+        },
+        {
+          "id": "G17-S05-A02",
+          "expected": "no user/tenant/request/SQL fields",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-export-privacy.mjs",
+            "case": "owned-sanitized-service-logs"
+          },
+          "coverage_gap": "Raw Tempo, Prometheus series and owned logs reject hostile data; execution pending"
+        },
+        {
+          "id": "G17-S05-A03",
+          "expected": "unknown route has stable fallback",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TelemetryContractTests.cs",
+            "case": "TenThousandAttackerChosenPathsUseOneBoundedOperationSeries"
+          },
+          "coverage_gap": "Per-path operation family coalescence verified through MeterListener"
+        }
+      ]
+    },
+    {
+      "id": "G17-S06",
+      "name": "Cardinality and memory bound",
+      "assertions": [
+        {
+          "id": "G17-S06-A01",
+          "expected": "10,000 distinct routes/identifiers stay within approved active series cap",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/browser/m17/cardinality.spec.mjs",
+            "case": "ten thousand hostile HTTP requests remain within complete exported-series budget"
+          },
+          "coverage_gap": "Real HTTP 10,000 requests and historical-series count"
+        },
+        {
+          "id": "G17-S06-A02",
+          "expected": "overflow coalesces",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TelemetryContractTests.cs",
+            "case": "TenThousandAttackerChosenPathsUseOneBoundedOperationSeries"
+          },
+          "coverage_gap": "One allowlisted fallback series"
+        },
+        {
+          "id": "G17-S06-A03",
+          "expected": "memory does not grow without bound",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-cardinality-memory.mjs",
+            "case": "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES"
+          },
+          "coverage_gap": "Actual Docker RSS memory across two telemetry-on/off waves and 40k hostile paths; execution still pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S07",
+      "name": "Valid context propagation",
+      "assertions": [
+        {
+          "id": "G17-S07-A01",
+          "expected": "W3C valid trace context accepted without altering auth",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "ValidW3CTraceparentConnectsApiRequestAndBoundedDatabaseSpan"
+          },
+          "coverage_gap": "Captured TestServer parent trace with permitted input"
+        },
+        {
+          "id": "G17-S07-A02",
+          "expected": "API -> safe DB work connected by trace",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17SuccessfulDatabaseAndAuditTests.cs",
+            "case": "HealthyDatabaseReadRecordsSuccessDurationAndLinkedSafeSpan"
+          },
+          "coverage_gap": "A real successful DB read is associated with the W3C client trace and a bounded duration; runtime execution pending"
+        },
+        {
+          "id": "G17-S07-A03",
+          "expected": "original audit correlation preserved",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17SuccessfulDatabaseAndAuditTests.cs",
+            "case": "OptedInTrackingAcceptancePreservesImmutableAuditCorrelation"
+          },
+          "coverage_gap": "Source-locked DB audit record retains the server-issued correlation under M17; runtime execution pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S08",
+      "name": "Invalid context rejection",
+      "assertions": [
+        {
+          "id": "G17-S08-A01",
+          "expected": "malformed traceparent/tracestate handled safely",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "MalformedTraceContextDoesNotTurnDependencyFailureIntoUnhandled500"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
+        },
+        {
+          "id": "G17-S08-A02",
+          "expected": "oversized baggage ignored",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-export-privacy.mjs",
+            "case": "baggage:\"secret=\""
+          },
+          "coverage_gap": "Oversized baggage is injected and checked against raw Tempo output; execution pending"
+        },
+        {
+          "id": "G17-S08-A03",
+          "expected": "no raw header is exported, no 500",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-malformed-export.mjs",
+            "case": "malformed-context-export-safe"
+          },
+          "coverage_gap": "Dedicated malformed-only HTTP stage, server-created sampled Tempo traces, retained exported records and raw canary rejection required"
+        }
+      ]
+    },
+    {
+      "id": "G17-S09",
+      "name": "DB timing and outages",
+      "assertions": [
+        {
+          "id": "G17-S09-A01",
+          "expected": "successful bounded DB operation emits duration/outcome",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17SuccessfulDatabaseAndAuditTests.cs",
+            "case": "HealthyDatabaseReadRecordsSuccessDurationAndLinkedSafeSpan"
+          },
+          "coverage_gap": "Actual successful PostgreSQL read emitted bounded histogram outcome; runtime execution pending"
+        },
+        {
+          "id": "G17-S09-A02",
+          "expected": "outage emits classified failure without secret SQL",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-database-fault.mjs",
+            "case": "real-db-outage-keeps-live-and-errors-classified"
+          },
+          "coverage_gap": "Real PostgreSQL outage yields safe classified 503 and fresh failure metrics; execution pending"
+        },
+        {
+          "id": "G17-S09-A03",
+          "expected": "business error contract remains unchanged",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
+            "case": "EnabledTelemetryDoesNotChangeExistingHealthAndDatabaseErrorContracts"
+          },
+          "coverage_gap": "Real opt-in API TestServer assertion authored; running evidence pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S10",
+      "name": "Worker status and hold",
+      "assertions": [
+        {
+          "id": "G17-S10-A01",
+          "expected": "worker that is intentionally disabled/held remains labelled disabled/held",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "authenticated samples match the disposable ready API and suppress held workers"
+          },
+          "coverage_gap": "Held tracking worker gauge checked"
+        },
+        {
+          "id": "G17-S10-A02",
+          "expected": "enabled disposable worker emits correct attempts/outcomes",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17WorkerShellFunctionalTests.cs",
+            "case": "ActualWorkerShellEmitsProcessedAndReconciliationDispositionsWithoutDuplicateEffects"
+          },
+          "coverage_gap": "Actual worker shell, durable processed and reconciliation dispositions, one-effect invariant; execution still pending"
+        },
+        {
+          "id": "G17-S10-A03",
+          "expected": "no worker auto-start",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17WorkerShellFunctionalTests.cs",
+            "case": "DefaultApiHostDoesNotRegisterTheHeldTrackingWorker"
+          },
+          "coverage_gap": "Actual default API host DI contains no tracking worker or work store; execution still pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S11",
+      "name": "Asynchronous causal linking",
+      "assertions": [
+        {
+          "id": "G17-S11-A01",
+          "expected": "authorized worker work links safely to source or documented correlation",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17RestrictedWorkerReaderTests.cs",
+            "case": "RestrictedWorkerCanLinkOnlyOwnedReceiptAndCannotReadM16AuditOrModifyHistory"
+          },
+          "coverage_gap": "Actual restricted database worker role reads only own receipt and generates safe HMAC digest; execution still pending"
+        },
+        {
+          "id": "G17-S11-A02",
+          "expected": "fabricated parent/tenant trace context rejected",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17CorrelationJourneyTests.cs",
+            "case": "ForgedTenantAndW3CParentHeadersCannotControlDurableReceiptLink"
+          },
+          "coverage_gap": "Actual forged tenant and W3C headers cannot influence accepted receipt organization or keyed digest; execution pending"
+        },
+        {
+          "id": "G17-S11-A03",
+          "expected": "replay/retry has unique bounded spans",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17ReplayRedriveSpanTests.cs",
+            "case": "RealReplayAndAuthorizedRedriveEmitOneSpanPerWorkerAttemptNotPerHttpReplay"
+          },
+          "coverage_gap": "Real replay/redrive produces exactly two bounded worker spans and no duplicate receipt/effect; execution pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S12",
+      "name": "Bounded exporter failures",
+      "assertions": [
+        {
+          "id": "G17-S12-A01",
+          "expected": "collector down does not change API response, transaction or readiness",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17ExporterOutageMutationTests.cs",
+            "case": "UnreachableCollectorCannotChangeAuthorizedMutationOrConflictInvariants"
+          },
+          "coverage_gap": "Real authorized PostgreSQL mutation and conflict/tenant denials succeed without collector; execution still pending"
+        },
+        {
+          "id": "G17-S12-A02",
+          "expected": "export queue bounded/drops counted",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17ExporterQueuePressureTests.cs",
+            "case": "QueueFullDropsAreCountedWithoutBlockingSpanProducers"
+          },
+          "coverage_gap": "Actual pinned SDK 2048-record queue overflow and SDK queue_full counter under a held exporter; execution pending"
+        },
+        {
+          "id": "G17-S12-A03",
+          "expected": "exporter recoverable without manual data repair",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-collector-fault.mjs",
+            "case": "collector-recovery-automatic"
+          },
+          "coverage_gap": "Owned collector restart, exporter transport recovery and business HTTP continuity; execution pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S13",
+      "name": "Security redaction",
+      "assertions": [
+        {
+          "id": "G17-S13-A01",
+          "expected": "secrets, cookies, personal canaries and SQL values absent from logs, spans and metric labels",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-export-privacy.mjs",
+            "case": "owned-sanitized-service-logs"
+          },
+          "coverage_gap": "Canary-injected API requests with positive exported trace and metric existence; execution pending"
+        },
+        {
+          "id": "G17-S13-A02",
+          "expected": "sanitized errors still diagnose component and type",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-database-fault.mjs",
+            "case": "database-alert-identifies-only-safe-component"
+          },
+          "coverage_gap": "Alert identifies PostgreSQL readiness with static sanitized text and no protected details; execution pending"
+        },
+        {
+          "id": "G17-S13-A03",
+          "expected": "retained M16 audit is not exposed",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17RestrictedWorkerReaderTests.cs",
+            "case": "RestrictedWorkerCanLinkOnlyOwnedReceiptAndCannotReadM16AuditOrModifyHistory"
+          },
+          "coverage_gap": "Populated audit records protected against restricted worker role read; execution still pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S14",
+      "name": "Tenant and authorization isolation",
+      "assertions": [
+        {
+          "id": "G17-S14-A01",
+          "expected": "cross-organization request produces same denial as baseline",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TenantIsolationTests.cs",
+            "case": "OptedInTelemetryPreservesTenantDenialsAndAnalystWriteRevocation"
+          },
+          "coverage_gap": "Real M17-enabled tenant and role restrictions asserted against disposable PostgreSQL"
+        },
+        {
+          "id": "G17-S14-A02",
+          "expected": "telemetry does not disclose tenant detail",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-worker-journey.mjs",
+            "case": "Prometheus exported private tenant/source/account identifiers"
+          },
+          "coverage_gap": "Actual populated synthetic tenant, source, credential and unique event canaries rejected by Tempo trace and Prometheus label exports; existing role denial tests remain mandatory; source authored, runtime verification NOT_EXECUTED"
+        },
+        {
+          "id": "G17-S14-A03",
+          "expected": "instrumentation cannot elevate a role",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/HarborOps.IntegrationTests/M17TenantIsolationTests.cs",
+            "case": "OptedInTelemetryPreservesTenantDenialsAndAnalystWriteRevocation"
+          },
+          "coverage_gap": "Real M17-enabled tenant and role restrictions asserted against disposable PostgreSQL"
+        }
+      ]
+    },
+    {
+      "id": "G17-S15",
+      "name": "Restart and cancellation",
+      "assertions": [
+        {
+          "id": "G17-S15-A01",
+          "expected": "process restart and canceled request do not leak stale spans or requests",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-restart.mjs",
+            "case": "actual_spans_inspected"
+          },
+          "coverage_gap": "Real canceled requests, API stop/restart, and positive Tempo span timestamps excluding post-stop spans; execution pending"
+        },
+        {
+          "id": "G17-S15-A02",
+          "expected": "shutdown drain is bounded",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-restart.mjs",
+            "case": "owned-api-shutdown-bounded"
+          },
+          "coverage_gap": "Owned process bounded shutdown and no SIGKILL required; execution pending"
+        },
+        {
+          "id": "G17-S15-A03",
+          "expected": "no duplicated business effect or worker lease change",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-restart.mjs",
+            "case": "restart-recovers-health-without-business-duplication"
+          },
+          "coverage_gap": "Durable receipt, lease and effect counts unchanged across fault; execution pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S16",
+      "name": "Private stack exposure",
+      "assertions": [
+        {
+          "id": "G17-S16-A01",
+          "expected": "default Compose contains no collector/dashboard",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-m17-source.test.mjs",
+            "case": "the default stack does not start or expose M17 components"
+          },
+          "coverage_gap": "Default compose source compared to optional feature declarations"
+        },
+        {
+          "id": "G17-S16-A02",
+          "expected": "optional dashboard bound loopback",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-network.mjs",
+            "case": "dashboard_listener"
+          },
+          "coverage_gap": "Docker-published loopback listener recorded in the raw network report with a live HTTP 200 and refused non-loopback probes"
+        },
+        {
+          "id": "G17-S16-A03",
+          "expected": "collector not exposed externally, untrusted reads denied",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-network.mjs",
+            "case": "Untrusted host client reached protected monitoring port"
+          },
+          "coverage_gap": "Docker runtime networks, bind checks and negative host HTTP probes; execution pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S17",
+      "name": "Alert triggers and clears",
+      "assertions": [
+        {
+          "id": "G17-S17-A01",
+          "expected": "controlled 5xx/latency/readiness faults trigger configured alerts",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-alert-matrix.mjs",
+            "case": "real-http-5xx-rate-fires-reference-alert"
+          },
+          "coverage_gap": "Combined positive live 120 HTTP 5xx, PostgreSQL-down and instrumented p95 alerts with exact Promtool reference transitions; source authored, runtime verification NOT_EXECUTED"
+        },
+        {
+          "id": "G17-S17-A02",
+          "expected": "threshold/window evidence exact",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "monitoring/m17/alert-test.yaml",
+            "case": "Readiness must not remain critical"
+          },
+          "coverage_gap": "Promtool checks exact two-sample readiness and recovery windows; execution pending"
+        },
+        {
+          "id": "G17-S17-A03",
+          "expected": "clear/hysteresis works after recovery",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "monitoring/m17/alert-test.yaml",
+            "case": "Latency recovers below"
+          },
+          "coverage_gap": "Promtool checks 5xx, p95, DB and backlog clear transitions; execution pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S18",
+      "name": "Low-traffic and disabled suppression",
+      "assertions": [
+        {
+          "id": "G17-S18-A01",
+          "expected": "zero/low traffic is unknown/insufficient, not healthy",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "zero and insufficient traffic render unknown rather than a healthy zero"
+          },
+          "coverage_gap": "Three-engine real rendered API rate, 5xx and p95 no-sample state with source Prometheus controls and artifact"
+        },
+        {
+          "id": "G17-S18-A02",
+          "expected": "held workers cause no false failure alert",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-worker.mjs",
+            "case": "fault-worker-stop-suppresses-stale-backlog"
+          },
+          "coverage_gap": "Gated stale alert checked while worker explicitly stopped"
+        },
+        {
+          "id": "G17-S18-A03",
+          "expected": "cool-down deduplicates repeat alerts",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "monitoring/m17/alert-test.yaml",
+            "case": "High failure rate falls to zero"
+          },
+          "coverage_gap": "Promtool checks single alert after repeated evaluations and eventual clearing; execution pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S19",
+      "name": "Local dashboard rendering",
+      "assertions": [
+        {
+          "id": "G17-S19-A01",
+          "expected": "critical panels show actual live measurement",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "critical monitoring panels use live series and no-data views are explicitly unknown"
+          },
+          "coverage_gap": "Actual authenticated critical panel model plus fresh request rate, histogram p95, DB, heartbeat, worker and collector series in all three engines; source authored, runtime verification NOT_EXECUTED"
+        },
+        {
+          "id": "G17-S19-A02",
+          "expected": "unknown/unavailable have explicit distinct states",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "rendered readiness distinguishes missing data from real downtime in three browsers"
+          },
+          "coverage_gap": "Real three-engine rendered panel assertions for missing/unknown, measured outage/unavailable and recovered/ready states; evidence per engine"
+        },
+        {
+          "id": "G17-S19-A03",
+          "expected": "alert links only sanitized diagnostic evidence",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "alert dashboard links stay local and never embed private diagnostic parameters"
+          },
+          "coverage_gap": "Authenticated Grafana model rejects external links and sensitive query arguments; execution pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S20",
+      "name": "End-to-end fault journey",
+      "assertions": [
+        {
+          "id": "G17-S20-A01",
+          "expected": "browser/API fault yields server correlation",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-diagnostic-journey.mjs",
+            "case": "page-originated-same-request"
+          },
+          "coverage_gap": "One exact page-originated 503, server correlation, same W3C trace, sanitized log and rendered fault alert"
+        },
+        {
+          "id": "G17-S20-A02",
+          "expected": "trace to DB/worker or documented async bridge resolves",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-diagnostic-journey.mjs",
+            "case": "real-trace-to-db"
+          },
+          "coverage_gap": "One exact page-originated 503, server correlation, same W3C trace, sanitized log and rendered fault alert"
+        },
+        {
+          "id": "G17-S20-A03",
+          "expected": "dashboard alert names correct component without private payload",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-diagnostic-journey.mjs",
+            "case": "same-fault-rendered-alert"
+          },
+          "coverage_gap": "One exact page-originated 503, server correlation, same W3C trace, sanitized log and rendered fault alert"
+        }
+      ]
+    },
+    {
+      "id": "G17-S21",
+      "name": "Performance overhead",
+      "assertions": [
+        {
+          "id": "G17-S21-A01",
+          "expected": "paired workload measurement meets approved p95 and memory budgets",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-performance.mjs",
+            "case": "measured_routes"
+          },
+          "coverage_gap": "Three matched telemetry-on/off p95 and memory pairs on baseline and scoped authenticated reads with per-route budgets, environment and variance; source authored, runtime verification NOT_EXECUTED"
+        },
+        {
+          "id": "G17-S21-A02",
+          "expected": "exact environment/variance reported",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-performance.mjs",
+            "case": "THREE_MATCHED_PAIRS"
+          },
+          "coverage_gap": "Exact hardware, sample sizes, order, baseline rows, standard deviations and SHA recorded"
+        },
+        {
+          "id": "G17-S21-A03",
+          "expected": "pressure does not block business",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-pressure-matrix.mjs",
+            "case": "business-under-tenfold-pressure-and-exporter-outage"
+          },
+          "coverage_gap": "Positive 4000 successful real business reads at tenfold baseline concurrency with collector stopped; paired route, memory and storage cases all required; source authored, runtime verification NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "G17-S22",
+      "name": "Storage and retention isolation",
+      "assertions": [
+        {
+          "id": "G17-S22-A01",
+          "expected": "local telemetry capped and expires only its own disposable data",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-retention-matrix.mjs",
+            "case": "m17-tempo-retention-results.json"
+          },
+          "coverage_gap": "Isolated actual 24h Prometheus TSDB block expiry, accelerated Tempo positive ingest/expiry with a retained newer trace, and bound 24h reference configs on owned stores; source authored, runtime verification NOT_EXECUTED"
+        },
+        {
+          "id": "G17-S22-A02",
+          "expected": "full store degrades observation safely",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-storage.mjs",
+            "case": "full-telemetry-store"
+          },
+          "coverage_gap": "Positive M8 M11 M15 M16 rows plus owned ENOSPC and full-data before-after hash"
+        },
+        {
+          "id": "G17-S22-A03",
+          "expected": "M8/M11/M15/M16 retained data unchanged",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-storage.mjs",
+            "case": "all-application-history-byte-identical"
+          },
+          "coverage_gap": "Positive M8 M11 M15 M16 rows plus owned ENOSPC and full-data before-after hash"
+        }
+      ]
+    },
+    {
+      "id": "G17-S23",
+      "name": "Defaults and regression",
+      "assertions": [
+        {
+          "id": "G17-S23-A01",
+          "expected": "M9/M10/M11/M13/M15 opt-in/hold semantics unchanged",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-regression-matrix.mjs",
+            "case": "M13AdmissionControlAcceptanceTests"
+          },
+          "coverage_gap": "Real M17-opted-in TRX passes required across accepted M9/M10/M11/M13/M15 and held feature-default classes; source authored, runtime verification NOT_EXECUTED"
+        },
+        {
+          "id": "G17-S23-A02",
+          "expected": "accepted authorization/health/audit APIs preserved",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-regression-matrix.mjs",
+            "case": "G15AuditAcceptanceTests"
+          },
+          "coverage_gap": "Raw positive authorization, audit, role, and accepted milestone API regression classes when telemetry is enabled but its host exporter is unavailable; source authored, runtime verification NOT_EXECUTED"
+        },
+        {
+          "id": "G17-S23-A03",
+          "expected": "changed source build, .NET regression and targeted browser suites pass",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/verify-g17-manifest.mjs",
+            "case": "Completed run has missing evidence or a failed stage"
+          },
+          "coverage_gap": "Full source-locked .NET build, unit/contract/integration TRX, web and browser cases mandatory; execution still pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S24",
+      "name": "Evidence integrity",
+      "assertions": [
+        {
+          "id": "G17-S24-A01",
+          "expected": "every claimed assertion maps to real source-locked result",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/reconcile-g17-assertions.test.mjs",
+            "case": "rejects a missing assertion evidence row even when other suites pass"
+          },
+          "coverage_gap": "72 distinct raw atomic technical results must be positive and source-locked; run pending"
+        },
+        {
+          "id": "G17-S24-A02",
+          "expected": "source hashes and manifests complete/no unlisted files",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/check-g17-manifest.test.mjs",
+            "case": "altered evidence cannot pass hash verification"
+          },
+          "coverage_gap": "All files are SHA-256 indexed and changed bytes rejected; run pending"
+        },
+        {
+          "id": "G17-S24-A03",
+          "expected": "negative control rejects tampering, skip and wrong SHA",
+          "assessment": "TEST_AUTHORED",
+          "witness": {
+            "path": "scripts/g17-adversarial-evidence.test.mjs",
+            "case": "G17 verifier rejects tampering, skipped cases, duplicate results and wrong source SHA"
+          },
+          "coverage_gap": "Negative controls exercise source, file hash, skipped, duplicate and missing case failures; run pending"
+        }
+      ]
+    },
+    {
+      "id": "G17-S25",
+      "name": "Independent review and gate recommendation",
+      "assertions": [
+        {
+          "id": "G17-S25-A01",
+          "expected": "separate reviewer checks raw source, privacy, metrics and full cases",
+          "assessment": "INDEPENDENT_REVIEW",
+          "witness": null,
+          "coverage_gap": "Separate independent S25 evidence and signed decision required"
+        },
+        {
+          "id": "G17-S25-A02",
+          "expected": "policy and procedural exceptions disclosed",
+          "assessment": "INDEPENDENT_REVIEW",
+          "witness": null,
+          "coverage_gap": "Separate independent S25 evidence and signed decision required"
+        },
+        {
+          "id": "G17-S25-A03",
+          "expected": "reviewer issues explicit signed PASS/NOT PASS before G17 acceptance",
+          "assessment": "INDEPENDENT_REVIEW",
+          "witness": null,
+          "coverage_gap": "Separate independent S25 evidence and signed decision required"
+        }
+      ]
+    }
+  ]
+}

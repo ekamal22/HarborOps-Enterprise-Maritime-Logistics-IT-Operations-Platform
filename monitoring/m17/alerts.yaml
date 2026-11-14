@@ -1,0 +1,109 @@
+# Local-only reference alerts. No external receiver or M15 notification routing.
+# The recording rules normalize absent and low-sample data as insufficient.
+groups:
+  - name: harborops-local-reference
+    interval: 15s
+    rules:
+      - record: harborops:m17:eligible_requests:5m
+        expr: sum(increase(harborops_request_duration_seconds_count[5m]))
+      - record: harborops:m17:api_5xx_fraction:5m
+        expr: sum(rate(harborops_request_failures_total[5m])) / clamp_min(sum(rate(harborops_request_duration_seconds_count[5m])), 0.000001)
+      - record: harborops:m17:api_p95_seconds:10m
+        expr: histogram_quantile(0.95, sum by (le) (rate(harborops_request_duration_seconds_bucket[10m])))
+      - record: harborops:m17:eligible_requests:10m
+        expr: sum(increase(harborops_request_duration_seconds_count[10m]))
+
+      - alert: HarborOpsElevatedApiFailureRate
+        expr: |
+          (harborops:m17:api_5xx_fraction:5m > 0.01
+           and harborops:m17:eligible_requests:5m >= 100)
+          or
+          (harborops:m17:api_5xx_fraction:5m >= 0.005
+           and on() (ALERTS{alertname="HarborOpsElevatedApiFailureRate",alertstate="firing"} == 1))
+        for: 30s
+        keep_firing_for: 5m
+        labels: {severity: degraded}
+        annotations:
+          summary: "Local API 5xx fraction above the approved reference trigger"
+          remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+      - alert: HarborOpsHighApiP95
+        expr: |
+          (harborops:m17:api_p95_seconds:10m > 1
+           and harborops:m17:eligible_requests:10m >= 100)
+          or
+          (harborops:m17:api_p95_seconds:10m >= 0.8
+           and on() (ALERTS{alertname="HarborOpsHighApiP95",alertstate="firing"} == 1))
+        for: 30s
+        keep_firing_for: 10m
+        labels: {severity: degraded}
+        annotations:
+          summary: "Local API p95 latency above one second"
+          remedy: "Below 0.8 seconds for 10 minutes"
+
+      - alert: HarborOpsDatabaseUnavailable
+        expr: |
+          (harborops_db_readiness_ratio == 0)
+          # Freshness bound = readiness probe period 15s + metric export interval 15s
+          # + Prometheus scrape interval 15s + 15s margin. A shorter bound is below the
+          # pipeline's own worst case and makes a live outage read as unknown.
+          and (time() - harborops_db_readiness_sample_unix_seconds < 60)
+          and on() (harborops_db_readiness_ratio offset 15s == 0)
+        for: 15s
+        keep_firing_for: 30s
+        labels: {severity: critical}
+        annotations:
+          summary: "Two consecutive recent PostgreSQL readiness samples failed"
+
+      - alert: HarborOpsTrackingBacklogStale
+        expr: |
+          (
+            (harborops_worker_backlog_age_seconds{worker="tracking"} > 120)
+            or
+            (
+              (harborops_worker_backlog_age_seconds{worker="tracking"} >= 0)
+              and on() (ALERTS{alertname="HarborOpsTrackingBacklogStale",alertstate="firing"} == 1)
+              unless on(worker) (
+                (max_over_time(harborops_worker_backlog_age_seconds{worker="tracking"}[30s]) < 60)
+                and (count_over_time(harborops_worker_backlog_age_seconds{worker="tracking"}[30s]) >= 2)
+              )
+            )
+          )
+          and on() (harborops_service_running_ratio{service="tracking"} == 1)
+          and on() (increase(harborops_worker_heartbeat_total{worker="tracking"}[1m]) > 0)
+        for: 30s
+        labels: {severity: degraded}
+        annotations:
+          summary: "Eligible tracking work is stale in the explicitly enabled worker"
+          remedy: "Below 60 seconds twice; held or disabled workers do not trigger"
+
+      - alert: HarborOpsMonitoringMissing
+        expr: |
+          (sum(up{job="m17_collector"}) == 0)
+          or
+          absent_over_time(harborops_telemetry_heartbeat_total[100s])
+          or
+          (increase(harborops_telemetry_heartbeat_total[100s]) == 0)
+        for: 15s
+        keep_firing_for: 30s
+        labels: {severity: degraded}
+        annotations:
+          summary: "Missing fresh application telemetry or collector scrape; business health is separate"
+
+      - alert: HarborOpsExporterDrops
+        expr: |
+          (sum(increase(otel_sdk_processor_span_processed_total{error_type="queue_full"}[1m])) > 0)
+          or (sum(increase(harborops_telemetry_dropped_total{signal="trace",reason="exporter_failure"}[1m])) > 0)
+        for: 15s
+        keep_firing_for: 30s
+        labels: {severity: informational}
+        annotations:
+          summary: "OpenTelemetry batch queue full or OTLP exporter failed"
+
+      - alert: HarborOpsTraceRateDrops
+        expr: increase(harborops_telemetry_dropped_total{signal="trace",reason="rate_limit"}[1m]) > 0
+        for: 15s
+        keep_firing_for: 30s
+        labels: {severity: informational}
+        annotations:
+          summary: "Local trace head sampling reached its rate cap"

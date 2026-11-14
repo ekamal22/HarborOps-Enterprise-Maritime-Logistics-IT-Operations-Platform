@@ -4,7 +4,7 @@
 **Local f7 tested executable source:** `5b1dcc41d5b19dcbacd66de38193dc5020964647`  
 **Remote documentation branch baseline:** `7b3d3e87a62c03ba6a7ce7d8d92b93bf7c3c78a7`  
 **Local post-test documentation commit reported:** `3158985d`  
-**Disposition:** **G17 NOT ACCEPTED; acceptance pending.** Technical evidence is positive but independent S25 A01, A02 and A03 remain open.
+**Disposition:** **G17 NOT ACCEPTED; acceptance pending.** Technical evidence is positive but independent S25 A01, A02 and A03 remain open. [Latest hosted preflight and independent evidence verdict](M17_G17_S25_F7_REMOTE_RUN_GATE_REVIEW_20261114.md) returned NOT PASS for formal acceptance.
 
 This document reconciles the separately supplied, corrected local f7 evidence archive with the accessible remote documentation. The tested executable source and reported post-test documentation commit remain local only, are not present in this branch, and have not been independently diffed. Do not infer that the source on the documentation branch was the source verified by f7. No code, migrations, workflows, data or accepted source branches are changed by this documentation reconciliation.
 
@@ -62,7 +62,7 @@ The f6 campaign, reportedly on the unchanged `5b1dcc41d5b19dcbacd66de38193dc5020
 3. Add and validate a non-vacuous F07 positive processing effect after restart. Review relevant mutations and complete targeted local tests before another complete exact-SHA disposable campaign, if executable source changes.
 4. Obtain a separate signed S25 PASS or NOT PASS recommendation for A01/A02/A03. Only an explicit acceptance decision can close G17.
 
-No new GitHub Actions run is authorized under the current local-only instruction. Do not alter protected main or accepted branches. G13 conditional integration, accepted G15/G16, the accepted Turkish presentation, M9 transport hold, default-off telemetry, data-history protections and the final G24 release restrictions are unchanged. M18 still requires accepted G17 and G16.
+A new GitHub Actions run has been explicitly requested, but source-locked preflight is blocked because the tested commit is absent from GitHub; no new hosted run has been launched. Do not alter protected main or accepted branches. G13 conditional integration, accepted G15/G16, the accepted Turkish presentation, M9 transport hold, default-off telemetry, data-history protections and the final G24 release restrictions are unchanged. M18 still requires accepted G17 and G16.
 
 **Historical records:** [G17 prior independent review](M17_G17_S25_INDEPENDENT_EVIDENCE_REVIEW_20261114.md), [S25 findings register](M17_G17_S25_OPEN_FINDINGS_REGISTER_20261114.md), [historical hosted green result](M17_G17_TECHNICAL_VERIFICATION_GREEN_20261114.md), [repo-wide reconciliation](M17_G17_F7_DOCUMENTATION_RECONCILIATION_20261114.md).
 

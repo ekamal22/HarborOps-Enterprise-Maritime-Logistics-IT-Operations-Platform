@@ -1,6 +1,8 @@
 # Project Status
 
-**Latest G17-S25 checkpoint (2026-11-14):** Local f7 evidence at `5b1dcc41d5b19dcbacd66de38193dc5020964647` reports 49/49 stages PASS and 72/72 technical witnesses, with three S25 assertions pending. Its 54-file manifest is verified, but the exact unpushed source is unavailable on this remote branch, f6/f7 P09 variance and positive F07 effect-once proof remain unresolved, and separate signed review is absent. **G17 NOT ACCEPTED; acceptance pending.** No hosted run or change to approved performance budgets is authorized. [Current f7 checkpoint](M17_G17_F7_S25_CURRENT_CHECKPOINT_20261114.md).
+**Latest G17 review outcome (2026-11-14):** GitHub Actions dispatch blocked before execution because f7 source `5b1dcc41` remains local-only. An independent raw-evidence assessment confirmed the 49-stage local PASS but returned **NOT PASS** for G17-S25 acceptance because source review, F07 positive effect-once proof, f6/f7 P09 disposition and separate sign-off remain open. [Full review](M17_G17_S25_F7_REMOTE_RUN_GATE_REVIEW_20261114.md). G17 NOT ACCEPTED.
+
+**Latest G17-S25 checkpoint (2026-11-14):** Local f7 evidence at `5b1dcc41d5b19dcbacd66de38193dc5020964647` reports 49/49 stages PASS and 72/72 technical witnesses, with three S25 assertions pending. Its 54-file manifest is verified, but the exact unpushed source is unavailable on this remote branch, f6/f7 P09 variance and positive F07 effect-once proof remain unresolved, and separate signed review is absent. **G17 NOT ACCEPTED; acceptance pending.** A new hosted G17 verification has been explicitly requested, but dispatch is blocked until the exact tested source is available. No new run has been launched; the approved performance budgets remain unchanged. [Current f7 checkpoint](M17_G17_F7_S25_CURRENT_CHECKPOINT_20261114.md).
 
 **Historical evidence note:** Earlier checkpoints below retain their original source-specific PASS or FAILED outcomes; they are not the latest f7 status.
 

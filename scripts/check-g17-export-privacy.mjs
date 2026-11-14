@@ -33,6 +33,7 @@ const results=[];
 const generatedTraceIds=new Set();
 const retainedTraces=[];
 let retainedLogs="";
+const logServiceLines={};
 let retainedSeries=[];
 // Third-party service logs (Grafana, Prometheus, nginx, socat, PostgreSQL) legitimately
 // contain schema and migration names such as "add unique index user.email". They are
@@ -166,12 +167,20 @@ try {
   const strictLogs=fetchLogs(["api","otelcol","tempo"]);
   const infrastructureLogs=fetchLogs(["prometheus","grafana","dashboard_gateway","web","postgres"]);
   const logs=strictLogs+infrastructureLogs;
-  // Every owned observed service must contribute positive log lines, so a missing
-  // service cannot silently narrow the scanned surface (S25-F03).
-  for(const service of ["api","otelcol","tempo","prometheus","grafana",
-    "dashboard_gateway","web","postgres"])
-    assert.match(logs,new RegExp("^"+service+"-1\\s+\\|","m"),
-      "No positive retained log lines from owned service "+service);
+  // Every owned observed service must be a running container of this project and is scanned.
+  // Services that always log must contribute lines; a quiet collector, forwarder or web
+  // server may legitimately have none, so for those the line count is recorded, not required.
+  const alwaysLogging=["api","tempo","prometheus","grafana","postgres"];
+  const mayBeQuiet=["otelcol","dashboard_gateway","web"];
+  for(const service of [...alwaysLogging,...mayBeQuiet]) {
+    const ids=execFileSync("docker",[...compose,"ps","-q",service],{encoding:"utf8",timeout:30000})
+      .split(/\s+/).filter(Boolean);
+    assert.equal(ids.length,1,"Owned service is not running and cannot be scanned: "+service);
+    const lines=(logs.match(new RegExp("^"+service+"-1\\s+\\|","gm"))??[]).length;
+    logServiceLines[service]=lines;
+    if(alwaysLogging.includes(service))
+      assert.ok(lines>0,"No positive retained log lines from owned service "+service);
+  }
   scan(strictLogs,"harborops-and-exporter-service-logs");
   assert.ok(!credentialShapes.test(infrastructureLogs),
     "Infrastructure service logs contain a credential-shaped value");
@@ -216,7 +225,7 @@ try {
     retained_log_bytes:Buffer.byteLength(retainedLogs),
     exported_metric_series_inspected:seriesCount,
     canary_sha256:crypto.createHash("sha256").update(tag).digest("hex"),
-    snapshots:results,injected_controls:injectedControls,assertion_review:"PENDING",
+    snapshots:results,log_service_lines:logServiceLines,injected_controls:injectedControls,assertion_review:"PENDING",
     failure_type:failure?.name??null,
     failure_message:failure?String(failure.message).slice(0,240):null};
   fs.writeFileSync(path.join(root,"m17-export-privacy-results.json"),

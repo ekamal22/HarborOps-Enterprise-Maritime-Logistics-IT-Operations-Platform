@@ -42,7 +42,10 @@ test("window edges are inclusive, the operation must be the baseline read and in
   assert.throws(()=>verifyMalformedBaselineTrace(trace,1700000000,1700000001,undefined));
   assert.throws(()=>verifyMalformedBaselineTrace(trace,1700000000,1700000001,42));
 });
-test("a canary that is not a non-empty string is refused, including a truthy number or object",()=>{
-  for(const canary of [undefined,"",0,5,{},["unique-canary"],true])
-    assert.throws(()=>verifyMalformedBaselineTrace(trace,1700000000,1700000001,canary),undefined,String(canary));
+test("a canary that is not a non-empty string is refused by the canary assertion itself, not by a later accident",()=>{
+  // The canary assertion raises an AssertionError. A later TypeError (toLowerCase on a non-string) or the
+  // "canary reached" assertion must not be what refuses these inputs.
+  const refusedByCanaryAssertion=error=>error.name==="AssertionError"&&!/canary reached/.test(error.message);
+  for(const canary of [undefined,null,"",0,5,{},["unique-canary"],true])
+    assert.throws(()=>verifyMalformedBaselineTrace(trace,1700000000,1700000001,canary),refusedByCanaryAssertion,String(canary));
 });

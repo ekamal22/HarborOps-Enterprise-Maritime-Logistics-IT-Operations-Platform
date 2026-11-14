@@ -157,3 +157,13 @@ test("a mathematically exact ten percent increase is reported as exceeding becau
  assert.ok(reviewed.pooled.baseline.increase_pct > 10 && reviewed.pooled.baseline.increase_pct < 10.0000001);
  assert.equal(recalculateP09(build({on: 10.99999}), 40).result, "PASS");
 });
+test("a recorded pair percentage is accepted at exactly the approved tolerance and refused just beyond it", () => {
+ // The recomputed pair increase is exactly 0 when both modes have the same p95, so the difference to the
+ // recorded value is the recorded value itself, and 0.00005 is the approved inclusive tolerance.
+ const atEdge = build({on: 10});
+ atEdge.pairs[0].route_pairs.baseline.p95_increase_pct = 0.00005;
+ assert.equal(recalculateP09(atEdge, 40).result, "PASS");
+ const beyond = build({on: 10});
+ beyond.pairs[0].route_pairs.baseline.p95_increase_pct = 0.00006;
+ assert.throws(() => recalculateP09(beyond, 40), /not reproducible/);
+});

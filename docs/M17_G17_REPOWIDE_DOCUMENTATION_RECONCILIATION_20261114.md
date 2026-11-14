@@ -1,7 +1,7 @@
 # G17 Repository-Wide Documentation Reconciliation, 2026-11-14
 
 **Executable source SHA:** `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`.
-**Hosted verification:** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851), source preflight PASS and full runtime verification pending at this checkpoint.
+**Hosted verification (latest observed result):** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851), FULL CAMPAIGN SUCCESS on the executable SHA above. Historical pending text below is preserved as the earlier checkpoint, not current status.
 **Gate:** G17 NOT ACCEPTED; acceptance pending. The prior independent S25 review returned NOT PASS.
 
 ## Verified recovery
@@ -33,3 +33,12 @@ This reconciliation is a documentation-only descendant of executable SHA `f174ea
 After the initial checkpoint above, [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) FAILED during contract tests. It passed preflight and 319 unit tests, but the old `EnabledTelemetryRecordsExactlyOneRequestDurationAndFailureObservation` test counted both the new zero-valued first-incident seed and one real positive failure as two failures. The corrected test requires the zero baseline, exactly one positive increment of one, an aggregate positive count of one and precisely one duration observation. It retains the no-duplicate behavior and the original production 5xx thresholds.
 
 The new executable SHA is `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`. [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) passed the no-skip preflight; full verification remains pending at this dated checkpoint. All earlier failure archives remain source-locked, and the S25-remediated 72 technical witness requirements plus 3 independent review requirements are unchanged.
+
+
+## Verified final hosted result, November 14, 2026
+
+The latest source-locked G17 run [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) passed both the no-skip source/assertion preflight and the full disposable campaign, with no failed or skipped required stages. Its evidence records 47/47 stages PASS, 72/72 technical assertions PASS, and three separate independent S25 review assertions pending. All 25 G17 scenario IDs are present. Raw TRX totals are 319 unit, 60 contract, 54 M17 integration and 34 accepted regressions, with zero failed and skipped results. The 24-case dashboard Playwright run reports zero unexpected, flaky or skipped cases. Export privacy, malformed-context traces, worker journey, real DB and 5xx alerts, cardinality, retention and measured overhead passed.
+
+The manifest contains 45 signed file entries, zero missing required artifacts and source `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`. The downloaded GitHub archive contains 43 of those entries with matching hashes and omits two hidden `.last-run.json` Playwright metadata files. This packaging difference is explicitly for independent S25 consideration. The current feature branch adds only documentation beyond the executable verified SHA; protected main has not changed.
+
+**Current disposition: technically verified, NOT ACCEPTED.** Independent G17-S25 must inspect the raw artifacts, source-bound assertion witnesses, privacy evidence and P09 aggregation decision before acceptance is considered. [Detailed green record](M17_G17_TECHNICAL_VERIFICATION_GREEN_20261114.md).

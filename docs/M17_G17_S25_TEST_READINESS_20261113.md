@@ -64,3 +64,7 @@ See the [verification recovery register](M17_G17_VERIFICATION_RECOVERY_20261113.
 5. Do not mark G17 accepted, merged, deployed, or release-ready until a separate recorded decision. Protected `main`, the M9 transport hold, historical failure evidence and retained data stay unchanged.
 
 The approval to run G17 verification is limited to the isolated, disposable feature-branch campaign. It does not authorize production monitoring, data deletion, other branch activity, or a release.
+
+## Update 2026-11-14: executed technical verification
+
+All 72 technical assertions were executed and individually witnessed by raw evidence in local campaign c7 at `085fc666448962ec4d133bd01bf3992f7d360191` (40 of 40 stages, ledger 72 of 72, manifest verified). The per-assertion table, evidence hashes, qualifications (owner-confirmed P09 evaluation rule, small privacy trace sample, environment notes) and the step-by-step procedure for the three independent G17-S25 assertions are in the [local verification result](M17_G17_LOCAL_VERIFICATION_RESULT_20261114.md). The independent review has not occurred and G17 is not accepted.

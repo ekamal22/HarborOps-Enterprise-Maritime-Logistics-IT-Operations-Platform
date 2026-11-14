@@ -64,3 +64,19 @@ The new full source-locked verification is [run #43470770246](https://github.com
 - Preserve all historical failed runs and their evidence; never rewrite a failed artifact as a pass. Do not alter accepted `main`, default Compose, migrations, notification retention, or production configuration.
 
 [Current milestones and gate authority](STATUS.md) | [Authoring and independent-review readiness](M17_G17_S25_TEST_READINESS_20261113.md) | [Verification matrix](M17_VERIFICATION_PLAN.md).
+
+## Local campaigns after the hosted failures (2026-11-14)
+
+GitHub Actions was not used again. The complete campaign was run locally through `scripts/run-g17-local.ps1`; every campaign below is a separate evidence directory under `E:\HarborOps-Verification\g17-local` and none was edited after the fact.
+
+| Campaign | Source SHA | Outcome | Cause |
+| --- | --- | --- | --- |
+| c1 | `94937502` | failed at the database fault stage | test suites re-provisioned the shared `harborops_api` role |
+| c2 | `36fc20c6` | failed at export privacy | bounded Tempo search over a flooded backend; empty trace envelope for unstored ids |
+| c3 | `43518038` | failed at overhead measurement | per-pair p95 noise equal to the budget |
+| c4 | `a32fbc07` | failed at the database fault stage | readiness freshness bound below the pipeline worst case |
+| c5 | `06c1f020` | failed at overhead measurement | overhead near the budget edge; owner chose the evaluation rule |
+| c6 | `ab76c039` | failed at the worker stage | health check read before the first container check |
+| c7 | `085fc666` | COMPLETE, 72 of 72 technical, manifest verified | none |
+
+The hosted run 43477790029 itself failed because Prometheus rejected `--web.enable-admin-api=false`. See the [local verification result](M17_G17_LOCAL_VERIFICATION_RESULT_20261114.md) for every correction, the per-assertion ledger and the reviewer procedure. G17 remains NOT ACCEPTED.

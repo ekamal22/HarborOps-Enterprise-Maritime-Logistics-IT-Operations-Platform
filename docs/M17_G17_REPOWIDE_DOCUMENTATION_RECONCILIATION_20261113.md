@@ -32,3 +32,7 @@ The repeated obsolete 26-authored, 32-partial and 14-missing summaries and claim
 The verification recovery register tracks the failed runs, exact corrective commits and latest relaunch. Next evidence must reconcile all 72 technical assertions individually, all required runtime and browser cases, raw artifacts, privacy and operational constraints. The three G17-S25 assertions then require separate independent review. Passing a unit or contract suite, successful compilation, completed authoring, or an in-progress run is never an accepted G17 gate decision.
 
 [Current status](STATUS.md) | [G17 readiness](M17_G17_S25_TEST_READINESS_20261113.md) | [Verification failures and relaunches](M17_G17_VERIFICATION_RECOVERY_20261113.md).
+
+## Update 2026-11-14
+
+Current M17 status wording across `STATUS.md`, `ROADMAP.md`, the recovery register and the S25 readiness document now distinguishes: implemented and tested (yes), technically verified for 72 of 72 technical assertions at `085fc666` (yes, locally, run c7), independently reviewed (no), accepted (no), integrated (no). The execution graph structure is unchanged because no milestone dependency changed. Historical hosted failure records were kept as written.

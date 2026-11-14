@@ -32,7 +32,7 @@ $sha = (git rev-parse HEAD).Trim()
 
 To include the separately held tracking worker only inside the fresh disposable verification project, explicitly add `-VerifyDisposableWorker` alongside `-StartDisposableStack`. This is not a default action and does not authorize M9 activation in any retained environment. The worker probe preserves its own raw results and restores the owned worker after the fault check.
 
-The evidence directory must not exist beforehand. Its sibling `candidate-unique-run-disposable-stack` must also not exist. The runtime profile uses loopback PostgreSQL port 155432, API 18080, web 15173 and Grafana 3301; first confirm they are free. The runner creates the database only in its separate E:-backed folder, checks project ownership labels, runs .NET and frontend checks, validates Prometheus rules, exercises the isolated browser suites and stores an unreviewed evidence manifest. It never issues `docker compose down -v`, prunes a volume, changes protected main or declares gate acceptance.
+The evidence directory must not exist beforehand. Its sibling `candidate-unique-run-disposable-stack` must also not exist. The runtime profile uses loopback PostgreSQL port 15543, a separate test-suite PostgreSQL on 15544, API 18080, web 15173 and the dashboard forwarder on 3301; first confirm they are free. The runner creates the database only in its separate E:-backed folder, checks project ownership labels, runs .NET and frontend checks, validates Prometheus rules, exercises the isolated browser suites and stores an unreviewed evidence manifest. It never issues `docker compose down -v`, prunes a volume, changes protected main or declares gate acceptance.
 
 After a failure, preserve the evidence directory, the separate owned database directory and the source SHA for investigation. The `-StopOwnedContainers` option requests a stop of only its uniquely named services, not deletion. A failed build, browser case, rule test or source check is a failed campaign and must not be converted into a G17 pass. The `G17-S25` review occurs separately after raw evidence completeness is established.
 
@@ -107,3 +107,13 @@ If a service fails to stop, is missing an ownership label, or its volume source 
 ## 8. Gate and release handoff
 
 G17 closure requires [the 25-scenario matrix](M17_VERIFICATION_PLAN.md), approved policies, independent raw evidence review and explicit acceptance. Once G17 is accepted, M18 can consume diagnostic references under its own incident CRUD policy and G16 audit rules. Neither this runbook nor G17 authorizes public dashboards, a hosted collector, paging integrations, production deployment, external telemetry export or G24 release.
+
+## Local run notes (2026-11-14)
+
+- Run the runner with PowerShell 7 (`pwsh`) and a .NET 10 SDK, from a clean committed worktree on E:, passing the exact 40-character commit as `-ExpectedSha`. No hosted workflow is involved.
+- Integration and regression suites run against their own disposable PostgreSQL (`postgres_tests`, loopback 15544). They re-provision the cluster-wide `harborops_api` and `harborops_worker` roles with their own passwords, so they must never share a cluster with the stack under test.
+- Grafana is attached only to internal networks, so Docker cannot publish its port. The single-purpose `dashboard_gateway` forwarder on a routable network owns the one published listener on `127.0.0.1:3301`.
+- On Windows hosts the runner sets `HARBOROPS_G17_STATE_ROOT` to a folder inside the Docker engine VM for the PostgreSQL and keyring data, because Windows bind mounts cannot be chowned to the rootless UIDs. The folder is per project and is not deleted by the runner.
+- Telemetry-path timing: a readiness sample can take up to probe period (15 s) plus metric export (15 s) plus scrape (15 s) to be queryable, so a sample is "current" for 60 s. Do not shorten this bound below the worst case.
+- P09 overhead is judged on pooled p95 across the three matched rounds and on the mean peak-memory increase over the three pairs, against the unchanged 10% and 15% budgets. Raw latencies and every pair are retained in `m17-performance-raw.json`.
+- Result of the first complete local campaign: [local verification result](M17_G17_LOCAL_VERIFICATION_RESULT_20261114.md).

@@ -28,9 +28,14 @@ function fixture(dir) {
  put(dir,"m17-export-privacy-series.json",wrap({series}));
  put(dir,"m17-export-privacy-logs.txt",logs);
  put(dir,"m17-worker-journey-results.json",wrap({result:"PASS",retained_metric_series:1,
-  exported_metric_series_checked_for_tenant_privacy:1,retained_trace_documents:1}));
+  exported_metric_series_checked_for_tenant_privacy:1,retained_trace_documents:1,
+  worker_log_bytes:Buffer.byteLength("worker-1 | Tracking work polling started\n"),
+  worker_log_sha256:digest("worker-1 | Tracking work polling started\n"),
+  worker_log_checked_values:4,worker_log_positive_signal:true}));
  put(dir,"m17-worker-journey-traces.json",wrap({traces:[{document:doc}]}));
  put(dir,"m17-worker-journey-series.json",wrap({series}));
+ const workerLogs="worker-1 | Tracking work polling started\n";
+ put(dir,"m17-worker-journey-logs.txt",workerLogs);
  put(dir,"m17-malformed-export-results.json",wrap({result:"PASS",injected_requests:960,
   validated_exported_traces:4,trace_records_retained:4,negative_canary_absent:true}));
  put(dir,"m17-malformed-export-traces.json",wrap({window_start:1700000000,
@@ -68,6 +73,9 @@ test("changed trace, missing series and false browser state are rejected",()=>{
   const ui=JSON.parse(fs.readFileSync(path.join(dir,f)));
   ui.verified_statuses.down="PostgreSQL readiness Ready";
   put(dir,f,ui);
+  assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
+  fixture(dir);
+  put(dir,"m17-worker-journey-logs.txt","worker-1 | Tracking work polling started\nBearer sensitive-worker-private-value");
   assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
   fixture(dir);
   const bad="m17-ui-no-traffic-chromium.json";

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import {spawnSync} from "node:child_process";
+import {verifyOwnedWorkerLog} from "./g17-worker-log-privacy.mjs";
 
 const project=process.env.HARBOROPS_G17_PROJECT;
 const sha=process.env.HARBOROPS_SOURCE_SHA;
@@ -38,6 +39,7 @@ const protectedValues=[];
 const retainedTraceDocuments=[];
 let retainedMetricSeries=[];
 let privateLabelsChecked=0;
+let retainedWorkerLog="",workerLogWitness=null;
 async function tempo(endpoint,params={}) {
  const u=new URL("http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-traces"+endpoint);
  for(const [key,val] of Object.entries(params))u.searchParams.set(key,String(val));
@@ -178,6 +180,12 @@ try {
 
  assert.equal(Number(sql("SELECT count(*) FROM tracking_inbox_receipts "+
    "WHERE source_id='"+sourceId+"'")),accepted,"Replay created a duplicate receipt");
+ // The worker is started only for this disposable project. Scan actual worker
+ // stdout/stderr after the source-private transaction and fifty dispositions.
+ retainedWorkerLog=run(["logs","--no-color","--tail","15000","worker"]);
+ workerLogWitness=verifyOwnedWorkerLog(retainedWorkerLog,protectedValues);
+ fs.writeFileSync(path.join(evidence,"m17-worker-journey-logs.txt"),
+   retainedWorkerLog+"\n",{flag:"wx"});
  fs.writeFileSync(path.join(evidence,"m17-worker-journey-traces.json"),
    JSON.stringify({source_sha:sha,project,traces:retainedTraceDocuments},null,2)+"\n",{flag:"wx"});
  fs.writeFileSync(path.join(evidence,"m17-worker-journey-series.json"),
@@ -192,6 +200,10 @@ fs.writeFileSync(output,JSON.stringify({
  exported_metric_series_checked_for_tenant_privacy:privateLabelsChecked,
  retained_metric_series:retainedMetricSeries.length,
  retained_trace_documents:retainedTraceDocuments.length,
+ worker_log_bytes:workerLogWitness?Buffer.byteLength(retainedWorkerLog+"\n"):0,
+ worker_log_sha256:workerLogWitness?crypto.createHash("sha256").update(retainedWorkerLog+"\n").digest("hex"):null,
+ worker_log_checked_values:workerLogWitness?.checked_values??0,
+ worker_log_positive_signal:!!workerLogWitness,
  failure_type:failure?.name??null,
  failure_message:failure?String(failure.message).slice(0,240):null,accepted_assertions:0
 },null,2)+"\n",{flag:"wx"});

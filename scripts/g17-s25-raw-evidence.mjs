@@ -77,6 +77,14 @@ export function verifyS25RawSnapshots(root,source,project) {
   safeSeries(ws.series);
   assert.ok(wt.traces.length>0);
   wt.traces.forEach(item=>safeTrace(item.document));
+  const workerLogs=fs.readFileSync(path.join(root,"m17-worker-journey-logs.txt"),"utf8");
+  assert.ok(workerLogs.length>0);
+  assert.match(workerLogs,/Tracking work polling started|Tracking worker disposition/);
+  assert.equal(Buffer.byteLength(workerLogs),worker.worker_log_bytes);
+  assert.equal(sha(workerLogs),worker.worker_log_sha256);
+  assert.ok(worker.worker_log_checked_values>=4);
+  assert.equal(worker.worker_log_positive_signal,true);
+  assert.doesNotMatch(workerLogs,/\\bBearer\\s+[A-Za-z0-9._~-]{16,}|\\bPassword\\s*[:=]\\s*\\S{8,}/i);
 
   const malformed=load(root,"m17-malformed-export-results.json");
   const mt=load(root,"m17-malformed-export-traces.json");

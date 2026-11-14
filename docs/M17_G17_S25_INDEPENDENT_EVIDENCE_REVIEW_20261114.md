@@ -1,6 +1,6 @@
 # G17-S25 Evidence Review and Acceptance Recommendation
 
-**G17-S25 findings tracking (2026-11-14):** All six open technical, evidence, performance and procedural items from the independent review are recorded in the [S25 open-findings register](M17_G17_S25_OPEN_FINDINGS_REGISTER_20261114.md). This is an issue log, not a correction or verified rerun. The G17 technical campaign is green, but **G17 NOT ACCEPTED**; review and acceptance pending.
+**G17-S25 findings tracking (2026-11-14):** All eight open technical, evidence, performance and procedural items after the second-pass review are recorded in the [S25 open-findings register](M17_G17_S25_OPEN_FINDINGS_REGISTER_20261114.md). This is an issue log, not a correction or verified rerun. The G17 technical campaign is green, but **G17 NOT ACCEPTED**; review and acceptance pending.
 
 **Recorded:** November 14, 2026
 **Source:** `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`
@@ -161,3 +161,14 @@ G17-S25-A01 requires a separate reviewer, and G17-S25-A03 requires a signed expl
 - **G17-S25-A03: NOT PASS recommendation recorded.** This is not a signed acceptance approval from a distinct reviewer.
 
 **Result:** G17 remains NOT ACCEPTED. Preserve the original green run and all earlier failed and c7 evidence. Fix F01-F03 with real positive and negative witnesses, run a new exact-source complete campaign when tests or implementation change, and have a distinct reviewer consider F04-F06 and sign an explicit later decision. Protected `main`, M9 hold, M15 retention and all accepted G13/G15/G16/Turkish gates remain unchanged.
+
+
+## Second-pass independent evidence check, November 14, 2026
+
+All 25 scenario IDs and 75 atomic assertions were rechecked against the exact S25 requirements and the immutable raw hosted artifact. The 33 independent raw checks were rerun and returned 31 passes plus the two previously disclosed P09 and Playwright-metadata qualifications. Two additional gaps were identified and logged in the [open-findings register](M17_G17_S25_OPEN_FINDINGS_REGISTER_20261114.md).
+
+**S25-F07, G17-S15-A01/A03:** The restart test's before and after application footprint is `0,0,0` (work items, effects, receipts). The source neither seeds nor verifies a real leased worker item, and does not link the 80 canceled read requests to trace identities. It cannot demonstrate the required active worker lease invariant or cancellation-specific trace lifecycle solely by those checks.
+
+**S25-F08, G17-S22-A02/A03:** The storage test proves an owned full telemetry tmpfs, healthy business HTTP responses, and equal complete public-schema data-only dump hashes. It does not prove an explicit degraded telemetry signal nor any preexisting protected M8/M11/M15/M16 rows that could be destroyed. Positive synthetic retained history and a degradation witness are required before these assertions can receive independent closure.
+
+**Updated review disposition:** Eight open findings (F01-F08), including six previously reported and two found in the second pass. G17 source and technical run unchanged; G17-S25-A01 NOT PASS, A02 exceptions/open coverage recorded, A03 separate signed decision pending. **G17 NOT ACCEPTED.** This addendum does not overrule or rewrite the earlier green run or the original review date.

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {execFileSync} from "node:child_process";
 import {performance} from "node:perf_hooks";
+import {verifyTrxCases} from "./g17-results-contract.mjs";
 
 const project=process.env.HARBOROPS_G17_PROJECT;
 const sha=process.env.HARBOROPS_SOURCE_SHA;
@@ -65,6 +66,10 @@ function databaseFootprint() {
   return docker(["exec","-T","postgres","psql","-U","harborops",
     "-d","harborops","-At","-v","ON_ERROR_STOP=1","-c",sql]).trim();
 }
+const leaseProof=verifyTrxCases(
+  fs.readFileSync(path.join(evidence,"g17-integration.trx"),"utf8"),
+  ["ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects"]);
+assert.ok(leaseProof.passed>0,"A source-locked positive worker lease fixture is required");
 let before;
 try {
   await check("pre-restart-synthetic-baseline",async()=>{
@@ -176,7 +181,9 @@ if(!stopped) {
 }
 const report={source_sha:sha,project,result:!failure&&!stopped&&checks.length===5&&
   checks.every(x=>x.status==="PASS")?"PASS":"FAIL",
-  checks,api_restored:!stopped,assertion_acceptance:"PENDING"};
+  checks,api_restored:!stopped,positive_worker_lease_witness:true,
+  source_locked_lease_method:"ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects",
+  assertion_acceptance:"PENDING"};
 fs.writeFileSync(path.join(evidence,"m17-restart-results.json"),
   JSON.stringify(report,null,2)+"\n",{flag:"wx"});
 if(report.result!=="PASS")throw Error("G17 restart, cancellation or shutdown bound failed");

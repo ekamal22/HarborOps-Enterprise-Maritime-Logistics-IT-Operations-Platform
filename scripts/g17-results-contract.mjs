@@ -89,6 +89,7 @@ export const G17_REQUIRED_METHODS = {
     "RealNonzeroRequestAndDatabaseDurationsReachMeterListeners",
     "WorkerDispositionsAreMeasuredWithExactFiniteOutcomes",
     "KeyedReceiptAndWorkerSamplersAgreeWithoutASharedTraceParent",
-    "WorkerTraceSanitizerRejectsUntrustedDetailsAndNonTagFields"
+    "WorkerTraceSanitizerRejectsUntrustedDetailsAndNonTagFields",
+    "ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects"
   ]
 };

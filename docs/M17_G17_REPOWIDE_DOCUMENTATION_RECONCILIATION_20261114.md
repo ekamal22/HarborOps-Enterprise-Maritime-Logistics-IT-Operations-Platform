@@ -1,7 +1,7 @@
 # G17 Repository-Wide Documentation Reconciliation, 2026-11-14
 
-**Executable source SHA:** `a236ab64574cfec8b0dcbde232a5d22ef086783b`.
-**Hosted verification:** [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907), no-skip preflight PASS and full campaign pending at the time of this record.
+**Executable source SHA:** `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`.
+**Hosted verification:** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851), source preflight PASS and full runtime verification pending at this checkpoint.
 **Gate:** G17 NOT ACCEPTED; acceptance pending. The prior independent S25 review returned NOT PASS.
 
 ## Verified recovery
@@ -26,3 +26,10 @@ The former assertion in `DOCUMENT_STATUS_GUIDE.md` that M17 runtime implementati
 The authoritative execution graph lives in `docs/execution-graph.json` with `docs/EXECUTION_GRAPH.md` generated from it. No dependency or gate acceptance changed, so the graph was intentionally not rewritten. This prevents divergence between source and generated graph. Protected `main`, accepted G13/G15/G16 and Turkish outcomes, the M9 hold, M15 data policies and earlier G17 failure evidence remain unchanged.
 
 This reconciliation is a documentation-only descendant of the executable SHA used in [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907). A later runtime result requires a new dated documentation checkpoint and cannot retroactively make a failed run pass.
+
+
+## Contract regression follow-up and new source lock, 2026-11-14
+
+After the initial checkpoint above, [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) FAILED during contract tests. It passed preflight and 319 unit tests, but the old `EnabledTelemetryRecordsExactlyOneRequestDurationAndFailureObservation` test counted both the new zero-valued first-incident seed and one real positive failure as two failures. The corrected test requires the zero baseline, exactly one positive increment of one, an aggregate positive count of one and precisely one duration observation. It retains the no-duplicate behavior and the original production 5xx thresholds.
+
+The new executable SHA is `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`. [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) passed the no-skip preflight; full verification remains pending at this dated checkpoint. All earlier failure archives remain source-locked, and the S25-remediated 72 technical witness requirements plus 3 independent review requirements are unchanged.

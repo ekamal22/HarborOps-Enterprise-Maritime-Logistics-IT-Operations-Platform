@@ -134,6 +134,8 @@ if ($StartDisposableStack) {
         'm17-collector-config-validation.txt',
         'm17-network-results.json','g17-integration.trx','g17-regressions.trx','g17-regression-matrix-results.json',
         'm17-browser-results.json',
+        'm17-ui-state-chromium.json','m17-ui-state-firefox.json',
+        'm17-ui-state-webkit.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-restart-results.json',
         'm17-export-privacy-results.json','m17-malformed-export-results.json',

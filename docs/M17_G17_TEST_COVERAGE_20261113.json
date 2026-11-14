@@ -673,10 +673,10 @@
           "expected": "unknown/unavailable have explicit distinct states",
           "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-g17-restart.mjs",
-            "case": "stale-readiness-is-unknown-not-healthy"
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "rendered readiness distinguishes missing data from real downtime in three browsers"
           },
-          "coverage_gap": "Stopped API stale data is unknown with collector healthy; DB outage separately establishes unavailable 0; execution pending"
+          "coverage_gap": "Real three-engine rendered panel assertions for missing/unknown, measured outage/unavailable and recovered/ready states; evidence per engine"
         },
         {
           "id": "G17-S19-A03",

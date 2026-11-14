@@ -134,7 +134,26 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "noValue": "Unknown"
+          "noValue": "Unknown",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Unavailable",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "Ready",
+                  "color": "green"
+                },
+                "-1": {
+                  "text": "Unknown",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
         },
         "overrides": []
       },

@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
 
 const dashboard = "/d/harborops-m17/local-service-diagnostics";
 const apiBase = process.env.HARBOROPS_G17_API_URL || "http://127.0.0.1:18080";
@@ -217,4 +219,72 @@ test("zero and insufficient traffic render unknown rather than a healthy zero", 
   await expect(page.getByText("API request rate",{exact:false}).first()).toBeVisible();
   await expect(page.getByText("PostgreSQL readiness",{exact:false}).first()).toBeVisible();
   await expect(page.getByText("API p95 latency",{exact:false}).first()).toBeVisible();
+});
+
+// Inspect a single rendered Grafana panel, not just its datasource query or
+// saved JSON settings. Reject text borrowed from another panel on the page.
+async function renderedPanelText(page,title) {
+  const header=page.getByText(title,{exact:false}).first();
+  await expect(header).toBeVisible();
+  return header.evaluate(el=>{
+    const otherTitles=["API request rate","API 5xx rate","API p95 latency",
+      "Notification worker","Application heartbeats","Collector transport probe",
+      "Active local alerts","Tracking eligible backlog age"];
+    let node=el;
+    for(let depth=0;node&&depth<12;node=node.parentElement,depth++) {
+      const text=String(node.innerText||"");
+      if(text.length>1400||!text.includes("PostgreSQL readiness"))continue;
+      if(otherTitles.some(title=>text.includes(title)))continue;
+      if(/\b(?:Unknown|No data|Unavailable|Ready)\b/i.test(text))return text;
+    }
+    return "";
+  });
+}
+
+test("rendered readiness distinguishes missing data from real downtime in three browsers",
+  async ({page},testInfo)=>{
+  await logIn(page);
+  const source=await queryPrometheus(page,"harborops_db_readiness_ratio");
+  expect(source.length).toBe(1);
+  expect(Number(source[0].value[1])).toBe(1);
+  const now=Math.floor(Date.now()/1000);
+  const since=now-2700;
+  const range=await page.request.get(prometheusProxy.replace(/\/query$/,"/query_range"),{
+    params:{query:"harborops_db_readiness_ratio",start:String(since),
+      end:String(now),step:"15s"}
+  });
+  expect(range.status()).toBe(200);
+  const historical=await range.json();
+  expect(historical.status).toBe("success");
+  const values=historical.data?.result?.[0]?.values??[];
+  const failures=values.filter(row=>Number(row[1])===0);
+  expect(failures.length,"The earlier controlled database outage must have real samples")
+    .toBeGreaterThanOrEqual(2);
+  const downTime=Number(failures[Math.floor(failures.length/2)][0]);
+  const recorded={source_sha:process.env.HARBOROPS_SOURCE_SHA,
+    engine:testInfo.project.name,verified_statuses:{}};
+  // A historical instant without any data must not appear healthy.
+  const past=now-48*3600;
+  await page.goto(dashboard+"?from="+String((past-15)*1000)+
+    "&to="+String((past+15)*1000));
+  await expect.poll(()=>renderedPanelText(page,"PostgreSQL readiness"),
+    {timeout:90000,intervals:[3000]}).toMatch(/\b(?:Unknown|No data)\b/i);
+  const missing=await renderedPanelText(page,"PostgreSQL readiness");
+  expect(missing).not.toMatch(/\b(?:Ready|Unavailable)\b/);
+  recorded.verified_statuses.missing=missing;
+  // During a real PostgreSQL outage a measured 0 must render Unavailable.
+  await page.goto(dashboard+"?from="+String((downTime-10000)*1)+
+    "&to="+String((downTime+10000)*1));
+  await expect.poll(()=>renderedPanelText(page,"PostgreSQL readiness"),
+    {timeout:90000,intervals:[3000]}).toMatch(/\bUnavailable\b/i);
+  recorded.verified_statuses.down=await renderedPanelText(page,"PostgreSQL readiness");
+  // The current healthy sample must render Ready, distinct from both states.
+  await page.goto(dashboard+"?from=now-5m&to=now");
+  await expect.poll(()=>renderedPanelText(page,"PostgreSQL readiness"),
+    {timeout:90000,intervals:[3000]}).toMatch(/\bReady\b/i);
+  recorded.verified_statuses.ready=await renderedPanelText(page,"PostgreSQL readiness");
+  const evidence=process.env.HARBOROPS_G17_EVIDENCE_DIR;
+  if(!evidence)throw Error("Source-locked evidence root required");
+  fs.writeFileSync(path.join(evidence,"m17-ui-state-"+testInfo.project.name+".json"),
+    JSON.stringify(recorded,null,2)+"\n",{flag:"wx"});
 });

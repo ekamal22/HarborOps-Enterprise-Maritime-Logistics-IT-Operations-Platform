@@ -1,5 +1,7 @@
 # G17 Local Source-Locked Verification Result
 
+**Historical c7 result:** c7 remains complete at source `085fc666`. Subsequent independent S25 assessment returned NOT PASS, requiring expanded behavioral evidence. The result below is not evidence for those later corrections. The report was published on `verify/g17-local-evidence-20261114` and protected main remains unchanged. [Remediation register](M17_G17_S25_REMEDIATION_20261114.md).
+
 **Recorded:** 2026-11-14. **Gate:** G17 NOT ACCEPTED; independent G17-S25 review pending.
 **Verified source:** `085fc666448962ec4d133bd01bf3992f7d360191` on local branch `feat/m17-g17-verification-s25-b4c2e4`, eight local commits above the handoff head `6a21718a3f222628aeada95a4b33a2337293b366` of `feature/m17-observability-20261112`. Nothing was pushed. Protected `main` is untouched.
 **Method:** the complete campaign ran locally through `scripts/run-g17-local.ps1` (PowerShell 7) against a disposable Docker project. GitHub Actions was not used for any part of this verification; the earlier hosted run was only read as historical evidence.

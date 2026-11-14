@@ -1,5 +1,7 @@
 # M17 Local Policy and Design Decision Register
 
+**G17-S25 review checkpoint (2026-11-14):** Local campaign c7 at `085fc666` completed 72 technical witnesses, but independent S25 returned NOT PASS because several passing tests did not fully demonstrate their required behaviors. The source candidate now contains additional retained telemetry witnesses, a dedicated malformed-context export probe, rendered-state browser tests, browser correlation verification, and a stricter non-loopback negative control. **These corrections are not yet source-locked runtime verified. G17 NOT ACCEPTED; acceptance pending.** [Remediation register](M17_G17_S25_REMEDIATION_20261114.md).
+
 **Current gate context:** P01-P09 remain approved for design, not independently verified G17 outcomes. Technical test authoring is complete for 72 assertions, but source-locked runtime verification and S25 independence remain outstanding. [Current G17 recovery](M17_G17_VERIFICATION_RECOVERY_20261113.md).
 
 **Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
@@ -69,6 +71,8 @@ These are M17-local decisions, not replacements for project-wide D-001 through D
 **Approved design:** Preserve existing `/health/live` and `/health/ready` paths, status codes, JSON contracts and seed/database semantics. Do not make telemetry collector, dashboard, held M9 worker or disabled optional services readiness prerequisites. Health queries must remain lightweight, finite and safe under database outage.
 
 **Acceptance evidence:** Existing health contract and liveness/readiness integration regressions plus bounded timeout and fault tests.
+
+**P09 measurement rule confirmed 2026-11-14:** The 10 percent p95 and 15 percent memory budgets were not changed. The evidence gate evaluates p95 on pooled observations across three matched rounds per route and memory on the mean of three paired percentage increases. Every per-pair figure and raw sample must be retained; noise or repeated runs do not silently excuse an out-of-budget result. This change and its historical failures are subject to independent S25 scrutiny. See [decision record](DECISIONS.md) and [local c7 measurements](M17_G17_LOCAL_VERIFICATION_RESULT_20261114.md).
 
 ## M17-P09: Measured overhead and rollout boundary
 

@@ -1,5 +1,7 @@
 # G17 Technical Test Readiness and S25 Preconditions
 
+**G17-S25 review checkpoint (2026-11-14):** Local campaign c7 at `085fc666` completed 72 technical witnesses, but independent S25 returned NOT PASS because several passing tests did not fully demonstrate their required behaviors. The source candidate now contains additional retained telemetry witnesses, a dedicated malformed-context export probe, rendered-state browser tests, browser correlation verification, and a stricter non-loopback negative control. **These corrections are not yet source-locked runtime verified. G17 NOT ACCEPTED; acceptance pending.** [Remediation register](M17_G17_S25_REMEDIATION_20261114.md).
+
 **Reconciled:** 2026-11-13
 **Branch:** `feature/m17-observability-20261112`
 **Scope:** 25 scenarios, 75 separately identified assertions.

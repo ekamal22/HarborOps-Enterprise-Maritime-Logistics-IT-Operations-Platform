@@ -107,8 +107,12 @@ try {
       return Number.isFinite(value)&&value>=0?value:null;
     },90000);
     // Generate real browser-originated 503s within this same controlled outage.
+    // A browser holds at most six connections per origin, and each request against a stopped
+    // PostgreSQL waits for the API's own bounded connection failure. Ninety-six real page
+    // requests therefore need several minutes on a Docker Desktop network, so the bound is
+    // set for that and still ends the stage if the page never completes.
     execFileSync("node",["tests/browser/m17/page-fault-journey.mjs","inject"],
-      {encoding:"utf8",timeout:110000,maxBuffer:1024*1024});
+      {encoding:"utf8",timeout:420000,maxBuffer:1024*1024});
     let failures=0;
     for(let offset=0;offset<120;offset+=10) {
       const responses=await Promise.all(Array.from({length:10},async()=>{

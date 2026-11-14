@@ -70,9 +70,17 @@ try {
   assert.equal(counter.length,1,"Zero-seeded failure counter is required for the false-healthy control");
   const counterValue=Number(counter[0].value[1]);
   assert.ok(Number.isFinite(counterValue)&&counterValue>=0);
-  const end=Math.floor(Date.now()/1000);
-  const history=points(await range("harborops:m17:eligible_requests:5m",startedAt-30,end))
-    .filter(point=>point.v>=1&&point.v<THRESHOLD);
+  // On a fresh stack the first positive eligible-request sample only appears once two
+  // scrapes have seen an increase. No further traffic is sent: simply wait, within a bound,
+  // until at least six recorded below-threshold evaluation points exist (the five minute
+  // window keeps them below the floor).
+  let end=Math.floor(Date.now()/1000),history=[];
+  await poll("six recorded below-threshold evaluation points",async()=>{
+    end=Math.floor(Date.now()/1000);
+    history=points(await range("harborops:m17:eligible_requests:5m",startedAt-30,end))
+      .filter(point=>point.v>=1&&point.v<THRESHOLD);
+    return history.length>=6;
+  },180000);
   assert.ok(history.length>=4,"Fewer than four recorded below-threshold evaluation points");
   const windowStart=history[0].t,windowEnd=history[history.length-1].t;
   const eligibleValues=history.map(point=>point.v);

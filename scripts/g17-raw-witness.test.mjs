@@ -18,10 +18,15 @@ const EXPECTED = {postgres: ["internal"], migrator: ["internal"],
 const FIXTURES = {
   "scripts/check-g17-export-privacy.mjs": {result: "PASS", traces_inspected: 21,
     spans_inspected: 42, exported_metric_series_inspected: 158,
+    retained_trace_documents:21,retained_metric_series:158,retained_log_bytes:40000,
     snapshots: [{kind: "tempo-trace"}, {kind: "prometheus-series"},
       {kind: "owned-sanitized-service-logs"}],
     injected_controls: {oversized_baggage: true, requests: 320,
       malformed_traceparent_requests: 160, all_business_responses_200: true}},
+  "scripts/check-g17-malformed-export.mjs": {result:"PASS",
+    malformed_trace_context:true,injected_requests:960,
+    validated_exported_traces:6,trace_records_retained:6,
+    negative_canary_absent:true},
   "scripts/check-g17-database-fault.mjs": {result: "PASS", database_restored: true,
     checks: [check("real-db-outage-keeps-live-and-errors-classified"),
       check("database-alert-identifies-only-safe-component",
@@ -43,7 +48,8 @@ const FIXTURES = {
     pairs: [{pass: true}, {pass: true}]},
   "scripts/check-g17-worker-journey.mjs": {result: "PASS", worker_role: "restricted",
     receipts_accepted: 50, reconciled: 50, duplicate_replay: true,
-    matched_safe_trace_pairs: 7, exported_metric_series_checked_for_tenant_privacy: 186},
+    matched_safe_trace_pairs: 7, exported_metric_series_checked_for_tenant_privacy: 186,
+    retained_metric_series:186,retained_trace_documents:24},
   "scripts/check-g17-network.mjs": {result: "PASS", expected: EXPECTED,
     observed: EXPECTED, process_states: Object.fromEntries(
       Object.keys(EXPECTED).map(k => [k, {status: "running"}])),
@@ -109,6 +115,7 @@ test("a complete real-shaped report passes every script-based assertion", () => 
 test("a report without the named case or fact never witnesses its assertion", () => {
   const breakers = {
     "scripts/check-g17-export-privacy.mjs": r => { r.injected_controls.requests = 10; r.snapshots = []; },
+    "scripts/check-g17-malformed-export.mjs": r => { r.validated_exported_traces = 0; },
     "scripts/check-g17-database-fault.mjs": r => { r.checks = []; },
     "scripts/check-g17-collector-fault.mjs": r => { r.checks = []; },
     "scripts/check-g17-restart.mjs": r => { r.checks = r.checks.slice(0, 1); },
@@ -143,4 +150,7 @@ test("a failed overall result or an unknown case is never accepted", () => {
     FIXTURES["scripts/check-g17-network.mjs"]), false);
   assert.equal(rawWitnessPasses("scripts/not-registered.mjs", "x", {result: "PASS"}), false);
   assert.equal(rawWitnessPasses("scripts/check-g17-network.mjs", "dashboard_listener", null), false);
+  const noProbe=clone(FIXTURES["scripts/check-g17-network.mjs"]);
+  noProbe.dashboard_listener.non_loopback_addresses_refused=0;
+  assert.equal(rawWitnessPasses("scripts/check-g17-network.mjs","dashboard_listener",noProbe),false);
 });

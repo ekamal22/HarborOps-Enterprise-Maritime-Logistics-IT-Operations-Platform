@@ -8,7 +8,9 @@ const titles=[
   "dashboard is unavailable to an anonymous browser context",
   "alert dashboard links stay local and never embed private diagnostic parameters",
   "critical monitoring panels use live series and no-data views are explicitly unknown",
-  "zero and insufficient traffic render unknown rather than a healthy zero"
+  "zero and insufficient traffic render unknown rather than a healthy zero",
+  "rendered readiness distinguishes missing data from real downtime in three browsers",
+  "browser API denial retains server-issued correlation under spoofed context"
 ];
 const engines=["chromium","firefox","webkit"];
 function browser(mode) {
@@ -32,8 +34,8 @@ const trx=names=>{
     '" passed="'+names.length+'" failed="0" notExecuted="0" /></ResultSummary>'+
     results+'</TestRun>';
 };
-test("all eighteen required browser and one cardinality case pass exact identity checks",()=>{
-  assert.equal(verifyPlaywrightCases(browser("dashboard"),"dashboard").passed,18);
+test("all twenty-four required browser and one cardinality case pass exact identity checks",()=>{
+  assert.equal(verifyPlaywrightCases(browser("dashboard"),"dashboard").passed,24);
   assert.equal(verifyPlaywrightCases(browser("cardinality"),"cardinality").passed,1);
 });
 test("browser skip, retry, expected failure, extra case or missing engine fails",()=>{

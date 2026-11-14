@@ -628,9 +628,9 @@
           "assessment": "TEST_AUTHORED",
           "witness": {
             "path": "tests/browser/m17/dashboard.spec.mjs",
-            "case": "rendered readiness distinguishes missing data from real downtime in three browsers"
+            "case": "zero and insufficient traffic render unknown rather than a healthy zero"
           },
-          "coverage_gap": "Live three-engine rendered missing/low-volume state, not only Grafana JSON or PromQL no-data"
+          "coverage_gap": "Three-engine real rendered API rate, 5xx and p95 no-sample state with source Prometheus controls and artifact"
         },
         {
           "id": "G17-S18-A02",

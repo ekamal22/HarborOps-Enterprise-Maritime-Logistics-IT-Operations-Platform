@@ -1,7 +1,9 @@
 # G17 Repository-Wide Documentation Reconciliation, 2026-11-14
 
+**Current G17-S25 status, November 14, 2026:** [Hosted run #43589790235](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43589790235) finished **FAILED** at executable SHA `e238a48013948f28c8ab5042583e6e6bfaaa4553`. Exact-source preflight, 319 unit, 60 contract, 55 M17 integration and 34 accepted regression tests passed without required skips. Prometheus exposed a firing `HarborOpsDatabaseUnavailable` alert, but the browser did not render its label in the local Grafana alert table. The feature-branch correction sets the panel target to table format, narrows the browser witness to the actual alert panel, and adds fail-closed configuration and raw-evidence negative checks. This new candidate has **not** passed a complete hosted verification. The earlier green run #43541279851 is evidence for its own older source only. All S25-F01 through F08 remain open until new raw evidence is reviewed, and F06 requires a separate signed reviewer decision. Protected `main`, the M9 transport hold and accepted data protections are unchanged. **G17 NOT ACCEPTED; acceptance pending.**
+
 **Executable source SHA:** `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`.
-**Hosted verification (latest observed result):** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851), FULL CAMPAIGN SUCCESS on the executable SHA above. Historical pending text below is preserved as the earlier checkpoint, not current status.
+**Hosted verification (historical complete green result):** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851), FULL CAMPAIGN SUCCESS on the executable SHA above. Historical pending text below is preserved as the earlier checkpoint, not current status.
 **Gate:** G17 NOT ACCEPTED; acceptance pending. The prior independent S25 review returned NOT PASS.
 
 ## Verified recovery

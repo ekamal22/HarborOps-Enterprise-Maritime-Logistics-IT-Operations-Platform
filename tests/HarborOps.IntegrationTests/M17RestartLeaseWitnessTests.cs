@@ -12,11 +12,18 @@ namespace HarborOps.IntegrationTests;
 
 // A positive leased receipt is preserved across an actual API-host restart.
 // This is deliberately separate from the worker's own lease-recovery test.
+[Collection("M17WorkerShellIsolation")]
 public sealed class M17RestartLeaseWitnessTests
 {
     [Fact]
     public async Task ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects()
     {
+        var priorEvents=Environment.GetEnvironmentVariable("OTEL_SPAN_EVENT_COUNT_LIMIT");
+        var priorLinks=Environment.GetEnvironmentVariable("OTEL_SPAN_LINK_COUNT_LIMIT");
+        Environment.SetEnvironmentVariable("OTEL_SPAN_EVENT_COUNT_LIMIT","0");
+        Environment.SetEnvironmentVariable("OTEL_SPAN_LINK_COUNT_LIMIT","0");
+        try
+        {
         var connection=TestDatabase.ConnectionString();
         var nonce=Guid.NewGuid().ToString("N")[..12];
         var options=new Dictionary<string,string> {
@@ -89,6 +96,12 @@ public sealed class M17RestartLeaseWitnessTests
                 .CountAsync(x=>x.ReceiptId==receipt));
             Assert.Equal(1,await db.TrackingWorkAttemptEvents.CountAsync(x=>
                 x.ReceiptId==receipt&&x.EventKind=="Claimed"));
+        }
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OTEL_SPAN_EVENT_COUNT_LIMIT",priorEvents);
+            Environment.SetEnvironmentVariable("OTEL_SPAN_LINK_COUNT_LIMIT",priorLinks);
         }
     }
 }

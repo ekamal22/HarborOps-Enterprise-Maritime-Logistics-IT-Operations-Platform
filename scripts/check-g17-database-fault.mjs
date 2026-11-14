@@ -226,7 +226,12 @@ if(!stopped) {
     });
   }catch(err){error=error||err;}
 }
-const success=!error&&!stopped&&checks.length===5&&checks.every(x=>x.status==="PASS");
+// The six steps, in order, are exactly what the final manifest verifier requires.
+const REQUIRED_STEPS=["healthy-database-control","real-db-outage-keeps-live-and-errors-classified",
+  "real-http-5xx-rate-fires-reference-alert","database-alert-identifies-only-safe-component",
+  "page-originated-correlated-diagnostic-journey","recovery-clears-alert-and-preserves-history"];
+const success=!error&&!stopped&&checks.length===REQUIRED_STEPS.length&&
+  checks.every((x,i)=>x.status==="PASS"&&x.name===REQUIRED_STEPS[i]);
 fs.writeFileSync(reportFile,JSON.stringify({source_sha:source,project,
   result:success?"PASS":"FAIL",checks,alerts,database_restored:!stopped,
   source_environment:"OWNED_DISPOSABLE_POSTGRES_ONLY",accepted_assertions:0,

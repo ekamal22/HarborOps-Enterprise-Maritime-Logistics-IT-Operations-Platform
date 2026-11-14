@@ -220,3 +220,20 @@ test("the ledger states its own count error when only the independent count is w
   assert.ok(outcome.ledger.errors.includes(COUNT_ERROR), outcome.ledger.errors.join("; "));
   assert.equal(forId(outcome.ledger, "G17-S25-A01").status, "INVALID_INDEPENDENT_REVIEW_CLAIM");
 });
+test("a real Node test outside the supported witness roots cannot satisfy a witness even when its case ran", t => {
+  // web/tests holds genuine .test.mjs files whose case names can appear in a JUnit file; only tests/, scripts/ and
+  // the Prometheus fixture are approved witness roots, so the path alone must refuse the witness.
+  const caseName = "accepts seeded synthetic baseline status";
+  const outcome = attempt(t, dir => {
+    const file = path.join(dir, "g17-node-tests.xml");
+    fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace("</testsuites>",
+      '<testcase name="' + caseName + '" time="0.1" classname="test"/></testsuites>'));
+  }, c => {
+    const w = c.scenarios[0].assertions[0].witness;
+    w.path = "web/tests/baseline.test.mjs"; w.case = caseName;
+  });
+  assert.equal(outcome.threw, undefined, outcome.threw);
+  assert.equal(outcome.ledger.pass, false);
+  assert.equal(forId(outcome.ledger, "G17-S01-A01").status, "NOT_EXECUTED");
+  assert.equal(outcome.ledger.technical_passes, 71);
+});

@@ -167,3 +167,10 @@ test("a recorded pair percentage is accepted at exactly the approved tolerance a
  beyond.pairs[0].route_pairs.baseline.p95_increase_pct = 0.00006;
  assert.throws(() => recalculateP09(beyond, 40), /not reproducible/);
 });
+test("a sample list that is not an array is refused by an assertion, never by a crash or an accident", () => {
+ for (const bad of [{length: 40}, "1".repeat(40), null]) {
+  const report = build({});
+  report.rows[0].raw_ms.baseline = bad;
+  assert.throws(() => recalculateP09(report, 40), error => error.name === "AssertionError", String(bad));
+ }
+});

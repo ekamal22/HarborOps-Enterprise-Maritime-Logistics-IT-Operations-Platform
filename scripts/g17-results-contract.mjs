@@ -5,7 +5,8 @@ const DASHBOARD_TITLES = [
   "alert dashboard links stay local and never embed private diagnostic parameters",
   "critical monitoring panels use live series and no-data views are explicitly unknown",
   "zero and insufficient traffic render unknown rather than a healthy zero",
-  "rendered readiness distinguishes missing data from real downtime in three browsers"
+  "rendered readiness distinguishes missing data from real downtime in three browsers",
+  "browser API denial retains server-issued correlation under spoofed context"
 ];
 const CARDINALITY_TITLES = [
   "ten thousand hostile HTTP requests remain within complete exported-series budget"

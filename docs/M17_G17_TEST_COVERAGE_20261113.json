@@ -628,9 +628,9 @@
           "assessment": "TEST_AUTHORED",
           "witness": {
             "path": "tests/browser/m17/dashboard.spec.mjs",
-            "case": "zero and insufficient traffic render unknown rather than a healthy zero"
+            "case": "rendered readiness distinguishes missing data from real downtime in three browsers"
           },
-          "coverage_gap": "Real old-time-window absent metrics, matching no-data panel config and on-screen dashboard in all three engines; source authored, runtime verification NOT_EXECUTED"
+          "coverage_gap": "Live three-engine rendered missing/low-volume state, not only Grafana JSON or PromQL no-data"
         },
         {
           "id": "G17-S18-A02",
@@ -699,10 +699,10 @@
           "expected": "browser/API fault yields server correlation",
           "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/HarborOps.ContractTests/M17HttpContractTests.cs",
-            "case": "ValidW3CTraceparentConnectsApiRequestAndBoundedDatabaseSpan"
+            "path": "tests/browser/m17/dashboard.spec.mjs",
+            "case": "browser API denial retains server-issued correlation under spoofed context"
           },
-          "coverage_gap": "API fault has server correlation and traced context"
+          "coverage_gap": "Live Playwright client receives real forbidden response with server-issued correlation despite forged context"
         },
         {
           "id": "G17-S20-A02",

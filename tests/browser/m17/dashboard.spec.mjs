@@ -241,6 +241,27 @@ async function renderedPanelText(page,title) {
   });
 }
 
+test("browser API denial retains server-issued correlation under spoofed context",async ({browser})=>{
+  const ctx=await browser.newContext();
+  try {
+    const spoof="ffffffffffffffffffffffffffffffff";
+    const response=await ctx.request.get(apiBase+
+      "/api/v1/organizations/11111111-1111-1111-1111-111111111111/ports",{
+      headers:{"X-Correlation-ID":spoof,
+        "traceparent":"00-00112233445566778899aabbccddeeff-0123456789abcdef-01",
+        "baggage":"role=administrator"}
+    });
+    expect(response.status()).toBeGreaterThanOrEqual(400);
+    expect(response.status()).toBeLessThan(500);
+    const correlation=response.headers()["x-correlation-id"];
+    expect(correlation).toMatch(/^[0-9a-f]{32}$/);
+    expect(correlation).not.toBe(spoof);
+    const body=await response.text();
+    expect(body).not.toContain(spoof);
+    expect(body).not.toContain("role=administrator");
+  } finally {await ctx.close();}
+});
+
 test("rendered readiness distinguishes missing data from real downtime in three browsers",
   async ({page},testInfo)=>{
   await logIn(page);
@@ -273,8 +294,8 @@ test("rendered readiness distinguishes missing data from real downtime in three 
   expect(missing).not.toMatch(/\b(?:Ready|Unavailable)\b/);
   recorded.verified_statuses.missing=missing;
   // During a real PostgreSQL outage a measured 0 must render Unavailable.
-  await page.goto(dashboard+"?from="+String((downTime-10000)*1)+
-    "&to="+String((downTime+10000)*1));
+  await page.goto(dashboard+"?from="+String(downTime*1000-10000)+
+    "&to="+String(downTime*1000+10000));
   await expect.poll(()=>renderedPanelText(page,"PostgreSQL readiness"),
     {timeout:90000,intervals:[3000]}).toMatch(/\bUnavailable\b/i);
   recorded.verified_statuses.down=await renderedPanelText(page,"PostgreSQL readiness");

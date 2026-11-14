@@ -111,7 +111,7 @@
     },
     {
       "id": 4,
-      "title": "PostgreSQL readiness (-1 unknown, 0 down, 1 ready; stale is Unknown)",
+      "title": "PostgreSQL readiness",
       "type": "stat",
       "datasource": {
         "type": "prometheus",

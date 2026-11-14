@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
+import {allowedEvidencePath,textEvidencePath} from "./g17-evidence-files.mjs";
 
 const directory = process.env.HARBOROPS_G17_EVIDENCE_DIR;
 const hostedEvidence = process.env.GITHUB_ACTIONS === "true" &&
@@ -17,8 +18,7 @@ const manifestPath = path.join(directory, "manifest.json");
 if (fs.existsSync(manifestPath))
   throw Error("Never overwrite an existing G17 evidence manifest");
 
-const allowed = /\.(json|txt|trx|xml|png|webm|zip)$/i;
-const textFile = /\.(json|txt|trx|xml)$/i;
+// Only enumerated disposable-service logs are allowed as diagnostic text.
 const canary = process.env.HARBOROPS_G17_PRIVACY_CANARY;
 const entries = [];
 let binaryCount = 0;
@@ -30,13 +30,13 @@ function visit(current, prefix = "") {
     const absolute = path.join(current, entry.name);
     if (entry.isSymbolicLink()) throw Error("Symlink not permitted: " + relative);
     if (entry.isDirectory()) { visit(absolute, relative); continue; }
-    if (!entry.isFile() || !allowed.test(entry.name))
+    if (!entry.isFile() || !allowedEvidencePath(relative))
       throw Error("Unlisted or unsupported evidence type: " + relative);
 
     const bytes = fs.readFileSync(absolute);
     if (canary && bytes.includes(Buffer.from(canary, "utf8")))
       throw Error("Privacy canary found in evidence: " + relative);
-    if (textFile.test(entry.name)) {
+    if (textEvidencePath(relative)) {
       const body = bytes.toString("utf8");
       const forbidden = [
         /\bBearer\s+[A-Za-z0-9._~+\/=-]{16,}/i,

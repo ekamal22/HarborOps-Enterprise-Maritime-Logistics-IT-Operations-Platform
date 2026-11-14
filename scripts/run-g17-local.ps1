@@ -185,7 +185,8 @@ try {
         'scripts/reconcile-g17-assertions.test.mjs',
         'scripts/g17-adversarial-evidence.test.mjs',
         'scripts/g17-malformed-trace-evidence.test.mjs',
-        'scripts/g17-s25-raw-evidence.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
+        'scripts/g17-s25-raw-evidence.test.mjs',
+        'scripts/g17-evidence-files.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
@@ -225,12 +226,23 @@ try {
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres') | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'postgres_tests') | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $StorageRoot 'keyring') | Out-Null
-        if ($LocalVolumes) {
+        # Hosted Linux bind mounts also begin with runner-owned directories.
+        # Explicitly prepare only this new disposable project's directories,
+        # then assert the actual service UID can write to each mounted path.
+        # The local Windows profile mounts the same paths inside the Docker VM.
+        if ($LocalVolumes -or $Hosted) {
+            $stateMountRoot = if ($LocalVolumes) { $env:HARBOROPS_G17_STATE_ROOT } else { $StorageRoot }
             foreach ($pair in @(@('postgres','70:70'), @('postgres_tests','70:70'), @('keyring','1654:1654'))) {
-                & docker run --rm --user 0:0 --entrypoint /bin/sh `
-                    -v "$($env:HARBOROPS_G17_STATE_ROOT)/$($pair[0]):/prepared" postgres:16.15-alpine3.24 `
-                    -c "chown $($pair[1]) /prepared && chmod 700 /prepared"
-                if ($LASTEXITCODE -ne 0) { throw "Cannot prepare owned state directory $($pair[0])" }
+                $ownedStatePath = "$stateMountRoot/$($pair[0])"
+                Invoke-Required 'docker' @('run','--rm','--user','0:0',
+                    '--entrypoint','/bin/sh','-v',"$($ownedStatePath):/prepared",
+                    'postgres:16.15-alpine3.24','-c',
+                    "chown $($pair[1]) /prepared && chmod 700 /prepared") -Stage "prepare-owned-state-$($pair[0])"
+                $uid = $pair[1]
+                Invoke-Required 'docker' @('run','--rm','--user',$uid,
+                    '--entrypoint','/bin/sh','-v',"$($ownedStatePath):/prepared",
+                    'postgres:16.15-alpine3.24','-c',
+                    'test -w /prepared && touch /prepared/.g17-writable-check && rm /prepared/.g17-writable-check') -Stage "verify-owned-state-$($pair[0])"
             }
         }
         Invoke-Required 'docker' (@('compose') + $composeArgs + @('config', '--quiet'))

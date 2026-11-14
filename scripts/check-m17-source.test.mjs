@@ -222,3 +222,17 @@ test("the disposable campaign isolates telemetry networks and retains failures",
   assert.match(manifest, /missing_expected_artifacts/);
   assert.match(read("scripts/check-g17-network.mjs"), /source_sha/);
 });
+
+
+test("hosted bind mounts are owned and writable before starting rootless PostgreSQL",()=>{
+  const runner=read("scripts/run-g17-local.ps1");
+  assert.match(runner,/if \(\$LocalVolumes -or \$Hosted\)/);
+  for(const name of ["postgres","postgres_tests","keyring"]) {
+    assert.match(runner,new RegExp("prepare-owned-state-"));
+    assert.match(runner,new RegExp("verify-owned-state-"));
+  }
+  assert.match(runner,/test -w \/prepared && touch \/prepared\/\.g17-writable-check/);
+  const manifest=read("scripts/g17-manifest.mjs");
+  assert.match(manifest,/allowedEvidencePath\(relative\)/);
+  assert.match(manifest,/textEvidencePath\(relative\)/);
+});

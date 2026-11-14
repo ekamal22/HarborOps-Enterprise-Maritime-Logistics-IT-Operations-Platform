@@ -46,15 +46,15 @@ const privacy = (report) => ok(report) && report.traces_inspected >= 4 &&
 
 const RAW_PREDICATES = new Map([
   ["scripts/check-g17-diagnostic-journey.mjs",new Map([
-    ["page-originated-same-request",r=>ok(r)&&
+    ["page-originated-same-request",r=>ok(r)&&passed(r,"page-originated-same-request")&&
       r.page_originated===true&&r.response_status===503&&
       r.trace_correlation_reconciled===true&&
       r.sanitized_log_line?.includes(r.server_correlation)&&
       r.sanitized_log_line?.includes(r.trace_id)],
-    ["real-trace-to-db",r=>ok(r)&&
+    ["real-trace-to-db",r=>ok(r)&&passed(r,"real-trace-to-db")&&
       r.trace_document?.trace?.resourceSpans?.length>0&&
       r.trace_correlation_reconciled===true],
-    ["same-fault-rendered-alert",r=>ok(r)&&r.alert_firing===true&&
+    ["same-fault-rendered-alert",r=>ok(r)&&passed(r,"same-fault-rendered-alert")&&r.alert_firing===true&&
       r.dashboard_rendered===true&&
       r.dashboard_dom_text?.includes("HarborOpsDatabaseUnavailable")]
   ])],
@@ -95,7 +95,8 @@ const RAW_PREDICATES = new Map([
     ["owned-api-shutdown-bounded", r => ok(r) && passed(r, "owned-api-shutdown-bounded")],
     ["restart-recovers-health-without-business-duplication",
       r => ok(r) && passed(r, "restart-recovers-health-without-business-duplication") &&
-        r.api_restored === true],
+        r.api_restored === true && r.positive_worker_lease_witness===true &&
+      r.source_locked_lease_method==="ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects"],
     ["stale-readiness-is-unknown-not-healthy",
       r => ok(r) && passed(r, "stale-readiness-is-unknown-not-healthy")]
   ])],

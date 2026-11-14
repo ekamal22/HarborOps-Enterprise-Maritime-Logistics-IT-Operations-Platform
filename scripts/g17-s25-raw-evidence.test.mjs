@@ -16,6 +16,29 @@ function fixture(dir) {
  const wrap=x=>({source_sha:source,project,...x});
  const logs="synthetic checked service output";
  const series=[{__name__:"harborops_db_readiness_ratio",service:"api"}];
+ const traceDoc={trace:{resourceSpans:[{scopeSpans:[{spans:[
+  {name:"http.request",attributes:[]},
+  {name:"harborops.operation",attributes:[{key:"harborops.operation",
+    value:{stringValue:"baseline_read"}}]}
+ ]}]}]}};
+ const pageFault=wrap({page_originated:true,browser_engine:"chromium",
+  observations:[{trace_id:"b".repeat(32),correlation_id:"a".repeat(32),
+   body_correlation:"a".repeat(32),status:503},
+    ...Array.from({length:95},()=>({trace_id:"c".repeat(32),
+      correlation_id:"d".repeat(32),body_correlation:"d".repeat(32),status:503}))]});
+ put(dir,"m17-page-fault-injection.json",pageFault);
+ put(dir,"m17-page-fault-dashboard.json",wrap({rendered:true,
+  dashboard_alert:"HarborOpsDatabaseUnavailable",
+  visible_dom_text:"Active local alerts HarborOpsDatabaseUnavailable"}));
+ put(dir,"m17-diagnostic-journey-results.json",wrap({result:"PASS",
+  page_originated:true,browser_engine:"chromium",response_status:503,
+  error_code:"dependency_unavailable",server_correlation:"a".repeat(32),
+  trace_id:"b".repeat(32),trace_correlation_reconciled:true,
+  trace_document:traceDoc,
+  sanitized_log_line:"dependency is unavailable Correlation "+ "a".repeat(32)+
+   " Trace "+ "b".repeat(32),alert_name:"HarborOpsDatabaseUnavailable",
+  alert_firing:true,dashboard_rendered:true,
+  dashboard_dom_text:"Active local alerts HarborOpsDatabaseUnavailable"}));
  put(dir,"m17-export-privacy-results.json",wrap({result:"PASS",traces_inspected:1,
   retained_trace_documents:1,spans_inspected:1,
   exported_metric_series_inspected:1,retained_metric_series:1,
@@ -81,6 +104,12 @@ test("changed trace, missing series and false browser state are rejected",()=>{
   assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
   fixture(dir);
   put(dir,"m17-worker-journey-logs.txt","worker-1 | Tracking work polling started\nBearer sensitive-worker-private-value");
+  assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
+  fixture(dir);
+  const diagnosticPath="m17-diagnostic-journey-results.json";
+  const diagnostic=JSON.parse(fs.readFileSync(path.join(dir,diagnosticPath)));
+  diagnostic.server_correlation="f".repeat(32);
+  put(dir,diagnosticPath,diagnostic);
   assert.throws(()=>verifyS25RawSnapshots(dir,source,project));
   fixture(dir);
   const bad="m17-ui-no-traffic-chromium.json";

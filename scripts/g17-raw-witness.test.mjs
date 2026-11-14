@@ -27,6 +27,16 @@ const FIXTURES = {
     malformed_trace_context:true,injected_requests:960,
     validated_exported_traces:6,trace_records_retained:6,
     negative_canary_absent:true},
+  "scripts/check-g17-diagnostic-journey.mjs": {
+    result:"PASS",page_originated:true,response_status:503,
+    trace_correlation_reconciled:true,server_correlation:"a".repeat(32),
+    trace_id:"b".repeat(32),
+    sanitized_log_line:"dependency is unavailable Correlation "+ "a".repeat(32)+" Trace "+ "b".repeat(32),
+    trace_document:{trace:{resourceSpans:[{scopeSpans:[{spans:[{name:"http.request"}]}]}]}},
+    alert_firing:true,dashboard_rendered:true,
+    dashboard_dom_text:"HarborOpsDatabaseUnavailable",
+    checks:[check("page-originated-same-request"),check("real-trace-to-db"),
+      check("same-fault-rendered-alert")]},
   "scripts/check-g17-database-fault.mjs": {result: "PASS", database_restored: true,
     checks: [check("real-db-outage-keeps-live-and-errors-classified"),
       check("database-alert-identifies-only-safe-component",
@@ -35,6 +45,8 @@ const FIXTURES = {
     checks: [{name: "collector-recovery-automatic", result: "PASS"},
       {name: "collector-fault-business-isolation", result: "PASS"}]},
   "scripts/check-g17-restart.mjs": {result: "PASS", api_restored: true,
+    positive_worker_lease_witness:true,
+    source_locked_lease_method:"ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects",
     checks: [check("real-client-abort-does-not-commit-business"),
       check("owned-api-shutdown-bounded"),
       check("stale-readiness-is-unknown-not-healthy",
@@ -79,6 +91,9 @@ const FIXTURES = {
     traces_retention_hours: 24, raw_sources: ["m17-retention-age-results.json",
       "m17-tempo-retention-results.json", "m17-storage-results.json"]},
   "scripts/check-g17-storage.mjs": {result: "PASS",
+    telemetry_degradation:{signal:"OWNED_PROMETHEUS_STORAGE_ENOSPC",error_observed:true},
+    positive_history:{tables:{users:1,organizations:1,ports:2,shipments:1,
+      m11_exceptions:1,m11_history:1,m15_outbox:1,m16_audit:5}},
     database_sha256_before: "a".repeat(64), database_sha256_after: "a".repeat(64),
     checks: [check("business-remains-responsive-during-full-telemetry-store"),
       check("all-application-history-byte-identical")]},
@@ -117,9 +132,10 @@ test("a report without the named case or fact never witnesses its assertion", ()
   const breakers = {
     "scripts/check-g17-export-privacy.mjs": r => { r.injected_controls.requests = 10; r.snapshots = []; },
     "scripts/check-g17-malformed-export.mjs": r => { r.validated_exported_traces = 0; },
+    "scripts/check-g17-diagnostic-journey.mjs": r => { r.checks=[]; r.trace_correlation_reconciled=false; },
     "scripts/check-g17-database-fault.mjs": r => { r.checks = []; },
     "scripts/check-g17-collector-fault.mjs": r => { r.checks = []; },
-    "scripts/check-g17-restart.mjs": r => { r.checks = r.checks.slice(0, 1); },
+    "scripts/check-g17-restart.mjs": r => { r.checks = r.checks.slice(0, 1); r.positive_worker_lease_witness=false; },
     "scripts/check-g17-cardinality-memory.mjs": r => { r.total_paths = 39999; },
     "scripts/check-g17-worker-journey.mjs": r => { r.matched_safe_trace_pairs = 0;
       r.exported_metric_series_checked_for_tenant_privacy = 0; },
@@ -131,7 +147,8 @@ test("a report without the named case or fact never witnesses its assertion", ()
       r.gate.mean_memory_increase_pct = 15.5; r.rows = []; },
     "scripts/check-g17-pressure-matrix.mjs": r => { r.cases = []; },
     "scripts/check-g17-retention-matrix.mjs": r => { r.raw_sources = []; },
-    "scripts/check-g17-storage.mjs": r => { r.database_sha256_after = "b".repeat(64); r.checks = []; },
+    "scripts/check-g17-storage.mjs": r => { r.database_sha256_after = "b".repeat(64); r.checks = [];
+      r.positive_history.tables.m15_outbox=0; r.telemetry_degradation.error_observed=false; },
     "scripts/check-g17-regression-matrix.mjs": r => { r.cases = {}; }
   };
   for (const w of scriptWitnesses) {

@@ -252,11 +252,12 @@ export function verifyManifest(manifestPath, expectedSha) {
           "real-db-outage-keeps-live-and-errors-classified",
           "real-http-5xx-rate-fires-reference-alert",
           "database-alert-identifies-only-safe-component",
+          "page-originated-correlated-diagnostic-journey",
           "recovery-clears-alert-and-preserves-history"];
         if (database.source_sha !== manifest.source_sha ||
             database.project !== expected.project ||
             database.result !== "PASS" || database.database_restored !== true ||
-            database.checks?.length !== 5 ||
+            database.checks?.length !== 6 ||
             database.checks.some((check,index)=>check.name !== steps[index] ||
               check.status !== "PASS") || database.alerts?.length !== 1)
           throw Error("Missing positive PostgreSQL outage, alert or durable-recovery witnesses");

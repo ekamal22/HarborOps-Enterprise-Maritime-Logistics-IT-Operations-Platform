@@ -72,5 +72,9 @@ while(Date.now()<deadline&&!found){
  if(!found)await new Promise(resolve=>setTimeout(resolve,3500));
 }
 assert.ok(found,"No same-request page, API, Tempo, log and alert journey");
+found.checks=[
+ {name:"page-originated-same-request",status:"PASS"},
+ {name:"real-trace-to-db",status:"PASS"},
+ {name:"same-fault-rendered-alert",status:"PASS"}];
 fs.writeFileSync(path.join(evidence,"m17-diagnostic-journey-results.json"),
  JSON.stringify(found,null,2)+"\n",{flag:"wx"});

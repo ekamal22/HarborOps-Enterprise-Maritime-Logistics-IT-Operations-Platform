@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import assert from "node:assert/strict";
 import {verifyMalformedBaselineTrace} from "./g17-malformed-trace-evidence.mjs";
+import {verifyBoundedDiagnosticJourney} from "./g17-diagnostic-evidence.mjs";
 
 const load=(root,name)=>JSON.parse(fs.readFileSync(path.join(root,name),"utf8"));
 const sha=value=>crypto.createHash("sha256").update(value).digest("hex");
@@ -36,6 +37,21 @@ function safeSeries(series) {
   }
 }
 export function verifyS25RawSnapshots(root,source,project) {
+  const diagnostic=load(root,"m17-diagnostic-journey-results.json");
+  const browserFault=load(root,"m17-page-fault-injection.json");
+  const display=load(root,"m17-page-fault-dashboard.json");
+  for(const x of [diagnostic,browserFault,display])
+    matchesSource(x,source,project);
+  assert.equal(browserFault.page_originated,true);
+  assert.equal(browserFault.observations?.length,96);
+  assert.ok(browserFault.observations.some(x=>
+    x.trace_id===diagnostic.trace_id &&
+    x.correlation_id===diagnostic.server_correlation &&
+    x.status===503 && x.body_correlation===x.correlation_id));
+  assert.equal(display.rendered,true);
+  assert.equal(display.dashboard_alert,"HarborOpsDatabaseUnavailable");
+  assert.equal(display.visible_dom_text,diagnostic.dashboard_dom_text);
+  assert.equal(verifyBoundedDiagnosticJourney(diagnostic),true);
   const privacy=load(root,"m17-export-privacy-results.json");
   const trace=load(root,"m17-export-privacy-traces.json");
   const metric=load(root,"m17-export-privacy-series.json");

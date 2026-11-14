@@ -77,41 +77,49 @@ try {
   assert.equal(panel.targets?.[0]?.format,"table",
     "Alert label fields must be rendered as table columns");
   assert.equal(panel.targets?.[0]?.instant,true);
-  const header=page.getByText("Active local alerts",{exact:true}).first();
-  await header.waitFor({state:"visible",timeout:25000});
-  // Grafana defers offscreen panel queries. The alert table begins well below
-  // the initial viewport; make the actual table visible before looking for
-  // its Prometheus alert-label fields. This is not an assertion relaxation.
-  await header.scrollIntoViewIfNeeded({timeout:25000});
-  const inViewport=await header.evaluate(element=>{
+  // The saved panel id 8 is the exact Grafana grid item of the alert table. Its body
+  // is queried lazily, so an offscreen panel renders only its title until it is
+  // scrolled into view (reproduced: 19 characters of title-only text at 1280x720).
+  const item=page.locator('[data-griditem-key="grid-item-'+panel.id+'"]');
+  await item.waitFor({state:"attached",timeout:25000});
+  await item.scrollIntoViewIfNeeded({timeout:25000});
+  const inViewport=await item.evaluate(element=>{
    const bounds=element.getBoundingClientRect();
    return bounds.width>0&&bounds.height>0&&bounds.bottom>0&&
      bounds.top<window.innerHeight;
   });
   assert.equal(inViewport,true,"Alert panel was not brought into the viewport");
+  const otherTitles=["API request rate","API 5xx rate","API p95 latency",
+    "PostgreSQL readiness","Notification worker",
+    "Application heartbeats per 100 seconds","Collector transport probe",
+    "Tracking eligible backlog age","Local alert state"];
   const deadline=Date.now()+90000;
-  let text="";
+  let text="",table=null;
   while(Date.now()<deadline) {
-   const observed=await header.evaluate(element=>{
-    const otherPanels=["API request rate","API 5xx rate","API p95 latency",
-      "PostgreSQL readiness","Notification worker",
-      "Application heartbeats per 100 seconds","Collector transport probe",
-      "Tracking eligible backlog age","Local alert state"];
-    for(let node=element,depth=0;node&&depth<25;
-        node=node.parentElement,depth++) {
-     const value=String(node.innerText||"");
-     if(value.length>8000||!value.includes("Active local alerts"))continue;
-     if(otherPanels.some(name=>value.includes(name)))continue;
-     if(value.includes("HarborOpsDatabaseUnavailable"))return value.slice(0,7000);
-    }
-    return "";
+   const observed=await item.evaluate(element=>{
+    const headers=[...element.querySelectorAll('[role=columnheader]')]
+      .map(x=>String(x.innerText).trim());
+    const rows=[...element.querySelectorAll('[role=row]')]
+      .map(row=>[...row.querySelectorAll('[role=gridcell]')]
+        .map(x=>String(x.innerText).trim()))
+      .filter(cells=>cells.length>0);
+    return {text:String(element.innerText||""),headers,rows};
    });
-   if(observed.includes("HarborOpsDatabaseUnavailable")){
-    text=observed;break;
+   const nameColumn=observed.headers.indexOf("alertname");
+   const stateColumn=observed.headers.indexOf("alertstate");
+   if(nameColumn>=0&&stateColumn>=0&&observed.rows.some(cells=>
+      cells[nameColumn]==="HarborOpsDatabaseUnavailable"&&
+      cells[stateColumn]==="firing")) {
+    assert.ok(observed.text.includes("Active local alerts"),
+      "Container is not the active-alert panel");
+    for(const other of otherTitles)
+     assert.ok(!observed.text.includes(other),
+      "Alert panel container included another panel: "+other);
+    text=observed.text;table={headers:observed.headers,rows:observed.rows};break;
    }
    await page.waitForTimeout(3000);
   }
-  assert.ok(text.includes("HarborOpsDatabaseUnavailable"),
+  assert.ok(text.includes("HarborOpsDatabaseUnavailable")&&table,
     "Live database alert label was not rendered inside the active-alert table");
   assert.ok(!/Bearer\s+\S+|@example\.test|password\s*[:=]/i.test(text),
     "Untrusted private material reached browser diagnostic display");
@@ -120,6 +128,8 @@ try {
     dashboard_panel_id:panel.id,dashboard_panel_type:panel.type,
     dashboard_target_format:panel.targets[0].format,
     dashboard_query:panel.targets[0].expr,alert_panel_text_scoped:true,
+    table_headers:table.headers,table_rows:table.rows,
+    viewport:page.viewportSize(),scrolled_into_view:true,
     visible_dom_text:text,rendered:true};
   fs.writeFileSync(path.join(root,"m17-page-fault-dashboard.json"),
     JSON.stringify(result,null,2)+"\n",{flag:"wx"});

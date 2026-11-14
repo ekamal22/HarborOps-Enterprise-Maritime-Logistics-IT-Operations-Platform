@@ -12,6 +12,13 @@ groups:
         expr: histogram_quantile(0.95, sum by (le) (rate(harborops_request_duration_seconds_bucket[10m])))
       - record: harborops:m17:eligible_requests:10m
         expr: sum(increase(harborops_request_duration_seconds_count[10m]))
+      # Dashboard-facing series. A rate or quantile computed from fewer than the
+      # approved 100 eligible requests (or from none) is absent here, so the panel
+      # shows Unknown instead of a healthy-looking zero or an unstable quantile.
+      - record: harborops:m17:api_5xx_rate_sufficient:5m
+        expr: sum(rate(harborops_request_failures_total[5m])) and on() (harborops:m17:eligible_requests:5m >= 100)
+      - record: harborops:m17:api_p95_seconds_sufficient:5m
+        expr: histogram_quantile(0.95, sum by (le) (rate(harborops_request_duration_seconds_bucket[5m]))) and on() (harborops:m17:eligible_requests:5m >= 100)
 
       - alert: HarborOpsElevatedApiFailureRate
         expr: |

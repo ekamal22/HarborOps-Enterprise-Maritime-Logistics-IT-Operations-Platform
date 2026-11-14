@@ -68,10 +68,31 @@ test("every approved M17 policy has a concrete source-side verification control"
   assert.equal(activeAlerts?.targets?.[0]?.expr,
     'ALERTS{alertstate="firing"}');
   const browserObserver=read("tests/browser/m17/page-fault-journey.mjs");
-  assert.ok(browserObserver.includes("await header.scrollIntoViewIfNeeded("),
+  assert.ok(browserObserver.includes("await item.scrollIntoViewIfNeeded("),
     "Offscreen alert table must be scrolled into view before rendering proof");
-  assert.ok(browserObserver.includes("await header.evaluate("),
-    "Alert rendering witness must remain scoped to the panel header subtree");
+  assert.ok(browserObserver.includes("[data-griditem-key=\"grid-item-'+panel.id+'\"]"),
+    "Alert rendering witness must be scoped to the exact saved panel container");
+  assert.ok(browserObserver.indexOf("scrollIntoViewIfNeeded(")<
+    browserObserver.indexOf("[role=columnheader]"),
+    "The panel must be scrolled into view before its table is read");
+  assert.match(browserObserver,/\[role=gridcell\]/,
+    "Alert name and state must be checked as table cells, not as loose page text");
+  // F01: the API 5xx and p95 panels must read the sufficiency-guarded series, never the raw expression.
+  const guarded5xx=dashboards.panels.find(p=>p.title==="API 5xx rate");
+  const guardedP95=dashboards.panels.find(p=>p.title==="API p95 latency");
+  assert.equal(guarded5xx?.targets?.[0]?.expr,"harborops:m17:api_5xx_rate_sufficient:5m");
+  assert.equal(guardedP95?.targets?.[0]?.expr,"harborops:m17:api_p95_seconds_sufficient:5m");
+  const alertRules=read("monitoring/m17/alerts.yaml");
+  for(const [record,fragment] of [
+    ["harborops:m17:api_5xx_rate_sufficient:5m","harborops_request_failures_total"],
+    ["harborops:m17:api_p95_seconds_sufficient:5m","histogram_quantile(0.95"]]) {
+    const at=alertRules.indexOf("record: "+record);
+    assert.ok(at>=0,"Missing guarded dashboard rule "+record);
+    const line=alertRules.slice(at,alertRules.indexOf("\n",alertRules.indexOf("expr:",at)));
+    assert.ok(line.includes(fragment));
+    assert.match(line,/and on\(\) \(harborops:m17:eligible_requests:5m >= 100\)/,
+      "Dashboard rule lacks the approved 100-request sufficiency guard: "+record);
+  }
   assert.match(browserObserver,/HarborOpsDatabaseUnavailable/,
     "Real firing database-alert label remains mandatory");
   const defaultStack=read("compose.yaml");

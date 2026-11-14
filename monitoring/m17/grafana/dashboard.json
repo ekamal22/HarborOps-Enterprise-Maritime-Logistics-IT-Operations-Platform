@@ -45,7 +45,16 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "id": 2,
@@ -63,7 +72,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(harborops_request_failures_total[5m]))",
+          "expr": "harborops:m17:api_5xx_rate_sufficient:5m",
           "refId": "A",
           "legendFormat": "API 5xx rate",
           "instant": false
@@ -76,7 +85,16 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "id": 3,
@@ -94,7 +112,7 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(harborops_request_duration_seconds_bucket[5m])))",
+          "expr": "harborops:m17:api_p95_seconds_sufficient:5m",
           "refId": "A",
           "legendFormat": "API p95 latency",
           "instant": false
@@ -107,7 +125,16 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "id": 4,

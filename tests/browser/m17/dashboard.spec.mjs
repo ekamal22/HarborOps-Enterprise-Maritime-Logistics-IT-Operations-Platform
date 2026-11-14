@@ -180,31 +180,44 @@ test("critical monitoring panels use live series and no-data views are explicitl
   expect(alertPanel.fieldConfig?.defaults?.noValue).toBe("Unknown");
   const active=await queryPrometheus(page,'ALERTS{alertstate="firing"}');
   expect(Array.isArray(active)).toBe(true);
-  await page.goto(dashboard);
+  await page.goto(dashboard+"?from=now-10m&to=now");
   for(const title of ["PostgreSQL readiness","Application heartbeats per 100 seconds",
     "Collector transport probe","Notification worker"])
     await expect(page.getByText(title,{exact:false}).first()).toBeVisible();
+  // Rendered live measurements, not just titles: the readiness stat must read
+  // Ready from the current healthy sample and the request-rate panel must show a
+  // measured rate (a number with its unit) for the real traffic generated above.
+  await expect.poll(async()=>String(await page.locator(
+    '[data-griditem-key="grid-item-4"]').innerText()),
+    {timeout:90000,intervals:[3000]}).toMatch(/\bReady\b/);
+  await expect.poll(async()=>String(await page.locator(
+    '[data-griditem-key="grid-item-1"]').innerText()),
+    {timeout:90000,intervals:[3000]}).toMatch(/\d(?:\.\d+)?\s*req\/s/);
+  const liveRate=String(await page.locator('[data-griditem-key="grid-item-1"]').innerText());
+  expect(liveRate).not.toMatch(/\b(?:No data|Unknown)\b/i);
+  const liveReady=String(await page.locator('[data-griditem-key="grid-item-4"]').innerText());
+  expect(liveReady).not.toMatch(/\b(?:Unavailable|Unknown)\b/i);
 });
 
 
 // Restrict the observation to one actual Grafana panel. A title, a saved
 // noValue setting or "No data" printed by another panel is not evidence.
+const PANEL_IDS={"API request rate":1,"API 5xx rate":2,"API p95 latency":3};
+// The Grafana grid item of one saved panel id is the exact container of that panel.
+// Its text is the panel's own title plus its own rendered body, never a neighbour's.
 async function renderedApiNoData(page,title) {
-  const label=page.getByText(title,{exact:true}).first();
-  await expect(label).toBeVisible();
-  return label.evaluate(element=>{
-    let current=element;
-    for(let depth=0;current&&depth<14;depth++,current=current.parentElement) {
-      const text=String(current.innerText||current.textContent||"");
-      if(!text.includes(element.textContent||""))continue;
-      const headings=["API request rate","API 5xx rate","API p95 latency",
-        "PostgreSQL readiness","Application heartbeats"];
-      if(headings.filter(name=>text.includes(name)).length!==1)continue;
-      if(text.length>1600)continue;
-      if(/\b(?:No data|Unknown)\b/i.test(text))return text;
-    }
-    return "";
-  });
+  const item=page.locator('[data-griditem-key="grid-item-'+PANEL_IDS[title]+'"]');
+  await expect(item).toHaveCount(1);
+  const text=String(await item.innerText());
+  expect(text,"panel container must be the titled panel: "+title).toContain(title);
+  for(const other of Object.keys(PANEL_IDS).filter(name=>name!==title))
+    expect(text).not.toContain(other);
+  return /\b(?:No data|Unknown)\b/i.test(text)?text:"";
+}
+async function renderedApiText(page,title) {
+  const item=page.locator('[data-griditem-key="grid-item-'+PANEL_IDS[title]+'"]');
+  await expect(item).toHaveCount(1);
+  return String(await item.innerText());
 }
 
 test("zero and insufficient traffic render unknown rather than a healthy zero", async ({page},testInfo) => {
@@ -257,6 +270,54 @@ test("zero and insufficient traffic render unknown rather than a healthy zero", 
   }
   const root=process.env.HARBOROPS_G17_EVIDENCE_DIR;
   if(!root)throw Error("Source-locked evidence root required");
+
+  // Real below-threshold traffic: the recorded window produced by
+  // check-g17-low-traffic.mjs holds a few dozen genuine 2xx reads, a measured
+  // healthy-looking raw 5xx zero, and no guarded 5xx or p95 series.
+  const low=JSON.parse(fs.readFileSync(path.join(root,"m17-low-traffic-window.json"),"utf8"));
+  expect(low.source_sha).toBe(process.env.HARBOROPS_SOURCE_SHA);
+  expect(low.result).toBe("PASS");
+  expect(low.requests_sent).toBeGreaterThan(0);
+  expect(low.requests_sent).toBeLessThan(low.sufficiency_floor);
+  expect(low.eligible_max).toBeLessThan(low.sufficiency_floor);
+  expect(low.eligible_min).toBeGreaterThanOrEqual(1);
+  expect(low.guarded_5xx_points).toBe(0);
+  expect(low.guarded_p95_points).toBe(0);
+  expect(low.raw_5xx_zero_points).toBeGreaterThanOrEqual(1);
+  // Independent re-query inside this browser test, not trust of the stage file.
+  const mid=Math.floor((low.window_start+low.window_end)/2);
+  const rawZero=await page.request.get(prometheusProxy,{params:{
+    query:"sum(rate(harborops_request_failures_total[5m]))",time:String(mid)}});
+  expect(rawZero.status()).toBe(200);
+  const rawBody=await rawZero.json();
+  expect(rawBody.data.result).toHaveLength(1);
+  expect(Number(rawBody.data.result[0].value[1])).toBe(0);
+  for(const guarded of ["harborops:m17:api_5xx_rate_sufficient:5m",
+    "harborops:m17:api_p95_seconds_sufficient:5m"]) {
+    const guardedResponse=await page.request.get(prometheusProxy,{params:{
+      query:guarded,time:String(mid)}});
+    expect((await guardedResponse.json()).data.result).toHaveLength(0);
+  }
+  await page.goto(dashboard+"?from="+String(low.window_start*1000)+
+    "&to="+String(low.window_end*1000));
+  await expect.poll(()=>renderedApiText(page,"API request rate"),
+    {timeout:90000,intervals:[3000]}).toMatch(/\d(?:\.\d+)?\s*req\/s/);
+  const requestRate=await renderedApiText(page,"API request rate");
+  expect(requestRate).not.toMatch(/\b(?:No data|Unknown)\b/i);
+  const lowPanels={"API request rate":requestRate};
+  for(const title of ["API 5xx rate","API p95 latency"]) {
+    await expect.poll(()=>renderedApiNoData(page,title),
+      {timeout:90000,intervals:[3000]}).toMatch(/\bUnknown\b/i);
+    const state=await renderedApiNoData(page,title);
+    expect(state).not.toMatch(/\b(?:Healthy|Sufficient)\b/i);
+    expect(state).not.toMatch(/\b0(?:\.0+)?\s*(?:req\/s|ms|s)\b/i);
+    lowPanels[title]=state;
+  }
+  rendered.low_traffic={window_start:low.window_start,window_end:low.window_end,
+    requests_sent:low.requests_sent,sufficiency_floor:low.sufficiency_floor,
+    eligible_min:low.eligible_min,eligible_max:low.eligible_max,
+    raw_5xx_value_at_midpoint:Number(rawBody.data.result[0].value[1]),
+    guarded_series_at_midpoint:0,panels:lowPanels};
   fs.writeFileSync(path.join(root,"m17-ui-no-traffic-"+testInfo.project.name+".json"),
     JSON.stringify(rendered,null,2)+"\n",{flag:"wx"});
 });
@@ -264,21 +325,16 @@ test("zero and insufficient traffic render unknown rather than a healthy zero", 
 // Inspect a single rendered Grafana panel, not just its datasource query or
 // saved JSON settings. Reject text borrowed from another panel on the page.
 async function renderedPanelText(page,title) {
-  const header=page.getByText(title,{exact:false}).first();
-  await expect(header).toBeVisible();
-  return header.evaluate(el=>{
-    const otherTitles=["API request rate","API 5xx rate","API p95 latency",
-      "Notification worker","Application heartbeats","Collector transport probe",
-      "Active local alerts","Tracking eligible backlog age"];
-    let node=el;
-    for(let depth=0;node&&depth<12;node=node.parentElement,depth++) {
-      const text=String(node.innerText||"");
-      if(text.length>1400||!text.includes("PostgreSQL readiness"))continue;
-      if(otherTitles.some(title=>text.includes(title)))continue;
-      if(/\b(?:Unknown|No data|Unavailable|Ready)\b/i.test(text))return text;
-    }
-    return "";
-  });
+  // Saved panel id 4 is "PostgreSQL readiness"; its grid item is the exact container.
+  const item=page.locator('[data-griditem-key="grid-item-4"]');
+  await expect(item).toHaveCount(1);
+  const text=String(await item.innerText());
+  expect(text).toContain(title);
+  for(const other of ["API request rate","API 5xx rate","API p95 latency",
+    "Notification worker","Application heartbeats","Collector transport probe",
+    "Active local alerts","Tracking eligible backlog age"])
+    expect(text).not.toContain(other);
+  return /\b(?:Unknown|No data|Unavailable|Ready)\b/i.test(text)?text:"";
 }
 
 test("browser API denial retains server-issued correlation under spoofed context",async ({browser})=>{

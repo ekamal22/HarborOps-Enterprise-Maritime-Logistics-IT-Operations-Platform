@@ -1,5 +1,9 @@
 # HarborOps Execution Graph
 
+**Latest G17-S25 checkpoint (2026-11-14):** Local f7 evidence at `5b1dcc41d5b19dcbacd66de38193dc5020964647` reports 49/49 stages PASS and 72/72 technical witnesses, with three S25 assertions pending. Its 54-file manifest is verified, but the exact unpushed source is unavailable on this remote branch, f6/f7 P09 variance and positive F07 effect-once proof remain unresolved, and separate signed review is absent. **G17 NOT ACCEPTED; acceptance pending.** No hosted run or change to approved performance budgets is authorized. [Current f7 checkpoint](M17_G17_F7_S25_CURRENT_CHECKPOINT_20261114.md).
+
+**Historical evidence note:** Earlier checkpoints below retain their original source-specific PASS or FAILED outcomes; they are not the latest f7 status.
+
 **Version:** 3.0  
 **Date:** 2026-10-31  
 **State:** Delivery dependency plan, not observed runtime status.

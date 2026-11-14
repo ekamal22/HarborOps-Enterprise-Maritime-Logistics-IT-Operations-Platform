@@ -1,6 +1,10 @@
 # G17-S25 Evidence Review and Acceptance Recommendation
 
-**G17-S25 findings tracking (2026-11-14):** All eight open technical, evidence, performance and procedural items after the second-pass review are recorded in the [S25 open-findings register](M17_G17_S25_OPEN_FINDINGS_REGISTER_20261114.md). This is an issue log, not a correction or verified rerun. The G17 technical campaign is green, but **G17 NOT ACCEPTED**; review and acceptance pending.
+**Latest G17-S25 checkpoint (2026-11-14):** Local f7 evidence at `5b1dcc41d5b19dcbacd66de38193dc5020964647` reports 49/49 stages PASS and 72/72 technical witnesses, with three S25 assertions pending. Its 54-file manifest is verified, but the exact unpushed source is unavailable on this remote branch, f6/f7 P09 variance and positive F07 effect-once proof remain unresolved, and separate signed review is absent. **G17 NOT ACCEPTED; acceptance pending.** No hosted run or change to approved performance budgets is authorized. [Current f7 checkpoint](M17_G17_F7_S25_CURRENT_CHECKPOINT_20261114.md).
+
+**Historical evidence note:** Earlier checkpoints below retain their original source-specific PASS or FAILED outcomes; they are not the latest f7 status.
+
+**Historical S25 findings checkpoint (2026-11-14):** All eight open technical, evidence, performance and procedural items after the second-pass review are recorded in the [S25 open-findings register](M17_G17_S25_OPEN_FINDINGS_REGISTER_20261114.md). This is an issue log, not a correction or verified rerun. The G17 technical campaign is green, but **G17 NOT ACCEPTED**; review and acceptance pending.
 
 **Recorded:** November 14, 2026
 **Source:** `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`

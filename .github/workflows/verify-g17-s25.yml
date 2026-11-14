@@ -43,7 +43,7 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test -z "$(git status --porcelain)"
-          node --test scripts/audit-g17-test-coverage.test.mjs scripts/g17-results-contract.test.mjs scripts/reconcile-g17-assertions.test.mjs
+          node --test scripts/audit-g17-test-coverage.test.mjs scripts/g17-results-contract.test.mjs scripts/reconcile-g17-assertions.test.mjs scripts/g17-raw-witness.test.mjs scripts/g17-malformed-trace-evidence.test.mjs
           node scripts/audit-g17-test-coverage.mjs --strict
       - name: Source boundary and negative controls
         shell: bash

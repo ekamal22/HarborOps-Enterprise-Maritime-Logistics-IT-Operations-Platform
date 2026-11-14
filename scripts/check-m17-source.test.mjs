@@ -29,6 +29,38 @@ test("the G17 stack validates collector config and refuses dead diagnostic servi
   assert.doesNotMatch(collector,/^  otlp\/tempo:/m);
 });
 
+test("G17 independent-review remediation is enforced by source and the evidence runner",()=>{
+  const runner=read("scripts/run-g17-local.ps1");
+  const privacy=read("scripts/check-g17-export-privacy.mjs");
+  const worker=read("scripts/check-g17-worker-journey.mjs");
+  const malformed=read("scripts/check-g17-malformed-export.mjs");
+  const guard=read("scripts/g17-raw-witness.mjs");
+  const dashboard=JSON.parse(read("monitoring/m17/grafana/dashboard.json"));
+  const browser=read("tests/browser/m17/dashboard.spec.mjs");
+  const panel=dashboard.panels.find(p=>p.id===4);
+  assert.equal(panel.title,"PostgreSQL readiness");
+  assert.equal(panel.fieldConfig.defaults.noValue,"Unknown");
+  assert.equal(panel.fieldConfig.defaults.mappings[0].options["0"].text,"Unavailable");
+  assert.equal(panel.fieldConfig.defaults.mappings[0].options["1"].text,"Ready");
+  for(const artifact of [
+    "m17-export-privacy-traces.json","m17-export-privacy-logs.txt",
+    "m17-export-privacy-series.json","m17-worker-journey-traces.json",
+    "m17-worker-journey-series.json","m17-malformed-export-results.json",
+    "m17-malformed-export-traces.json","m17-ui-state-chromium.json",
+    "m17-ui-state-firefox.json","m17-ui-state-webkit.json"
+  ])assert.ok(runner.includes(artifact),"Missing required raw artifact "+artifact);
+  assert.match(runner,/check-g17-malformed-export\.mjs/);
+  assert.match(runner,/g17-malformed-trace-evidence\.test\.mjs/);
+  assert.match(privacy,/retainedTraces\.push\(/);
+  assert.match(privacy,/retainedLogs=logs/);
+  assert.match(worker,/retainedTraceDocuments\.push\(/);
+  assert.match(worker,/retainedMetricSeries=metricBody\.data/);
+  assert.match(malformed,/verifyMalformedBaselineTrace/);
+  assert.match(guard,/non_loopback_addresses_refused >= 1/);
+  assert.match(browser,/renderedPanelText/);
+  assert.match(browser,/browser API denial retains server-issued correlation/);
+});
+
 test("the default stack does not start or expose M17 components", () => {
   const base = read("compose.yaml");
   assert.doesNotMatch(base, /M17__Enabled|otelcol:|3301:3000/);

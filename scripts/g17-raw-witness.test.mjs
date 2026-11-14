@@ -58,7 +58,8 @@ const FIXTURES = {
       loopback_http_status: 200, published_by: "dashboard_gateway",
       grafana_publishes_nothing: true, non_loopback_addresses_refused: 1}},
   "scripts/check-g17-alert-matrix.mjs": {result: "PASS", checks: [
-    {fault: "real-http-5xx-rate-fires-reference-alert", status: "PASS"}]},
+    {fault: "real-http-5xx-rate-fires-reference-alert", status: "PASS",
+      source_artifact: "m17-database-fault-results.json"}]},
   "scripts/check-g17-worker.mjs": {result: "PASS", checks: [
     check("fault-worker-stop-suppresses-stale-backlog"), check("worker-recovers-after-fault")]},
   "scripts/check-g17-performance.mjs": {result: "PASS", run_kind: "THREE_MATCHED_PAIRS",
@@ -150,6 +151,10 @@ test("a failed overall result or an unknown case is never accepted", () => {
     FIXTURES["scripts/check-g17-network.mjs"]), false);
   assert.equal(rawWitnessPasses("scripts/not-registered.mjs", "x", {result: "PASS"}), false);
   assert.equal(rawWitnessPasses("scripts/check-g17-network.mjs", "dashboard_listener", null), false);
+  const missingAlertSource=clone(FIXTURES["scripts/check-g17-alert-matrix.mjs"]);
+  delete missingAlertSource.checks[0].source_artifact;
+  assert.equal(rawWitnessPasses("scripts/check-g17-alert-matrix.mjs",
+    "real-http-5xx-rate-fires-reference-alert",missingAlertSource),false);
   const noProbe=clone(FIXTURES["scripts/check-g17-network.mjs"]);
   noProbe.dashboard_listener.non_loopback_addresses_refused=0;
   assert.equal(rawWitnessPasses("scripts/check-g17-network.mjs","dashboard_listener",noProbe),false);

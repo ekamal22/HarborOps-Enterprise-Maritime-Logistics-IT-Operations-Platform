@@ -121,7 +121,8 @@ const RAW_PREDICATES = new Map([
   ["scripts/check-g17-alert-matrix.mjs", new Map([
     ["real-http-5xx-rate-fires-reference-alert",
       r => ok(r) && (r.checks ?? []).some(c =>
-        c.fault === "real-http-5xx-rate-fires-reference-alert" && c.status === "PASS")]
+        c.fault === "real-http-5xx-rate-fires-reference-alert" && c.status === "PASS" &&
+        c.source_artifact === "m17-database-fault-results.json")]
   ])],
   ["scripts/check-g17-worker.mjs", new Map([
     ["fault-worker-stop-suppresses-stale-backlog",

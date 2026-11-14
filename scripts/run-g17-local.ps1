@@ -186,7 +186,8 @@ try {
         'scripts/g17-adversarial-evidence.test.mjs',
         'scripts/g17-malformed-trace-evidence.test.mjs',
         'scripts/g17-s25-raw-evidence.test.mjs',
-        'scripts/g17-evidence-files.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
+        'scripts/g17-evidence-files.test.mjs',
+        'scripts/g17-live-5xx-evidence.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')

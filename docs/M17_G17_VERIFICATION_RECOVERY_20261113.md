@@ -1,6 +1,6 @@
 # G17 Source-Locked Verification Recovery
 
-**Current 2026-11-14 G17 checkpoint:** Hosted [#43538965276](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43538965276) FAILED its first-incident 5xx alert witness after all early unit, contract, scoped integration and regression tests passed. Fixed executable source `a236ab64574cfec8b0dcbde232a5d22ef086783b` seeds the bounded failure counter before the incident and checks 120 real 503 responses over multiple scrape intervals, with genuine failure-rate and traffic-volume evidence. [Rerun #43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) passed preflight; full campaign pending at this documentation checkpoint. **G17 NOT ACCEPTED; acceptance pending.** The earlier independent S25 review returned NOT PASS and all historical records remain intact. [Latest reconciliation](M17_G17_REPOWIDE_DOCUMENTATION_RECONCILIATION_20261114.md).
+**Current G17 checkpoint (2026-11-14):** Hosted [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) FAILED its contract test after preflight and 319 unit tests passed. The first-incident 5xx zero seed correctly emitted an extra zero-valued measurement, exposing a test that still expected one total measurement. Executable source `f174eae6b2077937c7d43a8b1f7c34ecdab9b663` requires the zero baseline and exactly one positive 5xx increment, without weakening the request-duration check. [Rerun #43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) passed source preflight and full campaign remains pending at this checkpoint. **G17 NOT ACCEPTED; acceptance pending.** Earlier c7 and hosted failure evidence are preserved. [Current reconciliation](M17_G17_REPOWIDE_DOCUMENTATION_RECONCILIATION_20261114.md).
 
 **Recorded:** 2026-11-13, during the source-locked campaign for `feature/m17-observability-20261112`.
 **Protected main:** `b490fb8cfc879cdf05cb1f7484b99f6a9b264ed3`, unchanged by this recovery.
@@ -94,3 +94,13 @@ The hosted run 43477790029 itself failed because Prometheus rejected `--web.enab
 | [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) | `a236ab64574cfec8b0dcbde232a5d22ef086783b` | Source preflight PASS; full disposable campaign pending at this checkpoint |
 
 The correction seeds `business/5xx` as a zero-valued bounded counter on each heartbeat and requires a real exported baseline, positive 5-minute increase, at least 100 eligible requests, a fraction above 1 percent, 120 genuine 503s over multiple scrapes and a firing alert. Existing alert thresholds are unchanged; the full G17 gate and renewed independent S25 still require complete evidence.
+
+
+## Contract witness compatibility and relaunch, 2026-11-14
+
+| Run | Source SHA | Exact outcome |
+| --- | --- | --- |
+| [#43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) | `a236ab64574cfec8b0dcbde232a5d22ef086783b` | FAILED: source preflight and 319/319 unit tests passed; 59/60 contract cases passed. `EnabledTelemetryRecordsExactlyOneRequestDurationAndFailureObservation` expected a single failure-counter callback but the new bounded zero-seed and one real 503 correctly emitted two measurements. No database fault/alert tests ran in this attempt |
+| [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) | `f174eae6b2077937c7d43a8b1f7c34ecdab9b663` | No-skip source preflight PASS. Full disposable verification pending at documentation checkpoint |
+
+The contract now requires one observed zero-valued failure-counter baseline, exactly one positive increment of one, aggregate count of one and one request-duration measurement. This retains the original no-duplicate requirement while permitting the expected initialization sample. Historical failed artifacts remain preserved and G17 remains not accepted.

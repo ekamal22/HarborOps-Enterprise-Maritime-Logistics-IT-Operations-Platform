@@ -1,5 +1,7 @@
 # G17-S25 Open Findings Register
 
+**Remediation verification checkpoint, November 14, 2026:** [#43589093044](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43589093044) FAILED the new positive S15 lease-restart integration test after 319 unit, 60 contract and 54 other integration tests passed without skips. The new test launched opted-in telemetry without the required zero span-event and link limits; the existing privacy guard correctly rejected the host. Source corrections now set and restore both limits within the isolated test and use an uppercase-only synthetic shipment reference for the S22 database fixture. These changes need a fresh full campaign. Historical failure artifact `g17-raw-evidence-43589093044-1` is retained. **G17 NOT ACCEPTED; separate S25 sign-off remains pending.**
+
 **Recorded:** November 14, 2026  
 **Basis:** [Independent evidence review](M17_G17_S25_INDEPENDENT_EVIDENCE_REVIEW_20261114.md), [verified hosted run #43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851), source `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`  
 **Status:** Technical remediation is SOURCE-IMPLEMENTED but unverified by a new full campaign. Findings remain open until actual evidence review. Separate reviewer sign-off remains pending.  

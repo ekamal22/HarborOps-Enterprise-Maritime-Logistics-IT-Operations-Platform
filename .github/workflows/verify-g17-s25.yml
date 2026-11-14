@@ -48,7 +48,7 @@ jobs:
       - name: Source boundary and negative controls
         shell: bash
         run: |
-          node --test scripts/g17-source-boundary.test.mjs scripts/check-m17-source.test.mjs scripts/check-g17-manifest.test.mjs scripts/g17-adversarial-evidence.test.mjs
+          node --test scripts/g17-source-boundary.test.mjs scripts/check-m17-source.test.mjs scripts/check-m17-metric-names.test.mjs scripts/check-g17-manifest.test.mjs scripts/g17-adversarial-evidence.test.mjs
 
   full-disposable-verification:
     name: G17 exact-SHA full disposable acceptance campaign

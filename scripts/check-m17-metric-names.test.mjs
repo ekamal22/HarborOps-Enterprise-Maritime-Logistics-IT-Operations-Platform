@@ -90,7 +90,19 @@ test("every verifier that reads a Tempo v2 trace unwraps the trace envelope", ()
     .filter(name => /^check-g17-.*\.mjs$/.test(name))
     .filter(name => read("scripts/" + name).includes("/api/v2/traces/"));
   assert.ok(readers.length >= 3, "Expected the privacy, restart, journey and retention readers");
-  for (const name of readers)
-    assert.match(read("scripts/" + name), /trace\?\.resourceSpans/,
-      name + " does not unwrap the Tempo v2 trace envelope");
+  for (const name of readers) {
+    const reader=read("scripts/" + name);
+    if (/trace\?\.resourceSpans/.test(reader))continue;
+    // The malformed-context verifier delegates decoding to a separate
+    // unit-tested module instead of repeating an unsafe partial decoder.
+    if (name==="check-g17-malformed-export.mjs") {
+      assert.match(reader,/import.*verifyMalformedBaselineTrace/);
+      assert.match(reader,/verifyMalformedBaselineTrace\(doc,/);
+      const decoder=read("scripts/g17-malformed-trace-evidence.mjs");
+      assert.match(decoder,/doc\?\.trace\?\.resourceSpans/,
+        "Malformed-context decoder does not read the Tempo v2 trace envelope");
+      continue;
+    }
+    assert.fail(name + " does not unwrap the Tempo v2 trace envelope");
+  }
 });

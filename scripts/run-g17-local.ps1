@@ -136,7 +136,8 @@ if ($StartDisposableStack) {
         'm17-browser-results.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
         'm17-performance-raw.json','m17-restart-results.json',
-        'm17-export-privacy-results.json','m17-export-privacy-traces.json',
+        'm17-export-privacy-results.json','m17-malformed-export-results.json',
+        'm17-malformed-export-traces.json','m17-export-privacy-traces.json',
         'm17-export-privacy-logs.txt','m17-export-privacy-series.json',
         'm17-storage-results.json',
         'm17-retention-age-results.json','m17-tempo-retention-results.json',
@@ -180,7 +181,8 @@ try {
         'scripts/g17-results-contract.test.mjs',
         'scripts/g17-source-boundary.test.mjs',
         'scripts/reconcile-g17-assertions.test.mjs',
-        'scripts/g17-adversarial-evidence.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
+        'scripts/g17-adversarial-evidence.test.mjs',
+        'scripts/g17-malformed-trace-evidence.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
@@ -329,6 +331,7 @@ try {
             # Both result directories are written directly to the E: evidence root.
         } finally { Pop-Location }
         Invoke-Required 'node' @('scripts/check-g17-export-privacy.mjs') -Stage 'tempo-and-prometheus-negative-privacy-canaries'
+        Invoke-Required 'node' @('scripts/check-g17-malformed-export.mjs') -Stage 'malformed-context-real-tempo-export'
         Invoke-Required 'node' @('scripts/check-g17-storage.mjs') -Stage 'owned-telemetry-storage-isolation-and-pressure'
         Invoke-Required 'node' @('scripts/check-g17-retention.mjs') -Stage 'isolated-twenty-four-hour-expiration-proof'
         Invoke-Required 'node' @('scripts/check-g17-tempo-retention.mjs') -Stage 'isolated-tempo-expiration-with-positive-trace-canary'

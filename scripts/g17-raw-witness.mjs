@@ -22,6 +22,7 @@ export const RAW_REPORT_FILES = new Map([
   ["scripts/check-g17-database-fault.mjs", "m17-database-fault-results.json"],
   ["scripts/check-g17-restart.mjs", "m17-restart-results.json"],
   ["scripts/check-g17-export-privacy.mjs", "m17-export-privacy-results.json"],
+  ["scripts/check-g17-malformed-export.mjs", "m17-malformed-export-results.json"],
   ["scripts/check-g17-cardinality-memory.mjs", "m17-cardinality-memory-results.json"],
   ["scripts/check-g17-performance.mjs", "m17-performance-raw.json"],
   ["scripts/check-g17-storage.mjs", "m17-storage-results.json"],
@@ -43,6 +44,13 @@ const privacy = (report) => ok(report) && report.traces_inspected >= 2 &&
   kinds(report).has("owned-sanitized-service-logs");
 
 const RAW_PREDICATES = new Map([
+  ["scripts/check-g17-malformed-export.mjs",new Map([
+    ["malformed-context-export-safe",r=>ok(r) &&
+      r.malformed_trace_context===true && r.injected_requests===960 &&
+      r.validated_exported_traces>=4 &&
+      r.trace_records_retained===r.validated_exported_traces &&
+      r.negative_canary_absent===true]
+  ])],
   ["scripts/check-g17-export-privacy.mjs", new Map([
     ["owned-sanitized-service-logs", privacy],
     // The same exported traces were produced by requests carrying an oversized

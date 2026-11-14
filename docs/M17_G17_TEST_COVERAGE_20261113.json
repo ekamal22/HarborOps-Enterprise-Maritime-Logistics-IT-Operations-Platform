@@ -287,10 +287,10 @@
           "expected": "no raw header is exported, no 500",
           "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-g17-export-privacy.mjs",
-            "case": "invalid-"
+            "path": "scripts/check-g17-malformed-export.mjs",
+            "case": "malformed-context-export-safe"
           },
-          "coverage_gap": "Malformed trace context and raw canary rejection verified in API, Tempo and metrics; execution pending"
+          "coverage_gap": "Dedicated malformed-only HTTP stage, server-created sampled Tempo traces, retained exported records and raw canary rejection required"
         }
       ]
     },

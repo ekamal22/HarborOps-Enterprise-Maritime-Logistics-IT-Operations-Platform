@@ -23,3 +23,9 @@ test("a credential, account or tenant shape not on the canary list is still reje
   assert.throws(()=>verifyOwnedWorkerLog(logs+"\n"+injected,secrets),
    /credential, account or tenant shaped value/);
 });
+
+test("each canary must be a real string of at least eight characters",()=>{
+  assert.equal(verifyOwnedWorkerLog(logs,["12345678","abcdefgh","ABCDEFGH","zzzzzzzz"]).checked_values,4);
+  for(const bad of ["1234567","",null,undefined,42,{}])
+    assert.throws(()=>verifyOwnedWorkerLog(logs,[bad,"abcdefgh","ABCDEFGH","zzzzzzzz"]));
+});

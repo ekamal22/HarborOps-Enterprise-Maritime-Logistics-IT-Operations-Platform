@@ -83,3 +83,10 @@ test("hidden Playwright last-run records are required and must show a clean pass
     '{"status":"passed","failedTests":["abc"]}','{"status":"passed"}','null','[]'])
     assert.throws(()=>verifyPlaywrightLastRun(bad),/last-run record/,bad);
 });
+
+test("an extra browser case that sorts last is not accepted as the required set",()=>{
+  const raw=browser("dashboard");
+  raw.suites[0].specs.push({title:"zzz additional case",ok:true,tests:["chromium","firefox","webkit"].map(projectName=>({
+    projectName,expectedStatus:"passed",status:"expected",results:[{status:"passed",retry:0}]}))});
+  assert.throws(()=>verifyPlaywrightCases(raw,"dashboard"),/Missing, unexpected or duplicated browser cases/);
+});

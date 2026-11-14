@@ -16,3 +16,13 @@ test("invalid or missing measured samples fail closed",()=>{
   for(const value of [NaN,Infinity,-1,undefined,null])
     assert.throws(()=>validateLive5xxEvidence({...good,failed_increase_5m:value}));
 });
+
+test("the exact approved edges are accepted and the first value beyond them is not",()=>{
+  assert.equal(validateLive5xxEvidence({...good,eligible_requests_5m:100}),true);
+  assert.equal(validateLive5xxEvidence({...good,failure_fraction_5m:1}),true);
+  assert.equal(validateLive5xxEvidence({...good,failure_fraction_5m:0.0101}),true);
+  assert.throws(()=>validateLive5xxEvidence({...good,eligible_requests_5m:99.99}));
+  assert.throws(()=>validateLive5xxEvidence({...good,failure_fraction_5m:1.0001}));
+  assert.throws(()=>validateLive5xxEvidence({...good,observed_counter:good.baseline_counter}));
+  assert.throws(()=>validateLive5xxEvidence({...good,failed_increase_5m:0.0}));
+});

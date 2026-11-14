@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import {execFileSync} from "node:child_process";
+import {execFileSync,spawn} from "node:child_process";
 import {performance} from "node:perf_hooks";
 import {verifyTrxCases} from "./g17-results-contract.mjs";
 import {seedLeasedSyntheticWork,leaseSnapshot,leaseIdentity} from "./g17-lease-fixture.mjs";
@@ -135,7 +135,50 @@ try {
     // The active lease is byte-identical after the canceled in-flight requests.
     assert.deepEqual(leaseSnapshot(sql,lease.receipt),leaseBefore,
       "Request cancellation changed the active worker lease");
-    return {total:cases.length,canceled:cases.filter(x=>x==="canceled").length,
+    // Genuinely in-flight cancellation. The fast aborts above usually end before the
+    // server has begun work, so they cannot show what the API does with a request it
+    // already started. Here an exclusive lock on the baseline table blocks the reads
+    // inside the API; each blocked request is then canceled by its client.
+    const locker=spawn("docker",[...args,"exec","-T","postgres","psql","-U","harborops",
+      "-d","harborops","-v","ON_ERROR_STOP=1","-c",
+      "BEGIN; LOCK TABLE bootstrap_records IN ACCESS EXCLUSIVE MODE; SELECT pg_sleep(9); COMMIT;"],
+      {stdio:"ignore"});
+    const lockerDone=new Promise(resolve=>locker.on("exit",resolve));
+    let lockHeld=false;
+    for(let attempt=0;attempt<40&&!lockHeld;attempt++) {
+      lockHeld=Number(sql("SELECT count(*) FROM pg_locks WHERE relation='bootstrap_records'::regclass "+
+        "AND mode='AccessExclusiveLock' AND granted"))>=1;
+      if(!lockHeld)await wait(250);
+    }
+    assert.ok(lockHeld,"The owned exclusive lock that blocks in-flight reads was not granted");
+    const inflightIds=[];
+    const flight=await Promise.all(Array.from({length:60},async()=>{
+      const controller=new AbortController();
+      const traceId=crypto.randomBytes(16).toString("hex");
+      const timer=setTimeout(()=>controller.abort(),2500);
+      try {
+        await fetch(root+"/api/v1/system/baseline",{signal:controller.signal,headers:{
+          traceparent:"00-"+traceId+"-0123456789abcdef-01"}});
+        return "completed";
+      }catch(err) {
+        assert.ok(err.name==="AbortError"||err.name==="TimeoutError",
+          "Unexpected network exception during in-flight cancellation");
+        inflightIds.push(traceId);
+        canceledTraces.push({trace_id:traceId,canceled_at_ms:Date.now(),in_flight:true});
+        return "canceled";
+      }finally{clearTimeout(timer);}
+    }));
+    await Promise.race([lockerDone,wait(25000)]);
+    const inflightCanceled=flight.filter(x=>x==="canceled").length;
+    assert.equal(inflightCanceled,60,
+      "Every blocked in-flight request must be canceled by its client, not answered");
+    await ready();
+    assert.equal((await status("/api/v1/system/baseline")).service,"HarborOps");
+    assert.equal(databaseFootprint(),before,"In-flight cancellation changed durable business state");
+    assert.deepEqual(leaseSnapshot(sql,lease.receipt),leaseBefore,
+      "In-flight request cancellation changed the active worker lease");
+    return {total:cases.length+flight.length,canceled:cases.filter(x=>x==="canceled").length+inflightCanceled,
+      fast_canceled:cases.filter(x=>x==="canceled").length,inflight_canceled:inflightCanceled,
       canceled_trace_ids:canceledTraces.length,lease_unchanged_by_cancellation:true};
   });
   await check("owned-api-shutdown-bounded",async()=>{
@@ -201,11 +244,13 @@ try {
     // Correlate cancellation to telemetry: look up each canceled request by the
     // trace identifier it carried. Whatever the API exported for it must have
     // started before the shutdown, and a trace may not claim a server error.
-    let found=0,absent=0,canceledSpans=0;
+    let found=0,absent=0,canceledSpans=0,inflightTotal=0,inflightFound=0;
     for(const item of canceledTraces) {
       const spans=await tempoTrace(item.trace_id);
+      if(item.in_flight)inflightTotal++;
       if(spans.length===0) {absent++;continue;}
       found++;
+      if(item.in_flight)inflightFound++;
       for(const span of spans) {
         const startTime=span.startTimeUnixNano||span.start_time_unix_nano;
         assert.ok(startTime&&BigInt(startTime)<BigInt(shutdownEpochMs+1000)*1000000n,
@@ -217,6 +262,7 @@ try {
     }
     assert.equal(found+absent,canceledTraces.length);
     lifecycle.canceled_trace_correlation={canceled_requests:canceledTraces.length,
+      inflight_canceled_requests:inflightTotal,inflight_found_in_tempo:inflightFound,
       found_in_tempo:found,absent_in_tempo:absent,spans_inspected:canceledSpans,
       all_started_before_shutdown:true,none_exported_as_server_error:true};
     return {stale_readiness:"unknown",post_shutdown_spans:0,

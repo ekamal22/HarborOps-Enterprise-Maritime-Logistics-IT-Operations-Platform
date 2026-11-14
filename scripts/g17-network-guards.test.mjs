@@ -31,3 +31,9 @@ test("host isolation accepts only a refused TCP connection",()=>{
     null
   ]) assert.equal(isRefusedConnection(error),false);
 });
+
+test("a missing or non-object process state is rejected",()=>{
+  for(const bad of [undefined,null,"running",0,false])
+    assert.throws(()=>verifyServiceState("api",bad),/Missing process state for api/);
+  assert.throws(()=>verifyServiceState("api",{Status:"running",Running:true,OOMKilled:undefined}));
+});

@@ -37,6 +37,7 @@ function docker(extra) {
 const sql = query => docker(["exec", "-T", "postgres", "psql", "-U", "harborops",
   "-d", "harborops", "-At", "-v", "ON_ERROR_STOP=1", "-c", query]);
 let staleFixture = null;
+let preStopInstance = null;
 async function metric(expression) {
   const url = "http://127.0.0.1:3301/api/datasources/proxy/uid/harborops-local-metrics/api/v1/query";
   const request = new URL(url);
@@ -90,10 +91,15 @@ try {
       const result = await metric('harborops_service_running_ratio{service="tracking"}');
       return result.length === 1 && Number(result[0].value[1]) === 1;
     });
-    await poll("worker advancing heartbeat", async () => {
+    // The worker process identity is the exported instance label. A restarted process is a
+    // new instance, so recovery is proven by a different instance advancing its heartbeat,
+    // not by there being exactly one series while the stopped one is still retained.
+    preStopInstance = await poll("worker advancing heartbeat", async () => {
       const result = await metric('increase(harborops_worker_heartbeat_total{worker="tracking"}[2m])');
-      return result.length === 1 && Number(result[0].value[1]) > 0;
+      const advancing = result.filter(row => Number(row.value[1]) > 0);
+      return advancing.length === 1 ? advancing[0].metric.exported_instance : null;
     });
+    assert.match(preStopInstance, /^[0-9a-f-]{36}$/);
     const samples = await metric('harborops_worker_backlog_age_seconds{worker="tracking"}');
     assert.equal(samples.length, 1);
     assert.ok(Number.isFinite(Number(samples[0].value[1])));
@@ -137,9 +143,11 @@ try {
   await check("worker-recovers-after-fault", async () => {
     await poll("worker restarted", async () =>
       docker(["ps", "worker", "--format", "{{.State}} {{.Health}}"]) === "running healthy");
-    await poll("worker heartbeat resumes", async () => {
+    const resumedInstance = await poll("worker heartbeat resumes in a new process instance", async () => {
       const r = await metric('increase(harborops_worker_heartbeat_total{worker="tracking"}[2m])');
-      return r.length === 1 && Number(r[0].value[1]) > 0;
+      const advancing = r.filter(row => Number(row.value[1]) > 0 &&
+        row.metric.exported_instance !== preStopInstance);
+      return advancing.length >= 1 ? advancing[0].metric.exported_instance : null;
     });
     // The restarted worker drains the stale backlog it was suppressed for.
     assert.ok(staleFixture, "The stale backlog fixture must exist before recovery");
@@ -148,6 +156,7 @@ try {
       return state === "NeedsReconciliation" ? state : null;
     }, 150000);
     return {message: "restricted worker healthy after restart",
+      new_process_instance_resumed: resumedInstance !== preStopInstance,
       stale_work_state_after_recovery: drainedState};
   });
 } finally {

@@ -117,3 +117,27 @@ test("a recorded pooled p95 that raw samples cannot reproduce is rejected",()=>{
  report.pooled.baseline.p95_increase_pct=-10;
  assert.throws(()=>recalculateP09(report,40),/not reproducible from raw observations/);
 });
+
+// Input guards and exact budget edges, found by mutation analysis of the recalculation.
+test("empty, non-positive or non-finite raw samples are rejected",()=>{
+ for(const bad of [[],[0],[-1],[NaN],[Infinity],[1,2,0]]) {
+  const report=build({});
+  report.rows[0].raw_ms.baseline=bad.length?[...bad,...Array(Math.max(0,40-bad.length)).fill(10)]:[];
+  assert.throws(()=>recalculateP09(report,bad.length?40:0),/./,JSON.stringify(bad));
+ }
+});
+test("a non-positive peak memory reading or a missing telemetry mode is rejected",()=>{
+ const memory=build({});memory.rows[1].rss_peak_mib=0;
+ assert.throws(()=>recalculateP09(memory,40));
+ const negative=build({});negative.rows[2].rss_peak_mib=-5;
+ assert.throws(()=>recalculateP09(negative,40));
+ const missing=build({});missing.rows[5].telemetry_enabled=false;
+ assert.throws(()=>recalculateP09(missing,40),/Duplicate paired mode|pair|ok/i);
+});
+test("pooled p95 and memory budgets are inclusive at their approved values",()=>{
+ // 9.9 percent passes and 10.1 percent fails: the ten percent edge is decided by the raw ratio.
+ assert.equal(recalculateP09(build({on:10.99}),40).result,"PASS");
+ assert.equal(recalculateP09(build({on:11.01}),40).result,"FAIL");
+ assert.equal(recalculateP09(build({rssOn:114.9}),40).result,"PASS");
+ assert.equal(recalculateP09(build({rssOn:115.1}),40).result,"FAIL");
+});

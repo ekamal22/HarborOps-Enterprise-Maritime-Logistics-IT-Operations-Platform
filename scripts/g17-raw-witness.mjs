@@ -95,6 +95,9 @@ const RAW_PREDICATES = new Map([
         detail(r, "real-client-abort-does-not-commit-business")?.lease_unchanged_by_cancellation === true &&
         detail(r, "real-client-abort-does-not-commit-business")?.canceled > 0 &&
         r.canceled_trace_correlation?.canceled_requests > 0 &&
+        r.canceled_trace_correlation.inflight_canceled_requests >= 40 &&
+        r.canceled_trace_correlation.inflight_found_in_tempo >= 1 &&
+        detail(r, "real-client-abort-does-not-commit-business")?.inflight_canceled >= 40 &&
         r.canceled_trace_correlation.found_in_tempo + r.canceled_trace_correlation.absent_in_tempo ===
           r.canceled_trace_correlation.canceled_requests &&
         r.canceled_trace_correlation.all_started_before_shutdown === true &&
@@ -164,7 +167,8 @@ const RAW_PREDICATES = new Map([
           detail(r, "fault-worker-stop-suppresses-stale-backlog")?.stale_backlog_seconds_at_start &&
         detail(r, "fault-worker-stop-suppresses-stale-backlog")?.heartbeat_absent === true &&
         detail(r, "fault-worker-stop-suppresses-stale-backlog")?.alert_firing_count === 0 &&
-        detail(r, "worker-recovers-after-fault")?.stale_work_state_after_recovery === "NeedsReconciliation"]
+        detail(r, "worker-recovers-after-fault")?.stale_work_state_after_recovery === "NeedsReconciliation" &&
+        detail(r, "worker-recovers-after-fault")?.new_process_instance_resumed === true]
   ])],
   ["scripts/check-g17-performance.mjs", new Map([
     ["measured_routes",

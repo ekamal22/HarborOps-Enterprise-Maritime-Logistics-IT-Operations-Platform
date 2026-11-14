@@ -6,125 +6,7 @@ import {hasRawPredicate, rawWitnessPasses, RAW_WITNESS_SCRIPTS, RAW_REPORT_FILES
 
 const coverage = JSON.parse(fs.readFileSync(new URL(
   "../docs/M17_G17_TEST_COVERAGE_20261113.json", import.meta.url), "utf8"));
-const clone = value => JSON.parse(JSON.stringify(value));
-const check = (name, extra = {}) => ({name, status: "PASS", ...extra});
-
-// Reports shaped exactly like the ones the verification scripts write.
-const EXPECTED = {postgres: ["internal"], migrator: ["internal"],
-  api: ["internal", "telemetry_ingest"], web: ["internal"],
-  otelcol: ["telemetry_ingest", "telemetry_monitor"], tempo: ["telemetry_monitor"],
-  prometheus: ["telemetry_monitor"], grafana: ["telemetry_monitor"],
-  dashboard_gateway: ["dashboard_access", "telemetry_monitor"]};
-const FIXTURES = {
-  "scripts/check-g17-export-privacy.mjs": {result: "PASS", traces_inspected: 21,
-    spans_inspected: 42, exported_metric_series_inspected: 158,
-    retained_trace_documents:21,retained_metric_series:158,retained_log_bytes:40000,
-    snapshots: [{kind: "tempo-trace"}, {kind: "prometheus-series"},
-      {kind: "owned-sanitized-service-logs"}],
-    injected_controls: {oversized_baggage: true, requests: 320,
-      malformed_traceparent_requests: 160, all_business_responses_200: true}},
-  "scripts/check-g17-malformed-export.mjs": {result:"PASS",
-    malformed_trace_context:true,injected_requests:960,
-    validated_exported_traces:6,trace_records_retained:6,
-    negative_canary_absent:true},
-  "scripts/check-g17-diagnostic-journey.mjs": {
-    result:"PASS",page_originated:true,response_status:503,
-    trace_correlation_reconciled:true,server_correlation:"a".repeat(32),
-    trace_id:"b".repeat(32),
-    sanitized_log_line:"dependency is unavailable Correlation "+ "a".repeat(32)+" Trace "+ "b".repeat(32),
-    trace_document:{trace:{resourceSpans:[{scopeSpans:[{spans:[{name:"http.request"}]}]}]}},
-    alert_firing:true,dashboard_rendered:true,
-    dashboard_dom_text:"HarborOpsDatabaseUnavailable",
-    checks:[check("page-originated-same-request"),check("real-trace-to-db"),
-      check("same-fault-rendered-alert")]},
-  "scripts/check-g17-database-fault.mjs": {result: "PASS", database_restored: true,
-    checks: [check("real-db-outage-keeps-live-and-errors-classified"),
-      check("database-alert-identifies-only-safe-component",
-        {data: {alert: {name: "HarborOpsDatabaseUnavailable"}}})]},
-  "scripts/check-g17-collector-fault.mjs": {result: "PASS", collector_restored: true,
-    checks: [{name: "collector-recovery-automatic", result: "PASS"},
-      {name: "collector-fault-business-isolation", result: "PASS"}]},
-  "scripts/check-g17-restart.mjs": {result: "PASS", api_restored: true,
-    positive_worker_lease_witness:true,
-    source_locked_lease_method:"ApiRestartPreservesActiveWorkerLeaseAndNoDuplicateEffects",
-    lease:{receipt:"11111111-1111-4111-8111-111111111111",
-      token:"22222222-2222-4222-8222-222222222222",epoch:1,attempts:1,
-      identity_equal_before_stop_during_stop_after_restart:true,
-      forged_token_rejected:true,forged_epoch_rejected:true,
-      original_holder_finished_once:true,duplicate_finish_rejected:true,effects_after:0},
-    canceled_trace_correlation:{canceled_requests:40,found_in_tempo:12,absent_in_tempo:28,
-      spans_inspected:12,all_started_before_shutdown:true,none_exported_as_server_error:true},
-    checks: [check("real-client-abort-does-not-commit-business",
-        {detail:{canceled:40,lease_unchanged_by_cancellation:true}}),
-      check("owned-api-shutdown-bounded",{detail:{lease_unchanged_during_stop:true}}),
-      check("stale-readiness-is-unknown-not-healthy",
-        {detail: {actual_spans_inspected: 12}}),
-      check("restart-recovers-health-without-business-duplication")]},
-  "scripts/check-g17-cardinality-memory.mjs": {result: "PASS",
-    run_kind: "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES", total_paths: 40000,
-    count_per_wave: 10000, post_stress_memory_growth_pct: 1.9,
-    maximum_allowed_memory_overhead_pct: 15,
-    rows: Array.from({length: 4}, () => ({distinct_paths: 10000})),
-    pairs: [{pass: true}, {pass: true}]},
-  "scripts/check-g17-worker-journey.mjs": {result: "PASS", worker_role: "restricted",
-    receipts_accepted: 50, reconciled: 50, duplicate_replay: true,
-    matched_safe_trace_pairs: 7, exported_metric_series_checked_for_tenant_privacy: 186,
-    retained_metric_series:186,retained_trace_documents:24},
-  "scripts/check-g17-network.mjs": {result: "PASS", expected: EXPECTED,
-    observed: EXPECTED, process_states: Object.fromEntries(
-      Object.keys(EXPECTED).map(k => [k, {status: "running"}])),
-    protected_ports_refused: [4317, 9464, 9090, 3200],
-    dashboard_listener: {host_ip: "127.0.0.1", host_port: "3301",
-      loopback_http_status: 200, published_by: "dashboard_gateway",
-      grafana_publishes_nothing: true, non_loopback_addresses_refused: 1}},
-  "scripts/check-g17-alert-matrix.mjs": {result: "PASS", checks: [
-    {fault: "real-http-5xx-rate-fires-reference-alert", status: "PASS",
-      source_artifact: "m17-database-fault-results.json"}]},
-  "scripts/check-g17-worker.mjs": {result: "PASS", checks: [
-    check("fault-worker-stop-suppresses-stale-backlog",{detail:{stale_backlog_seconds_at_start:640,
-      stale_backlog_seconds_at_end:702,heartbeat_absent:true,alert_firing_count:0}}),
-    check("worker-recovers-after-fault",{detail:{stale_work_state_after_recovery:"NeedsReconciliation"}})]},
-  "scripts/check-g17-performance.mjs": {result: "PASS", run_kind: "THREE_MATCHED_PAIRS",
-    measured_routes: ["baseline", "authorized"],
-    rows: new Array(6).fill({raw_ms: {baseline: new Array(1200).fill(1),
-      authorized: new Array(1200).fill(1)}}),
-    gate: {pass: true, pooled_p95_pass: true, memory_pass: true, mean_memory_increase_pct: 13.0},
-    pooled: {baseline: {p95_increase_pct: 0.7}, authorized: {p95_increase_pct: 4.2}},
-    p95_increase_stddev_pct: 3.1, rss_increase_stddev_pct: 1.2,
-    system: {cpus: 12, memory_bytes: 16e9},
-    pairs: [1, 2, 3].map(() => ({memory_increase_pct: 13.9,
-      route_pairs: {baseline: {p95_increase_pct: 6.7}, authorized: {p95_increase_pct: 5.9}}}))},
-  "scripts/check-g17-pressure-matrix.mjs": {result: "PASS", cases: [
-    {name: "business-under-tenfold-pressure-and-exporter-outage", status: "PASS"},
-    {name: "a", status: "PASS"}, {name: "b", status: "PASS"}, {name: "c", status: "PASS"}]},
-  "scripts/check-g17-retention-matrix.mjs": {result: "PASS", metrics_retention_hours: 24,
-    traces_retention_hours: 24, raw_sources: ["m17-retention-age-results.json",
-      "m17-tempo-retention-results.json", "m17-storage-results.json"]},
-  "scripts/check-g17-storage.mjs": {result: "PASS",
-    telemetry_degradation:{signal:"OWNED_PROMETHEUS_STORAGE_ENOSPC",error_observed:true,
-      storage_error_logged:true,readiness_panel_expression_unknown:true,
-      stale_age_seconds:72,prometheus_unreachable:false,fresh_before_seconds:9,
-      observed_after_seconds:80},
-    telemetry_recovery:{recovered:true,how:"released-space"},
-    fixture_rows_before:Object.fromEntries(["m8_receipts","m8_events","m8_work_items",
-      "m11_exceptions","m11_history","m15_outbox","m16_audit"].map(n=>
-      [n,{rows:1,sha256:"c".repeat(64),keys:["k"]}])),
-    fixture_rows_after:Object.fromEntries(["m8_receipts","m8_events","m8_work_items",
-      "m11_exceptions","m11_history","m15_outbox","m16_audit"].map(n=>
-      [n,{rows:1,sha256:"c".repeat(64),keys:["k"]}])),
-    positive_history:{tables:{users:1,organizations:1,ports:2,shipments:1,
-      m8_receipts:1,m8_events:1,m8_work_items:1,
-      m11_exceptions:1,m11_history:1,m15_outbox:1,m16_audit:5}},
-    database_sha256_before: "a".repeat(64), database_sha256_after: "a".repeat(64),
-    checks: [check("business-remains-responsive-during-full-telemetry-store"),
-      check("all-application-history-byte-identical"),
-      check("telemetry-observation-recovers-after-fault")]},
-  "scripts/check-g17-regression-matrix.mjs": {result: "PASS", cases: {
-    M13: {class: "M13AdmissionControlAcceptanceTests", passed: 3,
-      declared_methods: 3, executed_distinct_methods: 3},
-    audit: {class: "G15AuditAcceptanceTests", passed: 2,
-      declared_methods: 2, executed_distinct_methods: 2}}}
-};
+import {clone, check, FIXTURES} from "./g17-raw-fixtures.mjs";
 
 const scriptWitnesses = [];
 for (const scenario of coverage.scenarios)
@@ -192,6 +74,7 @@ test("the held-worker alert suppression witness cannot pass vacuously", () => {
     "heartbeat was still present": r => { r.checks[0].detail.heartbeat_absent = false; },
     "an alert fired": r => { r.checks[0].detail.alert_firing_count = 1; },
     "backlog never drained": r => { r.checks[1].detail.stale_work_state_after_recovery = "Pending"; },
+    "same process instance resumed": r => { r.checks[1].detail.new_process_instance_resumed = false; },
     "no detail at all": r => { delete r.checks[0].detail; }
   };
   for (const [name, mutate] of Object.entries(single)) {
@@ -250,7 +133,10 @@ test("every individual restart lease and cancellation fact is load-bearing", () 
     "late canceled span": r => { r.canceled_trace_correlation.all_started_before_shutdown = false; },
     "canceled request exported as error": r => { r.canceled_trace_correlation.none_exported_as_server_error = false; },
     "canceled traces unaccounted": r => { r.canceled_trace_correlation.absent_in_tempo = 1; },
-    "no canceled trace correlation": r => { delete r.canceled_trace_correlation; }
+    "no canceled trace correlation": r => { delete r.canceled_trace_correlation; },
+    "no request was in flight": r => { r.canceled_trace_correlation.inflight_canceled_requests = 39; },
+    "no in-flight trace found": r => { r.canceled_trace_correlation.inflight_found_in_tempo = 0; },
+    "in-flight detail missing": r => { r.checks[0].detail.inflight_canceled = 39; }
   };
   const flagged = new Set();
   for (const [name, mutate] of Object.entries(single)) {
@@ -293,4 +179,110 @@ test("a failed overall result or an unknown case is never accepted", () => {
   const noProbe=clone(FIXTURES["scripts/check-g17-network.mjs"]);
   noProbe.dashboard_listener.non_loopback_addresses_refused=0;
   assert.equal(rawWitnessPasses("scripts/check-g17-network.mjs","dashboard_listener",noProbe),false);
+});
+
+// Mutation-driven controls. Each row removes or weakens exactly one fact; the named
+// witness case must then fail. Boundary rows pair the last passing value with the first
+// failing one, so a >= that degrades to > (or the reverse) is caught.
+const SINGLE_FACT = [
+  // export privacy
+  ["scripts/check-g17-export-privacy.mjs", "baggage:\"secret=\"", "oversized baggage not injected", r => { r.injected_controls.oversized_baggage = false; }],
+  ["scripts/check-g17-export-privacy.mjs", "baggage:\"secret=\"", "299 requests", r => { r.injected_controls.requests = 299; }],
+  ["scripts/check-g17-export-privacy.mjs", "owned-sanitized-service-logs", "no retained log bytes", r => { r.retained_log_bytes = 0; }],
+  ["scripts/check-g17-export-privacy.mjs", "owned-sanitized-service-logs", "no exported series", r => { r.exported_metric_series_inspected = 0; r.retained_metric_series = 0; }],
+  ["scripts/check-g17-export-privacy.mjs", "owned-sanitized-service-logs", "three traces only", r => { r.traces_inspected = 3; r.retained_trace_documents = 3; }],
+  ["scripts/check-g17-export-privacy.mjs", "invalid-", "no malformed traceparent", r => { r.injected_controls.malformed_traceparent_requests = 0; }],
+  ["scripts/check-g17-export-privacy.mjs", "invalid-", "a business response was not 200", r => { r.injected_controls.all_business_responses_200 = false; }],
+  // restart
+  ["scripts/check-g17-restart.mjs", "stale-readiness-is-unknown-not-healthy", "overall FAIL", r => { r.result = "FAIL"; }],
+  ["scripts/check-g17-restart.mjs", "stale-readiness-is-unknown-not-healthy", "stale check absent", r => { r.checks = r.checks.filter(c => c.name !== "stale-readiness-is-unknown-not-healthy"); }],
+  ["scripts/check-g17-restart.mjs", "owned-api-shutdown-bounded", "shutdown check absent", r => { r.checks = r.checks.filter(c => c.name !== "owned-api-shutdown-bounded"); }],
+  ["scripts/check-g17-restart.mjs", "restart-recovers-health-without-business-duplication", "api not restored", r => { r.api_restored = false; }],
+  // worker journey
+  ["scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", "one matched pair", r => { r.matched_safe_trace_pairs = 1; }],
+  ["scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", "replay not performed", r => { r.duplicate_replay = false; }],
+  ["scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", "49 receipts", r => { r.receipts_accepted = 49; }],
+  ["scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", "49 reconciled", r => { r.reconciled = 49; }],
+  ["scripts/check-g17-worker-journey.mjs", "Prometheus exported private tenant/source/account", "worker role not restricted", r => { r.worker_role = "owner"; }],
+  ["scripts/check-g17-worker-journey.mjs", "Prometheus exported private tenant/source/account", "no retained traces", r => { r.retained_trace_documents = 0; }],
+  ["scripts/check-g17-worker-journey.mjs", "Prometheus exported private tenant/source/account", "series count mismatch", r => { r.retained_metric_series = r.exported_metric_series_checked_for_tenant_privacy + 1; }],
+  ["scripts/check-g17-worker-journey.mjs", "Prometheus exported private tenant/source/account", "49 receipts", r => { r.receipts_accepted = 49; }],
+  ["scripts/check-g17-worker-journey.mjs", "Prometheus exported private tenant/source/account", "49 reconciled", r => { r.reconciled = 49; }],
+  // pressure
+  ["scripts/check-g17-pressure-matrix.mjs", "business-under-tenfold-pressure-and-exporter-outage", "named case failed", r => { r.cases.find(c => c.name === "business-under-tenfold-pressure-and-exporter-outage").status = "FAIL"; }],
+  ["scripts/check-g17-pressure-matrix.mjs", "business-under-tenfold-pressure-and-exporter-outage", "named case missing", r => { r.cases.find(c => c.name === "business-under-tenfold-pressure-and-exporter-outage").name = "other"; }],
+  ["scripts/check-g17-pressure-matrix.mjs", "business-under-tenfold-pressure-and-exporter-outage", "three cases only", r => { r.cases.pop(); }],
+  // cardinality
+  ["scripts/check-g17-cardinality-memory.mjs", "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES", "no pairs", r => { r.pairs = []; }],
+  ["scripts/check-g17-cardinality-memory.mjs", "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES", "a pair failed", r => { r.pairs[0].pass = false; }],
+  ["scripts/check-g17-cardinality-memory.mjs", "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES", "growth over budget", r => { r.post_stress_memory_growth_pct = 15.1; }],
+  ["scripts/check-g17-cardinality-memory.mjs", "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES", "a wave short of paths", r => { r.rows[2].distinct_paths = 9999; }],
+  // performance
+  ["scripts/check-g17-performance.mjs", "measured_routes", "a pair without memory", r => { r.pairs[1].memory_increase_pct = null; }],
+  ["scripts/check-g17-performance.mjs", "measured_routes", "memory over 15", r => { r.gate.mean_memory_increase_pct = 15.01; }],
+  ["scripts/check-g17-performance.mjs", "measured_routes", "pooled baseline over 10", r => { r.pooled.baseline.p95_increase_pct = 10.01; }],
+  ["scripts/check-g17-performance.mjs", "THREE_MATCHED_PAIRS", "799 baseline samples", r => { r.rows[0].raw_ms.baseline = new Array(799).fill(1); }],
+  ["scripts/check-g17-performance.mjs", "THREE_MATCHED_PAIRS", "799 authorized samples", r => { r.rows[5].raw_ms.authorized = new Array(799).fill(1); }],
+  ["scripts/check-g17-performance.mjs", "THREE_MATCHED_PAIRS", "no cpu count", r => { r.system.cpus = 0; }],
+  ["scripts/check-g17-performance.mjs", "THREE_MATCHED_PAIRS", "no memory size", r => { r.system.memory_bytes = 0; }],
+  ["scripts/check-g17-performance.mjs", "THREE_MATCHED_PAIRS", "no p95 stddev", r => { r.p95_increase_stddev_pct = NaN; }],
+  // storage boundary
+  ["scripts/check-g17-storage.mjs", "full-telemetry-store", "stale 44.9 s", r => { r.telemetry_degradation.stale_age_seconds = 44.9; }],
+  ["scripts/check-g17-storage.mjs", "full-telemetry-store", "seven protected tables only", r => { r.positive_history.tables = {a:1,b:1,c:1,d:1,e:1,f:1,g:1}; }],
+  // regression
+  ["scripts/check-g17-regression-matrix.mjs", "M13AdmissionControlAcceptanceTests", "no passed tests", r => { r.cases.M13.passed = 0; }],
+  ["scripts/check-g17-regression-matrix.mjs", "G15AuditAcceptanceTests", "wrong class", r => { r.cases.audit.class = "Other"; }],
+  // network
+  ["scripts/check-g17-network.mjs", "dashboard_listener", "grafana publishes", r => { r.dashboard_listener.grafana_publishes_nothing = false; }],
+  ["scripts/check-g17-network.mjs", "dashboard_listener", "wrong publisher", r => { r.dashboard_listener.published_by = "grafana"; }],
+  ["scripts/check-g17-network.mjs", "dashboard_listener", "http 500", r => { r.dashboard_listener.loopback_http_status = 500; }],
+  ["scripts/check-g17-network.mjs", "Untrusted host client reached protected monitoring", "eight services only", r => { delete r.expected.web; delete r.observed.web; }],
+  ["scripts/check-g17-network.mjs", "Untrusted host client reached protected monitoring", "a process state missing", r => { delete r.process_states.web; }]
+];
+test("each individual clause of the script predicates is load-bearing", () => {
+  for (const [path, caseName, label, mutate] of SINGLE_FACT) {
+    const broken = clone(FIXTURES[path]);
+    mutate(broken);
+    assert.equal(rawWitnessPasses(path, caseName, broken), false,
+      path + " / " + caseName + " accepted: " + label);
+  }
+});
+test("the boundary values themselves still pass", () => {
+  const exportPrivacy = clone(FIXTURES["scripts/check-g17-export-privacy.mjs"]);
+  exportPrivacy.injected_controls.requests = 300;
+  assert.equal(rawWitnessPasses("scripts/check-g17-export-privacy.mjs", "baggage:\"secret=\"", exportPrivacy), true);
+  const journey = clone(FIXTURES["scripts/check-g17-worker-journey.mjs"]);
+  journey.matched_safe_trace_pairs = 2;
+  assert.equal(rawWitnessPasses("scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", journey), true);
+  const performance = clone(FIXTURES["scripts/check-g17-performance.mjs"]);
+  performance.gate.mean_memory_increase_pct = 15;
+  performance.pooled.baseline.p95_increase_pct = 10;
+  performance.pooled.authorized.p95_increase_pct = 10;
+  performance.rows.forEach(row => { row.raw_ms.baseline = new Array(800).fill(1); row.raw_ms.authorized = new Array(800).fill(1); });
+  assert.equal(rawWitnessPasses("scripts/check-g17-performance.mjs", "measured_routes", performance), true);
+  assert.equal(rawWitnessPasses("scripts/check-g17-performance.mjs", "THREE_MATCHED_PAIRS", performance), true);
+  const storage = clone(FIXTURES["scripts/check-g17-storage.mjs"]);
+  storage.telemetry_degradation.stale_age_seconds = 45;
+  assert.equal(rawWitnessPasses("scripts/check-g17-storage.mjs", "full-telemetry-store", storage), true);
+});
+
+test("every minimum is inclusive: the exact approved edge passes", () => {
+  const edge = [
+    ["scripts/check-g17-export-privacy.mjs", "owned-sanitized-service-logs",
+      r => { r.traces_inspected = 4; r.retained_trace_documents = 4; r.spans_inspected = 2; r.retained_log_bytes = 1; }],
+    ["scripts/check-g17-export-privacy.mjs", "invalid-", r => { r.injected_controls.malformed_traceparent_requests = 1; }],
+    ["scripts/check-g17-malformed-export.mjs", "malformed-context-export-safe",
+      r => { r.validated_exported_traces = 4; r.trace_records_retained = 4; }],
+    ["scripts/check-g17-restart.mjs", "actual_spans_inspected",
+      r => { r.canceled_trace_correlation.inflight_found_in_tempo = 1; r.canceled_trace_correlation.inflight_canceled_requests = 40; }],
+    ["scripts/check-g17-cardinality-memory.mjs", "FOUR_TEN_THOUSAND_PATH_STRESS_WAVES",
+      r => { r.pairs = [{ pass: true }]; r.post_stress_memory_growth_pct = r.maximum_allowed_memory_overhead_pct; }],
+    ["scripts/check-g17-worker.mjs", "fault-worker-stop-suppresses-stale-backlog",
+      r => { const d = r.checks[0].detail; d.stale_backlog_seconds_at_start = 300; d.stale_backlog_seconds_at_end = 300; }]
+  ];
+  for (const [path, caseName, mutate] of edge) {
+    const report = clone(FIXTURES[path]);
+    mutate(report);
+    assert.equal(rawWitnessPasses(path, caseName, report), true, path + " / " + caseName + " rejected its exact edge");
+  }
 });

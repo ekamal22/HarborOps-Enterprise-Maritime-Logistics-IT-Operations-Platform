@@ -76,6 +76,13 @@ test("first-incident 5xx counter and sampled failure alert are explicitly witnes
   assert.ok(alerts.includes("api_5xx_fraction:5m > 0.01"));
 });
 
+test("5xx HTTP contract distinguishes zero series seed from exactly one failure",()=>{
+  const contract=read("tests/HarborOps.ContractTests/M17HttpContractTests.cs");
+  assert.ok(contract.includes("Assert.Contains(0L,failures)"));
+  assert.ok(contract.includes("Assert.Single(positiveFailures)"));
+  assert.ok(contract.includes("Assert.Equal(1L,failures.Sum())"));
+});
+
 test("the default stack does not start or expose M17 components", () => {
   const base = read("compose.yaml");
   assert.doesNotMatch(base, /M17__Enabled|otelcol:|3301:3000/);

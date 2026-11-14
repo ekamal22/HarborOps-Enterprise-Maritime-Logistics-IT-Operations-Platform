@@ -146,8 +146,16 @@ public sealed class M17HttpContractTests : IDisposable
         Assert.Equal(HttpStatusCode.ServiceUnavailable,response.StatusCode);
         Assert.Single(durations);
         Assert.True(durations[0]>0);
-        Assert.Single(failures);
-        Assert.Equal(1,failures[0]);
+        // M17 publishes a zero-valued business/5xx baseline on startup
+        // so the first real outage is observable by Prometheus rate().
+        // A seed does not represent a failing request. Require exactly one
+        // positive increment, no duplicate counting, and the zero baseline.
+        Assert.Contains(0L,failures);
+        Assert.All(failures,value=>Assert.InRange(value,0L,1L));
+        var positiveFailures=failures.Where(value=>value>0).ToArray();
+        Assert.Single(positiveFailures);
+        Assert.Equal(1L,positiveFailures[0]);
+        Assert.Equal(1L,failures.Sum());
     }
 
     [Fact]

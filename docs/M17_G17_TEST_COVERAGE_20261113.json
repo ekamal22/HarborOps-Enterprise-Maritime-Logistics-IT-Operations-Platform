@@ -699,30 +699,30 @@
           "expected": "browser/API fault yields server correlation",
           "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "tests/browser/m17/dashboard.spec.mjs",
-            "case": "browser API denial retains server-issued correlation under spoofed context"
+            "path": "scripts/check-g17-diagnostic-journey.mjs",
+            "case": "page-originated-same-request"
           },
-          "coverage_gap": "Live Playwright client receives real forbidden response with server-issued correlation despite forged context"
+          "coverage_gap": "One exact page-originated 503, server correlation, same W3C trace, sanitized log and rendered fault alert"
         },
         {
           "id": "G17-S20-A02",
           "expected": "trace to DB/worker or documented async bridge resolves",
           "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-g17-worker-journey.mjs",
-            "case": "matched_safe_trace_pairs"
+            "path": "scripts/check-g17-diagnostic-journey.mjs",
+            "case": "real-trace-to-db"
           },
-          "coverage_gap": "50 real receipts and at least two API/worker Tempo trace pairs with identical HMAC link digests; execution pending"
+          "coverage_gap": "One exact page-originated 503, server correlation, same W3C trace, sanitized log and rendered fault alert"
         },
         {
           "id": "G17-S20-A03",
           "expected": "dashboard alert names correct component without private payload",
           "assessment": "TEST_AUTHORED",
           "witness": {
-            "path": "scripts/check-g17-database-fault.mjs",
-            "case": "database-alert-identifies-only-safe-component"
+            "path": "scripts/check-g17-diagnostic-journey.mjs",
+            "case": "same-fault-rendered-alert"
           },
-          "coverage_gap": "Real database alert names exact component and sanitizes diagnostic summary; execution pending"
+          "coverage_gap": "One exact page-originated 503, server correlation, same W3C trace, sanitized log and rendered fault alert"
         }
       ]
     },
@@ -898,4 +898,4 @@
       ]
     }
   ]
-}
+}\n

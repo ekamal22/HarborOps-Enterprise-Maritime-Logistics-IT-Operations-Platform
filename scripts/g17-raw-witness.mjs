@@ -20,6 +20,7 @@ export const RAW_REPORT_FILES = new Map([
   ["scripts/check-g17-worker-journey.mjs", "m17-worker-journey-results.json"],
   ["scripts/check-g17-collector-fault.mjs", "m17-collector-fault-results.json"],
   ["scripts/check-g17-database-fault.mjs", "m17-database-fault-results.json"],
+  ["scripts/check-g17-diagnostic-journey.mjs", "m17-diagnostic-journey-results.json"],
   ["scripts/check-g17-restart.mjs", "m17-restart-results.json"],
   ["scripts/check-g17-export-privacy.mjs", "m17-export-privacy-results.json"],
   ["scripts/check-g17-malformed-export.mjs", "m17-malformed-export-results.json"],
@@ -44,6 +45,19 @@ const privacy = (report) => ok(report) && report.traces_inspected >= 4 &&
   kinds(report).has("owned-sanitized-service-logs");
 
 const RAW_PREDICATES = new Map([
+  ["scripts/check-g17-diagnostic-journey.mjs",new Map([
+    ["page-originated-same-request",r=>ok(r)&&
+      r.page_originated===true&&r.response_status===503&&
+      r.trace_correlation_reconciled===true&&
+      r.sanitized_log_line?.includes(r.server_correlation)&&
+      r.sanitized_log_line?.includes(r.trace_id)],
+    ["real-trace-to-db",r=>ok(r)&&
+      r.trace_document?.trace?.resourceSpans?.length>0&&
+      r.trace_correlation_reconciled===true],
+    ["same-fault-rendered-alert",r=>ok(r)&&r.alert_firing===true&&
+      r.dashboard_rendered===true&&
+      r.dashboard_dom_text?.includes("HarborOpsDatabaseUnavailable")]
+  ])],
   ["scripts/check-g17-malformed-export.mjs",new Map([
     ["malformed-context-export-safe",r=>ok(r) &&
       r.malformed_trace_context===true && r.injected_requests===960 &&

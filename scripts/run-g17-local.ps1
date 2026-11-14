@@ -147,7 +147,9 @@ if ($StartDisposableStack) {
         'm17-storage-results.json',
         'm17-retention-age-results.json','m17-tempo-retention-results.json',
         'm17-retention-matrix-results.json',
-        'm17-database-fault-results.json','m17-cardinality-memory-results.json',
+        'm17-database-fault-results.json','m17-page-fault-injection.json',
+        'm17-page-fault-dashboard.json','m17-diagnostic-journey-results.json',
+        'm17-cardinality-memory-results.json',
         'm17-live-latency-alert-results.json')
     if ($VerifyDisposableWorker) { $required += @('m17-worker-results.json','m17-worker-journey-results.json',
             'm17-worker-journey-traces.json','m17-worker-journey-series.json',
@@ -193,7 +195,8 @@ try {
         'scripts/g17-evidence-files.test.mjs',
         'scripts/g17-live-5xx-evidence.test.mjs',
         'scripts/g17-worker-log-privacy.test.mjs',
-        'scripts/g17-p09-review.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
+        'scripts/g17-p09-review.test.mjs',
+        'scripts/g17-diagnostic-evidence.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')

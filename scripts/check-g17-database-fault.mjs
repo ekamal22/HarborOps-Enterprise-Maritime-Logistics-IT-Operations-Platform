@@ -106,6 +106,9 @@ try {
       const value=Number(samples[0].value[1]);
       return Number.isFinite(value)&&value>=0?value:null;
     },90000);
+    // Generate real browser-originated 503s within this same controlled outage.
+    execFileSync("node",["tests/browser/m17/page-fault-journey.mjs","inject"],
+      {encoding:"utf8",timeout:110000,maxBuffer:1024*1024});
     let failures=0;
     for(let offset=0;offset<120;offset+=10) {
       const responses=await Promise.all(Array.from({length:10},async()=>{
@@ -178,6 +181,17 @@ try {
     alerts.push({name:rule.labels.alertname,severity:rule.labels.severity,
       summary:rule.annotations.summary});
     return {freshness:"current",alert:alerts[0]};
+  });
+  await stage("page-originated-correlated-diagnostic-journey",async()=>{
+    execFileSync("node",["tests/browser/m17/page-fault-journey.mjs","observe"],
+      {encoding:"utf8",timeout:130000,maxBuffer:1024*1024});
+    execFileSync("node",["scripts/check-g17-diagnostic-journey.mjs"],
+      {encoding:"utf8",timeout:160000,maxBuffer:1024*1024});
+    const proof=JSON.parse(fs.readFileSync(path.join(evidence,
+      "m17-diagnostic-journey-results.json"),"utf8"));
+    assert.equal(proof.result,"PASS");
+    return {trace_id:proof.trace_id,server_correlation:proof.server_correlation,
+      source_artifact:"m17-diagnostic-journey-results.json"};
   });
 } catch(e) {error=e;}
 finally {

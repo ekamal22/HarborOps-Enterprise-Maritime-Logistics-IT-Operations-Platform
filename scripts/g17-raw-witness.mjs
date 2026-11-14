@@ -35,7 +35,7 @@ export const RAW_REPORT_FILES = new Map([
   ["scripts/check-g17-live-latency.mjs", "m17-live-latency-alert-results.json"]
 ]);
 
-const privacy = (report) => ok(report) && report.traces_inspected >= 2 &&
+const privacy = (report) => ok(report) && report.traces_inspected >= 4 &&
   report.spans_inspected >= 2 &&
   report.retained_trace_documents === report.traces_inspected &&
   report.retained_metric_series === report.exported_metric_series_inspected &&

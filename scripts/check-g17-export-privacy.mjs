@@ -82,9 +82,9 @@ let failure=null,observedTraces=0,exportedSpans=0,seriesCount=0;
 const injectedControls={oversized_baggage:false,requests:0,
   malformed_traceparent_requests:0,all_business_responses_200:false};
 try {
-  await generateRealRequests(320);
+  await generateRealRequests(1920);
   let traces=[];
-  const deadline=Date.now()+125000;
+  const deadline=Date.now()+210000;
   // A bounded search over a backend that already holds thousands of traces returns an
   // arbitrary subset, so the submitted canary traces are retrieved by their own IDs.
   const lookupHeaders={authorization:auth,accept:"application/json"};
@@ -107,14 +107,14 @@ try {
   while(Date.now()<deadline) {
     try {
       const found=await retrieveSubmitted();
-      if(found.length>=2){traces=found;break;}
+      if(found.length>=4){traces=found;break;}
     } catch(e) {
       // Startup gaps are bounded by the deadline; no pass if traces never appear.
     }
     await promiseWait(4000);
   }
-  assert.ok(traces.length>=2,
-    "At least two real submitted canary trace IDs must be retrieved from Tempo");
+  assert.ok(traces.length>=4,
+    "At least four real submitted canary trace IDs must be retrieved from Tempo");
   for(const trace of traces.slice(0,40)) {
     assert.match(trace.traceID||"",/^[0-9a-f]{16,32}$/i);
     const doc=await fetchJson(base+"harborops-local-traces/api/v2/traces/"+trace.traceID);

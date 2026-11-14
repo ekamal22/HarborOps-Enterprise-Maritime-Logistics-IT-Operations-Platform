@@ -51,6 +51,8 @@ test("G17 independent-review remediation is enforced by source and the evidence 
   ])assert.ok(runner.includes(artifact),"Missing required raw artifact "+artifact);
   assert.match(runner,/check-g17-malformed-export\.mjs/);
   assert.match(runner,/g17-malformed-trace-evidence\.test\.mjs/);
+  assert.match(runner,/g17-s25-raw-evidence\.test\.mjs/);
+  assert.match(read("scripts/verify-g17-manifest.mjs"),/verifyS25RawSnapshots/);
   assert.match(privacy,/retainedTraces\.push\(/);
   assert.match(privacy,/retainedLogs=logs/);
   assert.match(worker,/retainedTraceDocuments\.push\(/);

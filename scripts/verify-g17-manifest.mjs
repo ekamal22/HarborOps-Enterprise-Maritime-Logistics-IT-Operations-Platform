@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { verifyPlaywrightCases, verifyTrxCases, G17_REQUIRED_METHODS } from "./g17-results-contract.mjs";
+import {verifyS25RawSnapshots} from "./g17-s25-raw-evidence.mjs";
 
 function crawl(root, prefix = "") {
   const files = [];
@@ -143,6 +144,7 @@ export function verifyManifest(manifestPath, expectedSha) {
           exported.exported_metric_series_inspected < 1 ||
           exported.snapshots?.length < 2)
         throw Error("G17 cannot claim privacy without positive raw exported trace and metric witnesses");
+      verifyS25RawSnapshots(root,manifest.source_sha,expected.project);
       const memory = JSON.parse(fs.readFileSync(path.join(root,
         "m17-cardinality-memory-results.json"),"utf8"));
       if (memory.source_sha !== manifest.source_sha ||

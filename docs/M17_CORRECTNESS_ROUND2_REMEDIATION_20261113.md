@@ -1,5 +1,7 @@
 # M17 Correctness Audit Round 2 Remediation
 
+**Current G17 verification checkpoint (2026-11-14):** The S25-remediated executable source `a236ab64574cfec8b0dcbde232a5d22ef086783b` adds a zero-valued first-incident API 5xx counter and a real multi-scrape fault witness after [#43538965276](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43538965276) failed that alert. [Rerun #43540639907](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43540639907) passed its source preflight and the full campaign is pending at this checkpoint. All 25 scenarios, 75 assertions and independent S25 requirements remain. **G17 NOT ACCEPTED; acceptance pending.** [Current documentation reconciliation](M17_G17_REPOWIDE_DOCUMENTATION_RECONCILIATION_20261114.md).
+
 **Historical correctness checkpoint:** This register preserves the recorded findings and candidate remediations from its original review. Later work authored all 72 technical assertion witnesses, attempted source-locked G17 runs and recorded new failures and fixes. Do not interpret this historical review as the latest test status. **G17 NOT ACCEPTED; acceptance pending.** [Current readiness](M17_G17_S25_TEST_READINESS_20261113.md) | [Run and failure record](M17_G17_VERIFICATION_RECOVERY_20261113.md).
 
 **Recorded:** 2026-11-13

@@ -99,6 +99,18 @@ export function verifyS25RawSnapshots(root,source,project) {
     assert.equal(verifyMalformedBaselineTrace(item.document,mt.window_start,
       mt.window_end,"unrelated-negative-control"),true);
 
+  const performance=load(root,"m17-performance-raw.json");
+  const independently=load(root,"m17-p09-independent-recalculation.json");
+  matchesSource(performance,source,project);
+  matchesSource(independently,source,project);
+  assert.equal(independently.result,"PASS");
+  assert.equal(independently.method,
+    "POOLED_P95_AND_MEAN_PEAK_MEMORY_OVER_THREE_MATCHED_PAIRS");
+  assert.equal(independently.latency_budget_pct,10);
+  assert.equal(independently.memory_budget_pct,15);
+  assert.equal(independently.pairs.length,3);
+  assert.equal(independently.individual_p95_outliers.length,
+    performance.gate.pairs_over_p95_budget);
   for(const engine of ["chromium","firefox","webkit"]) {
     const state=load(root,"m17-ui-state-"+engine+".json");
     assert.equal(state.source_sha,source);

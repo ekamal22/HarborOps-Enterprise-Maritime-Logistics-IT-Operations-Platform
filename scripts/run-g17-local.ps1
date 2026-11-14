@@ -139,7 +139,8 @@ if ($StartDisposableStack) {
         'm17-ui-no-traffic-chromium.json','m17-ui-no-traffic-firefox.json',
         'm17-ui-no-traffic-webkit.json',
         'm17-cardinality-results.json','m17-cardinality-raw.json',
-        'm17-performance-raw.json','m17-restart-results.json',
+        'm17-performance-raw.json','m17-p09-independent-recalculation.json',
+         'm17-restart-results.json',
         'm17-export-privacy-results.json','m17-malformed-export-results.json',
         'm17-malformed-export-traces.json','m17-export-privacy-traces.json',
         'm17-export-privacy-logs.txt','m17-export-privacy-series.json',
@@ -191,7 +192,8 @@ try {
         'scripts/g17-s25-raw-evidence.test.mjs',
         'scripts/g17-evidence-files.test.mjs',
         'scripts/g17-live-5xx-evidence.test.mjs',
-        'scripts/g17-worker-log-privacy.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
+        'scripts/g17-worker-log-privacy.test.mjs',
+        'scripts/g17-p09-review.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
@@ -359,6 +361,7 @@ try {
         Invoke-Required 'node' @('scripts/check-g17-restart.mjs') -Stage 'api-cancellation-restart-and-durable-invariants'
         Invoke-Required 'node' @('scripts/check-g17-cardinality-memory.mjs') -Stage 'forty-thousand-hostile-paths-memory-stability'
         Invoke-Required 'node' @('scripts/check-g17-performance.mjs') -Stage 'three-paired-overhead-measurements'
+        Invoke-Required 'node' @('scripts/check-g17-p09-review.mjs') -Stage 'independent-p09-raw-math-recalculation'
         if ($FaultProbe) {
             Invoke-Required 'node' @('scripts/check-g17-pressure-matrix.mjs') -Stage 'tenfold-business-pressure-and-exporter-isolation'
         }

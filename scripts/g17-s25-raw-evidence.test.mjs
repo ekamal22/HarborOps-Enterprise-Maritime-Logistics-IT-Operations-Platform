@@ -40,6 +40,11 @@ function fixture(dir) {
   validated_exported_traces:4,trace_records_retained:4,negative_canary_absent:true}));
  put(dir,"m17-malformed-export-traces.json",wrap({window_start:1700000000,
   window_end:1700000001,records:Array.from({length:4},()=>({document:doc}))}));
+ put(dir,"m17-performance-raw.json",wrap({gate:{pairs_over_p95_budget:0}}));
+ put(dir,"m17-p09-independent-recalculation.json",wrap({result:"PASS",
+  method:"POOLED_P95_AND_MEAN_PEAK_MEMORY_OVER_THREE_MATCHED_PAIRS",
+  latency_budget_pct:10,memory_budget_pct:15,pairs:[{},{},{}],
+  individual_p95_outliers:[]}));
  for(const engine of ["chromium","firefox","webkit"]) {
   put(dir,"m17-ui-state-"+engine+".json",{source_sha:source,engine,
    verified_statuses:{missing:"PostgreSQL readiness Unknown",

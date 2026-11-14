@@ -27,7 +27,65 @@ function container(service) {
   assert.equal(details.Config.Labels["com.docker.compose.service"],service);
   return details;
 }
-function quote(sql) {return sql;}
+function sql(query) {
+ const pg=container("postgres");
+ return command("docker",["exec","-i",pg.Id,"psql",
+  "-U","harborops","-d","harborops","-v","ON_ERROR_STOP=1","-At","-c",query],90000);
+}
+function seedProtectedHistory() {
+ const nonce=crypto.randomBytes(7).toString("hex");
+ sql(`DO $g17$
+DECLARE u uuid:=gen_random_uuid(); o uuid:=gen_random_uuid();
+ p1 uuid:=gen_random_uuid();p2 uuid:=gen_random_uuid();
+ sh uuid:=gen_random_uuid();e uuid:=gen_random_uuid();
+BEGIN
+ INSERT INTO users(id,email,normalized_email,display_name,
+  status,security_version,created_at_utc)
+ VALUES(u,'g17-storage-${nonce}@example.test','g17-storage-${nonce}@example.test',
+  'G17 Synthetic Storage','Active',1,clock_timestamp());
+ INSERT INTO organizations(id,slug,display_name,status,version,created_at_utc,updated_at_utc)
+ VALUES(o,'g17-storage-${nonce}','G17 Synthetic Storage','Active',1,clock_timestamp(),clock_timestamp());
+ INSERT INTO organization_memberships(id,organization_id,user_id,role,status,version,
+  created_at_utc,updated_at_utc)
+ VALUES(gen_random_uuid(),o,u,'Administrator','Active',1,clock_timestamp(),clock_timestamp());
+ INSERT INTO ports(id,organization_id,reference_code,name,country_code,status,
+  source_kind,version,created_at_utc,updated_at_utc)
+ VALUES(p1,o,'G17-ORIGIN','G17 Origin','TR','Active','Synthetic',1,clock_timestamp(),clock_timestamp()),
+ (p2,o,'G17-DEST','G17 Destination','TR','Active','Synthetic',1,clock_timestamp(),clock_timestamp());
+ INSERT INTO shipments(id,organization_id,reference_code,origin_port_id,
+  destination_port_id,workflow_status,record_status,source_kind,version,
+  created_at_utc,updated_at_utc,changed_by_user_id)
+ VALUES(sh,o,'G17-STORAGE-${nonce}',p1,p2,'Draft','Active','Synthetic',1,
+  clock_timestamp(),clock_timestamp(),u);
+ INSERT INTO shipment_exceptions(id,organization_id,shipment_id,rule_code,
+  occurrence,condition_state,lifecycle_state,severity,confidence,reason_code,
+  source_fingerprint,shipment_version,tracking_input_revision,correction_generation,evidence)
+ VALUES(e,o,sh,'EquipmentConflict',1,'Active','Open','Warning','Unverified',
+  'synthetic_storage_proof',repeat('a',64),1,0,0,'{}'::jsonb);
+ INSERT INTO shipment_exception_history(id,organization_id,exception_id,
+  action,old_state,new_state,actor_kind,source_fingerprint)
+ VALUES(gen_random_uuid(),o,e,'Opened',NULL,'Open','System',repeat('a',64));
+END $g17$;`);
+ const counts=JSON.parse(sql(`SELECT json_build_object(
+  'users',(SELECT count(*) FROM users WHERE email='g17-storage-${nonce}@example.test'),
+  'organizations',(SELECT count(*) FROM organizations WHERE slug='g17-storage-${nonce}'),
+  'ports',(SELECT count(*) FROM ports WHERE organization_id=(SELECT id FROM organizations WHERE slug='g17-storage-${nonce}')),
+  'shipments',(SELECT count(*) FROM shipments WHERE reference_code='G17-STORAGE-${nonce}'),
+  'm11_exceptions',(SELECT count(*) FROM shipment_exceptions e JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='G17-STORAGE-${nonce}'),
+  'm11_history',(SELECT count(*) FROM shipment_exception_history h JOIN shipment_exceptions e ON h.exception_id=e.id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='G17-STORAGE-${nonce}'),
+  'm15_outbox',(SELECT count(*) FROM m15_notification_outbox x JOIN shipment_exception_history h ON h.id=x.source_history_id JOIN shipment_exceptions e ON e.id=h.exception_id JOIN shipments s ON s.id=e.shipment_id WHERE s.reference_code='G17-STORAGE-${nonce}'),
+  'm16_audit',(SELECT count(*) FROM audit_entries)
+ )::text`));
+ for(const [name,count] of Object.entries(counts))
+  assert.ok(count>0,"Missing positive protected synthetic history: "+name);
+ assert.equal(counts.users,1);
+ assert.equal(counts.organizations,1);
+ assert.equal(counts.ports,2);
+ assert.equal(counts.shipments,1);
+ return {kind:"synthetic-nonempty-protected-history",tables:counts,
+  fixture_sha256:crypto.createHash("sha256").update(nonce).digest("hex")};
+}
+
 function snapshotDatabase() {
   const pg=container("postgres");
   // Hash the complete owned application public-schema data stream, including
@@ -82,6 +140,9 @@ try {
     assert.ok(total>0&&total<=250*1024*1024,"Storage cap exceeds policy");
     return {total_bytes:total,volumes:sizes};
   });
+  const positive=check("positive-m8-m11-m15-m16-retained-history",
+    ()=>seedProtectedHistory());
+  evidenceData.positive_history=positive;
   const before=snapshotDatabase();
   evidenceData.database_sha256_before=before;
   await checkApi();
@@ -95,6 +156,11 @@ try {
   assert.match(fill.stderr||"",/No space left on device|ENOSPC/i,
     "Pressure command did not prove a full tmpfs: "+String(fill.stderr).slice(0,100));
   fullStoreCreated=true;
+  evidenceData.telemetry_degradation={
+    signal:"OWNED_PROMETHEUS_STORAGE_ENOSPC",
+    write_exit_code:fill.status,error_observed:/No space left on device|ENOSPC/i.test(fill.stderr??"")
+  };
+  assert.ok(evidenceData.telemetry_degradation.error_observed);
   await checkApi();
   evidenceData.checks.push({name:"business-remains-responsive-during-full-telemetry-store",
     status:"PASS"});
@@ -102,7 +168,8 @@ try {
   evidenceData.database_sha256_after=after;
   assert.equal(after,before,"Telemetry storage saturation modified application history");
   evidenceData.checks.push({name:"all-application-history-byte-identical",
-    status:"PASS"});
+    status:"PASS",nonempty_protected_tables:positive.tables,
+    storage_degradation:evidenceData.telemetry_degradation.signal});
   evidenceData.result="PASS";
 }catch(e){
   failure=e;

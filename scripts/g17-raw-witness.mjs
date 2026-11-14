@@ -174,11 +174,18 @@ const RAW_PREDICATES = new Map([
   ])],
   ["scripts/check-g17-storage.mjs", new Map([
     ["full-telemetry-store",
-      r => ok(r) && passed(r, "business-remains-responsive-during-full-telemetry-store")],
+      r => ok(r) && passed(r, "business-remains-responsive-during-full-telemetry-store") &&
+        r.telemetry_degradation?.signal==="OWNED_PROMETHEUS_STORAGE_ENOSPC" &&
+        r.telemetry_degradation?.error_observed===true &&
+        Object.values(r.positive_history?.tables??{}).every(v=>v>0) &&
+        Object.keys(r.positive_history?.tables??{}).length>=8],
     ["all-application-history-byte-identical",
       r => ok(r) && passed(r, "all-application-history-byte-identical") &&
         /^[0-9a-f]{64}$/.test(r.database_sha256_before ?? "") &&
-        r.database_sha256_before === r.database_sha256_after]
+        r.database_sha256_before === r.database_sha256_after &&
+        r.positive_history?.tables?.m11_history>0 &&
+        r.positive_history?.tables?.m15_outbox>0 &&
+        r.positive_history?.tables?.m16_audit>0]
   ])],
   ["scripts/check-g17-regression-matrix.mjs", new Map([
     ["M13AdmissionControlAcceptanceTests",

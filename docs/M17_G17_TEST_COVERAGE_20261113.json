@@ -784,7 +784,7 @@
             "path": "scripts/check-g17-storage.mjs",
             "case": "full-telemetry-store"
           },
-          "coverage_gap": "Actual tmpfs saturation with ENOSPC, safe API and local restoration; execution pending"
+          "coverage_gap": "Positive M8 M11 M15 M16 rows plus owned ENOSPC and full-data before-after hash"
         },
         {
           "id": "G17-S22-A03",
@@ -794,7 +794,7 @@
             "path": "scripts/check-g17-storage.mjs",
             "case": "all-application-history-byte-identical"
           },
-          "coverage_gap": "Full public-schema pg_dump normalized content hash before/after storage pressure; execution pending"
+          "coverage_gap": "Positive M8 M11 M15 M16 rows plus owned ENOSPC and full-data before-after hash"
         }
       ]
     },

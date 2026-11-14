@@ -67,6 +67,13 @@ test("every approved M17 policy has a concrete source-side verification control"
   assert.equal(activeAlerts?.targets?.[0]?.instant,true);
   assert.equal(activeAlerts?.targets?.[0]?.expr,
     'ALERTS{alertstate="firing"}');
+  const browserObserver=read("tests/browser/m17/page-fault-journey.mjs");
+  assert.match(browserObserver,/header\\.scrollIntoViewIfNeeded\\(/,
+    "Offscreen alert table must be scrolled into view before rendering proof");
+  assert.match(browserObserver,/header\\.evaluate\\(/,
+    "Alert rendering witness must remain scoped to the panel header subtree");
+  assert.match(browserObserver,/HarborOpsDatabaseUnavailable/,
+    "Real firing database-alert label remains mandatory");
   const defaultStack=read("compose.yaml");
   assert.doesNotMatch(defaultStack,/otelcol:|M17__Enabled:|grafana:/);
   assert.doesNotMatch(compose,/0\.0\.0\.0:3301|0\.0\.0\.0:4317/);

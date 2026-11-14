@@ -79,6 +79,16 @@ try {
   assert.equal(panel.targets?.[0]?.instant,true);
   const header=page.getByText("Active local alerts",{exact:true}).first();
   await header.waitFor({state:"visible",timeout:25000});
+  // Grafana defers offscreen panel queries. The alert table begins well below
+  // the initial viewport; make the actual table visible before looking for
+  // its Prometheus alert-label fields. This is not an assertion relaxation.
+  await header.scrollIntoViewIfNeeded({timeout:25000});
+  const inViewport=await header.evaluate(element=>{
+   const bounds=element.getBoundingClientRect();
+   return bounds.width>0&&bounds.height>0&&bounds.bottom>0&&
+     bounds.top<window.innerHeight;
+  });
+  assert.equal(inViewport,true,"Alert panel was not brought into the viewport");
   const deadline=Date.now()+90000;
   let text="";
   while(Date.now()<deadline) {

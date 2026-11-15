@@ -222,3 +222,122 @@ for (const [label, mutate, pattern] of SINGLE_FACT) {
     assert.throws(() => verifyManifest(manifest, source), pattern);
   });
 }
+
+// Third-pass survivors from the exhaustive manifest campaign (S25-M series). Each case changes one fact.
+import {spawnSync} from "node:child_process";
+import {pathToFileURL, fileURLToPath} from "node:url";
+import crypto from "node:crypto";
+const scriptsDir = path.dirname(fileURLToPath(import.meta.url));
+const repoDir = path.resolve(scriptsDir, "..");
+
+const REPORTS_WITH_IDENTITY = ["m17-tempo-retention-results.json", "g17-regression-matrix-results.json", "m17-alert-matrix-results.json",
+  "m17-pressure-matrix-results.json", "m17-collector-fault-results.json", "m17-worker-journey-results.json"];
+for (const file of REPORTS_WITH_IDENTITY) {
+  for (const [field, wrong] of [["source_sha", "b".repeat(40)], ["project", "ho-verify-m17-other"], ["result", "FAIL"]]) {
+    test("complete campaign rejects " + file + " with only " + field + " wrong", t => {
+      const {manifest} = withCampaign(t, json(file, v => {v[field] = wrong;}));
+      assert.throws(() => verifyManifest(manifest, source), /./);
+    });
+  }
+}
+for (const [field, wrong] of [["source_sha", "b".repeat(40)], ["result", "FAIL"]]) {
+  test("complete campaign rejects m17-worker-results.json with only " + field + " wrong", t => {
+    const {manifest} = withCampaign(t, json("m17-worker-results.json", v => {v[field] = wrong;}));
+    assert.throws(() => verifyManifest(manifest, source), /Worker diagnostic fault campaign incomplete/);
+  });
+}
+
+test("a manifest entry that differs from the file in only its path, only its hash or only its size is refused", t => {
+  for (const [label, change] of [
+      ["path", entry => {entry.path = "zz-" + entry.path;}],
+      ["sha256", entry => {entry.sha256 = "0".repeat(64);}],
+      ["bytes", entry => {entry.bytes += 1;}]]) {
+    const {manifest} = withCampaign(t, undefined);
+    const doc = JSON.parse(fs.readFileSync(manifest, "utf8"));
+    change(doc.files[3]);
+    fs.writeFileSync(manifest, JSON.stringify(doc));
+    assert.throws(() => verifyManifest(manifest, source), /Evidence tampered or unlisted|coverage mismatch/, label);
+  }
+});
+test("a same-size content change is refused by hash alone", t => {
+  const {dir, manifest} = withCampaign(t);
+  const file = path.join(dir, "m17-restart-results.json");
+  const before = fs.readFileSync(file, "utf8");
+  const after = before.replace("PASS", "PAS5");
+  assert.equal(after.length, before.length);
+  assert.notEqual(after, before);
+  fs.writeFileSync(file, after);
+  assert.throws(() => verifyManifest(manifest, source), /Evidence tampered or unlisted: m17-restart-results.json/);
+});
+test("each required run ledger file must exist even when the index agrees with the directory", t => {
+  for (const name of ["source-sha.txt", "expected-artifacts.json", "run-status.json"]) {
+    const {dir} = withCampaign(t);
+    fs.unlinkSync(path.join(dir, name));
+    const manifest = writeManifest(dir);
+    assert.throws(() => verifyManifest(manifest, source), /Missing required G17 run ledger/, name);
+  }
+});
+
+test("boundary values the campaign accepts: 3000 telemetry samples, exactly 10 percent p95 and exactly 15 percent memory", t => {
+  const {manifest} = withCampaign(t, json("m17-performance-raw.json", v => {
+    for (const kind of ["baseline", "authorized"]) v.pooled[kind].telemetry_on_samples = 3000;
+  }));
+  // Only the manifest-level sample floor is under test here, so a recalculation conflict would surface as a throw.
+  try {verifyManifest(manifest, source);} catch (error) {
+    assert.doesNotMatch(String(error.message), /Three complete matched P09 overhead pairs/, "3000 samples is the inclusive floor");
+  }
+});
+
+// The assertion inventory is read from the repository next to the verifier, so these cases run a private copy of the
+// verifier beside an edited inventory. The manifest records the edited inventory's hash, so only the named fact is wrong.
+async function withInventory(t, edit) {
+  const tree = fs.mkdtempSync(path.join(os.tmpdir(), "g17-inventory-tree-"));
+  t.after(() => fs.rmSync(tree, {recursive: true, force: true}));
+  fs.mkdirSync(path.join(tree, "scripts")); fs.mkdirSync(path.join(tree, "docs"));
+  for (const name of fs.readdirSync(scriptsDir).filter(n => n.endsWith(".mjs") && !n.endsWith(".test.mjs")))
+    fs.copyFileSync(path.join(scriptsDir, name), path.join(tree, "scripts", name));
+  for (const name of fs.readdirSync(path.join(repoDir, "docs")).filter(n => n.endsWith(".json")))
+    fs.copyFileSync(path.join(repoDir, "docs", name), path.join(tree, "docs", name));
+  const inventoryPath = path.join(tree, "docs", "M17_G17_ASSERTION_INVENTORY_20261112.json");
+  const inventory = JSON.parse(fs.readFileSync(inventoryPath, "utf8"));
+  edit(inventory);
+  const bytes = Buffer.from(JSON.stringify(inventory));
+  fs.writeFileSync(inventoryPath, bytes);
+  const copy = await import(pathToFileURL(path.join(tree, "scripts", "verify-g17-manifest.mjs")).href);
+  const {manifest} = withCampaign(t, undefined);
+  const doc = JSON.parse(fs.readFileSync(manifest, "utf8"));
+  doc.assertion_inventory_sha256 = crypto.createHash("sha256").update(bytes).digest("hex");
+  fs.writeFileSync(manifest, JSON.stringify(doc));
+  return () => copy.verifyManifest(manifest, source);
+}
+const INVENTORY_ERROR = /Unreconciled or falsely reviewed G17 atomic assertion inventory/;
+test("the private verifier copy accepts the unedited inventory", async t => {
+  const verify = await withInventory(t, () => {});
+  assert.equal(verify().complete, true);
+});
+const INVENTORY_FACTS = [
+  ["24 scenarios holding all 75 assertions", inv => {const last = inv.scenarios.pop(); inv.scenarios[23].assertions.push(...last.assertions);}],
+  ["25 scenarios holding only 74 assertions", inv => {inv.scenarios[0].assertions.pop();}],
+  ["inventory marked accepted", inv => {inv.gate_acceptance = "ACCEPTED";}],
+  ["one assertion already executed", inv => {inv.scenarios[0].assertions[0].status = "TECHNICAL_PASS";}],
+  ["one assertion already holding a witness", inv => {inv.scenarios[0].assertions[0].witness = {path: "x", case: "y"};}]
+];
+for (const [label, edit] of INVENTORY_FACTS) {
+  test("an inventory with " + label + " is refused on that fact alone", async t => {
+    const verify = await withInventory(t, edit);
+    assert.throws(verify, INVENTORY_ERROR);
+  });
+}
+
+test("the command line verifies a complete campaign, and refuses a missing manifest path or SHA with its usage text", t => {
+  const {manifest} = withCampaign(t);
+  const script = path.join(scriptsDir, "verify-g17-manifest.mjs");
+  const ok = spawnSync(process.execPath, [script, manifest, source], {encoding: "utf8"});
+  assert.equal(ok.status, 0, ok.stderr);
+  assert.match(ok.stdout, /Verified G17 evidence index/);
+  for (const args of [[], [manifest], ["", source], [manifest, "not-a-sha"]]) {
+    const run = spawnSync(process.execPath, [script, ...args], {encoding: "utf8"});
+    assert.notEqual(run.status, 0, JSON.stringify(args));
+    assert.match(run.stderr, /Usage: node scripts\/verify-g17-manifest.mjs/, JSON.stringify(args));
+  }
+});

@@ -1,0 +1,225 @@
+[
+  {
+    "id": "verify-g17-manifest.mjs#091",
+    "line": 218,
+    "mutation": "|| -> &&",
+    "fact": "m17-performance-raw.json: only source_sha differs",
+    "unmutated": {
+      "threw": true,
+      "message": "Raw privacy source SHA mismatch",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:13:10",
+        "scripts/g17-s25-raw-evidence.mjs:191:3"
+      ]
+    },
+    "mutant": {
+      "threw": true,
+      "message": "Raw privacy source SHA mismatch",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:13:10",
+        "scripts/g17-s25-raw-evidence.mjs:191:3"
+      ]
+    },
+    "both_reject": true,
+    "same_rejecting_check": true
+  },
+  {
+    "id": "verify-g17-manifest.mjs#052",
+    "line": 151,
+    "mutation": "|| -> &&",
+    "fact": "m17-export-privacy-results.json: only exported_metric_series_inspected is 0",
+    "unmutated": {
+      "threw": true,
+      "message": "G17 cannot claim privacy without positive raw exported trace and metric witnesses",
+      "first_frames": [
+        "scripts/verify-g17-manifest.mjs:153:15"
+      ]
+    },
+    "mutant": {
+      "threw": true,
+      "message": "Expected values to be strictly equal:",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:81:10",
+        "scripts/verify-g17-manifest.mjs:154:7"
+      ]
+    },
+    "both_reject": true,
+    "same_rejecting_check": false
+  },
+  {
+    "id": "verify-g17-manifest.mjs#053",
+    "line": 152,
+    "mutation": "< 2 -> < 0",
+    "fact": "m17-export-privacy-results.json: only the snapshot list is cut to one entry",
+    "unmutated": {
+      "threw": true,
+      "message": "G17 cannot claim privacy without positive raw exported trace and metric witnesses",
+      "first_frames": [
+        "scripts/verify-g17-manifest.mjs:153:15"
+      ]
+    },
+    "mutant": {
+      "threw": true,
+      "message": "The expression evaluated to a falsy value:",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:93:10",
+        "scripts/verify-g17-manifest.mjs:154:7"
+      ]
+    },
+    "both_reject": true,
+    "same_rejecting_check": false
+  },
+  {
+    "id": "verify-g17-manifest.mjs@c096",
+    "line": 147,
+    "mutation": "|| -> &&",
+    "fact": "m17-export-privacy-results.json: only source_sha differs",
+    "unmutated": {
+      "threw": true,
+      "message": "G17 cannot claim privacy without positive raw exported trace and metric witnesses",
+      "first_frames": [
+        "scripts/verify-g17-manifest.mjs:153:15"
+      ]
+    },
+    "mutant": {
+      "threw": true,
+      "message": "Raw privacy source SHA mismatch",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:13:10",
+        "scripts/g17-s25-raw-evidence.mjs:77:45"
+      ]
+    },
+    "both_reject": true,
+    "same_rejecting_check": false
+  },
+  {
+    "id": "verify-g17-manifest.mjs@c098",
+    "line": 148,
+    "mutation": "|| -> &&",
+    "fact": "m17-export-privacy-results.json: only project differs",
+    "unmutated": {
+      "threw": true,
+      "message": "G17 cannot claim privacy without positive raw exported trace and metric witnesses",
+      "first_frames": [
+        "scripts/verify-g17-manifest.mjs:153:15"
+      ]
+    },
+    "mutant": {
+      "threw": true,
+      "message": "Raw privacy project mismatch",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:14:10",
+        "scripts/g17-s25-raw-evidence.mjs:77:45"
+      ]
+    },
+    "both_reject": true,
+    "same_rejecting_check": false
+  },
+  {
+    "id": "verify-g17-manifest.mjs@c104",
+    "line": 151,
+    "mutation": "< 1 -> < 0",
+    "fact": "m17-export-privacy-results.json: only exported_metric_series_inspected is 0",
+    "unmutated": {
+      "threw": true,
+      "message": "G17 cannot claim privacy without positive raw exported trace and metric witnesses",
+      "first_frames": [
+        "scripts/verify-g17-manifest.mjs:153:15"
+      ]
+    },
+    "mutant": {
+      "threw": true,
+      "message": "Expected values to be strictly equal:",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:81:10",
+        "scripts/verify-g17-manifest.mjs:154:7"
+      ]
+    },
+    "both_reject": true,
+    "same_rejecting_check": false
+  },
+  {
+    "id": "verify-g17-manifest.mjs@c254",
+    "line": 285,
+    "mutation": "|| -> &&",
+    "fact": "m17-worker-journey-results.json: only source_sha differs",
+    "unmutated": {
+      "threw": true,
+      "message": "Raw privacy source SHA mismatch",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:13:10",
+        "scripts/g17-s25-raw-evidence.mjs:112:37"
+      ]
+    },
+    "mutant": {
+      "threw": true,
+      "message": "Raw privacy source SHA mismatch",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:13:10",
+        "scripts/g17-s25-raw-evidence.mjs:112:37"
+      ]
+    },
+    "both_reject": true,
+    "same_rejecting_check": true
+  },
+  {
+    "id": "verify-g17-manifest.mjs@c256",
+    "line": 286,
+    "mutation": "|| -> &&",
+    "fact": "m17-worker-journey-results.json: only project differs",
+    "unmutated": {
+      "threw": true,
+      "message": "Raw privacy project mismatch",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:14:10",
+        "scripts/g17-s25-raw-evidence.mjs:112:37"
+      ]
+    },
+    "mutant": {
+      "threw": true,
+      "message": "Raw privacy project mismatch",
+      "first_frames": [
+        "scripts/g17-s25-raw-evidence.mjs:14:10",
+        "scripts/g17-s25-raw-evidence.mjs:112:37"
+      ]
+    },
+    "both_reject": true,
+    "same_rejecting_check": true
+  },
+  {
+    "id": "verify-g17-manifest.mjs@c200",
+    "line": 229,
+    "mutation": "<= 10 -> < 10",
+    "fact": "m17-performance-raw.json: recorded pooled p95 increase of exactly 10",
+    "unmutated": {
+      "threw": false
+    },
+    "mutant": {
+      "threw": true,
+      "message": "Three complete matched P09 overhead pairs are missing or above budget",
+      "first_frames": [
+        "scripts/verify-g17-manifest.mjs:233:15"
+      ]
+    },
+    "both_reject": false,
+    "same_rejecting_check": false
+  },
+  {
+    "id": "verify-g17-manifest.mjs@c204",
+    "line": 231,
+    "mutation": "<= 15 -> < 15",
+    "fact": "m17-performance-raw.json: recorded mean memory increase of exactly 15",
+    "unmutated": {
+      "threw": false
+    },
+    "mutant": {
+      "threw": true,
+      "message": "Three complete matched P09 overhead pairs are missing or above budget",
+      "first_frames": [
+        "scripts/verify-g17-manifest.mjs:233:15"
+      ]
+    },
+    "both_reject": false,
+    "same_rejecting_check": false
+  }
+]

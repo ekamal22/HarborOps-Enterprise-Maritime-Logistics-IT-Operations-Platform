@@ -1,0 +1,217 @@
+[
+ {
+  "id": "g17-p09-review.mjs#001",
+  "mutation": "Array.isArray(values)&&values.length>0 -> Array.isArray(values)||values.length>0",
+  "identical_observable_behaviour": false,
+  "unmutated": [
+   {
+    "label": "string of 40 digits in place of the sample array",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "array-like object with length 40",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "empty sample arrays with perRouteSamples 0",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "rows where round 1 repeats the same mode (six rows, one pairing missing)",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "Duplicate paired mode"
+   },
+   {
+    "label": "rows where round 3 on-mode is replaced by a second round-1 on-mode",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "Duplicate paired mode"
+   }
+  ],
+  "mutant": [
+   {
+    "label": "string of 40 digits in place of the sample array",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "array-like object with length 40",
+    "threw": true,
+    "name": "TypeError",
+    "message": "values is not iterable"
+   },
+   {
+    "label": "empty sample arrays with perRouteSamples 0",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "Recorded P09 1:false/baseline p95 is not reproducible from raw observations"
+   },
+   {
+    "label": "rows where round 1 repeats the same mode (six rows, one pairing missing)",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "Duplicate paired mode"
+   },
+   {
+    "label": "rows where round 3 on-mode is replaced by a second round-1 on-mode",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "Duplicate paired mode"
+   }
+  ]
+ },
+ {
+  "id": "g17-p09-review.mjs#008",
+  "mutation": "off&&on -> off||on",
+  "identical_observable_behaviour": true,
+  "unmutated": [
+   {
+    "label": "string of 40 digits in place of the sample array",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "array-like object with length 40",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "empty sample arrays with perRouteSamples 0",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "rows where round 1 repeats the same mode (six rows, one pairing missing)",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "Duplicate paired mode"
+   },
+   {
+    "label": "rows where round 3 on-mode is replaced by a second round-1 on-mode",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "Duplicate paired mode"
+   }
+  ],
+  "mutant": [
+   {
+    "label": "string of 40 digits in place of the sample array",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "array-like object with length 40",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "empty sample arrays with perRouteSamples 0",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:"
+   },
+   {
+    "label": "rows where round 1 repeats the same mode (six rows, one pairing missing)",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "Duplicate paired mode"
+   },
+   {
+    "label": "rows where round 3 on-mode is replaced by a second round-1 on-mode",
+    "threw": true,
+    "name": "AssertionError",
+    "message": "Duplicate paired mode"
+   }
+  ]
+ },
+ {
+  "id": "audit-g17-test-coverage.mjs#045",
+  "mutation": "seen.size !== 75 || matrix.length !== 75 -> seen.size !== 75 && matrix.length !== 75",
+  "identical_observable_behaviour": true,
+  "unmutated": [
+   {
+    "label": "unmodified",
+    "errors": []
+   },
+   {
+    "label": "duplicate assertion id in coverage and inventory",
+    "errors": [
+     "Missing, out-of-order or duplicate atomic assertion: G17-S01-A02",
+     "Required atomic G17 inventory must contain 75 unique clauses"
+    ]
+   },
+   {
+    "label": "missing scenario in coverage",
+    "errors": [
+     "Expected exactly 25 independently mapped test scenarios",
+     "Scenario not in required order, missing or duplicated: G17-S25",
+     "Required atomic G17 inventory must contain 75 unique clauses",
+     "Exactly three S25 reviewer assertions must remain independent and pending"
+    ]
+   },
+   {
+    "label": "permuted assertion ids",
+    "errors": [
+     "Missing, out-of-order or duplicate atomic assertion: G17-S03-A01",
+     "Missing, out-of-order or duplicate atomic assertion: G17-S03-A02",
+     "Required atomic G17 inventory must contain 75 unique clauses"
+    ]
+   },
+   {
+    "label": "fourth assertion in one scenario",
+    "errors": [
+     "Every G17 scenario requires exactly three atomic clauses: G17-S04"
+    ]
+   }
+  ],
+  "mutant": [
+   {
+    "label": "unmodified",
+    "errors": []
+   },
+   {
+    "label": "duplicate assertion id in coverage and inventory",
+    "errors": [
+     "Missing, out-of-order or duplicate atomic assertion: G17-S01-A02",
+     "Required atomic G17 inventory must contain 75 unique clauses"
+    ]
+   },
+   {
+    "label": "missing scenario in coverage",
+    "errors": [
+     "Expected exactly 25 independently mapped test scenarios",
+     "Scenario not in required order, missing or duplicated: G17-S25",
+     "Required atomic G17 inventory must contain 75 unique clauses",
+     "Exactly three S25 reviewer assertions must remain independent and pending"
+    ]
+   },
+   {
+    "label": "permuted assertion ids",
+    "errors": [
+     "Missing, out-of-order or duplicate atomic assertion: G17-S03-A01",
+     "Missing, out-of-order or duplicate atomic assertion: G17-S03-A02",
+     "Required atomic G17 inventory must contain 75 unique clauses"
+    ]
+   },
+   {
+    "label": "fourth assertion in one scenario",
+    "errors": [
+     "Every G17 scenario requires exactly three atomic clauses: G17-S04"
+    ]
+   }
+  ]
+ }
+]

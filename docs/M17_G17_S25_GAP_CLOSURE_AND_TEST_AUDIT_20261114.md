@@ -56,6 +56,7 @@ No hosted workflow was used and nothing was pushed. Historical findings, failed 
 **Negative mutations used to prove a control can fail:** guard weakened to `>= 0` (promtool fails), `keep_firing_for` removed (fails at 11 and 13 minutes), active leases made claimable (integration test fails), alert observer without the scroll step (fails with the hosted message), plus the operator mutation campaign over the evidence modules.
 
 **Residual weaknesses, stated plainly**
+- **Historical, superseded on 2026-11-15 by the [mutation survivor classification](M17_G17_S25_MUTATION_SURVIVOR_CLASSIFICATION_20261115.md):** the figure below is preserved as originally reported; its manifest portion is retired as unusable and every survivor is now classified individually.
 - 69 of 637 sampled mutants survived. Most are `&&` to `||` flips behind earlier equivalent guards. `reconcile-g17-assertions.mjs` has the weakest coverage (24 of 57 killed): its witness derivation is exercised only by a real campaign, and the mapping from test names to the ledger is therefore proven by f7 itself, not by unit tests.
 - The P09 comparison uses raw floating point percentages; a value exactly on a budget edge could be misjudged by rounding noise. Real measurements do not land on the edge, and the approved budgets were not altered.
 - Third-party service logs are not scanned for the `user.email`-style attribute names (see N14).

@@ -1,0 +1,8 @@
+exit 1
+    throw Error("Usage: node scripts/reconcile-g17-assertions.mjs <evidence-root> <source-sha>");
+Error: Usage: node scripts/reconcile-g17-assertions.mjs <evidence-root> <source-sha>
+✖ scripts\g17-reconcile-derivation.test.mjs (88.859ms)
+ℹ pass 0
+ℹ fail 1
+✖ failing tests:
+✖ scripts\g17-reconcile-derivation.test.mjs (88.859ms)

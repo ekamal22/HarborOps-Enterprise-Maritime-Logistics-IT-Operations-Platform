@@ -154,3 +154,14 @@ All 72 technical assertions are TECHNICAL PASS against the raw artifact shown. T
 - `scripts/check-planning-docs.mjs` already fails at the starting commit on an unrelated M11 assertion; it was not modified.
 
 Related records: [gap closure and test audit](M17_G17_S25_GAP_CLOSURE_AND_TEST_AUDIT_20261114.md), [open findings register](M17_G17_S25_OPEN_FINDINGS_REGISTER_20261114.md), [candidate and review packet](M17_G17_S25_CANDIDATE_AND_REVIEW_PACKET_20261114.md).
+
+## Addendum, 2026-11-15: post-review work
+
+The independent review of source `5b1dcc41` supported the technical evidence above. The following was added afterwards and does not change any figure in this record.
+
+- **Source identity.** No product code, verifier, monitoring rule, dashboard or script under test changed after `5b1dcc41`. Later commits changed tests, test fixtures, the Node test list in `scripts/run-g17-local.ps1` and documentation only. The f7 evidence therefore remains evidence for `5b1dcc41`, and the tests added later were not part of the f7 run.
+- **Re-verification with the final verifier code.** The technical ledger re-derived from the preserved f7 evidence has SHA-256 `8d0342fc24893919ec5e4443da0ad9e1cec3975c83bfe9e39169d12db163da22`, identical to the recorded ledger (72 of 72 witnesses). The manifest verifies in place (54 files, complete, no missing artifact, gate NOT_ACCEPTED, 0 assertions reviewed).
+- **Evidence directory.** An archive named `g17-final-f7-evidence.zip` that was not created by the runner appeared in the evidence directory. The repository owner confirmed they created it. It was moved, not deleted, to `preserved-20261115\owner-made-g17-final-f7-evidence.zip` (SHA-256 `1b830a403e5d11913599a9c425e82f0010a6f2981a08270dc654ff9277232198`, unchanged). The 54 manifested files were never modified.
+- **P09.** [Variance assessment](M17_G17_S25_P09_VARIANCE_ASSESSMENT_20261115.md): f6 and f7 compared under the approved method; both remain on record; the margin is thin; additional controlled verification is recommended and needs an owner decision.
+- **Mutation testing.** [Survivor classification](M17_G17_S25_MUTATION_SURVIVOR_CLASSIFICATION_20261115.md) with the complete per-mutant data under `docs/m17-s25-mutation-evidence-20261115/`.
+- **Suite status.** The 21-file G17 Node suite passes with 355 cases and none skipped; the five milestone Node tests outside the G17 runner (M7, M8, M9, G4, DCSA) pass with 42 cases.

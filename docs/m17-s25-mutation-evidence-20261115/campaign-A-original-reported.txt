@@ -1,0 +1,98 @@
+{"target":"scripts/g17-p09-review.mjs","candidates":11,"tried":11,"killed":6,"survived":5}
+SURVIVOR L4: assert.ok(Array.isArray(values)&&values.length>0);  =>  assert.ok(Array.isArray(values)||values.length>0);
+SURVIVOR L11: assert.ok(Number.isFinite(actual)&&Math.abs(actual-expected)<=tolerance,  =>  assert.ok(Number.isFinite(actual)&&Math.abs(actual-expected)<tolerance,
+SURVIVOR L28: assert.ok(Number.isFinite(row.rss_peak_mib)&&row.rss_peak_mib>0);  =>  assert.ok(Number.isFinite(row.rss_peak_mib)||row.rss_peak_mib>0);
+SURVIVOR L39: assert.ok(off&&on);  =>  assert.ok(off||on);
+SURVIVOR L72: const pass=Object.values(pooled).every(x=>x.increase_pct<=10)&&meanMemory<=15;  =>  const pass=Object.values(pooled).every(x=>x.increase_pct<10)&&meanMemory<=15;
+
+{"target":"scripts/g17-diagnostic-evidence.mjs","candidates":10,"tried":10,"killed":9,"survived":1}
+SURVIVOR L16: assert.ok(spans.some(s=>s.name==="http.request"),  =>  assert.ok(spans.some(s=>s.name!=="http.request"),
+
+{"target":"scripts/g17-malformed-trace-evidence.mjs","candidates":13,"tried":13,"killed":12,"survived":1}
+SURVIVOR L9: assert.ok(canary&&typeof canary==="string");  =>  assert.ok(canary||typeof canary==="string");
+
+{"target":"scripts/g17-live-5xx-evidence.mjs","candidates":6,"tried":6,"killed":6,"survived":0}
+
+{"target":"scripts/g17-network-guards.mjs","candidates":7,"tried":7,"killed":7,"survived":0}
+
+{"target":"scripts/g17-worker-log-privacy.mjs","candidates":7,"tried":7,"killed":7,"survived":0}
+
+{"target":"scripts/g17-results-contract.mjs","candidates":28,"tried":28,"killed":27,"survived":1}
+SURVIVOR L17: function same(a,b) { return a.length === b.length && a.every((x,i)=>x===b[i]); }  =>  function same(a,b) { return a.length === b.length || a.every((x,i)=>x===b[i]); }
+
+{"target":"scripts/g17-regression-accounting.mjs","candidates":2,"tried":2,"killed":2,"survived":0}
+
+{"target":"scripts/g17-evidence-files.mjs","candidates":6,"tried":6,"killed":6,"survived":0}
+
+{"target":"scripts/audit-g17-test-coverage.mjs","candidates":52,"tried":52,"killed":49,"survived":3}
+SURVIVOR L89: if (seen.size !== 75 || matrix.length !== 75)  =>  if (seen.size !== 75 && matrix.length !== 75)
+SURVIVOR L101: if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {  =>  if (process.argv[1] && path.resolve(process.argv[1]) !== fileURLToPath(import.meta.url)) {
+SURVIVOR L101: if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {  =>  if (process.argv[1] || path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+
+{"target":"scripts/g17-raw-witness.mjs","candidates":262,"tried":262,"killed":254,"survived":8}
+SURVIVOR L185: Number.isFinite(r.rss_increase_stddev_pct) && r.system?.cpus >= 1 &&  =>  Number.isFinite(r.rss_increase_stddev_pct) && r.system?.cpus > 1 &&
+SURVIVOR L188: r.system?.memory_bytes > 0]  =>  r.system?.memory_bytes > 1000]
+SURVIVOR L215: Object.keys(r.positive_history?.tables??{}).length>=8],  =>  Object.keys(r.positive_history?.tables??{}).length>8],
+SURVIVOR L226: "m15_outbox","m16_audit"].every(name=>r.fixture_rows_before?.[name]?.rows>0 &&  =>  "m15_outbox","m16_audit"].every(name=>r.fixture_rows_before?.[name]?.rows>0 ||
+SURVIVOR L232: r.cases.M13.passed >= 1 && r.cases.M13.declared_methods >= 1 &&  =>  r.cases.M13.passed > 1 && r.cases.M13.declared_methods >= 1 &&
+SURVIVOR L236: r.cases.audit.passed >= 1 && r.cases.audit.declared_methods >= 1 &&  =>  r.cases.audit.passed > 1 && r.cases.audit.declared_methods >= 1 &&
+SURVIVOR L247: try { return predicate(report) === true; } catch { return false; }  =>  try { return predicate(report) === true; } catch { return true; }
+SURVIVOR L255: return Boolean(table) && [...table.keys()].some(needle => caseName.includes(needle));  =>  return Boolean(table) || [...table.keys()].some(needle => caseName.includes(needle));
+
+{"target":"scripts/g17-s25-raw-evidence.mjs","candidates":56,"tried":56,"killed":40,"survived":16}
+SURVIVOR L23: assert.ok(!span.events?.length&&!span.links?.length&&  =>  assert.ok(!span.events?.length||!span.links?.length&&
+SURVIVOR L24: !span.traceState&&!span.status?.message,  =>  !span.traceState||!span.status?.message,
+SURVIVOR L30: assert.ok(Array.isArray(series)&&series.length>0);  =>  assert.ok(Array.isArray(series)||series.length>0);
+SURVIVOR L32: assert.ok(row&&typeof row==="object");  =>  assert.ok(row||typeof row==="object");
+SURVIVOR L35: assert.ok(String(value).length<=120,"Unbounded metric value");  =>  assert.ok(String(value).length<120,"Unbounded metric value");
+SURVIVOR L48: x.trace_id===diagnostic.trace_id &&  =>  x.trace_id===diagnostic.trace_id ||
+SURVIVOR L49: x.correlation_id===diagnostic.server_correlation &&  =>  x.correlation_id===diagnostic.server_correlation ||
+SURVIVOR L50: x.status===503 && x.body_correlation===x.correlation_id));  =>  x.status===503 || x.body_correlation===x.correlation_id));
+SURVIVOR L62: assert.ok(display.viewport?.width>0&&display.viewport?.height>0);  =>  assert.ok(display.viewport?.width>0||display.viewport?.height>0);
+SURVIVOR L67: assert.ok(nameColumn>=0&&stateColumn>=0&&Array.isArray(display.table_rows)&&  =>  assert.ok(nameColumn>0&&stateColumn>=0&&Array.isArray(display.table_rows)&&
+SURVIVOR L124: assert.ok(ws.series.some(row=>/^harborops_worker_/.test(row.__name__??"")&&  =>  assert.ok(ws.series.some(row=>/^harborops_worker_/.test(row.__name__??"")||
+SURVIVOR L174: assert.ok(degradation.prometheus_unreachable===true||degradation.stale_age_seconds>=45,  =>  assert.ok(degradation.prometheus_unreachable===true||degradation.stale_age_seconds>45,
+SURVIVOR L178: assert.ok((storage.checks??[]).some(c=>c.name==="telemetry-observation-recovers-after-fault"&&  =>  assert.ok((storage.checks??[]).some(c=>c.name==="telemetry-observation-recovers-after-fault"||
+SURVIVOR L207: assert.ok(lowWindow.eligible_min>=1&&lowWindow.eligible_max<100,  =>  assert.ok(lowWindow.eligible_min>1&&lowWindow.eligible_max<100,
+SURVIVOR L209: assert.ok(lowWindow.eligible_points>=4);  =>  assert.ok(lowWindow.eligible_points>4);
+SURVIVOR L212: assert.ok(lowWindow.raw_5xx_zero_points>=1,  =>  assert.ok(lowWindow.raw_5xx_zero_points>1,
+
+{"target":"scripts/reconcile-g17-assertions.mjs","candidates":57,"tried":57,"killed":24,"survived":33}
+SURVIVOR L21: if(group.id!==id||group.assertions?.length!==3)  =>  if(group.id!==id&&group.assertions?.length!==3)
+SURVIVOR L30: const pending=clause.assessment==="INDEPENDENT_REVIEW"&&  =>  const pending=clause.assessment==="INDEPENDENT_REVIEW"||
+SURVIVOR L56: if(technical_passes!==72||independent_pending!==3)  =>  if(technical_passes!==72&&independent_pending!==3)
+SURVIVOR L105: requireTruth(result.source_sha===sha &&  =>  requireTruth(result.source_sha!==sha &&
+SURVIVOR L105: requireTruth(result.source_sha===sha &&  =>  requireTruth(result.source_sha===sha ||
+SURVIVOR L106: result.project===runStatus.project && result.result==="PASS",  =>  result.project!==runStatus.project && result.result==="PASS",
+SURVIVOR L106: result.project===runStatus.project && result.result==="PASS",  =>  result.project===runStatus.project || result.result==="PASS",
+SURVIVOR L111: x.stage==="promtool-test" && x.status==="PASS"),  =>  x.stage!=="promtool-test" && x.status==="PASS"),
+SURVIVOR L111: x.stage==="promtool-test" && x.status==="PASS"),  =>  x.stage==="promtool-test" || x.status==="PASS"),
+SURVIVOR L117: requireTruth(runStatus.run_state==="COMPLETE" &&  =>  requireTruth(runStatus.run_state!=="COMPLETE" &&
+SURVIVOR L117: requireTruth(runStatus.run_state==="COMPLETE" &&  =>  requireTruth(runStatus.run_state==="COMPLETE" ||
+SURVIVOR L118: runStatus.stage_results.length>10 &&  =>  runStatus.stage_results.length>10 ||
+SURVIVOR L119: runStatus.stage_results.every(x=>x.status==="PASS" && x.exit_code===0),  =>  runStatus.stage_results.every(x=>x.status!=="PASS" && x.exit_code===0),
+SURVIVOR L119: runStatus.stage_results.every(x=>x.status==="PASS" && x.exit_code===0),  =>  runStatus.stage_results.every(x=>x.status==="PASS" || x.exit_code===0),
+SURVIVOR L127: x.stage===name&&x.status==="PASS"&&x.exit_code===0)),  =>  x.stage!==name&&x.status==="PASS"&&x.exit_code===0)),
+SURVIVOR L127: x.stage===name&&x.status==="PASS"&&x.exit_code===0)),  =>  x.stage===name||x.status==="PASS"&&x.exit_code===0)),
+SURVIVOR L132: const supported=w.path.startsWith("tests/")||  =>  const supported=w.path.startsWith("tests/")&&
+SURVIVOR L133: w.path.startsWith("scripts/")||  =>  w.path.startsWith("scripts/")&&
+SURVIVOR L134: w.path==="monitoring/m17/alert-test.yaml";  =>  w.path!=="monitoring/m17/alert-test.yaml";
+SURVIVOR L135: if(!supported||!w.case||!w.path||w.path.includes(".."))return null;  =>  if(!supported&&!w.case||!w.path||w.path.includes(".."))return null;
+SURVIVOR L144: key.startsWith(group[0]+"\u0000") &&  =>  key.startsWith(group[0]+"\u0000") ||
+SURVIVOR L145: (key.includes("."+className+"."+methodName+"(") ||  =>  (key.includes("."+className+"."+methodName+"(") &&
+SURVIVOR L147: return hits.length>=1 ? hits[0][1] : null;  =>  return hits.length>1 ? hits[0][1] : null;
+SURVIVOR L153: return found.every(Boolean) ? {passed:true,artifact:found[0].artifact} : null;  =>  return found.every(Boolean) ? {passed:false,artifact:found[0].artifact} : null;
+SURVIVOR L157: if(w.path==="monitoring/m17/alert-test.yaml")  =>  if(w.path!=="monitoring/m17/alert-test.yaml")
+SURVIVOR L159: if(w.path==="scripts/run-g17-local.ps1")  =>  if(w.path!=="scripts/run-g17-local.ps1")
+SURVIVOR L163: return raw&&rawWitnessPasses(w.path,w.case,raw.result)  =>  return raw||rawWitnessPasses(w.path,w.case,raw.result)
+SURVIVOR L164: ?{passed:true,artifact:raw.file}:null;  =>  ?{passed:false,artifact:raw.file}:null;
+SURVIVOR L166: if(w.path==="scripts/verify-g17-manifest.mjs")  =>  if(w.path!=="scripts/verify-g17-manifest.mjs")
+SURVIVOR L174: if(!evidenceRoot||!/^[a-f0-9]{40}$/.test(sha))  =>  if(!evidenceRoot&&!/^[a-f0-9]{40}$/.test(sha))
+SURVIVOR L177: requireTruth(actual.source_sha===sha && actual.source_verified===true,  =>  requireTruth(actual.source_sha!==sha && actual.source_verified===true,
+SURVIVOR L177: requireTruth(actual.source_sha===sha && actual.source_verified===true,  =>  requireTruth(actual.source_sha===sha || actual.source_verified===true,
+SURVIVOR L177: requireTruth(actual.source_sha===sha && actual.source_verified===true,  =>  requireTruth(actual.source_sha===sha && actual.source_verified===false,
+
+{"target":"scripts/verify-g17-manifest.mjs","candidates":289,"tried":120,"killed":119,"survived":1}
+SURVIVOR L161: memory.total_paths !== 40000 && memory.rows?.length !== 4 ||  =>  memory.total_paths !== 40000 || memory.rows?.length !== 4 ||
+
+MUTATION_DONE

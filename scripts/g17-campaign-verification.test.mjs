@@ -341,3 +341,17 @@ test("the command line verifies a complete campaign, and refuses a missing manif
     assert.match(run.stderr, /Usage: node scripts\/verify-g17-manifest.mjs/, JSON.stringify(args));
   }
 });
+
+test("the recorded P09 budgets are inclusive: exactly 10 percent pooled p95 and exactly 15 percent mean memory are accepted, and just above is refused", t => {
+  const {manifest} = withCampaign(t, json("m17-performance-raw.json", v => {
+    for (const kind of ["baseline", "authorized"]) v.pooled[kind].p95_increase_pct = 10;
+    v.gate.mean_memory_increase_pct = 15;
+  }));
+  assert.equal(verifyManifest(manifest, source).complete, true);
+  for (const [label, edit] of [
+      ["p95 10.0001", v => {v.pooled.authorized.p95_increase_pct = 10.0001;}],
+      ["memory 15.0001", v => {v.gate.mean_memory_increase_pct = 15.0001;}]]) {
+    const refused = withCampaign(t, json("m17-performance-raw.json", edit));
+    assert.throws(() => verifyManifest(refused.manifest, source), /matched P09 overhead pairs/, label);
+  }
+});

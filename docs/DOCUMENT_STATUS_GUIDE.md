@@ -29,7 +29,7 @@ The current G13 disposition is recorded in [the post-merge reconciliation](G13_P
 - [Repository-wide reconciliation](REPOWIDE_DOCUMENTATION_RECONCILIATION_20261108.md) indexes the 2026-11-08 review of current-state documentation, generated graph consistency and relative file links.
 - M11 and M12 are accepted on `main` following [formal G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). Their original draft PRs #31 and #32 are historical source branches, not unverified current implementation.
 
-- G17 post-review records (2026-11-15): [P09 variance assessment](M17_G17_S25_P09_VARIANCE_ASSESSMENT_20261115.md) and [mutation survivor classification](M17_G17_S25_MUTATION_SURVIVOR_CLASSIFICATION_20261115.md). They add to, and do not replace, the 2026-11-14 f7 records, which stay accurate for source `5b1dcc41`.
+- G17 post-review records (2026-11-15): [P09 variance assessment](M17_G17_S25_P09_VARIANCE_ASSESSMENT_20261115.md) and [mutation survivor classification](M17_G17_S25_MUTATION_SURVIVOR_CLASSIFICATION_20261115.md), plus the pre-registered [controlled P09 verification plan](M17_G17_S25_P09_CONTROLLED_VERIFICATION_PLAN_20261115.md) (planned, not executed). They add to, and do not replace, the 2026-11-14 f7 records, which stay accurate for source `5b1dcc41`.
 
 ## Historical records
 

@@ -83,6 +83,8 @@ Not established:
 4. Treat any change to warm-up length or to how peak memory is read as a methodology amendment that only the owner can approve. This assessment does not make one.
 5. Keep the machine otherwise idle, as for f6 and f7.
 
+The owner recommended exactly this design (three additional complete measurements, run count fixed beforehand, all results retained, host-load diagnostics, thresholds and method unchanged). It is written out, with its counting rule, preflight gate, diagnostics and pre-registered analysis, in the [controlled verification plan](M17_G17_S25_P09_CONTROLLED_VERIFICATION_PLAN_20261115.md). It has not been executed and needs the decisions listed there.
+
 If the owner prefers not to run more measurements, the honest status is: P09 passed once and failed once on identical source under the approved rule, with a thin and variable margin. That qualification should travel with any acceptance decision.
 
 ## 6. Disposition

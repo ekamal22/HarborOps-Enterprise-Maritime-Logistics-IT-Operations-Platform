@@ -1,0 +1,275 @@
+{
+  "required_artifacts": [
+    "source-sha.txt",
+    "run-status.json",
+    "expected-artifacts.json",
+    "g17-unit.trx",
+    "g17-contract.trx",
+    "g17-coverage-preflight.json",
+    "g17-node-tests.xml",
+    "m17-promtool-check.txt",
+    "m17-promtool-test.txt",
+    "m17-collector-config-validation.txt",
+    "m17-network-results.json",
+    "g17-integration.trx",
+    "g17-regressions.trx",
+    "g17-regression-matrix-results.json",
+    "m17-browser-results.json",
+    "m17-ui-state-chromium.json",
+    "m17-ui-state-firefox.json",
+    "m17-ui-state-webkit.json",
+    "m17-ui-no-traffic-chromium.json",
+    "m17-ui-no-traffic-firefox.json",
+    "m17-ui-no-traffic-webkit.json",
+    "m17-low-traffic-window.json",
+    "browser-artifacts/.last-run.json",
+    "cardinality-artifacts/.last-run.json",
+    "m17-cardinality-results.json",
+    "m17-cardinality-raw.json",
+    "m17-performance-raw.json",
+    "m17-p09-independent-recalculation.json",
+    "m17-restart-results.json",
+    "m17-export-privacy-results.json",
+    "m17-malformed-export-results.json",
+    "m17-malformed-export-traces.json",
+    "m17-export-privacy-traces.json",
+    "m17-export-privacy-logs.txt",
+    "m17-export-privacy-series.json",
+    "m17-storage-results.json",
+    "m17-retention-age-results.json",
+    "m17-tempo-retention-results.json",
+    "m17-retention-matrix-results.json",
+    "m17-database-fault-results.json",
+    "m17-page-fault-injection.json",
+    "m17-page-fault-dashboard.json",
+    "m17-diagnostic-journey-results.json",
+    "m17-cardinality-memory-results.json",
+    "m17-live-latency-alert-results.json",
+    "m17-worker-results.json",
+    "m17-worker-journey-results.json",
+    "m17-worker-journey-traces.json",
+    "m17-worker-journey-series.json",
+    "m17-worker-journey-logs.txt",
+    "m17-collector-fault-results.json",
+    "m17-alert-matrix-results.json",
+    "m17-pressure-matrix-results.json",
+    "g17-technical-assertion-ledger.json"
+  ],
+  "stage_results": [
+    {
+      "stage": "source-and-negative-controls",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:11:59.5310463+00:00",
+      "ended_at_utc": "2026-11-15T10:12:15.7686770+00:00"
+    },
+    {
+      "stage": "s25-atomic-coverage-preflight",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:12:15.7793294+00:00",
+      "ended_at_utc": "2026-11-15T10:12:15.8899191+00:00"
+    },
+    {
+      "stage": "dotnet-3",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:12:15.8912945+00:00",
+      "ended_at_utc": "2026-11-15T10:12:22.9491407+00:00"
+    },
+    {
+      "stage": "dotnet-build",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:12:22.9495771+00:00",
+      "ended_at_utc": "2026-11-15T10:13:00.3137838+00:00"
+    },
+    {
+      "stage": "unit-tests",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:13:00.3143832+00:00",
+      "ended_at_utc": "2026-11-15T10:13:06.1741521+00:00"
+    },
+    {
+      "stage": "contract-tests",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:13:06.1746723+00:00",
+      "ended_at_utc": "2026-11-15T10:13:47.3659695+00:00"
+    },
+    {
+      "stage": "npm-7",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:13:47.3665232+00:00",
+      "ended_at_utc": "2026-11-15T10:13:54.9510090+00:00"
+    },
+    {
+      "stage": "npm-8",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:13:54.9515046+00:00",
+      "ended_at_utc": "2026-11-15T10:13:55.7261186+00:00"
+    },
+    {
+      "stage": "npm-9",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:13:55.7265613+00:00",
+      "ended_at_utc": "2026-11-15T10:14:00.2048454+00:00"
+    },
+    {
+      "stage": "prepare-owned-state-postgres",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:00.6842479+00:00",
+      "ended_at_utc": "2026-11-15T10:14:01.4769455+00:00"
+    },
+    {
+      "stage": "verify-owned-state-postgres",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:01.4774110+00:00",
+      "ended_at_utc": "2026-11-15T10:14:02.2608169+00:00"
+    },
+    {
+      "stage": "prepare-owned-state-postgres_tests",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:02.2613571+00:00",
+      "ended_at_utc": "2026-11-15T10:14:02.9406881+00:00"
+    },
+    {
+      "stage": "verify-owned-state-postgres_tests",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:02.9411160+00:00",
+      "ended_at_utc": "2026-11-15T10:14:03.6286647+00:00"
+    },
+    {
+      "stage": "prepare-owned-state-keyring",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:03.6290609+00:00",
+      "ended_at_utc": "2026-11-15T10:14:04.3728954+00:00"
+    },
+    {
+      "stage": "verify-owned-state-keyring",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:04.3732691+00:00",
+      "ended_at_utc": "2026-11-15T10:14:05.0640229+00:00"
+    },
+    {
+      "stage": "docker-16",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:05.0653131+00:00",
+      "ended_at_utc": "2026-11-15T10:14:05.5085379+00:00"
+    },
+    {
+      "stage": "collector-config-validation",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:05.5089171+00:00",
+      "ended_at_utc": "2026-11-15T10:14:07.5981183+00:00"
+    },
+    {
+      "stage": "promtool-check",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:07.5986851+00:00",
+      "ended_at_utc": "2026-11-15T10:14:08.8231565+00:00"
+    },
+    {
+      "stage": "promtool-test",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:08.8232932+00:00",
+      "ended_at_utc": "2026-11-15T10:14:10.7572856+00:00"
+    },
+    {
+      "stage": "docker-20",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:10.7575306+00:00",
+      "ended_at_utc": "2026-11-15T10:14:21.7725304+00:00"
+    },
+    {
+      "stage": "owned-databases-healthy",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:21.7727325+00:00",
+      "ended_at_utc": "2026-11-15T10:14:22.7136168+00:00"
+    },
+    {
+      "stage": "integration-m17-tests",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:14:23.3940379+00:00",
+      "ended_at_utc": "2026-11-15T10:15:57.5892179+00:00"
+    },
+    {
+      "stage": "docker-23",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:15:57.5897460+00:00",
+      "ended_at_utc": "2026-11-15T10:16:14.5384499+00:00"
+    },
+    {
+      "stage": "telemetry-network-isolation",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:16:14.5387609+00:00",
+      "ended_at_utc": "2026-11-15T10:16:31.3352046+00:00"
+    },
+    {
+      "stage": "real-below-threshold-traffic-window",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:16:32.1053273+00:00",
+      "ended_at_utc": "2026-11-15T10:18:49.3760974+00:00"
+    },
+    {
+      "stage": "accepted-milestone-regressions-opted-in",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:18:49.3776154+00:00",
+      "ended_at_utc": "2026-11-15T10:25:10.6775066+00:00"
+    },
+    {
+      "stage": "accepted-regression-case-identity",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at_utc": "2026-11-15T10:25:10.6831729+00:00",
+      "ended_at_utc": "2026-11-15T10:25:10.9290102+00:00"
+    },
+    {
+      "stage": "postgres-readiness-alert-and-durable-recovery",
+      "status": "FAIL",
+      "exit_code": 1,
+      "started_at_utc": "2026-11-15T10:25:10.9293698+00:00",
+      "ended_at_utc": "2026-11-15T10:26:14.4022134+00:00"
+    },
+    {
+      "stage": "disposable-cleanup",
+      "status": "PASS",
+      "exit_code": 0
+    }
+  ],
+  "source_sha": "5b1dcc41d5b19dcbacd66de38193dc5020964647",
+  "fault_probe_requested": true,
+  "gate_acceptance": "NOT_ACCEPTED",
+  "finished_at_utc": "2026-11-15T10:26:29.0797617+00:00",
+  "worker_fixture_requested": true,
+  "failure_type": "RuntimeException",
+  "run_state": "FAILED",
+  "g17_assertion_review": "NOT_REVIEWED",
+  "gate": "G17",
+  "project": "ho-verify-m17-p09-r1",
+  "source_verified": true,
+  "requested_source_sha": "5b1dcc41d5b19dcbacd66de38193dc5020964647",
+  "schema_version": 2,
+  "full_campaign_requested": true
+}

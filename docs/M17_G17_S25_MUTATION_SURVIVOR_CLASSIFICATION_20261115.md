@@ -293,13 +293,13 @@ This also documents an earlier observation: a mathematically exact 10 percent in
 
 | Check | Result |
 | --- | --- |
-| G17 Node suite, the runner's 21 files | 355 test cases, exit 0, 0 failures, 0 skipped, empty stderr |
+| G17 Node suite, the runner's 21 files | 357 test cases, exit 0, 0 failures, 0 skipped, empty stderr (355 before the Tempo window fix was brought onto this branch, which added two cases) |
 | Milestone Node tests outside the G17 runner (M7, M8, M9, G4, DCSA) | 42 of 42 pass (they are not part of the G17 candidate and were run as a regression check) |
 | Strict coverage preflight | 75 assertions, 0 errors, 72 individually authored technical witnesses |
 | f7 evidence, ledger re-derived with the final verifier code | 72 of 72 technical witnesses, SHA-256 identical to the preserved ledger (`8d0342fc...da22`) |
 | f7 manifest verification in place, final verifier code | complete, 54 files, no missing artifact, gate NOT_ACCEPTED, 0 assertions reviewed |
 | f6 and f7 preserved hash lists | f6: 67 of 67 match; f7: 55 of 55 present files match (the one missing listed file is the owner's archive, moved to `preserved-20261115\` with an unchanged hash) |
-| Files changed since the tested source `5b1dcc41` | only tests, test fixtures, the node test list in `scripts/run-g17-local.ps1`, documentation and the evidence copy; no product code, verifier, monitoring rule, dashboard or script under test changed |
+| Files changed since the tested source `5b1dcc41` | tests, test fixtures, the node test list in `scripts/run-g17-local.ps1`, documentation and the evidence copy, plus one verification-stage fix added later the same day: `tempoSearchWindow` in `scripts/g17-malformed-trace-evidence.mjs`, used by `scripts/check-g17-malformed-export.mjs` (commit `1374779f`; see the [controlled P09 results](M17_G17_S25_P09_CONTROLLED_VERIFICATION_RESULTS_20261115.md)). No product code, other verifier, monitoring rule or dashboard changed. The mutation campaigns above ran before that fix; the changed module was mutation tested separately afterwards (15 of 15 candidates killed) |
 
 Therefore the f7 campaign evidence remains evidence for source `5b1dcc41`. The tests added after f7 were run locally and in the mutation campaigns described here; they were not part of the f7 run. No full campaign was repeated, and none was requested: no executable code under test changed. No performance measurement was run while any mutation job was running; the P09 runs are the f6 and f7 records only.
 

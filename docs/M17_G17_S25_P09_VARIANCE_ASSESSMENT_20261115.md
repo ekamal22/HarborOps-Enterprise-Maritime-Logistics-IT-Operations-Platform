@@ -90,3 +90,7 @@ If the owner prefers not to run more measurements, the honest status is: P09 pas
 ## 6. Disposition
 
 f6 is preserved in full and is not discarded or reinterpreted. f7 stands as the complete passing campaign of record for the tested source, qualified as above. No budget, method, sample count or stage ordering was changed by this assessment.
+
+## 7. Outcome of the recommended verification (added later on 2026-11-15)
+
+The recommended controlled runs were taken: see the [plan](M17_G17_S25_P09_CONTROLLED_VERIFICATION_PLAN_20261115.md) and the [results](M17_G17_S25_P09_CONTROLLED_VERIFICATION_RESULTS_20261115.md). All three passed, so P09 passed in 4 of 5 complete runs of record. Sections 1 to 6 above are unchanged and describe the evidence as it stood before those runs.

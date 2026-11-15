@@ -1,0 +1,12 @@
+﻿{
+    "started_utc":  "2026-11-15T11:31:27.6492881Z",
+    "project":  "ho-verify-m17-p09-r1c",
+    "sidecar":  "ho-verify-m17-p09-r1c-p09-diag",
+    "pids":  {
+                 "typeperf":  24500,
+                 "events":  27972,
+                 "logs":  26136
+             },
+    "timezone_offset_minutes":  180,
+    "stopped_utc":  "2026-11-15T12:10:52.3220759Z"
+}

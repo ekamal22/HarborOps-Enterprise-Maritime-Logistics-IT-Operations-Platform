@@ -14,7 +14,7 @@ const out = args.shift();
 const runs = [], diag = new Map();
 for (let i = 0; i < args.length; i++) {
   if (args[i] === "--diagnostics") {const [l, d] = args[++i].split("="); diag.set(l, d);}
-  else {const [l, p] = args[i].split("="); runs.push({label: l, raw: JSON.parse(fs.readFileSync(p, "utf8"))});}
+  else {const [l, p] = args[i].split("="); runs.push({label: l, raw: JSON.parse(fs.readFileSync(p, "utf8")), evidenceDir: path.dirname(p)});}
 }
 const BURST_RATIO = 5;      // pre-registered before any new run, chosen after seeing f6 and f7 (disclosed): worst 100-sample window p95 >= 5 x the row median on either route
 const WINDOW = 100, BLOCK = 50, RESAMPLES = 2000, SEED = 12345;
@@ -84,9 +84,16 @@ result.characterization_not_a_gate = {pooled_across_all_runs: pooledAll,
 
 // Host attribution for burst rows, when diagnostics were captured (new runs only).
 function attribution(label, dir) {
+  // Row windows come only from the API container starts inside the P09 stage window recorded by the runner. Earlier stages
+  // restart the API many times; counting those would shift every row.
+  const statusFile = path.join(runs.find(r => r.label === label).evidenceDir, "run-status.json");
+  const stage = fs.existsSync(statusFile) ? JSON.parse(fs.readFileSync(statusFile, "utf8")).stage_results.find(x => x.stage === "three-paired-overhead-measurements") : null;
+  const stageStart = stage ? new Date(stage.started_at_utc).getTime() : -Infinity, stageEnd = stage ? new Date(stage.ended_at_utc).getTime() : Infinity;
   const readLines = f => fs.existsSync(path.join(dir, f)) ? fs.readFileSync(path.join(dir, f), "utf8").split(/\r?\n/).filter(Boolean) : [];
   const starts = readLines("docker-events.jsonl").map(l => {try {return JSON.parse(l);} catch {return null;}}).filter(e => e && e.Type === "container"
-    && e.Action === "start" && e.Actor?.Attributes?.["com.docker.compose.service"] === "api").map(e => Number(e.timeNano) / 1e6);
+    && e.Action === "start" && e.Actor?.Attributes?.["com.docker.compose.service"] === "api"
+    && e.Actor?.Attributes?.["com.docker.compose.oneoff"] !== "True")   // one-off provisioning containers carry the api service label too
+    .map(e => Number(e.timeNano) / 1e6).filter(t => t >= stageStart && t <= stageEnd);
   const host = readLines("host-counters.csv").slice(1).map(l => l.split('","').map(x => x.replace(/"/g, ""))).map(f => ({t: new Date(f[0]).getTime(),
     cpu: Number(f[1]), priv: Number(f[2]), availMB: Number(f[3]), disk: Number(f[4]), vmmem: Number(f[5])})).filter(x => Number.isFinite(x.t));
   const psi = []; let cur = null;
@@ -95,8 +102,12 @@ function attribution(label, dir) {
     else if (cur && l.startsWith("some ") && cur.cpuSome === undefined) cur.cpuSome = Number(l.match(/avg10=([\d.]+)/)[1]);
   }
   const rows = result.runs[label].rows;
+  // The measurement script recreates the API once per row and once more at the end to restore telemetry, so a stage holds rows + 1 starts.
+  const rowEnds = starts.slice(1);
+  if (starts.length !== rows.length + 1) console.error("warning: " + label + " has " + starts.length + " API starts in the P09 window for " + rows.length + " rows");
+  starts.length = Math.min(starts.length, rows.length);
   return rows.map((row, i) => {
-    const t0 = starts[i], t1 = starts[i + 1] ?? (host.at(-1)?.t ?? t0);
+    const t0 = starts[i], t1 = rowEnds[i] ?? (Number.isFinite(stageEnd) ? stageEnd : host.at(-1)?.t ?? t0);
     const within = xs => xs.filter(x => x.t >= t0 && x.t <= t1);
     const h = within(host), p = within(psi);
     return {row: i + 1, round: row.round, telemetry_on: row.telemetry_on, burst_row: row.burst_row, window_seconds: t0 ? +((t1 - t0) / 1000).toFixed(0) : null,

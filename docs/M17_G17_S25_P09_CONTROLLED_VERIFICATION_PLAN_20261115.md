@@ -1,6 +1,6 @@
 # G17-S25 Controlled P09 Verification Plan (pre-registered, not executed)
 
-**Recorded:** 2026-11-15. **Status:** PLANNED. No additional measurement has been run. **Gate:** G17 NOT ACCEPTED; independent S25 review pending.
+**Recorded:** 2026-11-15. **Status:** PLANNED on 2026-11-15, then EXECUTED the same day; the outcome is in the [controlled results](M17_G17_S25_P09_CONTROLLED_VERIFICATION_RESULTS_20261115.md). Original wording of this line: PLANNED, no additional measurement has been run. **Gate:** G17 NOT ACCEPTED; independent S25 review pending.
 
 This plan implements the recommendation in the [P09 variance assessment](M17_G17_S25_P09_VARIANCE_ASSESSMENT_20261115.md): three additional complete P09 measurements, with the run count fixed beforehand, every result retained, host-load diagnostics collected, and the existing thresholds and method unchanged. Planning them is not approval to change the measurement policy, and it is not permission to disregard any result. The plan is committed before any run so that the design, the counting rule and the analysis cannot be adjusted after seeing data.
 

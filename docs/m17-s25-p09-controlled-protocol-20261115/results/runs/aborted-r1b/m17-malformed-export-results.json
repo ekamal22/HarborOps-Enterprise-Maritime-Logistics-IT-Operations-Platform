@@ -1,0 +1,13 @@
+{
+  "source_sha": "5b1dcc41d5b19dcbacd66de38193dc5020964647",
+  "project": "ho-verify-m17-p09-r1b",
+  "result": "FAIL",
+  "scenario": "malformed-context-export-safe",
+  "injected_requests": 960,
+  "malformed_trace_context": true,
+  "validated_exported_traces": 0,
+  "trace_records_retained": 0,
+  "negative_canary_absent": false,
+  "failure_type": "AssertionError",
+  "failure_message": "Private Tempo query failed\n\n400 !== 200\n"
+}

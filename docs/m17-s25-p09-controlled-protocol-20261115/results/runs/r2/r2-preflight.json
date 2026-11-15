@@ -1,0 +1,88 @@
+﻿{
+    "recorded_utc":  "2026-11-15T12:31:21.2526529Z",
+    "all_passed":  true,
+    "checks":  [
+                   {
+                       "name":  "mains-power",
+                       "ok":  true,
+                       "observed":  "BatteryStatus=2",
+                       "rule":  "AC power or no battery"
+                   },
+                   {
+                       "name":  "host-cpu-idle",
+                       "ok":  true,
+                       "observed":  {
+                                        "mean":  8.9,
+                                        "peak":  25.2
+                                    },
+                       "rule":  "mean \u003c= 10 and peak \u003c= 40 percent over 60 s"
+                   },
+                   {
+                       "name":  "host-free-memory",
+                       "ok":  true,
+                       "observed":  3.93,
+                       "rule":  "free physical memory \u003e= 3 GiB"
+                   },
+                   {
+                       "name":  "no-competing-workloads",
+                       "ok":  true,
+                       "observed":  [
+
+                                    ],
+                       "rule":  "no mutation, test, build or verification process running"
+                   },
+                   {
+                       "name":  "no-active-antivirus-scan",
+                       "ok":  true,
+                       "observed":  false,
+                       "rule":  "no full or quick scan in progress (unknown is recorded, not failed)"
+                   },
+                   {
+                       "name":  "no-windows-update-worker",
+                       "ok":  true,
+                       "observed":  [
+
+                                    ],
+                       "rule":  "no servicing worker running"
+                   },
+                   {
+                       "name":  "docker-configuration",
+                       "ok":  true,
+                       "observed":  {
+                                        "cpus":  12,
+                                        "memory_bytes":  8154984448,
+                                        "server":  "29.6.2"
+                                    },
+                       "rule":  "12 CPUs and about 8154984448 bytes"
+                   },
+                   {
+                       "name":  "no-leftover-m17-containers",
+                       "ok":  true,
+                       "observed":  [
+
+                                    ],
+                       "rule":  "no ho-verify-m17-* container, running or stopped"
+                   },
+                   {
+                       "name":  "evidence-drive-space",
+                       "ok":  true,
+                       "observed":  103.4,
+                       "rule":  "free \u003e= 20 GiB"
+                   },
+                   {
+                       "name":  "source-identity",
+                       "ok":  true,
+                       "observed":  {
+                                        "head":  "8d5e24137ad2943a6b2787b6472e4cea7bd9947e",
+                                        "uncommitted":  0
+                                    },
+                       "rule":  "worktree HEAD equals the tested SHA and is clean"
+                   }
+               ],
+    "context":  {
+                    "power_scheme":  "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+                    "os":  "Microsoft Windows 11 Home 10.0.26200",
+                    "logical_processors":  12,
+                    "total_memory_gib":  15.7
+                }
+}

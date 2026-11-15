@@ -118,3 +118,20 @@ Three further runs narrow the uncertainty but cannot prove the cause of the f6 b
 ## 10. Files
 
 All under `docs/m17-s25-p09-controlled-protocol-20261115/`: `preflight.ps1`, `diagnostics.ps1` and `analyze-controlled.mjs`.
+
+## Amendment 1 (2026-11-15, before any counted measurement): source and attempt accounting
+
+The owner approved the plan and the three runs started. Two attempts aborted before the P09 stage and are retained unmodified; no P09 measurement exists yet.
+
+| Attempt | Evidence | Stage that failed | Cause |
+| --- | --- | --- | --- |
+| a1 (first r1) | `aborted-a1-*` | `postgres-readiness-alert-and-durable-recovery` (stage 29) | The fresh clean worktree had no `tests/browser/node_modules`, so the page-fault journey could not import `playwright`. A launcher gap, fixed by installing the lockfile's package set before the preflight. |
+| r1b (replacement 1 of 2) | `r1b-*` | `malformed-context-real-tempo-export` (stage 37) | The stage queried Tempo with a start equal to the second the injection began. The 960 requests finished inside that second (the stage took 0.6 s against 15 s in f7), Tempo capped the end at its own clock, and the query window collapsed; Tempo answered 400. |
+
+The second cause is a latent defect in the verification source at `5b1dcc41`. It is not a P09 matter, but it aborts a full campaign on a quiet, fast host, which is exactly the condition the preflight creates. It was reproduced on a disposable rehearsal stack against real Tempo: the unfixed script failed 2 of 8 runs with the identical 400 and Tempo logged `start` equal to `end`; the fixed script passed 8 of 8 (logs in `docs/m17-s25-mutation-evidence-20261115/survivor-evidence/p09-fix-validation/`).
+
+**Owner decision taken on 2026-11-15:** a minimal fix commit on top of `5b1dcc41`, then run. The fix starts the Tempo search window one second earlier (`tempoSearchWindow` in `scripts/g17-malformed-trace-evidence.mjs`, used by `scripts/check-g17-malformed-export.mjs`) and adds two unit tests. Commit `8d5e24137ad2943a6b2787b6472e4cea7bd9947e` on branch `verify/g17-s25-p09-source-20261115` (parent `5b1dcc41`). Nothing else changed: the P09 measurement script, its verifier, the budgets and the method are byte-identical to `5b1dcc41`. Every counted run therefore executes source `8d5e2413`, not `5b1dcc41`, which weakens the exact-source comparison with f6 and f7 only in that one stage script. The strict mutation harness gives 14 killed of 15 for the changed module; the survivor is the older canary assertion, already closed on the review branch.
+
+**Accounting.** The attempt that follows is replacement 2 of 2 under D2, because the amended source is treated as the same plan, not a new one. If it aborts before producing a P09 result, no replacement remains and the owner decides. A counted result is never replaced. A completed run at `8d5e2413` is also a full campaign, so its 49-stage result becomes evidence for that source.
+
+**Host preparation, disclosed.** The preflight failed on tries 1 to 8 of r1b because of desktop load. With the owner's agreement Chrome was closed and the WinZip file-association helper `FAHWindow64.exe` was stopped; no threshold was changed.

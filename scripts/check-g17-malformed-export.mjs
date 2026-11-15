@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import {verifyMalformedBaselineTrace} from "./g17-malformed-trace-evidence.mjs";
+import {verifyMalformedBaselineTrace,tempoSearchWindow} from "./g17-malformed-trace-evidence.mjs";
 
 const project=process.env.HARBOROPS_G17_PROJECT;
 const sha=process.env.HARBOROPS_SOURCE_SHA;
@@ -49,8 +49,9 @@ try {
   while(Date.now()<deadline && matched.size<4) {
     const url=new URL(base+"/api/search");
     url.searchParams.set("tags","service.name=harborops-api");
-    url.searchParams.set("start",String(started));
-    url.searchParams.set("end",String(ended+45));
+    const window=tempoSearchWindow(started,ended);
+    url.searchParams.set("start",String(window.start));
+    url.searchParams.set("end",String(window.end));
     url.searchParams.set("limit","1000");
     try {
       const search=await fetchJson(url);

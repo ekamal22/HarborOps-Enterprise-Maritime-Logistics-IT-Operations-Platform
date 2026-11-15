@@ -4,6 +4,13 @@ export function exportedSpans(doc) {
   return resources.flatMap(resource=>
     (resource.scopeSpans??[]).flatMap(scope=>scope.spans??[]));
 }
+// Tempo caps a search window's end at its own clock. A window that starts in the current second therefore collapses to zero
+// width when the injected requests finish inside that second, and Tempo answers 400. Starting one second earlier keeps the
+// start strictly before any capped end. The exact source-time window is still enforced per span by verifyMalformedBaselineTrace.
+export function tempoSearchWindow(started,ended) {
+  assert.ok(Number.isInteger(started)&&Number.isInteger(ended)&&ended>=started);
+  return {start:started-1,end:ended+45};
+}
 export function verifyMalformedBaselineTrace(doc,windowStart,windowEnd,canary) {
   assert.ok(Number.isInteger(windowStart)&&Number.isInteger(windowEnd)&&windowEnd>=windowStart);
   assert.ok(canary&&typeof canary==="string");

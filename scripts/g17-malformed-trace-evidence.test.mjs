@@ -49,3 +49,22 @@ test("a canary that is not a non-empty string is refused by the canary assertion
   for(const canary of [undefined,null,"",0,5,{},["unique-canary"],true])
     assert.throws(()=>verifyMalformedBaselineTrace(trace,1700000000,1700000001,canary),refusedByCanaryAssertion,String(canary));
 });
+import {tempoSearchWindow} from "./g17-malformed-trace-evidence.mjs";
+// Tempo caps a search end at its own clock, so the query window must stay open when the injected requests all finish
+// within the second in which they began (a quiet, fast host). The legacy window started at that second and collapsed.
+const cappedWidth=(window,now)=>Math.min(window.end,now)-window.start;
+test("the Tempo search window stays open when every request finishes in the second it began",()=>{
+  const started=1794741593,ended=started+1;
+  const window=tempoSearchWindow(started,ended);
+  for(const now of [started,started+0.5,started+1,started+30,started+200]) {
+    assert.ok(cappedWidth(window,now)>0,"window collapsed at clock "+now);
+  }
+  // The legacy window (start at the first second) collapses exactly in that case, which Tempo rejects with 400.
+  assert.equal(cappedWidth({start:started,end:ended+45},started),0);
+});
+test("the Tempo search window starts one second early, ends 45 seconds late and rejects an invalid source window",()=>{
+  assert.deepEqual(tempoSearchWindow(1000,1001),{start:999,end:1046});
+  assert.deepEqual(tempoSearchWindow(1000,1000),{start:999,end:1045});
+  for(const [a,b] of [[1000.5,1001],[1000,1001.5],[1001,1000],[undefined,1000],[1000,undefined]])
+    assert.throws(()=>tempoSearchWindow(a,b),undefined,String([a,b]));
+});

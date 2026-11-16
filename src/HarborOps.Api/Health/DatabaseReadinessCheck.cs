@@ -39,7 +39,11 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
         }
         finally
         {
-            M17Telemetry.ObserveDatabaseReadiness(healthy, stopwatch.Elapsed);
+            // A caller that abandoned the check (client disconnect, host shutdown) learned nothing
+            // about PostgreSQL, so an interrupted check must not publish "database unavailable".
+            // The check's own five second limit is not a caller cancellation and is still reported.
+            if (healthy || !cancellationToken.IsCancellationRequested)
+                M17Telemetry.ObserveDatabaseReadiness(healthy, stopwatch.Elapsed);
         }
     }
 }

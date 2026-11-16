@@ -68,13 +68,26 @@ if (sub === "events" || sub === "logs") {
 }
 `;
 
-// A disposable tool directory holding the docker.exe and typeperf.exe stand-ins plus the call log.
-export function createToolbox() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-diag-tools-"));
-  fs.copyFileSync(process.execPath, path.join(dir, "docker.exe"));
+// The stand-in executables are copies of node.exe (about 80 MB each). Copying them for every test made the temporary
+// directories slow to delete under load (a virus scanner or indexer keeps a copy open for a while, and a running
+// process keeps its image locked), which failed a full parallel run with EPERM. They are copied ONCE per test process
+// and removed when it exits; each test only gets a small directory of stub scripts that holds no executable.
+let shared = null;
+function sharedBinaries() {
+  if (shared) return shared;
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), "g17-diag-bin-"));
+  fs.copyFileSync(process.execPath, path.join(bin, "docker.exe"));
   // typeperf.exe stand-ins live OUTSIDE the PATH directory, so a real Start still launches the real typeperf.
-  fs.mkdirSync(path.join(dir, "impostors"));
-  fs.copyFileSync(process.execPath, path.join(dir, "impostors", "typeperf.exe"));
+  fs.mkdirSync(path.join(bin, "impostors"));
+  fs.copyFileSync(process.execPath, path.join(bin, "impostors", "typeperf.exe"));
+  process.on("exit", () => { try { removeTree(bin); } catch { /* residue in the temp directory is harmless */ } });
+  return (shared = bin);
+}
+
+// A disposable directory of stub scripts and the call log; docker.exe and typeperf.exe come from the shared binaries.
+export function createToolbox() {
+  const bin = sharedBinaries();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-diag-tools-"));
   fs.writeFileSync(path.join(dir, "stub-core.cjs"), stubCore);
   for (const subcommand of ["container", "rm", "run", "events", "logs"])
     fs.writeFileSync(path.join(dir, subcommand), `process.argv[1] = ${JSON.stringify(subcommand)};\nrequire("./stub-core.cjs");\n`);
@@ -89,7 +102,7 @@ export function createToolbox() {
     // working directory the host must start in, which is how Node finds the subcommand scripts.
     env(mode = {}) {
       return cleanEnvironment({
-        PATH: dir + path.delimiter + process.env.PATH,
+        PATH: bin + path.delimiter + process.env.PATH,
         STUB_LOG: log, STUB_MODE: JSON.stringify(mode), STUB_CWD: dir
       });
     },
@@ -97,7 +110,7 @@ export function createToolbox() {
     // producer reads back from the process table as its command line.
     impostor(name, ...marker) {
       const exe = name === "node.exe" ? process.execPath
-        : name === "typeperf.exe" ? path.join(dir, "impostors", name) : path.join(dir, name);
+        : name === "typeperf.exe" ? path.join(bin, "impostors", name) : path.join(bin, name);
       const child = spawn(exe, ["-e", "setInterval(()=>{},1000)", ...marker], {stdio: "ignore", windowsHide: true, cwd: os.tmpdir()});
       spawned.push(child);
       return child;

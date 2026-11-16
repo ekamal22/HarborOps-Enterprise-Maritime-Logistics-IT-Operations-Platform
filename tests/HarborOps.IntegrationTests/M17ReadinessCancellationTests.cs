@@ -120,7 +120,8 @@ public sealed class M17ReadinessCancellationTests
     // own enforcement can end the attempt on time. A provider timeout set near the limit would prove nothing.
     private const string LongProviderTimeouts = "Timeout=30;Command Timeout=30";
 
-    private static readonly TimeSpan EnforcedBound = TimeSpan.FromSeconds(6.5);
+    // The approved readiness bound: the whole check, provider cancellation included, ends inside five seconds.
+    private static readonly TimeSpan EnforcedBound = TimeSpan.FromSeconds(5);
 
     private static async Task<(HealthCheckResult Result, TimeSpan Elapsed)> TimedAsync(
         DatabaseReadinessCheck check, CancellationToken token)
@@ -226,8 +227,8 @@ public sealed class M17ReadinessCancellationTests
 
         Assert.True(caller.IsCancellationRequested);
         // Npgsql does not honor the token while it waits on a silent server, so the effect is bounded by the capped
-        // provider timeout (4 s), not by the token. Thirty seconds, the provider setting, would be a defect.
-        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5.5),
+        // provider timeout (3 s), not by the token. Thirty seconds, the provider setting, would be a defect.
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(4.6),
             $"cancellation after {milliseconds} ms took {clock.Elapsed.TotalSeconds:F2}s to take effect");
         Assert.DoesNotContain(samples, sample => sample.Operation == "readiness");
         Assert.True(await server.AllClientConnectionsClosedAsync(TimeSpan.FromSeconds(3)),
@@ -236,8 +237,8 @@ public sealed class M17ReadinessCancellationTests
 
     [Theory(Timeout = 30000)]
     [InlineData("Timeout=2;Command Timeout=3", 2, 3, 1.5, 3.5)]
-    [InlineData("Timeout=0;Command Timeout=0", 4, 4, 3.0, 5.5)]
-    [InlineData("Timeout=30;Command Timeout=30", 4, 4, 3.0, 5.5)]
+    [InlineData("Timeout=0;Command Timeout=0", 3, 3, 2.5, 4.6)]
+    [InlineData("Timeout=30;Command Timeout=30", 3, 3, 2.5, 4.6)]
     public async Task ProviderCeilingsAreLoweredButNeverRaised(
         string configured, int connectSeconds, int commandSeconds, double minimumSeconds, double maximumSeconds)
     {
@@ -252,7 +253,7 @@ public sealed class M17ReadinessCancellationTests
         var applied = new Npgsql.NpgsqlConnectionStringBuilder(context.Database.GetConnectionString());
         Assert.Equal(connectSeconds, applied.Timeout);
         Assert.Equal(commandSeconds, applied.CommandTimeout);
-        Assert.InRange(applied.CancellationTimeout, 0, 500);
+        Assert.InRange(applied.CancellationTimeout, 0, 300);
     }
 
     [Fact(Timeout = 30000)]
@@ -300,5 +301,93 @@ public sealed class M17ReadinessCancellationTests
         var recovered = await TimedAsync(CheckAgainstDatabase(baseline, LongProviderTimeouts), CancellationToken.None);
         Assert.Equal(HealthStatus.Healthy, recovered.Result.Status);
         Assert.Equal([new Sample("readiness", "healthy")], samples.ToArray());
+    }
+
+    // Forwards to the real PostgreSQL after a fixed delay, so a connection can be slow without being refused.
+    private sealed class DelayingProxy : IDisposable
+    {
+        private readonly TcpListener listener = new(IPAddress.Loopback, 0);
+        private readonly CancellationTokenSource stop = new();
+        private readonly Task loop;
+
+        public DelayingProxy(int targetPort, TimeSpan delay)
+        {
+            listener.Start();
+            loop = Task.Run(async () =>
+            {
+                try
+                {
+                    while (!stop.IsCancellationRequested)
+                    {
+                        var client = await listener.AcceptTcpClientAsync(stop.Token);
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                using (client)
+                                {
+                                    await Task.Delay(delay, stop.Token);
+                                    using var upstream = new TcpClient();
+                                    await upstream.ConnectAsync(IPAddress.Loopback, targetPort, stop.Token);
+                                    var toServer = client.GetStream().CopyToAsync(upstream.GetStream(), stop.Token);
+                                    var toClient = upstream.GetStream().CopyToAsync(client.GetStream(), stop.Token);
+                                    await Task.WhenAny(toServer, toClient);
+                                }
+                            }
+                            catch (Exception) { /* a closed or cancelled relay ends quietly */ }
+                        });
+                    }
+                }
+                catch (OperationCanceledException) { }
+                catch (ObjectDisposedException) { }
+                catch (SocketException) { }
+            });
+        }
+
+        public int Port => ((IPEndPoint)listener.LocalEndpoint).Port;
+
+        public void Dispose()
+        {
+            stop.Cancel();
+            listener.Stop();
+            try { loop.Wait(2000); } catch (AggregateException) { }
+            stop.Dispose();
+        }
+    }
+
+    [Fact(Timeout = 40000)]
+    public async Task TheFiveSecondLimitSpansTheSlowConnectAndTheBlockedQueryTogether()
+    {
+        // Two seconds to connect (inside the capped connect time), then a blocked baseline query that the capped
+        // command time alone would hold for three more seconds. Only the check's own five second limit ends it on time.
+        var direct = new Npgsql.NpgsqlConnectionStringBuilder(TestDatabase.ConnectionString()) { Pooling = false };
+        await using (var prepare = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(direct.ConnectionString).Options))
+        {
+            await prepare.Database.MigrateAsync();
+            await BootstrapSeeder.SeedAsync(prepare, CancellationToken.None);
+        }
+        using var proxy = new DelayingProxy(direct.Port, TimeSpan.FromSeconds(2));
+        var viaProxy = new Npgsql.NpgsqlConnectionStringBuilder(direct.ConnectionString) { Port = proxy.Port };
+
+        await using var locker = new Npgsql.NpgsqlConnection(direct.ConnectionString);
+        await locker.OpenAsync();
+        await using (var begin = new Npgsql.NpgsqlCommand("BEGIN; LOCK TABLE bootstrap_records IN ACCESS EXCLUSIVE MODE;", locker))
+            await begin.ExecuteNonQueryAsync();
+        try
+        {
+            using var listener = new MeterListener();
+            var samples = Listen(listener);
+            var outcome = await TimedAsync(CheckAgainstDatabase(viaProxy, LongProviderTimeouts), CancellationToken.None);
+            Assert.Equal(HealthStatus.Unhealthy, outcome.Result.Status);
+            Assert.True(outcome.Elapsed > TimeSpan.FromSeconds(3.5), $"the slow connect plus the blocked query took only {outcome.Elapsed.TotalSeconds:F2}s");
+            Assert.True(outcome.Elapsed < TimeSpan.FromSeconds(4.9), $"readiness took {outcome.Elapsed.TotalSeconds:F2}s against a five second limit");
+            Assert.Equal([new Sample("readiness", "unavailable")], samples.ToArray());
+        }
+        finally
+        {
+            await using var rollback = new Npgsql.NpgsqlCommand("ROLLBACK;", locker);
+            await rollback.ExecuteNonQueryAsync();
+        }
     }
 }

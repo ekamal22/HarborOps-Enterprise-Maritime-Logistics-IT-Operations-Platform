@@ -10,18 +10,20 @@ namespace HarborOps.Api.Health;
 
 public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealthCheck
 {
-    // The approved readiness bound (P08). The linked token enforces it for every phase in which the provider honors
-    // cancellation (a blocked query, a refused connection).
-    private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(5);
+    // The approved readiness bound (P08) is five seconds for the whole check. Cancelling a running command is not
+    // instant: the provider sends a cancel request and waits for it (measured: about one second against a slow server),
+    // so the check's own token fires at four seconds and the complete check, cancellation included, ends inside five.
+    // The linked token enforces it for every phase in which the provider honors cancellation (a blocked query).
+    private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(4);
 
     // Npgsql does not honor a cancellation token while it waits for a server that accepted the connection and never
     // answers: measured against a silent server, a token cancelled after 50 ms and the five second limit both left the
     // check waiting for the full provider timeout (30 seconds for a 30 second setting). The provider's own ceilings
     // are therefore lowered below the readiness limit for this check only, so the provider itself ends a stalled
     // connect or command. The application connection string, pool and other contexts are not touched.
-    private const int ProviderConnectSeconds = 4;
-    private const int ProviderCommandSeconds = 4;
-    private const int ProviderCancellationMilliseconds = 500;
+    private const int ProviderConnectSeconds = 3;
+    private const int ProviderCommandSeconds = 3;
+    private const int ProviderCancellationMilliseconds = 300;
 
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context, CancellationToken cancellationToken = default)

@@ -21,7 +21,7 @@ Across the five complete runs of record (f6, f7 and these three) the gate passed
 
 1. **Source.** The three counted runs executed source `8d5e24137ad2943a6b2787b6472e4cea7bd9947e`, which is the tested source `5b1dcc41` plus one verification-stage fix, not the identical `5b1dcc41` of f6 and f7. See section 3. The P09 measurement script, its verifier, the budgets and the method are byte-identical to `5b1dcc41`.
 2. **Two aborted attempts**, both before the P09 stage, both retained and neither a measurement. Both of the two permitted replacements (decision D2) were therefore used, and none remains.
-3. **Host preparation.** The preflight failed on 8 tries before r1b started and on 3 tries before r2 started because of desktop load. With the owner's agreement Chrome was closed and the WinZip file-association helper `FAHWindow64.exe` was stopped by this session. No threshold was changed.
+3. **Host preparation.** The preflight failed on 8 tries before r1b started and on 3 tries before r2 started because of desktop load. With recorded agreement, Chrome was closed and the WinZip file-association helper `FAHWindow64.exe` was stopped by this session. No threshold was changed.
 4. **Diagnostics overhead.** Host counters, Docker events and a Docker VM pressure sidecar ran for the whole of each counted run; f6 and f7 had none.
 5. **Burst threshold.** The 5-times-the-row-median definition of a burst row was chosen after seeing f6 and f7 and before any new run.
 6. **Host was not idle during the rows.** The preflight demands a quiet host, but while the rows were measured the host CPU averaged 13.8 to 21 percent (the benchmark client and the Docker VM are part of that), and free memory fell to 2.78 GiB at its lowest (r3), slightly under the 3 GiB preflight floor.
@@ -157,7 +157,7 @@ Raw P09 files (SHA-256): f6 `19266f48...ef970`, f7 `5bf29d8b...ba3f6f`, r1c `a67
 node docs/m17-s25-p09-controlled-protocol-20261115/analyze-controlled.mjs <out.json> f6=<raw> f7=<raw> r1c=<raw> r2=<raw> r3=<raw> --diagnostics r1c=<dir> --diagnostics r2=<dir> --diagnostics r3=<dir>
 ```
 
-## 8. Decisions that remain with the owner
+## 8. Decisions that remain open (approval required)
 
 1. Whether P09 may be treated as passed for acceptance purposes, given 4 of 5 complete runs of record, the unexplained f6 failure and the thin memory margin. This work records the evidence and does not decide it.
 2. Whether the review should rely on the fixed source (`8d5e2413` and review-branch commit `1374779f`) for any further campaign, since `5b1dcc41` can abort on the Tempo window defect. The f7 campaign remains valid evidence for `5b1dcc41`; the three runs here are complete campaigns for `8d5e2413`.

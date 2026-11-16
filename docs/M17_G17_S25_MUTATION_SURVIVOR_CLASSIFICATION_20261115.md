@@ -300,7 +300,7 @@ This also documents an earlier observation: a mathematically exact 10 percent in
 | Strict coverage preflight | 75 assertions, 0 errors, 72 individually authored technical witnesses |
 | f7 evidence, ledger re-derived with the final verifier code | 72 of 72 technical witnesses, SHA-256 identical to the preserved ledger (`8d0342fc...da22`) |
 | f7 manifest verification in place, final verifier code | complete, 54 files, no missing artifact, gate NOT_ACCEPTED, 0 assertions reviewed |
-| f6 and f7 preserved hash lists | f6: 67 of 67 match; f7: 55 of 55 present files match (the one missing listed file is the owner's archive, moved to `preserved-20261115\` with an unchanged hash) |
+| f6 and f7 preserved hash lists | f6: 67 of 67 match; f7: 55 of 55 present files match (the one missing listed file is the manually created archive, moved to `preserved-20261115\` with an unchanged hash) |
 | Files changed since the tested source `5b1dcc41` | tests, test fixtures, the node test list in `scripts/run-g17-local.ps1`, documentation and the evidence copy, plus one verification-stage fix added later the same day: `tempoSearchWindow` in `scripts/g17-malformed-trace-evidence.mjs`, used by `scripts/check-g17-malformed-export.mjs` (commit `1374779f`; see the [controlled P09 results](M17_G17_S25_P09_CONTROLLED_VERIFICATION_RESULTS_20261115.md)). No product code, other verifier, monitoring rule or dashboard changed. The mutation campaigns above ran before that fix; the changed module was mutation tested separately afterwards (15 of 15 candidates killed) |
 
 Therefore the f7 campaign evidence remains evidence for source `5b1dcc41`. The tests added after f7 were run locally and in the mutation campaigns described here; they were not part of the f7 run. No full campaign was repeated, and none was requested: no executable code under test changed. No performance measurement was run while any mutation job was running; the P09 runs are the f6 and f7 records only.
@@ -309,7 +309,7 @@ Therefore the f7 campaign evidence remains evidence for source `5b1dcc41`. The t
 
 1. **Scope of the mutation tool.** Twelve operators were applied to 14 Node evidence-gating modules. Surviving classes outside that scope (other operators, the .NET tests, the PowerShell runner, Prometheus rules, browser specs) are not assessed by this work. The campaign shows that the evidence gates themselves are not weakened at the tested operator level; it does not prove the absence of other defects.
 2. **Redundant guards are kept.** Eight manifest guards are shadowed by an earlier check in the complete flow. They were not removed because they cost nothing and protect a verifier used on its own; they carry no unique protection today.
-3. **P09 remains thin.** See `M17_G17_S25_P09_VARIANCE_ASSESSMENT_20261115.md`. The recommendation for additional controlled verification stands and needs an owner decision.
+3. **P09 remains thin.** See `M17_G17_S25_P09_VARIANCE_ASSESSMENT_20261115.md`. The recommendation for additional controlled verification stands and needs a recorded decision.
 4. **Independent review.** S25-F06 (the independent reviewer) and the independent A01, A02 and A03 assertions remain pending. G17 remains NOT ACCEPTED.
 5. **One historical figure is retired, not rewritten.** The original manifest result (119 of 120) is preserved in `campaign-A-original-reported.txt` and marked unusable above.
 

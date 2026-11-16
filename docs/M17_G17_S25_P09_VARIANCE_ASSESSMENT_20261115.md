@@ -15,7 +15,7 @@ This is a read-only analysis of preserved raw evidence. The approved method (poo
 
 Each raw file holds all six measured rows per run (3 rounds, telemetry on and off), each with 1,200 raw latencies per route, the sampled working-set readings and the recorded pairs and pooled results. The full computed analysis is `preserved-20261115\p09-variance-analysis.json` beside the evidence. The analysis script re-derived both outcomes with the approved `recalculateP09` first: f6 reproduces as FAIL and f7 as PASS, matching what the campaign recorded.
 
-An archive named `g17-final-f7-evidence.zip` (SHA-256 `1b830a403e5d11913599a9c425e82f0010a6f2981a08270dc654ff9277232198`) was found inside the f7 evidence directory after the run. It was not created by the verification runner or by this work and is not in the manifest, and the unlisted file made `verify-g17-manifest.mjs` fail on the directory. The repository owner confirmed that they created it and that it may be removed. It was moved, not deleted, to `preserved-20261115\owner-made-g17-final-f7-evidence.zip` with its hash unchanged. The 54 manifested files were never modified, and the manifest now verifies in place on `final-f7-evidence` for source `5b1dcc41` (complete, no missing artifacts).
+An archive named `g17-final-f7-evidence.zip` (SHA-256 `1b830a403e5d11913599a9c425e82f0010a6f2981a08270dc654ff9277232198`) was found inside the f7 evidence directory after the run. It was not created by the verification runner or by this work and is not in the manifest, and the unlisted file made `verify-g17-manifest.mjs` fail on the directory. It was confirmed to be a manually created file that may be removed. It was moved, not deleted, to `preserved-20261115\owner-made-g17-final-f7-evidence.zip` with its hash unchanged. The 54 manifested files were never modified, and the manifest now verifies in place on `final-f7-evidence` for source `5b1dcc41` (complete, no missing artifacts).
 
 ## 2. Comparison under the approved method
 
@@ -77,17 +77,17 @@ Not established:
 
 ## 5. Recommendation
 
-**Additional controlled verification is advisable before unconditional acceptance of P09.** It is characterization, not a retry loop, and it needs the owner's approval because it concerns an approved measurement procedure:
+**Additional controlled verification is advisable before unconditional acceptance of P09.** It is characterization, not a retry loop, and it needs recorded approval because it concerns an approved measurement procedure:
 
 1. Decide in advance and record the number of additional complete P09 measurements (for example three) and report every one, whatever it shows. No result may be selected, discarded or repeated until a preferred figure appears.
 2. Keep the approved method and both budgets unchanged for the gate. State beforehand that the gate is evaluated on each run as approved, and that the pooled characterization across all runs is reported separately as context.
 3. Capture host and Docker VM load, CPU steal and a timestamp per sample alongside the existing raw data, so a burst can be attributed to the host or to the telemetry path.
-4. Treat any change to warm-up length or to how peak memory is read as a methodology amendment that only the owner can approve. This assessment does not make one.
+4. Treat any change to warm-up length or to how peak memory is read as a methodology amendment that requires explicit approval. This assessment does not make one.
 5. Keep the machine otherwise idle, as for f6 and f7.
 
-The owner recommended exactly this design (three additional complete measurements, run count fixed beforehand, all results retained, host-load diagnostics, thresholds and method unchanged). It is written out, with its counting rule, preflight gate, diagnostics and pre-registered analysis, in the [controlled verification plan](M17_G17_S25_P09_CONTROLLED_VERIFICATION_PLAN_20261115.md). It has not been executed and needs the decisions listed there.
+This design was recommended (three additional complete measurements, run count fixed beforehand, all results retained, host-load diagnostics, thresholds and method unchanged). It is written out, with its counting rule, preflight gate, diagnostics and pre-registered analysis, in the [controlled verification plan](M17_G17_S25_P09_CONTROLLED_VERIFICATION_PLAN_20261115.md). It has not been executed and needs the decisions listed there.
 
-If the owner prefers not to run more measurements, the honest status is: P09 passed once and failed once on identical source under the approved rule, with a thin and variable margin. That qualification should travel with any acceptance decision.
+If no further measurements are approved, the honest status is: P09 passed once and failed once on identical source under the approved rule, with a thin and variable margin. That qualification should travel with any acceptance decision.
 
 ## 6. Disposition
 

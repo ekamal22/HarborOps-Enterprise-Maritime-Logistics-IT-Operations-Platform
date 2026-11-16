@@ -77,7 +77,7 @@ GitHub Actions was not used again. The complete campaign was run locally through
 | c2 | `36fc20c6` | failed at export privacy | bounded Tempo search over a flooded backend; empty trace envelope for unstored ids |
 | c3 | `43518038` | failed at overhead measurement | per-pair p95 noise equal to the budget |
 | c4 | `a32fbc07` | failed at the database fault stage | readiness freshness bound below the pipeline worst case |
-| c5 | `06c1f020` | failed at overhead measurement | overhead near the budget edge; owner chose the evaluation rule |
+| c5 | `06c1f020` | failed at overhead measurement | overhead near the budget edge; the evaluation rule was chosen by recorded decision |
 | c6 | `ab76c039` | failed at the worker stage | health check read before the first container check |
 | c7 | `085fc666` | COMPLETE, 72 of 72 technical, manifest verified | none |
 

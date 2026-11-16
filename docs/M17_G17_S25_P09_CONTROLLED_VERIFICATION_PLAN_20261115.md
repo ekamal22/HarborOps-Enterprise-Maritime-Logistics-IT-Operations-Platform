@@ -19,7 +19,7 @@ This plan implements the recommendation in the [P09 variance assessment](M17_G17
 
 1. **Exactly three measurements**, named `r1`, `r2` and `r3`.
 2. **What counts as a measurement:** an attempt in which `m17-performance-raw.json` was written with six rows, three pairs and a result of PASS or FAIL. Both PASS and FAIL count. A failing run is reported as failing; there is no rerun to obtain a pass.
-3. **What does not count:** an attempt that stops before the P09 stage produced its raw file (for example an earlier stage fails, the Docker daemon stops, the machine sleeps, or the preflight cannot be satisfied). It is retained, labelled `aborted`, and is not a measurement. **Owner decision D2:** this plan proposes at most two replacement attempts in total, each only for an aborted attempt, with the owner informed; an attempt whose P09 stage completed is never replaced, whatever it shows.
+3. **What does not count:** an attempt that stops before the P09 stage produced its raw file (for example an earlier stage fails, the Docker daemon stops, the machine sleeps, or the preflight cannot be satisfied). It is retained, labelled `aborted`, and is not a measurement. **Decision D2 (approval required):** this plan proposes at most two replacement attempts in total, each only for an aborted attempt, with the decision recorded; an attempt whose P09 stage completed is never replaced, whatever it shows.
 4. No row, pair, round or run is excluded, trimmed or reweighted. Outliers are reported, not removed.
 
 ## 3. Design of one run
@@ -37,7 +37,7 @@ Per run, in order:
 
 ## 4. Preflight gate (objective go or no-go)
 
-`preflight.ps1` observes and changes nothing. It writes `preflight.json` with every check and its observed value and exits non-zero if any check fails. **Owner decision D3:** the thresholds below are proposals. They are not derived from f6 or f7, because those runs recorded no host state.
+`preflight.ps1` observes and changes nothing. It writes `preflight.json` with every check and its observed value and exits non-zero if any check fails. **Decision D3 (approval required):** the thresholds below are proposals. They are not derived from f6 or f7, because those runs recorded no host state.
 
 | Check | Rule |
 | --- | --- |
@@ -82,7 +82,7 @@ Interpretation rules, fixed now:
 | Outcome of r1 to r3 | Statement that will be made |
 | --- | --- |
 | All three pass | P09 passed in 4 of 5 complete runs of record and failed in 1; the f6 failure stays on record; the pooled characterization is reported next to it |
-| At least one fails | P09 is reported as intermittently failing, with the number of failures out of five and each failing run's cause analysis; no run is repeated to obtain a pass; remediation is for the owner to decide |
+| At least one fails | P09 is reported as intermittently failing, with the number of failures out of five and each failing run's cause analysis; no run is repeated to obtain a pass; remediation requires an agreed decision |
 | Bursts coincide with host load | Reported as host-attributed. The run is **not** excluded and its verdict is unchanged |
 | Bursts occur with no host signal | Reported as unexplained, which keeps open the possibility that the telemetry path contributes |
 
@@ -99,7 +99,7 @@ Following the standing rules for unattended work:
 5. **Continuity.** The status file also records the current run, active process and monitor IDs, evidence paths, git status and whether a measurement is running, so a restored session inspects processes and evidence first and never restarts an active measurement.
 6. **Integrity.** Per run: the runner's manifest, `preflight.json`, the diagnostics directory with its hash list, the plan commit SHA and the analysis script commit SHA. Every run's raw file is hashed on completion. Nothing is deleted. A results document will be added to the repository after r3 with the complete per-run tables.
 
-## 8. Decisions needed from the owner before any run
+## 8. Decisions needed before any run (approval required)
 
 | Id | Decision | Recommendation |
 | --- | --- | --- |
@@ -121,7 +121,7 @@ All under `docs/m17-s25-p09-controlled-protocol-20261115/`: `preflight.ps1`, `di
 
 ## Amendment 1 (2026-11-15, before any counted measurement): source and attempt accounting
 
-The owner approved the plan and the three runs started. Two attempts aborted before the P09 stage and are retained unmodified; no P09 measurement exists yet.
+The plan was approved and the three runs started. Two attempts aborted before the P09 stage and are retained unmodified; no P09 measurement exists yet.
 
 | Attempt | Evidence | Stage that failed | Cause |
 | --- | --- | --- | --- |
@@ -130,8 +130,8 @@ The owner approved the plan and the three runs started. Two attempts aborted bef
 
 The second cause is a latent defect in the verification source at `5b1dcc41`. It is not a P09 matter, but it aborts a full campaign on a quiet, fast host, which is exactly the condition the preflight creates. It was reproduced on a disposable rehearsal stack against real Tempo: the unfixed script failed 2 of 8 runs with the identical 400 and Tempo logged `start` equal to `end`; the fixed script passed 8 of 8 (logs in `docs/m17-s25-mutation-evidence-20261115/survivor-evidence/p09-fix-validation/`).
 
-**Owner decision taken on 2026-11-15:** a minimal fix commit on top of `5b1dcc41`, then run. The fix starts the Tempo search window one second earlier (`tempoSearchWindow` in `scripts/g17-malformed-trace-evidence.mjs`, used by `scripts/check-g17-malformed-export.mjs`) and adds two unit tests. Commit `8d5e24137ad2943a6b2787b6472e4cea7bd9947e` on branch `verify/g17-s25-p09-source-20261115` (parent `5b1dcc41`). Nothing else changed: the P09 measurement script, its verifier, the budgets and the method are byte-identical to `5b1dcc41`. Every counted run therefore executes source `8d5e2413`, not `5b1dcc41`, which weakens the exact-source comparison with f6 and f7 only in that one stage script. The strict mutation harness gives 14 killed of 15 for the changed module; the survivor is the older canary assertion, already closed on the review branch.
+**Decision recorded on 2026-11-15:** a minimal fix commit on top of `5b1dcc41`, then run. The fix starts the Tempo search window one second earlier (`tempoSearchWindow` in `scripts/g17-malformed-trace-evidence.mjs`, used by `scripts/check-g17-malformed-export.mjs`) and adds two unit tests. Commit `8d5e24137ad2943a6b2787b6472e4cea7bd9947e` on branch `verify/g17-s25-p09-source-20261115` (parent `5b1dcc41`). Nothing else changed: the P09 measurement script, its verifier, the budgets and the method are byte-identical to `5b1dcc41`. Every counted run therefore executes source `8d5e2413`, not `5b1dcc41`, which weakens the exact-source comparison with f6 and f7 only in that one stage script. The strict mutation harness gives 14 killed of 15 for the changed module; the survivor is the older canary assertion, already closed on the review branch.
 
-**Accounting.** The attempt that follows is replacement 2 of 2 under D2, because the amended source is treated as the same plan, not a new one. If it aborts before producing a P09 result, no replacement remains and the owner decides. A counted result is never replaced. A completed run at `8d5e2413` is also a full campaign, so its 49-stage result becomes evidence for that source.
+**Accounting.** The attempt that follows is replacement 2 of 2 under D2, because the amended source is treated as the same plan, not a new one. If it aborts before producing a P09 result, no replacement remains and a decision is required. A counted result is never replaced. A completed run at `8d5e2413` is also a full campaign, so its 49-stage result becomes evidence for that source.
 
-**Host preparation, disclosed.** The preflight failed on tries 1 to 8 of r1b because of desktop load. With the owner's agreement Chrome was closed and the WinZip file-association helper `FAHWindow64.exe` was stopped; no threshold was changed.
+**Host preparation, disclosed.** The preflight failed on tries 1 to 8 of r1b because of desktop load. With recorded agreement, Chrome was closed and the WinZip file-association helper `FAHWindow64.exe` was stopped; no threshold was changed.

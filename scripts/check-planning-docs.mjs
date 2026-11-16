@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { currentStateProblems, forbiddenClaimProblems, g17StatementProblems } from "./planning-current-state.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const get = path => readFileSync(join(root, path), "utf8");
@@ -55,8 +56,8 @@ assert(m11SecondAudit.includes("G11 acceptance pending") &&
   m11SixthAudit.includes("F11-039") &&
   m11SixthAudit.includes("NOT EXECUTED") &&
   m11Implementation.includes("M11_M12_G11_G12_GATE_CLOSURE_20261108.md") &&
-  get("docs/M11_M12_G11_G12_GATE_CLOSURE_20261108.md").includes("G11") &&
-  status.includes("G0-G12 and G16 are accepted"),
+  /\*\*G11:\*\* ACCEPTED/.test(get("docs/M11_M12_G11_G12_GATE_CLOSURE_20261108.md")) &&
+  /\| \*\*M11 Delay rules and shipment exceptions\*\* \| \*\*G11 ACCEPTED, merged in PR #33\*\*/.test(status),
   "M11 historical audits must be preserved but the current gate must show accepted G11");
 for (const [name, path] of [
   ["README", "README.md"],
@@ -89,8 +90,6 @@ assert(status.includes("G0 verified") && status.includes("accepted"), "Status le
 for (const [name,body,needle] of [
   ["README",readme,"M8 implementation passed source-locked technical verification"],
   ["Status",status,"G8 accepted 2026-11-04"],
-  ["Roadmap",roadmap,"G13-G15 and G17-G24 remain open"],
-  ["Contributors",contributors,"G0-G12 and G16 are accepted"],
   ["Parallel delivery",parallelPolicy,"M8 verification and independent parallel implementation boundary"],
   ["Implementation plan",implementationPlan,"M8 accepted after independent G8 review"],
   ["G8 plan",m8Plan,"11 committed, source-isolated security mutation variants"],
@@ -142,9 +141,22 @@ assert(m9Decision.includes("2026-11-05") &&
   g9Review.includes("Accepted with disclosed limitations") &&
   m9Implementation.includes("Final G9 status (2026-11-05)") &&
   readme.includes("G9_GATE_CLOSURE.md") &&
-  status.includes("G9 accepted 2026-11-05") &&
-  roadmap.includes("G13-G15 and G17-G24 remain open"),
+  status.includes("G9 accepted 2026-11-05"),
   "M9 acceptance, evidence review, merge or backlog condition is missing");
+// The current accepted-gate state (see scripts/planning-current-state.mjs). It replaces two phrases that were true on
+// 2026-11-08 and stale after G15 and G13 were accepted; the same intent is checked against the wording in use now.
+const currentDocs = { status, roadmap, contributors, readme, acceptance };
+const stateProblems = [
+  ...currentStateProblems(currentDocs),
+  ...g17StatementProblems(currentDocs),
+  ...forbiddenClaimProblems(Object.fromEntries([
+    ["README.md", readme],
+    ...["STATUS", "ROADMAP", "CONTRIBUTING", "ACCEPTANCE_CRITERIA", "RELEASE_READINESS_TODO", "TEST_STRATEGY", "DECISIONS", "DOCUMENT_STATUS_GUIDE"]
+      .map(name => ["docs/" + name + ".md", get("docs/" + name + ".md")]),
+    ...readdirSync(join(root, "docs")).filter(name => /^M17_.*\.md$/.test(name)).map(name => ["docs/" + name, get("docs/" + name)])
+  ]))
+];
+assert(stateProblems.length === 0, "Current accepted-gate state is inconsistent: " + stateProblems.join("; "));
 assert(prd.includes("M0-M24"), "PRD omits granular milestone range");
 assert(readme.includes("M0 through M24"), "README points to a stale milestone range");
 assert(roadmap.includes("## Legacy milestone mapping"), "Missing version migration map");

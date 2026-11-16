@@ -98,6 +98,14 @@ const CASES = [
   ["collector not restored", json("m17-collector-fault-results.json", v => {v.collector_restored = false;}), /Collector fault/],
   ["collector step renamed", json("m17-collector-fault-results.json", v => {v.checks[2].name = "x";}), /Collector fault/],
   ["collector step failed", json("m17-collector-fault-results.json", v => {v.checks[3].result = "FAIL";}), /Collector fault/],
+  ["first failure a step removed", json("m17-first-failure-results.json", v => {v.checks.pop();}), /First-failure baseline/],
+  ["first failure steps swapped", json("m17-first-failure-results.json", v => {[v.checks[4], v.checks[5]] = [v.checks[5], v.checks[4]];}), /First-failure baseline/],
+  ["first failure database not restored", json("m17-first-failure-results.json", v => {v.database_restored = false;}), /First-failure baseline/],
+  ["first failure a family count differs", json("m17-first-failure-results.json", v => {v.checks[5].data.exported_5xx.organization = 24;}), /First-failure baseline/],
+  ["first failure no increase from the baseline", json("m17-first-failure-results.json", v => {v.checks[5].data.prometheus_increase_5m.auth = 0;}), /First-failure baseline/],
+  ["first failure baseline not zero", json("m17-first-failure-results.json", v => {v.checks[2].data.families.tracking = 2;}), /First-failure baseline/],
+  ["first failure eligible floor not met", json("m17-first-failure-results.json", v => {v.checks[6].data.eligible_requests_5m = 99;}), /First-failure baseline/],
+  ["first failure alert not firing", json("m17-first-failure-results.json", v => {v.checks[6].data.alert = "inactive";}), /First-failure baseline/],
   ["worker journey 49 receipts", json("m17-worker-journey-results.json", v => {v.receipts_accepted = 49;}), /Worker receipt\/replay/],
   ["worker journey 49 reconciled", json("m17-worker-journey-results.json", v => {v.reconciled = 49;}), /Worker receipt\/replay/],
   ["worker journey no replay", json("m17-worker-journey-results.json", v => {v.duplicate_replay = false;}), /Worker receipt\/replay/],
@@ -231,7 +239,8 @@ const scriptsDir = path.dirname(fileURLToPath(import.meta.url));
 const repoDir = path.resolve(scriptsDir, "..");
 
 const REPORTS_WITH_IDENTITY = ["m17-tempo-retention-results.json", "g17-regression-matrix-results.json", "m17-alert-matrix-results.json",
-  "m17-pressure-matrix-results.json", "m17-collector-fault-results.json", "m17-worker-journey-results.json"];
+  "m17-pressure-matrix-results.json", "m17-collector-fault-results.json", "m17-worker-journey-results.json",
+  "m17-first-failure-results.json"];
 for (const file of REPORTS_WITH_IDENTITY) {
   for (const [field, wrong] of [["source_sha", "b".repeat(40)], ["project", "ho-verify-m17-other"], ["result", "FAIL"]]) {
     test("complete campaign rejects " + file + " with only " + field + " wrong", t => {

@@ -4,14 +4,21 @@ groups:
   - name: harborops-local-reference
     interval: 15s
     rules:
+      # Every request in the window, counted so that a 5xx can never be missing from its own denominator.
+      # The duration histogram's 5xx series first appears already holding its whole count, and Prometheus cannot
+      # count the first sample of a series as an increase (a first burst, or a first burst on top of little other
+      # traffic, would leave the denominator short and the 100 request floor unmet). The failure counter is seeded
+      # at zero for every operation family, so its increase is complete. Requests that are not 5xx come from the
+      # histogram, 5xx requests from the failure counter: both are incremented by the same middleware for exactly
+      # the same responses, so the sum equals the histogram total whenever the histogram is complete.
       - record: harborops:m17:eligible_requests:5m
-        expr: sum(increase(harborops_request_duration_seconds_count[5m]))
+        expr: (sum(increase(harborops_request_duration_seconds_count{status_class!="5xx"}[5m])) or vector(0)) + (sum(increase(harborops_request_failures_total[5m])) or vector(0))
       - record: harborops:m17:api_5xx_fraction:5m
-        expr: sum(rate(harborops_request_failures_total[5m])) / clamp_min(sum(rate(harborops_request_duration_seconds_count[5m])), 0.000001)
+        expr: sum(rate(harborops_request_failures_total[5m])) / clamp_min((sum(rate(harborops_request_duration_seconds_count{status_class!="5xx"}[5m])) or vector(0)) + (sum(rate(harborops_request_failures_total[5m])) or vector(0)), 0.000001)
       - record: harborops:m17:api_p95_seconds:10m
         expr: histogram_quantile(0.95, sum by (le) (rate(harborops_request_duration_seconds_bucket[10m])))
       - record: harborops:m17:eligible_requests:10m
-        expr: sum(increase(harborops_request_duration_seconds_count[10m]))
+        expr: (sum(increase(harborops_request_duration_seconds_count{status_class!="5xx"}[10m])) or vector(0)) + (sum(increase(harborops_request_failures_total[10m])) or vector(0))
       # Dashboard-facing series. A rate or quantile computed from fewer than the
       # approved 100 eligible requests (or from none) is absent here, so the panel
       # shows Unknown instead of a healthy-looking zero or an unstable quantile.

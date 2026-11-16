@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import {G17_REQUIRED_METHODS} from "./g17-results-contract.mjs";
 import {writeS25Fixture,source,project,put} from "./g17-s25-fixture.mjs";
+import {syntheticFirstFailureReport} from "./g17-first-failure-evidence.mjs";
 
 // A complete, internally consistent synthetic G17 campaign evidence directory. It lets the
 // final manifest verifier (the last gate of a multi-hour campaign) be exercised in seconds,
@@ -99,6 +100,7 @@ export function writeCampaignFiles(dir) {
     request_count: 125, slow_requests: 20}));
   out("m17-alert-matrix-results.json", wrap({result: "PASS", checks: [1, 2, 3, 4, 5, 6].map(i => pass("c" + i))}));
   out("m17-pressure-matrix-results.json", wrap({result: "PASS", cases: [1, 2, 3, 4].map(i => pass("c" + i))}));
+  out("m17-first-failure-results.json", syntheticFirstFailureReport(source, project));
   out("m17-database-fault-results.json", wrap({result: "PASS", database_restored: true,
     alerts: [{name: "HarborOpsDatabaseUnavailable"}], checks: ["healthy-database-control",
       "real-db-outage-keeps-live-and-errors-classified", "real-http-5xx-rate-fires-reference-alert",

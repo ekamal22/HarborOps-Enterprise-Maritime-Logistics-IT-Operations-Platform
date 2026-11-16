@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { verifyPlaywrightCases, verifyTrxCases, G17_REQUIRED_METHODS,
   verifyPlaywrightLastRun, PLAYWRIGHT_LAST_RUN_FILES } from "./g17-results-contract.mjs";
 import {verifyS25RawSnapshots} from "./g17-s25-raw-evidence.mjs";
+import {firstFailureReportProblems} from "./g17-first-failure-evidence.mjs";
 
 function crawl(root, prefix = "") {
   const files = [];
@@ -278,6 +279,12 @@ export function verifyManifest(manifestPath, expectedSha) {
             fault.checks.some((step,i) => step.name !== requiredSteps[i] ||
               step.result !== "PASS"))
           throw Error("Collector fault/recovery campaign has missing or invalid witnesses");
+        const firstFailure = JSON.parse(fs.readFileSync(path.join(root,
+          "m17-first-failure-results.json"),"utf8"));
+        const firstFailureProblems = firstFailureReportProblems(firstFailure,
+          {source: manifest.source_sha, project: expected.project});
+        if (firstFailureProblems.length)
+          throw Error("First-failure baseline campaign is incomplete: " + firstFailureProblems.join("; "));
       }
       if (expected.worker_fixture) {
         const journey=JSON.parse(fs.readFileSync(path.join(root,

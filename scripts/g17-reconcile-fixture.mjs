@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {RAW_REPORT_FILES} from "./g17-raw-witness.mjs";
 import {FIXTURES, clone} from "./g17-raw-fixtures.mjs";
+import {MANIFEST_REJECTION_CASES} from "./g17-witness-binding.mjs";
 
 // Synthetic source-locked evidence from which the ledger deriver (deriveWitnessChecks) can resolve
 // every one of the 72 technical witnesses of the real coverage map. Its test names are generated from
@@ -42,7 +43,7 @@ export function writeReconcileEvidence(dir, options = {}) {
   put("g17-contract.trx", trx(dotnet("tests/HarborOps.ContractTests/")));
   put("g17-integration.trx", trx(dotnet("tests/HarborOps.IntegrationTests/")));
   put("g17-unit.trx", trx(["Suite.UnitSuite.One"]));
-  const nodeCases = [...new Set(witnesses.filter(w => w.path.endsWith(".test.mjs")).map(w => w.case))];
+  const nodeCases = [...new Set([...witnesses.filter(w => w.path.endsWith(".test.mjs")).map(w => w.case), ...MANIFEST_REJECTION_CASES])];
   put("g17-node-tests.xml", "<testsuites>" + nodeCases.map(name => '<testcase name="' +
     name.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;") +
     '" time="0.1" classname="test"/>').join("") + "</testsuites>");

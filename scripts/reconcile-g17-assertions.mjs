@@ -3,6 +3,7 @@ import path from "node:path";
 import {fileURLToPath} from "node:url";
 import {verifyPlaywrightCases,verifyTrxCases} from "./g17-results-contract.mjs";
 import {RAW_REPORT_FILES,RAW_WITNESS_SCRIPTS,rawWitnessPasses} from "./g17-raw-witness.mjs";
+import {alertCaseBound,manifestRejectionBound} from "./g17-witness-binding.mjs";
 
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const identity=id=>/^G17-S(?:0[1-9]|1[0-9]|2[0-5])-A0[1-3]$/.test(id);
@@ -155,7 +156,7 @@ export function deriveWitnessChecks(evidenceRoot,runStatus,sha) {
     if(w.path.endsWith(".test.mjs"))
       return results.get("node\u0000"+w.case)??null;
     if(w.path==="monitoring/m17/alert-test.yaml")
-      return results.get(w.path+"\u0000*")??null;
+      return alertCaseBound(original,w.case)?results.get(w.path+"\u0000*")??null:null;
     if(w.path==="scripts/run-g17-local.ps1")
       return results.get(w.path+"\u0000*")??null;
     if(RAW_WITNESS_SCRIPTS.has(w.path)) {
@@ -164,7 +165,7 @@ export function deriveWitnessChecks(evidenceRoot,runStatus,sha) {
         ?{passed:true,artifact:raw.file}:null;
     }
     if(w.path==="scripts/verify-g17-manifest.mjs")
-      return results.get(w.path+"\u0000*")??null;
+      return manifestRejectionBound(node)?results.get(w.path+"\u0000*")??null:null;
     return null;
   };
 }

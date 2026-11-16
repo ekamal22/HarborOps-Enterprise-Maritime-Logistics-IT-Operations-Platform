@@ -4,12 +4,24 @@ using System.Diagnostics;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Npgsql;
 
 namespace HarborOps.Api.Health;
 
 public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealthCheck
 {
+    // The approved readiness bound (P08). The linked token enforces it for every phase in which the provider honors
+    // cancellation (a blocked query, a refused connection).
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(5);
+
+    // Npgsql does not honor a cancellation token while it waits for a server that accepted the connection and never
+    // answers: measured against a silent server, a token cancelled after 50 ms and the five second limit both left the
+    // check waiting for the full provider timeout (30 seconds for a 30 second setting). The provider's own ceilings
+    // are therefore lowered below the readiness limit for this check only, so the provider itself ends a stalled
+    // connect or command. The application connection string, pool and other contexts are not touched.
+    private const int ProviderConnectSeconds = 4;
+    private const int ProviderCommandSeconds = 4;
+    private const int ProviderCancellationMilliseconds = 500;
 
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context, CancellationToken cancellationToken = default)
@@ -21,6 +33,7 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
         var healthy = false;
         try
         {
+            CapProviderLimits();
             if (!await database.Database.CanConnectAsync(timeout.Token))
                 return HealthCheckResult.Unhealthy("Database unavailable");
 
@@ -45,5 +58,19 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
             if (healthy || !cancellationToken.IsCancellationRequested)
                 M17Telemetry.ObserveDatabaseReadiness(healthy, stopwatch.Elapsed);
         }
+    }
+
+    private void CapProviderLimits()
+    {
+        var current = database.Database.GetConnectionString();
+        if (string.IsNullOrEmpty(current)) return;
+        var builder = new NpgsqlConnectionStringBuilder(current);
+        // Zero means "no limit" to Npgsql, so it is replaced as well as any value above the ceiling.
+        builder.Timeout = builder.Timeout is > 0 and <= ProviderConnectSeconds ? builder.Timeout : ProviderConnectSeconds;
+        builder.CommandTimeout = builder.CommandTimeout is > 0 and <= ProviderCommandSeconds
+            ? builder.CommandTimeout : ProviderCommandSeconds;
+        builder.CancellationTimeout = builder.CancellationTimeout is >= 0 and <= ProviderCancellationMilliseconds
+            ? builder.CancellationTimeout : ProviderCancellationMilliseconds;
+        database.Database.SetConnectionString(builder.ConnectionString);
     }
 }

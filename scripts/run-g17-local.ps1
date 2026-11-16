@@ -9,6 +9,7 @@ param(
     [switch]$StopOwnedContainers
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'g17-docker-ownership.ps1')
 $Repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $Hosted = $env:GITHUB_ACTIONS -eq 'true' -and
     $env:HARBOROPS_G17_HOSTED -eq 'true' -and
@@ -22,8 +23,8 @@ if ($Hosted) {
 elseif (!$Repo.StartsWith('E:\', [System.StringComparison]::OrdinalIgnoreCase)) {
     throw 'Run from an E: worktree. C: is not a retained HarborOps workspace'
 }
-if ($ExpectedSha -notmatch '^[0-9a-fA-F]{40}$' -or
-    $ProjectName -notmatch '^ho-verify-m17-[a-z0-9-]+$') {
+if ($ExpectedSha -cnotmatch '^[0-9a-fA-F]{40}$' -or
+    $ProjectName -cnotmatch '^ho-verify-m17-[a-z0-9-]+$') {
     throw 'Require an exact 40-character SHA and a dedicated ho-verify-m17-* project'
 }
 if (($FaultProbe -or $VerifyDisposableWorker) -and !$StartDisposableStack) {
@@ -130,6 +131,7 @@ $required = @('source-sha.txt','run-status.json','expected-artifacts.json',
     'g17-unit.trx','g17-contract.trx','g17-coverage-preflight.json',
     'g17-node-tests.xml')
 if ($StartDisposableStack) {
+    if ($StopOwnedContainers) { $required += 'm17-owned-cleanup.json' }
     $required += @('m17-promtool-check.txt','m17-promtool-test.txt',
         'm17-collector-config-validation.txt',
         'm17-network-results.json','g17-integration.trx','g17-regressions.trx','g17-regression-matrix-results.json',
@@ -156,7 +158,8 @@ if ($StartDisposableStack) {
             'm17-worker-journey-traces.json','m17-worker-journey-series.json',
             'm17-worker-journey-logs.txt') }
     if ($FaultProbe) { $required += @('m17-collector-fault-results.json',
-        'm17-alert-matrix-results.json','m17-pressure-matrix-results.json') }
+        'm17-alert-matrix-results.json','m17-pressure-matrix-results.json',
+        'm17-first-failure-results.json') }
     if ($RequireFullG17) { $required += 'g17-technical-assertion-ledger.json' }
 }
 $expected = @{
@@ -202,6 +205,13 @@ try {
         'scripts/g17-campaign-verification.test.mjs',
         'scripts/g17-reconcile-derivation.test.mjs',
         'scripts/g17-diagnostic-hash-list.test.mjs',
+        'scripts/g17-diagnostic-verifier-strict.test.mjs',
+        'scripts/g17-diagnostic-producer-guard.test.mjs',
+        'scripts/g17-first-failure-evidence.test.mjs',
+        'scripts/g17-docker-ownership.test.mjs',
+        'scripts/g17-evidence-archive.test.mjs',
+        'scripts/g17-witness-binding.test.mjs',
+        'scripts/planning-current-state.test.mjs',
         'scripts/g17-runner-order.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
@@ -228,6 +238,14 @@ try {
             if (![Environment]::GetEnvironmentVariable($variable)) {
                 throw "An ephemeral disposable secret is required: $variable"
             }
+        }
+        # The compose network uses one fixed subnet, so a network of ANY project that still holds it (an earlier
+        # attempt that was killed before its cleanup ran) makes the new stack impossible. Say so up front, with the
+        # holder, instead of failing minutes later inside docker compose. Nothing is removed here.
+        $subnetCheck = Test-G17SubnetFree
+        if (!$subnetCheck.Free) {
+            $holders = ($subnetCheck.Holders | ForEach-Object { "$($_.Name) (project '$($_.Project)')" }) -join ', '
+            throw "The fixed compose subnet $($subnetCheck.Subnet) is held by $holders. Preserve its evidence and remove only that project with scripts/cleanup-g17-owned.ps1 before starting."
         }
         # Refuse any project already referenced by containers, volumes or networks.
         foreach ($kind in @('ps', 'volume', 'network')) {
@@ -380,6 +398,11 @@ try {
         if ($FaultProbe) {
             Invoke-Required 'node' @('scripts/check-g17-pressure-matrix.mjs') -Stage 'tenfold-business-pressure-and-exporter-isolation'
         }
+        if ($FaultProbe) {
+            # Fresh API, collector and Prometheus processes: the zero 5xx baseline of every operation family must
+            # reach Prometheus before the first real failure, and that first burst must be counted in each family.
+            Invoke-Required 'node' @('scripts/check-g17-first-failure.mjs') -Stage 'first-failure-baseline-in-every-operation-family'
+        }
         if ($VerifyDisposableWorker) {
             Invoke-Required 'docker' (@('compose') + $composeArgs +
                 @('up','-d','--build','worker'))
@@ -394,26 +417,8 @@ catch {
     Write-Warning 'The verification campaign failed. Retaining its source-locked failure evidence.'
 }
 finally {
-    if ($StopOwnedContainers -and $ownedStackStarted) {
-        try {
-            $services = @('dashboard_gateway','grafana','prometheus','tempo','otelcol','web','api','postgres','postgres_tests')
-            if ($VerifyDisposableWorker) { $services += 'worker' }
-            & docker compose @composeArgs stop @services
-            if ($LASTEXITCODE -ne 0) { throw 'Owned service stop failed' }
-            $script:stageLog.Add([pscustomobject]@{
-                stage = 'disposable-cleanup'; status = 'PASS'; exit_code = 0
-            })
-        } catch {
-            $runState = 'FAILED'
-            $runFailureType = 'DisposableCleanupFailure'
-            $script:stageLog.Add([pscustomobject]@{
-                stage = 'disposable-cleanup'; status = 'FAIL'; exit_code = $LASTEXITCODE
-            })
-            Write-Warning 'Some disposable services could not be stopped'
-        }
-    }
+    # 1. Preserve first. Bounded service logs and exit states of the owned containers, while they still exist.
     if ($ownedStackStarted -and $runState -ne 'COMPLETE') {
-        # Failure forensics: bounded service logs and exit states of owned containers only.
         try {
             $diagnostics = Join-Path $EvidencePath 'm17-failure-diagnostics'
             New-Item -ItemType Directory -Force -Path $diagnostics | Out-Null
@@ -427,6 +432,32 @@ finally {
                     Out-File -LiteralPath (Join-Path $diagnostics "$service.state.json") -Encoding utf8
             }
         } catch { Write-Warning 'Failure diagnostics could not be fully captured' }
+    }
+    # 2. Stop, then remove ONLY the containers and networks that carry this exact project, service and name. The
+    #    state of every owned resource is written to the evidence directory before anything is removed. Volumes
+    #    (retained database state) and images are never touched. A failure here is a genuine verification failure.
+    if ($StopOwnedContainers -and $ownedStackStarted) {
+        try {
+            $services = @('dashboard_gateway','grafana','prometheus','tempo','otelcol','web','api','postgres','postgres_tests')
+            if ($VerifyDisposableWorker) { $services += 'worker' }
+            & docker compose @composeArgs stop @services
+            if ($LASTEXITCODE -ne 0) { throw 'Owned service stop failed' }
+            $script:stageLog.Add([pscustomobject]@{
+                stage = 'disposable-stop'; status = 'PASS'; exit_code = 0
+            })
+            $cleanup = Remove-G17OwnedResources -Project $ProjectName -EvidenceDirectory $EvidencePath
+            if ($cleanup.outcome -ne 'REMOVED') { throw 'Owned resources were not removed' }
+            $script:stageLog.Add([pscustomobject]@{
+                stage = 'disposable-cleanup'; status = 'PASS'; exit_code = 0
+            })
+        } catch {
+            $runState = 'FAILED'
+            $runFailureType = 'DisposableCleanupFailure'
+            $script:stageLog.Add([pscustomobject]@{
+                stage = 'disposable-cleanup'; status = 'FAIL'; exit_code = 1
+            })
+            Write-Warning "Disposable cleanup failed: $($_.Exception.Message)"
+        }
     }
     $runInfo = @{
         schema_version = 2; gate = 'G17'; source_sha = $sha

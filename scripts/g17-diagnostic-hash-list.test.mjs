@@ -1,11 +1,11 @@
-import test from "node:test";
+import test, {after} from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {spawnSync} from "node:child_process";
 import {fileURLToPath} from "node:url";
 import {verifyDiagnosticDirectory, parseHashList, sha256, HASH_LIST, STATE_FILE} from "./g17-diagnostic-hash-list.mjs";
+import {createToolbox, runStop} from "./g17-diagnostic-test-support.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "..");
@@ -13,23 +13,6 @@ const protocol = path.join(repo, "docs", "m17-s25-p09-controlled-protocol-202611
 const currentProducer = path.join(protocol, "diagnostics.ps1");
 const legacyProducer = path.join(here, "fixtures", "g17-diagnostics-legacy-order.ps1");
 const fixtureProject = "ho-verify-m17-fixture-p09";
-
-// The campaign runner is PowerShell 7. Its PSModulePath, inherited through Node, hides the Windows PowerShell 5.1
-// utility module from a child powershell.exe (Get-FileHash then "is not recognized"). Each child host must compute
-// its own default module path.
-function cleanEnvironment() {
-  const env = {...process.env};
-  for (const key of Object.keys(env)) if (key.toLowerCase() === "psmodulepath") delete env[key];
-  return env;
-}
-
-function shellFor() {
-  for (const exe of ["powershell.exe", "pwsh"]) {
-    const probe = spawnSync(exe, ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.Major"], {encoding: "utf8", env: cleanEnvironment()});
-    if (probe.status === 0) return exe;
-  }
-  assert.fail("A PowerShell host is required to execute the real diagnostic producer; none was found");
-}
 
 // A disposable directory in the exact shape that -Action Start leaves behind. The pids are unused values, the
 // sidecar name is unique to this fixture, so Stop cannot touch any real process or container.
@@ -46,12 +29,16 @@ function startedFixture() {
   return dir;
 }
 
-function stop(producer, dir) {
-  const exe = shellFor();
-  const args = exe === "powershell.exe" ? ["-NoProfile", "-ExecutionPolicy", "Bypass"] : ["-NoProfile"];
-  const run = spawnSync(exe, [...args, "-File", producer, "-Action", "Stop", "-OutDir", dir], {encoding: "utf8", env: cleanEnvironment()});
-  assert.equal(run.status, 0, `producer failed: ${run.stdout}\n${run.stderr}`);
-  assert.match(run.stdout, /diagnostics stopped/);
+// Stop is run through the hermetic docker stand-in, so no real container is ever consulted or removed. The previous
+// producer (negative control) predates the settle parameters and takes none.
+function stop(producer, dir, extra = undefined) {
+  const toolbox = createToolbox();
+  try {
+    const run = runStop(dir, toolbox.env({ids: []}), extra, producer);
+    assert.equal(run.status, 0, `producer failed: ${run.stdout}
+${run.stderr}`);
+    assert.match(run.stdout, /diagnostics stopped/);
+  } finally { toolbox.cleanup(); }
 }
 
 function listFor(dir, names) {
@@ -67,8 +54,13 @@ function stoppedFixture() {
   return dir;
 }
 
+// The real producer runs once; each tamper case works on its own byte-for-byte copy of that stopped directory.
+let stoppedTemplate = null;
+after(() => { if (stoppedTemplate) fs.rmSync(stoppedTemplate, {recursive: true, force: true}); });
 function withFixture(fn) {
-  const dir = stoppedFixture();
+  stoppedTemplate ??= stoppedFixture();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-diag-copy-"));
+  for (const name of fs.readdirSync(stoppedTemplate)) fs.copyFileSync(path.join(stoppedTemplate, name), path.join(dir, name));
   try { fn(dir); } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 }
 
@@ -107,7 +99,7 @@ test("stopping twice leaves a consistent record and never lists the hash list it
 test("negative control: the previous producer order is detected as exactly one state-file mismatch", () => {
   const dir = startedFixture();
   try {
-    stop(legacyProducer, dir);
+    stop(legacyProducer, dir, []);
     const result = verifyDiagnosticDirectory(dir);
     assert.equal(result.ok, false);
     assert.deepEqual(result.errors.sort(), [
@@ -121,10 +113,10 @@ test("the current producer source writes the final state before it creates the h
   const source = fs.readFileSync(currentProducer, "utf8");
   const stopSection = source.slice(source.indexOf("$state = Get-Content"));
   const stateWrite = stopSection.indexOf("Set-Content -LiteralPath $stateFile");
-  const listWrite = stopSection.indexOf("diag-hashes.txt') -Encoding ascii");
+  const listWrite = stopSection.indexOf("$HashListName) -Encoding ascii");
   assert.ok(stateWrite > 0 && listWrite > 0, "both writes must be present in the Stop path");
   assert.ok(stateWrite < listWrite, "diag-state.json must be finalised before diag-hashes.txt is written");
-  assert.match(stopSection, /Name -ne 'diag-hashes\.txt'/, "the hash list must exclude itself");
+  assert.match(stopSection, /Name -ne \$HashListName/, "the hash list must exclude itself");
   assert.ok(stopSection.indexOf("stopped_utc") < stopSection.indexOf("Get-FileHash"), "stopped_utc is added before hashing");
 });
 
@@ -214,12 +206,13 @@ function consistent(mutateState = s => s) {
 }
 const reasons = (dir, options) => verifyDiagnosticDirectory(dir, options).errors;
 
-test("the directly built consistent directory verifies, including a subdirectory that the producer never lists", () => {
+test("the directly built consistent directory verifies, and a subdirectory is rejected because nothing could cover its contents", () => {
   const dir = consistent();
   try {
     assert.deepEqual(reasons(dir), []);
     fs.mkdirSync(path.join(dir, "nested"));
-    assert.deepEqual(reasons(dir), [], "Get-ChildItem -File never lists directories, so neither does the verifier");
+    fs.writeFileSync(path.join(dir, "nested", "late.txt"), "not covered");
+    assert.deepEqual(reasons(dir), ["nested is not a regular file and is not covered by the hash list"]);
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 });
 

@@ -18,10 +18,16 @@ public sealed class M17ReadinessCancellationTests
 {
     private sealed record Sample(string Operation, string Outcome);
 
-    private static DatabaseReadinessCheck CheckAgainst(int port) => new(new HarborOpsDbContext(
-        new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
+    private static DatabaseReadinessCheck CheckAgainst(int port, string providerTimeouts = "Timeout=8;Command Timeout=8") =>
+        new(new HarborOpsDbContext(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
             $"Host=127.0.0.1;Port={port};Database=harborops_unreachable;Username=u;Password=p;" +
-            "SSL Mode=Disable;Pooling=false;Timeout=8;Command Timeout=8").Options));
+            $"SSL Mode=Disable;Pooling=false;{providerTimeouts}").Options));
+
+    // The real, disposable integration database with the given provider timeouts.
+    private static DatabaseReadinessCheck CheckAgainstDatabase(
+        Npgsql.NpgsqlConnectionStringBuilder database, string providerTimeouts) =>
+        new(new HarborOpsDbContext(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
+            database.ConnectionString + ";" + providerTimeouts).Options));
 
     private static ConcurrentQueue<Sample> Listen(MeterListener listener)
     {
@@ -109,20 +115,190 @@ public sealed class M17ReadinessCancellationTests
         listener.RecordObservableInstruments();
     }
 
-    [Fact]
-    public async Task OwnFiveSecondLimitStillPublishesUnavailableWhenCallerWaits()
+    // ---- Wall-clock enforcement of the five second readiness limit (P08) ----------------------------------
+    // The provider timeouts below are deliberately far longer than the readiness limit, so only the check's
+    // own enforcement can end the attempt on time. A provider timeout set near the limit would prove nothing.
+    private const string LongProviderTimeouts = "Timeout=30;Command Timeout=30";
+
+    private static readonly TimeSpan EnforcedBound = TimeSpan.FromSeconds(6.5);
+
+    private static async Task<(HealthCheckResult Result, TimeSpan Elapsed)> TimedAsync(
+        DatabaseReadinessCheck check, CancellationToken token)
     {
-        var silent = new TcpListener(IPAddress.Loopback, 0);
-        silent.Start();
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        var result = await check.CheckHealthAsync(Context(check), token);
+        return (result, clock.Elapsed);
+    }
+
+    // The server accepts the TCP connection and never replies, which is how a wedged PostgreSQL or a
+    // black-holed network path looks to the API. Every accepted socket is kept so a leaked connection shows.
+    private sealed class SilentServer : IDisposable
+    {
+        private readonly TcpListener listener = new(IPAddress.Loopback, 0);
+        private readonly ConcurrentQueue<Socket> accepted = new();
+        private readonly CancellationTokenSource stop = new();
+        private readonly Task loop;
+
+        public SilentServer()
+        {
+            listener.Start();
+            loop = Task.Run(async () =>
+            {
+                try { while (true) accepted.Enqueue(await listener.AcceptSocketAsync(stop.Token)); }
+                catch (OperationCanceledException) { }
+                catch (ObjectDisposedException) { }
+                catch (SocketException) { }
+            });
+        }
+
+        public int Port => ((IPEndPoint)listener.LocalEndpoint).Port;
+        public int Accepted => accepted.Count;
+
+        // True when the client has closed every connection it opened. The client's startup bytes are first drained,
+        // then the server must see end of stream (a zero length read) or a reset.
+        public async Task<bool> AllClientConnectionsClosedAsync(TimeSpan limit)
+        {
+            var until = DateTime.UtcNow + limit;
+            var buffer = new byte[1024];
+            while (DateTime.UtcNow < until)
+            {
+                var open = accepted.Count(socket =>
+                {
+                    try
+                    {
+                        socket.ReceiveTimeout = 100;
+                        while (true) { if (socket.Receive(buffer) == 0) return false; }
+                    }
+                    catch (ObjectDisposedException) { return false; }
+                    catch (SocketException error) { return error.SocketErrorCode == SocketError.TimedOut; }
+                });
+                if (open == 0) return true;
+                await Task.Delay(100);
+            }
+            return false;
+        }
+
+        public void Dispose()
+        {
+            stop.Cancel();
+            listener.Stop();
+            foreach (var socket in accepted) socket.Dispose();
+            try { loop.Wait(2000); } catch (AggregateException) { }
+            stop.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task SilentServerIsEndedByTheFiveSecondLimitEvenWhenTheProviderWouldWaitThirtySeconds()
+    {
+        using var server = new SilentServer();
+        var check = CheckAgainst(server.Port, LongProviderTimeouts);
+        using var listener = new MeterListener();
+        var samples = Listen(listener);
+
+        var (result, elapsed) = await TimedAsync(check, CancellationToken.None);
+
+        Assert.Equal(HealthStatus.Unhealthy, result.Status);
+        Assert.True(elapsed < EnforcedBound, $"readiness took {elapsed.TotalSeconds:F2}s against a five second limit");
+        Assert.True(elapsed > TimeSpan.FromSeconds(1), "the attempt must really wait on the silent server, not fail fast");
+        Assert.Equal([new Sample("readiness", "unavailable")], samples.ToArray());
+        Assert.True(server.Accepted >= 1, "the silent server must have been reached");
+        Assert.True(await server.AllClientConnectionsClosedAsync(TimeSpan.FromSeconds(3)),
+            "a connection opened by the timed out check was left open");
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(50)]
+    [InlineData(400)]
+    [InlineData(2500)]
+    public async Task CallerCancellationEndsASilentServerCheckPromptlyWithoutAnUnavailableSample(int milliseconds)
+    {
+        using var server = new SilentServer();
+        var check = CheckAgainst(server.Port, LongProviderTimeouts);
+        using var listener = new MeterListener();
+        var samples = Listen(listener);
+        using var caller = new CancellationTokenSource(TimeSpan.FromMilliseconds(milliseconds));
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        try { await check.CheckHealthAsync(Context(check), caller.Token); }
+        catch (OperationCanceledException) { }
+        clock.Stop();
+
+        Assert.True(caller.IsCancellationRequested);
+        // Npgsql does not honor the token while it waits on a silent server, so the effect is bounded by the capped
+        // provider timeout (4 s), not by the token. Thirty seconds, the provider setting, would be a defect.
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5.5),
+            $"cancellation after {milliseconds} ms took {clock.Elapsed.TotalSeconds:F2}s to take effect");
+        Assert.DoesNotContain(samples, sample => sample.Operation == "readiness");
+        Assert.True(await server.AllClientConnectionsClosedAsync(TimeSpan.FromSeconds(3)),
+            "a connection opened by the cancelled check was left open");
+    }
+
+    [Theory]
+    [InlineData("Timeout=2;Command Timeout=3", 2, 3, 1.5, 3.5)]
+    [InlineData("Timeout=0;Command Timeout=0", 4, 4, 3.0, 5.5)]
+    [InlineData("Timeout=30;Command Timeout=30", 4, 4, 3.0, 5.5)]
+    public async Task ProviderCeilingsAreLoweredButNeverRaised(
+        string configured, int connectSeconds, int commandSeconds, double minimumSeconds, double maximumSeconds)
+    {
+        using var server = new SilentServer();
+        var context = new HarborOpsDbContext(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
+            $"Host=127.0.0.1;Port={server.Port};Database=harborops_unreachable;Username=u;Password=p;" +
+            $"SSL Mode=Disable;Pooling=false;{configured}").Options);
+        var check = new DatabaseReadinessCheck(context);
+        var (result, elapsed) = await TimedAsync(check, CancellationToken.None);
+        Assert.Equal(HealthStatus.Unhealthy, result.Status);
+        Assert.InRange(elapsed.TotalSeconds, minimumSeconds, maximumSeconds);
+        var applied = new Npgsql.NpgsqlConnectionStringBuilder(context.Database.GetConnectionString());
+        Assert.Equal(connectSeconds, applied.Timeout);
+        Assert.Equal(commandSeconds, applied.CommandTimeout);
+        Assert.InRange(applied.CancellationTimeout, 0, 500);
+    }
+
+    [Fact]
+    public async Task ReadinessNeverExceedsItsLimitWhenTheRealDatabaseBlocksTheBaselineQuery()
+    {
+        // A real PostgreSQL that is up but blocks the one table readiness reads: the connection succeeds, so only the
+        // query phase can hang. Another connection holds an exclusive lock on that table.
+        var baseline = new Npgsql.NpgsqlConnectionStringBuilder(TestDatabase.ConnectionString()) { Pooling = false };
+        await using (var prepare = new HarborOpsDbContext(
+            new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(baseline.ConnectionString).Options))
+        {
+            await prepare.Database.MigrateAsync();
+            await BootstrapSeeder.SeedAsync(prepare, CancellationToken.None);
+        }
+
+        using var listener = new MeterListener();
+        var samples = Listen(listener);
+        var control = await TimedAsync(CheckAgainstDatabase(baseline, LongProviderTimeouts), CancellationToken.None);
+        Assert.Equal(HealthStatus.Healthy, control.Result.Status);
+        Assert.Equal([new Sample("readiness", "healthy")], samples.ToArray());
+        while (samples.TryDequeue(out _)) { }
+
+        await using var locker = new Npgsql.NpgsqlConnection(baseline.ConnectionString);
+        await locker.OpenAsync();
+        await using (var begin = new Npgsql.NpgsqlCommand(
+            "BEGIN; LOCK TABLE bootstrap_records IN ACCESS EXCLUSIVE MODE;", locker))
+            await begin.ExecuteNonQueryAsync();
         try
         {
-            var check = CheckAgainst(((IPEndPoint)silent.LocalEndpoint).Port);
-            using var listener = new MeterListener();
-            var samples = Listen(listener);
-            var result = await check.CheckHealthAsync(Context(check), CancellationToken.None);
-            Assert.Equal(HealthStatus.Unhealthy, result.Status);
+            var blocked = await TimedAsync(CheckAgainstDatabase(baseline, LongProviderTimeouts), CancellationToken.None);
+            Assert.Equal(HealthStatus.Unhealthy, blocked.Result.Status);
+            Assert.True(blocked.Elapsed < EnforcedBound,
+                $"readiness took {blocked.Elapsed.TotalSeconds:F2}s while the baseline table was locked");
+            Assert.True(blocked.Elapsed > TimeSpan.FromSeconds(1), "the blocked query must really have waited");
             Assert.Equal([new Sample("readiness", "unavailable")], samples.ToArray());
         }
-        finally { silent.Stop(); }
+        finally
+        {
+            await using var rollback = new Npgsql.NpgsqlCommand("ROLLBACK;", locker);
+            await rollback.ExecuteNonQueryAsync();
+        }
+
+        // Recovery: once the lock is released the same check reports healthy again.
+        while (samples.TryDequeue(out _)) { }
+        var recovered = await TimedAsync(CheckAgainstDatabase(baseline, LongProviderTimeouts), CancellationToken.None);
+        Assert.Equal(HealthStatus.Healthy, recovered.Result.Status);
+        Assert.Equal([new Sample("readiness", "healthy")], samples.ToArray());
     }
 }

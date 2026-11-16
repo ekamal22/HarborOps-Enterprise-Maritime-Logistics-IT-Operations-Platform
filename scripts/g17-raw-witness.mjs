@@ -31,6 +31,7 @@ export const RAW_REPORT_FILES = new Map([
   ["scripts/check-g17-tempo-retention.mjs", "m17-tempo-retention-results.json"],
   ["scripts/check-g17-retention-matrix.mjs", "m17-retention-matrix-results.json"],
   ["scripts/check-g17-alert-matrix.mjs", "m17-alert-matrix-results.json"],
+  ["scripts/check-g17-first-failure.mjs", "m17-first-failure-results.json"],
   ["scripts/check-g17-pressure-matrix.mjs", "m17-pressure-matrix-results.json"],
   ["scripts/check-g17-regression-matrix.mjs", "g17-regression-matrix-results.json"],
   ["scripts/check-g17-live-latency.mjs", "m17-live-latency-alert-results.json"]

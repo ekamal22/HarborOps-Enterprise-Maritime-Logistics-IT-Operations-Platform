@@ -74,15 +74,31 @@ public static class M17Telemetry
             route.Any(char.IsControl) ? "other" : route;
     }
 
+    // The closed set of values the "operation" label can ever take. It is the single source for both the
+    // classification below and the zero baseline that SeedCounterSeries creates for every family, so a family
+    // cannot be classified without also being seeded.
+    private const string AuthOperation = "auth";
+    private const string OrganizationOperation = "organization";
+    private const string TrackingOperation = "tracking";
+    private const string HealthOperation = "health";
+    private const string BusinessOperation = "business";
+    private const string OtherOperation = "other";
+
+    private static readonly string[] OperationFamilies =
+    [
+        AuthOperation, OrganizationOperation, TrackingOperation,
+        HealthOperation, BusinessOperation, OtherOperation
+    ];
+
     private static string Operation(HttpContext context)
     {
         var route = SafeRoute(context);
-        if (route.StartsWith("/api/v1/auth", StringComparison.Ordinal)) return "auth";
-        if (route.StartsWith("/api/v1/organizations", StringComparison.Ordinal)) return "organization";
-        if (route.StartsWith("/integrations/", StringComparison.Ordinal)) return "tracking";
-        if (route.StartsWith("/health/", StringComparison.Ordinal)) return "health";
-        if (route.StartsWith("/api/v1/", StringComparison.Ordinal)) return "business";
-        return "other";
+        if (route.StartsWith("/api/v1/auth", StringComparison.Ordinal)) return AuthOperation;
+        if (route.StartsWith("/api/v1/organizations", StringComparison.Ordinal)) return OrganizationOperation;
+        if (route.StartsWith("/integrations/", StringComparison.Ordinal)) return TrackingOperation;
+        if (route.StartsWith("/health/", StringComparison.Ordinal)) return HealthOperation;
+        if (route.StartsWith("/api/v1/", StringComparison.Ordinal)) return BusinessOperation;
+        return OtherOperation;
     }
 
     public static void ObserveRequest(HttpContext context, TimeSpan elapsed)
@@ -153,12 +169,14 @@ public static class M17Telemetry
     // (a zero added during static initialization is lost before the listener exists).
     private static void SeedCounterSeries()
     {
-        // A first burst of 5xx responses may complete between export scrapes.
-        // Seed the bounded business/5xx series while the application is healthy
-        // so the first incident has a zero baseline for Prometheus rate().
-        FailedRequests.Add(0,
-            new KeyValuePair<string, object?>("operation", "business"),
-            new KeyValuePair<string, object?>("status_class", "5xx"));
+        // A first burst of 5xx responses may complete between export scrapes. Seed the 5xx series of EVERY
+        // operation family while the application is healthy, so the first incident in any family has a zero
+        // baseline for Prometheus rate(). Real traffic is mostly "organization" and "auth", not "business",
+        // and a readiness probe failure is "health". The set is closed (six values), so this adds six series.
+        foreach (var family in OperationFamilies)
+            FailedRequests.Add(0,
+                new KeyValuePair<string, object?>("operation", family),
+                new KeyValuePair<string, object?>("status_class", "5xx"));
         SamplingDrops.Add(0,
             new KeyValuePair<string, object?>("signal", "trace"),
             new KeyValuePair<string, object?>("reason", "exporter_failure"));

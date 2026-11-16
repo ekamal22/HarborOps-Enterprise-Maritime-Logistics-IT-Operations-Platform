@@ -14,9 +14,18 @@ const currentProducer = path.join(protocol, "diagnostics.ps1");
 const legacyProducer = path.join(here, "fixtures", "g17-diagnostics-legacy-order.ps1");
 const fixtureProject = "ho-verify-m17-fixture-p09";
 
+// The campaign runner is PowerShell 7. Its PSModulePath, inherited through Node, hides the Windows PowerShell 5.1
+// utility module from a child powershell.exe (Get-FileHash then "is not recognized"). Each child host must compute
+// its own default module path.
+function cleanEnvironment() {
+  const env = {...process.env};
+  for (const key of Object.keys(env)) if (key.toLowerCase() === "psmodulepath") delete env[key];
+  return env;
+}
+
 function shellFor() {
   for (const exe of ["powershell.exe", "pwsh"]) {
-    const probe = spawnSync(exe, ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.Major"], {encoding: "utf8"});
+    const probe = spawnSync(exe, ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.Major"], {encoding: "utf8", env: cleanEnvironment()});
     if (probe.status === 0) return exe;
   }
   assert.fail("A PowerShell host is required to execute the real diagnostic producer; none was found");
@@ -40,7 +49,7 @@ function startedFixture() {
 function stop(producer, dir) {
   const exe = shellFor();
   const args = exe === "powershell.exe" ? ["-NoProfile", "-ExecutionPolicy", "Bypass"] : ["-NoProfile"];
-  const run = spawnSync(exe, [...args, "-File", producer, "-Action", "Stop", "-OutDir", dir], {encoding: "utf8"});
+  const run = spawnSync(exe, [...args, "-File", producer, "-Action", "Stop", "-OutDir", dir], {encoding: "utf8", env: cleanEnvironment()});
   assert.equal(run.status, 0, `producer failed: ${run.stdout}\n${run.stderr}`);
   assert.match(run.stdout, /diagnostics stopped/);
 }

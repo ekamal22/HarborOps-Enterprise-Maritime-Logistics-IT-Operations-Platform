@@ -200,7 +200,8 @@ try {
         'scripts/g17-diagnostic-evidence.test.mjs',
         'scripts/g17-regression-accounting.test.mjs',
         'scripts/g17-campaign-verification.test.mjs',
-        'scripts/g17-reconcile-derivation.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
+        'scripts/g17-reconcile-derivation.test.mjs',
+        'scripts/g17-diagnostic-hash-list.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')

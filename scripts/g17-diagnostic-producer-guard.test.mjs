@@ -8,7 +8,7 @@ import os from "node:os";
 import path from "node:path";
 import {spawn} from "node:child_process";
 import {verifyDiagnosticDirectory, STATE_FILE, HASH_LIST} from "./g17-diagnostic-hash-list.mjs";
-import {createToolbox, alive, waitUntil, identityOf, runStop, runProducer, validInspect, producer} from "./g17-diagnostic-test-support.mjs";
+import {createToolbox, alive, waitUntil, identityOf, runStop, runProducer, validInspect, producer, removeTree} from "./g17-diagnostic-test-support.mjs";
 
 const project = "ho-verify-m17-fixture-guard";
 const sidecar = `${project}-p09-diag`;
@@ -70,7 +70,7 @@ test("an owned run stops only its own children and sidecar, waits for their exit
     assert.deepEqual(state.stop_outcomes, {typeperf: "terminated", events: "terminated", logs: "terminated", sidecar: "removed"});
     assert.deepEqual(verifyDiagnosticDirectory(dir).errors, []);
     assert.deepEqual(toolbox.removals(), [["rm", "-f", sidecarId]], "exactly one removal, addressed by the recorded id");
-  } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { toolbox.cleanup(); removeTree(dir); }
 });
 
 test("an unrelated process that now holds a recorded pid is never signalled", async () => {
@@ -92,7 +92,7 @@ test("an unrelated process that now holds a recorded pid is never signalled", as
       assert.ok(alive(stranger.pid), `${label}: the unrelated process must still be running`);
       assert.deepEqual(toolbox.removals(), [], `${label}: no container may be removed`);
       assert.equal(fs.existsSync(path.join(dir, HASH_LIST)), false, `${label}: nothing may be finalised`);
-    } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+    } finally { toolbox.cleanup(); removeTree(dir); }
   }
 });
 
@@ -108,7 +108,7 @@ test("a reused process id is detected by its creation time even when name and co
     assert.notEqual(run.status, 0);
     assert.match(text(run), /id has been reused/);
     assert.ok(alive(lookalike.pid));
-  } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { toolbox.cleanup(); removeTree(dir); }
 });
 
 test("a running process with no recorded identity is not signalled", async () => {
@@ -122,7 +122,7 @@ test("a running process with no recorded identity is not signalled", async () =>
     assert.notEqual(run.status, 0);
     assert.match(text(run), /no recorded identity/);
     assert.ok(alive(stranger.pid));
-  } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { toolbox.cleanup(); removeTree(dir); }
 });
 
 test("invalid recorded process ids stop the run before anything is touched", () => {
@@ -135,7 +135,7 @@ test("invalid recorded process ids stop the run before anything is touched", () 
       assert.notEqual(run.status, 0, JSON.stringify(bad));
       assert.match(text(run), /invalid pid for logs/, JSON.stringify(bad));
       assert.deepEqual(toolbox.calls(), [], `${JSON.stringify(bad)}: docker was not consulted`);
-    } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+    } finally { toolbox.cleanup(); removeTree(dir); }
   }
 });
 
@@ -157,7 +157,7 @@ test("tampered ownership fields stop the run before docker is consulted", () => 
       assert.notEqual(run.status, 0, label);
       assert.match(text(run), message, label);
       assert.deepEqual(toolbox.calls(), [], `${label}: docker was not consulted`);
-    } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+    } finally { toolbox.cleanup(); removeTree(dir); }
   }
 });
 
@@ -187,7 +187,7 @@ test("a container that is not exactly this run's sidecar is never removed", () =
       if (label === "a removal that fails") assert.deepEqual(removals, [["rm", "-f", sidecarId]], label);
       else assert.deepEqual(removals, [], `${label}: nothing may be removed`);
       assert.equal(fs.existsSync(path.join(dir, HASH_LIST)), false, `${label}: nothing may be finalised`);
-    } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+    } finally { toolbox.cleanup(); removeTree(dir); }
   }
 });
 
@@ -202,7 +202,7 @@ test("missing processes and an absent sidecar are a normal, verifiable stop", ()
     assert.deepEqual(state.stop_outcomes, {typeperf: "already-exited", events: "already-exited", logs: "already-exited", sidecar: "absent"});
     assert.deepEqual(verifyDiagnosticDirectory(dir).errors, []);
     assert.deepEqual(toolbox.removals(), []);
-  } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { toolbox.cleanup(); removeTree(dir); }
 });
 
 test("a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process", async () => {
@@ -229,7 +229,7 @@ test("a repeated Stop is idempotent and signals nothing, even if the state is ed
     assert.notEqual(fs.readFileSync(path.join(dir, HASH_LIST), "utf8"), firstList,
       "the hash list describes the edited state, which is the bytes now on disk");
     assert.deepEqual(verifyDiagnosticDirectory(dir).errors, []);
-  } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { toolbox.cleanup(); removeTree(dir); }
 });
 
 // Late writes ----------------------------------------------------------------------------------------------------
@@ -251,7 +251,7 @@ test("negative control: a foreign process that keeps appending is detected befor
     assert.equal(fs.existsSync(path.join(dir, HASH_LIST)), false, "no hash list is produced for unstable output");
     assert.equal(JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^\uFEFF/, "")).stopped_utc, undefined,
       "the state is not finalised either");
-  } finally { writer.kill("SIGKILL"); toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { writer.kill("SIGKILL"); toolbox.cleanup(); removeTree(dir); }
 });
 
 test("negative control: a write that lands after the hash list is created is detected, and the verifier agrees", async () => {
@@ -269,7 +269,7 @@ test("negative control: a write that lands after the hash list is created is det
     const verdict = verifyDiagnosticDirectory(dir);
     assert.equal(verdict.ok, false);
     assert.ok(verdict.errors.includes("sha256 mismatch for vm-pressure.log"), JSON.stringify(verdict.errors));
-  } finally { writer.kill("SIGKILL"); toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { writer.kill("SIGKILL"); toolbox.cleanup(); removeTree(dir); }
 });
 
 test("negative control: a new file that appears after hashing is detected", async () => {
@@ -285,7 +285,7 @@ test("negative control: a new file that appears after hashing is detected", asyn
     assert.notEqual(run.status, 0, text(run));
     assert.match(text(run), /Late write detected: appeared-late\.txt appeared after hashing/);
     assert.ok(verifyDiagnosticDirectory(dir).errors.includes("file is not covered by the hash list: appeared-late.txt"));
-  } finally { writer.kill("SIGKILL"); toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { writer.kill("SIGKILL"); toolbox.cleanup(); removeTree(dir); }
 });
 
 test("an output directory holding a subdirectory or a link cannot be hashed", () => {
@@ -302,7 +302,7 @@ test("an output directory holding a subdirectory or a link cannot be hashed", ()
       assert.notEqual(run.status, 0, label);
       assert.match(text(run), message, label);
       assert.equal(fs.existsSync(path.join(dir, HASH_LIST)), false, label);
-    } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+    } finally { toolbox.cleanup(); removeTree(dir); }
   }
 });
 
@@ -322,7 +322,7 @@ test("Start refuses to proceed over existing state, an unowned project name, or 
     const again = runProducer(["-Action", "Start", "-OutDir", dir, "-Project", project], toolbox.env({}));
     assert.notEqual(again.status, 0);
     assert.match(text(again), /already started for this directory/);
-  } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { toolbox.cleanup(); removeTree(dir); }
 });
 
 test("a real Start then Stop against the stand-in docker records identities and verifies strictly", async () => {
@@ -348,7 +348,7 @@ test("a real Start then Stop against the stand-in docker records identities and 
       assert.ok(await waitUntil(() => !alive(state.pids[kind]), 4000), `${kind} must be gone after Stop`);
     assert.deepEqual(verifyDiagnosticDirectory(dir).errors, []);
     assert.deepEqual(toolbox.removals(), [["rm", "-f", sidecarId]]);
-  } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { toolbox.cleanup(); removeTree(dir); }
 });
 
 test("the producer source keeps its ownership guards (structure check for mutation control)", () => {
@@ -367,7 +367,7 @@ test("a removal that reports success but leaves the container behind is a failur
     assert.notEqual(run.status, 0, text(run));
     assert.match(text(run), /still present after removal/);
     assert.equal(fs.existsSync(path.join(dir, HASH_LIST)), false, "nothing is finalised");
-  } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { toolbox.cleanup(); removeTree(dir); }
 });
 
 test("negative control: a writer that rewrites identical bytes (same length, new modification time) is detected", () => {
@@ -380,5 +380,5 @@ test("negative control: a writer that rewrites identical bytes (same length, new
     const run = runStop(dir, toolbox.env(sidecarMode({ids: []})), ["-SettleMilliseconds", "250", "-SettleTimeoutSeconds", "3"]);
     assert.notEqual(run.status, 0, text(run));
     assert.match(text(run), /still changing after 3 seconds \(late write\)/);
-  } finally { writer.kill("SIGKILL"); toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+  } finally { writer.kill("SIGKILL"); toolbox.cleanup(); removeTree(dir); }
 });

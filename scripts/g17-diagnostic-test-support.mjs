@@ -102,12 +102,23 @@ export function createToolbox() {
       spawned.push(child);
       return child;
     },
+    // Windows keeps an executable locked until its process is really gone, and a kill is asynchronous. Wait for every
+    // stand-in to disappear from the process table, then retry the removal instead of failing on a transient lock.
     cleanup() {
       for (const child of spawned) { try { child.kill("SIGKILL"); } catch { /* already gone */ } }
-      fs.rmSync(dir, {recursive: true, force: true});
+      const until = Date.now() + 10000;
+      while (Date.now() < until && spawned.some(child => child.pid && alive(child.pid))) sleepSync(50);
+      removeTree(dir);
     }
   };
   return toolbox;
+}
+
+export function sleepSync(milliseconds) { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds); }
+
+// Removal that tolerates the short window in which Windows still reports a file as in use.
+export function removeTree(target) {
+  fs.rmSync(target, {recursive: true, force: true, maxRetries: 40, retryDelay: 250});
 }
 
 export function alive(pid) {

@@ -65,9 +65,14 @@ public static class M17Telemetry
         if (!reachable) TransportFailures.Add(1);
     }
 
-    public static string SafeRoute(HttpContext context)
+    public static string SafeRoute(HttpContext context) => SafeRoute(context.GetEndpoint());
+
+    // The endpoint the router selected. The exception handler clears the endpoint of the request it re-executes, so
+    // the middleware captures it before the pipeline runs and passes it here; a request that really matched nothing
+    // has no endpoint either way and stays "unmatched".
+    public static string SafeRoute(Endpoint? selected)
     {
-        if (context.GetEndpoint() is not RouteEndpoint endpoint)
+        if (selected is not RouteEndpoint endpoint)
             return "unmatched";
         var route = endpoint.RoutePattern.RawText;
         return string.IsNullOrWhiteSpace(route) || route.Length > 120 ||
@@ -90,9 +95,9 @@ public static class M17Telemetry
         HealthOperation, BusinessOperation, OtherOperation
     ];
 
-    private static string Operation(HttpContext context)
+    private static string Operation(Endpoint? selected)
     {
-        var route = SafeRoute(context);
+        var route = SafeRoute(selected);
         if (route.StartsWith("/api/v1/auth", StringComparison.Ordinal)) return AuthOperation;
         if (route.StartsWith("/api/v1/organizations", StringComparison.Ordinal)) return OrganizationOperation;
         if (route.StartsWith("/integrations/", StringComparison.Ordinal)) return TrackingOperation;
@@ -101,11 +106,11 @@ public static class M17Telemetry
         return OtherOperation;
     }
 
-    public static void ObserveRequest(HttpContext context, TimeSpan elapsed)
+    public static void ObserveRequest(HttpContext context, TimeSpan elapsed, Endpoint? routedBeforeHandling = null)
     {
         var code = context.Response.StatusCode;
         var statusClass = code is >= 100 and < 600 ? $"{code / 100}xx" : "other";
-        var operation = Operation(context);
+        var operation = Operation(routedBeforeHandling ?? context.GetEndpoint());
         RequestDuration.Record(Math.Max(0, elapsed.TotalSeconds),
             new KeyValuePair<string, object?>("operation", operation),
             new KeyValuePair<string, object?>("status_class", statusClass));

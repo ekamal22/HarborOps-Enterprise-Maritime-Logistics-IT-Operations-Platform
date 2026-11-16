@@ -86,3 +86,24 @@ test("the manifest rejection witness needs the three executed Node cases that pr
   const manifestTests = fs.readFileSync(path.join(repo, "scripts/check-g17-manifest.test.mjs"), "utf8");
   for (const name of MANIFEST_REJECTION_CASES) assert.ok(manifestTests.includes(`test("${name}"`), `${name} exists in the Node suite`);
 });
+
+test("a line that is not a comment can never name a case, even directly above a real block", () => {
+  const text = sample.replace("  # Readiness must not remain critical after the probe recovers.\n", "  note: Readiness must not remain critical after the probe recovers.\n");
+  assert.notEqual(text, sample);
+  assert.equal(alertCaseBound(text, "Readiness must not remain critical"), false);
+});
+
+test("a case with series but no executable assertion is not bound, even for a marker without special requirements", () => {
+  const text = "tests:\n  # A hollow case\n  - interval: 15s\n    input_series:\n      - series: 'x'\n        values: '0x1'\n";
+  assert.equal(alertCaseBound(text, "A hollow case"), false);
+  const withAssertion = text + "    promql_expr_test:\n      - expr: x\n        eval_time: 1m\n        exp_samples: []\n";
+  assert.equal(alertCaseBound(withAssertion, "A hollow case"), true);
+});
+
+test("the three manifest rejection cases are pinned by name", () => {
+  assert.deepEqual([...MANIFEST_REJECTION_CASES], [
+    "fake complete claim without required raw result is rejected",
+    "fake complete claim with incomplete stage evidence is rejected",
+    "altered evidence cannot pass hash verification"
+  ]);
+});

@@ -70,7 +70,7 @@ function freshEvidence() {
   tempDirs.push(path.dirname(dir));
   return dir;
 }
-const record = dir => JSON.parse(fs.readFileSync(path.join(dir, "m17-owned-cleanup.json"), "utf8").replace(/^﻿/, ""));
+const record = dir => JSON.parse(fs.readFileSync(path.join(dir, "m17-owned-cleanup.json"), "utf8").replace(/^\uFEFF/, ""));
 const text = run => `${run.stdout}\n${run.stderr}`;
 
 after(() => {
@@ -128,7 +128,7 @@ test("a finished stack is removed completely, state is captured first, volumes a
   assert.equal(exists("network", stack.net), false);
   assert.equal(exists("volume", stack.volume), true, "retained database volumes are never removed");
   assert.ok(survivors(kept), "decoys of other projects, an unlabelled container and a longer project name all survive");
-  const inventory = JSON.parse(fs.readFileSync(path.join(evidence, "m17-cleanup-state", "owned-inventory.json"), "utf8").replace(/^﻿/, ""));
+  const inventory = JSON.parse(fs.readFileSync(path.join(evidence, "m17-cleanup-state", "owned-inventory.json"), "utf8").replace(/^\uFEFF/, ""));
   assert.equal(inventory.containers.length, 3);
   assert.equal(inventory.networks[0].subnets[0], stack.subnet);
   assert.ok(fs.readdirSync(path.join(evidence, "m17-cleanup-state")).filter(n => n.endsWith(".state.json")).length === 3, "one state record per container");

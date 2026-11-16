@@ -60,6 +60,7 @@ if (sub === "events" || sub === "logs") {
   process.exit(mode.lsExit || 0);
 } else if (sub === "rm") {
   if (mode.rmExit) process.exit(mode.rmExit);
+  if (mode.rmKeeps) process.exit(0);
   if (removedMarker) fs.writeFileSync(removedMarker, "1");
   process.exit(0);
 } else {

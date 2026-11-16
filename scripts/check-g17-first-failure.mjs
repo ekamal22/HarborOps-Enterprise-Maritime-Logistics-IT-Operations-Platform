@@ -8,7 +8,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import {execFileSync, spawnSync} from "node:child_process";
-import {FAMILIES, classifyFamily, familyFaultPlan, evaluateFirstFailure} from "./g17-first-failure-evidence.mjs";
+import {FAMILIES, classifyFamily, familyFaultPlan, evaluateFirstFailure, syntheticBearer} from "./g17-first-failure-evidence.mjs";
 
 const project = process.env.HARBOROPS_G17_PROJECT;
 const source = process.env.HARBOROPS_SOURCE_SHA;
@@ -122,11 +122,11 @@ try {
     const secret = crypto.randomBytes(24).toString("base64url");
     const provision = dockerCompose(["run", "--rm", "-T", "-e", "HARBOROPS_ALLOW_ACCOUNT_CLI=true", "api",
       "--account-cli", "provision", email, "G17 First Failure"], 120000, secret + "\n");
-    assert.equal(provision.status, 0, "account provisioning failed");
+    assert.equal(provision.status, 0, "account provisioning failed: " + String(provision.stderr || provision.stdout).slice(0, 400));
     orgSlug = "g17-first-failure-" + nonce;
     const bootstrap = dockerCompose(["run", "--rm", "-T", "-e", "HARBOROPS_ALLOW_ORGANIZATION_CLI=true", "api",
       "--organization-cli", "bootstrap", orgSlug, "G17 First Failure Organization", email], 120000);
-    assert.equal(bootstrap.status, 0, "organization bootstrap failed");
+    assert.equal(bootstrap.status, 0, "organization bootstrap failed: " + String(bootstrap.stderr || bootstrap.stdout).slice(0, 400));
     organizationId = cmd(["exec", "-T", "postgres", "psql", "-U", "harborops", "-d", "harborops", "-At",
       "-v", "ON_ERROR_STOP=1", "-c", "SELECT id FROM organizations WHERE slug='" + orgSlug + "'"]);
     assert.match(organizationId, /^[0-9a-f-]{36}$/);
@@ -134,7 +134,7 @@ try {
     assert.equal(login.status, 200, "synthetic account must sign in");
     const selected = await admin.send("PUT", "/api/v1/auth/session/organization", {organizationId});
     assert.ok([200, 409].includes(selected.status));
-    const ports = await admin.send("GET", "/api/v1/organizations/" + organizationId + "/ports");
+    const ports = await admin.send("GET", "/api/v1/organizations/" + organizationId);
     assert.equal(ports.status, 200, "the authorized organization read must work before the fault");
     return {session: "authorized", organization_scoped_read: 200};
   });
@@ -172,24 +172,36 @@ try {
   });
 
   await stage("healthy-traffic-in-every-family-meets-the-eligible-floor", async () => {
-    const ok = [];
-    for (let i = 0; i < 30; i++) ok.push(plain("/health/ready"));
-    for (let i = 0; i < 30; i++) ok.push(plain("/api/v1/system/baseline"));
-    for (let i = 0; i < 20; i++) ok.push(plain("/api/v1/auth/csrf", {headers: {Origin: api}}));
-    for (let i = 0; i < 30; i++) {
-      const response = await fetch(api + "/api/v1/organizations/" + organizationId + "/ports",
-        {headers: {Cookie: admin.cookie()}, signal: AbortSignal.timeout(20000)});
-      await response.arrayBuffer();
-      note("/api/v1/organizations/" + organizationId + "/ports", response.status);
-      assert.equal(response.status, 200);
-    }
-    for (let i = 0; i < 20; i++) ok.push(plain("/integrations/v1/tracking-events",
-      {method: "POST", headers: {"Content-Type": "application/json"}, body: "{}"}));
-    await Promise.all(ok);
+    // Prometheus cannot count the first sample of a series as an increase, and every non-5xx duration series of a
+    // fresh Prometheus is new. A first wave therefore only creates the series, and the eligible count is judged on a
+    // second wave. This is the same first-sample rule that the failure counter's zero baseline removes for 5xx.
+    const wave = async (scale) => {
+      const ok = [];
+      for (let i = 0; i < 6 * scale; i++) ok.push(plain("/health/ready"));
+      for (let i = 0; i < 6 * scale; i++) ok.push(plain("/api/v1/system/baseline"));
+      for (let i = 0; i < 4 * scale; i++) ok.push(plain("/api/v1/auth/csrf", {headers: {Origin: api}}));
+      for (let i = 0; i < 6 * scale; i++) {
+        const response = await fetch(api + "/api/v1/organizations/" + organizationId,
+          {headers: {Cookie: admin.cookie()}, signal: AbortSignal.timeout(20000)});
+        await response.arrayBuffer();
+        note("/api/v1/organizations/" + organizationId, response.status);
+        assert.equal(response.status, 200);
+      }
+      for (let i = 0; i < 4 * scale; i++) ok.push(plain("/integrations/v1/tracking-events",
+        {method: "POST", headers: {"Content-Type": "application/json"}, body: "{}"}));
+      await Promise.all(ok);
+    };
+    await wave(1);
+    await poll("a duration series for every family in Prometheus", async () => {
+      const rows = await prom('count by (operation) (harborops_request_duration_seconds_count{status_class!="5xx"})');
+      const seenFamilies = new Set(rows.map(r => r.metric.operation));
+      return FAMILIES.filter(f => f !== "other").every(f => seenFamilies.has(f));
+    }, 120000);
+    await wave(5);
     const sufficient = await poll("sufficient healthy traffic exported", async () => {
       const rows = await prom("harborops:m17:eligible_requests:5m");
       return rows.length === 1 && Number(rows[0].value[1]) >= 100 ? Number(rows[0].value[1]) : null;
-    }, 120000);
+    }, 150000);
     const zero = await prom("harborops:m17:api_5xx_rate_sufficient:5m");
     assert.equal(zero.length, 1, "with 100 or more eligible requests the 5xx rate is a known value");
     assert.equal(Number(zero[0].value[1]), 0, "healthy traffic must show a zero failure rate, not a failure");
@@ -213,7 +225,7 @@ try {
         const batch = await Promise.all(Array.from({length: Math.min(10, step.count - offset)}, async () => {
           const init = {method: step.method, headers: {...(step.headers || {})}, body: step.body};
           if (step.cookie) init.headers.Cookie = admin.cookie();
-          if (step.randomBearer) init.headers.Authorization = "Bearer " + crypto.randomBytes(24).toString("hex");
+          if (step.randomBearer) init.headers.Authorization = "Bearer " + syntheticBearer(crypto.randomBytes);
           const response = await plain(step.route, init);
           assert.equal(response.status, 503, family + " must return the real dependency failure response");
           if (family === "tracking") assert.equal(response.headers.get("retry-after"), "60");
@@ -231,11 +243,13 @@ try {
   });
 
   await stage("exported-counters-equal-the-real-503-counts-per-family", async () => {
+    let lastSeen = null;
     const observed = await poll("every family's exported 5xx count", async () => {
       const rows = await prom('harborops_request_failures_total{status_class="5xx"}');
       const byFamily = Object.fromEntries(rows.map(r => [r.metric.operation, Number(r.value[1])]));
+      lastSeen = {exported: byFamily, client: Object.fromEntries(FAMILIES.map(f => [f, clientCounts[f].server_errors])), row_count: rows.length};
       return FAMILIES.every(f => byFamily[f] === clientCounts[f].server_errors) ? byFamily : null;
-    }, 150000);
+    }, 150000).catch(error => { throw new Error(error.message + " last observed " + JSON.stringify(lastSeen)); });
     const increases = {};
     for (const family of FAMILIES) {
       const rows = await prom('increase(harborops_request_failures_total{operation="' + family + '",status_class="5xx"}[5m])');
@@ -279,6 +293,10 @@ if (!stopped) {
   try {
     await stage("recovery-restores-readiness-and-the-counters-stop-rising", async () => {
       await poll("API ready after PostgreSQL restart", async () => (await fetch(api + "/health/ready", {signal: AbortSignal.timeout(8000)})).status === 200, 150000);
+      // Readiness polling during the restart can itself have produced 5xx responses, and the OTLP export plus the scrape
+      // delay their exported count by up to about 30 seconds. Let that settle, then require two samples 35 seconds
+      // apart to be equal: no new failures after the database is back.
+      await wait(40000);
       const first = await prom('sum(harborops_request_failures_total{status_class="5xx"})');
       await wait(35000);
       const second = await prom('sum(harborops_request_failures_total{status_class="5xx"})');

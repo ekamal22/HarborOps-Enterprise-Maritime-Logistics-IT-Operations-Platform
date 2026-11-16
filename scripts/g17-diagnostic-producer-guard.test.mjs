@@ -28,7 +28,7 @@ function writeState(dir, overrides = {}) {
     started_utc: "2026-11-16T10:00:00.0000000Z", project, sidecar, sidecar_id: sidecarId,
     pids: {...unusedPids}, timezone_offset_minutes: 180, ...overrides
   };
-  fs.writeFileSync(path.join(dir, STATE_FILE), "﻿" + JSON.stringify(state, null, 4) + "\n");
+  fs.writeFileSync(path.join(dir, STATE_FILE), "\uFEFF" + JSON.stringify(state, null, 4) + "\n");
   return state;
 }
 
@@ -66,7 +66,7 @@ test("an owned run stops only its own children and sidecar, waits for their exit
     assert.equal(run.status, 0, text(run));
     for (const [kind, child] of Object.entries(children))
       assert.ok(await waitUntil(() => !alive(child.pid), 4000), `${kind} child must have exited`);
-    const state = JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^﻿/, ""));
+    const state = JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^\uFEFF/, ""));
     assert.deepEqual(state.stop_outcomes, {typeperf: "terminated", events: "terminated", logs: "terminated", sidecar: "removed"});
     assert.deepEqual(verifyDiagnosticDirectory(dir).errors, []);
     assert.deepEqual(toolbox.removals(), [["rm", "-f", sidecarId]], "exactly one removal, addressed by the recorded id");
@@ -198,7 +198,7 @@ test("missing processes and an absent sidecar are a normal, verifiable stop", ()
     writeState(dir, {schema_version: 2});
     const run = runStop(dir, toolbox.env(sidecarMode({ids: []})));
     assert.equal(run.status, 0, text(run));
-    const state = JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^﻿/, ""));
+    const state = JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^\uFEFF/, ""));
     assert.deepEqual(state.stop_outcomes, {typeperf: "already-exited", events: "already-exited", logs: "already-exited", sidecar: "absent"});
     assert.deepEqual(verifyDiagnosticDirectory(dir).errors, []);
     assert.deepEqual(toolbox.removals(), []);
@@ -217,10 +217,10 @@ test("a repeated Stop is idempotent and signals nothing, even if the state is ed
 
     const decoy = toolbox.impostor("typeperf.exe", path.join(dir, "host-counters.csv"));
     const identity = await ready(decoy);
-    const stopped = JSON.parse(firstState.replace(/^﻿/, ""));
+    const stopped = JSON.parse(firstState.replace(/^\uFEFF/, ""));
     stopped.pids.typeperf = decoy.pid;
     stopped.children.typeperf = {pid: decoy.pid, name: identity.name, creation_utc: identity.creation_utc};
-    fs.writeFileSync(path.join(dir, STATE_FILE), "﻿" + JSON.stringify(stopped, null, 4) + "\n");
+    fs.writeFileSync(path.join(dir, STATE_FILE), "\uFEFF" + JSON.stringify(stopped, null, 4) + "\n");
 
     const again = runStop(dir, toolbox.env(sidecarMode()));
     assert.equal(again.status, 0, text(again));
@@ -249,7 +249,7 @@ test("negative control: a foreign process that keeps appending is detected befor
     assert.notEqual(run.status, 0, text(run));
     assert.match(text(run), /still changing after 3 seconds \(late write\)/);
     assert.equal(fs.existsSync(path.join(dir, HASH_LIST)), false, "no hash list is produced for unstable output");
-    assert.equal(JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^﻿/, "")).stopped_utc, undefined,
+    assert.equal(JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^\uFEFF/, "")).stopped_utc, undefined,
       "the state is not finalised either");
   } finally { writer.kill("SIGKILL"); toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
 });
@@ -332,7 +332,7 @@ test("a real Start then Stop against the stand-in docker records identities and 
     const mode = sidecarMode({ids: [], runId: sidecarId});
     const started = runProducer(["-Action", "Start", "-OutDir", dir, "-Project", project], toolbox.env(mode));
     assert.equal(started.status, 0, text(started));
-    const state = JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^﻿/, ""));
+    const state = JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^\uFEFF/, ""));
     assert.equal(state.schema_version, 2);
     assert.equal(state.sidecar_id, sidecarId);
     for (const [kind, name] of [["typeperf", "typeperf.exe"], ["events", "docker.exe"], ["logs", "docker.exe"]]) {
@@ -356,4 +356,29 @@ test("the producer source keeps its ownership guards (structure check for mutati
   for (const needle of ["Get-ChildExpectation", "id has been reused", "refusing to signal it", "Wait-Process",
     "Late write detected", "refusing to remove it", "ReparsePoint", "Get-FileHash"])
     assert.ok(source.includes(needle), needle);
+});
+
+test("a removal that reports success but leaves the container behind is a failure", () => {
+  const toolbox = createToolbox();
+  const dir = fixtureDirectory();
+  try {
+    writeState(dir);
+    const run = runStop(dir, toolbox.env(sidecarMode({rmKeeps: true})));
+    assert.notEqual(run.status, 0, text(run));
+    assert.match(text(run), /still present after removal/);
+    assert.equal(fs.existsSync(path.join(dir, HASH_LIST)), false, "nothing is finalised");
+  } finally { toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
+});
+
+test("negative control: a writer that rewrites identical bytes (same length, new modification time) is detected", () => {
+  const toolbox = createToolbox();
+  const dir = fixtureDirectory();
+  const writer = foreignWriter(
+    "const fs=require('fs');const f=process.argv[1];const b=fs.readFileSync(f);setInterval(()=>fs.writeFileSync(f,b),40)", path.join(dir, "host-counters.csv"));
+  try {
+    writeState(dir, {schema_version: 2});
+    const run = runStop(dir, toolbox.env(sidecarMode({ids: []})), ["-SettleMilliseconds", "250", "-SettleTimeoutSeconds", "3"]);
+    assert.notEqual(run.status, 0, text(run));
+    assert.match(text(run), /still changing after 3 seconds \(late write\)/);
+  } finally { writer.kill("SIGKILL"); toolbox.cleanup(); fs.rmSync(dir, {recursive: true, force: true}); }
 });

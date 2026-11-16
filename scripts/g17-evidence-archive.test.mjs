@@ -136,3 +136,38 @@ test("an entry that could leave the extraction directory is rejected", () => {
   assert.equal(fs.existsSync(path.join(root, "escaped.txt")) || fs.existsSync(path.join(os.tmpdir(), "escaped.txt")), false, "nothing was written outside the extraction directory");
   assert.ok(dir);
 });
+
+test("overwriting an existing archive is refused with the explicit message, before anything is written", () => {
+  const {dir, archive} = packaged();
+  const before = fs.readFileSync(archive);
+  assert.throws(() => createArchive(dir, archive), /The archive already exists\. Never overwrite evidence/);
+  assert.deepEqual(fs.readFileSync(archive), before);
+});
+
+test("an inventory that lists one path twice is rejected even when its count and total agree", () => {
+  const {archive, inventory} = packaged();
+  const doc = JSON.parse(fs.readFileSync(inventory, "utf8"));
+  doc.files.push({...doc.files[0]});
+  doc.file_count = doc.files.length;
+  doc.total_bytes = doc.files.reduce((n, f) => n + f.bytes, 0);
+  fs.writeFileSync(inventory, JSON.stringify(doc));
+  const verdict = verifyArchive(archive);
+  assert.equal(verdict.ok, false);
+  assert.ok(verdict.problems.includes("the inventory lists a path twice"), JSON.stringify(verdict.problems));
+});
+
+test("an archive holding the same entry name twice is rejected", () => {
+  const archive = fresh("duplicate-entries") + ".zip";
+  const script = "Add-Type -AssemblyName System.IO.Compression; Add-Type -AssemblyName System.IO.Compression.FileSystem; " +
+    "$s = [System.IO.File]::Create($env:G17_ARCHIVE); $z = New-Object System.IO.Compression.ZipArchive($s, [System.IO.Compression.ZipArchiveMode]::Create); " +
+    "foreach ($n in @('a.txt', 'a.txt')) { $e = $z.CreateEntry($n); $w = New-Object System.IO.StreamWriter($e.Open()); $w.Write('x'); $w.Dispose() }; " +
+    "$z.Dispose(); $s.Dispose()";
+  const run = spawnSync(shellFor(), ["-NoProfile", "-Command", script], {encoding: "utf8", env: cleanEnvironment({G17_ARCHIVE: archive})});
+  assert.equal(run.status, 0, run.stderr);
+  fs.writeFileSync(archive + ".sha256", `${crypto.createHash("sha256").update(fs.readFileSync(archive)).digest("hex")}  x.zip\n`);
+  fs.writeFileSync(archive + ".inventory.json", JSON.stringify({schema_version: 1, source_sha: null, file_count: 1, total_bytes: 1,
+    files: [{path: "a.txt", bytes: 1, sha256: crypto.createHash("sha256").update("x").digest("hex")}]}));
+  const verdict = verifyArchive(archive);
+  assert.equal(verdict.ok, false);
+  assert.ok(verdict.problems.includes("duplicate archive entry a.txt"), JSON.stringify(verdict.problems));
+});

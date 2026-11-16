@@ -75,7 +75,7 @@ function checkFinalState(directory, errors) {
   const read = readRegularFile(directory, STATE_FILE);
   if (read.missing || read.error) return; // reported by the entry checks
   let state;
-  try { state = JSON.parse(read.bytes.toString("utf8").replace(/^﻿/, "")); }
+  try { state = JSON.parse(read.bytes.toString("utf8").replace(/^\uFEFF/, "")); }
   catch { errors.push(`${STATE_FILE} is not valid JSON`); return; }
   if (state === null || typeof state !== "object" || Array.isArray(state)) { errors.push(`${STATE_FILE} is not a JSON object`); return; }
   const started = parseUtcTicks(state.started_utc);

@@ -9,8 +9,13 @@ export const FAMILIES = ["auth", "organization", "tracking", "health", "business
 export const FAMILIES_WITH_REAL_FAULT = ["auth", "organization", "tracking", "health", "business"];
 
 const FORBIDDEN_LABEL = /tenant|organi[sz]ation_?id|org_?id|user|session|route|path|url|token|email|reference|shipment|correlation|trace|account|host|address/i;
-const ALLOWED_EXTRA_LABELS = new Set(["__name__", "operation", "status_class", "job", "instance",
+// Prometheus renames the collector's own resource labels (service name, per-process instance id) to exported_job and
+// exported_instance when they collide with the scrape target's job and instance. Their values are checked below: the
+// fixed service name and a random per-process identifier, never a tenant, user or request value.
+const ALLOWED_EXTRA_LABELS = new Set(["__name__", "operation", "status_class", "job", "instance", "exported_job", "exported_instance",
   "otel_scope_name", "otel_scope_version", "otel_scope_schema_url"]);
+const SERVICE_NAME = "harborops-api";
+const PROCESS_INSTANCE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$|^[0-9a-f]{32}$/;
 
 // Mirrors M17Telemetry.Operation for the concrete URLs this campaign uses (the API classifies the route pattern,
 // which has the same prefix for these requests).
@@ -24,10 +29,19 @@ export function classifyFamily(route) {
   return "other";
 }
 
+// A source credential that is well formed (the exact hop_v1 layout the API parses before it touches the database) but
+// belongs to no source. With PostgreSQL available the API answers 401; with it stopped the lookup itself fails, which
+// is the real dependency failure (503) that integration intake must report.
+export function syntheticBearer(randomBytes) {
+  const id = randomBytes(16).toString("hex");
+  const secret = randomBytes(32).toString("base64").replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+  return "hop_v1_" + id + "_" + secret;
+}
+
 export function familyFaultPlan(organizationId) {
   return {
     auth: {route: "/api/v1/auth/session", routeLabel: "GET /api/v1/auth/session (session cookie)", method: "GET", cookie: true, count: 25},
-    organization: {route: `/api/v1/organizations/${organizationId}/ports`, routeLabel: "GET /api/v1/organizations/{id}/ports (session cookie)",
+    organization: {route: `/api/v1/organizations/${organizationId}`, routeLabel: "GET /api/v1/organizations/{id} (session cookie)",
       method: "GET", cookie: true, count: 25},
     tracking: {route: "/integrations/v1/tracking-events", routeLabel: "POST /integrations/v1/tracking-events (source bearer)", method: "POST",
       headers: {"Content-Type": "application/json", "X-HarborOps-Tracking-Profile": "tnt-2.2-harborops-v1"}, body: "{}", randomBearer: true, count: 25},
@@ -62,6 +76,8 @@ export function evaluateFirstFailure({exported, client, increases, series}) {
       if (FORBIDDEN_LABEL.test(name)) problems.push(`forbidden label name ${name}`);
       else if (!ALLOWED_EXTRA_LABELS.has(name)) problems.push(`unapproved label name ${name}`);
     }
+    if (labels.exported_job !== undefined && labels.exported_job !== SERVICE_NAME) problems.push(`unapproved exported_job value ${labels.exported_job}`);
+    if (labels.exported_instance !== undefined && !PROCESS_INSTANCE.test(labels.exported_instance)) problems.push(`exported_instance is not a process identifier: ${labels.exported_instance}`);
     if (!FAMILIES.includes(labels.operation)) problems.push(`unapproved operation value ${labels.operation}`);
     if (labels.status_class !== "5xx") problems.push(`unexpected status_class ${labels.status_class}`);
     if (seenOperations.has(labels.operation)) problems.push(`duplicate series for ${labels.operation}`);

@@ -14,7 +14,8 @@ const perfect = () => ({
   client: {auth: {requests: 45, server_errors: 25}, organization: {requests: 55, server_errors: 25}, tracking: {requests: 45, server_errors: 25},
     health: {requests: 57, server_errors: 26}, business: {requests: 55, server_errors: 25}, other: {requests: 1, server_errors: 0}},
   increases: {auth: 25.4, organization: 25.1, tracking: 25.2, health: 26.3, business: 25.5, other: 0},
-  series: FAMILIES.map(operation => ({__name__: "harborops_request_failures_total", operation, status_class: "5xx", job: "m17_collector", instance: "otelcol:9464"}))
+  series: FAMILIES.map(operation => ({__name__: "harborops_request_failures_total", operation, status_class: "5xx", job: "m17_collector", instance: "otelcol:9464",
+    exported_job: "harborops-api", exported_instance: "0a1b2c3d-0000-4000-8000-0123456789ab"}))
 });
 const problemsOf = edit => { const input = perfect(); edit(input); return evaluateFirstFailure(input).problems; };
 
@@ -78,7 +79,9 @@ test("each defect is rejected with its own reason", () => {
     ["a route label", i => { i.series[0].route = "/api/v1/x"; }, "forbidden label name route"],
     ["an unapproved extra label", i => { i.series[0].color = "red"; }, "unapproved label name color"],
     ["an operation outside the closed set", i => { i.series[0].operation = "organization/abc"; }, "unapproved operation value organization/abc"],
-    ["a non-5xx status class", i => { i.series[0].status_class = "4xx"; }, "unexpected status_class 4xx"]
+    ["a non-5xx status class", i => { i.series[0].status_class = "4xx"; }, "unexpected status_class 4xx"],
+    ["a renamed job label that carries something other than the service name", i => { i.series[0].exported_job = "tenant-a"; }, "unapproved exported_job value tenant-a"],
+    ["a renamed instance label that is not a process identifier", i => { i.series[0].exported_instance = "user@example.test"; }, "exported_instance is not a process identifier: user@example.test"]
   ];
   for (const [label, edit, expected] of cases) assert.ok(problemsOf(edit).includes(expected), `${label}: ${JSON.stringify(problemsOf(edit))}`);
 });
@@ -124,4 +127,34 @@ test("a complete report passes and each missing fact is reported separately", ()
     edit(report);
     assert.ok(firstFailureReportProblems(report, identity).includes(expected), `${label}: ${JSON.stringify(firstFailureReportProblems(report, identity))}`);
   }
+});
+
+test("a family without a series is named even when the series count still adds up", () => {
+  const problems = problemsOf(i => { i.series[5] = {...i.series[0]}; });
+  assert.ok(problems.includes("no series for other"), JSON.stringify(problems));
+  assert.ok(problems.includes("duplicate series for auth"));
+});
+
+test("a family whose burst produced no real failure cannot be reported complete, even if nothing was exported either", () => {
+  const report = goodReport();
+  report.checks[5].data.client_5xx.health = 0;
+  report.checks[5].data.exported_5xx.health = 0;
+  assert.ok(firstFailureReportProblems(report, identity).includes("exported counts do not equal the real 5xx counts in every family"));
+});
+
+test("the synthetic source credential has exactly the layout the API parses, and is never reused", async () => {
+  const {syntheticBearer} = await import("./g17-first-failure-evidence.mjs");
+  const crypto = await import("node:crypto");
+  const seen = new Set();
+  for (let i = 0; i < 50; i++) {
+    const token = syntheticBearer(crypto.randomBytes);
+    assert.equal(token.length, 83);
+    assert.match(token, /^hop_v1_[0-9a-f]{32}_[A-Za-z0-9_-]{43}$/);
+    assert.equal(token[39], "_");
+    assert.ok(!seen.has(token));
+    seen.add(token);
+  }
+  // The same arithmetic as the API's ParseSecret: 32 secret bytes encode to 43 URL-safe characters.
+  const decoded = Buffer.from(syntheticBearer(crypto.randomBytes).slice(40).replaceAll("-", "+").replaceAll("_", "/") + "=", "base64");
+  assert.equal(decoded.length, 32);
 });

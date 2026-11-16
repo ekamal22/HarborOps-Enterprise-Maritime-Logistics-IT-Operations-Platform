@@ -27,7 +27,7 @@ function listText(dir, names) {
 // A directory the verifier accepts, built directly (no producer involved).
 function directory(state = {...base}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-diag-strict-"));
-  fs.writeFileSync(path.join(dir, STATE_FILE), typeof state === "string" ? state : "﻿" + JSON.stringify(state, null, 4));
+  fs.writeFileSync(path.join(dir, STATE_FILE), typeof state === "string" ? state : "\uFEFF" + JSON.stringify(state, null, 4));
   fs.writeFileSync(path.join(dir, "host-counters.csv"), "a,b\n1,2\n");
   fs.writeFileSync(path.join(dir, HASH_LIST), listText(dir, [STATE_FILE, "host-counters.csv"]));
   return dir;
@@ -185,4 +185,32 @@ test("the command line is strict by default and exits non-zero for the historica
     assert.equal(JSON.parse(historical.stdout).mode, "historical-characterization");
     assert.equal(spawnSync(process.execPath, [verifierPath], {encoding: "utf8"}).status, 2);
   } finally { cleanup(dir); }
+});
+
+test("a state file that is not a JSON object is reported, never allowed to crash the verifier", () => {
+  for (const content of ["null", "[]", "42", "\"text\"", "true"]) {
+    withDirectory(content, dir => assert.deepEqual(reasons(dir), [`${STATE_FILE} is not a JSON object`], content));
+  }
+});
+
+test("a byte order mark on the state file is tolerated, because the producer writes one", () => {
+  const dir = directory();
+  try {
+    const bytes = fs.readFileSync(path.join(dir, STATE_FILE));
+    assert.deepEqual([...bytes.subarray(0, 3)], [0xef, 0xbb, 0xbf]);
+    assert.deepEqual(reasons(dir), []);
+  } finally { cleanup(dir); }
+});
+
+test("names containing a colon anywhere are rejected, whatever the position", () => {
+  for (const bad of ["a:b", "name:stream", "ends:", "x:y:z"]) {
+    assert.ok(parseHashList(`${"a".repeat(64)}  1  ${bad}`).errors.length > 0, bad);
+  }
+  assert.deepEqual(parseHashList(`${"a".repeat(64)}  1  ok-name.txt`).errors, []);
+});
+
+test("calendar dates that do not exist are rejected, including ones that roll over", () => {
+  for (const bad of ["2026-02-29T10:00:00Z", "2026-04-31T10:00:00Z", "2026-00-10T10:00:00Z", "2026-01-00T10:00:00Z", "2026-12-32T10:00:00Z", "2026-11-16T24:00:00Z"])
+    assert.equal(parseUtcTicks(bad), null, bad);
+  assert.notEqual(parseUtcTicks("2028-02-29T23:59:59.9999999Z"), null);
 });

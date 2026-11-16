@@ -201,7 +201,8 @@ try {
         'scripts/g17-regression-accounting.test.mjs',
         'scripts/g17-campaign-verification.test.mjs',
         'scripts/g17-reconcile-derivation.test.mjs',
-        'scripts/g17-diagnostic-hash-list.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
+        'scripts/g17-diagnostic-hash-list.test.mjs',
+        'scripts/g17-runner-order.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',
         ('--output=' + (Join-Path $EvidencePath 'g17-coverage-preflight.json'))) -Stage 's25-atomic-coverage-preflight'
     Invoke-Required 'dotnet' @('restore', 'HarborOps.sln')
@@ -217,6 +218,10 @@ try {
     Invoke-Required 'npm' @('--prefix', 'web', 'run', 'build')
 
     if ($StartDisposableStack) {
+        # The database fault stage drives a real page through tests/browser/m17/page-fault-journey.mjs,
+        # which imports playwright. Install the pinned browser-test dependencies before the first stage
+        # that needs them instead of relying on a node_modules directory left by an earlier session.
+        Invoke-Required 'npm' @('--prefix', 'tests/browser', 'ci', '--no-audit', '--no-fund') -Stage 'browser-test-dependencies'
         foreach ($variable in @('HARBOROPS_DB_PASSWORD', 'HARBOROPS_API_DB_PASSWORD',
             'HARBOROPS_WORKER_DB_PASSWORD', 'HARBOROPS_M10_CORRECTION_PROOF_KEY',
             'HARBOROPS_M17_GRAFANA_PASSWORD', 'HARBOROPS_M17_LINK_KEY')) {
@@ -356,7 +361,6 @@ try {
         }
         Push-Location -LiteralPath (Join-Path $Repo 'tests/browser')
         try {
-            Invoke-Required 'npm' @('ci', '--no-audit', '--no-fund')
             Invoke-Required 'npx' @('--no-install', 'playwright', 'test',
                 '--config', 'playwright.m17.config.mjs') -Stage 'playwright-dashboard-three-engines'
             Invoke-Required 'npx' @('--no-install', 'playwright', 'test',

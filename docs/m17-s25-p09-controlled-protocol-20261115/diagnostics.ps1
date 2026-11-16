@@ -43,9 +43,12 @@ if ($Action -eq 'Start') {
 $state = Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json
 foreach ($id in @($state.pids.typeperf, $state.pids.events, $state.pids.logs)) { Stop-Process -Id $id -Force -ErrorAction SilentlyContinue }
 try { docker rm -f $state.sidecar 2>&1 | Out-Null } catch { }
+# Order matters: the final state (including stopped_utc) is written FIRST, so the hash list describes the bytes that remain on disk.
+# A previous revision hashed diag-state.json before adding stopped_utc, leaving one internal mismatch per run (finding 2026-11-16).
+$state | Add-Member -NotePropertyName stopped_utc -NotePropertyValue ([DateTime]::UtcNow.ToString('o')) -Force
+$state | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $stateFile -Encoding utf8
+# The hash list is written last and never lists itself (a self-referential hash cannot be correct).
 $files = Get-ChildItem -LiteralPath $OutDir -File | Where-Object { $_.Name -ne 'diag-hashes.txt' }
 $files | ForEach-Object { '{0}  {1}  {2}' -f (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLower(), $_.Length, $_.Name } |
     Set-Content -LiteralPath (Join-Path $OutDir 'diag-hashes.txt') -Encoding ascii
-$state | Add-Member -NotePropertyName stopped_utc -NotePropertyValue ([DateTime]::UtcNow.ToString('o')) -Force
-$state | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $stateFile -Encoding utf8
 'diagnostics stopped'

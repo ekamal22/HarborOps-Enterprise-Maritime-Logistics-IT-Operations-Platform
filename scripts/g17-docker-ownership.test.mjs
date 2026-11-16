@@ -262,3 +262,60 @@ test("the runner preserves before it removes, removes only through the ownership
   assert.match(stripped, /DisposableCleanupFailure/, "a cleanup failure is recorded as a verification failure");
   assert.match(runnerSource, /\$required \+= 'm17-owned-cleanup\.json'/, "the cleanup record is a required artifact");
 });
+
+// A docker front that forwards everything to the real docker except the commands it is told to fail. It is placed first
+// on PATH for the cleanup script only, so the failure paths of the removal can be exercised against real resources.
+function failingDocker(failing) {
+  const real = spawnSync("where.exe", ["docker.exe"], {encoding: "utf8"}).stdout.split(/\r?\n/).find(line => line.toLowerCase().endsWith("docker.exe"));
+  assert.ok(real, "the real docker.exe must be locatable");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-own-front-"));
+  tempDirs.push(dir);
+  const checks = failing.map(args => args[1]
+    ? `if "%1"=="${args[0]}" if "%2"=="${args[1]}" exit /b 1` : `if "%1"=="${args[0]}" exit /b 1`).join("\r\n");
+  fs.writeFileSync(path.join(dir, "docker.cmd"), `@echo off\r\n${checks}\r\n"${real.trim()}" %*\r\n`);
+  return dir;
+}
+function runCleanupWith(proj, evidence, frontDir, extra = []) {
+  const exe = shellFor();
+  const args = [...(exe === "powershell.exe" ? ["-NoProfile", "-ExecutionPolicy", "Bypass"] : ["-NoProfile"]), "-File", cleanup,
+    "-ProjectName", proj, "-EvidenceDirectory", evidence, ...extra];
+  return spawnSync(exe, args, {encoding: "utf8", env: cleanEnvironment({PATH: frontDir + path.delimiter + process.env.PATH}), timeout: 120000});
+}
+
+test("a container that cannot be removed fails the cleanup, is recorded, and leaves the rest untouched in the record", () => {
+  const proj = project("rmfail");
+  const stack = ownedStack(proj);
+  const evidence = freshEvidence();
+  const run = runCleanupWith(proj, evidence, failingDocker([["rm"]]));
+  assert.notEqual(run.status, 0, text(run));
+  assert.match(text(run), /Could not remove container/);
+  const result = record(evidence);
+  assert.equal(result.outcome, "FAILED");
+  assert.match(result.error, /Could not remove container/);
+  assert.equal(result.containers_removed, 0);
+  assert.equal(exists("container", `${proj}-postgres-1`), true, "nothing was removed");
+  assert.equal(exists("network", stack.net), true);
+});
+
+test("a network that cannot be removed fails the cleanup", () => {
+  const proj = project("nwfail");
+  ownedStack(proj);
+  const evidence = freshEvidence();
+  const run = runCleanupWith(proj, evidence, failingDocker([["network", "rm"]]));
+  assert.notEqual(run.status, 0, text(run));
+  const result = record(evidence);
+  assert.equal(result.outcome, "FAILED");
+  assert.match(result.error, /Could not remove network/);
+  assert.equal(result.containers_removed, 3, "containers were already removed when the network step failed");
+});
+
+test("a running container that cannot be stopped fails the cleanup before anything is removed", () => {
+  const proj = project("stfail");
+  const stack = ownedStack(proj, {running: true});
+  const evidence = freshEvidence();
+  const run = runCleanupWith(proj, evidence, failingDocker([["stop"]]), ["-StopRunning"]);
+  assert.notEqual(run.status, 0, text(run));
+  assert.match(record(evidence).error, /Could not stop/);
+  assert.equal(exists("container", `${proj}-postgres-1`), true);
+  assert.equal(exists("network", stack.net), true);
+});

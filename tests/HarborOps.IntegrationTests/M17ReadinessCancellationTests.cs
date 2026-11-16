@@ -62,7 +62,7 @@ public sealed class M17ReadinessCancellationTests
         Registration = new HealthCheckRegistration("database", check, null, ["ready"])
     };
 
-    [Fact]
+    [Fact(Timeout = 30000)]
     public async Task CallerAbandonedReadinessCheckDoesNotPublishDatabaseUnavailable()
     {
         // The server accepts the connection and never answers, so only the caller can end the check.
@@ -89,7 +89,7 @@ public sealed class M17ReadinessCancellationTests
         finally { silent.Stop(); }
     }
 
-    [Fact]
+    [Fact(Timeout = 30000)]
     public async Task AlreadyCancelledCallerPublishesNoReadinessSample()
     {
         var check = CheckAgainst(ClosedPort());
@@ -102,7 +102,7 @@ public sealed class M17ReadinessCancellationTests
         Assert.DoesNotContain(samples, sample => sample.Operation == "readiness");
     }
 
-    [Fact]
+    [Fact(Timeout = 30000)]
     public async Task RefusedConnectionStillPublishesExactlyOneUnavailableSample()
     {
         // Negative control: the observation path is live and a real failure is still reported.
@@ -188,7 +188,7 @@ public sealed class M17ReadinessCancellationTests
         }
     }
 
-    [Fact]
+    [Fact(Timeout = 30000)]
     public async Task SilentServerIsEndedByTheFiveSecondLimitEvenWhenTheProviderWouldWaitThirtySeconds()
     {
         using var server = new SilentServer();
@@ -207,7 +207,7 @@ public sealed class M17ReadinessCancellationTests
             "a connection opened by the timed out check was left open");
     }
 
-    [Theory]
+    [Theory(Timeout = 30000)]
     [InlineData(1)]
     [InlineData(50)]
     [InlineData(400)]
@@ -234,7 +234,7 @@ public sealed class M17ReadinessCancellationTests
             "a connection opened by the cancelled check was left open");
     }
 
-    [Theory]
+    [Theory(Timeout = 30000)]
     [InlineData("Timeout=2;Command Timeout=3", 2, 3, 1.5, 3.5)]
     [InlineData("Timeout=0;Command Timeout=0", 4, 4, 3.0, 5.5)]
     [InlineData("Timeout=30;Command Timeout=30", 4, 4, 3.0, 5.5)]
@@ -255,7 +255,7 @@ public sealed class M17ReadinessCancellationTests
         Assert.InRange(applied.CancellationTimeout, 0, 500);
     }
 
-    [Fact]
+    [Fact(Timeout = 30000)]
     public async Task ReadinessNeverExceedsItsLimitWhenTheRealDatabaseBlocksTheBaselineQuery()
     {
         // A real PostgreSQL that is up but blocks the one table readiness reads: the connection succeeds, so only the

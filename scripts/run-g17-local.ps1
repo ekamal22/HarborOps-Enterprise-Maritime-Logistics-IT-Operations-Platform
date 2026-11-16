@@ -208,6 +208,7 @@ try {
         'scripts/g17-diagnostic-verifier-strict.test.mjs',
         'scripts/g17-diagnostic-producer-guard.test.mjs',
         'scripts/g17-first-failure-evidence.test.mjs',
+        'scripts/g17-first-failure-ledger.test.mjs',
         'scripts/g17-docker-ownership.test.mjs',
         'scripts/g17-evidence-archive.test.mjs',
         'scripts/g17-witness-binding.test.mjs',

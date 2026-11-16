@@ -1,5 +1,9 @@
 # Cost and Deployment Strategy
 
+**G17 policy decision (2026-11-16):** P09 is **QUALIFIED PASS** only, based on four passing complete runs out of five, with the f6 FAIL and its unexplained latency burst preserved. The approved pooled p95 latency cap is 10% and paired mean peak-memory cap is 15%, unchanged. Performance optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final source-locked verification and distinct S25 sign-off remain pending.
+
+**Deployment boundary:** No release, hosting expense or deployment is authorized by the P09 qualification. Reassess observability memory and latency cost at pre-release verification.
+
 **M17 correctness remediation (2026-11-13):** Candidate fixes for findings F17-001 through F17-014 are committed on the isolated feature branch, but .NET compilation, local Compose startup, collector/alert behavior, three-browser results, performance and G17-S25 have not been executed or accepted. **G17 remains NOT ACCEPTED with 0/25 scenarios and 0/75 atomic assertions reviewed.** [Remediation register](M17_CORRECTNESS_REMEDIATION_20261113.md).
 
 **M17 source candidate (2026-11-12):** The isolated `feature/m17-observability-20261112` branch now contains opt-in telemetry, private local monitoring configuration, scoped worker instrumentation, and verification scaffolding. The code has not been compiled or exercised in a source-locked G17 campaign. **G17 remains NOT ACCEPTED, 0/25 scenarios and 0/75 assertions executed, and protected `main` is unchanged.** [Candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md).

@@ -1,5 +1,7 @@
 # G17-S25 P09 Variance Assessment: f6 versus f7
 
+**Current G17 decision (2026-11-16):** P09 is **QUALIFIED PASS** based on four of five complete passing runs, preserving the f6 FAIL, the unexplained burst and the approved 10% pooled p95 / 15% paired mean memory limits. Optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final exact-source verification and independent S25-A01/A02/A03 sign-off remain pending.
+
 **Recorded:** 2026-11-15. **Source of both runs:** `5b1dcc41d5b19dcbacd66de38193dc5020964647` (identical). **Gate:** G17 NOT ACCEPTED; independent S25 review pending.
 
 This is a read-only analysis of preserved raw evidence. The approved method (pooled p95 over three matched pairs against 10 percent, mean paired peak memory against 15 percent) and both budgets are unchanged. Nothing was rerun, tuned, selected or discarded for this assessment. Both runs remain on record exactly as measured.
@@ -94,3 +96,7 @@ f6 is preserved in full and is not discarded or reinterpreted. f7 stands as the 
 ## 7. Outcome of the recommended verification (added later on 2026-11-15)
 
 The recommended controlled runs were taken: see the [plan](M17_G17_S25_P09_CONTROLLED_VERIFICATION_PLAN_20261115.md) and the [results](M17_G17_S25_P09_CONTROLLED_VERIFICATION_RESULTS_20261115.md). All three passed, so P09 passed in 4 of 5 complete runs of record. Sections 1 to 6 above are unchanged and describe the evidence as it stood before those runs.
+
+## Subsequent policy outcome, 2026-11-16
+
+The original variance findings above remain historical evidence. Three controlled runs have since passed, and [P09 qualified PASS](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md) has been approved without discarding f6 or changing the budgets. Separate G17-S25 acceptance is pending.

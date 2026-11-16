@@ -1,10 +1,12 @@
 # M17 Local Policy and Design Decision Register
 
-**Current G17 technical verification (2026-11-14):** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) completed SUCCESS on source `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`. All 47 campaign stages passed and the source-locked ledger reports 72 of 72 technical assertions passing; the three independent S25 assertions are pending. No required tests were skipped. The 45-entry evidence manifest has no missing expected artifacts, although two hidden Playwright last-run metadata files are absent from the downloaded archive. **Technical G17 campaign GREEN; G17 NOT ACCEPTED; independent S25 review pending.** [Current verified technical result](M17_G17_TECHNICAL_VERIFICATION_GREEN_20261114.md).
+**Current G17 decision (2026-11-16):** P09 is **QUALIFIED PASS** based on four of five complete passing runs, preserving the f6 FAIL, the unexplained burst and the approved 10% pooled p95 / 15% paired mean memory limits. Optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final exact-source verification and independent S25-A01/A02/A03 sign-off remain pending.
+
+**Historical G17 technical verification (2026-11-14, superseded):** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) completed SUCCESS on source `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`. All 47 campaign stages passed and the source-locked ledger reports 72 of 72 technical assertions passing; the three independent S25 assertions are pending. No required tests were skipped. The 45-entry evidence manifest has no missing expected artifacts, although two hidden Playwright last-run metadata files are absent from the downloaded archive. **Technical G17 campaign GREEN; G17 NOT ACCEPTED; independent S25 review pending.** [Current verified technical result](M17_G17_TECHNICAL_VERIFICATION_GREEN_20261114.md).
 
 **Historical G17-S25 checkpoint (2026-11-14, prior to hosted remediation):** Local campaign c7 at `085fc666` completed 72 technical witnesses, but independent S25 returned NOT PASS because several passing tests did not fully demonstrate their required behaviors. The source candidate now contains additional retained telemetry witnesses, a dedicated malformed-context export probe, rendered-state browser tests, browser correlation verification, and a stricter non-loopback negative control. **These corrections are not yet source-locked runtime verified. G17 NOT ACCEPTED; acceptance pending.** [Remediation register](M17_G17_S25_REMEDIATION_20261114.md).
 
-**Current gate context:** P01-P09 remain approved for design, not independently verified G17 outcomes. Technical test authoring is complete for 72 assertions, but source-locked runtime verification and S25 independence remain outstanding. [Current G17 recovery](M17_G17_VERIFICATION_RECOVERY_20261113.md).
+**Historical gate context (2026-11-14):** P01-P09 remain approved for design, not independently verified G17 outcomes. Technical test authoring is complete for 72 assertions, but source-locked runtime verification and S25 independence remain outstanding. [Current G17 recovery](M17_G17_VERIFICATION_RECOVERY_20261113.md).
 
 **Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
 
@@ -81,6 +83,10 @@ These are M17-local decisions, not replacements for project-wide D-001 through D
 **Approved design:** Default-off source must not add a measurable dependency on collector availability. For a matched local reference workload under normal load, set a provisional budget of **p95 request-latency increase <= 10%** and **peak process working-set increase <= 15%** relative to telemetry-disabled baseline. Also report absolute values, confidence/variance, environment, sampling rate and source SHA; a small baseline or noisy runner must not be used to manufacture a pass. These remain **provisional engineering acceptance targets**, not established measurements; evaluate the feasibility and statistical validity of these figures against the matched reference workload before G17 and document any adjustment.
 
 **Acceptance evidence:** Three paired repetitions of a documented representative workload, matched warmup/same hardware/same database source; 10-times-burst and exporter outage probes; positive logs and resource samples. Failure requires remediation or explicit policy reconsideration, not silent threshold relaxation.
+
+## P09 decision, 2026-11-16
+
+P09 is a **qualified performance-policy PASS**, not G17 gate acceptance. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). The measurement budgets and method have not changed, f6 remains FAIL, and a separate S25-A02 procedural attestation is pending. The following 2026-11-12 checklist remains its original design-time status snapshot.
 
 ## Decision checklist
 

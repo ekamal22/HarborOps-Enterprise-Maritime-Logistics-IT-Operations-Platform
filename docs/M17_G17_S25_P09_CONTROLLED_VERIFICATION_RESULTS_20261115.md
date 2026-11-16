@@ -1,5 +1,7 @@
 # G17-S25 Controlled P09 Verification Results
 
+**Current G17 decision (2026-11-16):** P09 is **QUALIFIED PASS** based on four of five complete passing runs, preserving the f6 FAIL, the unexplained burst and the approved 10% pooled p95 / 15% paired mean memory limits. Optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final exact-source verification and independent S25-A01/A02/A03 sign-off remain pending.
+
 **Recorded:** 2026-11-15. **Plan:** [controlled verification plan](M17_G17_S25_P09_CONTROLLED_VERIFICATION_PLAN_20261115.md), pre-registered and pushed before any counted run, with Amendment 1. **Gate:** G17 NOT ACCEPTED; independent S25 review pending. Nothing here is a signed review.
 
 ## 1. Result
@@ -160,3 +162,7 @@ node docs/m17-s25-p09-controlled-protocol-20261115/analyze-controlled.mjs <out.j
 1. Whether P09 may be treated as passed for acceptance purposes, given 4 of 5 complete runs of record, the unexplained f6 failure and the thin memory margin. This work records the evidence and does not decide it.
 2. Whether the review should rely on the fixed source (`8d5e2413` and review-branch commit `1374779f`) for any further campaign, since `5b1dcc41` can abort on the Tempo window defect. The f7 campaign remains valid evidence for `5b1dcc41`; the three runs here are complete campaigns for `8d5e2413`.
 3. The independent S25 A01, A02 and A03 and S25-F06 remain open; G17 remains NOT ACCEPTED.
+
+## Policy decision recorded 2026-11-16
+
+The historical f6 failure and all three new PASS results above are unmodified. [P09 qualified PASS](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md) preserves the 10% / 15% measurement limits and the unexplained f6 burst. Optimization is deferred to release readiness or earlier jointly agreed action if frozen-source verification fails. **G17 acceptance is still pending.**

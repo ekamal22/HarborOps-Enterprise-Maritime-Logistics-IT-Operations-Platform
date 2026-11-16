@@ -1,5 +1,7 @@
 # G17-S25 Gap Closure and Repository Test Correctness Audit
 
+**Current G17 decision (2026-11-16):** P09 is **QUALIFIED PASS** based on four of five complete passing runs, preserving the f6 FAIL, the unexplained burst and the approved 10% pooled p95 / 15% paired mean memory limits. Optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final exact-source verification and independent S25-A01/A02/A03 sign-off remain pending.
+
 **Recorded:** 2026-11-14. **Source tested:** `5b1dcc41d5b19dcbacd66de38193dc5020964647`. **Gate:** G17 NOT ACCEPTED; independent S25 review pending. Result record: [local verification result](M17_G17_S25_LOCAL_VERIFICATION_RESULT_20261114.md).
 
 No hosted workflow was used and nothing was pushed. Historical findings, failed attempts and raw evidence are preserved. Closure below means "implemented, adversarially tested and observed in a complete source-locked local run". It is not a reviewer disposition, and no finding is signed off by the contributor who changed the source.

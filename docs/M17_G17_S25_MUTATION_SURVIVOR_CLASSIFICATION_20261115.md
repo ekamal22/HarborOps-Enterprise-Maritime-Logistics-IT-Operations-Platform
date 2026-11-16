@@ -1,5 +1,7 @@
 # G17-S25 Mutation Survivor Classification (Second Pass)
 
+**Current G17 decision (2026-11-16):** P09 is **QUALIFIED PASS** based on four of five complete passing runs, preserving the f6 FAIL, the unexplained burst and the approved 10% pooled p95 / 15% paired mean memory limits. Optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final exact-source verification and independent S25-A01/A02/A03 sign-off remain pending.
+
 **Recorded:** 2026-11-15. **Branch:** `feat/harborops-g17-s25-audit-6439ae`. **Tested campaign source (f7):** `5b1dcc41d5b19dcbacd66de38193dc5020964647`. **Gate:** G17 NOT ACCEPTED; independent S25 review pending (A01, A02 and A03 are not signed by this work).
 
 This document answers the independent review's second open issue: the 69 reported mutation survivors out of 637 mutations. It retrieves the complete per-mutant results, reconciles the denominators of every mutation campaign run on this branch, classifies every surviving mutation individually as equivalent, unreachable, redundant or genuinely material, and records the corrections. Original results are preserved unchanged and are referenced, not rewritten.

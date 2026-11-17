@@ -16,7 +16,7 @@
 
 **Prepared:** 2026-11-12. **Gate:** G17 for M17 observability and service health.
 **State:** Technical Campaign 01 completed on authenticated frozen source: 51/51 stages PASS, 72/72 technical assertions supported and 25/25 scenarios accounted for. G17 accepted for integration and merged; 3 reviewer assertions are accounted for, with separately signed S25-A03/F06 instrument still pending. Historical failure evidence is retained.
-**Entry:** G3 accepted, **M17-P01 through P09 approved as the design baseline on 2026-11-12**, and M17-01 through M17-04 implemented in a source-locked candidate. P02/P04/P09 provisional numerical limits and P05 local alert thresholds must be measured and their final reference values recorded before a G17 recommendation.
+**Historical G17 entry requirements (2026-11-12):** G3 accepted, M17-P01 through P09 approved for design and M17-01 through M17-04 implemented in a source-locked candidate. The previously provisional P02/P04/P09 reference values and P05 alert rules required measured verification before the G17 recommendation. The later Campaign 01 technical result and qualified P09 decision now govern.
 **References:** [architecture](M17_ARCHITECTURE_DESIGN.md), [implementation](M17_IMPLEMENTATION_PLAN.md), [policy proposals](M17_POLICY_PROPOSAL_20261112.md), [runbook](M17_OPERATIONS_RUNBOOK.md).
 
 ## 1. Evidence rules

@@ -68,7 +68,7 @@ The candidate uses a fixed-dimension `harborops.request.duration` histogram and 
 | `harborops.telemetry.dropped` | counter / records | signal kind, bounded reason | Collector/exporter queue instrumentation |
 | `harborops.service.running` | gauge / 0 or 1 | service kind | Last sampled state, not a synthetic uptime assertion |
 
-Metric names are proposed .NET meter names and require exact collector-export mapping and version pinning. Do not assume that OTLP metric names use the same exported Prometheus family spelling. The candidate dashboard uses `harborops_request_duration_seconds_count` and `_bucket`, subject to a required real collector mapping check. M17-01 produces an exact source-to-dashboard mapping with approved units and versions before coding.
+The original .NET meter names and Prometheus export mapping were verified in the source-locked G17 campaign. OTLP and Prometheus names may still differ by protocol conventions, so future source changes must retain exact mapping, unit, version and cardinality checks. The integrated dashboard uses the `harborops_request_duration_seconds_count` and `_bucket` families in its local verified profile.
 
 No raw path, query string, shipment reference, port text, user identifier, email, organization ID, tenant slug, session ID, raw correlation ID, UUID, exception message, SQL query, SQL parameter, connection string, integration token or arbitrary error text is allowed in metric labels. No per-user or per-tenant series. Allowed bounded dimensions require allowlist tests and a recorded maximum series bound with an overflow/unknown bucket. Unknown route keys collapse to a fixed `unmatched` operation family.
 

@@ -1,0 +1,42 @@
+{
+  "id": "M15",
+  "family": "diagnostic verifier",
+  "name": "bom not stripped",
+  "target": "scripts/g17-diagnostic-hash-list.mjs",
+  "source_sha256": "662f9863ea2e27308559e284a66c886013824f4bdc207ed70622b9eaabbd8a77",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-diagnostic-hash-list.test.mjs",
+    "scripts/g17-diagnostic-verifier-strict.test.mjs"
+  ],
+  "mutation": {
+    "from": ".replace(/^﻿/, \"\")",
+    "to": "",
+    "occurrences_in_source": 0
+  },
+  "control_before": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 3,
+    "tests": 29,
+    "pass": 26,
+    "fail": 3,
+    "failing_tests": [
+      "the corrected producer finalises the state before hashing it, and every listed byte matches",
+      "stopping twice leaves a consistent record and never lists the hash list itself",
+      "every kind of tampering or malformed list is rejected on its own"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "|-",
+      "|-",
+      "|-"
+    ],
+    "output": "M15.control-before.out.txt"
+  },
+  "disposition": "PATTERN_NOT_FOUND_OR_AMBIGUOUS"
+}

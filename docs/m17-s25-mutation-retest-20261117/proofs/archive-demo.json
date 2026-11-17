@@ -1,0 +1,320 @@
+{
+  "rows": [
+    {
+      "part": "A honest reader",
+      "case": "intact archive and inventory",
+      "original": {
+        "ok": true,
+        "problems": []
+      },
+      "M03": {
+        "ok": true,
+        "problems": []
+      },
+      "M04": {
+        "ok": true,
+        "problems": []
+      },
+      "M05": {
+        "ok": true,
+        "problems": []
+      }
+    },
+    {
+      "part": "A honest reader",
+      "case": "inventory claims a different size for a file",
+      "original": {
+        "ok": false,
+        "problems": [
+          "entry size differs from the inventory: a.txt",
+          "extracted size differs: a.txt"
+        ]
+      },
+      "M03": {
+        "ok": false,
+        "problems": [
+          "entry size differs from the inventory: a.txt"
+        ]
+      },
+      "M04": {
+        "ok": false,
+        "problems": [
+          "entry size differs from the inventory: a.txt",
+          "extracted size differs: a.txt"
+        ]
+      },
+      "M05": {
+        "ok": false,
+        "problems": [
+          "entry size differs from the inventory: a.txt",
+          "extracted size differs: a.txt"
+        ]
+      }
+    },
+    {
+      "part": "A honest reader",
+      "case": "inventory claims a different hash",
+      "original": {
+        "ok": false,
+        "problems": [
+          "extracted sha256 differs: a.txt"
+        ]
+      },
+      "M03": {
+        "ok": false,
+        "problems": [
+          "extracted sha256 differs: a.txt"
+        ]
+      },
+      "M04": {
+        "ok": false,
+        "problems": [
+          "extracted sha256 differs: a.txt"
+        ]
+      },
+      "M05": {
+        "ok": false,
+        "problems": [
+          "extracted sha256 differs: a.txt"
+        ]
+      }
+    },
+    {
+      "part": "A honest reader",
+      "case": "inventory omits a file the archive holds",
+      "original": {
+        "ok": false,
+        "problems": [
+          "entry not in the inventory: a.txt",
+          "extracted file not in the inventory: a.txt"
+        ]
+      },
+      "M03": {
+        "ok": false,
+        "problems": [
+          "entry not in the inventory: a.txt",
+          "extracted file not in the inventory: a.txt"
+        ]
+      },
+      "M04": {
+        "ok": false,
+        "problems": [
+          "entry not in the inventory: a.txt"
+        ]
+      },
+      "M05": {
+        "ok": false,
+        "problems": [
+          "entry not in the inventory: a.txt",
+          "extracted file not in the inventory: a.txt"
+        ]
+      }
+    },
+    {
+      "part": "A honest reader",
+      "case": "inventory lists a file the archive lacks",
+      "original": {
+        "ok": false,
+        "problems": [
+          "inventory file missing from the archive: ghost.txt",
+          "not extracted: ghost.txt"
+        ]
+      },
+      "M03": {
+        "ok": false,
+        "problems": [
+          "inventory file missing from the archive: ghost.txt",
+          "not extracted: ghost.txt"
+        ]
+      },
+      "M04": {
+        "ok": false,
+        "problems": [
+          "inventory file missing from the archive: ghost.txt",
+          "not extracted: ghost.txt"
+        ]
+      },
+      "M05": {
+        "ok": false,
+        "problems": [
+          "inventory file missing from the archive: ghost.txt",
+          "Cannot read properties of undefined (reading 'bytes')"
+        ]
+      }
+    },
+    {
+      "part": "B misbehaving extraction (simulated)",
+      "case": "extraction extra",
+      "original": {
+        "ok": false,
+        "problems": [
+          "extracted file not in the inventory: planted.txt"
+        ]
+      },
+      "M03": {
+        "ok": false,
+        "problems": [
+          "extracted file not in the inventory: planted.txt"
+        ]
+      },
+      "M04": {
+        "ok": true,
+        "problems": []
+      },
+      "M05": {
+        "ok": false,
+        "problems": [
+          "extracted file not in the inventory: planted.txt"
+        ]
+      }
+    },
+    {
+      "part": "B misbehaving extraction (simulated)",
+      "case": "extraction skip",
+      "original": {
+        "ok": false,
+        "problems": [
+          "not extracted: a.txt"
+        ]
+      },
+      "M03": {
+        "ok": false,
+        "problems": [
+          "not extracted: a.txt"
+        ]
+      },
+      "M04": {
+        "ok": false,
+        "problems": [
+          "not extracted: a.txt"
+        ]
+      },
+      "M05": {
+        "ok": false,
+        "problems": [
+          "Cannot read properties of undefined (reading 'bytes')"
+        ]
+      }
+    },
+    {
+      "part": "B misbehaving extraction (simulated)",
+      "case": "extraction truncate",
+      "original": {
+        "ok": false,
+        "problems": [
+          "extracted size differs: a.txt"
+        ]
+      },
+      "M03": {
+        "ok": false,
+        "problems": [
+          "extracted sha256 differs: a.txt"
+        ]
+      },
+      "M04": {
+        "ok": false,
+        "problems": [
+          "extracted size differs: a.txt"
+        ]
+      },
+      "M05": {
+        "ok": false,
+        "problems": [
+          "extracted size differs: a.txt"
+        ]
+      }
+    }
+  ],
+  "summary": [
+    {
+      "part": "A honest reader",
+      "case": "intact archive and inventory",
+      "verdicts": {
+        "original": true,
+        "M03": true,
+        "M04": true,
+        "M05": true
+      },
+      "verdict_differs_from_original": []
+    },
+    {
+      "part": "A honest reader",
+      "case": "inventory claims a different size for a file",
+      "verdicts": {
+        "original": false,
+        "M03": false,
+        "M04": false,
+        "M05": false
+      },
+      "verdict_differs_from_original": []
+    },
+    {
+      "part": "A honest reader",
+      "case": "inventory claims a different hash",
+      "verdicts": {
+        "original": false,
+        "M03": false,
+        "M04": false,
+        "M05": false
+      },
+      "verdict_differs_from_original": []
+    },
+    {
+      "part": "A honest reader",
+      "case": "inventory omits a file the archive holds",
+      "verdicts": {
+        "original": false,
+        "M03": false,
+        "M04": false,
+        "M05": false
+      },
+      "verdict_differs_from_original": []
+    },
+    {
+      "part": "A honest reader",
+      "case": "inventory lists a file the archive lacks",
+      "verdicts": {
+        "original": false,
+        "M03": false,
+        "M04": false,
+        "M05": false
+      },
+      "verdict_differs_from_original": []
+    },
+    {
+      "part": "B misbehaving extraction (simulated)",
+      "case": "extraction extra",
+      "verdicts": {
+        "original": false,
+        "M03": false,
+        "M04": true,
+        "M05": false
+      },
+      "verdict_differs_from_original": [
+        "M04"
+      ]
+    },
+    {
+      "part": "B misbehaving extraction (simulated)",
+      "case": "extraction skip",
+      "verdicts": {
+        "original": false,
+        "M03": false,
+        "M04": false,
+        "M05": false
+      },
+      "verdict_differs_from_original": []
+    },
+    {
+      "part": "B misbehaving extraction (simulated)",
+      "case": "extraction truncate",
+      "verdicts": {
+        "original": false,
+        "M03": false,
+        "M04": false,
+        "M05": false
+      },
+      "verdict_differs_from_original": []
+    }
+  ]
+}

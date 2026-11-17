@@ -1,0 +1,66 @@
+{
+  "id": "M14b",
+  "family": "diagnostic verifier",
+  "name": "stream names accepted (second position)",
+  "target": "scripts/g17-diagnostic-hash-list.mjs",
+  "source_sha256": "662f9863ea2e27308559e284a66c886013824f4bdc207ed70622b9eaabbd8a77",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-diagnostic-verifier-strict.test.mjs"
+  ],
+  "mutation": {
+    "from": "[^\\\\/:<>\"|?*\\x00-\\x1f\\s]",
+    "to": "[^\\\\/<>\"|?*\\x00-\\x1f\\s]",
+    "occurrences_in_source": 2
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 0,
+    "tests": 17,
+    "pass": 17,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M14b.control-before.out.txt"
+  },
+  "mutated_sha256": "e1bfe3e49b0f2296915c00713aa86160ba7c045838f4725c0290a254c9df3f2e",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 0,
+    "tests": 17,
+    "pass": 16,
+    "fail": 1,
+    "failing_tests": [
+      "names containing a colon anywhere are rejected, whatever the position"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "'ends:'"
+    ],
+    "output": "M14b.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 0,
+    "tests": 17,
+    "pass": 17,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M14b.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "KILLED_CANDIDATE"
+}

@@ -23,6 +23,7 @@ This packet lets a separate reviewer inspect the real source and raw evidence wi
 | Manifest, ledger, run status | `manifest.json` `978ddfb9...`, `g17-technical-assertion-ledger.json` `d936408e...`, `run-status.json` `b33447ad...` (full values in the consolidated result) |
 | Preserved failed attempts | `final-m1-evidence`, `final-m2-evidence`, `final-m3-evidence` and the matching `-run.log` files in the same folder; k1 to k4 in `E:\HarborOps-Verification\g17-final` |
 | Further archives | `g17-m-worker-topup-rehearsal-evidence.zip` `1ffb13b7...` (forced top-up rehearsal and the other worker rehearsals with raw results and traces), `g17-m-mutation-and-control-evidence.zip` `e95a906d...` (mutation JSONL, control logs, real-stack first-failure red and green runs, tooling, derived non-kill status), `g17-m-run-logs.zip` `b679be2e...`, `g17-k1-k3-failed-attempt-evidence.zip` `5b201b53...`; index `cfbd6ed0...` (replaces the earlier value) |
+| Mutation retest archive | `g17-s25-mutation-retest-evidence.zip` SHA-256 `6bd7e1306b1ad707d4b97ff342d5449edd40dc568afb5640fb70186b51cc7616` (188 files, extraction-verified, `.inventory.json` and `.sha256` beside it): reconstruction of the 17 candidates, per-mutant retest records and raw output, adversarial demonstrations, source fingerprints, derived inventories of the supplied archives. Same content is committed in `docs/m17-s25-mutation-retest-20261117/` |
 | Failed-attempt archives | `g17-m1-failed-attempt-evidence.zip` `7a9da5e7...`, `g17-m2-failed-attempt-evidence.zip` `14f428eb...` and **`g17-m3-failed-attempt-evidence.zip` `a92f2a4e...` (the failed P09 campaign at this same source)**, real zips verified by extraction, with `g17-final2-attempt-archive-index.json` (`cfbd6ed0...`) listing all eight archives and the four run logs with hashes |
 | P09 measurements | `m17-performance-raw.json` of m2, m3 (failed) and m4 in their evidence folders |
 | Rehearsals and mutation outputs | `first-failure-*`, `worker-rehearsal-*`, `rehearsal-*`, `mutation\*.jsonl` and the preflight logs in `E:\HarborOps-Verification\g17-final2` |
@@ -68,7 +69,7 @@ Legend: **TECHNICAL PASS** means a source-locked executable witness passed in m4
 | Diagnostic state hash producer | **CORRECTED and VERIFIED prospectively and hardened** (section 6). Historical r1c, r2 and r3 mismatch **preserved, not repaired** |
 | Disposable Docker cleanup (R10) | **FIXED**: exact ownership, cleanup failure is a failure, no subnet left behind; m4 cleanup REMOVED with 0 containers and 0 networks left |
 | Planning documents checker (R12) | **PASS** (231 files). The four earlier failures were a stale checker, not stale documents |
-| Mutation survivors | Earlier 11 non-material survivors unchanged. For the mutation work of this revision, 25 non-kill rows have no killing run recorded under the same name and are **not yet individually classified**; the mechanical list is `survivor-status-derived.md` in the mutation archive (see the consolidated result). Reviewer attention requested |
+| Mutation survivors | Earlier 11 non-material survivors unchanged. The 17 distinct mutants of this revision that had no killing run were retested individually and classified in the [mutation retest record](M17_G17_S25_MUTATION_RETEST_20261117.md): 4 killed on the frozen source, 7 killed after added negative controls on candidate `60576b16` (tests only, not yet through a full campaign), 5 individually justified as redundant or unreachable, 2 open and not retestable without a Windows run (diagnostic producer child exit). Reviewer attention requested for the open pair and for the disclosed residual M04 |
 | GitHub Actions at this source | **NOT RUN, not authorized.** Only local verification exists |
 | Merge to `main`, deployment, release, G18 start | **NOT AUTHORIZED** |
 
@@ -82,15 +83,15 @@ Legend: **TECHNICAL PASS** means a source-locked executable witness passed in m4
 | C# telemetry seeding and classification | 12 mutants | 12 of 12 killed |
 | Readiness check | 9 mutants | 9 of 9 killed |
 | Planning current-state rules | 19 mutants | 19 of 19 killed (two earlier rounds were void because their unmutated control failed and are preserved) |
-| Strict diagnostic verifier | single-fact mutants | 38 killed, **1 survivor (alternate stream names accepted)** and 1 mutant whose pattern was not found; not fully killed |
-| Diagnostic producer | single-fact mutants | 37 killed, **2 survivors** (child exit not awaited, lingering child tolerated) |
-| Docker ownership and cleanup | single-fact mutants | 21 killed, **5 survivors** and 1 pattern not found |
-| Evidence archive | single-fact mutants | 18 killed, **3 survivors** |
-| Witness binding and reconcile binding | single-fact mutants | 12 killed, **4 survivors** |
+| Strict diagnostic verifier | single-fact mutants | 38 killed, 1 survivor (stream name accepted at the first position) and 1 mutant whose pattern referred to code that did not yet exist; both resolved in the retest record (survivor killed by an added test on candidate `60576b16`) |
+| Diagnostic producer | single-fact mutants | 37 killed, **2 survivors** (child exit not awaited, lingering child tolerated); **open**, not retestable on a non-Windows host |
+| Docker ownership and cleanup | single-fact mutants | 21 killed, 5 survivors and 1 pattern not found (a locator aimed at the wrong file); 3 closed by new behavioural controls and 1 by a tightened message assertion, 2 label guards unreachable behind the daemon's exact label filter, and the volume mutant was previously detected only by a source text assertion |
+| Evidence archive | single-fact mutants | 18 killed, 3 survivors classified individually as redundant (2 verdict-equivalent, 1 defence in depth against a misbehaving extractor) |
+| Witness binding and reconcile binding | single-fact mutants | 12 killed, 4 survivors: reconcile binding 2 killed on the frozen source (their tests post-date the mutation round), witness binding 2 killed by new tests on candidate `60576b16` |
 | Manifest and witness changes, worker top-up rules | single-fact mutants | 5 of 5 and 6 of 6 killed |
 | Real-stack first-failure check | old source against the same check | fails, as required; new source passes |
 | Real-stack readiness | stopped PostgreSQL, ten concurrent probes | all 503, maximum 4.51 s |
-| Worker journey | forced top-up rehearsal (requirement 8) | 90 receipts, 8 traced, 8 pairs, 1 top-up batch |
+| Worker journey | forced top-up rehearsal (requirement raised to 8 in a generated copy; reported source `826e096f`, not the final code) | 90 receipts, 8 traced, 8 pairs, 1 top-up batch; supplemental only, not an exact-source witness |
 
 Mutation kills count only assertion-level test failures. Compile errors, infrastructure failures and timeouts were never counted as kills.
 
@@ -110,7 +111,7 @@ The independent review found that `diag-hashes.txt` in r1c, r2 and r3 disagrees 
 3. **Implementer is also the verifier of this packet.** All local verification here was run by the contributor who made the corrections. That is why every row says "pending independent review". The post-run recalculation (manifest, ledger, P09 arithmetic, archive extraction) used fresh processes but the same contributor.
 4. **Local only.** No hosted GitHub Actions run exists for `634053c4`.
 5. **Raw evidence is not in the repository.** It is large and unpublished by design; the manifest and hashes in the repository identify it exactly.
-6. **Worker journey top-up.** The journey tops up receipts until at least 3 are traced. Whether a receipt is traced is a deterministic keyed decision known before any trace is looked up, so the top-up does not select results; the two real trace pair gate is unchanged. m4 needed no top-up (4 traced of 50). The top-up path itself was exercised only by the rehearsal.
+6. **Worker journey top-up.** The journey tops up receipts until at least 3 are traced. Whether a receipt is traced is a deterministic keyed decision known before any trace is looked up, so the top-up does not select results; the two real trace pair gate is unchanged. m4 needed no top-up (4 traced of 50, `top_up_batches` 0), so the final top-up code at `634053c4` was not exercised by any retained run. The forced rehearsal executed a generated, modified copy at an earlier source (`826e096f`) and is not an exact-source witness; it is preserved unchanged. The branch is not mandatory for any technical atomic assertion (the end-of-stage conditions are the same on both paths) and is a reliability measure for the roughly 11 percent of runs in which the first 50 receipts hold fewer than 3 traced journeys. Limitation disclosed for S25-A02, see the [mutation retest record](M17_G17_S25_MUTATION_RETEST_20261117.md).
 7. **Documented limits of R01.** The first sample of any non-5xx series that first appears during traffic is not counted by Prometheus; the denominator design prevents this from suppressing the 5xx alert. Seeding is not claimed to solve every start-up race.
 8. **No benchmark was repeated to obtain a result.** m3 and m4 are both complete campaigns on the same source and both are reported.
 

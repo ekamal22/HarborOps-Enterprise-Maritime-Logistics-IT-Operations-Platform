@@ -1,0 +1,60 @@
+{
+  "id": "M05",
+  "family": "evidence archive",
+  "name": "unextracted files tolerated",
+  "target": "scripts/g17-evidence-archive.mjs",
+  "source_sha256": "59f002ea1bfafc68ca04c7f3709b221989a5d8258d59cef8d65b984c84f8c623",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-evidence-archive.test.mjs"
+  ],
+  "mutation": {
+    "from": "if (!found) problems.push(`not extracted",
+    "to": "if (false) problems.push(`not extracted",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 15,
+    "tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M05.control-before.out.txt"
+  },
+  "mutated_sha256": "e9db48b37d18701acf144854d361a9210886cc0cc6f2675d45dabfc8f4da7277",
+  "mutated_run": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 16,
+    "tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M05.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 15,
+    "tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M05.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "SURVIVED"
+}

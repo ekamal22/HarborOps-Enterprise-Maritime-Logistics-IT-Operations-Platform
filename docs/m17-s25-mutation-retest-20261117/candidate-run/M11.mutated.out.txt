@@ -1,0 +1,114 @@
+TAP version 13
+# Subtest: a finished stack is removed completely, state is captured first, volumes and decoys are untouched
+ok 1 - a finished stack is removed completely, state is captured first, volumes and decoys are untouched
+  ---
+  duration_ms: 3020.861713
+  type: 'test'
+  ...
+# Subtest: a running stack from a failed or interrupted campaign needs -StopRunning, and without it nothing is touched
+ok 2 - a running stack from a failed or interrupted campaign needs -StopRunning, and without it nothing is touched
+  ---
+  duration_ms: 33563.623695
+  type: 'test'
+  ...
+# Subtest: partially initialised stacks are removed: only a network, only containers, and nothing at all
+ok 3 - partially initialised stacks are removed: only a network, only containers, and nothing at all
+  ---
+  duration_ms: 2678.593903
+  type: 'test'
+  ...
+# Subtest: ambiguous ownership removes nothing at all, not even the resources that are clearly owned
+ok 4 - ambiguous ownership removes nothing at all, not even the resources that are clearly owned
+  ---
+  duration_ms: 7387.859508
+  type: 'test'
+  ...
+# Subtest: a network that has another project's container attached is never removed
+ok 5 - a network that has another project's container attached is never removed
+  ---
+  duration_ms: 1509.213092
+  type: 'test'
+  ...
+# Subtest: project names that are not exactly an owned ho-verify-m17-* name are rejected before docker is consulted
+ok 6 - project names that are not exactly an owned ho-verify-m17-* name are rejected before docker is consulted
+  ---
+  duration_ms: 3269.397624
+  type: 'test'
+  ...
+# Subtest: an evidence directory that already exists is refused (never overwrite evidence)
+not ok 7 - an evidence directory that already exists is refused (never overwrite evidence)
+  ---
+  duration_ms: 424.013146
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out-new/work-M11/scripts/g17-docker-ownership.test.mjs:227:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Never overwrite evidence/. Input:
+    
+    '\n' +
+      '\x1B[31;1mNew-Item: \x1B[0m/tmp/claude-0/mut/retest/out-new/work-M11/scripts/cleanup-g17-owned.ps1:16\x1B[0m\n' +
+      '\x1B[31;1m\x1B[0m\x1B[36;1mLine |\x1B[0m\n' +
+      '\x1B[31;1m\x1B[0m\x1B[36;1m\x1B[36;1m  16 | \x1B[0m \x1B[36;1mNew-Item -ItemType Directory -Path $evidencePath\x1B[0m | Out-Null\x1B[0m\n' +
+      '\x1B[31;1m\x1B[0m\x1B[36;1m\x1B[36;1m\x1B[0m\x1B[36;1m\x1B[0m\x1B[36;1m     | \x1B[31;1m ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1B[0m\n' +
+      '\x1B[31;1m\x1B[0m\x1B[36;1m\x1B[36;1m\x1B[0m\x1B[36;1m\x1B[0m\x1B[36;1m\x1B[31;1m\x1B[31;1m\x1B[36;1m     | \x1B[31;1mAn item with the specified name /tmp/g17-own-MgmOkT/evidence already exists.\x1B[0m\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mNew-Item: [0m/tmp/claude-0/mut/retest/out-new/work-M11/scripts/cleanup-g17-owned.ps1:16[0m
+    [31;1m[0m[36;1mLine |[0m
+    [31;1m[0m[36;1m[36;1m  16 | [0m [36;1mNew-Item -ItemType Directory -Path $evidencePath[0m | Out-Null[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m     | [31;1m ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m     | [31;1mAn item with the specified name /tmp/g17-own-MgmOkT/evidence already exists.[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out-new/work-M11/scripts/g17-docker-ownership.test.mjs:233:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a held address range is reported with its holder, and is free again once its network is gone
+ok 8 - a held address range is reported with its holder, and is free again once its network is gone
+  ---
+  duration_ms: 3675.171507
+  type: 'test'
+  ...
+# Subtest: the runner preserves before it removes, removes only through the ownership checks, and never prunes
+ok 9 - the runner preserves before it removes, removes only through the ownership checks, and never prunes
+  ---
+  duration_ms: 1.203413
+  type: 'test'
+  ...
+# Subtest: containers that docker reports as removed but that remain make the cleanup fail instead of reporting success
+ok 10 - containers that docker reports as removed but that remain make the cleanup fail instead of reporting success
+  ---
+  duration_ms: 2105.072146
+  type: 'test'
+  ...
+# Subtest: an address range taken by another network right after the removal fails the cleanup and names the holder
+ok 11 - an address range taken by another network right after the removal fails the cleanup and names the holder
+  ---
+  duration_ms: 3227.174458
+  type: 'test'
+  ...
+# Subtest: a volume that docker created for a container is retained when the container is removed
+ok 12 - a volume that docker created for a container is retained when the container is removed
+  ---
+  duration_ms: 1882.138675
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 11
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 67087.602175

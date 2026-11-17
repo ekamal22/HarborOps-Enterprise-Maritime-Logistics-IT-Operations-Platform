@@ -1,0 +1,943 @@
+{
+  "schema_version": 1,
+  "source_sha": null,
+  "file_count": 187,
+  "total_bytes": 521477,
+  "files": [
+    {
+      "path": "control-logs/baseline-green-1.log",
+      "bytes": 9827,
+      "sha256": "8b72f0abd0b25b26d067116d06281ad9118d05c4c4a906bb1e45d4623963888c"
+    },
+    {
+      "path": "control-logs/control-after-1.log",
+      "bytes": 13495,
+      "sha256": "2cf7428e10605aed80b41dd6023c42ac9496315e5f122b3219b4084e04c69d1e"
+    },
+    {
+      "path": "control-logs/endpoint-green-1.log",
+      "bytes": 11265,
+      "sha256": "df3c45533d32abe42bc2e4a1b0e1af9b06b70714c424683fef6a3a06844b9809"
+    },
+    {
+      "path": "control-logs/promtool-green-1.log",
+      "bytes": 151,
+      "sha256": "2fafbb3e83e0f63d32f882ea6235de5ae26ad13b4778c4ac1a72828a8e7d5f13"
+    },
+    {
+      "path": "control-logs/promtool-green-2.log",
+      "bytes": 151,
+      "sha256": "2fafbb3e83e0f63d32f882ea6235de5ae26ad13b4778c4ac1a72828a8e7d5f13"
+    },
+    {
+      "path": "control-logs/promtool-red-1.log",
+      "bytes": 727,
+      "sha256": "322ab1d481de3964bde8e1a47f73b29a1eb5b4b2a32a5daacdafc90503d26083"
+    },
+    {
+      "path": "control-logs/readiness-control-3.log",
+      "bytes": 4293,
+      "sha256": "1a8fa958f031d03e757e6dadc6cd6e374dc870253530c09b254837460781252d"
+    },
+    {
+      "path": "control-logs/readiness-green-1.log",
+      "bytes": 9535,
+      "sha256": "e958a4fe223da7bff1cb84c69859b5a46c8739aed2a1dd7d7e2e248ff4b981be"
+    },
+    {
+      "path": "control-logs/readiness-green-2.log",
+      "bytes": 4293,
+      "sha256": "5bf7809989fb8c64e62ae98e2d0412e2a9481c09f48e001763d58e452d0a6645"
+    },
+    {
+      "path": "control-logs/readiness-red-1.log",
+      "bytes": 8790,
+      "sha256": "70c589fe6791b83a87bd9d7e59a53f34d8fa86bad56da580c6cace2ebf27f715"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/api-9a24720550d3.state.json",
+      "bytes": 219,
+      "sha256": "d3147849be05610e68f3a3900181d11d66a272711d11927be7b532cb82be7153"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/dashboard_gateway-9da114b23116.state.json",
+      "bytes": 219,
+      "sha256": "ba5ec4a4a6c4704c83904ebb432f856130256397ae0f3cd5f48939d2c1b0cf2f"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/grafana-45d3955fd9b5.state.json",
+      "bytes": 219,
+      "sha256": "aabe40c10119e2301fee0f8bbe4d4d2ac82659a797bc8abd73da16cd8ea72f0b"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/migrator-0aae7f0ae246.state.json",
+      "bytes": 225,
+      "sha256": "957233276e9d9fcfdfecd0e84c4bed1a8ef24b189959b861a135e3c6b1a026e2"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/otelcol-340fb1071aa6.state.json",
+      "bytes": 219,
+      "sha256": "7cac060ce8b813ac921968ebe21c91fb303e63b7090bd781ccdc4b39f7c58fdf"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3725,
+      "sha256": "73dc9302876b82e1cef1cef7b0130ae8f90c52b009df0b97031b4d6a890f2e0b"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/postgres-f193cd2b7053.state.json",
+      "bytes": 1056,
+      "sha256": "a813e8f9b9e264783528a4ebf1aff3ac6e2e50b4a39e50f78c38434947641ca5"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/prometheus-430184cb6420.state.json",
+      "bytes": 218,
+      "sha256": "2bb48b9f09d5640fd6441c1b6458d835b5b6a104d1b9431ea731f236b36d6aa8"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/tempo-f3fe1200152a.state.json",
+      "bytes": 219,
+      "sha256": "1b8c4c36e34692144130d6329b77f9e9e1a4e031a774d9b3575166bc5c93989e"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-cleanup-state/web-5ac1339d26bf.state.json",
+      "bytes": 219,
+      "sha256": "39191aee75e30baac3505556147996aea7a86e1fb6c488a00152c7155c243b7b"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-cleanup/m17-owned-cleanup.json",
+      "bytes": 527,
+      "sha256": "80c34a30c84c480543a84ccd394dbc222598fce9088d6b764b5504d3a8ad5b18"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1-evidence/m17-first-failure-results.json",
+      "bytes": 2378,
+      "sha256": "339fa3c90bd71d6766e695b3fdd728a4350e086dd93b99d67a0ec731c890c119"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green1.log",
+      "bytes": 30785,
+      "sha256": "0a50fbb916c4e314e0490bac59cd8c63336b679ff6ba253ed4c46662fcf0ed10"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/api-148d6403be16.state.json",
+      "bytes": 219,
+      "sha256": "ff7f37aa20b8a5be96366ed97fe1590ddb450ff267f28474051aaa737e270989"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/dashboard_gateway-6bb8974220cb.state.json",
+      "bytes": 219,
+      "sha256": "cab2503267aad3db738443bfb025b53fd36c5ceaa4622c31240bc3634dee8c63"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/grafana-5817f40c6981.state.json",
+      "bytes": 219,
+      "sha256": "421df2903d9a6c21f4ecf9df02aa5df620e7ea0693d9acf47eedfea6bdea827c"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/migrator-096a48e499d9.state.json",
+      "bytes": 225,
+      "sha256": "c092703990b120a8b606b0f3aa2d8311b727b5db4ddcfa1ca05b91b51496339f"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/otelcol-bbf51800d00e.state.json",
+      "bytes": 219,
+      "sha256": "a77b29aac5c8a48afc38e04f747787f7f24ec64e7e672f9fc791ee9d598ebbc9"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3725,
+      "sha256": "3c7ebaa68720370811e46ab1b2cface0ed96eee05ebafcee2c7c4f6d4e952bd4"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/postgres-5d908511785d.state.json",
+      "bytes": 1069,
+      "sha256": "63fae536080c38066924d335fa44e45760c0f41fc9e8a2d4acb192545a1485c4"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/prometheus-30f124f35197.state.json",
+      "bytes": 219,
+      "sha256": "a42e66f2f878d8f46bc4cc682937a40d42146f46b206d932e196d7ee2edd4bd9"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/tempo-c858679cb41e.state.json",
+      "bytes": 219,
+      "sha256": "155afd6ca901221fde874980d35707dc924f9d0ccd49e83d4b7046f7f3b38046"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-cleanup-state/web-9bb150a62f54.state.json",
+      "bytes": 219,
+      "sha256": "17cf61374c799deb9570b54416018adf07c3774ce92b2857e5f18d24bba2d915"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-cleanup/m17-owned-cleanup.json",
+      "bytes": 527,
+      "sha256": "a66d3466ca7187d457758518766ec65bca50c4f9c836daa466ad9169c514253b"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2-evidence/m17-first-failure-results.json",
+      "bytes": 2600,
+      "sha256": "2be8976637589145ec5bde7d6117b5f76701ed00ef5a929a94f9192a580164b4"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green2.log",
+      "bytes": 18474,
+      "sha256": "fbba8266cd69ac48566ddbeaf4e0a54febdfa32567962e837e3bcca7378101f8"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/api-305980ac3d51.state.json",
+      "bytes": 219,
+      "sha256": "b9b1eab569313978c747e58b6f1ae5732c8b72e8964da136116aec8c6c4e5971"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/dashboard_gateway-6d8ef6401856.state.json",
+      "bytes": 219,
+      "sha256": "835e314005151bd5a87b90fedc0456e246cf32525d6070c4a5acb24e8913efd2"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/grafana-3c2743f44236.state.json",
+      "bytes": 219,
+      "sha256": "145decb75ebf7fd03c174a50ef2dc44c3c1cc5453d8e92206d191623345a7be9"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/migrator-c76dae865988.state.json",
+      "bytes": 223,
+      "sha256": "3af66bc6a00747640c628765a310f747ec1f40c632abd89633dab8fa5ece9fff"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/otelcol-fc525bad665a.state.json",
+      "bytes": 218,
+      "sha256": "9792f9c2796ea1e7754d0869bb71c2f0dd6223b386a570bbea55ce8f666ac333"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3725,
+      "sha256": "a904fba197d74ab2918f44c2f97a2a8b42b32df25a39fae03a406a8a35a199a7"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/postgres-12346a1fa21a.state.json",
+      "bytes": 1070,
+      "sha256": "a316c67418b9c157382ca29ab4260e8f5e69e971614a28d83da099babf4b3d33"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/prometheus-2fcb07f3929b.state.json",
+      "bytes": 219,
+      "sha256": "c7b573a826fc0dda42dc519e13cbbaf91fec934ed64b72aa8d726c9883cc53ab"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/tempo-faa103becd78.state.json",
+      "bytes": 219,
+      "sha256": "bcc4e4a9bbefe8b0fa210c183caa7613592490fbde4fcb8c9bb3f2f820545374"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-cleanup-state/web-c39aa2cc05f3.state.json",
+      "bytes": 219,
+      "sha256": "cfb96ef24b27faf49c94ba127000e2ce2b1309242e64e21efb2faaf069ba79fc"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-cleanup/m17-owned-cleanup.json",
+      "bytes": 527,
+      "sha256": "263610b491796fe7d83d6edc0fe7a8c43db168e9347e9d723d9366eeaca15830"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3-evidence/m17-first-failure-results.json",
+      "bytes": 3653,
+      "sha256": "f916f5cce6f18efaa9ef910c9f1eb3a08179ffe4dfefe5f85382e2676c264942"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green3.log",
+      "bytes": 18496,
+      "sha256": "09cc9f62c0a115179b38d70cd365c40eed3f5bfb2053d0f1d5f0394fda10b744"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/api-1ace135618ea.state.json",
+      "bytes": 219,
+      "sha256": "897b9a03103fd30c3c0dc93cf93f2929e10d403dc58f45b78d3fd9f0014841ae"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/dashboard_gateway-456e5bf4c191.state.json",
+      "bytes": 219,
+      "sha256": "666c87e9bc096c22d9d292290109b69ef8762caa2b630c25b2244308df650d18"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/grafana-0faaa1479a89.state.json",
+      "bytes": 219,
+      "sha256": "678f7eced5d446e07b1a095a638733640be70511a943fd8791990b28d46a89ce"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/migrator-a7800e11e6d4.state.json",
+      "bytes": 225,
+      "sha256": "4a32781d8c15946812c1274cb281b02e4a66a1766a1f03c7c36c3602484b7fb4"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/otelcol-b6e175071885.state.json",
+      "bytes": 218,
+      "sha256": "feaa1e54cf4f0b7e1a876571d4aaf1b9b2882fd25ba0cfdfde0cb6830f62f195"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3725,
+      "sha256": "9bf54a4507a8a66a024506a92d860bcd46f11a4fec146d1c192b3c9668d12055"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/postgres-ed3dc1df7808.state.json",
+      "bytes": 1070,
+      "sha256": "4421c5ef20372574aae96882ef271a2c6bde9b2baeb90958976d804b05d0202b"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/prometheus-c78dfebece84.state.json",
+      "bytes": 219,
+      "sha256": "4d3dcfe5e0c54b54d1ab4d8fecfd1756a857e785f607adb1b42f7b8a8f800060"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/tempo-7dd2ec947f97.state.json",
+      "bytes": 218,
+      "sha256": "944be6318a37bfea8d08b83bb8f78e948ee21ed8e16e2e5e47822988bb662312"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-cleanup-state/web-963329a5b470.state.json",
+      "bytes": 219,
+      "sha256": "68f268a9ae9dabec0fc28327d3b0062d03e8298242b8995483e3effaaff1ffc9"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-cleanup/m17-owned-cleanup.json",
+      "bytes": 527,
+      "sha256": "206ee68c1f829db5897e5a473dac6c47fb9ef6ec4bf10cde89b0bdb577f07803"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4-evidence/m17-first-failure-results.json",
+      "bytes": 4128,
+      "sha256": "c91d5f3a92682c54f59a18dd592006e692107c34df2fca386d6f1cc47ab3cd88"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green4.log",
+      "bytes": 18963,
+      "sha256": "f57ee771fe11d0ba5f524abdc7497ad0fa1ed58b6ac615018ae64114fd95950b"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/api-23c09d634c5f.state.json",
+      "bytes": 219,
+      "sha256": "a4fba1aa99186ab9058619ee92a1b472b01c1e123f4b530962b549c6ea801d28"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/dashboard_gateway-f63fdcbdd64a.state.json",
+      "bytes": 219,
+      "sha256": "233bb4177ec5fc476d4fe7b5c8badc23025bbbe71402dac9eccf0ba31811f61a"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/grafana-659bdebafa94.state.json",
+      "bytes": 219,
+      "sha256": "dd0487cfb6cbb7e55272c2109c8c790d10a0ee5c55d165ff27092cbac679d218"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/migrator-55750fc61ab9.state.json",
+      "bytes": 224,
+      "sha256": "2e683327400ef866045f902d99c6f7b6110d97efc02c5b933c46bac988c10f6a"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/otelcol-527d69f292dc.state.json",
+      "bytes": 219,
+      "sha256": "7c8578691d7438cf9f36cafe74ee0a2190f646aa7607dfa2a428ff399e70f7ec"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3725,
+      "sha256": "fd13b9455f902998f9ed056003a82762d4b61d607d5c3858e2e3149363f909db"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/postgres-5da5ae4bc21b.state.json",
+      "bytes": 1068,
+      "sha256": "47a9eacb37b647f4f5650e776b00de140e6c70a453301c2a4d35e7c8e647266d"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/prometheus-b7a6668f94f8.state.json",
+      "bytes": 219,
+      "sha256": "cefa1a7d88cf8c6e035751eb3495df79b12b85e85f63123cb4cba5a10cc48268"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/tempo-c474fb235950.state.json",
+      "bytes": 219,
+      "sha256": "7627fcf47907ab920f1fafd4055cb816ef91800fec075da0a66630dd888bca77"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-cleanup-state/web-64870cba9826.state.json",
+      "bytes": 219,
+      "sha256": "f216d30330ee87381e3b6504a740270df617ae0210451272036c5ff8fe505d30"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-cleanup/m17-owned-cleanup.json",
+      "bytes": 527,
+      "sha256": "db5a34100ef24830797b58a057e1521d632e7e927432e867f06671335b4e9496"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5-evidence/m17-first-failure-results.json",
+      "bytes": 4345,
+      "sha256": "ed237b4c59eaa5170537edc6811dd0d786cf13b18eb99a7cea3b693975b00b28"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green5.log",
+      "bytes": 20165,
+      "sha256": "30817a3064c36eb4cf808d84ee435a74dd4422930285d1275f0128a1625b3043"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/api-7288ae19b7aa.state.json",
+      "bytes": 219,
+      "sha256": "75a620c619edb3c07b68adf5d3869fbf17d59669bc6ccb5ed858568d3492468a"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/dashboard_gateway-2343d62884a4.state.json",
+      "bytes": 219,
+      "sha256": "eb666226ae734b17b3bf7db501337fe0c8537e319d95a97adf4c606cf085ccaa"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/grafana-63772b44afea.state.json",
+      "bytes": 219,
+      "sha256": "6ff3adf4eb79ee5adb6db24e7cc9950bd675872312a3428431f56d393da1a0cb"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/migrator-9e0f9de74f33.state.json",
+      "bytes": 225,
+      "sha256": "3bbe11a08bc9eae4912083b19c41095bcbe84c0d49b3ac64356dfca15d8b2cee"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/otelcol-bb4f995c6714.state.json",
+      "bytes": 219,
+      "sha256": "50d51e27b9c7ff0fb4e36ab7c4948b1cf2404c348599b31e03e4bf4dc3493afc"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3725,
+      "sha256": "ce2bddc2a13dc1556edde71289f12436c2e67d636d45e10f06542db5551759d0"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/postgres-0f50d9730a92.state.json",
+      "bytes": 1069,
+      "sha256": "21e20f5a846c30132569f2836e41a20ddeb4bb5a66b1b3fc62c7ccf1ea9adae9"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/prometheus-f9655b3209cc.state.json",
+      "bytes": 219,
+      "sha256": "124cf72749ad02f29fb60e365d6e06652086b276cd06f1b4708769b4c622131e"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/tempo-6d995599f673.state.json",
+      "bytes": 219,
+      "sha256": "f970163c89f6e33d6228f886c42801ed6f24be5d271a01fefab023ea90db28f0"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-cleanup-state/web-3652b9b7127c.state.json",
+      "bytes": 219,
+      "sha256": "aad756ff8160b579cd5872a0eeb1ebf32f0e95d228d64e3fcc5e82af9ee929df"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-cleanup/m17-owned-cleanup.json",
+      "bytes": 527,
+      "sha256": "c2a95769caef672cd39c35220a128fe6cd52dcd92781b721f4e7f473ebf73f85"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6-evidence/m17-first-failure-results.json",
+      "bytes": 4901,
+      "sha256": "933ea90082f6b9a2dedb8985df683c662b1f8510982dad25a0fd37d5551d31a2"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-green6.log",
+      "bytes": 17726,
+      "sha256": "152af518e58a825df0a89e0c2669db50f4dd3ec79366eea511675757f317b632"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/api-93e5e86bd998.state.json",
+      "bytes": 218,
+      "sha256": "6b5a8fd34522f78c54dbba9555a1436981dd59ab8eb7ea70be8727c350d31112"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/dashboard_gateway-6aac03688245.state.json",
+      "bytes": 217,
+      "sha256": "739408fde482802ea13cdc701ac9538f8d45ef020579af781536bded86db2049"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/grafana-589f0da849d4.state.json",
+      "bytes": 218,
+      "sha256": "a453206656b1e2ecd939ebda490814686b01080c7057c91d4458a0cf5e02faee"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/migrator-85d6b738ee72.state.json",
+      "bytes": 225,
+      "sha256": "28de4aae7e69f19c6ca03c0c036c25e801c57f2c48c380216155414aaaeff662"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/otelcol-e08e3dd3460e.state.json",
+      "bytes": 217,
+      "sha256": "61b40ca99c2e4aaaa402ea8795a08a968dbdcc1dcfdd28fa724e26add8cb0398"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3691,
+      "sha256": "4462222202dbe36a8bfc4f11e98e9f419fb4ebc29edc9ab9bdeb7cfd2956f60d"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/postgres-359e472ca480.state.json",
+      "bytes": 1057,
+      "sha256": "9bf1c178dfb352421cc8e4d814c692a29b12e2e82b155c33ae92273b38802bb1"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/prometheus-1a67ca393145.state.json",
+      "bytes": 218,
+      "sha256": "96fa1048f18ff61ead49e8c3c935ffd3ccefffcf260fd8a5634e62ff69f97df3"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/tempo-d1898f0769f1.state.json",
+      "bytes": 218,
+      "sha256": "9af708f5369575fc9ccd3bfddbdc2d94808d01185e626f3d8adcd75babf4b5e9"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-cleanup-state/web-c8f35d4353c6.state.json",
+      "bytes": 217,
+      "sha256": "059eae7c4c67eaadbb6b1e80929abf1ea7d052b4fb547e4d084a869ff026f148"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-cleanup/m17-owned-cleanup.json",
+      "bytes": 525,
+      "sha256": "6bce2c06568308491a71afee3cc6c02e91c45c0757ea2424cd388f9905ab96f8"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1-evidence/m17-first-failure-results.json",
+      "bytes": 1299,
+      "sha256": "72fd4fe803802bbea79b38a7838967f64245f6f020571d696eb4d773fd97eec3"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red1.log",
+      "bytes": 33155,
+      "sha256": "b21bdc82be37126336e14a0ecb27786fd2996d7e45eb41abec3c93be968b2764"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/api-75ad71de9a1a.state.json",
+      "bytes": 218,
+      "sha256": "2999df43074951d5b9abbf6eb31453380043ebc004132a72916a3f73e3a20d44"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/dashboard_gateway-27c36e5add5a.state.json",
+      "bytes": 218,
+      "sha256": "78ad71d340394d4eb5606f55c4da4be58b00bce3c079dc8c5f4de8928b74301d"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/grafana-22fc7bbd66b3.state.json",
+      "bytes": 218,
+      "sha256": "c886cce9fda1dc0e5a41a71ec67f3de56927d4d4e86f175db2ec98089627b681"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/migrator-92cbc2633f1e.state.json",
+      "bytes": 225,
+      "sha256": "299f440d471583a119178d94c1a426136c25eefb35515f0985741911eb7651f7"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/otelcol-4b7220b9d9ec.state.json",
+      "bytes": 218,
+      "sha256": "929d914ec412f1d72155d357ba8e638fa35f0ec51f7b82a7cef094ab573c217f"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3691,
+      "sha256": "5baac4d62828f703e1f2e936b89f1f797c16dade65aeb483e6cc4fe4af030db1"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/postgres-09304d09289d.state.json",
+      "bytes": 1057,
+      "sha256": "94d9c8faabffb7b20a671781250b208a0dae18a08b5e4b961496e00bd15d2478"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/prometheus-bf9062bb0a6c.state.json",
+      "bytes": 218,
+      "sha256": "ee0143b9e8105724270f55b4aaab96fd39fb62a10878fedde16c967e766f696c"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/tempo-92b0f14d98f3.state.json",
+      "bytes": 218,
+      "sha256": "8c7179287451e1070385dbf724efe3a8b7f310e5f894fc33bd3dbbb6f55d1386"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-cleanup-state/web-0a65b1cf6f38.state.json",
+      "bytes": 218,
+      "sha256": "3200d6d657fde9f93af57ab50cb490d6c37eab0b2b39f3f9b54c0196eb8ea5ea"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-cleanup/m17-owned-cleanup.json",
+      "bytes": 525,
+      "sha256": "81db9508ebcfca1ba7b30f4059c9e750465df42e4cc908bbcfdce5b10398befd"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2-evidence/m17-first-failure-results.json",
+      "bytes": 1898,
+      "sha256": "96f641e39079cbce60ec0be81650283c0564318913ac1aa39d222ae5241932b9"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red2.log",
+      "bytes": 19547,
+      "sha256": "068f6b7c95c65186ed3a77498dda9a4febf5cc123d054a92b461a5ef4027c3c7"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/api-ea31e3ce94f9.state.json",
+      "bytes": 218,
+      "sha256": "907dec03e035ede22692d722da692cdc9e01e3cffd86364ca38b663f4805f707"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/dashboard_gateway-44cea3c97c03.state.json",
+      "bytes": 218,
+      "sha256": "14e8d4e502281ea0138e8b688d12bab022a47d7e00414d2e332f4b55118ddf4b"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/grafana-283920b5ad7d.state.json",
+      "bytes": 218,
+      "sha256": "8e3ab494c79527b12a6b85abe93f0311a2223a93928683cbeb660bd446c7c349"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/migrator-6d5b6939c43e.state.json",
+      "bytes": 225,
+      "sha256": "83a98d8f260fc1f9c3cd395d7f9f3fe73a2ff82a8705efc559e4738fc2cf21fe"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/otelcol-1f70050f2e54.state.json",
+      "bytes": 218,
+      "sha256": "178053deeb6c03ff0a0d6a365015727e3a6a583952b6403e5f70e3cfaa65e8f3"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3691,
+      "sha256": "1e57aeeed4ed23d79c7d060e6bd96a60a29339d6baa0035c6e88d421e6d0c563"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/postgres-c0737de25e26.state.json",
+      "bytes": 1058,
+      "sha256": "7eaead3044e496c6173dbcab10975628fce130dc44810346f08c027a1bdd673d"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/prometheus-c5385395e4c8.state.json",
+      "bytes": 218,
+      "sha256": "0a7b0e465a707541b040896ab623586be2911643a3ef522a18f044eb84d92ecc"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/tempo-8b80e1b00fa0.state.json",
+      "bytes": 218,
+      "sha256": "5a59d2aec47ab458464cdc8e006dbec658d506b57e64519f4a406fbe95d13d54"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-cleanup-state/web-46f7a4a31a0d.state.json",
+      "bytes": 218,
+      "sha256": "c563bc63c84d4927e09b61e2c9ee11353a3a13b781d8d9a422a1dcd5919ee325"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-cleanup/m17-owned-cleanup.json",
+      "bytes": 525,
+      "sha256": "c17503bea6ff7cc23ac1d676a2c1facdeb1c8f46cfbcd2ca4f037e8350f75a7e"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3-evidence/m17-first-failure-results.json",
+      "bytes": 1496,
+      "sha256": "af1bb416f4eed9681a932c6d2b6b3b8f11ffc13215a9446eb229f3f927a6e137"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red3.log",
+      "bytes": 19936,
+      "sha256": "afed0b3398d410c6977c3aa33a618e91e0babeb65a3853e79a2bbeacd281353f"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/api-bedf1ed200c2.state.json",
+      "bytes": 219,
+      "sha256": "114212efdbcb5804754a003b3cb6b7e76843b205cc1204511a2ff9a28b06b9af"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/dashboard_gateway-4baac3f5e5ff.state.json",
+      "bytes": 218,
+      "sha256": "8978a3c0e0f9ccc955f323b2e8f302c5feeac3ebb047665a7238ef862c75093e"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/grafana-8174d576be72.state.json",
+      "bytes": 219,
+      "sha256": "a0c145e0a9474ff25e78d06c86c8e7a6119b7a5227496e8b7fb3d4e121b27334"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/migrator-03c64f52347f.state.json",
+      "bytes": 225,
+      "sha256": "1b4d07c65a4f519686884942ebac1d63b36377bbd85bd364e33cc2a1ca4c00d8"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/otelcol-1d33f706f2d9.state.json",
+      "bytes": 218,
+      "sha256": "850b8b467c122e677e9d3028476fb73666664d11428390e5c2a01b58bd0ff06d"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/owned-inventory.json",
+      "bytes": 3691,
+      "sha256": "c782b9eacd3df4b5c71732349d1aeba2b4142a81cb014cc0a0707788841f2589"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/postgres-178f47216526.state.json",
+      "bytes": 1059,
+      "sha256": "ec94f405249880532f704a9a5987106dba5f3b4c2140309a68bcb28c71a07def"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/prometheus-9b2e5d4aea6a.state.json",
+      "bytes": 219,
+      "sha256": "00906afd942ade22b7a0fb9d1239ffeed78259d69a190cd5ae3b7fc90cb33631"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/tempo-6e754863aada.state.json",
+      "bytes": 219,
+      "sha256": "1532a7b23be137617850bb4fd0b9b998939c2daaa4c7b22ba2e593a6976dc44a"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-cleanup-state/web-d6508e32c016.state.json",
+      "bytes": 219,
+      "sha256": "0b4a5797fb6ab6313cce43af2eb54435b6e5ebb9b76ddadeb68fcab55e432ba7"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-cleanup/m17-owned-cleanup.json",
+      "bytes": 525,
+      "sha256": "3d0f9f6f428889f30eabb8a863306d27cb6eab90b299848b0f36bee0f2187fd9"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4-evidence/m17-first-failure-results.json",
+      "bytes": 1967,
+      "sha256": "b08e678f25a49411858164daffeb5bea01a789573958837dae0d7029d58eebfe"
+    },
+    {
+      "path": "first-failure-real-stack-controls/first-failure-red4.log",
+      "bytes": 18707,
+      "sha256": "4c3c653dc2d75ffb28d0cc05ac62ee4b12fcc2c9099a1f584cfec4c6049e1991"
+    },
+    {
+      "path": "mutation-tooling/mut-alerts.config.mjs",
+      "bytes": 4716,
+      "sha256": "2051a2e729dcc2bb98dd4fb4f0c9f3a9874d93b63e9425c1bff5ac90adea1259"
+    },
+    {
+      "path": "mutation-tooling/mut-contract.config.mjs",
+      "bytes": 2553,
+      "sha256": "e08d4e3c32c7cd467db9ab8a44b19ffbfa2ec9cdcb60f2a857c42369851106dc"
+    },
+    {
+      "path": "mutation-tooling/mut-contract2.config.mjs",
+      "bytes": 1093,
+      "sha256": "51eb14e9f0b184cf6af4db80042419a967ea7691e96a9145d715f09f5b14fd82"
+    },
+    {
+      "path": "mutation-tooling/mut-ownership.config.mjs",
+      "bytes": 5067,
+      "sha256": "2cc5e4a5a560089098c34845ce0257b8ce364a3d161e7294445ae394f0c570e9"
+    },
+    {
+      "path": "mutation-tooling/mut-ownership2.config.mjs",
+      "bytes": 863,
+      "sha256": "e2ab9af1738f41389dfe5a076d53388cae7180262f524dd4b73330237e929efd"
+    },
+    {
+      "path": "mutation-tooling/mut-ownership3.config.mjs",
+      "bytes": 437,
+      "sha256": "0832f3b2f4420f96b1163e0e3fa4afce580d27041be1496beb7b45f67caafa25"
+    },
+    {
+      "path": "mutation-tooling/mut-producer.config.mjs",
+      "bytes": 7665,
+      "sha256": "16d90d710452dd45a6daec87b09a683fe68df7adb5ae697c04ed9ae0406a2b40"
+    },
+    {
+      "path": "mutation-tooling/mut-producer2.config.mjs",
+      "bytes": 585,
+      "sha256": "bba6a523b1a56f872aa6ecfea8eededd0140f1039cd99f67a25e6e5d8b9e2a5e"
+    },
+    {
+      "path": "mutation-tooling/mut-small.config.mjs",
+      "bytes": 13676,
+      "sha256": "adf1cc857a4eebdab1b36e1d47f0096239548124e11fabc5f57ea868642e40a1"
+    },
+    {
+      "path": "mutation-tooling/mut-verifier.config.mjs",
+      "bytes": 4972,
+      "sha256": "d11c6cc8568ac353c42e89fd8e52fe8a6ebef42b34e765f34aae00cfd53f0cb8"
+    },
+    {
+      "path": "mutation-tooling/mut-verifier2.config.mjs",
+      "bytes": 883,
+      "sha256": "e33669858ce51584e66ed835aa1b887ba34b580cfffe703105c4ab3c69718ca7"
+    },
+    {
+      "path": "mutation-tooling/mutate-dotnet.mjs",
+      "bytes": 6513,
+      "sha256": "48e7bef202ea56e71f469393d77688cd44824ab20db8ef2dda88018aca6c9d44"
+    },
+    {
+      "path": "mutation-tooling/mutate-hashlist.mjs",
+      "bytes": 3853,
+      "sha256": "a11cd2c7d18dccf4933bdcf30142f9b9f350a9da134f40c86429523b0bfeb7ba"
+    },
+    {
+      "path": "mutation-tooling/mutate.mjs",
+      "bytes": 4280,
+      "sha256": "33ec9e97155f97c4da904c9b16536bb6ab7cc183129821fc1ce8091e1c33dc3e"
+    },
+    {
+      "path": "mutation/alerts-1.jsonl",
+      "bytes": 2107,
+      "sha256": "4b5456047b6d50b6b8cb7e27cbeafb1a75ee40c89b00f78b58caad02c19827d6"
+    },
+    {
+      "path": "mutation/alerts-2.jsonl",
+      "bytes": 2086,
+      "sha256": "9b7d8909a81bde9f209199899341a7da99c473d5a7c43cf50fde6d92124d946c"
+    },
+    {
+      "path": "mutation/contract-manifest-1.jsonl",
+      "bytes": 668,
+      "sha256": "0b44a7616f00f02329aa16935942a2db0d97d02ecd6a6a93c9a53dcc28be989f"
+    },
+    {
+      "path": "mutation/contract-raw-witness-1.jsonl",
+      "bytes": 294,
+      "sha256": "a95fdc9f4e264cca71d89d4e4a4e85bf13c7147869f00eda43f235a3021b18dc"
+    },
+    {
+      "path": "mutation/contract-raw-witness-2.jsonl",
+      "bytes": 291,
+      "sha256": "c3f3f88f6cbf889bb5a40e98289e7fe41538f2da6df88b8474efcf8e8df25a44"
+    },
+    {
+      "path": "mutation/contract-reconcile-1.jsonl",
+      "bytes": 427,
+      "sha256": "1c343c3602bb02d2eb22d1ec3f94ffa38c5ed96203ea567bb0c7963198ddb875"
+    },
+    {
+      "path": "mutation/contract-reconcile-2.jsonl",
+      "bytes": 381,
+      "sha256": "b48e8c3ed5bc7a586ca9a37da0b0000640502c928afb70a99018538f53961745"
+    },
+    {
+      "path": "mutation/dotnet-1.jsonl",
+      "bytes": 4838,
+      "sha256": "75097c48c18b856c791afe3dbe4977771c6988fcab362138835f0b9750fd6370"
+    },
+    {
+      "path": "mutation/dotnet-1.out",
+      "bytes": 1138,
+      "sha256": "ea8c75a86d1c1636de2a08bfe0a4aa0a84b321a7ac74fcc5e635aeef315adc10"
+    },
+    {
+      "path": "mutation/dotnet-2.jsonl",
+      "bytes": 797,
+      "sha256": "3bc26c85bfd7d4dbda4308bfddfd4528a55e7661c353aff5d20635175271c3a8"
+    },
+    {
+      "path": "mutation/dotnet-2.out",
+      "bytes": 453,
+      "sha256": "cf2a77652cf54eb7b678c32373a3490175d958d67ba110d27c0d89291c40aa17"
+    },
+    {
+      "path": "mutation/dotnet-3.jsonl",
+      "bytes": 793,
+      "sha256": "31f5fd2cdcc9ffb783543259cace47a57224b6410f8184334d546d93b3c7973e"
+    },
+    {
+      "path": "mutation/dotnet-3.out",
+      "bytes": 449,
+      "sha256": "cf2284f40e07e75fd838091c758d45f4e8461a06ebfe52a37c7410647a21c555"
+    },
+    {
+      "path": "mutation/dotnet-run.log",
+      "bytes": 15190,
+      "sha256": "a7554793db9fded7ec4835a24cab835f85f191451ce2442703da69a14e2c9e17"
+    },
+    {
+      "path": "mutation/evidence-archive-1.jsonl",
+      "bytes": 2063,
+      "sha256": "962f12778d9c64128e336bf8c3e3c6fd077eeab75dfc71e20f92ad937004cebe"
+    },
+    {
+      "path": "mutation/evidence-archive-2.jsonl",
+      "bytes": 2057,
+      "sha256": "a0c29530542dc2b020e184b1ff8519b44f2eba76381f66248d89968d349b975f"
+    },
+    {
+      "path": "mutation/first-failure-evidence-1.jsonl",
+      "bytes": 3441,
+      "sha256": "ec715464c23600b692eca7cd9d3220d8bfc65c64c29d26e138b207222d5dd8f8"
+    },
+    {
+      "path": "mutation/first-failure-evidence-2.jsonl",
+      "bytes": 3437,
+      "sha256": "6caa418f9b90bc970ba3f52beb2acb2d23bcc637a425248e4f8615c4f3df1e9e"
+    },
+    {
+      "path": "mutation/ownership-1.jsonl",
+      "bytes": 2464,
+      "sha256": "720f33a279f55d3716d9409c4e66665356af9a88a3112fe13b4910b7bf0419e6"
+    },
+    {
+      "path": "mutation/ownership-1.out",
+      "bytes": 1207,
+      "sha256": "bb86c66cdcb4a15943ab07ef8e396584d9217c1fd9eca1c2db4fe8e77273d522"
+    },
+    {
+      "path": "mutation/ownership-2.jsonl",
+      "bytes": 469,
+      "sha256": "77082df91e7eb1a3e6863f81f6ef98050503747e36a6bd2c8336cce3cb63e9f5"
+    },
+    {
+      "path": "mutation/ownership-3.jsonl",
+      "bytes": 293,
+      "sha256": "9f49449afae1653355581fccaced18e81513f5957dd0babf224aa8e2324c082e"
+    },
+    {
+      "path": "mutation/planning-current-state-1.jsonl",
+      "bytes": 69,
+      "sha256": "ece8e92860767124773d2934bea3ef1ce957e2bed2835049e3d03baabe996ff3"
+    },
+    {
+      "path": "mutation/planning-current-state-2.jsonl",
+      "bytes": 69,
+      "sha256": "ece8e92860767124773d2934bea3ef1ce957e2bed2835049e3d03baabe996ff3"
+    },
+    {
+      "path": "mutation/planning-current-state-3.jsonl",
+      "bytes": 1846,
+      "sha256": "f93327b08171d6b65e2747af4dafe16efaa6c86b4fc698068967013821f8973b"
+    },
+    {
+      "path": "mutation/producer-1.jsonl",
+      "bytes": 3598,
+      "sha256": "440aebcdce61a835d58ca8837e0655ec53505553655791da044d271f4980b0c3"
+    },
+    {
+      "path": "mutation/producer-2.jsonl",
+      "bytes": 380,
+      "sha256": "476ef590e7adb2c5ca1cf7fd4e3004749f976040a7a760952a58898ff520006a"
+    },
+    {
+      "path": "mutation/verifier-1.jsonl",
+      "bytes": 3455,
+      "sha256": "fb7c0b5c7c08a3ee462825cafcde183f61e8d7b80fb793c2ec1ea2672bedc274"
+    },
+    {
+      "path": "mutation/verifier-2.jsonl",
+      "bytes": 525,
+      "sha256": "19c4f3e87d4e4524030f4817e4f057d038f3b8c72e82763cea6459bef43c3087"
+    },
+    {
+      "path": "mutation/witness-binding-1.jsonl",
+      "bytes": 1338,
+      "sha256": "b7ececbf899afe1213338e2ea8d184aeb5fb13cb66d0f1155d3b859ec00bdf49"
+    },
+    {
+      "path": "mutation/witness-binding-2.jsonl",
+      "bytes": 1335,
+      "sha256": "6427804f33822d409843389e8a6023b6a2339e94c50008d0bf43186825cb1997"
+    },
+    {
+      "path": "survivor-status-derived.json",
+      "bytes": 21723,
+      "sha256": "c2a24a6d07e0ede4f3e5cdc5bfdb46c357165f9dab707d18d4264f3ab6be9f25"
+    },
+    {
+      "path": "survivor-status-derived.md",
+      "bytes": 6938,
+      "sha256": "52c1b6c87897460c84673a1b3d2f7c34686c1eebff6086d63cabbc2c9a5cdac4"
+    }
+  ]
+}

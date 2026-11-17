@@ -1,0 +1,98 @@
+TAP version 13
+# Subtest: every promtool witness in the coverage register is bound to a real executable case in the real file
+ok 1 - every promtool witness in the coverage register is bound to a real executable case in the real file
+  ---
+  duration_ms: 2.094444
+  type: 'test'
+  ...
+# Subtest: a complete case binds, and the sample used for the controls is itself valid
+ok 2 - a complete case binds, and the sample used for the controls is itself valid
+  ---
+  duration_ms: 0.161174
+  type: 'test'
+  ...
+# Subtest: a mention of the marker in non-comment text neither anchors a case nor hides the real comment that follows
+ok 3 - a mention of the marker in non-comment text neither anchors a case nor hides the real comment that follows
+  ---
+  duration_ms: 0.165754
+  type: 'test'
+  ...
+# Subtest: a marker trailing the interval line is not a comment above the block
+ok 4 - a marker trailing the interval line is not a comment above the block
+  ---
+  duration_ms: 0.161548
+  type: 'test'
+  ...
+# Subtest: a case comment with no block after it yields no block, whatever follows
+not ok 5 - a case comment with no block after it yields no block, whatever follows
+  ---
+  duration_ms: 0.741316
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out-new/work-M17/scripts/g17-witness-binding.test.mjs:64:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    ""
+    + actual - expected
+    
+    + '  # Readiness must not remain critical after the probe recovers.'
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: '  # Readiness must not remain critical after the probe recovers.'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out-new/work-M17/scripts/g17-witness-binding.test.mjs:68:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: each way a case can be hollowed out is rejected on its own
+ok 6 - each way a case can be hollowed out is rejected on its own
+  ---
+  duration_ms: 0.466643
+  type: 'test'
+  ...
+# Subtest: the real file loses its binding if a witnessed case is hollowed out
+ok 7 - the real file loses its binding if a witnessed case is hollowed out
+  ---
+  duration_ms: 1.395871
+  type: 'test'
+  ...
+# Subtest: the manifest rejection witness needs the three executed Node cases that provoke the refusal
+ok 8 - the manifest rejection witness needs the three executed Node cases that provoke the refusal
+  ---
+  duration_ms: 0.347906
+  type: 'test'
+  ...
+# Subtest: a line that is not a comment can never name a case, even directly above a real block
+ok 9 - a line that is not a comment can never name a case, even directly above a real block
+  ---
+  duration_ms: 0.328494
+  type: 'test'
+  ...
+# Subtest: a case with series but no executable assertion is not bound, even for a marker without special requirements
+ok 10 - a case with series but no executable assertion is not bound, even for a marker without special requirements
+  ---
+  duration_ms: 0.427652
+  type: 'test'
+  ...
+# Subtest: the three manifest rejection cases are pinned by name
+ok 11 - the three manifest rejection cases are pinned by name
+  ---
+  duration_ms: 0.162608
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 10
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 67.064962

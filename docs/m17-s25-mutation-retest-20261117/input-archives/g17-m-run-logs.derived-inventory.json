@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "source_sha": null,
+  "file_count": 4,
+  "total_bytes": 159973,
+  "files": [
+    {
+      "path": "final-m1-run.log",
+      "bytes": 2992,
+      "sha256": "78fd705c3f1df6c2b85d65772c5ecb66f1b540bff39fa79928afcc7ca2ce00a3"
+    },
+    {
+      "path": "final-m2-run.log",
+      "bytes": 60601,
+      "sha256": "444f5a33067a2dc144c9ca50706e3b099188ea0fa346ce7084cb1972b9ea5f3d"
+    },
+    {
+      "path": "final-m3-run.log",
+      "bytes": 47316,
+      "sha256": "fa24ab38d5a1594b6dcad7b85103d2e31818bd998c180766adac9676233b61a6"
+    },
+    {
+      "path": "final-m4-run.log",
+      "bytes": 49064,
+      "sha256": "bd66862c27dda892c217d7d7836d09fce034cdb523d3ae9dbc726614173d36de"
+    }
+  ]
+}

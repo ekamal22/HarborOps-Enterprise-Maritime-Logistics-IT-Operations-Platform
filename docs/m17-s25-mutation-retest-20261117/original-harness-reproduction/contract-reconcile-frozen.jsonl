@@ -1,0 +1,5 @@
+{"name":"unmutated control","status":"PASS","exit":0}
+{"name":"promtool binding bypassed","status":"INFRASTRUCTURE_FAILURE","failed_cases":0,"seconds":1,"note":" Subtest: an S25 clause must be both independent review and unwitnessed\nok 64 - an S25 clause must be both independent review and unwitnessed\n  ---\n  duration_ms: 0.439223\n  type: 'test'\n  ...\n1..64\n# tests 64\n# suites 0\n# pass 63\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 777.25764\n\n"}
+{"name":"manifest rejection binding bypassed","status":"INFRASTRUCTURE_FAILURE","failed_cases":0,"seconds":1,"note":" Subtest: an S25 clause must be both independent review and unwitnessed\nok 64 - an S25 clause must be both independent review and unwitnessed\n  ---\n  duration_ms: 0.45163\n  type: 'test'\n  ...\n1..64\n# tests 64\n# suites 0\n# pass 63\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 659.653953\n\n"}
+{"name":"unmutated control after the run","status":"PASS","exit":0}
+{"summary":{"killed":0,"survived":0,"infrastructure":2,"pattern_missing":0}}

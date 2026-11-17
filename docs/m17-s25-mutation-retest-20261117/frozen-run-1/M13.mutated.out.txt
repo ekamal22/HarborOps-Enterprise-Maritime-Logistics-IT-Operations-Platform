@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+not ok 1 - an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+  ---
+  duration_ms: 20873.796345
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out/work-M13/scripts/g17-diagnostic-producer-guard.test.mjs:60:1'
+  failureType: 'testCodeFailure'
+  error: 'the stand-in process must be visible to the process table'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    ready (file:///tmp/claude-0/mut/retest/out/work-M13/scripts/g17-diagnostic-producer-guard.test.mjs:36:10)
+    async liveRun (file:///tmp/claude-0/mut/retest/out/work-M13/scripts/g17-diagnostic-producer-guard.test.mjs:49:22)
+    async TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out/work-M13/scripts/g17-diagnostic-producer-guard.test.mjs:64:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21048.45713

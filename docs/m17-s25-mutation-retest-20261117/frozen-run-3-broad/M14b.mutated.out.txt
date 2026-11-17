@@ -1,0 +1,182 @@
+TAP version 13
+# Subtest: negative control: the previous producer order is detected as exactly one state-file mismatch
+ok 1 - negative control: the previous producer order is detected as exactly one state-file mismatch
+  ---
+  duration_ms: 805.714265
+  type: 'test'
+  ...
+# Subtest: the current producer source writes the final state before it creates the hash list
+ok 2 - the current producer source writes the final state before it creates the hash list
+  ---
+  duration_ms: 0.229793
+  type: 'test'
+  ...
+# Subtest: a state that was never finalised fails even when its listed hash is internally correct
+ok 3 - a state that was never finalised fails even when its listed hash is internally correct
+  ---
+  duration_ms: 1.969814
+  type: 'test'
+  ...
+# Subtest: hash list parsing accepts only the producer's exact line format
+ok 4 - hash list parsing accepts only the producer's exact line format
+  ---
+  duration_ms: 0.34087
+  type: 'test'
+  ...
+# Subtest: historical r1c, r2 and r3 records keep exactly their one documented state-file mismatch
+ok 5 - historical r1c, r2 and r3 records keep exactly their one documented state-file mismatch
+  ---
+  duration_ms: 1.616523
+  type: 'test'
+  ...
+# Subtest: the directly built consistent directory verifies, and a subdirectory is rejected because nothing could cover its contents
+ok 6 - the directly built consistent directory verifies, and a subdirectory is rejected because nothing could cover its contents
+  ---
+  duration_ms: 1.441341
+  type: 'test'
+  ...
+# Subtest: each rejection names exactly its own reason
+ok 7 - each rejection names exactly its own reason
+  ---
+  duration_ms: 8.110809
+  type: 'test'
+  ...
+# Subtest: a state record must carry a real, ordered stopped_utc and be valid JSON
+ok 8 - a state record must carry a real, ordered stopped_utc and be valid JSON
+  ---
+  duration_ms: 2.38311
+  type: 'test'
+  ...
+# Subtest: a listed file that is absent is tolerated only in the explicit historical mode
+ok 9 - a listed file that is absent is tolerated only in the explicit historical mode
+  ---
+  duration_ms: 0.883776
+  type: 'test'
+  ...
+# Subtest: a missing started_utc is rejected on its own
+ok 10 - a missing started_utc is rejected on its own
+  ---
+  duration_ms: 4.161958
+  type: 'test'
+  ...
+# Subtest: every malformed started_utc is rejected on its own
+ok 11 - every malformed started_utc is rejected on its own
+  ---
+  duration_ms: 12.838833
+  type: 'test'
+  ...
+# Subtest: a missing or malformed stopped_utc is reported separately from started_utc
+ok 12 - a missing or malformed stopped_utc is reported separately from started_utc
+  ---
+  duration_ms: 1.229888
+  type: 'test'
+  ...
+# Subtest: ordering is exact to the 100 nanosecond tick
+ok 13 - ordering is exact to the 100 nanosecond tick
+  ---
+  duration_ms: 3.608903
+  type: 'test'
+  ...
+# Subtest: parseUtcTicks accepts exactly what .NET writes and nothing looser
+ok 14 - parseUtcTicks accepts exactly what .NET writes and nothing looser
+  ---
+  duration_ms: 0.282791
+  type: 'test'
+  ...
+# Subtest: a symbolic link standing in for a listed file is rejected, not followed
+ok 15 - a symbolic link standing in for a listed file is rejected, not followed
+  ---
+  duration_ms: 1.156405
+  type: 'test'
+  ...
+# Subtest: an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+ok 16 - an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+  ---
+  duration_ms: 1.476057
+  type: 'test'
+  ...
+# Subtest: a hash list that is itself a directory or a link is refused outright
+ok 17 - a hash list that is itself a directory or a link is refused outright
+  ---
+  duration_ms: 0.812721
+  type: 'test'
+  ...
+# Subtest: entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+ok 18 - entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+  ---
+  duration_ms: 3.773306
+  type: 'test'
+  ...
+# Subtest: an impossible size is rejected without being compared
+ok 19 - an impossible size is rejected without being compared
+  ---
+  duration_ms: 0.4019
+  type: 'test'
+  ...
+# Subtest: schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+ok 20 - schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+  ---
+  duration_ms: 4.812468
+  type: 'test'
+  ...
+# Subtest: historical characterization is explicit, labelled, and can never report a trustworthy directory
+ok 21 - historical characterization is explicit, labelled, and can never report a trustworthy directory
+  ---
+  duration_ms: 1.081372
+  type: 'test'
+  ...
+# Subtest: the command line is strict by default and exits non-zero for the historical mode
+ok 22 - the command line is strict by default and exits non-zero for the historical mode
+  ---
+  duration_ms: 169.345082
+  type: 'test'
+  ...
+# Subtest: a state file that is not a JSON object is reported, never allowed to crash the verifier
+ok 23 - a state file that is not a JSON object is reported, never allowed to crash the verifier
+  ---
+  duration_ms: 3.280149
+  type: 'test'
+  ...
+# Subtest: a byte order mark on the state file is tolerated, because the producer writes one
+ok 24 - a byte order mark on the state file is tolerated, because the producer writes one
+  ---
+  duration_ms: 0.639676
+  type: 'test'
+  ...
+# Subtest: names containing a colon anywhere are rejected, whatever the position
+not ok 25 - names containing a colon anywhere are rejected, whatever the position
+  ---
+  duration_ms: 0.909651
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out3/work-M14b/scripts/g17-diagnostic-verifier-strict.test.mjs:205:1'
+  failureType: 'testCodeFailure'
+  error: 'ends:'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out3/work-M14b/scripts/g17-diagnostic-verifier-strict.test.mjs:207:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: calendar dates that do not exist are rejected, including ones that roll over
+ok 26 - calendar dates that do not exist are rejected, including ones that roll over
+  ---
+  duration_ms: 0.119428
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 25
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 947.950722

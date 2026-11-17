@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: a missing started_utc is rejected on its own
+ok 1 - a missing started_utc is rejected on its own
+  ---
+  duration_ms: 4.254552
+  type: 'test'
+  ...
+# Subtest: every malformed started_utc is rejected on its own
+ok 2 - every malformed started_utc is rejected on its own
+  ---
+  duration_ms: 12.65343
+  type: 'test'
+  ...
+# Subtest: a missing or malformed stopped_utc is reported separately from started_utc
+ok 3 - a missing or malformed stopped_utc is reported separately from started_utc
+  ---
+  duration_ms: 1.286355
+  type: 'test'
+  ...
+# Subtest: ordering is exact to the 100 nanosecond tick
+ok 4 - ordering is exact to the 100 nanosecond tick
+  ---
+  duration_ms: 3.91349
+  type: 'test'
+  ...
+# Subtest: parseUtcTicks accepts exactly what .NET writes and nothing looser
+ok 5 - parseUtcTicks accepts exactly what .NET writes and nothing looser
+  ---
+  duration_ms: 0.260097
+  type: 'test'
+  ...
+# Subtest: a symbolic link standing in for a listed file is rejected, not followed
+ok 6 - a symbolic link standing in for a listed file is rejected, not followed
+  ---
+  duration_ms: 1.24609
+  type: 'test'
+  ...
+# Subtest: an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+ok 7 - an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+  ---
+  duration_ms: 1.243344
+  type: 'test'
+  ...
+# Subtest: a hash list that is itself a directory or a link is refused outright
+ok 8 - a hash list that is itself a directory or a link is refused outright
+  ---
+  duration_ms: 0.83087
+  type: 'test'
+  ...
+# Subtest: entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+ok 9 - entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+  ---
+  duration_ms: 3.80961
+  type: 'test'
+  ...
+# Subtest: an impossible size is rejected without being compared
+ok 10 - an impossible size is rejected without being compared
+  ---
+  duration_ms: 0.393502
+  type: 'test'
+  ...
+# Subtest: schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+ok 11 - schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+  ---
+  duration_ms: 5.309825
+  type: 'test'
+  ...
+# Subtest: historical characterization is explicit, labelled, and can never report a trustworthy directory
+ok 12 - historical characterization is explicit, labelled, and can never report a trustworthy directory
+  ---
+  duration_ms: 1.123849
+  type: 'test'
+  ...
+# Subtest: the command line is strict by default and exits non-zero for the historical mode
+ok 13 - the command line is strict by default and exits non-zero for the historical mode
+  ---
+  duration_ms: 157.365112
+  type: 'test'
+  ...
+# Subtest: a state file that is not a JSON object is reported, never allowed to crash the verifier
+ok 14 - a state file that is not a JSON object is reported, never allowed to crash the verifier
+  ---
+  duration_ms: 4.545083
+  type: 'test'
+  ...
+# Subtest: a byte order mark on the state file is tolerated, because the producer writes one
+ok 15 - a byte order mark on the state file is tolerated, because the producer writes one
+  ---
+  duration_ms: 0.854549
+  type: 'test'
+  ...
+# Subtest: names containing a colon anywhere are rejected, whatever the position
+ok 16 - names containing a colon anywhere are rejected, whatever the position
+  ---
+  duration_ms: 0.169501
+  type: 'test'
+  ...
+# Subtest: calendar dates that do not exist are rejected, including ones that roll over
+ok 17 - calendar dates that do not exist are rejected, including ones that roll over
+  ---
+  duration_ms: 0.123267
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 261.350831

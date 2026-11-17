@@ -1,0 +1,50 @@
+# Repeats the diagnostic producer tests on Windows to measure how often a stand-in child is still listed right after
+# the stop request. Diagnostic only; it does not decide G17.
+name: G17 S25 producer repeat probe
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/harborops-g17-final-verification-60b4bf-j3cyi7
+    paths:
+      - ".github/workflows/verify-g17-s25-flake-probe.yml"
+permissions:
+  contents: read
+env:
+  FROZEN: 634053c4d0c3a2cb8c51b2c29fda87b126e08993
+jobs:
+  repeat:
+    strategy:
+      fail-fast: false
+      matrix:
+        which: [candidate, frozen]
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      TEMP: D:\t
+      TMP: D:\t
+    steps:
+      - run: New-Item -ItemType Directory -Force D:\t | Out-Null
+        shell: pwsh
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.which == 'frozen' && env.FROZEN || github.sha }}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Run the producer tests ten times
+        shell: pwsh
+        run: |
+          $failed = 0
+          1..10 | ForEach-Object {
+            node --test scripts/g17-diagnostic-producer-guard.test.mjs 2>&1 | Tee-Object -FilePath "run-$_.tap" | Out-Null
+            $code = $LASTEXITCODE
+            $names = (Select-String -Path "run-$_.tap" -Pattern '^not ok' | ForEach-Object { $_.Line }) -join '; '
+            "run $_ exit=$code $names"
+            if ($code -ne 0) { $failed++ }
+          }
+          "failed runs: $failed of 10"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: producer-repeat-${{ matrix.which }}
+          path: run-*.tap

@@ -46,6 +46,30 @@ test("a complete case binds, and the sample used for the controls is itself vali
   assert.ok(alertCaseBlock(sample, "Readiness must not remain critical").includes("exp_alerts: []"));
 });
 
+test("a mention of the marker in non-comment text neither anchors a case nor hides the real comment that follows", () => {
+  const marker = "Readiness must not remain critical";
+  const mention = `note: ${marker}\n` + sample;
+  assert.equal(alertCaseBound(mention, marker), true, "the later real comment still binds its block");
+  assert.ok(alertCaseBlock(mention, marker).includes("exp_alerts: []"));
+});
+
+test("a marker trailing the interval line is not a comment above the block", () => {
+  const marker = "Readiness must not remain critical";
+  const trailing = sample.replace("  # Readiness must not remain critical after the probe recovers.\n  - interval: 15s\n", `  - interval: 15s # ${marker}\n`);
+  assert.notEqual(trailing, sample);
+  assert.equal(alertCaseBlock(trailing, marker), null);
+  assert.equal(alertCaseBound(trailing, marker), false);
+});
+
+test("a case comment with no block after it yields no block, whatever follows", () => {
+  const marker = "Readiness must not remain critical";
+  for (const tail of ["", "\n", "\n  # another comment\n\n", "\n\n\n"]) {
+    const text = `tests:\n  # ${marker} after the probe recovers.${tail}`;
+    assert.equal(alertCaseBlock(text, marker), null, JSON.stringify(tail));
+    assert.equal(alertCaseBound(text, marker), false, JSON.stringify(tail));
+  }
+});
+
 test("each way a case can be hollowed out is rejected on its own", () => {
   const marker = "Readiness must not remain critical";
   const cases = {

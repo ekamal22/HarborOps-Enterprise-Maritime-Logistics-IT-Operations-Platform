@@ -229,7 +229,9 @@ test("an evidence directory that already exists is refused (never overwrite evid
   fs.mkdirSync(evidence, {recursive: true});
   const run = runCleanup(project("ex"), evidence);
   assert.notEqual(run.status, 0);
-  assert.match(text(run), /already exists/);
+  // The script's own refusal, not the generic "item already exists" error that New-Item would raise on its own.
+  assert.match(text(run), /Never overwrite evidence/);
+  assert.equal(fs.existsSync(path.join(evidence, "m17-owned-cleanup.json")), false, "nothing is written into an existing evidence directory");
 });
 
 test("a held address range is reported with its holder, and is free again once its network is gone", () => {
@@ -318,4 +320,93 @@ test("a running container that cannot be stopped fails the cleanup before anythi
   assert.match(record(evidence).error, /Could not stop/);
   assert.equal(exists("container", `${proj}-postgres-1`), true);
   assert.equal(exists("network", stack.net), true);
+});
+
+// A docker front driven by explicit rules, for the paths a healthy docker never produces. Each rule matches the leading
+// arguments of one invocation and either fails it, lies about it (exit 0 without doing anything), or lets the real
+// command run and then runs one more real docker command. The front is written as a small node script behind a
+// docker.cmd (Windows) or docker (other systems) launcher, so one rule table serves both.
+function ruleFront(rules) {
+  const win = process.platform === "win32";
+  let real;
+  if (win) real = spawnSync("where.exe", ["docker.exe"], {encoding: "utf8"}).stdout.split(/\r?\n/).find(line => line.toLowerCase().endsWith("docker.exe"))?.trim();
+  else real = (process.env.PATH ?? "").split(path.delimiter).map(d => path.join(d, "docker")).find(candidate => fs.existsSync(candidate));
+  assert.ok(real, "the real docker must be locatable");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "g17-own-rules-"));
+  tempDirs.push(dir);
+  const script = path.join(dir, "front.mjs");
+  fs.writeFileSync(script, `import {spawnSync} from "node:child_process";
+const real = ${JSON.stringify(real)};
+const rules = ${JSON.stringify(rules)};
+const args = process.argv.slice(2);
+const run = list => spawnSync(real, list, {stdio: "inherit"}).status ?? 1;
+const rule = rules.find(r => r.match.every((word, i) => args[i] === word));
+if (rule?.action === "fail") process.exit(1);
+if (rule?.action === "lie") process.exit(0);
+const status = run(args);
+if (rule?.action === "then" && status === 0) run(rule.then);
+process.exit(status);
+`);
+  if (win) fs.writeFileSync(path.join(dir, "docker.cmd"), `@echo off\r\n"${process.execPath}" "${script}" %*\r\nexit /b %ERRORLEVEL%\r\n`);
+  else { fs.writeFileSync(path.join(dir, "docker"), `#!/bin/sh\nexec "${process.execPath}" "${script}" "$@"\n`); fs.chmodSync(path.join(dir, "docker"), 0o755); }
+  return dir;
+}
+
+test("containers that docker reports as removed but that remain make the cleanup fail instead of reporting success", () => {
+  const proj = project("lierm");
+  const subnet = freeSubnet();
+  const net = `${proj}_internal`;
+  network(net, {"com.docker.compose.project": proj, "com.docker.compose.network": "internal"}, subnet);
+  // Not attached to the network, so the network can be removed while the containers are still there.
+  container(`${proj}-postgres-1`, composeLabels(proj, "postgres"));
+  container(`${proj}-api-1`, composeLabels(proj, "api"));
+  const evidence = freshEvidence();
+  const run = runCleanupWith(proj, evidence, ruleFront([{match: ["rm"], action: "lie"}]));
+  assert.notEqual(run.status, 0, text(run));
+  assert.match(text(run), /Owned resources remain after removal/);
+  const result = record(evidence);
+  assert.equal(result.outcome, "FAILED");
+  assert.match(result.error, /Owned resources remain after removal/);
+  assert.equal(result.containers_after, 2);
+  assert.equal(result.networks_after, 0);
+  assert.equal(exists("container", `${proj}-postgres-1`), true);
+});
+
+test("an address range taken by another network right after the removal fails the cleanup and names the holder", () => {
+  const proj = project("heldafter");
+  const stack = ownedStack(proj);
+  const other = project("thief");
+  const thief = `${other}_internal`;
+  created.networks.add(thief);
+  const front = ruleFront([{match: ["network", "rm"], action: "then",
+    then: ["network", "create", "--subnet", stack.subnet, "--label", `com.docker.compose.project=${other}`, "--label", "com.docker.compose.network=internal", thief]}]);
+  const evidence = freshEvidence();
+  const run = runCleanupWith(proj, evidence, front);
+  assert.notEqual(run.status, 0, text(run));
+  assert.match(text(run), /An address range is still held after removal/);
+  const result = record(evidence);
+  assert.equal(result.outcome, "FAILED");
+  assert.equal(result.containers_after, 0);
+  assert.equal(result.networks_after, 0);
+  assert.deepEqual(result.subnets_released, []);
+  assert.equal(result.subnet_still_held.length, 1);
+  assert.ok(result.subnet_still_held[0].startsWith(stack.subnet) && result.subnet_still_held[0].includes(thief), result.subnet_still_held[0]);
+});
+
+test("a volume that docker created for a container is retained when the container is removed", () => {
+  const proj = project("anonvol");
+  const net = `${proj}_internal`;
+  network(net, {"com.docker.compose.project": proj, "com.docker.compose.network": "internal"}, freeSubnet());
+  const name = `${proj}-postgres-1`;
+  dockerOk("create", "--name", name, "--label", `com.docker.compose.project=${proj}`, "--label", "com.docker.compose.service=postgres",
+    "--network", net, "-v", "/var/lib/state", "--entrypoint", "sleep", IMAGE, "600");
+  created.containers.add(name);
+  const volume = dockerOk("inspect", "--format", "{{range .Mounts}}{{.Name}}{{end}}", name);
+  assert.match(volume, /^[0-9a-f]{64}$/, "the container owns one anonymous volume");
+  created.volumes.add(volume);
+  const evidence = freshEvidence();
+  const run = runCleanup(proj, evidence);
+  assert.equal(run.status, 0, text(run));
+  assert.equal(exists("container", name), false);
+  assert.equal(exists("volume", volume), true, "removing the container never removes its volume, anonymous or named");
 });

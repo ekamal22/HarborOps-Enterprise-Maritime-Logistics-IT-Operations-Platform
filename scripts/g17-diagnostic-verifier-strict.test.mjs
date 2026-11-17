@@ -203,7 +203,7 @@ test("a byte order mark on the state file is tolerated, because the producer wri
 });
 
 test("names containing a colon anywhere are rejected, whatever the position", () => {
-  for (const bad of ["a:b", "name:stream", "ends:", "x:y:z"]) {
+  for (const bad of ["a:b", "name:stream", "ends:", "x:y:z", ":leading", ":", "::"]) {
     assert.ok(parseHashList(`${"a".repeat(64)}  1  ${bad}`).errors.length > 0, bad);
   }
   assert.deepEqual(parseHashList(`${"a".repeat(64)}  1  ok-name.txt`).errors, []);

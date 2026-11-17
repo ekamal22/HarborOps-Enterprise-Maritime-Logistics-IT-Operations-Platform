@@ -76,3 +76,40 @@ jobs:
         with:
           name: producer-mutants-candidate-2
           path: retest-candidate-2
+  linux-docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # PowerShell wraps and colours error text to the console width; the ownership tests match the plain text.
+      NO_COLOR: "1"
+      TERM: dumb
+      COLUMNS: "400"
+    steps:
+      - uses: actions/checkout@v4
+        with: {path: candidate}
+      - uses: actions/checkout@v4
+        with: {ref: "${{ env.FROZEN }}", path: frozen}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Image
+        run: docker pull alpine/socat:1.8.0.3
+      - name: Docker ownership mutants on the frozen source
+        env: {G17_PHASE: frozen-broad}
+        run: node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs frozen retest-frozen M06 M07 M08 M09 M10 M11
+        continue-on-error: true
+      - name: Docker ownership mutants on the candidate
+        env: {G17_PHASE: new}
+        run: node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs candidate retest-candidate M06 M07 M08 M09 M10 M11
+        continue-on-error: true
+      - name: Collect
+        if: always()
+        run: |
+          find retest-frozen retest-candidate -name 'work-*' -prune -exec rm -rf {} + || true
+          for f in retest-frozen/M*.json retest-candidate/M*.json; do node -e 'const j=require(process.argv[1]);console.log(process.argv[1],"control_before="+j.control_before.exit,"control_after="+j.control_after?.exit,"mutated_exit="+j.mutated_run?.exit,j.auto||j.disposition)' "./$f"; done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g17-s25-retest-linux-2
+          path: |
+            retest-frozen
+            retest-candidate

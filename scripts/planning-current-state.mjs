@@ -9,7 +9,7 @@
 // accepted set is stated, G14 and G18-G24 are not claimed) in the form the documents now use.
 
 export const CURRENT_STATE_RULES = [
-  {id: "status-accepted-set", doc: "status", test: t => /G0-G12, G15, G16 and G17 are accepted and integrated into protected .main./.test(t),
+  {id: "status-accepted-set", doc: "status", test: t => /G0-G12, G15, G16 and G17 are accepted and integrated into protected `main`/.test(t),
     message: "STATUS must state the currently integrated G0-G12, G15-G17 set without treating G13 as unconditional"},
   {id: "status-m11-ledger", doc: "status", test: t => /\| \*\*M11 Delay rules and shipment exceptions\*\* \| \*\*G11 ACCEPTED, merged in PR #33\*\*/.test(t),
     message: "STATUS must show G11 accepted in the M11 ledger row"},
@@ -23,6 +23,12 @@ export const CURRENT_STATE_RULES = [
     message: "STATUS must show G17 accepted and merged"},
   {id: "status-g14-planned", doc: "status", test: t => /\| \*\*M14 [^|]*\*\* \| Planned \|/.test(t),
     message: "STATUS must keep M14 planned"},
+  {id: "event-current-set", doc: "events", test: t => /Current accepted-gate position \(2026-11-17\):.*G0-G12, G15, G16 and G17 are accepted and integrated; G13 remains conditionally accepted/.test(t),
+    message: "EVENT_PROCESSING must use the current acceptance baseline"},
+  {id: "m17-delivery-outcome", doc: "m17Plan", test: t => /Current outcome \(2026-11-17\): M17-01 through M17-04 were implemented and integrated through PR #53/.test(t),
+    message: "M17 plan must no longer claim implementation, verification or merge is absent"},
+  {id: "graph-accepted-m17", doc: "graph", test: t => /Gate-status clarification \(2026-11-17\): G0-G12, G15, G16 and G17 are integrated/.test(t) && /G17 was accepted for integration after the authenticated Campaign 01 technical PASS/.test(t),
+    message: "Generated graph must reflect integrated G17 and retain the S25 qualification"},
   {id: "roadmap-accepted-set", doc: "roadmap", test: t => /G0-G12, G15, G16 and G17 accepted and merged\. G13 remains conditionally accepted and merged/.test(t),
     message: "ROADMAP must keep the integrated and conditional sets distinct"},
   {id: "roadmap-release-pending", doc: "roadmap", test: t => /G24 release acceptance remain pending/.test(t),

@@ -131,7 +131,7 @@ M17-02 and M17-03 can be parallel after M17-01. The monitoring UI must not claim
 - No production deploy, no external collector, no cloud accounts, no external paging, no purging existing data and no unauthorized data deletion.
 - If a runtime change requires DB schema or cross-service privilege additions, stop and record a dedicated policy/security proposal instead of treating migration as implicit M17 scope.
 - Tests may alter only uniquely named disposable project resources, with exact ownership and cleanup proof. No general Docker prune/volume deletion and no persistent C:-backed writes.
-- No CI dispatch or implementation is authorized by this planning commit. When implementation is separately authorized, use efficient source-locked test groups and dispatch only approved workflows.
+- The original planning commit did not authorize CI dispatch or implementation; subsequent separately authorized verification and integration are recorded in the G17 acceptance decision. When implementation is separately authorized, use efficient source-locked test groups and dispatch only approved workflows.
 - At each implementation change record source SHA, affected files, actual tests executed and results. Preserve failed runs and all original audit records. Docs-only commits may use `[skip ci]`.
 
 ## 6. Formal entry, exit and handoff
@@ -142,4 +142,4 @@ M17-02 and M17-03 can be parallel after M17-01. The monitoring UI must not claim
 
 **After G17:** update [Status](STATUS.md), [Roadmap](ROADMAP.md), [Execution Graph](EXECUTION_GRAPH.md) only if the canonical graph data changes, and G17 acceptance register with exact SHA, evidence and exceptions. Then allow M18 incident workflows to use M17 signals without implicit auto-open incident/paging authority.
 
-**Current output of this document:** The implementation plan exists; source, tests, verification run, acceptance and merge of implementation do not.
+**Current outcome (2026-11-17):** M17-01 through M17-04 were implemented and integrated through PR #53. Authenticated Campaign 01 recorded 51/51 stages passed and 72/72 technical assertions supported. The separate signed S25-A03/F06 reviewer instrument remains outstanding, P09 remains QUALIFIED PASS, and no deployment is authorized.

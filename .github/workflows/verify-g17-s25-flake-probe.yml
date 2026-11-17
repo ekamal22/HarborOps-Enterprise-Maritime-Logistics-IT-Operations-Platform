@@ -58,12 +58,13 @@ jobs:
       - run: New-Item -ItemType Directory -Force D:\t | Out-Null
         shell: pwsh
       - uses: actions/checkout@v4
+        with: {path: candidate}
       - uses: actions/setup-node@v4
         with: {node-version: "22"}
       - name: Producer mutants on the candidate
         shell: pwsh
         env: {G17_PHASE: new}
-        run: node docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs . retest-candidate-2 M12 M13
+        run: node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs candidate retest-candidate-2 M12 M13
       - name: Collect
         if: always()
         shell: pwsh

@@ -22,6 +22,7 @@ This packet lets a separate reviewer inspect the real source and raw evidence wi
 | Raw campaign evidence | `E:\HarborOps-Verification\g17-final2\final-m4-evidence` and archive `g17-m4-evidence.zip` (real zip, 69 files, SHA-256 `0a5324bcb33987fde1a565684ea65e356af81c44d34ff85f4d554f0c10098d0b`) with `g17-m4-evidence.zip.inventory.json` |
 | Manifest, ledger, run status | `manifest.json` `978ddfb9...`, `g17-technical-assertion-ledger.json` `d936408e...`, `run-status.json` `b33447ad...` (full values in the consolidated result) |
 | Preserved failed attempts | `final-m1-evidence`, `final-m2-evidence`, `final-m3-evidence` and the matching `-run.log` files in the same folder; k1 to k4 in `E:\HarborOps-Verification\g17-final` |
+| Failed-attempt archives | `g17-m1-failed-attempt-evidence.zip` `7a9da5e7...`, `g17-m2-failed-attempt-evidence.zip` `14f428eb...` and **`g17-m3-failed-attempt-evidence.zip` `a92f2a4e...` (the failed P09 campaign at this same source)**, real zips verified by extraction, with `g17-final2-attempt-archive-index.json` (`ac006d94...`) listing all four archives and the four run logs with hashes |
 | P09 measurements | `m17-performance-raw.json` of m2, m3 (failed) and m4 in their evidence folders |
 | Rehearsals and mutation outputs | `first-failure-*`, `worker-rehearsal-*`, `rehearsal-*`, `mutation\*.jsonl` and the preflight logs in `E:\HarborOps-Verification\g17-final2` |
 | Original r1c, r2 and r3 evidence | `docs/m17-s25-p09-controlled-protocol-20261115/results/` (committed, byte-identical to before this work) |

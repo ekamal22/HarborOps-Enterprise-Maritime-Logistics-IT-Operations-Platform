@@ -136,7 +136,9 @@ Raw evidence is retained locally, was not pushed and is not published, because i
 | `m17-performance-raw.json` SHA-256 (m3, failed) | `d01b3fb9b8924b2a65a258d7e0c3455c624a67deb9fbea4a5beb0b5bc735298e` |
 | `m17-performance-raw.json` SHA-256 (m2) | `0dbb24b2ba4e868f861b2d067b048e6f311b2ac0201740250497904e46112e00` |
 | Run log (m4) | `E:\HarborOps-Verification\g17-final2\final-m4-run.log`, SHA-256 `bd66862c27dda892c217d7d7836d09fce034cdb523d3ae9dbc726614173d36de` |
-| Failed attempts | `final-m1-evidence`, `final-m2-evidence`, `final-m3-evidence` and their run logs, untouched, in the same folder. k1 to k4 remain in `E:\HarborOps-Verification\g17-final` |
+| Failed attempts (folders) | `final-m1-evidence`, `final-m2-evidence`, `final-m3-evidence` and their run logs, untouched, in the same folder. k1 to k4 remain in `E:\HarborOps-Verification\g17-final` |
+| Failed-attempt archives (same format, extraction-verified, each with an `.inventory.json` beside it) | `E:\HarborOps-Verification\g17-final2\g17-m1-failed-attempt-evidence.zip` (5 files, SHA-256 `7a9da5e78db130e588ea1fb1034a26f795bb52eb6057fbdd65a1f377cd69af2e`), `g17-m2-failed-attempt-evidence.zip` (87 files, `14f428eb08273040774675f1b161595073809a0ff9b10fd0323c72d31bf9ebb2`), **`g17-m3-failed-attempt-evidence.zip` (79 files, `a92f2a4e30b41817f010a3c67433848a56857a3f16e76de41f836c0fa50f6f05`; the failed P09 campaign at the same source as the final result)**. They were created from the untouched evidence folders after m4; the folders' raw performance files still hash to the values in this table |
+| Run logs and archive index | `final-m1-run.log` `78fd705c...`, `final-m2-run.log` `444f5a33...`, `final-m3-run.log` `fa24ab38...`, `final-m4-run.log` `bd66862c...`; `g17-final2-attempt-archive-index.json` (SHA-256 `ac006d9469f781d0eb10b8802e86eacbf6a70815820314011133838f0a4e25f5`) lists the four archives and four logs with sizes and hashes |
 | Continuity record | `E:\HarborOps-Verification\g17-final2\STATUS-continuity.md` |
 | Launcher | `E:\HarborOps-Verification\g17-final2\run-final2.sh <id>` |
 

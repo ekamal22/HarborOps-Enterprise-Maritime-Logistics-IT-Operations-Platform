@@ -1,5 +1,7 @@
 # Engineering and Documentation Conventions
 
+**G17 integration status (2026-11-17):** Accepted for merge following the source-locked Campaign 01 PASS, subject to the outstanding separately signed S25-A03/F06 record. P09 remains QUALIFIED PASS and historical failures are preserved. See [G17 acceptance decision](M17_G17_S25_ACCEPTANCE_DECISION_20261117.md).
+
 **G17 policy decision (2026-11-16):** P09 is **QUALIFIED PASS** only, based on four passing complete runs out of five, with the f6 FAIL and its unexplained latency burst preserved. The approved pooled p95 latency cap is 10% and paired mean peak-memory cap is 15%, unchanged. Performance optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final source-locked verification and distinct S25 sign-off remain pending.
 
 **Turkish localization source integrated, 2026-11-12:** [PR #48](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/48) merged at `c81e54bfef25a0ff957f27b488ab7bd420551244` following 41 passing frontend and 99 passing browser executions in [run #43199664246](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43199664246). All server-facing rules and default-off operational controls remain unchanged. [Verification and acceptance](TURKISH_G15_S25_POSTMERGE_ACCEPTANCE_20261112.md).

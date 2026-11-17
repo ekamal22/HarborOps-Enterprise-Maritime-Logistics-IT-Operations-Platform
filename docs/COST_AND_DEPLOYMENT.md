@@ -15,7 +15,7 @@
 **G15 current disposition (2026-11-12):** G15/S25 **ACCEPTED** and merged into `main` via PR #44 (`49934d793542ef43cfe587c54b16cfd5cce8e2f4`). Tested source `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed run 43178122017; reviewer-independence attestation remains a disclosed procedural exception. G13 is still conditionally integrated. P10 fail-closed capture, P12 no deletion and default-off delivery remain mandatory; production rollout and G24 release are not approved. [Final decision](G15_S25_FINAL_ACCEPTANCE_20261112.md), [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
 
-**Current source and gate status (2026-11-08):** G0-G12 and G16 are accepted and merged into `main`. M11/G11 and M12/G12 were independently reconciled and formally accepted through [gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md); their prior candidate and verification notes below are historical when dated earlier. M9 ARRI/DEPA sustained processing remains held at the 10,000 unresolved-item boundary; M10 projector default-off, ETA null and M11 evaluator opt-in. No deployment or production migration is authorized.
+**Historical source and gate status (2026-11-08):** G0-G12 and G16 are accepted and merged into `main`. M11/G11 and M12/G12 were independently reconciled and formally accepted through [gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md); their prior candidate and verification notes below are historical when dated earlier. M9 ARRI/DEPA sustained processing remains held at the 10,000 unresolved-item boundary; M10 projector default-off, ETA null and M11 evaluator opt-in. No deployment or production migration is authorized.
 
 ## Primary constraint
 

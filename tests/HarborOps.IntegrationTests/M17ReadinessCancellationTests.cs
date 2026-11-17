@@ -19,15 +19,15 @@ public sealed class M17ReadinessCancellationTests
     private sealed record Sample(string Operation, string Outcome);
 
     private static DatabaseReadinessCheck CheckAgainst(int port, string providerTimeouts = "Timeout=8;Command Timeout=8") =>
-        new(new HarborOpsDbContext(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
+        new(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
             $"Host=127.0.0.1;Port={port};Database=harborops_unreachable;Username=u;Password=p;" +
-            $"SSL Mode=Disable;Pooling=false;{providerTimeouts}").Options));
+            $"SSL Mode=Disable;Pooling=false;{providerTimeouts}").Options);
 
     // The real, disposable integration database with the given provider timeouts.
     private static DatabaseReadinessCheck CheckAgainstDatabase(
         Npgsql.NpgsqlConnectionStringBuilder database, string providerTimeouts) =>
-        new(new HarborOpsDbContext(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
-            database.ConnectionString + ";" + providerTimeouts).Options));
+        new(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
+            database.ConnectionString + ";" + providerTimeouts).Options);
 
     private static ConcurrentQueue<Sample> Listen(MeterListener listener)
     {
@@ -236,24 +236,39 @@ public sealed class M17ReadinessCancellationTests
     }
 
     [Theory(Timeout = 30000)]
-    [InlineData("Timeout=2;Command Timeout=3", 2, 3, 1.5, 3.5)]
-    [InlineData("Timeout=0;Command Timeout=0", 3, 3, 2.5, 4.6)]
-    [InlineData("Timeout=30;Command Timeout=30", 3, 3, 2.5, 4.6)]
-    public async Task ProviderCeilingsAreLoweredButNeverRaised(
-        string configured, int connectSeconds, int commandSeconds, double minimumSeconds, double maximumSeconds)
+    [InlineData("Timeout=2;Command Timeout=3", 1.5, 3.5)]
+    [InlineData("Timeout=0;Command Timeout=0", 2.5, 4.6)]
+    [InlineData("Timeout=30;Command Timeout=30", 2.5, 4.6)]
+    public async Task ASilentServerEndsAtTheCappedConnectCeilingWhateverTheApplicationSetting(
+        string configured, double minimumSeconds, double maximumSeconds)
     {
         using var server = new SilentServer();
-        var context = new HarborOpsDbContext(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
-            $"Host=127.0.0.1;Port={server.Port};Database=harborops_unreachable;Username=u;Password=p;" +
-            $"SSL Mode=Disable;Pooling=false;{configured}").Options);
-        var check = new DatabaseReadinessCheck(context);
+        var check = CheckAgainst(server.Port, configured);
         var (result, elapsed) = await TimedAsync(check, CancellationToken.None);
         Assert.Equal(HealthStatus.Unhealthy, result.Status);
         Assert.InRange(elapsed.TotalSeconds, minimumSeconds, maximumSeconds);
-        var applied = new Npgsql.NpgsqlConnectionStringBuilder(context.Database.GetConnectionString());
+    }
+
+    [Theory]
+    [InlineData("Host=h;Timeout=2;Command Timeout=3;Cancellation Timeout=100", 2, 3, 100)]
+    [InlineData("Host=h;Timeout=0;Command Timeout=0", 3, 3, 300)]
+    [InlineData("Host=h;Timeout=30;Command Timeout=30;Cancellation Timeout=5000", 3, 3, 300)]
+    [InlineData("Host=h;Timeout=3;Command Timeout=3;Cancellation Timeout=300", 3, 3, 300)]
+    [InlineData("Host=h", 3, 3, 300)]
+    public void ProviderCeilingsAreLoweredButNeverRaised(string configured, int connectSeconds, int commandSeconds, int cancellationMilliseconds)
+    {
+        var applied = new Npgsql.NpgsqlConnectionStringBuilder(DatabaseReadinessCheck.CappedConnectionString(configured));
         Assert.Equal(connectSeconds, applied.Timeout);
         Assert.Equal(commandSeconds, applied.CommandTimeout);
-        Assert.InRange(applied.CancellationTimeout, 0, 300);
+        Assert.Equal(cancellationMilliseconds, applied.CancellationTimeout);
+        Assert.Equal("h", applied.Host);
+    }
+
+    [Fact]
+    public void AnEmptyConnectionStringIsLeftAlone()
+    {
+        Assert.Null(DatabaseReadinessCheck.CappedConnectionString(null));
+        Assert.Null(DatabaseReadinessCheck.CappedConnectionString(""));
     }
 
     [Fact(Timeout = 30000)]
@@ -407,9 +422,9 @@ public sealed class M17ReadinessCancellationTests
     }
 
     private static DatabaseReadinessCheck StuckCheck(int port, TimeSpan stuckFor) =>
-        new(new HarborOpsDbContext(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
+        new(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
             $"Host=127.0.0.1;Port={port};Database=harborops_unreachable;Username=u;Password=p;SSL Mode=Disable;Pooling=false;Timeout=3;Command Timeout=3")
-            .AddInterceptors(new StuckConnectionInterceptor(stuckFor)).Options));
+            .AddInterceptors(new StuckConnectionInterceptor(stuckFor)).Options);
 
     [Fact(Timeout = 30000)]
     public async Task AProviderCallThatIgnoresEveryTimeoutIsAbandonedAtTheHardLimit()

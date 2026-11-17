@@ -8,7 +8,7 @@ using Npgsql;
 
 namespace HarborOps.Api.Health;
 
-public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealthCheck
+public sealed class DatabaseReadinessCheck(DbContextOptions<HarborOpsDbContext> options) : IHealthCheck
 {
     // The approved readiness bound (P08) is five seconds for the whole check, measured by the caller. Three layers
     // enforce it, from the gentlest to the one that cannot be bypassed:
@@ -20,6 +20,9 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
     //     because name resolution and queued connection attempts are not covered by the provider's timeouts.
     // An abandoned provider call can only run on until its own three second ceiling, and its outcome is observed and
     // discarded, so nothing is left running beyond that and nothing is reported twice.
+    // The probe owns its own short-lived DbContext. It must never share the request scope's context: abandoning a call
+    // leaves the connection in the Connecting state, and disposing a context in that state throws, which a shared
+    // scoped context would turn into an HTTP 500 for the readiness endpoint (reproduced on the real stack).
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan HardLimit = TimeSpan.FromSeconds(4.5);
 
@@ -89,7 +92,9 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
     {
         try
         {
-            CapProviderLimits();
+            await using var database = new HarborOpsDbContext(options);
+            var capped = CappedConnectionString(database.Database.GetConnectionString());
+            if (capped is not null) database.Database.SetConnectionString(capped);
             if (!await database.Database.CanConnectAsync(token))
                 return (HealthCheckResult.Unhealthy("Database unavailable"), false);
 
@@ -103,10 +108,11 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
         }
     }
 
-    private void CapProviderLimits()
+    // The connection string with the provider ceilings lowered below the readiness bound (never raised). Pure, so the
+    // arithmetic is tested directly.
+    public static string? CappedConnectionString(string? current)
     {
-        var current = database.Database.GetConnectionString();
-        if (string.IsNullOrEmpty(current)) return;
+        if (string.IsNullOrEmpty(current)) return null;
         var builder = new NpgsqlConnectionStringBuilder(current);
         // Zero means "no limit" to Npgsql, so it is replaced as well as any value above the ceiling.
         builder.Timeout = builder.Timeout is > 0 and <= ProviderConnectSeconds ? builder.Timeout : ProviderConnectSeconds;
@@ -114,6 +120,6 @@ public sealed class DatabaseReadinessCheck(HarborOpsDbContext database) : IHealt
             ? builder.CommandTimeout : ProviderCommandSeconds;
         builder.CancellationTimeout = builder.CancellationTimeout is >= 0 and <= ProviderCancellationMilliseconds
             ? builder.CancellationTimeout : ProviderCancellationMilliseconds;
-        database.Database.SetConnectionString(builder.ConnectionString);
+        return builder.ConnectionString;
     }
 }

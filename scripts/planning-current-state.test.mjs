@@ -30,7 +30,7 @@ test("each current-state rule fails on its own when its statement is removed", (
     "status-g17-integrated": d => { d.status = d.status.replace("G17 ACCEPTED AND MERGED", "G17 pending"); },
     "status-g14-planned": d => { d.status = d.status.replace(/(\| \*\*M14 [^|]*\*\* \| )Planned/, "$1Accepted"); },
     "event-current-set": d => { d.events = d.events.replace("G0-G12, G15, G16 and G17 are accepted and integrated; G13 remains conditionally accepted", "G17 pending"); },
-    "m17-delivery-outcome": d => { d.m17Plan = d.m17Plan.replace("Current outcome (2026-11-17): M17-01 through M17-04 were implemented and integrated through PR #53", "Current outcome pending"); },
+    "m17-delivery-outcome": d => { d.m17Plan = d.m17Plan.replace("Current outcome (2026-11-17):** M17-01 through M17-04 were implemented and integrated through PR #53", "Current outcome pending"); },
     "graph-accepted-m17": d => { d.graph = d.graph.replace("G17 was accepted for integration after the authenticated Campaign 01 technical PASS", "G17 pending"); },
     "roadmap-accepted-set": d => { d.roadmap = d.roadmap.replace("G0-G12, G15, G16 and G17 accepted and merged", "G0-G12 accepted"); },
     "roadmap-release-pending": d => { d.roadmap = d.roadmap.replace("G24 release acceptance remain pending", "G24 release is accepted"); },

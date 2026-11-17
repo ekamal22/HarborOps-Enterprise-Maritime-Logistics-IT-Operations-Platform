@@ -1,0 +1,191 @@
+TAP version 13
+# Subtest: the corrected producer finalises the state before hashing it, and every listed byte matches
+ok 1 - the corrected producer finalises the state before hashing it, and every listed byte matches
+  ---
+  duration_ms: 2712.1302
+  type: 'test'
+  ...
+# Subtest: stopping twice leaves a consistent record and never lists the hash list itself
+ok 2 - stopping twice leaves a consistent record and never lists the hash list itself
+  ---
+  duration_ms: 1744.2863
+  type: 'test'
+  ...
+# Subtest: negative control: the previous producer order is detected as exactly one state-file mismatch
+ok 3 - negative control: the previous producer order is detected as exactly one state-file mismatch
+  ---
+  duration_ms: 902.2615
+  type: 'test'
+  ...
+# Subtest: the current producer source writes the final state before it creates the hash list
+ok 4 - the current producer source writes the final state before it creates the hash list
+  ---
+  duration_ms: 0.5537
+  type: 'test'
+  ...
+# Subtest: every kind of tampering or malformed list is rejected on its own
+ok 5 - every kind of tampering or malformed list is rejected on its own
+  ---
+  duration_ms: 105.2878
+  type: 'test'
+  ...
+# Subtest: a state that was never finalised fails even when its listed hash is internally correct
+ok 6 - a state that was never finalised fails even when its listed hash is internally correct
+  ---
+  duration_ms: 4.8572
+  type: 'test'
+  ...
+# Subtest: hash list parsing accepts only the producer's exact line format
+ok 7 - hash list parsing accepts only the producer's exact line format
+  ---
+  duration_ms: 0.4909
+  type: 'test'
+  ...
+# Subtest: historical r1c, r2 and r3 records keep exactly their one documented state-file mismatch
+ok 8 - historical r1c, r2 and r3 records keep exactly their one documented state-file mismatch
+  ---
+  duration_ms: 2.576
+  type: 'test'
+  ...
+# Subtest: the directly built consistent directory verifies, and a subdirectory is rejected because nothing could cover its contents
+ok 9 - the directly built consistent directory verifies, and a subdirectory is rejected because nothing could cover its contents
+  ---
+  duration_ms: 3.3217
+  type: 'test'
+  ...
+# Subtest: each rejection names exactly its own reason
+ok 10 - each rejection names exactly its own reason
+  ---
+  duration_ms: 22.859
+  type: 'test'
+  ...
+# Subtest: a state record must carry a real, ordered stopped_utc and be valid JSON
+ok 11 - a state record must carry a real, ordered stopped_utc and be valid JSON
+  ---
+  duration_ms: 10.4576
+  type: 'test'
+  ...
+# Subtest: a listed file that is absent is tolerated only in the explicit historical mode
+ok 12 - a listed file that is absent is tolerated only in the explicit historical mode
+  ---
+  duration_ms: 2.5291
+  type: 'test'
+  ...
+# Subtest: an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+ok 13 - an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+  ---
+  duration_ms: 7222.1443
+  type: 'test'
+  ...
+# Subtest: an unrelated process that now holds a recorded pid is never signalled
+ok 14 - an unrelated process that now holds a recorded pid is never signalled
+  ---
+  duration_ms: 4452.433
+  type: 'test'
+  ...
+# Subtest: a reused process id is detected by its creation time even when name and command line match
+ok 15 - a reused process id is detected by its creation time even when name and command line match
+  ---
+  duration_ms: 2314.0975
+  type: 'test'
+  ...
+# Subtest: a running process with no recorded identity is not signalled
+ok 16 - a running process with no recorded identity is not signalled
+  ---
+  duration_ms: 2476.6581
+  type: 'test'
+  ...
+# Subtest: invalid recorded process ids stop the run before anything is touched
+ok 17 - invalid recorded process ids stop the run before anything is touched
+  ---
+  duration_ms: 6270.4768
+  type: 'test'
+  ...
+# Subtest: tampered ownership fields stop the run before docker is consulted
+ok 18 - tampered ownership fields stop the run before docker is consulted
+  ---
+  duration_ms: 3679.6345
+  type: 'test'
+  ...
+# Subtest: a container that is not exactly this run's sidecar is never removed
+ok 19 - a container that is not exactly this run's sidecar is never removed
+  ---
+  duration_ms: 8696.743
+  type: 'test'
+  ...
+# Subtest: missing processes and an absent sidecar are a normal, verifiable stop
+ok 20 - missing processes and an absent sidecar are a normal, verifiable stop
+  ---
+  duration_ms: 1593.7666
+  type: 'test'
+  ...
+# Subtest: a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+ok 21 - a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+  ---
+  duration_ms: 7106.1478
+  type: 'test'
+  ...
+# Subtest: negative control: a foreign process that keeps appending is detected before anything is hashed
+ok 22 - negative control: a foreign process that keeps appending is detected before anything is hashed
+  ---
+  duration_ms: 3903.9009
+  type: 'test'
+  ...
+# Subtest: negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+ok 23 - negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+  ---
+  duration_ms: 1651.0534
+  type: 'test'
+  ...
+# Subtest: negative control: a new file that appears after hashing is detected
+ok 24 - negative control: a new file that appears after hashing is detected
+  ---
+  duration_ms: 1736.6032
+  type: 'test'
+  ...
+# Subtest: an output directory holding a subdirectory or a link cannot be hashed
+ok 25 - an output directory holding a subdirectory or a link cannot be hashed
+  ---
+  duration_ms: 1647.0989
+  type: 'test'
+  ...
+# Subtest: Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+ok 26 - Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+  ---
+  duration_ms: 1473.3994
+  type: 'test'
+  ...
+# Subtest: a real Start then Stop against the stand-in docker records identities and verifies strictly
+ok 27 - a real Start then Stop against the stand-in docker records identities and verifies strictly
+  ---
+  duration_ms: 2823.3796
+  type: 'test'
+  ...
+# Subtest: the producer source keeps its ownership guards (structure check for mutation control)
+ok 28 - the producer source keeps its ownership guards (structure check for mutation control)
+  ---
+  duration_ms: 0.3912
+  type: 'test'
+  ...
+# Subtest: a removal that reports success but leaves the container behind is a failure
+ok 29 - a removal that reports success but leaves the container behind is a failure
+  ---
+  duration_ms: 994.7305
+  type: 'test'
+  ...
+# Subtest: negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+ok 30 - negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+  ---
+  duration_ms: 3877.3339
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62110.2109
+exit=0

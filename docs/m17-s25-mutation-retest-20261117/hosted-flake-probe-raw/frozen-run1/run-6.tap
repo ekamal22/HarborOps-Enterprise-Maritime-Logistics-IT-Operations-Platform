@@ -1,0 +1,143 @@
+TAP version 13
+# Subtest: an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+not ok 1 - an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+  ---
+  duration_ms: 5270.6677
+  type: 'test'
+  location: 'D:\\a\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\\scripts\\g17-diagnostic-producer-guard.test.mjs:60:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    
+    Child events (process 5564) is still running after the stop request.
+    At D:\a\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\HarborOps-Enterprise-Maritime-Logistics-IT-Opera
+    tions-Platform\docs\m17-s25-p09-controlled-protocol-20261115\diagnostics.ps1:157 char:40
+    + ... tity $id) { throw "Child $kind (process $id) is still running after t ...
+    +                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : OperationStopped: (Child events (p...e stop request.:String) [], RuntimeException
+        + FullyQualifiedErrorId : Child events (process 5564) is still running after the stop request.
+     
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/a/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/scripts/g17-diagnostic-producer-guard.test.mjs:66:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: an unrelated process that now holds a recorded pid is never signalled
+ok 2 - an unrelated process that now holds a recorded pid is never signalled
+  ---
+  duration_ms: 4888.0449
+  type: 'test'
+  ...
+# Subtest: a reused process id is detected by its creation time even when name and command line match
+ok 3 - a reused process id is detected by its creation time even when name and command line match
+  ---
+  duration_ms: 1751.0736
+  type: 'test'
+  ...
+# Subtest: a running process with no recorded identity is not signalled
+ok 4 - a running process with no recorded identity is not signalled
+  ---
+  duration_ms: 1728.2313
+  type: 'test'
+  ...
+# Subtest: invalid recorded process ids stop the run before anything is touched
+ok 5 - invalid recorded process ids stop the run before anything is touched
+  ---
+  duration_ms: 5221.3657
+  type: 'test'
+  ...
+# Subtest: tampered ownership fields stop the run before docker is consulted
+ok 6 - tampered ownership fields stop the run before docker is consulted
+  ---
+  duration_ms: 3293.4174
+  type: 'test'
+  ...
+# Subtest: a container that is not exactly this run's sidecar is never removed
+ok 7 - a container that is not exactly this run's sidecar is never removed
+  ---
+  duration_ms: 8382.7659
+  type: 'test'
+  ...
+# Subtest: missing processes and an absent sidecar are a normal, verifiable stop
+ok 8 - missing processes and an absent sidecar are a normal, verifiable stop
+  ---
+  duration_ms: 1554.6717
+  type: 'test'
+  ...
+# Subtest: a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+ok 9 - a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+  ---
+  duration_ms: 7047.6451
+  type: 'test'
+  ...
+# Subtest: negative control: a foreign process that keeps appending is detected before anything is hashed
+ok 10 - negative control: a foreign process that keeps appending is detected before anything is hashed
+  ---
+  duration_ms: 3910.8002
+  type: 'test'
+  ...
+# Subtest: negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+ok 11 - negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+  ---
+  duration_ms: 1640.2495
+  type: 'test'
+  ...
+# Subtest: negative control: a new file that appears after hashing is detected
+ok 12 - negative control: a new file that appears after hashing is detected
+  ---
+  duration_ms: 1644.0827
+  type: 'test'
+  ...
+# Subtest: an output directory holding a subdirectory or a link cannot be hashed
+ok 13 - an output directory holding a subdirectory or a link cannot be hashed
+  ---
+  duration_ms: 1585.4
+  type: 'test'
+  ...
+# Subtest: Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+ok 14 - Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+  ---
+  duration_ms: 1449.7825
+  type: 'test'
+  ...
+# Subtest: a real Start then Stop against the stand-in docker records identities and verifies strictly
+ok 15 - a real Start then Stop against the stand-in docker records identities and verifies strictly
+  ---
+  duration_ms: 2750.7341
+  type: 'test'
+  ...
+# Subtest: the producer source keeps its ownership guards (structure check for mutation control)
+ok 16 - the producer source keeps its ownership guards (structure check for mutation control)
+  ---
+  duration_ms: 0.3536
+  type: 'test'
+  ...
+# Subtest: a removal that reports success but leaves the container behind is a failure
+ok 17 - a removal that reports success but leaves the container behind is a failure
+  ---
+  duration_ms: 961.9798
+  type: 'test'
+  ...
+# Subtest: negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+ok 18 - negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+  ---
+  duration_ms: 3931.5098
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 17
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 57149.3934

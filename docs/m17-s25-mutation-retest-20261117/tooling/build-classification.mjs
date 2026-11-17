@@ -25,7 +25,8 @@ const rows = D.map(d => {
     restored_hash_matches: r.restored_sha256_matches, raw_output: {control_before: r.control_before.output, mutated: r.mutated_run?.output, control_after: r.control_after?.output}});
   return {...d, mutation: frozen ? {target: frozen.target, from: frozen.mutation.from, to: frozen.mutation.to} : null,
     frozen_source: pick(frozen), frozen_failing: assertionDetail(d.frozen_dir, frozen, "mutated_run"),
-    candidate_source: pick(cand), candidate_failing: cand ? assertionDetail(d.candidate_dir, cand, "mutated_run") : []};
+    candidate_source: pick(cand), candidate_failing: cand ? assertionDetail(d.candidate_dir, cand, "mutated_run") : [],
+    also_runs: (d.also ?? []).map(a => { const r = load(a.dir, d.id); return r ? {label: a.label, dir: a.dir, source: pick(r), failing: assertionDetail(a.dir, r, "mutated_run")} : null; }).filter(Boolean)};
 });
 fs.writeFileSync(outJson, JSON.stringify({frozen_source_commit: "634053c4d0c3a2cb8c51b2c29fda87b126e08993", candidate_commit: D.candidate_commit ?? null, mutants: rows}, null, 2));
 const cell = s => String(s ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ");

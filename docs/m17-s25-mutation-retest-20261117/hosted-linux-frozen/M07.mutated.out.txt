@@ -1,0 +1,89 @@
+TAP version 13
+# Subtest: a finished stack is removed completely, state is captured first, volumes and decoys are untouched
+ok 1 - a finished stack is removed completely, state is captured first, volumes and decoys are untouched
+  ---
+  duration_ms: 1638.889097
+  type: 'test'
+  ...
+# Subtest: a running stack from a failed or interrupted campaign needs -StopRunning, and without it nothing is touched
+ok 2 - a running stack from a failed or interrupted campaign needs -StopRunning, and without it nothing is touched
+  ---
+  duration_ms: 32240.883997
+  type: 'test'
+  ...
+# Subtest: partially initialised stacks are removed: only a network, only containers, and nothing at all
+ok 3 - partially initialised stacks are removed: only a network, only containers, and nothing at all
+  ---
+  duration_ms: 1656.568802
+  type: 'test'
+  ...
+# Subtest: ambiguous ownership removes nothing at all, not even the resources that are clearly owned
+not ok 4 - ambiguous ownership removes nothing at all, not even the resources that are clearly owned
+  ---
+  duration_ms: 824.336076
+  type: 'test'
+  location: '/home/runner/work/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/retest-frozen/work-M07/scripts/g17-docker-ownership.test.mjs:179:1'
+  failureType: 'testCodeFailure'
+  error: 'a container with the project label but another name'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mException: [0m/home/runner/work/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/retest-frozen/work-M07/scripts/g17-docker-ownership.ps1:138[0m
+    [31;1m[0m[36;1mLine |[0m
+    [31;1m[0m[36;1m[36;1m 138 | [0m … nt -gt 0) { [36;1mthrow ('Ambiguous ownership, nothing was removed: ' + ($o[0m …[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m     | [31;1m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m     | [31;1mAmbiguous ownership, nothing was removed: container[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m     | [31;1mho-verify-m17-selftest-8f036b8b-amb1117-oddly-named is not[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m     | [31;1m<project>-<service>-<index> of this project[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/retest-frozen/work-M07/scripts/g17-docker-ownership.test.mjs:195:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a network that has another project's container attached is never removed
+ok 5 - a network that has another project's container attached is never removed
+  ---
+  duration_ms: 924.131716
+  type: 'test'
+  ...
+# Subtest: project names that are not exactly an owned ho-verify-m17-* name are rejected before docker is consulted
+ok 6 - project names that are not exactly an owned ho-verify-m17-* name are rejected before docker is consulted
+  ---
+  duration_ms: 2049.034796
+  type: 'test'
+  ...
+# Subtest: an evidence directory that already exists is refused (never overwrite evidence)
+ok 7 - an evidence directory that already exists is refused (never overwrite evidence)
+  ---
+  duration_ms: 261.626832
+  type: 'test'
+  ...
+# Subtest: a held address range is reported with its holder, and is free again once its network is gone
+ok 8 - a held address range is reported with its holder, and is free again once its network is gone
+  ---
+  duration_ms: 1954.786034
+  type: 'test'
+  ...
+# Subtest: the runner preserves before it removes, removes only through the ownership checks, and never prunes
+ok 9 - the runner preserves before it removes, removes only through the ownership checks, and never prunes
+  ---
+  duration_ms: 1.009704
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42237.283793

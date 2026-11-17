@@ -20,6 +20,7 @@ for (const m of c.mutants) {
   out += `- Mutation: replace \`${esc(m.mutation?.from).slice(0, 170)}\` with \`${esc(m.mutation?.to).slice(0, 120) || "(nothing)"}\`.\n`;
   out += `- Command: \`${esc(f?.command).replace(/^node /, "node ")}\`\n`;
   out += `- ${run("Frozen source", f, m.frozen_failing)}\n`;
+  for (const a of m.also_runs ?? []) out += `- ${run(a.label, a.source, a.failing)}\n`;
   if (m.candidate_source) out += `- ${run("Candidate source", m.candidate_source, m.candidate_failing)}\n`;
   out += `- Raw output: \`${m.frozen_dir}/${m.id}.*.out.txt\`${m.candidate_dir ? `, \`${m.candidate_dir}/${m.id}.*.out.txt\`` : ""}.\n`;
   out += `- **Disposition ${m.disposition}.** ${esc(m.explanation)}\n- Demonstration: ${esc(m.demonstration)}\n`;

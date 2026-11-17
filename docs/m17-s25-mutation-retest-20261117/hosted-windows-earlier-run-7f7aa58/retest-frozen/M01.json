@@ -1,0 +1,68 @@
+{
+  "id": "M01",
+  "family": "reconcile binding",
+  "name": "promtool binding bypassed",
+  "target": "scripts/reconcile-g17-assertions.mjs",
+  "source_sha256": "d3288e317aa770201f4c82be979c7aa6efb8352964082871a31daa5ce8dda3a0",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-first-failure-ledger.test.mjs",
+    "scripts/g17-reconcile-derivation.test.mjs",
+    "scripts/reconcile-g17-assertions.test.mjs"
+  ],
+  "mutation": {
+    "from": "return alertCaseBound(original,w.case)?results.get(w.path+\"\\u0000*\")??null:null;",
+    "to": "return results.get(w.path+\"\\u0000*\")??null;",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 2,
+    "tests": 64,
+    "pass": 64,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M01.control-before.out.txt"
+  },
+  "mutated_sha256": "ea6ef983d892dd6ff923a75bec03aeafa4464926c4c33872348167d9c2ff9b63",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 2,
+    "tests": 64,
+    "pass": 63,
+    "fail": 1,
+    "failing_tests": [
+      "a promtool witness whose text appears only outside a real case comment is unresolved"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "|-"
+    ],
+    "output": "M01.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 2,
+    "tests": 64,
+    "pass": 64,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M01.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "KILLED_CANDIDATE"
+}

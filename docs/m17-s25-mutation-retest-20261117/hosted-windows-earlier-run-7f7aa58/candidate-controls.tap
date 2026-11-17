@@ -1,0 +1,444 @@
+TAP version 13
+# Subtest: the corrected producer finalises the state before hashing it, and every listed byte matches
+ok 1 - the corrected producer finalises the state before hashing it, and every listed byte matches
+  ---
+  duration_ms: 8477.8017
+  type: 'test'
+  ...
+# Subtest: stopping twice leaves a consistent record and never lists the hash list itself
+ok 2 - stopping twice leaves a consistent record and never lists the hash list itself
+  ---
+  duration_ms: 1753.2337
+  type: 'test'
+  ...
+# Subtest: negative control: the previous producer order is detected as exactly one state-file mismatch
+ok 3 - negative control: the previous producer order is detected as exactly one state-file mismatch
+  ---
+  duration_ms: 1011.4157
+  type: 'test'
+  ...
+# Subtest: the current producer source writes the final state before it creates the hash list
+ok 4 - the current producer source writes the final state before it creates the hash list
+  ---
+  duration_ms: 0.429
+  type: 'test'
+  ...
+# Subtest: every kind of tampering or malformed list is rejected on its own
+ok 5 - every kind of tampering or malformed list is rejected on its own
+  ---
+  duration_ms: 114.2363
+  type: 'test'
+  ...
+# Subtest: a state that was never finalised fails even when its listed hash is internally correct
+ok 6 - a state that was never finalised fails even when its listed hash is internally correct
+  ---
+  duration_ms: 7.7413
+  type: 'test'
+  ...
+# Subtest: hash list parsing accepts only the producer's exact line format
+ok 7 - hash list parsing accepts only the producer's exact line format
+  ---
+  duration_ms: 0.6451
+  type: 'test'
+  ...
+# Subtest: historical r1c, r2 and r3 records keep exactly their one documented state-file mismatch
+ok 8 - historical r1c, r2 and r3 records keep exactly their one documented state-file mismatch
+  ---
+  duration_ms: 4.3028
+  type: 'test'
+  ...
+# Subtest: the directly built consistent directory verifies, and a subdirectory is rejected because nothing could cover its contents
+ok 9 - the directly built consistent directory verifies, and a subdirectory is rejected because nothing could cover its contents
+  ---
+  duration_ms: 4.8952
+  type: 'test'
+  ...
+# Subtest: each rejection names exactly its own reason
+ok 10 - each rejection names exactly its own reason
+  ---
+  duration_ms: 34.9725
+  type: 'test'
+  ...
+# Subtest: a state record must carry a real, ordered stopped_utc and be valid JSON
+ok 11 - a state record must carry a real, ordered stopped_utc and be valid JSON
+  ---
+  duration_ms: 13.5212
+  type: 'test'
+  ...
+# Subtest: a listed file that is absent is tolerated only in the explicit historical mode
+ok 12 - a listed file that is absent is tolerated only in the explicit historical mode
+  ---
+  duration_ms: 3.2769
+  type: 'test'
+  ...
+# Subtest: an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+not ok 13 - an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+  ---
+  duration_ms: 10843.6638
+  type: 'test'
+  location: 'D:\\a\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\\candidate\\scripts\\g17-diagnostic-producer-guard.test.mjs:60:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    
+    Child events (process 3568) is still running after the stop request.
+    At D:\a\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\HarborOps-Enterprise-Maritime-Logistics-IT-Opera
+    tions-Platform\candidate\docs\m17-s25-p09-controlled-protocol-20261115\diagnostics.ps1:157 char:40
+    + ... tity $id) { throw "Child $kind (process $id) is still running after t ...
+    +                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : OperationStopped: (Child events (p...e stop request.:String) [], RuntimeException
+        + FullyQualifiedErrorId : Child events (process 3568) is still running after the stop request.
+     
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/a/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/candidate/scripts/g17-diagnostic-producer-guard.test.mjs:66:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: an unrelated process that now holds a recorded pid is never signalled
+ok 14 - an unrelated process that now holds a recorded pid is never signalled
+  ---
+  duration_ms: 4592.2807
+  type: 'test'
+  ...
+# Subtest: a reused process id is detected by its creation time even when name and command line match
+ok 15 - a reused process id is detected by its creation time even when name and command line match
+  ---
+  duration_ms: 2197.8044
+  type: 'test'
+  ...
+# Subtest: a running process with no recorded identity is not signalled
+ok 16 - a running process with no recorded identity is not signalled
+  ---
+  duration_ms: 2249.9749
+  type: 'test'
+  ...
+# Subtest: invalid recorded process ids stop the run before anything is touched
+ok 17 - invalid recorded process ids stop the run before anything is touched
+  ---
+  duration_ms: 6642.8689
+  type: 'test'
+  ...
+# Subtest: tampered ownership fields stop the run before docker is consulted
+ok 18 - tampered ownership fields stop the run before docker is consulted
+  ---
+  duration_ms: 3795.0304
+  type: 'test'
+  ...
+# Subtest: a container that is not exactly this run's sidecar is never removed
+ok 19 - a container that is not exactly this run's sidecar is never removed
+  ---
+  duration_ms: 8679.5513
+  type: 'test'
+  ...
+# Subtest: missing processes and an absent sidecar are a normal, verifiable stop
+ok 20 - missing processes and an absent sidecar are a normal, verifiable stop
+  ---
+  duration_ms: 1590.3694
+  type: 'test'
+  ...
+# Subtest: a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+ok 21 - a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+  ---
+  duration_ms: 7320.0454
+  type: 'test'
+  ...
+# Subtest: negative control: a foreign process that keeps appending is detected before anything is hashed
+ok 22 - negative control: a foreign process that keeps appending is detected before anything is hashed
+  ---
+  duration_ms: 3922.9398
+  type: 'test'
+  ...
+# Subtest: negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+ok 23 - negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+  ---
+  duration_ms: 1705.0394
+  type: 'test'
+  ...
+# Subtest: negative control: a new file that appears after hashing is detected
+ok 24 - negative control: a new file that appears after hashing is detected
+  ---
+  duration_ms: 1704.8257
+  type: 'test'
+  ...
+# Subtest: an output directory holding a subdirectory or a link cannot be hashed
+ok 25 - an output directory holding a subdirectory or a link cannot be hashed
+  ---
+  duration_ms: 1665.2605
+  type: 'test'
+  ...
+# Subtest: Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+ok 26 - Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+  ---
+  duration_ms: 1564.9134
+  type: 'test'
+  ...
+# Subtest: a real Start then Stop against the stand-in docker records identities and verifies strictly
+ok 27 - a real Start then Stop against the stand-in docker records identities and verifies strictly
+  ---
+  duration_ms: 2833.257
+  type: 'test'
+  ...
+# Subtest: the producer source keeps its ownership guards (structure check for mutation control)
+ok 28 - the producer source keeps its ownership guards (structure check for mutation control)
+  ---
+  duration_ms: 0.2986
+  type: 'test'
+  ...
+# Subtest: a removal that reports success but leaves the container behind is a failure
+ok 29 - a removal that reports success but leaves the container behind is a failure
+  ---
+  duration_ms: 1002.3487
+  type: 'test'
+  ...
+# Subtest: negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+ok 30 - negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+  ---
+  duration_ms: 3934.0051
+  type: 'test'
+  ...
+# Subtest: a child that outlives the stop request by a few seconds is awaited, then recorded as terminated
+ok 31 - a child that outlives the stop request by a few seconds is awaited, then recorded as terminated
+  ---
+  duration_ms: 16687.6723
+  type: 'test'
+  ...
+# Subtest: a child that is still present after the wait fails the stop and is never recorded as terminated
+ok 32 - a child that is still present after the wait fails the stop and is never recorded as terminated
+  ---
+  duration_ms: 3910.3798
+  type: 'test'
+  ...
+# Subtest: a missing started_utc is rejected on its own
+ok 33 - a missing started_utc is rejected on its own
+  ---
+  duration_ms: 434.1612
+  type: 'test'
+  ...
+# Subtest: every malformed started_utc is rejected on its own
+ok 34 - every malformed started_utc is rejected on its own
+  ---
+  duration_ms: 58.7005
+  type: 'test'
+  ...
+# Subtest: a missing or malformed stopped_utc is reported separately from started_utc
+ok 35 - a missing or malformed stopped_utc is reported separately from started_utc
+  ---
+  duration_ms: 5.3562
+  type: 'test'
+  ...
+# Subtest: ordering is exact to the 100 nanosecond tick
+ok 36 - ordering is exact to the 100 nanosecond tick
+  ---
+  duration_ms: 14.199
+  type: 'test'
+  ...
+# Subtest: parseUtcTicks accepts exactly what .NET writes and nothing looser
+ok 37 - parseUtcTicks accepts exactly what .NET writes and nothing looser
+  ---
+  duration_ms: 0.5493
+  type: 'test'
+  ...
+# Subtest: a symbolic link standing in for a listed file is rejected, not followed
+ok 38 - a symbolic link standing in for a listed file is rejected, not followed
+  ---
+  duration_ms: 4.9414
+  type: 'test'
+  ...
+# Subtest: an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+ok 39 - an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+  ---
+  duration_ms: 5.1294
+  type: 'test'
+  ...
+# Subtest: a hash list that is itself a directory or a link is refused outright
+ok 40 - a hash list that is itself a directory or a link is refused outright
+  ---
+  duration_ms: 2.6022
+  type: 'test'
+  ...
+# Subtest: entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+ok 41 - entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+  ---
+  duration_ms: 14.3302
+  type: 'test'
+  ...
+# Subtest: an impossible size is rejected without being compared
+ok 42 - an impossible size is rejected without being compared
+  ---
+  duration_ms: 0.9328
+  type: 'test'
+  ...
+# Subtest: schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+ok 43 - schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+  ---
+  duration_ms: 18.2696
+  type: 'test'
+  ...
+# Subtest: historical characterization is explicit, labelled, and can never report a trustworthy directory
+ok 44 - historical characterization is explicit, labelled, and can never report a trustworthy directory
+  ---
+  duration_ms: 5.2218
+  type: 'test'
+  ...
+# Subtest: the command line is strict by default and exits non-zero for the historical mode
+ok 45 - the command line is strict by default and exits non-zero for the historical mode
+  ---
+  duration_ms: 367.1238
+  type: 'test'
+  ...
+# Subtest: a state file that is not a JSON object is reported, never allowed to crash the verifier
+ok 46 - a state file that is not a JSON object is reported, never allowed to crash the verifier
+  ---
+  duration_ms: 8.9351
+  type: 'test'
+  ...
+# Subtest: a byte order mark on the state file is tolerated, because the producer writes one
+ok 47 - a byte order mark on the state file is tolerated, because the producer writes one
+  ---
+  duration_ms: 2.0953
+  type: 'test'
+  ...
+# Subtest: names containing a colon anywhere are rejected, whatever the position
+ok 48 - names containing a colon anywhere are rejected, whatever the position
+  ---
+  duration_ms: 0.2102
+  type: 'test'
+  ...
+# Subtest: calendar dates that do not exist are rejected, including ones that roll over
+ok 49 - calendar dates that do not exist are rejected, including ones that roll over
+  ---
+  duration_ms: 0.1966
+  type: 'test'
+  ...
+# Subtest: an evidence directory is packaged as a real zip and verified by extracting it with a standard reader
+ok 50 - an evidence directory is packaged as a real zip and verified by extracting it with a standard reader
+  ---
+  duration_ms: 6737.728
+  type: 'test'
+  ...
+# Subtest: a tar or gzip stream with a .zip name is rejected by what it is, not by its name
+ok 51 - a tar or gzip stream with a .zip name is rejected by what it is, not by its name
+  ---
+  duration_ms: 38.3161
+  type: 'test'
+  ...
+# Subtest: packaging refuses a name without .zip, an existing archive, and a link inside the evidence
+ok 52 - packaging refuses a name without .zip, an existing archive, and a link inside the evidence
+  ---
+  duration_ms: 23.5989
+  type: 'test'
+  ...
+# Subtest: each kind of damage is reported on its own
+ok 53 - each kind of damage is reported on its own
+  ---
+  duration_ms: 14444.485
+  type: 'test'
+  ...
+# Subtest: an entry that could leave the extraction directory is rejected
+ok 54 - an entry that could leave the extraction directory is rejected
+  ---
+  duration_ms: 2354.5377
+  type: 'test'
+  ...
+# Subtest: overwriting an existing archive is refused with the explicit message, before anything is written
+ok 55 - overwriting an existing archive is refused with the explicit message, before anything is written
+  ---
+  duration_ms: 19.9617
+  type: 'test'
+  ...
+# Subtest: an inventory that lists one path twice is rejected even when its count and total agree
+ok 56 - an inventory that lists one path twice is rejected even when its count and total agree
+  ---
+  duration_ms: 1477.9066
+  type: 'test'
+  ...
+# Subtest: an archive holding the same entry name twice is rejected
+ok 57 - an archive holding the same entry name twice is rejected
+  ---
+  duration_ms: 2069.2732
+  type: 'test'
+  ...
+# Subtest: every promtool witness in the coverage register is bound to a real executable case in the real file
+ok 58 - every promtool witness in the coverage register is bound to a real executable case in the real file
+  ---
+  duration_ms: 4.2688
+  type: 'test'
+  ...
+# Subtest: a complete case binds, and the sample used for the controls is itself valid
+ok 59 - a complete case binds, and the sample used for the controls is itself valid
+  ---
+  duration_ms: 0.4129
+  type: 'test'
+  ...
+# Subtest: a mention of the marker in non-comment text neither anchors a case nor hides the real comment that follows
+ok 60 - a mention of the marker in non-comment text neither anchors a case nor hides the real comment that follows
+  ---
+  duration_ms: 0.2803
+  type: 'test'
+  ...
+# Subtest: a marker trailing the interval line is not a comment above the block
+ok 61 - a marker trailing the interval line is not a comment above the block
+  ---
+  duration_ms: 0.3563
+  type: 'test'
+  ...
+# Subtest: a case comment with no block after it yields no block, whatever follows
+ok 62 - a case comment with no block after it yields no block, whatever follows
+  ---
+  duration_ms: 0.4389
+  type: 'test'
+  ...
+# Subtest: each way a case can be hollowed out is rejected on its own
+ok 63 - each way a case can be hollowed out is rejected on its own
+  ---
+  duration_ms: 1.7045
+  type: 'test'
+  ...
+# Subtest: the real file loses its binding if a witnessed case is hollowed out
+ok 64 - the real file loses its binding if a witnessed case is hollowed out
+  ---
+  duration_ms: 0.9584
+  type: 'test'
+  ...
+# Subtest: the manifest rejection witness needs the three executed Node cases that provoke the refusal
+ok 65 - the manifest rejection witness needs the three executed Node cases that provoke the refusal
+  ---
+  duration_ms: 0.6582
+  type: 'test'
+  ...
+# Subtest: a line that is not a comment can never name a case, even directly above a real block
+ok 66 - a line that is not a comment can never name a case, even directly above a real block
+  ---
+  duration_ms: 0.6442
+  type: 'test'
+  ...
+# Subtest: a case with series but no executable assertion is not bound, even for a marker without special requirements
+ok 67 - a case with series but no executable assertion is not bound, even for a marker without special requirements
+  ---
+  duration_ms: 0.8084
+  type: 'test'
+  ...
+# Subtest: the three manifest rejection cases are pinned by name
+ok 68 - the three manifest rejection cases are pinned by name
+  ---
+  duration_ms: 0.2977
+  type: 'test'
+  ...
+1..68
+# tests 68
+# suites 0
+# pass 67
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 87057.9152
+exit=1

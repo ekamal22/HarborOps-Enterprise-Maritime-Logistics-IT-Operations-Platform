@@ -11,8 +11,8 @@
 | M09 | docker ownership | address range release not proven | SURVIVED (exit 0) | KILLED (exit 1, 1 failing) | **GAP_CLOSED_KILLED_ON_CANDIDATE** |
 | M10 | docker ownership | volumes removed with containers | KILLED (exit 1, 1 failing) | KILLED (exit 1, 2 failing) | **GAP_CLOSED_KILLED_ON_CANDIDATE** |
 | M11 | docker ownership | existing evidence directory overwritten | SURVIVED (exit 0) | KILLED (exit 1, 1 failing) | **GAP_CLOSED_KILLED_ON_CANDIDATE** |
-| M12 | diagnostic producer | exit of children not awaited | control failed here (exit 1) | n/a | **OPEN_PLATFORM_BLOCKED** |
-| M13 | diagnostic producer | lingering child tolerated | control failed here (exit 1) | n/a | **OPEN_PLATFORM_BLOCKED** |
+| M12 | diagnostic producer | exit of children not awaited | KILLED (exit 1, 1 failing) | KILLED (exit 1, 2 failing) | **GAP_CLOSED_KILLED_ON_CANDIDATE** |
+| M13 | diagnostic producer | lingering child tolerated | SURVIVED (exit 0) | KILLED (exit 1, 1 failing) | **GAP_CLOSED_KILLED_ON_CANDIDATE** |
 | M14 | diagnostic verifier | stream names accepted | SURVIVED (exit 0) | KILLED (exit 1, 1 failing) | **GAP_CLOSED_KILLED_ON_CANDIDATE** |
 | M14b | diagnostic verifier | stream names accepted (second position) | KILLED (exit 1, 1 failing) | KILLED (exit 1, 1 failing) | **KILLED_ON_FROZEN** |
 | M15 | diagnostic verifier | bom not stripped | KILLED (exit 1, 16 failing) | n/a | **KILLED_ON_FROZEN** |

@@ -1,0 +1,13 @@
+{
+  "what": "Repetitions of scripts/g17-diagnostic-producer-guard.test.mjs on a GitHub hosted Windows runner (windows-latest, TEMP=D:\\t), ten repetitions per job. The failure in every case is the producer message 'Child <kind> (process <pid>) is still running after the stop request.'",
+  "runs": [
+    {"run": 44019835746, "source": "bdccc0b5 (producer as in the frozen source)", "jobs": {"frozen 634053c4": {"repetitions": 10, "failed": 1, "failing_test": "an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly"}, "candidate before the settle change": {"repetitions": 10, "failed": 1, "failing_test": "a real Start then Stop against the stand-in docker records identities and verifies strictly"}}},
+    {"run": 44021761127, "source": "6f36a336 (producer with the bounded settle)", "jobs": {"frozen 634053c4": {"repetitions": 10, "failed": 0}, "candidate a, b, c": {"repetitions": 30, "failed": 0}}},
+    {"run": 44022317167, "source": "0674761c (producer with the bounded settle)", "jobs": {"frozen 634053c4": {"repetitions": 10, "failed": 0}, "candidate a, b, c": {"repetitions": 30, "failed": 0}}},
+    {"run": 44023308360, "source": "e29889dd (producer with the bounded settle)", "jobs": {"frozen 634053c4": {"repetitions": 10, "failed": 2, "failing_tests": ["a real Start then Stop against the stand-in docker records identities and verifies strictly", "a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process"]}, "candidate a, b, c": {"repetitions": 30, "failed": 0}}}
+  ],
+  "also": "A first unmutated control on a candidate that still had the frozen producer failed once (run 44016803184, with the runner's short 8.3 temp path; the short path itself is a separate artefact that makes every producer test fail) and the frozen source failed its control once more in run 44026567512 (M12 control 17 of 18).",
+  "totals_without_the_settle_change": {"repetitions": 50, "failed": 4},
+  "totals_with_the_settle_change": {"repetitions": 90, "failed": 0},
+  "reading": "About one repetition in twelve of the producer test file fails on a hosted Windows runner at the frozen source because the process table still lists a child right after the stop request; none of 90 repetitions failed with a bounded settle of up to 5 seconds before the check."
+}

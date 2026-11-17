@@ -92,7 +92,7 @@ The M17 dashboard is local-only, opt-in and visually distinct from M13 operation
 
 Minimum panels: API requests/sec, HTTP 5xx fraction and p50/p95 latency; PostgreSQL readiness/operation latency; active worker status, backlog age and retry/dead-letter counts where actually enabled; telemetry ingestion freshness and dropped signals; alerts by severity with evidence link to a sanitized correlation ID. Mark an absent signal as `unknown`, not healthy. Include an alert-test harness with predictable triggering and clearing.
 
-Initial alert thresholds are approved as **local reference rules** in [M17 policy decision register](M17_POLICY_PROPOSAL_20261112.md) and require measured calibration before G17. The P02/P04/P09 numerical limits are provisional until measured. Production SLO claims, on-call routing, third-party paging, email or Slack integration and hosted dashboards are out of scope without a separate decision. Alert notifications are distinct from M15 user notifications.
+The P05 alert thresholds began as **local reference rules** in the [M17 policy register](M17_POLICY_PROPOSAL_20261112.md) and were exercised by the authenticated G17 technical campaign. P02/P04 metric and resource controls were tested in their bounded verification scope. P09 remains a QUALIFIED PASS under unchanged latency and memory budgets and requires optimization and remeasurement before G24; this is not a production SLO. Production SLO claims, on-call routing, third-party paging, email or Slack integration and hosted dashboards are out of scope without a separate decision. Alert notifications are distinct from M15 user notifications.
 
 ## 6. Isolation, retention and performance
 

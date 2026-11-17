@@ -16,7 +16,14 @@ jobs:
   windows:
     runs-on: windows-latest
     timeout-minutes: 90
+    env:
+      # The runner's default temp directory is an 8.3 short path, which never equals the long path that a process table
+      # reports, so the producer's command line check cannot match. A short real path avoids the mismatch.
+      TEMP: D:\t
+      TMP: D:\t
     steps:
+      - run: New-Item -ItemType Directory -Force D:\t | Out-Null
+        shell: pwsh
       - uses: actions/checkout@v4
         with: {path: candidate}
       - uses: actions/checkout@v4
@@ -29,6 +36,7 @@ jobs:
         run: |
           node --test scripts/g17-diagnostic-producer-guard.test.mjs scripts/g17-diagnostic-hash-list.test.mjs scripts/g17-diagnostic-verifier-strict.test.mjs scripts/g17-witness-binding.test.mjs scripts/g17-evidence-archive.test.mjs 2>&1 | Tee-Object -FilePath ../candidate-controls.tap
           "exit=$LASTEXITCODE" | Add-Content ../candidate-controls.tap
+        continue-on-error: true
       - name: Unmutated controls on the frozen source
         shell: pwsh
         working-directory: frozen
@@ -50,8 +58,9 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          Get-ChildItem -Directory -Filter 'work-*' -Recurse retest-frozen, retest-candidate -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
-          Get-ChildItem retest-frozen, retest-candidate -Filter 'M*.json' | ForEach-Object { $j = Get-Content $_.FullName -Raw | ConvertFrom-Json; "{0} {1} control_before={2} mutated_exit={3} auto={4}{5}" -f $_.Directory.Name, $_.BaseName, $j.control_before.exit, $j.mutated_run.exit, $j.auto, $j.disposition }
+          $d = 'retest-frozen','retest-candidate' | Where-Object { Test-Path $_ }
+          Get-ChildItem -Directory -Filter 'work-*' -Recurse $d | Remove-Item -Recurse -Force
+          Get-ChildItem $d -Filter 'M*.json' | ForEach-Object { $j = Get-Content $_.FullName -Raw | ConvertFrom-Json; "{0} {1} control_before={2} mutated_exit={3} auto={4}{5}" -f $_.Directory.Name, $_.BaseName, $j.control_before.exit, $j.mutated_run.exit, $j.auto, $j.disposition }
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -71,7 +71,9 @@ function freshEvidence() {
   return dir;
 }
 const record = dir => JSON.parse(fs.readFileSync(path.join(dir, "m17-owned-cleanup.json"), "utf8").replace(/^\uFEFF/, ""));
-const text = run => `${run.stdout}\n${run.stderr}`;
+// PowerShell wraps an error message to the console width and prefixes continuation lines with a margin that depends on the
+// host, so matches are made against the message with each such break folded to a single space.
+const text = run => `${run.stdout}\n${run.stderr}`.replace(/\r?\n[ \t]*(?:\|[ \t]*)?/g, " ");
 
 after(() => {
   for (const name of created.containers) docker("rm", "-f", name);

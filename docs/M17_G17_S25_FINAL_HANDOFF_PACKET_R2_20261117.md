@@ -22,7 +22,8 @@ This packet lets a separate reviewer inspect the real source and raw evidence wi
 | Raw campaign evidence | `E:\HarborOps-Verification\g17-final2\final-m4-evidence` and archive `g17-m4-evidence.zip` (real zip, 69 files, SHA-256 `0a5324bcb33987fde1a565684ea65e356af81c44d34ff85f4d554f0c10098d0b`) with `g17-m4-evidence.zip.inventory.json` |
 | Manifest, ledger, run status | `manifest.json` `978ddfb9...`, `g17-technical-assertion-ledger.json` `d936408e...`, `run-status.json` `b33447ad...` (full values in the consolidated result) |
 | Preserved failed attempts | `final-m1-evidence`, `final-m2-evidence`, `final-m3-evidence` and the matching `-run.log` files in the same folder; k1 to k4 in `E:\HarborOps-Verification\g17-final` |
-| Failed-attempt archives | `g17-m1-failed-attempt-evidence.zip` `7a9da5e7...`, `g17-m2-failed-attempt-evidence.zip` `14f428eb...` and **`g17-m3-failed-attempt-evidence.zip` `a92f2a4e...` (the failed P09 campaign at this same source)**, real zips verified by extraction, with `g17-final2-attempt-archive-index.json` (`ac006d94...`) listing all four archives and the four run logs with hashes |
+| Further archives | `g17-m-worker-topup-rehearsal-evidence.zip` `1ffb13b7...` (forced top-up rehearsal and the other worker rehearsals with raw results and traces), `g17-m-mutation-and-control-evidence.zip` `e95a906d...` (mutation JSONL, control logs, real-stack first-failure red and green runs, tooling, derived non-kill status), `g17-m-run-logs.zip` `b679be2e...`, `g17-k1-k3-failed-attempt-evidence.zip` `5b201b53...`; index `cfbd6ed0...` (replaces the earlier value) |
+| Failed-attempt archives | `g17-m1-failed-attempt-evidence.zip` `7a9da5e7...`, `g17-m2-failed-attempt-evidence.zip` `14f428eb...` and **`g17-m3-failed-attempt-evidence.zip` `a92f2a4e...` (the failed P09 campaign at this same source)**, real zips verified by extraction, with `g17-final2-attempt-archive-index.json` (`cfbd6ed0...`) listing all eight archives and the four run logs with hashes |
 | P09 measurements | `m17-performance-raw.json` of m2, m3 (failed) and m4 in their evidence folders |
 | Rehearsals and mutation outputs | `first-failure-*`, `worker-rehearsal-*`, `rehearsal-*`, `mutation\*.jsonl` and the preflight logs in `E:\HarborOps-Verification\g17-final2` |
 | Original r1c, r2 and r3 evidence | `docs/m17-s25-p09-controlled-protocol-20261115/results/` (committed, byte-identical to before this work) |
@@ -67,7 +68,7 @@ Legend: **TECHNICAL PASS** means a source-locked executable witness passed in m4
 | Diagnostic state hash producer | **CORRECTED and VERIFIED prospectively and hardened** (section 6). Historical r1c, r2 and r3 mismatch **preserved, not repaired** |
 | Disposable Docker cleanup (R10) | **FIXED**: exact ownership, cleanup failure is a failure, no subnet left behind; m4 cleanup REMOVED with 0 containers and 0 networks left |
 | Planning documents checker (R12) | **PASS** (231 files). The four earlier failures were a stale checker, not stale documents |
-| Mutation survivors | Earlier 11 non-material survivors unchanged. New survivors classified in the findings register |
+| Mutation survivors | Earlier 11 non-material survivors unchanged. For the mutation work of this revision, 25 non-kill rows have no killing run recorded under the same name and are **not yet individually classified**; the mechanical list is `survivor-status-derived.md` in the mutation archive (see the consolidated result). Reviewer attention requested |
 | GitHub Actions at this source | **NOT RUN, not authorized.** Only local verification exists |
 | Merge to `main`, deployment, release, G18 start | **NOT AUTHORIZED** |
 
@@ -77,11 +78,15 @@ Legend: **TECHNICAL PASS** means a source-locked executable witness passed in m4
 | --- | --- | --- |
 | Verifier modules already covered | Strict exhaustive campaign of 805 candidates (earlier source) | 790 runtime kills, 4 load-time kills, 11 survivors classified non-material (unchanged) |
 | Alert rules | 21 mutants against the promtool cases | 21 of 21 killed |
-| First-failure evidence verifier | single-fact mutants | 38 of 38 effective killed |
+| First-failure evidence verifier | single-fact mutants | 38 of 38 killed (second round; two first-round survivors were closed by added tests) |
 | C# telemetry seeding and classification | 12 mutants | 12 of 12 killed |
 | Readiness check | 9 mutants | 9 of 9 killed |
-| Planning current-state rules | 19 mutants | 19 of 19 killed |
-| Strict diagnostic verifier | single-fact mutants | 38 of 38 effective killed |
+| Planning current-state rules | 19 mutants | 19 of 19 killed (two earlier rounds were void because their unmutated control failed and are preserved) |
+| Strict diagnostic verifier | single-fact mutants | 38 killed, **1 survivor (alternate stream names accepted)** and 1 mutant whose pattern was not found; not fully killed |
+| Diagnostic producer | single-fact mutants | 37 killed, **2 survivors** (child exit not awaited, lingering child tolerated) |
+| Docker ownership and cleanup | single-fact mutants | 21 killed, **5 survivors** and 1 pattern not found |
+| Evidence archive | single-fact mutants | 18 killed, **3 survivors** |
+| Witness binding and reconcile binding | single-fact mutants | 12 killed, **4 survivors** |
 | Manifest and witness changes, worker top-up rules | single-fact mutants | 5 of 5 and 6 of 6 killed |
 | Real-stack first-failure check | old source against the same check | fails, as required; new source passes |
 | Real-stack readiness | stopped PostgreSQL, ten concurrent probes | all 503, maximum 4.51 s |

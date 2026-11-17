@@ -226,12 +226,12 @@ public sealed class M17ReadinessCancellationTests
         clock.Stop();
 
         Assert.True(caller.IsCancellationRequested);
-        // Npgsql does not honor the token while it waits on a silent server, so the effect is bounded by the capped
-        // provider timeout (3 s), not by the token. Thirty seconds, the provider setting, would be a defect.
-        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(4.6),
+        // The caller is released at once; the abandoned provider call ends on its own capped ceiling (3 s), which is
+        // checked below by waiting for the client connection to close. Thirty seconds would be a defect.
+        Assert.True(clock.Elapsed < TimeSpan.FromMilliseconds(milliseconds) + TimeSpan.FromSeconds(1.5),
             $"cancellation after {milliseconds} ms took {clock.Elapsed.TotalSeconds:F2}s to take effect");
         Assert.DoesNotContain(samples, sample => sample.Operation == "readiness");
-        Assert.True(await server.AllClientConnectionsClosedAsync(TimeSpan.FromSeconds(3)),
+        Assert.True(await server.AllClientConnectionsClosedAsync(TimeSpan.FromSeconds(7)),
             "a connection opened by the cancelled check was left open");
     }
 
@@ -389,5 +389,68 @@ public sealed class M17ReadinessCancellationTests
             await using var rollback = new Npgsql.NpgsqlCommand("ROLLBACK;", locker);
             await rollback.ExecuteNonQueryAsync();
         }
+    }
+
+    // A provider call that ignores every timeout and every token: the connection open itself is stuck (the stand-in for
+    // a name lookup or a queued connection attempt, which the provider's ceilings do not cover).
+    private sealed class StuckConnectionInterceptor(TimeSpan stuckFor) : Microsoft.EntityFrameworkCore.Diagnostics.DbConnectionInterceptor
+    {
+        public override async ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult> ConnectionOpeningAsync(
+            System.Data.Common.DbConnection connection,
+            Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEventData eventData,
+            Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult result,
+            CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(stuckFor, CancellationToken.None);
+            return result;
+        }
+    }
+
+    private static DatabaseReadinessCheck StuckCheck(int port, TimeSpan stuckFor) =>
+        new(new HarborOpsDbContext(new DbContextOptionsBuilder<HarborOpsDbContext>().UseNpgsql(
+            $"Host=127.0.0.1;Port={port};Database=harborops_unreachable;Username=u;Password=p;SSL Mode=Disable;Pooling=false;Timeout=3;Command Timeout=3")
+            .AddInterceptors(new StuckConnectionInterceptor(stuckFor)).Options));
+
+    [Fact(Timeout = 30000)]
+    public async Task AProviderCallThatIgnoresEveryTimeoutIsAbandonedAtTheHardLimit()
+    {
+        var check = StuckCheck(ClosedPort(), TimeSpan.FromSeconds(20));
+        using var listener = new MeterListener();
+        var samples = Listen(listener);
+
+        var (result, elapsed) = await TimedAsync(check, CancellationToken.None);
+
+        Assert.Equal(HealthStatus.Unhealthy, result.Status);
+        Assert.True(elapsed > TimeSpan.FromSeconds(4.2), $"the hard limit fired early ({elapsed.TotalSeconds:F2}s)");
+        Assert.True(elapsed < EnforcedBound, $"the stuck provider call held readiness for {elapsed.TotalSeconds:F2}s");
+        Assert.Equal([new Sample("readiness", "unavailable")], samples.ToArray());
+    }
+
+    [Fact(Timeout = 30000)]
+    public async Task ManyConcurrentChecksAgainstAStuckProviderAllEndInsideTheBound()
+    {
+        var port = ClosedPort();
+        var started = System.Diagnostics.Stopwatch.StartNew();
+        var results = await Task.WhenAll(Enumerable.Range(0, 12).Select(async _ =>
+            await TimedAsync(StuckCheck(port, TimeSpan.FromSeconds(20)), CancellationToken.None)));
+        Assert.All(results, r =>
+        {
+            Assert.Equal(HealthStatus.Unhealthy, r.Result.Status);
+            Assert.True(r.Elapsed < EnforcedBound, $"a concurrent check took {r.Elapsed.TotalSeconds:F2}s");
+        });
+        Assert.True(started.Elapsed < EnforcedBound, "the checks ran concurrently, not one after another");
+    }
+
+    [Fact(Timeout = 30000)]
+    public async Task CallerCancellationEndsAStuckProviderCallImmediatelyAndPublishesNothing()
+    {
+        var check = StuckCheck(ClosedPort(), TimeSpan.FromSeconds(20));
+        using var listener = new MeterListener();
+        var samples = Listen(listener);
+        using var caller = new CancellationTokenSource(TimeSpan.FromMilliseconds(150));
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => check.CheckHealthAsync(Context(check), caller.Token));
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(1.5), $"cancellation took {clock.Elapsed.TotalSeconds:F2}s");
+        Assert.DoesNotContain(samples, sample => sample.Operation == "readiness");
     }
 }

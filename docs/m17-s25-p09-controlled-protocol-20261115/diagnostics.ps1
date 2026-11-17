@@ -154,6 +154,10 @@ if (-not $alreadyStopped) {
         if ($live.CommandLine.IndexOf($expected.Marker, [StringComparison]::OrdinalIgnoreCase) -lt 0) { throw "Process $id does not carry this run's $kind command line; refusing to signal it." }
         Stop-Process -Id $id -Force
         try { Wait-Process -Id $id -Timeout 10 -ErrorAction Stop } catch [System.TimeoutException] { throw "Child $kind (process $id) did not exit within 10 seconds." } catch { }
+        # The process table can still list a process for a moment after it has exited (seen in one run in ten on a hosted
+        # Windows runner). Settle for a bounded time; a child that is still listed afterwards is a real failure.
+        $settleUntil = [DateTime]::UtcNow.AddSeconds(5)
+        while ((Get-ProcessIdentity $id) -and [DateTime]::UtcNow -lt $settleUntil) { Start-Sleep -Milliseconds 200 }
         if (Get-ProcessIdentity $id) { throw "Child $kind (process $id) is still running after the stop request." }
         $outcomes[$kind] = 'terminated'
     }

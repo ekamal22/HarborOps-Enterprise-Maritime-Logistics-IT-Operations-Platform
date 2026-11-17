@@ -394,15 +394,15 @@ function shadowedStop(dir, shadows) {
   return {wrapper, folder};
 }
 
-test("a child that outlives the stop request by a few seconds is awaited, then recorded as terminated", async () => {
+test("a child that outlives the stop request by eight seconds is awaited, then recorded as terminated", async () => {
   const toolbox = createToolbox();
   const dir = fixtureDirectory();
   let folder;
   try {
     const children = await liveRun(toolbox, dir);
-    // The kill is carried out by a background job three seconds after the request, so the process is still present
+    // The kill is carried out by a background job eight seconds after the request, later than the 5 second settle window and earlier than the 10 second wait, so the process is still present
     // when Stop-Process returns.
-    const shadow = shadowedStop(dir, "function Stop-Process { param([int]$Id, [switch]$Force) Start-Job -ScriptBlock { param($p) Start-Sleep -Seconds 3; Stop-Process -Id $p -Force } -ArgumentList $Id | Out-Null }");
+    const shadow = shadowedStop(dir, "function Stop-Process { param([int]$Id, [switch]$Force) Start-Job -ScriptBlock { param($p) Start-Sleep -Seconds 8; Stop-Process -Id $p -Force } -ArgumentList $Id | Out-Null }");
     folder = shadow.folder;
     const run = runProducer([], toolbox.env(sidecarMode()), shadow.wrapper);
     assert.equal(run.status, 0, text(run));

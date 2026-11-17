@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        which: [candidate, frozen]
+        which: [candidate-a, candidate-b, candidate-c, frozen]
     runs-on: windows-latest
     timeout-minutes: 60
     env:
@@ -48,3 +48,31 @@ jobs:
         with:
           name: producer-repeat-${{ matrix.which }}
           path: run-*.tap
+  producer-mutants:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      TEMP: D:\t
+      TMP: D:\t
+    steps:
+      - run: New-Item -ItemType Directory -Force D:\t | Out-Null
+        shell: pwsh
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Producer mutants on the candidate
+        shell: pwsh
+        env: {G17_PHASE: new}
+        run: node docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs . retest-candidate-2 M12 M13
+      - name: Collect
+        if: always()
+        shell: pwsh
+        run: |
+          $d = 'retest-candidate-2'
+          Get-ChildItem -Directory -Filter 'work-*' -Recurse $d -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+          Get-ChildItem $d -Filter 'M*.json' | ForEach-Object { $j = Get-Content $_.FullName -Raw | ConvertFrom-Json; "{0} control_before={1} control_after={2} mutated_exit={3} auto={4}" -f $_.BaseName, $j.control_before.exit, $j.control_after.exit, $j.mutated_run.exit, $j.auto }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: producer-mutants-candidate-2
+          path: retest-candidate-2

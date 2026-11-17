@@ -382,3 +382,54 @@ test("negative control: a writer that rewrites identical bytes (same length, new
     assert.match(text(run), /still changing after 3 seconds \(late write\)/);
   } finally { writer.kill("SIGKILL"); toolbox.cleanup(); removeTree(dir); }
 });
+
+// ---- Exit of the children is awaited and proven. A stop request that is only honoured a few seconds later, or a wait
+// that fails for a reason other than the timeout, must never be recorded as a terminated child. PowerShell resolves a
+// function before a cmdlet, so a wrapper script that defines Stop-Process or Wait-Process and then runs the real
+// producer reproduces both conditions without touching any real process.
+function shadowedStop(dir, shadows) {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), "g17-diag-shadow-"));
+  const wrapper = path.join(folder, "stop-with-shadows.ps1");
+  fs.writeFileSync(wrapper, `$ErrorActionPreference = 'Stop'\n${shadows}\n& '${producer}' -Action Stop -OutDir '${dir}' -SettleMilliseconds 200 -SettleTimeoutSeconds 6\n`);
+  return {wrapper, folder};
+}
+
+test("a child that outlives the stop request by a few seconds is awaited, then recorded as terminated", async () => {
+  const toolbox = createToolbox();
+  const dir = fixtureDirectory();
+  let folder;
+  try {
+    const children = await liveRun(toolbox, dir);
+    // The kill is carried out by a background job three seconds after the request, so the process is still present
+    // when Stop-Process returns.
+    const shadow = shadowedStop(dir, "function Stop-Process { param([int]$Id, [switch]$Force) Start-Job -ScriptBlock { param($p) Start-Sleep -Seconds 3; Stop-Process -Id $p -Force } -ArgumentList $Id | Out-Null }");
+    folder = shadow.folder;
+    const run = runProducer([], toolbox.env(sidecarMode()), shadow.wrapper);
+    assert.equal(run.status, 0, text(run));
+    for (const [kind, child] of Object.entries(children))
+      assert.ok(await waitUntil(() => !alive(child.pid), 4000), `${kind} child must have exited`);
+    const state = JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^﻿/, ""));
+    assert.deepEqual(state.stop_outcomes, {typeperf: "terminated", events: "terminated", logs: "terminated", sidecar: "removed"});
+    assert.deepEqual(verifyDiagnosticDirectory(dir).errors, []);
+  } finally { toolbox.cleanup(); removeTree(dir); if (folder) removeTree(folder); }
+});
+
+test("a child that is still present after the wait fails the stop and is never recorded as terminated", async () => {
+  const toolbox = createToolbox();
+  const dir = fixtureDirectory();
+  let folder;
+  try {
+    const children = await liveRun(toolbox, dir);
+    // The stop request has no effect and the wait fails with an error other than the timeout (the producer swallows it).
+    const shadow = shadowedStop(dir, "function Stop-Process { param([int]$Id, [switch]$Force) }\nfunction Wait-Process { throw 'simulated failure that is not a timeout' }");
+    folder = shadow.folder;
+    const run = runProducer([], toolbox.env(sidecarMode()), shadow.wrapper);
+    assert.notEqual(run.status, 0, text(run));
+    assert.match(text(run), /is still running after the stop request/);
+    for (const [kind, child] of Object.entries(children)) assert.ok(alive(child.pid), `${kind} child was never signalled`);
+    assert.equal(fs.existsSync(path.join(dir, HASH_LIST)), false, "nothing may be finalised");
+    assert.deepEqual(toolbox.removals(), [], "the sidecar is not touched before every child is proven gone");
+    const state = JSON.parse(fs.readFileSync(path.join(dir, STATE_FILE), "utf8").replace(/^﻿/, ""));
+    assert.equal(state.stop_outcomes, undefined, "no outcome is recorded for a child that is still running");
+  } finally { toolbox.cleanup(); removeTree(dir); if (folder) removeTree(folder); }
+});

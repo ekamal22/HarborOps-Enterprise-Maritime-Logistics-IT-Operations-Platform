@@ -1,5 +1,5 @@
 // Per-mutant retest on a disposable copy of the frozen source. usage: node retest.mjs <frozen-src> <out-dir> [id ...]
-import fs from "node:fs"; import path from "node:path"; import crypto from "node:crypto"; import {spawnSync} from "node:child_process";
+import fs from "node:fs"; import path from "node:path"; import crypto from "node:crypto"; import {spawnSync} from "node:child_process"; import {pathToFileURL} from "node:url";
 const [src, out, ...only] = process.argv.slice(2);
 const sha = b => crypto.createHash("sha256").update(b).digest("hex");
 const BS = String.fromCharCode(92), nul = BS + "u0000", R = String.raw, BOM = BS + "uFEFF";
@@ -39,9 +39,9 @@ const M = [
  {id:"M11",family:"docker ownership",name:"existing evidence directory overwritten",target:"scripts/cleanup-g17-owned.ps1",
   from:"if (Test-Path -LiteralPath $evidencePath) { throw 'The cleanup evidence directory already exists. Never overwrite evidence' }",to:"",cmd:T(NEW ? ownAll : BROAD ? ownFrozen : "already exists",own)},
  {id:"M12",family:"diagnostic producer",name:"exit of children not awaited",target:`${proto}/diagnostics.ps1`,
-  from:'try { Wait-Process -Id $id -Timeout 10 -ErrorAction Stop } catch [System.TimeoutException] { throw "Child $kind (process $id) did not exit within 10 seconds." } catch { }',to:"",cmd:T("owned run stops only","scripts/g17-diagnostic-producer-guard.test.mjs")},
+  from:'try { Wait-Process -Id $id -Timeout 10 -ErrorAction Stop } catch [System.TimeoutException] { throw "Child $kind (process $id) did not exit within 10 seconds." } catch { }',to:"",cmd:(NEW||BROAD) ? T(null,"scripts/g17-diagnostic-producer-guard.test.mjs") : T("owned run stops only","scripts/g17-diagnostic-producer-guard.test.mjs")},
  {id:"M13",family:"diagnostic producer",name:"lingering child tolerated",target:`${proto}/diagnostics.ps1`,
-  from:'if (Get-ProcessIdentity $id) { throw "Child $kind (process $id) is still running after the stop request." }',to:"",cmd:T("owned run stops only","scripts/g17-diagnostic-producer-guard.test.mjs")},
+  from:'if (Get-ProcessIdentity $id) { throw "Child $kind (process $id) is still running after the stop request." }',to:"",cmd:(NEW||BROAD) ? T(null,"scripts/g17-diagnostic-producer-guard.test.mjs") : T("owned run stops only","scripts/g17-diagnostic-producer-guard.test.mjs")},
  {id:"M14",occurrence:1,family:"diagnostic verifier",name:"stream names accepted",target:"scripts/g17-diagnostic-hash-list.mjs",
   from:R`[^\\/:<>"|?*\x00-\x1f\s]`,to:R`[^\\/<>"|?*\x00-\x1f\s]`,cmd:BROAD ? diagBroad : diagStrict},
  {id:"M14b",occurrence:2,family:"diagnostic verifier",name:"stream names accepted (second position)",target:"scripts/g17-diagnostic-hash-list.mjs",from:R`[^\\/:<>"|?*\x00-\x1f\s]`,to:R`[^\\/<>"|?*\x00-\x1f\s]`,cmd:BROAD ? diagBroad : diagStrict},
@@ -53,7 +53,7 @@ const M = [
   from:"if (start < 0) return null;",to:"",cmd:T(null,"scripts/g17-witness-binding.test.mjs")},
 ];
 export {M};
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
 fs.mkdirSync(out, {recursive: true});
 const run = (cwd, cmd, tag) => {
   const t0 = Date.now(); const r = spawnSync(cmd[0], cmd.slice(1), {cwd, encoding: "utf8", timeout: 900000, maxBuffer: 256 << 20});

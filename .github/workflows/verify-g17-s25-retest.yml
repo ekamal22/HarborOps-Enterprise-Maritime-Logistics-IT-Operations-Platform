@@ -1,0 +1,103 @@
+# G17 S25 mutation retest on hosts that the authoring environment lacked: a Windows runner (Windows PowerShell 5.1,
+# Win32_Process, tar.exe) and a Linux runner with a real Docker daemon. Diagnostic only; it does not decide G17.
+name: G17 S25 mutation retest
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/harborops-g17-final-verification-60b4bf-j3cyi7
+    paths:
+      - ".github/workflows/verify-g17-s25-retest.yml"
+permissions:
+  contents: read
+env:
+  FROZEN: 634053c4d0c3a2cb8c51b2c29fda87b126e08993
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with: {path: candidate}
+      - uses: actions/checkout@v4
+        with: {ref: "${{ env.FROZEN }}", path: frozen}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Unmutated controls on the candidate (no mutation)
+        shell: pwsh
+        working-directory: candidate
+        run: |
+          node --test scripts/g17-diagnostic-producer-guard.test.mjs scripts/g17-diagnostic-hash-list.test.mjs scripts/g17-diagnostic-verifier-strict.test.mjs scripts/g17-witness-binding.test.mjs scripts/g17-evidence-archive.test.mjs 2>&1 | Tee-Object -FilePath ../candidate-controls.tap
+          "exit=$LASTEXITCODE" | Add-Content ../candidate-controls.tap
+      - name: Unmutated controls on the frozen source
+        shell: pwsh
+        working-directory: frozen
+        run: |
+          node --test scripts/g17-diagnostic-producer-guard.test.mjs scripts/g17-diagnostic-hash-list.test.mjs 2>&1 | Tee-Object -FilePath ../frozen-controls.tap
+          "exit=$LASTEXITCODE" | Add-Content ../frozen-controls.tap
+        continue-on-error: true
+      - name: Mutants on the frozen source
+        shell: pwsh
+        env: {G17_PHASE: frozen-broad}
+        run: node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs frozen retest-frozen M01 M02 M03 M04 M05 M12 M13 M14 M14b M15 M16 M17
+        continue-on-error: true
+      - name: Mutants on the candidate
+        shell: pwsh
+        env: {G17_PHASE: new}
+        run: node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs candidate retest-candidate M12 M13 M14 M14b M16 M17
+        continue-on-error: true
+      - name: Collect records
+        if: always()
+        shell: pwsh
+        run: |
+          Get-ChildItem -Directory -Filter 'work-*' -Recurse retest-frozen, retest-candidate -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+          Get-ChildItem retest-frozen, retest-candidate -Filter 'M*.json' | ForEach-Object { $j = Get-Content $_.FullName -Raw | ConvertFrom-Json; "{0} {1} control_before={2} mutated_exit={3} auto={4}{5}" -f $_.Directory.Name, $_.BaseName, $j.control_before.exit, $j.mutated_run.exit, $j.auto, $j.disposition }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g17-s25-retest-windows
+          path: |
+            retest-frozen
+            retest-candidate
+            candidate-controls.tap
+            frozen-controls.tap
+  linux-docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with: {path: candidate}
+      - uses: actions/checkout@v4
+        with: {ref: "${{ env.FROZEN }}", path: frozen}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Image and tools
+        run: |
+          docker pull alpine/socat:1.8.0.3
+          sudo apt-get update -qq && sudo apt-get install -y -qq libarchive-tools
+          mkdir -p "$RUNNER_TEMP/sysroot/System32" && ln -sf /usr/bin/bsdtar "$RUNNER_TEMP/sysroot/System32/tar.exe"
+          pwsh -v
+      - name: Docker ownership mutants on the frozen source
+        env: {G17_PHASE: frozen-broad}
+        run: |
+          export SystemRoot="$RUNNER_TEMP/sysroot"
+          node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs frozen retest-frozen M06 M07 M08 M09 M10 M11
+        continue-on-error: true
+      - name: Docker ownership mutants on the candidate
+        env: {G17_PHASE: new}
+        run: |
+          export SystemRoot="$RUNNER_TEMP/sysroot"
+          node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs candidate retest-candidate M06 M07 M08 M09 M10 M11
+        continue-on-error: true
+      - name: Collect records
+        if: always()
+        run: |
+          find retest-frozen retest-candidate -name 'work-*' -prune -exec rm -rf {} + || true
+          for f in retest-frozen/M*.json retest-candidate/M*.json; do node -e 'const j=require(process.argv[1]);console.log(process.argv[1],"control_before="+j.control_before.exit,"mutated_exit="+j.mutated_run?.exit,j.auto||j.disposition)' "./$f"; done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g17-s25-retest-linux
+          path: |
+            retest-frozen
+            retest-candidate

@@ -12,7 +12,9 @@ const read = relative => fs.readFileSync(path.join(repo, relative), "utf8");
 const docs = () => ({status: read("docs/STATUS.md"), roadmap: read("docs/ROADMAP.md"), contributors: read("docs/CONTRIBUTING.md"),
   readme: read("README.md"), acceptance: read("docs/ACCEPTANCE_CRITERIA.md"),
   events: read("docs/EVENT_PROCESSING.md"), m17Plan: read("docs/M17_IMPLEMENTATION_PLAN.md"),
-  graph: read("docs/EXECUTION_GRAPH.md")});
+  graph: read("docs/EXECUTION_GRAPH.md"),
+  operations: read("docs/OPERATIONS.md"), strategy: read("docs/TEST_STRATEGY.md"),
+  g17Plan: read("docs/M17_VERIFICATION_PLAN.md"), guide: read("docs/DOCUMENT_STATUS_GUIDE.md")});
 
 test("the real documents reflect G17 integration and preserve independent sign-off limitations", () => {
   assert.deepEqual(currentStateProblems(docs()), []);
@@ -32,6 +34,10 @@ test("each current-state rule fails on its own when its statement is removed", (
     "event-current-set": d => { d.events = d.events.replace("G0-G12, G15, G16 and G17 are accepted and integrated; G13 remains conditionally accepted", "G17 pending"); },
     "m17-delivery-outcome": d => { d.m17Plan = d.m17Plan.replace("Current outcome (2026-11-17):** M17-01 through M17-04 were implemented and integrated through PR #53", "Current outcome pending"); },
     "graph-accepted-m17": d => { d.graph = d.graph.replace("G17 was accepted for integration after the authenticated Campaign 01 technical PASS", "G17 pending"); },
+    "operations-g17-integrated": d => { d.operations = d.operations.replace("Authenticated Campaign 01 passed 51/51 stages", "campaign not run"); },
+    "strategy-g17-executed": d => { d.strategy = d.strategy.replace("M17 is implemented and integrated into `main` after authenticated Campaign 01 passed 51/51 stages", "M17 verification pending"); },
+    "g17-plan-atomic-result": d => { d.g17Plan = d.g17Plan.replace("Atomic scope and final technical result (2026-11-17):** 25 scenarios", "Current progress pending"); },
+    "guide-integrated-status": d => { d.guide = d.guide.replace("Current integration decision: G0-G12, G15, G16 and G17 are accepted and integrated", "G17 pending"); },
     "roadmap-accepted-set": d => { d.roadmap = d.roadmap.replace("G0-G12, G15, G16 and G17 accepted and merged", "G0-G12 accepted"); },
     "roadmap-release-pending": d => { d.roadmap = d.roadmap.replace("G24 release acceptance remain pending", "G24 release is accepted"); },
     "contributors-accepted-set": d => { d.contributors = d.contributors.replace("G0-G12, G15, G16 and G17 are accepted and integrated. G13 remains conditionally accepted", "gates are accepted"); }

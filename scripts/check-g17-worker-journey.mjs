@@ -4,6 +4,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import {spawnSync} from "node:child_process";
 import {verifyOwnedWorkerLog} from "./g17-worker-log-privacy.mjs";
+import {sampledCount, REQUIRED_SAMPLED_JOURNEYS} from "./g17-link-sampling.mjs";
 
 const project=process.env.HARBOROPS_G17_PROJECT;
 const sha=process.env.HARBOROPS_SOURCE_SHA;
@@ -34,7 +35,7 @@ const slug="g17-worker-"+nonce;
 const output=path.join(evidence,"m17-worker-journey-results.json");
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const auth="Basic "+Buffer.from("local_operator:"+grafana).toString("base64");
-let failure=null,pairCount=0,accepted=0,replay=false,reconciled=0;
+let failure=null,pairCount=0,accepted=0,replay=false,reconciled=0,topUpBatches=0,sampledJourneys=0;
 const protectedValues=[];
 const retainedTraceDocuments=[];
 let retainedMetricSeries=[];
@@ -141,6 +142,19 @@ try {
  accepted=50;
  assert.equal(await ingest(0,true),first);
  replay=true;
+ // Whether a receipt is traced is a keyed 10 percent decision (the leading bits of its HMAC digest), so 50 receipts
+ // can by chance hold fewer than two traced journeys (about one run in thirty). The digests are known before any trace
+ // is looked up, so the script tops up with more receipts, a whole minute after the first batch because intake allows
+ // 60 per source per minute, until enough traced journeys exist. The gate itself is unchanged: two real API and worker
+ // trace pairs must still be found in Tempo.
+ const digestOf=c=>crypto.createHmac("sha256",Buffer.from(key,"base64")).update(c,"utf8").digest("hex");
+ while(sampledCount(correlations.map(digestOf))<REQUIRED_SAMPLED_JOURNEYS&&accepted<250) {
+   await sleep(65000);
+   for(let i=0;i<40;i++)await ingest(accepted+i);
+   accepted+=40;
+   topUpBatches++;
+ }
+ sampledJourneys=sampledCount(correlations.map(digestOf));
  await poll("fifty real restricted worker reconciliations",()=>{
    const count=Number(sql("SELECT count(*) FROM tracking_inbox_work_items "+
      "WHERE source_id='"+sourceId+"' AND state='NeedsReconciliation'"));
@@ -191,11 +205,12 @@ try {
  fs.writeFileSync(path.join(evidence,"m17-worker-journey-series.json"),
    JSON.stringify({source_sha:sha,project,series:retainedMetricSeries},null,2)+"\n",{flag:"wx"});
 }catch(error){failure=error;}
-const status=!failure&&replay&&accepted===50&&reconciled===50&&
+const status=!failure&&replay&&accepted>=50&&reconciled===accepted&&sampledJourneys>=REQUIRED_SAMPLED_JOURNEYS&&
  pairCount>=2&&privateLabelsChecked>0?"PASS":"FAIL";
 fs.writeFileSync(output,JSON.stringify({
  source_sha:sha,project,result:status,worker_role:"restricted",
  receipts_accepted:accepted,reconciled,duplicate_replay:replay,
+ sampled_journeys:sampledJourneys,top_up_batches:topUpBatches,
  matched_safe_trace_pairs:pairCount,
  exported_metric_series_checked_for_tenant_privacy:privateLabelsChecked,
  retained_metric_series:retainedMetricSeries.length,

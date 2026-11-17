@@ -23,6 +23,12 @@ test("a complete, consistent synthetic full campaign verifies", t => {
   assert.equal(report.assertions_reviewed, 0);
 });
 
+test("a worker journey that topped up to 90 receipts with every one reconciled verifies", t => {
+  const {manifest} = withCampaign(t, json("m17-worker-journey-results.json",
+    v => {v.receipts_accepted = 90; v.reconciled = 90; v.sampled_journeys = 9; v.top_up_batches = 1;}));
+  assert.equal(verifyManifest(manifest, source).complete, true);
+});
+
 // Every row breaks exactly one fact of the complete campaign. The manifest is rebuilt after
 // the change, so file hashes are consistent and only the named evidence fact is wrong.
 const CASES = [
@@ -108,6 +114,9 @@ const CASES = [
   ["first failure alert not firing", json("m17-first-failure-results.json", v => {v.checks[6].data.alert = "inactive";}), /First-failure baseline/],
   ["worker journey 49 receipts", json("m17-worker-journey-results.json", v => {v.receipts_accepted = 49;}), /Worker receipt\/replay/],
   ["worker journey 49 reconciled", json("m17-worker-journey-results.json", v => {v.reconciled = 49;}), /Worker receipt\/replay/],
+  ["worker journey 80 receipts with 79 reconciled", json("m17-worker-journey-results.json", v => {v.receipts_accepted = 80; v.reconciled = 79;}), /Worker receipt\/replay/],
+  ["worker journey only two traced journeys", json("m17-worker-journey-results.json", v => {v.sampled_journeys = 2;}), /Worker receipt\/replay/],
+  ["worker journey traced count missing", json("m17-worker-journey-results.json", v => {delete v.sampled_journeys;}), /Worker receipt\/replay/],
   ["worker journey no replay", json("m17-worker-journey-results.json", v => {v.duplicate_replay = false;}), /Worker receipt\/replay/],
   ["worker journey one trace pair", json("m17-worker-journey-results.json", v => {v.matched_safe_trace_pairs = 1;}), /Worker receipt\/replay/],
   ["worker journey owner role", json("m17-worker-journey-results.json", v => {v.worker_role = "owner";}), /Worker receipt\/replay/],

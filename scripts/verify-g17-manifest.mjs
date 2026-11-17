@@ -293,7 +293,9 @@ export function verifyManifest(manifestPath, expectedSha) {
             journey.project !== expected.project ||
             journey.result !== "PASS" ||
             journey.worker_role !== "restricted" ||
-            journey.receipts_accepted !== 50 || journey.reconciled !== 50 ||
+            !Number.isInteger(journey.receipts_accepted) || journey.receipts_accepted < 50 ||
+            journey.reconciled !== journey.receipts_accepted ||
+            !(journey.sampled_journeys >= 3) ||
             journey.duplicate_replay !== true ||
             journey.matched_safe_trace_pairs < 2 ||
             journey.exported_metric_series_checked_for_tenant_privacy < 1)

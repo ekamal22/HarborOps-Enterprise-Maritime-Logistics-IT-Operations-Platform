@@ -203,6 +203,8 @@ const SINGLE_FACT = [
   ["scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", "replay not performed", r => { r.duplicate_replay = false; }],
   ["scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", "49 receipts", r => { r.receipts_accepted = 49; }],
   ["scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", "49 reconciled", r => { r.reconciled = 49; }],
+  ["scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", "two traced journeys", r => { r.sampled_journeys = 2; }],
+  ["scripts/check-g17-worker-journey.mjs", "matched_safe_trace_pairs", "reconciled differs from accepted", r => { r.receipts_accepted = 80; r.reconciled = 50; }],
   ["scripts/check-g17-worker-journey.mjs", "Prometheus exported private tenant/source/account", "worker role not restricted", r => { r.worker_role = "owner"; }],
   ["scripts/check-g17-worker-journey.mjs", "Prometheus exported private tenant/source/account", "no retained traces", r => { r.retained_trace_documents = 0; }],
   ["scripts/check-g17-worker-journey.mjs", "Prometheus exported private tenant/source/account", "series count mismatch", r => { r.retained_metric_series = r.exported_metric_series_checked_for_tenant_privacy + 1; }],

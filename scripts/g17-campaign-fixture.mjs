@@ -112,7 +112,7 @@ export function writeCampaignFiles(dir) {
   const journeyPath = path.join(dir, "m17-worker-journey-results.json");
   const journey = JSON.parse(fs.readFileSync(journeyPath, "utf8"));
   out("m17-worker-journey-results.json", {...journey, worker_role: "restricted",
-    receipts_accepted: 50, reconciled: 50, duplicate_replay: true, matched_safe_trace_pairs: 7});
+    receipts_accepted: 50, reconciled: 50, sampled_journeys: 5, top_up_batches: 0, duplicate_replay: true, matched_safe_trace_pairs: 7});
   out("m17-worker-results.json", wrap({result: "PASS", checks: ["a", "b", "c", "d"].map(pass)}));
   const required = [...new Set([...walk(dir), "expected-artifacts.json", "run-status.json"])].sort();
   out("expected-artifacts.json", {schema_version: 1, gate: "G17", source_sha: source, project,

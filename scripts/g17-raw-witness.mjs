@@ -132,10 +132,10 @@ const RAW_PREDICATES = new Map([
         r.exported_metric_series_checked_for_tenant_privacy > 0 &&
         r.retained_metric_series === r.exported_metric_series_checked_for_tenant_privacy &&
         r.retained_trace_documents > 0 &&
-        r.receipts_accepted === 50 && r.reconciled === 50],
+        r.receipts_accepted >= 50 && r.reconciled === r.receipts_accepted && r.sampled_journeys >= 3],
     ["matched_safe_trace_pairs",
       r => ok(r) && r.matched_safe_trace_pairs >= 2 && r.duplicate_replay === true &&
-        r.receipts_accepted === 50 && r.reconciled === 50]
+        r.receipts_accepted >= 50 && r.reconciled === r.receipts_accepted && r.sampled_journeys >= 3]
   ])],
   ["scripts/check-g17-network.mjs", new Map([
     ["Untrusted host client reached protected monitoring",

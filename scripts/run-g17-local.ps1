@@ -212,6 +212,7 @@ try {
         'scripts/g17-docker-ownership.test.mjs',
         'scripts/g17-evidence-archive.test.mjs',
         'scripts/g17-witness-binding.test.mjs',
+        'scripts/g17-link-sampling.test.mjs',
         'scripts/planning-current-state.test.mjs',
         'scripts/g17-runner-order.test.mjs') -Stage 'source-and-negative-controls' -CaptureFile 'g17-node-tests.xml'
     Invoke-Required 'node' @('scripts/audit-g17-test-coverage.mjs','--strict',

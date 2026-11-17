@@ -61,7 +61,7 @@ export const FIXTURES = {
     rows: Array.from({length: 4}, () => ({distinct_paths: 10000})),
     pairs: [{pass: true}, {pass: true}]},
   "scripts/check-g17-worker-journey.mjs": {result: "PASS", worker_role: "restricted",
-    receipts_accepted: 50, reconciled: 50, duplicate_replay: true,
+    receipts_accepted: 50, reconciled: 50, sampled_journeys: 5, top_up_batches: 0, duplicate_replay: true,
     matched_safe_trace_pairs: 7, exported_metric_series_checked_for_tenant_privacy: 186,
     retained_metric_series:186,retained_trace_documents:24},
   "scripts/check-g17-network.mjs": {result: "PASS", expected: EXPECTED,

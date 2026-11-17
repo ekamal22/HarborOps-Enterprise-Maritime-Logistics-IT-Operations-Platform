@@ -1,7 +1,7 @@
 # G17 Diagnostic State Hash-List Finding
 
 **Recorded:** 2026-11-16
-**Status (updated 2026-11-16 after the final candidate): CORRECTED prospectively and VERIFIED at source `7cc25dabc42b78debf6c9b200fd5209e45b0f56d`.** The text below records the original finding and is kept as written. Original artifacts remain immutable. See the correction section at the end.
+**Status (updated 2026-11-16 after the final candidate): CORRECTED prospectively and VERIFIED at source `7cc25dabc42b78debf6c9b200fd5209e45b0f56d`.** The text below records the original finding and is kept as written. Original artifacts remain immutable. See the correction section at the end. **Update 2026-11-17:** the producer and verifier were hardened further at `634053c4` (Stop waits for child exit and detects late writes, revalidates process and container identity, strict timestamp, link and coverage checks); see findings R07 to R09 in the [consolidated result](M17_G17_CONSOLIDATED_FINAL_REMEDIATION_20261117.md).
 
 The independent review found that `diag-hashes.txt` agrees with seven of the eight diagnostic files in each of r1c, r2 and r3. The single mismatch in every run is `diag-state.json`. The producer, `docs/m17-s25-p09-controlled-protocol-20261115/diagnostics.ps1`, computes the list and **then** writes the final `stopped_utc` timestamp into `diag-state.json`. The internal hash therefore describes the state file before its final write.
 

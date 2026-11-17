@@ -4,6 +4,7 @@
 **Branch:** `feat/harborops-g17-final-verification-60b4bf` (descends from the review branch `feat/harborops-g17-s25-audit-6439ae` at `9cbcc369883dd86a779147fc0614e4e26c202184`)
 **Frozen verification source:** `7cc25dabc42b78debf6c9b200fd5209e45b0f56d`
 **Campaign outcome:** attempt **k4 COMPLETED technically**: 49 of 49 stages PASS, 72 of 72 technical witnesses, 3 independent S25 assertions pending.
+**Superseded for current status (2026-11-17):** a later complete campaign at `634053c4` is recorded in the [consolidated final remediation and result](M17_G17_CONSOLIDATED_FINAL_REMEDIATION_20261117.md). This record is kept unchanged for history.
 **G17:** **NOT ACCEPTED; acceptance pending.** This is a technical result only. It is not an independent review and does not sign any S25 assertion.
 
 ## Why a new campaign was required

@@ -3,6 +3,7 @@
 **Recorded:** 2026-11-16
 **Frozen source under review:** `7cc25dabc42b78debf6c9b200fd5209e45b0f56d` on branch `feat/harborops-g17-final-verification-60b4bf`
 **Status:** **READY FOR INDEPENDENT S25 REVIEW. G17 NOT ACCEPTED; acceptance pending.**
+**Superseded (2026-11-17):** use the [revision 2 packet](M17_G17_S25_FINAL_HANDOFF_PACKET_R2_20261117.md) for source `634053c4`. This packet is kept unchanged for source `7cc25dab`.
 **Signatures:** none. No reviewer has signed S25-A01, S25-A02 or S25-A03. Nothing in this packet is an approval, and the contributor who implemented and tested these changes cannot supply the independent review.
 
 This packet lets a separate reviewer inspect the real source and raw evidence without relying on summaries. Every figure can be re-derived from the artifacts named here.

@@ -2,7 +2,7 @@
 
 **Decision date:** 2026-11-17
 **Gate:** G17, M17 observability
-**Integration decision:** ACCEPTED FOR MERGE by explicit acceptance authorization.
+**Integration decision:** ACCEPTED, merged into protected `main` through PR #53 on 2026-11-17.
 **Independent technical assessment:** PASS recommended.
 **Formal S25 signed instrument:** Not supplied. The outstanding S25-A03 and F06 signature and reviewer-independence attestation are disclosed, not represented as completed.
 
@@ -33,4 +33,10 @@ The explicit acceptance instruction authorizes merging G17 after the independent
 
 This record authorizes integration, not deployment or release. No downstream release-readiness condition is waived. Any later formal sign-off must authenticate the exact source and evidence and record its own determination.
 
-**Integration state:** Accepted for merge with the above documented procedural condition.
+**Integration state:** Merged at `1a35838acf2d96d561c6d0288e972c33f3a5d2c5` with the above documented procedural condition.
+
+## Post-merge reconciliation and sign-off
+
+Integration through [PR #53](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/53) was completed on 2026-11-17. Protected `main` points to merge commit `1a35838acf2d96d561c6d0288e972c33f3a5d2c5`, with reviewed head `62fab86628f12698fe93b67b5b48912982abfc7a`. The integration source candidate `f400137ce5fc2fe6409ce3732fa31a44a0ef473e` has Git tree `6d6cc5969bad94bb68c99025799b7deb716fb332`, matching the recorded authenticated campaign. Subsequent differences are documentation only, not newly executed verification.
+
+Formal sign-off on the integration report was reiterated on 2026-11-17. This closes the decision to accept and integrate G17; it does not constitute or fabricate the separately signed independent S25-A03/F06 instrument. That specific procedural record remains outstanding. S25-A01 and S25-A02 are recommended PASS by the technical assessment, with recorded qualifications; neither is upgraded to an independently signed instrument here. The P09 performance qualification and all release conditions remain unchanged.

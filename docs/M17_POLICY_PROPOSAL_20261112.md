@@ -1,6 +1,8 @@
 # M17 Local Policy and Design Decision Register
 
-**Current G17 decision (2026-11-16):** P09 is **QUALIFIED PASS** based on four of five complete passing runs, preserving the f6 FAIL, the unexplained burst and the approved 10% pooled p95 / 15% paired mean memory limits. Optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final exact-source verification and independent S25-A01/A02/A03 sign-off remain pending.
+**Current integration state (2026-11-17):** M17 observability is accepted for integration and merged into protected `main` through [PR #53](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/53) at `1a35838acf2d96d561c6d0288e972c33f3a5d2c5`. Authenticated Campaign 01 reports 51/51 stages passed and 72/72 technical assertions supported across 25 scenarios. Integration acceptance and the report sign-off are recorded. The separately signed S25-A03/F06 reviewer instrument remains outstanding. P09 is QUALIFIED PASS with the original f6/m3 failures preserved and optimization plus remeasurement due before G24. Telemetry remains default-off/private, and no production deployment is authorized. Earlier dated checkpoints are historical. [Acceptance decision](M17_G17_S25_ACCEPTANCE_DECISION_20261117.md).
+
+**Historical G17 decision (2026-11-16):** P09 is **QUALIFIED PASS** based on four of five complete passing runs, preserving the f6 FAIL, the unexplained burst and the approved 10% pooled p95 / 15% paired mean memory limits. Optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final exact-source verification and independent S25-A01/A02/A03 sign-off remain pending.
 
 **Historical G17 technical verification (2026-11-14, superseded):** [#43541279851](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/actions/runs/43541279851) completed SUCCESS on source `f174eae6b2077937c7d43a8b1f7c34ecdab9b663`. All 47 campaign stages passed and the source-locked ledger reports 72 of 72 technical assertions passing; the three independent S25 assertions are pending. No required tests were skipped. The 45-entry evidence manifest has no missing expected artifacts, although two hidden Playwright last-run metadata files are absent from the downloaded archive. **Technical G17 campaign GREEN; G17 NOT ACCEPTED; independent S25 review pending.** [Current verified technical result](M17_G17_TECHNICAL_VERIFICATION_GREEN_20261114.md).
 
@@ -8,7 +10,7 @@
 
 **Historical gate context (2026-11-14):** P01-P09 remain approved for design, not independently verified G17 outcomes. Technical test authoring is complete for 72 assertions, but source-locked runtime verification and S25 independence remain outstanding. [Current G17 recovery](M17_G17_VERIFICATION_RECOVERY_20261113.md).
 
-**Source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). G17 remains unverified and not accepted.
+**Historical source candidate:** [M17 implementation candidate status](M17_IMPLEMENTATION_CANDIDATE_STATUS_20261112.md). Superseded by the 2026-11-17 integrated source.
 
 **Prepared and approved:** 2026-11-12. **Status:** **M17-P01 through M17-P09 approved as the implementation design baseline.** Numeric limits identified below remain provisional engineering targets until implementation measurements confirm or formally revise them. This document retains its original filename for stable links; earlier proposal text is preserved in Git history.
 **Entry:** G3 accepted. **Design:** [M17 architecture](M17_ARCHITECTURE_DESIGN.md). **Verification:** [G17 matrix](M17_VERIFICATION_PLAN.md).
@@ -86,7 +88,7 @@ These are M17-local decisions, not replacements for project-wide D-001 through D
 
 ## P09 decision, 2026-11-16
 
-P09 is a **qualified performance-policy PASS**, not G17 gate acceptance. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). The measurement budgets and method have not changed, f6 remains FAIL, and a separate S25-A02 procedural attestation is pending. The following 2026-11-12 checklist remains its original design-time status snapshot.
+P09 is a **qualified performance-policy PASS**, not by itself evidence of G17 gate acceptance. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). The measurement budgets and method have not changed, f6 remains FAIL, and a separate S25-A02 procedural attestation is pending. The following 2026-11-12 checklist remains its original design-time status snapshot.
 
 ## Decision checklist
 
@@ -102,4 +104,4 @@ P09 is a **qualified performance-policy PASS**, not G17 gate acceptance. [Decisi
 | P08 | Approved design; regression evidence pending | Any change near current health paths |
 | P09 | Approved design; latency and memory measurement pending | Performance evidence and G17 judgment |
 
-Record approvals, corrections and dates here or in a separate accepted decision file before changing their status. The presence of numeric candidates is not consent to activate, deploy, retain, delete, page or alter production data. M17 technical implementation and G17 acceptance are separate later gates.
+Record approvals, corrections and dates here or in a separate accepted decision file before changing their status. The presence of numeric candidates is not consent to activate, deploy, retain, delete, page or alter production data. M17 implementation and G17 integration acceptance were completed later on 2026-11-17; neither this design policy nor its P09 decision authorizes deployment.

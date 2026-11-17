@@ -1,5 +1,9 @@
 # Parallel Delivery and Integration Policy
 
+**G17 policy decision (2026-11-16):** P09 is **QUALIFIED PASS** only, based on four passing complete runs out of five, with the f6 FAIL and its unexplained latency burst preserved. The approved pooled p95 latency cap is 10% and paired mean peak-memory cap is 15%, unchanged. Performance optimization is deferred to pre-release readiness or an earlier jointly agreed remediation if source-locked verification fails. [Decision](M17_G17_P09_QUALIFIED_PASS_DECISION_20261116.md). **G17 NOT ACCEPTED:** final source-locked verification and distinct S25 sign-off remain pending.
+
+**Failure escalation:** A source-locked G17 failure requires preserved evidence and an agreed remediation before further verification. This policy decision does not open a parallel rewrite or authorize changes to accepted milestone branches.
+
 **G15 current disposition (2026-11-12):** G15/S25 **ACCEPTED** and merged into `main` via PR #44 (`49934d793542ef43cfe587c54b16cfd5cce8e2f4`). Tested source `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed run 43178122017; reviewer-independence attestation remains a disclosed procedural exception. G13 is still conditionally integrated. P10 fail-closed capture, P12 no deletion and default-off delivery remain mandatory; production rollout and G24 release are not approved. [Final decision](G15_S25_FINAL_ACCEPTANCE_20261112.md), [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
 

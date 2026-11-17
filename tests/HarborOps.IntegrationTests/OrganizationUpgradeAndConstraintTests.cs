@@ -67,6 +67,7 @@ public sealed class OrganizationUpgradeAndConstraintTests
 
             await db.Database.MigrateAsync();
             Assert.Empty(await db.Database.GetPendingMigrationsAsync());
+            var applied = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
             Assert.Equal(
                 [
                     "20261030170000_InitialBootstrap", "20261031010000_IdentitySessions",
@@ -81,7 +82,8 @@ public sealed class OrganizationUpgradeAndConstraintTests
                     "20261105180000_ShipmentTrackingProjections", "20261107120000_M10CorrectionAuthority", "20261107180000_ShipmentExceptions",
                     "20261107230000_M12ShipmentExportAudit"
                 ],
-                (await db.Database.GetAppliedMigrationsAsync()).ToArray());
+                applied.Take(15).ToArray());
+            Assert.Equal(db.Database.GetMigrations().ToArray(), applied);
             var identity = scope.ServiceProvider.GetRequiredService<IdentityStore>();
             var legacy = await identity.ValidateAsync(user, session, 1, CancellationToken.None);
             Assert.NotNull(legacy);

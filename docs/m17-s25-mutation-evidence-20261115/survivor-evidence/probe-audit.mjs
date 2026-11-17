@@ -1,0 +1,12 @@
+import fs from "node:fs";import path from "node:path";import {pathToFileURL} from "node:url";
+const repo=process.argv[2];const {auditG17Coverage}=await import(pathToFileURL(path.join(repo,"scripts/audit-g17-test-coverage.mjs")).href);
+const read=f=>fs.readFileSync(path.join(repo,f),"utf8");
+const inv=JSON.parse(read("docs/M17_G17_ASSERTION_INVENTORY_20261112.json"));const map=JSON.parse(read("docs/M17_G17_TEST_COVERAGE_20261113.json"));
+const clone=x=>JSON.parse(JSON.stringify(x));const out=[];
+const run=(label,mut)=>{const i=clone(inv),m=clone(map);mut(i,m);const r=auditG17Coverage(i,m,read,{strict:false});out.push({label,errors:r.errors});};
+run("unmodified",()=>{});
+run("duplicate assertion id in coverage and inventory",(i,m)=>{i.scenarios[0].assertions[1].id="G17-S01-A01";m.scenarios[0].assertions[1].id="G17-S01-A01";});
+run("missing scenario in coverage",(i,m)=>{m.scenarios.pop();});
+run("permuted assertion ids",(i,m)=>{[i.scenarios[2].assertions[0].id,i.scenarios[2].assertions[1].id]=[i.scenarios[2].assertions[1].id,i.scenarios[2].assertions[0].id];});
+run("fourth assertion in one scenario",(i,m)=>{i.scenarios[3].assertions.push(clone(i.scenarios[3].assertions[0]));m.scenarios[3].assertions.push(clone(m.scenarios[3].assertions[0]));});
+console.log(JSON.stringify(out));

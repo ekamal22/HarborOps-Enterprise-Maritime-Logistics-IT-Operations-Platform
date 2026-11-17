@@ -1,0 +1,67 @@
+{
+  "id": "M09",
+  "family": "docker ownership",
+  "name": "address range release not proven",
+  "target": "scripts/g17-docker-ownership.ps1",
+  "source_sha256": "f41a69207b2e156d7a61eb52a642d12820a4cef24948af7967e26ae6fadb1c39",
+  "command": [
+    "node",
+    "--test",
+    "--test-name-pattern=finished stack|running stack|partially initialised|ambiguous ownership|another project|project names|already exists|held address|runner preserves|remain make the cleanup fail|address range taken|volume that docker created",
+    "scripts/g17-docker-ownership.test.mjs"
+  ],
+  "mutation": {
+    "from": "if ($held.Count -gt 0) { throw",
+    "to": "if ($false) { throw",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 51,
+    "tests": 12,
+    "pass": 12,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M09.control-before.out.txt"
+  },
+  "mutated_sha256": "5d827c84598030526fe317e4fafba959e0893b97009ba00120134b2b3552b351",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 52,
+    "tests": 12,
+    "pass": 11,
+    "fail": 1,
+    "failing_tests": [
+      "an address range taken by another network right after the removal fails the cleanup and names the holder"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "'Removed 3 container(s) and 1 network(s) of ho-verify-m17-selftest-3b25d809-heldafter; 1 volume(s) retained.  '"
+    ],
+    "output": "M09.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 51,
+    "tests": 12,
+    "pass": 12,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M09.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "KILLED_CANDIDATE"
+}

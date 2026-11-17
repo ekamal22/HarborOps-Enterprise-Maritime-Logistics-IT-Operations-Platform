@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: every promtool witness in the coverage register is bound to a real executable case in the real file
+ok 1 - every promtool witness in the coverage register is bound to a real executable case in the real file
+  ---
+  duration_ms: 2.5225
+  type: 'test'
+  ...
+# Subtest: a complete case binds, and the sample used for the controls is itself valid
+ok 2 - a complete case binds, and the sample used for the controls is itself valid
+  ---
+  duration_ms: 0.3115
+  type: 'test'
+  ...
+# Subtest: a mention of the marker in non-comment text neither anchors a case nor hides the real comment that follows
+not ok 3 - a mention of the marker in non-comment text neither anchors a case nor hides the real comment that follows
+  ---
+  duration_ms: 0.9531
+  type: 'test'
+  location: 'D:\\a\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\\retest-candidate\\work-M16\\scripts\\g17-witness-binding.test.mjs:49:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    the later real comment still binds its block
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/a/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/retest-candidate/work-M16/scripts/g17-witness-binding.test.mjs:52:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a marker trailing the interval line is not a comment above the block
+not ok 4 - a marker trailing the interval line is not a comment above the block
+  ---
+  duration_ms: 1.0265
+  type: 'test'
+  location: 'D:\\a\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\\HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform\\retest-candidate\\work-M16\\scripts\\g17-witness-binding.test.mjs:56:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '  - interval: 15s # Readiness must not remain critical\n' +
+    +   '    input_series:\n' +
+    +   "      - series: 'harborops_db_readiness_ratio'\n" +
+    +   "        values: '0x20 1x40'\n" +
+    +   '    alert_rule_test:\n' +
+    +   '      - eval_time: 2m\n' +
+    +   '        alertname: HarborOpsDatabaseUnavailable\n' +
+    +   '        exp_alerts:\n' +
+    +   '          - exp_labels: {severity: critical}\n' +
+    +   '      - eval_time: 8m\n' +
+    +   '        alertname: HarborOpsDatabaseUnavailable\n' +
+    +   '        exp_alerts: []\n'
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: |-
+      - interval: 15s # Readiness must not remain critical
+        input_series:
+          - series: 'harborops_db_readiness_ratio'
+            values: '0x20 1x40'
+        alert_rule_test:
+          - eval_time: 2m
+            alertname: HarborOpsDatabaseUnavailable
+            exp_alerts:
+              - exp_labels: {severity: critical}
+          - eval_time: 8m
+            alertname: HarborOpsDatabaseUnavailable
+            exp_alerts: []
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/a/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/retest-candidate/work-M16/scripts/g17-witness-binding.test.mjs:60:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a case comment with no block after it yields no block, whatever follows
+ok 5 - a case comment with no block after it yields no block, whatever follows
+  ---
+  duration_ms: 0.2459
+  type: 'test'
+  ...
+# Subtest: each way a case can be hollowed out is rejected on its own
+ok 6 - each way a case can be hollowed out is rejected on its own
+  ---
+  duration_ms: 1.3723
+  type: 'test'
+  ...
+# Subtest: the real file loses its binding if a witnessed case is hollowed out
+ok 7 - the real file loses its binding if a witnessed case is hollowed out
+  ---
+  duration_ms: 0.6209
+  type: 'test'
+  ...
+# Subtest: the manifest rejection witness needs the three executed Node cases that provoke the refusal
+ok 8 - the manifest rejection witness needs the three executed Node cases that provoke the refusal
+  ---
+  duration_ms: 0.4675
+  type: 'test'
+  ...
+# Subtest: a line that is not a comment can never name a case, even directly above a real block
+ok 9 - a line that is not a comment can never name a case, even directly above a real block
+  ---
+  duration_ms: 0.3873
+  type: 'test'
+  ...
+# Subtest: a case with series but no executable assertion is not bound, even for a marker without special requirements
+ok 10 - a case with series but no executable assertion is not bound, even for a marker without special requirements
+  ---
+  duration_ms: 0.4637
+  type: 'test'
+  ...
+# Subtest: the three manifest rejection cases are pinned by name
+ok 11 - the three manifest rejection cases are pinned by name
+  ---
+  duration_ms: 0.1851
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 9
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 121.2565

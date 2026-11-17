@@ -1,0 +1,134 @@
+name: G17 source-locked acceptance verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/m17-observability-20261112
+    paths:
+      - ".github/workflows/verify-g17-s25.yml"
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "monitoring/m17/**"
+      - "compose.m17*.yaml"
+      - "compose.m9.worker.yaml"
+      - "docs/M17_G17_*.json"
+      - "HarborOps.sln"
+      - "Directory.Build.props"
+      - "global.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: g17-verification-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  atomic-preflight:
+    name: G17 no-skip source and assertion preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source lock and assertions
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain)"
+          node --test scripts/audit-g17-test-coverage.test.mjs scripts/g17-results-contract.test.mjs scripts/reconcile-g17-assertions.test.mjs scripts/g17-raw-witness.test.mjs scripts/g17-malformed-trace-evidence.test.mjs scripts/g17-s25-raw-evidence.test.mjs scripts/g17-evidence-files.test.mjs scripts/g17-live-5xx-evidence.test.mjs scripts/g17-worker-log-privacy.test.mjs scripts/g17-p09-review.test.mjs scripts/g17-diagnostic-evidence.test.mjs
+          node scripts/audit-g17-test-coverage.mjs --strict
+      - name: Source boundary and negative controls
+        shell: bash
+        run: |
+          node --test scripts/g17-source-boundary.test.mjs scripts/check-m17-source.test.mjs scripts/check-m17-metric-names.test.mjs scripts/check-g17-manifest.test.mjs scripts/g17-adversarial-evidence.test.mjs
+
+  full-disposable-verification:
+    name: G17 exact-SHA full disposable acceptance campaign
+    needs: atomic-preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    env:
+      HARBOROPS_G17_HOSTED: 'true'
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/../harborops-m0-cache/playwright-browsers
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify disposable host
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain)"
+          command -v docker
+          docker compose version
+          command -v pwsh
+          pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'
+          dotnet --version
+          node --version
+      - name: Generate disposable-only credentials
+        shell: bash
+        run: |
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import base64
+          import secrets
+          import sys
+          for key in (
+              "HARBOROPS_DB_PASSWORD",
+              "HARBOROPS_API_DB_PASSWORD",
+              "HARBOROPS_WORKER_DB_PASSWORD",
+              "HARBOROPS_M17_GRAFANA_PASSWORD",
+          ):
+              value = secrets.token_urlsafe(36)
+              print("::add-mask::" + value, file=sys.stderr)
+              print(key + "=" + value)
+          for key in (
+              "HARBOROPS_M17_LINK_KEY",
+              "HARBOROPS_M10_CORRECTION_PROOF_KEY",
+              "HARBOROPS_M12_EXPORT_PROOF_KEY",
+          ):
+              value = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
+              print("::add-mask::" + value, file=sys.stderr)
+              print(key + "=" + value)
+          PY
+      - name: Prepare source-pinned browser dependencies
+        shell: bash
+        run: |
+          npm --prefix tests/browser ci --no-audit --no-fund
+          mkdir -p "$PLAYWRIGHT_BROWSERS_PATH"
+          cd tests/browser
+          npx --no-install playwright install --with-deps chromium firefox webkit
+      - name: Execute entire G17 evidence campaign
+        shell: pwsh
+        run: |
+          ./scripts/run-g17-local.ps1 `
+            -EvidenceDirectory "${{ runner.temp }}/g17-evidence-${{ github.run_id }}-${{ github.run_attempt }}" `
+            -ExpectedSha "${{ github.sha }}" `
+            -ProjectName "ho-verify-m17-${{ github.run_id }}-${{ github.run_attempt }}" `
+            -StartDisposableStack -FaultProbe -VerifyDisposableWorker -RequireFullG17 -StopOwnedContainers
+      - name: Preserve source-locked evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g17-raw-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g17-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          # The source-locked manifest explicitly scans every evidence file.
+          # Include the original hidden Playwright success records, not merely
+          # their hashes, so the downloaded artifact equals the manifest.
+          include-hidden-files: true

@@ -1,0 +1,377 @@
+TAP version 13
+# Subtest: a missing started_utc is rejected on its own
+not ok 1 - a missing started_utc is rejected on its own
+  ---
+  duration_ms: 5.134443
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:42:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   'diag-state.json is not valid JSON'
+    -   'diag-state.json has no valid started_utc'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'diag-state.json has no valid started_utc'
+  actual:
+    0: 'diag-state.json is not valid JSON'
+  operator: 'deepStrictEqual'
+  stack: |-
+    file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:44:45
+    withDirectory (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:39:16)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:44:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: every malformed started_utc is rejected on its own
+not ok 2 - every malformed started_utc is rejected on its own
+  ---
+  duration_ms: 1.699194
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:47:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    ""
+    + actual - expected
+    
+      [
+    +   'diag-state.json is not valid JSON'
+    -   'diag-state.json has no valid started_utc'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'diag-state.json has no valid started_utc'
+  actual:
+    0: 'diag-state.json is not valid JSON'
+  operator: 'deepStrictEqual'
+  stack: |-
+    file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:53:14
+    withDirectory (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:39:16)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:52:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: a missing or malformed stopped_utc is reported separately from started_utc
+not ok 3 - a missing or malformed stopped_utc is reported separately from started_utc
+  ---
+  duration_ms: 2.385984
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:56:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   'diag-state.json is not valid JSON'
+    -   'diag-state.json has no valid started_utc',
+    -   'diag-state.json has no valid stopped_utc'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'diag-state.json has no valid started_utc'
+    1: 'diag-state.json has no valid stopped_utc'
+  actual:
+    0: 'diag-state.json is not valid JSON'
+  operator: 'deepStrictEqual'
+  stack: |-
+    file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:58:12
+    withDirectory (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:39:16)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:57:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: ordering is exact to the 100 nanosecond tick
+not ok 4 - ordering is exact to the 100 nanosecond tick
+  ---
+  duration_ms: 1.881111
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:63:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    equal instants
+    + actual - expected
+    
+    + [
+    +   'diag-state.json is not valid JSON'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'diag-state.json is not valid JSON'
+  operator: 'deepStrictEqual'
+  stack: |-
+    file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:73:79
+    withDirectory (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:39:16)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:73:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: parseUtcTicks accepts exactly what .NET writes and nothing looser
+ok 5 - parseUtcTicks accepts exactly what .NET writes and nothing looser
+  ---
+  duration_ms: 0.555476
+  type: 'test'
+  ...
+# Subtest: a symbolic link standing in for a listed file is rejected, not followed
+not ok 6 - a symbolic link standing in for a listed file is rejected, not followed
+  ---
+  duration_ms: 2.140221
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:85:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    identical bytes reached through a link must still be refused
+    + actual - expected
+    
+      [
+        'host-counters.csv is a symbolic link',
+    +   'diag-state.json is not valid JSON'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'host-counters.csv is a symbolic link'
+  actual:
+    0: 'host-counters.csv is a symbolic link'
+    1: 'diag-state.json is not valid JSON'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:93:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+not ok 7 - an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+  ---
+  duration_ms: 1.497586
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:98:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        'linked-directory is a symbolic link',
+    +   'diag-state.json is not valid JSON'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'linked-directory is a symbolic link'
+  actual:
+    0: 'linked-directory is a symbolic link'
+    1: 'diag-state.json is not valid JSON'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:103:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a hash list that is itself a directory or a link is refused outright
+ok 8 - a hash list that is itself a directory or a link is refused outright
+  ---
+  duration_ms: 1.046748
+  type: 'test'
+  ...
+# Subtest: entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+ok 9 - entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+  ---
+  duration_ms: 3.827952
+  type: 'test'
+  ...
+# Subtest: an impossible size is rejected without being compared
+ok 10 - an impossible size is rejected without being compared
+  ---
+  duration_ms: 0.381289
+  type: 'test'
+  ...
+# Subtest: schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+not ok 11 - schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+  ---
+  duration_ms: 1.220729
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:139:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    the complete v2 record verifies
+    + actual - expected
+    
+    + [
+    +   'diag-state.json is not valid JSON'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'diag-state.json is not valid JSON'
+  operator: 'deepStrictEqual'
+  stack: |-
+    file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:141:37
+    withDirectory (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:39:16)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:141:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical characterization is explicit, labelled, and can never report a trustworthy directory
+not ok 12 - historical characterization is explicit, labelled, and can never report a trustworthy directory
+  ---
+  duration_ms: 1.021824
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:158:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:162:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: the command line is strict by default and exits non-zero for the historical mode
+not ok 13 - the command line is strict by default and exits non-zero for the historical mode
+  ---
+  duration_ms: 46.598564
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:173:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {
+      "directory": "/tmp/g17-diag-strict-RE3Mvk",
+      "mode": "strict",
+      "ok": false,
+      "errors": [
+        "diag-state.json is not valid JSON"
+      ]
+    }
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:178:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a state file that is not a JSON object is reported, never allowed to crash the verifier
+ok 14 - a state file that is not a JSON object is reported, never allowed to crash the verifier
+  ---
+  duration_ms: 3.280122
+  type: 'test'
+  ...
+# Subtest: a byte order mark on the state file is tolerated, because the producer writes one
+not ok 15 - a byte order mark on the state file is tolerated, because the producer writes one
+  ---
+  duration_ms: 1.280144
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:196:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   'diag-state.json is not valid JSON'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'diag-state.json is not valid JSON'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out2/work-M15/scripts/g17-diagnostic-verifier-strict.test.mjs:201:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: names containing a colon anywhere are rejected, whatever the position
+ok 16 - names containing a colon anywhere are rejected, whatever the position
+  ---
+  duration_ms: 0.188161
+  type: 'test'
+  ...
+# Subtest: calendar dates that do not exist are rejected, including ones that roll over
+ok 17 - calendar dates that do not exist are rejected, including ones that roll over
+  ---
+  duration_ms: 0.22178
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 7
+# fail 10
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 138.585864

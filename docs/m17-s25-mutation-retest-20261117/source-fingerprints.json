@@ -1,0 +1,87 @@
+{
+  "frozen_commit": "634053c4d0c3a2cb8c51b2c29fda87b126e08993",
+  "frozen_tree": "c2ddd24b5fca33afc5286370d03f06acac5c0386",
+  "candidate_commit": "1489a80e64bd9ab6c354ee5f5648dc003c9d3ba9",
+  "candidate_tree": "0f4ad68467c74d84d6f71d0495303d8ef93fe0dd",
+  "earlier_candidate_commits": {
+    "60576b16ec43cfa99472bbeecee7f9ee673a8d24": "tests for the Docker, witness and verifier gaps",
+    "6f36a3368d57777678f4014d682d285b8d4a0304": "bounded settle in diagnostics.ps1"
+  },
+  "changed_outside_docs_between_frozen_and_candidate": [
+    ".github/workflows/verify-g17-s25-flake-probe.yml",
+    ".github/workflows/verify-g17-s25-retest.yml",
+    "scripts/g17-diagnostic-producer-guard.test.mjs",
+    "scripts/g17-diagnostic-verifier-strict.test.mjs",
+    "scripts/g17-docker-ownership.test.mjs",
+    "scripts/g17-witness-binding.test.mjs"
+  ],
+  "files": {
+    "scripts/reconcile-g17-assertions.mjs": {
+      "frozen": "d3288e317aa770201f4c82be979c7aa6efb8352964082871a31daa5ce8dda3a0",
+      "candidate": "d3288e317aa770201f4c82be979c7aa6efb8352964082871a31daa5ce8dda3a0"
+    },
+    "scripts/g17-evidence-archive.mjs": {
+      "frozen": "59f002ea1bfafc68ca04c7f3709b221989a5d8258d59cef8d65b984c84f8c623",
+      "candidate": "59f002ea1bfafc68ca04c7f3709b221989a5d8258d59cef8d65b984c84f8c623"
+    },
+    "scripts/g17-docker-ownership.ps1": {
+      "frozen": "f41a69207b2e156d7a61eb52a642d12820a4cef24948af7967e26ae6fadb1c39",
+      "candidate": "f41a69207b2e156d7a61eb52a642d12820a4cef24948af7967e26ae6fadb1c39"
+    },
+    "scripts/cleanup-g17-owned.ps1": {
+      "frozen": "c2c901e15b24bf7a6236b03dd918b5f988686fa39395bd10c97ebd30c049485e",
+      "candidate": "c2c901e15b24bf7a6236b03dd918b5f988686fa39395bd10c97ebd30c049485e"
+    },
+    "docs/m17-s25-p09-controlled-protocol-20261115/diagnostics.ps1": {
+      "frozen": "a21e50774122d523e5518559508cf3db3a728a6c14496cba079a3c8a7c44f66a",
+      "candidate": "20184994a522439d0b359af993d1c8041901597df99eb4378f8c319901d5fb5e"
+    },
+    "scripts/g17-diagnostic-hash-list.mjs": {
+      "frozen": "662f9863ea2e27308559e284a66c886013824f4bdc207ed70622b9eaabbd8a77",
+      "candidate": "662f9863ea2e27308559e284a66c886013824f4bdc207ed70622b9eaabbd8a77"
+    },
+    "scripts/g17-witness-binding.mjs": {
+      "frozen": "7ee128ccc8a6bf63be86740027d09a1c5034fd017d632629190f53508189be4c",
+      "candidate": "7ee128ccc8a6bf63be86740027d09a1c5034fd017d632629190f53508189be4c"
+    },
+    "scripts/g17-docker-ownership.test.mjs": {
+      "frozen": "6bcc97cb2686a0f9b5ef8ecbf8320f0b9dc662379e9480bebe844e0ccb9231b5",
+      "candidate": "5f9ef069c0cc5aeed497d85502527a66f2d8bb2f06fbd5b7c5b56885dee90993"
+    },
+    "scripts/g17-witness-binding.test.mjs": {
+      "frozen": "43a88e27982e028955ce473500396e9ab7847b538225d241fe18e675e951a0ed",
+      "candidate": "7aef88ca31d5ce6e93bd83d42a45e5e88c973b85ac5df89017c59e02a0d1ac98"
+    },
+    "scripts/g17-diagnostic-verifier-strict.test.mjs": {
+      "frozen": "f956bc05ba12e80eb542d001189a58781e809ad1b0305a63b780c4dafd560a0b",
+      "candidate": "2606f2b9112e8da73cbef810b7affa36d0a09ff9ab9b85476ec14bdf49c9d94c"
+    },
+    "scripts/g17-diagnostic-producer-guard.test.mjs": {
+      "frozen": "044c90642448f99770554b121816867f5c9e6b57e5e8fd3dced1d649dcd22457",
+      "candidate": "e206768c07adc3fe7f1757b522271aa5debb465b3270f7da8f9f7afc88617e27"
+    }
+  },
+  "hosted_runs": [
+    44016803184,
+    44017086582,
+    44019835746,
+    44021761127,
+    44022317167,
+    44023308360,
+    44026567512,
+    44030757689
+  ],
+  "environment": {
+    "local": {
+      "node": "v22.23.4",
+      "os": "Linux 6.18.44",
+      "pwsh": "7.4.6",
+      "docker": "29.9.2",
+      "bsdtar": "3.7.2 (as tar.exe via SystemRoot)"
+    },
+    "hosted": [
+      "windows-latest",
+      "ubuntu-latest"
+    ]
+  }
+}

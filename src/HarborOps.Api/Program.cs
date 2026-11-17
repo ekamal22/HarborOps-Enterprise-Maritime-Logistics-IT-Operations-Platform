@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Diagnostics;
 using HarborOps.Api.Authentication;
 using HarborOps.Api.Organizations;
 using HarborOps.Api.References;
@@ -18,6 +19,7 @@ using System.Net;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.HttpOverrides;
 using HarborOps.Api.Health;
+using HarborOps.Api.Observability;
 using HarborOps.Application.Baseline;
 using HarborOps.Infrastructure;
 using HarborOps.Infrastructure.Integrations;
@@ -31,6 +33,10 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(options => options.IncludeScopes = true);
+var isMaintenanceCommand = args.Any(arg => arg is
+    "--migrate" or "--account-cli" or "--organization-cli" or "--source-cli");
+var m17Enabled = !isMaintenanceCommand && builder.AddM17Telemetry();
+M17Telemetry.SetNotificationWorkerEnabled(builder.Configuration.GetValue<bool>("M15:EnableDelivery"));
 
 var connectionString = builder.Configuration.GetConnectionString("HarborOps");
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -142,13 +148,16 @@ app.Use(async (context, next) =>
                 context.Response.Headers.CacheControl = "no-store";
             return Task.CompletedTask;
         });
+    var diagnosticScope = new Dictionary<string, object> { ["CorrelationId"] = correlationId };
+    if (m17Enabled && Activity.Current is { } span)
+        diagnosticScope["TraceId"] = span.TraceId.ToString();
     using var scope = context.RequestServices.GetRequiredService<ILoggerFactory>()
-        .CreateLogger("HarborOps.Request").BeginScope(new Dictionary<string, object>
-        {
-            ["CorrelationId"] = correlationId
-        });
+        .CreateLogger("HarborOps.Request").BeginScope(diagnosticScope);
     await next();
 });
+
+if (m17Enabled)
+    app.UseMiddleware<M17TelemetryMiddleware>();
 
 app.UseExceptionHandler(handler => handler.Run(async context =>
 {
@@ -206,9 +215,16 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
     HttpContext context, ILogger<Program> logger, CancellationToken cancellationToken) =>
 {
+    var started = Stopwatch.GetTimestamp();
+    var readSucceeded = false;
+    using var trace = m17Enabled
+        ? M17Telemetry.Traces.StartActivity("baseline.read", ActivityKind.Client) : null;
+    trace?.SetTag("db.system.name", "postgresql");
+    trace?.SetTag("harborops.operation", "baseline_read");
     try
     {
         var result = await service.ReadAsync(cancellationToken);
+        readSucceeded = result is not null;
         return result is null
             ? Results.Json(new { code = "baseline_unavailable",
                 message = "Baseline data is unavailable", correlationId = context.Items["CorrelationId"] },
@@ -227,6 +243,12 @@ app.MapGet("/api/v1/system/baseline", async (IBaselineReadService service,
         return Results.Json(new { code = "dependency_unavailable",
             message = "Database temporarily unavailable", correlationId = context.Items["CorrelationId"] },
             statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    finally
+    {
+        trace?.SetTag("harborops.outcome", readSucceeded ? "success" : "unavailable");
+        if (m17Enabled)
+            M17Telemetry.ObserveBaselineRead(readSucceeded, Stopwatch.GetElapsedTime(started));
     }
 });
 

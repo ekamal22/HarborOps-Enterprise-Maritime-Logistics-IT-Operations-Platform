@@ -1,0 +1,60 @@
+{
+  "id": "M04",
+  "family": "evidence archive",
+  "name": "extra extracted files tolerated",
+  "target": "scripts/g17-evidence-archive.mjs",
+  "source_sha256": "59f002ea1bfafc68ca04c7f3709b221989a5d8258d59cef8d65b984c84f8c623",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-evidence-archive.test.mjs"
+  ],
+  "mutation": {
+    "from": "for (const name of actualMap.keys()) if (!expected.has(name)) problems.push",
+    "to": "for (const name of actualMap.keys()) if (false) problems.push",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 17,
+    "tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M04.control-before.out.txt"
+  },
+  "mutated_sha256": "e64a6629f5f063272d58e8903f0cd5fe9b512918406bda9901e1f31122163b2e",
+  "mutated_run": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 17,
+    "tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M04.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 17,
+    "tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M04.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "SURVIVED"
+}

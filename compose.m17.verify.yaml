@@ -1,0 +1,148 @@
+# Standalone, disposable M17 verification base. Never target a retained project.
+# The runner supplies a fresh project name and an E-backed empty storage root.
+# HARBOROPS_G17_STATE_ROOT optionally relocates only the PostgreSQL data and keyring
+# directories (Windows hosts cannot chown a host bind mount, so the local runner points
+# it at a path inside the Docker engine VM, whose disk image is itself on E:).
+name: ho-verify-m17
+
+services:
+  postgres:
+    image: ho-verify-m17-postgres:16.15-rootless
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    user: "70:70"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    environment:
+      POSTGRES_DB: harborops
+      POSTGRES_USER: harborops
+      POSTGRES_PASSWORD: ${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:15543:5432"
+    volumes:
+      - ${HARBOROPS_G17_STATE_ROOT:-${HARBOROPS_G17_STORAGE_ROOT:?Provide a new owned E-backed storage root}}/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harborops -d harborops"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks: [internal]
+
+  # Integration and regression suites re-provision the cluster-wide harborops_api and
+  # harborops_worker roles with their own passwords. They therefore run against this
+  # separate disposable cluster, never against the PostgreSQL the stack under test uses.
+  postgres_tests:
+    image: ho-verify-m17-postgres:16.15-rootless
+    profiles: [integration-tests]
+    user: "70:70"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    environment:
+      POSTGRES_DB: harborops_integration
+      POSTGRES_USER: harborops
+      POSTGRES_PASSWORD: ${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:15544:5432"
+    volumes:
+      - ${HARBOROPS_G17_STATE_ROOT:-${HARBOROPS_G17_STORAGE_ROOT:?Provide a new owned E-backed storage root}}/postgres_tests:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harborops -d harborops_integration"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks: [internal]
+
+  migrator:
+    build:
+      context: .
+      dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: "no"
+    command: ["--migrate"]
+    environment:
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops;Password=${HARBOROPS_DB_PASSWORD:?Set HARBOROPS_DB_PASSWORD in .env}"
+      AuditRoles__ApiPassword: "${HARBOROPS_API_DB_PASSWORD:?Set HARBOROPS_API_DB_PASSWORD in .env}"
+      AuditRoles__WorkerPassword: "${HARBOROPS_WORKER_DB_PASSWORD:?Set HARBOROPS_WORKER_DB_PASSWORD in .env}"
+      M10CorrectionProof__Key: "${HARBOROPS_M10_CORRECTION_PROOF_KEY:?Set HARBOROPS_M10_CORRECTION_PROOF_KEY in .env to a private base64 encoding of 32 random bytes}"
+      M12ExportProof__Key: "${HARBOROPS_M12_EXPORT_PROOF_KEY:-}"
+      Identity__AllowInsecureLoopbackHttp: "true"
+      Identity__KeyRingPath: "/tmp/keys"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+
+  api:
+    build:
+      context: .
+      dockerfile: src/HarborOps.Api/Dockerfile
+      args:
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: "no"
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - ${HARBOROPS_G17_STATE_ROOT:-${HARBOROPS_G17_STORAGE_ROOT:?Provide a new owned E-backed storage root}}/keyring:/keys
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:18080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Identity__AllowInsecureLoopbackHttp: "true"
+      Identity__TrustedLocalHttpPeers: "172.30.247.1,172.30.247.10"
+      ReverseProxy__KnownProxies__0: "172.30.247.10"
+      Identity__KeyRingPath: "/keys"
+      ConnectionStrings__HarborOps: "Host=postgres;Port=5432;Database=harborops;Username=harborops_api;Password=${HARBOROPS_API_DB_PASSWORD:?Set HARBOROPS_API_DB_PASSWORD in .env}"
+      Cors__AllowedOrigins__0: "http://localhost:15173"
+      M10CorrectionProof__Key: "${HARBOROPS_M10_CORRECTION_PROOF_KEY:?Set HARBOROPS_M10_CORRECTION_PROOF_KEY in .env to a private base64 encoding of 32 random bytes}"
+      M11__EnableEvaluator: "${HARBOROPS_M11_ENABLE_EVALUATOR:-false}"
+      M15__EnableDelivery: "${HARBOROPS_M15_ENABLE_DELIVERY:-false}"
+      M13__EnableIdleCleanup: "${HARBOROPS_M13_ENABLE_IDLE_CLEANUP:-false}"
+      M12ExportProof__Key: "${HARBOROPS_M12_EXPORT_PROOF_KEY:-}"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    networks: [internal]
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        VITE_API_BASE_URL: "http://localhost:18080"
+        SOURCE_REVISION: ${HARBOROPS_SOURCE_SHA:-unverified}
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:15173:80"
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      internal:
+        ipv4_address: 172.30.247.10
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.247.0/24

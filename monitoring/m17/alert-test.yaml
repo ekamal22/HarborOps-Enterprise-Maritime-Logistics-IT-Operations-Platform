@@ -1,0 +1,745 @@
+rule_files:
+  - /etc/prometheus/alerts.yml
+evaluation_interval: 15s
+tests:
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="business",status_class="5xx"}'
+        values: '0+1x80'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="1",operation="business",status_class="2xx"}'
+        values: '0+0x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="2",operation="business",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="+Inf",operation="business",status_class="2xx"}'
+        values: '0+20x80'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsHighApiP95
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API p95 latency above one second"
+              remedy: "Below 0.8 seconds for 10 minutes"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_db_readiness_ratio'
+        values: '0x80'
+      - series: 'harborops_db_readiness_sample_unix_seconds'
+        values: '0+15x80'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HarborOpsDatabaseUnavailable
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: "Two consecutive recent PostgreSQL readiness samples failed"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_worker_backlog_age_seconds{worker="tracking"}'
+        values: '150x16 40x64'
+      - series: 'harborops_service_running_ratio{service="tracking"}'
+        values: '1x80'
+      - series: 'harborops_worker_heartbeat_total{worker="tracking"}'
+        values: '0+1x80'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HarborOpsTrackingBacklogStale
+        exp_alerts:
+          - exp_labels: {worker: tracking, severity: degraded}
+            exp_annotations:
+              summary: "Eligible tracking work is stale in the explicitly enabled worker"
+              remedy: "Below 60 seconds twice; held or disabled workers do not trigger"
+      - eval_time: 4m
+        alertname: HarborOpsTrackingBacklogStale
+        exp_alerts:
+          - exp_labels: {worker: tracking, severity: degraded}
+            exp_annotations:
+              summary: "Eligible tracking work is stale in the explicitly enabled worker"
+              remedy: "Below 60 seconds twice; held or disabled workers do not trigger"
+      - eval_time: 4m30s
+        alertname: HarborOpsTrackingBacklogStale
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: HarborOpsTrackingBacklogStale
+        exp_alerts: []
+
+  - interval: 15s
+    input_series:
+      - series: 'up{job="m17_collector"}'
+        values: '0x80'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HarborOpsMonitoringMissing
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Missing fresh application telemetry or collector scrape; business health is separate"
+
+  - interval: 15s
+    input_series:
+      - series: 'otel_sdk_processor_span_processed_total{error_type="queue_full"}'
+        values: '0+1x80'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HarborOpsExporterDrops
+        exp_alerts:
+          - exp_labels: {severity: informational}
+            exp_annotations:
+              summary: "OpenTelemetry batch queue full or OTLP exporter failed"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="other",status_class="4xx"}'
+        values: '0+1x80'
+      - series: 'harborops_request_failures_total{operation="other",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_service_running_ratio{service="tracking"}'
+        values: '0x80'
+      - series: 'harborops_worker_heartbeat_total{worker="tracking"}'
+        values: '0+1x80'
+      - series: 'harborops_worker_backlog_age_seconds{worker="tracking"}'
+        values: '180x80'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+      - eval_time: 2m
+        alertname: HarborOpsTrackingBacklogStale
+        exp_alerts: []
+
+  # High failure rate falls to zero and clears after its five-minute hold.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+20x120'
+      - series: 'harborops_request_failures_total{operation="business",status_class="5xx"}'
+        values: '0+2x20 40+0x100'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+      - eval_time: 21m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+
+  # Latency recovers below the 0.8s clear threshold, then remains cleared.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+20x140'
+      - series: 'harborops_request_duration_seconds_bucket{le="0.5",operation="business",status_class="2xx"}'
+        values: '0+0x40 0+20x100'
+      - series: 'harborops_request_duration_seconds_bucket{le="1",operation="business",status_class="2xx"}'
+        values: '0+0x40 0+20x100'
+      - series: 'harborops_request_duration_seconds_bucket{le="2",operation="business",status_class="2xx"}'
+        values: '0+20x140'
+      - series: 'harborops_request_duration_seconds_bucket{le="+Inf",operation="business",status_class="2xx"}'
+        values: '0+20x140'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsHighApiP95
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API p95 latency above one second"
+              remedy: "Below 0.8 seconds for 10 minutes"
+      - eval_time: 34m
+        alertname: HarborOpsHighApiP95
+        exp_alerts: []
+
+  # Readiness must not remain critical after the health probe recovers.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_db_readiness_ratio'
+        values: '0x20 1x40'
+      - series: 'harborops_db_readiness_sample_unix_seconds'
+        values: '0+15x60'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HarborOpsDatabaseUnavailable
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: "Two consecutive recent PostgreSQL readiness samples failed"
+      - eval_time: 8m
+        alertname: HarborOpsDatabaseUnavailable
+        exp_alerts: []
+
+  # No request data and a disabled worker must not be counted as healthy
+  # high-volume traffic or trigger a phantom business alarm.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="other",status_class="4xx"}'
+        values: '0x90'
+      - series: 'harborops_request_failures_total{operation="other",status_class="5xx"}'
+        values: '0x90'
+      - series: 'harborops_service_running_ratio{service="tracking"}'
+        values: '0x90'
+      - series: 'harborops_worker_backlog_age_seconds{worker="tracking"}'
+        values: '250x90'
+      - series: 'harborops_worker_heartbeat_total{worker="tracking"}'
+        values: '0x90'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: HarborOpsHighApiP95
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: HarborOpsTrackingBacklogStale
+        exp_alerts: []
+
+  # S25-F01. Zero traffic with an existing zero-valued failure counter, and real
+  # traffic below the approved 100 eligible requests, are insufficient evidence.
+  # The raw failure rate is a healthy-looking 0 in both cases; the dashboard series
+  # must be absent so the panel renders Unknown. The last case is the positive control.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0x80'
+      - series: 'harborops_request_failures_total{operation="business",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="0.5",operation="business",status_class="2xx"}'
+        values: '0x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="+Inf",operation="business",status_class="2xx"}'
+        values: '0x80'
+    promql_expr_test:
+      - expr: harborops:m17:api_5xx_rate_sufficient:5m
+        eval_time: 6m
+        exp_samples: []
+      - expr: harborops:m17:api_p95_seconds_sufficient:5m
+        eval_time: 6m
+        exp_samples: []
+      - expr: sum(rate(harborops_request_failures_total[5m]))
+        eval_time: 6m
+        exp_samples:
+          - labels: '{}'
+            value: 0
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+1x80'
+      - series: 'harborops_request_failures_total{operation="business",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="0.5",operation="business",status_class="2xx"}'
+        values: '0+1x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="+Inf",operation="business",status_class="2xx"}'
+        values: '0+1x80'
+    promql_expr_test:
+      - expr: harborops:m17:eligible_requests:5m
+        eval_time: 6m
+        exp_samples:
+          - labels: 'harborops:m17:eligible_requests:5m'
+            value: 20
+      - expr: harborops:m17:api_5xx_rate_sufficient:5m
+        eval_time: 6m
+        exp_samples: []
+      - expr: harborops:m17:api_p95_seconds_sufficient:5m
+        eval_time: 6m
+        exp_samples: []
+      - expr: sum(rate(harborops_request_failures_total[5m]))
+        eval_time: 6m
+        exp_samples:
+          - labels: '{}'
+            value: 0
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="business",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="0.5",operation="business",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_duration_seconds_bucket{le="+Inf",operation="business",status_class="2xx"}'
+        values: '0+20x80'
+    promql_expr_test:
+      - expr: harborops:m17:api_5xx_rate_sufficient:5m
+        eval_time: 6m
+        exp_samples:
+          - labels: 'harborops:m17:api_5xx_rate_sufficient:5m'
+            value: 0
+      - expr: harborops:m17:api_p95_seconds_sufficient:5m
+        eval_time: 6m
+        exp_samples:
+          - labels: 'harborops:m17:api_p95_seconds_sufficient:5m'
+            value: 0.475
+
+  # S18-A03 repeat suppression. The failure fraction falls below the trigger for
+  # several minutes (the five-minute window empties by about the tenth minute) and then
+  # rises again at 12.5 minutes. keep_firing_for bridges that gap: the alert remains one
+  # continuous firing instance at 11 minutes instead of resolving and firing again, and
+  # it is never more than one alert. It clears only after sustained recovery.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+20x240'
+      - series: 'harborops_request_failures_total{operation="business",status_class="5xx"}'
+        values: '0+2x20 40+0x30 40+2x20 80+0x170'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+      - eval_time: 11m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+      - eval_time: 13m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+      - eval_time: 17m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+      - eval_time: 55m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+
+  # ---- First-failure baseline (S25 finding A). The first 5xx burst of a process must be counted in EVERY operation
+  # family. The failure counter holds its seeded zero from the start of the series and then jumps to 40 once; the
+  # window that contains the jump must raise the alert. One block per family, each with 100 or more eligible requests.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="auth",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="auth",status_class="5xx"}'
+        values: '0x20 40x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 40x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="tracking",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="tracking",status_class="5xx"}'
+        values: '0x20 40x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="health",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="health",status_class="5xx"}'
+        values: '0x20 40x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="business",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="business",status_class="5xx"}'
+        values: '0x20 40x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="other",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="other",status_class="5xx"}'
+        values: '0x20 40x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  # Negative control for the finding itself: a failure series whose very first sample is already 40 (no seeded
+  # zero before it) has no increase to count, so the burst is invisible. This is exactly the blind spot that the
+  # per-family seeding removes; the control keeps the limitation explicit so the seeding cannot be mistaken for an
+  # optional nicety.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '_x20 40x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+
+  # The denominator must contain the 5xx responses even when the duration histogram's 5xx series first appears
+  # holding its whole count (here 30, on top of 80 other requests in the window). Counting only the histogram
+  # would give 80 eligible requests, below the approved 100, and withhold the alert; the corrected rule counts 110.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+4x80'
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="5xx"}'
+        values: '_x20 30x60'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 30x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+    promql_expr_test:
+      - expr: harborops:m17:eligible_requests:5m
+        eval_time: 6m
+        exp_samples:
+          - labels: 'harborops:m17:eligible_requests:5m'
+            value: 110
+
+  # Insufficient evidence stays Unknown: 30 failures on 20 other requests is only 50 eligible requests, below the
+  # approved 100, so there is neither an alert nor a dashboard rate.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+1x80'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 30x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+    promql_expr_test:
+      - expr: harborops:m17:api_5xx_rate_sufficient:5m
+        eval_time: 6m
+        exp_samples: []
+
+  # False-positive control with every family seeded at zero: sufficient traffic and no failures never alerts.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="auth",status_class="2xx"}'
+        values: '0+10x80'
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+10x80'
+      - series: 'harborops_request_failures_total{operation="auth",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_request_failures_total{operation="tracking",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_request_failures_total{operation="health",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_request_failures_total{operation="business",status_class="5xx"}'
+        values: '0x80'
+      - series: 'harborops_request_failures_total{operation="other",status_class="5xx"}'
+        values: '0x80'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+    promql_expr_test:
+      - expr: harborops:m17:api_5xx_fraction:5m
+        eval_time: 6m
+        exp_samples:
+          - labels: 'harborops:m17:api_5xx_fraction:5m'
+            value: 0
+
+  # A burst below the approved 1 percent trigger does not alert even with a seeded baseline (400 requests, 1 failure).
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 1x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+
+  # Recovery and hysteresis after a first-wave burst: the alert fires, holds through its keep-firing period and
+  # clears after sustained recovery (the failure counter stays flat at 40 after the burst).
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="health",status_class="2xx"}'
+        values: '0+20x200'
+      - series: 'harborops_request_failures_total{operation="health",status_class="5xx"}'
+        values: '0x20 40x180'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+      - eval_time: 25m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+
+  # ---- Mutation-hardening cases for the first-failure rules (each pins one fact of the corrected rules).
+  # The alert waits its approved 30 seconds: not firing when the burst first enters the window (5m15s) or 15 seconds
+  # later, firing at 5m45s.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 40x60'
+    alert_rule_test:
+      - eval_time: 5m15s
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+      - eval_time: 5m30s
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+      - eval_time: 5m45s
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  # A histogram whose 5xx series has a complete baseline and the seeded failure counter describe the same 30
+  # responses; the eligible count is 80 + 30, never 80 + 30 + 30.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+4x80'
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="5xx"}'
+        values: '0x20 30x60'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 30x60'
+    promql_expr_test:
+      - expr: harborops:m17:eligible_requests:5m
+        eval_time: 6m
+        exp_samples:
+          - labels: 'harborops:m17:eligible_requests:5m'
+            value: 110
+      - expr: harborops:m17:api_5xx_fraction:5m
+        eval_time: 6m
+        exp_samples:
+          - labels: 'harborops:m17:api_5xx_fraction:5m'
+            value: 0.2727272727272727
+
+  # The ten-minute eligible count used by the latency alert includes the failures as well (40 + 70).
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+1x200'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 70x180'
+    promql_expr_test:
+      - expr: harborops:m17:eligible_requests:10m
+        eval_time: 11m
+        exp_samples:
+          - labels: 'harborops:m17:eligible_requests:10m'
+            value: 110
+
+  # With no non-5xx histogram series at all, the denominator is the failure count alone (never absent, never lost).
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_failures_total{operation="health",status_class="5xx"}'
+        values: '0x20 40x60'
+    promql_expr_test:
+      - expr: harborops:m17:eligible_requests:5m
+        eval_time: 6m
+        exp_samples:
+          - labels: 'harborops:m17:eligible_requests:5m'
+            value: 40
+      - expr: harborops:m17:api_5xx_fraction:5m
+        eval_time: 6m
+        exp_samples:
+          - labels: 'harborops:m17:api_5xx_fraction:5m'
+            value: 1
+
+  # Trigger boundary: 1.48 percent fires, 0.74 percent does not start an alert (the 0.5 percent value only holds one).
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 6x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+20x80'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 3x60'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts: []
+
+  # Hysteresis: after the burst has left the window, a steady 0.74 percent (between the 0.5 percent clear threshold
+  # and the 1 percent trigger) keeps the existing alert firing.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+20x200'
+      - series: 'harborops_request_failures_total{operation="organization",status_class="5xx"}'
+        values: '0x20 40+0.15x180'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+      - eval_time: 40m
+        alertname: HarborOpsElevatedApiFailureRate
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API 5xx fraction above the approved reference trigger"
+              remedy: "Below 0.5 percent for 5 minutes, with sufficient sample evidence"
+
+  # Latency: slow requests below the approved 100 eligible requests never alert.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+1x200'
+      - series: 'harborops_request_duration_seconds_bucket{le="1",operation="organization",status_class="2xx"}'
+        values: '0x200'
+      - series: 'harborops_request_duration_seconds_bucket{le="2",operation="organization",status_class="2xx"}'
+        values: '0+1x200'
+      - series: 'harborops_request_duration_seconds_bucket{le="+Inf",operation="organization",status_class="2xx"}'
+        values: '0+1x200'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: HarborOpsHighApiP95
+        exp_alerts: []
+
+  # Latency hysteresis: p95 settles at 0.9 seconds (between the 0.8 clear threshold and the 1 second trigger) and the
+  # existing alert keeps firing long after its keep-firing period.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_request_duration_seconds_count{operation="organization",status_class="2xx"}'
+        values: '0+20x200'
+      - series: 'harborops_request_duration_seconds_bucket{le="0.5",operation="organization",status_class="2xx"}'
+        values: '0x40 0+15x160'
+      - series: 'harborops_request_duration_seconds_bucket{le="1",operation="organization",status_class="2xx"}'
+        values: '0x40 0+20x160'
+      - series: 'harborops_request_duration_seconds_bucket{le="2",operation="organization",status_class="2xx"}'
+        values: '0+20x200'
+      - series: 'harborops_request_duration_seconds_bucket{le="+Inf",operation="organization",status_class="2xx"}'
+        values: '0+20x200'
+    alert_rule_test:
+      - eval_time: 40m
+        alertname: HarborOpsHighApiP95
+        exp_alerts:
+          - exp_labels: {severity: degraded}
+            exp_annotations:
+              summary: "Local API p95 latency above one second"
+              remedy: "Below 0.8 seconds for 10 minutes"
+
+  # Readiness: a sample that stops being refreshed is not current, however long ago it was healthy or failed.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_db_readiness_ratio'
+        values: '0x80'
+      - series: 'harborops_db_readiness_sample_unix_seconds'
+        values: '0x80'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: HarborOpsDatabaseUnavailable
+        exp_alerts: []
+
+  # Readiness needs two consecutive failed samples: one failed sample, and the next 15 seconds, do not fire.
+  - interval: 15s
+    input_series:
+      - series: 'harborops_db_readiness_ratio'
+        values: '1x20 0x10'
+      - series: 'harborops_db_readiness_sample_unix_seconds'
+        values: '0+15x80'
+    alert_rule_test:
+      - eval_time: 5m15s
+        alertname: HarborOpsDatabaseUnavailable
+        exp_alerts: []
+      - eval_time: 5m30s
+        alertname: HarborOpsDatabaseUnavailable
+        exp_alerts: []
+      - eval_time: 5m45s
+        alertname: HarborOpsDatabaseUnavailable
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: "Two consecutive recent PostgreSQL readiness samples failed"

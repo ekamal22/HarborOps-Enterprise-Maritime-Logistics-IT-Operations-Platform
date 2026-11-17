@@ -1,0 +1,35 @@
+{
+  "m11": [
+    {
+      "variant": "original",
+      "exit": 1,
+      "first_error_line": "\u001b[31;1mException: \u001b[0m/tmp/m11-HL8dUQ/cleanup-g17-owned.ps1:15\u001b[0m",
+      "evidence_unchanged": true
+    },
+    {
+      "variant": "M11 mutant",
+      "exit": 1,
+      "first_error_line": "\u001b[31;1mNew-Item: \u001b[0m/tmp/m11-ROIcY5/cleanup-g17-owned.ps1:16\u001b[0m",
+      "evidence_unchanged": true
+    }
+  ],
+  "m17": {
+    "cases_compared": 80004,
+    "alertCaseBound_differences": 0,
+    "alertCaseBlock_differences": 1379,
+    "alertCaseBlock_difference_examples": [
+      {
+        "original": null,
+        "mutant": "  # Latency recovers below the limit"
+      },
+      {
+        "original": null,
+        "mutant": "  # Latency recovers below the limit"
+      },
+      {
+        "original": null,
+        "mutant": "  # Latency recovers below the limit"
+      }
+    ]
+  }
+}

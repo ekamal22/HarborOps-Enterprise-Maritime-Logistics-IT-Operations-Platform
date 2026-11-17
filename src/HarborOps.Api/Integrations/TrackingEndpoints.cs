@@ -1,4 +1,7 @@
 using System.Data.Common;
+using System.Diagnostics;
+using HarborOps.Api.Observability;
+using HarborOps.Infrastructure.Observability;
 using HarborOps.Api.Authentication;
 using HarborOps.Domain.Tracking;
 using HarborOps.Infrastructure.Integrations;
@@ -90,6 +93,28 @@ public static class TrackingEndpoints
             {
                 var result = await inbox.ReceiveAsync(normalized, raw[7..],
                     bytes.AsMemory(0, count), context.Items["CorrelationId"]?.ToString() ?? "", ct);
+                // Link only a newly durable receipt to the server correlation.
+                // Replay has a different request correlation and must not fabricate
+                // a link to the earlier retained receipt.
+                if (result.Outcome == TrackingReceiptOutcome.Received &&
+                    context.RequestServices.GetService<M17TelemetryOptions>() is { Enabled: true } options)
+                {
+                    var digest = M17CorrelationDigest.FromServerCorrelation(
+                        context.Items["CorrelationId"]?.ToString(), options.LinkKey);
+                    if (digest is not null)
+                    {
+                        // A short receipt marker is sampled from the durable keyed
+                        // correlation, even when the HTTP root was not recorded.
+                        // It is not a fabricated worker parent span.
+                        var tags = new KeyValuePair<string, object?>[]
+                        {
+                            new("harborops.link_digest", digest),
+                            new("harborops.operation", "tracking.receipt")
+                        };
+                        using var receiptSpan = M17Telemetry.Traces.StartActivity(
+                            "tracking.receipt", ActivityKind.Internal, parentContext: default, tags: tags);
+                    }
+                }
                 switch (result.Outcome)
                 {
                     case TrackingReceiptOutcome.Received:

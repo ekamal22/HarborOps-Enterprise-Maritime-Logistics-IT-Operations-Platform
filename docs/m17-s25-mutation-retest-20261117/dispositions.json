@@ -1,0 +1,330 @@
+[
+  {
+    "id": "M01",
+    "family": "reconcile binding",
+    "name": "promtool binding bypassed",
+    "frozen_dir": "frozen-run-1",
+    "candidate_dir": null,
+    "disposition": "KILLED_ON_FROZEN",
+    "explanation": "The ledger test a promtool witness whose text appears only outside a real case comment is unresolved (scripts/g17-first-failure-ledger.test.mjs) fails with an AssertionError when the alertCaseBound gate is bypassed. The earlier SURVIVED rows (contract-reconcile-2) were produced before this test existed: it was added in cc80be0 (2026-11-17 00:26 local commit time), after that round.",
+    "demonstration": "retest/frozen: 64 of 64 control, mutant exit 1 with 1 failing test, 64 of 64 control after.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M02",
+    "family": "reconcile binding",
+    "name": "manifest rejection binding bypassed",
+    "frozen_dir": "frozen-run-1",
+    "candidate_dir": null,
+    "disposition": "KILLED_ON_FROZEN",
+    "explanation": "The ledger test the manifest-rejection witness is unresolved when any of its three Node cases did not execute fails when the manifestRejectionBound gate is bypassed. Same explanation as M01: the test post-dates the earlier round.",
+    "demonstration": "retest/frozen: 64 of 64 control, mutant exit 1 with 1 failing test.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M03",
+    "family": "evidence archive",
+    "name": "extracted files not compared by size",
+    "frozen_dir": "frozen-run-1",
+    "candidate_dir": null,
+    "disposition": "REDUNDANT_VERDICT_EQUIVALENT",
+    "explanation": "The next branch of the same else-if chain compares the SHA-256 of the extracted file. Two byte strings of different length cannot have the same SHA-256 (collision resistance), so a size difference is always reported by the hash branch. The verdict (ok false) is identical for every input; only the wording of the problem changes. The earlier layer (entry size from the zip table against the inventory) also reports it.",
+    "demonstration": "proofs/archive-demo.json: five honest tamper cases and three simulated extractor failures (extra file, skipped file, truncated file); the M03 verdict equals the original verdict in all eight.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M04",
+    "family": "evidence archive",
+    "name": "extra extracted files tolerated",
+    "frozen_dir": "frozen-run-1",
+    "candidate_dir": null,
+    "disposition": "REDUNDANT_DEFENCE_IN_DEPTH",
+    "explanation": "Every file the standard reader (System.IO.Compression ExtractToDirectory) writes corresponds to an entry of the zip table, and the entry loop already reports any entry that is not in the inventory. The guard can only fire if the extractor writes a file that has no entry. Residual: under a simulated misbehaving extractor that plants an extra file the mutant accepts the archive (verdict differs); no input that the standard reader produces reaches this difference. No executable change was made. This is a disclosed non-material residual for S25-A02.",
+    "demonstration": "proofs/archive-demo.json: honest reader cases identical; simulated extra file: original false, M04 true.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M05",
+    "family": "evidence archive",
+    "name": "unextracted files tolerated",
+    "frozen_dir": "frozen-run-1",
+    "candidate_dir": null,
+    "disposition": "REDUNDANT_VERDICT_EQUIVALENT",
+    "explanation": "With the guard disabled the else-if chain dereferences found.bytes on an undefined value, which throws a TypeError that the surrounding catch converts into a problem. The verdict is therefore still ok false for a file that was not extracted. The entry-table check inventory file missing from the archive reports the same condition earlier.",
+    "demonstration": "proofs/archive-demo.json: simulated skipped file: original false, M05 false.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M06",
+    "family": "docker ownership",
+    "name": "project label not compared (container)",
+    "frozen_dir": "frozen-run-3-broad",
+    "candidate_dir": "hosted-linux-candidate",
+    "disposition": "UNREACHABLE_GUARD",
+    "explanation": "Containers are listed with docker ps --filter label=com.docker.compose.project=<Project>. The daemon matches the label value exactly, so every returned container carries exactly Project and the in-script comparison cannot be false. The real daemon (Docker 29.9.2) was shown to return only the exact value and not the case, whitespace, prefix, suffix or substring variants.",
+    "demonstration": "proofs/label-filter-demo.out.txt and proofs/own-label-demo.json: near-miss decoys never reach the guard; original and mutant return identical inventories. Hosted Ubuntu, final candidate: control 12 of 12, mutant survives, as expected for an unreachable guard.",
+    "also": [
+      {
+        "label": "Local container, candidate 60576b16 (earlier test text)",
+        "dir": "candidate-run"
+      },
+      {
+        "label": "Hosted Linux, frozen source (control fails on the frozen test text, void)",
+        "dir": "hosted-linux-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M07",
+    "family": "docker ownership",
+    "name": "network label project not compared",
+    "frozen_dir": "frozen-run-3-broad",
+    "candidate_dir": "hosted-linux-candidate",
+    "disposition": "UNREACHABLE_GUARD",
+    "explanation": "Same as M06 for docker network ls --filter label=com.docker.compose.project=<Project>.",
+    "demonstration": "proofs/label-filter-demo.out.txt and proofs/own-label-demo.json. Hosted Ubuntu, final candidate: control 12 of 12, mutant survives, as expected for an unreachable guard.",
+    "also": [
+      {
+        "label": "Local container, candidate 60576b16 (earlier test text)",
+        "dir": "candidate-run"
+      },
+      {
+        "label": "Hosted Linux, frozen source (control fails on the frozen test text, void)",
+        "dir": "hosted-linux-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M08",
+    "family": "docker ownership",
+    "name": "residual resources tolerated",
+    "frozen_dir": "frozen-run-3-broad",
+    "candidate_dir": "hosted-linux-candidate",
+    "disposition": "GAP_CLOSED_KILLED_ON_CANDIDATE",
+    "explanation": "Real defect class: containers that docker reports as removed but that remain (or that appear again) were reported as success. Nothing in the frozen tests exercised the post-removal re-enumeration. New behavioural control: containers that docker reports as removed but that remain make the cleanup fail instead of reporting success.",
+    "demonstration": "hosted Ubuntu runner with Docker, final candidate 1489a80e: control 12 of 12 before and after, mutant exit 1 on the named test. Also killed on the local container run at 60576b16.",
+    "also": [
+      {
+        "label": "Local container, candidate 60576b16 (earlier test text)",
+        "dir": "candidate-run"
+      },
+      {
+        "label": "Hosted Linux, frozen source (control fails on the frozen test text, void)",
+        "dir": "hosted-linux-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M09",
+    "family": "docker ownership",
+    "name": "address range release not proven",
+    "frozen_dir": "frozen-run-3-broad",
+    "candidate_dir": "hosted-linux-candidate",
+    "disposition": "GAP_CLOSED_KILLED_ON_CANDIDATE",
+    "explanation": "Real defect class: the address range being taken by another network right after removal went unreported. The frozen tests only exercised Test-G17SubnetFree separately. New behavioural control: an address range taken by another network right after the removal fails the cleanup and names the holder.",
+    "demonstration": "hosted Ubuntu runner with Docker, final candidate 1489a80e: control 12 of 12 before and after, mutant exit 1 on the named test. Also killed on the local container run at 60576b16.",
+    "also": [
+      {
+        "label": "Local container, candidate 60576b16 (earlier test text)",
+        "dir": "candidate-run"
+      },
+      {
+        "label": "Hosted Linux, frozen source (control fails on the frozen test text, void)",
+        "dir": "hosted-linux-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M10",
+    "family": "docker ownership",
+    "name": "volumes removed with containers",
+    "frozen_dir": "frozen-run-3-broad",
+    "candidate_dir": "hosted-linux-candidate",
+    "disposition": "GAP_CLOSED_KILLED_ON_CANDIDATE",
+    "explanation": "On the frozen source the mutant is detected only by a source-text assertion (the runner preserves before it removes test greps for rm -v). That is not a behavioural detection: only named volumes were ever created and docker rm -v does not remove named volumes. New behavioural control: a container with a docker-created anonymous volume is cleaned up and the volume must still exist.",
+    "demonstration": "hosted Ubuntu runner with Docker, final candidate 1489a80e: control 12 of 12 before and after, mutant exit 1 on the named test. Also killed on the local container run at 60576b16.",
+    "also": [
+      {
+        "label": "Local container, candidate 60576b16 (earlier test text)",
+        "dir": "candidate-run"
+      },
+      {
+        "label": "Hosted Linux, frozen source (control fails on the frozen test text, void)",
+        "dir": "hosted-linux-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M11",
+    "family": "docker ownership",
+    "name": "existing evidence directory overwritten",
+    "frozen_dir": "frozen-run-3-broad",
+    "candidate_dir": "hosted-linux-candidate",
+    "disposition": "GAP_CLOSED_KILLED_ON_CANDIDATE",
+    "explanation": "Locator defect in the earlier round: the guard is in scripts/cleanup-g17-owned.ps1 while the mutation config targeted g17-docker-ownership.ps1, so the pattern was never applied. Applied to the right file the mutant survived on the frozen source because the test only matched already exists, which the generic New-Item error also contains. Behaviour is verdict-equivalent (New-Item refuses an existing directory, nothing is written, exit 1), but the refusal is the script's own documented message. The test now asserts the Never overwrite evidence text and that no record is written.",
+    "demonstration": "hosted Ubuntu runner with Docker, final candidate 1489a80e: control 12 of 12 before and after, mutant exit 1 on the named test. Also killed on the local container run at 60576b16.",
+    "also": [
+      {
+        "label": "Local container, candidate 60576b16 (earlier test text)",
+        "dir": "candidate-run"
+      },
+      {
+        "label": "Hosted Linux, frozen source (control fails on the frozen test text, void)",
+        "dir": "hosted-linux-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M12",
+    "family": "diagnostic producer",
+    "name": "exit of children not awaited",
+    "frozen_dir": "hosted-windows-frozen",
+    "candidate_dir": "hosted-windows-candidate",
+    "disposition": "GAP_CLOSED_KILLED_ON_CANDIDATE",
+    "explanation": "Retested on a GitHub hosted Windows runner (real Win32_Process, Windows PowerShell 5.1 children). On the frozen source the mutant is killed only by the source-text assertion the producer source keeps its ownership guards (a structure check), not by behaviour: no test gave a child that outlives the stop request. New behavioural control a child that outlives the stop request by eight seconds is awaited, then recorded as terminated: the kill is carried out by a background job eight seconds after the request through a Stop-Process function that shadows the cmdlet, so the exit must be awaited (longer than the 5 second settle, shorter than the 10 second wait). Killed together with the textual check on the final candidate.",
+    "demonstration": "hosted Windows, final candidate: control 20 of 20 before and after, mutant exit 1 with the textual check and the behavioural test failing.",
+    "also": [
+      {
+        "label": "Local Linux host, frozen source (control void: no Win32_Process)",
+        "dir": "frozen-run-1"
+      }
+    ]
+  },
+  {
+    "id": "M13",
+    "family": "diagnostic producer",
+    "name": "lingering child tolerated",
+    "frozen_dir": "hosted-windows-frozen",
+    "candidate_dir": "hosted-windows-candidate",
+    "disposition": "GAP_CLOSED_KILLED_ON_CANDIDATE",
+    "explanation": "Retested on a hosted Windows runner. On the frozen source the mutant survives: nothing provided a child that is still present after the wait. The guard is reached when Wait-Process ends with an error other than the timeout (swallowed by the empty catch) while the child is still listed. New behavioural control a child that is still present after the wait fails the stop and is never recorded as terminated: Stop-Process does nothing, Wait-Process throws a non-timeout error, the producer must exit non-zero with the still-running message, leave the children alone, finalise nothing and record no outcome. Killed on the final candidate.",
+    "demonstration": "hosted Windows, final candidate: control 20 of 20 before and after, mutant exit 1 on the behavioural test.",
+    "also": [
+      {
+        "label": "Local Linux host, frozen source (control void: no Win32_Process)",
+        "dir": "frozen-run-1"
+      }
+    ]
+  },
+  {
+    "id": "M14",
+    "family": "diagnostic verifier",
+    "name": "stream names accepted",
+    "frozen_dir": "frozen-run-3-broad",
+    "candidate_dir": "candidate-run",
+    "disposition": "GAP_CLOSED_KILLED_ON_CANDIDATE",
+    "explanation": "The mutation removes the colon from the first-character class of the hash list line pattern. The existing test used a colon only in the middle or at the end of a name, so a name that starts with a colon was accepted undetected on the frozen source. New cases : leading, : and :: were added to the colon position test.",
+    "demonstration": "candidate: control 17 of 17, mutant exit 1 on the colon position test.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      },
+      {
+        "label": "Hosted Windows, final candidate",
+        "dir": "hosted-windows-candidate"
+      }
+    ]
+  },
+  {
+    "id": "M14b",
+    "family": "diagnostic verifier",
+    "name": "stream names accepted (second position)",
+    "frozen_dir": "frozen-run-3-broad",
+    "candidate_dir": "candidate-run",
+    "disposition": "KILLED_ON_FROZEN",
+    "explanation": "Supplementary retest of the same mutation applied to the last-character class (the pattern has two occurrences). The existing ends: case detects it. Recorded so that both occurrences of the locator are accounted for.",
+    "demonstration": "frozen: exit 1 on the colon position test; candidate: same.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      },
+      {
+        "label": "Hosted Windows, final candidate",
+        "dir": "hosted-windows-candidate"
+      }
+    ]
+  },
+  {
+    "id": "M15",
+    "family": "diagnostic verifier",
+    "name": "bom not stripped",
+    "frozen_dir": "frozen-run-3-broad",
+    "candidate_dir": null,
+    "disposition": "KILLED_ON_FROZEN",
+    "explanation": "The earlier PATTERN_NOT_FOUND rows came from a source revision before the BOM strip existed (introduced in ca14bcf, 2026-11-16 23:54; the verifier rounds ran earlier). On the frozen source the original locator occurs exactly once and the mutant is killed by 16 failing assertions, including the explicit a byte order mark on the state file is tolerated test.",
+    "demonstration": "retest/frozen: exit 1, 16 failing tests.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      }
+    ]
+  },
+  {
+    "id": "M16",
+    "family": "witness binding",
+    "name": "marker may be non-comment text",
+    "frozen_dir": "frozen-run-1",
+    "candidate_dir": "candidate-run",
+    "disposition": "GAP_CLOSED_KILLED_ON_CANDIDATE",
+    "explanation": "Not equivalent. Without the comment requirement a marker in non-comment text becomes the anchor: (a) an earlier mention of the marker hides the real comment that follows (alertCaseBound true becomes false), and (b) a marker trailing the interval line itself anchors a block that has no comment above it (false becomes true). Neither was tested. New tests cover both.",
+    "demonstration": "candidate: control 11 of 11, mutant exit 1 with 2 failing tests.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      },
+      {
+        "label": "Hosted Windows, final candidate",
+        "dir": "hosted-windows-candidate"
+      }
+    ]
+  },
+  {
+    "id": "M17",
+    "family": "witness binding",
+    "name": "block start not required",
+    "frozen_dir": "frozen-run-1",
+    "candidate_dir": "candidate-run",
+    "disposition": "GAP_CLOSED_KILLED_ON_CANDIDATE",
+    "explanation": "At the production boundary alertCaseBound the guard is redundant: with no block start the slice is empty or a single line, which can never contain input_series followed by a series line, so alertCaseBound is false either way (0 differences in 80004 generated comparisons). At the exported alertCaseBlock the result differs (null versus an empty or single line string). A test now asserts null for a case comment with no block after it.",
+    "demonstration": "proofs/m11-m17-demo.json; candidate: control 11 of 11, mutant exit 1 on the new test.",
+    "also": [
+      {
+        "label": "Hosted Windows, frozen source",
+        "dir": "hosted-windows-frozen"
+      },
+      {
+        "label": "Hosted Windows, final candidate",
+        "dir": "hosted-windows-candidate"
+      }
+    ]
+  }
+]

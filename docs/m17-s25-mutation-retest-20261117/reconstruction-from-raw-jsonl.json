@@ -1,0 +1,315 @@
+{
+  "jsonl_files": {
+    "alerts-1.jsonl": "4b5456047b6d50b6b8cb7e27cbeafb1a75ee40c89b00f78b58caad02c19827d6",
+    "alerts-2.jsonl": "9b7d8909a81bde9f209199899341a7da99c473d5a7c43cf50fde6d92124d946c",
+    "contract-manifest-1.jsonl": "0b44a7616f00f02329aa16935942a2db0d97d02ecd6a6a93c9a53dcc28be989f",
+    "contract-raw-witness-1.jsonl": "a95fdc9f4e264cca71d89d4e4a4e85bf13c7147869f00eda43f235a3021b18dc",
+    "contract-raw-witness-2.jsonl": "c3f3f88f6cbf889bb5a40e98289e7fe41538f2da6df88b8474efcf8e8df25a44",
+    "contract-reconcile-1.jsonl": "1c343c3602bb02d2eb22d1ec3f94ffa38c5ed96203ea567bb0c7963198ddb875",
+    "contract-reconcile-2.jsonl": "b48e8c3ed5bc7a586ca9a37da0b0000640502c928afb70a99018538f53961745",
+    "dotnet-1.jsonl": "75097c48c18b856c791afe3dbe4977771c6988fcab362138835f0b9750fd6370",
+    "dotnet-2.jsonl": "3bc26c85bfd7d4dbda4308bfddfd4528a55e7661c353aff5d20635175271c3a8",
+    "dotnet-3.jsonl": "31f5fd2cdcc9ffb783543259cace47a57224b6410f8184334d546d93b3c7973e",
+    "evidence-archive-1.jsonl": "962f12778d9c64128e336bf8c3e3c6fd077eeab75dfc71e20f92ad937004cebe",
+    "evidence-archive-2.jsonl": "a0c29530542dc2b020e184b1ff8519b44f2eba76381f66248d89968d349b975f",
+    "first-failure-evidence-1.jsonl": "ec715464c23600b692eca7cd9d3220d8bfc65c64c29d26e138b207222d5dd8f8",
+    "first-failure-evidence-2.jsonl": "6caa418f9b90bc970ba3f52beb2acb2d23bcc637a425248e4f8615c4f3df1e9e",
+    "ownership-1.jsonl": "720f33a279f55d3716d9409c4e66665356af9a88a3112fe13b4910b7bf0419e6",
+    "ownership-2.jsonl": "77082df91e7eb1a3e6863f81f6ef98050503747e36a6bd2c8336cce3cb63e9f5",
+    "ownership-3.jsonl": "9f49449afae1653355581fccaced18e81513f5957dd0babf224aa8e2324c082e",
+    "planning-current-state-1.jsonl": "ece8e92860767124773d2934bea3ef1ce957e2bed2835049e3d03baabe996ff3",
+    "planning-current-state-2.jsonl": "ece8e92860767124773d2934bea3ef1ce957e2bed2835049e3d03baabe996ff3",
+    "planning-current-state-3.jsonl": "f93327b08171d6b65e2747af4dafe16efaa6c86b4fc698068967013821f8973b",
+    "producer-1.jsonl": "440aebcdce61a835d58ca8837e0655ec53505553655791da044d271f4980b0c3",
+    "producer-2.jsonl": "476ef590e7adb2c5ca1cf7fd4e3004749f976040a7a760952a58898ff520006a",
+    "verifier-1.jsonl": "fb7c0b5c7c08a3ee462825cafcde183f61e8d7b80fb793c2ec1ea2672bedc274",
+    "verifier-2.jsonl": "19c4f3e87d4e4524030f4817e4f057d038f3b8c72e82763cea6459bef43c3087",
+    "witness-binding-1.jsonl": "b7ececbf899afe1213338e2ea8d184aeb5fb13cb66d0f1155d3b859ec00bdf49",
+    "witness-binding-2.jsonl": "6427804f33822d409843389e8a6023b6a2339e94c50008d0bf43186825cb1997"
+  },
+  "mutation_rows": 369,
+  "distinct_mutants": 248,
+  "non_kill_rows": 61,
+  "distinct_never_killed": 17,
+  "controls_not_pass": [
+    {
+      "file": "planning-current-state-1.jsonl",
+      "name": "unmutated control",
+      "status": "VOID_CONTROL_FAILED"
+    },
+    {
+      "file": "planning-current-state-2.jsonl",
+      "name": "unmutated control",
+      "status": "VOID_CONTROL_FAILED"
+    }
+  ],
+  "unresolved": [
+    {
+      "family": "contract-reconcile",
+      "name": "promtool binding bypassed",
+      "history": [
+        {
+          "file": "contract-reconcile-1.jsonl",
+          "line": 2,
+          "status": "PATTERN_NOT_FOUND"
+        },
+        {
+          "file": "contract-reconcile-2.jsonl",
+          "line": 2,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 4
+        }
+      ]
+    },
+    {
+      "family": "contract-reconcile",
+      "name": "manifest rejection binding bypassed",
+      "history": [
+        {
+          "file": "contract-reconcile-1.jsonl",
+          "line": 3,
+          "status": "PATTERN_NOT_FOUND"
+        },
+        {
+          "file": "contract-reconcile-2.jsonl",
+          "line": 3,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 3
+        }
+      ]
+    },
+    {
+      "family": "evidence-archive",
+      "name": "extracted files not compared by size",
+      "history": [
+        {
+          "file": "evidence-archive-1.jsonl",
+          "line": 15,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 24
+        },
+        {
+          "file": "evidence-archive-2.jsonl",
+          "line": 15,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 34
+        }
+      ]
+    },
+    {
+      "family": "evidence-archive",
+      "name": "extra extracted files tolerated",
+      "history": [
+        {
+          "file": "evidence-archive-1.jsonl",
+          "line": 17,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 30
+        },
+        {
+          "file": "evidence-archive-2.jsonl",
+          "line": 17,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 23
+        }
+      ]
+    },
+    {
+      "family": "evidence-archive",
+      "name": "unextracted files tolerated",
+      "history": [
+        {
+          "file": "evidence-archive-1.jsonl",
+          "line": 18,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 27
+        },
+        {
+          "file": "evidence-archive-2.jsonl",
+          "line": 18,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 21
+        }
+      ]
+    },
+    {
+      "family": "ownership",
+      "name": "project label not compared (container)",
+      "history": [
+        {
+          "file": "ownership-1.jsonl",
+          "line": 2,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 45
+        }
+      ]
+    },
+    {
+      "family": "ownership",
+      "name": "network label project not compared",
+      "history": [
+        {
+          "file": "ownership-1.jsonl",
+          "line": 7,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 44
+        }
+      ]
+    },
+    {
+      "family": "ownership",
+      "name": "residual resources tolerated",
+      "history": [
+        {
+          "file": "ownership-1.jsonl",
+          "line": 16,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 18
+        }
+      ]
+    },
+    {
+      "family": "ownership",
+      "name": "address range release not proven",
+      "history": [
+        {
+          "file": "ownership-1.jsonl",
+          "line": 17,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 18
+        }
+      ]
+    },
+    {
+      "family": "ownership",
+      "name": "volumes removed with containers",
+      "history": [
+        {
+          "file": "ownership-1.jsonl",
+          "line": 18,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 18
+        }
+      ]
+    },
+    {
+      "family": "ownership",
+      "name": "existing evidence directory overwritten",
+      "history": [
+        {
+          "file": "ownership-1.jsonl",
+          "line": 26,
+          "status": "PATTERN_NOT_FOUND"
+        }
+      ]
+    },
+    {
+      "family": "producer",
+      "name": "exit of children not awaited",
+      "history": [
+        {
+          "file": "producer-1.jsonl",
+          "line": 16,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 12
+        }
+      ]
+    },
+    {
+      "family": "producer",
+      "name": "lingering child tolerated",
+      "history": [
+        {
+          "file": "producer-1.jsonl",
+          "line": 17,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 17
+        }
+      ]
+    },
+    {
+      "family": "verifier",
+      "name": "stream names accepted",
+      "history": [
+        {
+          "file": "verifier-1.jsonl",
+          "line": 25,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 15
+        }
+      ]
+    },
+    {
+      "family": "verifier",
+      "name": "bom not stripped",
+      "history": [
+        {
+          "file": "verifier-1.jsonl",
+          "line": 37,
+          "status": "PATTERN_NOT_FOUND"
+        },
+        {
+          "file": "verifier-2.jsonl",
+          "line": 5,
+          "status": "PATTERN_NOT_FOUND"
+        }
+      ]
+    },
+    {
+      "family": "witness-binding",
+      "name": "marker may be non-comment text",
+      "history": [
+        {
+          "file": "witness-binding-1.jsonl",
+          "line": 2,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 0
+        },
+        {
+          "file": "witness-binding-2.jsonl",
+          "line": 2,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 0
+        }
+      ]
+    },
+    {
+      "family": "witness-binding",
+      "name": "block start not required",
+      "history": [
+        {
+          "file": "witness-binding-1.jsonl",
+          "line": 4,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 0
+        },
+        {
+          "file": "witness-binding-2.jsonl",
+          "line": 4,
+          "status": "SURVIVED",
+          "failed_cases": 0,
+          "seconds": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "id": "M08",
+  "family": "docker ownership",
+  "name": "residual resources tolerated",
+  "target": "scripts/g17-docker-ownership.ps1",
+  "source_sha256": "f41a69207b2e156d7a61eb52a642d12820a4cef24948af7967e26ae6fadb1c39",
+  "command": [
+    "node",
+    "--test",
+    "--test-name-pattern=finished stack|running stack|partially initialised|ambiguous ownership|another project|project names|already exists|held address|runner preserves|remain make the cleanup fail|address range taken|volume that docker created",
+    "scripts/g17-docker-ownership.test.mjs"
+  ],
+  "mutation": {
+    "from": "if ($after.Containers.Count -ne 0 -or $after.Networks.Count -ne 0) { throw",
+    "to": "if ($false) { throw",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 51,
+    "tests": 12,
+    "pass": 12,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M08.control-before.out.txt"
+  },
+  "mutated_sha256": "b5e04e59c8275ad9dec46a813243bcee0e8db7ee43251db9e6d5e93186fd0dce",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 51,
+    "tests": 12,
+    "pass": 11,
+    "fail": 1,
+    "failing_tests": [
+      "containers that docker reports as removed but that remain make the cleanup fail instead of reporting success"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "'Removed 2 container(s) and 1 network(s) of ho-verify-m17-selftest-0fb427e5-lierm; 0 volume(s) retained.  '"
+    ],
+    "output": "M08.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 51,
+    "tests": 12,
+    "pass": 12,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M08.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "KILLED_CANDIDATE"
+}

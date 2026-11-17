@@ -1,0 +1,68 @@
+{
+  "id": "M16",
+  "family": "witness binding",
+  "name": "marker may be non-comment text",
+  "target": "scripts/g17-witness-binding.mjs",
+  "source_sha256": "7ee128ccc8a6bf63be86740027d09a1c5034fd017d632629190f53508189be4c",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-witness-binding.test.mjs"
+  ],
+  "mutation": {
+    "from": "/^\\s*#/.test(line) && line.includes(marker)",
+    "to": "line.includes(marker)",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 0,
+    "tests": 11,
+    "pass": 11,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M16.control-before.out.txt"
+  },
+  "mutated_sha256": "c32bc9a2520979412f2b8a25f3533be3011a078ee557f62cbadafdcbfd4b397a",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 0,
+    "tests": 11,
+    "pass": 9,
+    "fail": 2,
+    "failing_tests": [
+      "a mention of the marker in non-comment text neither anchors a case nor hides the real comment that follows",
+      "a marker trailing the interval line is not a comment above the block"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "|-",
+      "|-"
+    ],
+    "output": "M16.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 0,
+    "tests": 11,
+    "pass": 11,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M16.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "KILLED_CANDIDATE"
+}

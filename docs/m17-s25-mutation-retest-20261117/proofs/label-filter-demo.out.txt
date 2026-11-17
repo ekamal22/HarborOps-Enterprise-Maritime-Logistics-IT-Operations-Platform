@@ -1,0 +1,17 @@
+project under test: [ho-verify-m17-demo-1f7da1f8]
+--- containers returned by docker ps -a --filter label=com.docker.compose.project=ho-verify-m17-demo-1f7da1f8
+/dec-1f7da1f8-1 label=[ho-verify-m17-demo-1f7da1f8]
+--- networks returned by docker network ls --filter label=com.docker.compose.project=ho-verify-m17-demo-1f7da1f8
+decnet-1f7da1f8-1 label=[ho-verify-m17-demo-1f7da1f8]
+--- all decoy labels created (for reference)
+/dec-1f7da1f8-1 label=[ho-verify-m17-demo-1f7da1f8]
+/dec-1f7da1f8-2 label=[ho-verify-m17-demo-1f7da1f8x]
+/dec-1f7da1f8-3 label=[HO-VERIFY-M17-DEMO-1F7DA1F8]
+/dec-1f7da1f8-4 label=[ho-verify-m17-demo-1f7da1f8 ]
+/dec-1f7da1f8-5 label=[ ho-verify-m17-demo-1f7da1f8]
+/dec-1f7da1f8-6 label=[ho-verify-m17-demo-1f7da1f8-2]
+/dec-1f7da1f8-7 label=[ho-verify-m17-demo]
+/dec-1f7da1f8-8 label=[ho-verify-m17-demo-1f7da1f8,extra]
+/dec-1f7da1f8-9 label=[ho-verify-m17-demo-1f7da1f8*]
+/dec-1f7da1f8-10 label=[]
+decoys removed by exact name

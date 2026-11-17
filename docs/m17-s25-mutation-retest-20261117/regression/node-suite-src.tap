@@ -1,0 +1,3839 @@
+TAP version 13
+# Subtest: preflight refuses every remaining incomplete technical assertion
+ok 1 - preflight refuses every remaining incomplete technical assertion
+  ---
+  duration_ms: 10.32538
+  type: 'test'
+  ...
+# Subtest: non-strict inventory audit maps exactly 75 clauses without corrupt identities
+ok 2 - non-strict inventory audit maps exactly 75 clauses without corrupt identities
+  ---
+  duration_ms: 4.123613
+  type: 'test'
+  ...
+# Subtest: a fully authored synthetic inventory satisfies the structural contract
+ok 3 - a fully authored synthetic inventory satisfies the structural contract
+  ---
+  duration_ms: 0.771438
+  type: 'test'
+  ...
+# Subtest: a skipped technical test is rejected even if assigned
+ok 4 - a skipped technical test is rejected even if assigned
+  ---
+  duration_ms: 0.721684
+  type: 'test'
+  ...
+# Subtest: missing, duplicated or permuted scenario identities are rejected
+ok 5 - missing, duplicated or permuted scenario identities are rejected
+  ---
+  duration_ms: 8.997475
+  type: 'test'
+  ...
+# Subtest: S25 cannot be credited as an automated test or used as a skip exemption
+ok 6 - S25 cannot be credited as an automated test or used as a skip exemption
+  ---
+  duration_ms: 0.690141
+  type: 'test'
+  ...
+# Subtest: wrong source text and a test renamed away cannot satisfy a witness
+ok 7 - wrong source text and a test renamed away cannot satisfy a witness
+  ---
+  duration_ms: 0.755147
+  type: 'test'
+  ...
+# Subtest: every single structural fault of the inventory or the mapping is reported
+ok 8 - every single structural fault of the inventory or the mapping is reported
+  ---
+  duration_ms: 76.025757
+  type: 'test'
+  ...
+# Subtest: skip and ignore markers in a named witness source are refused one pattern at a time
+ok 9 - skip and ignore markers in a named witness source are refused one pattern at a time
+  ---
+  duration_ms: 26.018592
+  type: 'test'
+  ...
+# Subtest: strict mode and total counts reject partial coverage
+ok 10 - strict mode and total counts reject partial coverage
+  ---
+  duration_ms: 11.222999
+  type: 'test'
+  ...
+# Subtest: the command runs its audit, writes its report and never overwrites it, while an import runs nothing
+ok 11 - the command runs its audit, writes its report and never overwrites it, while an import runs nothing
+  ---
+  duration_ms: 115.464492
+  type: 'test'
+  ...
+# Subtest: failed run preserves independently verifiable partial evidence
+ok 12 - failed run preserves independently verifiable partial evidence
+  ---
+  duration_ms: 11.822668
+  type: 'test'
+  ...
+# Subtest: altered evidence cannot pass hash verification
+ok 13 - altered evidence cannot pass hash verification
+  ---
+  duration_ms: 1.683048
+  type: 'test'
+  ...
+# Subtest: unlisted extra evidence is rejected
+ok 14 - unlisted extra evidence is rejected
+  ---
+  duration_ms: 3.951651
+  type: 'test'
+  ...
+# Subtest: wrong source is rejected
+ok 15 - wrong source is rejected
+  ---
+  duration_ms: 1.034282
+  type: 'test'
+  ...
+# Subtest: false accepted gate is rejected
+ok 16 - false accepted gate is rejected
+  ---
+  duration_ms: 1.488249
+  type: 'test'
+  ...
+# Subtest: fake complete claim without required raw result is rejected
+ok 17 - fake complete claim without required raw result is rejected
+  ---
+  duration_ms: 1.216628
+  type: 'test'
+  ...
+# Subtest: fake complete claim with incomplete stage evidence is rejected
+ok 18 - fake complete claim with incomplete stage evidence is rejected
+  ---
+  duration_ms: 1.347349
+  type: 'test'
+  ...
+# Subtest: hidden Playwright last-run records are manifest-indexed
+ok 19 - hidden Playwright last-run records are manifest-indexed
+  ---
+  duration_ms: 2.310096
+  type: 'test'
+  ...
+# Subtest: an altered, removed or extra hidden record is detected
+ok 20 - an altered, removed or extra hidden record is detected
+  ---
+  duration_ms: 3.536875
+  type: 'test'
+  ...
+# Subtest: every current-sample bound exceeds the telemetry pipeline worst case
+ok 21 - every current-sample bound exceeds the telemetry pipeline worst case
+  ---
+  duration_ms: 1.258569
+  type: 'test'
+  ...
+# Subtest: the stale-readiness check waits long enough for the newest sample to expire
+ok 22 - the stale-readiness check waits long enough for the newest sample to expire
+  ---
+  duration_ms: 1.358088
+  type: 'test'
+  ...
+# Subtest: the exporter name derivation matches the live collector output
+ok 23 - the exporter name derivation matches the live collector output
+  ---
+  duration_ms: 1.35599
+  type: 'test'
+  ...
+# Subtest: every metric queried by alerts, dashboard and verifiers is exported by source
+ok 24 - every metric queried by alerts, dashboard and verifiers is exported by source
+  ---
+  duration_ms: 1.703051
+  type: 'test'
+  ...
+# Subtest: a unit-suffixed gauge queried without its suffix is rejected
+ok 25 - a unit-suffixed gauge queried without its suffix is rejected
+  ---
+  duration_ms: 0.274081
+  type: 'test'
+  ...
+# Subtest: every verifier that reads a Tempo v2 trace unwraps the trace envelope
+ok 26 - every verifier that reads a Tempo v2 trace unwraps the trace envelope
+  ---
+  duration_ms: 4.541503
+  type: 'test'
+  ...
+# Subtest: G17 runner restricts exact-witness integration checks and keeps other gates explicit
+ok 27 - G17 runner restricts exact-witness integration checks and keeps other gates explicit
+  ---
+  duration_ms: 1.993502
+  type: 'test'
+  ...
+# Subtest: the G17 stack validates collector config and refuses dead diagnostic services
+ok 28 - the G17 stack validates collector config and refuses dead diagnostic services
+  ---
+  duration_ms: 0.378757
+  type: 'test'
+  ...
+# Subtest: G17 independent-review remediation is enforced by source and the evidence runner
+ok 29 - G17 independent-review remediation is enforced by source and the evidence runner
+  ---
+  duration_ms: 0.976895
+  type: 'test'
+  ...
+# Subtest: first-incident 5xx counter and sampled failure alert are explicitly witnessed
+ok 30 - first-incident 5xx counter and sampled failure alert are explicitly witnessed
+  ---
+  duration_ms: 0.20077
+  type: 'test'
+  ...
+# Subtest: 5xx HTTP contract distinguishes zero series seed from exactly one failure
+ok 31 - 5xx HTTP contract distinguishes zero series seed from exactly one failure
+  ---
+  duration_ms: 0.224096
+  type: 'test'
+  ...
+# Subtest: the default stack does not start or expose M17 components
+ok 32 - the default stack does not start or expose M17 components
+  ---
+  duration_ms: 1.089175
+  type: 'test'
+  ...
+# Subtest: exporter and trace controls remain bounded and private
+ok 33 - exporter and trace controls remain bounded and private
+  ---
+  duration_ms: 0.43169
+  type: 'test'
+  ...
+# Subtest: service entrypoints and accepted default-off behaviors are unchanged
+ok 34 - service entrypoints and accepted default-off behaviors are unchanged
+  ---
+  duration_ms: 0.242335
+  type: 'test'
+  ...
+# Subtest: private local dashboard has real datasource mappings and no default green placeholder
+ok 35 - private local dashboard has real datasource mappings and no default green placeholder
+  ---
+  duration_ms: 0.52549
+  type: 'test'
+  ...
+# Subtest: G17 acceptance is never inferred from source file presence
+ok 36 - G17 acceptance is never inferred from source file presence
+  ---
+  duration_ms: 0.600851
+  type: 'test'
+  ...
+# Subtest: the runnable monitoring stack uses isolated E-backed storage and a supported image
+ok 37 - the runnable monitoring stack uses isolated E-backed storage and a supported image
+  ---
+  duration_ms: 0.413228
+  type: 'test'
+  ...
+# Subtest: all six approved local alert categories are represented without external routing
+ok 38 - all six approved local alert categories are represented without external routing
+  ---
+  duration_ms: 0.253398
+  type: 'test'
+  ...
+# Subtest: worker disposition is reflected rather than counting parked work as processed
+ok 39 - worker disposition is reflected rather than counting parked work as processed
+  ---
+  duration_ms: 0.181816
+  type: 'test'
+  ...
+# Subtest: trace export rejects raw events, links, trace state and status descriptions
+ok 40 - trace export rejects raw events, links, trace state and status descriptions
+  ---
+  duration_ms: 1.147295
+  type: 'test'
+  ...
+# Subtest: detached worker journey uses keyed shared sampling without a false parent span
+ok 41 - detached worker journey uses keyed shared sampling without a false parent span
+  ---
+  duration_ms: 0.268395
+  type: 'test'
+  ...
+# Subtest: the disposable campaign isolates telemetry networks and retains failures
+ok 42 - the disposable campaign isolates telemetry networks and retains failures
+  ---
+  duration_ms: 0.467994
+  type: 'test'
+  ...
+# Subtest: hosted bind mounts are owned and writable before starting rootless PostgreSQL
+ok 43 - hosted bind mounts are owned and writable before starting rootless PostgreSQL
+  ---
+  duration_ms: 0.200025
+  type: 'test'
+  ...
+# Subtest: all S25 remediation controls are required before a green evidence manifest
+ok 44 - all S25 remediation controls are required before a green evidence manifest
+  ---
+  duration_ms: 0.426618
+  type: 'test'
+  ...
+# Subtest: owned synthetic storage fixture obeys immutable shipment code constraints
+ok 45 - owned synthetic storage fixture obeys immutable shipment code constraints
+  ---
+  duration_ms: 0.163846
+  type: 'test'
+  ...
+# Subtest: M7 profile has one canonical set of wire keys
+ok 46 - M7 profile has one canonical set of wire keys
+  ---
+  duration_ms: 1.485266
+  type: 'test'
+  ...
+# Subtest: Synthetic fixtures match the restrictive variant contract
+ok 47 - Synthetic fixtures match the restrictive variant contract
+  ---
+  duration_ms: 0.280484
+  type: 'test'
+  ...
+# Subtest: EF Core model and snapshot share the same M7 metadata
+ok 48 - EF Core model and snapshot share the same M7 metadata
+  ---
+  duration_ms: 0.427782
+  type: 'test'
+  ...
+# Subtest: Database has tenant constraints and lifecycle guards
+ok 49 - Database has tenant constraints and lifecycle guards
+  ---
+  duration_ms: 0.152433
+  type: 'test'
+  ...
+# Subtest: M8 intake acknowledges only after receipt transaction commit
+ok 50 - M8 intake acknowledges only after receipt transaction commit
+  ---
+  duration_ms: 0.316607
+  type: 'test'
+  ...
+# Subtest: Source authentication is refreshed under lock and rate limiter stays bounded
+ok 51 - Source authentication is refreshed under lock and rate limiter stays bounded
+  ---
+  duration_ms: 1.334743
+  type: 'test'
+  ...
+# Subtest: G7 technical runner uses isolated resources and controlled mutation checks
+ok 52 - G7 technical runner uses isolated resources and controlled mutation checks
+  ---
+  duration_ms: 0.37609
+  type: 'test'
+  ...
+# Subtest: G7 retains historical evidence and accepted gate disposition
+ok 53 - G7 retains historical evidence and accepted gate disposition
+  ---
+  duration_ms: 0.362513
+  type: 'test'
+  ...
+# Subtest: D-002 reference snapshots are pinned, withheld artifacts stay out and the profile matches the policy
+ok 54 - D-002 reference snapshots are pinned, withheld artifacts stay out and the profile matches the policy
+  ---
+  duration_ms: 1.582424
+  type: 'test'
+  ...
+# Subtest: M8 keeps a durable post-commit acknowledgment boundary
+ok 55 - M8 keeps a durable post-commit acknowledgment boundary
+  ---
+  duration_ms: 0.802472
+  type: 'test'
+  ...
+# Subtest: M8 schema enforces uniqueness, tenant scope, append-only and transaction completeness
+ok 56 - M8 schema enforces uniqueness, tenant scope, append-only and transaction completeness
+  ---
+  duration_ms: 0.264862
+  type: 'test'
+  ...
+# Subtest: EF model and snapshot agree on all M8 mapping definitions
+ok 57 - EF model and snapshot agree on all M8 mapping definitions
+  ---
+  duration_ms: 0.182879
+  type: 'test'
+  ...
+# Subtest: M8 implementation has pure canonical policy and executable regression definitions
+ok 58 - M8 implementation has pure canonical policy and executable regression definitions
+  ---
+  duration_ms: 0.176644
+  type: 'test'
+  ...
+# Subtest: D-006 and G8 acceptance references preserve the original planned gate
+ok 59 - D-006 and G8 acceptance references preserve the original planned gate
+  ---
+  duration_ms: 0.579568
+  type: 'test'
+  ...
+# Subtest: accepted M8 migrations remain present and untouched by M9 layering
+ok 60 - accepted M8 migrations remain present and untouched by M9 layering
+  ---
+  duration_ms: 1.028228
+  type: 'test'
+  ...
+# Subtest: M9 only permits idempotent, fenced, finite worker outcomes
+ok 61 - M9 only permits idempotent, fenced, finite worker outcomes
+  ---
+  duration_ms: 0.406654
+  type: 'test'
+  ...
+# Subtest: ingress counts all unresolved worker states and keeps replay before capacity
+ok 62 - ingress counts all unresolved worker states and keeps replay before capacity
+  ---
+  duration_ms: 0.118089
+  type: 'test'
+  ...
+# Subtest: operator queue requires live scope, authenticated CSRF and attributed redrive
+ok 63 - operator queue requires live scope, authenticated CSRF and attributed redrive
+  ---
+  duration_ms: 0.254173
+  type: 'test'
+  ...
+# Subtest: restricted worker role reads ledger but cannot forge attempt rows
+ok 64 - restricted worker role reads ledger but cannot forge attempt rows
+  ---
+  duration_ms: 0.128665
+  type: 'test'
+  ...
+# Subtest: verification compose is standalone with disjoint resources and real worker readiness
+ok 65 - verification compose is standalone with disjoint resources and real worker readiness
+  ---
+  duration_ms: 0.162961
+  type: 'test'
+  ...
+# Subtest: manual redrive rechecks the session security epoch and schema pins its lock target
+ok 66 - manual redrive rechecks the session security epoch and schema pins its lock target
+  ---
+  duration_ms: 0.186411
+  type: 'test'
+  ...
+# Subtest: development runner reports technical success and gate incompleteness separately
+ok 67 - development runner reports technical success and gate incompleteness separately
+  ---
+  duration_ms: 0.210326
+  type: 'test'
+  ...
+# Subtest: G9 orchestrator is isolated, tears down the profile-gated worker and never decides acceptance
+ok 68 - G9 orchestrator is isolated, tears down the profile-gated worker and never decides acceptance
+  ---
+  duration_ms: 0.447955
+  type: 'test'
+  ...
+# Subtest: G9 mutation runner defines twelve distinct families that all name intended killing tests
+ok 69 - G9 mutation runner defines twelve distinct families that all name intended killing tests
+  ---
+  duration_ms: 0.584692
+  type: 'test'
+  ...
+# Subtest: G17 verifier rejects tampering, skipped cases, duplicate results and wrong source SHA
+ok 70 - G17 verifier rejects tampering, skipped cases, duplicate results and wrong source SHA
+  ---
+  duration_ms: 6.004323
+  type: 'test'
+  ...
+# Subtest: a complete, consistent synthetic full campaign verifies
+ok 71 - a complete, consistent synthetic full campaign verifies
+  ---
+  duration_ms: 28.758304
+  type: 'test'
+  ...
+# Subtest: a worker journey that topped up to 90 receipts with every one reconciled verifies
+ok 72 - a worker journey that topped up to 90 receipts with every one reconciled verifies
+  ---
+  duration_ms: 7.457469
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger claims fewer than 72 technical passes
+ok 73 - complete campaign rejects: ledger claims fewer than 72 technical passes
+  ---
+  duration_ms: 6.323663
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger technical record without artifact
+ok 74 - complete campaign rejects: ledger technical record without artifact
+  ---
+  duration_ms: 4.438752
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger record naming a missing artifact
+ok 75 - complete campaign rejects: ledger record naming a missing artifact
+  ---
+  duration_ms: 5.757772
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger independent review not pending
+ok 76 - complete campaign rejects: ledger independent review not pending
+  ---
+  duration_ms: 4.98553
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger acceptance not pending
+ok 77 - complete campaign rejects: ledger acceptance not pending
+  ---
+  duration_ms: 8.34198
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger errors present
+ok 78 - complete campaign rejects: ledger errors present
+  ---
+  duration_ms: 5.658207
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: coverage preflight not strict
+ok 79 - complete campaign rejects: coverage preflight not strict
+  ---
+  duration_ms: 4.953882
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: coverage preflight 71 authored
+ok 80 - complete campaign rejects: coverage preflight 71 authored
+  ---
+  duration_ms: 5.618168
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: network web not internal
+ok 81 - complete campaign rejects: network web not internal
+  ---
+  duration_ms: 5.610346
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: network result FAIL
+ok 82 - complete campaign rejects: network result FAIL
+  ---
+  duration_ms: 4.470294
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: network project differs
+ok 83 - complete campaign rejects: network project differs
+  ---
+  duration_ms: 4.350463
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: browser case skipped
+ok 84 - complete campaign rejects: browser case skipped
+  ---
+  duration_ms: 5.069244
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: cardinality browser case missing
+ok 85 - complete campaign rejects: cardinality browser case missing
+  ---
+  duration_ms: 4.980822
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: hidden last-run record reports a failure
+ok 86 - complete campaign rejects: hidden last-run record reports a failure
+  ---
+  duration_ms: 5.08956
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: hidden cardinality record removed
+ok 87 - complete campaign rejects: hidden cardinality record removed
+  ---
+  duration_ms: 5.173151
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: cardinality 9999 paths
+ok 88 - complete campaign rejects: cardinality 9999 paths
+  ---
+  duration_ms: 4.875341
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: cardinality not all 404
+ok 89 - complete campaign rejects: cardinality not all 404
+  ---
+  duration_ms: 4.21358
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: cardinality 501 series
+ok 90 - complete campaign rejects: cardinality 501 series
+  ---
+  duration_ms: 5.005185
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: cardinality no series
+ok 91 - complete campaign rejects: cardinality no series
+  ---
+  duration_ms: 47.739613
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: cardinality one memory sample
+ok 92 - complete campaign rejects: cardinality one memory sample
+  ---
+  duration_ms: 5.00625
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: privacy report without traces
+ok 93 - complete campaign rejects: privacy report without traces
+  ---
+  duration_ms: 6.174974
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: memory stress growth 15.1
+ok 94 - complete campaign rejects: memory stress growth 15.1
+  ---
+  duration_ms: 5.253497
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: memory stress 39999 paths
+ok 95 - complete campaign rejects: memory stress 39999 paths
+  ---
+  duration_ms: 99.331837
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: memory stress one pair
+ok 96 - complete campaign rejects: memory stress one pair
+  ---
+  duration_ms: 7.51135
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: memory stress pair over 15
+ok 97 - complete campaign rejects: memory stress pair over 15
+  ---
+  duration_ms: 5.033757
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: memory stress pair failed
+ok 98 - complete campaign rejects: memory stress pair failed
+  ---
+  duration_ms: 15.170307
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: restart api not restored
+ok 99 - complete campaign rejects: restart api not restored
+  ---
+  duration_ms: 6.244727
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: restart four checks
+ok 100 - complete campaign rejects: restart four checks
+  ---
+  duration_ms: 5.881701
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: restart a check failed
+ok 101 - complete campaign rejects: restart a check failed
+  ---
+  duration_ms: 7.628478
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: retention policy 12 hours
+ok 102 - complete campaign rejects: retention policy 12 hours
+  ---
+  duration_ms: 5.895171
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: retention no old block removed
+ok 103 - complete campaign rejects: retention no old block removed
+  ---
+  duration_ms: 7.835329
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: retention no new block preserved
+ok 104 - complete campaign rejects: retention no new block preserved
+  ---
+  duration_ms: 6.633176
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: retention only two passing checks
+ok 105 - complete campaign rejects: retention only two passing checks
+  ---
+  duration_ms: 5.606812
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: tempo trace not ingested
+ok 106 - complete campaign rejects: tempo trace not ingested
+  ---
+  duration_ms: 7.73314
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: tempo expired trace kept
+ok 107 - complete campaign rejects: tempo expired trace kept
+  ---
+  duration_ms: 6.472635
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: tempo recent trace lost
+ok 108 - complete campaign rejects: tempo recent trace lost
+  ---
+  duration_ms: 7.322049
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: tempo policy 48 hours
+ok 109 - complete campaign rejects: tempo policy 48 hours
+  ---
+  duration_ms: 7.762528
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: tempo three checks
+ok 110 - complete campaign rejects: tempo three checks
+  ---
+  duration_ms: 6.365824
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: retention matrix metrics 12 hours
+ok 111 - complete campaign rejects: retention matrix metrics 12 hours
+  ---
+  duration_ms: 7.905429
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: retention matrix traces 12 hours
+ok 112 - complete campaign rejects: retention matrix traces 12 hours
+  ---
+  duration_ms: 7.380113
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: retention matrix two sources
+ok 113 - complete campaign rejects: retention matrix two sources
+  ---
+  duration_ms: 7.246801
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: regression group missing
+ok 114 - complete campaign rejects: regression group missing
+  ---
+  duration_ms: 7.267142
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: regression group executed nothing
+ok 115 - complete campaign rejects: regression group executed nothing
+  ---
+  duration_ms: 7.767106
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: regression seven required groups
+ok 116 - complete campaign rejects: regression seven required groups
+  ---
+  duration_ms: 7.369973
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: regression trx with a failure
+ok 117 - complete campaign rejects: regression trx with a failure
+  ---
+  duration_ms: 6.499385
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance five rows
+ok 118 - complete campaign rejects: performance five rows
+  ---
+  duration_ms: 7.141393
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance two pairs
+ok 119 - complete campaign rejects: performance two pairs
+  ---
+  duration_ms: 8.956634
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance gate failed
+ok 120 - complete campaign rejects: performance gate failed
+  ---
+  duration_ms: 6.84226
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance pooled gate failed
+ok 121 - complete campaign rejects: performance pooled gate failed
+  ---
+  duration_ms: 7.238707
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance memory gate failed
+ok 122 - complete campaign rejects: performance memory gate failed
+  ---
+  duration_ms: 6.639843
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance pooled p95 over 10
+ok 123 - complete campaign rejects: performance pooled p95 over 10
+  ---
+  duration_ms: 11.580235
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance too few telemetry samples
+ok 124 - complete campaign rejects: performance too few telemetry samples
+  ---
+  duration_ms: 9.179994
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance mean memory over 15
+ok 125 - complete campaign rejects: performance mean memory over 15
+  ---
+  duration_ms: 13.303789
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance a pair without memory
+ok 126 - complete campaign rejects: performance a pair without memory
+  ---
+  duration_ms: 8.922902
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance no cpu count
+ok 127 - complete campaign rejects: performance no cpu count
+  ---
+  duration_ms: 6.018878
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance no stddev
+ok 128 - complete campaign rejects: performance no stddev
+  ---
+  duration_ms: 7.782476
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: latency 99 requests
+ok 129 - complete campaign rejects: latency 99 requests
+  ---
+  duration_ms: 6.223331
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: latency 14 slow requests
+ok 130 - complete campaign rejects: latency 14 slow requests
+  ---
+  duration_ms: 6.260863
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: latency a check failed
+ok 131 - complete campaign rejects: latency a check failed
+  ---
+  duration_ms: 6.820268
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: latency two checks
+ok 132 - complete campaign rejects: latency two checks
+  ---
+  duration_ms: 5.145782
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: alert matrix five checks
+ok 133 - complete campaign rejects: alert matrix five checks
+  ---
+  duration_ms: 6.024889
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: alert matrix a check failed
+ok 134 - complete campaign rejects: alert matrix a check failed
+  ---
+  duration_ms: 8.410367
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: pressure three cases
+ok 135 - complete campaign rejects: pressure three cases
+  ---
+  duration_ms: 7.962686
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: pressure a case failed
+ok 136 - complete campaign rejects: pressure a case failed
+  ---
+  duration_ms: 8.36055
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: database not restored
+ok 137 - complete campaign rejects: database not restored
+  ---
+  duration_ms: 10.416696
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: database steps out of order
+ok 138 - complete campaign rejects: database steps out of order
+  ---
+  duration_ms: 11.391041
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: database no alert recorded
+ok 139 - complete campaign rejects: database no alert recorded
+  ---
+  duration_ms: 8.886797
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: database five steps
+ok 140 - complete campaign rejects: database five steps
+  ---
+  duration_ms: 7.834457
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: collector not restored
+ok 141 - complete campaign rejects: collector not restored
+  ---
+  duration_ms: 15.8804
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: collector step renamed
+ok 142 - complete campaign rejects: collector step renamed
+  ---
+  duration_ms: 7.914192
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: collector step failed
+ok 143 - complete campaign rejects: collector step failed
+  ---
+  duration_ms: 8.300653
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: first failure a step removed
+ok 144 - complete campaign rejects: first failure a step removed
+  ---
+  duration_ms: 22.252031
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: first failure steps swapped
+ok 145 - complete campaign rejects: first failure steps swapped
+  ---
+  duration_ms: 12.028469
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: first failure database not restored
+ok 146 - complete campaign rejects: first failure database not restored
+  ---
+  duration_ms: 9.128428
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: first failure a family count differs
+ok 147 - complete campaign rejects: first failure a family count differs
+  ---
+  duration_ms: 6.230843
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: first failure no increase from the baseline
+ok 148 - complete campaign rejects: first failure no increase from the baseline
+  ---
+  duration_ms: 6.114418
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: first failure baseline not zero
+ok 149 - complete campaign rejects: first failure baseline not zero
+  ---
+  duration_ms: 9.412506
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: first failure eligible floor not met
+ok 150 - complete campaign rejects: first failure eligible floor not met
+  ---
+  duration_ms: 6.297666
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: first failure alert not firing
+ok 151 - complete campaign rejects: first failure alert not firing
+  ---
+  duration_ms: 6.586197
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker journey 49 receipts
+ok 152 - complete campaign rejects: worker journey 49 receipts
+  ---
+  duration_ms: 7.167119
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker journey 49 reconciled
+ok 153 - complete campaign rejects: worker journey 49 reconciled
+  ---
+  duration_ms: 6.656134
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker journey 80 receipts with 79 reconciled
+ok 154 - complete campaign rejects: worker journey 80 receipts with 79 reconciled
+  ---
+  duration_ms: 8.731705
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker journey only two traced journeys
+ok 155 - complete campaign rejects: worker journey only two traced journeys
+  ---
+  duration_ms: 5.917251
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker journey traced count missing
+ok 156 - complete campaign rejects: worker journey traced count missing
+  ---
+  duration_ms: 7.797672
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker journey no replay
+ok 157 - complete campaign rejects: worker journey no replay
+  ---
+  duration_ms: 6.161627
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker journey one trace pair
+ok 158 - complete campaign rejects: worker journey one trace pair
+  ---
+  duration_ms: 6.34576
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker journey owner role
+ok 159 - complete campaign rejects: worker journey owner role
+  ---
+  duration_ms: 14.154671
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker results a check failed
+ok 160 - complete campaign rejects: worker results a check failed
+  ---
+  duration_ms: 7.948653
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker results three checks
+ok 161 - complete campaign rejects: worker results three checks
+  ---
+  duration_ms: 5.990565
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: a stage failed in a COMPLETE run
+ok 162 - complete campaign rejects: a stage failed in a COMPLETE run
+  ---
+  duration_ms: 5.331951
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: full campaign flag missing
+ok 163 - complete campaign rejects: full campaign flag missing
+  ---
+  duration_ms: 5.369185
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: worker fixture omitted
+ok 164 - complete campaign rejects: worker fixture omitted
+  ---
+  duration_ms: 5.389367
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: fault probe omitted
+ok 165 - complete campaign rejects: fault probe omitted
+  ---
+  duration_ms: 5.301973
+  type: 'test'
+  ...
+# Subtest: a tampered byte after indexing is detected on the complete campaign
+ok 166 - a tampered byte after indexing is detected on the complete campaign
+  ---
+  duration_ms: 6.22787
+  type: 'test'
+  ...
+# Subtest: a missing required artifact is rejected on the complete campaign
+ok 167 - a missing required artifact is rejected on the complete campaign
+  ---
+  duration_ms: 5.600379
+  type: 'test'
+  ...
+# Subtest: a falsely reviewed inventory, count or disposition is rejected
+ok 168 - a falsely reviewed inventory, count or disposition is rejected
+  ---
+  duration_ms: 51.198029
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: run-status schema version
+ok 169 - complete campaign header guard: run-status schema version
+  ---
+  duration_ms: 5.154315
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: expected-artifacts schema version
+ok 170 - complete campaign header guard: expected-artifacts schema version
+  ---
+  duration_ms: 4.895217
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: run-status gate
+ok 171 - complete campaign header guard: run-status gate
+  ---
+  duration_ms: 5.662098
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: expected-artifacts gate
+ok 172 - complete campaign header guard: expected-artifacts gate
+  ---
+  duration_ms: 8.298119
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: run-status source sha
+ok 173 - complete campaign header guard: run-status source sha
+  ---
+  duration_ms: 9.901833
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: expected-artifacts source sha
+ok 174 - complete campaign header guard: expected-artifacts source sha
+  ---
+  duration_ms: 7.579727
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: requested source sha
+ok 175 - complete campaign header guard: requested source sha
+  ---
+  duration_ms: 7.429292
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: source not verified
+ok 176 - complete campaign header guard: source not verified
+  ---
+  duration_ms: 8.573895
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: gate accepted in the run status
+ok 177 - complete campaign header guard: gate accepted in the run status
+  ---
+  duration_ms: 9.394882
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: assertions already reviewed in the run status
+ok 178 - complete campaign header guard: assertions already reviewed in the run status
+  ---
+  duration_ms: 6.173728
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: run state unknown
+ok 179 - complete campaign header guard: run state unknown
+  ---
+  duration_ms: 5.728975
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: run state differs from the manifest
+ok 180 - complete campaign header guard: run state differs from the manifest
+  ---
+  duration_ms: 5.638766
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: required artifacts not an array
+ok 181 - complete campaign header guard: required artifacts not an array
+  ---
+  duration_ms: 7.187436
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: full campaign flag not boolean
+ok 182 - complete campaign header guard: full campaign flag not boolean
+  ---
+  duration_ms: 7.731905
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: stage with exit code 1 but PASS
+ok 183 - complete campaign header guard: stage with exit code 1 but PASS
+  ---
+  duration_ms: 8.511226
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: stage FAIL with exit code 0
+ok 184 - complete campaign header guard: stage FAIL with exit code 0
+  ---
+  duration_ms: 8.359773
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: no stages at all
+ok 185 - complete campaign header guard: no stages at all
+  ---
+  duration_ms: 6.970877
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: preflight 25 scenarios claimed as 24
+ok 186 - complete campaign header guard: preflight 25 scenarios claimed as 24
+  ---
+  duration_ms: 5.959176
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: preflight with an error
+ok 187 - complete campaign header guard: preflight with an error
+  ---
+  duration_ms: 9.13935
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: preflight 74 assertions
+ok 188 - complete campaign header guard: preflight 74 assertions
+  ---
+  duration_ms: 6.013394
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: preflight not passed
+ok 189 - complete campaign header guard: preflight not passed
+  ---
+  duration_ms: 7.383839
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: ledger source sha
+ok 190 - complete campaign header guard: ledger source sha
+  ---
+  duration_ms: 7.18728
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: ledger project
+ok 191 - complete campaign header guard: ledger project
+  ---
+  duration_ms: 6.006296
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: ledger not passed
+ok 192 - complete campaign header guard: ledger not passed
+  ---
+  duration_ms: 5.820644
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: ledger 74 records
+ok 193 - complete campaign header guard: ledger 74 records
+  ---
+  duration_ms: 7.243682
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: ledger duplicate id
+ok 194 - complete campaign header guard: ledger duplicate id
+  ---
+  duration_ms: 7.279076
+  type: 'test'
+  ...
+# Subtest: complete campaign header guard: ledger independent count
+ok 195 - complete campaign header guard: ledger independent count
+  ---
+  duration_ms: 9.020606
+  type: 'test'
+  ...
+# Subtest: a manifest header with a wrong schema version, gate or source is rejected one field at a time
+ok 196 - a manifest header with a wrong schema version, gate or source is rejected one field at a time
+  ---
+  duration_ms: 19.864744
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-cardinality-memory-results.json with only source_sha wrong
+ok 197 - complete campaign rejects m17-cardinality-memory-results.json with only source_sha wrong
+  ---
+  duration_ms: 6.587471
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-cardinality-memory-results.json with only project wrong
+ok 198 - complete campaign rejects m17-cardinality-memory-results.json with only project wrong
+  ---
+  duration_ms: 6.939483
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-cardinality-memory-results.json with only result wrong
+ok 199 - complete campaign rejects m17-cardinality-memory-results.json with only result wrong
+  ---
+  duration_ms: 6.420047
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-restart-results.json with only source_sha wrong
+ok 200 - complete campaign rejects m17-restart-results.json with only source_sha wrong
+  ---
+  duration_ms: 6.870889
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-restart-results.json with only project wrong
+ok 201 - complete campaign rejects m17-restart-results.json with only project wrong
+  ---
+  duration_ms: 7.550525
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-restart-results.json with only result wrong
+ok 202 - complete campaign rejects m17-restart-results.json with only result wrong
+  ---
+  duration_ms: 6.712688
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-retention-age-results.json with only source_sha wrong
+ok 203 - complete campaign rejects m17-retention-age-results.json with only source_sha wrong
+  ---
+  duration_ms: 5.405308
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-retention-age-results.json with only project wrong
+ok 204 - complete campaign rejects m17-retention-age-results.json with only project wrong
+  ---
+  duration_ms: 8.783611
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-retention-age-results.json with only result wrong
+ok 205 - complete campaign rejects m17-retention-age-results.json with only result wrong
+  ---
+  duration_ms: 6.415151
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-retention-matrix-results.json with only source_sha wrong
+ok 206 - complete campaign rejects m17-retention-matrix-results.json with only source_sha wrong
+  ---
+  duration_ms: 7.605391
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-retention-matrix-results.json with only project wrong
+ok 207 - complete campaign rejects m17-retention-matrix-results.json with only project wrong
+  ---
+  duration_ms: 5.134849
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-retention-matrix-results.json with only result wrong
+ok 208 - complete campaign rejects m17-retention-matrix-results.json with only result wrong
+  ---
+  duration_ms: 5.112252
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-performance-raw.json with only source_sha wrong
+ok 209 - complete campaign rejects m17-performance-raw.json with only source_sha wrong
+  ---
+  duration_ms: 5.935345
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-performance-raw.json with only project wrong
+ok 210 - complete campaign rejects m17-performance-raw.json with only project wrong
+  ---
+  duration_ms: 6.518992
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-performance-raw.json with only result wrong
+ok 211 - complete campaign rejects m17-performance-raw.json with only result wrong
+  ---
+  duration_ms: 7.218089
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-live-latency-alert-results.json with only source_sha wrong
+ok 212 - complete campaign rejects m17-live-latency-alert-results.json with only source_sha wrong
+  ---
+  duration_ms: 6.098189
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-live-latency-alert-results.json with only project wrong
+ok 213 - complete campaign rejects m17-live-latency-alert-results.json with only project wrong
+  ---
+  duration_ms: 9.23396
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-live-latency-alert-results.json with only result wrong
+ok 214 - complete campaign rejects m17-live-latency-alert-results.json with only result wrong
+  ---
+  duration_ms: 6.10366
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-database-fault-results.json with only source_sha wrong
+ok 215 - complete campaign rejects m17-database-fault-results.json with only source_sha wrong
+  ---
+  duration_ms: 5.996656
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-database-fault-results.json with only project wrong
+ok 216 - complete campaign rejects m17-database-fault-results.json with only project wrong
+  ---
+  duration_ms: 5.794384
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-database-fault-results.json with only result wrong
+ok 217 - complete campaign rejects m17-database-fault-results.json with only result wrong
+  ---
+  duration_ms: 7.469035
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-export-privacy-results.json with only source_sha wrong
+ok 218 - complete campaign rejects m17-export-privacy-results.json with only source_sha wrong
+  ---
+  duration_ms: 5.466
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-export-privacy-results.json with only project wrong
+ok 219 - complete campaign rejects m17-export-privacy-results.json with only project wrong
+  ---
+  duration_ms: 6.246775
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-export-privacy-results.json with only result wrong
+ok 220 - complete campaign rejects m17-export-privacy-results.json with only result wrong
+  ---
+  duration_ms: 9.635996
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: performance run kind
+ok 221 - complete campaign rejects: performance run kind
+  ---
+  duration_ms: 11.025565
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: privacy report with no exported metric series
+ok 222 - complete campaign rejects: privacy report with no exported metric series
+  ---
+  duration_ms: 6.076448
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: privacy report with a single snapshot
+ok 223 - complete campaign rejects: privacy report with a single snapshot
+  ---
+  duration_ms: 6.761119
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger claims 74 total assertions
+ok 224 - complete campaign rejects: ledger claims 74 total assertions
+  ---
+  duration_ms: 6.850392
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger lists 71 technical records while claiming 72
+ok 225 - complete campaign rejects: ledger lists 71 technical records while claiming 72
+  ---
+  duration_ms: 7.271426
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger source differs
+ok 226 - complete campaign rejects: ledger source differs
+  ---
+  duration_ms: 11.127761
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects: ledger pass flag false
+ok 227 - complete campaign rejects: ledger pass flag false
+  ---
+  duration_ms: 6.097411
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-tempo-retention-results.json with only source_sha wrong
+ok 228 - complete campaign rejects m17-tempo-retention-results.json with only source_sha wrong
+  ---
+  duration_ms: 6.493204
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-tempo-retention-results.json with only project wrong
+ok 229 - complete campaign rejects m17-tempo-retention-results.json with only project wrong
+  ---
+  duration_ms: 9.73393
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-tempo-retention-results.json with only result wrong
+ok 230 - complete campaign rejects m17-tempo-retention-results.json with only result wrong
+  ---
+  duration_ms: 6.344882
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects g17-regression-matrix-results.json with only source_sha wrong
+ok 231 - complete campaign rejects g17-regression-matrix-results.json with only source_sha wrong
+  ---
+  duration_ms: 6.598711
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects g17-regression-matrix-results.json with only project wrong
+ok 232 - complete campaign rejects g17-regression-matrix-results.json with only project wrong
+  ---
+  duration_ms: 6.98593
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects g17-regression-matrix-results.json with only result wrong
+ok 233 - complete campaign rejects g17-regression-matrix-results.json with only result wrong
+  ---
+  duration_ms: 6.768116
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-alert-matrix-results.json with only source_sha wrong
+ok 234 - complete campaign rejects m17-alert-matrix-results.json with only source_sha wrong
+  ---
+  duration_ms: 7.139022
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-alert-matrix-results.json with only project wrong
+ok 235 - complete campaign rejects m17-alert-matrix-results.json with only project wrong
+  ---
+  duration_ms: 9.27903
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-alert-matrix-results.json with only result wrong
+ok 236 - complete campaign rejects m17-alert-matrix-results.json with only result wrong
+  ---
+  duration_ms: 8.514755
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-pressure-matrix-results.json with only source_sha wrong
+ok 237 - complete campaign rejects m17-pressure-matrix-results.json with only source_sha wrong
+  ---
+  duration_ms: 12.134499
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-pressure-matrix-results.json with only project wrong
+ok 238 - complete campaign rejects m17-pressure-matrix-results.json with only project wrong
+  ---
+  duration_ms: 8.817619
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-pressure-matrix-results.json with only result wrong
+ok 239 - complete campaign rejects m17-pressure-matrix-results.json with only result wrong
+  ---
+  duration_ms: 8.792309
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-collector-fault-results.json with only source_sha wrong
+ok 240 - complete campaign rejects m17-collector-fault-results.json with only source_sha wrong
+  ---
+  duration_ms: 10.004129
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-collector-fault-results.json with only project wrong
+ok 241 - complete campaign rejects m17-collector-fault-results.json with only project wrong
+  ---
+  duration_ms: 8.837439
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-collector-fault-results.json with only result wrong
+ok 242 - complete campaign rejects m17-collector-fault-results.json with only result wrong
+  ---
+  duration_ms: 13.948075
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-worker-journey-results.json with only source_sha wrong
+ok 243 - complete campaign rejects m17-worker-journey-results.json with only source_sha wrong
+  ---
+  duration_ms: 7.002336
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-worker-journey-results.json with only project wrong
+ok 244 - complete campaign rejects m17-worker-journey-results.json with only project wrong
+  ---
+  duration_ms: 7.075809
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-worker-journey-results.json with only result wrong
+ok 245 - complete campaign rejects m17-worker-journey-results.json with only result wrong
+  ---
+  duration_ms: 8.484659
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-first-failure-results.json with only source_sha wrong
+ok 246 - complete campaign rejects m17-first-failure-results.json with only source_sha wrong
+  ---
+  duration_ms: 7.779357
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-first-failure-results.json with only project wrong
+ok 247 - complete campaign rejects m17-first-failure-results.json with only project wrong
+  ---
+  duration_ms: 7.210976
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-first-failure-results.json with only result wrong
+ok 248 - complete campaign rejects m17-first-failure-results.json with only result wrong
+  ---
+  duration_ms: 7.099751
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-worker-results.json with only source_sha wrong
+ok 249 - complete campaign rejects m17-worker-results.json with only source_sha wrong
+  ---
+  duration_ms: 7.70877
+  type: 'test'
+  ...
+# Subtest: complete campaign rejects m17-worker-results.json with only result wrong
+ok 250 - complete campaign rejects m17-worker-results.json with only result wrong
+  ---
+  duration_ms: 7.256946
+  type: 'test'
+  ...
+# Subtest: a manifest entry that differs from the file in only its path, only its hash or only its size is refused
+ok 251 - a manifest entry that differs from the file in only its path, only its hash or only its size is refused
+  ---
+  duration_ms: 20.367171
+  type: 'test'
+  ...
+# Subtest: a same-size content change is refused by hash alone
+ok 252 - a same-size content change is refused by hash alone
+  ---
+  duration_ms: 6.553042
+  type: 'test'
+  ...
+# Subtest: each required run ledger file must exist even when the index agrees with the directory
+ok 253 - each required run ledger file must exist even when the index agrees with the directory
+  ---
+  duration_ms: 19.574477
+  type: 'test'
+  ...
+# Subtest: boundary values the campaign accepts: 3000 telemetry samples, exactly 10 percent p95 and exactly 15 percent memory
+ok 254 - boundary values the campaign accepts: 3000 telemetry samples, exactly 10 percent p95 and exactly 15 percent memory
+  ---
+  duration_ms: 8.785548
+  type: 'test'
+  ...
+# Subtest: the private verifier copy accepts the unedited inventory
+ok 255 - the private verifier copy accepts the unedited inventory
+  ---
+  duration_ms: 40.120412
+  type: 'test'
+  ...
+# Subtest: an inventory with 24 scenarios holding all 75 assertions is refused on that fact alone
+ok 256 - an inventory with 24 scenarios holding all 75 assertions is refused on that fact alone
+  ---
+  duration_ms: 43.189154
+  type: 'test'
+  ...
+# Subtest: an inventory with 25 scenarios holding only 74 assertions is refused on that fact alone
+ok 257 - an inventory with 25 scenarios holding only 74 assertions is refused on that fact alone
+  ---
+  duration_ms: 48.643497
+  type: 'test'
+  ...
+# Subtest: an inventory with inventory marked accepted is refused on that fact alone
+ok 258 - an inventory with inventory marked accepted is refused on that fact alone
+  ---
+  duration_ms: 44.536773
+  type: 'test'
+  ...
+# Subtest: an inventory with one assertion already executed is refused on that fact alone
+ok 259 - an inventory with one assertion already executed is refused on that fact alone
+  ---
+  duration_ms: 42.545344
+  type: 'test'
+  ...
+# Subtest: an inventory with one assertion already holding a witness is refused on that fact alone
+ok 260 - an inventory with one assertion already holding a witness is refused on that fact alone
+  ---
+  duration_ms: 43.844017
+  type: 'test'
+  ...
+# Subtest: the command line verifies a complete campaign, and refuses a missing manifest path or SHA with its usage text
+ok 261 - the command line verifies a complete campaign, and refuses a missing manifest path or SHA with its usage text
+  ---
+  duration_ms: 201.226463
+  type: 'test'
+  ...
+# Subtest: the recorded P09 budgets are inclusive: exactly 10 percent pooled p95 and exactly 15 percent mean memory are accepted, and just above is refused
+ok 262 - the recorded P09 budgets are inclusive: exactly 10 percent pooled p95 and exactly 15 percent mean memory are accepted, and just above is refused
+  ---
+  duration_ms: 22.549305
+  type: 'test'
+  ...
+# Subtest: one real-shaped page fault joins a trace, log and rendered alert
+ok 263 - one real-shaped page fault joins a trace, log and rendered alert
+  ---
+  duration_ms: 1.274553
+  type: 'test'
+  ...
+# Subtest: unrelated traces, spoofed log, missing UI and report-only passes fail
+ok 264 - unrelated traces, spoofed log, missing UI and report-only passes fail
+  ---
+  duration_ms: 6.297844
+  type: 'test'
+  ...
+# Subtest: every field of the page-to-alert journey is individually load-bearing
+ok 265 - every field of the page-to-alert journey is individually load-bearing
+  ---
+  duration_ms: 4.998663
+  type: 'test'
+  ...
+# Subtest: a trace with two spans but no http.request server span is rejected
+ok 266 - a trace with two spans but no http.request server span is rejected
+  ---
+  duration_ms: 0.189612
+  type: 'test'
+  ...
+# Subtest: the corrected producer finalises the state before hashing it, and every listed byte matches
+not ok 267 - the corrected producer finalises the state before hashing it, and every listed byte matches
+  ---
+  duration_ms: 1049.884949
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:72:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    producer failed: 
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    stop (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:38:12)
+    stoppedFixture (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:53:3)
+    withFixture (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:61:23)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:73:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: stopping twice leaves a consistent record and never lists the hash list itself
+not ok 268 - stopping twice leaves a consistent record and never lists the hash list itself
+  ---
+  duration_ms: 639.896628
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:90:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    producer failed: 
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    stop (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:38:12)
+    stoppedFixture (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:53:3)
+    withFixture (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:61:23)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:91:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: negative control: the previous producer order is detected as exactly one state-file mismatch
+ok 269 - negative control: the previous producer order is detected as exactly one state-file mismatch
+  ---
+  duration_ms: 514.213265
+  type: 'test'
+  ...
+# Subtest: the current producer source writes the final state before it creates the hash list
+ok 270 - the current producer source writes the final state before it creates the hash list
+  ---
+  duration_ms: 0.259005
+  type: 'test'
+  ...
+# Subtest: every kind of tampering or malformed list is rejected on its own
+not ok 271 - every kind of tampering or malformed list is rejected on its own
+  ---
+  duration_ms: 664.202601
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:123:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    producer failed: 
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    stop (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:38:12)
+    stoppedFixture (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:53:3)
+    withFixture (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:61:23)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-hash-list.test.mjs:152:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a state that was never finalised fails even when its listed hash is internally correct
+ok 272 - a state that was never finalised fails even when its listed hash is internally correct
+  ---
+  duration_ms: 2.917508
+  type: 'test'
+  ...
+# Subtest: hash list parsing accepts only the producer's exact line format
+ok 273 - hash list parsing accepts only the producer's exact line format
+  ---
+  duration_ms: 0.40299
+  type: 'test'
+  ...
+# Subtest: historical r1c, r2 and r3 records keep exactly their one documented state-file mismatch
+ok 274 - historical r1c, r2 and r3 records keep exactly their one documented state-file mismatch
+  ---
+  duration_ms: 1.114967
+  type: 'test'
+  ...
+# Subtest: the directly built consistent directory verifies, and a subdirectory is rejected because nothing could cover its contents
+ok 275 - the directly built consistent directory verifies, and a subdirectory is rejected because nothing could cover its contents
+  ---
+  duration_ms: 2.214135
+  type: 'test'
+  ...
+# Subtest: each rejection names exactly its own reason
+ok 276 - each rejection names exactly its own reason
+  ---
+  duration_ms: 12.65212
+  type: 'test'
+  ...
+# Subtest: a state record must carry a real, ordered stopped_utc and be valid JSON
+ok 277 - a state record must carry a real, ordered stopped_utc and be valid JSON
+  ---
+  duration_ms: 4.891649
+  type: 'test'
+  ...
+# Subtest: a listed file that is absent is tolerated only in the explicit historical mode
+ok 278 - a listed file that is absent is tolerated only in the explicit historical mode
+  ---
+  duration_ms: 1.211328
+  type: 'test'
+  ...
+# Subtest: an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+not ok 279 - an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+  ---
+  duration_ms: 20756.21135
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:60:1'
+  failureType: 'testCodeFailure'
+  error: 'the stand-in process must be visible to the process table'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    ready (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:36:10)
+    async liveRun (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:49:22)
+    async TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:64:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: an unrelated process that now holds a recorded pid is never signalled
+not ok 280 - an unrelated process that now holds a recorded pid is never signalled
+  ---
+  duration_ms: 20834.19147
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:76:1'
+  failureType: 'testCodeFailure'
+  error: 'the stand-in process must be visible to the process table'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    ready (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:36:10)
+    async TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:86:24)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a reused process id is detected by its creation time even when name and command line match
+not ok 281 - a reused process id is detected by its creation time even when name and command line match
+  ---
+  duration_ms: 20703.718814
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:99:1'
+  failureType: 'testCodeFailure'
+  error: 'the stand-in process must be visible to the process table'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    ready (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:36:10)
+    async TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:104:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a running process with no recorded identity is not signalled
+not ok 282 - a running process with no recorded identity is not signalled
+  ---
+  duration_ms: 20570.219912
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:114:1'
+  failureType: 'testCodeFailure'
+  error: 'the stand-in process must be visible to the process table'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    ready (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:36:10)
+    async TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:119:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: invalid recorded process ids stop the run before anything is touched
+ok 283 - invalid recorded process ids stop the run before anything is touched
+  ---
+  duration_ms: 4220.243261
+  type: 'test'
+  ...
+# Subtest: tampered ownership fields stop the run before docker is consulted
+ok 284 - tampered ownership fields stop the run before docker is consulted
+  ---
+  duration_ms: 2622.306763
+  type: 'test'
+  ...
+# Subtest: a container that is not exactly this run's sidecar is never removed
+not ok 285 - a container that is not exactly this run's sidecar is never removed
+  ---
+  duration_ms: 555.590154
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:164:1'
+  failureType: 'testCodeFailure'
+  error: 'another label value'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:185:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: missing processes and an absent sidecar are a normal, verifiable stop
+not ok 286 - missing processes and an absent sidecar are a normal, verifiable stop
+  ---
+  duration_ms: 573.659685
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:194:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:200:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+not ok 287 - a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+  ---
+  duration_ms: 20830.459837
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:208:1'
+  failureType: 'testCodeFailure'
+  error: 'the stand-in process must be visible to the process table'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    ready (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:36:10)
+    async liveRun (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:49:22)
+    async TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:212:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative control: a foreign process that keeps appending is detected before anything is hashed
+not ok 288 - negative control: a foreign process that keeps appending is detected before anything is hashed
+  ---
+  duration_ms: 562.196002
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:241:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /still changing after 3 seconds \(late write\)/. Input:
+    
+    '\n' +
+      "\x1B[31;1mdiagnostics.ps1: \x1B[31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.\x1B[0m\n" +
+      '\x1B[31;1m\x1B[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\x1B[0m\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:250:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+not ok 289 - negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+  ---
+  duration_ms: 562.218416
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:257:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Late write detected: vm-pressure\.log changed after it was hashed/. Input:
+    
+    '\n' +
+      "\x1B[31;1mdiagnostics.ps1: \x1B[31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.\x1B[0m\n" +
+      '\x1B[31;1m\x1B[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\x1B[0m\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:268:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative control: a new file that appears after hashing is detected
+not ok 290 - negative control: a new file that appears after hashing is detected
+  ---
+  duration_ms: 515.999441
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:275:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Late write detected: appeared-late\.txt appeared after hashing/. Input:
+    
+    '\n' +
+      "\x1B[31;1mdiagnostics.ps1: \x1B[31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.\x1B[0m\n" +
+      '\x1B[31;1m\x1B[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\x1B[0m\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:286:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: an output directory holding a subdirectory or a link cannot be hashed
+not ok 291 - an output directory holding a subdirectory or a link cannot be hashed
+  ---
+  duration_ms: 529.171022
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:291:1'
+  failureType: 'testCodeFailure'
+  error: 'subdirectory'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:303:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+not ok 292 - Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+  ---
+  duration_ms: 821.61245
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:309:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /already exists; refusing to reuse or remove it/. Input:
+    
+    '\n' +
+      '\x1B[31;1mStart-Process: \x1B[0m/tmp/claude-0/mut/src/docs/m17-s25-p09-controlled-protocol-20261115/diagnostics.ps1:77\x1B[0m\n' +
+      '\x1B[31;1m\x1B[0m\x1B[36;1mLine |\x1B[0m\n' +
+      '\x1B[31;1m\x1B[0m\x1B[36;1m\x1B[36;1m  77 | \x1B[0m … $typeperf = \x1B[36;1mStart-Process -FilePath typeperf -ArgumentList (($counter\x1B[0m …\x1B[0m\n' +
+      '\x1B[31;1m\x1B[0m\x1B[36;1m\x1B[36;1m\x1B[0m\x1B[36;1m\x1B[0m\x1B[36;1m     | \x1B[31;1m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1B[0m\n' +
+      "\x1B[31;1m\x1B[0m\x1B[36;1m\x1B[36;1m\x1B[0m\x1B[36;1m\x1B[0m\x1B[36;1m\x1B[31;1m\x1B[31;1m\x1B[36;1m     | \x1B[31;1mThe parameter '-WindowStyle' is not supported for the cmdlet 'Start-Process' on this edition of PowerShell.\x1B[0m\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mStart-Process: [0m/tmp/claude-0/mut/src/docs/m17-s25-p09-controlled-protocol-20261115/diagnostics.ps1:77[0m
+    [31;1m[0m[36;1mLine |[0m
+    [31;1m[0m[36;1m[36;1m  77 | [0m … $typeperf = [36;1mStart-Process -FilePath typeperf -ArgumentList (($counter[0m …[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m     | [31;1m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m     | [31;1mThe parameter '-WindowStyle' is not supported for the cmdlet 'Start-Process' on this edition of PowerShell.[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:318:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a real Start then Stop against the stand-in docker records identities and verifies strictly
+not ok 293 - a real Start then Stop against the stand-in docker records identities and verifies strictly
+  ---
+  duration_ms: 441.119659
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:328:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    
+    [31;1mStart-Process: [0m/tmp/claude-0/mut/src/docs/m17-s25-p09-controlled-protocol-20261115/diagnostics.ps1:77[0m
+    [31;1m[0m[36;1mLine |[0m
+    [31;1m[0m[36;1m[36;1m  77 | [0m … $typeperf = [36;1mStart-Process -FilePath typeperf -ArgumentList (($counter[0m …[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m     | [31;1m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m     | [31;1mThe parameter '-WindowStyle' is not supported for the cmdlet 'Start-Process' on this edition of PowerShell.[0m
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:334:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: the producer source keeps its ownership guards (structure check for mutation control)
+ok 294 - the producer source keeps its ownership guards (structure check for mutation control)
+  ---
+  duration_ms: 0.330828
+  type: 'test'
+  ...
+# Subtest: a removal that reports success but leaves the container behind is a failure
+not ok 295 - a removal that reports success but leaves the container behind is a failure
+  ---
+  duration_ms: 536.898322
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:361:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /still present after removal/. Input:
+    
+    '\n' +
+      "\x1B[31;1mdiagnostics.ps1: \x1B[31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.\x1B[0m\n" +
+      '\x1B[31;1m\x1B[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\x1B[0m\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:368:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+not ok 296 - negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+  ---
+  duration_ms: 527.884968
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:373:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /still changing after 3 seconds \(late write\)/. Input:
+    
+    '\n' +
+      "\x1B[31;1mdiagnostics.ps1: \x1B[31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.\x1B[0m\n" +
+      '\x1B[31;1m\x1B[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\x1B[0m\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+    [31;1mdiagnostics.ps1: [31;1mThe term 'Get-CimInstance' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+    [31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-diagnostic-producer-guard.test.mjs:382:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a missing started_utc is rejected on its own
+ok 297 - a missing started_utc is rejected on its own
+  ---
+  duration_ms: 4.386923
+  type: 'test'
+  ...
+# Subtest: every malformed started_utc is rejected on its own
+ok 298 - every malformed started_utc is rejected on its own
+  ---
+  duration_ms: 16.457645
+  type: 'test'
+  ...
+# Subtest: a missing or malformed stopped_utc is reported separately from started_utc
+ok 299 - a missing or malformed stopped_utc is reported separately from started_utc
+  ---
+  duration_ms: 1.402188
+  type: 'test'
+  ...
+# Subtest: ordering is exact to the 100 nanosecond tick
+ok 300 - ordering is exact to the 100 nanosecond tick
+  ---
+  duration_ms: 4.990557
+  type: 'test'
+  ...
+# Subtest: parseUtcTicks accepts exactly what .NET writes and nothing looser
+ok 301 - parseUtcTicks accepts exactly what .NET writes and nothing looser
+  ---
+  duration_ms: 0.211232
+  type: 'test'
+  ...
+# Subtest: a symbolic link standing in for a listed file is rejected, not followed
+ok 302 - a symbolic link standing in for a listed file is rejected, not followed
+  ---
+  duration_ms: 1.273245
+  type: 'test'
+  ...
+# Subtest: an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+ok 303 - an unlisted symbolic link, a directory link and a plain subdirectory are each rejected
+  ---
+  duration_ms: 1.256065
+  type: 'test'
+  ...
+# Subtest: a hash list that is itself a directory or a link is refused outright
+ok 304 - a hash list that is itself a directory or a link is refused outright
+  ---
+  duration_ms: 0.880066
+  type: 'test'
+  ...
+# Subtest: entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+ok 305 - entries that differ only by case, or that name a stream, a drive or a wildcard, are rejected
+  ---
+  duration_ms: 3.383712
+  type: 'test'
+  ...
+# Subtest: an impossible size is rejected without being compared
+ok 306 - an impossible size is rejected without being compared
+  ---
+  duration_ms: 0.320187
+  type: 'test'
+  ...
+# Subtest: schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+ok 307 - schema version 2 states must confirm every child exit, the sidecar removal and their own ownership
+  ---
+  duration_ms: 5.243974
+  type: 'test'
+  ...
+# Subtest: historical characterization is explicit, labelled, and can never report a trustworthy directory
+ok 308 - historical characterization is explicit, labelled, and can never report a trustworthy directory
+  ---
+  duration_ms: 1.102776
+  type: 'test'
+  ...
+# Subtest: the command line is strict by default and exits non-zero for the historical mode
+ok 309 - the command line is strict by default and exits non-zero for the historical mode
+  ---
+  duration_ms: 180.121582
+  type: 'test'
+  ...
+# Subtest: a state file that is not a JSON object is reported, never allowed to crash the verifier
+ok 310 - a state file that is not a JSON object is reported, never allowed to crash the verifier
+  ---
+  duration_ms: 3.917508
+  type: 'test'
+  ...
+# Subtest: a byte order mark on the state file is tolerated, because the producer writes one
+ok 311 - a byte order mark on the state file is tolerated, because the producer writes one
+  ---
+  duration_ms: 0.815986
+  type: 'test'
+  ...
+# Subtest: names containing a colon anywhere are rejected, whatever the position
+ok 312 - names containing a colon anywhere are rejected, whatever the position
+  ---
+  duration_ms: 0.201137
+  type: 'test'
+  ...
+# Subtest: calendar dates that do not exist are rejected, including ones that roll over
+ok 313 - calendar dates that do not exist are rejected, including ones that roll over
+  ---
+  duration_ms: 0.141943
+  type: 'test'
+  ...
+# Subtest: a finished stack is removed completely, state is captured first, volumes and decoys are untouched
+ok 314 - a finished stack is removed completely, state is captured first, volumes and decoys are untouched
+  ---
+  duration_ms: 3373.171333
+  type: 'test'
+  ...
+# Subtest: a running stack from a failed or interrupted campaign needs -StopRunning, and without it nothing is touched
+ok 315 - a running stack from a failed or interrupted campaign needs -StopRunning, and without it nothing is touched
+  ---
+  duration_ms: 33733.834975
+  type: 'test'
+  ...
+# Subtest: partially initialised stacks are removed: only a network, only containers, and nothing at all
+ok 316 - partially initialised stacks are removed: only a network, only containers, and nothing at all
+  ---
+  duration_ms: 2493.775369
+  type: 'test'
+  ...
+# Subtest: ambiguous ownership removes nothing at all, not even the resources that are clearly owned
+ok 317 - ambiguous ownership removes nothing at all, not even the resources that are clearly owned
+  ---
+  duration_ms: 7427.467916
+  type: 'test'
+  ...
+# Subtest: a network that has another project's container attached is never removed
+ok 318 - a network that has another project's container attached is never removed
+  ---
+  duration_ms: 1596.320397
+  type: 'test'
+  ...
+# Subtest: project names that are not exactly an owned ho-verify-m17-* name are rejected before docker is consulted
+ok 319 - project names that are not exactly an owned ho-verify-m17-* name are rejected before docker is consulted
+  ---
+  duration_ms: 3259.260195
+  type: 'test'
+  ...
+# Subtest: an evidence directory that already exists is refused (never overwrite evidence)
+ok 320 - an evidence directory that already exists is refused (never overwrite evidence)
+  ---
+  duration_ms: 396.04408
+  type: 'test'
+  ...
+# Subtest: a held address range is reported with its holder, and is free again once its network is gone
+ok 321 - a held address range is reported with its holder, and is free again once its network is gone
+  ---
+  duration_ms: 3686.531605
+  type: 'test'
+  ...
+# Subtest: the runner preserves before it removes, removes only through the ownership checks, and never prunes
+ok 322 - the runner preserves before it removes, removes only through the ownership checks, and never prunes
+  ---
+  duration_ms: 1.235212
+  type: 'test'
+  ...
+# Subtest: a container that cannot be removed fails the cleanup, is recorded, and leaves the rest untouched in the record
+not ok 323 - a container that cannot be removed fails the cleanup, is recorded, and leaves the rest untouched in the record
+  ---
+  duration_ms: 525.963543
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-docker-ownership.test.mjs:285:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'split')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    failingDocker (file:///tmp/claude-0/mut/src/scripts/g17-docker-ownership.test.mjs:269:81)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-docker-ownership.test.mjs:289:46)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a network that cannot be removed fails the cleanup
+not ok 324 - a network that cannot be removed fails the cleanup
+  ---
+  duration_ms: 552.750449
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-docker-ownership.test.mjs:300:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'split')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    failingDocker (file:///tmp/claude-0/mut/src/scripts/g17-docker-ownership.test.mjs:269:81)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-docker-ownership.test.mjs:304:46)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a running container that cannot be stopped fails the cleanup before anything is removed
+not ok 325 - a running container that cannot be stopped fails the cleanup before anything is removed
+  ---
+  duration_ms: 1030.144534
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-docker-ownership.test.mjs:312:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'split')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    failingDocker (file:///tmp/claude-0/mut/src/scripts/g17-docker-ownership.test.mjs:269:81)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-docker-ownership.test.mjs:316:46)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: an evidence directory is packaged as a real zip and verified by extracting it with a standard reader
+ok 326 - an evidence directory is packaged as a real zip and verified by extracting it with a standard reader
+  ---
+  duration_ms: 1154.413822
+  type: 'test'
+  ...
+# Subtest: a tar or gzip stream with a .zip name is rejected by what it is, not by its name
+ok 327 - a tar or gzip stream with a .zip name is rejected by what it is, not by its name
+  ---
+  duration_ms: 11.687591
+  type: 'test'
+  ...
+# Subtest: packaging refuses a name without .zip, an existing archive, and a link inside the evidence
+ok 328 - packaging refuses a name without .zip, an existing archive, and a link inside the evidence
+  ---
+  duration_ms: 8.449321
+  type: 'test'
+  ...
+# Subtest: each kind of damage is reported on its own
+ok 329 - each kind of damage is reported on its own
+  ---
+  duration_ms: 9686.943311
+  type: 'test'
+  ...
+# Subtest: an entry that could leave the extraction directory is rejected
+ok 330 - an entry that could leave the extraction directory is rejected
+  ---
+  duration_ms: 1637.249493
+  type: 'test'
+  ...
+# Subtest: overwriting an existing archive is refused with the explicit message, before anything is written
+ok 331 - overwriting an existing archive is refused with the explicit message, before anything is written
+  ---
+  duration_ms: 10.441043
+  type: 'test'
+  ...
+# Subtest: an inventory that lists one path twice is rejected even when its count and total agree
+ok 332 - an inventory that lists one path twice is rejected even when its count and total agree
+  ---
+  duration_ms: 1054.647158
+  type: 'test'
+  ...
+# Subtest: an archive holding the same entry name twice is rejected
+ok 333 - an archive holding the same entry name twice is rejected
+  ---
+  duration_ms: 1388.779331
+  type: 'test'
+  ...
+# Subtest: owned failure service logs are permitted and scanned as text evidence
+ok 334 - owned failure service logs are permitted and scanned as text evidence
+  ---
+  duration_ms: 0.982436
+  type: 'test'
+  ...
+# Subtest: non-owned logs and traversal cannot enter the manifest
+ok 335 - non-owned logs and traversal cannot enter the manifest
+  ---
+  duration_ms: 0.17039
+  type: 'test'
+  ...
+# Subtest: the family set equals the set the API seeds, so a new family cannot be classified without a baseline
+ok 336 - the family set equals the set the API seeds, so a new family cannot be classified without a baseline
+  ---
+  duration_ms: 2.520612
+  type: 'test'
+  ...
+# Subtest: the seeding loop and the zero value stay in the heartbeat path
+ok 337 - the seeding loop and the zero value stay in the heartbeat path
+  ---
+  duration_ms: 0.449561
+  type: 'test'
+  ...
+# Subtest: classification matches the API prefix rules for the concrete URLs the campaign uses
+ok 338 - classification matches the API prefix rules for the concrete URLs the campaign uses
+  ---
+  duration_ms: 0.184271
+  type: 'test'
+  ...
+# Subtest: every family with a real fault path has a plan, and the other family has none
+ok 339 - every family with a real fault path has a plan, and the other family has none
+  ---
+  duration_ms: 0.188412
+  type: 'test'
+  ...
+# Subtest: a complete observation set has no problems
+ok 340 - a complete observation set has no problems
+  ---
+  duration_ms: 0.7911
+  type: 'test'
+  ...
+# Subtest: each defect is rejected with its own reason
+ok 341 - each defect is rejected with its own reason
+  ---
+  duration_ms: 0.922329
+  type: 'test'
+  ...
+# Subtest: a complete report passes and each missing fact is reported separately
+ok 342 - a complete report passes and each missing fact is reported separately
+  ---
+  duration_ms: 1.627499
+  type: 'test'
+  ...
+# Subtest: a family without a series is named even when the series count still adds up
+ok 343 - a family without a series is named even when the series count still adds up
+  ---
+  duration_ms: 0.165303
+  type: 'test'
+  ...
+# Subtest: a family whose burst produced no real failure cannot be reported complete, even if nothing was exported either
+ok 344 - a family whose burst produced no real failure cannot be reported complete, even if nothing was exported either
+  ---
+  duration_ms: 0.236186
+  type: 'test'
+  ...
+# Subtest: the synthetic source credential has exactly the layout the API parses, and is never reused
+ok 345 - the synthetic source credential has exactly the layout the API parses, and is never reused
+  ---
+  duration_ms: 3.400487
+  type: 'test'
+  ...
+# Subtest: the registry names the first-failure script and its report
+ok 346 - the registry names the first-failure script and its report
+  ---
+  duration_ms: 0.717522
+  type: 'test'
+  ...
+# Subtest: a passing first-failure report for this source and project is accepted
+ok 347 - a passing first-failure report for this source and project is accepted
+  ---
+  duration_ms: 9.108872
+  type: 'test'
+  ...
+# Subtest: a failing, foreign or missing first-failure report stops the ledger
+ok 348 - a failing, foreign or missing first-failure report stops the ledger
+  ---
+  duration_ms: 19.703202
+  type: 'test'
+  ...
+# Subtest: with every case executed the ledger resolves all 72 technical witnesses
+ok 349 - with every case executed the ledger resolves all 72 technical witnesses
+  ---
+  duration_ms: 8.708811
+  type: 'test'
+  ...
+# Subtest: the manifest-rejection witness is unresolved when any of its three Node cases did not execute
+ok 350 - the manifest-rejection witness is unresolved when any of its three Node cases did not execute
+  ---
+  duration_ms: 19.196446
+  type: 'test'
+  ...
+# Subtest: a promtool witness whose text appears only outside a real case comment is unresolved
+ok 351 - a promtool witness whose text appears only outside a real case comment is unresolved
+  ---
+  duration_ms: 6.162491
+  type: 'test'
+  ...
+# Subtest: every boundary vector gives the documented decision
+ok 352 - every boundary vector gives the documented decision
+  ---
+  duration_ms: 0.83866
+  type: 'test'
+  ...
+# Subtest: malformed digests are never sampled
+ok 353 - malformed digests are never sampled
+  ---
+  duration_ms: 0.183833
+  type: 'test'
+  ...
+# Subtest: the sampling rate of keyed digests is close to one tenth
+ok 354 - the sampling rate of keyed digests is close to one tenth
+  ---
+  duration_ms: 52.695448
+  type: 'test'
+  ...
+# Subtest: the required number of traced journeys is at least the pair gate plus one
+ok 355 - the required number of traced journeys is at least the pair gate plus one
+  ---
+  duration_ms: 0.12109
+  type: 'test'
+  ...
+# Subtest: real exported counter increase, volume and fraction are all required
+ok 356 - real exported counter increase, volume and fraction are all required
+  ---
+  duration_ms: 2.446049
+  type: 'test'
+  ...
+# Subtest: invalid or missing measured samples fail closed
+ok 357 - invalid or missing measured samples fail closed
+  ---
+  duration_ms: 1.585631
+  type: 'test'
+  ...
+# Subtest: the exact approved edges are accepted and the first value beyond them is not
+ok 358 - the exact approved edges are accepted and the first value beyond them is not
+  ---
+  duration_ms: 0.528513
+  type: 'test'
+  ...
+# Subtest: real malformed-parent witness requires a source-time baseline span
+ok 359 - real malformed-parent witness requires a source-time baseline span
+  ---
+  duration_ms: 1.101034
+  type: 'test'
+  ...
+# Subtest: exported malformed context and secret fields fail closed
+ok 360 - exported malformed context and secret fields fail closed
+  ---
+  duration_ms: 1.010219
+  type: 'test'
+  ...
+# Subtest: window edges are inclusive, the operation must be the baseline read and inputs are validated
+ok 361 - window edges are inclusive, the operation must be the baseline read and inputs are validated
+  ---
+  duration_ms: 5.402667
+  type: 'test'
+  ...
+# Subtest: a canary that is not a non-empty string is refused by the canary assertion itself, not by a later accident
+ok 362 - a canary that is not a non-empty string is refused by the canary assertion itself, not by a later accident
+  ---
+  duration_ms: 2.026302
+  type: 'test'
+  ...
+# Subtest: the Tempo search window stays open when every request finishes in the second it began
+ok 363 - the Tempo search window stays open when every request finishes in the second it began
+  ---
+  duration_ms: 0.330985
+  type: 'test'
+  ...
+# Subtest: the Tempo search window starts one second early, ends 45 seconds late and rejects an invalid source window
+ok 364 - the Tempo search window starts one second early, ends 45 seconds late and rejects an invalid source window
+  ---
+  duration_ms: 1.069637
+  type: 'test'
+  ...
+# Subtest: running collector and application services require live Docker state
+ok 365 - running collector and application services require live Docker state
+  ---
+  duration_ms: 0.830331
+  type: 'test'
+  ...
+# Subtest: collector crash, stopped state, OOM and failed migration all reject the gate
+ok 366 - collector crash, stopped state, OOM and failed migration all reject the gate
+  ---
+  duration_ms: 1.741738
+  type: 'test'
+  ...
+# Subtest: host isolation accepts only a refused TCP connection
+ok 367 - host isolation accepts only a refused TCP connection
+  ---
+  duration_ms: 1.05
+  type: 'test'
+  ...
+# Subtest: a missing or non-object process state is rejected
+ok 368 - a missing or non-object process state is rejected
+  ---
+  duration_ms: 1.093751
+  type: 'test'
+  ...
+# Subtest: raw P09 observations independently reproduce the approved pooled gate
+ok 369 - raw P09 observations independently reproduce the approved pooled gate
+  ---
+  duration_ms: 2.570176
+  type: 'test'
+  ...
+# Subtest: tampered raw samples, pairs, pooled gate and policy limits fail closed
+ok 370 - tampered raw samples, pairs, pooled gate and policy limits fail closed
+  ---
+  duration_ms: 2.16551
+  type: 'test'
+  ...
+# Subtest: a pooled p95 above the approved ten percent budget is reported FAIL, never waived
+ok 371 - a pooled p95 above the approved ten percent budget is reported FAIL, never waived
+  ---
+  duration_ms: 2.513336
+  type: 'test'
+  ...
+# Subtest: mean paired peak memory above fifteen percent is reported FAIL
+ok 372 - mean paired peak memory above fifteen percent is reported FAIL
+  ---
+  duration_ms: 1.662531
+  type: 'test'
+  ...
+# Subtest: an individual third-pair outlier is disclosed while the approved pooled gate still passes
+ok 373 - an individual third-pair outlier is disclosed while the approved pooled gate still passes
+  ---
+  duration_ms: 1.21738
+  type: 'test'
+  ...
+# Subtest: a recorded pooled p95 that raw samples cannot reproduce is rejected
+ok 374 - a recorded pooled p95 that raw samples cannot reproduce is rejected
+  ---
+  duration_ms: 0.458365
+  type: 'test'
+  ...
+# Subtest: empty, non-positive or non-finite raw samples are rejected
+ok 375 - empty, non-positive or non-finite raw samples are rejected
+  ---
+  duration_ms: 5.915807
+  type: 'test'
+  ...
+# Subtest: a non-positive peak memory reading or a missing telemetry mode is rejected
+ok 376 - a non-positive peak memory reading or a missing telemetry mode is rejected
+  ---
+  duration_ms: 0.890527
+  type: 'test'
+  ...
+# Subtest: pooled p95 and memory budgets are inclusive at their approved values
+ok 377 - pooled p95 and memory budgets are inclusive at their approved values
+  ---
+  duration_ms: 2.176776
+  type: 'test'
+  ...
+# Subtest: a negative peak memory reading is rejected even when every derived number is consistent with it
+ok 378 - a negative peak memory reading is rejected even when every derived number is consistent with it
+  ---
+  duration_ms: 1.333439
+  type: 'test'
+  ...
+# Subtest: a mathematically exact ten percent increase is reported as exceeding because of floating point arithmetic
+ok 379 - a mathematically exact ten percent increase is reported as exceeding because of floating point arithmetic
+  ---
+  duration_ms: 0.709837
+  type: 'test'
+  ...
+# Subtest: a recorded pair percentage is accepted at exactly the approved tolerance and refused just beyond it
+ok 380 - a recorded pair percentage is accepted at exactly the approved tolerance and refused just beyond it
+  ---
+  duration_ms: 0.698634
+  type: 'test'
+  ...
+# Subtest: a sample list that is not an array is refused by an assertion, never by a crash or an accident
+ok 381 - a sample list that is not an array is refused by an assertion, never by a crash or an accident
+  ---
+  duration_ms: 0.864783
+  type: 'test'
+  ...
+# Subtest: every script-based technical assertion has an explicit raw-case predicate
+ok 382 - every script-based technical assertion has an explicit raw-case predicate
+  ---
+  duration_ms: 1.040801
+  type: 'test'
+  ...
+# Subtest: a complete real-shaped report passes every script-based assertion
+ok 383 - a complete real-shaped report passes every script-based assertion
+  ---
+  duration_ms: 1.050107
+  type: 'test'
+  ...
+# Subtest: a report without the named case or fact never witnesses its assertion
+ok 384 - a report without the named case or fact never witnesses its assertion
+  ---
+  duration_ms: 2.244733
+  type: 'test'
+  ...
+# Subtest: the held-worker alert suppression witness cannot pass vacuously
+ok 385 - the held-worker alert suppression witness cannot pass vacuously
+  ---
+  duration_ms: 0.331338
+  type: 'test'
+  ...
+# Subtest: every individual F08 degradation, recovery and row-identity fact is load-bearing
+ok 386 - every individual F08 degradation, recovery and row-identity fact is load-bearing
+  ---
+  duration_ms: 0.752099
+  type: 'test'
+  ...
+# Subtest: every individual restart lease and cancellation fact is load-bearing
+ok 387 - every individual restart lease and cancellation fact is load-bearing
+  ---
+  duration_ms: 1.089056
+  type: 'test'
+  ...
+# Subtest: a regression suite with fewer executed than declared tests is never a witness
+ok 388 - a regression suite with fewer executed than declared tests is never a witness
+  ---
+  duration_ms: 0.254542
+  type: 'test'
+  ...
+# Subtest: a failed overall result or an unknown case is never accepted
+ok 389 - a failed overall result or an unknown case is never accepted
+  ---
+  duration_ms: 1.546162
+  type: 'test'
+  ...
+# Subtest: each individual clause of the script predicates is load-bearing
+ok 390 - each individual clause of the script predicates is load-bearing
+  ---
+  duration_ms: 3.215212
+  type: 'test'
+  ...
+# Subtest: the boundary values themselves still pass
+ok 391 - the boundary values themselves still pass
+  ---
+  duration_ms: 0.882899
+  type: 'test'
+  ...
+# Subtest: every minimum is inclusive: the exact approved edge passes
+ok 392 - every minimum is inclusive: the exact approved edge passes
+  ---
+  duration_ms: 0.374777
+  type: 'test'
+  ...
+# Subtest: a predicate that throws on a malformed report fails closed, and unknown cases have no predicate
+ok 393 - a predicate that throws on a malformed report fails closed, and unknown cases have no predicate
+  ---
+  duration_ms: 0.812146
+  type: 'test'
+  ...
+# Subtest: storage and regression predicates are exact at their edges and need each fact in every row
+ok 394 - storage and regression predicates are exact at their edges and need each fact in every row
+  ---
+  duration_ms: 0.767093
+  type: 'test'
+  ...
+# Subtest: the host memory size is only required to be a positive number
+ok 395 - the host memory size is only required to be a positive number
+  ---
+  duration_ms: 0.406841
+  type: 'test'
+  ...
+# Subtest: the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending
+ok 396 - the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending
+  ---
+  duration_ms: 15.575253
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report with another source sha
+ok 397 - derivation refuses: raw report with another source sha
+  ---
+  duration_ms: 5.287815
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report from another project
+ok 398 - derivation refuses: raw report from another project
+  ---
+  duration_ms: 5.269973
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report with result FAIL
+ok 399 - derivation refuses: raw report with result FAIL
+  ---
+  duration_ms: 5.842666
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report without a source sha
+ok 400 - derivation refuses: raw report without a source sha
+  ---
+  duration_ms: 5.974208
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report file missing
+ok 401 - derivation refuses: raw report file missing
+  ---
+  duration_ms: 6.280861
+  type: 'test'
+  ...
+# Subtest: derivation refuses: promtool stage failed
+ok 402 - derivation refuses: promtool stage failed
+  ---
+  duration_ms: 5.499668
+  type: 'test'
+  ...
+# Subtest: derivation refuses: promtool stage absent
+ok 403 - derivation refuses: promtool stage absent
+  ---
+  duration_ms: 5.064223
+  type: 'test'
+  ...
+# Subtest: derivation refuses: promtool output without SUCCESS
+ok 404 - derivation refuses: promtool output without SUCCESS
+  ---
+  duration_ms: 7.173914
+  type: 'test'
+  ...
+# Subtest: derivation refuses: run state FAILED
+ok 405 - derivation refuses: run state FAILED
+  ---
+  duration_ms: 6.032614
+  type: 'test'
+  ...
+# Subtest: derivation refuses: only ten stages recorded
+ok 406 - derivation refuses: only ten stages recorded
+  ---
+  duration_ms: 6.378697
+  type: 'test'
+  ...
+# Subtest: derivation refuses: a stage failed
+ok 407 - derivation refuses: a stage failed
+  ---
+  duration_ms: 5.114184
+  type: 'test'
+  ...
+# Subtest: derivation refuses: a stage with a non-zero exit code
+ok 408 - derivation refuses: a stage with a non-zero exit code
+  ---
+  duration_ms: 5.314317
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage dotnet-build missing
+ok 409 - derivation refuses: required stage dotnet-build missing
+  ---
+  duration_ms: 6.192006
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage unit-tests missing
+ok 410 - derivation refuses: required stage unit-tests missing
+  ---
+  duration_ms: 4.641188
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage contract-tests missing
+ok 411 - derivation refuses: required stage contract-tests missing
+  ---
+  duration_ms: 4.552202
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage integration-m17-tests missing
+ok 412 - derivation refuses: required stage integration-m17-tests missing
+  ---
+  duration_ms: 5.399875
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage accepted-milestone-regressions-opted-in missing
+ok 413 - derivation refuses: required stage accepted-milestone-regressions-opted-in missing
+  ---
+  duration_ms: 4.971842
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage playwright-dashboard-three-engines missing
+ok 414 - derivation refuses: required stage playwright-dashboard-three-engines missing
+  ---
+  duration_ms: 4.907677
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage playwright-cardinality missing
+ok 415 - derivation refuses: required stage playwright-cardinality missing
+  ---
+  duration_ms: 4.566877
+  type: 'test'
+  ...
+# Subtest: derivation refuses: unit TRX with a failure
+ok 416 - derivation refuses: unit TRX with a failure
+  ---
+  duration_ms: 4.893283
+  type: 'test'
+  ...
+# Subtest: derivation refuses: node JUnit with a skipped case
+ok 417 - derivation refuses: node JUnit with a skipped case
+  ---
+  duration_ms: 4.903725
+  type: 'test'
+  ...
+# Subtest: derivation refuses: node JUnit with a duplicate case
+ok 418 - derivation refuses: node JUnit with a duplicate case
+  ---
+  duration_ms: 5.051738
+  type: 'test'
+  ...
+# Subtest: derivation refuses: dashboard browser case skipped
+ok 419 - derivation refuses: dashboard browser case skipped
+  ---
+  duration_ms: 4.902897
+  type: 'test'
+  ...
+# Subtest: derivation refuses: dashboard run without WebKit
+ok 420 - derivation refuses: dashboard run without WebKit
+  ---
+  duration_ms: 5.105129
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: a contract method missing from the contract TRX
+ok 421 - ledger names the assertions affected by: a contract method missing from the contract TRX
+  ---
+  duration_ms: 7.89474
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: an integration method reported under another class
+ok 422 - ledger names the assertions affected by: an integration method reported under another class
+  ---
+  duration_ms: 7.680408
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: an integration method reported only in the contract TRX
+ok 423 - ledger names the assertions affected by: an integration method reported only in the contract TRX
+  ---
+  duration_ms: 7.975902
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: a node case missing from the JUnit file
+ok 424 - ledger names the assertions affected by: a node case missing from the JUnit file
+  ---
+  duration_ms: 6.267106
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: a raw report failing its predicate
+ok 425 - ledger names the assertions affected by: a raw report failing its predicate
+  ---
+  duration_ms: 7.158225
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: a raw report that no longer names its case
+ok 426 - ledger names the assertions affected by: a raw report that no longer names its case
+  ---
+  duration_ms: 6.238134
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a witness path outside the supported roots
+ok 427 - an unresolvable witness is reported: a witness path outside the supported roots
+  ---
+  duration_ms: 6.718814
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a witness path with parent traversal
+ok 428 - an unresolvable witness is reported: a witness path with parent traversal
+  ---
+  duration_ms: 7.595526
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a witness without a case
+ok 429 - an unresolvable witness is reported: a witness without a case
+  ---
+  duration_ms: 6.170319
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a witness without a path
+ok 430 - an unresolvable witness is reported: a witness without a path
+  ---
+  duration_ms: 6.63793
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a case that its source does not contain
+ok 431 - an unresolvable witness is reported: a case that its source does not contain
+  ---
+  duration_ms: 6.701548
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a .NET witness naming a missing method
+ok 432 - an unresolvable witness is reported: a .NET witness naming a missing method
+  ---
+  duration_ms: 7.021004
+  type: 'test'
+  ...
+# Subtest: a witness path that does not exist stops the derivation instead of passing
+ok 433 - a witness path that does not exist stops the derivation instead of passing
+  ---
+  duration_ms: 4.873696
+  type: 'test'
+  ...
+# Subtest: the command writes the ledger and reports 72 of 72
+ok 434 - the command writes the ledger and reports 72 of 72
+  ---
+  duration_ms: 85.622245
+  type: 'test'
+  ...
+# Subtest: the command fails for no arguments
+ok 435 - the command fails for no arguments
+  ---
+  duration_ms: 40.428383
+  type: 'test'
+  ...
+# Subtest: the command fails for no source sha
+ok 436 - the command fails for no source sha
+  ---
+  duration_ms: 37.820792
+  type: 'test'
+  ...
+# Subtest: the command fails for no evidence directory
+ok 437 - the command fails for no evidence directory
+  ---
+  duration_ms: 35.599798
+  type: 'test'
+  ...
+# Subtest: the command fails for a short source sha
+ok 438 - the command fails for a short source sha
+  ---
+  duration_ms: 38.086445
+  type: 'test'
+  ...
+# Subtest: the command fails for a source sha that differs from the run ledger
+ok 439 - the command fails for a source sha that differs from the run ledger
+  ---
+  duration_ms: 34.540058
+  type: 'test'
+  ...
+# Subtest: the command fails for a run ledger that is not source verified
+ok 440 - the command fails for a run ledger that is not source verified
+  ---
+  duration_ms: 39.727376
+  type: 'test'
+  ...
+# Subtest: the command fails for a failing witness
+ok 441 - the command fails for a failing witness
+  ---
+  duration_ms: 46.010085
+  type: 'test'
+  ...
+# Subtest: a witness path outside the supported roots is refused even when its file contains the case
+ok 442 - a witness path outside the supported roots is refused even when its file contains the case
+  ---
+  duration_ms: 6.896602
+  type: 'test'
+  ...
+# Subtest: the ledger states its own count error when only the technical count is wrong
+ok 443 - the ledger states its own count error when only the technical count is wrong
+  ---
+  duration_ms: 6.145753
+  type: 'test'
+  ...
+# Subtest: the ledger states its own count error when only the independent count is wrong
+ok 444 - the ledger states its own count error when only the independent count is wrong
+  ---
+  duration_ms: 7.790824
+  type: 'test'
+  ...
+# Subtest: a real Node test outside the supported witness roots cannot satisfy a witness even when its case ran
+ok 445 - a real Node test outside the supported witness roots cannot satisfy a witness even when its case ran
+  ---
+  duration_ms: 6.18985
+  type: 'test'
+  ...
+# Subtest: every declared test must have executed
+ok 446 - every declared test must have executed
+  ---
+  duration_ms: 3.553466
+  type: 'test'
+  ...
+# Subtest: source skips, unparsed attributes and empty suites are refused
+ok 447 - source skips, unparsed attributes and empty suites are refused
+  ---
+  duration_ms: 1.609083
+  type: 'test'
+  ...
+# Subtest: the real accepted regression classes parse and declare tests
+ok 448 - the real accepted regression classes parse and declare tests
+  ---
+  duration_ms: 1.058868
+  type: 'test'
+  ...
+# Subtest: all twenty-four required browser and one cardinality case pass exact identity checks
+ok 449 - all twenty-four required browser and one cardinality case pass exact identity checks
+  ---
+  duration_ms: 1.364054
+  type: 'test'
+  ...
+# Subtest: browser skip, retry, expected failure, extra case or missing engine fails
+ok 450 - browser skip, retry, expected failure, extra case or missing engine fails
+  ---
+  duration_ms: 1.723196
+  type: 'test'
+  ...
+# Subtest: TRX requires raw UnitTestResult outcomes and exactly one named method
+ok 451 - TRX requires raw UnitTestResult outcomes and exactly one named method
+  ---
+  duration_ms: 1.034288
+  type: 'test'
+  ...
+# Subtest: TRX rejects skips, duplicate cases, inaccurate counters or fake wrapper passes
+ok 452 - TRX rejects skips, duplicate cases, inaccurate counters or fake wrapper passes
+  ---
+  duration_ms: 0.329851
+  type: 'test'
+  ...
+# Subtest: truncated theory row names are distinct executions, repeated test ids are duplicates
+ok 453 - truncated theory row names are distinct executions, repeated test ids are duplicates
+  ---
+  duration_ms: 0.254149
+  type: 'test'
+  ...
+# Subtest: hidden Playwright last-run records are required and must show a clean pass
+ok 454 - hidden Playwright last-run records are required and must show a clean pass
+  ---
+  duration_ms: 0.818542
+  type: 'test'
+  ...
+# Subtest: an extra browser case that sorts last is not accepted as the required set
+ok 455 - an extra browser case that sorts last is not accepted as the required set
+  ---
+  duration_ms: 0.258355
+  type: 'test'
+  ...
+# Subtest: a browser case renamed to another title with the same total count is rejected
+ok 456 - a browser case renamed to another title with the same total count is rejected
+  ---
+  duration_ms: 0.278378
+  type: 'test'
+  ...
+# Subtest: the runner installs the browser test dependencies before any stage that executes a browser journey
+ok 457 - the runner installs the browser test dependencies before any stage that executes a browser journey
+  ---
+  duration_ms: 2.917018
+  type: 'test'
+  ...
+# Subtest: the install is a named, required stage and the Playwright stages no longer depend on a later duplicate
+ok 458 - the install is a named, required stage and the Playwright stages no longer depend on a later duplicate
+  ---
+  duration_ms: 0.336183
+  type: 'test'
+  ...
+# Subtest: negative control: the order that failed attempt k2 is reported
+ok 459 - negative control: the order that failed attempt k2 is reported
+  ---
+  duration_ms: 2.101413
+  type: 'test'
+  ...
+# Subtest: negative control: a runner with no browser dependency install at all is reported
+ok 460 - negative control: a runner with no browser dependency install at all is reported
+  ---
+  duration_ms: 0.674567
+  type: 'test'
+  ...
+# Subtest: negative control: a stage that does not use the browser is not forced to wait for the install
+ok 461 - negative control: a stage that does not use the browser is not forced to wait for the install
+  ---
+  duration_ms: 0.209949
+  type: 'test'
+  ...
+# Subtest: retained real-shaped raw evidence is independently rechecked
+ok 462 - retained real-shaped raw evidence is independently rechecked
+  ---
+  duration_ms: 12.375774
+  type: 'test'
+  ...
+# Subtest: changed trace, missing series and false browser state are rejected
+ok 463 - changed trace, missing series and false browser state are rejected
+  ---
+  duration_ms: 36.1466
+  type: 'test'
+  ...
+# Subtest: below-threshold real-traffic rendering rejects false healthy values and forged windows
+ok 464 - below-threshold real-traffic rendering rejects false healthy values and forged windows
+  ---
+  duration_ms: 30.445922
+  type: 'test'
+  ...
+# Subtest: alert table cells, worker participation and independent privacy shapes are enforced
+ok 465 - alert table cells, worker participation and independent privacy shapes are enforced
+  ---
+  duration_ms: 24.479706
+  type: 'test'
+  ...
+# Subtest: F08 storage evidence requires measured degradation, recovery and row-level identity
+ok 466 - F08 storage evidence requires measured degradation, recovery and row-level identity
+  ---
+  duration_ms: 23.960408
+  type: 'test'
+  ...
+# Subtest: a retained trace with only one of events, links, state or status text is rejected
+ok 467 - a retained trace with only one of events, links, state or status text is rejected
+  ---
+  duration_ms: 15.746963
+  type: 'test'
+  ...
+# Subtest: an empty, non-object or over-long exported series row is rejected and the 120 character edge passes
+ok 468 - an empty, non-object or over-long exported series row is rejected and the 120 character edge passes
+  ---
+  duration_ms: 14.160911
+  type: 'test'
+  ...
+# Subtest: the page-originated observation must match the journey on every one of four facts
+ok 469 - the page-originated observation must match the journey on every one of four facts
+  ---
+  duration_ms: 14.865287
+  type: 'test'
+  ...
+# Subtest: each viewport dimension and a first-column alert name are validated
+ok 470 - each viewport dimension and a first-column alert name are validated
+  ---
+  duration_ms: 16.46031
+  type: 'test'
+  ...
+# Subtest: worker metric series need the worker metric name and the tracking worker label together
+ok 471 - worker metric series need the worker metric name and the tracking worker label together
+  ---
+  duration_ms: 8.521071
+  type: 'test'
+  ...
+# Subtest: storage degradation and recovery edges are inclusive and a failed recovery step is rejected
+ok 472 - storage degradation and recovery edges are inclusive and a failed recovery step is rejected
+  ---
+  duration_ms: 6.944833
+  type: 'test'
+  ...
+# Subtest: the below-threshold window accepts exactly its approved minimums
+ok 473 - the below-threshold window accepts exactly its approved minimums
+  ---
+  duration_ms: 2.943426
+  type: 'test'
+  ...
+# warning: Not a git repository. Use --no-index to compare two paths outside a working tree
+# usage: git diff --no-index [<options>] <path> <path>
+# Diff output format options
+#     -p, --patch           generate patch
+#     -s, --no-patch        suppress diff output
+#     -u                    generate patch
+#     -U, --unified[=<n>]   generate diffs with <n> lines context
+#     -W, --[no-]function-context
+#                           generate diffs with <n> lines context
+#     --raw                 generate the diff in raw format
+#     --patch-with-raw      synonym for '-p --raw'
+#     --patch-with-stat     synonym for '-p --stat'
+#     --numstat             machine friendly --stat
+#     --shortstat           output only the last line of --stat
+#     -X, --dirstat[=<param1,param2>...]
+#                           output the distribution of relative amount of changes for each sub-directory
+#     --cumulative          synonym for --dirstat=cumulative
+#     --dirstat-by-file[=<param1,param2>...]
+#                           synonym for --dirstat=files,param1,param2...
+#     --check               warn if changes introduce conflict markers or whitespace errors
+#     --summary             condensed summary such as creations, renames and mode changes
+#     --name-only           show only names of changed files
+#     --name-status         show only names and status of changed files
+#     --stat[=<width>[,<name-width>[,<count>]]]
+#                           generate diffstat
+#     --stat-width <width>  generate diffstat with a given width
+#     --stat-name-width <width>
+#                           generate diffstat with a given name width
+#     --stat-graph-width <width>
+#                           generate diffstat with a given graph width
+#     --stat-count <count>  generate diffstat with limited lines
+#     --[no-]compact-summary
+#                           generate compact summary in diffstat
+#     --binary              output a binary diff that can be applied
+#     --[no-]full-index     show full pre- and post-image object names on the "index" lines
+#     --[no-]color[=<when>] show colored diff
+#     --ws-error-highlight <kind>
+#                           highlight whitespace errors in the 'context', 'old' or 'new' lines in the diff
+#     -z                    do not munge pathnames and use NULs as output field terminators in --raw or --numstat
+#     --[no-]abbrev[=<n>]   use <n> digits to display object names
+#     --src-prefix <prefix> show the given source prefix instead of "a/"
+#     --dst-prefix <prefix> show the given destination prefix instead of "b/"
+#     --line-prefix <prefix>
+#                           prepend an additional prefix to every line of output
+#     --no-prefix           do not show any source or destination prefix
+#     --default-prefix      use default prefixes a/ and b/
+#     --inter-hunk-context <n>
+#                           show context between diff hunks up to the specified number of lines
+#     --output-indicator-new <char>
+#                           specify the character to indicate a new line instead of '+'
+#     --output-indicator-old <char>
+#                           specify the character to indicate an old line instead of '-'
+#     --output-indicator-context <char>
+#                           specify the character to indicate a context instead of ' '
+# Diff rename options
+#     -B, --break-rewrites[=<n>[/<m>]]
+#                           break complete rewrite changes into pairs of delete and create
+#     -M, --find-renames[=<n>]
+#                           detect renames
+#     -D, --irreversible-delete
+#                           omit the preimage for deletes
+#     -C, --find-copies[=<n>]
+#                           detect copies
+#     --[no-]find-copies-harder
+#                           use unmodified files as source to find copies
+#     --no-renames          disable rename detection
+#     --[no-]rename-empty   use empty blobs as rename source
+#     --[no-]follow         continue listing the history of a file beyond renames
+#     -l <n>                prevent rename/copy detection if the number of rename/copy targets exceeds given limit
+# Diff algorithm options
+#     --minimal             produce the smallest possible diff
+#     -w, --ignore-all-space
+#                           ignore whitespace when comparing lines
+#     -b, --ignore-space-change
+#                           ignore changes in amount of whitespace
+#     --ignore-space-at-eol ignore changes in whitespace at EOL
+#     --ignore-cr-at-eol    ignore carrier-return at the end of line
+#     --ignore-blank-lines  ignore changes whose lines are all blank
+#     -I, --[no-]ignore-matching-lines <regex>
+#                           ignore changes whose all lines match <regex>
+#     --[no-]indent-heuristic
+#                           heuristic to shift diff hunk boundaries for easy reading
+#     --patience            generate diff using the "patience diff" algorithm
+#     --histogram           generate diff using the "histogram diff" algorithm
+#     --diff-algorithm <algorithm>
+#                           choose a diff algorithm
+#     --anchored <text>     generate diff using the "anchored diff" algorithm
+#     --word-diff[=<mode>]  show word diff, using <mode> to delimit changed words
+#     --word-diff-regex <regex>
+#                           use <regex> to decide what a word is
+#     --color-words[=<regex>]
+#                           equivalent to --word-diff=color --word-diff-regex=<regex>
+#     --[no-]color-moved[=<mode>]
+#                           moved lines of code are colored differently
+#     --[no-]color-moved-ws <mode>
+#                           how white spaces are ignored in --color-moved
+# Other diff options
+#     --[no-]relative[=<prefix>]
+#                           when run from subdir, exclude changes outside and show relative paths
+#     -a, --[no-]text       treat all files as text
+#     -R                    swap two inputs, reverse the diff
+#     --[no-]exit-code      exit with 1 if there were differences, 0 otherwise
+#     --[no-]quiet          disable all output of the program
+#     --[no-]ext-diff       allow an external diff helper to be executed
+#     --[no-]textconv       run external text conversion filters when comparing binary files
+#     --ignore-submodules[=<when>]
+#                           ignore changes to submodules in the diff generation
+#     --submodule[=<format>]
+#                           specify how differences in submodules are shown
+#     --ita-invisible-in-index
+#                           hide 'git add -N' entries from the index
+#     --ita-visible-in-index
+#                           treat 'git add -N' entries as real in the index
+#     -S <string>           look for differences that change the number of occurrences of the specified string
+#     -G <regex>            look for differences that change the number of occurrences of the specified regex
+#     --pickaxe-all         show all changes in the changeset with -S or -G
+#     --pickaxe-regex       treat <string> in -S as extended POSIX regular expression
+#     -O <file>             control the order in which files appear in the output
+#     --rotate-to <path>    show the change in the specified path first
+#     --skip-to <path>      skip the output to the specified path
+#     --find-object <object-id>
+#                           look for differences that change the number of occurrences of the specified object
+#     --diff-filter [(A|C|D|M|R|T|U|X|B)...[*]]
+#                           select files by diff type
+#     --output <file>       output to a specific file
+# Subtest: M17 four work packages exist with actual referenced production and verification boundaries
+ok 474 - M17 four work packages exist with actual referenced production and verification boundaries
+  ---
+  duration_ms: 2.422842
+  type: 'test'
+  ...
+# Subtest: every approved M17 policy has a concrete source-side verification control
+ok 475 - every approved M17 policy has a concrete source-side verification control
+  ---
+  duration_ms: 1.427069
+  type: 'test'
+  ...
+# Subtest: source diff does not change the accepted default Compose or database migrations
+not ok 476 - source diff does not change the accepted default Compose or database migrations
+  ---
+  duration_ms: 6.350927
+  type: 'test'
+  location: '/tmp/claude-0/mut/src/scripts/g17-source-boundary.test.mjs:126:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Command failed: git diff --name-only b490fb8cfc879cdf05cb1f7484b99f6a9b264ed3...HEAD
+    warning: Not a git repository. Use --no-index to compare two paths outside a working tree
+    usage: git diff --no-index [<options>] <path> <path>
+    
+    Diff output format options
+        -p, --patch           generate patch
+        -s, --no-patch        suppress diff output
+        -u                    generate patch
+        -U, --unified[=<n>]   generate diffs with <n> lines context
+        -W, --[no-]function-context
+                              generate diffs with <n> lines context
+        --raw                 generate the diff in raw format
+        --patch-with-raw      synonym for '-p --raw'
+        --patch-with-stat     synonym for '-p --stat'
+        --numstat             machine friendly --stat
+        --shortstat           output only the last line of --stat
+        -X, --dirstat[=<param1,param2>...]
+                              output the distribution of relative amount of changes for each sub-directory
+        --cumulative          synonym for --dirstat=cumulative
+        --dirstat-by-file[=<param1,param2>...]
+                              synonym for --dirstat=files,param1,param2...
+        --check               warn if changes introduce conflict markers or whitespace errors
+        --summary             condensed summary such as creations, renames and mode changes
+        --name-only           show only names of changed files
+        --name-status         show only names and status of changed files
+        --stat[=<width>[,<name-width>[,<count>]]]
+                              generate diffstat
+        --stat-width <width>  generate diffstat with a given width
+        --stat-name-width <width>
+                              generate diffstat with a given name width
+        --stat-graph-width <width>
+                              generate diffstat with a given graph width
+        --stat-count <count>  generate diffstat with limited lines
+        --[no-]compact-summary
+                              generate compact summary in diffstat
+        --binary              output a binary diff that can be applied
+        --[no-]full-index     show full pre- and post-image object names on the "index" lines
+        --[no-]color[=<when>] show colored diff
+        --ws-error-highlight <kind>
+                              highlight whitespace errors in the 'context', 'old' or 'new' lines in the diff
+        -z                    do not munge pathnames and use NULs as output field terminators in --raw or --numstat
+        --[no-]abbrev[=<n>]   use <n> digits to display object names
+        --src-prefix <prefix> show the given source prefix instead of "a/"
+        --dst-prefix <prefix> show the given destination prefix instead of "b/"
+        --line-prefix <prefix>
+                              prepend an additional prefix to every line of output
+        --no-prefix           do not show any source or destination prefix
+        --default-prefix      use default prefixes a/ and b/
+        --inter-hunk-context <n>
+                              show context between diff hunks up to the specified number of lines
+        --output-indicator-new <char>
+                              specify the character to indicate a new line instead of '+'
+        --output-indicator-old <char>
+                              specify the character to indicate an old line instead of '-'
+        --output-indicator-context <char>
+                              specify the character to indicate a context instead of ' '
+    
+    Diff rename options
+        -B, --break-rewrites[=<n>[/<m>]]
+                              break complete rewrite changes into pairs of delete and create
+        -M, --find-renames[=<n>]
+                              detect renames
+        -D, --irreversible-delete
+                              omit the preimage for deletes
+        -C, --find-copies[=<n>]
+                              detect copies
+        --[no-]find-copies-harder
+                              use unmodified files as source to find copies
+        --no-renames          disable rename detection
+        --[no-]rename-empty   use empty blobs as rename source
+        --[no-]follow         continue listing the history of a file beyond renames
+        -l <n>                prevent rename/copy detection if the number of rename/copy targets exceeds given limit
+    
+    Diff algorithm options
+        --minimal             produce the smallest possible diff
+        -w, --ignore-all-space
+                              ignore whitespace when comparing lines
+        -b, --ignore-space-change
+                              ignore changes in amount of whitespace
+        --ignore-space-at-eol ignore changes in whitespace at EOL
+        --ignore-cr-at-eol    ignore carrier-return at the end of line
+        --ignore-blank-lines  ignore changes whose lines are all blank
+        -I, --[no-]ignore-matching-lines <regex>
+                              ignore changes whose all lines match <regex>
+        --[no-]indent-heuristic
+                              heuristic to shift diff hunk boundaries for easy reading
+        --patience            generate diff using the "patience diff" algorithm
+        --histogram           generate diff using the "histogram diff" algorithm
+        --diff-algorithm <algorithm>
+                              choose a diff algorithm
+        --anchored <text>     generate diff using the "anchored diff" algorithm
+        --word-diff[=<mode>]  show word diff, using <mode> to delimit changed words
+        --word-diff-regex <regex>
+                              use <regex> to decide what a word is
+        --color-words[=<regex>]
+                              equivalent to --word-diff=color --word-diff-regex=<regex>
+        --[no-]color-moved[=<mode>]
+                              moved lines of code are colored differently
+        --[no-]color-moved-ws <mode>
+                              how white spaces are ignored in --color-moved
+    
+    Other diff options
+        --[no-]relative[=<prefix>]
+                              when run from subdir, exclude changes outside and show relative paths
+        -a, --[no-]text       treat all files as text
+        -R                    swap two inputs, reverse the diff
+        --[no-]exit-code      exit with 1 if there were differences, 0 otherwise
+        --[no-]quiet          disable all output of the program
+        --[no-]ext-diff       allow an external diff helper to be executed
+        --[no-]textconv       run external text conversion filters when comparing binary files
+        --ignore-submodules[=<when>]
+                              ignore changes to submodules in the diff generation
+        --submodule[=<format>]
+                              specify how differences in submodules are shown
+        --ita-invisible-in-index
+                              hide 'git add -N' entries from the index
+        --ita-visible-in-index
+                              treat 'git add -N' entries as real in the index
+        -S <string>           look for differences that change the number of occurrences of the specified string
+        -G <regex>            look for differences that change the number of occurrences of the specified regex
+        --pickaxe-all         show all changes in the changeset with -S or -G
+        --pickaxe-regex       treat <string> in -S as extended POSIX regular expression
+        -O <file>             control the order in which files appear in the output
+        --rotate-to <path>    show the change in the specified path first
+        --skip-to <path>      skip the output to the specified path
+        --find-object <object-id>
+                              look for differences that change the number of occurrences of the specified object
+        --diff-filter [(A|C|D|M|R|T|U|X|B)...[*]]
+                              select files by diff type
+        --output <file>       output to a specific file
+    
+    
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    genericNodeError (node:internal/errors:983:15)
+    wrappedFn (node:internal/errors:537:14)
+    checkExecSyncError (node:child_process:916:11)
+    execFileSync (node:child_process:952:15)
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/src/scripts/g17-source-boundary.test.mjs:127:17)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: every promtool witness in the coverage register is bound to a real executable case in the real file
+ok 477 - every promtool witness in the coverage register is bound to a real executable case in the real file
+  ---
+  duration_ms: 2.014403
+  type: 'test'
+  ...
+# Subtest: a complete case binds, and the sample used for the controls is itself valid
+ok 478 - a complete case binds, and the sample used for the controls is itself valid
+  ---
+  duration_ms: 0.22356
+  type: 'test'
+  ...
+# Subtest: each way a case can be hollowed out is rejected on its own
+ok 479 - each way a case can be hollowed out is rejected on its own
+  ---
+  duration_ms: 0.611106
+  type: 'test'
+  ...
+# Subtest: the real file loses its binding if a witnessed case is hollowed out
+ok 480 - the real file loses its binding if a witnessed case is hollowed out
+  ---
+  duration_ms: 1.308021
+  type: 'test'
+  ...
+# Subtest: the manifest rejection witness needs the three executed Node cases that provoke the refusal
+ok 481 - the manifest rejection witness needs the three executed Node cases that provoke the refusal
+  ---
+  duration_ms: 0.331163
+  type: 'test'
+  ...
+# Subtest: a line that is not a comment can never name a case, even directly above a real block
+ok 482 - a line that is not a comment can never name a case, even directly above a real block
+  ---
+  duration_ms: 0.112082
+  type: 'test'
+  ...
+# Subtest: a case with series but no executable assertion is not bound, even for a marker without special requirements
+ok 483 - a case with series but no executable assertion is not bound, even for a marker without special requirements
+  ---
+  duration_ms: 0.177954
+  type: 'test'
+  ...
+# Subtest: the three manifest rejection cases are pinned by name
+ok 484 - the three manifest rejection cases are pinned by name
+  ---
+  duration_ms: 0.083329
+  type: 'test'
+  ...
+# Subtest: real worker log with synthetic private controls is safe
+ok 485 - real worker log with synthetic private controls is safe
+  ---
+  duration_ms: 1.091206
+  type: 'test'
+  ...
+# Subtest: missing worker signal and private string leaks fail closed
+ok 486 - missing worker signal and private string leaks fail closed
+  ---
+  duration_ms: 1.311499
+  type: 'test'
+  ...
+# Subtest: a credential, account or tenant shape not on the canary list is still rejected
+ok 487 - a credential, account or tenant shape not on the canary list is still rejected
+  ---
+  duration_ms: 1.560779
+  type: 'test'
+  ...
+# Subtest: each canary must be a real string of at least eight characters
+ok 488 - each canary must be a real string of at least eight characters
+  ---
+  duration_ms: 4.367271
+  type: 'test'
+  ...
+# Subtest: A later accepted decision cannot approve pending D-003
+ok 489 - A later accepted decision cannot approve pending D-003
+  ---
+  duration_ms: 0.912051
+  type: 'test'
+  ...
+# Subtest: A pending open-decisions row blocks even an accepted D-003 section
+ok 490 - A pending open-decisions row blocks even an accepted D-003 section
+  ---
+  duration_ms: 0.215992
+  type: 'test'
+  ...
+# Subtest: Approval requires pinned edition and category scope in the D-003 section
+ok 491 - Approval requires pinned edition and category scope in the D-003 section
+  ---
+  duration_ms: 0.437685
+  type: 'test'
+  ...
+# Subtest: An explicitly accepted and fully specified D-003 record is recognized
+ok 492 - An explicitly accepted and fully specified D-003 record is recognized
+  ---
+  duration_ms: 0.131142
+  type: 'test'
+  ...
+# Subtest: the real documents state the current accepted-gate set and keep G17 not accepted
+ok 493 - the real documents state the current accepted-gate set and keep G17 not accepted
+  ---
+  duration_ms: 39.79189
+  type: 'test'
+  ...
+# Subtest: each current-state rule fails on its own when its statement is removed
+ok 494 - each current-state rule fails on its own when its statement is removed
+  ---
+  duration_ms: 4.479496
+  type: 'test'
+  ...
+# Subtest: the stale phrases that caused the four historical failures are not required any more
+ok 495 - the stale phrases that caused the four historical failures are not required any more
+  ---
+  duration_ms: 0.200232
+  type: 'test'
+  ...
+# Subtest: a later gate stated as accepted is rejected, while prerequisites and quoted denials are not claims
+ok 496 - a later gate stated as accepted is rejected, while prerequisites and quoted denials are not claims
+  ---
+  duration_ms: 1.12247
+  type: 'test'
+  ...
+# Subtest: the G17 statements are individually required
+ok 497 - the G17 statements are individually required
+  ---
+  duration_ms: 1.429449
+  type: 'test'
+  ...
+# Subtest: the checker passes on the repository and fails when a current statement is removed
+ok 498 - the checker passes on the repository and fails when a current statement is removed
+  ---
+  duration_ms: 84.375391
+  type: 'test'
+  ...
+# Subtest: one positive raw witness is required for every one of 72 technical assertions
+ok 499 - one positive raw witness is required for every one of 72 technical assertions
+  ---
+  duration_ms: 1.519569
+  type: 'test'
+  ...
+# Subtest: rejects a missing assertion evidence row even when other suites pass
+ok 500 - rejects a missing assertion evidence row even when other suites pass
+  ---
+  duration_ms: 1.39722
+  type: 'test'
+  ...
+# Subtest: rejects partial, missing and skipped technical assertion classifications
+ok 501 - rejects partial, missing and skipped technical assertion classifications
+  ---
+  duration_ms: 0.765487
+  type: 'test'
+  ...
+# Subtest: rejects a duplicated, displaced or removed technical clause
+ok 502 - rejects a duplicated, displaced or removed technical clause
+  ---
+  duration_ms: 0.646805
+  type: 'test'
+  ...
+# Subtest: cannot automatically claim an independent S25 decision
+ok 503 - cannot automatically claim an independent S25 decision
+  ---
+  duration_ms: 0.357004
+  type: 'test'
+  ...
+# Subtest: JUnit case names come from the name attribute, not from classname
+ok 504 - JUnit case names come from the name attribute, not from classname
+  ---
+  duration_ms: 1.14617
+  type: 'test'
+  ...
+# Subtest: a mislabeled scenario or an extra fourth clause is reported on its own
+ok 505 - a mislabeled scenario or an extra fourth clause is reported on its own
+  ---
+  duration_ms: 1.182687
+  type: 'test'
+  ...
+# Subtest: an S25 clause must be both independent review and unwitnessed
+ok 506 - an S25 clause must be both independent review and unwitnessed
+  ---
+  duration_ms: 0.550352
+  type: 'test'
+  ...
+# Subtest: a consistent manifest verifies
+ok 507 - a consistent manifest verifies
+  ---
+  duration_ms: 2.280926
+  type: 'test'
+  ...
+# Subtest: a modified snapshot is rejected
+ok 508 - a modified snapshot is rejected
+  ---
+  duration_ms: 0.561453
+  type: 'test'
+  ...
+# Subtest: a substituted snapshot with a recomputed hash is rejected until the pin is changed
+ok 509 - a substituted snapshot with a recomputed hash is rejected until the pin is changed
+  ---
+  duration_ms: 0.2827
+  type: 'test'
+  ...
+# Subtest: a withheld artifact committed to the repository is rejected
+ok 510 - a withheld artifact committed to the repository is rejected
+  ---
+  duration_ms: 0.384688
+  type: 'test'
+  ...
+# Subtest: an unlisted file in the snapshots directory is rejected
+ok 511 - an unlisted file in the snapshots directory is rejected
+  ---
+  duration_ms: 0.251213
+  type: 'test'
+  ...
+# Subtest: publishing needs a confirmed license declaration
+ok 512 - publishing needs a confirmed license declaration
+  ---
+  duration_ms: 0.242043
+  type: 'test'
+  ...
+# Subtest: a conformance claim or a missing provenance statement is rejected
+ok 513 - a conformance claim or a missing provenance statement is rejected
+  ---
+  duration_ms: 0.23693
+  type: 'test'
+  ...
+# Subtest: a changed profile fixture is rejected
+ok 514 - a changed profile fixture is rejected
+  ---
+  duration_ms: 1.02558
+  type: 'test'
+  ...
+# Subtest: external check confirms the supported subset exists upstream
+ok 515 - external check confirms the supported subset exists upstream
+  ---
+  duration_ms: 0.68905
+  type: 'test'
+  ...
+# Subtest: external check rejects a code that upstream does not define
+ok 516 - external check rejects a code that upstream does not define
+  ---
+  duration_ms: 0.41465
+  type: 'test'
+  ...
+# Subtest: external check rejects a classifier that upstream does not define for the family
+ok 517 - external check rejects a classifier that upstream does not define for the family
+  ---
+  duration_ms: 0.260407
+  type: 'test'
+  ...
+# Subtest: external check rejects a modified withheld copy
+ok 518 - external check rejects a modified withheld copy
+  ---
+  duration_ms: 0.177844
+  type: 'test'
+  ...
+# Subtest: drift check reports same, changed and unreachable without touching the pins
+ok 519 - drift check reports same, changed and unreachable without touching the pins
+  ---
+  duration_ms: 0.378983
+  type: 'test'
+  ...
+# Subtest: the committed repository snapshots verify offline
+ok 520 - the committed repository snapshots verify offline
+  ---
+  duration_ms: 0.870516
+  type: 'test'
+  ...
+1..520
+# tests 520
+# suites 0
+# pass 498
+# fail 22
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 116739.148013
+exit=1

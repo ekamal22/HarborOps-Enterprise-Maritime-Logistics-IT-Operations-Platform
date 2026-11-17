@@ -1,0 +1,68 @@
+{
+  "id": "M02",
+  "family": "reconcile binding",
+  "name": "manifest rejection binding bypassed",
+  "target": "scripts/reconcile-g17-assertions.mjs",
+  "source_sha256": "d3288e317aa770201f4c82be979c7aa6efb8352964082871a31daa5ce8dda3a0",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-first-failure-ledger.test.mjs",
+    "scripts/g17-reconcile-derivation.test.mjs",
+    "scripts/reconcile-g17-assertions.test.mjs"
+  ],
+  "mutation": {
+    "from": "return manifestRejectionBound(node)?results.get(w.path+\"\\u0000*\")??null:null;",
+    "to": "return results.get(w.path+\"\\u0000*\")??null;",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 1,
+    "tests": 64,
+    "pass": 64,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M02.control-before.out.txt"
+  },
+  "mutated_sha256": "5cc9f07d1fa370f643db5d3636fb2a891132cff4635a3c193ea638d50c0aa48c",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 1,
+    "tests": 64,
+    "pass": 63,
+    "fail": 1,
+    "failing_tests": [
+      "the manifest-rejection witness is unresolved when any of its three Node cases did not execute"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "|-"
+    ],
+    "output": "M02.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 1,
+    "tests": 64,
+    "pass": 64,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M02.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "KILLED_CANDIDATE"
+}

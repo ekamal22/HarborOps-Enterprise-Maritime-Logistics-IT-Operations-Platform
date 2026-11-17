@@ -1,0 +1,289 @@
+{
+  "schema_version": 2,
+  "gate": "G17",
+  "source_sha": "8d5e24137ad2943a6b2787b6472e4cea7bd9947e",
+  "assertion_inventory_sha256": "e236aa452e6d414d21f3f241e9133f23b4111e3699cd489e9e5a675a46f65100",
+  "scenario_count": 25,
+  "assertion_count": 75,
+  "reviewed_assertion_count": 0,
+  "captured_at_utc": "2026-11-15T13:09:22.837Z",
+  "candidate_execution": "RUNTIME_CANDIDATE_NOT_REVIEWED",
+  "files": [
+    {
+      "path": "browser-artifacts/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45
+    },
+    {
+      "path": "cardinality-artifacts/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45
+    },
+    {
+      "path": "expected-artifacts.json",
+      "sha256": "d28a7d15c3787724c88656e94aec261360cee611d92dba5607941fc9bd812c9e",
+      "bytes": 2259
+    },
+    {
+      "path": "g17-contract.trx",
+      "sha256": "7c77d17f8dbe1795f929c8e338d4243c4e2cbf5dac0bae4b520c232006030819",
+      "bytes": 267526
+    },
+    {
+      "path": "g17-coverage-preflight.json",
+      "sha256": "fceacc9ca2249c20ef26cb8f9077d8b7ae9bb6706905ff888abf2f5800ac3751",
+      "bytes": 28986
+    },
+    {
+      "path": "g17-integration.trx",
+      "sha256": "7f8533f1d1f076225fe36310035654932ba4e37f0d9e92ae180fb49670d6f558",
+      "bytes": 251957
+    },
+    {
+      "path": "g17-node-tests.xml",
+      "sha256": "db1d25bf0704548a18abdcb9304a5829aab494e0754cb04adb2c5394dff935b5",
+      "bytes": 50739
+    },
+    {
+      "path": "g17-regression-matrix-results.json",
+      "sha256": "0e42615a9cfa0632a688f0d0c076c0b053b83834b72f33f6730c1fe07b0c3a54",
+      "bytes": 6272
+    },
+    {
+      "path": "g17-regressions.trx",
+      "sha256": "eb0106d400f3c5240e431dedc471270821bb7648d5509406bac57abba01ad41d",
+      "bytes": 998239
+    },
+    {
+      "path": "g17-technical-assertion-ledger.json",
+      "sha256": "a5070fbe403fc85ee371f9462fc418d0aabc74f9f9300b8f218f65bf2701412a",
+      "bytes": 26568
+    },
+    {
+      "path": "g17-unit.trx",
+      "sha256": "cbaed8c27c3156827ac512a563590d40ae24fa8159b0c9bd90ac817a4f54a912",
+      "bytes": 471878
+    },
+    {
+      "path": "m17-alert-matrix-results.json",
+      "sha256": "fd8b66842667b69ae2ecce813cbaebf339647d2a9932c909eaf892a96075b92d",
+      "bytes": 1098
+    },
+    {
+      "path": "m17-browser-results.json",
+      "sha256": "fbbeb812593f56cd879b753ce7a51cb251fc980f9d4be8385dfef2160b9056aa",
+      "bytes": 33065
+    },
+    {
+      "path": "m17-cardinality-memory-results.json",
+      "sha256": "cbf0686df5bcd98c4b9563d6039e6bd8a9036206c3f93d6aea95356ffd7b3530",
+      "bytes": 2407
+    },
+    {
+      "path": "m17-cardinality-raw.json",
+      "sha256": "b49996aae297e68206d7fbf7db14df6b30466cf6c086f11bb24d3b81cd1b8c05",
+      "bytes": 62666
+    },
+    {
+      "path": "m17-cardinality-results.json",
+      "sha256": "99ee8020ba839347bc90175b4540d3c87701c37135c7b229d1f68325fe256d40",
+      "bytes": 4706
+    },
+    {
+      "path": "m17-collector-config-validation.txt",
+      "sha256": "129d3a04c13403a502b7c7f571119047e4932ccab57b954cbdb77c19fc4145c9",
+      "bytes": 367
+    },
+    {
+      "path": "m17-collector-fault-results.json",
+      "sha256": "0bd46ad6d2a971bbae66301d9cb5bc9747e45c177c59c16c04ee27fa599b3b18",
+      "bytes": 1141
+    },
+    {
+      "path": "m17-database-fault-results.json",
+      "sha256": "b300a52ff92e5558302008f013d4f132ebcd41cd84d704e00a07eabe2e1a0ee3",
+      "bytes": 2248
+    },
+    {
+      "path": "m17-diagnostic-journey-results.json",
+      "sha256": "5ddeb9f1f2d848f43937dba2645d0e35ade15c6e9057b58a980bb55c184fa5b7",
+      "bytes": 6621
+    },
+    {
+      "path": "m17-export-privacy-logs.txt",
+      "sha256": "8832bea3036cc84c80802f1f22a57857df52aea78239a21877de1421deba6f24",
+      "bytes": 3473722
+    },
+    {
+      "path": "m17-export-privacy-results.json",
+      "sha256": "96c62b6fce480bb06ecdf8d210208e984f76f9fd92d4f20de05ce1ad1067e8ff",
+      "bytes": 29537
+    },
+    {
+      "path": "m17-export-privacy-series.json",
+      "sha256": "499f48661c179413c7bc2683c54c2a6c62b4b271a7c17bc4787cd7aeec468daa",
+      "bytes": 61068
+    },
+    {
+      "path": "m17-export-privacy-traces.json",
+      "sha256": "ac2611da1a1f7be783a2ab015dee9483214c7eddfda995d5affb120d868404a7",
+      "bytes": 245599
+    },
+    {
+      "path": "m17-live-latency-alert-results.json",
+      "sha256": "f3b9926690056ea8a922737c336c5d5d53f6146ed5ff9419ccebbbb440bd3abf",
+      "bytes": 833
+    },
+    {
+      "path": "m17-low-traffic-window.json",
+      "sha256": "40b36c7616a20edc88af9d837c37f5e62aa6b3797ec4c735743e692c477e06a3",
+      "bytes": 554
+    },
+    {
+      "path": "m17-malformed-export-results.json",
+      "sha256": "acdea89883b245b755ae5ebadc8123b7ffcc18bdab8a513b1d7ec4ec7096b641",
+      "bytes": 382
+    },
+    {
+      "path": "m17-malformed-export-traces.json",
+      "sha256": "c38a422aef61bddc08db610a630709b5de3e16534533f7a795163e983d7340a6",
+      "bytes": 116660
+    },
+    {
+      "path": "m17-network-results.json",
+      "sha256": "ca01dbae382a18980c12b0fbf47b614a3db361fa6756c5d352cc7736b2832833",
+      "bytes": 2437
+    },
+    {
+      "path": "m17-p09-independent-recalculation.json",
+      "sha256": "cb95293bfaaf0328e6990a090e78422bdc77d811fef1cb4a10df912d40b01409",
+      "bytes": 2129
+    },
+    {
+      "path": "m17-page-fault-dashboard.json",
+      "sha256": "66f53c37ed056b2b48adb00510cc050941f0bd8e367d7c512b8d67dc4677f4ad",
+      "bytes": 1640
+    },
+    {
+      "path": "m17-page-fault-injection.json",
+      "sha256": "ce36388c3ceab3841675e69ee487cf36a9b2d45cef60168051d2513fe263c8c6",
+      "bytes": 28253
+    },
+    {
+      "path": "m17-performance-raw.json",
+      "sha256": "28980fc84fef4020df61dfe202dc938ba9096a4480c4af973928f62f947494d7",
+      "bytes": 249258
+    },
+    {
+      "path": "m17-pressure-matrix-results.json",
+      "sha256": "e1d792f900f3d1517257a3fee4d8e0019ee7cccf9a1128b09d84f623b7ed23c6",
+      "bytes": 822
+    },
+    {
+      "path": "m17-promtool-check.txt",
+      "sha256": "3c5b70a6d1cbadc804228967f1105753529ce1d91c63f627527a1462ef86ae9a",
+      "bytes": 207
+    },
+    {
+      "path": "m17-promtool-test.txt",
+      "sha256": "e9299464725e39a0354bcb765201c5fa53d72e4b7023fee9b343ba29849b514f",
+      "bytes": 207
+    },
+    {
+      "path": "m17-restart-results.json",
+      "sha256": "fa09870b0f522a6509ffe168a7e0e9853a08659862f8648a5cf819ebad986155",
+      "bytes": 3155
+    },
+    {
+      "path": "m17-retention-age-results.json",
+      "sha256": "aaddcfc3044cbf6d17b55dec4d906707434a85b1aac1794a00260d3afe9398f6",
+      "bytes": 807
+    },
+    {
+      "path": "m17-retention-matrix-results.json",
+      "sha256": "bfbeb6747695722b8cbf5e5dd22a4f8f921c17511f6b0934b01e0eec6c40245e",
+      "bytes": 355
+    },
+    {
+      "path": "m17-storage-results.json",
+      "sha256": "31fdbbf4ff92f3ac4acb7f117d93c06567806e2a21b78fadad6d0a5c060f7856",
+      "bytes": 7295
+    },
+    {
+      "path": "m17-tempo-retention-results.json",
+      "sha256": "036aa6232c13c172f5894be0c025cad8d49a9d95f9b21f9d6bfc1ae0371b0a2c",
+      "bytes": 678
+    },
+    {
+      "path": "m17-ui-no-traffic-chromium.json",
+      "sha256": "dfa6e350df008b7dcf01386af418d3c513ae61daa3f7901351c94c27b37f00fe",
+      "bytes": 920
+    },
+    {
+      "path": "m17-ui-no-traffic-firefox.json",
+      "sha256": "d3c913c0113553766f05c21ee32f34ce473c5f4d52139c7a3e8429d07635ecd3",
+      "bytes": 919
+    },
+    {
+      "path": "m17-ui-no-traffic-webkit.json",
+      "sha256": "55ef9b8d023b0db9737b2187932a6f3bfe974af8d2953b92ee19b939e0559d96",
+      "bytes": 918
+    },
+    {
+      "path": "m17-ui-state-chromium.json",
+      "sha256": "af09fbfe77588e98cf7b21fa51a38fa1b169624f9c605f124414799c9d969bc2",
+      "bytes": 257
+    },
+    {
+      "path": "m17-ui-state-firefox.json",
+      "sha256": "f233dd68cfc67009ba1cb3958c64659ab81b0093f4f0b0e96b7be7ae754748d9",
+      "bytes": 256
+    },
+    {
+      "path": "m17-ui-state-webkit.json",
+      "sha256": "c2e250a1635848d623e9df558c9dd81cde2a75a035c05249e9002742dc718bb0",
+      "bytes": 255
+    },
+    {
+      "path": "m17-worker-journey-logs.txt",
+      "sha256": "584d72956013a4f22228219464b6c2f9b81e4daa7adf57664359b7c0a0b42ce9",
+      "bytes": 27185
+    },
+    {
+      "path": "m17-worker-journey-results.json",
+      "sha256": "492fca4a640b684dd696af2d430eb2d8f76d0fdfe21ee96d713a12d7b5093c0d",
+      "bytes": 657
+    },
+    {
+      "path": "m17-worker-journey-series.json",
+      "sha256": "32625c61eeb84132f253270451d2720ccaf4ba978810f3b83194b5457360969b",
+      "bytes": 293179
+    },
+    {
+      "path": "m17-worker-journey-traces.json",
+      "sha256": "d81249f1de5cef0c4afe04e77b57ff55eaeb7d22aa768ffc895e1c24dde8c351",
+      "bytes": 50709
+    },
+    {
+      "path": "m17-worker-results.json",
+      "sha256": "fba3c8250b71d8b58e8125fbbbe9e375eb974361726b1a1308769b30be30661d",
+      "bytes": 1239
+    },
+    {
+      "path": "run-status.json",
+      "sha256": "6039f954722c1a11b64f4512cc871d905cf0e600270eb4c2391b2adaa915c727",
+      "bytes": 13821
+    },
+    {
+      "path": "source-sha.txt",
+      "sha256": "764c4b28ddd6e82884b262dbc5f440ea69b01c8309f373105f385f1edee227d5",
+      "bytes": 40
+    }
+  ],
+  "binary_files_requiring_manual_review": 0,
+  "run_state": "COMPLETE",
+  "expected_artifact_count": 54,
+  "missing_expected_artifacts": [],
+  "assertion_disposition": "NOT_REVIEWED",
+  "gate_acceptance": "NOT_ACCEPTED"
+}

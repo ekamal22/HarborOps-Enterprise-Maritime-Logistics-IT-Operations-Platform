@@ -2,6 +2,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.20.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.20.1" />
     <ProjectReference Include="../HarborOps.Application/HarborOps.Application.csproj" />
     <ProjectReference Include="../HarborOps.Domain/HarborOps.Domain.csproj" />
     <ProjectReference Include="../HarborOps.Infrastructure/HarborOps.Infrastructure.csproj" />

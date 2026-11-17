@@ -1,0 +1,414 @@
+TAP version 13
+# Subtest: the registry names the first-failure script and its report
+ok 1 - the registry names the first-failure script and its report
+  ---
+  duration_ms: 0.654572
+  type: 'test'
+  ...
+# Subtest: a passing first-failure report for this source and project is accepted
+ok 2 - a passing first-failure report for this source and project is accepted
+  ---
+  duration_ms: 13.107502
+  type: 'test'
+  ...
+# Subtest: a failing, foreign or missing first-failure report stops the ledger
+ok 3 - a failing, foreign or missing first-failure report stops the ledger
+  ---
+  duration_ms: 19.580761
+  type: 'test'
+  ...
+# Subtest: with every case executed the ledger resolves all 72 technical witnesses
+ok 4 - with every case executed the ledger resolves all 72 technical witnesses
+  ---
+  duration_ms: 10.766585
+  type: 'test'
+  ...
+# Subtest: the manifest-rejection witness is unresolved when any of its three Node cases did not execute
+not ok 5 - the manifest-rejection witness is unresolved when any of its three Node cases did not execute
+  ---
+  duration_ms: 9.03586
+  type: 'test'
+  location: '/tmp/claude-0/mut/retest/out/work-M02/scripts/g17-first-failure-ledger.test.mjs:62:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    fake complete claim without required raw result is rejected
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/mut/retest/out/work-M02/scripts/g17-first-failure-ledger.test.mjs:69:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a promtool witness whose text appears only outside a real case comment is unresolved
+ok 6 - a promtool witness whose text appears only outside a real case comment is unresolved
+  ---
+  duration_ms: 7.907487
+  type: 'test'
+  ...
+# Subtest: the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending
+ok 7 - the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending
+  ---
+  duration_ms: 13.391182
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report with another source sha
+ok 8 - derivation refuses: raw report with another source sha
+  ---
+  duration_ms: 6.33098
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report from another project
+ok 9 - derivation refuses: raw report from another project
+  ---
+  duration_ms: 5.553327
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report with result FAIL
+ok 10 - derivation refuses: raw report with result FAIL
+  ---
+  duration_ms: 6.529416
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report without a source sha
+ok 11 - derivation refuses: raw report without a source sha
+  ---
+  duration_ms: 4.718374
+  type: 'test'
+  ...
+# Subtest: derivation refuses: raw report file missing
+ok 12 - derivation refuses: raw report file missing
+  ---
+  duration_ms: 4.991074
+  type: 'test'
+  ...
+# Subtest: derivation refuses: promtool stage failed
+ok 13 - derivation refuses: promtool stage failed
+  ---
+  duration_ms: 4.791207
+  type: 'test'
+  ...
+# Subtest: derivation refuses: promtool stage absent
+ok 14 - derivation refuses: promtool stage absent
+  ---
+  duration_ms: 5.13614
+  type: 'test'
+  ...
+# Subtest: derivation refuses: promtool output without SUCCESS
+ok 15 - derivation refuses: promtool output without SUCCESS
+  ---
+  duration_ms: 4.875775
+  type: 'test'
+  ...
+# Subtest: derivation refuses: run state FAILED
+ok 16 - derivation refuses: run state FAILED
+  ---
+  duration_ms: 4.797813
+  type: 'test'
+  ...
+# Subtest: derivation refuses: only ten stages recorded
+ok 17 - derivation refuses: only ten stages recorded
+  ---
+  duration_ms: 4.01637
+  type: 'test'
+  ...
+# Subtest: derivation refuses: a stage failed
+ok 18 - derivation refuses: a stage failed
+  ---
+  duration_ms: 4.322082
+  type: 'test'
+  ...
+# Subtest: derivation refuses: a stage with a non-zero exit code
+ok 19 - derivation refuses: a stage with a non-zero exit code
+  ---
+  duration_ms: 3.866158
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage dotnet-build missing
+ok 20 - derivation refuses: required stage dotnet-build missing
+  ---
+  duration_ms: 4.402198
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage unit-tests missing
+ok 21 - derivation refuses: required stage unit-tests missing
+  ---
+  duration_ms: 3.736331
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage contract-tests missing
+ok 22 - derivation refuses: required stage contract-tests missing
+  ---
+  duration_ms: 3.870069
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage integration-m17-tests missing
+ok 23 - derivation refuses: required stage integration-m17-tests missing
+  ---
+  duration_ms: 4.285467
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage accepted-milestone-regressions-opted-in missing
+ok 24 - derivation refuses: required stage accepted-milestone-regressions-opted-in missing
+  ---
+  duration_ms: 3.956434
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage playwright-dashboard-three-engines missing
+ok 25 - derivation refuses: required stage playwright-dashboard-three-engines missing
+  ---
+  duration_ms: 4.135614
+  type: 'test'
+  ...
+# Subtest: derivation refuses: required stage playwright-cardinality missing
+ok 26 - derivation refuses: required stage playwright-cardinality missing
+  ---
+  duration_ms: 3.670568
+  type: 'test'
+  ...
+# Subtest: derivation refuses: unit TRX with a failure
+ok 27 - derivation refuses: unit TRX with a failure
+  ---
+  duration_ms: 3.718437
+  type: 'test'
+  ...
+# Subtest: derivation refuses: node JUnit with a skipped case
+ok 28 - derivation refuses: node JUnit with a skipped case
+  ---
+  duration_ms: 3.65006
+  type: 'test'
+  ...
+# Subtest: derivation refuses: node JUnit with a duplicate case
+ok 29 - derivation refuses: node JUnit with a duplicate case
+  ---
+  duration_ms: 4.339788
+  type: 'test'
+  ...
+# Subtest: derivation refuses: dashboard browser case skipped
+ok 30 - derivation refuses: dashboard browser case skipped
+  ---
+  duration_ms: 3.696168
+  type: 'test'
+  ...
+# Subtest: derivation refuses: dashboard run without WebKit
+ok 31 - derivation refuses: dashboard run without WebKit
+  ---
+  duration_ms: 3.795816
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: a contract method missing from the contract TRX
+ok 32 - ledger names the assertions affected by: a contract method missing from the contract TRX
+  ---
+  duration_ms: 6.496784
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: an integration method reported under another class
+ok 33 - ledger names the assertions affected by: an integration method reported under another class
+  ---
+  duration_ms: 6.500409
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: an integration method reported only in the contract TRX
+ok 34 - ledger names the assertions affected by: an integration method reported only in the contract TRX
+  ---
+  duration_ms: 7.327919
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: a node case missing from the JUnit file
+ok 35 - ledger names the assertions affected by: a node case missing from the JUnit file
+  ---
+  duration_ms: 6.075439
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: a raw report failing its predicate
+ok 36 - ledger names the assertions affected by: a raw report failing its predicate
+  ---
+  duration_ms: 6.890046
+  type: 'test'
+  ...
+# Subtest: ledger names the assertions affected by: a raw report that no longer names its case
+ok 37 - ledger names the assertions affected by: a raw report that no longer names its case
+  ---
+  duration_ms: 5.730082
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a witness path outside the supported roots
+ok 38 - an unresolvable witness is reported: a witness path outside the supported roots
+  ---
+  duration_ms: 6.315848
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a witness path with parent traversal
+ok 39 - an unresolvable witness is reported: a witness path with parent traversal
+  ---
+  duration_ms: 5.926531
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a witness without a case
+ok 40 - an unresolvable witness is reported: a witness without a case
+  ---
+  duration_ms: 5.15576
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a witness without a path
+ok 41 - an unresolvable witness is reported: a witness without a path
+  ---
+  duration_ms: 6.119734
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a case that its source does not contain
+ok 42 - an unresolvable witness is reported: a case that its source does not contain
+  ---
+  duration_ms: 5.669441
+  type: 'test'
+  ...
+# Subtest: an unresolvable witness is reported: a .NET witness naming a missing method
+ok 43 - an unresolvable witness is reported: a .NET witness naming a missing method
+  ---
+  duration_ms: 5.895152
+  type: 'test'
+  ...
+# Subtest: a witness path that does not exist stops the derivation instead of passing
+ok 44 - a witness path that does not exist stops the derivation instead of passing
+  ---
+  duration_ms: 4.033882
+  type: 'test'
+  ...
+# Subtest: the command writes the ledger and reports 72 of 72
+ok 45 - the command writes the ledger and reports 72 of 72
+  ---
+  duration_ms: 93.796231
+  type: 'test'
+  ...
+# Subtest: the command fails for no arguments
+ok 46 - the command fails for no arguments
+  ---
+  duration_ms: 32.623193
+  type: 'test'
+  ...
+# Subtest: the command fails for no source sha
+ok 47 - the command fails for no source sha
+  ---
+  duration_ms: 37.101523
+  type: 'test'
+  ...
+# Subtest: the command fails for no evidence directory
+ok 48 - the command fails for no evidence directory
+  ---
+  duration_ms: 37.131765
+  type: 'test'
+  ...
+# Subtest: the command fails for a short source sha
+ok 49 - the command fails for a short source sha
+  ---
+  duration_ms: 31.324236
+  type: 'test'
+  ...
+# Subtest: the command fails for a source sha that differs from the run ledger
+ok 50 - the command fails for a source sha that differs from the run ledger
+  ---
+  duration_ms: 34.741881
+  type: 'test'
+  ...
+# Subtest: the command fails for a run ledger that is not source verified
+ok 51 - the command fails for a run ledger that is not source verified
+  ---
+  duration_ms: 36.076474
+  type: 'test'
+  ...
+# Subtest: the command fails for a failing witness
+ok 52 - the command fails for a failing witness
+  ---
+  duration_ms: 44.732728
+  type: 'test'
+  ...
+# Subtest: a witness path outside the supported roots is refused even when its file contains the case
+ok 53 - a witness path outside the supported roots is refused even when its file contains the case
+  ---
+  duration_ms: 6.492196
+  type: 'test'
+  ...
+# Subtest: the ledger states its own count error when only the technical count is wrong
+ok 54 - the ledger states its own count error when only the technical count is wrong
+  ---
+  duration_ms: 5.385751
+  type: 'test'
+  ...
+# Subtest: the ledger states its own count error when only the independent count is wrong
+ok 55 - the ledger states its own count error when only the independent count is wrong
+  ---
+  duration_ms: 5.934046
+  type: 'test'
+  ...
+# Subtest: a real Node test outside the supported witness roots cannot satisfy a witness even when its case ran
+ok 56 - a real Node test outside the supported witness roots cannot satisfy a witness even when its case ran
+  ---
+  duration_ms: 6.187788
+  type: 'test'
+  ...
+# Subtest: one positive raw witness is required for every one of 72 technical assertions
+ok 57 - one positive raw witness is required for every one of 72 technical assertions
+  ---
+  duration_ms: 2.056119
+  type: 'test'
+  ...
+# Subtest: rejects a missing assertion evidence row even when other suites pass
+ok 58 - rejects a missing assertion evidence row even when other suites pass
+  ---
+  duration_ms: 0.79408
+  type: 'test'
+  ...
+# Subtest: rejects partial, missing and skipped technical assertion classifications
+ok 59 - rejects partial, missing and skipped technical assertion classifications
+  ---
+  duration_ms: 1.015368
+  type: 'test'
+  ...
+# Subtest: rejects a duplicated, displaced or removed technical clause
+ok 60 - rejects a duplicated, displaced or removed technical clause
+  ---
+  duration_ms: 0.979767
+  type: 'test'
+  ...
+# Subtest: cannot automatically claim an independent S25 decision
+ok 61 - cannot automatically claim an independent S25 decision
+  ---
+  duration_ms: 0.670419
+  type: 'test'
+  ...
+# Subtest: JUnit case names come from the name attribute, not from classname
+ok 62 - JUnit case names come from the name attribute, not from classname
+  ---
+  duration_ms: 1.50468
+  type: 'test'
+  ...
+# Subtest: a mislabeled scenario or an extra fourth clause is reported on its own
+ok 63 - a mislabeled scenario or an extra fourth clause is reported on its own
+  ---
+  duration_ms: 1.600342
+  type: 'test'
+  ...
+# Subtest: an S25 clause must be both independent review and unwitnessed
+ok 64 - an S25 clause must be both independent review and unwitnessed
+  ---
+  duration_ms: 0.874256
+  type: 'test'
+  ...
+1..64
+# tests 64
+# suites 0
+# pass 63
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 650.130207

@@ -97,9 +97,12 @@ public sealed class AuditHardeningTests
         Assert.NotEmpty(keys);
         Assert.All(keys, item =>
         {
-            var allowed = item.EventType == "shipment.export_prepared"
-                ? new[] { "rowCount", "byteCount", "filterDigest", "exportSchema" }
-                : new[] { "changedFields", "operation" };
+            var allowed = item.EventType switch
+            {
+                "shipment.export_prepared" => new[] { "rowCount", "byteCount", "filterDigest", "exportSchema" },
+                "notification.receipt_acknowledged" => new[] { "action" },
+                _ => new[] { "changedFields", "operation" }
+            };
             Assert.Contains(item.Key, allowed);
         });
 

@@ -1,0 +1,103 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {verifyPlaywrightCases,verifyTrxCases} from "./g17-results-contract.mjs";
+
+const titles=[
+  "dashboard requires authentication and shows actual monitoring panels",
+  "authenticated samples match the disposable ready API and suppress held workers",
+  "dashboard is unavailable to an anonymous browser context",
+  "alert dashboard links stay local and never embed private diagnostic parameters",
+  "critical monitoring panels use live series and no-data views are explicitly unknown",
+  "zero and insufficient traffic render unknown rather than a healthy zero",
+  "rendered readiness distinguishes missing data from real downtime in three browsers",
+  "browser API denial retains server-issued correlation under spoofed context"
+];
+const engines=["chromium","firefox","webkit"];
+function browser(mode) {
+  const dashboard=mode==="dashboard";
+  const names=dashboard?titles:["ten thousand hostile HTTP requests remain within complete exported-series budget"];
+  const projects=dashboard?engines:["chromium"];
+  const specs=names.map(title=>({
+    title,ok:true,tests:projects.map(projectName=>({
+      projectName,expectedStatus:"passed",status:"expected",
+      results:[{status:"passed",retry:0}]
+    }))
+  }));
+  return {suites:[{specs}],stats:{
+    expected:names.length*projects.length,unexpected:0,skipped:0,flaky:0
+  }};
+}
+const trx=names=>{
+  const results=names.map(name=>'<UnitTestResult testName="Suite.'+name+
+    '" outcome="Passed" />').join("");
+  return '<TestRun><ResultSummary><Counters total="'+names.length+
+    '" passed="'+names.length+'" failed="0" notExecuted="0" /></ResultSummary>'+
+    results+'</TestRun>';
+};
+test("all twenty-four required browser and one cardinality case pass exact identity checks",()=>{
+  assert.equal(verifyPlaywrightCases(browser("dashboard"),"dashboard").passed,24);
+  assert.equal(verifyPlaywrightCases(browser("cardinality"),"cardinality").passed,1);
+});
+test("browser skip, retry, expected failure, extra case or missing engine fails",()=>{
+  for(const mutate of [
+    a=>a.stats.skipped=1,
+    a=>a.suites[0].specs[0].tests[0].results[0].retry=1,
+    a=>a.suites[0].specs[0].tests[0].expectedStatus="failed",
+    a=>a.suites[0].specs[0].tests[0].status="unexpected",
+    a=>a.suites[0].specs[0].tests.shift(),
+    a=>a.suites[0].specs.push(a.suites[0].specs[0])
+  ]) {
+    const report=browser("dashboard"); mutate(report);
+    assert.throws(()=>verifyPlaywrightCases(report,"dashboard"));
+  }
+});
+test("TRX requires raw UnitTestResult outcomes and exactly one named method",()=>{
+  assert.equal(verifyTrxCases(trx(["RequiredMethod","OtherMethod"]),
+    ["RequiredMethod"]).passed,2);
+  assert.throws(()=>verifyTrxCases(trx(["OtherMethod"]),["RequiredMethod"]),
+    /Required M17 method/);
+});
+test("TRX rejects skips, duplicate cases, inaccurate counters or fake wrapper passes",()=>{
+  for(const raw of [
+    trx(["A"]).replace('outcome="Passed"','outcome="NotExecuted"'),
+    trx(["A","A"]),
+    trx(["A"]).replace('passed="1"','passed="0"'),
+    trx(["A"]).replace('total="1"','total="2"'),
+    '<TestRun><Counters total="1" passed="1" failed="0" notExecuted="0" /></TestRun>'
+  ]) assert.throws(()=>verifyTrxCases(raw));
+});
+
+test("truncated theory row names are distinct executions, repeated test ids are duplicates",()=>{
+  const row=id=>'<UnitTestResult testId="'+id+'" testName="Suite.Theory(path: &quot;/x&quot;···)" outcome="Passed" />';
+  const wrap=rows=>'<TestRun><Counters total="2" passed="2" failed="0" notExecuted="0" />'+rows.join("")+'</TestRun>';
+  assert.equal(verifyTrxCases(wrap([row("id-1"),row("id-2")])).passed,2);
+  assert.throws(()=>verifyTrxCases(wrap([row("id-1"),row("id-1")])),/Duplicated/);
+});
+
+import {verifyPlaywrightLastRun,PLAYWRIGHT_LAST_RUN_FILES} from "./g17-results-contract.mjs";
+test("hidden Playwright last-run records are required and must show a clean pass",()=>{
+  assert.deepEqual(PLAYWRIGHT_LAST_RUN_FILES,
+    ["browser-artifacts/.last-run.json","cardinality-artifacts/.last-run.json"]);
+  assert.equal(verifyPlaywrightLastRun('{"status":"passed","failedTests":[]}'),true);
+  for(const bad of ["","not json",'{"status":"failed","failedTests":["abc"]}',
+    '{"status":"passed","failedTests":["abc"]}','{"status":"passed"}','null','[]'])
+    assert.throws(()=>verifyPlaywrightLastRun(bad),/last-run record/,bad);
+});
+
+test("an extra browser case that sorts last is not accepted as the required set",()=>{
+  const raw=browser("dashboard");
+  raw.suites[0].specs.push({title:"zzz additional case",ok:true,tests:["chromium","firefox","webkit"].map(projectName=>({
+    projectName,expectedStatus:"passed",status:"expected",results:[{status:"passed",retry:0}]}))});
+  assert.throws(()=>verifyPlaywrightCases(raw,"dashboard"),/Missing, unexpected or duplicated browser cases/);
+});
+
+test("a browser case renamed to another title with the same total count is rejected", () => {
+  for (const mode of ["dashboard", "cardinality"]) {
+    const raw = browser(mode);
+    raw.suites[0].specs[0].title = "an unexpected case title";
+    assert.throws(() => verifyPlaywrightCases(raw, mode), /Missing, unexpected or duplicated browser cases/, mode);
+  }
+  const duplicated = browser("dashboard");
+  duplicated.suites[0].specs[1].title = duplicated.suites[0].specs[0].title;
+  assert.throws(() => verifyPlaywrightCases(duplicated, "dashboard"), /Missing, unexpected or duplicated browser cases/);
+});

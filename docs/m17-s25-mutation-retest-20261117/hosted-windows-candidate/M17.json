@@ -1,0 +1,66 @@
+{
+  "id": "M17",
+  "family": "witness binding",
+  "name": "block start not required",
+  "target": "scripts/g17-witness-binding.mjs",
+  "source_sha256": "7ee128ccc8a6bf63be86740027d09a1c5034fd017d632629190f53508189be4c",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-witness-binding.test.mjs"
+  ],
+  "mutation": {
+    "from": "if (start < 0) return null;",
+    "to": "",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 0,
+    "tests": 11,
+    "pass": 11,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M17.control-before.out.txt"
+  },
+  "mutated_sha256": "80b766790b6897f8cff5e0cd3d92cc2e6c518c65b370baac0d5be944016d4f15",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 0,
+    "tests": 11,
+    "pass": 10,
+    "fail": 1,
+    "failing_tests": [
+      "a case comment with no block after it yields no block, whatever follows"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "|-"
+    ],
+    "output": "M17.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 0,
+    "tests": 11,
+    "pass": 11,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M17.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "KILLED_CANDIDATE"
+}

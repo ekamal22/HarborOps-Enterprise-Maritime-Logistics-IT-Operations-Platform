@@ -1,0 +1,91 @@
+{
+  "id": "M14",
+  "family": "diagnostic verifier",
+  "name": "stream names accepted",
+  "target": "scripts/g17-diagnostic-hash-list.mjs",
+  "source_sha256": "662f9863ea2e27308559e284a66c886013824f4bdc207ed70622b9eaabbd8a77",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-diagnostic-hash-list.test.mjs",
+    "scripts/g17-diagnostic-verifier-strict.test.mjs"
+  ],
+  "mutation": {
+    "from": "[^\\\\/:<>\"|?*\\x00-\\x1f\\s]",
+    "to": "[^\\\\/<>\"|?*\\x00-\\x1f\\s]",
+    "occurrences_in_source": 2
+  },
+  "control_before": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 3,
+    "tests": 29,
+    "pass": 26,
+    "fail": 3,
+    "failing_tests": [
+      "the corrected producer finalises the state before hashing it, and every listed byte matches",
+      "stopping twice leaves a consistent record and never lists the hash list itself",
+      "every kind of tampering or malformed list is rejected on its own"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "|-",
+      "|-",
+      "|-"
+    ],
+    "output": "M14.control-before.out.txt"
+  },
+  "mutated_sha256": "85d95ce05a4d7daeee3d67dffd4bf815304cabedcf20d115ad55085aceb1a2d7",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 3,
+    "tests": 29,
+    "pass": 26,
+    "fail": 3,
+    "failing_tests": [
+      "the corrected producer finalises the state before hashing it, and every listed byte matches",
+      "stopping twice leaves a consistent record and never lists the hash list itself",
+      "every kind of tampering or malformed list is rejected on its own"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "|-",
+      "|-",
+      "|-"
+    ],
+    "output": "M14.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 3,
+    "tests": 29,
+    "pass": 26,
+    "fail": 3,
+    "failing_tests": [
+      "the corrected producer finalises the state before hashing it, and every listed byte matches",
+      "stopping twice leaves a consistent record and never lists the hash list itself",
+      "every kind of tampering or malformed list is rejected on its own"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "|-",
+      "|-",
+      "|-"
+    ],
+    "output": "M14.control-after.out.txt"
+  },
+  "controls_pass": false,
+  "auto": "VOID_CONTROL"
+}

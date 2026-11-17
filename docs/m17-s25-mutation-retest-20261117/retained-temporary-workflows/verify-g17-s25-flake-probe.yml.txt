@@ -1,0 +1,116 @@
+# Repeats the diagnostic producer tests on Windows to measure how often a stand-in child is still listed right after
+# the stop request. Diagnostic only; it does not decide G17.
+name: G17 S25 producer repeat probe
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/harborops-g17-final-verification-60b4bf-j3cyi7
+    paths:
+      - ".github/workflows/verify-g17-s25-flake-probe.yml"
+permissions:
+  contents: read
+env:
+  FROZEN: 634053c4d0c3a2cb8c51b2c29fda87b126e08993
+jobs:
+  repeat:
+    strategy:
+      fail-fast: false
+      matrix:
+        which: [candidate-a, candidate-b, candidate-c, frozen]
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      TEMP: D:\t
+      TMP: D:\t
+    steps:
+      - run: New-Item -ItemType Directory -Force D:\t | Out-Null
+        shell: pwsh
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.which == 'frozen' && env.FROZEN || github.sha }}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Run the producer tests ten times
+        shell: pwsh
+        run: |
+          $failed = 0
+          1..10 | ForEach-Object {
+            node --test scripts/g17-diagnostic-producer-guard.test.mjs 2>&1 | Tee-Object -FilePath "run-$_.tap" | Out-Null
+            $code = $LASTEXITCODE
+            $names = (Select-String -Path "run-$_.tap" -Pattern '^not ok' | ForEach-Object { $_.Line }) -join '; '
+            "run $_ exit=$code $names"
+            if ($code -ne 0) { $failed++ }
+          }
+          "failed runs: $failed of 10"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: producer-repeat-${{ matrix.which }}
+          path: run-*.tap
+  producer-mutants:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      TEMP: D:\t
+      TMP: D:\t
+    steps:
+      - run: New-Item -ItemType Directory -Force D:\t | Out-Null
+        shell: pwsh
+      - uses: actions/checkout@v4
+        with: {path: candidate}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Producer mutants on the candidate
+        shell: pwsh
+        env: {G17_PHASE: new}
+        run: node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs candidate retest-candidate-2 M12 M13
+      - name: Collect
+        if: always()
+        shell: pwsh
+        run: |
+          $d = 'retest-candidate-2'
+          Get-ChildItem -Directory -Filter 'work-*' -Recurse $d -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+          Get-ChildItem $d -Filter 'M*.json' | ForEach-Object { $j = Get-Content $_.FullName -Raw | ConvertFrom-Json; "{0} control_before={1} control_after={2} mutated_exit={3} auto={4}" -f $_.BaseName, $j.control_before.exit, $j.control_after.exit, $j.mutated_run.exit, $j.auto }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: producer-mutants-candidate-2
+          path: retest-candidate-2
+  linux-docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # PowerShell wraps and colours error text to the console width; the ownership tests match the plain text.
+      NO_COLOR: "1"
+      TERM: dumb
+      COLUMNS: "400"
+    steps:
+      - uses: actions/checkout@v4
+        with: {path: candidate}
+      - uses: actions/checkout@v4
+        with: {ref: "${{ env.FROZEN }}", path: frozen}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Image
+        run: docker pull alpine/socat:1.8.0.3
+      - name: Docker ownership mutants on the frozen source
+        env: {G17_PHASE: frozen-broad}
+        run: node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs frozen retest-frozen M06 M07 M08 M09 M10 M11
+        continue-on-error: true
+      - name: Docker ownership mutants on the candidate
+        env: {G17_PHASE: new}
+        run: node candidate/docs/m17-s25-mutation-retest-20261117/tooling/retest.mjs candidate retest-candidate M06 M07 M08 M09 M10 M11
+        continue-on-error: true
+      - name: Collect
+        if: always()
+        run: |
+          find retest-frozen retest-candidate -name 'work-*' -prune -exec rm -rf {} + || true
+          for f in retest-frozen/M*.json retest-candidate/M*.json; do node -e 'const j=require(process.argv[1]);console.log(process.argv[1],"control_before="+j.control_before.exit,"control_after="+j.control_after?.exit,"mutated_exit="+j.mutated_run?.exit,j.auto||j.disposition)' "./$f"; done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g17-s25-retest-linux-2
+          path: |
+            retest-frozen
+            retest-candidate

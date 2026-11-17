@@ -1,0 +1,25 @@
+{
+  "project": "ho-verify-m17-lbl-c8844f",
+  "near_miss_labels": [
+    "ho-verify-m17-lbl-c8844f ",
+    " ho-verify-m17-lbl-c8844f",
+    "HO-VERIFY-M17-LBL-C8844F",
+    "ho-verify-m17-lbl-c8844fx",
+    "ho-verify-m17-lbl-c8844",
+    ""
+  ],
+  "owned_container": "ho-verify-m17-lbl-c8844f-svc-0",
+  "results": {
+    "original": {
+      "exit": 0,
+      "output": "{\"containers\":[\"ho-verify-m17-lbl-c8844f-svc-0\"],\"networks\":[],\"problems\":[]}",
+      "stderr": ""
+    },
+    "mutant M06+M07": {
+      "exit": 0,
+      "output": "{\"containers\":[\"ho-verify-m17-lbl-c8844f-svc-0\"],\"networks\":[],\"problems\":[]}",
+      "stderr": ""
+    }
+  },
+  "identical_output": true
+}

@@ -1,0 +1,68 @@
+{
+  "id": "M12",
+  "family": "diagnostic producer",
+  "name": "exit of children not awaited",
+  "target": "docs/m17-s25-p09-controlled-protocol-20261115/diagnostics.ps1",
+  "source_sha256": "20184994a522439d0b359af993d1c8041901597df99eb4378f8c319901d5fb5e",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-diagnostic-producer-guard.test.mjs"
+  ],
+  "mutation": {
+    "from": "try { Wait-Process -Id $id -Timeout 10 -ErrorAction Stop } catch [System.TimeoutException] { throw \"Child $kind (process $id) did not exit within 10 seconds.\" } catch { }",
+    "to": "",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 94,
+    "tests": 20,
+    "pass": 20,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M12.control-before.out.txt"
+  },
+  "mutated_sha256": "f5dd63547fb63bdf81196dcc357e39c4c8b6b39146db2d3dc036c28294d360c2",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 73,
+    "tests": 20,
+    "pass": 18,
+    "fail": 2,
+    "failing_tests": [
+      "the producer source keeps its ownership guards (structure check for mutation control)",
+      "a child that outlives the stop request by eight seconds is awaited, then recorded as terminated"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "'Wait-Process'",
+      "|-"
+    ],
+    "output": "M12.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 94,
+    "tests": 20,
+    "pass": 20,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M12.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "KILLED_CANDIDATE"
+}

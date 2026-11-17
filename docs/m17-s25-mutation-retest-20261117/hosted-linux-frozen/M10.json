@@ -1,0 +1,81 @@
+{
+  "id": "M10",
+  "family": "docker ownership",
+  "name": "volumes removed with containers",
+  "target": "scripts/g17-docker-ownership.ps1",
+  "source_sha256": "f41a69207b2e156d7a61eb52a642d12820a4cef24948af7967e26ae6fadb1c39",
+  "command": [
+    "node",
+    "--test",
+    "--test-name-pattern=finished stack|running stack|partially initialised|ambiguous ownership|another project|project names|already exists|held address|runner preserves",
+    "scripts/g17-docker-ownership.test.mjs"
+  ],
+  "mutation": {
+    "from": "Invoke-G17Docker @('rm', $container.Id)",
+    "to": "Invoke-G17Docker @('rm', '-v', $container.Id)",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 42,
+    "tests": 9,
+    "pass": 8,
+    "fail": 1,
+    "failing_tests": [
+      "ambiguous ownership removes nothing at all, not even the resources that are clearly owned"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "'a container with the project label but another name'"
+    ],
+    "output": "M10.control-before.out.txt"
+  },
+  "mutated_sha256": "e1dd8498ebe5b38b98aea2944f5ad58ce2614a33b510302bfaf51a2f375887c7",
+  "mutated_run": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 42,
+    "tests": 9,
+    "pass": 7,
+    "fail": 2,
+    "failing_tests": [
+      "ambiguous ownership removes nothing at all, not even the resources that are clearly owned",
+      "the runner preserves before it removes, removes only through the ownership checks, and never prunes"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "'a container with the project label but another name'",
+      "'container removal never uses -v'"
+    ],
+    "output": "M10.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 1,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 42,
+    "tests": 9,
+    "pass": 8,
+    "fail": 1,
+    "failing_tests": [
+      "ambiguous ownership removes nothing at all, not even the resources that are clearly owned"
+    ],
+    "error_names": [
+      "AssertionError"
+    ],
+    "error_messages": [
+      "'a container with the project label but another name'"
+    ],
+    "output": "M10.control-after.out.txt"
+  },
+  "controls_pass": false,
+  "auto": "VOID_CONTROL"
+}

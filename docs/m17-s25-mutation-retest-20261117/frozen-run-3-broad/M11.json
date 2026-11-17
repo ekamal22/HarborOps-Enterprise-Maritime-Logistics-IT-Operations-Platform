@@ -1,0 +1,61 @@
+{
+  "id": "M11",
+  "family": "docker ownership",
+  "name": "existing evidence directory overwritten",
+  "target": "scripts/cleanup-g17-owned.ps1",
+  "source_sha256": "c2c901e15b24bf7a6236b03dd918b5f988686fa39395bd10c97ebd30c049485e",
+  "command": [
+    "node",
+    "--test",
+    "--test-name-pattern=finished stack|running stack|partially initialised|ambiguous ownership|another project|project names|already exists|held address|runner preserves",
+    "scripts/g17-docker-ownership.test.mjs"
+  ],
+  "mutation": {
+    "from": "if (Test-Path -LiteralPath $evidencePath) { throw 'The cleanup evidence directory already exists. Never overwrite evidence' }",
+    "to": "",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 59,
+    "tests": 9,
+    "pass": 9,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M11.control-before.out.txt"
+  },
+  "mutated_sha256": "d2a89b438d1ca25ee1ec7dbd555b3d3776bb0e2e54694d8d8a81a938e57c8a3e",
+  "mutated_run": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 59,
+    "tests": 9,
+    "pass": 9,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M11.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 58,
+    "tests": 9,
+    "pass": 9,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M11.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "SURVIVED"
+}

@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+ok 1 - an owned run stops only its own children and sidecar, waits for their exit, and verifies strictly
+  ---
+  duration_ms: 5715.1592
+  type: 'test'
+  ...
+# Subtest: an unrelated process that now holds a recorded pid is never signalled
+ok 2 - an unrelated process that now holds a recorded pid is never signalled
+  ---
+  duration_ms: 3275.8714
+  type: 'test'
+  ...
+# Subtest: a reused process id is detected by its creation time even when name and command line match
+ok 3 - a reused process id is detected by its creation time even when name and command line match
+  ---
+  duration_ms: 1637.0584
+  type: 'test'
+  ...
+# Subtest: a running process with no recorded identity is not signalled
+ok 4 - a running process with no recorded identity is not signalled
+  ---
+  duration_ms: 1628.6174
+  type: 'test'
+  ...
+# Subtest: invalid recorded process ids stop the run before anything is touched
+ok 5 - invalid recorded process ids stop the run before anything is touched
+  ---
+  duration_ms: 5075.7665
+  type: 'test'
+  ...
+# Subtest: tampered ownership fields stop the run before docker is consulted
+ok 6 - tampered ownership fields stop the run before docker is consulted
+  ---
+  duration_ms: 3228.5139
+  type: 'test'
+  ...
+# Subtest: a container that is not exactly this run's sidecar is never removed
+ok 7 - a container that is not exactly this run's sidecar is never removed
+  ---
+  duration_ms: 8323.8851
+  type: 'test'
+  ...
+# Subtest: missing processes and an absent sidecar are a normal, verifiable stop
+ok 8 - missing processes and an absent sidecar are a normal, verifiable stop
+  ---
+  duration_ms: 1549.3635
+  type: 'test'
+  ...
+# Subtest: a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+ok 9 - a repeated Stop is idempotent and signals nothing, even if the state is edited to name a live process
+  ---
+  duration_ms: 6927.1538
+  type: 'test'
+  ...
+# Subtest: negative control: a foreign process that keeps appending is detected before anything is hashed
+ok 10 - negative control: a foreign process that keeps appending is detected before anything is hashed
+  ---
+  duration_ms: 3852.763
+  type: 'test'
+  ...
+# Subtest: negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+ok 11 - negative control: a write that lands after the hash list is created is detected, and the verifier agrees
+  ---
+  duration_ms: 1618.087
+  type: 'test'
+  ...
+# Subtest: negative control: a new file that appears after hashing is detected
+ok 12 - negative control: a new file that appears after hashing is detected
+  ---
+  duration_ms: 1631.7969
+  type: 'test'
+  ...
+# Subtest: an output directory holding a subdirectory or a link cannot be hashed
+ok 13 - an output directory holding a subdirectory or a link cannot be hashed
+  ---
+  duration_ms: 1615.7789
+  type: 'test'
+  ...
+# Subtest: Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+ok 14 - Start refuses to proceed over existing state, an unowned project name, or an existing sidecar
+  ---
+  duration_ms: 1425.4292
+  type: 'test'
+  ...
+# Subtest: a real Start then Stop against the stand-in docker records identities and verifies strictly
+ok 15 - a real Start then Stop against the stand-in docker records identities and verifies strictly
+  ---
+  duration_ms: 2790.5482
+  type: 'test'
+  ...
+# Subtest: the producer source keeps its ownership guards (structure check for mutation control)
+ok 16 - the producer source keeps its ownership guards (structure check for mutation control)
+  ---
+  duration_ms: 0.4137
+  type: 'test'
+  ...
+# Subtest: a removal that reports success but leaves the container behind is a failure
+ok 17 - a removal that reports success but leaves the container behind is a failure
+  ---
+  duration_ms: 1029.6222
+  type: 'test'
+  ...
+# Subtest: negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+ok 18 - negative control: a writer that rewrites identical bytes (same length, new modification time) is detected
+  ---
+  duration_ms: 3909.1937
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55376.8668

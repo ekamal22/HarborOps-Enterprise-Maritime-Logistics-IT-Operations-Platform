@@ -1,0 +1,119 @@
+# Optional local telemetry profile. Use only with an owned disposable project.
+# Default compose.yaml remains unchanged.
+services:
+  postgres:
+    image: ho-verify-m17-postgres:16.15-rootless
+
+  api:
+    environment:
+      M17__Enabled: "true"
+      M17__OtlpEndpoint: "http://otelcol:4317"
+      M17__LinkKey: "${HARBOROPS_M17_LINK_KEY:?Set a private disposable 256-bit link key}"
+      OTEL_BSP_MAX_QUEUE_SIZE: "2048"
+      OTEL_BSP_MAX_EXPORT_BATCH_SIZE: "256"
+      OTEL_BSP_EXPORT_TIMEOUT: "1000"
+      OTEL_BSP_SCHEDULE_DELAY: "1000"
+      OTEL_ATTRIBUTE_COUNT_LIMIT: "16"
+      OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT: "120"
+      OTEL_SPAN_EVENT_COUNT_LIMIT: "0"
+      OTEL_SPAN_LINK_COUNT_LIMIT: "0"
+      OTEL_METRIC_EXPORT_INTERVAL: "15000"
+      OTEL_METRIC_EXPORT_TIMEOUT: "2500"
+    networks: [internal, telemetry_ingest]
+
+  otelcol:
+    image: otel/opentelemetry-collector-contrib:0.165.0
+    profiles: [observability]
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./monitoring/m17/collector.yaml:/etc/otelcol/config.yaml:ro
+    read_only: true
+    tmpfs: ["/tmp:size=4194304"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    networks: [telemetry_ingest, telemetry_monitor]
+
+  tempo:
+    image: grafana/tempo:2.10.8
+    profiles: [observability]
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./monitoring/m17/tempo.yaml:/etc/tempo.yaml:ro
+    tmpfs:
+      - /var/tempo:size=75497472,uid=10001,gid=10001
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    networks: [telemetry_monitor]
+
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    profiles: [observability]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=24h
+      - --storage.tsdb.retention.size=120MB
+    volumes:
+      - ./monitoring/m17/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/m17/alerts.yaml:/etc/prometheus/alerts.yml:ro
+      - ./monitoring/m17/alert-test.yaml:/etc/prometheus/m17-test.yaml:ro
+    tmpfs:
+      - /prometheus:size=134217728,uid=65534,gid=65534
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    networks: [telemetry_monitor]
+
+  grafana:
+    image: grafana/grafana:13.3.1
+    profiles: [observability]
+    environment:
+      GF_SECURITY_ADMIN_USER: "local_operator"
+      GF_SECURITY_ADMIN_PASSWORD: "${HARBOROPS_M17_GRAFANA_PASSWORD:?Set a disposable local Grafana password}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_ROOT_URL: "http://127.0.0.1:3301/"
+      GF_SECURITY_ALLOW_EMBEDDING: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_PLUGINS_PLUGIN_ADMIN_ENABLED: "false"
+      GF_ALERTING_ENABLED: "false"
+      GF_UNIFIED_ALERTING_ENABLED: "false"
+    volumes:
+      - ./monitoring/m17/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/m17.yaml:ro
+      - ./monitoring/m17/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/m17.yaml:ro
+      - ./monitoring/m17/grafana/dashboard.json:/etc/grafana/dashboards/m17-dashboard.json:ro
+    tmpfs:
+      - /var/lib/grafana:size=25165824,uid=472,gid=0
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    networks: [telemetry_monitor]
+
+  # Docker publishes no host port for a container that is attached only to
+  # internal networks. This single-purpose TCP forwarder is the only routable
+  # member and exposes the isolated dashboard on 127.0.0.1 only.
+  dashboard_gateway:
+    image: alpine/socat:1.8.0.3
+    profiles: [observability]
+    command: ["-d", "TCP-LISTEN:3000,fork,reuseaddr", "TCP:grafana:3000"]
+    user: "65534:65534"
+    read_only: true
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: "no"
+    ports: ["127.0.0.1:3301:3000"]
+    networks: [dashboard_access, telemetry_monitor]
+    depends_on: [grafana]
+
+# No untrusted web or other application container may access the unauthenticated
+# Prometheus, Tempo or collector diagnostic endpoints directly.
+networks:
+  telemetry_ingest:
+    internal: true
+  telemetry_monitor:
+    internal: true
+  dashboard_access:
+    driver: bridge

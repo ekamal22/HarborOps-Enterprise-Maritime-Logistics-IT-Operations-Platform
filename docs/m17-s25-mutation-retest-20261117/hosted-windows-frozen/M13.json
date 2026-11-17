@@ -1,0 +1,60 @@
+{
+  "id": "M13",
+  "family": "diagnostic producer",
+  "name": "lingering child tolerated",
+  "target": "docs/m17-s25-p09-controlled-protocol-20261115/diagnostics.ps1",
+  "source_sha256": "a21e50774122d523e5518559508cf3db3a728a6c14496cba079a3c8a7c44f66a",
+  "command": [
+    "node",
+    "--test",
+    "scripts/g17-diagnostic-producer-guard.test.mjs"
+  ],
+  "mutation": {
+    "from": "if (Get-ProcessIdentity $id) { throw \"Child $kind (process $id) is still running after the stop request.\" }",
+    "to": "",
+    "occurrences_in_source": 1
+  },
+  "control_before": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 56,
+    "tests": 18,
+    "pass": 18,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M13.control-before.out.txt"
+  },
+  "mutated_sha256": "723ef56f6cb0424e5230ab3bf08eaabbaf7c97a0675fad430af9e0b3cc180c7c",
+  "mutated_run": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 55,
+    "tests": 18,
+    "pass": 18,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M13.mutated.out.txt"
+  },
+  "restored_sha256_matches": true,
+  "control_after": {
+    "exit": 0,
+    "signal": null,
+    "timed_out": false,
+    "seconds": 55,
+    "tests": 18,
+    "pass": 18,
+    "fail": 0,
+    "failing_tests": [],
+    "error_names": [],
+    "error_messages": [],
+    "output": "M13.control-after.out.txt"
+  },
+  "controls_pass": true,
+  "auto": "SURVIVED"
+}

@@ -1,0 +1,2750 @@
+{
+ "summary": {
+  "final_candidates": 805,
+  "KILLED": 790,
+  "KILLED_LOAD_ERROR": 4,
+  "SURVIVED": 11,
+  "INVALID_INFRASTRUCTURE": 0
+ },
+ "by_target": {
+  "audit-g17-test-coverage.mjs": {
+   "candidates": 52,
+   "killed": 51,
+   "killed_load_error": 0,
+   "survived": 1,
+   "invalid": 0
+  },
+  "g17-diagnostic-evidence.mjs": {
+   "candidates": 10,
+   "killed": 10,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "g17-evidence-files.mjs": {
+   "candidates": 6,
+   "killed": 6,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "g17-live-5xx-evidence.mjs": {
+   "candidates": 6,
+   "killed": 6,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "g17-malformed-trace-evidence.mjs": {
+   "candidates": 13,
+   "killed": 13,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "g17-network-guards.mjs": {
+   "candidates": 7,
+   "killed": 7,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "g17-p09-review.mjs": {
+   "candidates": 11,
+   "killed": 9,
+   "killed_load_error": 0,
+   "survived": 2,
+   "invalid": 0
+  },
+  "g17-raw-witness.mjs": {
+   "candidates": 262,
+   "killed": 262,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "g17-regression-accounting.mjs": {
+   "candidates": 2,
+   "killed": 2,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "g17-results-contract.mjs": {
+   "candidates": 28,
+   "killed": 28,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "g17-s25-raw-evidence.mjs": {
+   "candidates": 56,
+   "killed": 56,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "g17-worker-log-privacy.mjs": {
+   "candidates": 7,
+   "killed": 7,
+   "killed_load_error": 0,
+   "survived": 0,
+   "invalid": 0
+  },
+  "reconcile-g17-assertions.mjs": {
+   "candidates": 57,
+   "killed": 55,
+   "killed_load_error": 2,
+   "survived": 0,
+   "invalid": 0
+  },
+  "verify-g17-manifest.mjs": {
+   "candidates": 288,
+   "killed": 278,
+   "killed_load_error": 2,
+   "survived": 8,
+   "invalid": 0
+  }
+ },
+ "survivor_counts": {
+  "A_reported": 69,
+  "B_original_state_rerun": 95,
+  "M_manifest_at_c954edec": 19,
+  "C_post_correction": 28,
+  "D_first_pass": 30
+ },
+ "distinct_survivors": 120,
+ "tally": {
+  "EQUIVALENT": 2,
+  "MATERIAL_CORRECTED": 108,
+  "UNREACHABLE": 1,
+  "REDUNDANT": 8,
+  "IDENTITY_MUTANT_CONTAMINATED_BASELINE": 1
+ },
+ "unmatched": [
+  {
+   "key": "verify-g17-manifest.mjs|161|memory.total_paths !== 40000 || memory.rows?.length !== 4 ||",
+   "campaigns": [
+    "A"
+   ]
+  }
+ ],
+ "rows": [
+  {
+   "id": "audit-g17-test-coverage.mjs@c045",
+   "target": "audit-g17-test-coverage.mjs",
+   "line": 89,
+   "operator": "||>&&",
+   "original": "if (seen.size !== 75 || matrix.length !== 75)",
+   "mutated": "if (seen.size !== 75 && matrix.length !== 75)",
+   "seen_surviving_in": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "EQUIVALENT",
+   "evidence": {
+    "class": "EQUIVALENT",
+    "reason": "seen.size and matrix.length move in lockstep: a duplicate id takes the continue branch before both seen.add and matrix.push, so the two counts are always equal and (a||b) equals (a&&b).",
+    "evidence": "survivor-evidence/equivalence-probes.out.json (five structural faults, identical error lists with and without the mutation)"
+   }
+  },
+  {
+   "id": "audit-g17-test-coverage.mjs@c051",
+   "target": "audit-g17-test-coverage.mjs",
+   "line": 101,
+   "operator": "===>!==",
+   "original": "if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {",
+   "mutated": "if (process.argv[1] && path.resolve(process.argv[1]) !== fileURLToPath(import.meta.url)) {",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the command runs its audit, writes its report and never overwrites it, while an import runs nothing"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "audit-g17-test-coverage.mjs@c052",
+   "target": "audit-g17-test-coverage.mjs",
+   "line": 101,
+   "operator": "&&>||",
+   "original": "if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {",
+   "mutated": "if (process.argv[1] || path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the command runs its audit, writes its report and never overwrites it, while an import runs nothing"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-diagnostic-evidence.mjs@c004",
+   "target": "g17-diagnostic-evidence.mjs",
+   "line": 16,
+   "operator": "===>!==",
+   "original": "assert.ok(spans.some(s=>s.name===\"http.request\"),",
+   "mutated": "assert.ok(spans.some(s=>s.name!==\"http.request\"),",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a trace with two spans but no http.request server span is rejected"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-malformed-trace-evidence.mjs@c004",
+   "target": "g17-malformed-trace-evidence.mjs",
+   "line": 9,
+   "operator": "&&>||",
+   "original": "assert.ok(canary&&typeof canary===\"string\");",
+   "mutated": "assert.ok(canary||typeof canary===\"string\");",
+   "seen_surviving_in": [
+    "A",
+    "B",
+    "C"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a canary that is not a non-empty string is refused by the canary assertion itself, not by a later accident"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-p09-review.mjs@c001",
+   "target": "g17-p09-review.mjs",
+   "line": 4,
+   "operator": "&&>||",
+   "original": "assert.ok(Array.isArray(values)&&values.length>0);",
+   "mutated": "assert.ok(Array.isArray(values)||values.length>0);",
+   "seen_surviving_in": [
+    "A",
+    "B",
+    "C"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a sample list that is not an array is refused by an assertion, never by a crash or an accident"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-p09-review.mjs@c004",
+   "target": "g17-p09-review.mjs",
+   "line": 11,
+   "operator": "<=><",
+   "original": "assert.ok(Number.isFinite(actual)&&Math.abs(actual-expected)<=tolerance,",
+   "mutated": "assert.ok(Number.isFinite(actual)&&Math.abs(actual-expected)<tolerance,",
+   "seen_surviving_in": [
+    "A",
+    "B",
+    "C"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a recorded pair percentage is accepted at exactly the approved tolerance and refused just beyond it"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-p09-review.mjs@c006",
+   "target": "g17-p09-review.mjs",
+   "line": 28,
+   "operator": "&&>||",
+   "original": "assert.ok(Number.isFinite(row.rss_peak_mib)&&row.rss_peak_mib>0);",
+   "mutated": "assert.ok(Number.isFinite(row.rss_peak_mib)||row.rss_peak_mib>0);",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a negative peak memory reading is rejected even when every derived number is consistent with it"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-p09-review.mjs@c008",
+   "target": "g17-p09-review.mjs",
+   "line": 39,
+   "operator": "&&>||",
+   "original": "assert.ok(off&&on);",
+   "mutated": "assert.ok(off||on);",
+   "seen_surviving_in": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "UNREACHABLE",
+   "evidence": {
+    "class": "UNREACHABLE",
+    "reason": "Six rows with rounds in {1,2,3} and booleans in {false,true} and no duplicate key cover all six round and mode pairs, so off and on always exist; duplicates are refused earlier with 'Duplicate paired mode'.",
+    "evidence": "survivor-evidence/equivalence-probes.out.json"
+   }
+  },
+  {
+   "id": "g17-p09-review.mjs@c010",
+   "target": "g17-p09-review.mjs",
+   "line": 72,
+   "operator": "<=><",
+   "original": "const pass=Object.values(pooled).every(x=>x.increase_pct<=10)&&meanMemory<=15;",
+   "mutated": "const pass=Object.values(pooled).every(x=>x.increase_pct<10)&&meanMemory<=15;",
+   "seen_surviving_in": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "EQUIVALENT",
+   "evidence": {
+    "class": "EQUIVALENT",
+    "reason": "r-1 is exact for r in [1,2) and double(0.1) is not a multiple of 2^-52, so no ratio produces exactly 10 after the multiplication by 100: the nearest results are 9.999999999999986 and 10.000000000000009.",
+    "evidence": "survivor-evidence/p09-float-boundary.out.txt (72018 scanned pairs, none exactly 10)"
+   }
+  },
+  {
+   "id": "g17-raw-witness.mjs@c196",
+   "target": "g17-raw-witness.mjs",
+   "line": 185,
+   "operator": ">=>>",
+   "original": "Number.isFinite(r.rss_increase_stddev_pct) && r.system?.cpus >= 1 &&",
+   "mutated": "Number.isFinite(r.rss_increase_stddev_pct) && r.system?.cpus > 1 &&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "storage and regression predicates are exact at their edges and need each fact in every row"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-raw-witness.mjs@c202",
+   "target": "g17-raw-witness.mjs",
+   "line": 188,
+   "operator": " > N>N+1000",
+   "original": "r.system?.memory_bytes > 0]",
+   "mutated": "r.system?.memory_bytes > 1000]",
+   "seen_surviving_in": [
+    "A",
+    "B",
+    "C"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the host memory size is only required to be a positive number"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-raw-witness.mjs@c234",
+   "target": "g17-raw-witness.mjs",
+   "line": 215,
+   "operator": ">=>>",
+   "original": "Object.keys(r.positive_history?.tables??{}).length>=8],",
+   "mutated": "Object.keys(r.positive_history?.tables??{}).length>8],",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "storage and regression predicates are exact at their edges and need each fact in every row"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-raw-witness.mjs@c245",
+   "target": "g17-raw-witness.mjs",
+   "line": 226,
+   "operator": "&&>||",
+   "original": "\"m15_outbox\",\"m16_audit\"].every(name=>r.fixture_rows_before?.[name]?.rows>0 &&",
+   "mutated": "\"m15_outbox\",\"m16_audit\"].every(name=>r.fixture_rows_before?.[name]?.rows>0 ||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "storage and regression predicates are exact at their edges and need each fact in every row"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-raw-witness.mjs@c248",
+   "target": "g17-raw-witness.mjs",
+   "line": 232,
+   "operator": ">=>>",
+   "original": "r.cases.M13.passed >= 1 && r.cases.M13.declared_methods >= 1 &&",
+   "mutated": "r.cases.M13.passed > 1 && r.cases.M13.declared_methods >= 1 &&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "storage and regression predicates are exact at their edges and need each fact in every row"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-raw-witness.mjs@c253",
+   "target": "g17-raw-witness.mjs",
+   "line": 236,
+   "operator": ">=>>",
+   "original": "r.cases.audit.passed >= 1 && r.cases.audit.declared_methods >= 1 &&",
+   "mutated": "r.cases.audit.passed > 1 && r.cases.audit.declared_methods >= 1 &&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "storage and regression predicates are exact at their edges and need each fact in every row"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-raw-witness.mjs@c260",
+   "target": "g17-raw-witness.mjs",
+   "line": 247,
+   "operator": "false>true",
+   "original": "try { return predicate(report) === true; } catch { return false; }",
+   "mutated": "try { return predicate(report) === true; } catch { return true; }",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a predicate that throws on a malformed report fails closed, and unknown cases have no predicate"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-raw-witness.mjs@c262",
+   "target": "g17-raw-witness.mjs",
+   "line": 255,
+   "operator": "&&>||",
+   "original": "return Boolean(table) && [...table.keys()].some(needle => caseName.includes(needle));",
+   "mutated": "return Boolean(table) || [...table.keys()].some(needle => caseName.includes(needle));",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a predicate that throws on a malformed report fails closed, and unknown cases have no predicate"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-results-contract.mjs@c002",
+   "target": "g17-results-contract.mjs",
+   "line": 17,
+   "operator": "&&>||",
+   "original": "function same(a,b) { return a.length === b.length && a.every((x,i)=>x===b[i]); }",
+   "mutated": "function same(a,b) { return a.length === b.length || a.every((x,i)=>x===b[i]); }",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a browser case renamed to another title with the same total count is rejected"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c002",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 23,
+   "operator": "&&>||",
+   "original": "assert.ok(!span.events?.length&&!span.links?.length&&",
+   "mutated": "assert.ok(!span.events?.length||!span.links?.length&&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a retained trace with only one of events, links, state or status text is rejected"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c003",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 24,
+   "operator": "&&>||",
+   "original": "!span.traceState&&!span.status?.message,",
+   "mutated": "!span.traceState||!span.status?.message,",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a retained trace with only one of events, links, state or status text is rejected"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c004",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 30,
+   "operator": "&&>||",
+   "original": "assert.ok(Array.isArray(series)&&series.length>0);",
+   "mutated": "assert.ok(Array.isArray(series)||series.length>0);",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "an empty, non-object or over-long exported series row is rejected and the 120 character edge passes"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c007",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 32,
+   "operator": "&&>||",
+   "original": "assert.ok(row&&typeof row===\"object\");",
+   "mutated": "assert.ok(row||typeof row===\"object\");",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "an empty, non-object or over-long exported series row is rejected and the 120 character edge passes"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c008",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 35,
+   "operator": "<=><",
+   "original": "assert.ok(String(value).length<=120,\"Unbounded metric value\");",
+   "mutated": "assert.ok(String(value).length<120,\"Unbounded metric value\");",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "an empty, non-object or over-long exported series row is rejected and the 120 character edge passes"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c011",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 48,
+   "operator": "&&>||",
+   "original": "x.trace_id===diagnostic.trace_id &&",
+   "mutated": "x.trace_id===diagnostic.trace_id ||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the page-originated observation must match the journey on every one of four facts"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c013",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 49,
+   "operator": "&&>||",
+   "original": "x.correlation_id===diagnostic.server_correlation &&",
+   "mutated": "x.correlation_id===diagnostic.server_correlation ||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the page-originated observation must match the journey on every one of four facts"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c015",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 50,
+   "operator": "&&>||",
+   "original": "x.status===503 && x.body_correlation===x.correlation_id));",
+   "mutated": "x.status===503 || x.body_correlation===x.correlation_id));",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the page-originated observation must match the journey on every one of four facts"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c019",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 62,
+   "operator": "&&>||",
+   "original": "assert.ok(display.viewport?.width>0&&display.viewport?.height>0);",
+   "mutated": "assert.ok(display.viewport?.width>0||display.viewport?.height>0);",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "each viewport dimension and a first-column alert name are validated"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c020",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 67,
+   "operator": ">=>>",
+   "original": "assert.ok(nameColumn>=0&&stateColumn>=0&&Array.isArray(display.table_rows)&&",
+   "mutated": "assert.ok(nameColumn>0&&stateColumn>=0&&Array.isArray(display.table_rows)&&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "each viewport dimension and a first-column alert name are validated"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c032",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 124,
+   "operator": "&&>||",
+   "original": "assert.ok(ws.series.some(row=>/^harborops_worker_/.test(row.__name__??\"\")&&",
+   "mutated": "assert.ok(ws.series.some(row=>/^harborops_worker_/.test(row.__name__??\"\")||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "worker metric series need the worker metric name and the tracking worker label together"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c044",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 174,
+   "operator": ">=>>",
+   "original": "assert.ok(degradation.prometheus_unreachable===true||degradation.stale_age_seconds>=45,",
+   "mutated": "assert.ok(degradation.prometheus_unreachable===true||degradation.stale_age_seconds>45,",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "storage degradation and recovery edges are inclusive and a failed recovery step is rejected"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c049",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 178,
+   "operator": "&&>||",
+   "original": "assert.ok((storage.checks??[]).some(c=>c.name===\"telemetry-observation-recovers-after-fault\"&&",
+   "mutated": "assert.ok((storage.checks??[]).some(c=>c.name===\"telemetry-observation-recovers-after-fault\"||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "storage degradation and recovery edges are inclusive and a failed recovery step is rejected"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c053",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 207,
+   "operator": ">=>>",
+   "original": "assert.ok(lowWindow.eligible_min>=1&&lowWindow.eligible_max<100,",
+   "mutated": "assert.ok(lowWindow.eligible_min>1&&lowWindow.eligible_max<100,",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the below-threshold window accepts exactly its approved minimums"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c055",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 209,
+   "operator": ">=>>",
+   "original": "assert.ok(lowWindow.eligible_points>=4);",
+   "mutated": "assert.ok(lowWindow.eligible_points>4);",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the below-threshold window accepts exactly its approved minimums"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "g17-s25-raw-evidence.mjs@c056",
+   "target": "g17-s25-raw-evidence.mjs",
+   "line": 212,
+   "operator": ">=>>",
+   "original": "assert.ok(lowWindow.raw_5xx_zero_points>=1,",
+   "mutated": "assert.ok(lowWindow.raw_5xx_zero_points>1,",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the below-threshold window accepts exactly its approved minimums"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c005",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 21,
+   "operator": "||>&&",
+   "original": "if(group.id!==id||group.assertions?.length!==3)",
+   "mutated": "if(group.id!==id&&group.assertions?.length!==3)",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a mislabeled scenario or an extra fourth clause is reported on its own"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c012",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 30,
+   "operator": "&&>||",
+   "original": "const pending=clause.assessment===\"INDEPENDENT_REVIEW\"&&",
+   "mutated": "const pending=clause.assessment===\"INDEPENDENT_REVIEW\"||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the ledger states its own count error when only the independent count is wrong",
+     "an S25 clause must be both independent review and unwitnessed"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c020",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 56,
+   "operator": "||>&&",
+   "original": "if(technical_passes!==72||independent_pending!==3)",
+   "mutated": "if(technical_passes!==72&&independent_pending!==3)",
+   "seen_surviving_in": [
+    "A",
+    "B",
+    "C"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the ledger states its own count error when only the technical count is wrong",
+     "the ledger states its own count error when only the independent count is wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c026",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 105,
+   "operator": "===>!==",
+   "original": "requireTruth(result.source_sha===sha &&",
+   "mutated": "requireTruth(result.source_sha!==sha &&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "derivation refuses: raw report file missing",
+     "derivation refuses: promtool stage failed",
+     "derivation refuses: promtool stage absent",
+     "derivation refuses: promtool output without SUCCESS"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c027",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 105,
+   "operator": "&&>||",
+   "original": "requireTruth(result.source_sha===sha &&",
+   "mutated": "requireTruth(result.source_sha===sha ||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "derivation refuses: raw report with another source sha",
+     "derivation refuses: raw report from another project",
+     "derivation refuses: raw report with result FAIL",
+     "derivation refuses: raw report without a source sha"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c028",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 106,
+   "operator": "===>!==",
+   "original": "result.project===runStatus.project && result.result===\"PASS\",",
+   "mutated": "result.project!==runStatus.project && result.result===\"PASS\",",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "derivation refuses: raw report file missing",
+     "derivation refuses: promtool stage failed",
+     "derivation refuses: promtool stage absent",
+     "derivation refuses: promtool output without SUCCESS"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c029",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 106,
+   "operator": "&&>||",
+   "original": "result.project===runStatus.project && result.result===\"PASS\",",
+   "mutated": "result.project===runStatus.project || result.result===\"PASS\",",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "derivation refuses: raw report with another source sha",
+     "derivation refuses: raw report from another project",
+     "derivation refuses: raw report with result FAIL",
+     "derivation refuses: raw report without a source sha"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c030",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 111,
+   "operator": "===>!==",
+   "original": "x.stage===\"promtool-test\" && x.status===\"PASS\"),",
+   "mutated": "x.stage!==\"promtool-test\" && x.status===\"PASS\"),",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "derivation refuses: promtool stage failed",
+     "derivation refuses: promtool stage absent"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c031",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 111,
+   "operator": "&&>||",
+   "original": "x.stage===\"promtool-test\" && x.status===\"PASS\"),",
+   "mutated": "x.stage===\"promtool-test\" || x.status===\"PASS\"),",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "derivation refuses: promtool stage failed",
+     "derivation refuses: promtool stage absent"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c032",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 117,
+   "operator": "===>!==",
+   "original": "requireTruth(runStatus.run_state===\"COMPLETE\" &&",
+   "mutated": "requireTruth(runStatus.run_state!==\"COMPLETE\" &&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "derivation refuses: run state FAILED",
+     "derivation refuses: required stage dotnet-build missing",
+     "derivation refuses: required stage unit-tests missing",
+     "derivation refuses: required stage contract-tests missing"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c033",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 117,
+   "operator": "&&>||",
+   "original": "requireTruth(runStatus.run_state===\"COMPLETE\" &&",
+   "mutated": "requireTruth(runStatus.run_state===\"COMPLETE\" ||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "derivation refuses: run state FAILED",
+     "derivation refuses: only ten stages recorded",
+     "derivation refuses: a stage failed",
+     "derivation refuses: a stage with a non-zero exit code"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c034",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 118,
+   "operator": "&&>||",
+   "original": "runStatus.stage_results.length>10 &&",
+   "mutated": "runStatus.stage_results.length>10 ||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "derivation refuses: run state FAILED",
+     "derivation refuses: only ten stages recorded",
+     "derivation refuses: a stage failed",
+     "derivation refuses: a stage with a non-zero exit code"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c035",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 119,
+   "operator": "===>!==",
+   "original": "runStatus.stage_results.every(x=>x.status===\"PASS\" && x.exit_code===0),",
+   "mutated": "runStatus.stage_results.every(x=>x.status!==\"PASS\" && x.exit_code===0),",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "derivation refuses: required stage dotnet-build missing",
+     "derivation refuses: required stage unit-tests missing",
+     "derivation refuses: required stage contract-tests missing",
+     "derivation refuses: required stage integration-m17-tests missing"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c036",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 119,
+   "operator": "&&>||",
+   "original": "runStatus.stage_results.every(x=>x.status===\"PASS\" && x.exit_code===0),",
+   "mutated": "runStatus.stage_results.every(x=>x.status===\"PASS\" || x.exit_code===0),",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "derivation refuses: a stage failed",
+     "derivation refuses: a stage with a non-zero exit code"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c037",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 127,
+   "operator": "===>!==",
+   "original": "x.stage===name&&x.status===\"PASS\"&&x.exit_code===0)),",
+   "mutated": "x.stage!==name&&x.status===\"PASS\"&&x.exit_code===0)),",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "derivation refuses: required stage dotnet-build missing",
+     "derivation refuses: required stage unit-tests missing",
+     "derivation refuses: required stage contract-tests missing",
+     "derivation refuses: required stage integration-m17-tests missing",
+     "derivation refuses: required stage accepted-milestone-regressions-opted-in missing"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c038",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 127,
+   "operator": "&&>||",
+   "original": "x.stage===name&&x.status===\"PASS\"&&x.exit_code===0)),",
+   "mutated": "x.stage===name||x.status===\"PASS\"&&x.exit_code===0)),",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "derivation refuses: required stage dotnet-build missing",
+     "derivation refuses: required stage unit-tests missing",
+     "derivation refuses: required stage contract-tests missing",
+     "derivation refuses: required stage integration-m17-tests missing",
+     "derivation refuses: required stage accepted-milestone-regressions-opted-in missing"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c039",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 132,
+   "operator": "||>&&",
+   "original": "const supported=w.path.startsWith(\"tests/\")||",
+   "mutated": "const supported=w.path.startsWith(\"tests/\")&&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c040",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 133,
+   "operator": "||>&&",
+   "original": "w.path.startsWith(\"scripts/\")||",
+   "mutated": "w.path.startsWith(\"scripts/\")&&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c041",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 134,
+   "operator": "===>!==",
+   "original": "w.path===\"monitoring/m17/alert-test.yaml\";",
+   "mutated": "w.path!==\"monitoring/m17/alert-test.yaml\";",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c042",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 135,
+   "operator": "||>&&",
+   "original": "if(!supported||!w.case||!w.path||w.path.includes(\"..\"))return null;",
+   "mutated": "if(!supported&&!w.case||!w.path||w.path.includes(\"..\"))return null;",
+   "seen_surviving_in": [
+    "A",
+    "B",
+    "C"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a real Node test outside the supported witness roots cannot satisfy a witness even when its case ran"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c043",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 144,
+   "operator": "&&>||",
+   "original": "key.startsWith(group[0]+\"\\u0000\") &&",
+   "mutated": "key.startsWith(group[0]+\"\\u0000\") ||",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "ledger names the assertions affected by: a contract method missing from the contract TRX",
+     "ledger names the assertions affected by: an integration method reported under another class",
+     "ledger names the assertions affected by: an integration method reported only in the contract TRX"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c044",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 145,
+   "operator": "||>&&",
+   "original": "(key.includes(\".\"+className+\".\"+methodName+\"(\") ||",
+   "mutated": "(key.includes(\".\"+className+\".\"+methodName+\"(\") &&",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c045",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 147,
+   "operator": ">=>>",
+   "original": "return hits.length>=1 ? hits[0][1] : null;",
+   "mutated": "return hits.length>1 ? hits[0][1] : null;",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c046",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 153,
+   "operator": "true>false",
+   "original": "return found.every(Boolean) ? {passed:true,artifact:found[0].artifact} : null;",
+   "mutated": "return found.every(Boolean) ? {passed:false,artifact:found[0].artifact} : null;",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c047",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 157,
+   "operator": "===>!==",
+   "original": "if(w.path===\"monitoring/m17/alert-test.yaml\")",
+   "mutated": "if(w.path!==\"monitoring/m17/alert-test.yaml\")",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c048",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 159,
+   "operator": "===>!==",
+   "original": "if(w.path===\"scripts/run-g17-local.ps1\")",
+   "mutated": "if(w.path!==\"scripts/run-g17-local.ps1\")",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c049",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 163,
+   "operator": "&&>||",
+   "original": "return raw&&rawWitnessPasses(w.path,w.case,raw.result)",
+   "mutated": "return raw||rawWitnessPasses(w.path,w.case,raw.result)",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "ledger names the assertions affected by: a raw report failing its predicate",
+     "ledger names the assertions affected by: a raw report that no longer names its case",
+     "the command fails for a failing witness"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c050",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 164,
+   "operator": "true>false",
+   "original": "?{passed:true,artifact:raw.file}:null;",
+   "mutated": "?{passed:false,artifact:raw.file}:null;",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c051",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 166,
+   "operator": "===>!==",
+   "original": "if(w.path===\"scripts/verify-g17-manifest.mjs\")",
+   "mutated": "if(w.path!==\"scripts/verify-g17-manifest.mjs\")",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the complete synthetic campaign resolves all 72 technical witnesses and leaves 3 pending",
+     "an unresolvable witness is reported: a witness path outside the supported roots",
+     "an unresolvable witness is reported: a witness path with parent traversal",
+     "an unresolvable witness is reported: a witness without a case",
+     "an unresolvable witness is reported: a witness without a path"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c054",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 174,
+   "operator": "||>&&",
+   "original": "if(!evidenceRoot||!/^[a-f0-9]{40}$/.test(sha))",
+   "mutated": "if(!evidenceRoot&&!/^[a-f0-9]{40}$/.test(sha))",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the command fails for no source sha",
+     "the command fails for no evidence directory",
+     "the command fails for a short source sha"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c055",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 177,
+   "operator": "===>!==",
+   "original": "requireTruth(actual.source_sha===sha && actual.source_verified===true,",
+   "mutated": "requireTruth(actual.source_sha!==sha && actual.source_verified===true,",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the command writes the ledger and reports 72 of 72",
+     "the command fails for a source sha that differs from the run ledger",
+     "the command fails for a failing witness"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c057",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 177,
+   "operator": "true>false",
+   "original": "requireTruth(actual.source_sha===sha && actual.source_verified===true,",
+   "mutated": "requireTruth(actual.source_sha===sha && actual.source_verified===false,",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the command writes the ledger and reports 72 of 72",
+     "the command fails for a run ledger that is not source verified",
+     "the command fails for a failing witness"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "reconcile-g17-assertions.mjs@c056",
+   "target": "reconcile-g17-assertions.mjs",
+   "line": 177,
+   "operator": "&&>||",
+   "original": "requireTruth(actual.source_sha===sha && actual.source_verified===true,",
+   "mutated": "requireTruth(actual.source_sha===sha || actual.source_verified===true,",
+   "seen_surviving_in": [
+    "A",
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the command fails for a source sha that differs from the run ledger",
+     "the command fails for a run ledger that is not source verified"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c003",
+   "target": "verify-g17-manifest.mjs",
+   "line": 31,
+   "operator": "||>&&",
+   "original": "if (manifest.schema_version !== 2 || manifest.gate !== \"G17\" ||",
+   "mutated": "if (manifest.schema_version !== 2 && manifest.gate !== \"G17\" ||",
+   "seen_surviving_in": [
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a manifest header with a wrong schema version, gate or source is rejected one field at a time"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c010",
+   "target": "verify-g17-manifest.mjs",
+   "line": 44,
+   "operator": "||>&&",
+   "original": "if (claimed.path !== observed.path || claimed.sha256 !== observed.sha256 ||",
+   "mutated": "if (claimed.path !== observed.path && claimed.sha256 !== observed.sha256 ||",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "a manifest entry that differs from the file in only its path, only its hash or only its size is refused",
+     "a same-size content change is refused by hash alone"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c012",
+   "target": "verify-g17-manifest.mjs",
+   "line": 49,
+   "operator": "===>!==",
+   "original": "if (!actual.some(e => e.path === name))",
+   "mutated": "if (!actual.some(e => e.path !== name))",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "each required run ledger file must exist even when the index agrees with the directory"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c025",
+   "target": "verify-g17-manifest.mjs",
+   "line": 58,
+   "operator": "||>&&",
+   "original": "status.requested_source_sha !== manifest.source_sha ||",
+   "mutated": "status.requested_source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign header guard: requested source sha",
+     "complete campaign header guard: gate accepted in the run status"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c027",
+   "target": "verify-g17-manifest.mjs",
+   "line": 59,
+   "operator": "||>&&",
+   "original": "status.gate_acceptance !== \"NOT_ACCEPTED\" ||",
+   "mutated": "status.gate_acceptance !== \"NOT_ACCEPTED\" &&",
+   "seen_surviving_in": [
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign header guard: gate accepted in the run status",
+     "complete campaign header guard: assertions already reviewed in the run status"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c029",
+   "target": "verify-g17-manifest.mjs",
+   "line": 60,
+   "operator": "||>&&",
+   "original": "status.g17_assertion_review !== \"NOT_REVIEWED\" ||",
+   "mutated": "status.g17_assertion_review !== \"NOT_REVIEWED\" &&",
+   "seen_surviving_in": [
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign header guard: assertions already reviewed in the run status"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c033",
+   "target": "verify-g17-manifest.mjs",
+   "line": 63,
+   "operator": "||>&&",
+   "original": "!Array.isArray(expected.required_artifacts) ||",
+   "mutated": "!Array.isArray(expected.required_artifacts) &&",
+   "seen_surviving_in": [
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign header guard: required artifacts not an array",
+     "complete campaign header guard: full campaign flag not boolean"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c035",
+   "target": "verify-g17-manifest.mjs",
+   "line": 64,
+   "operator": "||>&&",
+   "original": "typeof expected.require_full_g17 !== \"boolean\" ||",
+   "mutated": "typeof expected.require_full_g17 !== \"boolean\" &&",
+   "seen_surviving_in": [
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign header guard: full campaign flag not boolean"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c043",
+   "target": "verify-g17-manifest.mjs",
+   "line": 76,
+   "operator": "||>&&",
+   "original": "status.stage_results.some(row => row.status !== \"PASS\" || row.exit_code !== 0)))",
+   "mutated": "status.stage_results.some(row => row.status !== \"PASS\" && row.exit_code !== 0)))",
+   "seen_surviving_in": [
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign header guard: stage with exit code 1 but PASS",
+     "complete campaign header guard: stage FAIL with exit code 0"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c063",
+   "target": "verify-g17-manifest.mjs",
+   "line": 95,
+   "operator": "||>&&",
+   "original": "ledger.total_assertions !== 75 || technical.length !== 72 ||",
+   "mutated": "ledger.total_assertions !== 75 && technical.length !== 72 ||",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects: ledger claims 74 total assertions"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c065",
+   "target": "verify-g17-manifest.mjs",
+   "line": 96,
+   "operator": "||>&&",
+   "original": "review.length !== 3 || new Set(ids).size !== 75 ||",
+   "mutated": "review.length !== 3 && new Set(ids).size !== 75 ||",
+   "seen_surviving_in": [
+    "B"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign header guard: ledger duplicate id"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c096",
+   "target": "verify-g17-manifest.mjs",
+   "line": 147,
+   "operator": "||>&&",
+   "original": "if (exported.source_sha !== manifest.source_sha ||",
+   "mutated": "if (exported.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "REDUNDANT",
+   "evidence": {
+    "class": "REDUNDANT",
+    "reason": "verifyS25RawSnapshots runs on the next statements and rejects a foreign source_sha in the privacy report first (g17-s25-raw-evidence.mjs line 13); the manifest still rejects the input with the mutation applied.",
+    "evidence": "survivor-evidence/redundancy-probes.out.json (@c096)"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c098",
+   "target": "verify-g17-manifest.mjs",
+   "line": 148,
+   "operator": "||>&&",
+   "original": "exported.project !== expected.project ||",
+   "mutated": "exported.project !== expected.project &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "REDUNDANT",
+   "evidence": {
+    "class": "REDUNDANT",
+    "reason": "A foreign project in the privacy report is rejected by g17-s25-raw-evidence.mjs line 14 with the mutation applied.",
+    "evidence": "survivor-evidence/redundancy-probes.out.json (@c098)"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c104",
+   "target": "verify-g17-manifest.mjs",
+   "line": 151,
+   "operator": " < N>< 0",
+   "original": "exported.exported_metric_series_inspected < 1 ||",
+   "mutated": "exported.exported_metric_series_inspected < 0 ||",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "REDUNDANT",
+   "evidence": {
+    "class": "REDUNDANT",
+    "reason": "Same fact and same shadowing check as the line 151 conjunction (g17-s25-raw-evidence.mjs line 81).",
+    "evidence": "survivor-evidence/redundancy-probes.out.json (@c104)"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c103",
+   "target": "verify-g17-manifest.mjs",
+   "line": 151,
+   "operator": "||>&&",
+   "original": "exported.exported_metric_series_inspected < 1 ||",
+   "mutated": "exported.exported_metric_series_inspected < 1 &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "D",
+    "M"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "REDUNDANT",
+   "evidence": {
+    "class": "REDUNDANT",
+    "reason": "A zero exported metric series count is rejected by the raw series equality at g17-s25-raw-evidence.mjs line 81 with the mutation applied.",
+    "evidence": "survivor-evidence/redundancy-probes.out.json (#052)"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c105",
+   "target": "verify-g17-manifest.mjs",
+   "line": 152,
+   "operator": " < N>< 0",
+   "original": "exported.snapshots?.length < 2)",
+   "mutated": "exported.snapshots?.length < 0)",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "D",
+    "M"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "REDUNDANT",
+   "evidence": {
+    "class": "REDUNDANT",
+    "reason": "A snapshot list reduced to one entry is rejected by the digest count assertion at g17-s25-raw-evidence.mjs line 93 with the mutation applied.",
+    "evidence": "survivor-evidence/redundancy-probes.out.json (#053)"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c107",
+   "target": "verify-g17-manifest.mjs",
+   "line": 157,
+   "operator": "||>&&",
+   "original": "if (memory.source_sha !== manifest.source_sha ||",
+   "mutated": "if (memory.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-cardinality-memory-results.json with only source_sha wrong",
+     "complete campaign rejects m17-cardinality-memory-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c109",
+   "target": "verify-g17-manifest.mjs",
+   "line": 158,
+   "operator": "||>&&",
+   "original": "memory.project !== expected.project ||",
+   "mutated": "memory.project !== expected.project &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-cardinality-memory-results.json with only project wrong",
+     "complete campaign rejects m17-cardinality-memory-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c111",
+   "target": "verify-g17-manifest.mjs",
+   "line": 159,
+   "operator": "||>&&",
+   "original": "memory.result !== \"PASS\" ||",
+   "mutated": "memory.result !== \"PASS\" &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-cardinality-memory-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c123",
+   "target": "verify-g17-manifest.mjs",
+   "line": 169,
+   "operator": "||>&&",
+   "original": "if (restart.source_sha !== manifest.source_sha ||",
+   "mutated": "if (restart.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-restart-results.json with only source_sha wrong",
+     "complete campaign rejects m17-restart-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c125",
+   "target": "verify-g17-manifest.mjs",
+   "line": 170,
+   "operator": "||>&&",
+   "original": "restart.project !== expected.project || restart.result !== \"PASS\" ||",
+   "mutated": "restart.project !== expected.project && restart.result !== \"PASS\" ||",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-restart-results.json with only project wrong",
+     "complete campaign rejects m17-restart-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c131",
+   "target": "verify-g17-manifest.mjs",
+   "line": 176,
+   "operator": "||>&&",
+   "original": "if (retention.source_sha !== manifest.source_sha ||",
+   "mutated": "if (retention.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-retention-age-results.json with only source_sha wrong",
+     "complete campaign rejects m17-retention-age-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c133",
+   "target": "verify-g17-manifest.mjs",
+   "line": 177,
+   "operator": "||>&&",
+   "original": "retention.project !== expected.project ||",
+   "mutated": "retention.project !== expected.project &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-retention-age-results.json with only project wrong",
+     "complete campaign rejects m17-retention-age-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c144",
+   "target": "verify-g17-manifest.mjs",
+   "line": 185,
+   "operator": "||>&&",
+   "original": "if (tempoTtl.source_sha !== manifest.source_sha ||",
+   "mutated": "if (tempoTtl.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-tempo-retention-results.json with only source_sha wrong",
+     "complete campaign rejects m17-tempo-retention-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c146",
+   "target": "verify-g17-manifest.mjs",
+   "line": 186,
+   "operator": "||>&&",
+   "original": "tempoTtl.project !== expected.project ||",
+   "mutated": "tempoTtl.project !== expected.project &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-tempo-retention-results.json with only project wrong",
+     "complete campaign rejects m17-tempo-retention-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c163",
+   "target": "verify-g17-manifest.mjs",
+   "line": 196,
+   "operator": "||>&&",
+   "original": "if (retentionMatrix.source_sha !== manifest.source_sha ||",
+   "mutated": "if (retentionMatrix.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-retention-matrix-results.json with only source_sha wrong",
+     "complete campaign rejects m17-retention-matrix-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c165",
+   "target": "verify-g17-manifest.mjs",
+   "line": 197,
+   "operator": "||>&&",
+   "original": "retentionMatrix.project !== expected.project ||",
+   "mutated": "retentionMatrix.project !== expected.project &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-retention-matrix-results.json with only project wrong",
+     "complete campaign rejects m17-retention-matrix-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c174",
+   "target": "verify-g17-manifest.mjs",
+   "line": 207,
+   "operator": "||>&&",
+   "original": "if (regress.source_sha !== manifest.source_sha ||",
+   "mutated": "if (regress.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects g17-regression-matrix-results.json with only source_sha wrong",
+     "complete campaign rejects g17-regression-matrix-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c176",
+   "target": "verify-g17-manifest.mjs",
+   "line": 208,
+   "operator": "||>&&",
+   "original": "regress.project !== expected.project || regress.result !== \"PASS\" ||",
+   "mutated": "regress.project !== expected.project && regress.result !== \"PASS\" ||",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects g17-regression-matrix-results.json with only project wrong",
+     "complete campaign rejects g17-regression-matrix-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c181",
+   "target": "verify-g17-manifest.mjs",
+   "line": 218,
+   "operator": "||>&&",
+   "original": "if (overhead.source_sha !== manifest.source_sha ||",
+   "mutated": "if (overhead.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "D",
+    "M"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "REDUNDANT",
+   "evidence": {
+    "class": "REDUNDANT",
+    "reason": "The performance report is loaded and its source_sha asserted by g17-s25-raw-evidence.mjs (load, line 13, called at line 191) before the manifest reaches line 218. The unmutated verifier is rejected by the same check, so line 218 never rejects a source mismatch in a complete campaign.",
+    "evidence": "survivor-evidence/redundancy-probes.out.json (#091): identical message and stack in the unmutated and mutated runs"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c183",
+   "target": "verify-g17-manifest.mjs",
+   "line": 219,
+   "operator": "||>&&",
+   "original": "overhead.project !== expected.project ||",
+   "mutated": "overhead.project !== expected.project &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects: performance run kind"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c185",
+   "target": "verify-g17-manifest.mjs",
+   "line": 220,
+   "operator": "||>&&",
+   "original": "overhead.run_kind !== \"THREE_MATCHED_PAIRS\" ||",
+   "mutated": "overhead.run_kind !== \"THREE_MATCHED_PAIRS\" &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-performance-raw.json with only result wrong",
+     "complete campaign rejects: performance run kind"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c200",
+   "target": "verify-g17-manifest.mjs",
+   "line": 229,
+   "operator": "<=><",
+   "original": "!(overhead.pooled?.[kind]?.p95_increase_pct <= 10) ||",
+   "mutated": "!(overhead.pooled?.[kind]?.p95_increase_pct < 10) ||",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [],
+    "note": "killed by the inclusive-budget test (direct run, exit 1)"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c202",
+   "target": "verify-g17-manifest.mjs",
+   "line": 230,
+   "operator": ">=>>",
+   "original": "!(overhead.pooled[kind].telemetry_on_samples >= 3000)) ||",
+   "mutated": "!(overhead.pooled[kind].telemetry_on_samples > 3000)) ||",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "boundary values the campaign accepts: 3000 telemetry samples, exactly 10 percent p95 and exactly 15 percent memory"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c204",
+   "target": "verify-g17-manifest.mjs",
+   "line": 231,
+   "operator": "<=><",
+   "original": "!(overhead.gate.mean_memory_increase_pct <= 15) ||",
+   "mutated": "!(overhead.gate.mean_memory_increase_pct < 15) ||",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [],
+    "note": "killed by the inclusive-budget test (direct run, exit 1)"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c207",
+   "target": "verify-g17-manifest.mjs",
+   "line": 236,
+   "operator": "||>&&",
+   "original": "if (latency.source_sha !== manifest.source_sha ||",
+   "mutated": "if (latency.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-live-latency-alert-results.json with only source_sha wrong",
+     "complete campaign rejects m17-live-latency-alert-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c209",
+   "target": "verify-g17-manifest.mjs",
+   "line": 237,
+   "operator": "||>&&",
+   "original": "latency.project !== expected.project ||",
+   "mutated": "latency.project !== expected.project &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-live-latency-alert-results.json with only project wrong",
+     "complete campaign rejects m17-live-latency-alert-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c218",
+   "target": "verify-g17-manifest.mjs",
+   "line": 248,
+   "operator": "||>&&",
+   "original": "alertMatrix.project !== expected.project ||",
+   "mutated": "alertMatrix.project !== expected.project &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-alert-matrix-results.json with only project wrong",
+     "complete campaign rejects m17-alert-matrix-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c224",
+   "target": "verify-g17-manifest.mjs",
+   "line": 251,
+   "operator": "||>&&",
+   "original": "pressure.source_sha !== manifest.source_sha ||",
+   "mutated": "pressure.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-pressure-matrix-results.json with only source_sha wrong",
+     "complete campaign rejects m17-pressure-matrix-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c226",
+   "target": "verify-g17-manifest.mjs",
+   "line": 252,
+   "operator": "||>&&",
+   "original": "pressure.project !== expected.project ||",
+   "mutated": "pressure.project !== expected.project &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-pressure-matrix-results.json with only project wrong",
+     "complete campaign rejects m17-pressure-matrix-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c231",
+   "target": "verify-g17-manifest.mjs",
+   "line": 264,
+   "operator": "||>&&",
+   "original": "if (database.source_sha !== manifest.source_sha ||",
+   "mutated": "if (database.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-database-fault-results.json with only source_sha wrong",
+     "complete campaign rejects m17-database-fault-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c233",
+   "target": "verify-g17-manifest.mjs",
+   "line": 265,
+   "operator": "||>&&",
+   "original": "database.project !== expected.project ||",
+   "mutated": "database.project !== expected.project &&",
+   "seen_surviving_in": [
+    "B",
+    "C",
+    "M"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-database-fault-results.json with only project wrong",
+     "complete campaign rejects m17-database-fault-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c244",
+   "target": "verify-g17-manifest.mjs",
+   "line": 275,
+   "operator": "||>&&",
+   "original": "if (fault.source_sha !== manifest.source_sha ||",
+   "mutated": "if (fault.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-collector-fault-results.json with only source_sha wrong",
+     "complete campaign rejects m17-collector-fault-results.json with only project wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c246",
+   "target": "verify-g17-manifest.mjs",
+   "line": 276,
+   "operator": "||>&&",
+   "original": "fault.project !== expected.project || fault.result !== \"PASS\" ||",
+   "mutated": "fault.project !== expected.project && fault.result !== \"PASS\" ||",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-collector-fault-results.json with only project wrong",
+     "complete campaign rejects m17-collector-fault-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c254",
+   "target": "verify-g17-manifest.mjs",
+   "line": 285,
+   "operator": "||>&&",
+   "original": "if (journey.source_sha !== manifest.source_sha ||",
+   "mutated": "if (journey.source_sha !== manifest.source_sha &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "REDUNDANT",
+   "evidence": {
+    "class": "REDUNDANT",
+    "reason": "The worker journey report is loaded through the same asserting loader (g17-s25-raw-evidence.mjs line 13, called at line 112) before line 285; unmutated and mutated runs are rejected by the same check.",
+    "evidence": "survivor-evidence/redundancy-probes.out.json (@c254)"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c256",
+   "target": "verify-g17-manifest.mjs",
+   "line": 286,
+   "operator": "||>&&",
+   "original": "journey.project !== expected.project ||",
+   "mutated": "journey.project !== expected.project &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "SURVIVED",
+   "classification": "REDUNDANT",
+   "evidence": {
+    "class": "REDUNDANT",
+    "reason": "The same loader asserts the project (g17-s25-raw-evidence.mjs line 14); unmutated and mutated runs are rejected by the same check.",
+    "evidence": "survivor-evidence/redundancy-probes.out.json (@c256)"
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c269",
+   "target": "verify-g17-manifest.mjs",
+   "line": 296,
+   "operator": "||>&&",
+   "original": "if (worker.result !== \"PASS\" || worker.source_sha !== manifest.source_sha ||",
+   "mutated": "if (worker.result !== \"PASS\" && worker.source_sha !== manifest.source_sha ||",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "complete campaign rejects m17-worker-results.json with only source_sha wrong",
+     "complete campaign rejects m17-worker-results.json with only result wrong"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c276",
+   "target": "verify-g17-manifest.mjs",
+   "line": 310,
+   "operator": "||>&&",
+   "original": "inventory.scenarios?.length !== 25 || assertions.length !== 75 ||",
+   "mutated": "inventory.scenarios?.length !== 25 && assertions.length !== 75 ||",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "an inventory with 24 scenarios holding all 75 assertions is refused on that fact alone",
+     "an inventory with 25 scenarios holding only 74 assertions is refused on that fact alone"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c282",
+   "target": "verify-g17-manifest.mjs",
+   "line": 313,
+   "operator": "||>&&",
+   "original": "inventory.gate_acceptance !== \"NOT_ACCEPTED\" ||",
+   "mutated": "inventory.gate_acceptance !== \"NOT_ACCEPTED\" &&",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "an inventory with inventory marked accepted is refused on that fact alone",
+     "an inventory with one assertion already executed is refused on that fact alone",
+     "an inventory with one assertion already holding a witness is refused on that fact alone"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c284",
+   "target": "verify-g17-manifest.mjs",
+   "line": 314,
+   "operator": "||>&&",
+   "original": "assertions.some(a => a.status !== \"NOT_EXECUTED\" || a.witness !== null))",
+   "mutated": "assertions.some(a => a.status !== \"NOT_EXECUTED\" && a.witness !== null))",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "an inventory with one assertion already executed is refused on that fact alone",
+     "an inventory with one assertion already holding a witness is refused on that fact alone"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "verify-g17-manifest.mjs@c288",
+   "target": "verify-g17-manifest.mjs",
+   "line": 325,
+   "operator": "||>&&",
+   "original": "if (!manifest || !sha || !/^[a-f0-9]{40}$/.test(sha))",
+   "mutated": "if (!manifest && !sha || !/^[a-f0-9]{40}$/.test(sha))",
+   "seen_surviving_in": [
+    "D"
+   ],
+   "final_status": "KILLED",
+   "classification": "MATERIAL_CORRECTED",
+   "evidence": {
+    "final_status": "KILLED",
+    "killed_by": [
+     "the command line verifies a complete campaign, and refuses a missing manifest path or SHA with its usage text"
+    ],
+    "note": null
+   }
+  },
+  {
+   "id": "A-manifest-L161",
+   "target": "verify-g17-manifest.mjs",
+   "line": 161,
+   "operator": "&&>||",
+   "original": "memory.total_paths !== 40000 && memory.rows?.length !== 4 ||",
+   "mutated": "memory.total_paths !== 40000 || memory.rows?.length !== 4 ||",
+   "seen_surviving_in": [
+    "A"
+   ],
+   "final_status": "NOT_APPLICABLE",
+   "classification": "IDENTITY_MUTANT_CONTAMINATED_BASELINE",
+   "evidence": {
+    "reason": "The campaign A worktree carried a leaked mutation: its line 161 read with the conjunction while every committed version since ee2f9133 has the disjunction. The reported mutant therefore reproduced the committed source byte for byte, so it could not be killed. Its denominator (289 candidates, 119 of 120 killed) is retired; the sound manifest figures are the strict exhaustive campaign.",
+    "source": "mutation-final.txt SURVIVOR L161; git blame L161 = ee2f9133"
+   }
+  }
+ ]
+}

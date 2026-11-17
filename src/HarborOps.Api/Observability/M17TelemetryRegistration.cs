@@ -1,0 +1,71 @@
+using System.Diagnostics;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+namespace HarborOps.Api.Observability;
+
+public static class M17TelemetryRegistration
+{
+    public static bool AddM17Telemetry(this WebApplicationBuilder builder)
+    {
+        var options = M17TelemetryOptions.FromConfiguration(builder.Configuration);
+        if (!options.Enabled) return false;
+
+        // Parse W3C trace context only; never propagate arbitrary caller baggage.
+        Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+        builder.Services.AddSingleton(options);
+        builder.Services.AddHostedService<M17HeartbeatService>();
+        builder.Services.AddHostedService<M17ReadinessProbeService>();
+
+        builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource.AddService("harborops-api"))
+            .WithMetrics(metrics => metrics
+                // Custom bounded operation/status categories prevent hostile HTTP
+                // method/Host/path values from multiplying native time-series.
+                .AddMeter(M17Telemetry.MeterName)
+                .AddMeter("otel.sdk.experimental")
+                .AddView("harborops.request.duration",
+                    new ExplicitBucketHistogramConfiguration
+                    {
+                        Boundaries = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25,
+                            0.5, 0.8, 1.0, 2.0, 5.0, 10.0]
+                    })
+                .AddView("harborops.db.operation.duration",
+                    new ExplicitBucketHistogramConfiguration
+                    {
+                        Boundaries = [0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5]
+                    })
+                .AddOtlpExporter(exporter =>
+                {
+                    exporter.Endpoint = options.Endpoint;
+                    exporter.Protocol = OtlpExportProtocol.Grpc;
+                    exporter.TimeoutMilliseconds = 1000;
+                }))
+            .WithTracing(traces => traces
+                .SetSampler(new M17BoundedSampler())
+                .AddSource(M17Telemetry.TraceSourceName)
+                .AddAspNetCoreInstrumentation(instrumentation =>
+                {
+                    instrumentation.RecordException = false;
+                    instrumentation.Filter = context =>
+                        !context.Request.Path.StartsWithSegments("/health");
+                })
+                .AddProcessor(new M17TraceSanitizer())
+                .AddProcessor(new BatchActivityExportProcessor(
+                    new M17CountingTraceExporter(new OtlpExporterOptions
+                    {
+                        Endpoint = options.Endpoint,
+                        Protocol = OtlpExportProtocol.Grpc,
+                        TimeoutMilliseconds = 1000
+                    }),
+                    maxQueueSize: 2048,
+                    scheduledDelayMilliseconds: 1000,
+                    exporterTimeoutMilliseconds: 1000,
+                    maxExportBatchSize: 256)));
+        return true;
+    }
+}

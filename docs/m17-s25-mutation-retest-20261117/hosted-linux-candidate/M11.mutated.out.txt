@@ -1,0 +1,102 @@
+TAP version 13
+# Subtest: a finished stack is removed completely, state is captured first, volumes and decoys are untouched
+ok 1 - a finished stack is removed completely, state is captured first, volumes and decoys are untouched
+  ---
+  duration_ms: 1594.967943
+  type: 'test'
+  ...
+# Subtest: a running stack from a failed or interrupted campaign needs -StopRunning, and without it nothing is touched
+ok 2 - a running stack from a failed or interrupted campaign needs -StopRunning, and without it nothing is touched
+  ---
+  duration_ms: 32232.747877
+  type: 'test'
+  ...
+# Subtest: partially initialised stacks are removed: only a network, only containers, and nothing at all
+ok 3 - partially initialised stacks are removed: only a network, only containers, and nothing at all
+  ---
+  duration_ms: 1579.208487
+  type: 'test'
+  ...
+# Subtest: ambiguous ownership removes nothing at all, not even the resources that are clearly owned
+ok 4 - ambiguous ownership removes nothing at all, not even the resources that are clearly owned
+  ---
+  duration_ms: 4428.775947
+  type: 'test'
+  ...
+# Subtest: a network that has another project's container attached is never removed
+ok 5 - a network that has another project's container attached is never removed
+  ---
+  duration_ms: 1000.187522
+  type: 'test'
+  ...
+# Subtest: project names that are not exactly an owned ho-verify-m17-* name are rejected before docker is consulted
+ok 6 - project names that are not exactly an owned ho-verify-m17-* name are rejected before docker is consulted
+  ---
+  duration_ms: 2055.903849
+  type: 'test'
+  ...
+# Subtest: an evidence directory that already exists is refused (never overwrite evidence)
+not ok 7 - an evidence directory that already exists is refused (never overwrite evidence)
+  ---
+  duration_ms: 265.473709
+  type: 'test'
+  location: '/home/runner/work/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/retest-candidate/work-M11/scripts/g17-docker-ownership.test.mjs:230:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Never overwrite evidence/. Input:
+    
+    ' New-Item: /home/runner/work/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/retest-candidate/work-M11/scripts/cleanup-g17-owned.ps1:16 Line | 16 |  New-Item -ItemType Directory -Path $evidencePath | Out-Null ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ An item with the specified name /tmp/g17-own-EplEVM/evidence already exists. '
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: ' New-Item: /home/runner/work/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/retest-candidate/work-M11/scripts/cleanup-g17-owned.ps1:16 Line | 16 |  New-Item -ItemType Directory -Path $evidencePath | Out-Null ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ An item with the specified name /tmp/g17-own-EplEVM/evidence already exists. '
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/retest-candidate/work-M11/scripts/g17-docker-ownership.test.mjs:236:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a held address range is reported with its holder, and is free again once its network is gone
+ok 8 - a held address range is reported with its holder, and is free again once its network is gone
+  ---
+  duration_ms: 2433.758809
+  type: 'test'
+  ...
+# Subtest: the runner preserves before it removes, removes only through the ownership checks, and never prunes
+ok 9 - the runner preserves before it removes, removes only through the ownership checks, and never prunes
+  ---
+  duration_ms: 0.99332
+  type: 'test'
+  ...
+# Subtest: containers that docker reports as removed but that remain make the cleanup fail instead of reporting success
+ok 10 - containers that docker reports as removed but that remain make the cleanup fail instead of reporting success
+  ---
+  duration_ms: 1252.602815
+  type: 'test'
+  ...
+# Subtest: an address range taken by another network right after the removal fails the cleanup and names the holder
+ok 11 - an address range taken by another network right after the removal fails the cleanup and names the holder
+  ---
+  duration_ms: 1886.22802
+  type: 'test'
+  ...
+# Subtest: a volume that docker created for a container is retained when the container is removed
+ok 12 - a volume that docker created for a container is retained when the container is removed
+  ---
+  duration_ms: 1131.35352
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 11
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51333.428124

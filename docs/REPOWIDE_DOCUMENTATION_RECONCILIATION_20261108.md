@@ -8,7 +8,7 @@
 **Working source branch:** `docs/post-g11-g12-repowide-20261108`
 **Scope restriction:** Documentation and generated-document renderer only. No application, test, database migration, deployment, or workflow change.
 
-## Current accepted state
+## Accepted state at the historical 2026-11-08 checkpoint
 
 G0 through G12 and G16 are accepted and integrated on `main`. G13 through G15 and G17 through G24 remain unaccepted, subject to the existing execution-graph prerequisites and decisions. [G11/G12 formal gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) records the separately accepted S01 policy registers, S25 second-package raw-evidence assessment, the actual source-locked checks, and disclosed limitations.
 

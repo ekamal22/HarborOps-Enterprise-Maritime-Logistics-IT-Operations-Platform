@@ -1,6 +1,8 @@
 # Tracking Event Processing
 
-**Current accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) govern current M11 delay exceptions and M12 scoped search/export behavior. Earlier source-only and verification checkpoints are historical. The M9 ARRI/DEPA processing hold and 10,000 unresolved-item limit remain binding; M10 projector default-off, ETA null, M11 evaluator opt-in. No deployment or release is authorized.
+**Current accepted-gate position (2026-11-17):** G0-G12, G15, G16 and G17 are accepted and integrated; G13 remains conditionally accepted. M17 observability was merged through PR #53 with separate signed S25-A03/F06 reviewer documentation outstanding and P09 QUALIFIED PASS. The M9 transport hold remains. G14 and G18-G24 are not accepted, and no deployment or release is authorized. [Current status](STATUS.md) | [G17 integration decision](M17_G17_S25_ACCEPTANCE_DECISION_20261117.md).
+
+**Historical accepted baseline (2026-11-08):** G0-G12 and G16 are accepted and integrated into `main`. The [G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [project status](STATUS.md) govern current M11 delay exceptions and M12 scoped search/export behavior. Earlier source-only and verification checkpoints are historical. The M9 ARRI/DEPA processing hold and 10,000 unresolved-item limit remain binding; M10 projector default-off, ETA null, M11 evaluator opt-in. No deployment or release is authorized.
 
 ## M11 source-only history and list read boundaries
 

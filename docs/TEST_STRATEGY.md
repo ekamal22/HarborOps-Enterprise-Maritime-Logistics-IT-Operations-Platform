@@ -15,9 +15,9 @@
 
 
 
-## M17 source-locked assurance plan, 2026-11-12
+## M17 source-locked assurance and historical plan, updated 2026-11-17
 
-M17 has an implemented candidate with 72 authored technical witnesses and three pending independent G17-S25 clauses. Earlier G17 campaigns executed preflight, unit, contract, frontend and some integration checks but the complete source-locked acceptance campaign has not passed. The [G17 verification plan](M17_VERIFICATION_PLAN.md) and [75-assertion inventory](M17_G17_ASSERTION_INVENTORY_20261112.json) require raw PostgreSQL, worker, three-engine browser, privacy, outage, cardinality, alert and resource-budget evidence. Require exact source SHAs, verified file manifests, no skipped/retried required cases, independent review and separate gate acceptance. Docs-only updates must not trigger new hosted verification.
+M17 is implemented and integrated into `main` after authenticated Campaign 01 passed 51/51 stages with 72/72 technical assertions supported across 25 scenarios. Three independent-review assertions are accounted for; the separate signed S25-A03/F06 reviewer instrument remains outstanding. P09 is QUALIFIED PASS and must be optimized and remeasured before G24. The [G17 verification plan](M17_VERIFICATION_PLAN.md) and [75-assertion inventory](M17_G17_ASSERTION_INVENTORY_20261112.json) require raw PostgreSQL, worker, three-engine browser, privacy, outage, cardinality, alert and resource-budget evidence. Require exact source SHAs, verified file manifests, no skipped/retried required cases, independent review and separate gate acceptance. Docs-only updates must not trigger new hosted verification.
 
 ## Current G10 source verification boundary
 

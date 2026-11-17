@@ -59,7 +59,7 @@ The source-locked result is complete only when raw source SHA, sanitizer report,
 | **G17-S24 Evidence integrity** | S24-A01 every claimed assertion maps to real source-locked result; S24-A02 source hashes and manifests complete/no unlisted files; S24-A03 negative control rejects tampering, skip and wrong SHA | Evidence verifier tests, manifest digest and JSON/TRX reconciliation | Evidence / reviewer |
 | **G17-S25 Independent review and gate recommendation** | S25-A01 separate reviewer checks raw source, privacy, metrics and full cases; S25-A02 policy and procedural exceptions disclosed; S25-A03 reviewer issues explicit signed PASS/NOT PASS before G17 acceptance | Independent review file and formal G17 decision record | Manual / approval |
 
-**Atomic scope:** 25 scenarios, 75 distinct A01-A03 assertions. Current gate progress: 0/75 accepted for M17; source-locked verification is in progress. If a source implementation changes scope, update this inventory before testing; do not infer missing assertions from a passing scenario title.
+**Atomic scope and final technical result (2026-11-17):** 25 scenarios, 75 distinct A01-A03 assertions. Campaign 01 passed 51/51 mandatory stages and supports 72/72 technical assertions. The three independent-review assertions remain separately tracked; a distinct signed S25-A03/F06 reviewer instrument is outstanding despite the formal integration decision. If a source implementation changes scope, update this inventory before testing; do not infer missing assertions from a passing scenario title.
 
 ## 3. Test source and minimum campaign
 

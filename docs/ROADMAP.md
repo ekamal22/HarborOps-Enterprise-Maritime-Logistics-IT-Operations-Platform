@@ -37,8 +37,8 @@
 
 **Version:** 3.0 parallel technical-prerequisite delivery baseline  
 **Original DAG revision:** 2026-10-30  
-**Updated status:** 2026-11-13
-**State:** G0-G12, G15 and G16 accepted and merged. G13 remains conditionally accepted and merged. The G15 reviewer-separation exception remains disclosed, other gates stay subject to their prerequisites, and no deployment is authorized.
+**Updated status:** 2026-11-17
+**State:** G0-G12, G15, G16 and G17 accepted and merged. G13 remains conditionally accepted and merged. G17's separate signed S25-A03/F06 reviewer instrument remains outstanding and P09 remains QUALIFIED PASS. G14 and G18-G24 remain unaccepted. The G15 reviewer-separation exception remains disclosed; no deployment is authorized.
 
 ## Authority and rationale
 

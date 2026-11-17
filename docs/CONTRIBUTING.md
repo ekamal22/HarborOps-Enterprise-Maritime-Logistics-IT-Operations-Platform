@@ -8,7 +8,7 @@
 
 **G15 current disposition (2026-11-12):** G15/S25 **ACCEPTED** and merged into `main` via PR #44 (`49934d793542ef43cfe587c54b16cfd5cce8e2f4`). Tested source `ebb28d2332ab6e7eb4264265db3ae35e8fbcbc35` passed run 43178122017; reviewer-independence attestation remains a disclosed procedural exception. G13 is still conditionally integrated. P10 fail-closed capture, P12 no deletion and default-off delivery remain mandatory; production rollout and G24 release are not approved. [Final decision](G15_S25_FINAL_ACCEPTANCE_20261112.md), [post-merge reconciliation](G15_S25_POSTMERGE_ACCEPTANCE_RECONCILIATION_20261112.md).
 
-G0-G12, G15 and G16 are accepted and integrated. G13 remains conditionally accepted. G15 S25 was explicitly accepted with a disclosed reviewer-independence procedural exception; production deployment remains unauthorized.
+G0-G12, G15, G16 and G17 are accepted and integrated. G13 remains conditionally accepted. G17's separate signed S25-A03/F06 reviewer instrument is outstanding and P09 remains QUALIFIED PASS. G15 S25 was explicitly accepted with a disclosed reviewer-independence procedural exception; production deployment remains unauthorized.
 
 
 ## Localization implementation conventions

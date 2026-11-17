@@ -145,7 +145,12 @@ assert(m9Decision.includes("2026-11-05") &&
   "M9 acceptance, evidence review, merge or backlog condition is missing");
 // The current accepted-gate state (see scripts/planning-current-state.mjs). It replaces two phrases that were true on
 // 2026-11-08 and stale after G15 and G13 were accepted; the same intent is checked against the wording in use now.
-const currentDocs = { status, roadmap, contributors, readme, acceptance };
+const currentDocs = {
+  status, roadmap, contributors, readme, acceptance,
+  events: get("docs/EVENT_PROCESSING.md"),
+  m17Plan: get("docs/M17_IMPLEMENTATION_PLAN.md"),
+  graph: graphView
+};
 const stateProblems = [
   ...currentStateProblems(currentDocs),
   ...g17StatementProblems(currentDocs),

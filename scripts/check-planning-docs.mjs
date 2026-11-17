@@ -149,7 +149,11 @@ const currentDocs = {
   status, roadmap, contributors, readme, acceptance,
   events: get("docs/EVENT_PROCESSING.md"),
   m17Plan: get("docs/M17_IMPLEMENTATION_PLAN.md"),
-  graph: graphView
+  graph: graphView,
+  operations: get("docs/OPERATIONS.md"),
+  strategy: get("docs/TEST_STRATEGY.md"),
+  g17Plan: get("docs/M17_VERIFICATION_PLAN.md"),
+  guide: get("docs/DOCUMENT_STATUS_GUIDE.md")
 };
 const stateProblems = [
   ...currentStateProblems(currentDocs),

@@ -123,6 +123,13 @@ public sealed partial class IncidentStore
                     WHERE organization_id=@org AND id=@id AND version=@old
                     """,("new",version),("org",org),("id",id),("old",current.Version)))
                     if(await update.ExecuteNonQueryAsync(token)!=1)throw Conflict();
+                await using(var history=Command(conn,tx,"""
+                    INSERT INTO it_incident_action_events
+                        (organization_id,incident_id,action_id,action_version,
+                        previous_state,new_state,reason_code,actor_user_id)
+                    VALUES(@org,@id,@action,1,NULL,'Proposed','action_created',@actor)
+                    """,("org",org),("id",id),("action",actionId),("actor",actor.UserId)))
+                    if(await history.ExecuteNonQueryAsync(token)!=1)throw Conflict();
                 await Event(conn,tx,org,id,actor.UserId,version,"ActionCreated",
                     current.State,current.State,"action_created",token,actionId);
                 await FinalizeOperation(conn,tx,actor,org,operationKey,id,version,token);
@@ -168,6 +175,16 @@ public sealed partial class IncidentStore
                     WHERE organization_id=@org AND id=@id AND version=@old
                     """,("new",version),("org",org),("id",id),("old",current.Version)))
                     if(await update.ExecuteNonQueryAsync(token)!=1)throw Conflict();
+                await using(var actionEvent=Command(conn,tx,"""
+                    INSERT INTO it_incident_action_events
+                        (organization_id,incident_id,action_id,action_version,
+                        previous_state,new_state,reason_code,actor_user_id)
+                    VALUES(@org,@id,@action,@version,@previous,@next,@reason,@actor)
+                    """,("org",org),("id",id),("action",input.ActionId),
+                    ("version",input.ExpectedActionVersion+1),
+                    ("previous",oldState),("next",target.ToString()),
+                    ("reason",reason),("actor",actor.UserId)))
+                    if(await actionEvent.ExecuteNonQueryAsync(token)!=1)throw Conflict();
                 await Event(conn,tx,org,id,actor.UserId,version,"ActionChanged",
                     current.State,current.State,reason,token,input.ActionId);
                 await FinalizeOperation(conn,tx,actor,org,operationKey,id,version,token);

@@ -29,14 +29,10 @@ const POLICY = "src/HarborOps.Domain/Incidents/IncidentPolicy.cs";
 const mutants = [
   { id: "remove-app-tenant-predicate", expected: "equivalent",
     note: "Defense in depth: forced row-level security still hides foreign rows, so removing only the application predicate is not observable.",
-    patches: [[STORE, "FROM it_incidents WHERE organization_id=@org AND id=@id
-            {(lockRow ? \"FOR UPDATE\" : \"\")}", "FROM it_incidents WHERE id=@id
-            {(lockRow ? \"FOR UPDATE\" : \"\")}"]], filter: SECURITY },
+    patches: [[STORE, "FROM it_incidents WHERE organization_id=@org AND id=@id\n            {(lockRow ?", "FROM it_incidents WHERE id=@id\n            {(lockRow ?"]], filter: SECURITY },
   { id: "remove-tenant-predicate", expected: "killed",
     note: "Removes both the application predicate and the row-level policy.",
-    patches: [[STORE, "FROM it_incidents WHERE organization_id=@org AND id=@id
-            {(lockRow ? \"FOR UPDATE\" : \"\")}", "FROM it_incidents WHERE id=@id
-            {(lockRow ? \"FOR UPDATE\" : \"\")}"],
+    patches: [[STORE, "FROM it_incidents WHERE organization_id=@org AND id=@id\n            {(lockRow ?", "FROM it_incidents WHERE id=@id\n            {(lockRow ?"],
       [MIGRATION, "USING (m18_scoped_session(organization_id)) WITH CHECK (m18_scoped_session(organization_id))", "USING (true) WITH CHECK (true)"]],
     filter: SECURITY },
   { id: "widen-role-grant", expected: "killed",

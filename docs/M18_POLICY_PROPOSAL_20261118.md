@@ -38,7 +38,7 @@ The proposed Option A for each of M18-P01 through P20 was explicitly approved on
 
 P02 must resolve Manager safe-summary-only access and the exact Auditor M18 grant issuer, expiry, revocation and visibility scope. P09 must explicitly decide whether bounded free text is acceptable given that automatic secret detection is imperfect. P10 must permit idempotent incident creation **before an incident ID exists**. P16 must identify the independent closure confirmer, severity-specific separation requirements and an exception authority; a one-responder high-severity ticket cannot invent a second confirmer. P01 and P06 must keep organization-owned incidents separate from global service telemetry.
 
-M16 audit capture is not inherited automatically by new M18 tables. M18 must add migration-owned, allowlisted audit trigger/routine coverage, transaction-local actor context and reviewed central role grants. The [security and transaction contract](M18_SECURITY_AND_TRANSACTION_CONTRACT.md) explains the proposed controls and their required [G18 assertions](M18_G18_ASSERTION_INVENTORY_20261118.json). Every choice above remains PENDING approval.
+M16 audit capture is not inherited automatically by new M18 tables. M18 must add migration-owned, allowlisted audit trigger/routine coverage, transaction-local actor context and reviewed central role grants. The [security and transaction contract](M18_SECURITY_AND_TRANSACTION_CONTRACT.md) explains these controls and their required [G18 assertions](M18_G18_ASSERTION_INVENTORY_20261118.json). All twenty recommended options are approved; implementation and G18 evidence are separate.
 
 ## Proposed transition policy
 
@@ -99,6 +99,6 @@ No auto-open incident, automatic resolution, escalations to third-party paging, 
 
 | Decision IDs | Status | Decision date | Evidence |
 | --- | --- | --- | --- |
-| M18-P01 through M18-P20 | APPROVED 2026-11-18 | Not recorded | Explicit policy selection required before implementing affected work |
+| M18-P01 through M18-P20 | APPROVED | 2026-11-18 | Recommended Option A for all twenty decisions explicitly approved |
 
 All twenty recommended Option A decisions were approved on 2026-11-18. Their proposed text and alternatives remain in the register for traceability. Clarifications that narrow security exposure without changing Option A remain subject to tests; material changes require new explicit approval. This does not constitute G18 PASS, independent S25 acceptance, merge, release or production authorization.

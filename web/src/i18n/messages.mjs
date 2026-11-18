@@ -618,7 +618,7 @@ export const TURKISH = Object.freeze({
   "Unable to build report": "Rapor oluşturulamadı",
   "Report snapshot expired": "Rapor anlık görüntüsünün süresi doldu",
   "{count} unread": "{count} okunmamış",
-  "You already hold the maximum number of active reports": "İzin verilen en fazla sayıda etkin rapora zaten sahipsiniz"
+  "You already hold the maximum number of active reports": "İzin verilen en fazla sayıda etkin rapora zaten sahipsiniz",
   "IT incidents": "BT olayları",
   "Refresh incidents": "Olayları yenile",
   "Loading incidents...": "Olaylar yükleniyor...",

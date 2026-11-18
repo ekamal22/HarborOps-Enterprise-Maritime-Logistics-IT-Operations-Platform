@@ -681,4 +681,5 @@ export const TURKISH = Object.freeze({
   "M17SnapshotAdded": "Hizmet görüntüsü eklendi",
   "RecoveryVerified": "İyileşme doğrulandı",
   "Load more incidents": "Daha fazla olay yükle",
+  "Load older history": "Önceki geçmişi yükle",
 });

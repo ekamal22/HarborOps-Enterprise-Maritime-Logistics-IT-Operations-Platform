@@ -53,7 +53,7 @@ const mutants = [
       "var current=await Read(conn,tx,org,id,true,token);\n                await using(var insert=Command(conn,tx,\"\"\"\n                    INSERT INTO it_incident_notes"]],
     filter: RESILIENCE },
   { id: "duplicate-event-on-replay", expected: "killed",
-    patches: [[STORE, "if (await insert.ExecuteScalarAsync(ct) is not null) return null;", "await insert.ExecuteScalarAsync(ct); return null;"]],
+    patches: [[STORE, "if (await insert.ExecuteScalarAsync(ct) is not null) return null;", "if (await insert.ExecuteScalarAsync(ct) is not null || true) return null;"]],
     filter: RESILIENCE },
   { id: "drop-immutable-history-guard", expected: "killed",
     patches: [[MIGRATION, "CREATE TRIGGER m18_events_immutable\n                BEFORE UPDATE OR DELETE OR TRUNCATE ON it_incident_events\n                FOR EACH STATEMENT EXECUTE FUNCTION m18_history_immutable();", ""]],

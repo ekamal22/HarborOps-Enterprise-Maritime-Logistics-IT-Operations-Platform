@@ -682,4 +682,11 @@ export const TURKISH = Object.freeze({
   "RecoveryVerified": "İyileşme doğrulandı",
   "Load more incidents": "Daha fazla olay yükle",
   "Load older history": "Önceki geçmişi yükle",
+  "Update impact": "Etkiyi güncelle",
+  "Record updated impact": "Güncellenmiş etkiyi kaydet",
+  "Reassess severity": "Önem derecesini yeniden değerlendir",
+  "Record severity change": "Önem derecesi değişikliğini kaydet",
+  "The incident changed. Review the latest state before retrying.": "Olay değiştirildi. Yeniden denemeden önce güncel durumu inceleyin.",
+  "ImpactUpdated": "Etki güncellendi",
+  "SeverityChanged": "Önem derecesi değiştirildi",
 });

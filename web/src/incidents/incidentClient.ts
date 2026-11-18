@@ -18,7 +18,7 @@ export type IncidentAction = { id: string; title: string; state: string; ownerUs
 export type IncidentEvidence = { id: string; kind: string; observationCode: string;
   sourceStatus: string; observedAtUtc: string; capturedAtUtc: string };
 export type IncidentHistory = { incident: Incident; events: IncidentEvent[];
-  notes: IncidentNote[]; actions: IncidentAction[]; evidence: IncidentEvidence[] };
+  notes: IncidentNote[]; actions: IncidentAction[]; evidence: IncidentEvidence[]; nextEventAfter: number | null };
 const base = (organizationId: string) =>
   "/api/v1/organizations/" + encodeURIComponent(organizationId) + "/incidents";
 const key = () => ({ "X-HarborOps-Operation-Id": crypto.randomUUID() });
@@ -27,8 +27,9 @@ export async function listIncidents(org: string, cursor?: string): Promise<{ inc
   return getJson<{ incidents: Incident[]; nextCursor: string | null }>(base(org) +
     "?limit=25" + (cursor ? "&cursor=" + encodeURIComponent(cursor) : ""));
 }
-export async function getIncident(org: string, id: string, full = true): Promise<IncidentHistory | Incident> {
-  return full ? getJson<IncidentHistory>(base(org) + "/" + encodeURIComponent(id) + "/history") :
+export async function getIncident(org: string, id: string, full = true, afterSeq?: number): Promise<IncidentHistory | Incident> {
+  return full ? getJson<IncidentHistory>(base(org) + "/" + encodeURIComponent(id) + "/history" +
+      (afterSeq ? "?afterSeq=" + encodeURIComponent(String(afterSeq)) : "")) :
     getJson<Incident>(base(org) + "/" + encodeURIComponent(id) + "/summary");
 }
 export async function createIncident(org: string, data: {

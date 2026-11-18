@@ -14,6 +14,10 @@
 - Lock dummy two-organization dataset, five fixed roles, multiple sessions, test-only alerts, correlation canaries, source tree, migrator runtime identities and accepted-version migrations.
 - Reserve source-owned artifact directory and manifest names before any run. No code or fixture edits after freeze without restarting applicable gates on the corrected source.
 
+## Additional required design boundary checks
+
+Before starting the source-locked campaign, verify the [security and transaction contract](M18_SECURITY_AND_TRANSACTION_CONTRACT.md): the M18 migration installs specific M16 audit capture; creation uses an actor/organization-scoped operation key without a preexisting incident ID; Auditor incident-read grants are distinct, current and revocable; Manager creation discloses only a safe summary; service telemetry cannot reveal other tenants' impact; and closing a high-severity incident requires a real second eligible confirmer or an expressly authorized exception. The negative corpus must include copied secrets in notes, false positive closure, stale/absent monitoring, reused keys after role revocation and forged M17 evidence.
+
 ## 1. Preflight and proof-of-isolation
 
 1. Record date UTC, OS, tool versions, running containers, requested profile, available E: space, dependency/package versions and exact source SHA.

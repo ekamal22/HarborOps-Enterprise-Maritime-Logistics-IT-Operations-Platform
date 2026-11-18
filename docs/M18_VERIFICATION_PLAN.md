@@ -128,7 +128,7 @@ G18-S25 is not automatically satisfied by test output. Independently authenticat
 
 **Witness:** Injected audit insertion failure and direct transaction observation
 
-- **A01:** Every successful sensitive incident mutation commits exactly one allowlisted M16 audit with incident effect
+- **A01:** Each successful sensitive incident mutation commits the exact approved allowlisted M16 audit event set atomically with the incident effect, without missing or duplicate logical events
 - **A02:** Required audit write failure rolls back projection and append-only incident records
 - **A03:** Audit metadata excludes note body, raw diagnostic values and credentials while preserving safe provenance
 
@@ -244,6 +244,12 @@ G18-S25 is not automatically satisfied by test output. Independently authenticat
 - **A02:** All policy, provenance, performance, Q3 and procedural exceptions are disclosed and dispositioned without editing failures
 - **A03:** Independent signed PASS/NOT PASS recommendation is recorded; G18 remains NOT ACCEPTED until a separately explicit gate decision
 
+
+## Explicit G18 evidence refinements
+
+The [machine-readable inventory](M18_G18_ASSERTION_INVENTORY_20261118.json) now maps every scenario to its affected M18-Pxx policies, work package, required witness layers and named adversarial negative-control family. These are **planned controls**, not executed witnesses. The [security and transaction contract](M18_SECURITY_AND_TRANSACTION_CONTRACT.md) must be reconciled with approved policies before any implementing code.
+
+G18-S02 must demonstrate the Auditor grant lifecycle separately from KPI/audit grants and Manager summary-only response semantics. G18-S09 must test incident creation replay before an incident ID is known, changed-payload conflict, permission revocation before replay, and ambiguous commit response. G18-S11 must inspect actual migration-owned M16 trigger events and actor context. G18-S15 and G18-S19 must reject forged service alerts and the assumption that service telemetry proves tenant impact. G18-S17 must distinguish observed recovery from subsequent independently confirmed closure without inventing a second actor. Each missing proof leaves its specific assertion NOT_EXECUTED or FAIL.
 
 ## Exact evidence contract
 

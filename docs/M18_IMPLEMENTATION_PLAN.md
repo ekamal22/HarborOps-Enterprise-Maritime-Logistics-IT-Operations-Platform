@@ -12,7 +12,7 @@ Deliver an authenticated, tenant-isolated, durable incident ticket workflow wher
 
 This is **not** implementation authorization, G18 acceptance, or deployment. No unapproved external ITSM integration, auto-open, auto-escalation, paging or production data copy.
 
-## Work package dependency and ownerless execution contract
+## Work package dependencies and delivery boundaries
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ M18-02 and M18-03 may proceed in separate owned branches/worktrees **after** M18
 2. Obtain explicit P01-P20 selections. Freeze state transition graph, incident/severity enums, role/permission table, retention/archival exclusion, response/error envelope, timing, note visibility and closure exception policy.
 3. Enumerate exact request and response DTOs for all planned API routes, input bounds, pagination cursor and operation-id format, idempotency expiry/reservation semantics, test hooks and state race outcomes. Resolve ambiguous 403/404/409 distinctions without existence leaks.
 4. Draw data-flow and trust boundaries: same-origin session and CSRF, selected organization, API store transaction, M16 audit, optional M17 sanitized snapshot and all forbidden flows. Do not import M17 internal exporter credentials or direct Grafana query capability into business endpoints.
-5. Produce a migration and grants plan including tenant-scoped composite FK, immutable histories, restricted runtime roles, backwards compatibility and no table cascades. Decide exact retention for incident content separately from M16 audit archival.
+5. Produce a migration and grants plan including tenant-scoped composite FK, immutable histories, migration-owned M16 event taxonomy and trigger/routine capture, transaction-local authenticated actor context, centralized runtime provisioner, backward compatibility and no table cascades. Decide exact retention for incident content separately from M16 audit archival.
 6. Freeze the G18 25-scenario/75-assertion matrix and independent reviewer contract before implementation, including mutation ideas tied to named assertions and source-owned evidence.
 7. Review P17 exceptional false-positive path with operations and security policy. If any decision is unresolved, record BLOCKED and do not substitute a hidden developer default.
 
@@ -48,7 +48,7 @@ M18-02 and M18-03 may proceed in separate owned branches/worktrees **after** M18
 1. Implement fail-closed domain state machine and deterministic validator. Make state changes command-specific, no generic patch to privileged fields; initial state `New`.
 2. Add additive migration tables, indexes, unique keys, scoped FK and DB-side immutable history protection. Check EF snapshot drift, runtime role grants and a fresh/upgrade existing schema without touching accepted migrations.
 3. Add typed M18 permissions. Resolve/refresh active user/session/organization/role at HTTP and inside every mutating transaction, including assignment/closure and read-after-revocation. No Administrator global tenant bypass.
-4. Create `IncidentStore` or equivalent scoped abstraction with row-locks, versions, server UTC, operation key and payload hash; ensure authorized result and required M16 audit entry commit or roll back together.
+4. Create `IncidentStore` or equivalent scoped abstraction with row-locks, versions, server UTC and actor/organization-scoped operation keys for create and subsequent commands. Resolve ambiguous commits using the committed key and normalized payload digest; check current permissions before replaying a successful result. Enumerate and verify the exact required M16 audit event set for every mutation, rolling back if a required entry is missing.
 5. Implement list/detail/create, explicit transitions and severity/assignment routes with bounded request parsing, sanitized code-based errors, rate limiting and keyset paging. Negative same-ID foreign tenant probes must not distinguish foreign from nonexistent object.
 6. Test request commit ambiguity and exact replay, competing role changes, concurrent transition writers, duplicate client retries, storage outage, required audit failure and malicious SQL grant attempts.
 7. No direct HTML or arbitrary telemetry URL attachments; data exposed only through fixed DTOs with explicit visibility filtering.
@@ -62,7 +62,7 @@ M18-02 and M18-03 may proceed in separate owned branches/worktrees **after** M18
 1. Add append-only chronological notes with safe text limits and server-side visibility. Protect body from audit/export/log/trace leak. Denied note reads must not reveal existence, counts or author identities.
 2. Implement corrective actions with typed status and version, explicit owner, evidence and no destructive edit. Root cause is nullable until investigation; resolution must record cause classification or a reviewed accepted exception.
 3. Implement safe evidence snapshots for M17-derived observations. Verify rule/service allowlists, observation age, digest format, missing-signal behavior, payload spoofing and deduplication. A snapshot remains readable independent of telemetry retention.
-4. Build responsive functional list/detail/triage/investigation/action/recovery/closure/reopen workflows within authenticated selected organization; guard route/render by server permission, not client role alone.
+4. Build responsive functional list/detail/triage/investigation/action/recovery/closure/reopen workflows within authenticated selected organization; guard route/render by server permission, not client role alone. Manager-created reports must remain summary-only, while Auditor read-only access requires a distinct approved grant. The user must see an explicit stale-version conflict and retain the unsent draft.
 5. Provide stable active filters, explicit time-zone display, immutable timeline, stale-version conflict reconciliation, resource loading/error/empty/forbidden handling and draft preservation.
 6. Register all text in shared English/Turkish strings. Verify no leaked untranslated user copy, server status enums remain unchanged, formatting keeps UTC semantics and organization switching clears previous-tenant data/cache.
 7. Ensure separation between M13 KPI dashboard, M15 shipment notifications and M17 private telemetry. No new notification outbox, auto-ticket worker or external communication.
@@ -82,6 +82,10 @@ M18-02 and M18-03 may proceed in separate owned branches/worktrees **after** M18
 9. No GitHub Actions workflow dispatch is authorized by this plan. No production activation or application hosting.
 
 **Exit:** source-locked no-skip technical record, 75 individual dispositions (including signed reviewer assertions), negative/control evidence, Q3 disposition, independent technical review, explicit gate decision and postmerge source-equivalence check if merged.
+
+## Implementation-entry contract review
+
+Before M18-02/03 source work, reconcile the [security and transaction contract](M18_SECURITY_AND_TRANSACTION_CONTRACT.md) with approved P01-P20 choices. Record per-route visibility and permission, separate Auditor grant, Manager safe summary, PostgreSQL tenant guards, M16 migration-owned triggers and grants, create-operation replay without incident ID, sensitive notes privacy residual, global-service-vs-tenant observability boundary, and closure separation. **Each unresolved choice is a blocker**, not an assumed default. New implementation claims must map to the refined [assertion inventory](M18_G18_ASSERTION_INVENTORY_20261118.json) and a specific effective negative control.
 
 ## Build/test and failure order
 

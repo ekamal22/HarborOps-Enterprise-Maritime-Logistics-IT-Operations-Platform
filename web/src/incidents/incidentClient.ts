@@ -44,6 +44,11 @@ export async function updateIncident(org: string, id: string, name: string,
   return (await mutate<Incident>("POST", base(org) + "/" + encodeURIComponent(id) +
     "/" + name, body, key()))!;
 }
+export async function patchIncident(org: string, id: string, command: "impact" | "severity",
+  body: object): Promise<Incident> {
+  return (await mutate<Incident>("PATCH", base(org) + "/" + encodeURIComponent(id) +
+    "/" + command, body, key()))!;
+}
 export async function assignIncident(org: string, id: string,
   body: { expectedVersion: number; assignedTo: string; reasonCode: string }): Promise<Incident> {
   return (await mutate<Incident>("PATCH", base(org) + "/" + encodeURIComponent(id) +

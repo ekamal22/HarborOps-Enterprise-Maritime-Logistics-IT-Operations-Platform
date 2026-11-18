@@ -162,15 +162,15 @@ public sealed partial class IncidentStore(HarborOpsDbContext db)
 
     private static async Task Event(NpgsqlConnection conn, NpgsqlTransaction tx,
         Guid org, Guid id, Guid actor, long version, string kind,
-        string? before, string? after, string reason, CancellationToken ct)
+        string? before, string? after, string reason, CancellationToken ct, Guid? relatedId = null)
     {
         await using var command = Command(conn, tx, """
             INSERT INTO it_incident_events(organization_id,incident_id,sequence,kind,
-                from_state,to_state,reason_code,actor_user_id,incident_version)
-            VALUES(@org,@id,@seq,@kind,@before,@after,@reason,@actor,@version)
+                from_state,to_state,reason_code,actor_user_id,incident_version,related_id)
+            VALUES(@org,@id,@seq,@kind,@before,@after,@reason,@actor,@version,@related)
             """,("org",org),("id",id),("seq",version),("kind",kind),
             ("before",before),("after",after),("reason",reason),
-            ("actor",actor),("version",version));
+            ("actor",actor),("version",version),("related",relatedId));
         if (await command.ExecuteNonQueryAsync(ct)!=1) throw Conflict();
     }
 

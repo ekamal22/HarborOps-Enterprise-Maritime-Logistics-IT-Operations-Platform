@@ -55,6 +55,7 @@ public sealed class M18IncidentLifecycle : Migration
                 to_state varchar(16) NULL,
                 reason_code varchar(80) NOT NULL,
                 actor_user_id uuid NOT NULL REFERENCES users(id),
+                related_id uuid NULL,
                 occurred_at_utc timestamptz NOT NULL DEFAULT now(),
                 incident_version bigint NOT NULL,
                 CONSTRAINT "FK_m18_event_incident"

@@ -250,17 +250,74 @@ public sealed partial class IncidentStore(HarborOpsDbContext db)
                 var current=await Read(conn,tx,org,id,true,token);
                 if(current.Version!=input.ExpectedVersion||
                     !IncidentPolicy.ParseState(current.State,out var from))throw Conflict();
+                bool recovery=false, integrity=false, actions=false, independentlyConfirmed=false;
+                string? rootCause=null;
+                Guid? resolvedBy=null;
+                await using(var evidence=Command(conn,tx,"""
+                    SELECT recovery_verified,integrity_verified,actions_dispositioned,
+                        resolved_by,root_cause_code
+                    FROM it_incidents WHERE organization_id=@org AND id=@id
+                    """,("org",org),("id",id)))
+                await using(var reader=await evidence.ExecuteReaderAsync(token))
+                {
+                    if(!await reader.ReadAsync(token))throw Missing();
+                    recovery=reader.GetBoolean(0);
+                    integrity=reader.GetBoolean(1);
+                    actions=reader.GetBoolean(2);
+                    resolvedBy=reader.IsDBNull(3)?null:reader.GetGuid(3);
+                    rootCause=reader.IsDBNull(4)?null:reader.GetString(4);
+                }
+                // No caller-provided boolean may establish health or integrity.
+                if(next==IncidentState.Resolved)
+                {
+                    if(string.IsNullOrEmpty(rootCause))throw Conflict();
+                    await using var fresh=Command(conn,tx,"""
+                        SELECT COUNT(DISTINCT observation_code)
+                        FROM it_incident_evidence
+                        WHERE organization_id=@org AND incident_id=@id
+                          AND kind='RecoveryProbe' AND source_status='healthy'
+                          AND observed_at_utc>=now()-interval '5 minutes'
+                          AND observation_code IN
+                            ('database_readiness_healthy','incident_history_integrity_verified')
+                        """,("org",org),("id",id));
+                    if(Convert.ToInt64(await fresh.ExecuteScalarAsync(token))!=2)throw Conflict();
+                }
+                await using(var pending=Command(conn,tx,"""
+                    SELECT EXISTS(SELECT 1 FROM it_incident_actions
+                    WHERE organization_id=@org AND incident_id=@id
+                      AND state NOT IN ('Verified','Cancelled'))
+                    """,("org",org),("id",id)))
+                    actions=!Convert.ToBoolean(await pending.ExecuteScalarAsync(token));
+                if(next==IncidentState.Closed)
+                {
+                    if(!IncidentPolicy.ParseSeverity(current.Severity,out var severity))throw Conflict();
+                    independentlyConfirmed= !IncidentPolicy.IndependentClosureRequired(severity) ||
+                        (resolvedBy.HasValue && resolvedBy.Value!=actor.UserId);
+                }
                 if(reopen ? (!IncidentPolicy.CanReopen(from)||next!=IncidentState.Investigating) :
-                    !IncidentPolicy.CanTransition(from,next,false,false,false,false))
+                    !IncidentPolicy.CanTransition(from,next,recovery,integrity,actions,independentlyConfirmed))
                     throw Conflict();
-                // An evidence-dependent transition must only be executed via a
-                // separately verified server recovery/closure command.
                 var version=current.Version+1;
+                var clear=reopen || (from==IncidentState.Monitoring && next==IncidentState.Investigating);
                 await using(var update=Command(conn,tx,"""
-                    UPDATE it_incidents SET state=@state,version=@version,updated_at_utc=now()
+                    UPDATE it_incidents
+                       SET state=@state,version=@version,updated_at_utc=now(),
+                           resolved_by=CASE WHEN @clear THEN NULL
+                               WHEN @state='Resolved' THEN @actor ELSE resolved_by END,
+                           closed_by=CASE WHEN @clear THEN NULL
+                               WHEN @state='Closed' THEN @actor ELSE closed_by END,
+                           resolved_at_utc=CASE WHEN @clear THEN NULL
+                               WHEN @state='Resolved' THEN now() ELSE resolved_at_utc END,
+                           closed_at_utc=CASE WHEN @clear THEN NULL
+                               WHEN @state='Closed' THEN now() ELSE closed_at_utc END,
+                           recovery_verified=CASE WHEN @clear THEN false ELSE recovery_verified END,
+                           integrity_verified=CASE WHEN @clear THEN false ELSE integrity_verified END,
+                           actions_dispositioned=@actions,
+                           root_cause_code=CASE WHEN @clear THEN NULL ELSE root_cause_code END
                     WHERE organization_id=@org AND id=@id AND version=@previous
                     """,("state",next.ToString()),("version",version),("org",org),("id",id),
-                    ("previous",current.Version)))
+                    ("previous",current.Version),("actor",actor.UserId),
+                    ("clear",clear),("actions",actions)))
                     if(await update.ExecuteNonQueryAsync(token)!=1)throw Conflict();
                 await Event(conn,tx,org,id,actor.UserId,version,reopen?"Reopened":"Transitioned",
                     current.State,next.ToString(),reason,token);

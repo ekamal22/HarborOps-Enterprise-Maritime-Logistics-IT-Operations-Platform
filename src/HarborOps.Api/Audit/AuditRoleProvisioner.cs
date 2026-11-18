@@ -71,16 +71,19 @@ public static class AuditRoleProvisioner
                         GRANT EXECUTE ON FUNCTION m18_scoped_session(uuid) TO harborops_api;
                         REVOKE ALL ON it_incidents, it_incident_events,
                             it_incident_notes, it_incident_actions,
-                            it_incident_evidence, it_incident_operation_ids,
-                            it_incident_read_grants FROM harborops_api;
+                            it_incident_action_events, it_incident_evidence,
+                            it_incident_operation_ids, it_incident_read_grants
+                            FROM harborops_api;
                         GRANT SELECT ON it_incidents, it_incident_events,
                             it_incident_notes, it_incident_actions,
-                            it_incident_evidence, it_incident_operation_ids,
-                            it_incident_read_grants TO harborops_api;
+                            it_incident_action_events, it_incident_evidence,
+                            it_incident_operation_ids, it_incident_read_grants
+                            TO harborops_api;
                         GRANT INSERT ON it_incidents, it_incident_events,
                             it_incident_notes, it_incident_actions,
-                            it_incident_evidence, it_incident_operation_ids,
-                            it_incident_read_grants TO harborops_api;
+                            it_incident_action_events, it_incident_evidence,
+                            it_incident_operation_ids, it_incident_read_grants
+                            TO harborops_api;
                         GRANT UPDATE ON it_incidents, it_incident_actions,
                             it_incident_operation_ids, it_incident_read_grants
                             TO harborops_api;

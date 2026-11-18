@@ -120,6 +120,24 @@ public static class M17Telemetry
                 new KeyValuePair<string, object?>("status_class", "5xx"));
     }
 
+    // A finite service-level observation, never tenant telemetry or a raw trace.
+    // This accessor does not enable collectors, exporters or other opt-in services.
+    public static (string Status, DateTimeOffset ObservedAtUtc) CurrentDatabaseSignal()
+    {
+        var unix = Interlocked.Read(ref databaseSampleUnixSeconds);
+        var now = DateTimeOffset.UtcNow;
+        if (unix <= 0) return ("unknown", now);
+        var observed = DateTimeOffset.FromUnixTimeSeconds(unix);
+        if (observed > now.AddSeconds(30) || observed < now.AddSeconds(-45))
+            return ("unknown", now);
+        return (Volatile.Read(ref databaseReadiness) switch
+        {
+            1 => "healthy",
+            0 => "degraded",
+            _ => "unknown"
+        }, observed);
+    }
+
     public static void ObserveDatabaseReadiness(bool healthy, TimeSpan elapsed)
     {
         Volatile.Write(ref databaseReadiness, healthy ? 1 : 0);

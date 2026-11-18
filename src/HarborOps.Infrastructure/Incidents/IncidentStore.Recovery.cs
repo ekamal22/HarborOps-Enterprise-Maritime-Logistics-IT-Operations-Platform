@@ -37,8 +37,16 @@ public sealed partial class IncidentStore
                     count=reader.GetInt64(0);first=reader.GetInt64(1);last=reader.GetInt64(2);
                 }
                 if(count!=current.Version||first!=1||last!=current.Version)throw Conflict();
-                await using(var probe=Command(conn,tx,"SELECT 1"))
-                    if(Convert.ToInt32(await probe.ExecuteScalarAsync(token))!=1)throw Conflict();
+                // Every corrective action must have a gap-free history that ends at its current
+                // version; a mismatch means the action register cannot be trusted for closure.
+                await using(var actionHistory=Command(conn,tx,"""
+                    SELECT count(*) FROM it_incident_actions a
+                    WHERE a.organization_id=@org AND a.incident_id=@id
+                      AND a.version IS DISTINCT FROM (
+                        SELECT count(*) FROM it_incident_action_events e
+                        WHERE e.organization_id=a.organization_id AND e.action_id=a.id)
+                    """,("org",org),("id",id)))
+                    if(Convert.ToInt64(await actionHistory.ExecuteScalarAsync(token))!=0)throw Conflict();
 
                 bool actions;
                 await using(var pending=Command(conn,tx,"""
@@ -49,15 +57,19 @@ public sealed partial class IncidentStore
                     actions=!Convert.ToBoolean(await pending.ExecuteScalarAsync(token));
 
                 Guid? firstEvidence=null;
-                foreach(var code in new[]{"database_readiness_healthy","incident_history_integrity_verified"})
+                var observedAt=DateTimeOffset.UtcNow;
+                foreach(var code in new[]{ReadinessCode(current.ServiceCode),"incident_history_integrity_verified"})
                 {
                     var eid=Guid.NewGuid();firstEvidence ??= eid;
                     await using var evidence=Command(conn,tx,"""
                         INSERT INTO it_incident_evidence(id,organization_id,incident_id,kind,
-                            service_code,observation_code,source_status,observed_at_utc,actor_user_id)
-                        VALUES(@eid,@org,@id,'RecoveryProbe',@service,@code,'healthy',now(),@actor)
+                            service_code,observation_code,source_status,observed_at_utc,
+                            correlation_digest,actor_user_id)
+                        VALUES(@eid,@org,@id,'RecoveryProbe',@service,@code,'healthy',@at,@digest,@actor)
                         """,("eid",eid),("org",org),("id",id),("service",current.ServiceCode),
-                        ("code",code),("actor",actor.UserId));
+                        ("code",code),("at",observedAt),
+                        ("digest",EvidenceDigest(id,current.ServiceCode,"healthy",observedAt)),
+                        ("actor",actor.UserId));
                     if(await evidence.ExecuteNonQueryAsync(token)!=1)throw Conflict();
                 }
 
@@ -97,11 +109,14 @@ public sealed partial class IncidentStore
                 var evidenceId=Guid.NewGuid();
                 await using(var insert=Command(conn,tx,"""
                     INSERT INTO it_incident_evidence(id,organization_id,incident_id,kind,
-                        service_code,observation_code,source_status,observed_at_utc,actor_user_id)
+                        service_code,observation_code,source_status,observed_at_utc,
+                        correlation_digest,actor_user_id)
                     VALUES(@eid,@org,@id,'M17Snapshot',@service,
-                        'database_readiness',@status,@at,@actor)
+                        'database_readiness',@status,@at,@digest,@actor)
                     """,("eid",evidenceId),("org",org),("id",id),("service",current.ServiceCode),
-                    ("status",trustedStatus),("at",observed),("actor",actor.UserId)))
+                    ("status",trustedStatus),("at",observed),
+                    ("digest",EvidenceDigest(id,current.ServiceCode,trustedStatus,observed)),
+                    ("actor",actor.UserId)))
                     if(await insert.ExecuteNonQueryAsync(token)!=1)throw Conflict();
                 var version=current.Version+1;
                 await using(var update=Command(conn,tx,"""

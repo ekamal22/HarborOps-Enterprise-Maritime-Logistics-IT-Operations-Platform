@@ -10,7 +10,8 @@ public sealed record IncidentEventView(Guid Id, long Sequence, string Kind, stri
 public sealed record IncidentNoteView(Guid Id, string Body, Guid ActorUserId, DateTimeOffset OccurredAtUtc);
 public sealed record IncidentActionView(Guid Id, string Title, string State, Guid OwnerUserId, long Version);
 public sealed record IncidentEvidenceView(Guid Id, string Kind, string ObservationCode,
-    string SourceStatus, DateTimeOffset ObservedAtUtc, DateTimeOffset CapturedAtUtc);
+    string SourceStatus, DateTimeOffset ObservedAtUtc, DateTimeOffset CapturedAtUtc,
+    string? CorrelationDigest);
 public sealed record IncidentHistory(IncidentView Incident, IReadOnlyList<IncidentEventView> Events,
     IReadOnlyList<IncidentNoteView> Notes, IReadOnlyList<IncidentActionView> Actions,
     IReadOnlyList<IncidentEvidenceView> Evidence, long? NextEventAfter);
@@ -22,6 +23,11 @@ public sealed record IncidentReadGrantView(Guid UserId, string Status, DateTimeO
 
 public sealed partial class IncidentStore
 {
+    // Permission and session check only, with the same transaction-time revalidation as a write.
+    public Task<OrganizationRole> AuthorizeAsync(CurrentSession actor, Guid org,
+        OrganizationPermission permission, CancellationToken ct) =>
+        Scoped(actor, org, permission, (conn, tx, role, token) => Task.FromResult(role), ct);
+
     public Task<IncidentHistory> HistoryAsync(CurrentSession actor,Guid org,Guid id,CancellationToken ct,long afterSequence=0) =>
         Scoped(actor,org,OrganizationPermission.ViewIncidentDetail,
             async(conn,tx,role,token)=>
@@ -72,7 +78,7 @@ public sealed partial class IncidentStore
                             reader.GetGuid(3),reader.GetInt64(4)));
                 var evidence=new List<IncidentEvidenceView>();
                 await using(var cmd=Command(conn,tx,"""
-                    SELECT id,kind,observation_code,source_status,observed_at_utc,captured_at_utc
+                    SELECT id,kind,observation_code,source_status,observed_at_utc,captured_at_utc,correlation_digest
                     FROM it_incident_evidence
                     WHERE organization_id=@org AND incident_id=@id
                     ORDER BY captured_at_utc,id LIMIT 100
@@ -81,7 +87,8 @@ public sealed partial class IncidentStore
                     while(await reader.ReadAsync(token))
                         evidence.Add(new(reader.GetGuid(0),reader.GetString(1),reader.GetString(2),
                             reader.GetString(3),reader.GetFieldValue<DateTimeOffset>(4),
-                            reader.GetFieldValue<DateTimeOffset>(5)));
+                            reader.GetFieldValue<DateTimeOffset>(5),
+                            reader.IsDBNull(6)?null:reader.GetString(6)));
                 return new IncidentHistory(role==OrganizationRole.Auditor
                     ? incident with { AssignedTo=null } : incident,
                     events,notes,role==OrganizationRole.Auditor ? [] : actions,

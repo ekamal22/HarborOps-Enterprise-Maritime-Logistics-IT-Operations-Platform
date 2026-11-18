@@ -63,6 +63,8 @@ builder.Services.AddScoped<ShipmentExceptionStore>();
 builder.Services.AddScoped<NotificationStore>();
 builder.Services.AddScoped<IncidentStore>();
 builder.Services.AddSingleton<IncidentCursorCodec>();
+builder.Services.AddSingleton<IncidentPrefillCodec>();
+builder.Services.AddScoped<IncidentCorrelation>();
 if (builder.Configuration.GetValue<bool>("M15:EnableDelivery"))
     builder.Services.AddHostedService<NotificationDeliveryService>();
 if (builder.Configuration.GetValue<bool>("M11:EnableEvaluator"))

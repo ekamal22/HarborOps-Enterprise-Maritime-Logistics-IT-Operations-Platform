@@ -21,13 +21,14 @@ public sealed class IncidentRequestException(int status, string code) : Exceptio
 public sealed record IncidentView(Guid Id, string Title, string ServiceCode, string Severity,
     string State, string ImpactCode, long Version, DateTimeOffset UpdatedAtUtc, Guid? AssignedTo);
 public sealed record IncidentCreate(string Title, string ServiceCode, string Severity,
-    string ImpactCode, DateTimeOffset DetectedAtUtc);
+    string ImpactCode, DateTimeOffset DetectedAtUtc, string? PrefillToken = null);
 public sealed record IncidentTransition(long ExpectedVersion, string ToState, string ReasonCode);
 public sealed record IncidentNoteInput(long ExpectedVersion, string Body);
 public sealed record IncidentAssignment(long ExpectedVersion, Guid AssignedTo, string ReasonCode);
 public sealed record IncidentChangeResult(IncidentView Incident, bool Replayed);
 
-public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExceptionStore signedScope)
+public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExceptionStore signedScope,
+    IncidentCorrelation correlation, Microsoft.Extensions.Configuration.IConfiguration configuration)
 {
     private static IncidentRequestException Deny() => new(403, "access_denied");
     private static IncidentRequestException Missing() => new(404, "resource_not_found");
@@ -87,7 +88,7 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
             if (await grant.ExecuteScalarAsync(ct) is null) throw Deny();
         }
 
-        await AuditActorContext.SetHumanAsync(db, actor.UserId, actor.SessionId, null, ct);
+        await AuditActorContext.SetHumanAsync(db, actor.UserId, actor.SessionId, correlation.Value, ct);
         var result = await action(connection, transaction, role, ct);
         await tx.CommitAsync(ct);
         return result;
@@ -207,18 +208,40 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
                 return Redact(role,item);
             },ct);
 
+    // Recovery evidence must be recent when the incident is resolved. The default is five
+    // minutes; the setting only exists so a disposable test can exercise expiry quickly.
+    private int RecoveryFreshnessSeconds =>
+        int.TryParse(configuration["M18:RecoveryFreshnessSeconds"], out var seconds)
+            ? Math.Clamp(seconds, 1, 900) : 300;
+
+    private static string ReadinessCode(string serviceCode) =>
+        serviceCode == "api" ? "api_readiness_healthy" : "database_readiness_healthy";
+
+    // A bounded digest that links one incident to one safe observation. It is a correlation
+    // aid only; it does not claim to prove M17 trace continuity.
+    private static string EvidenceDigest(Guid incident, string service, string status,
+        DateTimeOffset observed) =>
+        Digest($"{incident:D}|{service}|{status}|{observed.ToUniversalTime():O}")[..32];
+
     public Task<IncidentChangeResult> CreateAsync(CurrentSession actor, Guid org,
-        IncidentCreate input, Guid operationKey, CancellationToken ct)
+        IncidentCreate input, Guid operationKey, CancellationToken ct) =>
+        CreateAsync(actor, org, input, operationKey, null, ct);
+
+    public Task<IncidentChangeResult> CreateAsync(CurrentSession actor, Guid org,
+        IncidentCreate input, Guid operationKey, IncidentPrefill? prefill, CancellationToken ct)
     {
         var title=IncidentPolicy.Title(input.Title);
         var service=IncidentPolicy.ServiceCode(input.ServiceCode);
         var impact=IncidentPolicy.Reason(input.ImpactCode);
         if (!IncidentPolicy.ParseSeverity(input.Severity,out _) ||
             input.DetectedAtUtc > DateTimeOffset.UtcNow.AddMinutes(5) ||
-            input.DetectedAtUtc < DateTimeOffset.UtcNow.AddYears(-2))
+            input.DetectedAtUtc < DateTimeOffset.UtcNow.AddYears(-2) ||
+            (prefill is not null && (prefill.ServiceCode != service ||
+                prefill.Status is not ("healthy" or "degraded" or "unknown"))))
             throw Invalid();
         var hash=Digest(string.Join("\n",title,service,input.Severity,impact,
-            input.DetectedAtUtc.ToUniversalTime().ToString("O")));
+            input.DetectedAtUtc.ToUniversalTime().ToString("O"),
+            prefill is null ? "-" : $"{prefill.ServiceCode}|{prefill.Status}|{prefill.ObservedAtUtc.ToUniversalTime():O}"));
         return Scoped(actor,org,OrganizationPermission.CreateIncident,
             async (conn,tx,role,token)=>
             {
@@ -236,6 +259,20 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
                     ("detected",input.DetectedAtUtc),("actor",actor.UserId)))
                     if(await insert.ExecuteNonQueryAsync(token)!=1)throw Conflict();
                 await Event(conn,tx,org,id,actor.UserId,1,"Created",null,"New","created",token);
+                if (prefill is not null)
+                {
+                    // Only the server-issued, finite observation is stored; a Manager may confirm it
+                    // but never receives the evidence tier back.
+                    await using var snapshot=Command(conn,tx,"""
+                        INSERT INTO it_incident_evidence(organization_id,incident_id,kind,service_code,
+                            observation_code,source_status,observed_at_utc,correlation_digest,actor_user_id)
+                        VALUES(@org,@id,'M17Snapshot',@service,'database_readiness',@status,@at,@digest,@actor)
+                        """,("org",org),("id",id),("service",prefill.ServiceCode),
+                        ("status",prefill.Status),("at",prefill.ObservedAtUtc),
+                        ("digest",EvidenceDigest(id,prefill.ServiceCode,prefill.Status,prefill.ObservedAtUtc)),
+                        ("actor",actor.UserId));
+                    if(await snapshot.ExecuteNonQueryAsync(token)!=1)throw Conflict();
+                }
                 await FinalizeOperation(conn,tx,actor,org,operationKey,id,1,token);
                 var result=await Read(conn,tx,org,id,false,token);
                 return new IncidentChangeResult(Redact(role,result),false);
@@ -319,10 +356,10 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
                         FROM it_incident_evidence
                         WHERE organization_id=@org AND incident_id=@id
                           AND kind='RecoveryProbe' AND source_status='healthy'
-                          AND observed_at_utc>=now()-interval '5 minutes'
-                          AND observation_code IN
-                            ('database_readiness_healthy','incident_history_integrity_verified')
-                        """,("org",org),("id",id));
+                          AND observed_at_utc>=clock_timestamp()-make_interval(secs=>@fresh::double precision)
+                          AND observation_code IN (@readiness,'incident_history_integrity_verified')
+                        """,("org",org),("id",id),("fresh",(double)RecoveryFreshnessSeconds),
+                        ("readiness",ReadinessCode(current.ServiceCode)));
                     if(Convert.ToInt64(await fresh.ExecuteScalarAsync(token))!=2)throw Conflict();
                 }
                 await using(var pending=Command(conn,tx,"""

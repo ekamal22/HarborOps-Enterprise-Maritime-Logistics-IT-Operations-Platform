@@ -84,9 +84,19 @@ public static class AuditRoleProvisioner
                             it_incident_action_events, it_incident_evidence,
                             it_incident_operation_ids, it_incident_read_grants
                             TO harborops_api;
-                        GRANT UPDATE ON it_incidents, it_incident_actions,
-                            it_incident_operation_ids, it_incident_read_grants
-                            TO harborops_api;
+                        -- Column-level update rights: identity, tenant, creator and
+                        -- operation-digest columns can never be rewritten by the runtime role.
+                        GRANT UPDATE (severity, state, impact_code, updated_at_utc,
+                            assigned_to, root_cause_code, resolved_by, closed_by,
+                            resolved_at_utc, closed_at_utc, version, recovery_verified,
+                            integrity_verified, actions_dispositioned)
+                            ON it_incidents TO harborops_api;
+                        GRANT UPDATE (state, version, updated_at_utc)
+                            ON it_incident_actions TO harborops_api;
+                        GRANT UPDATE (incident_id, result_version)
+                            ON it_incident_operation_ids TO harborops_api;
+                        GRANT UPDATE (granted_by, status, expires_at_utc, version, revoked_at_utc)
+                            ON it_incident_read_grants TO harborops_api;
                     END IF;
                 END $m18_role_grants$;
                 -- M10 is strictly additive to the already accepted M9/M16 role matrix.

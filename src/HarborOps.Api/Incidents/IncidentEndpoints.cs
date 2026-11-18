@@ -75,6 +75,9 @@ public static class IncidentEndpoints
     private static async Task<IResult> Guarded(HttpContext ctx,Func<Task<IResult>> work)
     {
         ctx.Response.Headers.CacheControl="no-store";
+        // The same server correlation value reaches the M16 audit entries written in the transaction.
+        ctx.RequestServices.GetRequiredService<IncidentCorrelation>().Value =
+            ctx.Items["CorrelationId"]?.ToString();
         try { return await work(); }
         catch (IncidentRequestException ex) {
             return Failure(ctx,ex.Status,ex.Code,ex.Status==404?"Resource not found":
@@ -142,8 +145,37 @@ public static class IncidentEndpoints
                 return Results.Ok(item);
             }));
 
+        // A read-only, server-issued preview of the one finite service observation M17 can supply.
+        // Viewing it never creates an incident; a human must confirm it through the create route.
+        root.MapGet("/m17-prefill",(string organizationId,HttpContext ctx,IncidentStore store,
+            IncidentPrefillCodec codec)=>
+            Guarded(ctx,async()=>
+            {
+                if(!Id(organizationId,out var org))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var query=ctx.Request.Query;
+                if(query.Keys.Any(k=>k!="service")||query.Any(x=>x.Value.Count!=1)||
+                    (query.ContainsKey("service")&&query["service"]!="database"))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var current=Session(ctx);
+                await store.AuthorizeAsync(current,org,
+                    HarborOps.Domain.Organizations.OrganizationPermission.CreateIncident,ctx.RequestAborted);
+                var signal=M17Telemetry.CurrentDatabaseSignal();
+                var now=DateTimeOffset.UtcNow;
+                var (token,expires)=codec.Encode(org,current.UserId,current.SessionId,"database",
+                    signal.Status,signal.ObservedAtUtc,now);
+                return Results.Ok(new
+                {
+                    serviceCode="database", observationCode="database_readiness",
+                    status=signal.Status, observedAtUtc=signal.ObservedAtUtc,
+                    statusIsCurrent=signal.Status!="unknown",
+                    suggestedTitle="Database readiness "+signal.Status,
+                    prefillToken=token, expiresAtUtc=expires
+                });
+            }));
+
         root.MapPost("",(string organizationId,HttpContext ctx,
-            IAntiforgery anti,IncidentStore store)=>
+            IAntiforgery anti,IncidentStore store,IncidentPrefillCodec codec)=>
             Guarded(ctx,async()=>
             {
                 if(!await MutationAllowed(ctx,anti))
@@ -152,7 +184,15 @@ public static class IncidentEndpoints
                     return Failure(ctx,400,"invalid_request","Invalid incident request");
                 var input=await Body<IncidentCreate>(ctx);
                 if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
-                var value=await store.CreateAsync(Session(ctx),org,input,operation,ctx.RequestAborted);
+                IncidentPrefill? prefill=null;
+                if(input.PrefillToken is not null)
+                {
+                    var actor=Session(ctx);
+                    if(!codec.TryDecode(input.PrefillToken,org,actor.UserId,actor.SessionId,
+                        DateTimeOffset.UtcNow,out prefill))
+                        return Failure(ctx,400,"invalid_request","Invalid incident request");
+                }
+                var value=await store.CreateAsync(Session(ctx),org,input,operation,prefill,ctx.RequestAborted);
                 return Results.Json(value.Incident,
                     statusCode:value.Replayed?200:201);
             }));

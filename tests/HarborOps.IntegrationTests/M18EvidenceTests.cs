@@ -293,6 +293,36 @@ public sealed class M18EvidenceTests
     }
 
     [Fact]
+    public async Task EvidenceDigestCanBeRecomputedFromTheStoredRowAloneForSnapshotsAndRecoveryProbes()
+    {
+        using var w = await M18World.CreateAsync();
+        using var support = await w.Client("support");
+        await Ready(w, support);
+        var (id, v, action) = await M18LifecycleTests.ToMonitoring(w, support);
+        v = await M18LifecycleTests.DispositionAction(w, support, id, v, action);
+        v = await w.Post(support, id, "/m17-snapshot", new { expectedVersion = v });
+        v = await w.Post(support, id, "/recovery", new { expectedVersion = v, rootCauseCode = "pool_exhaustion" });
+        var rows = new List<(string Service, string Status, DateTime Observed, string Digest)>();
+        await using (var connection = new Npgsql.NpgsqlConnection(w.Roles.Admin))
+        {
+            await connection.OpenAsync();
+            await using var command = new Npgsql.NpgsqlCommand("SELECT service_code,source_status,observed_at_utc,correlation_digest FROM it_incident_evidence WHERE incident_id=@i AND correlation_digest IS NOT NULL", connection);
+            command.Parameters.AddWithValue("i", id);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                rows.Add((reader.GetString(0), reader.GetString(1), reader.GetFieldValue<DateTime>(2), reader.GetString(3)));
+        }
+        Assert.Equal(3, rows.Count);
+        foreach (var row in rows)
+        {
+            var canonical = DateTime.SpecifyKind(row.Observed, DateTimeKind.Utc).ToString("yyyy-MM-dd'T'HH:mm:ss.ffffff'Z'", System.Globalization.CultureInfo.InvariantCulture);
+            var expected = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes($"{id:D}|{row.Service}|{row.Status}|{canonical}"))).ToLowerInvariant()[..32];
+            Assert.Equal(expected, row.Digest);
+        }
+    }
+
+    [Fact]
     public async Task ServiceCategoriesAreExactlyTheFourApprovedCodes()
     {
         using var w = await M18World.CreateAsync();

@@ -67,7 +67,7 @@ public sealed partial class IncidentStore
                             correlation_digest,actor_user_id)
                         VALUES(@eid,@org,@id,'RecoveryProbe',@service,@code,'healthy',@at,@digest,@actor)
                         """,("eid",eid),("org",org),("id",id),("service",current.ServiceCode),
-                        ("code",code),("at",observedAt),
+                        ("code",code),("at",Micro(observedAt)),
                         ("digest",EvidenceDigest(id,current.ServiceCode,"healthy",observedAt)),
                         ("actor",actor.UserId));
                     if(await evidence.ExecuteNonQueryAsync(token)!=1)throw Conflict();
@@ -114,7 +114,7 @@ public sealed partial class IncidentStore
                     VALUES(@eid,@org,@id,'M17Snapshot',@service,
                         'database_readiness',@status,@at,@digest,@actor)
                     """,("eid",evidenceId),("org",org),("id",id),("service",current.ServiceCode),
-                    ("status",trustedStatus),("at",observed),
+                    ("status",trustedStatus),("at",Micro(observed)),
                     ("digest",EvidenceDigest(id,current.ServiceCode,trustedStatus,observed)),
                     ("actor",actor.UserId)))
                     if(await insert.ExecuteNonQueryAsync(token)!=1)throw Conflict();

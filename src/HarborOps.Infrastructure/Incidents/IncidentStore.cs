@@ -221,7 +221,12 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
     // aid only; it does not claim to prove M17 trace continuity.
     private static string EvidenceDigest(Guid incident, string service, string status,
         DateTimeOffset observed) =>
-        Digest($"{incident:D}|{service}|{status}|{observed.ToUniversalTime():O}")[..32];
+        Digest($"{incident:D}|{service}|{status}|{Micro(observed).ToString("yyyy-MM-dd'T'HH:mm:ss.ffffff'Z'", System.Globalization.CultureInfo.InvariantCulture)}")[..32];
+
+    // PostgreSQL keeps microseconds. Truncating first means the stored time and the digest input
+    // are identical, so the digest can be recomputed later from the stored row alone.
+    internal static DateTimeOffset Micro(DateTimeOffset value) =>
+        new(value.UtcTicks - value.UtcTicks % 10, TimeSpan.Zero);
 
     public Task<IncidentChangeResult> CreateAsync(CurrentSession actor, Guid org,
         IncidentCreate input, Guid operationKey, CancellationToken ct) =>
@@ -268,7 +273,7 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
                             observation_code,source_status,observed_at_utc,correlation_digest,actor_user_id)
                         VALUES(@org,@id,'M17Snapshot',@service,'database_readiness',@status,@at,@digest,@actor)
                         """,("org",org),("id",id),("service",prefill.ServiceCode),
-                        ("status",prefill.Status),("at",prefill.ObservedAtUtc),
+                        ("status",prefill.Status),("at",Micro(prefill.ObservedAtUtc)),
                         ("digest",EvidenceDigest(id,prefill.ServiceCode,prefill.Status,prefill.ObservedAtUtc)),
                         ("actor",actor.UserId));
                     if(await snapshot.ExecuteNonQueryAsync(token)!=1)throw Conflict();

@@ -113,6 +113,8 @@ M23 owns final visual polish. M24-04 owns the dedicated accessibility acceptance
 
 Recommended implementation module paths: `src/HarborOps.Domain/Incidents/`, `src/HarborOps.Infrastructure/Incidents/`, `src/HarborOps.Api/Incidents/`, `web/src/incidents/` and appropriately scoped existing tests. Shared file changes to `Program.cs`, `OrganizationPolicy.cs`, `HarborOpsDbContext.cs`, EF migrations, `OrganizationWorkspace.tsx` and `messages.mjs` require an explicit diff and branch-integration review. Protect G16 audit SQL and M17 performance/telemetry boundaries. **M18 planning does not grant permission to implement, migrate, activate workers, dispatch CI, merge runtime or deploy.**
 
+[Proposed API and UI fixtures](M18_API_AND_UI_CONTRACT_EXAMPLES.md) and [decision-to-evidence crosswalk](M18_DECISION_TO_EVIDENCE_CROSSWALK.md) refine the architecture without implying implementation or policy approval.
+
 ## 9. Deliverable and proof map
 
 | M18 work package | Implementation proof | Independent exit |

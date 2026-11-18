@@ -15,6 +15,8 @@
 
 
 
+M18 trust, approval and test mapping refinements: [transaction and security](M18_SECURITY_AND_TRANSACTION_CONTRACT.md), [decision-to-evidence crosswalk](M18_DECISION_TO_EVIDENCE_CROSSWALK.md), [API and UI examples](M18_API_AND_UI_CONTRACT_EXAMPLES.md). All planned controls remain unexecuted.
+
 ## M18 planned source-locked incident verification, 2026-11-18
 
 The [G18 verification plan](M18_VERIFICATION_PLAN.md) and [machine inventory](M18_G18_ASSERTION_INVENTORY_20261118.json) define 25 scenarios and 75 atomic assertions, with 72 technical and 3 independent-review assertions. All cases are NOT_EXECUTED and no M18 code or tests have been implemented. Source identity, approved P01-P20 policies, M16 atomic audit, M17 safe context, real PostgreSQL/HTTP concurrency and privacy, English/Turkish three-browser journeys, Q3 disposable historic snapshot or documented NOT_APPLICABLE, affected accepted regressions, effective negative controls and a separately signed S25/G18 decision are mandatory. No G18 workflow may be dispatched from this planning packet. [Implementation plan](M18_IMPLEMENTATION_PLAN.md) | [disposable runbook](M18_OPERATIONS_RUNBOOK.md).

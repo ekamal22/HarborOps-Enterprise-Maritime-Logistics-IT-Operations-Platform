@@ -23,6 +23,10 @@ M18 must produce a durable scoped ticket lifecycle, typed actor/permission contr
 | [G18 assertion inventory](M18_G18_ASSERTION_INVENTORY_20261118.json) | Machine-readable 25 x 3 atomic IDs and planned witnesses | 0 implemented, 0 executed |
 | [M18 disposable runbook](M18_OPERATIONS_RUNBOOK.md) | Owner-isolated E: setup, fault journey, Q3 compatibility, artifact and cleanup contract | Draft, not run |
 
+## Refinement review, 2026-11-18
+
+The proposed [transaction and security](M18_SECURITY_AND_TRANSACTION_CONTRACT.md), [decision-to-evidence crosswalk](M18_DECISION_TO_EVIDENCE_CROSSWALK.md), [API and UI examples](M18_API_AND_UI_CONTRACT_EXAMPLES.md) refine new M16 audit capture, incident creation idempotency, cross-tenant telemetry safety, role-specific read grants, closure separation, privacy and per-assertion negative controls. The assertion inventory remains 25 scenarios/75 unique NOT_EXECUTED assertions. None of these planning records approves P01-P20 or implements M18.
+
 ## Readiness ledger
 
 | Milestone step | State | Next release condition |

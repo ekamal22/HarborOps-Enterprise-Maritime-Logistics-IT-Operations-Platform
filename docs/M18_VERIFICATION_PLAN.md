@@ -245,6 +245,8 @@ G18-S25 is not automatically satisfied by test output. Independently authenticat
 - **A03:** A genuinely separate reviewer signs a source- and evidence-bound PASS/NOT PASS recommendation; distinct explicit G18 acceptance and merge authorization remain necessary
 
 
+The [decision-to-evidence crosswalk](M18_DECISION_TO_EVIDENCE_CROSSWALK.md) defines approval ordering, complete case-to-negative-control mapping and fixtures. [Proposed HTTP/UI examples](M18_API_AND_UI_CONTRACT_EXAMPLES.md) illustrate expected results without asserting that an endpoint exists.
+
 ## Explicit G18 evidence refinements
 
 The [machine-readable inventory](M18_G18_ASSERTION_INVENTORY_20261118.json) now maps every scenario to its affected M18-Pxx policies, work package, required witness layers and named adversarial negative-control family. These are **planned controls**, not executed witnesses. The [security and transaction contract](M18_SECURITY_AND_TRANSACTION_CONTRACT.md) must be reconciled with approved policies before any implementing code.

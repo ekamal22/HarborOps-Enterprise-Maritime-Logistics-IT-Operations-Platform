@@ -83,6 +83,8 @@ M18-02 and M18-03 may proceed in separate owned branches/worktrees **after** M18
 
 **Exit:** source-locked no-skip technical record, 75 individual dispositions (including signed reviewer assertions), negative/control evidence, Q3 disposition, independent technical review, explicit gate decision and postmerge source-equivalence check if merged.
 
+The [proposed API/UI examples](M18_API_AND_UI_CONTRACT_EXAMPLES.md) define draft DTO, response-tier, cursor, retry and status semantics. [Policy/test crosswalk](M18_DECISION_TO_EVIDENCE_CROSSWALK.md) specifies approval sequencing and negative controls.
+
 ## Implementation-entry contract review
 
 Before M18-02/03 source work, reconcile the [security and transaction contract](M18_SECURITY_AND_TRANSACTION_CONTRACT.md) with approved P01-P20 choices. Record per-route visibility and permission, separate Auditor grant, Manager safe summary, PostgreSQL tenant guards, M16 migration-owned triggers and grants, create-operation replay without incident ID, sensitive notes privacy residual, global-service-vs-tenant observability boundary, and closure separation. **Each unresolved choice is a blocker**, not an assumed default. New implementation claims must map to the refined [assertion inventory](M18_G18_ASSERTION_INVENTORY_20261118.json) and a specific effective negative control.

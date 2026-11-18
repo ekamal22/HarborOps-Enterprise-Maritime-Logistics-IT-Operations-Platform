@@ -204,7 +204,15 @@ public static class IncidentEndpoints
             {
                 if(!Id(organizationId,out var org)||!Id(incidentId,out var id))
                     return Failure(ctx,400,"invalid_request","Invalid incident request");
-                return Results.Ok(await store.HistoryAsync(Session(ctx),org,id,ctx.RequestAborted));
+                if(ctx.Request.Query.Keys.Any(k=>k!="afterSeq")||
+                    ctx.Request.Query.Any(x=>x.Value.Count!=1))
+                    return Failure(ctx,400,"invalid_request","Invalid incident history cursor");
+                var after=0L;
+                if(ctx.Request.Query.ContainsKey("afterSeq") &&
+                    (!long.TryParse(ctx.Request.Query["afterSeq"],out after)||after<0))
+                    return Failure(ctx,400,"invalid_request","Invalid incident history cursor");
+                return Results.Ok(await store.HistoryAsync(Session(ctx),org,id,
+                    ctx.RequestAborted,after));
             }));
 
         root.MapPost("/{incidentId}/actions",(string organizationId,string incidentId,

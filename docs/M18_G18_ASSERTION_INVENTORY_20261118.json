@@ -93,7 +93,7 @@
         "required_negative_control": "policies-inconsistent-or-unapproved",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -152,7 +152,7 @@
         "required_negative_control": "unauthorized-role-grant",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -210,7 +210,7 @@
         "required_negative_control": "missing-org-predicate",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -269,7 +269,7 @@
         "required_negative_control": "revocation-after-initial-check",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -326,7 +326,7 @@
         "required_negative_control": "accept-invalid-severity",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -384,7 +384,7 @@
         "required_negative_control": "skipped-state-guard",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -441,7 +441,7 @@
         "required_negative_control": "generic-state-overwrite",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -499,7 +499,7 @@
         "required_negative_control": "ignore-expected-version",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -557,7 +557,7 @@
         "required_negative_control": "duplicate-replay-event",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -614,7 +614,7 @@
         "required_negative_control": "disable-immutability-trigger",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -672,7 +672,7 @@
         "required_negative_control": "skip-required-audit",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -730,7 +730,7 @@
         "required_negative_control": "denial-audit-grants-access",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -787,7 +787,7 @@
         "required_negative_control": "assign-foreign-user",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -845,7 +845,7 @@
         "required_negative_control": "copy-note-into-audit",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -903,7 +903,7 @@
         "required_negative_control": "accept-raw-telemetry-url",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -961,7 +961,7 @@
         "required_negative_control": "erase-action-history",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -1019,7 +1019,7 @@
         "required_negative_control": "close-without-health-proof",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -1077,7 +1077,7 @@
         "required_negative_control": "erase-previous-closure",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -1135,7 +1135,7 @@
         "required_negative_control": "auto-create-on-alert",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -1194,7 +1194,7 @@
         "required_negative_control": "missing-signal-is-healthy",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -1252,7 +1252,7 @@
         "required_negative_control": "false-recovery-proof",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -1310,7 +1310,7 @@
         "required_negative_control": "accept-tampered-cursor",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -1368,7 +1368,7 @@
         "required_negative_control": "retain-previous-org-data",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -1426,7 +1426,7 @@
         "required_negative_control": "mutate-retained-snapshot",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING"
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED"
       }
     },
     {
@@ -1502,14 +1502,14 @@
         "required_negative_control": "fabricate-independent-signoff",
         "source_locked_case_test_id": null,
         "source_locked_evidence_manifest": null,
-        "decision_dependency": "POLICIES_PENDING",
+        "decision_dependency": "P01_P20_APPROVED_SOURCE_NOT_VERIFIED",
         "independent_signoff_required": true
       }
     }
   ],
   "refinement_version": 2,
   "refinement_date": "2026-11-18",
-  "refinement_status": "PLANNING_ONLY_NOT_EXECUTED",
+  "refinement_status": "POLICY_APPROVED_ASSERTIONS_NOT_EXECUTED",
   "witness_schema": {
     "case_results": [
       "PASS",

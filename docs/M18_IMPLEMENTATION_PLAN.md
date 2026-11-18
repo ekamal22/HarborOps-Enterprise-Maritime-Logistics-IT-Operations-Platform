@@ -1,10 +1,10 @@
 # M18 End-to-End Delivery and Implementation Plan
 
 **Prepared:** 2026-11-18  
-**Status:** PLANNED ONLY. No M18 implementation or G18 test evidence exists.  
+**Status:** APPROVED IMPLEMENTATION PLAN. Unverified M18 implementation candidate exists on feature branch; G18 test evidence still does not exist. See [current implementation checkpoint](M18_IMPLEMENTATION_CHECKPOINT_20261118.md).  
 **Planning baseline:** `main` at `72251f5310f24fb98322b7eb403a5e9e66e040ef`; recheck the branch head and shared files before implementation.  
 **Technical prerequisites:** G17 integrated through PR #53; G16 integrated through PR #25.  
-**Policy gate:** M18-P01 through P20 in [local policy proposal](M18_POLICY_PROPOSAL_20261118.md) remain PENDING.
+**Policy gate:** M18-P01 through P20 in [local policy register](M18_POLICY_PROPOSAL_20261118.md) APPROVED 2026-11-18.
 
 ## Outcome and non-negotiable scope
 

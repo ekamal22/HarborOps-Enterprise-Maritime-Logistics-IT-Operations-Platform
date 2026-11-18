@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace HarborOps.Domain.Organizations;
 
 public enum OrganizationRole { Analyst, Manager, Support, Administrator, Auditor }
-public enum OrganizationPermission { ViewOrganization, ViewMemberships, ManageMemberships, UpdateOrganization, ViewReferenceData, ManageReferenceData, ViewVoyageData, ManageVoyageData, ViewContainerData, ManageContainerData, ViewShipmentData, ManageShipmentData, ViewShipmentAssignments, ManageShipmentAssignments, TrackingWorkRead, TrackingWorkRedrive, ViewAuditEvents, ExportShipmentData, ViewOperationalKpis }
+public enum OrganizationPermission { ViewOrganization, ViewMemberships, ManageMemberships, UpdateOrganization, ViewReferenceData, ManageReferenceData, ViewVoyageData, ManageVoyageData, ViewContainerData, ManageContainerData, ViewShipmentData, ManageShipmentData, ViewShipmentAssignments, ManageShipmentAssignments, TrackingWorkRead, TrackingWorkRedrive, ViewAuditEvents, ExportShipmentData, ViewOperationalKpis, ViewIncidentSummary, ViewIncidentDetail, CreateIncident, ReportIncidentImpact, AppendIncidentNote, ManageIncidentLifecycle, AssignIncident, ManageIncidentActions, AttachIncidentEvidence, ConfirmIncidentClosure }
 
 public static class OrganizationPolicy
 {
@@ -39,6 +39,12 @@ public static class OrganizationPolicy
 
     public static bool Allows(OrganizationRole role, OrganizationPermission permission) =>
         permission == OrganizationPermission.ViewOrganization ||
+        (permission is (OrganizationPermission.ViewIncidentSummary or OrganizationPermission.CreateIncident or OrganizationPermission.ReportIncidentImpact) &&
+            role is (OrganizationRole.Manager or OrganizationRole.Support or OrganizationRole.Administrator)) ||
+        (permission is (OrganizationPermission.ViewIncidentDetail or OrganizationPermission.AppendIncidentNote or
+            OrganizationPermission.ManageIncidentLifecycle or OrganizationPermission.AssignIncident or
+            OrganizationPermission.ManageIncidentActions or OrganizationPermission.AttachIncidentEvidence or
+            OrganizationPermission.ConfirmIncidentClosure) && role is (OrganizationRole.Support or OrganizationRole.Administrator)) ||
         (permission == OrganizationPermission.ViewOperationalKpis &&
             role is (OrganizationRole.Analyst or OrganizationRole.Manager)) ||
         (permission == OrganizationPermission.ViewAuditEvents && role == OrganizationRole.Auditor) ||

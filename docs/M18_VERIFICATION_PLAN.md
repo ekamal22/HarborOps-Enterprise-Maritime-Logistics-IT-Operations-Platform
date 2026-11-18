@@ -4,7 +4,7 @@
 **Status:** PLANNED, NOT EXECUTED. G18 NOT ACCEPTED.  
 **Baseline:** `72251f5310f24fb98322b7eb403a5e9e66e040ef`. Actual verification must freeze its later exact implementing SHA and Git tree.  
 **Contract:** 25 mandatory scenarios, 75 atomic assertions, of which 72 require technical witnesses and 3 in S25 require independent review.  
-**Policy gate:** M18-P01..P20 remain PENDING. A passing test cannot approve policies or authorize deployment.
+**Policy gate:** M18-P01..P20 APPROVED 2026-11-18. This does not authorize G18 acceptance or deployment.
 
 ## Gate discipline
 

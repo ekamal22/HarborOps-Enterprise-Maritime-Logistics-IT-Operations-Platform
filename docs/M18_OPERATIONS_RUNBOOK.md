@@ -1,7 +1,7 @@
 # M18 / G18 Disposable Verification and Evidence Runbook
 
 **Prepared:** 2026-11-18  
-**Status:** Draft procedure, NOT EXECUTED. No M18 tests, fixtures, migrations or runtime are present.  
+**Status:** Draft procedure, NOT EXECUTED. An unverified migration and source candidate exist; no disposable G18 runtime evidence exists.  
 **Scope:** M18-01 through M18-04 and the later independent G18/S25 review.  
 **Restrictions:** No GitHub Actions, deployment, unapproved implementation, persistent C: writes, retained-volume modification or blanket Docker cleanup.
 

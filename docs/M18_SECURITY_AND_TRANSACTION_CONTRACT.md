@@ -1,7 +1,7 @@
 # M18 Security, Persistence and Transaction Contract Refinement
 
 **Prepared:** 2026-11-18  
-**Disposition:** Proposed implementation contract, NOT APPROVED and NOT IMPLEMENTED.  
+**Disposition:** Approved P01-P20 boundary; unverified feature source exists. The design still requires compiled and source-locked evidence.  
 **Policy dependencies:** [M18-P01 through P20](M18_POLICY_PROPOSAL_20261118.md).  
 **Source basis:** protected `main` `72251f5310f24fb98322b7eb403a5e9e66e040ef`; revalidate before implementing.
 
@@ -9,7 +9,7 @@ This refinement resolves design ambiguity, not policy authority. Every option he
 
 ## 1. Critical existing-source observations
 
-1. `OrganizationPolicy.cs` currently defines five roles and no M18 incident permissions. `OrganizationStore.ResolveAsync` consults current selected-organization scope. New incident access must not be inferred from shipment, audit, KPI or organization-management permissions.
+1. `OrganizationPolicy.cs` on the original baseline defined five roles without M18 permissions. The candidate adds incident permissions and requires runtime verification. `OrganizationStore.ResolveAsync` consults current selected-organization scope. New incident access must not be inferred from shipment, audit, KPI or organization-management permissions.
 2. M16's audit records live in `audit_entries` and the accepted implementation uses migration-owned capture triggers, restrictive database grants and transaction-local server-established actor context (`AuditActorContext.SetHumanAsync`). New M18 tables have **no automatic M16 trigger coverage** merely because they exist.
 3. `AuditRoleProvisioner` is the centralized existing authority for runtime PostgreSQL grants. Add new incident grants only through an additive, reviewed migrator/provisioner path, never by widening runtime table privileges independently.
 4. M17 emits finite-dimension service signals with no raw tenant identifiers in metrics or traces and exposes a private, default-off monitoring profile. Its telemetry is not incident authorization, a tenant-owned resource or proof of an individual customer's impact.

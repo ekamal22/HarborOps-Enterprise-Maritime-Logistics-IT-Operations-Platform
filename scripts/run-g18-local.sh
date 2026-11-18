@@ -2,7 +2,7 @@
 # G18 local verification stage dispatcher. Everything runs on this machine against owned disposable resources.
 # No hosted workflow is dispatched or configured. Usage:
 #   HARBOROPS_G18_ROOT=<E: directory> scripts/run-g18-local.sh <attempt-id> <stage>
-# Stages: preflight source-checks build unit contract web m18-integration regress-neighbours inventory-after
+# Stages: preflight source-checks build unit contract web m18-integration regress-a regress-b regress-final inventory-after
 #         reconcile manifest cleanup
 # The server backed stages (three-engine browser run, fault journey, mutation campaign) are supervised
 # separately because each owns long-lived processes: see docs/M18_OPERATIONS_RUNBOOK.md section 8.
@@ -71,12 +71,22 @@ case "$stage" in
     run m18-integration dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
       --filter "FullyQualifiedName~M18&FullyQualifiedName!~M18BrowserSeed" --logger "trx;LogFileName=m18-integration.trx" --results-directory "$evw\\trx"
     docker logs "ho-verify-g18-$attempt-m18" > "$ev/m18-integration-postgres.log" 2>&1 ;;
-  regress-neighbours)
+  regress-a|regress-b)
+    # Two shards on separate fresh databases: the heavy M13 load classes run alone so a long load run
+    # cannot skew the rest, and neither shard inherits the other's data.
     port="${HARBOROPS_G18_PORT:-55442}"
-    db "ho-verify-g18-$attempt-reg" "$port" || { record regress-database 1; exit 1; }
+    db "ho-verify-g18-$attempt-$stage" "$port" || { record "$stage-database" 1; exit 1; }
     export HARBOROPS_TEST_DB="Host=127.0.0.1;Port=$port;Database=harborops_integration;Username=harborops" HARBOROPS_G12_EXCLUSIVE_POSTGRES=1 HARBOROPS_G13_EXCLUSIVE_POSTGRES=1
-    run regress-neighbours dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build \
-      --filter "FullyQualifiedName!~M18" --logger "trx;LogFileName=regress-neighbours.trx" --results-directory "$evw\\trx" ;;
+    heavy='FullyQualifiedName~M13ScaleLoadTests|FullyQualifiedName~M13ConcurrentAcceptanceTests|FullyQualifiedName~M13TenantCapacityAcceptanceTests'
+    if [ "$stage" = regress-a ]; then
+      filter='FullyQualifiedName!~M18&FullyQualifiedName!~M13ScaleLoadTests&FullyQualifiedName!~M13ConcurrentAcceptanceTests&FullyQualifiedName!~M13TenantCapacityAcceptanceTests'
+    else
+      filter="$heavy"
+    fi
+    run "$stage" dotnet test tests/HarborOps.IntegrationTests/HarborOps.IntegrationTests.csproj -c Release --no-build       --filter "$filter" --logger "trx;LogFileName=$stage.trx" --results-directory "$evw\trx" ;;
+  regress-final)
+    a="$(grep '"name":"regress-a"' "$ev/stages.jsonl" | tail -1)"; b="$(grep '"name":"regress-b"' "$ev/stages.jsonl" | tail -1)"
+    if [[ "$a" == *'"status":"PASS"'* && "$b" == *'"status":"PASS"'* ]]; then record regress-neighbours 0; else record regress-neighbours 1; fi ;;
   inventory-after)
     node scripts/g18-retained-inventory.mjs --out "$evw\\retained-inventory-after.json" > "$ev/inventory-after.log" 2>&1; record inventory-after $? ;;
   reconcile)

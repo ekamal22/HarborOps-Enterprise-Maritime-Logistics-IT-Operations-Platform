@@ -20,10 +20,10 @@ public sealed class M18LifecycleTests
     }
 
     internal static async Task<(Guid Id, long Version)> ToInvestigating(M18World w,
-        HttpClient support, string severity = "SEV-2")
+        HttpClient support, string severity = "SEV-2", string service = "database")
     {
         var (id, v) = await w.CreateIncident(support,
-            M18World.NewIncident(severity: severity));
+            M18World.NewIncident(severity: severity, service: service));
         v = await w.Post(support, id, "/transitions", Move(v, "Triage", "triaged"));
         v = await w.Post(support, id, "/assignment", new
             { expectedVersion = v, assignedTo = w.Users["support"].Id, reasonCode = "initial_owner" },
@@ -33,9 +33,9 @@ public sealed class M18LifecycleTests
     }
 
     internal static async Task<(Guid Id, long Version, Guid Action)> ToMonitoring(M18World w,
-        HttpClient support, string severity = "SEV-2")
+        HttpClient support, string severity = "SEV-2", string service = "database")
     {
-        var (id, v) = await ToInvestigating(w, support, severity);
+        var (id, v) = await ToInvestigating(w, support, severity, service);
         v = await w.Post(support, id, "/notes", new { expectedVersion = v, body = "Readiness probe fails intermittently." });
         v = await w.Post(support, id, "/actions", new
             { expectedVersion = v, title = "Restart database pool", ownerUserId = w.Users["support"].Id });

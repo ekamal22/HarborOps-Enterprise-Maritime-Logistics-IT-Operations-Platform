@@ -32,23 +32,69 @@
           "expected": "Every behavior-affecting M18-P01 through P20 choice is explicitly resolved and signed before affected code exists",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S01-A02",
           "expected": "M18-01..04 mapping, API/SQL/roles and test inventory match approved contracts on the frozen source",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S01-A03",
           "expected": "G16/G17 constraints, default-off gates and historical evidence remain unchanged",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-01",
+        "policy_ids": [
+          "M18-P01",
+          "M18-P02",
+          "M18-P03",
+          "M18-P04",
+          "M18-P05",
+          "M18-P06",
+          "M18-P07",
+          "M18-P08",
+          "M18-P09",
+          "M18-P10",
+          "M18-P11",
+          "M18-P12",
+          "M18-P13",
+          "M18-P14",
+          "M18-P15",
+          "M18-P16",
+          "M18-P17",
+          "M18-P18",
+          "M18-P19",
+          "M18-P20"
+        ],
+        "planned_witness_layers": [
+          "source",
+          "policy",
+          "contract"
+        ],
+        "required_negative_control": "policies-inconsistent-or-unapproved",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S02",
@@ -62,23 +108,52 @@
           "expected": "Support and Administrator within selected active organization can use exactly approved technical incident operations",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S02-A02",
           "expected": "Manager remains limited, Analyst denied, and Auditor is read-only only with explicit revocable M18 grant",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S02-A03",
           "expected": "Every permission is checked server-side; UI hiding and generic M16 audit grants cannot grant incident rights",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P01",
+          "M18-P02",
+          "M18-P14"
+        ],
+        "planned_witness_layers": [
+          "unit",
+          "http",
+          "postgres"
+        ],
+        "required_negative_control": "unauthorized-role-grant",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S03",
@@ -92,23 +167,51 @@
           "expected": "List and detail return only selected-organization rows and allowed fields",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S03-A02",
           "expected": "Foreign incident/child IDs and protected cursors reveal no existence or data compared with unknown IDs",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S03-A03",
           "expected": "Composite tenant constraints prevent cross-organization notes, actions, evidence and assignment references",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P01",
+          "M18-P02",
+          "M18-P07"
+        ],
+        "planned_witness_layers": [
+          "postgres",
+          "http"
+        ],
+        "required_negative_control": "missing-org-predicate",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S04",
@@ -122,23 +225,52 @@
           "expected": "Revoked, expired or disabled sessions reject protected operations immediately",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S04-A02",
           "expected": "Organization switch and membership/role revocation invalidate cached incident and cursor visibility",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S04-A03",
           "expected": "Revalidation inside write transaction prevents queued requests committing after revocation",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P02",
+          "M18-P10",
+          "M18-P13"
+        ],
+        "planned_witness_layers": [
+          "http",
+          "postgres",
+          "race"
+        ],
+        "required_negative_control": "revocation-after-initial-check",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S05",
@@ -152,23 +284,50 @@
           "expected": "A permitted create persists valid incident with New state, correct service, SEV-1..4 and UTC timestamps",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S05-A02",
           "expected": "Invalid severity, source, lengths, unknown fields and timestamps fail with zero side effects",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S05-A03",
           "expected": "Limited Manager creation omits forbidden technical fields and never conveys privileged detail access",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P04",
+          "M18-P18"
+        ],
+        "planned_witness_layers": [
+          "unit",
+          "http"
+        ],
+        "required_negative_control": "accept-invalid-severity",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S06",
@@ -182,23 +341,51 @@
           "expected": "New -> Triage -> Investigating -> Mitigated -> Monitoring -> Resolved -> Closed follows approved guards",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S06-A02",
           "expected": "Each accepted transition records exact previous/new state, actor, server UTC and incremented version",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S06-A03",
           "expected": "Current projection matches ordered immutable history and correct resolved/closed timestamps",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P03",
+          "M18-P16"
+        ],
+        "planned_witness_layers": [
+          "unit",
+          "postgres",
+          "http"
+        ],
+        "required_negative_control": "skipped-state-guard",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S07",
@@ -212,23 +399,50 @@
           "expected": "Unapproved skips, terminal edits, duplicate closure and missing reason produce failure without state change",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S07-A02",
           "expected": "A generic mutation cannot overwrite state, actor, version, resolved or closed fields",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S07-A03",
           "expected": "Removing the transition guard is detected by an effective negative test",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P03",
+          "M18-P17"
+        ],
+        "planned_witness_layers": [
+          "unit",
+          "http"
+        ],
+        "required_negative_control": "generic-state-overwrite",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S08",
@@ -242,23 +456,51 @@
           "expected": "Two concurrent updates from the same version commit at most one authorized state change",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S08-A02",
           "expected": "Losing request receives deterministic conflict without phantom event, note or audit",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S08-A03",
           "expected": "Role or assignee revocation racing the commit cannot publish unauthorized changes",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P10",
+          "M18-P11",
+          "M18-P13"
+        ],
+        "planned_witness_layers": [
+          "postgres",
+          "race"
+        ],
+        "required_negative_control": "ignore-expected-version",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S09",
@@ -272,23 +514,51 @@
           "expected": "Exact matching replay creates no duplicate incident event/action/audit and returns the recorded outcome",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S09-A02",
           "expected": "Same key with different payload is rejected without modifying incident or history",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S09-A03",
           "expected": "Unknown commit outcome is resolved through durable operation identity rather than claiming false success",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P10",
+          "M18-P13"
+        ],
+        "planned_witness_layers": [
+          "postgres",
+          "http",
+          "race"
+        ],
+        "required_negative_control": "duplicate-replay-event",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S10",
@@ -302,23 +572,50 @@
           "expected": "Authorized app can append events/notes/evidence but cannot edit existing entries",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S10-A02",
           "expected": "API/worker runtime roles cannot UPDATE, DELETE, TRUNCATE or disable guards on immutable tables",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S10-A03",
           "expected": "Historical timeline survives closure, reopen, API restart and migration upgrade unchanged",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P07",
+          "M18-P12"
+        ],
+        "planned_witness_layers": [
+          "postgres",
+          "grant"
+        ],
+        "required_negative_control": "disable-immutability-trigger",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S11",
@@ -332,23 +629,51 @@
           "expected": "Every successful sensitive incident mutation commits exactly one allowlisted M16 audit with incident effect",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S11-A02",
           "expected": "Required audit write failure rolls back projection and append-only incident records",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S11-A03",
           "expected": "Audit metadata excludes note body, raw diagnostic values and credentials while preserving safe provenance",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P08",
+          "M18-P13"
+        ],
+        "planned_witness_layers": [
+          "postgres",
+          "audit",
+          "fault"
+        ],
+        "required_negative_control": "skip-required-audit",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S12",
@@ -362,23 +687,51 @@
           "expected": "An unauthorized request never changes incident state even when denial-audit persistence fails",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S12-A02",
           "expected": "Only migrator holds schema authority and API/worker cannot update/delete protected audit and history",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S12-A03",
           "expected": "No pre-existing accepted M16 audit API permission or privacy/retention invariant changes",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P08",
+          "M18-P13"
+        ],
+        "planned_witness_layers": [
+          "postgres",
+          "audit",
+          "http"
+        ],
+        "required_negative_control": "denial-audit-grants-access",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S13",
@@ -392,23 +745,50 @@
           "expected": "Only authorized actors assign to active permitted same-organization technical responders",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S13-A02",
           "expected": "Reassignment or SEV change records reason, prior/new value, actor and version",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S13-A03",
           "expected": "Foreign, removed or unauthorized assignee and unauthorized severity changes produce no effects",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P04",
+          "M18-P11"
+        ],
+        "planned_witness_layers": [
+          "postgres",
+          "http"
+        ],
+        "required_negative_control": "assign-foreign-user",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S14",
@@ -422,23 +802,51 @@
           "expected": "Permitted notes preserve authorship, UTC and immutable chronology under correct visibility",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S14-A02",
           "expected": "Secret, HTML, oversized, malformed and private-data canaries cannot leak via audit/log/metrics/HTTP/browser",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S14-A03",
           "expected": "Manager/Analyst/foreign users cannot infer protected note contents or private diagnostics",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-03",
+        "policy_ids": [
+          "M18-P09",
+          "M18-P12"
+        ],
+        "planned_witness_layers": [
+          "browser",
+          "http",
+          "privacy"
+        ],
+        "required_negative_control": "copy-note-into-audit",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S15",
@@ -452,23 +860,51 @@
           "expected": "An allowed service/rule/observed UTC snapshot with correlation digest is attached only by explicit authorized command",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S15-A02",
           "expected": "Raw trace payloads, unsafe URLs, tenant/user identifiers, secrets and unbounded labels are rejected or omitted",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S15-A03",
           "expected": "Stored safe evidence remains meaningful after M17 telemetry expires and missing values remain unknown",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-03",
+        "policy_ids": [
+          "M18-P05",
+          "M18-P06"
+        ],
+        "planned_witness_layers": [
+          "http",
+          "privacy",
+          "telemetry"
+        ],
+        "required_negative_control": "accept-raw-telemetry-url",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S16",
@@ -482,23 +918,51 @@
           "expected": "Investigation records cause classification or explicit approved unknown and associated actions",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S16-A02",
           "expected": "Action state/owner/evidence changes append versioned immutable history without silent overwrites",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S16-A03",
           "expected": "Cross-tenant action links, direct deletion and invalid action transition fail cleanly",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-03",
+        "policy_ids": [
+          "M18-P07",
+          "M18-P16"
+        ],
+        "planned_witness_layers": [
+          "postgres",
+          "http",
+          "browser"
+        ],
+        "required_negative_control": "erase-action-history",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S17",
@@ -512,23 +976,51 @@
           "expected": "Monitoring -> Resolved requires recorded health, recovery and data-integrity checks under approved policy",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S17-A02",
           "expected": "Resolved -> Closed requires closure confirmation and all mandatory corrective-action dispositions",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S17-A03",
           "expected": "Missing, stale or contradictory evidence and unauthorized exception prevent closure and leave current state unchanged",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-03",
+        "policy_ids": [
+          "M18-P16",
+          "M18-P17"
+        ],
+        "planned_witness_layers": [
+          "http",
+          "postgres",
+          "fault"
+        ],
+        "required_negative_control": "close-without-health-proof",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S18",
@@ -542,23 +1034,51 @@
           "expected": "Explicit authorized reopen enters approved investigation state with reason and new version",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S18-A02",
           "expected": "Prior closure, actor and verification evidence remain visible and immutable",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S18-A03",
           "expected": "Duplicate reopen or stale-version replay cannot fabricate a second lifecycle event",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-03",
+        "policy_ids": [
+          "M18-P03",
+          "M18-P17"
+        ],
+        "planned_witness_layers": [
+          "unit",
+          "postgres",
+          "http"
+        ],
+        "required_negative_control": "erase-previous-closure",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S19",
@@ -572,23 +1092,51 @@
           "expected": "M17 alert alone creates no incident before explicit user confirmation",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S19-A02",
           "expected": "Human-confirmed incident stores only safe observation snapshot and correct service/severity context",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S19-A03",
           "expected": "Wrong-organization or forged M17 reference cannot create/link incident or grant telemetry access",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-04",
+        "policy_ids": [
+          "M18-P05",
+          "M18-P06"
+        ],
+        "planned_witness_layers": [
+          "telemetry",
+          "http",
+          "browser"
+        ],
+        "required_negative_control": "auto-create-on-alert",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S20",
@@ -602,23 +1150,52 @@
           "expected": "Incident CRUD remains available when M17 export is disabled/unreachable if required database and audit are healthy",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S20-A02",
           "expected": "Missing collector, expired series or absent signal displays unknown, never verified recovery",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S20-A03",
           "expected": "M9 transport hold, M10/M11/M15 opt-ins and M17 private default-off profile remain unchanged",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-04",
+        "policy_ids": [
+          "M18-P06",
+          "M18-P13",
+          "M18-P15"
+        ],
+        "planned_witness_layers": [
+          "fault",
+          "telemetry",
+          "postgres"
+        ],
+        "required_negative_control": "missing-signal-is-healthy",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S21",
@@ -632,23 +1209,51 @@
           "expected": "Controlled fault produces bounded observable signal and an explicitly opened incident with reproducible symptoms",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S21-A02",
           "expected": "Mitigation and service restoration show actual health and relevant data-integrity proof",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S21-A03",
           "expected": "Closed/reopened evidence connects to the same incident/correlation digest without customer-data leak",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-04",
+        "policy_ids": [
+          "M18-P05",
+          "M18-P16"
+        ],
+        "planned_witness_layers": [
+          "fault",
+          "http",
+          "postgres"
+        ],
+        "required_negative_control": "false-recovery-proof",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S22",
@@ -662,23 +1267,51 @@
           "expected": "All versioned routes follow defined request/response enums, bounded payloads and stable scoped pagination",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S22-A02",
           "expected": "Unauthorized, forged origin, invalid cursor and oversize requests fail with sanitized consistent status/code",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S22-A03",
           "expected": "503 or unknown commit outcome never becomes success, and retry-after-recovery preserves committed state",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-02",
+        "policy_ids": [
+          "M18-P10",
+          "M18-P18"
+        ],
+        "planned_witness_layers": [
+          "http",
+          "contract",
+          "security"
+        ],
+        "required_negative_control": "accept-tampered-cursor",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S23",
@@ -692,23 +1325,51 @@
           "expected": "Support/Admin can create, transition, investigate, close and reopen in English and Turkish across three engines",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S23-A02",
           "expected": "Manager limited, Auditor granted read-only and Analyst denied views match backend; switching organizations clears stale data",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S23-A03",
           "expected": "Loading/empty/error/unknown/conflict and saved draft flows work without English-only text or hidden privilege changes",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-03",
+        "policy_ids": [
+          "M18-P02",
+          "M18-P14"
+        ],
+        "planned_witness_layers": [
+          "browser",
+          "i18n",
+          "http"
+        ],
+        "required_negative_control": "retain-previous-org-data",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S24",
@@ -722,23 +1383,51 @@
           "expected": "Q3 representative historical snapshot boots, upgrades and integrity spot checks on disposable copy, OR exact NOT APPLICABLE evidence is recorded",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S24-A02",
           "expected": "Original retained volume is unchanged, and fresh/seeded migrations and runtime DB grants are correct",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S24-A03",
           "expected": "Impacted G16/G17 plus accepted business/notification/session regressions pass on exact candidate; no required skip",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "M18-04",
+        "policy_ids": [
+          "M18-P12",
+          "M18-P20"
+        ],
+        "planned_witness_layers": [
+          "migration",
+          "snapshot",
+          "regression"
+        ],
+        "required_negative_control": "mutate-retained-snapshot",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING"
+      }
     },
     {
       "id": "G18-S25",
@@ -752,23 +1441,99 @@
           "expected": "A distinct reviewer authenticates frozen source, hashes, 25 scenarios, 72 technical assertions and negative/security evidence",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S25-A02",
           "expected": "All policy, provenance, performance, Q3 and procedural exceptions are disclosed and dispositioned without editing failures",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         },
         {
           "id": "G18-S25-A03",
           "expected": "Independent signed PASS/NOT PASS recommendation is recorded; G18 remains NOT ACCEPTED until a separately explicit gate decision",
           "status": "NOT_EXECUTED",
           "witness": null,
-          "reviewer_disposition": null
+          "reviewer_disposition": null,
+          "witness_kind": "PLANNED_ONLY",
+          "test_id": null,
+          "artifact_sha256": null,
+          "source_sha": null
         }
-      ]
+      ],
+      "traceability": {
+        "work_package": "G18",
+        "policy_ids": [
+          "M18-P01",
+          "M18-P02",
+          "M18-P03",
+          "M18-P04",
+          "M18-P05",
+          "M18-P06",
+          "M18-P07",
+          "M18-P08",
+          "M18-P09",
+          "M18-P10",
+          "M18-P11",
+          "M18-P12",
+          "M18-P13",
+          "M18-P14",
+          "M18-P15",
+          "M18-P16",
+          "M18-P17",
+          "M18-P18",
+          "M18-P19",
+          "M18-P20"
+        ],
+        "planned_witness_layers": [
+          "independent-review",
+          "manifest",
+          "governance"
+        ],
+        "required_negative_control": "fabricate-independent-signoff",
+        "source_locked_case_test_id": null,
+        "source_locked_evidence_manifest": null,
+        "decision_dependency": "POLICIES_PENDING",
+        "independent_signoff_required": true
+      }
     }
-  ]
+  ],
+  "refinement_version": 2,
+  "refinement_date": "2026-11-18",
+  "refinement_status": "PLANNING_ONLY_NOT_EXECUTED",
+  "witness_schema": {
+    "case_results": [
+      "PASS",
+      "FAIL",
+      "BLOCKED",
+      "NOT_EXECUTED",
+      "NOT_APPLICABLE"
+    ],
+    "required_citation_fields": [
+      "case_id",
+      "assertion_id",
+      "source_sha",
+      "command_or_probe",
+      "fixture",
+      "expected",
+      "actual",
+      "artifact_path",
+      "artifact_sha256",
+      "reviewer_disposition"
+    ],
+    "artifact_classification": "proposed_witness_type_only; no evidence collected",
+    "allowed_not_applicable_assertions": [
+      "G18-S24-A01"
+    ],
+    "formal_approval_required": true
+  }
 }

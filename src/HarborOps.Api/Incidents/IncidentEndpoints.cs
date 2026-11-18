@@ -370,6 +370,16 @@ public static class IncidentEndpoints
                     input,operation,ctx.RequestAborted)).Incident);
             }));
 
+        root.MapGet("/read-grants",(string organizationId,HttpContext ctx,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!Id(organizationId,out var org))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                if(ctx.Request.Query.Count>0)
+                    return Failure(ctx,400,"invalid_request","Invalid incident filter");
+                return Results.Ok(new { grants=await store.ListReadGrantsAsync(Session(ctx),org,ctx.RequestAborted) });
+            }));
+
         root.MapPut("/read-grants/{recipientId}",(string organizationId,string recipientId,
             HttpContext ctx,IAntiforgery anti,IncidentStore store)=>
             Guarded(ctx,async()=>

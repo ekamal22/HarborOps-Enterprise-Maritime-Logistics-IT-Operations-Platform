@@ -20,6 +20,8 @@ public sealed record IncidentActionUpdate(long ExpectedVersion, Guid ActionId, l
     string ToState, string ReasonCode);
 public sealed record IncidentObservation(long ExpectedVersion, string ObservationCode);
 public sealed record IncidentReadGrantView(Guid UserId, string Status, DateTimeOffset ExpiresAtUtc, long Version);
+public sealed record IncidentReadGrantListItem(Guid UserId, string Status, DateTimeOffset ExpiresAtUtc,
+    long Version, bool Effective);
 
 public sealed partial class IncidentStore
 {
@@ -265,6 +267,27 @@ public sealed partial class IncidentStore
                     reader.GetFieldValue<DateTimeOffset>(1),reader.GetInt64(2));
             },ct);
     }
+
+    // Administrators see which Auditors currently hold or recently held incident read access.
+    public Task<List<IncidentReadGrantListItem>> ListReadGrantsAsync(CurrentSession actor,Guid org,
+        CancellationToken ct) =>
+        Scoped(actor,org,OrganizationPermission.ManageMemberships,
+            async(conn,tx,role,token)=>
+            {
+                if(role!=OrganizationRole.Administrator)throw Deny();
+                var result=new List<IncidentReadGrantListItem>();
+                await using var command=Command(conn,tx,"""
+                    SELECT user_id,status,expires_at_utc,version,
+                        (status='Active' AND expires_at_utc>now())
+                    FROM it_incident_read_grants WHERE organization_id=@org
+                    ORDER BY created_at_utc DESC,user_id LIMIT 100
+                    """,("org",org));
+                await using var reader=await command.ExecuteReaderAsync(token);
+                while(await reader.ReadAsync(token))
+                    result.Add(new(reader.GetGuid(0),reader.GetString(1),
+                        reader.GetFieldValue<DateTimeOffset>(2),reader.GetInt64(3),reader.GetBoolean(4)));
+                return result;
+            },ct);
 
     public Task<IncidentReadGrantView> RevokeReadAsync(CurrentSession actor,Guid org,
         Guid recipient,long expectedVersion,CancellationToken ct)

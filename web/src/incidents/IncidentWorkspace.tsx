@@ -3,8 +3,10 @@ import { useI18n } from "../i18n/useI18n";
 import { organizationError, OrganizationRequestError, type OrganizationItem } from "../auth/organizationClient";
 import {
   listIncidents, getIncident, createIncident, updateIncident, assignIncident,
-  addAction, updateAction, grantIncidentRead, patchIncident,
-  type Incident, type IncidentHistory, type IncidentState, type Severity
+  addAction, updateAction, grantIncidentRead, patchIncident, getPrefill,
+  listReadGrants, revokeIncidentRead,
+  type Incident, type IncidentHistory, type IncidentState, type IncidentPrefill,
+  type ReadGrant, type Severity
 } from "./incidentClient";
 
 type Props = {
@@ -22,6 +24,32 @@ const severities: Severity[] = ["SEV-1", "SEV-2", "SEV-3", "SEV-4"];
 const inputClass = "block mt-1 w-full rounded border border-slate-600 bg-slate-950 px-3 py-2";
 const buttonClass = "rounded border border-cyan-600 px-3 py-2 text-sm disabled:opacity-50";
 
+// Maps the stable server code to catalogued text so no English server wording reaches the page.
+function incidentError(cause: unknown): string {
+  if (cause instanceof OrganizationRequestError) {
+    switch (cause.code) {
+      case "resource_not_found": return "The incident was not found";
+      case "invalid_request": return "The incident request was not valid";
+      case "stale_or_invalid_cursor": return "The incident list is out of date";
+      case "recovery_not_verified": return "Recovery could not be verified by the service";
+      case "conflict":
+        return cause.status === 409
+          ? "The incident changed or the operation conflicts with its current state"
+          : organizationError(cause);
+      default: break;
+    }
+  }
+  return organizationError(cause);
+}
+
+// A failure that proves the command was not applied lets the next attempt use a new key.
+// A network error, a 5xx or an unknown outcome keeps the key, so a retry of the same command
+// is recognised by the server instead of being applied twice.
+function definitive(cause: unknown): boolean {
+  return cause instanceof OrganizationRequestError && cause.status >= 400 && cause.status < 500 &&
+    cause.status !== 408 && cause.status !== 429;
+}
+
 export default function IncidentWorkspace({
   organizationId, role, currentUserId, onAccessInvalidated
 }: Props) {
@@ -37,6 +65,7 @@ export default function IncidentWorkspace({
   const [loading,setLoading] = useState(true);
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState("");
+  const [conflict,setConflict] = useState(false);
   const [title,setTitle] = useState("");
   const [service,setService] = useState("api");
   const [impact,setImpact] = useState("service_unavailable");
@@ -49,13 +78,16 @@ export default function IncidentWorkspace({
   const [assignee,setAssignee] = useState(currentUserId);
   const [actionTitle,setActionTitle] = useState("");
   const [auditorId,setAuditorId] = useState("");
+  const [grants,setGrants] = useState<ReadGrant[]>([]);
   const [observation,setObservation] = useState("service_degraded");
+  const [prefill,setPrefill] = useState<IncidentPrefill | null>(null);
   const sequence=useRef(0);
   const active=useRef(true);
   const pendingCreate=useRef<{ fingerprint: string; key: string; detectedAtUtc: string } | null>(null);
+  const operationKeys=useRef(new Map<string,string>());
 
   const report = useCallback((cause: unknown) => {
-    setError(organizationError(cause));
+    setError(incidentError(cause));
     if (cause instanceof OrganizationRequestError &&
       (cause.status === 401 || cause.code === "organization_access_revoked" ||
         cause.code === "organization_selection_required"))
@@ -81,11 +113,20 @@ export default function IncidentWorkspace({
     }
   },[organizationId,report]);
 
+  const refreshGrants = useCallback(async () => {
+    if(role!=="Administrator")return;
+    try{
+      const result=await listReadGrants(organizationId);
+      if(active.current)setGrants(result);
+    }catch(cause){if(active.current)report(cause);}
+  },[organizationId,role,report]);
+
   useEffect(()=>{
     active.current=true;
     void refresh();
+    void refreshGrants();
     return ()=>{active.current=false;sequence.current+=1};
-  },[refresh]);
+  },[refresh,refreshGrants]);
 
   async function loadMore() {
     if(!cursor || paging || busy)return;
@@ -98,13 +139,20 @@ export default function IncidentWorkspace({
         return [...previous,...result.incidents.filter(x=>!seen.has(x.id))];
       });
       setCursor(result.nextCursor);
-    }catch(cause){if(active.current)report(cause);}
+    }catch(cause){
+      if(!active.current)return;
+      report(cause);
+      // A cursor is only valid for a short time; restart the list instead of leaving a dead button.
+      if(cause instanceof OrganizationRequestError && cause.code==="stale_or_invalid_cursor")
+        void refresh();
+    }
     finally{if(active.current)setPaging(false);}
   }
 
   async function open(item: Incident) {
     setBusy(true);
     setError("");
+    setConflict(false);
     try {
       const result=await getIncident(organizationId,item.id,canRead);
       if(!active.current)return;
@@ -129,17 +177,25 @@ export default function IncidentWorkspace({
     finally{if(active.current)setBusy(false);}
   }
 
-  async function execute(operation: ()=>Promise<Incident>, after?: ()=>void) {
+  // Runs one command. The operation key is stable for an identical command on an identical
+  // incident version, so retrying after a lost response replays instead of repeating.
+  async function execute(name: string, payload: unknown,
+    operation: (key:string)=>Promise<Incident>, after?: ()=>void) {
     if(!summary)return;
-    setBusy(true);setError("");
+    const fingerprint=JSON.stringify([name,summary.id,summary.version,payload]);
+    const key=operationKeys.current.get(fingerprint) ?? crypto.randomUUID();
+    operationKeys.current.set(fingerprint,key);
+    setBusy(true);setError("");setConflict(false);
     try{
-      const result=await operation();
+      const result=await operation(key);
       if(!active.current)return;
+      operationKeys.current.delete(fingerprint);
       after?.();
       await refresh();
       await open(result);
     }catch(cause){
       if(!active.current)return;
+      if(definitive(cause))operationKeys.current.delete(fingerprint);
       report(cause);
       if(cause instanceof OrganizationRequestError && cause.status===409) {
         // Keep the user's draft and the visible conflict while refreshing server state.
@@ -148,18 +204,31 @@ export default function IncidentWorkspace({
           if(active.current) {
             if("events" in latest){setSelected(latest);setSummary(latest.incident);}
             else {setSelected(null);setSummary(latest);}
-            setError("The incident changed. Review the latest state before retrying.");
+            setConflict(true);
           }
         }catch { /* The conflict remains visible until the next explicit refresh. */ }
       }
     }finally{if(active.current)setBusy(false);}
   }
 
+  async function usePrefill() {
+    setBusy(true);setError("");
+    try{
+      const result=await getPrefill(organizationId);
+      if(!active.current)return;
+      setPrefill(result);
+      setService(result.serviceCode);
+      setTitle(current=>current.trim()?current:result.suggestedTitle);
+    }catch(cause){if(active.current)report(cause);}
+    finally{if(active.current)setBusy(false);}
+  }
+
   async function create(event: FormEvent) {
     event.preventDefault();
     setBusy(true);setError("");
     try {
-      const fingerprint=JSON.stringify({title,service,severity,impact});
+      const token=prefill && service===prefill.serviceCode ? prefill.prefillToken : undefined;
+      const fingerprint=JSON.stringify({title,service,severity,impact,token});
       if(!pendingCreate.current || pendingCreate.current.fingerprint!==fingerprint) {
         pendingCreate.current={
           fingerprint,
@@ -170,105 +239,118 @@ export default function IncidentWorkspace({
       const pending=pendingCreate.current;
       const item=await createIncident(organizationId,{
         title,serviceCode:service,severity,impactCode:impact,
-        detectedAtUtc:pending.detectedAtUtc
+        detectedAtUtc:pending.detectedAtUtc,
+        ...(token ? { prefillToken: token } : {})
       },pending.key);
       if(!active.current)return;
       pendingCreate.current=null;
       setTitle("");
+      setPrefill(null);
       await refresh();
       await open(item);
-    }catch(cause){if(active.current)report(cause);}
+    }catch(cause){
+      if(!active.current)return;
+      // A definitive refusal proves nothing was stored, so the next attempt may use a new key.
+      if(definitive(cause))pendingCreate.current=null;
+      report(cause);
+    }
     finally{if(active.current)setBusy(false);}
   }
 
   function currentVersion():number {return summary?.version ?? 0;}
   function advance(next: IncidentState) {
     if(!summary)return;
-    void execute(()=>updateIncident(organizationId,summary.id,"transitions",{
-      expectedVersion:currentVersion(),toState:next,reasonCode:reason
-    }));
+    const body={expectedVersion:currentVersion(),toState:next,reasonCode:reason};
+    void execute("transition",body,key=>updateIncident(organizationId,summary.id,"transitions",body,key));
   }
   function reopen() {
     if(!summary)return;
-    void execute(()=>updateIncident(organizationId,summary.id,"reopen",{
-      expectedVersion:currentVersion(),toState:"Investigating",reasonCode:reason
-    }));
+    const body={expectedVersion:currentVersion(),toState:"Investigating",reasonCode:reason};
+    void execute("reopen",body,key=>updateIncident(organizationId,summary.id,"reopen",body,key));
   }
   async function addNote(event:FormEvent) {
     event.preventDefault();
     if(!summary)return;
-    await execute(()=>updateIncident(organizationId,summary.id,"notes",{
-      expectedVersion:currentVersion(),body:note
-    }),()=>setNote(""));
+    const body={expectedVersion:currentVersion(),body:note};
+    await execute("note",body,key=>updateIncident(organizationId,summary.id,"notes",body,key),
+      ()=>setNote(""));
   }
   async function assign(event:FormEvent) {
     event.preventDefault();
     if(!summary)return;
-    await execute(()=>assignIncident(organizationId,summary.id,{
-      expectedVersion:currentVersion(),assignedTo:assignee,reasonCode:"assigned_responder"
-    }));
+    const body={expectedVersion:currentVersion(),assignedTo:assignee,reasonCode:"assigned_responder"};
+    await execute("assign",body,key=>assignIncident(organizationId,summary.id,body,key));
   }
   async function recordAction(event:FormEvent) {
     event.preventDefault();
     if(!summary)return;
-    await execute(()=>addAction(organizationId,summary.id,{
-      expectedVersion:currentVersion(),title:actionTitle,ownerUserId:currentUserId
-    }),()=>setActionTitle(""));
+    const body={expectedVersion:currentVersion(),title:actionTitle,ownerUserId:currentUserId};
+    await execute("action",body,key=>addAction(organizationId,summary.id,body,key),
+      ()=>setActionTitle(""));
   }
   async function recordObservation(event:FormEvent) {
     event.preventDefault();
     if(!summary)return;
-    await execute(()=>updateIncident(organizationId,summary.id,"evidence",{
-      expectedVersion:currentVersion(),observationCode:observation
-    }));
+    const body={expectedVersion:currentVersion(),observationCode:observation};
+    await execute("evidence",body,key=>updateIncident(organizationId,summary.id,"evidence",body,key));
   }
   async function updateImpact(event:FormEvent) {
     event.preventDefault();
     if(!summary)return;
-    await execute(()=>assignlessImpact(summary.id));
-  }
-  function assignlessImpact(id:string) {
-    return mutateImpact(id);
-  }
-  async function mutateImpact(id:string) {
-    const result=await patchIncident(organizationId,id,"impact",{
-      expectedVersion:currentVersion(),impactCode:reportedImpact,reasonCode:"updated_impact"
-    });
-    return result;
+    const body={expectedVersion:currentVersion(),impactCode:reportedImpact,reasonCode:"updated_impact"};
+    await execute("impact",body,key=>patchIncident(organizationId,summary.id,"impact",body,key));
   }
   async function updateSeverity(event:FormEvent) {
     event.preventDefault();
     if(!summary)return;
-    await execute(()=>patchIncident(organizationId,summary.id,"severity",{
-      expectedVersion:currentVersion(),severity:newSeverity,reasonCode:"reviewed_severity"
-    }));
+    const body={expectedVersion:currentVersion(),severity:newSeverity,reasonCode:"reviewed_severity"};
+    await execute("severity",body,key=>patchIncident(organizationId,summary.id,"severity",body,key));
   }
   async function grant(event:FormEvent) {
     event.preventDefault();setBusy(true);setError("");
-    try{await grantIncidentRead(organizationId,auditorId);setAuditorId("");}
+    try{await grantIncidentRead(organizationId,auditorId);setAuditorId("");await refreshGrants();}
     catch(cause){report(cause);}finally{setBusy(false);}
+  }
+  async function revoke(item: ReadGrant) {
+    setBusy(true);setError("");
+    try{await revokeIncidentRead(organizationId,item.userId,item.version);await refreshGrants();}
+    catch(cause){report(cause);await refreshGrants();}finally{setBusy(false);}
   }
 
   return (
-    <section className="mt-6 border-t border-slate-700 pt-5" aria-label={t("IT incidents")}>
+    <section className="mt-6 border-t border-slate-700 pt-5" aria-label={t("IT incidents")}
+      data-testid="incident-workspace">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h4 className="font-semibold">{t("IT incidents")}</h4>
         <button className={buttonClass} disabled={busy||loading}
           onClick={()=>void refresh()}>{t("Refresh incidents")}</button>
       </div>
-      {error && <p role="alert" className="mt-2 text-sm text-rose-300">{t(error)}</p>}
+      {error && <p role="alert" data-testid="incident-error" className="mt-2 text-sm text-rose-300">{t(error)}</p>}
+      {conflict && <p role="status" data-testid="incident-conflict" className="mt-2 text-sm text-amber-300">
+        {t("The incident changed. Review the latest state before retrying.")}</p>}
       {loading && <p className="mt-2 text-sm text-slate-400">{t("Loading incidents...")}</p>}
 
       {canCreate && (
-        <form onSubmit={e=>void create(e)} className="mt-4 grid gap-3 rounded border border-slate-700 p-3 md:grid-cols-2">
+        <form onSubmit={e=>void create(e)} data-testid="incident-create"
+          className="mt-4 grid gap-3 rounded border border-slate-700 p-3 md:grid-cols-2">
           <h5 className="md:col-span-2 font-semibold">{t("Report an incident")}</h5>
+          <div className="md:col-span-2 text-sm">
+            <button type="button" className={buttonClass} disabled={busy}
+              onClick={()=>void usePrefill()}>{t("Use current service status")}</button>
+            {prefill&&<p className="mt-2" data-testid="incident-prefill">
+              {t("Current service status")}: {t(prefill.status)} | {t("Observed")} {date(prefill.observedAtUtc)}
+              {!prefill.statusIsCurrent&&<span className="block text-amber-300">{t("Service status is not current")}</span>}
+              <span className="block text-xs text-slate-400">{t("Nothing is created until you confirm")}</span>
+            </p>}
+          </div>
           <label className="text-sm">{t("Incident title")}
             <input className={inputClass} required maxLength={160} value={title}
               onChange={e=>setTitle(e.target.value)}/></label>
           <label className="text-sm">{t("Service code")}
             <select className={inputClass} value={service} onChange={e=>setService(e.target.value)}>
-              <option value="api">api</option><option value="database">database</option>
-              <option value="notifications">notifications</option><option value="tracking_held">tracking_held</option>
+              <option value="api">{t("API service")}</option><option value="database">{t("Database service")}</option>
+              <option value="notifications">{t("Notification service")}</option>
+              <option value="tracking_held">{t("Held tracking service")}</option>
             </select></label>
           <label className="text-sm">{t("Severity")}
             <select className={inputClass} value={severity}
@@ -287,7 +369,7 @@ export default function IncidentWorkspace({
         <div>
           <h5 className="font-semibold">{t("Incident queue")}</h5>
           {!loading&&items.length===0&&<p className="mt-2 text-sm text-slate-400">{t("No incidents found")}</p>}
-          <ul className="mt-2 space-y-2">
+          <ul className="mt-2 space-y-2" data-testid="incident-list">
             {items.map(item=><li key={item.id}>
               <button disabled={busy} onClick={()=>void open(item)}
                 className="w-full rounded border border-slate-700 p-3 text-left text-sm disabled:opacity-50">
@@ -300,9 +382,9 @@ export default function IncidentWorkspace({
         </div>
         <div>
           {summary ? (
-            <div className="rounded border border-slate-700 p-3">
+            <div className="rounded border border-slate-700 p-3" data-testid="incident-detail">
               <h5 className="font-semibold">{summary.title}</h5>
-              <p className="text-xs text-slate-400">{t("Incident state")}: {t(summary.state)} |
+              <p className="text-xs text-slate-400" data-testid="incident-state">{t("Incident state")}: {t(summary.state)} |
                 {" "}{t("Version")}: {summary.version}</p>
               <p className="mt-2 text-sm">{t("Service code")}: {summary.serviceCode}</p>
               <p className="text-sm">{t("Impact code")}: {summary.impactCode}</p>
@@ -331,13 +413,15 @@ export default function IncidentWorkspace({
                 <div className="flex flex-wrap gap-2">
                   {states[selected.incident.state].map(state=>
                     <button key={state} className={buttonClass} disabled={busy}
+                      data-testid={"move-"+state}
                       onClick={()=>advance(state)}>{t("Move to")} {t(state)}</button>)}
                   {(summary.state==="Resolved"||summary.state==="Closed")&&
-                    <button className={buttonClass} disabled={busy} onClick={reopen}>{t("Reopen incident")}</button>}
+                    <button className={buttonClass} disabled={busy} data-testid="reopen"
+                      onClick={reopen}>{t("Reopen incident")}</button>}
                   <button className={buttonClass} disabled={busy}
-                    onClick={()=>void execute(()=>updateIncident(organizationId,summary.id,"m17-snapshot",{
-                      expectedVersion:currentVersion()
-                    }))}>{t("Capture safe service status")}</button>
+                    onClick={()=>{const body={expectedVersion:currentVersion()};
+                      void execute("m17-snapshot",body,key=>updateIncident(organizationId,summary.id,"m17-snapshot",body,key));}}
+                    >{t("Capture safe service status")}</button>
                 </div>
                 <form onSubmit={e=>void assign(e)}>
                   <label className="text-sm">{t("Assign responder UUID")}
@@ -362,10 +446,10 @@ export default function IncidentWorkspace({
                   <label className="text-sm">{t("Root cause code")}
                     <input className={inputClass} maxLength={80} pattern="[a-z0-9_-]+"
                       value={rootCause} onChange={e=>setRootCause(e.target.value)}/></label>
-                  <button className={buttonClass+" mt-2"} disabled={busy} onClick={()=>void execute(
-                    ()=>updateIncident(organizationId,summary.id,"recovery",{
-                      expectedVersion:currentVersion(),rootCauseCode:rootCause
-                    }))}>{t("Verify recovery")}</button>
+                  <button className={buttonClass+" mt-2"} disabled={busy} data-testid="verify-recovery"
+                    onClick={()=>{const body={expectedVersion:currentVersion(),rootCauseCode:rootCause};
+                      void execute("recovery",body,key=>updateIncident(organizationId,summary.id,"recovery",body,key));}}
+                    >{t("Verify recovery")}</button>
                 </div>}
                 <form onSubmit={e=>void recordObservation(e)}>
                   <label className="text-sm">{t("Manual observation code")}
@@ -377,20 +461,24 @@ export default function IncidentWorkspace({
                 {selected.actions.map(a=><div key={a.id} className="rounded bg-slate-900 p-2 text-sm">
                   {a.title} | {t(a.state)}
                   {a.state==="Proposed"&&<button className={buttonClass+" ml-2"} disabled={busy}
-                    onClick={()=>void execute(()=>updateAction(organizationId,summary.id,a,
-                      "InProgress",currentVersion()))}>{t("Start action")}</button>}
+                    onClick={()=>{const body={expectedVersion:currentVersion(),action:a.id,version:a.version,to:"InProgress"};
+                      void execute("action-progress",body,key=>updateAction(organizationId,summary.id,a,
+                        "InProgress",currentVersion(),key));}}>{t("Start action")}</button>}
                   {a.state==="InProgress"&&<button className={buttonClass+" ml-2"} disabled={busy}
-                    onClick={()=>void execute(()=>updateAction(organizationId,summary.id,a,
-                      "Verified",currentVersion()))}>{t("Verify action")}</button>}
+                    onClick={()=>{const body={expectedVersion:currentVersion(),action:a.id,version:a.version,to:"Verified"};
+                      void execute("action-verify",body,key=>updateAction(organizationId,summary.id,a,
+                        "Verified",currentVersion(),key));}}>{t("Verify action")}</button>}
                 </div>)}
                 <h6 className="font-semibold">{t("Investigation notes")}</h6>
                 {selected.notes.map(n=><p key={n.id} className="whitespace-pre-wrap break-words rounded bg-slate-900 p-2 text-sm">
                   {n.body}<span className="block text-xs text-slate-400">{date(n.occurredAtUtc)}</span></p>)}
                 <h6 className="font-semibold">{t("Evidence")}</h6>
                 {selected.evidence.map(e=><p key={e.id} className="text-sm">
-                  {t(e.kind)}: {e.observationCode} | {t(e.sourceStatus)} | {date(e.observedAtUtc)}</p>)}
+                  {t(e.kind)}: {e.observationCode} | {t(e.sourceStatus)} | {date(e.observedAtUtc)}
+                  {e.correlationDigest&&<span className="block text-xs text-slate-400">{t("Evidence digest")}: {e.correlationDigest.slice(0,12)}</span>}
+                </p>)}
                 <h6 className="font-semibold">{t("Incident history")}</h6>
-                <ol className="space-y-2">{selected.events.map(e=>
+                <ol className="space-y-2" data-testid="incident-history">{selected.events.map(e=>
                   <li key={e.id} className="border-l border-slate-600 pl-2 text-sm">
                     {e.sequence}. {t(e.kind)} | {e.reasonCode}
                     <span className="block text-xs text-slate-400">{date(e.occurredAtUtc)}</span>
@@ -409,12 +497,21 @@ export default function IncidentWorkspace({
           ):<p className="text-sm text-slate-400">{t("Select an incident to view its details")}</p>}
         </div>
       </div>
-      {role==="Administrator"&&<form onSubmit={e=>void grant(e)} className="mt-5 rounded border border-slate-700 p-3">
+      {role==="Administrator"&&<form onSubmit={e=>void grant(e)} className="mt-5 rounded border border-slate-700 p-3"
+        data-testid="incident-grants">
         <h5 className="font-semibold">{t("Grant Auditor incident read access")}</h5>
         <label className="mt-2 block text-sm">{t("Auditor UUID")}
           <input className={inputClass} required value={auditorId}
             onChange={e=>setAuditorId(e.target.value)}/></label>
         <button className={buttonClass+" mt-2"} disabled={busy}>{t("Grant 24-hour access")}</button>
+        <h6 className="mt-4 font-semibold">{t("Auditor read grants")}</h6>
+        {grants.length===0&&<p className="text-sm text-slate-400">{t("No Auditor read grants")}</p>}
+        <ul className="mt-2 space-y-2">{grants.map(item=><li key={item.userId} className="text-sm">
+          <span className="break-all">{item.userId}</span> | {item.effective?t("Active"):t("Inactive")} |
+          {" "}{t("Expires")} {date(item.expiresAtUtc)}
+          {item.status==="Active"&&<button type="button" className={buttonClass+" ml-2"} disabled={busy}
+            onClick={()=>void revoke(item)}>{t("Revoke access")}</button>}
+        </li>)}</ul>
       </form>}
     </section>
   );

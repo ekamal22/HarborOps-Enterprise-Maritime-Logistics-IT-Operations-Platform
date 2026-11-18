@@ -29,7 +29,11 @@ public sealed partial class IncidentStore
                     ("after",afterAt ?? DateTimeOffset.UnixEpoch),
                     ("afterid",afterId ?? Guid.Empty),("limit",limit+1));
                 await using var reader=await command.ExecuteReaderAsync(token);
-                while(await reader.ReadAsync(token))rows.Add(Map(reader));
+                while(await reader.ReadAsync(token))
+                {
+                    var item=Map(reader);
+                    rows.Add(role==OrganizationRole.Manager ? item with { AssignedTo=null } : item);
+                }
                 if(rows.Count<=limit)return new IncidentPage(rows,null,null);
                 rows.RemoveAt(rows.Count-1);
                 var last=rows[^1];

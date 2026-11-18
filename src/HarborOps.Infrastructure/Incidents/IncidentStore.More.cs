@@ -41,7 +41,7 @@ public sealed partial class IncidentStore
                         events.Add(new(reader.GetGuid(0),reader.GetInt64(1),reader.GetString(2),
                             reader.IsDBNull(3)?null:reader.GetString(3),
                             reader.IsDBNull(4)?null:reader.GetString(4),
-                            reader.GetString(5),reader.GetGuid(6),
+                            reader.GetString(5),role==OrganizationRole.Auditor ? Guid.Empty : reader.GetGuid(6),
                             reader.GetFieldValue<DateTimeOffset>(7),
                             reader.IsDBNull(8)?null:reader.GetGuid(8)));
                 var nextEventAfter=events.Count>100 ? events[99].Sequence : (long?)null;
@@ -82,7 +82,10 @@ public sealed partial class IncidentStore
                         evidence.Add(new(reader.GetGuid(0),reader.GetString(1),reader.GetString(2),
                             reader.GetString(3),reader.GetFieldValue<DateTimeOffset>(4),
                             reader.GetFieldValue<DateTimeOffset>(5)));
-                return new IncidentHistory(incident,events,notes,actions,evidence,nextEventAfter);
+                return new IncidentHistory(role==OrganizationRole.Auditor
+                    ? incident with { AssignedTo=null } : incident,
+                    events,notes,role==OrganizationRole.Auditor ? [] : actions,
+                    evidence,nextEventAfter);
             },ct);
 
     public Task<IncidentChangeResult> AddActionAsync(CurrentSession actor,Guid org,Guid id,

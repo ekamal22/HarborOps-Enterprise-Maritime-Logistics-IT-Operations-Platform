@@ -188,7 +188,11 @@ public sealed partial class IncidentStore(HarborOpsDbContext db)
                     ORDER BY updated_at_utc DESC,id DESC LIMIT @limit
                     """,("org",org),("limit",limit));
                 await using var reader = await command.ExecuteReaderAsync(token);
-                while (await reader.ReadAsync(token)) result.Add(Map(reader));
+                while (await reader.ReadAsync(token))
+                {
+                    var item=Map(reader);
+                    result.Add(role==OrganizationRole.Manager ? item with { AssignedTo=null } : item);
+                }
                 return result;
             },ct);
     }
@@ -197,7 +201,11 @@ public sealed partial class IncidentStore(HarborOpsDbContext db)
         bool detail, CancellationToken ct) =>
         Scoped(actor,org,detail?OrganizationPermission.ViewIncidentDetail:
             OrganizationPermission.ViewIncidentSummary,
-            (conn,tx,role,token) => Read(conn,tx,org,id,false,token),ct);
+            async (conn,tx,role,token) =>
+            {
+                var item=await Read(conn,tx,org,id,false,token);
+                return role==OrganizationRole.Manager ? item with { AssignedTo=null } : item;
+            },ct);
 
     public Task<IncidentChangeResult> CreateAsync(CurrentSession actor, Guid org,
         IncidentCreate input, Guid operationKey, CancellationToken ct)
@@ -228,7 +236,9 @@ public sealed partial class IncidentStore(HarborOpsDbContext db)
                     if(await insert.ExecuteNonQueryAsync(token)!=1)throw Conflict();
                 await Event(conn,tx,org,id,actor.UserId,1,"Created",null,"New","created",token);
                 await FinalizeOperation(conn,tx,actor,org,operationKey,id,1,token);
-                return new IncidentChangeResult(await Read(conn,tx,org,id,false,token),false);
+                var result=await Read(conn,tx,org,id,false,token);
+                return new IncidentChangeResult(role==OrganizationRole.Manager
+                    ? result with { AssignedTo=null } : result,false);
             },ct);
     }
 

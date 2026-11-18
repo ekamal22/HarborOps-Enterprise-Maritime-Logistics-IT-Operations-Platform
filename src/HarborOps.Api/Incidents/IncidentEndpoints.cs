@@ -280,6 +280,8 @@ public static class IncidentEndpoints
                     return Failure(ctx,400,"invalid_request","Invalid incident request");
                 var input=await Body<IncidentRecoveryInput>(ctx);
                 if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
+                // Check current technical permission before running the bounded health probe.
+                _ = await store.GetAsync(Session(ctx),org,id,true,ctx.RequestAborted);
                 // The existing bounded database readiness check is an actual
                 // server-executed witness, not a browser-supplied success flag.
                 var probe=await checks.CheckHealthAsync(

@@ -3,7 +3,7 @@ import { useI18n } from "../i18n/useI18n";
 import { organizationError, OrganizationRequestError, type OrganizationItem } from "../auth/organizationClient";
 import {
   listIncidents, getIncident, createIncident, updateIncident, assignIncident,
-  addAction, updateAction, grantIncidentRead,
+  addAction, updateAction, grantIncidentRead, patchIncident,
   type Incident, type IncidentHistory, type IncidentState, type Severity
 } from "./incidentClient";
 
@@ -40,6 +40,8 @@ export default function IncidentWorkspace({
   const [title,setTitle] = useState("");
   const [service,setService] = useState("api");
   const [impact,setImpact] = useState("service_unavailable");
+  const [reportedImpact,setReportedImpact] = useState("service_degraded");
+  const [newSeverity,setNewSeverity] = useState<Severity>("SEV-3");
   const [severity,setSeverity] = useState<Severity>("SEV-3");
   const [note,setNote] = useState("");
   const [reason,setReason] = useState("incident_review");
@@ -220,6 +222,27 @@ export default function IncidentWorkspace({
       expectedVersion:currentVersion(),observationCode:observation
     }));
   }
+  async function updateImpact(event:FormEvent) {
+    event.preventDefault();
+    if(!summary)return;
+    await execute(()=>assignlessImpact(summary.id));
+  }
+  function assignlessImpact(id:string) {
+    return mutateImpact(id);
+  }
+  async function mutateImpact(id:string) {
+    const result=await patchIncident(organizationId,id,"impact",{
+      expectedVersion:currentVersion(),impactCode:reportedImpact,reasonCode:"updated_impact"
+    });
+    return result;
+  }
+  async function updateSeverity(event:FormEvent) {
+    event.preventDefault();
+    if(!summary)return;
+    await execute(()=>patchIncident(organizationId,summary.id,"severity",{
+      expectedVersion:currentVersion(),severity:newSeverity,reasonCode:"reviewed_severity"
+    }));
+  }
   async function grant(event:FormEvent) {
     event.preventDefault();setBusy(true);setError("");
     try{await grantIncidentRead(organizationId,auditorId);setAuditorId("");}
@@ -283,8 +306,25 @@ export default function IncidentWorkspace({
                 {" "}{t("Version")}: {summary.version}</p>
               <p className="mt-2 text-sm">{t("Service code")}: {summary.serviceCode}</p>
               <p className="text-sm">{t("Impact code")}: {summary.impactCode}</p>
+              {(role==="Manager"||technical)&&summary.state!=="Closed"&&
+                <form onSubmit={e=>void updateImpact(e)} className="mt-3">
+                  <label className="block text-sm">{t("Update impact")}
+                    <input className={inputClass} required maxLength={80} pattern="[a-z0-9_-]+"
+                      value={reportedImpact} onChange={e=>setReportedImpact(e.target.value)}/>
+                  </label>
+                  <button className={buttonClass+" mt-2"} disabled={busy}>{t("Record updated impact")}</button>
+                </form>}
               {!canRead&&<p className="mt-2 text-sm text-slate-400">{t("Technical details are restricted")}</p>}
               {technical&&selected&&<div className="mt-4 space-y-4">
+                {summary.state!=="Closed"&&<form onSubmit={e=>void updateSeverity(e)}>
+                  <label className="block text-sm">{t("Reassess severity")}
+                    <select className={inputClass} value={newSeverity}
+                      onChange={e=>setNewSeverity(e.target.value as Severity)}>
+                      {severities.map(value=><option key={value}>{value}</option>)}
+                    </select>
+                  </label>
+                  <button className={buttonClass+" mt-2"} disabled={busy}>{t("Record severity change")}</button>
+                </form>}
                 <label className="block text-sm">{t("Reason code")}
                   <input className={inputClass} value={reason} maxLength={80} pattern="[a-z0-9_-]+"
                     onChange={e=>setReason(e.target.value)}/></label>

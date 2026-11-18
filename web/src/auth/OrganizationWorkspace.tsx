@@ -6,6 +6,7 @@ import ShipmentWorkspace from "../shipments/ShipmentWorkspace";
 import NotificationCenter, { type NotificationTarget } from "../notifications/NotificationCenter";
 import OperationalDashboard from "../analytics/OperationalDashboard";
 import KpiGrantPanel from "../analytics/KpiGrantPanel";
+import IncidentWorkspace from "../incidents/IncidentWorkspace";
 import {
   getJson, mutate, organizationError, OrganizationRequestError,
   type Membership, type OrganizationItem, type OrganizationProfile
@@ -283,6 +284,13 @@ export default function OrganizationWorkspace({ currentUserId }: { currentUserId
             <OperationalDashboard key={"analytics:" + selection.id + ":" + selection.role}
               organizationId={selection.id} isAuditor={selection.role === "Auditor"}
               onAccessInvalidated={onReferenceAccessInvalidated} />}
+          {import.meta.env.VITE_M18_ENABLED === "true" &&
+            (selection.role === "Support" || selection.role === "Administrator" ||
+              selection.role === "Manager" || selection.role === "Auditor") &&
+            <IncidentWorkspace key={"incidents:" + selection.id + ":" + selection.role}
+              organizationId={selection.id} role={selection.role}
+              currentUserId={currentUserId}
+              onAccessInvalidated={onReferenceAccessInvalidated}/>}
           {selection.role === "Administrator" && (
             <KpiGrantPanel key={"kpi-grants:" + selection.id}
               organizationId={selection.id} members={members}

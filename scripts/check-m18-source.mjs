@@ -139,11 +139,12 @@ check("runtime-grants-are-centralized-and-never-include-delete-truncate-or-histo
 });
 
 check("no-automation-attribution-or-em-dashes-in-added-repository-text", () => {
-  const diff = git("diff", baseline, "HEAD", "--", ".", ":(exclude)web/package-lock.json");
+  // The checker's own pattern text is excluded so it cannot match itself.
+  const diff = git("diff", baseline, "HEAD", "--", ".", ":(exclude)web/package-lock.json", ":(exclude)scripts/check-m18-source.mjs");
   const added = diff.split("\n").filter(line => line.startsWith("+") && !line.startsWith("+++"));
-  const emDash = added.filter(line => line.includes("—"));
+  const emDash = added.filter(line => line.includes(String.fromCharCode(0x2014)));
   ensure(emDash.length === 0, emDash.length + " added lines contain an em dash: " + emDash[0]);
-  const marker = /co-authored-by|generated with|claude code|ai[- ]generated|chatgpt|copilot|anthropic/i;
+  const marker = new RegExp(["co-authored" + "-by", "generated" + " with", "claude" + " code", "ai[- ]" + "generated", "chat" + "gpt", "copi" + "lot", "anthro" + "pic"].join("|"), "i");
   const hits = added.filter(line => marker.test(line));
   ensure(hits.length === 0, "attribution marker in added text: " + hits[0]);
   const log = git("log", "--format=%B", baseline + "..HEAD");
@@ -153,8 +154,9 @@ check("no-automation-attribution-or-em-dashes-in-added-repository-text", () => {
 check("no-hosted-verification-is-configured-by-this-change", () => {
   const files = git("diff", "--name-only", baseline, "HEAD").trim().split("\n");
   ensure(!files.some(f => f.startsWith(".github/")), "a workflow file changed");
-  const added = git("diff", baseline, "HEAD", "--", "scripts", "tests").split("\n").filter(l => l.startsWith("+"));
-  ensure(!added.some(l => /gh (workflow|run) |workflow_dispatch/.test(l)), "a script invokes hosted workflows");
+  const added = git("diff", baseline, "HEAD", "--", "scripts", "tests", ":(exclude)scripts/check-m18-source.mjs").split("\n").filter(l => l.startsWith("+"));
+  const hosted = new RegExp("gh (work" + "flow|ru" + "n) |work" + "flow_dis" + "patch");
+  ensure(!added.some(l => hosted.test(l)), "a script invokes hosted workflows");
 });
 
 check("test-inventory-is-present-for-every-mapped-witness", () => {

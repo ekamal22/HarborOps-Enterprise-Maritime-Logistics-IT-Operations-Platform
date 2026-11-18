@@ -94,18 +94,42 @@ public static class IncidentEndpoints
         var root=app.MapGroup("/api/v1/organizations/{organizationId}/incidents")
             .RequireAuthorization().RequireRateLimiting("m18-incidents");
 
-        root.MapGet("",(string organizationId,HttpContext ctx,IncidentStore store)=>
+        root.MapGet("",(string organizationId,HttpContext ctx,IncidentStore store,
+            IncidentCursorCodec codec)=>
             Guarded(ctx,async()=>
             {
-                if(!Id(organizationId,out var org))return Failure(ctx,400,"invalid_request","Invalid incident request");
+                if(!Id(organizationId,out var org))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
                 var query=ctx.Request.Query;
-                if(query.Keys.Any(k=>k!="limit") || query.Any(x=>x.Value.Count!=1))
+                if(query.Keys.Any(k=>k is not ("limit" or "cursor")) ||
+                    query.Any(x=>x.Value.Count!=1))
                     return Failure(ctx,400,"invalid_request","Invalid incident filter");
                 var limit=25;
-                if(query.ContainsKey("limit")&&(!int.TryParse(query["limit"],out limit)||limit is <1 or >100))
+                if(query.ContainsKey("limit")&&
+                    (!int.TryParse(query["limit"],out limit)||limit is <1 or >100))
                     return Failure(ctx,400,"invalid_request","Invalid incident limit");
-                var list=await store.ListAsync(Session(ctx),org,limit,ctx.RequestAborted);
-                return Results.Ok(new { incidents=list });
+                var current=Session(ctx);
+                var now=DateTimeOffset.UtcNow;
+                var asOf=now;
+                DateTimeOffset? afterAt=null;
+                Guid? afterId=null;
+                var cursorToken=query["cursor"].ToString();
+                if(query.ContainsKey("cursor"))
+                {
+                    if(!codec.TryDecode(cursorToken,org,current.UserId,current.SessionId,now,
+                        out var cursor)||cursor is null)
+                        return Failure(ctx,409,"stale_or_invalid_cursor","Restart this incident list");
+                    asOf=cursor.AsOfUtc;
+                    afterAt=cursor.AfterUpdatedUtc;
+                    afterId=cursor.AfterId;
+                }
+                var page=await store.PageAsync(current,org,limit,asOf,afterAt,afterId,
+                    ctx.RequestAborted);
+                var next=page.NextId.HasValue && page.NextUpdatedAtUtc.HasValue
+                    ? codec.Encode(org,current.UserId,current.SessionId,asOf,
+                        page.NextUpdatedAtUtc.Value,page.NextId.Value,now)
+                    : null;
+                return Results.Ok(new { incidents=page.Incidents, nextCursor=next });
             }));
 
         root.MapGet("/{incidentId}",(string organizationId,string incidentId,

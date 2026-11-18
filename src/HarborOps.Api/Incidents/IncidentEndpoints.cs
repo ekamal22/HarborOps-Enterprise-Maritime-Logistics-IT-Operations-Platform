@@ -189,6 +189,36 @@ public static class IncidentEndpoints
                     operation,true,ctx.RequestAborted)).Incident);
             }));
 
+        root.MapPatch("/{incidentId}/impact",(string organizationId,string incidentId,
+            HttpContext ctx,IAntiforgery anti,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!await MutationAllowed(ctx,anti))
+                    return Failure(ctx,403,"csrf_invalid","Request validation failed");
+                if(!Id(organizationId,out var org)||!Id(incidentId,out var id)||
+                    !OperationId(ctx,out var operation))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var input=await Body<IncidentImpactUpdate>(ctx);
+                if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
+                return Results.Ok((await store.ReportImpactAsync(Session(ctx),org,id,
+                    input,operation,ctx.RequestAborted)).Incident);
+            }));
+
+        root.MapPatch("/{incidentId}/severity",(string organizationId,string incidentId,
+            HttpContext ctx,IAntiforgery anti,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!await MutationAllowed(ctx,anti))
+                    return Failure(ctx,403,"csrf_invalid","Request validation failed");
+                if(!Id(organizationId,out var org)||!Id(incidentId,out var id)||
+                    !OperationId(ctx,out var operation))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var input=await Body<IncidentSeverityUpdate>(ctx);
+                if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
+                return Results.Ok((await store.ReclassifySeverityAsync(Session(ctx),org,id,
+                    input,operation,ctx.RequestAborted)).Incident);
+            }));
+
         root.MapGet("/{incidentId}/summary",(string organizationId,string incidentId,
             HttpContext ctx,IncidentStore store)=>
             Guarded(ctx,async()=>

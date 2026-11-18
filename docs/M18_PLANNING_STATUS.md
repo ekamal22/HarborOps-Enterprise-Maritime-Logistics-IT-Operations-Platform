@@ -2,7 +2,7 @@
 
 **Recorded:** 2026-11-18  
 **Scope:** M18 IT incident lifecycle and remediation, gate G18.  
-**Status:** END-TO-END PLANNING PACKET PREPARED. M18 NOT IMPLEMENTED. G18 NOT EXECUTED OR ACCEPTED.  
+**Status:** P01-P20 APPROVED; M18 SOURCE CANDIDATE EXISTS ON SEPARATE FEATURE BRANCH, NOT VERIFIED. G18 NOT EXECUTED OR ACCEPTED.  
 **Base source:** protected `main` at `72251f5310f24fb98322b7eb403a5e9e66e040ef` (recheck immediately before work).  
 **Planning branch:** `plan/m18-incident-lifecycle-20261118`.
 
@@ -16,7 +16,7 @@ M18 must produce a durable scoped ticket lifecycle, typed actor/permission contr
 
 | Artifact | Content | Disposition |
 | --- | --- | --- |
-| [M18 local policy proposals](M18_POLICY_PROPOSAL_20261118.md) | P01-P20 decisions, roles, state/reopen/severity, privacy, audit, retention, limits, opt-in | Proposed, all choices pending |
+| [M18 local policy proposals](M18_POLICY_PROPOSAL_20261118.md) | P01-P20 decisions, roles, state/reopen/severity, privacy, audit, retention, limits, opt-in | Approved 2026-11-18; technical gate remains open |
 | [M18 architecture](M18_ARCHITECTURE_DESIGN.md) | Domain/database/API/UI contract and trust boundaries | Proposed |
 | [M18 implementation plan](M18_IMPLEMENTATION_PLAN.md) | M18-01..04 ordered work, file ownership, guards, stop criteria and impact regressions | Planned |
 | [G18 verification plan](M18_VERIFICATION_PLAN.md) | 25-case, 75-assertion scope, source-locked staging and independent S25 | Planned, not executed |
@@ -25,16 +25,16 @@ M18 must produce a durable scoped ticket lifecycle, typed actor/permission contr
 
 ## Refinement review, 2026-11-18
 
-The proposed [transaction and security](M18_SECURITY_AND_TRANSACTION_CONTRACT.md), [decision-to-evidence crosswalk](M18_DECISION_TO_EVIDENCE_CROSSWALK.md), [API and UI examples](M18_API_AND_UI_CONTRACT_EXAMPLES.md) refine new M16 audit capture, incident creation idempotency, cross-tenant telemetry safety, role-specific read grants, closure separation, privacy and per-assertion negative controls. The assertion inventory remains 25 scenarios/75 unique NOT_EXECUTED assertions. None of these planning records approves P01-P20 or implements M18.
+The proposed [transaction and security](M18_SECURITY_AND_TRANSACTION_CONTRACT.md), [decision-to-evidence crosswalk](M18_DECISION_TO_EVIDENCE_CROSSWALK.md), [API and UI examples](M18_API_AND_UI_CONTRACT_EXAMPLES.md) refine new M16 audit capture, incident creation idempotency, cross-tenant telemetry safety, role-specific read grants, closure separation, privacy and per-assertion negative controls. The assertion inventory remains 25 scenarios/75 unique NOT_EXECUTED assertions. P01-P20 were subsequently approved on 2026-11-18. The current feature candidate and its unverified boundaries are recorded in [M18 implementation checkpoint](M18_IMPLEMENTATION_CHECKPOINT_20261118.md).
 
 ## Readiness ledger
 
 | Milestone step | State | Next release condition |
 | --- | --- | --- |
-| M18-01: Define severity/state policy | PLANNED | Explicit P01-P20 selections, revised role and transition matrix, source contract signed |
-| M18-02: Implement incident CRUD/state | NOT STARTED | Approved M18-01, accepted G16, additive schema and safe source change |
-| M18-03: Investigation and remediation | NOT STARTED | Approved M18-01, agreed M18-02 interfaces; isolated implementation permissible in parallel |
-| M18-04: Alert-to-incident evidence journey | NOT STARTED | M18-02 and M18-03 integrated into one exact source |
+| M18-01: Define severity/state policy | APPROVED 2026-11-18 | Domain source and role contracts remain subject to technical checks |
+| M18-02: Implement incident CRUD/state | CANDIDATE, UNVERIFIED | Compile, fresh/upgrade migration, authorization, audit and concurrency evidence |
+| M18-03: Investigation and remediation | CANDIDATE, UNVERIFIED | Local source-locked functional, privacy and browser verification |
+| M18-04: Alert-to-incident evidence journey | NOT VERIFIED | Real fault-to-human-confirmed incident journey and restoration evidence pending |
 | G18: Independent 25-case review | NOT EXECUTED | 72/72 technical witnesses, 3 separately reviewed S25 assertions, explicit gate decision |
 | Q3 historical snapshot checkpoint | NOT EXECUTED | Safe copy or evidence-backed NOT_APPLICABLE for G18-S24-A01 |
 | G18 merge / production rollout | NOT AUTHORIZED | Separate acceptance/merge decisions; production remains blocked by future G24 |
@@ -58,6 +58,6 @@ The proposed [transaction and security](M18_SECURITY_AND_TRANSACTION_CONTRACT.md
 
 ## Planned next authorization
 
-The first authorized *planning* step is to review and explicitly decide P01-P20. Only after recording choices may M18-01 freeze an implementation-ready contract. Each later work package requires its graph prerequisites and its own source-lock/test evidence. No GitHub Actions run, runtime implementation, migration, application activation, gate acceptance or merge to `main` is authorized by this packet alone.
+P01-P20 were approved on 2026-11-18 and an isolated M18 implementation candidate exists. This historical planning packet does not certify its behavior. [Current candidate status](M18_IMPLEMENTATION_CHECKPOINT_20261118.md) records open verification blockers. No GitHub Actions run, migration application, retained application activation, gate acceptance or merge to `main` is authorized by this checkpoint.
 
 The packet is intentionally exhaustive in proposed requirements but does not claim tests, approvals or a release date that do not yet exist. Preserve M16/M17 historical failures and accepted safeguards without reinterpretation.

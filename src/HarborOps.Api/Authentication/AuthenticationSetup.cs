@@ -146,6 +146,11 @@ public static class AuthenticationSetup
                         QueueLimit = 0, AutoReplenishment = true
                     }));
         });
+        // The default of 30 requests per user per minute is the approved limit. The
+        // setting exists so disposable verification can exercise many operations
+        // without a separate rate-limit test being affected; it is clamped.
+        var incidentRequestsPerMinute = Math.Clamp(
+            configuration.GetValue("M18:RequestsPerMinute", 30), 1, 600);
         services.AddRateLimiter(options => options.AddPolicy("m18-incidents", context =>
             RateLimitPartition.GetFixedWindowLimiter(
                 context.User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -153,7 +158,7 @@ public static class AuthenticationSetup
                 _ => new FixedWindowRateLimiterOptions
                 {
                     Window = TimeSpan.FromMinutes(1),
-                    PermitLimit = 30,
+                    PermitLimit = incidentRequestsPerMinute,
                     QueueLimit = 0,
                     AutoReplenishment = true
                 })));

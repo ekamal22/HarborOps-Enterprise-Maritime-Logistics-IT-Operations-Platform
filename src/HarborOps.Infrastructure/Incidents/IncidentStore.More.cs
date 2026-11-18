@@ -243,7 +243,7 @@ public sealed partial class IncidentStore
                     FOR SHARE OF m,u
                     """,("org",org),("recipient",recipient)))
                     if(await check.ExecuteScalarAsync(token) is null)throw Deny();
-                await using(var insert=Command(conn,tx,"""
+                await using var insert=Command(conn,tx,"""
                     INSERT INTO it_incident_read_grants(organization_id,user_id,granted_by,expires_at_utc)
                     VALUES(@org,@recipient,@actor,@expiry)
                     ON CONFLICT(organization_id,user_id)

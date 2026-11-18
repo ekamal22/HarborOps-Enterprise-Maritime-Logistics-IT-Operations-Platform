@@ -62,6 +62,30 @@ public static class AuditRoleProvisioner
                 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO harborops_api;
                 REVOKE ALL ON TABLE audit_entries FROM harborops_api;
                 GRANT SELECT ON TABLE audit_entries TO harborops_api;
+                -- M18 incident access is separately tenant-scoped by the migration's
+                -- row-level policies and by current session and organization checks.
+                -- The API may append history, but cannot edit or delete it.
+                DO $m18_role_grants$
+                BEGIN
+                    IF to_regclass('public.it_incidents') IS NOT NULL THEN
+                        GRANT EXECUTE ON FUNCTION m18_scoped_session(uuid) TO harborops_api;
+                        REVOKE ALL ON it_incidents, it_incident_events,
+                            it_incident_notes, it_incident_actions,
+                            it_incident_evidence, it_incident_operation_ids,
+                            it_incident_read_grants FROM harborops_api;
+                        GRANT SELECT ON it_incidents, it_incident_events,
+                            it_incident_notes, it_incident_actions,
+                            it_incident_evidence, it_incident_operation_ids,
+                            it_incident_read_grants TO harborops_api;
+                        GRANT INSERT ON it_incidents, it_incident_events,
+                            it_incident_notes, it_incident_actions,
+                            it_incident_evidence, it_incident_operation_ids,
+                            it_incident_read_grants TO harborops_api;
+                        GRANT UPDATE ON it_incidents, it_incident_actions,
+                            it_incident_operation_ids, it_incident_read_grants
+                            TO harborops_api;
+                    END IF;
+                END $m18_role_grants$;
                 -- M10 is strictly additive to the already accepted M9/M16 role matrix.
                 -- The API may write only corrections, replay acknowledgments and
                 -- derived projections. Immutable source/index/correction generation

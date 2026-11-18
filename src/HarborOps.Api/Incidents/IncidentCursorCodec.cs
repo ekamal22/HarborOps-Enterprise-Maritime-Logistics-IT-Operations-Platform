@@ -40,6 +40,9 @@ public sealed class IncidentCursorCodec(IDataProtectionProvider provider)
             return true;
         }
         catch(Exception ex) when(ex is FormatException or JsonException or
-            ArgumentException or CryptographicException)return false;
+            ArgumentException or CryptographicException)
+        {
+            return false;
+        }
     }
 }

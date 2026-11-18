@@ -112,7 +112,7 @@ G18-S25 is not automatically satisfied by test output. Independently authenticat
 
 **Witness:** Same operation key, changed payload, lost response and retry after restart
 
-- **A01:** Exact matching replay creates no duplicate incident event/action/audit and returns the recorded outcome
+- **A01:** An organization- and actor-scoped operation key makes initial create replay safe before any incident ID exists; exact matching replay produces no duplicate incident, event or audit effect
 - **A02:** Same key with different payload is rejected without modifying incident or history
 - **A03:** Unknown commit outcome is resolved through durable operation identity rather than claiming false success
 
@@ -128,7 +128,7 @@ G18-S25 is not automatically satisfied by test output. Independently authenticat
 
 **Witness:** Injected audit insertion failure and direct transaction observation
 
-- **A01:** Each successful sensitive incident mutation commits the exact approved allowlisted M16 audit event set atomically with the incident effect, without missing or duplicate logical events
+- **A01:** Every successful sensitive incident mutation atomically commits its exact approved allowlisted M16 audit event set, without missing or duplicate logical events
 - **A02:** Required audit write failure rolls back projection and append-only incident records
 - **A03:** Audit metadata excludes note body, raw diagnostic values and credentials while preserving safe provenance
 
@@ -177,7 +177,7 @@ G18-S25 is not automatically satisfied by test output. Independently authenticat
 **Witness:** Contradictory recovery evidence, missing integrity proof and exception denial
 
 - **A01:** Monitoring -> Resolved requires recorded health, recovery and data-integrity checks under approved policy
-- **A02:** Resolved -> Closed requires closure confirmation and all mandatory corrective-action dispositions
+- **A02:** Resolved -> Closed requires an eligible independent confirmer for higher severity or an expressly approved audited exception, plus recorded corrective-action dispositions
 - **A03:** Missing, stale or contradictory evidence and unauthorized exception prevent closure and leave current state unchanged
 
 ### G18-S18: Reopen and repeated lifecycle
@@ -193,7 +193,7 @@ G18-S25 is not automatically satisfied by test output. Independently authenticat
 **Witness:** Controlled M17 fault, safe alert preview and authenticated create
 
 - **A01:** M17 alert alone creates no incident before explicit user confirmation
-- **A02:** Human-confirmed incident stores only safe observation snapshot and correct service/severity context
+- **A02:** Human-confirmed incident stores only server-issued sanitized service observation; platform-level telemetry cannot claim another tenant's incident impact
 - **A03:** Wrong-organization or forged M17 reference cannot create/link incident or grant telemetry access
 
 ### G18-S20: Default-off telemetry and degradation
@@ -225,7 +225,7 @@ G18-S25 is not automatically satisfied by test output. Independently authenticat
 **Witness:** Chromium/Firefox/WebKit full auth workflows, locale, conflict recovery and org switch
 
 - **A01:** Support/Admin can create, transition, investigate, close and reopen in English and Turkish across three engines
-- **A02:** Manager limited, Auditor granted read-only and Analyst denied views match backend; switching organizations clears stale data
+- **A02:** Manager has only approved safe summaries, Auditor only a current distinct M18 read grant, Analyst denied; organization switching clears all previous-tenant data
 - **A03:** Loading/empty/error/unknown/conflict and saved draft flows work without English-only text or hidden privilege changes
 
 ### G18-S24: Q3 snapshot and accepted regressions
@@ -242,7 +242,7 @@ G18-S25 is not automatically satisfied by test output. Independently authenticat
 
 - **A01:** A distinct reviewer authenticates frozen source, hashes, 25 scenarios, 72 technical assertions and negative/security evidence
 - **A02:** All policy, provenance, performance, Q3 and procedural exceptions are disclosed and dispositioned without editing failures
-- **A03:** Independent signed PASS/NOT PASS recommendation is recorded; G18 remains NOT ACCEPTED until a separately explicit gate decision
+- **A03:** A genuinely separate reviewer signs a source- and evidence-bound PASS/NOT PASS recommendation; distinct explicit G18 acceptance and merge authorization remain necessary
 
 
 ## Explicit G18 evidence refinements

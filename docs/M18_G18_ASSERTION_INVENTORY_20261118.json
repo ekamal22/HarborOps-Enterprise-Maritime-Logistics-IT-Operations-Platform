@@ -511,7 +511,7 @@
       "assertions": [
         {
           "id": "G18-S09-A01",
-          "expected": "Exact matching replay creates no duplicate incident event/action/audit and returns the recorded outcome",
+          "expected": "An organization- and actor-scoped operation key makes initial create replay safe before any incident ID exists; exact matching replay produces no duplicate incident, event or audit effect",
           "status": "NOT_EXECUTED",
           "witness": null,
           "reviewer_disposition": null,
@@ -626,7 +626,7 @@
       "assertions": [
         {
           "id": "G18-S11-A01",
-          "expected": "Every successful sensitive incident mutation commits exactly one allowlisted M16 audit with incident effect",
+          "expected": "Every successful sensitive incident mutation atomically commits its exact approved allowlisted M16 audit event set, without missing or duplicate logical events",
           "status": "NOT_EXECUTED",
           "witness": null,
           "reviewer_disposition": null,
@@ -984,7 +984,7 @@
         },
         {
           "id": "G18-S17-A02",
-          "expected": "Resolved -> Closed requires closure confirmation and all mandatory corrective-action dispositions",
+          "expected": "Resolved -> Closed requires an eligible independent confirmer for higher severity or an expressly approved audited exception, plus recorded corrective-action dispositions",
           "status": "NOT_EXECUTED",
           "witness": null,
           "reviewer_disposition": null,
@@ -1100,7 +1100,7 @@
         },
         {
           "id": "G18-S19-A02",
-          "expected": "Human-confirmed incident stores only safe observation snapshot and correct service/severity context",
+          "expected": "Human-confirmed incident stores only server-issued sanitized service observation; platform-level telemetry cannot claim another tenant's incident impact",
           "status": "NOT_EXECUTED",
           "witness": null,
           "reviewer_disposition": null,
@@ -1333,7 +1333,7 @@
         },
         {
           "id": "G18-S23-A02",
-          "expected": "Manager limited, Auditor granted read-only and Analyst denied views match backend; switching organizations clears stale data",
+          "expected": "Manager has only approved safe summaries, Auditor only a current distinct M18 read grant, Analyst denied; organization switching clears all previous-tenant data",
           "status": "NOT_EXECUTED",
           "witness": null,
           "reviewer_disposition": null,
@@ -1460,7 +1460,7 @@
         },
         {
           "id": "G18-S25-A03",
-          "expected": "Independent signed PASS/NOT PASS recommendation is recorded; G18 remains NOT ACCEPTED until a separately explicit gate decision",
+          "expected": "A genuinely separate reviewer signs a source- and evidence-bound PASS/NOT PASS recommendation; distinct explicit G18 acceptance and merge authorization remain necessary",
           "status": "NOT_EXECUTED",
           "witness": null,
           "reviewer_disposition": null,

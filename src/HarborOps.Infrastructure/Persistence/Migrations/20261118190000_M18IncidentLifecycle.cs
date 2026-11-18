@@ -97,8 +97,33 @@ public sealed class M18IncidentLifecycle : Migration
                     REFERENCES it_incidents(organization_id,id),
                 CONSTRAINT "CK_m18_action_state" CHECK(state IN
                     ('Proposed','InProgress','Verified','Cancelled')),
-                CONSTRAINT "CK_m18_action_version" CHECK(version > 0)
+                CONSTRAINT "CK_m18_action_version" CHECK(version > 0),
+                CONSTRAINT "UX_m18_action_scoped" UNIQUE(organization_id,id)
             );
+
+            CREATE TABLE it_incident_action_events (
+                id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                organization_id uuid NOT NULL,
+                incident_id uuid NOT NULL,
+                action_id uuid NOT NULL,
+                action_version bigint NOT NULL CHECK(action_version>0),
+                previous_state varchar(16) NULL,
+                new_state varchar(16) NOT NULL CHECK(new_state IN
+                    ('Proposed','InProgress','Verified','Cancelled')),
+                reason_code varchar(80) NOT NULL,
+                actor_user_id uuid NOT NULL REFERENCES users(id),
+                occurred_at_utc timestamptz NOT NULL DEFAULT now(),
+                CONSTRAINT "FK_m18_action_history_incident"
+                    FOREIGN KEY(organization_id,incident_id)
+                    REFERENCES it_incidents(organization_id,id),
+                CONSTRAINT "FK_m18_action_history_action"
+                    FOREIGN KEY(organization_id,action_id)
+                    REFERENCES it_incident_actions(organization_id,id),
+                CONSTRAINT "UX_m18_action_history_version"
+                    UNIQUE(organization_id,action_id,action_version)
+            );
+            CREATE INDEX "IX_m18_action_history_incident"
+                ON it_incident_action_events(organization_id,incident_id,occurred_at_utc,id);
 
             CREATE TABLE it_incident_evidence (
                 id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -162,6 +187,9 @@ public sealed class M18IncidentLifecycle : Migration
             CREATE TRIGGER m18_notes_immutable
                 BEFORE UPDATE OR DELETE OR TRUNCATE ON it_incident_notes
                 FOR EACH STATEMENT EXECUTE FUNCTION m18_history_immutable();
+            CREATE TRIGGER m18_action_events_immutable
+                BEFORE UPDATE OR DELETE OR TRUNCATE ON it_incident_action_events
+                FOR EACH STATEMENT EXECUTE FUNCTION m18_history_immutable();
             CREATE TRIGGER m18_evidence_immutable
                 BEFORE UPDATE OR DELETE OR TRUNCATE ON it_incident_evidence
                 FOR EACH STATEMENT EXECUTE FUNCTION m18_history_immutable();
@@ -173,6 +201,8 @@ public sealed class M18IncidentLifecycle : Migration
             CREATE TRIGGER m18_notes_audit AFTER INSERT ON it_incident_notes
                 FOR EACH ROW EXECUTE FUNCTION m16_audit_capture();
             CREATE TRIGGER m18_actions_audit AFTER INSERT OR UPDATE ON it_incident_actions
+                FOR EACH ROW EXECUTE FUNCTION m16_audit_capture();
+            CREATE TRIGGER m18_action_events_audit AFTER INSERT ON it_incident_action_events
                 FOR EACH ROW EXECUTE FUNCTION m16_audit_capture();
             CREATE TRIGGER m18_evidence_audit AFTER INSERT ON it_incident_evidence
                 FOR EACH ROW EXECUTE FUNCTION m16_audit_capture();
@@ -196,7 +226,7 @@ public sealed class M18IncidentLifecycle : Migration
             BEGIN
                 FOREACH target_name IN ARRAY ARRAY[
                     'it_incidents','it_incident_events','it_incident_notes',
-                    'it_incident_actions','it_incident_evidence',
+                    'it_incident_actions','it_incident_action_events','it_incident_evidence',
                     'it_incident_operation_ids','it_incident_read_grants']
                 LOOP
                     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', target_name);
@@ -224,6 +254,7 @@ public sealed class M18IncidentLifecycle : Migration
             DROP TABLE IF EXISTS it_incident_read_grants;
             DROP TABLE IF EXISTS it_incident_operation_ids;
             DROP TABLE IF EXISTS it_incident_evidence;
+            DROP TABLE IF EXISTS it_incident_action_events;
             DROP TABLE IF EXISTS it_incident_actions;
             DROP TABLE IF EXISTS it_incident_notes;
             DROP TABLE IF EXISTS it_incident_events;

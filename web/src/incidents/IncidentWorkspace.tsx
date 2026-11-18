@@ -111,6 +111,21 @@ export default function IncidentWorkspace({
     finally{if(active.current)setBusy(false);}
   }
 
+  async function loadHistory() {
+    if(!summary || !selected?.nextEventAfter || busy)return;
+    const currentId=summary.id;
+    setBusy(true);
+    try{
+      const page=await getIncident(organizationId,currentId,true,selected.nextEventAfter);
+      if(!active.current || !("events" in page))return;
+      setSelected(previous=>previous && previous.incident.id===currentId
+        ? {...previous,events:[...previous.events,...page.events],
+          nextEventAfter:page.nextEventAfter}
+        : previous);
+    }catch(cause){if(active.current)report(cause);}
+    finally{if(active.current)setBusy(false);}
+  }
+
   async function execute(operation: ()=>Promise<Incident>, after?: ()=>void) {
     if(!summary)return;
     setBusy(true);setError("");
@@ -322,11 +337,15 @@ export default function IncidentWorkspace({
                     {e.sequence}. {t(e.kind)} | {e.reasonCode}
                     <span className="block text-xs text-slate-400">{date(e.occurredAtUtc)}</span>
                   </li>)}</ol>
+                {selected.nextEventAfter&&<button className={buttonClass+" mt-2"}
+                  disabled={busy} onClick={()=>void loadHistory()}>{t("Load older history")}</button>}
               </div>}
               {role==="Auditor"&&selected&&<>
                 <h6 className="mt-4 font-semibold">{t("Incident history")}</h6>
                 <ol className="mt-2 space-y-1 text-sm">{selected.events.map(e=>
                   <li key={e.id}>{e.sequence}. {t(e.kind)} | {date(e.occurredAtUtc)}</li>)}</ol>
+                {selected.nextEventAfter&&<button className={buttonClass+" mt-2"}
+                  disabled={busy} onClick={()=>void loadHistory()}>{t("Load older history")}</button>}
               </>}
             </div>
           ):<p className="text-sm text-slate-400">{t("Select an incident to view its details")}</p>}

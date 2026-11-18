@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HarborOps.Api.Authentication;
+using HarborOps.Api.Observability;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using HarborOps.Infrastructure.Identity;
 using HarborOps.Infrastructure.Incidents;
 using Microsoft.AspNetCore.Antiforgery;
@@ -225,6 +227,43 @@ public static class IncidentEndpoints
                 if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
                 return Results.Ok((await store.AddObservationAsync(Session(ctx),org,id,input,
                     operation,ctx.RequestAborted)).Incident);
+            }));
+
+        root.MapPost("/{incidentId}/m17-snapshot",(string organizationId,string incidentId,
+            HttpContext ctx,IAntiforgery anti,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!await MutationAllowed(ctx,anti))
+                    return Failure(ctx,403,"csrf_invalid","Request validation failed");
+                if(!Id(organizationId,out var org)||!Id(incidentId,out var id)||
+                    !OperationId(ctx,out var operation))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var input=await Body<IncidentSnapshotInput>(ctx);
+                if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var signal=M17Telemetry.CurrentDatabaseSignal();
+                return Results.Ok((await store.CaptureSafeSnapshotAsync(Session(ctx),org,id,
+                    input,operation,signal.Status,signal.ObservedAtUtc,ctx.RequestAborted)).Incident);
+            }));
+
+        root.MapPost("/{incidentId}/recovery",(string organizationId,string incidentId,
+            HttpContext ctx,IAntiforgery anti,IncidentStore store,HealthCheckService checks)=>
+            Guarded(ctx,async()=>
+            {
+                if(!await MutationAllowed(ctx,anti))
+                    return Failure(ctx,403,"csrf_invalid","Request validation failed");
+                if(!Id(organizationId,out var org)||!Id(incidentId,out var id)||
+                    !OperationId(ctx,out var operation))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var input=await Body<IncidentRecoveryInput>(ctx);
+                if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
+                // The existing bounded database readiness check is an actual
+                // server-executed witness, not a browser-supplied success flag.
+                var probe=await checks.CheckHealthAsync(
+                    x=>x.Tags.Contains("ready"),ctx.RequestAborted);
+                if(probe.Status!=HealthStatus.Healthy)
+                    return Failure(ctx,409,"recovery_not_verified","Recovery is not verified");
+                return Results.Ok((await store.RecordRecoveryAsync(Session(ctx),org,id,
+                    input,operation,ctx.RequestAborted)).Incident);
             }));
 
         root.MapPut("/read-grants/{recipientId}",(string organizationId,string recipientId,

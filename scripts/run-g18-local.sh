@@ -50,8 +50,8 @@ case "$stage" in
     node scripts/g18-retained-inventory.mjs --out "$evw\\retained-inventory-before.json" >> "$ev/preflight.txt"
     record preflight 0 ;;
   source-checks)
-    run source-checks node scripts/check-m18-source.mjs --json "$evw\\source-checks.json"; rc=$?
-    # the json is written even on failure; the stage mirrors the exit code ;;
+    # the json is written even on failure; the stage mirrors the exit code
+    run source-checks node scripts/check-m18-source.mjs --json "$evw\\source-checks.json" ;;
   build)
     run build dotnet build HarborOps.sln -c Release -warnaserror ;;
   unit)

@@ -46,8 +46,7 @@ for (const engine of ["chromium", "firefox", "webkit"]) {
 const checks = Object.fromEntries((json("source-checks.json")?.results ?? []).map(r => [r.name, r.status]));
 const stageFile = join(evidence, "stages.jsonl");
 const stages = existsSync(stageFile)
-  ? Object.fromEntries(readFileSync(stageFile, "utf8").split("
-").filter(Boolean).map(l => JSON.parse(l)).map(s => [s.name, s.status])) : {};
+  ? Object.fromEntries(readFileSync(stageFile, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)).map(s => [s.name, s.status])) : {};
 const mutations = existsSync(join(evidence, "mutation-results.jsonl"))
   ? Object.fromEntries(readFileSync(join(evidence, "mutation-results.jsonl"), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)).map(r => [r.id, r])) : {};
 const journey = Object.fromEntries((json("journey.json")?.steps ?? []).map(s => [s.name, s.ok]));

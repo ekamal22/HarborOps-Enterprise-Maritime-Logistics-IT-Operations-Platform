@@ -30,6 +30,8 @@ export default function IncidentWorkspace({
   const canCreate = technical || role === "Manager";
   const canRead = technical || role === "Auditor";
   const [items,setItems] = useState<Incident[]>([]);
+  const [cursor,setCursor] = useState<string | null>(null);
+  const [paging,setPaging] = useState(false);
   const [selected,setSelected] = useState<IncidentHistory | null>(null);
   const [summary,setSummary] = useState<Incident | null>(null);
   const [loading,setLoading] = useState(true);
@@ -63,11 +65,13 @@ export default function IncidentWorkspace({
     try {
       const result=await listIncidents(organizationId);
       if(!active.current || run!==sequence.current)return;
-      setItems(result);
+      setItems(result.incidents);
+      setCursor(result.nextCursor);
       setError("");
     } catch(cause) {
       if(!active.current || run!==sequence.current)return;
       setItems([]);
+      setCursor(null);
       report(cause);
     } finally {
       if(active.current && run===sequence.current)setLoading(false);
@@ -79,6 +83,21 @@ export default function IncidentWorkspace({
     void refresh();
     return ()=>{active.current=false;sequence.current+=1};
   },[refresh]);
+
+  async function loadMore() {
+    if(!cursor || paging || busy)return;
+    setPaging(true);
+    try{
+      const result=await listIncidents(organizationId,cursor);
+      if(!active.current)return;
+      setItems(previous=>{
+        const seen=new Set(previous.map(x=>x.id));
+        return [...previous,...result.incidents.filter(x=>!seen.has(x.id))];
+      });
+      setCursor(result.nextCursor);
+    }catch(cause){if(active.current)report(cause);}
+    finally{if(active.current)setPaging(false);}
+  }
 
   async function open(item: Incident) {
     setBusy(true);
@@ -220,6 +239,8 @@ export default function IncidentWorkspace({
                 <span className="block text-slate-400">{item.severity} | {t(item.state)} | {date(item.updatedAtUtc)}</span>
               </button></li>)}
           </ul>
+          {cursor&&<button className={buttonClass+" mt-3"} disabled={busy||paging}
+            onClick={()=>void loadMore()}>{t("Load more incidents")}</button>}
         </div>
         <div>
           {summary ? (

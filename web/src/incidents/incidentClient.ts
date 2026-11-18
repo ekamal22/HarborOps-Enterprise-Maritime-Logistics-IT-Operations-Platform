@@ -23,8 +23,9 @@ const base = (organizationId: string) =>
   "/api/v1/organizations/" + encodeURIComponent(organizationId) + "/incidents";
 const key = () => ({ "X-HarborOps-Operation-Id": crypto.randomUUID() });
 
-export async function listIncidents(org: string): Promise<Incident[]> {
-  return (await getJson<{ incidents: Incident[] }>(base(org) + "?limit=100")).incidents;
+export async function listIncidents(org: string, cursor?: string): Promise<{ incidents: Incident[]; nextCursor: string | null }> {
+  return getJson<{ incidents: Incident[]; nextCursor: string | null }>(base(org) +
+    "?limit=25" + (cursor ? "&cursor=" + encodeURIComponent(cursor) : ""));
 }
 export async function getIncident(org: string, id: string, full = true): Promise<IncidentHistory | Incident> {
   return full ? getJson<IncidentHistory>(base(org) + "/" + encodeURIComponent(id) + "/history") :

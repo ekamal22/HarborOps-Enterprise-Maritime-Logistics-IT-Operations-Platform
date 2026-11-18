@@ -123,14 +123,14 @@ public static class IncidentEndpoints
                         out var cursor)||cursor is null)
                         return Failure(ctx,409,"stale_or_invalid_cursor","Restart this incident list");
                     asOf=cursor.AsOfUtc;
-                    afterAt=cursor.AfterUpdatedUtc;
+                    afterAt=cursor.AfterCreatedUtc;
                     afterId=cursor.AfterId;
                 }
                 var page=await store.PageAsync(current,org,limit,asOf,afterAt,afterId,
                     ctx.RequestAborted);
-                var next=page.NextId.HasValue && page.NextUpdatedAtUtc.HasValue
+                var next=page.NextId.HasValue && page.NextAfterUtc.HasValue
                     ? codec.Encode(org,current.UserId,current.SessionId,asOf,
-                        page.NextUpdatedAtUtc.Value,page.NextId.Value,now)
+                        page.NextAfterUtc.Value,page.NextId.Value,now)
                     : null;
                 return Results.Ok(new { incidents=page.Incidents, nextCursor=next });
             }));

@@ -35,10 +35,13 @@ internal sealed class M18World : IDisposable
                 "Requires HARBOROPS_G12_EXCLUSIVE_POSTGRES=1 on an exclusive disposable PostgreSQL server");
     }
 
+    public M18Sinks? Sinks { get; init; }
+
     public static async Task<M18World> CreateAsync(
-        IReadOnlyDictionary<string, string>? extraSettings = null)
+        IReadOnlyDictionary<string, string>? extraSettings = null, bool captureSinks = false)
     {
         RequireExclusive();
+        var sinks = captureSinks ? new M18Sinks() : null;
         var roles = await M10RuntimeIdentityTests.ProvisionAsync();
         var settings = new Dictionary<string, string>
         {
@@ -50,8 +53,11 @@ internal sealed class M18World : IDisposable
         var world = new M18World
         {
             Roles = roles,
+            Sinks = sinks,
             Setup = new ReferenceDataHttpTests.ApiFactory(roles.Admin, settings: settings),
-            Runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api, settings: settings)
+            Runtime = new ReferenceDataHttpTests.ApiFactory(roles.Api, settings: settings,
+                overrideServices: sinks is null ? null : services =>
+                    services.AddSingleton<Microsoft.Extensions.Logging.ILoggerProvider>(sinks))
         };
         await world.SeedAsync();
         return world;
@@ -202,5 +208,6 @@ internal sealed class M18World : IDisposable
         foreach (var client in clients) client.Dispose();
         Setup.Dispose();
         Runtime.Dispose();
+        Sinks?.Dispose();
     }
 }

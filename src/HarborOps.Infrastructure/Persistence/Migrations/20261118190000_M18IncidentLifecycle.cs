@@ -45,6 +45,8 @@ public sealed class M18IncidentLifecycle : Migration
             CREATE UNIQUE INDEX "UX_m18_incidents_org_id" ON it_incidents(organization_id,id);
             CREATE INDEX "IX_m18_incidents_list" ON it_incidents
                 (organization_id,updated_at_utc DESC,id DESC);
+            CREATE INDEX "IX_m18_incidents_created" ON it_incidents
+                (organization_id,created_at_utc DESC,id DESC);
 
             CREATE TABLE it_incident_events (
                 id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.WebUtilities;
 namespace HarborOps.Api.Incidents;
 
 public sealed record IncidentCursor(Guid OrganizationId, Guid ActorId, Guid SessionId,
-    DateTimeOffset AsOfUtc, DateTimeOffset AfterUpdatedUtc, Guid AfterId,
+    DateTimeOffset AsOfUtc, DateTimeOffset AfterCreatedUtc, Guid AfterId,
     DateTimeOffset ExpiresAtUtc);
 
 public sealed class IncidentCursorCodec(IDataProtectionProvider provider)
@@ -35,7 +35,7 @@ public sealed class IncidentCursorCodec(IDataProtectionProvider provider)
             if(value is null||value.OrganizationId!=org||value.ActorId!=actor||
                 value.SessionId!=session||value.AfterId==Guid.Empty||
                 value.ExpiresAtUtc<=now||value.AsOfUtc>now.AddMinutes(1)||
-                value.AfterUpdatedUtc>value.AsOfUtc)return false;
+                value.AfterCreatedUtc>value.AsOfUtc)return false;
             cursor=value;
             return true;
         }

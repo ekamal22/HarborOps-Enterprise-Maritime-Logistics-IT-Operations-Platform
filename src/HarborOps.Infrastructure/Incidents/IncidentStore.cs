@@ -250,6 +250,39 @@ public sealed partial class IncidentStore(HarborOpsDbContext db)
                 var current=await Read(conn,tx,org,id,true,token);
                 if(current.Version!=input.ExpectedVersion||
                     !IncidentPolicy.ParseState(current.State,out var from))throw Conflict();
+                if(from==IncidentState.Triage && next==IncidentState.Investigating)
+                {
+                    if(!current.AssignedTo.HasValue)throw Conflict();
+                    await using var assignee=Command(conn,tx,"""
+                        SELECT 1 FROM organization_memberships m JOIN users u ON u.id=m.user_id
+                        WHERE m.organization_id=@org AND m.user_id=@owner
+                          AND m.status='Active' AND u.status='Active'
+                          AND m.role IN ('Support','Administrator')
+                        FOR SHARE OF m,u
+                        """,("org",org),("owner",current.AssignedTo.Value));
+                    if(await assignee.ExecuteScalarAsync(token) is null)throw Conflict();
+                }
+                if(from==IncidentState.Investigating && next==IncidentState.Mitigated)
+                {
+                    await using var mitigation=Command(conn,tx,"""
+                        SELECT EXISTS(SELECT 1 FROM it_incident_notes
+                            WHERE organization_id=@org AND incident_id=@id)
+                          AND EXISTS(SELECT 1 FROM it_incident_actions
+                            WHERE organization_id=@org AND incident_id=@id)
+                        """,("org",org),("id",id));
+                    if(!Convert.ToBoolean(await mitigation.ExecuteScalarAsync(token)))
+                        throw Conflict();
+                }
+                if(from==IncidentState.Mitigated && next==IncidentState.Monitoring)
+                {
+                    await using var observed=Command(conn,tx,"""
+                        SELECT EXISTS(SELECT 1 FROM it_incident_evidence
+                        WHERE organization_id=@org AND incident_id=@id
+                          AND kind IN('ManualObservation','M17Snapshot'))
+                        """,("org",org),("id",id));
+                    if(!Convert.ToBoolean(await observed.ExecuteScalarAsync(token)))
+                        throw Conflict();
+                }
                 bool recovery=false, integrity=false, actions=false, independentlyConfirmed=false;
                 string? rootCause=null;
                 Guid? resolvedBy=null;

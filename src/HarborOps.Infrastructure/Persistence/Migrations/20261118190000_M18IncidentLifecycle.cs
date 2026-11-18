@@ -178,27 +178,16 @@ public sealed class M18IncidentLifecycle : Migration
             CREATE TRIGGER m18_grants_audit AFTER INSERT OR UPDATE ON it_incident_read_grants
                 FOR EACH ROW EXECUTE FUNCTION m16_audit_capture();
 
+            -- M18 does not trust a caller-controlled identity GUC. Reuse the
+            -- existing, keyed M11 proof and current selected-session checks.
+            -- A fabricated set_config cannot produce a valid signed authority.
             CREATE FUNCTION m18_scoped_session(org uuid) RETURNS boolean
-                LANGUAGE sql STABLE SECURITY DEFINER
+                LANGUAGE plpgsql STABLE SECURITY DEFINER
                 SET search_path = pg_catalog, public AS $scope$
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM auth_sessions s
-                    JOIN users u ON u.id = s.user_id
-                    JOIN organization_memberships m ON
-                        m.user_id = s.user_id AND m.organization_id = org
-                    JOIN organizations o ON o.id = org
-                    WHERE s.id = NULLIF(current_setting('harborops.m18_session',true),'')::uuid
-                      AND s.user_id = NULLIF(current_setting('harborops.m18_actor',true),'')::uuid
-                      AND s.selected_organization_id = org
-                      AND s.revoked_at_utc IS NULL
-                      AND s.absolute_expires_at_utc > now()
-                      AND s.idle_expires_at_utc > now()
-                      AND u.status = 'Active'
-                      AND m.status = 'Active'
-                      AND o.status = 'Active'
-                )
-            $scope$;
+            BEGIN
+                RETURN session_user='harborops_api' AND m11_read_allowed(org);
+            EXCEPTION WHEN OTHERS THEN RETURN false;
+            END $scope$;
             REVOKE ALL ON FUNCTION m18_scoped_session(uuid) FROM PUBLIC;
 
             DO $m18_rls$

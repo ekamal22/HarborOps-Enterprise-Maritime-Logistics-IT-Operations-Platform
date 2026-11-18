@@ -5,6 +5,7 @@ using HarborOps.Domain.Incidents;
 using HarborOps.Domain.Organizations;
 using HarborOps.Infrastructure.Audit;
 using HarborOps.Infrastructure.Identity;
+using HarborOps.Infrastructure.Exceptions;
 using HarborOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -26,7 +27,7 @@ public sealed record IncidentNoteInput(long ExpectedVersion, string Body);
 public sealed record IncidentAssignment(long ExpectedVersion, Guid AssignedTo, string ReasonCode);
 public sealed record IncidentChangeResult(IncidentView Incident, bool Replayed);
 
-public sealed partial class IncidentStore(HarborOpsDbContext db)
+public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExceptionStore signedScope)
 {
     private static IncidentRequestException Deny() => new(403, "access_denied");
     private static IncidentRequestException Missing() => new(404, "resource_not_found");
@@ -47,12 +48,10 @@ public sealed partial class IncidentStore(HarborOpsDbContext db)
         OrganizationRole, CancellationToken, Task<T>> action, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
-            SELECT set_config('harborops.m18_actor',{actor.UserId.ToString("D")},true),
-                set_config('harborops.m18_session',{actor.SessionId.ToString("D")},true)
-            """, ct);
         var connection = (NpgsqlConnection)db.Database.GetDbConnection();
         var transaction = (NpgsqlTransaction)tx.GetDbTransaction();
+        await signedScope.SetReadScopeAsync(transaction, organizationId,
+            actor.UserId, actor.SessionId, ct);
 
         // Lock session, user, membership and selected organization to prevent
         // role or session revocation from committing ahead of this operation.
@@ -83,15 +82,11 @@ public sealed partial class IncidentStore(HarborOpsDbContext db)
             await using var grant = Command(connection, transaction, """
                 SELECT 1 FROM it_incident_read_grants
                 WHERE organization_id=@org AND user_id=@actor AND status='Active'
-                  AND expires_at_utc>now() LIMIT 1
+                  AND expires_at_utc>now() FOR SHARE
                 """, ("org",organizationId),("actor",actor.UserId));
             if (await grant.ExecuteScalarAsync(ct) is null) throw Deny();
         }
 
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
-            SELECT set_config('harborops.m18_session',{actor.SessionId.ToString("D")},true),
-                   set_config('harborops.m18_actor',{actor.UserId.ToString("D")},true)
-            """, ct);
         await AuditActorContext.SetHumanAsync(db, actor.UserId, actor.SessionId, null, ct);
         var result = await action(connection, transaction, role, ct);
         await tx.CommitAsync(ct);

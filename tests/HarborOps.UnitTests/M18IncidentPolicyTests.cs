@@ -53,6 +53,10 @@ public sealed class M18IncidentPolicyTests
         Assert.Throws<ArgumentException>(() => IncidentPolicy.Title(new string('x', 161)));
         Assert.Throws<ArgumentException>(() => IncidentPolicy.ServiceCode("../api"));
         Assert.Throws<ArgumentException>(() => IncidentPolicy.Note("a\0"));
+        Assert.Throws<ArgumentException>(() =>
+            IncidentPolicy.Note("authorization: BearerExampleSecretToken"));
+        Assert.Throws<ArgumentException>(() =>
+            IncidentPolicy.Note("api_key=redacted-looking-test-value"));
         Assert.Equal("api", IncidentPolicy.ServiceCode("api"));
     }
 

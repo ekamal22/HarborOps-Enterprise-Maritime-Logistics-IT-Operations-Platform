@@ -30,7 +30,7 @@
 | M18-P20: Q3 compatibility | Representative historical copy vs evidence-backed NOT_APPLICABLE; never mutate retained original | G18-S01, G18-S24 |
 
 
-The machine inventory also links every case to its work package, required witness layers and a specific effective negative-control family. These mappings are proposed and can be revised through an approved M18-01 contract change before implementation. They do not imply test code exists. **All P01-P20 are currently PENDING.**
+The machine inventory also links every case to its work package, required witness layers and a specific effective negative-control family. These mappings are proposed and can be revised through an approved M18-01 contract change before implementation. They do not imply test code exists. **All P01-P20 were APPROVED 2026-11-18.** All mapped witnesses remain NOT_EXECUTED.
 
 ## 2. Approval order and stop conditions
 

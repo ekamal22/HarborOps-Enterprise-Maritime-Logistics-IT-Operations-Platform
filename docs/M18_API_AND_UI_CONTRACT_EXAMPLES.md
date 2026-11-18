@@ -4,7 +4,7 @@
 **Status:** Design examples only. Not implemented, approved, exercised or an endpoint guarantee.  
 **Authority:** [M18-P01 to P20](M18_POLICY_PROPOSAL_20261118.md) must be explicitly decided; see [transaction/security contract](M18_SECURITY_AND_TRANSACTION_CONTRACT.md).
 
-These payloads make the intended contracts reviewable before M18-02 source work. Field spelling, operation-ID transport, status and exact bounds are **proposed** and may be changed through M18-01 policy/contract approval. They are not observations of a live API.
+These payloads remain the review baseline for the M18-02 source candidate and must be reconciled with implementation and tests. Field spelling, operation-ID transport, status and exact bounds are **proposed** and may be changed through M18-01 policy/contract approval. They are not observations of a live API.
 
 ## 1. Global request and response rules
 

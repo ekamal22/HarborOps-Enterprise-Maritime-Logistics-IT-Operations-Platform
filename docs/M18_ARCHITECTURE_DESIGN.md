@@ -1,8 +1,8 @@
 # M18 Incident Lifecycle and Remediation Architecture
 
 **Prepared:** 2026-11-18  
-**Status:** PROPOSED DESIGN, NOT IMPLEMENTED  
-**Policy:** [M18 local proposals](M18_POLICY_PROPOSAL_20261118.md), approval pending.  
+**Status:** APPROVED DESIGN BASIS; CANDIDATE SOURCE EXISTS, NOT VERIFIED  
+**Policy:** [M18 local proposals](M18_POLICY_PROPOSAL_20261118.md), approved 2026-11-18.  
 **Source baseline:** `72251f5310f24fb98322b7eb403a5e9e66e040ef`. Existing G16 and G17 accepted/integrated, with their recorded qualifications.
 
 ## 1. Context, accepted neighbors and trust boundaries
@@ -10,7 +10,7 @@
 M18 implements FR-016 and FR-020 under FR-002, FR-014, NFR-002/003/005/006/007/008/012. It consumes existing technical observation from M17 and audit guarantees from M16; it does not own either subsystem. Original source reference points:
 
 - `docs/OPERATIONS.md`: seven-state lifecycle, severity SEV-1..4 and recovery workflow.
-- `src/HarborOps.Domain/Organizations/OrganizationPolicy.cs`: five fixed roles and typed permissions. **No M18 permission exists yet.**
+- `src/HarborOps.Domain/Organizations/OrganizationPolicy.cs`: five fixed roles and typed permissions. **Baseline main had no M18 permission.** The unverified candidate adds typed incident permissions.
 - `src/HarborOps.Infrastructure/Organizations/OrganizationStore.cs`: current session-selected organization checks and live role/membership resolution.
 - `src/HarborOps.Infrastructure/Persistence/HarborOpsDbContext.cs`: EF Core PostgreSQL model and schema ownership.
 - `src/HarborOps.Api/Program.cs`: authenticated endpoint registration, M17 opt-in telemetry and M16 audit support.

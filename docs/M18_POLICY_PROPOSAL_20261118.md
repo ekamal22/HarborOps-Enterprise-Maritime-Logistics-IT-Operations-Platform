@@ -1,7 +1,7 @@
 # M18 Local Incident Policy Proposals
 
 **Prepared:** 2026-11-18  
-**Status:** PROPOSED FOR APPROVAL, NOT IMPLEMENTED, NOT TESTED, NOT ACCEPTED  
+**Status:** P01-P20 APPROVED 2026-11-18; implementation and G18 verification not yet complete  
 **Baseline:** protected `main` at `72251f5310f24fb98322b7eb403a5e9e66e040ef`  
 **Scope:** M18-01 through M18-04 and G18; no changes to previously accepted gate decisions.
 
@@ -9,30 +9,30 @@
 
 The [roadmap](ROADMAP.md) and [execution graph](EXECUTION_GRAPH.md) require G17 before M18-01, and G16 before M18-02. Both are integrated into `main`. G17 retains its separately signed S25-A03/F06 reviewer instrument obligation and P09 QUALIFIED PASS with pre-G24 remeasurement. These are not waived by M18 planning.
 
-The following choices are proposed defaults, not already approved policies. **Do not implement policy-dependent behavior until every affected row is explicitly resolved and recorded in this document or a dedicated approved decision.** An implementation commit, mock, test expectation, or drafted table does not itself approve a choice. Reject incompatible choices explicitly rather than silently relying on defaults.
+The proposed Option A for each of M18-P01 through P20 was explicitly approved on 2026-11-18. The chosen defaults below govern M18 implementation, subject to their documented security constraints and approved exception handling. This approval authorizes M18 implementation but does not constitute G18 technical PASS, independent S25 sign-off, merge, production activation or release. Any change to an approved choice requires a new recorded decision.
 
 | ID | Decision | Recommended option A | Alternative or unresolved edge | Approval status |
 | --- | --- | --- | --- | --- |
-| M18-P01 | Incident scope | Organization-owned incidents only; no global incident browser | Separate platform incidents would require an explicit separate boundary | PENDING |
-| M18-P02 | Role permissions | Support and Administrator operate technical incidents in selected active organization; Manager has summary and structured impact reporting only; Auditor reads only under a separate revocable, expiring, organization-scoped M18 grant; Analyst denied | Different Manager/Support scopes require typed permissions and revised tests | PENDING |
-| M18-P03 | State machine | Seven durable states with a separately audited `reopen` action | Persisting an eighth `Reopened` state would change the model and graph contract | PENDING |
-| M18-P04 | Severity | SEV-1 through SEV-4 with reviewed impact definitions; no SLA clock | Numeric response targets, escalation routing or on-call obligations need separate approval | PENDING |
-| M18-P05 | Creation trigger | Explicit authenticated human action with server-issued, finite M17 service-evidence prefill; no automatic incident | Automated alert-based creation requires separate opt-in, durable deduplication and service authority | PENDING |
-| M18-P06 | Source snapshot | Copy only a server-captured finite service-status/rule snapshot, with provenance/freshness and a safe digest; no claims of tenant impact from service-level telemetry | Full telemetry payload attachment or raw Grafana link is not approved | PENDING |
-| M18-P07 | Persistence | Mutable current incident projection plus append-only transition, note and action history | Hard deletion or rewriting history rejected by default | PENDING |
-| M18-P08 | Audit | Required M16 append-only audit event commits atomically with every successful sensitive incident mutation | Best-effort success without audit violates accepted M16-D03 | PENDING |
-| M18-P09 | Notes/privacy | Choose bounded free text with explicit residual secret-paste risk and protection controls, or structured note categories; neither may flow to audit/logs/metrics | Files, screenshots, rich HTML and unrestricted log paste are out of scope | PENDING |
-| M18-P10 | Concurrency/retry | `expectedVersion` for mutation; operation key unique per selected organization and actor across create and later commands, with kind and canonical payload hash | Last-write-wins, duplicate timeline append or ambiguous success prohibited | PENDING |
-| M18-P11 | Assignment | Only active same-organization Support/Administrator may own technical incident; assignee revocation blocks further action | External assignee identities or automatic assignment need separate policy | PENDING |
-| M18-P12 | Retention | Never hard-delete incidents or evidence in M18; future archival/retention requires approved policy | M16 365-day audit retention is not an incident data deletion rule | PENDING |
-| M18-P13 | Failure semantics | Authorization fail closed, audit write failure rolls back mutation, transient storage outage sanitized 503; telemetry export alone fails open | Business mutation must never depend on monitoring exporter availability | PENDING |
-| M18-P14 | UI/i18n | Functional organization-scoped English and Turkish views through existing localization infrastructure | No English-only hidden incident paths or duplicate unsynchronized navigation | PENDING |
-| M18-P15 | Cross-milestone boundary | M17 read-only safe context; M15 dispatcher unchanged; M9 transport hold unchanged; no implicit paging or self-healing | Integration into notification outbox or worker is future gated scope | PENDING |
-| M18-P16 | Verified closure | Resolve only after fresh recovery/integrity evidence and action disposition; close with a second authorized actor for high severity or an expressly approved, audited exception | Empty notes or a cosmetic green dashboard cannot close an incident | PENDING |
-| M18-P17 | Emergency/false-positive paths | Preserve the seven-state path; exceptional expedited resolution requires explicit typed rationale and separately approved privilege rules | Permit direct `Triage -> Resolved` only if the exception flow receives approval | PENDING |
-| M18-P18 | Input/cursor limits | Defaults: page 25, maximum 100, keyset cursors protected against tampering; title up to 160, note up to 4,096, service code up to 64 bytes; all tentative | Change values only with contract tests and recorded decision | PENDING |
-| M18-P19 | Feature rollout | New incident UI and APIs disabled for retained deployments until G18 approval; disposable implementation test profile explicitly opts in | A hidden feature cannot bypass endpoint authorization; production remains unauthorized | PENDING |
-| M18-P20 | Q3 compatibility | Run on a disposable representative historical backup if one exists; otherwise record justified NOT APPLICABLE | Never upgrade, read-write mount or delete the only retained copy | PENDING |
+| M18-P01 | Incident scope | Organization-owned incidents only; no global incident browser | Separate platform incidents would require an explicit separate boundary | APPROVED 2026-11-18 |
+| M18-P02 | Role permissions | Support and Administrator operate technical incidents in selected active organization; Manager has summary and structured impact reporting only; Auditor reads only under a separate revocable, expiring, organization-scoped M18 grant; Analyst denied | Different Manager/Support scopes require typed permissions and revised tests | APPROVED 2026-11-18 |
+| M18-P03 | State machine | Seven durable states with a separately audited `reopen` action | Persisting an eighth `Reopened` state would change the model and graph contract | APPROVED 2026-11-18 |
+| M18-P04 | Severity | SEV-1 through SEV-4 with reviewed impact definitions; no SLA clock | Numeric response targets, escalation routing or on-call obligations need separate approval | APPROVED 2026-11-18 |
+| M18-P05 | Creation trigger | Explicit authenticated human action with server-issued, finite M17 service-evidence prefill; no automatic incident | Automated alert-based creation requires separate opt-in, durable deduplication and service authority | APPROVED 2026-11-18 |
+| M18-P06 | Source snapshot | Copy only a server-captured finite service-status/rule snapshot, with provenance/freshness and a safe digest; no claims of tenant impact from service-level telemetry | Full telemetry payload attachment or raw Grafana link is not approved | APPROVED 2026-11-18 |
+| M18-P07 | Persistence | Mutable current incident projection plus append-only transition, note and action history | Hard deletion or rewriting history rejected by default | APPROVED 2026-11-18 |
+| M18-P08 | Audit | Required M16 append-only audit event commits atomically with every successful sensitive incident mutation | Best-effort success without audit violates accepted M16-D03 | APPROVED 2026-11-18 |
+| M18-P09 | Notes/privacy | Choose bounded free text with explicit residual secret-paste risk and protection controls, or structured note categories; neither may flow to audit/logs/metrics | Files, screenshots, rich HTML and unrestricted log paste are out of scope | APPROVED 2026-11-18 |
+| M18-P10 | Concurrency/retry | `expectedVersion` for mutation; operation key unique per selected organization and actor across create and later commands, with kind and canonical payload hash | Last-write-wins, duplicate timeline append or ambiguous success prohibited | APPROVED 2026-11-18 |
+| M18-P11 | Assignment | Only active same-organization Support/Administrator may own technical incident; assignee revocation blocks further action | External assignee identities or automatic assignment need separate policy | APPROVED 2026-11-18 |
+| M18-P12 | Retention | Never hard-delete incidents or evidence in M18; future archival/retention requires approved policy | M16 365-day audit retention is not an incident data deletion rule | APPROVED 2026-11-18 |
+| M18-P13 | Failure semantics | Authorization fail closed, audit write failure rolls back mutation, transient storage outage sanitized 503; telemetry export alone fails open | Business mutation must never depend on monitoring exporter availability | APPROVED 2026-11-18 |
+| M18-P14 | UI/i18n | Functional organization-scoped English and Turkish views through existing localization infrastructure | No English-only hidden incident paths or duplicate unsynchronized navigation | APPROVED 2026-11-18 |
+| M18-P15 | Cross-milestone boundary | M17 read-only safe context; M15 dispatcher unchanged; M9 transport hold unchanged; no implicit paging or self-healing | Integration into notification outbox or worker is future gated scope | APPROVED 2026-11-18 |
+| M18-P16 | Verified closure | Resolve only after fresh recovery/integrity evidence and action disposition; close with a second authorized actor for high severity or an expressly approved, audited exception | Empty notes or a cosmetic green dashboard cannot close an incident | APPROVED 2026-11-18 |
+| M18-P17 | Emergency/false-positive paths | Preserve the seven-state path; exceptional expedited resolution requires explicit typed rationale and separately approved privilege rules | Permit direct `Triage -> Resolved` only if the exception flow receives approval | APPROVED 2026-11-18 |
+| M18-P18 | Input/cursor limits | Defaults: page 25, maximum 100, keyset cursors protected against tampering; title up to 160, note up to 4,096, service code up to 64 bytes; all tentative | Change values only with contract tests and recorded decision | APPROVED 2026-11-18 |
+| M18-P19 | Feature rollout | New incident UI and APIs disabled for retained deployments until G18 approval; disposable implementation test profile explicitly opts in | A hidden feature cannot bypass endpoint authorization; production remains unauthorized | APPROVED 2026-11-18 |
+| M18-P20 | Q3 compatibility | Run on a disposable representative historical backup if one exists; otherwise record justified NOT APPLICABLE | Never upgrade, read-write mount or delete the only retained copy | APPROVED 2026-11-18 |
 
 ## Approval-critical contract details
 
@@ -99,6 +99,6 @@ No auto-open incident, automatic resolution, escalations to third-party paging, 
 
 | Decision IDs | Status | Decision date | Evidence |
 | --- | --- | --- | --- |
-| M18-P01 through M18-P20 | PENDING | Not recorded | Explicit policy selection required before implementing affected work |
+| M18-P01 through M18-P20 | APPROVED 2026-11-18 | Not recorded | Explicit policy selection required before implementing affected work |
 
-Record each approved value, changes, rationale and review evidence **without** editing the original proposal out of existence. Policy approval authorizes only design/implementation within this milestone. It is not a G18 PASS, merge, release or production authorization.
+All twenty recommended Option A decisions were approved on 2026-11-18. Their proposed text and alternatives remain in the register for traceability. Clarifications that narrow security exposure without changing Option A remain subject to tests; material changes require new explicit approval. This does not constitute G18 PASS, independent S25 acceptance, merge, release or production authorization.

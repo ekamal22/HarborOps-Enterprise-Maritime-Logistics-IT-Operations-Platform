@@ -9,6 +9,9 @@ using Npgsql;
 
 namespace HarborOps.Api.Incidents;
 
+public sealed record IncidentGrantInput(DateTimeOffset ExpiresAtUtc);
+public sealed record IncidentRevokeInput(long ExpectedVersion);
+
 public static class IncidentEndpoints
 {
     private const int MaximumBodyBytes = 8192;
@@ -158,6 +161,98 @@ public static class IncidentEndpoints
                 if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
                 return Results.Ok((await store.TransitionAsync(Session(ctx),org,id,input,
                     operation,true,ctx.RequestAborted)).Incident);
+            }));
+
+        root.MapGet("/{incidentId}/summary",(string organizationId,string incidentId,
+            HttpContext ctx,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!Id(organizationId,out var org)||!Id(incidentId,out var id))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                return Results.Ok(await store.GetAsync(Session(ctx),org,id,false,ctx.RequestAborted));
+            }));
+
+        root.MapGet("/{incidentId}/history",(string organizationId,string incidentId,
+            HttpContext ctx,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!Id(organizationId,out var org)||!Id(incidentId,out var id))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                return Results.Ok(await store.HistoryAsync(Session(ctx),org,id,ctx.RequestAborted));
+            }));
+
+        root.MapPost("/{incidentId}/actions",(string organizationId,string incidentId,
+            HttpContext ctx,IAntiforgery anti,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!await MutationAllowed(ctx,anti))
+                    return Failure(ctx,403,"csrf_invalid","Request validation failed");
+                if(!Id(organizationId,out var org)||!Id(incidentId,out var id)||
+                    !OperationId(ctx,out var operation))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var input=await Body<IncidentActionCreate>(ctx);
+                if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
+                return Results.Ok((await store.AddActionAsync(Session(ctx),org,id,input,
+                    operation,ctx.RequestAborted)).Incident);
+            }));
+
+        root.MapPatch("/{incidentId}/actions/{actionId}",(string organizationId,string incidentId,
+            string actionId,HttpContext ctx,IAntiforgery anti,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!await MutationAllowed(ctx,anti))
+                    return Failure(ctx,403,"csrf_invalid","Request validation failed");
+                if(!Id(organizationId,out var org)||!Id(incidentId,out var id)||
+                    !Id(actionId,out var action)||!OperationId(ctx,out var operation))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var input=await Body<IncidentActionUpdate>(ctx);
+                if(input is null||input.ActionId!=action)
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                return Results.Ok((await store.UpdateActionAsync(Session(ctx),org,id,input,
+                    operation,ctx.RequestAborted)).Incident);
+            }));
+
+        root.MapPost("/{incidentId}/evidence",(string organizationId,string incidentId,
+            HttpContext ctx,IAntiforgery anti,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!await MutationAllowed(ctx,anti))
+                    return Failure(ctx,403,"csrf_invalid","Request validation failed");
+                if(!Id(organizationId,out var org)||!Id(incidentId,out var id)||
+                    !OperationId(ctx,out var operation))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var input=await Body<IncidentObservation>(ctx);
+                if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
+                return Results.Ok((await store.AddObservationAsync(Session(ctx),org,id,input,
+                    operation,ctx.RequestAborted)).Incident);
+            }));
+
+        root.MapPut("/read-grants/{recipientId}",(string organizationId,string recipientId,
+            HttpContext ctx,IAntiforgery anti,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!await MutationAllowed(ctx,anti))
+                    return Failure(ctx,403,"csrf_invalid","Request validation failed");
+                if(!Id(organizationId,out var org)||!Id(recipientId,out var recipient))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var input=await Body<IncidentGrantInput>(ctx);
+                if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
+                return Results.Ok(await store.GrantReadAsync(Session(ctx),org,recipient,
+                    input.ExpiresAtUtc,ctx.RequestAborted));
+            }));
+
+        root.MapDelete("/read-grants/{recipientId}",(string organizationId,string recipientId,
+            HttpContext ctx,IAntiforgery anti,IncidentStore store)=>
+            Guarded(ctx,async()=>
+            {
+                if(!await MutationAllowed(ctx,anti))
+                    return Failure(ctx,403,"csrf_invalid","Request validation failed");
+                if(!Id(organizationId,out var org)||!Id(recipientId,out var recipient))
+                    return Failure(ctx,400,"invalid_request","Invalid incident request");
+                var input=await Body<IncidentRevokeInput>(ctx);
+                if(input is null)return Failure(ctx,400,"invalid_request","Invalid incident request");
+                return Results.Ok(await store.RevokeReadAsync(Session(ctx),org,recipient,
+                    input.ExpectedVersion,ctx.RequestAborted));
             }));
 
         root.MapPost("/{incidentId}/notes",

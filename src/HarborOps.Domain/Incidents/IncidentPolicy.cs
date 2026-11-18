@@ -72,8 +72,7 @@ public static class IncidentPolicy
     public static string ServiceCode(string? text)
     {
         var value = text ?? "";
-        if (value.Length is < 1 or > 64 ||
-            value.Any(c => !(char.IsAsciiLetterLower(c) || char.IsAsciiDigit(c) || c is '-' or '_')))
+        if (value is not ("api" or "database" or "notifications" or "tracking_held"))
             throw new ArgumentException("Invalid service code");
         return value;
     }

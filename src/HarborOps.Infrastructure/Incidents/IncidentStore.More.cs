@@ -44,6 +44,8 @@ public sealed partial class IncidentStore
                             reader.GetFieldValue<DateTimeOffset>(7),
                             reader.IsDBNull(8)?null:reader.GetGuid(8)));
                 var notes=new List<IncidentNoteView>();
+                if(role!=OrganizationRole.Auditor)
+                {
                 await using(var cmd=Command(conn,tx,"""
                     SELECT id,body,actor_user_id,occurred_at_utc
                     FROM it_incident_notes
@@ -54,6 +56,7 @@ public sealed partial class IncidentStore
                     while(await reader.ReadAsync(token))
                         notes.Add(new(reader.GetGuid(0),reader.GetString(1),reader.GetGuid(2),
                             reader.GetFieldValue<DateTimeOffset>(3)));
+                }
                 var actions=new List<IncidentActionView>();
                 await using(var cmd=Command(conn,tx,"""
                     SELECT id,title,state,owner_user_id,version FROM it_incident_actions

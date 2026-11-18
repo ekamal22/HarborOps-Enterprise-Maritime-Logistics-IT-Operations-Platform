@@ -50,6 +50,7 @@ export default function IncidentWorkspace({
   const [observation,setObservation] = useState("service_degraded");
   const sequence=useRef(0);
   const active=useRef(true);
+  const pendingCreate=useRef<{ fingerprint: string; key: string; detectedAtUtc: string } | null>(null);
 
   const report = useCallback((cause: unknown) => {
     setError(organizationError(cause));
@@ -139,8 +140,15 @@ export default function IncidentWorkspace({
       if(!active.current)return;
       report(cause);
       if(cause instanceof OrganizationRequestError && cause.status===409) {
-        // Keep all local drafts; refresh only server state.
-        try{await open(summary);}catch{/* Preserve the visible conflict. */}
+        // Keep the user's draft and the visible conflict while refreshing server state.
+        try {
+          const latest=await getIncident(organizationId,summary.id,canRead);
+          if(active.current) {
+            if("events" in latest){setSelected(latest);setSummary(latest.incident);}
+            else {setSelected(null);setSummary(latest);}
+            setError("The incident changed. Review the latest state before retrying.");
+          }
+        }catch { /* The conflict remains visible until the next explicit refresh. */ }
       }
     }finally{if(active.current)setBusy(false);}
   }
@@ -149,11 +157,21 @@ export default function IncidentWorkspace({
     event.preventDefault();
     setBusy(true);setError("");
     try {
+      const fingerprint=JSON.stringify({title,service,severity,impact});
+      if(!pendingCreate.current || pendingCreate.current.fingerprint!==fingerprint) {
+        pendingCreate.current={
+          fingerprint,
+          key:crypto.randomUUID(),
+          detectedAtUtc:new Date().toISOString()
+        };
+      }
+      const pending=pendingCreate.current;
       const item=await createIncident(organizationId,{
         title,serviceCode:service,severity,impactCode:impact,
-        detectedAtUtc:new Date().toISOString()
-      });
+        detectedAtUtc:pending.detectedAtUtc
+      },pending.key);
       if(!active.current)return;
+      pendingCreate.current=null;
       setTitle("");
       await refresh();
       await open(item);

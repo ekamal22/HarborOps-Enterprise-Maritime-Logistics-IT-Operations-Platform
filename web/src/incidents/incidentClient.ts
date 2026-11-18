@@ -35,8 +35,9 @@ export async function getIncident(org: string, id: string, full = true, afterSeq
 export async function createIncident(org: string, data: {
   title: string; serviceCode: string; severity: Severity; impactCode: string;
   detectedAtUtc: string;
-}): Promise<Incident> {
-  return (await mutate<Incident>("POST", base(org), data, key()))!;
+}, operationKey?: string): Promise<Incident> {
+  return (await mutate<Incident>("POST", base(org), data,
+    { "X-HarborOps-Operation-Id": operationKey ?? crypto.randomUUID() }))!;
 }
 export async function updateIncident(org: string, id: string, name: string,
   body: object): Promise<Incident> {

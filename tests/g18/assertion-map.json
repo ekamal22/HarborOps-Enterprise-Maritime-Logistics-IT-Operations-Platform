@@ -1,0 +1,486 @@
+{
+  "schema_version": 1,
+  "gate": "G18",
+  "note": "Maps each atomic assertion to witnesses that must all pass. Prefixes: test (xUnit Class.Method, every theory case), browser (Playwright title fragment, every engine and locale), node (web test title), check (check-m18-source), stage (runner stage), mutation (controlled fault killed), journey (fault journey step), q3 (snapshot checkpoint), independent (separate reviewer).",
+  "assertions": {
+    "G18-S01-A01": {
+      "witnesses": [
+        "check:policy-register-p01-to-p20-approved",
+        "check:assertion-inventory-shape"
+      ]
+    },
+    "G18-S01-A02": {
+      "witnesses": [
+        "check:incident-route-inventory-matches-the-contract",
+        "check:every-incident-write-requires-csrf-origin-and-operation-id",
+        "check:every-store-write-uses-the-scoped-transaction-and-an-operation-key",
+        "check:migration-installs-forced-rls-immutability-guard-and-audit-for-all-tables",
+        "check:test-inventory-is-present-for-every-mapped-witness"
+      ]
+    },
+    "G18-S01-A03": {
+      "witnesses": [
+        "check:accepted-migrations-unchanged-and-m18-is-the-only-new-migration",
+        "check:hosted-workflows-and-compose-defaults-unchanged",
+        "check:historical-evidence-and-other-accepted-records-not-rewritten",
+        "check:no-hosted-verification-is-configured-by-this-change"
+      ]
+    },
+    "G18-S02-A01": {
+      "witnesses": [
+        "test:M18SecurityTests.FiveRoleMatrixMatchesTheApprovedTypedPermissions",
+        "test:M18AuthorizationAndTransitionTests",
+        "test:M18IncidentPolicyTests"
+      ]
+    },
+    "G18-S02-A02": {
+      "witnesses": [
+        "test:M18SecurityTests.FiveRoleMatrixMatchesTheApprovedTypedPermissions",
+        "test:M18SecurityTests.ManagerSeesSummariesWithoutAssigneeNotesOrTechnicalDetailAndCreateIsRedacted",
+        "test:M18SecurityTests.AuditorReadGrantIsSeparateExpiringRevocableAndReadOnly",
+        "test:M18ContractTests.AdministratorSeesAuditorGrantsAndNobodyElseCan",
+        "test:M18DatabaseTests.ReadGrantChangesAreAuditedAsGrantedAndRevoked"
+      ]
+    },
+    "G18-S02-A03": {
+      "witnesses": [
+        "test:M18SecurityTests.FiveRoleMatrixMatchesTheApprovedTypedPermissions",
+        "test:M18SecurityTests.AuditorReadGrantIsSeparateExpiringRevocableAndReadOnly",
+        "mutation:widen-role-grant",
+        "browser:roles see only their approved"
+      ]
+    },
+    "G18-S03-A01": {
+      "witnesses": [
+        "test:M18SecurityTests.ForeignAndUnknownObjectsAreIndistinguishableAndNeverCrossTenants",
+        "test:M18ResilienceTests.OrganizationSwitchShowsOnlyTheSelectedTenantAndRejectsTheOther",
+        "mutation:remove-tenant-predicate"
+      ]
+    },
+    "G18-S03-A02": {
+      "witnesses": [
+        "test:M18SecurityTests.ForeignAndUnknownObjectsAreIndistinguishableAndNeverCrossTenants",
+        "test:M18SecurityTests.ProtectedCursorIsBoundToTheOrganizationUserAndSession"
+      ]
+    },
+    "G18-S03-A03": {
+      "witnesses": [
+        "test:M18DatabaseTests.CompositeTenantKeysRejectCrossOrganizationChildrenForEveryTable",
+        "test:M18DatabaseTests.ValidSignedScopeIsTenantBoundAndCannotRewriteHistoryOrBypassTheTransitionGuard",
+        "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders"
+      ]
+    },
+    "G18-S04-A01": {
+      "witnesses": [
+        "test:M18ResilienceTests.LogoutRevocationExpiryAndMembershipChangesStopAccessImmediately"
+      ]
+    },
+    "G18-S04-A02": {
+      "witnesses": [
+        "test:M18ResilienceTests.LogoutRevocationExpiryAndMembershipChangesStopAccessImmediately",
+        "test:M18ResilienceTests.OrganizationSwitchShowsOnlyTheSelectedTenantAndRejectsTheOther",
+        "test:M18SecurityTests.ProtectedCursorIsBoundToTheOrganizationUserAndSession",
+        "browser:organization switching removes"
+      ]
+    },
+    "G18-S04-A03": {
+      "witnesses": [
+        "test:M18ResilienceTests.MembershipSuspensionCommittingWhileAWriteWaitsPreventsTheWrite",
+        "mutation:ignore-revocation-after-lock"
+      ]
+    },
+    "G18-S05-A01": {
+      "witnesses": [
+        "test:M18ContractTests.CreatePersistsANewUtcIncidentWithTheRequestedServiceAndSeverityForEverySeverityAndService"
+      ]
+    },
+    "G18-S05-A02": {
+      "witnesses": [
+        "test:M18SecurityTests.RequestSafetyRejectsMalformedForgedAndOversizedInputWithoutSideEffects",
+        "test:M18EvidenceTests.ServiceCategoriesAreExactlyTheFourApprovedCodes"
+      ]
+    },
+    "G18-S05-A03": {
+      "witnesses": [
+        "test:M18SecurityTests.ManagerSeesSummariesWithoutAssigneeNotesOrTechnicalDetailAndCreateIsRedacted"
+      ]
+    },
+    "G18-S06-A01": {
+      "witnesses": [
+        "test:M18LifecycleTests.SevenStateChainProducesOrderedImmutableHistoryAndMatchingProjection",
+        "test:M18IncidentPolicyTests",
+        "browser:Support and a second responder complete"
+      ]
+    },
+    "G18-S06-A02": {
+      "witnesses": [
+        "test:M18ContractTests.EveryTransitionEventRecordsExactStatesActorServerTimeAndIncrementedVersion"
+      ]
+    },
+    "G18-S06-A03": {
+      "witnesses": [
+        "test:M18LifecycleTests.SevenStateChainProducesOrderedImmutableHistoryAndMatchingProjection",
+        "test:M18ContractTests.EveryTransitionEventRecordsExactStatesActorServerTimeAndIncrementedVersion"
+      ]
+    },
+    "G18-S07-A01": {
+      "witnesses": [
+        "test:M18LifecycleTests.IllegalOrMalformedTransitionsFailWithoutAnySideEffect",
+        "test:M18LifecycleTests.MissingReasonAndStaleVersionAreRejectedWithoutChange",
+        "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion"
+      ]
+    },
+    "G18-S07-A02": {
+      "witnesses": [
+        "test:M18ContractTests.NoGenericWritePathExistsForStateActorVersionOrClosureFields",
+        "test:M18DatabaseTests.ValidSignedScopeIsTenantBoundAndCannotRewriteHistoryOrBypassTheTransitionGuard",
+        "test:M18DatabaseTests.RuntimeRoleHoldsOnlyAppendAndColumnLimitedUpdateRights"
+      ]
+    },
+    "G18-S07-A03": {
+      "witnesses": [
+        "mutation:bypass-transition-guard",
+        "mutation:drop-database-transition-guard"
+      ]
+    },
+    "G18-S08-A01": {
+      "witnesses": [
+        "test:M18ResilienceTests.CompetingWritersFromOneVersionCommitExactlyOneWithoutPhantomRecords",
+        "mutation:lose-version-compare"
+      ]
+    },
+    "G18-S08-A02": {
+      "witnesses": [
+        "test:M18ResilienceTests.CompetingWritersFromOneVersionCommitExactlyOneWithoutPhantomRecords",
+        "browser:a stale version shows a conflict"
+      ]
+    },
+    "G18-S08-A03": {
+      "witnesses": [
+        "test:M18ResilienceTests.MembershipSuspensionCommittingWhileAWriteWaitsPreventsTheWrite",
+        "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders"
+      ]
+    },
+    "G18-S09-A01": {
+      "witnesses": [
+        "test:M18ResilienceTests.ConcurrentCreateRetriesWithOneKeyProduceOneIncidentEventAndAuditRecord",
+        "test:M18ResilienceTests.OperationKeysAreScopedByActorAndBoundToTheirKindAndCanonicalPayload",
+        "node:retries reuse an operation key",
+        "mutation:duplicate-event-on-replay"
+      ]
+    },
+    "G18-S09-A02": {
+      "witnesses": [
+        "test:M18ResilienceTests.OperationKeysAreScopedByActorAndBoundToTheirKindAndCanonicalPayload"
+      ]
+    },
+    "G18-S09-A03": {
+      "witnesses": [
+        "test:M18ResilienceTests.AmbiguousCommitIsResolvedByTheDurableOperationKeyNotByGuessing",
+        "test:M18ResilienceTests.ReplayDoesNotSurviveRoleRevocationOrSessionRevocationAndRebindsToTheNewSession"
+      ]
+    },
+    "G18-S10-A01": {
+      "witnesses": [
+        "test:M18DatabaseTests.DirectRuntimeSqlSeesAndWritesNothingWithoutAGenuineSignedScope",
+        "test:M18LifecycleTests.SevenStateChainProducesOrderedImmutableHistoryAndMatchingProjection",
+        "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants"
+      ]
+    },
+    "G18-S10-A02": {
+      "witnesses": [
+        "test:M18DatabaseTests.RuntimeRoleHoldsOnlyAppendAndColumnLimitedUpdateRights",
+        "test:M18DatabaseTests.ValidSignedScopeIsTenantBoundAndCannotRewriteHistoryOrBypassTheTransitionGuard",
+        "test:M18DatabaseTests.HistoryTablesRejectUpdateDeleteAndTruncateEvenForTheSchemaOwner",
+        "mutation:drop-immutable-history-guard"
+      ]
+    },
+    "G18-S10-A03": {
+      "witnesses": [
+        "test:M18WorkflowTests.TimelineIsIdenticalAfterRestartAndThroughArbitraryFurtherActivity",
+        "test:M18MigrationTests.UpgradeFromTheLastAcceptedSchemaKeepsEveryExistingRowAndAuditRecord",
+        "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion"
+      ]
+    },
+    "G18-S11-A01": {
+      "witnesses": [
+        "test:M18DatabaseTests.EachSensitiveMutationAppendsExactlyItsApprovedAuditEventsWithCorrelationAndNoContent",
+        "test:M18DatabaseTests.ReadGrantChangesAreAuditedAsGrantedAndRevoked",
+        "mutation:remove-required-audit"
+      ]
+    },
+    "G18-S11-A02": {
+      "witnesses": [
+        "test:M18ResilienceTests.RequiredAuditFailureRollsBackEveryIncidentWriteAndDeniedRequestsStayDenied"
+      ]
+    },
+    "G18-S11-A03": {
+      "witnesses": [
+        "test:M18DatabaseTests.EachSensitiveMutationAppendsExactlyItsApprovedAuditEventsWithCorrelationAndNoContent",
+        "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants",
+        "mutation:leak-note-into-audit"
+      ]
+    },
+    "G18-S12-A01": {
+      "witnesses": [
+        "test:M18ResilienceTests.RequiredAuditFailureRollsBackEveryIncidentWriteAndDeniedRequestsStayDenied",
+        "test:M18SecurityTests.FiveRoleMatrixMatchesTheApprovedTypedPermissions"
+      ]
+    },
+    "G18-S12-A02": {
+      "witnesses": [
+        "test:M18DatabaseTests.RuntimeRoleHoldsOnlyAppendAndColumnLimitedUpdateRights",
+        "check:runtime-grants-are-centralized-and-never-include-delete-truncate-or-history-update"
+      ]
+    },
+    "G18-S12-A03": {
+      "witnesses": [
+        "stage:regress-neighbours",
+        "check:historical-evidence-and-other-accepted-records-not-rewritten"
+      ]
+    },
+    "G18-S13-A01": {
+      "witnesses": [
+        "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders"
+      ]
+    },
+    "G18-S13-A02": {
+      "witnesses": [
+        "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders",
+        "test:M18WorkflowTests.SeverityReassessmentAndImpactReportsAreAuditedVersionedAndBounded"
+      ]
+    },
+    "G18-S13-A03": {
+      "witnesses": [
+        "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders",
+        "test:M18WorkflowTests.SeverityReassessmentAndImpactReportsAreAuditedVersionedAndBounded"
+      ]
+    },
+    "G18-S14-A01": {
+      "witnesses": [
+        "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants"
+      ]
+    },
+    "G18-S14-A02": {
+      "witnesses": [
+        "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants",
+        "test:M18SecurityTests.ScriptTitlesAreStoredAsInertTextAndSecretLookingNotesAreRejected",
+        "test:M18IncidentPolicyTests",
+        "node:the incident workspace carries no untranslated literal text"
+      ]
+    },
+    "G18-S14-A03": {
+      "witnesses": [
+        "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants",
+        "browser:roles see only their approved"
+      ]
+    },
+    "G18-S15-A01": {
+      "witnesses": [
+        "test:M18EvidenceTests.PrefillNeverCreatesAnIncidentAndOnlyAHumanConfirmedServerTokenStoresEvidence",
+        "test:M18DatabaseTests.EachSensitiveMutationAppendsExactlyItsApprovedAuditEventsWithCorrelationAndNoContent"
+      ]
+    },
+    "G18-S15-A02": {
+      "witnesses": [
+        "test:M18ContractTests.EvidenceAcceptsOnlyBoundedCodesAndNeverRawTracesUrlsIdentifiersOrFreeText",
+        "mutation:accept-arbitrary-evidence-url"
+      ]
+    },
+    "G18-S15-A03": {
+      "witnesses": [
+        "test:M18EvidenceTests.MissingOrStaleTelemetryIsUnknownAndDegradedIsDegradedNeverHealthy",
+        "mutation:treat-missing-telemetry-as-healthy"
+      ]
+    },
+    "G18-S16-A01": {
+      "witnesses": [
+        "test:M18EvidenceTests.RecoveryIsAServerWitnessedServiceSpecificProbeAndNeverACallerClaim",
+        "test:M18WorkflowTests.CorrectiveActionsHaveVersionedImmutableHistoryAndRejectInvalidMoves"
+      ]
+    },
+    "G18-S16-A02": {
+      "witnesses": [
+        "test:M18WorkflowTests.CorrectiveActionsHaveVersionedImmutableHistoryAndRejectInvalidMoves"
+      ]
+    },
+    "G18-S16-A03": {
+      "witnesses": [
+        "test:M18WorkflowTests.CorrectiveActionsHaveVersionedImmutableHistoryAndRejectInvalidMoves",
+        "test:M18DatabaseTests.ValidSignedScopeIsTenantBoundAndCannotRewriteHistoryOrBypassTheTransitionGuard",
+        "test:M18DatabaseTests.CompositeTenantKeysRejectCrossOrganizationChildrenForEveryTable"
+      ]
+    },
+    "G18-S17-A01": {
+      "witnesses": [
+        "test:M18LifecycleTests.GatesBlockMitigationWithoutRecordsAndResolutionWithoutRecoveryProof",
+        "test:M18EvidenceTests.RecoveryIsAServerWitnessedServiceSpecificProbeAndNeverACallerClaim",
+        "mutation:skip-recovery-proof"
+      ]
+    },
+    "G18-S17-A02": {
+      "witnesses": [
+        "test:M18LifecycleTests.HighSeverityClosureRequiresADifferentActiveResponder",
+        "browser:Support and a second responder complete",
+        "mutation:skip-independent-closure"
+      ]
+    },
+    "G18-S17-A03": {
+      "witnesses": [
+        "test:M18EvidenceTests.ForgedFlagsAndAnOldHealthySnapshotCannotResolveAnIncident",
+        "test:M18EvidenceTests.RecoveryEvidenceExpiresBeforeResolutionAndMustBeRecordedAgain",
+        "test:M18ContractTests.ClosureHasNoExceptionPathSoAnUnauthorizedExceptionChangesNothing"
+      ]
+    },
+    "G18-S18-A01": {
+      "witnesses": [
+        "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion",
+        "browser:Support and a second responder complete"
+      ]
+    },
+    "G18-S18-A02": {
+      "witnesses": [
+        "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion"
+      ]
+    },
+    "G18-S18-A03": {
+      "witnesses": [
+        "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion",
+        "test:M18EvidenceTests.RegressionAfterRecoveryClearsTheVerificationAndTheNextResolutionNeedsNewProof"
+      ]
+    },
+    "G18-S19-A01": {
+      "witnesses": [
+        "test:M18EvidenceTests.PrefillNeverCreatesAnIncidentAndOnlyAHumanConfirmedServerTokenStoresEvidence",
+        "browser:organization switching removes",
+        "journey:alert-creates-no-incident"
+      ]
+    },
+    "G18-S19-A02": {
+      "witnesses": [
+        "test:M18EvidenceTests.PrefillNeverCreatesAnIncidentAndOnlyAHumanConfirmedServerTokenStoresEvidence",
+        "test:M18EvidenceTests.PrefillTokenIsShortLivedAndBoundToOrganizationUserAndSession"
+      ]
+    },
+    "G18-S19-A03": {
+      "witnesses": [
+        "test:M18EvidenceTests.PrefillNeverCreatesAnIncidentAndOnlyAHumanConfirmedServerTokenStoresEvidence",
+        "test:M18EvidenceTests.PrefillTokenIsShortLivedAndBoundToOrganizationUserAndSession"
+      ]
+    },
+    "G18-S20-A01": {
+      "witnesses": [
+        "test:M18EvidenceTests.MissingOrStaleTelemetryIsUnknownAndDegradedIsDegradedNeverHealthy",
+        "journey:telemetry-disabled-incident-crud"
+      ]
+    },
+    "G18-S20-A02": {
+      "witnesses": [
+        "test:M18EvidenceTests.MissingOrStaleTelemetryIsUnknownAndDegradedIsDegradedNeverHealthy",
+        "test:M18EvidenceTests.ForgedFlagsAndAnOldHealthySnapshotCannotResolveAnIncident"
+      ]
+    },
+    "G18-S20-A03": {
+      "witnesses": [
+        "stage:regress-neighbours",
+        "check:hosted-workflows-and-compose-defaults-unchanged",
+        "check:incident-feature-is-default-off-in-api-and-web",
+        "test:M18ResilienceTests.FeatureIsOffByDefaultAndExposesNoRoutes"
+      ]
+    },
+    "G18-S21-A01": {
+      "witnesses": [
+        "journey:controlled-readiness-fault-detected",
+        "journey:alert-creates-no-incident",
+        "journey:explicit-incident-created"
+      ]
+    },
+    "G18-S21-A02": {
+      "witnesses": [
+        "journey:mitigation-restoration-and-integrity-proof"
+      ]
+    },
+    "G18-S21-A03": {
+      "witnesses": [
+        "journey:closed-and-reopened-evidence-share-digest",
+        "test:M18EvidenceTests.RecoveryIsAServerWitnessedServiceSpecificProbeAndNeverACallerClaim"
+      ]
+    },
+    "G18-S22-A01": {
+      "witnesses": [
+        "test:M18SecurityTests.RequestSafetyRejectsMalformedForgedAndOversizedInputWithoutSideEffects",
+        "test:M18WorkflowTests.ListAndHistoryPaginationIsStableBoundedAndComplete",
+        "check:incident-route-inventory-matches-the-contract"
+      ]
+    },
+    "G18-S22-A02": {
+      "witnesses": [
+        "test:M18SecurityTests.RequestSafetyRejectsMalformedForgedAndOversizedInputWithoutSideEffects",
+        "test:M18WorkflowTests.ErrorEnvelopesAreConsistentSanitizedAndNeverCached",
+        "test:M18SecurityTests.ProtectedCursorIsBoundToTheOrganizationUserAndSession",
+        "test:M18ResilienceTests.DefaultRateLimitRejectsTheThirtyFirstRequestWithoutSideEffects"
+      ]
+    },
+    "G18-S22-A03": {
+      "witnesses": [
+        "test:M18ResilienceTests.RequiredAuditFailureRollsBackEveryIncidentWriteAndDeniedRequestsStayDenied",
+        "test:M18ResilienceTests.AmbiguousCommitIsResolvedByTheDurableOperationKeyNotByGuessing",
+        "journey:database-outage-never-reports-success"
+      ]
+    },
+    "G18-S23-A01": {
+      "witnesses": [
+        "browser:Support and a second responder complete"
+      ]
+    },
+    "G18-S23-A02": {
+      "witnesses": [
+        "browser:roles see only their approved",
+        "browser:organization switching removes"
+      ]
+    },
+    "G18-S23-A03": {
+      "witnesses": [
+        "browser:a stale version shows a conflict",
+        "browser:organization switching removes",
+        "node:every statically referenced incident string exists in Turkish",
+        "node:every server enumerated incident value has a Turkish presentation",
+        "node:the incident workspace carries no untranslated literal text"
+      ]
+    },
+    "G18-S24-A01": {
+      "witnesses": [
+        "q3:snapshot-discovery"
+      ]
+    },
+    "G18-S24-A02": {
+      "witnesses": [
+        "test:M18MigrationTests.UpgradeFromTheLastAcceptedSchemaKeepsEveryExistingRowAndAuditRecord",
+        "test:M18DatabaseTests.RuntimeRoleHoldsOnlyAppendAndColumnLimitedUpdateRights",
+        "q3:retained-resources-unchanged"
+      ]
+    },
+    "G18-S24-A03": {
+      "witnesses": [
+        "stage:regress-neighbours",
+        "stage:unit-tests",
+        "stage:contract-tests"
+      ]
+    },
+    "G18-S25-A01": {
+      "witnesses": [
+        "independent:review"
+      ]
+    },
+    "G18-S25-A02": {
+      "witnesses": [
+        "independent:review"
+      ]
+    },
+    "G18-S25-A03": {
+      "witnesses": [
+        "independent:review"
+      ]
+    }
+  }
+}

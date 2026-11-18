@@ -300,6 +300,7 @@ M19 remains the mandatory, more comprehensive **backup/restore and historical sc
 **Scope:** Actionable incident triage, notes, and closure evidence.
 **Entry:** G17 accepted, G16 accepted before respective dependent work packages. Incident policy starts after G17; CRUD integration waits for G16.
 **Required work packages:** M18-01 Define severity and state policy; M18-02 Implement incident CRUD and state controls; M18-03 Implement investigation and remediation; M18-04 Verify alert-to-incident workflow.
+**Planning packet (2026-11-18, not implementation):** [status and authorization](M18_PLANNING_STATUS.md), [proposed P01-P20 policy](M18_POLICY_PROPOSAL_20261118.md), [architecture](M18_ARCHITECTURE_DESIGN.md), [implementation plan](M18_IMPLEMENTATION_PLAN.md), [25-scenario G18 verification plan](M18_VERIFICATION_PLAN.md), [75-assertion inventory](M18_G18_ASSERTION_INVENTORY_20261118.json), [disposable runbook](M18_OPERATIONS_RUNBOOK.md). All P01-P20 policy choices await explicit approval; no code, test or gate acceptance is claimed. The canonical DAG and its prerequisites are unchanged.
 **Exit G18:** All applicable tasks, negative tests, runtime evidence and documentation for M18 recorded; acceptance pending until explicitly confirmed.
 **Q3 snapshot checkpoint:** Verify a disposable copy of a retained historical PostgreSQL volume if available; otherwise record NOT APPLICABLE. This is a milestone checkpoint, not a per-commit test.
 **Not covered by this milestone:** Backup restoration and release performance benchmarking.

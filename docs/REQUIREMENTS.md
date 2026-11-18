@@ -56,6 +56,10 @@ All future requirements must comply with [Local Storage Policy](LOCAL_STORAGE_PO
 | FR-021 | Could | Add an optional adapter for permitted external tracking APIs | Sandbox contract tests |
 | FR-022 | Could | Add external SSO and enterprise identity mapping | Integration/security review |
 
+## M18 FR-016 and FR-020 planning allocation (2026-11-18, not accepted)
+
+[The M18 planning register](M18_PLANNING_STATUS.md) maps FR-016 incident lifecycle and FR-020 root-cause/remediation to M18-01..04 and G18. [Architecture](M18_ARCHITECTURE_DESIGN.md), [policy proposals P01-P20](M18_POLICY_PROPOSAL_20261118.md), [verification plan](M18_VERIFICATION_PLAN.md), and [75-assertion inventory](M18_G18_ASSERTION_INVENTORY_20261118.json) define proposed incident permissions, append-only history, M16 audit, M17 safe evidence, English/Turkish workflows, and the Q3 snapshot gate. The proposed role table refines the existing general incident authorization matrix without changing any live permission today. All policy selections, implementation and tests are pending. G18 is not accepted. Accepted G16/G17 protections, the M9 transport hold and no production deployment remain unchanged.
+
 ## Accepted M11 FR-010 implementation
 
 The accepted [M11 implementation](M11_IMPLEMENTATION_STATUS.md) provides FR-010 schedule-risk and equipment-conflict rules using M5 workflow records and M10 equipment projections. FR-002/NFR-002 require scoped reads, Manager dispositions and M16 audit; NFR-007 requires UTC time comparisons. M11-P01..P12 and P10b are formally approved, and G11 was accepted through [gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md).

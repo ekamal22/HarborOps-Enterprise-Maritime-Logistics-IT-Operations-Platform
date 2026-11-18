@@ -115,6 +115,12 @@ D-003 approval and G4 acceptance were explicitly provided on 2026-11-01 followin
 
 See the accepted [M5 local contract decision](M5_LOCAL_CONTRACT_DECISION.md) for the shipment lifecycle/permissions contract approved alongside G5 on 2026-11-02. This M5-local decision is not an additional global D-number and does not change the execution graph.
 
+**M18 decision refinement (proposed):** [transaction and security](M18_SECURITY_AND_TRANSACTION_CONTRACT.md), [decision-to-evidence crosswalk](M18_DECISION_TO_EVIDENCE_CROSSWALK.md), [API and UI examples](M18_API_AND_UI_CONTRACT_EXAMPLES.md). No P01-P20 choices approved.
+
+## Proposed M18-local incident policies, 2026-11-18
+
+[M18-P01 through M18-P20](M18_POLICY_PROPOSAL_20261118.md) are **proposed and pending explicit selection**, not additions to the global D-001 through D-008 decision ledger. They cover scoped permissions, seven-state transitions/reopen, severity, manual alert capture, M16 audit atomicity, note privacy, retention, version/idempotency, Q3 snapshot and default-off rollout. The [M18 planning status](M18_PLANNING_STATUS.md) and [G18 verification contract](M18_VERIFICATION_PLAN.md) are planning-only. No policy choice, implementation, G18 acceptance or production activation is authorized by this index.
+
 ## Milestone decisions (accepted and open)
 
 | ID | Decision required | Default hypothesis | Required before |

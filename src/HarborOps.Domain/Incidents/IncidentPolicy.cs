@@ -11,7 +11,13 @@ public static class IncidentPolicy
     // Best-effort known secret markers. This does not claim comprehensive
     // detection of every credential or sensitive user-entered value.
     private static readonly Regex KnownSecrets = new(
-        @"(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|\b(?:password|api[_-]?key|access[_-]?token|authorization)\s*[:=]\s*\S{8,})",
+        @"(?:-----BEGIN [A-Z ]*PRIVATE KEY-----" +
+        @"|\b(?:password|passwd|secret|client[_-]?secret|api[_-]?key|access[_-]?token|auth[_-]?token|authorization)" +
+        @"\s*[:=]\s*(?:(?:bearer|basic)\s+)?\S{8,}" +
+        @"|\bbearer\s+[A-Za-z0-9._~+/=-]{16,}" +
+        @"|\bAKIA[0-9A-Z]{16}\b" +
+        @"|\bhop_v1_[A-Za-z0-9_-]{8,}" +
+        @"|\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{2,}\.[A-Za-z0-9_-]{2,})",
         RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Compiled,
         TimeSpan.FromMilliseconds(100));
     public static bool ParseState(string? value, out IncidentState state)

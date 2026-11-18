@@ -60,6 +60,25 @@ public sealed class M18IncidentPolicyTests
         Assert.Equal("api", IncidentPolicy.ServiceCode("api"));
     }
 
+    [Theory]
+    [InlineData("Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.x.y")]
+    [InlineData("authorization=Basic dXNlcjpwYXNzd29yZA==")]
+    [InlineData("client_secret = abcdefghijkl")]
+    [InlineData("curl -H 'Bearer abcdefghijklmnopqrstuv'")]
+    [InlineData("key AKIAABCDEFGHIJKLMNOP leaked")]
+    [InlineData("token hop_v1_abcdefgh12345678 was pasted")]
+    [InlineData("jwt eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2ln here")]
+    [InlineData("-----BEGIN RSA PRIVATE KEY-----")]
+    public void KnownSecretShapesAreRejectedFromNotes(string text) =>
+        Assert.Throws<ArgumentException>(() => IncidentPolicy.Note(text));
+
+    [Theory]
+    [InlineData("Readiness probe fails intermittently after pool restart.")]
+    [InlineData("Authorization header was missing on the health check")]
+    [InlineData("Rotated the secret store last week; no value is recorded here.")]
+    public void OrdinaryOperationalProseIsAccepted(string text) =>
+        Assert.Equal(text, IncidentPolicy.Note(text));
+
     [Fact]
     public void FreshnessAndSeparation()
     {

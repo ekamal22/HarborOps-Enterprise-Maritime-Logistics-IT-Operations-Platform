@@ -32,7 +32,7 @@ public sealed partial class IncidentStore
                 while(await reader.ReadAsync(token))
                 {
                     var item=Map(reader);
-                    rows.Add(role==OrganizationRole.Manager ? item with { AssignedTo=null } : item);
+                    rows.Add(Redact(role,item));
                 }
                 if(rows.Count<=limit)return new IncidentPage(rows,null,null);
                 rows.RemoveAt(rows.Count-1);

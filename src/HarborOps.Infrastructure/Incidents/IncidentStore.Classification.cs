@@ -23,8 +23,7 @@ public sealed partial class IncidentStore
                 if(already.HasValue)
                 {
                     var seen=await Read(conn,tx,org,already.Value,false,token);
-                    return new IncidentChangeResult(role==OrganizationRole.Manager
-                        ? seen with { AssignedTo=null } : seen,true);
+                    return new IncidentChangeResult(Redact(role, seen), true);
                 }
                 var old=await Read(conn,tx,org,id,true,token);
                 if(old.Version!=input.ExpectedVersion || old.State=="Closed")throw Conflict();
@@ -39,8 +38,7 @@ public sealed partial class IncidentStore
                     old.State,old.State,reason,token);
                 await FinalizeOperation(conn,tx,actor,org,operationKey,id,version,token);
                 var updated=await Read(conn,tx,org,id,false,token);
-                return new IncidentChangeResult(role==OrganizationRole.Manager
-                    ? updated with { AssignedTo=null } : updated,false);
+                return new IncidentChangeResult(Redact(role, updated), false);
             },ct);
     }
 

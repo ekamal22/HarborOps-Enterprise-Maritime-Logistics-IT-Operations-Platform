@@ -112,6 +112,11 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
         return await reader.ReadAsync(ct) ? Map(reader) : throw Missing();
     }
 
+    // Manager and Auditor see a summary tier: responder identity is never part of it.
+    private static IncidentView Redact(OrganizationRole role, IncidentView view) =>
+        role is OrganizationRole.Manager or OrganizationRole.Auditor
+            ? view with { AssignedTo = null } : view;
+
     private static string Digest(string input) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(input))).ToLowerInvariant();
 
@@ -186,7 +191,7 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
                 while (await reader.ReadAsync(token))
                 {
                     var item=Map(reader);
-                    result.Add(role==OrganizationRole.Manager ? item with { AssignedTo=null } : item);
+                    result.Add(Redact(role,item));
                 }
                 return result;
             },ct);
@@ -199,7 +204,7 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
             async (conn,tx,role,token) =>
             {
                 var item=await Read(conn,tx,org,id,false,token);
-                return role==OrganizationRole.Manager ? item with { AssignedTo=null } : item;
+                return Redact(role,item);
             },ct);
 
     public Task<IncidentChangeResult> CreateAsync(CurrentSession actor, Guid org,
@@ -219,7 +224,8 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
             {
                 var existing=await Reserve(conn,tx,actor,org,operationKey,"Create",hash,token);
                 if (existing.HasValue)
-                    return new IncidentChangeResult(await Read(conn,tx,org,existing.Value,false,token),true);
+                    return new IncidentChangeResult(
+                        Redact(role,await Read(conn,tx,org,existing.Value,false,token)),true);
                 var id=Guid.NewGuid();
                 await using(var insert=Command(conn,tx,"""
                     INSERT INTO it_incidents(id,organization_id,title,service_code,severity,
@@ -232,8 +238,7 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
                 await Event(conn,tx,org,id,actor.UserId,1,"Created",null,"New","created",token);
                 await FinalizeOperation(conn,tx,actor,org,operationKey,id,1,token);
                 var result=await Read(conn,tx,org,id,false,token);
-                return new IncidentChangeResult(role==OrganizationRole.Manager
-                    ? result with { AssignedTo=null } : result,false);
+                return new IncidentChangeResult(Redact(role,result),false);
             },ct);
     }
 

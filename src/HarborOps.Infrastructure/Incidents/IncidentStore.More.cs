@@ -13,7 +13,7 @@ public sealed record IncidentEvidenceView(Guid Id, string Kind, string Observati
     string SourceStatus, DateTimeOffset ObservedAtUtc, DateTimeOffset CapturedAtUtc);
 public sealed record IncidentHistory(IncidentView Incident, IReadOnlyList<IncidentEventView> Events,
     IReadOnlyList<IncidentNoteView> Notes, IReadOnlyList<IncidentActionView> Actions,
-    IReadOnlyList<IncidentEvidenceView> Evidence);
+    IReadOnlyList<IncidentEvidenceView> Evidence, long? NextEventAfter);
 public sealed record IncidentActionCreate(long ExpectedVersion, string Title, Guid OwnerUserId);
 public sealed record IncidentActionUpdate(long ExpectedVersion, Guid ActionId, long ExpectedActionVersion,
     string ToState, string ReasonCode);
@@ -22,19 +22,20 @@ public sealed record IncidentReadGrantView(Guid UserId, string Status, DateTimeO
 
 public sealed partial class IncidentStore
 {
-    public Task<IncidentHistory> HistoryAsync(CurrentSession actor,Guid org,Guid id,CancellationToken ct) =>
+    public Task<IncidentHistory> HistoryAsync(CurrentSession actor,Guid org,Guid id,CancellationToken ct,long afterSequence=0) =>
         Scoped(actor,org,OrganizationPermission.ViewIncidentDetail,
             async(conn,tx,role,token)=>
             {
+                if(afterSequence<0)throw Invalid();
                 var incident=await Read(conn,tx,org,id,false,token);
                 var events=new List<IncidentEventView>();
                 await using(var cmd=Command(conn,tx,"""
                     SELECT id,sequence,kind,from_state,to_state,reason_code,
                         actor_user_id,occurred_at_utc,related_id
                     FROM it_incident_events
-                    WHERE organization_id=@org AND incident_id=@id
-                    ORDER BY sequence
-                    """,("org",org),("id",id)))
+                    WHERE organization_id=@org AND incident_id=@id AND sequence>@after
+                    ORDER BY sequence LIMIT 101
+                    """,("org",org),("id",id),("after",afterSequence)))
                 await using(var reader=await cmd.ExecuteReaderAsync(token))
                     while(await reader.ReadAsync(token))
                         events.Add(new(reader.GetGuid(0),reader.GetInt64(1),reader.GetString(2),
@@ -43,6 +44,8 @@ public sealed partial class IncidentStore
                             reader.GetString(5),reader.GetGuid(6),
                             reader.GetFieldValue<DateTimeOffset>(7),
                             reader.IsDBNull(8)?null:reader.GetGuid(8)));
+                var nextEventAfter=events.Count>100 ? events[99].Sequence : (long?)null;
+                if(events.Count>100)events.RemoveAt(events.Count-1);
                 var notes=new List<IncidentNoteView>();
                 if(role!=OrganizationRole.Auditor)
                 {
@@ -79,7 +82,7 @@ public sealed partial class IncidentStore
                         evidence.Add(new(reader.GetGuid(0),reader.GetString(1),reader.GetString(2),
                             reader.GetString(3),reader.GetFieldValue<DateTimeOffset>(4),
                             reader.GetFieldValue<DateTimeOffset>(5)));
-                return new IncidentHistory(incident,events,notes,actions,evidence);
+                return new IncidentHistory(incident,events,notes,actions,evidence,nextEventAfter);
             },ct);
 
     public Task<IncidentChangeResult> AddActionAsync(CurrentSession actor,Guid org,Guid id,

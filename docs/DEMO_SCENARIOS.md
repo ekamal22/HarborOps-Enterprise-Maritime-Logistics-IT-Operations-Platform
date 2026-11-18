@@ -63,6 +63,8 @@ G2 verified local organization bootstrap for two synthetic tenants, five fixed r
 
 **Pass condition:** All foreign-resource attempts are denied without leakage.
 
+**M18/G18 planning dependency (2026-11-18):** The [M18 architecture](M18_ARCHITECTURE_DESIGN.md) and [controlled fault runbook](M18_OPERATIONS_RUNBOOK.md) specify **explicit authorized human confirmation** for opening an incident from a sanitized M17 observation. D05 remains a final M24 demonstration, not evidence of M18 implementation or permission to remove the M9 sustained transport hold. The worker interruption step must be performed only in an explicitly authorized disposable profile; M18 uses a separate controlled readiness fault for its own G18 journey. Any automated ticket creation or sustained worker activation requires separate policy and verification.
+
 ## Scenario D05: Infrastructure incident
 
 1. Run the fully instrumented local stack.

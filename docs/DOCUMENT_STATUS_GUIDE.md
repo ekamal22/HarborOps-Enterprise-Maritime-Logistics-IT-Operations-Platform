@@ -30,6 +30,7 @@ The current G13 disposition is recorded in [the post-merge reconciliation](G13_P
 - [Roadmap](ROADMAP.md) defines work packages. [Execution graph JSON](execution-graph.json) is authoritative for dependency edges; the rendered [Execution Graph](EXECUTION_GRAPH.md) is a planning view rather than an acceptance ledger.
 - [Decisions](DECISIONS.md), [API Contracts](API_CONTRACTS.md), [Security](SECURITY.md), [Operations](OPERATIONS.md) and [Domain Model](DOMAIN_MODEL.md) distinguish accepted behavior from proposed work.
 
+- **Current M18 planning (2026-11-18):** [status](M18_PLANNING_STATUS.md), [policy proposals](M18_POLICY_PROPOSAL_20261118.md), [architecture](M18_ARCHITECTURE_DESIGN.md), [implementation plan](M18_IMPLEMENTATION_PLAN.md), [G18 verification](M18_VERIFICATION_PLAN.md), [25 x 3 assertion inventory](M18_G18_ASSERTION_INVENTORY_20261118.json), and [runbook](M18_OPERATIONS_RUNBOOK.md). These are future work contracts, not executed evidence or approved P01-P20 decisions; G18 is NOT ACCEPTED.
 - [Repository-wide reconciliation](REPOWIDE_DOCUMENTATION_RECONCILIATION_20261108.md) indexes the 2026-11-08 review of current-state documentation, generated graph consistency and relative file links.
 - M11 and M12 are accepted on `main` following [formal G11/G12 gate closure](M11_M12_G11_G12_GATE_CLOSURE_20261108.md) and [PR #33](https://github.com/ekamal22/HarborOps-Enterprise-Maritime-Logistics-IT-Operations-Platform/pull/33). Their original draft PRs #31 and #32 are historical source branches, not unverified current implementation.
 

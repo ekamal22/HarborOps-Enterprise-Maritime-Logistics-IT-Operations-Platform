@@ -146,8 +146,7 @@ try {
   let linked = rows.length >= 3;
   for (const row of rows) {
     const [, serviceCode, st, observed, dg] = row.split("|");
-    const observedIso = new Date(observed.replace(" ", "T").replace(/\+00$/, "Z")).toISOString();
-    if (dg !== digest(id, serviceCode, st, observedIso)) linked = false;
+    if (dg !== digest(id, serviceCode, st, observed)) linked = false;
   }
   const customerLeak = Number(sql(`SELECT count(*) FROM audit_entries WHERE organization_id='${alpha}' AND metadata::text ~* '(shipment|container|@example)'`));
   record("closed-and-reopened-evidence-share-digest", linked && customerLeak === 0 && reopened.json.state === "Investigating",

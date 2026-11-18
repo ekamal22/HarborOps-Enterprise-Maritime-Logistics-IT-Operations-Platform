@@ -11,6 +11,8 @@ using HarborOps.Api.Integrations;
 using HarborOps.Api.Audit;
 using HarborOps.Api.Exceptions;
 using HarborOps.Api.Notifications;
+using HarborOps.Api.Incidents;
+using HarborOps.Infrastructure.Incidents;
 using HarborOps.Api.Reporting;
 using HarborOps.Infrastructure.Notifications;
 using HarborOps.Infrastructure.Audit;
@@ -59,6 +61,7 @@ builder.Services.AddScoped<TrackingWorkAdminStore>();
 builder.Services.AddScoped<ShipmentTimelineStore>();
 builder.Services.AddScoped<ShipmentExceptionStore>();
 builder.Services.AddScoped<NotificationStore>();
+builder.Services.AddScoped<IncidentStore>();
 if (builder.Configuration.GetValue<bool>("M15:EnableDelivery"))
     builder.Services.AddHostedService<NotificationDeliveryService>();
 if (builder.Configuration.GetValue<bool>("M11:EnableEvaluator"))
@@ -197,6 +200,7 @@ app.MapShipmentExceptionEndpoints();
 app.MapNotificationEndpoints();
 app.MapOperationalKpiEndpoints();
 app.MapAuditEndpoints();
+app.MapIncidentEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

@@ -355,6 +355,7 @@ public sealed class M18DatabaseTests
         v = await Step("severity", ["incident.severity_changed"], x => M18World.Send(support, HttpMethod.Patch, R("/severity"), new { expectedVersion = x, severity = "SEV-1", reasonCode = "escalated" }));
         v = await Step("snapshot", ["incident.evidence_attached"], x => M18World.Send(support, HttpMethod.Post, R("/m17-snapshot"), new { expectedVersion = x }));
         v = await Step("mitigated", ["incident.state_changed"], x => M18World.Send(support, HttpMethod.Post, R("/transitions"), M18LifecycleTests.Move(x, "Mitigated")));
+        v = await Step("observation after mitigation", ["incident.evidence_attached"], x => M18World.Send(support, HttpMethod.Post, R("/evidence"), new { expectedVersion = x, observationCode = "after_mitigation" }));
         v = await Step("monitoring", ["incident.state_changed"], x => M18World.Send(support, HttpMethod.Post, R("/transitions"), M18LifecycleTests.Move(x, "Monitoring")));
         var action = await w.Scalar<Guid>("SELECT id FROM it_incident_actions WHERE incident_id=@i", ("i", id));
         v = await Step("action in progress", ["incident.action_changed"], x => M18World.Send(support, HttpMethod.Patch, R("/actions/" + action), new { expectedVersion = x, actionId = action, expectedActionVersion = 1L, toState = "InProgress", reasonCode = "started" }));

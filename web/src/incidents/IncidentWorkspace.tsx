@@ -17,7 +17,7 @@ type Props = {
 };
 const states: Record<IncidentState, IncidentState[]> = {
   New: ["Triage"], Triage: ["Investigating"], Investigating: ["Mitigated"],
-  Mitigated: ["Monitoring"], Monitoring: ["Investigating", "Resolved"],
+  Mitigated: ["Monitoring", "Investigating"], Monitoring: ["Investigating", "Resolved"],
   Resolved: ["Closed"], Closed: []
 };
 const severities: Severity[] = ["SEV-1", "SEV-2", "SEV-3", "SEV-4"];
@@ -32,6 +32,7 @@ function incidentError(cause: unknown): string {
       case "invalid_request": return "The incident request was not valid";
       case "stale_or_invalid_cursor": return "The incident list is out of date";
       case "recovery_not_verified": return "Recovery could not be verified by the service";
+      case "recovery_unsupported": return "Recovery verification is not available for this service";
       case "conflict":
         return cause.status === 409
           ? "The incident changed or the operation conflicts with its current state"

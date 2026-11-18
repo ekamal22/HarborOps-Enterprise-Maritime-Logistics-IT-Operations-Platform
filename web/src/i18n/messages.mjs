@@ -708,6 +708,7 @@ export const TURKISH = Object.freeze({
   "M17Snapshot": "Hizmet durumu görüntüsü",
   "RecoveryProbe": "İyileşme sınaması",
   "API service": "API hizmeti",
+  "Recovery verification is not available for this service": "Bu hizmet için iyileşme doğrulaması kullanılamıyor",
   "Database service": "Veritabanı hizmeti",
   "Notification service": "Bildirim hizmeti",
   "Held tracking service": "Bekletilen izleme hizmeti",

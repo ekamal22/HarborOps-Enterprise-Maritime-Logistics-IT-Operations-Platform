@@ -43,6 +43,9 @@ public sealed class M18IncidentPolicyTests
         Assert.True(IncidentPolicy.CanReopen(IncidentState.Closed));
         Assert.False(IncidentPolicy.CanReopen(IncidentState.Mitigated));
         Assert.True(IncidentPolicy.CanTransition(IncidentState.Monitoring, IncidentState.Investigating, false, false, false, false));
+        Assert.True(IncidentPolicy.CanTransition(IncidentState.Mitigated, IncidentState.Investigating, false, false, false, false));
+        Assert.False(IncidentPolicy.CanTransition(IncidentState.Triage, IncidentState.Mitigated, true, true, true, true));
+        Assert.False(IncidentPolicy.CanTransition(IncidentState.Resolved, IncidentState.Investigating, true, true, true, true));
     }
 
     [Fact]

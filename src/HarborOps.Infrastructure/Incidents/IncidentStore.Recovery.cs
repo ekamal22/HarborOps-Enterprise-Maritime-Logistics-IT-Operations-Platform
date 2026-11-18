@@ -22,8 +22,11 @@ public sealed partial class IncidentStore
                 if(existing.HasValue)
                     return new IncidentChangeResult(await Read(conn,tx,org,existing.Value,false,token),true);
                 var current=await Read(conn,tx,org,id,true,token);
-                if(current.Version!=input.ExpectedVersion||current.State!="Monitoring"||
-                    current.ServiceCode is not ("api" or "database"))throw Conflict();
+                // Only services with a server-executable probe can be verified. The rest stay open until
+                // a separately approved verification route exists; say so instead of a generic conflict.
+                if(current.ServiceCode is not ("api" or "database"))
+                    throw new IncidentRequestException(409,"recovery_unsupported");
+                if(current.Version!=input.ExpectedVersion||current.State!="Monitoring")throw Conflict();
 
                 // These are verifiable conditions, not flags supplied by the browser.
                 long count, first, last;

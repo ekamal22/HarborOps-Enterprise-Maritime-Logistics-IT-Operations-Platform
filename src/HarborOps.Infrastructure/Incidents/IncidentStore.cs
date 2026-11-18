@@ -314,11 +314,16 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
                         """,("org",org),("owner",current.AssignedTo.Value));
                     if(await assignee.ExecuteScalarAsync(token) is null)throw Conflict();
                 }
+                // Gates look only at records written since the incident entered the current state, so
+                // an earlier cycle's note or observation cannot satisfy a later cycle.
                 if(from==IncidentState.Investigating && next==IncidentState.Mitigated)
                 {
                     await using var mitigation=Command(conn,tx,"""
                         SELECT EXISTS(SELECT 1 FROM it_incident_notes
-                            WHERE organization_id=@org AND incident_id=@id)
+                            WHERE organization_id=@org AND incident_id=@id
+                              AND occurred_at_utc>=COALESCE((SELECT max(occurred_at_utc) FROM it_incident_events
+                                  WHERE organization_id=@org AND incident_id=@id AND to_state='Investigating'
+                                    AND kind IN('Transitioned','Reopened')),'-infinity'))
                           AND EXISTS(SELECT 1 FROM it_incident_actions
                             WHERE organization_id=@org AND incident_id=@id)
                         """,("org",org),("id",id));
@@ -330,9 +335,30 @@ public sealed partial class IncidentStore(HarborOpsDbContext db, ShipmentExcepti
                     await using var observed=Command(conn,tx,"""
                         SELECT EXISTS(SELECT 1 FROM it_incident_evidence
                         WHERE organization_id=@org AND incident_id=@id
-                          AND kind IN('ManualObservation','M17Snapshot'))
+                          AND kind IN('ManualObservation','M17Snapshot')
+                          AND captured_at_utc>=COALESCE((SELECT max(occurred_at_utc) FROM it_incident_events
+                              WHERE organization_id=@org AND incident_id=@id AND to_state='Mitigated'
+                                AND kind='Transitioned'),'-infinity'))
                         """,("org",org),("id",id));
                     if(!Convert.ToBoolean(await observed.ExecuteScalarAsync(token)))
+                        throw Conflict();
+                }
+                if(from==IncidentState.Mitigated && next==IncidentState.Investigating)
+                {
+                    // A failed mitigation must say why: a note or an observation recorded after mitigation.
+                    await using var failed=Command(conn,tx,"""
+                        SELECT EXISTS(SELECT 1 FROM it_incident_notes
+                            WHERE organization_id=@org AND incident_id=@id
+                              AND occurred_at_utc>=COALESCE((SELECT max(occurred_at_utc) FROM it_incident_events
+                                  WHERE organization_id=@org AND incident_id=@id AND to_state='Mitigated'
+                                    AND kind='Transitioned'),'-infinity'))
+                          OR EXISTS(SELECT 1 FROM it_incident_evidence
+                            WHERE organization_id=@org AND incident_id=@id
+                              AND captured_at_utc>=COALESCE((SELECT max(occurred_at_utc) FROM it_incident_events
+                                  WHERE organization_id=@org AND incident_id=@id AND to_state='Mitigated'
+                                    AND kind='Transitioned'),'-infinity'))
+                        """,("org",org),("id",id));
+                    if(!Convert.ToBoolean(await failed.ExecuteScalarAsync(token)))
                         throw Conflict();
                 }
                 bool recovery=false, integrity=false, actions=false, independentlyConfirmed=false;

@@ -81,6 +81,7 @@ public static class IncidentEndpoints
         try { return await work(); }
         catch (IncidentRequestException ex) {
             return Failure(ctx,ex.Status,ex.Code,ex.Status==404?"Resource not found":
+                ex.Status==409&&ex.Code=="recovery_unsupported"?"Recovery verification is not available for this service":
                 ex.Status==409?"The incident changed or the operation conflicts with its current state":
                 "The requested incident action is not permitted");
         }

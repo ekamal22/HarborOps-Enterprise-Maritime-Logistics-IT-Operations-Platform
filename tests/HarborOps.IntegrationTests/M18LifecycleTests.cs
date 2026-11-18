@@ -167,6 +167,37 @@ public sealed class M18LifecycleTests
     }
 
     [Fact]
+    public async Task FailedMitigationReturnsToInvestigationOnlyWithNewRecordsAndGatesIgnoreEarlierCycles()
+    {
+        using var w = await M18World.CreateAsync();
+        using var support = await w.Client("support");
+        var (id, v) = await ToInvestigating(w, support);
+        v = await w.Post(support, id, "/notes", new { expectedVersion = v, body = "first mitigation plan" });
+        v = await w.Post(support, id, "/actions", new { expectedVersion = v, title = "Restart pool", ownerUserId = w.Users["support"].Id });
+        v = await w.Post(support, id, "/evidence", new { expectedVersion = v, observationCode = "before_mitigation" });
+        v = await w.Post(support, id, "/transitions", Move(v, "Mitigated", "mitigation_applied"));
+        // an observation written before the incident was mitigated cannot start monitoring
+        using (var stale = await M18World.Send(support, HttpMethod.Post, w.Route(null, "/" + id + "/transitions"), Move(v, "Monitoring")))
+            Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+        // a failed mitigation needs something new to explain it
+        using (var silent = await M18World.Send(support, HttpMethod.Post, w.Route(null, "/" + id + "/transitions"), Move(v, "Investigating", "mitigation_failed")))
+            Assert.Equal(HttpStatusCode.Conflict, silent.StatusCode);
+        Assert.Equal("Mitigated", await w.Scalar<string>("SELECT state FROM it_incidents WHERE id=@i", ("i", id)));
+        v = await w.Post(support, id, "/notes", new { expectedVersion = v, body = "pool restart did not help" });
+        v = await w.Post(support, id, "/transitions", Move(v, "Investigating", "mitigation_failed"));
+        Assert.Equal("Investigating", await w.Scalar<string>("SELECT state FROM it_incidents WHERE id=@i", ("i", id)));
+        // the earlier note does not satisfy the next mitigation: a new summary is required
+        using (var reused = await M18World.Send(support, HttpMethod.Post, w.Route(null, "/" + id + "/transitions"), Move(v, "Mitigated")))
+            Assert.Equal(HttpStatusCode.Conflict, reused.StatusCode);
+        v = await w.Post(support, id, "/notes", new { expectedVersion = v, body = "switched to a replica" });
+        v = await w.Post(support, id, "/transitions", Move(v, "Mitigated", "second_mitigation"));
+        v = await w.Post(support, id, "/evidence", new { expectedVersion = v, observationCode = "after_second_mitigation" });
+        await w.Post(support, id, "/transitions", Move(v, "Monitoring"));
+        Assert.Equal("Monitoring", await w.Scalar<string>("SELECT state FROM it_incidents WHERE id=@i", ("i", id)));
+        Assert.Equal(2L, await w.Scalar<long>("SELECT count(*) FROM it_incident_events WHERE incident_id=@i AND to_state='Mitigated' AND kind='Transitioned'", ("i", id)));
+    }
+
+    [Fact]
     public async Task HighSeverityClosureRequiresADifferentActiveResponder()
     {
         using var w = await M18World.CreateAsync();

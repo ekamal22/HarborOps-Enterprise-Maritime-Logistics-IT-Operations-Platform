@@ -96,6 +96,7 @@ public sealed class M18EvidenceTests
             using var r = await M18World.Send(support, HttpMethod.Post, w.Route(null, "/" + unsupported.Id + "/recovery"),
                 new { expectedVersion = unsupported.Version, rootCauseCode = "x" });
             Assert.Equal(HttpStatusCode.Conflict, r.StatusCode);
+            Assert.Contains("recovery_unsupported", await r.Content.ReadAsStringAsync());
             Assert.Equal(0L, await w.Scalar<long>("SELECT count(*) FROM it_incident_evidence WHERE incident_id=@i AND kind='RecoveryProbe'", ("i", unsupported.Id)));
         }
     }

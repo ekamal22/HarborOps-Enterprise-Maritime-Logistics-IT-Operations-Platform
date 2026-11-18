@@ -220,7 +220,7 @@ public sealed class M18IncidentLifecycle : Migration
                     (OLD.state = 'New' AND NEW.state = 'Triage') OR
                     (OLD.state = 'Triage' AND NEW.state = 'Investigating') OR
                     (OLD.state = 'Investigating' AND NEW.state = 'Mitigated') OR
-                    (OLD.state = 'Mitigated' AND NEW.state = 'Monitoring') OR
+                    (OLD.state = 'Mitigated' AND NEW.state IN ('Monitoring','Investigating')) OR
                     (OLD.state = 'Monitoring' AND NEW.state IN ('Investigating','Resolved')) OR
                     (OLD.state = 'Resolved' AND NEW.state IN ('Closed','Investigating')) OR
                     (OLD.state = 'Closed' AND NEW.state = 'Investigating')) THEN

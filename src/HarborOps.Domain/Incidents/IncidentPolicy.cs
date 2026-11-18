@@ -52,6 +52,7 @@ public static class IncidentPolicy
             (IncidentState.Triage, IncidentState.Investigating) => true,
             (IncidentState.Investigating, IncidentState.Mitigated) => true,
             (IncidentState.Mitigated, IncidentState.Monitoring) => true,
+            (IncidentState.Mitigated, IncidentState.Investigating) => true,
             (IncidentState.Monitoring, IncidentState.Investigating) => true,
             (IncidentState.Monitoring, IncidentState.Resolved) => true,
             (IncidentState.Resolved, IncidentState.Closed) => true,

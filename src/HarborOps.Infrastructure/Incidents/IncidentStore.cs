@@ -26,7 +26,7 @@ public sealed record IncidentNoteInput(long ExpectedVersion, string Body);
 public sealed record IncidentAssignment(long ExpectedVersion, Guid AssignedTo, string ReasonCode);
 public sealed record IncidentChangeResult(IncidentView Incident, bool Replayed);
 
-public sealed class IncidentStore(HarborOpsDbContext db)
+public sealed partial class IncidentStore(HarborOpsDbContext db)
 {
     private static IncidentRequestException Deny() => new(403, "access_denied");
     private static IncidentRequestException Missing() => new(404, "resource_not_found");

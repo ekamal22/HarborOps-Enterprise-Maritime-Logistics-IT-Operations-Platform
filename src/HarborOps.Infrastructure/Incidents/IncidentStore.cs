@@ -1,0 +1,340 @@
+using System.Data;
+using System.Security.Cryptography;
+using System.Text;
+using HarborOps.Domain.Incidents;
+using HarborOps.Domain.Organizations;
+using HarborOps.Infrastructure.Audit;
+using HarborOps.Infrastructure.Identity;
+using HarborOps.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
+
+namespace HarborOps.Infrastructure.Incidents;
+
+public sealed class IncidentRequestException(int status, string code) : Exception(code)
+{
+    public int Status { get; } = status;
+    public string Code { get; } = code;
+}
+public sealed record IncidentView(Guid Id, string Title, string ServiceCode, string Severity,
+    string State, string ImpactCode, long Version, DateTimeOffset UpdatedAtUtc, Guid? AssignedTo);
+public sealed record IncidentCreate(string Title, string ServiceCode, string Severity,
+    string ImpactCode, DateTimeOffset DetectedAtUtc);
+public sealed record IncidentTransition(long ExpectedVersion, string ToState, string ReasonCode);
+public sealed record IncidentNoteInput(long ExpectedVersion, string Body);
+public sealed record IncidentAssignment(long ExpectedVersion, Guid AssignedTo, string ReasonCode);
+public sealed record IncidentChangeResult(IncidentView Incident, bool Replayed);
+
+public sealed class IncidentStore(HarborOpsDbContext db)
+{
+    private static IncidentRequestException Deny() => new(403, "access_denied");
+    private static IncidentRequestException Missing() => new(404, "resource_not_found");
+    private static IncidentRequestException Invalid() => new(400, "invalid_request");
+    private static IncidentRequestException Conflict() => new(409, "conflict");
+
+    private static NpgsqlCommand Command(NpgsqlConnection connection, NpgsqlTransaction transaction,
+        string sql, params (string, object?)[] parameters)
+    {
+        var command = new NpgsqlCommand(sql, connection, transaction);
+        foreach (var (key, value) in parameters)
+            command.Parameters.AddWithValue(key, value ?? DBNull.Value);
+        return command;
+    }
+
+    private async Task<T> Scoped<T>(CurrentSession actor, Guid organizationId,
+        OrganizationPermission permission, Func<NpgsqlConnection, NpgsqlTransaction,
+        OrganizationRole, CancellationToken, Task<T>> action, CancellationToken ct)
+    {
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            SELECT set_config('harborops.m18_actor',{actor.UserId.ToString("D")},true),
+                set_config('harborops.m18_session',{actor.SessionId.ToString("D")},true)
+            """, ct);
+        var connection = (NpgsqlConnection)db.Database.GetDbConnection();
+        var transaction = (NpgsqlTransaction)tx.GetDbTransaction();
+
+        // Lock session, user, membership and selected organization to prevent
+        // role or session revocation from committing ahead of this operation.
+        await using var guard = Command(connection, transaction, """
+            SELECT m.role FROM auth_sessions s
+            JOIN users u ON u.id=s.user_id
+            JOIN organization_memberships m
+              ON m.user_id=s.user_id AND m.organization_id=s.selected_organization_id
+            JOIN organizations o ON o.id=m.organization_id
+            WHERE s.id=@sid AND s.user_id=@uid
+              AND s.selected_organization_id=@org
+              AND s.revoked_at_utc IS NULL
+              AND s.absolute_expires_at_utc>now() AND s.idle_expires_at_utc>now()
+              AND s.security_version=u.security_version AND u.status='Active'
+              AND m.status='Active' AND o.status='Active'
+            FOR SHARE OF s,u,m,o
+            """, ("sid", actor.SessionId), ("uid", actor.UserId), ("org", organizationId));
+        var roleText = await guard.ExecuteScalarAsync(ct) as string;
+        if (!OrganizationPolicy.ParseRole(roleText, out var role))
+            throw Deny();
+
+        if (!OrganizationPolicy.Allows(role, permission))
+        {
+            if (role != OrganizationRole.Auditor ||
+                permission is not (OrganizationPermission.ViewIncidentSummary or
+                    OrganizationPermission.ViewIncidentDetail))
+                throw Deny();
+            await using var grant = Command(connection, transaction, """
+                SELECT 1 FROM it_incident_read_grants
+                WHERE organization_id=@org AND user_id=@actor AND status='Active'
+                  AND expires_at_utc>now() LIMIT 1
+                """, ("org",organizationId),("actor",actor.UserId));
+            if (await grant.ExecuteScalarAsync(ct) is null) throw Deny();
+        }
+
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            SELECT set_config('harborops.m18_session',{actor.SessionId.ToString("D")},true),
+                   set_config('harborops.m18_actor',{actor.UserId.ToString("D")},true)
+            """, ct);
+        await AuditActorContext.SetHumanAsync(db, actor.UserId, actor.SessionId, null, ct);
+        var result = await action(connection, transaction, role, ct);
+        await tx.CommitAsync(ct);
+        return result;
+    }
+
+    private static IncidentView Map(NpgsqlDataReader reader) => new(
+        reader.GetGuid(0), reader.GetString(1), reader.GetString(2),
+        reader.GetString(3), reader.GetString(4), reader.GetString(5),
+        reader.GetInt64(6), reader.GetFieldValue<DateTimeOffset>(7),
+        reader.IsDBNull(8) ? null : reader.GetGuid(8));
+
+    private static async Task<IncidentView> Read(NpgsqlConnection connection,
+        NpgsqlTransaction tx, Guid organizationId, Guid incidentId, bool lockRow,
+        CancellationToken ct)
+    {
+        await using var command = Command(connection, tx, $"""
+            SELECT id,title,service_code,severity,state,impact_code,version,updated_at_utc,assigned_to
+            FROM it_incidents WHERE organization_id=@org AND id=@id
+            {(lockRow ? "FOR UPDATE" : "")}
+            """, ("org",organizationId),("id",incidentId));
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        return await reader.ReadAsync(ct) ? Map(reader) : throw Missing();
+    }
+
+    private static string Digest(string input) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(input))).ToLowerInvariant();
+
+    // Operation reservation lives in the same transaction as mutation and M16 audit.
+    // A competing identical request waits for this unique key's commit.
+    private static async Task<Guid?> Reserve(NpgsqlConnection conn, NpgsqlTransaction tx,
+        CurrentSession actor, Guid org, Guid key, string kind, string digest,
+        CancellationToken ct)
+    {
+        if (key == Guid.Empty) throw Invalid();
+        await using var insert = Command(conn, tx, """
+            INSERT INTO it_incident_operation_ids
+                (organization_id,actor_user_id,operation_key,operation_kind,payload_digest)
+            VALUES (@org,@actor,@key,@kind,@hash)
+            ON CONFLICT DO NOTHING
+            RETURNING operation_key
+            """, ("org",org),("actor",actor.UserId),("key",key),
+            ("kind",kind),("hash",digest));
+        if (await insert.ExecuteScalarAsync(ct) is not null) return null;
+        await using var check = Command(conn, tx, """
+            SELECT operation_kind,payload_digest,incident_id
+            FROM it_incident_operation_ids
+            WHERE organization_id=@org AND actor_user_id=@actor AND operation_key=@key
+            """, ("org",org),("actor",actor.UserId),("key",key));
+        await using var reader = await check.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) throw Conflict();
+        if (reader.GetString(0)!=kind || reader.GetString(1)!=digest ||
+            reader.IsDBNull(2))
+            throw Conflict();
+        return reader.GetGuid(2);
+    }
+
+    private static async Task FinalizeOperation(NpgsqlConnection conn, NpgsqlTransaction tx,
+        CurrentSession actor, Guid org, Guid key, Guid id, long version, CancellationToken ct)
+    {
+        await using var command = Command(conn, tx, """
+            UPDATE it_incident_operation_ids
+               SET incident_id=@id,result_version=@version
+             WHERE organization_id=@org AND actor_user_id=@actor AND operation_key=@key
+            """,("org",org),("actor",actor.UserId),("key",key),("id",id),("version",version));
+        if (await command.ExecuteNonQueryAsync(ct)!=1) throw Conflict();
+    }
+
+    private static async Task Event(NpgsqlConnection conn, NpgsqlTransaction tx,
+        Guid org, Guid id, Guid actor, long version, string kind,
+        string? before, string? after, string reason, CancellationToken ct)
+    {
+        await using var command = Command(conn, tx, """
+            INSERT INTO it_incident_events(organization_id,incident_id,sequence,kind,
+                from_state,to_state,reason_code,actor_user_id,incident_version)
+            VALUES(@org,@id,@seq,@kind,@before,@after,@reason,@actor,@version)
+            """,("org",org),("id",id),("seq",version),("kind",kind),
+            ("before",before),("after",after),("reason",reason),
+            ("actor",actor),("version",version));
+        if (await command.ExecuteNonQueryAsync(ct)!=1) throw Conflict();
+    }
+
+    public Task<List<IncidentView>> ListAsync(CurrentSession actor, Guid org,
+        int limit, CancellationToken ct)
+    {
+        if (limit is < 1 or > 100) throw Invalid();
+        return Scoped(actor,org,OrganizationPermission.ViewIncidentSummary,
+            async (conn,tx,role,token) =>
+            {
+                var result = new List<IncidentView>();
+                await using var command = Command(conn,tx,"""
+                    SELECT id,title,service_code,severity,state,impact_code,version,updated_at_utc,assigned_to
+                    FROM it_incidents WHERE organization_id=@org
+                    ORDER BY updated_at_utc DESC,id DESC LIMIT @limit
+                    """,("org",org),("limit",limit));
+                await using var reader = await command.ExecuteReaderAsync(token);
+                while (await reader.ReadAsync(token)) result.Add(Map(reader));
+                return result;
+            },ct);
+    }
+
+    public Task<IncidentView> GetAsync(CurrentSession actor, Guid org, Guid id,
+        bool detail, CancellationToken ct) =>
+        Scoped(actor,org,detail?OrganizationPermission.ViewIncidentDetail:
+            OrganizationPermission.ViewIncidentSummary,
+            (conn,tx,role,token) => Read(conn,tx,org,id,false,token),ct);
+
+    public Task<IncidentChangeResult> CreateAsync(CurrentSession actor, Guid org,
+        IncidentCreate input, Guid operationKey, CancellationToken ct)
+    {
+        var title=IncidentPolicy.Title(input.Title);
+        var service=IncidentPolicy.ServiceCode(input.ServiceCode);
+        var impact=IncidentPolicy.Reason(input.ImpactCode);
+        if (!IncidentPolicy.ParseSeverity(input.Severity,out _) ||
+            input.DetectedAtUtc > DateTimeOffset.UtcNow.AddMinutes(5) ||
+            input.DetectedAtUtc < DateTimeOffset.UtcNow.AddYears(-2))
+            throw Invalid();
+        var hash=Digest(string.Join("\n",title,service,input.Severity,impact,
+            input.DetectedAtUtc.ToUniversalTime().ToString("O")));
+        return Scoped(actor,org,OrganizationPermission.CreateIncident,
+            async (conn,tx,role,token)=>
+            {
+                var existing=await Reserve(conn,tx,actor,org,operationKey,"Create",hash,token);
+                if (existing.HasValue)
+                    return new IncidentChangeResult(await Read(conn,tx,org,existing.Value,false,token),true);
+                var id=Guid.NewGuid();
+                await using(var insert=Command(conn,tx,"""
+                    INSERT INTO it_incidents(id,organization_id,title,service_code,severity,
+                        impact_code,detected_at_utc,created_by)
+                    VALUES(@id,@org,@title,@service,@severity,@impact,@detected,@actor)
+                    """,("id",id),("org",org),("title",title),("service",service),
+                    ("severity",input.Severity),("impact",impact),
+                    ("detected",input.DetectedAtUtc),("actor",actor.UserId)))
+                    if(await insert.ExecuteNonQueryAsync(token)!=1)throw Conflict();
+                await Event(conn,tx,org,id,actor.UserId,1,"Created",null,"New","created",token);
+                await FinalizeOperation(conn,tx,actor,org,operationKey,id,1,token);
+                return new IncidentChangeResult(await Read(conn,tx,org,id,false,token),false);
+            },ct);
+    }
+
+    public Task<IncidentChangeResult> TransitionAsync(CurrentSession actor, Guid org,
+        Guid id, IncidentTransition input, Guid operationKey, bool reopen,
+        CancellationToken ct)
+    {
+        if (id==Guid.Empty||input.ExpectedVersion<1||
+            !IncidentPolicy.ParseState(input.ToState,out var next))throw Invalid();
+        var reason=IncidentPolicy.Reason(input.ReasonCode);
+        var hash=Digest($"{id:D}|{input.ExpectedVersion}|{input.ToState}|{reason}|{reopen}");
+        return Scoped(actor,org,OrganizationPermission.ManageIncidentLifecycle,
+            async(conn,tx,role,token)=>
+            {
+                var existing=await Reserve(conn,tx,actor,org,operationKey,
+                    reopen?"Reopen":"Transition",hash,token);
+                if(existing.HasValue)
+                    return new IncidentChangeResult(await Read(conn,tx,org,existing.Value,false,token),true);
+                var current=await Read(conn,tx,org,id,true,token);
+                if(current.Version!=input.ExpectedVersion||
+                    !IncidentPolicy.ParseState(current.State,out var from))throw Conflict();
+                if(reopen ? (!IncidentPolicy.CanReopen(from)||next!=IncidentState.Investigating) :
+                    !IncidentPolicy.CanTransition(from,next,false,false,false,false))
+                    throw Conflict();
+                // An evidence-dependent transition must only be executed via a
+                // separately verified server recovery/closure command.
+                var version=current.Version+1;
+                await using(var update=Command(conn,tx,"""
+                    UPDATE it_incidents SET state=@state,version=@version,updated_at_utc=now()
+                    WHERE organization_id=@org AND id=@id AND version=@previous
+                    """,("state",next.ToString()),("version",version),("org",org),("id",id),
+                    ("previous",current.Version)))
+                    if(await update.ExecuteNonQueryAsync(token)!=1)throw Conflict();
+                await Event(conn,tx,org,id,actor.UserId,version,reopen?"Reopened":"Transitioned",
+                    current.State,next.ToString(),reason,token);
+                await FinalizeOperation(conn,tx,actor,org,operationKey,id,version,token);
+                return new IncidentChangeResult(await Read(conn,tx,org,id,false,token),false);
+            },ct);
+    }
+
+    public Task<IncidentChangeResult> AddNoteAsync(CurrentSession actor,Guid org,
+        Guid id,IncidentNoteInput input,Guid operationKey,CancellationToken ct)
+    {
+        var body=IncidentPolicy.Note(input.Body);
+        if(input.ExpectedVersion<1)throw Invalid();
+        var hash=Digest($"{id:D}|{input.ExpectedVersion}|{body}");
+        return Scoped(actor,org,OrganizationPermission.AppendIncidentNote,
+            async(conn,tx,role,token)=>
+            {
+                var existing=await Reserve(conn,tx,actor,org,operationKey,"Note",hash,token);
+                if(existing.HasValue)
+                    return new IncidentChangeResult(await Read(conn,tx,org,existing.Value,false,token),true);
+                var current=await Read(conn,tx,org,id,true,token);
+                if(current.Version!=input.ExpectedVersion)throw Conflict();
+                await using(var insert=Command(conn,tx,"""
+                    INSERT INTO it_incident_notes(organization_id,incident_id,body,actor_user_id)
+                    VALUES(@org,@id,@body,@actor)
+                    """,("org",org),("id",id),("body",body),("actor",actor.UserId)))
+                    if(await insert.ExecuteNonQueryAsync(token)!=1)throw Conflict();
+                var version=current.Version+1;
+                await using(var update=Command(conn,tx,"""
+                    UPDATE it_incidents SET version=@version,updated_at_utc=now()
+                    WHERE organization_id=@org AND id=@id AND version=@old
+                    """,("version",version),("org",org),("id",id),("old",current.Version)))
+                    if(await update.ExecuteNonQueryAsync(token)!=1)throw Conflict();
+                await Event(conn,tx,org,id,actor.UserId,version,"NoteAdded",
+                    current.State,current.State,"note_added",token);
+                await FinalizeOperation(conn,tx,actor,org,operationKey,id,version,token);
+                return new IncidentChangeResult(await Read(conn,tx,org,id,false,token),false);
+            },ct);
+    }
+
+    public Task<IncidentChangeResult> AssignAsync(CurrentSession actor,Guid org, Guid id,
+        IncidentAssignment input,Guid operationKey,CancellationToken ct)
+    {
+        if(input.AssignedTo==Guid.Empty||input.ExpectedVersion<1)throw Invalid();
+        var reason=IncidentPolicy.Reason(input.ReasonCode);
+        var hash=Digest($"{id:D}|{input.ExpectedVersion}|{input.AssignedTo:D}|{reason}");
+        return Scoped(actor,org,OrganizationPermission.AssignIncident,
+            async(conn,tx,role,token)=>
+            {
+                var existing=await Reserve(conn,tx,actor,org,operationKey,"Assign",hash,token);
+                if(existing.HasValue)
+                    return new IncidentChangeResult(await Read(conn,tx,org,existing.Value,false,token),true);
+                var current=await Read(conn,tx,org,id,true,token);
+                if(current.Version!=input.ExpectedVersion)throw Conflict();
+                await using(var eligible=Command(conn,tx,"""
+                    SELECT 1 FROM organization_memberships m
+                    JOIN users u ON u.id=m.user_id
+                    WHERE m.organization_id=@org AND m.user_id=@assignee
+                      AND m.status='Active' AND u.status='Active'
+                      AND m.role IN ('Support','Administrator')
+                    FOR SHARE OF m,u
+                    """,("org",org),("assignee",input.AssignedTo)))
+                    if(await eligible.ExecuteScalarAsync(token) is null)throw Deny();
+                var version=current.Version+1;
+                await using(var update=Command(conn,tx,"""
+                    UPDATE it_incidents SET assigned_to=@assignee,version=@version,updated_at_utc=now()
+                    WHERE organization_id=@org AND id=@id AND version=@old
+                    """,("assignee",input.AssignedTo),("version",version),
+                    ("org",org),("id",id),("old",current.Version)))
+                    if(await update.ExecuteNonQueryAsync(token)!=1)throw Conflict();
+                await Event(conn,tx,org,id,actor.UserId,version,"Assigned",
+                    current.State,current.State,reason,token);
+                await FinalizeOperation(conn,tx,actor,org,operationKey,id,version,token);
+                return new IncidentChangeResult(await Read(conn,tx,org,id,false,token),false);
+            },ct);
+    }
+}

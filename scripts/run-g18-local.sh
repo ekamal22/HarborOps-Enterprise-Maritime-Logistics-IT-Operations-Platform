@@ -32,8 +32,16 @@ run() { # name command...
 }
 db() { # start an owned disposable database: name port
   docker rm -f "$1" >/dev/null 2>&1
+  # Fast shards keep their data in memory. The heavy load shard needs disk backed storage (a named volume in the
+  # E: backed Docker store), because tens of thousands of rows plus sort spill exceed a memory backed directory.
+  local datamount=(--tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700)
+  if [ -n "${G18_DATA_VOLUME:-}" ]; then
+    docker volume rm "$G18_DATA_VOLUME" >/dev/null 2>&1
+    docker volume create --label harborops.g18=disposable --label harborops.g18.attempt="$attempt" "$G18_DATA_VOLUME" >/dev/null || return 1
+    datamount=(-v "$G18_DATA_VOLUME:/var/lib/postgresql/data")
+  fi
   docker run -d --name "$1" --label harborops.g18=disposable --label harborops.g18.attempt="$attempt" --ulimit core=0 \
-    --tmpfs /var/lib/postgresql/data:uid=70,gid=70,mode=0700 --cap-drop ALL --security-opt no-new-privileges \
+    "${datamount[@]}" --cap-drop ALL --security-opt no-new-privileges \
     -p "127.0.0.1:$2:5432" -e POSTGRES_DB=harborops_integration -e POSTGRES_USER=harborops -e POSTGRES_HOST_AUTH_METHOD=trust \
     harborops-g13g15-postgres:16.15-rootless -c fsync=off -c max_connections=300 >/dev/null || return 1
   local i; for i in $(seq 1 60); do docker exec "$1" pg_isready -U harborops -d harborops_integration >/dev/null 2>&1 && return 0; sleep 1; done
@@ -75,6 +83,7 @@ case "$stage" in
     # Two shards on separate fresh databases: the heavy M13 load classes run alone so a long load run
     # cannot skew the rest, and neither shard inherits the other's data.
     port="${HARBOROPS_G18_PORT:-55442}"
+    if [ "$stage" = regress-b ]; then export G18_DATA_VOLUME="ho-verify-g18-$attempt-heavy-data"; fi
     db "ho-verify-g18-$attempt-$stage" "$port" || { record "$stage-database" 1; exit 1; }
     export HARBOROPS_TEST_DB="Host=127.0.0.1;Port=$port;Database=harborops_integration;Username=harborops" HARBOROPS_G12_EXCLUSIVE_POSTGRES=1 HARBOROPS_G13_EXCLUSIVE_POSTGRES=1
     heavy='FullyQualifiedName~M13ScaleLoadTests|FullyQualifiedName~M13ConcurrentAcceptanceTests|FullyQualifiedName~M13TenantCapacityAcceptanceTests'
@@ -98,6 +107,9 @@ case "$stage" in
   cleanup)
     for name in $(docker ps -a --filter "label=harborops.g18.attempt=$attempt" --filter label=harborops.g18=disposable --format '{{.Names}}'); do
       echo "removing owned container $name" >> "$ev/cleanup.log"; docker rm -f "$name" >> "$ev/cleanup.log" 2>&1
+    done
+    for name in $(docker volume ls --filter "label=harborops.g18.attempt=$attempt" --filter label=harborops.g18=disposable --format '{{.Name}}'); do
+      echo "removing owned volume $name" >> "$ev/cleanup.log"; docker volume rm "$name" >> "$ev/cleanup.log" 2>&1
     done ;;
   *) echo "unknown stage $stage" >&2; exit 2 ;;
 esac

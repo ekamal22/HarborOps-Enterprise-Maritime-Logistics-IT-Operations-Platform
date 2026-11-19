@@ -1,7 +1,7 @@
 # M18 / G18 Disposable Verification and Evidence Runbook
 
 **Prepared:** 2026-11-18  
-**Status:** Draft procedure, NOT EXECUTED. An unverified migration and source candidate exist; no disposable G18 runtime evidence exists.  
+**Status:** Procedure executed locally on 2026-11-18 with the adjustments in section 8; see the [verification record](M18_G18_LOCAL_VERIFICATION_20261118.md). Technical pass with disclosed exceptions; G18 NOT ACCEPTED.  
 **Scope:** M18-01 through M18-04 and the later independent G18/S25 review.  
 **Restrictions:** No GitHub Actions, deployment, unapproved implementation, persistent C: writes, retained-volume modification or blanket Docker cleanup.
 
@@ -86,3 +86,14 @@ Independently verify sample raw traces and SQL/HTTP evidence, audit/role boundar
 Stop only processes and containers labeled for the owned attempt. Record their exact IDs and termination statuses. Drop only uniquely owned disposable database/volume after artifact verification. Never `docker system prune`, never remove shared Docker images or WSL volumes, never delete historical failure logs, never overwrite original G16/G17 evidence. Preserve cleanup receipts and escalate any leaked resource without concealing it.
 
 A finished cleanup is not test success. A passing technical run is not acceptance. This runbook is not execution authority.
+
+## 8. As executed (2026-11-18)
+
+The stage dispatcher is `scripts/run-g18-local.sh <attempt> <stage>` with `HARBOROPS_G18_ROOT` set to an E: directory; evidence is written to `evidence/<sha>/<attempt>`. Stages: preflight, source-checks, build, unit, contract, web, m18-integration, regress-a, regress-b, regress-final, inventory-after, reconcile, manifest and cleanup. Server-backed stages are supervised separately because each owns long-lived processes:
+
+- **Browser stage:** start an owned PostgreSQL container, seed the two-organization, five-role fixture with the `M18BrowserSeedTests` seeder (it writes a private fixture outside the repository), build the web bundle with `VITE_M18_ENABLED=true`, run the API from the built output with `M18__EnableIncidents=true`, serve the bundle with a same-origin `/api` proxy and run `tests/browser/playwright.g18.config.mjs` once per engine. The login limiter is in memory, so the API is restarted between engines.
+- **Fault journey:** a fresh database and fixture, then `scripts/g18-fault-journey.mjs` pointed at the API port (readiness is not proxied by the web server).
+- **Controlled faults:** `scripts/run-g18-mutations.mjs --sha <frozen sha> --out <E: directory>` applies each patch to a detached worktree, builds it and runs the designated tests on its own database.
+- **Heavy load classes** run alone on a disk-backed volume; a memory-backed data directory fills up.
+- **Retained resources:** `scripts/g18-retained-inventory.mjs` is run before and after; matching digests show nothing retained changed.
+- **Ledger:** `scripts/reconcile-g18-assertions.mjs` maps raw evidence to the 75 assertions through `tests/g18/assertion-map.json`.

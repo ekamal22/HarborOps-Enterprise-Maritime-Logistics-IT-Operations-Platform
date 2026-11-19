@@ -2,7 +2,7 @@
 
 **Recorded:** 2026-11-18  
 **Scope:** M18 IT incident lifecycle and remediation, gate G18.  
-**Status:** P01-P20 APPROVED; M18 SOURCE CANDIDATE EXISTS ON SEPARATE FEATURE BRANCH, NOT VERIFIED. G18 NOT EXECUTED OR ACCEPTED.  
+**Status:** P01-P20 APPROVED; the M18 implementation was audited, corrected and verified locally with a technical pass and disclosed exceptions (see the [verification record](M18_G18_LOCAL_VERIFICATION_20261118.md)). G18 NOT ACCEPTED; independent review, merge and release not performed.  
 **Base source:** protected `main` at `72251f5310f24fb98322b7eb403a5e9e66e040ef` (recheck immediately before work).  
 **Planning branch:** `plan/m18-incident-lifecycle-20261118`.
 

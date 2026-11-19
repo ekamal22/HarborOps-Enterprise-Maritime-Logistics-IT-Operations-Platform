@@ -1,0 +1,1435 @@
+{
+  "gate": "G18",
+  "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+  "generated_at_utc": "2026-11-19T01:52:12.882Z",
+  "summary": {
+    "total": 75,
+    "PASS": 71,
+    "FAIL": 0,
+    "NOT_EXECUTED": 0,
+    "NOT_APPLICABLE": 1,
+    "PENDING_INDEPENDENT_REVIEW": 3
+  },
+  "ledger": [
+    {
+      "id": "G18-S01-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "check:policy-register-p01-to-p20-approved",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:assertion-inventory-shape",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S01-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "check:incident-route-inventory-matches-the-contract",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:every-incident-write-requires-csrf-origin-and-operation-id",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:every-store-write-uses-the-scoped-transaction-and-an-operation-key",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:migration-installs-forced-rls-immutability-guard-and-audit-for-all-tables",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:test-inventory-is-present-for-every-mapped-witness",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S01-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "check:accepted-migrations-unchanged-and-m18-is-the-only-new-migration",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:hosted-workflows-and-compose-defaults-unchanged",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:historical-evidence-and-other-accepted-records-not-rewritten",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:no-hosted-verification-is-configured-by-this-change",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S02-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18SecurityTests.FiveRoleMatrixMatchesTheApprovedTypedPermissions",
+          "status": "PASS",
+          "detail": "5 case(s)"
+        },
+        {
+          "witness": "test:M18AuthorizationAndTransitionTests",
+          "status": "PASS",
+          "detail": "9 case(s)"
+        },
+        {
+          "witness": "test:M18IncidentPolicyTests",
+          "status": "PASS",
+          "detail": "24 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S02-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18SecurityTests.FiveRoleMatrixMatchesTheApprovedTypedPermissions",
+          "status": "PASS",
+          "detail": "5 case(s)"
+        },
+        {
+          "witness": "test:M18SecurityTests.ManagerSeesSummariesWithoutAssigneeNotesOrTechnicalDetailAndCreateIsRedacted",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18SecurityTests.AuditorReadGrantIsSeparateExpiringRevocableAndReadOnly",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18ContractTests.AdministratorSeesAuditorGrantsAndNobodyElseCan",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.ReadGrantChangesAreAuditedAsGrantedAndRevoked",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S02-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18SecurityTests.FiveRoleMatrixMatchesTheApprovedTypedPermissions",
+          "status": "PASS",
+          "detail": "5 case(s)"
+        },
+        {
+          "witness": "test:M18SecurityTests.AuditorReadGrantIsSeparateExpiringRevocableAndReadOnly",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:widen-role-grant",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        },
+        {
+          "witness": "browser:roles see only their approved",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S03-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18SecurityTests.ForeignAndUnknownObjectsAreIndistinguishableAndNeverCrossTenants",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18ResilienceTests.OrganizationSwitchShowsOnlyTheSelectedTenantAndRejectsTheOther",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:remove-tenant-predicate",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        }
+      ]
+    },
+    {
+      "id": "G18-S03-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18SecurityTests.ForeignAndUnknownObjectsAreIndistinguishableAndNeverCrossTenants",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18SecurityTests.ProtectedCursorIsBoundToTheOrganizationUserAndSession",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S03-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18DatabaseTests.CompositeTenantKeysRejectCrossOrganizationChildrenForEveryTable",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.ValidSignedScopeIsTenantBoundAndCannotRewriteHistoryOrBypassTheTransitionGuard",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S04-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.LogoutRevocationExpiryAndMembershipChangesStopAccessImmediately",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S04-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.LogoutRevocationExpiryAndMembershipChangesStopAccessImmediately",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18ResilienceTests.OrganizationSwitchShowsOnlyTheSelectedTenantAndRejectsTheOther",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18SecurityTests.ProtectedCursorIsBoundToTheOrganizationUserAndSession",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "browser:organization switching removes",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S04-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.MembershipSuspensionCommittingWhileAWriteWaitsPreventsTheWrite",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:ignore-revocation-after-lock",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        }
+      ]
+    },
+    {
+      "id": "G18-S05-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ContractTests.CreatePersistsANewUtcIncidentWithTheRequestedServiceAndSeverityForEverySeverityAndService",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S05-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18SecurityTests.RequestSafetyRejectsMalformedForgedAndOversizedInputWithoutSideEffects",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18EvidenceTests.ServiceCategoriesAreExactlyTheFourApprovedCodes",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S05-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18SecurityTests.ManagerSeesSummariesWithoutAssigneeNotesOrTechnicalDetailAndCreateIsRedacted",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S06-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18LifecycleTests.SevenStateChainProducesOrderedImmutableHistoryAndMatchingProjection",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18IncidentPolicyTests",
+          "status": "PASS",
+          "detail": "24 case(s)"
+        },
+        {
+          "witness": "browser:Support and a second responder complete",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S06-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ContractTests.EveryTransitionEventRecordsExactStatesActorServerTimeAndIncrementedVersion",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S06-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18LifecycleTests.SevenStateChainProducesOrderedImmutableHistoryAndMatchingProjection",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18ContractTests.EveryTransitionEventRecordsExactStatesActorServerTimeAndIncrementedVersion",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S07-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18LifecycleTests.IllegalOrMalformedTransitionsFailWithoutAnySideEffect",
+          "status": "PASS",
+          "detail": "11 case(s)"
+        },
+        {
+          "witness": "test:M18LifecycleTests.MissingReasonAndStaleVersionAreRejectedWithoutChange",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S07-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ContractTests.NoGenericWritePathExistsForStateActorVersionOrClosureFields",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.ValidSignedScopeIsTenantBoundAndCannotRewriteHistoryOrBypassTheTransitionGuard",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.RuntimeRoleHoldsOnlyAppendAndColumnLimitedUpdateRights",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S07-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "mutation:bypass-transition-guard",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        },
+        {
+          "witness": "mutation:drop-database-transition-guard",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        }
+      ]
+    },
+    {
+      "id": "G18-S08-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.CompetingWritersFromOneVersionCommitExactlyOneWithoutPhantomRecords",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:lose-version-compare",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        }
+      ]
+    },
+    {
+      "id": "G18-S08-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.CompetingWritersFromOneVersionCommitExactlyOneWithoutPhantomRecords",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "browser:a stale version shows a conflict",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S08-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.MembershipSuspensionCommittingWhileAWriteWaitsPreventsTheWrite",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S09-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.ConcurrentCreateRetriesWithOneKeyProduceOneIncidentEventAndAuditRecord",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18ResilienceTests.OperationKeysAreScopedByActorAndBoundToTheirKindAndCanonicalPayload",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "node:retries reuse an operation key",
+          "status": "PASS",
+          "detail": "1 passed"
+        },
+        {
+          "witness": "mutation:duplicate-event-on-replay",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 4"
+        }
+      ]
+    },
+    {
+      "id": "G18-S09-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.OperationKeysAreScopedByActorAndBoundToTheirKindAndCanonicalPayload",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S09-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.AmbiguousCommitIsResolvedByTheDurableOperationKeyNotByGuessing",
+          "status": "PASS",
+          "detail": "2 case(s)"
+        },
+        {
+          "witness": "test:M18ResilienceTests.ReplayDoesNotSurviveRoleRevocationOrSessionRevocationAndRebindsToTheNewSession",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S10-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18DatabaseTests.DirectRuntimeSqlSeesAndWritesNothingWithoutAGenuineSignedScope",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18LifecycleTests.SevenStateChainProducesOrderedImmutableHistoryAndMatchingProjection",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S10-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18DatabaseTests.RuntimeRoleHoldsOnlyAppendAndColumnLimitedUpdateRights",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.ValidSignedScopeIsTenantBoundAndCannotRewriteHistoryOrBypassTheTransitionGuard",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.HistoryTablesRejectUpdateDeleteAndTruncateEvenForTheSchemaOwner",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:drop-immutable-history-guard",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 2"
+        }
+      ]
+    },
+    {
+      "id": "G18-S10-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18WorkflowTests.TimelineIsIdenticalAfterRestartAndThroughArbitraryFurtherActivity",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18MigrationTests.UpgradeFromTheLastAcceptedSchemaKeepsEveryExistingRowAndAuditRecord",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S11-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18DatabaseTests.EachSensitiveMutationAppendsExactlyItsApprovedAuditEventsWithCorrelationAndNoContent",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.ReadGrantChangesAreAuditedAsGrantedAndRevoked",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:remove-required-audit",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        }
+      ]
+    },
+    {
+      "id": "G18-S11-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.RequiredAuditFailureRollsBackEveryIncidentWriteAndDeniedRequestsStayDenied",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S11-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18DatabaseTests.EachSensitiveMutationAppendsExactlyItsApprovedAuditEventsWithCorrelationAndNoContent",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:leak-note-into-audit",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        }
+      ]
+    },
+    {
+      "id": "G18-S12-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.RequiredAuditFailureRollsBackEveryIncidentWriteAndDeniedRequestsStayDenied",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18SecurityTests.FiveRoleMatrixMatchesTheApprovedTypedPermissions",
+          "status": "PASS",
+          "detail": "5 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S12-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18DatabaseTests.RuntimeRoleHoldsOnlyAppendAndColumnLimitedUpdateRights",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "check:runtime-grants-are-centralized-and-never-include-delete-truncate-or-history-update",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S12-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "stage:regress-neighbours",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:historical-evidence-and-other-accepted-records-not-rewritten",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S13-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S13-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18WorkflowTests.SeverityReassessmentAndImpactReportsAreAuditedVersionedAndBounded",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S13-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18WorkflowTests.AssignmentIsLimitedToActiveSameOrganizationTechnicalResponders",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18WorkflowTests.SeverityReassessmentAndImpactReportsAreAuditedVersionedAndBounded",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S14-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S14-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18SecurityTests.ScriptTitlesAreStoredAsInertTextAndSecretLookingNotesAreRejected",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18IncidentPolicyTests",
+          "status": "PASS",
+          "detail": "24 case(s)"
+        },
+        {
+          "witness": "node:the incident workspace carries no untranslated literal text",
+          "status": "PASS",
+          "detail": "1 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S14-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18WorkflowTests.NotesKeepAuthorshipAndOrderAndAreInvisibleToManagersAnalystsAndOtherTenants",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "browser:roles see only their approved",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S15-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18EvidenceTests.PrefillNeverCreatesAnIncidentAndOnlyAHumanConfirmedServerTokenStoresEvidence",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.EachSensitiveMutationAppendsExactlyItsApprovedAuditEventsWithCorrelationAndNoContent",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S15-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ContractTests.EvidenceAcceptsOnlyBoundedCodesAndNeverRawTracesUrlsIdentifiersOrFreeText",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:accept-arbitrary-evidence-url",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        }
+      ]
+    },
+    {
+      "id": "G18-S15-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18EvidenceTests.MissingOrStaleTelemetryIsUnknownAndDegradedIsDegradedNeverHealthy",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:treat-missing-telemetry-as-healthy",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        }
+      ]
+    },
+    {
+      "id": "G18-S16-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18EvidenceTests.RecoveryIsAServerWitnessedServiceSpecificProbeAndNeverACallerClaim",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18WorkflowTests.CorrectiveActionsHaveVersionedImmutableHistoryAndRejectInvalidMoves",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S16-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18WorkflowTests.CorrectiveActionsHaveVersionedImmutableHistoryAndRejectInvalidMoves",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S16-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18WorkflowTests.CorrectiveActionsHaveVersionedImmutableHistoryAndRejectInvalidMoves",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.ValidSignedScopeIsTenantBoundAndCannotRewriteHistoryOrBypassTheTransitionGuard",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.CompositeTenantKeysRejectCrossOrganizationChildrenForEveryTable",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S17-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18LifecycleTests.GatesBlockMitigationWithoutRecordsAndResolutionWithoutRecoveryProof",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18EvidenceTests.RecoveryIsAServerWitnessedServiceSpecificProbeAndNeverACallerClaim",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "mutation:skip-recovery-proof",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 2"
+        }
+      ]
+    },
+    {
+      "id": "G18-S17-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18LifecycleTests.HighSeverityClosureRequiresADifferentActiveResponder",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "browser:Support and a second responder complete",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        },
+        {
+          "witness": "mutation:skip-independent-closure",
+          "status": "PASS",
+          "detail": "mutant killed; failing tests: 1"
+        }
+      ]
+    },
+    {
+      "id": "G18-S17-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18EvidenceTests.ForgedFlagsAndAnOldHealthySnapshotCannotResolveAnIncident",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18EvidenceTests.RecoveryEvidenceExpiresBeforeResolutionAndMustBeRecordedAgain",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18ContractTests.ClosureHasNoExceptionPathSoAnUnauthorizedExceptionChangesNothing",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S18-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "browser:Support and a second responder complete",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S18-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S18-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18LifecycleTests.ReopenFromResolvedAndClosedKeepsEarlierFactsAndRejectsReplayedVersion",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18EvidenceTests.RegressionAfterRecoveryClearsTheVerificationAndTheNextResolutionNeedsNewProof",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S19-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18EvidenceTests.PrefillNeverCreatesAnIncidentAndOnlyAHumanConfirmedServerTokenStoresEvidence",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "browser:organization switching removes",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        },
+        {
+          "witness": "journey:alert-creates-no-incident",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S19-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18EvidenceTests.PrefillNeverCreatesAnIncidentAndOnlyAHumanConfirmedServerTokenStoresEvidence",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18EvidenceTests.PrefillTokenIsShortLivedAndBoundToOrganizationUserAndSession",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S19-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18EvidenceTests.PrefillNeverCreatesAnIncidentAndOnlyAHumanConfirmedServerTokenStoresEvidence",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18EvidenceTests.PrefillTokenIsShortLivedAndBoundToOrganizationUserAndSession",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S20-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18EvidenceTests.MissingOrStaleTelemetryIsUnknownAndDegradedIsDegradedNeverHealthy",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "journey:telemetry-disabled-incident-crud",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S20-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18EvidenceTests.MissingOrStaleTelemetryIsUnknownAndDegradedIsDegradedNeverHealthy",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18EvidenceTests.ForgedFlagsAndAnOldHealthySnapshotCannotResolveAnIncident",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S20-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "stage:regress-neighbours",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:hosted-workflows-and-compose-defaults-unchanged",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "check:incident-feature-is-default-off-in-api-and-web",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "test:M18ResilienceTests.FeatureIsOffByDefaultAndExposesNoRoutes",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S21-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "journey:controlled-readiness-fault-detected",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "journey:alert-creates-no-incident",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "journey:explicit-incident-created",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S21-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "journey:mitigation-restoration-and-integrity-proof",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S21-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "journey:closed-and-reopened-evidence-share-digest",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "test:M18EvidenceTests.RecoveryIsAServerWitnessedServiceSpecificProbeAndNeverACallerClaim",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S22-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18SecurityTests.RequestSafetyRejectsMalformedForgedAndOversizedInputWithoutSideEffects",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18WorkflowTests.ListAndHistoryPaginationIsStableBoundedAndComplete",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "check:incident-route-inventory-matches-the-contract",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S22-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18SecurityTests.RequestSafetyRejectsMalformedForgedAndOversizedInputWithoutSideEffects",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18WorkflowTests.ErrorEnvelopesAreConsistentSanitizedAndNeverCached",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18SecurityTests.ProtectedCursorIsBoundToTheOrganizationUserAndSession",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18ResilienceTests.DefaultRateLimitRejectsTheThirtyFirstRequestWithoutSideEffects",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        }
+      ]
+    },
+    {
+      "id": "G18-S22-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18ResilienceTests.RequiredAuditFailureRollsBackEveryIncidentWriteAndDeniedRequestsStayDenied",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18ResilienceTests.AmbiguousCommitIsResolvedByTheDurableOperationKeyNotByGuessing",
+          "status": "PASS",
+          "detail": "2 case(s)"
+        },
+        {
+          "witness": "journey:database-outage-never-reports-success",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S23-A01",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "browser:Support and a second responder complete",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S23-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "browser:roles see only their approved",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        },
+        {
+          "witness": "browser:organization switching removes",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S23-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "browser:a stale version shows a conflict",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        },
+        {
+          "witness": "browser:organization switching removes",
+          "status": "PASS",
+          "detail": "chromium: 2 passed; firefox: 2 passed; webkit: 2 passed"
+        },
+        {
+          "witness": "node:every statically referenced incident string exists in Turkish",
+          "status": "PASS",
+          "detail": "1 passed"
+        },
+        {
+          "witness": "node:every server enumerated incident value has a Turkish presentation",
+          "status": "PASS",
+          "detail": "1 passed"
+        },
+        {
+          "witness": "node:the incident workspace carries no untranslated literal text",
+          "status": "PASS",
+          "detail": "1 passed"
+        }
+      ]
+    },
+    {
+      "id": "G18-S24-A01",
+      "status": "NOT_APPLICABLE",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "q3:snapshot-discovery",
+          "status": "NOT_APPLICABLE",
+          "detail": "No representative retained historical HarborOps snapshot can be safely cloned. The only retained HarborOps volume (harborops_harborops-postgres, created 2026-10-30) backs the compose project 'harborops', whose postgres, api and web containers are running and in use; cloning it consistently would require stopping it or opening client sessions against it, which this campaign must not do. G6 recorded that this volume holds only the M0 bootstrap record. Other volumes are disposable verification data (ho-g13g15-pg-dev-data, ho-g13g15-pg-dev2-data), an undocumented copy that G6 discovered and did not use (ho-verify-oldcopy), or unrelated projects. Evidence archives under E:/HarborOps-Verification/archives are test evidence, not database snapshots."
+        }
+      ]
+    },
+    {
+      "id": "G18-S24-A02",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "test:M18MigrationTests.UpgradeFromTheLastAcceptedSchemaKeepsEveryExistingRowAndAuditRecord",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "test:M18DatabaseTests.RuntimeRoleHoldsOnlyAppendAndColumnLimitedUpdateRights",
+          "status": "PASS",
+          "detail": "1 case(s)"
+        },
+        {
+          "witness": "q3:retained-resources-unchanged",
+          "status": "PASS",
+          "detail": "d265a8a28f06 -> d265a8a28f06"
+        }
+      ]
+    },
+    {
+      "id": "G18-S24-A03",
+      "status": "PASS",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "stage:regress-neighbours",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "stage:unit-tests",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "witness": "stage:contract-tests",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "G18-S25-A01",
+      "status": "PENDING_INDEPENDENT_REVIEW",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "independent:review",
+          "status": "PENDING_INDEPENDENT_REVIEW",
+          "detail": "requires a genuinely separate reviewer"
+        }
+      ]
+    },
+    {
+      "id": "G18-S25-A02",
+      "status": "PENDING_INDEPENDENT_REVIEW",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "independent:review",
+          "status": "PENDING_INDEPENDENT_REVIEW",
+          "detail": "requires a genuinely separate reviewer"
+        }
+      ]
+    },
+    {
+      "id": "G18-S25-A03",
+      "status": "PENDING_INDEPENDENT_REVIEW",
+      "source_sha": "5cc3fa583f638236d824a47c2c65e9615cf4ae3e",
+      "witnesses": [
+        {
+          "witness": "independent:review",
+          "status": "PENDING_INDEPENDENT_REVIEW",
+          "detail": "requires a genuinely separate reviewer"
+        }
+      ]
+    }
+  ]
+}

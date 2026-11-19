@@ -1,7 +1,7 @@
 # G18 Source-Locked Verification and Independent S25 Acceptance Plan
 
 **Prepared:** 2026-11-18  
-**Status:** PLANNED, NOT EXECUTED. G18 NOT ACCEPTED.  
+**Status:** Plan executed locally on 2026-11-18: 71 PASS, 1 NOT_APPLICABLE, 3 pending independent review (see the [verification record](M18_G18_LOCAL_VERIFICATION_20261118.md) and [ledger](M18_G18_ASSERTION_LEDGER_20261118.json)). G18 NOT ACCEPTED.  
 **Baseline:** `72251f5310f24fb98322b7eb403a5e9e66e040ef`. Actual verification must freeze its later exact implementing SHA and Git tree.  
 **Contract:** 25 mandatory scenarios, 75 atomic assertions, of which 72 require technical witnesses and 3 in S25 require independent review.  
 **Policy gate:** M18-P01..P20 APPROVED 2026-11-18. This does not authorize G18 acceptance or deployment.

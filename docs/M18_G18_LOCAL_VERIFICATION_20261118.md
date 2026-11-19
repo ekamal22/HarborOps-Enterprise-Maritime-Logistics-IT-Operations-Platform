@@ -1,0 +1,97 @@
+# M18 / G18 Local Source-Locked Technical Verification
+
+**Date:** 2026-11-18 (UTC)
+**Disposition:** **TECHNICAL PASS** for the 72 technical assertions, with the disclosures in section 7. **G18 is NOT ACCEPTED.** The three G18-S25 assertions are pending a genuinely separate reviewer, and formal acceptance, merge and deployment remain separate decisions that have not been made.
+**Method:** every stage ran locally against owned disposable resources on E:. No hosted workflow was dispatched or configured, nothing was merged, and no retained resource was touched.
+
+## 1. Source identity
+
+| Item | Value |
+| --- | --- |
+| Candidate audited | `6a03d492142eb159c0da9468667b067da6df3e6c`, tree `4d0fb65dd78234bcef213bec70040025fb818a3b` |
+| Protected baseline | `72251f5310f24fb98322b7eb403a5e9e66e040ef` |
+| Product freeze (unit, contract, web, M18 integration, browsers, journey) | `fb1b42e5918a0ab7767aefcaeb425b9bb26fe936`, tree `d0db084c284a3580334093afc708db98acc717f1` |
+| Final tooling head (heavy regression shard) | `5cc3fa583f638236d824a47c2c65e9615cf4ae3e` |
+| Product source across stage revisions | `src` and `web` are byte-identical from the product freeze to the final tooling head |
+
+Revisions differ only in `scripts/run-g18-local.sh`, `scripts/run-g18-mutations.mjs` (tooling) and `tests/HarborOps.IntegrationTests/MigrationSnapshotTests.cs` (an accepted neighbouring test, see F-M18-16). Each stage's revision is in `provenance.json`. Earlier attempts that were superseded are retained unaltered: the first freeze `2471dd01` (source-check false positives), `eeee3abc` (a journey-script defect) and `b5c3821f` (stopped regression).
+
+## 2. Results by stage
+
+| Stage | Result | Revision |
+| --- | --- | --- |
+| Source, policy and boundary checks (15) | 15 of 15 PASS | `b5c3821f` |
+| .NET restore and build, warnings as errors | PASS | `fb1b42e5` |
+| Unit tests | 352 of 352 | `fb1b42e5` |
+| API contract tests | 60 of 60 | `fb1b42e5` |
+| Web typecheck, tests, production build | PASS, 45 of 45 | `fb1b42e5` |
+| M18 PostgreSQL and HTTP integration (real `harborops_api` role) | 73 of 73, 0 skipped | `fb1b42e5` |
+| Chromium, Firefox, WebKit, English and Turkish (4 journeys each) | 24 of 24 | `fb1b42e5` |
+| Integrated fault journey (real API process, real PostgreSQL) | 9 of 9 steps | `fb1b42e5` |
+| Controlled faults | 14 killed, 1 equivalent survivor | `b5c3821f` |
+| Neighbour regression shard A | 604 passed, 2 baseline-identical failures, 19 not executed | `bb8c80bc` |
+| Neighbour regression shard B (heavy M13 load, disk-backed) | 13 of 13 | `5cc3fa58` |
+| Retained-resource inventory, before and after | identical digest | whole campaign |
+
+## 3. Integrated fault journey
+
+A controlled database-readiness fault (baseline record removed while the database stayed writable) made the real readiness check return 503 and the server-side service status read `degraded`. Viewing that status created no incident. A human then created the incident from the server-issued preview, which stored one snapshot with a digest. A recovery attempt while the fault was still present was refused and wrote no probe row. After the real repair, recovery recorded service-specific probes, the incident was resolved, a second responder closed it, and it was reopened. Each stored evidence digest was recomputed independently from the stored row. Organization Beta could not read, guess or page into Alpha's incident. Revoking the responder's membership made both a replay of an earlier key and a new request fail. Pausing the database container produced no success, left no incident, and a retry with the same key converged to exactly one incident. The API ran with no exporter or collector configured.
+
+## 4. Controlled-fault campaign
+
+| Fault | Result |
+| --- | --- |
+| remove application tenant predicate only | survived, equivalent: forced row-level security still hides foreign rows |
+| remove tenant predicate and row-level policy | killed |
+| widen the role grant | killed |
+| ignore membership revocation after the lock | killed |
+| bypass the application transition guard | killed |
+| drop the database transition guard | killed |
+| lose the version comparison | killed |
+| duplicate the event on replay | killed (an earlier patch did not compile and was classified invalid, then repaired) |
+| drop the immutable-history guard | killed |
+| remove a required audit trigger | killed |
+| leak note content into audit | killed |
+| accept arbitrary evidence input | killed |
+| treat missing telemetry as healthy | killed |
+| skip the recovery proof | killed |
+| skip independent closure | killed |
+
+No mutant was inconclusive. A compile failure was never counted as a kill.
+
+## 5. Assertion ledger
+
+75 assertions: **71 PASS, 1 NOT_APPLICABLE, 3 PENDING_INDEPENDENT_REVIEW, 0 FAIL, 0 NOT_EXECUTED.** The per-assertion ledger with witnesses is [M18_G18_ASSERTION_LEDGER_20261118.json](M18_G18_ASSERTION_LEDGER_20261118.json), generated by `scripts/reconcile-g18-assertions.mjs` from the raw evidence and the [witness map](../tests/g18/assertion-map.json). The only NOT_APPLICABLE is G18-S24-A01, supported by the [Q3 discovery record](M18_Q3_SNAPSHOT_DISCOVERY_20261118.md) and pending the reviewer's concurrence. G18-S25-A01 to A03 are not claimed.
+
+## 6. Defects found
+
+Sixteen defects in the candidate and its neighbours were found by execution and fixed, with root causes in the [correctness and test audit](M18_CORRECTNESS_AND_TEST_AUDIT_20261118.md). The largest were a candidate that did not compile, audit events with no taxonomy or field allowlist, runtime-role ability to rewrite incident state directly, a vacuous recovery probe, and paging that hid edited incidents. The accepted resolutions are in [M18 as implemented](M18_AS_IMPLEMENTED_20261118.md).
+
+## 7. Disclosures for the reviewer
+
+1. **Neighbour regression exceptions.** Two failures in shard A are not caused by M18. `ShipmentInterruptionTests.KilledApplicationProcessMidTransitionCommitsNothing` fails identically on the protected baseline because the portable SDK folder has no `hostpolicy.dll` for the child process it spawns. `AuditHardeningTests.AuditMetadataKeysAndFieldNamesStayWithinTheFixedAllowlist` fails on the baseline too when run after the M13 tests, because an M13 audit event with key `enabled` is not in its allowlist; it passes alone on both. The aggregate regression stage is recorded as PASS on that classification, which is a judgement the reviewer should confirm.
+2. **Not executed.** 19 tests skip by design: 16 `G13G15CrashRecoveryTests` (a separate crash-probe harness), `M12QueryPlanEvidenceTests` (1), `M15FanoutLoadTests` (1) and `M15ScaleLoadTests` (1). They belong to other gates and depend on dedicated environments.
+3. **Invalid comparison discarded.** A broad baseline shard produced 132 unexplained failures and was not used for any classification. The log is retained.
+4. **Harness faults found and fixed, never hidden.** A memory-backed database filled up under the heavy M13 classes and produced false failures; those classes now use a disk-backed volume and pass. Superseded attempts and their logs are retained.
+5. **Stage revisions.** Stages were bound to the revisions in section 2; the product source is identical across them but the tooling and one neighbouring test differ. A single-revision rerun is possible on request.
+6. **Memory-backed databases** are used for every stage except the heavy load shard, which the local storage policy permits.
+7. **WebKit overflow.** The account page above the workspace overflows by three pixels at 375 px with or without M18. The incident workspace does not overflow. Left unchanged.
+8. **Open policy question.** Incidents for `notifications` and `tracking_held` cannot be resolved because no verifiable probe exists. This needs a decision under M18-P16 and P17.
+9. **Residual risk.** Free-text note secret detection is best effort, as P09 discloses.
+10. **Preserved obligations.** G17's separately signed S25-A03 and F06 instrument and its P09 qualified performance remain open. M9 transport hold, M15 delivery and M17 exporters are unchanged and default-off. No deployment, release or production activation is claimed.
+
+## 8. Evidence
+
+Location: `E:\HarborOps-Verification\g18\evidence\5cc3fa583f638236d824a47c2c65e9615cf4ae3e\final` (101 files).
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `sha256-manifest.txt` | `a8f0b0840abfa804de339a2a42d49a3f9fbadddf2d34aa85f4a2a28cf2f50d48` |
+| `g18-assertion-ledger.json` | `ef829201ea1115baf8e315acb53288eb1afeb548c504564697b357e5d874a674` |
+| `g18-final-evidence.tar.gz` | `20680ed8bcb741a9fb547dcbe3564db0ec886f9aa641397f648b657fe99631ea` |
+
+The folder holds the TRX files, Playwright reports, journey timeline, mutation results, source-check results, retained inventories before and after, the regression classification with the paired baseline runs, and every raw stage log including failed attempts. Disposable credentials used by the stage fixtures are kept outside this folder and outside the repository.
+
+## 9. Recommendation
+
+**TECHNICAL PASS**, subject to the disclosures above. Formal status: **G18 NOT ACCEPTED.** The [independent review packet](M18_S25_REVIEW_PACKET_20261118.md) lists what a separate reviewer needs to decide G18-S25-A01 to A03.

@@ -4,7 +4,8 @@
 **Authority:** M18-P01 through P20 explicitly approved on 2026-11-18.
 **Branch:** `feature/m18-incident-lifecycle-20261118`
 **Original planning baseline:** `72251f5310f24fb98322b7eb403a5e9e66e040ef`
-**Status:** SOURCE IMPLEMENTATION CANDIDATE. NOT COMPILE-VERIFIED. G18 NOT EXECUTED OR ACCEPTED. NO MERGE OR RELEASE AUTHORIZED.
+**Status (superseded, see below):** SOURCE IMPLEMENTATION CANDIDATE as received. NOT COMPILE-VERIFIED at that time.
+**Current disposition (2026-11-18):** the candidate was audited, corrected and verified locally. TECHNICAL PASS with disclosed exceptions; G18 NOT ACCEPTED; independent S25 review pending; NO MERGE OR RELEASE AUTHORIZED. See the [verification record](M18_G18_LOCAL_VERIFICATION_20261118.md), [correctness audit](M18_CORRECTNESS_AND_TEST_AUDIT_20261118.md) and [as implemented](M18_AS_IMPLEMENTED_20261118.md). The tables below preserve the candidate's state at handoff and are not the current result.
 
 The [approved policy register](M18_POLICY_PROPOSAL_20261118.md), [implementation contract](M18_IMPLEMENTATION_PLAN.md), [25-case G18 verification plan](M18_VERIFICATION_PLAN.md), [75-assertion inventory](M18_G18_ASSERTION_INVENTORY_20261118.json) and [security contract](M18_SECURITY_AND_TRANSACTION_CONTRACT.md) remain the binding completion criteria. This is a candidate checkpoint, not an accepted gate decision.
 

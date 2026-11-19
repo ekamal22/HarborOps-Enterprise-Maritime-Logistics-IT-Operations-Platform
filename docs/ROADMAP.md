@@ -1,4 +1,4 @@
-**M18 progress checkpoint, 2026-11-18:** P01-P20 approved. M18-02/M18-03 source candidate on isolated branch is not compile- or runtime-verified. M18-04 fault journey and G18 25-case/75-assertion campaign remain unexecuted. No acceptance, merge, default-on activation or release. [Current implementation status](M18_IMPLEMENTATION_CHECKPOINT_20261118.md). The canonical execution graph is unchanged.
+**M18 progress checkpoint, 2026-11-18:** P01-P20 approved. M18-01 through M18-04 were audited, corrected and verified locally on frozen source (see the [verification record](M18_G18_LOCAL_VERIFICATION_20261118.md)): 71 of 75 G18 assertions PASS, G18-S24-A01 NOT_APPLICABLE, G18-S25-A01 to A03 pending a separate reviewer. Technical recommendation TECHNICAL PASS; G18 NOT ACCEPTED. No merge, default-on activation or release. The canonical execution graph is unchanged. [Implementation checkpoint](M18_IMPLEMENTATION_CHECKPOINT_20261118.md).
 
 # HarborOps Delivery Roadmap
 

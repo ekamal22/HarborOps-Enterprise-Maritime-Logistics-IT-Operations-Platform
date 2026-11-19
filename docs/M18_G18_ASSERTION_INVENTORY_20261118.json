@@ -4,9 +4,9 @@
   "milestone": "M18",
   "prepared_on": "2026-11-18",
   "source_baseline": "72251f5310f24fb98322b7eb403a5e9e66e040ef",
-  "state": "PLANNED_NOT_EXECUTED",
-  "policies": "M18_P01_P20_PENDING",
-  "technical_review": "NOT_EXECUTED",
+  "state": "EXECUTED_LOCALLY_SEE_LEDGER_G18_NOT_ACCEPTED",
+  "policies": "M18_P01_P20_APPROVED_2026_11_18",
+  "technical_review": "LOCAL_TECHNICAL_PASS_WITH_DISCLOSED_EXCEPTIONS_SEE_LEDGER",
   "gate_acceptance": "NOT_ACCEPTED",
   "scope": {
     "scenarios": 25,

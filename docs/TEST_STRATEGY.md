@@ -1,4 +1,4 @@
-**M18 verification checkpoint, 2026-11-18:** Initial unit test source exists on the unverified feature branch, but no .NET compile, PostgreSQL campaign, frontend build, browser verification, negative mutation run or G18 source-locked test evidence has been executed. G18 75/75 remain NOT_EXECUTED. [Candidate and blockers](M18_IMPLEMENTATION_CHECKPOINT_20261118.md).
+**M18 verification checkpoint, 2026-11-18:** The G18 campaign was executed locally on frozen source with real PostgreSQL under the restricted API role, authenticated HTTP, three real browser engines in English and Turkish, a real-process fault journey and 15 controlled faults (14 killed, 1 equivalent survivor). 71 of 75 assertions PASS, G18-S24-A01 is NOT_APPLICABLE and the three S25 assertions are pending independent review. Neighbour regressions passed with two baseline-identical failures and 19 tests not executed, all disclosed. [Verification record](M18_G18_LOCAL_VERIFICATION_20261118.md), [ledger](M18_G18_ASSERTION_LEDGER_20261118.json). G18 is NOT ACCEPTED.
 
 # Test and Verification Strategy
 
